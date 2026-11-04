@@ -35,6 +35,12 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        billCreated: ({sender}) => `criou esta conta em nome de ${sender}`,
+        billSubmitted: ({receiver}) => `enviou esta conta para ${receiver}`,
+        invoiceCreated: ({sender}) => `criou esta fatura em nome de ${sender}`,
+        invoiceSubmitted: ({receiver}) => `enviou esta fatura para ${receiver}`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `${count} dia`,
@@ -1232,6 +1238,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'Conformidade',
         runningTotal: 'Total acumulado',
+        explain: 'Explicar',
+        explainChartPrompt: (chartTitle: string) => `Explique os dados em ${chartTitle}.`,
     },
     allSettingsScreen: {
         subscription: 'Assinatura',
@@ -1539,10 +1547,10 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: 'Se você não tiver um site, poderá fornecer o LinkedIn ou o perfil de rede social da sua empresa.',
         invalidDomainError: 'Você inseriu um domínio inválido. Para continuar, insira um domínio válido.',
         publicDomainError: 'Você inseriu um domínio público. Para continuar, insira um domínio privado.',
-        expenseCount: () => {
+        expenseCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
             return {
-                one: '1 despesa',
-                other: (count: number) => `${count} despesas`,
+                one: (count: number) => `Despesa ${formattedCount ?? count}`,
+                other: (count: number) => `${formattedCount ?? count} despesas`,
             };
         },
         deleteExpense: () => ({
@@ -1704,6 +1712,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: 'Insira um valor diferente de zero para a sua divisão',
             noParticipantSelected: 'Selecione um participante',
             other: 'Erro inesperado. Tente novamente mais tarde.',
+            payFailedExpenseDeleted: 'O pagamento falhou porque o relatório de despesas foi excluído.',
             genericCreateFailureMessage: 'Erro inesperado ao enviar esta despesa. Tente novamente mais tarde.',
             genericCreateInvoiceFailureMessage: 'Erro inesperado ao enviar esta fatura. Tente novamente mais tarde.',
             genericHoldExpenseFailureMessage: 'Erro inesperado ao reter esta despesa. Tente novamente mais tarde.',
@@ -3118,6 +3127,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `Concordo com os <a href="${CONST.WISE.TERMS_URL}">termos e condições</a> e a <a href="${CONST.WISE.PRIVACY_URL}">política de privacidade</a> da Wise.`,
                 wiseTermsAccessibilityLabel: 'Concordo com os termos e condições e a política de privacidade da Wise.',
                 error: 'Aceite todos os termos para continuar.',
+                alreadySubmitted: 'Esta empresa já foi enviada à Wise para análise.',
+            },
+            moreInfoNeeded: {
+                headerTitle: 'Mais informações necessárias',
+                title: 'Verificar informações adicionais',
+                subtitle: 'Nosso parceiro de pagamentos precisa de mais informações diretamente. Isso deve levar apenas alguns minutos.',
             },
         },
         wiseGlobalReimbursementsIntro: {
@@ -3128,6 +3143,7 @@ const translations: TranslationDeepObject<typeof en> = {
             payingReportSubtitle: 'As contas bancárias da empresa e do funcionário usam moedas diferentes.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Pague pessoas no mundo todo', subtitle: 'Ative reembolsos globais na sua conta em USD.'},
+        globalReimbursementsEnabled: 'Reembolsos globais ativados',
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Adicionar cartão à ${walletName}`,
@@ -3645,6 +3661,7 @@ ${amount} para ${merchant} - ${date}`,
         appSection: {
             title: 'Preferências do app',
         },
+        distanceSection: {title: 'Preferências de distância'},
         testSection: {
             title: 'Preferências de teste',
             subtitle: 'Configurações para ajudar a depurar e testar o app em staging.',
@@ -6997,6 +7014,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             updateFailureMessage: 'Ocorreu um erro ao atualizar a categoria, tente novamente',
             createFailureMessage: 'Ocorreu um erro ao criar a categoria, tente novamente.',
             addCategory: 'Adicionar categoria',
+            createCategoryFromSearch: (categoryName: string) => `Criar categoria “${categoryName}”`,
             editCategory: 'Editar categoria',
             editCategories: 'Editar categorias',
             findCategory: 'Encontrar categoria',
@@ -9161,9 +9179,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 describeRuleForConcierge: 'Descreva sua regra e o Concierge vai criá-la',
                 gotIt: 'Entendi',
                 createRule: 'Criar regra',
-                fallbackBanner:
-                    'Esta não é uma regra padrão, então a criamos como uma regra de agente. As regras de agente entram em ação depois que uma despesa ou um relatório é alterado, por exemplo, ao reter a despesa ou rejeitar o relatório.',
-                fallbackBannerWithExplanation: (explanation: string) => `Esta não é uma regra padrão, então nós a elaboramos como uma regra de agente. ${explanation}`,
+                fallbackBanner: 'Esta não é uma regra padrão, então criamos uma regra de agente.',
+                fallbackBannerWithExplanation: (explanation: string) => `Esta não é uma regra padrão, então criamos uma regra de agente. ${explanation}`,
             },
             tabs: {
                 general: 'Geral',
@@ -10510,6 +10527,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `atualizou "Impedir marcar relatórios não reembolsáveis como pagos" para "${newValue === 'true' ? 'Ativado' : 'Desativado'}" (antes "${oldValue === 'true' ? 'Ativado' : 'Desativado'}")`,
         addedExpensifyCardFeed: (feedName: string) => `adicionou o feed do Cartão Expensify "${feedName}"`,
+        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
+            if (!oldValue) {
+                return `definir o fuso horário do espaço de trabalho para "${newValue}"`;
+            }
+            return `atualizou o fuso horário do workspace para "${newValue}" (antes era "${oldValue}")`;
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',
@@ -11110,6 +11133,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');
                     return `Abra o app móvel da Expensify para revisar sua transação de${amountAndMerchantText ? ` ${amountAndMerchantText}` : ''}`;
                 },
+                autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
+                    `Reembolsos Globais foram ativados por ${adminName} na conta ${bankName ? `${bankName} ` : ''}terminada em ${lastFour}. Taxas de câmbio exatas e tarifas não podem ser pré-visualizadas antes do pagamento quando relatórios internacionais são pagos automaticamente. Revise suas <a href="${autoPaySettingsURL}">configurações de pagamento automático</a> para mais informações sobre taxas de câmbio e tarifas.`,
             },
             error: {
                 invalidCredentials: 'Credenciais inválidas, verifique a configuração da sua conexão.',
@@ -12229,7 +12254,6 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             isUnreadWithMention: 'Está não lido com menção',
             isWaitingForAssigneeToCompleteAction: 'Aguardando o responsável concluir a ação',
             hasChildReportAwaitingAction: 'Tem relatório filho aguardando ação',
-            hasMissingInvoiceBankAccount: 'Tem conta bancária da fatura ausente',
             hasUnresolvedCardFraudAlert: 'Tem alerta de fraude no cartão não resolvido',
             hasDEWApproveFailed: 'Falha na aprovação do DEW',
         },

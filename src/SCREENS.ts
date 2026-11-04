@@ -141,6 +141,7 @@ const SCREENS = {
             LANGUAGE: 'Settings_Preferences_Language',
             THEME: 'Settings_Preferences_Theme',
             PAYMENT_CURRENCY: 'Settings_Payment_Currency',
+            HOME_ADDRESS: 'Settings_Preferences_HomeAddress',
         },
 
         AGENTS: {
@@ -213,6 +214,7 @@ const SCREENS = {
             DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO: 'Dynamic_Settings_Wallet_Wise_Global_Reimbursements_Intro',
             DYNAMIC_WISE_BUSINESS_ONBOARDING: 'Dynamic_Settings_Wallet_Wise_Business_Onboarding',
             DYNAMIC_WISE_ACCEPT_TERMS: 'Dynamic_Settings_Wallet_Wise_Accept_Terms',
+            DYNAMIC_WISE_MORE_INFO_NEEDED: 'Dynamic_Settings_Wallet_Wise_More_Info_Needed',
             DYNAMIC_BANK_ACCOUNT_LINK_PLAID: 'Dynamic_Settings_Wallet_BankAccount_LinkPlaid',
             TRAVEL_CVV: 'Settings_Wallet_Travel_CVV',
             TRAVEL_CVV_VERIFY_ACCOUNT: 'Settings_Wallet_Travel_CVV_VerifyAccount',
