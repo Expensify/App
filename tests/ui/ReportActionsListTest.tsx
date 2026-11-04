@@ -14,6 +14,7 @@ import useReportTransactionsCollection from '@hooks/useReportTransactionsCollect
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+import type useUnreadMarker from '@hooks/useUnreadMarker';
 
 import DateUtils from '@libs/DateUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -25,6 +26,7 @@ import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/Concierg
 import CollapsedSystemMessages from '@pages/inbox/report/CollapsedSystemMessages';
 import ReportActionsList from '@pages/inbox/report/ReportActionsList';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
+import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
 import useScrollToEditingReportAction from '@pages/inbox/report/useScrollToEditingReportAction';
 
 import CONST from '@src/CONST';
@@ -364,6 +366,97 @@ describe('ReportActionsList (body)', () => {
     afterEach(async () => {
         await waitForBatchedUpdatesWithAct();
         await Onyx.clear();
+    });
+
+    describe('Support survey unread markers', () => {
+        it.each(['unresolved', 'replaced', 'resolved'] as const)('places the unread marker on a visible reply when the ticket is %s', (ticketState) => {
+            // Given an unread survey from a previous resolution before an unread support reply
+            const supportReport = {
+                ...mockReport,
+                type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+                stateNum: ticketState === 'unresolved' ? CONST.REPORT.STATE_NUM.OPEN : CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: ticketState === 'unresolved' ? CONST.REPORT.STATUS_NUM.OPEN : CONST.REPORT.STATUS_NUM.CLOSED,
+                lastReadTime: '2023-01-01 00:02:00.000',
+            };
+            const readComment = {
+                ...mockReportActions[1],
+                reportActionID: 'read-comment',
+                created: '2023-01-01 00:01:00.000',
+            };
+            const obsoleteSurvey = {
+                ...readComment,
+                reportActionID: 'obsolete-survey',
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY,
+                created: '2023-01-01 00:03:00.000',
+            };
+            const unreadReply = {
+                ...readComment,
+                reportActionID: 'unread-reply',
+                created: '2023-01-01 00:04:00.000',
+            };
+            const resolution = {
+                ...readComment,
+                reportActionID: 'resolution',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
+                created: '2023-01-01 00:05:00.000',
+            };
+            const latestSurvey = {
+                ...obsoleteSurvey,
+                reportActionID: 'latest-survey',
+                created: '2023-01-01 00:06:00.000',
+            };
+            const actions = ticketState === 'unresolved' ? [unreadReply, obsoleteSurvey, readComment] : [latestSurvey, resolution, unreadReply, obsoleteSurvey, readComment];
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockUseOnyx.mockImplementation((key, options) => {
+                if (key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`) {
+                    return [supportReport, {status: 'loaded'}];
+                }
+                if (key === `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${mockReport.reportID}`) {
+                    return [ticketState === 'replaced' ? {reopenedAsReportID: 'replacement-ticket'} : {}, {status: 'loaded'}];
+                }
+                return getMockOnyxValue(key, options);
+            });
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: actions,
+                sortedAllReportActions: actions,
+            });
+            mockUseUnreadMarker.mockImplementation(({sortedVisibleReportActions}: Parameters<typeof useUnreadMarker>[0]) => {
+                const [unreadMarkerReportActionID, unreadMarkerReportActionIndex] = getUnreadMarkerReportAction({
+                    visibleReportActions: sortedVisibleReportActions,
+                    earliestReceivedOfflineMessageIndex: undefined,
+                    currentUserAccountID: 100,
+                    prevSortedVisibleReportActionsObjects: {},
+                    unreadMarkerTime: supportReport.lastReadTime,
+                    isScrolledOverThreshold: false,
+                    isOffline: false,
+                    isReversed: false,
+                    hasWindowFocus: false,
+                });
+                return {
+                    unreadMarkerReportActionID,
+                    unreadMarkerReportActionIndex,
+                };
+            });
+
+            // When the ticket opens with unread messages
+            renderReportActionsList();
+
+            // Then the hidden survey cannot take the divider away from the visible reply
+            const visibleActions = getCapturedVisibleActions();
+            expect(visibleActions).not.toContain(obsoleteSurvey);
+            expect(visibleActions?.includes(latestSurvey)).toBe(ticketState === 'resolved');
+            expect(mockUseReportActionsScroll.mock.lastCall?.[0].unreadMarkerReportActionID).toBe(unreadReply.reportActionID);
+            expect(mockUseReportActionsScroll.mock.lastCall?.[0].unreadMarkerReportActionIndex).toBe(visibleActions?.indexOf(unreadReply));
+            const row = findRenderedElement<React.ComponentProps<typeof ReportActionsListItemRenderer>>(
+                getCapturedListProps()?.renderItem?.({
+                    item: unreadReply,
+                    index: visibleActions?.indexOf(unreadReply) ?? -1,
+                }),
+                ReportActionsListItemRenderer,
+            );
+            expect(row?.props.shouldDisplayNewMarker).toBe(true);
+        });
     });
 
     describe('System message presentation', () => {
