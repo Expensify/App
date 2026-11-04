@@ -1252,7 +1252,7 @@ type InFlightSearchRequest = {
     shouldDiscardStaleSnapshot: boolean;
     /** The query it sends, which keys its guard. */
     jsonQuery?: string;
-    /** Local inline-edit writes queued at dispatch. Unset until the request is sent, including when it waits for writes. */
+    /** How many inline edit writes this tab had queued when the request was sent. It is compared with the current count when the response arrives, to tell whether an edit was queued while the request was in flight. */
     queuedInlineEditWritesCountWhenSent?: number;
 };
 
