@@ -1040,7 +1040,7 @@ describe('libs/NextStepUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 nextStep: currentNextStep,
-            } as Report;
+            };
 
             const policy = createMock<Policy>({
                 id: policyID,
@@ -1088,7 +1088,7 @@ describe('libs/NextStepUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 nextStep: currentNextStep,
-            } as Report;
+            };
 
             const policy = createMock<Policy>({
                 id: policyID,
