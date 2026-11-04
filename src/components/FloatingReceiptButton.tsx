@@ -50,6 +50,7 @@ function FloatingReceiptButton({onPress, accessibilityLabel, role, sentryLabel}:
                 }}
                 style={[
                     styles.navigationTabBarFABItem,
+                    styles.ph0,
 
                     // Prevent text selection on touch devices (e.g. on long press)
                     canUseTouchScreen() && styles.userSelectNone,

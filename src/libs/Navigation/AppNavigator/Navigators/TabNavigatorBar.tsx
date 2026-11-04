@@ -16,6 +16,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import isTabRouteAtRoot from '@libs/Navigation/helpers/isTabRouteAtRoot';
 import cancelTabNavigationSpans, {NAVIGATION_TAB_TO_SPANS} from '@libs/telemetry/cancelTabNavigationSpans';
 
+import variables from '@styles/variables';
+
 import SCREENS from '@src/SCREENS';
 
 import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
@@ -92,9 +94,11 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
     }
 
     // When the screen is not blocking the view, we need to raise the tab bar above the screen content so the DebugTabView is visible.
+    // The container also spans the sidebar next to the bar, so floating content such as the debug view is not clipped.
+    // tabNavigatorBarContainer's negative margin gives that width back, leaving only the bar's width as layout space.
     return (
         <View
-            style={[styles.tabNavigatorBarContainer, StyleUtils.getTabNavigatorBarWidthStyle(navigationBarWidth), !isBlockingViewVisible && {zIndex: 1}]}
+            style={[styles.tabNavigatorBarContainer, StyleUtils.getWidthStyle(navigationBarWidth + variables.sideBarWithLHBWidth), !isBlockingViewVisible && {zIndex: 1}]}
             pointerEvents="box-none"
         >
             {shouldUseFlatNavigationBar ? <FlatNavigationBar selectedTab={selectedTab} /> : <NavigationTabBar selectedTab={selectedTab} />}

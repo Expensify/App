@@ -890,7 +890,7 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
             justifyContent: 'space-between',
             height: variables.flatNavigationBarHeaderHeight,
-            paddingLeft: 20,
+            paddingLeft: variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding,
             paddingRight: 12,
         },
 
@@ -899,7 +899,7 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
             gap: 12,
             height: variables.flatNavigationBarItemHeight,
-            paddingHorizontal: 12,
+            paddingHorizontal: variables.flatNavigationBarRowPadding,
             marginHorizontal: variables.flatNavigationBarRowInset,
             borderRadius: variables.componentBorderRadiusNormal,
         },
@@ -918,7 +918,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         flatNavigationBarDivider: {
             height: 1,
-            marginHorizontal: 20,
+            marginHorizontal: variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding,
             marginVertical: 8,
             backgroundColor: theme.border,
         },

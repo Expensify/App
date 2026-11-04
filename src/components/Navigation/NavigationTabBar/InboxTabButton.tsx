@@ -11,6 +11,7 @@ import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
+import getTabAccessibilityLabel from './getTabAccessibilityLabel';
 import navigateToInboxTab from './navigateToInboxTab';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import TabBarItem from './TabBarItem';
@@ -64,7 +65,7 @@ function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
     const {status: chatTabBrickRoad, indicatorColor: statusIndicatorColor} = useInboxTabIndicatorStatus();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Inbox']);
 
-    const accessibilityLabel = chatTabBrickRoad ? `${translate('common.inbox')}. ${translate('common.yourReviewIsRequired')}` : translate('common.inbox');
+    const accessibilityLabel = getTabAccessibilityLabel(translate('common.inbox'), !!chatTabBrickRoad, translate);
 
     if (isWideLayout) {
         return (

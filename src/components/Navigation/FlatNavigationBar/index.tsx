@@ -1,5 +1,7 @@
+import AccountNavigationAvatar from '@components/Avatar/AccountNavigationAvatar';
 import Hoverable from '@components/Hoverable';
 import DebugTabView from '@components/Navigation/DebugTabView';
+import getTabAccessibilityLabel from '@components/Navigation/NavigationTabBar/getTabAccessibilityLabel';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import useAccountTabNavigation from '@components/Navigation/NavigationTabBar/useAccountTabNavigation';
 import useHomeTabNavigation from '@components/Navigation/NavigationTabBar/useHomeTabNavigation';
@@ -31,7 +33,6 @@ import type {ValueOf} from 'type-fest';
 import React from 'react';
 import {View} from 'react-native';
 
-import FlatNavAccountAvatar from './FlatNavAccountAvatar';
 import FlatNavCreateMenuButtons from './FlatNavCreateMenuButtons';
 import FlatNavDivider from './FlatNavDivider';
 import FlatNavItem from './FlatNavItem';
@@ -67,8 +68,6 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
 
     const accountLabel = currentUserPersonalDetails.displayName ? currentUserPersonalDetails.displayName : translate('initialSettingsPage.account');
 
-    const getAccessibilityLabel = (label: string, needsReview: boolean) => (needsReview ? `${label}. ${translate('common.yourReviewIsRequired')}` : label);
-
     return (
         <>
             {!!isDebugModeEnabled && <DebugTabView selectedTab={selectedTab} />}
@@ -98,7 +97,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                 icon={icons.Inbox}
                                 isSelected={selectedTab === NAVIGATION_TABS.INBOX}
                                 statusIndicatorColor={inboxStatus ? inboxIndicatorColor : undefined}
-                                accessibilityLabel={getAccessibilityLabel(translate('common.inbox'), !!inboxStatus)}
+                                accessibilityLabel={getTabAccessibilityLabel(translate('common.inbox'), !!inboxStatus, translate)}
                                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
                                 onPress={navigateToInbox}
                             />
@@ -123,7 +122,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                 icon={icons.Buildings}
                                 isSelected={selectedTab === NAVIGATION_TABS.WORKSPACES}
                                 statusIndicatorColor={workspacesStatus ? workspacesIndicatorColor : undefined}
-                                accessibilityLabel={getAccessibilityLabel(translate('common.workspacesTabTitle'), !!workspacesStatus)}
+                                accessibilityLabel={getTabAccessibilityLabel(translate('common.workspacesTabTitle'), !!workspacesStatus, translate)}
                                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.WORKSPACES}
                                 onPress={navigateToWorkspaces}
                             />
@@ -135,10 +134,15 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                             <FlatNavDivider />
                             <FlatNavItem
                                 label={accountLabel}
-                                leftElement={<FlatNavAccountAvatar isSelected={isAccountSelected} />}
+                                renderLeftElement={({backgroundColor}) => (
+                                    <AccountNavigationAvatar
+                                        isSelected={isAccountSelected}
+                                        badgeBorderColor={backgroundColor}
+                                    />
+                                )}
                                 isSelected={isAccountSelected}
                                 isTall
-                                accessibilityLabel={getAccessibilityLabel(`${accountLabel}, ${translate('sidebarScreen.buttonMySettings')}`, !!accountStatus)}
+                                accessibilityLabel={getTabAccessibilityLabel(`${accountLabel}, ${translate('sidebarScreen.buttonMySettings')}`, !!accountStatus, translate)}
                                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.ACCOUNT}
                                 onPress={navigateToAccount}
                             />

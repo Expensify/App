@@ -17,16 +17,14 @@ import type {ColorValue} from 'react-native';
 import React from 'react';
 import {View} from 'react-native';
 
-import FlatNavItemBackgroundContext from './FlatNavItemBackgroundContext';
-
 type FlatNavItemProps = {
     /** Translated row label */
     label: string;
 
     icon?: IconAsset;
 
-    /** Rendered in place of the icon, e.g. the account avatar. It can read the row's background from FlatNavItemBackgroundContext. */
-    leftElement?: React.ReactNode;
+    /** Draws what goes in place of the icon, e.g. the account avatar. Gets the row's current background, undefined when the row shows the bar's own. */
+    renderLeftElement?: (rowState: {backgroundColor: ColorValue | undefined}) => React.ReactNode;
 
     isSelected: boolean;
 
@@ -44,7 +42,7 @@ type FlatNavItemProps = {
 };
 
 /** Full-width row of the flat navigation bar: an icon or avatar, then the destination's label. */
-function FlatNavItem({label, icon, leftElement, isSelected, isTall = false, statusIndicatorColor, accessibilityLabel, sentryLabel, onPress}: FlatNavItemProps) {
+function FlatNavItem({label, icon, renderLeftElement, isSelected, isTall = false, statusIndicatorColor, accessibilityLabel, sentryLabel, onPress}: FlatNavItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -73,7 +71,7 @@ function FlatNavItem({label, icon, leftElement, isSelected, isTall = false, stat
             {({hovered}) => {
                 const rowBackgroundColor = getRowBackgroundColor(hovered);
                 return (
-                    <FlatNavItemBackgroundContext.Provider value={rowBackgroundColor}>
+                    <>
                         {!!icon && (
                             <View>
                                 <Icon
@@ -95,7 +93,7 @@ function FlatNavItem({label, icon, leftElement, isSelected, isTall = false, stat
                                 )}
                             </View>
                         )}
-                        {leftElement}
+                        {renderLeftElement?.({backgroundColor: rowBackgroundColor})}
                         <Text
                             variant={isSelected ? 'textStrong' : 'text'}
                             color={isSelected || hovered ? theme.text : theme.textSupporting}
@@ -104,7 +102,7 @@ function FlatNavItem({label, icon, leftElement, isSelected, isTall = false, stat
                         >
                             {label}
                         </Text>
-                    </FlatNavItemBackgroundContext.Provider>
+                    </>
                 );
             }}
         </PressableWithFeedback>
