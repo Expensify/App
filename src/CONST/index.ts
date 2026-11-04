@@ -10900,7 +10900,6 @@ const CONST = {
             TRAVEL: {
                 BOOK_TRAVEL_BUTTON: 'WorkspaceTravel-BookTravelButton',
                 GET_STARTED_BUTTON: 'WorkspaceTravel-GetStartedButton',
-                MANAGE_MEMBERS_BUTTON: 'WorkspaceTravel-ManageMembersButton',
             },
             INVOICES: {
                 COMPANY_NAME: 'WorkspaceInvoices-CompanyName',

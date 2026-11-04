@@ -7160,10 +7160,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         subtitle:
                             'Σπρώξτε τις κατηγορίες, τις ετικέτες και τα πεδία αναφοράς αυτού του χώρου εργασίας στο Expensify Travel, ώστε οι ταξιδιώτες να τα απαντούν κατά την ώρα της κράτησης.',
                     },
-                    autoEnableNewMembers: {
-                        title: 'Αυτόματη ενεργοποίηση ταξιδιών για νέα μέλη',
-                        subtitle: 'Όποιος συμμετέχει σε αυτόν τον χώρο εργασίας μπορεί να κλείνει ταξίδια αμέσως.',
-                    },
                 },
                 members: {
                     offDescription: 'Δεν μπορεί να κάνει κρατήσεις ταξιδιών',
@@ -7172,8 +7168,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     changeTravelAccess: 'Αλλαγή πρόσβασης σε ταξίδια',
                     turnOnTravel: 'Ενεργοποίηση ταξιδιών',
                     turnOffTravel: 'Απενεργοποίηση ταξιδιών',
-                    manageMembers: 'Διαχείριση μελών',
-                    membersWithTravelAccess: ({enabledCount, totalCount}: {enabledCount: number; totalCount: number}) => `Μπορούν να κλείνουν ταξίδια: ${enabledCount} από ${totalCount}`,
                 },
                 travelBilling: {
                     travelBookingSection: {
