@@ -149,7 +149,7 @@ function GenericPressable({
         onPressHandler(event);
     };
 
-    const singleExecutionOnPressHandler = (event: GestureResponderEvent) => singleExecution(onPressHandler)(event);
+    const pressOnce = (event: GestureResponderEvent) => singleExecution(onPressHandler)(event);
 
     const {shortcutKey, descriptionKey, modifiers} = keyboardShortcut ?? {};
     useKeyboardShortcut({shortcutKey, descriptionKey, modifiers} as ValueOf<typeof CONST.KEYBOARD_SHORTCUTS>, onKeyboardShortcutPressHandler, {
@@ -184,7 +184,7 @@ function GenericPressable({
             onLayout={shouldUseAutoHitSlop ? onLayout : undefined}
             ref={composedRef}
             disabled={fullDisabled || undefined}
-            onPress={!isDisabled ? singleExecutionOnPressHandler : undefined}
+            onPress={!isDisabled ? pressOnce : undefined}
             onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}
             onKeyDown={!isDisabled ? handleKeyDown : undefined}
             onPressIn={!isDisabled ? onPressIn : undefined}
