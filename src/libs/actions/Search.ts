@@ -1248,7 +1248,7 @@ type InFlightSearchRequest = {
     pendingShouldDiscardStaleSnapshot?: boolean;
     pendingUpgradeRequest?: () => Promise<string | number | undefined> | undefined;
     didSucceed?: boolean;
-    /** Drops its snapshot if a local inline edit is queued in flight. A guarded refetch that joins it turns this on. */
+    /** Whether the response's snapshot should be dropped, and the request run again, when an inline edit is queued in this tab while the request is in flight. */
     shouldDiscardStaleSnapshot: boolean;
     /** The query it sends, which keys its guard. */
     jsonQuery?: string;
