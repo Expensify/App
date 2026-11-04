@@ -1146,8 +1146,7 @@ describe('ReportAlternateTextUtils', () => {
                     ...createRandomReportAction(19),
                     reportID: report.reportID,
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                    message: [{type: 'COMMENT', text: ''}],
-                    originalMessage: {},
+                    message: {type: 'COMMENT', text: ''},
                 };
                 const transaction: Transaction = {
                     ...createRandomTransaction(2),
@@ -1165,8 +1164,8 @@ describe('ReportAlternateTextUtils', () => {
                     reportID: report.reportID,
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                     created: '2026-04-01 16:00:00.000',
-                    message: [{type: 'COMMENT', text: ''}],
-                    originalMessage: {
+                    message: {
+                        text: '',
                         amount: -2500,
                         currency: CONST.CURRENCY.USD,
                         comment: storedComment,
