@@ -95,6 +95,37 @@ describe('useShareActions', () => {
         expect(options.at(0)?.text).toBe('common.shareReport');
     });
 
+    it('lists share report on an open report for a workspace admin', () => {
+        // Given an open report that someone else owns and approves
+        mockReport = {...submittedReport, ownerAccountID: OTHER_ACCOUNT_ID, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
+
+        // When the share options are built for a workspace admin
+        const options = getShareOptions(createMock<Policy>({id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}));
+
+        // Then the admin can email the draft, since admins can share every report in the workspace
+        expect(options.at(0)?.text).toBe('common.shareReport');
+    });
+
+    it('lists share report for the approver only once the report is submitted', () => {
+        // Given an open report that the current user approves but does not own
+        mockReport = {
+            ...submittedReport,
+            ownerAccountID: OTHER_ACCOUNT_ID,
+            managerID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+        const memberPolicy = createMock<Policy>({id: 'policy1', role: CONST.POLICY.ROLE.USER});
+
+        // When the share options are built for the approver
+        const draftOptions = getShareOptions(memberPolicy);
+
+        // Then they cannot share the draft, because the approver only gets the share permission on submit
+        expect(draftOptions.map((option) => option.text)).not.toContain('common.shareReport');
+        mockReport = {...mockReport, stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED};
+        expect(getShareOptions(memberPolicy).at(0)?.text).toBe('common.shareReport');
+    });
+
     it('hides share report from a member who is not the submitter, the approver or an admin', () => {
         // Given a submitted report that someone else owns and approves
         mockReport = {...submittedReport, ownerAccountID: OTHER_ACCOUNT_ID};
