@@ -31,7 +31,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AIInsight, InsightsDashboard as InsightsDashboardRecord, InsightsDashboardID} from '@src/types/onyx';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import viewRef from '@src/types/utils/viewRef';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -292,7 +291,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {login} = useCurrentUserPersonalDetails();
-    const [policies, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {filters, defaultFilters, isResolved, setFilters} = useInsightsFilters(dashboardID);
     const {headerRef, controlsRef, contentRef, isExporting, isLoading: isChartLoading, exportDashboard, captureContext} = useInsightsExport(dashboardID, filters);
     const updateFilters = (update: Partial<InsightsFilters>) => {
@@ -305,7 +304,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     const policiesInScope = getPoliciesInScope(policies, filters.policyIDs);
     const eligibleCharts = getVisibleCharts(supportingSpecs, policiesInScope, login);
     const eligibleGraphKeys = eligibleCharts.map(({graphKey}) => graphKey).join(',');
-    const arePoliciesLoaded = !isLoadingOnyxValue(policiesMetadata);
+    const arePoliciesLoaded = policies !== undefined;
     // Settled from the policies already in Onyx, so the charts are never requested for a dashboard the upsell stands in for
     const shouldUpsell = arePoliciesLoaded && shouldUpsellControlPlan(dashboardID, policiesInScope, filters.policyIDs, login);
     const upgradeablePolicyIDs = shouldUpsell ? getUpgradeablePolicyIDsInScope(policiesInScope, login) : [];
