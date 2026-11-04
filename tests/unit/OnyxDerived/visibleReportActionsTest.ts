@@ -8,6 +8,8 @@ import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValu
 
 import type {OnyxCollection} from 'react-native-onyx';
 
+import createMock from '../../utils/createMock';
+
 describe('visibleReportActions', () => {
     describe('SESSION detected via triggeredKeys', () => {
         const reportActionsKeyA = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}A`;
@@ -87,12 +89,13 @@ describe('visibleReportActions', () => {
         const invoiceReportID = 'invoiceReportID';
         const chatReportID = 'chatReportID';
         const expenseReportID = 'expenseReportID';
-        const makePreview = (reportActionID: string, linkedReportID: string): ReportAction => ({
-            reportActionID,
-            actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-            created: '2026-11-01 12:00:00.000',
-            message: {linkedReportID},
-        });
+        const makePreview = (reportActionID: string, linkedReportID: string): ReportAction =>
+            createMock<ReportAction>({
+                reportActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                created: '2026-11-01 12:00:00.000',
+                message: {linkedReportID},
+            });
         const allReportActions: OnyxCollection<ReportActions> = {
             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${roomReportID}`]: {invoicePreviewID: makePreview('invoicePreviewID', invoiceReportID)},
             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`]: {expensePreviewID: makePreview('expensePreviewID', expenseReportID)},
