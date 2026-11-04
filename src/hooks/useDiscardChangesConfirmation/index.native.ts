@@ -34,7 +34,6 @@ function useDiscardChangesConfirmation({
     onConfirm,
     onTabSwitchDiscard,
     shouldPromptWhenUnfocused = false,
-    shouldPromptForNavigationAction,
     onDiscarded,
 }: UseDiscardChangesConfirmationOptions): DiscardChangesConfirmation {
     const route = useRoute();
@@ -70,12 +69,8 @@ function useDiscardChangesConfirmation({
     const isGuardActive = () => (shouldPromptWhenUnfocused ? getIsFlowRootGuardActive(navigation, route.key) : isFocused);
     const isMuted = () => isSavingRef.current || (shouldPromptWhenUnfocused && isFlowDiscardPromptSuppressed());
     const hasUnsavedChanges = () => isGuardActive() && !isMuted() && getHasUnsavedChanges();
-    const shouldPromptFor = (action: NavigationAction) => {
-        if (shouldPromptWhenUnfocused && isInFlowNavigationForRoot(action, route, getFlowRootStackKey(navigation))) {
-            return false;
-        }
-        return shouldPromptForNavigationAction?.(action) ?? true;
-    };
+    // Some navigations remove the flow's first screen but keep the user in the flow, so they don't prompt
+    const shouldPromptFor = (action: NavigationAction) => !shouldPromptWhenUnfocused || !isInFlowNavigationForRoot(action, route, getFlowRootStackKey(navigation));
 
     // Callers derive dirtiness from current values and baselines, so this is safe to read during render.
     // The save suppression and the flow-root gate stay out of it because they read refs and navigation state: the callback below applies them.

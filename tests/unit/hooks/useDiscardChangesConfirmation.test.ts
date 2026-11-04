@@ -415,18 +415,6 @@ describe('useDiscardChangesConfirmation (web)', () => {
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
         });
 
-        it('lets an action through when the caller opts out of prompting for it', () => {
-            // Given a dirty guard that never prompts for a POP
-            renderHook(() => useDiscardChangesConfirmation({getHasUnsavedChanges: () => true, shouldPromptForNavigationAction: (action) => action.type !== 'POP'}));
-
-            // When a POP removes the screen
-            const event = invokeBeforeRemove('POP');
-
-            // Then the navigation goes through without a prompt
-            expect(event.defaultPrevented).toBe(false);
-            expect(mockShowConfirmModal).not.toHaveBeenCalled();
-        });
-
         it('stays quiet while a later step submits, and prompts again once the suppression is released', () => {
             // Given a dirty flow root and a submit from a later step that muted the flow's guards
             renderFlowRootHook();
