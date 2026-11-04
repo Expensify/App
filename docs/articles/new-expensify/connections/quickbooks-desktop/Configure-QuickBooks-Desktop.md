@@ -61,8 +61,6 @@ These settings control how Expensify exports reports and transactions to QuickBo
 **Basic Export Settings:**
 
 * **Preferred Exporter**: Choose a Workspace Admin to automate report exports (defaults to workspace owner).
-
-  * **Note**: If exporting company card transactions, the preferred exporter must also be a Domain Admin.
 * **Export Date**: Choose **date of last expense** (default), **export date**, or **submitted date**.
 
 **Out-of-Pocket Expenses:**

@@ -43,7 +43,6 @@ To choose how data is exported from Expensify to QuickBooks Online:
 4. Configure the following settings:
 
 - **Preferred exporter**: Select a workspace admin for automatic exports
-  - Note: If card exports are controlled by domain settings, the preferred exporter must be a **Domain Admin**
 - **Export date**: Choose from:
   - Date of last expense
   - Submitted date
