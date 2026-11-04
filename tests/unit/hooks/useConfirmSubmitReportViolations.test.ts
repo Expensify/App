@@ -232,6 +232,56 @@ describe('useConfirmSubmitReportViolations', () => {
         expect(getShowConfirmModalOption('buttonVariant')).toBe(CONST.BUTTON_VARIANT.DANGER);
     });
 
+    describe('when a missing merchant is the only problem', () => {
+        const expenseReport = createMock<Report>({type: CONST.REPORT.TYPE.EXPENSE});
+        const transactionWithoutMerchant = createMock<Transaction>({transactionID: '1', merchant: CONST.TRANSACTION.DEFAULT_MERCHANT});
+
+        it('opens the modal with the missing merchant bullet instead of submitting immediately', () => {
+            // Given an expense report with no violations and one expense without a merchant
+            const {result} = renderHook(() =>
+                useConfirmSubmitReportViolations({
+                    reportID: expenseReport.reportID,
+                    report: expenseReport,
+                    policy: undefined,
+                    transactions: [transactionWithoutMerchant],
+                    violationsCollection: {},
+                }),
+            );
+            const onProceed = jest.fn();
+
+            // When the caller tries to submit
+            result.current(onProceed);
+
+            // Then the user must see the warning first, since the server accepts the submission without one
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+            expect(getPromptViolations()).toEqual(['iou.missingMerchant']);
+            expect(onProceed).not.toHaveBeenCalled();
+        });
+
+        it('calls onProceed(false) when the user confirms', async () => {
+            // Given the same report, where the warning is only informational
+            const {result} = renderHook(() =>
+                useConfirmSubmitReportViolations({
+                    reportID: expenseReport.reportID,
+                    report: expenseReport,
+                    policy: undefined,
+                    transactions: [transactionWithoutMerchant],
+                    violationsCollection: {},
+                }),
+            );
+            const onProceed = jest.fn();
+
+            // When the user confirms "Submit anyway"
+            result.current(onProceed);
+            resolveShowConfirmModal({action: MockModalActions.CONFIRM});
+
+            // Then the submission must go ahead without asking the backend to resolve anything
+            await waitFor(() => {
+                expect(onProceed).toHaveBeenCalledWith(false);
+            });
+        });
+    });
+
     it('shows the report-rejected bullet (not the rejected-expense one) when the whole report was rejected to the submitter', () => {
         // Given a report with no transaction-level violations, but rejected in full (nextStep.messageKey is
         // REJECTED_REPORT, report reopened to OPEN) - a report-level state, not a TransactionViolations entry

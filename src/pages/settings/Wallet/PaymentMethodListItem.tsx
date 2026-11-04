@@ -47,6 +47,7 @@ import GlobalReimbursementsEnabledIcon from './GlobalReimbursementsEnabledIcon';
 import PendingDigitalWalletApprovalRow from './PendingDigitalWalletApprovalRow';
 import WalletPromptRow from './WalletPromptRow';
 import WiseMoreInfoNeededRow from './WiseMoreInfoNeededRow';
+import WiseSetupInProgressRow from './WiseSetupInProgressRow';
 
 type ConnectionStatusDetails = {
     statusText: string;
@@ -99,6 +100,14 @@ type PaymentMethodItem = PaymentMethod & {
 
         /** Whether the user can open the business onboarding for the account, which shows the Review button */
         canReview: boolean;
+    };
+
+    /** The bank account's Wise onboarding that is in progress, which shows the in-progress row */
+    wiseSetupInProgress?: {
+        bankAccountID: number;
+
+        /** Whether the admin has something to do, which shows Continue */
+        canContinue: boolean;
     };
 
     /** Whether the bank account is set up for global reimbursements, which shows a globe next to its name */
@@ -360,6 +369,13 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                     bankAccountID={item.wiseMoreInfoNeeded.bankAccountID}
                     canReview={item.wiseMoreInfoNeeded.canReview}
                     style={[styles.mb2, cardPaddingHorizontal]}
+                />
+            )}
+            {!!item.wiseSetupInProgress && (
+                <WiseSetupInProgressRow
+                    bankAccountID={item.wiseSetupInProgress.bankAccountID}
+                    canContinue={item.wiseSetupInProgress.canContinue}
+                    style={[styles.pt4, styles.pb3, cardPaddingHorizontal]}
                 />
             )}
             {isChaseAccountConnectedViaPlaid && (

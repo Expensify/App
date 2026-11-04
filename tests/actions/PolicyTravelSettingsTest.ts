@@ -17,7 +17,7 @@ function getPolicy(policyID: string): Promise<Policy | undefined> {
         const connection = Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             callback: (value) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 resolve(value);
             },
         });

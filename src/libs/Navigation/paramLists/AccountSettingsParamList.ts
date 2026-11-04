@@ -44,6 +44,9 @@ type AccountSettingsParamList = {
     [SCREENS.SETTINGS.PREFERENCES.PAYMENT_CURRENCY]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.THEME]: undefined;
+    [SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS]: {
+        country?: Country | '';
+    };
     [SCREENS.SETTINGS.TROUBLESHOOT_SERVER]: undefined;
     [SCREENS.SETTINGS.CLOSE]: undefined;
     [SCREENS.SETTINGS.CLOSE_ACCOUNT_CONFIRM_VALIDATE_CODE]: undefined;
@@ -191,9 +194,16 @@ type AccountSettingsParamList = {
     };
     [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ACCEPT_TERMS]: {
         bankAccountID: string;
+
+        /** Set when the onboarding started from a workspace's Workflows */
+        policyID?: string;
     };
     [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_MORE_INFO_NEEDED]: {
         bankAccountID: string;
+    };
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ONBOARDING_STATUS]: {
+        bankAccountID: string;
+        status?: ValueOf<typeof CONST.WISE.ONBOARDING_STATUS_PAGE>;
     };
     [SCREENS.SETTINGS.WALLET.EDIT_BANK_ACCOUNT_NICKNAME]: {
         bankAccountID: string;
@@ -238,16 +248,16 @@ type AccountSettingsParamList = {
     };
     [SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD_AVATAR]: undefined;
     [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT]: {
-        accountID: number | string;
+        accountID: number;
     };
     [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_NAME]: {
-        accountID: number | string;
+        accountID: number;
     };
     [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_PROMPT]: {
-        accountID: number | string;
+        accountID: number;
     };
     [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_AVATAR]: {
-        accountID: number | string;
+        accountID: number;
     };
     [SCREENS.SETTINGS.RULES.ADD]: undefined;
     [SCREENS.SETTINGS.RULES.ADD_MERCHANT]: undefined;

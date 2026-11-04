@@ -2125,6 +2125,15 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'flex-start',
         },
 
+        onboardingStickyHeaderContainer: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1,
+            backgroundColor: theme.componentBG,
+        },
+
         createMenuContainer: {
             width: variables.sideBarWidth - 40,
             paddingVertical: variables.componentBorderRadiusLarge,
@@ -5802,6 +5811,25 @@ const staticStyles = (theme: ThemeColors) =>
 
         headerStatusBarContainer: {
             minHeight: variables.componentSizeSmall,
+        },
+
+        reportHistoryIconContainer: {
+            width: variables.iconSizeXLarge,
+            height: variables.iconSizeXLarge,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        reportHistoryLabel: {
+            marginLeft: variables.reportHistoryLabelGap,
+        },
+
+        reportHistoryConnector: {
+            width: variables.borderTopWidth,
+            height: variables.reportHistoryConnectorHeight,
+            marginVertical: variables.reportHistoryConnectorMarginVertical,
+            marginLeft: variables.iconSizeXLarge / 2,
+            backgroundColor: theme.border,
         },
 
         // The layer BulkActionBar floats in. It covers its container so the bar can center itself over the table, and

@@ -16,13 +16,14 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {
-    getBankAccountConnectionStatus,
-    getBankAccountState,
     canLinkPlaid,
     canSendWiseMoreInfo,
+    getBankAccountConnectionStatus,
+    getBankAccountState,
     isGlobalReimbursementsEnabled,
     isPersonalBankAccountMissingInfo,
-    isWiseMoreInfoNeeded,
+    isWiseOnboardingAwaitingDecision,
+    isWiseOnboardingMoreInfoNeeded,
 } from '@libs/BankAccountUtils';
 import type {BankAccountConnectionStatus} from '@libs/BankAccountUtils';
 import {getAssignedCardFeedAccess, getPolicyIDsNamedByCardFeeds} from '@libs/CardFeedUtils';
@@ -49,6 +50,7 @@ import {
     maskCardNumber,
 } from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import getWiseOnboardingPageToContinue from '@libs/Navigation/helpers/getWiseOnboardingPageToContinue';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {areAddressAndPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
@@ -120,6 +122,9 @@ type PaymentMethodListProps = {
     /** Whether connection statuses and sync details should be shown */
     shouldShowConnectionStatus?: boolean;
 
+    /** Whether bank accounts with a Wise onboarding in progress show the in-progress row */
+    shouldShowWiseSetupInProgress?: boolean;
+
     /** Whether the right icon should be shown in PaymentMethodItem */
     shouldShowRightIcon?: boolean;
 
@@ -169,6 +174,16 @@ function isPaymentMethodActive(actionPaymentMethodType: string, activePaymentMet
     return paymentMethod.accountType === actionPaymentMethodType && paymentMethod.methodID === activePaymentMethodID;
 }
 
+function getWiseSetupInProgress(paymentMethod: PaymentMethod): PaymentMethodItem['wiseSetupInProgress'] {
+    if (paymentMethod.accountType !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
+        return undefined;
+    }
+    const bankAccount = paymentMethod as BankAccount;
+    const bankAccountID = bankAccount.accountData?.bankAccountID;
+    const canContinue = !!getWiseOnboardingPageToContinue(bankAccount);
+    return bankAccountID && (canContinue || isWiseOnboardingAwaitingDecision(bankAccount)) ? {bankAccountID, canContinue} : undefined;
+}
+
 function keyExtractor(item: PaymentMethod | string) {
     if (typeof item === 'string') {
         return item;
@@ -185,6 +200,7 @@ function PaymentMethodList({
     addBankAccountItemStyle,
     shouldShowAssignedCards = false,
     shouldShowConnectionStatus = false,
+    shouldShowWiseSetupInProgress = false,
     shouldSkipDefaultAccountValidation = false,
     onListContentSizeChange = () => {},
     style = {},
@@ -651,7 +667,7 @@ function PaymentMethodList({
             // Like the connection status, the Wise prompt belongs to the Wallet page and not to the pickers that reuse this list
             // Cards share this list, and only a bank account's data carries the bankAccountID the Home task reads too
             const wiseBankAccountID = paymentMethod.accountData && 'bankAccountID' in paymentMethod.accountData ? paymentMethod.accountData.bankAccountID : undefined;
-            const shouldShowWiseMoreInfoNeeded = shouldShowConnectionStatus && isWiseGlobalReimbursementsEnabled && isWiseMoreInfoNeeded(paymentMethod) && !!wiseBankAccountID;
+            const shouldShowWiseMoreInfoNeeded = shouldShowConnectionStatus && isWiseGlobalReimbursementsEnabled && isWiseOnboardingMoreInfoNeeded(paymentMethod) && !!wiseBankAccountID;
             const canReviewWiseMoreInfoNeeded = shouldShowWiseMoreInfoNeeded && canSendWiseMoreInfo(paymentMethod);
             // An error or a connection problem on the row is more urgent, so the Wise prompt only adds the green dot when the row has none
             const wiseMoreInfoNeededBrickRoadIndicator = canReviewWiseMoreInfoNeeded ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined;
@@ -668,6 +684,8 @@ function PaymentMethodList({
                 shouldShowRightIcon,
                 canDismissError: true,
                 isMissingPersonalInfo,
+                // The more info prompt already tells the admin what Wise waits on, so the in-progress line would repeat it
+                wiseSetupInProgress: shouldShowWiseSetupInProgress && !shouldShowWiseMoreInfoNeeded ? getWiseSetupInProgress(paymentMethod) : undefined,
                 isGlobalReimbursementsEnabled:
                     isWiseGlobalReimbursementsEnabled && paymentMethod.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && isGlobalReimbursementsEnabled(paymentMethod),
                 brickRoadIndicator: shouldShowConnectionStatus

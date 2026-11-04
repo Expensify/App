@@ -1,14 +1,17 @@
-import {act, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
+import Navigation from '@libs/Navigation/Navigation';
 
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccount, BankAccountList, Card, CardList} from '@src/types/onyx';
+import type {BankAccountAdditionalData} from '@src/types/onyx/BankAccount';
 
 import type {ValueOf} from 'type-fest';
 
@@ -22,8 +25,20 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 TestHelper.setupGlobalFetchMock();
 
+jest.mock('@libs/Navigation/Navigation', () => ({
+    navigate: jest.fn(),
+    getActiveRoute: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
+}));
+
+// Continue builds the intro on top of the screen it is pressed on, the Wallet
+jest.mock('@libs/Navigation/helpers/getActiveRoute', () => ({
+    __esModule: true,
+    default: jest.fn(() => 'settings/wallet'),
+}));
+
 const DOMAIN_NAME = 'expensify.com';
-const WISE_BANK_ACCOUNT_ID = 1234;
+const WISE_BANK_ACCOUNT_ID = 9053192;
 const WISE_MORE_INFO_NEEDED_MESSAGE = 'More information needed to enable global reimbursements';
 
 function createExpensifyCard(cardID: number, domainName: string, nameValuePairs: Partial<Card['nameValuePairs']> = {}): Card {
@@ -102,14 +117,27 @@ function createBankAccountList(...bankAccounts: BankAccount[]): BankAccountList 
     return Object.fromEntries(bankAccounts.map((bankAccount) => [String(bankAccount.methodID), bankAccount]));
 }
 
-// Renders the bank accounts list the same way the Wallet page does, with connection statuses on
-const renderBankAccountsList = () =>
+function createWiseBusinessBankAccount(wise: BankAccountAdditionalData['wise']): BankAccount {
+    const bankAccount = createBusinessBankAccount(WISE_BANK_ACCOUNT_ID, 'Chase Checking');
+    return {
+        ...bankAccount,
+        accountData: {
+            ...bankAccount.accountData,
+            additionalData: {...bankAccount.accountData?.additionalData, globalReimbursementProvider: CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE, wise},
+        },
+    };
+}
+
+// Renders the bank accounts list the same way the Wallet page does with the Wise beta on
+const renderBankAccountsList = (shouldShowWiseSetupInProgress = true) =>
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <PortalProvider>
                 <PaymentMethodList
                     shouldShowConnectionStatus
+                    shouldShowBankAccountSections
                     shouldShowAddBankAccount={false}
+                    shouldShowWiseSetupInProgress={shouldShowWiseSetupInProgress}
                     onPress={() => {}}
                 />
             </PortalProvider>
@@ -177,6 +205,9 @@ describe('PaymentMethodList', () => {
         // Then the row asks for the info with a Review button, so the admin can send it and finish enabling global reimbursements
         expect(screen.getByText(WISE_MORE_INFO_NEEDED_MESSAGE)).toBeOnTheScreen();
         expect(screen.getByText('Review')).toBeOnTheScreen();
+
+        // And the setup in progress line stays hidden, since the more info prompt already says what Wise waits on
+        expect(screen.queryByText('Global reimbursements setup in progress.', {exact: false})).not.toBeOnTheScreen();
     });
 
     it('marks a bank account Wise needs more info on with the green dot', async () => {
@@ -282,5 +313,66 @@ describe('PaymentMethodList', () => {
         // Then no globe shows, because the account can't pay worldwide or global reimbursements are not released to the user yet
         expect(screen.getByText('Chase Checking')).toBeOnTheScreen();
         expect(screen.queryByLabelText('Global reimbursements enabled')).not.toBeOnTheScreen();
+    });
+
+    it('continues a Wise onboarding the admin left before Submit', async () => {
+        // Given a business bank account whose Wise onboarding the admin saved a page of and did not submit
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[WISE_BANK_ACCOUNT_ID]: createWiseBusinessBankAccount(undefined)});
+        });
+
+        // When the Wallet's bank accounts list renders and the admin presses Continue
+        renderBankAccountsList();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('Continue.'), {preventDefault: jest.fn()});
+
+        // Then the row shows the setup is in progress, and Continue opens the intro, which picks the onboarding up where the admin left it
+        expect(screen.getByText('Global reimbursements setup in progress.', {exact: false})).toBeOnTheScreen();
+        expect(Navigation.navigate).toHaveBeenCalledWith(`settings/wallet/global-reimbursements/${WISE_BANK_ACCOUNT_ID}`);
+    });
+
+    it('offers Continue when Wise needs more info', async () => {
+        // Given a business bank account whose submitted Wise onboarding Wise sent back for more info
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[WISE_BANK_ACCOUNT_ID]: createWiseBusinessBankAccount({status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED})});
+        });
+
+        // When the Wallet's bank accounts list renders and the admin presses Continue
+        renderBankAccountsList();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('Continue.'), {preventDefault: jest.fn()});
+
+        // Then the row offers Continue to the intro, since Wise waits on the admin rather than the other way around
+        expect(Navigation.navigate).toHaveBeenCalledWith(`settings/wallet/global-reimbursements/${WISE_BANK_ACCOUNT_ID}`);
+    });
+
+    it('shows a submitted Wise onboarding as in progress without Continue', async () => {
+        // Given a business bank account whose Wise onboarding is in review
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[WISE_BANK_ACCOUNT_ID]: createWiseBusinessBankAccount({status: CONST.WISE.ONBOARDING_STATUS.IN_REVIEW})});
+        });
+
+        // When the Wallet's bank accounts list renders
+        renderBankAccountsList();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the row shows the setup is in progress, with nothing to continue, since the answers are already with Wise
+        expect(screen.getByText('Global reimbursements setup in progress.', {exact: false})).toBeOnTheScreen();
+        expect(screen.queryByText('Continue.')).not.toBeOnTheScreen();
+    });
+
+    it('hides the Wise onboarding row without the Wise beta', async () => {
+        // Given a business bank account whose Wise onboarding the admin saved a page of and did not submit
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[WISE_BANK_ACCOUNT_ID]: createWiseBusinessBankAccount(undefined)});
+        });
+
+        // When the list renders the way it does for a user without the Wise beta
+        renderBankAccountsList(false);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then no Wise row shows, since that user goes through the Corpay flow
+        expect(screen.getByText('Chase Checking')).toBeOnTheScreen();
+        expect(screen.queryByText('Global reimbursements setup in progress.', {exact: false})).not.toBeOnTheScreen();
     });
 });
