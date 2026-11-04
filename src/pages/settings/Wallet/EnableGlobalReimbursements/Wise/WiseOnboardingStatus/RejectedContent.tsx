@@ -27,10 +27,7 @@ function RejectedContent({onDone}: RejectedContentProps) {
     return (
         <ConfirmationPage>
             <ConfirmationPage.Content style={styles.ph5}>
-                <ConfirmationPage.Illustration
-                    illustration={illustrations.MagnifyingGlassSpyNewspaper}
-                    illustrationStyle={styles.wiseOnboardingRejectedIllustration}
-                />
+                <ConfirmationPage.Illustration illustration={illustrations.MagnifyingGlassSpyNewspaper} />
                 <ConfirmationPage.Heading>{translate('walletPage.wiseOnboarding.rejected.heading')}</ConfirmationPage.Heading>
                 <ConfirmationPage.Description style={styles.textSupporting}>{translate('walletPage.wiseOnboarding.rejected.description')}</ConfirmationPage.Description>
             </ConfirmationPage.Content>

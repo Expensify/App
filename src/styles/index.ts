@@ -4020,13 +4020,6 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 20,
         },
 
-        // Kept at the illustration's own size, so it matches the Wise rejected page design instead of scaling up to the default confirmation size
-        wiseOnboardingRejectedIllustration: {
-            width: 165,
-            height: 169,
-            marginBottom: 32,
-        },
-
         digitalWalletConfirmIllustration: {
             width: variables.w102,
             height: variables.w102,
