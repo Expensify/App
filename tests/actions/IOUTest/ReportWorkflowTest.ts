@@ -412,6 +412,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 initialReportID: expenseReport.reportID,
                 initialReport: expenseReport,
                 transactionReport: expenseReport,
+                transactionReportActions: undefined,
                 isOffline: false,
                 currentUserLogin: CARLOS_EMAIL,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
@@ -560,6 +561,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 initialReportID: expenseReport.reportID,
                 initialReport: expenseReport,
                 transactionReport: expenseReport,
+                transactionReportActions: undefined,
                 isOffline: false,
                 currentUserLogin: CARLOS_EMAIL,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
@@ -691,6 +693,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 initialReportID: expenseReport.reportID,
                 initialReport: expenseReport,
                 transactionReport: expenseReport,
+                transactionReportActions: undefined,
                 isOffline: false,
                 currentUserLogin: CARLOS_EMAIL,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
@@ -825,6 +828,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 initialReportID: expenseReport.reportID,
                 initialReport: expenseReport,
                 transactionReport: expenseReport,
+                transactionReportActions: undefined,
                 isOffline: false,
                 currentUserLogin: CARLOS_EMAIL,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
@@ -3264,6 +3268,89 @@ describe('actions/IOU/ReportWorkflow', () => {
             const failureActionsUpdate = getRequiredOnyxUpdate(onyxData, 'failureData', reportActionsKey, Onyx.METHOD.MERGE, true);
             expect(failureActionsUpdate.value[reportActionID]).toBeNull();
         });
+
+        it('clears the errors of a previous failed submit when submitting from search again', () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write onyxData to verify the optimistic error reset.
+            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+
+            // Given a report whose previous submit from search failed
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: '1',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                errors: {submitError: 'Report failed to submit'},
+            };
+
+            // When the user submits it from search again
+            submitMoneyRequestOnSearch({
+                hash: 1,
+                reportList: [report],
+                policy: [createRandomPolicy(1)],
+                submitterLogin: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+                personalDetailsByLogins: {},
+            });
+
+            // Then the old errors are cleared optimistically, so the Search row no longer says the report has errors
+            const [, , onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls);
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`;
+            const optimisticReportsUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', ONYXKEYS.COLLECTION.REPORT, Onyx.METHOD.MERGE_COLLECTION, true);
+            expect(optimisticReportsUpdate.value[reportKey]).toEqual({errors: null});
+        });
+
+        it('clears the errors of a previous failed submit when submitting from the report again', () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write onyxData to verify the optimistic error reset.
+            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const policyID = '1';
+
+            // Given a report whose previous submit failed
+            const expenseReport: Report = {
+                ...createRandomReport(Number(policyID), undefined),
+                reportID: '1',
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                total: 1000,
+                currency: CONST.CURRENCY.USD,
+                errors: {submitError: 'Report failed to submit'},
+            };
+
+            // When the user submits it from the report again
+            submitReport({
+                rules: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                submitterLogin: undefined,
+                personalDetailsByLogins: {},
+                expenseReport,
+                expenseReportTransactions: [],
+                policy: {
+                    ...createRandomPolicy(Number(policyID)),
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                },
+                currentUserAccountIDParam: 100,
+                currentUserEmailParam: 'submitter@example.com',
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+            });
+
+            // Then the old errors are cleared optimistically instead of being merged back from the report
+            const [, , onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls);
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`;
+            const optimisticReportUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', reportKey, Onyx.METHOD.MERGE, true);
+            expect(optimisticReportUpdate.value.errors).toBeNull();
+        });
     });
 
     describe('delegateAccountID forwarding', () => {
@@ -3428,6 +3515,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             approveMoneyRequest({
+                personalDetailsByLogins: {},
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
@@ -3471,6 +3559,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             approveMoneyRequest({
+                personalDetailsByLogins: {},
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
@@ -3525,6 +3614,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}` as const;
 
             approveMoneyRequest({
+                personalDetailsByLogins: {},
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
@@ -4655,6 +4745,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
         const createApproveMoneyRequestParams = (expenseReport: Report, expenseReportPolicy: OnyxEntry<Policy>) => ({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            personalDetailsByLogins: {},
             expenseReport,
             expenseReportPolicy,
             rules: undefined,
@@ -4740,6 +4831,12 @@ describe('actions/IOU/ReportWorkflow', () => {
         const managerEmail = 'manager@test.com';
         const employeeEmail = 'employee@test.com';
         const seniorManagerEmail = 'seniormanager@test.com';
+        const personalDetailsByLogins = {
+            [adminEmail]: {accountID: adminAccountID, login: adminEmail},
+            [managerEmail]: {accountID: managerAccountID, login: managerEmail},
+            [employeeEmail]: {accountID: employeeAccountID, login: employeeEmail},
+            [seniorManagerEmail]: {accountID: seniorManagerAccountID, login: seniorManagerEmail},
+        };
 
         let expenseReport: Report;
         let policy: Policy;
@@ -4848,6 +4945,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Admin approves the report
             approveMoneyRequest({
+                personalDetailsByLogins,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
@@ -4902,6 +5000,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Manager approves the report
             approveMoneyRequest({
+                personalDetailsByLogins,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
@@ -4955,6 +5054,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // When the admin approves the report
             approveMoneyRequest({
+                personalDetailsByLogins,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
@@ -5000,6 +5100,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Admin approves the report
             approveMoneyRequest({
+                personalDetailsByLogins,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
@@ -5041,6 +5142,11 @@ describe('actions/IOU/ReportWorkflow', () => {
         const adminEmail = 'admin@test.com';
         const managerEmail = 'manager@test.com';
         const employeeEmail = 'employee@test.com';
+        const personalDetailsByLogins = {
+            [adminEmail]: {accountID: adminAccountID, login: adminEmail},
+            [managerEmail]: {accountID: managerAccountID, login: managerEmail},
+            [employeeEmail]: {accountID: employeeAccountID, login: employeeEmail},
+        };
 
         let expenseReport: Report;
         let policy: Policy;
@@ -5127,6 +5233,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Manager approves the report (no take control actions)
             approveMoneyRequest({
+                personalDetailsByLogins,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
@@ -5160,6 +5267,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
 
             approveMoneyRequest({
+                personalDetailsByLogins,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
@@ -5191,6 +5299,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
 
             approveMoneyRequest({
+                personalDetailsByLogins,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport: updatedReport,
@@ -5252,6 +5361,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Manager approves the report
             approveMoneyRequest({
+                personalDetailsByLogins,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport: singleApproverReport,
@@ -5313,6 +5423,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             })
                 .then(() => {
                     approveMoneyRequest({
+                        personalDetailsByLogins,
                         rules: undefined,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         expenseReport: normalReport,
@@ -5500,6 +5611,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
 
             const newExpenseReportID = approveMoneyRequest({
+                personalDetailsByLogins: {},
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,

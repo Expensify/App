@@ -1,7 +1,6 @@
 import useActivePolicy from '@hooks/useActivePolicy';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 
@@ -53,7 +52,6 @@ type FooterCurrencyState = {
     writtenQueryCurrency: string | undefined;
 };
 
-const EMPTY_FOOTER_SELECTION = {footerCount: undefined, footerTotal: undefined, footerCurrency: undefined};
 const EMPTY_REPORT_IDS: string[] = [];
 const EMPTY_SOURCES: Record<string, number> = {};
 
@@ -181,9 +179,7 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
     // Whether the backend is still answering the breakdown the footer asked for. The request keys no hash of its own —
     // it refreshes the figures of the search already on screen — so the wait is held here and ends with the response.
     const [isAwaitingBreakdownTotal, setIsAwaitingBreakdownTotal] = useState(false);
-    const {isBetaEnabled} = usePermissions();
-    const isFooterSelectorsEnabled = isBetaEnabled(CONST.BETAS.SPEND_FOOTER_SELECTORS);
-    const footerSelection = isFooterSelectorsEnabled ? getFooterSelectionFromQuery(currentSearchQueryJSON) : EMPTY_FOOTER_SELECTION;
+    const footerSelection = getFooterSelectionFromQuery(currentSearchQueryJSON);
     // Onyx delivers an optimistic source stamp asynchronously. Bridge that short gap locally so a render caused by
     // selection reconciliation cannot dispatch the same report conversion twice before the stamp is observed.
     const pendingReportConversionSources = useRef<Record<string, Record<string, number>>>({});
@@ -220,7 +216,7 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
     const requestedFooterTotal = footerSelection.footerTotal ?? CONST.SEARCH.FOOTER_TOTAL.TOTAL;
     // A total stamped for another breakdown (a request dropped or overtaken, or a switch made while a selection was summed
     // locally) is never shown under this one's label: the footer waits on it and asks again below.
-    const isSnapshotTotalForOtherBreakdown = isFooterSelectorsEnabled && !isOffline && !shouldUseLiveData && !!metadata?.footerTotal && metadata.footerTotal !== requestedFooterTotal;
+    const isSnapshotTotalForOtherBreakdown = !isOffline && !shouldUseLiveData && !!metadata?.footerTotal && metadata.footerTotal !== requestedFooterTotal;
     const isSettledAnswer = !isOffline && !isAwaitingBreakdownTotal && !isSnapshotTotalForOtherBreakdown && !metadata?.isLoading && metadata?.hash === currentSearchHash;
 
     const answeredFooterTotals = recordAnsweredFooterTotals(accountID, currentSearchHash, requestedFooterTotal, metadata?.total, isSettledAnswer);
@@ -388,15 +384,14 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
 
     // The other case with no answer to give: the whole-search report count comes from the server, and a search that
     // returned none of it (a grouped search, or a to-do search counting live Onyx data) has nothing to switch to.
-    const shouldShowCountSelector =
-        isFooterSelectorsEnabled && (isExpenseType || isReportsSearch) && !hasGroupSelection && (hasPartialSelection || (!shouldUseLiveData && typeof metadataReportCount === 'number'));
+    const shouldShowCountSelector = (isExpenseType || isReportsSearch) && !hasGroupSelection && (hasPartialSelection || (!shouldUseLiveData && typeof metadataReportCount === 'number'));
     const footerCountType = shouldShowCountSelector ? (footerSelection.footerCount ?? defaultFooterCountType) : undefined;
 
     // An excluded collapsed group hides the breakdown's figure, so the selector stays to lead back to the plain total.
     const hasExcludedGroupWithQueryBreakdown = excludedGroupKeys.length > 0 && !!footerSelection.footerTotal;
     // An empty result set has no total to break down, so it keeps the plain total spend with no selector.
-    // Footer selections are only kept for expense and report searches, so other types keep the plain total, as on main.
-    const isFooterTotalSupported = isFooterSelectorsEnabled && (isExpenseType || isReportsSearch);
+    // Footer selections are only kept for expense and report searches, so other types keep the plain total.
+    const isFooterTotalSupported = isExpenseType || isReportsSearch;
     const shouldShowTotalSelector = isFooterTotalSupported && (!hasGroupSelection || hasExcludedGroupWithQueryBreakdown) && (!!metadataCount || selectedTransactionsKeys.length > 0);
 
     // Use the per-selection (client) total for a partial selection; nothing-selected and everything-selected both fall
@@ -616,7 +611,7 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
     // self-subscribing leaf that re-renders on every checkbox press, and the form route would subscribe it to the whole
     // policy collection. useSearchFilterSync writes the form from the query, so the form still follows.
     const applyFooterSelection = (selection: {footerCount?: SearchFooterCount; footerTotal?: SearchFooterTotal; footerCurrency?: string}) => {
-        if (!currentSearchQueryJSON || !isFooterSelectorsEnabled) {
+        if (!currentSearchQueryJSON) {
             return;
         }
 
