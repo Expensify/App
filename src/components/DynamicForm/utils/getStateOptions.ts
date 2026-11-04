@@ -1,6 +1,9 @@
 import CONST from '@src/CONST';
 
-/** The states Wise needs a code for outside the US and Canada, whose lists AddressFormFields already has, keyed by their ISO 3166-2 code */
+/**
+ * The states Wise needs a code for outside the US and Canada, whose lists AddressFormFields already has, keyed by their ISO 3166-2 code.
+ * These lists belong in expensify-common next to STATES and PROVINCES, where the US and Canadian lists live.
+ */
 const STATE_OPTIONS_BY_COUNTRY: Partial<Record<string, Record<string, string>>> = {
     [CONST.COUNTRY.AU]: {
         ACT: 'Australian Capital Territory',
