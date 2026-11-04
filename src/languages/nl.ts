@@ -3134,7 +3134,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: 'Extra info verifiëren',
                 subtitle: 'Onze betalingspartner heeft rechtstreeks meer info nodig. Dit kost maar een paar minuten.',
             },
+            inReview: {
+                title: 'In behandeling',
+                heading: 'We hebben wat we nodig hebben.\nJe hoort van ons!',
+                description: 'De meeste controles duren één tot twee dagen. We sturen je een bericht met een update.',
+                chatWithConcierge: 'Chatten met Concierge',
+            },
+            approved: {title: 'Account goedgekeurd', heading: 'Goedgekeurd om wereldwijd te betalen', description: 'Betaal leden, waar ze ook zijn.'},
+            rejected: {title: 'Bankrekening afgewezen', heading: 'Onze partner heeft je bankrekening afgewezen', description: 'Chat met Concierge voor meer informatie.'},
         },
+        wiseSetupInProgress: {message: 'Instellen van wereldwijde terugbetalingen bezig.', continue: 'Doorgaan.'},
         wiseGlobalReimbursementsIntro: {
             title: 'Wereldwijde terugbetalingen instellen?',
             subtitle: 'Betaal leden wereldwijd in hun eigen lokale valuta.',
