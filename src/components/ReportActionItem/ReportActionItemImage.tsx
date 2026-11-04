@@ -166,6 +166,7 @@ function ReportActionItemImage({
     const hasPendingRouteChange = isFetchingWaypointsFromServer(transaction) || !!transaction?.pendingFields?.routes || !!transaction?.pendingFields?.selectedRouteKey;
     const isRegeneratingReceipt = hasPendingDistanceReceiptRegeneration(transaction);
     const canUseCachedMapOffline =
+        isMapDistanceRequest &&
         shouldUseCachedMapWhenOffline &&
         isOffline &&
         isRegeneratingReceipt &&
