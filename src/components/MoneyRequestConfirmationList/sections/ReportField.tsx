@@ -115,9 +115,10 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     })();
 
     const outstandingReports = useOutstandingReports(undefined, isFromGlobalCreate && !isPerDiemRequest ? undefined : policyID, ownerAccountID, false);
+    // The list always offers a new report, so one open report already leaves a choice: that report or a new one.
     // When creating an expense in an individual report, the report field becomes read-only
     // since the destination is already determined and there's no need to show a selectable list.
-    const shouldReportBeEditable = (isUnreported ? outstandingReports.length >= 1 : outstandingReports.length > 1) && !isMoneyRequestReport(reportID);
+    const shouldReportBeEditable = outstandingReports.length >= 1 && !isMoneyRequestReport(reportID);
     // Editing a saved expense's report and moving a per diem expense both navigate on from the list (to the report, or to
     // the destination step when the workspace changes), so those keep the full page.
     const shouldOpenInDropdown = isBetaEnabled(CONST.BETAS.ANCHORED_FIELD_DROPDOWNS) && !!transactionID && shouldReportBeEditable && action !== CONST.IOU.ACTION.EDIT && !isPerDiemRequest;

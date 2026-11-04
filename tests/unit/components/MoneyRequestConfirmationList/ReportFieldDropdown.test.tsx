@@ -5,6 +5,7 @@ import ReportFieldDropdown from '@components/MoneyRequestConfirmationList/sectio
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {ReportPickerModalProps} from '@components/ReportPicker/ReportPickerModal';
 
+import {createNewReport} from '@libs/actions/Report';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -34,14 +35,25 @@ jest.mock('@hooks/useConfirmModal', () => () => ({showConfirmModal: jest.fn()}))
 // building the policies and billing state the real hooks read.
 let mockPolicyForMovingExpenses: Policy | undefined;
 let mockShouldSelectPolicy = false;
-jest.mock('@hooks/usePolicyForMovingExpenses', () => () => ({
-    policyForMovingExpensesID: mockPolicyForMovingExpenses?.id,
-    policyForMovingExpenses: mockPolicyForMovingExpenses,
-    shouldSelectPolicy: mockShouldSelectPolicy,
-    shouldNavigateToUpgradePath: false,
-    arePoliciesLoaded: true,
-}));
+// The workspace each caller asks a new report to go to, the hook's third argument.
+const mockRequestedExpensePolicyIDs: Array<string | undefined> = [];
+jest.mock('@hooks/usePolicyForMovingExpenses', () => (_isPerDiemRequest?: boolean, _isTimeRequest?: boolean, expensePolicyID?: string) => {
+    mockRequestedExpensePolicyIDs.push(expensePolicyID);
+    return {
+        policyForMovingExpensesID: mockPolicyForMovingExpenses?.id,
+        policyForMovingExpenses: mockPolicyForMovingExpenses,
+        shouldSelectPolicy: mockShouldSelectPolicy,
+        shouldNavigateToUpgradePath: false,
+        arePoliciesLoaded: true,
+    };
+});
 let mockIsCreateReportRestricted = false;
+
+// Records whose report a new one is made as, without calling the API.
+jest.mock('@libs/actions/Report', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/actions/Report'),
+    createNewReport: jest.fn(() => ({reportID: 'newReport1'})),
+}));
 jest.mock('@pages/iou/request/step/IOURequestStepReport/hooks/useCreateReportRestrictionCheck', () => () => () => mockIsCreateReportRestricted);
 
 // The list itself is covered by the ReportPickerModal and full-page tests; here only what the dropdown hands it, and what it does with a pick, matter.
@@ -106,7 +118,9 @@ describe('ReportFieldDropdown', () => {
         mockPolicyForMovingExpenses = undefined;
         mockShouldSelectPolicy = false;
         mockIsCreateReportRestricted = false;
+        mockRequestedExpensePolicyIDs.length = 0;
         jest.mocked(setTransactionReport).mockClear();
+        jest.mocked(createNewReport).mockClear();
         // Each navigate-away test spies on the navigation and transition tracker; nothing keeps those spies between tests.
         jest.restoreAllMocks();
         await Onyx.clear();
@@ -213,6 +227,30 @@ describe('ReportFieldDropdown', () => {
 
         // Then the list is unmounted again, and nothing renders it while it stays closed
         expect(mockModalProps).toBeUndefined();
+    });
+
+    it("creates a new report on the workspace the expense is created on, not the user's active one", async () => {
+        // Given a draft expense created in a workspace chat whose only outstanding report is the user's own, by a user whose
+        // active workspace may be another one
+        const currentUserAccountID = 7;
+        await Onyx.set(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: 'user@example.com'});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CURRENT_REPORT_ID}`, {...currentReport, ownerAccountID: currentUserAccountID});
+        await setDraftExpense();
+        const policy: Policy = {...createRandomPolicy(1), id: POLICY_ID};
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+        mockPolicyForMovingExpenses = policy;
+        await waitForBatchedUpdates();
+
+        // When the dropdown opens and the user picks New report
+        renderDropdown(jest.fn());
+        await waitForBatchedUpdates();
+        act(() => mockModalProps?.createReport?.());
+
+        // Then the new report is asked for on the expense's workspace, where the list's reports are, rather than left to
+        // the user's active workspace, and it is made as the user's own
+        expect(mockRequestedExpensePolicyIDs.at(-1)).toBe(POLICY_ID);
+        expect(mockModalProps?.transactionPolicyID).toBe(POLICY_ID);
+        expect(jest.mocked(createNewReport).mock.calls.at(0)?.at(0)).toEqual(expect.objectContaining({accountID: currentUserAccountID}));
     });
 
     it('closes the container before navigating to the restricted-action page for a workspace behind on billing', async () => {
