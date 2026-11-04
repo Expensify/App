@@ -118,8 +118,8 @@ type DynamicFormChoiceField = DynamicFormFieldBase & {
     /** The options to pick from */
     values?: DynamicFormFieldOption[];
 
-    /** Draw the options as a segmented tab row, for the few-option switch that decides which fields follow */
-    presentation?: 'tabs';
+    /** `tabs` draws the options as a segmented tab row, for the few-option switch that decides which fields follow. `dropdown` opens them in place under the label instead of on a modal page. */
+    presentation?: 'tabs' | 'dropdown';
 
     /** Options picked by another answer, keyed by that answer's value. Takes the place of `values`. */
     dependsOn?: {
@@ -162,6 +162,9 @@ type DynamicFormFileField = DynamicFormFieldBase & {
 
     /** Largest size of one file, in bytes. The form-wide limit applies when not set. */
     maxFileSize?: number;
+
+    /** Asks which kind of document each upload is, from these options, before the picker opens. Files then list under their kind, and the answer is one `{id, fileType, files}` entry per kind used. */
+    fileTypes?: Pick<DynamicFormFieldBase, 'label' | 'labelKey'> & {values: DynamicFormFieldOption[]};
 };
 
 /** A money amount */

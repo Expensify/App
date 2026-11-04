@@ -58,28 +58,71 @@ type UploadFileProps = {
     shouldExtendRemoveTouchArea?: boolean;
 };
 
-function UploadFile({
+type UploadedFileChipProps = Pick<UploadFileProps, 'onRemove' | 'shouldExtendRemoveTouchArea'> & {
+    file: FileObject;
+};
+
+/** One uploaded file: its name with a paperclip, and a button that removes it */
+function UploadedFileChip({file, onRemove, shouldExtendRemoveTouchArea = false}: UploadedFileChipProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Paperclip']);
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const theme = useTheme();
+    return (
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.border, styles.p5, styles.mt3, styles.mw100]}>
+            <Icon
+                src={icons.Paperclip}
+                fill={theme.icon}
+                size={CONST.ICON_SIZE.MEDIUM}
+            />
+            <TextWithMiddleEllipsis
+                text={file.name ?? ''}
+                style={[styles.ml2, styles.mr2, styles.w100, styles.flexShrink1]}
+                textStyle={styles.textBold}
+            />
+            <Tooltip text={translate('common.remove')}>
+                <PressableWithFeedback
+                    onPress={() => onRemove(file?.name ?? '')}
+                    role={CONST.ROLE.BUTTON}
+                    accessibilityLabel={`${translate('common.remove')}, ${file.name ?? ''}`}
+                    sentryLabel={CONST.SENTRY_LABEL.UPLOAD_FILE.REMOVE_BUTTON}
+                    shouldUseAutoHitSlop={shouldExtendRemoveTouchArea}
+                >
+                    <Icon
+                        src={icons.Close}
+                        fill={theme.icon}
+                        size={CONST.ICON_SIZE.MEDIUM}
+                    />
+                </PressableWithFeedback>
+            </Tooltip>
+        </View>
+    );
+}
+
+type UploadFilePickerProps = Pick<
+    UploadFileProps,
+    'buttonText' | 'onUpload' | 'acceptedFileTypes' | 'setError' | 'onInputChange' | 'totalFilesSizeLimit' | 'fileLimit' | 'maxFileSize' | 'accessibilityLabel'
+> & {
+    /** Files uploaded so far, which the file limit and the duplicate check count */
+    existingFiles: FileObject[];
+};
+
+/** The button that opens the file picker and checks the picked files against the limits before reporting them */
+function UploadFilePicker({
     buttonText,
-    uploadedFiles,
+    existingFiles,
     onUpload,
-    onRemove,
     acceptedFileTypes,
-    style,
-    errorText = '',
     setError,
     onInputChange = () => {},
     totalFilesSizeLimit = 0,
     fileLimit = 0,
     maxFileSize = 0,
     accessibilityLabel,
-    shouldExtendRemoveTouchArea = false,
-}: UploadFileProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Paperclip']);
+}: UploadFilePickerProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
-    const theme = useTheme();
     const handleFileUpload = (files: FileObject[]) => {
-        const resultedFiles = [...uploadedFiles, ...files];
+        const resultedFiles = [...existingFiles, ...files];
 
         const totalSize = resultedFiles.reduce((sum, file) => sum + (file.size ?? 0), 0);
 
@@ -112,7 +155,7 @@ function UploadFile({
             }
         }
 
-        const uploadedFilesNames = new Set(uploadedFiles.map((uploadedFile) => uploadedFile.name));
+        const uploadedFilesNames = new Set(existingFiles.map((uploadedFile) => uploadedFile.name));
 
         const newFilesToUpload = files.filter((file) => !uploadedFilesNames.has(file.name));
 
@@ -122,56 +165,43 @@ function UploadFile({
     };
 
     return (
-        <View style={[styles.alignItemsStart, style]}>
-            <AttachmentPicker
-                acceptedFileTypes={acceptedFileTypes}
-                fileLimit={fileLimit}
-                allowMultiple={fileLimit > 1}
-            >
-                {({openPicker}) => (
-                    <Button
-                        accessibilityLabel={accessibilityLabel ?? buttonText}
-                        onPress={() => {
-                            openPicker({
-                                onPicked: handleFileUpload,
-                            });
-                        }}
-                    >
-                        <Button.Text>{buttonText}</Button.Text>
-                    </Button>
-                )}
-            </AttachmentPicker>
-            {uploadedFiles.map((file) => (
-                <View
-                    style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.border, styles.p5, styles.mt3, styles.mw100]}
-                    key={file.name}
+        <AttachmentPicker
+            acceptedFileTypes={acceptedFileTypes}
+            fileLimit={fileLimit}
+            allowMultiple={fileLimit > 1}
+        >
+            {({openPicker}) => (
+                <Button
+                    accessibilityLabel={accessibilityLabel ?? buttonText}
+                    onPress={() => {
+                        openPicker({
+                            onPicked: handleFileUpload,
+                        });
+                    }}
                 >
-                    <Icon
-                        src={icons.Paperclip}
-                        fill={theme.icon}
-                        size={CONST.ICON_SIZE.MEDIUM}
-                    />
-                    <TextWithMiddleEllipsis
-                        text={file.name ?? ''}
-                        style={[styles.ml2, styles.mr2, styles.w100, styles.flexShrink1]}
-                        textStyle={styles.textBold}
-                    />
-                    <Tooltip text={translate('common.remove')}>
-                        <PressableWithFeedback
-                            onPress={() => onRemove(file?.name ?? '')}
-                            role={CONST.ROLE.BUTTON}
-                            accessibilityLabel={`${translate('common.remove')}, ${file.name ?? ''}`}
-                            sentryLabel={CONST.SENTRY_LABEL.UPLOAD_FILE.REMOVE_BUTTON}
-                            shouldUseAutoHitSlop={shouldExtendRemoveTouchArea}
-                        >
-                            <Icon
-                                src={icons.Close}
-                                fill={theme.icon}
-                                size={CONST.ICON_SIZE.MEDIUM}
-                            />
-                        </PressableWithFeedback>
-                    </Tooltip>
-                </View>
+                    <Button.Text>{buttonText}</Button.Text>
+                </Button>
+            )}
+        </AttachmentPicker>
+    );
+}
+
+function UploadFile({uploadedFiles, onRemove, style, errorText = '', shouldExtendRemoveTouchArea = false, ...pickerProps}: UploadFileProps) {
+    const styles = useThemeStyles();
+
+    return (
+        <View style={[styles.alignItemsStart, style]}>
+            <UploadFilePicker
+                {...pickerProps}
+                existingFiles={uploadedFiles}
+            />
+            {uploadedFiles.map((file) => (
+                <UploadedFileChip
+                    key={file.name}
+                    file={file}
+                    onRemove={onRemove}
+                    shouldExtendRemoveTouchArea={shouldExtendRemoveTouchArea}
+                />
             ))}
             {errorText !== '' && (
                 <DotIndicatorMessage
@@ -185,3 +215,4 @@ function UploadFile({
 }
 
 export default UploadFile;
+export {UploadedFileChip, UploadFilePicker};

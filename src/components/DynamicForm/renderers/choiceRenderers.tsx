@@ -2,6 +2,7 @@ import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import CountryPicker from '@components/CountryPicker';
 import CurrencyPicker from '@components/CurrencyPicker';
 import CurrencyInlineListAdapter from '@components/DynamicForm/adapters/CurrencyInlineListAdapter';
+import DropdownPickerAdapter from '@components/DynamicForm/adapters/DropdownPickerAdapter';
 import InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
 import TabsAdapter from '@components/DynamicForm/adapters/TabsAdapter';
 import ToggleLinkAdapter from '@components/DynamicForm/adapters/ToggleLinkAdapter';
@@ -67,6 +68,22 @@ function renderTabs(label: string, choices: Choice[], inputProps: DynamicFieldIn
     };
 }
 
+function renderDropdown(title: string, label: string, choices: Choice[], inputProps: DynamicFieldInputProps<string>): DynamicFieldInput {
+    return {
+        isMenuRow: true,
+        input: (
+            <InputWrapper
+                InputComponent={DropdownPickerAdapter}
+                {...inputProps}
+                label={label}
+                modalHeaderTitle={title}
+                items={choices}
+                shouldReadErrorWithLabel
+            />
+        ),
+    };
+}
+
 const renderMultiChoice: DynamicFieldRenderer<'multiselect' | 'countryMultiselect'> = (field, {values, translate, isLoneField}, inputProps) => {
     const title = getFieldLabel(field, translate);
     const choices = getFieldChoices(field, values, translate);
@@ -99,6 +116,9 @@ const CHOICE_RENDERERS: Pick<DynamicFieldRendererMap, 'select' | 'radio' | 'mult
         const isLong = choices.length > CONST.DYNAMIC_FORM.LARGE_SELECT_MIN_OPTIONS;
         if (field.presentation === 'tabs') {
             return renderTabs(label, choices, inputProps, isLoneField);
+        }
+        if (field.presentation === 'dropdown') {
+            return renderDropdown(title, label, choices, inputProps);
         }
         if (isLoneField) {
             return renderInlineChoice(title, choices, inputProps, {canSelectMultiple: false, isSearchable: isLong});

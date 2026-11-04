@@ -15,7 +15,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import styles from '@src/styles';
 import {defaultTheme} from '@src/styles/theme';
-import type {DynamicFormListItem, DynamicFormPage, DynamicFormSchema, DynamicFormSchemaField} from '@src/types/onyx';
+import type {DynamicFormContentItem, DynamicFormFieldOption, DynamicFormListItem, DynamicFormPage, DynamicFormSchema, DynamicFormSchemaField} from '@src/types/onyx';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {Meta, StoryFn} from 'storybook-react-rsbuild';
 
@@ -56,7 +57,7 @@ type Preset = {
     fields: GroupedField[];
 
     /** Answers seeded into the form draft before the first render */
-    draftValues: Record<string, string | boolean | string[] | DynamicFormListItem[]>;
+    draftValues: Record<string, string | boolean | string[] | DynamicFormListItem[] | FileObject[]>;
 
     /** Sends the fields as a flat `{fields}` schema, ignoring `group`, so the form paginates them itself */
     isFlat?: boolean;
@@ -422,7 +423,12 @@ function SinglePage({fields, draftValues, isFlat}: Preset) {
     );
 }
 
-type FlowProps = Preset & {
+type FlowProps = Pick<Preset, 'draftValues'> & {
+    schema: DynamicFormSchema;
+
+    /** Title in the header of every page */
+    headerTitle?: string;
+
     layout: DynamicFormLayout;
     confirmation: 'auto' | 'yes' | 'no';
 
@@ -437,7 +443,7 @@ type FlowProps = Preset & {
 };
 
 /** The whole flow on a story-owned route stack: pages, resume, the entry editor pages and the confirmation are all clickable */
-function Flow({fields, draftValues, isFlat, layout, confirmation, isSubmitting, submitError, resetKey}: FlowProps) {
+function Flow({schema, draftValues, headerTitle = 'Add bank account', layout, confirmation, isSubmitting, submitError, resetKey}: FlowProps) {
     const isDraftReady = useSeededDraft(draftValues);
     if (!isDraftReady) {
         return <View />;
@@ -452,9 +458,9 @@ function Flow({fields, draftValues, isFlat, layout, confirmation, isSubmitting, 
             routePrefix={FLOW_ROUTE_PREFIX}
         >
             <DynamicFormFlow
-                schema={toSchema(fields, isFlat)}
+                schema={schema}
                 formID={STORYBOOK_FORM_ID}
-                headerTitle="Add bank account"
+                headerTitle={headerTitle}
                 confirmationTitle="Let’s double check that everything looks right"
                 testID="DynamicFormFlowStory"
                 buildRoute={(pageName, action) => ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(undefined, pageName, action)}
@@ -479,9 +485,8 @@ function FlowFromPreset({preset, layout, confirmation, isSubmitting, submitError
     return (
         <Flow
             resetKey={preset}
-            fields={presetValues.fields}
+            schema={toSchema(presetValues.fields, presetValues.isFlat)}
             draftValues={presetValues.draftValues}
-            isFlat={presetValues.isFlat}
             layout={layout}
             confirmation={confirmation}
             isSubmitting={isSubmitting}
@@ -550,14 +555,131 @@ function Playground({preset, fields, draftValues, isFlat, layout}: PlaygroundPro
     return (
         <Flow
             resetKey={resetKey}
-            fields={schema}
+            schema={toSchema(schema, isFlat)}
             draftValues={draftValues ?? {}}
-            isFlat={isFlat}
             layout="auto"
             confirmation="auto"
         />
     );
 }
+
+const SOURCE_OF_FUNDS_DOCUMENT_TYPE_LABELS: Record<string, string> = {
+    TAX_DOCUMENTS: 'Tax return',
+    AUDITED_FINANCIAL_STATEMENTS: 'Audited financial statements',
+    BANK_STATEMENT: 'Bank statement',
+    E_COMMERCE_STATEMENTS: 'E-commerce statements',
+    INVOICES: 'Invoices',
+    CONTRACTS: 'Contracts',
+    PERSONAL_TAX_DECLARATION: 'Personal tax declaration',
+    SAVINGS_STATEMENT: 'Savings statement',
+    PAYSLIP: 'Payslip',
+    PERSONAL_LOAN_AGREEMENT: 'Personal loan agreement',
+    PERSONAL_INVESTMENT: 'Personal investment statement',
+    ASSET_SALE_AGREEMENT: 'Asset sale agreement',
+    LOAN_AGREEMENT: 'Loan agreement',
+    EQUITY_AGREEMENT: 'Equity agreement',
+    SUBSCRIPTION_AGREEMENT: 'Subscription agreement',
+    SHARE_SALE_CERTIFICATE: 'Share sale certificate',
+    DONATION_RECEIPTS: 'Donation receipts',
+    WRITTEN_CONFIRMATION: 'Written confirmation',
+    GRANT_APPROVAL_LETTER: 'Grant approval letter',
+};
+
+type SourceOfFunds = {
+    /** Wise's sourceOfWealthType */
+    key: string;
+
+    label: string;
+
+    /** Which documents the source needs, shown under its title */
+    hint: string;
+
+    /** The document types Wise accepts for the source, from the BUSINESS_SOURCE_OF_WEALTH_PROOF requirement */
+    documentTypes: string[];
+};
+
+/** The sources the business picked on the previous page */
+const PICKED_SOURCES_OF_FUNDS: SourceOfFunds[] = [
+    {
+        key: 'REVENUE',
+        label: 'Business revenue',
+        hint: 'Latest business tax return, audited financial statements, or business bank statements.',
+        documentTypes: ['TAX_DOCUMENTS', 'AUDITED_FINANCIAL_STATEMENTS', 'BANK_STATEMENT', 'E_COMMERCE_STATEMENTS', 'INVOICES', 'CONTRACTS'],
+    },
+    {
+        key: 'BUSINESS_LOAN',
+        label: 'Business loan',
+        hint: 'Loan agreement and a business bank statement showing receipt of the funds.',
+        documentTypes: ['LOAN_AGREEMENT', 'BANK_STATEMENT'],
+    },
+];
+
+const SOURCE_OF_FUNDS_PAGE: Omit<DynamicFormPage, 'content'> = {
+    key: 'sourceOfFundsDocuments',
+    title: 'Source of funds documents',
+    description: 'Upload the required documents for each source listed below.',
+};
+
+function toDocumentTypeOptions(documentTypes: string[]): DynamicFormFieldOption[] {
+    return documentTypes.map((key) => ({key, label: SOURCE_OF_FUNDS_DOCUMENT_TYPE_LABELS[key] ?? key}));
+}
+
+function toUploadedPdf(name: string): FileObject[] {
+    return [{name, type: 'application/pdf'}];
+}
+
+function getProofsKey(source: string): string {
+    return `proofs-${source}`;
+}
+
+/** Each source is one upload field whose files are labelled by the document type picked before each upload */
+const sourceOfFundsDocumentsSchema: DynamicFormSchema = {
+    pages: [
+        {
+            ...SOURCE_OF_FUNDS_PAGE,
+            content: PICKED_SOURCES_OF_FUNDS.flatMap((source): DynamicFormContentItem[] => [
+                {key: `source-${source.key}`, title: source.label, description: source.hint},
+                {
+                    key: getProofsKey(source.key),
+                    label: source.label,
+                    type: 'file',
+                    required: true,
+                    maxFiles: 3,
+                    fileTypes: {label: 'Document type', values: toDocumentTypeOptions(source.documentTypes)},
+                },
+            ]),
+        },
+    ],
+};
+
+function toDocumentEntry(documentType: string, fileName: string): DynamicFormListItem {
+    return {id: documentType, fileType: documentType, files: toUploadedPdf(fileName)};
+}
+
+const SOURCE_OF_FUNDS_DOCUMENTS_DRAFT: Preset['draftValues'] = {
+    [getProofsKey('REVENUE')]: [toDocumentEntry('TAX_DOCUMENTS', 'BusinessTaxReturn.pdf')],
+    [getProofsKey('BUSINESS_LOAN')]: [toDocumentEntry('LOAN_AGREEMENT', 'LoanAgreement.pdf'), toDocumentEntry('BANK_STATEMENT', 'BankStatement.pdf')],
+};
+
+type SourceOfFundsStoryProps = Pick<FlowProps, 'layout' | 'confirmation'>;
+
+/** The documents page of the Wise business onboarding, with a select and a file field per source */
+function SourceOfFundsDocumentsFlow({layout, confirmation}: SourceOfFundsStoryProps) {
+    return (
+        <Flow
+            resetKey="sourceOfFundsDocuments"
+            schema={sourceOfFundsDocumentsSchema}
+            draftValues={SOURCE_OF_FUNDS_DOCUMENTS_DRAFT}
+            headerTitle="Business info"
+            layout={layout}
+            confirmation={confirmation}
+        />
+    );
+}
+
+const SourceOfFundsDocuments: StoryFn<SourceOfFundsStoryProps> = SourceOfFundsDocumentsFlow.bind({});
+SourceOfFundsDocuments.args = {layout: 'auto', confirmation: 'no'};
+SourceOfFundsDocuments.argTypes = {layout: flowArgTypes.layout, confirmation: flowArgTypes.confirmation};
 
 const FlowStory = presetFlowStory('originalBankAccount');
 FlowStory.storyName = 'Flow';
@@ -602,4 +724,5 @@ export {
     LoneCurrency,
     AmountWithCurrency,
     UnknownType,
+    SourceOfFundsDocuments,
 };

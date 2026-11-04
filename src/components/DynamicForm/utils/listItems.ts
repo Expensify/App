@@ -1,6 +1,7 @@
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 
 import type {DynamicFormListField, DynamicFormListItem} from '@src/types/onyx';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 import getAnswerKeys from './getAnswerKeys';
 import hasSensitiveAnswer from './hasSensitiveAnswer';
@@ -40,6 +41,15 @@ function getListItems(value: unknown): DynamicFormListItem[] {
     return items.filter(isListItem);
 }
 
+/** The files an entry holds under `files`, as a labelled upload field stores them, ignoring anything malformed */
+function getListItemFiles(item: DynamicFormListItem): FileObject[] {
+    const files: unknown = item.files;
+    if (!Array.isArray(files)) {
+        return [];
+    }
+    return files.filter((file): file is FileObject => typeof file === 'object' && file !== null);
+}
+
 /** An entry's sensitive answers, keyed by field key, from the answers kept in memory */
 function getListItemSensitiveAnswers(field: DynamicFormListField, itemID: string, values: DynamicFormValues): DynamicFormValues {
     return Object.fromEntries(
@@ -60,4 +70,4 @@ function getRemovedListItemSensitiveKeys(field: DynamicFormListField, values: Dy
     return Object.keys(values).filter((key) => key.startsWith(`${field.key}${PAGE_NAME_SEPARATOR}`) && !keptKeys.has(key));
 }
 
-export {getListItemPageName, getListItemSensitiveAnswers, getListItemSensitiveKey, getListItems, getRemovedListItemSensitiveKeys, isListItem, parseListItemPageName};
+export {getListItemFiles, getListItemPageName, getListItemSensitiveAnswers, getListItemSensitiveKey, getListItems, getRemovedListItemSensitiveKeys, isListItem, parseListItemPageName};
