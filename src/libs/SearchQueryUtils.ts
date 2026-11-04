@@ -1451,7 +1451,10 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}${operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO]}${sanitizeSearchValue(value)}`;
                 }
             }
-            if ((filterKey === FILTER_KEYS.REPORT_ID || filterKey === FILTER_KEYS.WITHDRAWAL_ID) && filterValue) {
+            if (
+                (filterKey === FILTER_KEYS.REPORT_ID || filterKey === FILTER_KEYS.WITHDRAWAL_ID || filterKey === FILTER_KEYS.INVOICE_NUMBER || filterKey === FILTER_KEYS.PO_NUMBER) &&
+                filterValue
+            ) {
                 const reportIDs = (filterValue as string)
                     .split(',')
                     .map((id) => sanitizeSearchValue(id.trim()))
