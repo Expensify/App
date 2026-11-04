@@ -78,7 +78,7 @@ function getDisplayName(key: string, modifiers: string | string[]): string {
         displayName = [...modifiers.sort(), ...displayName];
     }
 
-    displayName = displayName.map((modifier) => CONST.KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME[modifier.toUpperCase() as keyof typeof CONST.KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME] ?? modifier);
+    displayName = displayName.map((modifier) => Object.entries(CONST.KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME).find(([displayKey]) => displayKey === modifier.toUpperCase())?.[1] ?? modifier);
 
     return displayName.join(' + ');
 }
@@ -89,7 +89,7 @@ for (const shortcut of Object.values(CONST.KEYBOARD_SHORTCUTS)) {
         continue;
     }
 
-    const shortcutTrigger = (operatingSystem && shortcut.trigger[operatingSystem as keyof typeof shortcut.trigger]) ?? shortcut.trigger.DEFAULT;
+    const shortcutTrigger = (operatingSystem && Object.entries(shortcut.trigger).find(([system]) => system === operatingSystem)?.[1]) ?? shortcut.trigger.DEFAULT;
 
     KeyCommand.addListener(shortcutTrigger, (keyCommandEvent, event) => bindHandlerToKeydownEvent(getDisplayName, eventHandlers, keyCommandEvent, event));
 }
@@ -114,7 +114,7 @@ function getPlatformEquivalentForKeys(keys: ShortcutModifiers): string[] {
         }
 
         const platformModifiers = CONST.PLATFORM_SPECIFIC_KEYS[key];
-        return platformModifiers?.[operatingSystem as keyof typeof platformModifiers] ?? platformModifiers.DEFAULT ?? key;
+        return (operatingSystem && Object.entries(platformModifiers).find(([system]) => system === operatingSystem)?.[1]) ?? platformModifiers.DEFAULT ?? key;
     });
 }
 
