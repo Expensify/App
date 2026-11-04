@@ -4,6 +4,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import type * as SearchContext from '@components/Search/SearchContext';
 import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
 import type {SearchQueryJSON} from '@components/Search/types';
@@ -30,9 +31,9 @@ let mockOnListItemPress: ((item: SearchQueryItem) => void) | undefined;
 const mockGetSearchKeyForQuery = jest.fn(() => undefined);
 
 jest.mock('@components/Search/SearchContext', () => ({
-    ...jest.requireActual<typeof import('@components/Search/SearchContext')>('@components/Search/SearchContext'),
+    ...jest.requireActual<typeof SearchContext>('@components/Search/SearchContext'),
     useSearchQueryContext: () => {
-        const mockCONST = jest.requireActual<typeof import('@src/CONST')>('@src/CONST').default;
+        const mockCONST = jest.requireActual<typeof CONST>('@src/CONST').default;
         return {
             currentSearchQueryJSON: mockCurrentQuery,
             currentSearchHash: mockCurrentQuery?.hash,
@@ -167,7 +168,11 @@ describe('SearchRouter saved search sorting', () => {
         mockCurrentQuery = buildSearchQueryJSON(`type:expense from:123 sortBy:amount sortOrder:${sortOrder}`);
         await renderSearchRouter();
         const input = screen.getByTestId('search-autocomplete-text-input');
-        const readableQuery = input.props.value as string;
+        const inputValue: unknown = input.props.value;
+        if (typeof inputValue !== 'string') {
+            throw new Error('Expected the search input value to be a string');
+        }
+        const readableQuery = inputValue;
         expect(readableQuery).not.toMatch(/sort-?by|sort-?order/i);
         expect(readableQuery).toContain('from:me');
 
