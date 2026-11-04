@@ -176,7 +176,7 @@ PODS:
     - ExpoModulesCore
   - ExpoLogBox (58.0.12):
     - React-Core
-  - ExpoModulesCore (58.0.22):
+  - ExpoModulesCore (58.0.29):
     - boost
     - DoubleConversion
     - ExpoModulesJSI
@@ -207,13 +207,13 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - ExpoModulesJSI (58.0.15):
+  - ExpoModulesJSI (58.0.21):
     - React-Core
     - ReactCommon
-  - ExpoModulesWorklets (58.0.22):
+  - ExpoModulesWorklets (58.0.29):
     - ExpoModulesCore
     - ExpoModulesJSI
-  - ExpoModulesWorkletsAdapter (58.0.22):
+  - ExpoModulesWorkletsAdapter (58.0.29):
     - ExpoModulesCore
     - ExpoModulesJSI
     - ExpoModulesWorklets
@@ -5371,10 +5371,10 @@ SPEC CHECKSUMS:
   ExpoImageManipulator: d3a5f1755634d963c526f66cc2ef878dbe4e4306
   ExpoLocation: 8bd5f5af8ce2f6abb310446344239f86975afe54
   ExpoLogBox: 14c42e5429c85e1e2acfb9316b4e821db8e40d42
-  ExpoModulesCore: 4c33c59b7102473a92833bae77d0c0ff3aebda08
-  ExpoModulesJSI: c2111838d63bf8351b556e1cde21da5d763ef224
-  ExpoModulesWorklets: 6256cf8b2b591c89c3576638d9f70bb46ef51ece
-  ExpoModulesWorkletsAdapter: 1a8f385605e9fbcdc817666f76fb8043ce366554
+  ExpoModulesCore: 2c4da1a3b3723fe6f75f6cac3c9e1ff20f768a6b
+  ExpoModulesJSI: cde3d94ff303a13645439ee8637a445650ebc676
+  ExpoModulesWorklets: 8908bee33c6f95479b209bc05ea24346da9ff606
+  ExpoModulesWorkletsAdapter: 0ce5b924ef8b77205b388606d2fcf046542e3895
   ExpoStoreReview: baec43b9560cbe6e03171afb26a011ffdd68cad5
   ExpoTaskManager: a9a9c3ccecdf3e0b76d11c35893a5ee0989ccd7a
   ExpoVideo: 1281a010245cad04faf0106cbfeb2c643bbdc403
