@@ -1,20 +1,21 @@
 import type {MoveSelectionToEnd, ScrollInput} from './types';
 
 const scrollToBottom: ScrollInput = (input) => {
-    if (!('scrollTop' in input)) {
+    // Native inputs also expose scroll offsets, but only DOM offsets are writable.
+    if (!(input instanceof HTMLElement)) {
         return;
     }
     // eslint-disable-next-line no-param-reassign
-    (input as HTMLInputElement).scrollTop = input.scrollHeight;
+    input.scrollTop = input.scrollHeight;
 };
 
 const scrollToRight: ScrollInput = (input) => {
-    if (!('scrollLeft' in input)) {
+    if (!(input instanceof HTMLElement)) {
         return;
     }
     // Scroll to the far right
     // eslint-disable-next-line no-param-reassign
-    (input as HTMLInputElement).scrollLeft = input.scrollWidth;
+    input.scrollLeft = input.scrollWidth;
 };
 
 const moveSelectionToEnd: MoveSelectionToEnd = (input) => {

@@ -7,14 +7,18 @@ import MenuItemTitle from '@components/MenuItem/leaves/content/MenuItemTitle';
 import MenuItemIcon from '@components/MenuItem/leaves/leading/MenuItemIcon';
 import MenuItemChevron from '@components/MenuItem/leaves/trailing/icons/MenuItemChevron';
 
+import useOnyx from '@hooks/useOnyx';
+
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
+import ONYXKEYS from '@src/ONYXKEYS';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import type WithTestID from '@src/types/utils/TestID';
 
 import type {GestureResponderEvent} from 'react-native';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 type MenuItemNavigationProps = WithSentryLabel &
@@ -37,9 +41,10 @@ type MenuItemNavigationProps = WithSentryLabel &
  * chevron signaling that pressing it takes the user somewhere else
  */
 function MenuItemNavigation({title, icon, onPress, isDisabled = false, sentryLabel, testID}: MenuItemNavigationProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     return (
         <MenuItemRoot
-            onPress={callFunctionIfActionIsAllowed(onPress)}
+            onPress={callFunctionIfActionIsAllowed(onPress, false, session)}
             isDisabled={isDisabled}
             sentryLabel={sentryLabel}
             testID={testID}

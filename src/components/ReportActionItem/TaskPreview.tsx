@@ -7,6 +7,7 @@ import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuS
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -40,6 +41,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {delegateEmailSelector} from '@selectors/Account';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -62,6 +64,7 @@ type TaskPreviewProps = WithCurrentUserPersonalDetailsProps & {
 };
 
 function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovered = false, style}: TaskPreviewProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'DotIndicator']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -75,6 +78,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
     const taskReportID = taskReport?.reportID ?? action?.childReportID;
     // Prefer the live task report name so offline title edits are reflected immediately.
     const taskTitle = taskReport?.reportName ?? action?.childReportName ?? '';
+    const accountIDToName = useMentionedAccountIDToNameMap(taskTitle);
     const taskContextReport =
         taskReport ??
         ({
@@ -87,7 +91,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
             statusNum: action?.childStatusNum,
         } as Report);
 
-    const taskTitleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitle), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
+    const taskTitleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitle, {accountIDToName}), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
 
     // The reportAction might not contain details regarding the taskReport
     // Only the direct parent reportAction will contain details about the taskReport
@@ -96,7 +100,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
         ? taskReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && taskReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED
         : action?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && action?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
 
-    const taskTitlePlainText = Parser.htmlToText(taskTitle);
+    const taskTitlePlainText = Parser.htmlToText(taskTitle, {accountIDToName});
     const {
         isCompleted: isTaskCompleted,
         shouldSplitTaskAccessibilityTargets,
@@ -175,14 +179,25 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                             isChecked={isTaskCompleted}
                             disabled={!isTaskActionable}
                             shouldSelectOnPressEnter
-                            onPress={callFunctionIfActionIsAllowed(() => {
-                                updateTaskCheckboxStateForAccessibility(isTaskCompleted);
-                                if (isTaskCompleted) {
-                                    reopenTask(taskContextReport, parentReport, currentUserPersonalDetails.accountID, delegateEmail, taskReportID);
-                                } else {
-                                    completeTask(taskContextReport, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail, taskReportID);
-                                }
-                            })}
+                            onPress={callFunctionIfActionIsAllowed(
+                                () => {
+                                    updateTaskCheckboxStateForAccessibility(isTaskCompleted);
+                                    if (isTaskCompleted) {
+                                        reopenTask(taskContextReport, parentReport, currentUserPersonalDetails.accountID, delegateEmail, taskReportID);
+                                    } else {
+                                        completeTask(
+                                            taskContextReport,
+                                            parentReport?.hasOutstandingChildTask ?? false,
+                                            hasOutstandingChildTask,
+                                            parentReportAction,
+                                            delegateEmail,
+                                            taskReportID,
+                                        );
+                                    }
+                                },
+                                false,
+                                session,
+                            )}
                             accessibilityLabel={taskCheckboxAccessibilityLabel}
                             accessibilityHint={taskCheckboxAccessibilityHint}
                             sentryLabel={CONST.SENTRY_LABEL.TASK.PREVIEW_CHECKBOX}

@@ -1,12 +1,12 @@
 import {
     formatRequireItemizedReceiptsOverText,
     getAvailableNonPersonalPolicyCategories,
-    getCategoryDefaultTaxRate,
     getCategoryDescriptionHint,
     getCategoryGLCode,
     getCategoryNameError,
     getDecodedFullCategoryName,
     getDecodedLeafCategoryName,
+    hasAnyCategoryGLCode,
     hasAnyCategoryRules,
     isCategoryDescriptionRequired,
     isCategoryMissing,
@@ -16,7 +16,6 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories} from '@src/types/onyx';
-import type {ExpenseRule} from '@src/types/onyx/Policy';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -521,6 +520,51 @@ describe('getCategoryGLCode', () => {
     });
 });
 
+describe('hasAnyCategoryGLCode', () => {
+    it('returns false when the workspace has no categories', () => {
+        // Given no categories, there is no GL code to pick, so the Category GL code cell must stay read-only
+        // When / Then
+        expect(hasAnyCategoryGLCode(undefined)).toBe(false);
+        expect(hasAnyCategoryGLCode({})).toBe(false);
+    });
+
+    it('returns false when every GL code is missing or blank', () => {
+        // Given categories whose GL codes are missing, empty, whitespace or only quotes
+        const categories: PolicyCategories = {
+            Meals: {enabled: true, name: 'Meals', pendingAction: null},
+            Travel: {enabled: true, name: 'Travel', pendingAction: null, 'GL Code': ''}, // eslint-disable-line @typescript-eslint/naming-convention
+            Fuel: {enabled: true, name: 'Fuel', pendingAction: null, 'GL Code': '   '}, // eslint-disable-line @typescript-eslint/naming-convention
+            Rent: {enabled: true, name: 'Rent', pendingAction: null, 'GL Code': '""'}, // eslint-disable-line @typescript-eslint/naming-convention
+        };
+
+        // When / Then a blank code does not count as a GL code
+        expect(hasAnyCategoryGLCode(categories)).toBe(false);
+    });
+
+    it('returns true when at least one category has a GL code', () => {
+        // Given a mix of categories with and without a GL code
+        const categories: PolicyCategories = {
+            Meals: {enabled: true, name: 'Meals', pendingAction: null},
+            Travel: {enabled: true, name: 'Travel', pendingAction: null, 'GL Code': '1200'}, // eslint-disable-line @typescript-eslint/naming-convention
+        };
+
+        // When / Then one code is enough to keep the cell editable
+        expect(hasAnyCategoryGLCode(categories)).toBe(true);
+    });
+
+    it('returns false when the only GL codes are on disabled or pending-deletion categories', () => {
+        // Given GL codes only on categories the category picker won't let the user select
+        const categories: PolicyCategories = {
+            Meals: {enabled: true, name: 'Meals', pendingAction: null},
+            Travel: {enabled: false, name: 'Travel', pendingAction: null, 'GL Code': '1200'}, // eslint-disable-line @typescript-eslint/naming-convention
+            Fuel: {enabled: true, name: 'Fuel', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, 'GL Code': '1300'}, // eslint-disable-line @typescript-eslint/naming-convention
+        };
+
+        // When / Then the cell stays read-only, because the picker would offer no GL code to pick
+        expect(hasAnyCategoryGLCode(categories)).toBe(false);
+    });
+});
+
 describe('getCategoryNameError', () => {
     const encodedFoodAndDrink = 'Food &amp; Drink';
     const categories: PolicyCategories = {
@@ -573,32 +617,5 @@ describe('getCategoryNameError', () => {
         // When the new name is a harmless token the Name page already allows, such as <>
         // Then the name is valid, so the table and the Name page stay in agreement
         expect(getCategoryNameError(categories, '<>', 'Food')).toBeUndefined();
-    });
-});
-
-describe('getCategoryDefaultTaxRate', () => {
-    const buildCategoryTaxRule = (categoryName: string, taxID: string): ExpenseRule => ({
-        applyWhen: [{condition: CONST.POLICY.RULE_CONDITIONS.MATCHES, field: CONST.POLICY.FIELDS.CATEGORY, value: categoryName}],
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        tax: {field_id_TAX: {externalID: taxID}},
-    });
-
-    it("returns the category's own rate", () => {
-        expect(getCategoryDefaultTaxRate([buildCategoryTaxRule('Travel', 'id_TAX_A')], 'Travel', 'id_TAX_DEFAULT')).toBe('id_TAX_A');
-    });
-
-    it('falls back to the workspace rate when the category has no rule', () => {
-        expect(getCategoryDefaultTaxRate([buildCategoryTaxRule('Travel', 'id_TAX_A')], 'Meals', 'id_TAX_DEFAULT')).toBe('id_TAX_DEFAULT');
-    });
-
-    it('ignores a rule that carries the name on some other condition', () => {
-        // Matching on the value alone would read a rule that a save or delete never targets, handing the expense a
-        // rate the admin never set for this category.
-        const tagNamedAfterTheCategory: ExpenseRule = {
-            applyWhen: [{condition: CONST.POLICY.RULE_CONDITIONS.MATCHES, field: CONST.POLICY.FIELDS.TAG, value: 'Travel'}],
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            tax: {field_id_TAX: {externalID: 'id_TAX_B'}},
-        };
-        expect(getCategoryDefaultTaxRate([tagNamedAfterTheCategory], 'Travel', 'id_TAX_DEFAULT')).toBe('id_TAX_DEFAULT');
     });
 });

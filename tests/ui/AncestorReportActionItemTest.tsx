@@ -63,9 +63,9 @@ async function renderParentAction(reportAction: ReportAction, currentUserAccount
                 isFirstVisibleReportAction={false}
                 isReportArchived={false}
                 isSelfTourViewed={false}
+                hasCompletedGuidedSetupFlow={undefined}
                 linkedTransactionRouteError={undefined}
                 parentReportAction={undefined}
-                shouldAllowConciergeFeedback
                 shouldUseThreadDividerLine={false}
                 transactionThreadReport={undefined}
                 reportsParentHierarchy={undefined}

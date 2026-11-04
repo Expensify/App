@@ -2,7 +2,7 @@ import Log from '@libs/Log';
 
 import type {LayoutChangeEvent} from 'react-native';
 
-import {useCallback, useState, useSyncExternalStore} from 'react';
+import {useState, useSyncExternalStore} from 'react';
 import {AccessibilityInfo, AppState} from 'react-native';
 
 import isScreenReaderEnabled from './isScreenReaderEnabled';
@@ -253,15 +253,12 @@ const getHitSlopForSize = ({x, y}: HitSlop) => {
 
 const useAutoHitSlop = () => {
     const [frameSize, setFrameSize] = useState({x: 0, y: 0});
-    const onLayout = useCallback(
-        (event: LayoutChangeEvent) => {
-            const {layout} = event.nativeEvent;
-            if (layout.width !== frameSize.x && layout.height !== frameSize.y) {
-                setFrameSize({x: layout.width, y: layout.height});
-            }
-        },
-        [frameSize.x, frameSize.y],
-    );
+    const onLayout = (event: LayoutChangeEvent) => {
+        const {layout} = event.nativeEvent;
+        if (layout.width !== frameSize.x && layout.height !== frameSize.y) {
+            setFrameSize({x: layout.width, y: layout.height});
+        }
+    };
     return [getHitSlopForSize(frameSize), onLayout] as const;
 };
 

@@ -5,10 +5,14 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import removeDynamicRouteFromPath from '@libs/Navigation/helpers/dynamicRoutesUtils/removeDynamicRouteFromPath';
+import getCardDetailsPathForCard from '@libs/Navigation/helpers/getCardDetailsPathForCard';
 
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
@@ -16,13 +20,13 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
-type ReportVirtualCardFraudConfirmationPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION>;
+type ReportVirtualCardFraudConfirmationPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION>;
 
 function ReportVirtualCardFraudConfirmationPage({
     route: {
@@ -35,15 +39,24 @@ function ReportVirtualCardFraudConfirmationPage({
     const [physicalCardForm] = useOnyx(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM);
     const isCardTerminatedWithoutReplacement = !!physicalCardForm?.cardTerminatedWithoutReplacement;
     const description = isCardTerminatedWithoutReplacement ? 'reportFraudConfirmationPage.descriptionCardNotReplaced' : 'reportFraudConfirmationPage.description';
+    const cardDetailsPath = useDynamicBackPath(DYNAMIC_ROUTES.WALLET_CARD_REPORT_FRAUD_CONFIRMATION.path);
 
-    const close = useCallback(() => {
+    const close = () => {
         if (isCardTerminatedWithoutReplacement) {
-            Navigation.goBack(ROUTES.SETTINGS_WALLET);
+            Navigation.dismissModal();
             return;
         }
 
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
-    }, [cardID, isCardTerminatedWithoutReplacement]);
+        // Domains opens the card and fraud pages as static routes, so there is no dynamic suffix to remove and the replacement card is opened directly.
+        if (cardDetailsPath.replace(/^\/+/, '').startsWith(ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(''))) {
+            Navigation.goBack(ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(cardID), {compareParams: false});
+            return;
+        }
+
+        // The fraud page stays under this one after a successful report, so its suffix has to go before the card page is pointed at the replacement card.
+        const reportedCardPath = removeDynamicRouteFromPath(cardDetailsPath, DYNAMIC_ROUTES.WALLET_CARD_REPORT_FRAUD.path) ?? cardDetailsPath;
+        Navigation.goBack(getCardDetailsPathForCard(reportedCardPath, cardID), {compareParams: false});
+    };
 
     return (
         <ScreenWrapper

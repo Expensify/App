@@ -1,4 +1,4 @@
-import {buildMerchantRule} from '@libs/ExpenseDefaultRuleUtils';
+import {buildExpenseDefaultRule} from '@libs/ExpenseDefaultRuleUtils';
 import {getMerchantRulesTableData} from '@libs/MerchantTypeRulesUtils';
 import {hasVendorFeature} from '@libs/PolicyUtils';
 import {toIndexMap} from '@libs/RuleUtils';
@@ -25,8 +25,9 @@ const buildForm = (overrides: Partial<MerchantRuleForm> = {}): MerchantRuleForm 
     merchant: '',
     category: '',
     categoriesToMatch: [],
-    ruleType: CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.MERCHANT,
+    amount: '',
     tag: '',
+    tagsToMatch: [],
     tax: '',
     vendorID: '',
     comment: '',
@@ -75,7 +76,7 @@ const buildIntacctPolicy = (vendors: Array<{id: string; name: string; value: str
         }),
     });
 
-/** Xero policy whose supplier list scopes vendor matching to Xero (label flips vendor -> supplier). */
+/** Xero policy whose supplier list scopes vendor matching to Xero. */
 const buildXeroPolicy = (contacts: Record<string, {id: string; name: string; email: string}> | undefined): Policy =>
     createMock<Policy>({
         ...createRandomPolicy(0),
@@ -107,7 +108,7 @@ const buildQBOWithStaleXeroPolicy = (qboVendors: Array<{id: string; name: string
     });
 
 const buildVendorRule = (policy: Policy, vendorID: string): Rule => ({
-    ...buildMerchantRule({merchantToMatch: 'Coffee Shop', matchType: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, vendorID}, policy),
+    ...buildExpenseDefaultRule({merchantToMatch: 'Coffee Shop', matchType: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, vendorID}, policy),
     scope: CONST.RULES.SCOPE.POLICY,
     scopeID: policy.id,
     triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
@@ -118,14 +119,14 @@ const buildVendorRule = (policy: Policy, vendorID: string): Rule => ({
 const withVendorRule = (policy: Policy, vendorID: string) => ({[`${ONYXKEYS.COLLECTION.RULE}rule1`]: buildVendorRule(policy, vendorID)});
 
 describe('Vendor matching on merchant rules', () => {
-    describe('buildMerchantRule vendor action', () => {
+    describe('buildExpenseDefaultRule vendor action', () => {
         it('writes a Set action for a vendorID', () => {
-            const actions = Object.values(buildMerchantRule(buildForm({vendorID: 'v-1'}), undefined)?.actions ?? {});
+            const actions = Object.values(buildExpenseDefaultRule(buildForm({vendorID: 'v-1'}), undefined)?.actions ?? {});
             expect(actions).toContainEqual({name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.VENDOR_ID, value: 'v-1'});
         });
 
         it('writes no vendor action when the vendorID is unset, so the rule stops setting it', () => {
-            const actions = Object.values(buildMerchantRule(buildForm({vendorID: '', category: 'Coffee'}), undefined)?.actions ?? {});
+            const actions = Object.values(buildExpenseDefaultRule(buildForm({vendorID: '', category: 'Coffee'}), undefined)?.actions ?? {});
             expect(actions.some((action) => action.field === CONST.RULES.EXPENSE_DEFAULT.FIELD.VENDOR_ID)).toBe(false);
         });
     });
@@ -184,17 +185,23 @@ describe('Vendor matching on merchant rules', () => {
             expect(buildTableData(policy, 'v-1').at(0)?.ruleDescription).toContain('Update vendor to "Acme Co"');
         });
 
-        it('uses "supplier" wording and "Supplier unavailable" on Xero workspaces', () => {
+        it('uses "vendor" wording and "Vendor unavailable" on Xero workspaces', () => {
+            // Given Xero workspaces where the rule's vendor is synced, missing from a loaded list, or not loaded yet
             const resolved = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
-            expect(buildTableData(resolved, 'xc1').at(0)?.ruleDescription).toContain('Update supplier to "Acme Xero"');
 
-            expect(buildTableData(buildXeroPolicy({}), 'xc1').at(0)?.ruleDescription).toContain('Update supplier to "Supplier unavailable"');
+            // When the merchant rule summaries are built
+            const resolvedDescription = buildTableData(resolved, 'xc1').at(0)?.ruleDescription;
+            const unavailableDescription = buildTableData(buildXeroPolicy({}), 'xc1').at(0)?.ruleDescription;
+            const unsyncedDescription = buildTableData(buildXeroPolicy(undefined), 'xc1').at(0)?.ruleDescription;
 
-            expect(buildTableData(buildXeroPolicy(undefined), 'xc1').at(0)?.ruleDescription).toContain('Update supplier to "xc1"');
+            // Then they say "vendor" like every other integration, so the wording matches the rest of the app
+            expect(resolvedDescription).toContain('Update vendor to "Acme Xero"');
+            expect(unavailableDescription).toContain('Update vendor to "Vendor unavailable"');
+            expect(unsyncedDescription).toContain('Update vendor to "xc1"');
         });
     });
 
-    describe('vendor row gating (hasVendorFeature governs MerchantRulePageBase row visibility)', () => {
+    describe('vendor row gating (hasVendorFeature governs ExpenseDefaultRulePageBase row visibility)', () => {
         it('is visible when the beta is on and a vendor integration is connected', () => {
             expect(hasVendorFeature(buildQBOPolicy([{id: 'v-1', name: 'Acme Co', currency: 'USD'}]), true)).toBe(true);
         });

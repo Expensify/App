@@ -62,6 +62,10 @@ Onyx.connectWithoutView({
     callback: (val) => {
         Log.info('[PersistedRequests] hit Onyx connect callback', false, {isValNullish: val == null, isInitialized});
 
+        if (isInitialized && val == null && persistedRequests.length > 0) {
+            Log.hmmm('[PersistedRequests] Onyx.clear dropped queued requests', {droppedCommands: getCommands(persistedRequests)});
+        }
+
         // After initialization, in-memory is authoritative — ignore stale disk
         // callbacks to prevent out-of-order Onyx.set() from overwriting the
         // correct in-memory state (Bug #80759 Issue 4).

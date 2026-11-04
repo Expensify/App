@@ -73,6 +73,54 @@ describe('useAccountIndicatorChecks', () => {
             expect(result.current.accountStatus).toBe(CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR);
         });
 
+        it('returns HAS_PAYMENT_METHOD_ERROR when a bank account has a broken Plaid connection', async () => {
+            await act(async () => {
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.USER_WALLET]: {},
+                        [ONYXKEYS.BANK_ACCOUNT_LIST]: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            12345: {
+                                methodID: 12345,
+                                accountData: {additionalData: {verifications: {externalApiResponses: {plaidAssets: {needsFixing: true}}}}},
+                            },
+                        },
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => useAccountIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current.accountStatus).toBe(CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR);
+        });
+
+        it('does not return HAS_PAYMENT_METHOD_ERROR when the Plaid connection is healthy', async () => {
+            await act(async () => {
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.USER_WALLET]: {},
+                        [ONYXKEYS.BANK_ACCOUNT_LIST]: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            12345: {
+                                methodID: 12345,
+                                accountData: {additionalData: {verifications: {externalApiResponses: {plaidAssets: {needsFixing: false}}}}},
+                            },
+                        },
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => useAccountIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current.accountStatus).not.toBe(CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR);
+        });
+
         it('returns HAS_REIMBURSEMENT_ACCOUNT_ERRORS when reimbursement account has errors', async () => {
             await act(async () => {
                 await Onyx.multiSet(
@@ -492,6 +540,33 @@ describe('useAccountIndicatorChecks', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(result.current.accountStatus).toBe(CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR);
+        });
+
+        it('returns HAS_AGENT_ERRORS when wallet has errors', async () => {
+            await act(async () => {
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.USER_WALLET]: {},
+                        [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
+                        [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
+                        [ONYXKEYS.LOGINS]: {},
+                        [ONYXKEYS.WALLET_TERMS]: {},
+                        [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
+                        [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: 0,
+                        [ONYXKEYS.CARD_LIST]: {},
+                        [`${ONYXKEYS.COLLECTION.AGENT}1` as const]: {
+                            errors: {error: 'Something went wrong'},
+                        },
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => useAccountIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current.accountStatus).toBe(CONST.INDICATOR_STATUS.HAS_AGENT_ERRORS);
         });
     });
 

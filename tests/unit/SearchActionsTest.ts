@@ -23,7 +23,7 @@ import fileDownload from '@libs/fileDownload';
 import {translate} from '@libs/Localize';
 import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, normalizeDatePresetsInQuery} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -150,6 +150,31 @@ describe('SearchActions', () => {
                 }),
             );
         });
+
+        it('saves a year to date query with this year', () => {
+            // Given a query on the deprecated year to date preset
+            const yearToDateQueryJSON = getQueryJSON('type:expense date:year-to-date');
+
+            // When it's saved
+            saveSearch({id: savedSearchID, queryJSON: yearToDateQueryJSON, newName: 'My search'});
+
+            // Then the saved query uses this year, so the saved search opens with the preset the date picker lists
+            const savedQueryJSON = getQueryJSON(normalizeDatePresetsInQuery(yearToDateQueryJSON.inputQuery));
+            expect(savedQueryJSON.inputQuery).toContain(`date:${CONST.SEARCH.DATE_PRESETS.THIS_YEAR}`);
+            expect(mockWrite).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SAVE_SEARCH,
+                {jsonQuery: JSON.stringify(savedQueryJSON), savedSearchID, newName: 'My search'},
+                expect.objectContaining({
+                    optimisticData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.SAVED_SEARCHES,
+                            value: {[savedSearchID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, name: 'My search', query: savedQueryJSON.inputQuery}},
+                        },
+                    ],
+                }),
+            );
+        });
     });
 
     describe('deleteSavedSearch', () => {
@@ -194,6 +219,25 @@ describe('SearchActions', () => {
     });
 
     describe('queueExportSearchItemsToCSV', () => {
+        it('passes the groups-only option to the queued export', () => {
+            // Given a summary-only export of a grouped search.
+            const parameters = {
+                jsonQuery: '{}',
+                reportIDList: [],
+                transactionIDList: [],
+                isBasicExport: false,
+                exportColumnLabels: '{}',
+                exportName: 'Current view (groups only)',
+                isGroupsOnly: true,
+            };
+
+            // When the export is queued.
+            queueExportSearchItemsToCSV(parameters);
+
+            // Then the worker receives the summary-only flag.
+            expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, expect.objectContaining({isGroupsOnly: true}), expect.any(Object));
+        });
+
         it('sets optimistic Onyx data with state preparing and returns exportID', () => {
             const exportID = queueExportSearchItemsToCSV({
                 jsonQuery: '{}',
@@ -254,6 +298,31 @@ describe('SearchActions', () => {
 
     describe('exportSearchItemsToCSV', () => {
         beforeEach(() => jest.clearAllMocks());
+
+        it('passes the groups-only option in the direct CSV form payload', () => {
+            // Given a summary-only export of a grouped search.
+            const appendSpy = jest.spyOn(FormData.prototype, 'append');
+
+            // When the export is downloaded directly.
+            exportSearchItemsToCSV(
+                {
+                    jsonQuery: '{}',
+                    reportIDList: [],
+                    transactionIDList: [],
+                    isBasicExport: false,
+                    exportColumnLabels: '{}',
+                    exportName: 'Current view (groups only)',
+                    isGroupsOnly: true,
+                },
+                jest.fn(),
+                translateForTest,
+                undefined,
+            );
+
+            // Then the API receives the summary-only flag.
+            expect(appendSpy).toHaveBeenCalledWith('isGroupsOnly', 'true');
+            appendSpy.mockRestore();
+        });
 
         it('includes excluded transaction IDs in the direct CSV form payload', () => {
             const appendSpy = jest.spyOn(FormData.prototype, 'append');

@@ -73,7 +73,9 @@ const EDITABLE_SEARCH_COLUMNS = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
     CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
+    CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE,
     CONST.SEARCH.TABLE_COLUMNS.TAG,
+    CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE,
     CONST.SEARCH.TABLE_COLUMNS.DATE,
     CONST.SEARCH.TABLE_COLUMNS.SUBMITTED,
     CONST.SEARCH.TABLE_COLUMNS.APPROVED,
@@ -299,6 +301,8 @@ function getExpenseReportColumnContentToMeasure(column: SearchColumnType, item: 
             return [{text: item.submitterPayrollID}];
         case CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS:
             return [{text: item.orderDealNumbers}];
+        case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
+            return [{text: item.withdrawalIDs}];
         default:
             return [];
     }
