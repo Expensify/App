@@ -72,10 +72,12 @@ const LOCAL_FORMATTER_FORMAT_ARG_INDEX = {formatInTimeZoneWithFallback: 2};
 const DATE_FNS_MODULES = new Set(['date-fns', 'date-fns-tz']);
 
 /**
- * `CONST.DATE.*` formats with no language-dependent tokens. Anything else in `CONST.DATE` is treated as localized, so a
- * newly added format is guarded by default rather than silently escaping this rule.
+ * `CONST.DATE.*` machine formats with no language-dependent tokens. Anything else in `CONST.DATE` is treated as localized,
+ * so a newly added format is guarded by default rather than silently escaping this rule. `SHORT_DATE_FORMAT` (`MM-dd`)
+ * has no such tokens either, but it is only ever shown to users, so it is left out and needs the user's locale like any
+ * other display format.
  */
-const MACHINE_DATE_CONSTANTS = new Set(['FNS_FORMAT_STRING', 'FNS_DATE_TIME_FORMAT_STRING', 'FNS_DB_FORMAT_STRING', 'FNS_TIMEZONE_FORMAT_STRING', 'YEAR_MONTH_FORMAT', 'SHORT_DATE_FORMAT']);
+const MACHINE_DATE_CONSTANTS = new Set(['FNS_FORMAT_STRING', 'FNS_DATE_TIME_FORMAT_STRING', 'FNS_DB_FORMAT_STRING', 'FNS_TIMEZONE_FORMAT_STRING', 'YEAR_MONTH_FORMAT']);
 
 /**
  * Strips the single-quoted escaped literals date-fns supports (e.g. the "T" in `yyyy-MM-dd'T'HH:mm`)
@@ -123,7 +125,7 @@ function resolvePattern(node) {
     if (node.type === 'Literal' && typeof node.value === 'string') {
         return node.value;
     }
-    // `CONST.DATE.MONTH_DAY_YEAR_FORMAT`. Unknown names fall through to UNKNOWN_LOCALIZED so that a format added to
+    // `CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT`. Unknown names fall through to UNKNOWN_LOCALIZED so that a format added to
     // CONST.DATE later is guarded by default rather than silently skipped.
     if (node.type === 'MemberExpression' && !node.computed && node.property.type === 'Identifier') {
         const {object} = node;
