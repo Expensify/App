@@ -27,6 +27,8 @@ import ROUTES from '@src/ROUTES';
 
 import React, {useEffect, useEffectEvent, useState} from 'react';
 
+import getCurrentSchemaAnswers from './getCurrentSchemaAnswers';
+
 type WiseDepositAccountContentProps = {
     backTo?: Route;
 
@@ -117,9 +119,7 @@ function WiseDepositAccountContent({backTo, subPage}: WiseDepositAccountContentP
     const getAnswerCurrency = (answers: Record<string, unknown>) => (typeof answers.currency === 'string' ? answers.currency : wiseBankAccountFields?.currency);
 
     const refreshForm = (inputID: string, value: FormValue) => {
-        const schemaKeys = new Set(schema && 'pages' in schema ? schema.pages.flatMap((page) => page.content.map((item) => item.key)) : []);
-        const isCurrentField = (key: string) => schemaKeys.has(key) || schemaKeys.has(key.split('.').at(0) ?? key);
-        const answers: Record<string, unknown> = Object.fromEntries(Object.entries(draftValues ?? {}).filter(([key]) => isCurrentField(key)));
+        const answers = getCurrentSchemaAnswers(schema, draftValues);
         answers[inputID] = value;
         getWiseBankAccountFields(selectedCountry, getAnswerCurrency(answers), answers);
     };
