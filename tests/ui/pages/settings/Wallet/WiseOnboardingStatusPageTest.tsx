@@ -109,6 +109,19 @@ describe('WiseOnboardingStatusPage', () => {
         expect(bankAccountList?.[BANK_ACCOUNT_ID]?.accountData?.additionalData?.wise?.status).toBe(CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED);
     });
 
+    it('keeps the status the server sent when Wise returns after the onboarding moved on', async () => {
+        // Given Wise already approved the business
+        const setParamsSpy = jest.spyOn(Navigation, 'setParams').mockImplementation(() => {});
+
+        // When an old redirect from Wise's form opens the page again, for example from the browser history
+        await renderPage(CONST.WISE.ONBOARDING_STATUS.APPROVED, 'success');
+
+        // Then the approval stays, since only an onboarding waiting for the form takes its outcome, and the param still leaves the URL
+        const bankAccountList = await getOnyxValue(ONYXKEYS.BANK_ACCOUNT_LIST);
+        expect(bankAccountList?.[BANK_ACCOUNT_ID]?.accountData?.additionalData?.wise?.status).toBe(CONST.WISE.ONBOARDING_STATUS.APPROVED);
+        expect(setParamsSpy).toHaveBeenCalledWith({status: undefined});
+    });
+
     it.each([CONST.WISE.ONBOARDING_STATUS.IN_REVIEW, CONST.WISE.ONBOARDING_STATUS.NOT_APPROVED])('opens Concierge from the %s content', async (onboardingStatus) => {
         // Given the page shows content that points the admin to Concierge
         const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});

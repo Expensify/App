@@ -73,14 +73,18 @@ function WiseOnboardingStatusPage({route}: WiseOnboardingStatusPageProps) {
         if (!kycReviewFormStatus || !hasBankAccount) {
             return;
         }
-        if (kycReviewFormStatus !== CONST.WISE.KYC_REVIEW_REDIRECT_STATUS_SUCCESS) {
+        // Only an onboarding still waiting for Wise's form takes its outcome, so an old redirect does not overwrite a status the server sent since
+        const isWaitingForKYCReviewForm = onboardingStatus === CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED;
+        if (isWaitingForKYCReviewForm && kycReviewFormStatus !== CONST.WISE.KYC_REVIEW_REDIRECT_STATUS_SUCCESS) {
             // The form was closed or failed, so the user goes back to the page that opens it again
             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path, introPath), {forceReplace: true});
             return;
         }
-        markWiseKYCReviewSubmitted(bankAccountID);
+        if (isWaitingForKYCReviewForm) {
+            markWiseKYCReviewSubmitted(bankAccountID);
+        }
         Navigation.setParams({status: undefined});
-    }, [kycReviewFormStatus, hasBankAccount, bankAccountID, introPath]);
+    }, [kycReviewFormStatus, hasBankAccount, onboardingStatus, bankAccountID, introPath]);
 
     // On a cold direct link the account list can be empty until the payment-method fetch finishes, so wait for it before judging the account
     const isWaitingForBankAccount = !hasBankAccount && !!isLoadingPaymentMethods;
