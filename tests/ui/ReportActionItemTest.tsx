@@ -2044,6 +2044,20 @@ describe('ReportActionItem', () => {
             expect(screen.getByText(/5678/)).toBeOnTheScreen();
         });
 
+        it('AUTO_PAY_FEE_DISCLOSURE action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.AUTO_PAY_FEE_DISCLOSURE, {
+                policyID: 'pol123',
+                accountID: ACTOR_ACCOUNT_ID,
+                bankName: 'Chase',
+                lastFour: '5678',
+            });
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/enabled by test@test.com on the Chase account ending in 5678/)).toBeOnTheScreen();
+            expect(screen.getAllByRole(CONST.ROLE.LINK, {name: 'auto-pay settings'}).length).toBeGreaterThan(0);
+        });
+
         it('RENAMED action', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.RENAMED, {
                 oldName: 'Old Room',

@@ -24,7 +24,7 @@ import {getReportFromSearchSnapshot, setSearchMergeReportIDs} from '@libs/action
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {canMergeReports, getMoneyRequestSpendBreakdown, getPersonalDetailsForAccountID} from '@libs/ReportUtils';
+import {canMergeReports, doReportsHaveMatchingReportFieldValues, getMoneyRequestSpendBreakdown, getPersonalDetailsForAccountID, isReportExportedOrPending} from '@libs/ReportUtils';
 
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 
@@ -124,6 +124,7 @@ function SearchMergeReports() {
                   const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
                   return {
                       ...report,
+                      fieldList: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.fieldList ?? report.fieldList,
                       groupedBy: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                       keyForList: reportID,
                       text: report.reportName ?? '',
@@ -151,6 +152,9 @@ function SearchMergeReports() {
           }, [] as string[])
         : [];
 
+    const selectedPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItems.at(0)?.policyID}`];
+    const hasReportFieldMismatch = reportItems.length > 1 && !doReportsHaveMatchingReportFieldValues(reportItems, selectedPolicy);
+
     // Ensure `allReports` and `allReportActions` are fully hydrated before merging reports.
     const isValidForMerge =
         !!allReports &&
@@ -158,14 +162,25 @@ function SearchMergeReports() {
         !!destinationReportID &&
         !!destinationReport &&
         sourceReportIDs.length > 0 &&
+        reportItems.length === selectedReportIDs?.length &&
+        !hasReportFieldMismatch &&
         canMergeReports(
             reportItems,
             currentUserPersonalDetails.accountID,
             rules,
             getLoginByAccountID(reportItems.at(0)?.ownerAccountID, personalDetails),
             reportNameValuePairs,
-            allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItems.at(0)?.policyID}`],
+            selectedPolicy,
         );
+
+    // Include snapshot export history before hydration and live optimistic exports queued offline.
+    const shouldShowExportWarning = reportItems.some((report) => {
+        const liveReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? [];
+        const snapshotReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
+        const snapshotReportActions = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? [];
+        const liveReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
+        return isReportExportedOrPending(liveReportActions, liveReport ?? report) || isReportExportedOrPending(snapshotReportActions, snapshotReport);
+    });
 
     const mergeSelectedReports = () => {
         if (!destinationReportID || !destinationReport || !isValidForMerge) {
@@ -173,7 +188,6 @@ function SearchMergeReports() {
         }
 
         const policyID = destinationReport.policyID;
-
         mergeReports({
             isVendorMatchingBetaEnabled,
             destinationReportID,
@@ -253,8 +267,19 @@ function SearchMergeReports() {
                             <FormAlertWithSubmitButton
                                 buttonText={translate('common.confirm')}
                                 onSubmit={mergeSelectedReports}
+                                message={hasReportFieldMismatch ? translate('search.mergeReports.reportFieldsMismatch') : ''}
+                                isMessageHtml
+                                isAlertVisible={hasReportFieldMismatch}
                                 isDisabled={!isValidForMerge}
                                 enabledWhenOffline
+                                shouldRenderFooterAboveSubmit
+                                footerContent={
+                                    shouldShowExportWarning ? (
+                                        <Text style={[styles.ph5, styles.pb3]}>
+                                            <Text style={[styles.textStrong, styles.noWrap]}>{translate('iou.headsUp')}</Text> <Text>{translate('search.mergeReports.exportedWarning')}</Text>
+                                        </Text>
+                                    ) : undefined
+                                }
                             />
                         )
                     }
