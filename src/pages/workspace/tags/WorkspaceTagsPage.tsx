@@ -140,7 +140,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     useEffect(() => {
         fetchTags();
-        // Fetch only on mount, useNetwork refetches on reconnect
+        // Fetch only on mount, useNetwork fetches again on reconnect
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
