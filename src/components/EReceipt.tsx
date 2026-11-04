@@ -9,12 +9,12 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getCardDescription, getCompanyCardDescription} from '@libs/CardUtils';
+import DateUtils from '@libs/DateUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTransactionDetails} from '@libs/ReportUtils';
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Transaction from '@src/types/onyx/Transaction';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -96,10 +96,12 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false, 
         amount: transactionAmount,
         currency: transactionCurrency,
         merchant: transactionMerchant,
-        created: transactionDate,
+        created: createdDate,
         cardID: transactionCardID,
         cardName: transactionCardName,
-    } = getTransactionDetails(transactionItem ?? transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT, undefined, false, false, undefined, dateFnsLocale) ?? {};
+    } = getTransactionDetails(transactionItem ?? transaction) ?? {};
+    // `created` comes back as yyyy-MM-dd, and is empty when the transaction has no valid date.
+    const transactionDate = createdDate ? DateUtils.formatToReadableString(createdDate, dateFnsLocale) : '';
     const formattedAmount = convertToDisplayString(transactionAmount, transactionCurrency);
     const currency = getCurrencySymbol(transactionCurrency ?? '');
     const amount = currency ? formattedAmount.replace(currency, '') : formattedAmount;
