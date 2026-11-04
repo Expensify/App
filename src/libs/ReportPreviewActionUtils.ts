@@ -22,6 +22,7 @@ import {
 import {hasPendingDEWApprove} from './ReportActionsUtils';
 import {isAddExpenseAction} from './ReportPrimaryActionUtils';
 import {
+    canPayBill,
     getMoneyRequestSpendBreakdown,
     getParentReport,
     hasExportError as hasExportErrorUtil,
@@ -137,9 +138,8 @@ function canPay(
     policy?: Policy,
     invoiceReceiverPolicy?: Policy,
 ) {
-    // Bills can't be paid in NewDot yet.
     if (isBillReport(report)) {
-        return false;
+        return canPayBill(report, policy, currentUserAccountID, currentUserLogin);
     }
 
     const isExpense = isExpenseReport(report);

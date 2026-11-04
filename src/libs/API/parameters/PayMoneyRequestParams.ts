@@ -2,7 +2,8 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 type PayMoneyRequestParams = {
     iouReportID: string | undefined;
-    chatReportID: string;
+    /** A bill has no parent chat, so payBill sends it only when the bill has one */
+    chatReportID?: string;
     reportActionID: string;
     paymentMethodType: PaymentMethodType;
     full: boolean;

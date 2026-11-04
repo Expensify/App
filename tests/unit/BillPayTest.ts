@@ -12,6 +12,7 @@ import {
     canEditFieldOfMoneyRequest,
     canHoldUnholdReportAction,
     canIOUBePaid,
+    canPayBill,
     canRejectReportAction,
     isExpenseReport,
     isReportOutstanding,
@@ -187,17 +188,14 @@ describe('Bill Pay', () => {
         expect(getPrimaryAction(bill)).toBe(CONST.REPORT.PRIMARY_ACTIONS.APPROVE);
     });
 
-    it('hides Pay on an approved bill', () => {
-        // Given an approved bill and an approved expense report that the same admin can pay
+    it('shows Pay on an approved bill', () => {
+        // Given an approved bill that the current user can pay
         const transactions = [createTransaction(approvedBill)];
 
-        // When the header, the report preview and the settlement button check for Pay
-        // Then only the expense report offers Pay, because bills can't be paid in NewDot yet
-        expect(getPrimaryAction(approvedExpenseReport)).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
-        expect(getPrimaryAction(approvedBill)).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
-        expect(canIOUBePaid(approvedExpenseReport, undefined, policy, {}, email, accountID, transactions, false, false)).toBe(true);
-        expect(canIOUBePaid(approvedBill, undefined, policy, {}, email, accountID, transactions, false, false)).toBe(false);
-        expect(canIOUBePaid(approvedBill, undefined, policy, {}, email, accountID, transactions, true, false)).toBe(false);
+        // When the header and the settlement check look for Pay
+        // Then the bill offers Pay as its primary action only, because only BillPaymentButton pays a bill
+        expect(getPrimaryAction(approvedBill)).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+        expect(canIOUBePaid(approvedBill, undefined, policy, {}, email, accountID, transactions, false, false)).toBe(true);
         expect(
             getReportPreviewAction({
                 isReportArchived: false,
@@ -211,9 +209,69 @@ describe('Bill Pay', () => {
                 ownerLogin: email,
                 rules: undefined,
             }),
-        ).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
+        ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
         expect(getSecondaryActions(approvedBill)).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.PAY);
+
+        // And the owner can't mark it as a received payment, because the owner pays the vendor
         expect(getSecondaryActions(approvedBill)).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT);
+    });
+
+    it('moves a bill from approval to payment only after final approval', () => {
+        // Given a submitted bill
+        // When it moves through approval and payment
+        // Then the payer can pay it only after final approval, and not after it's paid or while a payment waits for a bank account
+        expect(canPayBill(bill, policy, accountID, email)).toBe(false);
+        expect(canPayBill(approvedBill, policy, accountID, email)).toBe(true);
+        expect(canPayBill({...approvedBill, statusNum: CONST.REPORT.STATUS_NUM.CLOSED}, policy, accountID, email)).toBe(true);
+        expect(canPayBill({...approvedBill, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED}, policy, accountID, email)).toBe(false);
+        expect(canPayBill({...approvedBill, isWaitingOnBankAccount: true}, policy, accountID, email)).toBe(false);
+        expect(canPayBill({...approvedBill, total: 0}, policy, accountID, email)).toBe(false);
+        expect(canPayBill(approvedExpenseReport, policy, accountID, email)).toBe(false);
+    });
+
+    it('lets the payer pay a bill again after its payment is canceled on a policy with approvals turned off', () => {
+        // Given a bill that a canceled payment left submitted and closed
+        const canceledBill: Report = {...bill, stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.CLOSED};
+
+        // When the payer checks whether they can pay it
+        // Then they can when approvals are turned off, but not when the policy requires approval
+        expect(canPayBill(canceledBill, {...policy, approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL}, accountID, email)).toBe(true);
+        expect(canPayBill(canceledBill, policy, accountID, email)).toBe(false);
+    });
+
+    it('lets the bill owner, the reimburser, and the policy and payments admins pay the bill', () => {
+        // Given an approved bill that its owner received, on a policy whose reimburser is another user
+        const memberPolicy: Policy = {...policy, role: CONST.POLICY.ROLE.USER, reimburser: 'reimburser@example.com'};
+        const otherAccountID = 456;
+
+        // When each user checks whether they can pay the bill
+        // Then the owner, the reimburser, a policy admin and a payments admin can pay it, as in Classic
+        expect(canPayBill(approvedBill, memberPolicy, accountID, email)).toBe(true);
+        expect(canPayBill(approvedBill, memberPolicy, otherAccountID, 'reimburser@example.com')).toBe(true);
+        expect(canPayBill(approvedBill, {...memberPolicy, role: CONST.POLICY.ROLE.ADMIN}, otherAccountID, 'admin@example.com')).toBe(true);
+        expect(canPayBill(approvedBill, {...memberPolicy, role: CONST.POLICY.ROLE.PAYMENTS_ADMIN}, otherAccountID, 'payments@example.com')).toBe(true);
+
+        // And other members of the policy can't
+        expect(canPayBill(approvedBill, memberPolicy, otherAccountID, 'member@example.com')).toBe(false);
+    });
+
+    it.each([CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO])(
+        'hides Pay on a bill when the policy disables payments with %s',
+        (reimbursementChoice) => {
+            // Given an approved bill on a policy that disables payments with its current or its Classic setting
+            const disabledPolicy: Policy = {...policy, reimbursementChoice};
+
+            // When the payer checks whether they can pay the bill
+            // Then they can't
+            expect(canPayBill(approvedBill, disabledPolicy, accountID, email)).toBe(false);
+        },
+    );
+
+    it('hides Pay on a bill of a policy that is being deleted', () => {
+        // Given an approved bill on a policy that is being deleted
+        // When the payer checks whether they can pay the bill
+        // Then they can't, because payments can't go out from a deleted policy
+        expect(canPayBill(approvedBill, {...policy, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}, accountID, email)).toBe(false);
     });
 
     it('keeps Unapprove on an approved bill', () => {
@@ -223,15 +281,59 @@ describe('Bill Pay', () => {
         expect(getSecondaryActions(approvedBill)).toContain(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE);
     });
 
-    it('hides Cancel payment on a bill paid in Classic', () => {
-        // Given a bill and an expense report that were both marked as paid
+    it('shows Cancel payment on a bill marked as paid', () => {
+        // Given a bill that its payer marked as paid
         const paidBill: Report = {...bill, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED};
-        const paidExpenseReport: Report = {...paidBill, reportID: expenseReport.reportID, type: CONST.REPORT.TYPE.EXPENSE};
 
         // When the payer opens the More menu
-        // Then only the expense report offers Cancel payment, because bills can't cancel payments in NewDot yet
-        expect(getSecondaryActions(paidExpenseReport)).toContain(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT);
+        // Then they can cancel the payment, like on an expense report
+        expect(getSecondaryActions(paidBill)).toContain(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT);
+    });
+
+    it('shows Cancel payment on a bill paid by bank only when Auth allows it', async () => {
+        // Given a bill paid from a bank account
+        const paidBill: Report = {...bill, stateNum: CONST.REPORT.STATE_NUM.BILLING, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED};
+        const bankPayAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
+            reportActionID: '1004',
+            reportID: paidBill.reportID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            created: '2026-11-02 00:00:00.000',
+            message: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType: CONST.IOU.PAYMENT_TYPE.VBBA, amount: 125, currency: CONST.CURRENCY.USD},
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${paidBill.reportID}`, {[bankPayAction.reportActionID]: bankPayAction});
+        await waitForBatchedUpdates();
+
+        // When the payer opens the More menu, before and after Auth says the payment can be canceled
+        // Then Cancel payment shows only when Auth allows it, because only Auth knows whether the bank payment went out
         expect(getSecondaryActions(paidBill)).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT);
+        expect(getSecondaryActions({...paidBill, canCancelReimbursement: true})).toContain(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT);
+    });
+
+    it('hides Cancel payment on a paid bill from users who cannot pay it', () => {
+        // Given a bill marked as paid, and a member of the policy who isn't its owner, reimburser or admin
+        const paidBill: Report = {...bill, ownerAccountID: 456, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED};
+        const memberPolicy: Policy = {...policy, role: CONST.POLICY.ROLE.USER, reimburser: 'reimburser@example.com'};
+
+        // When the member opens the More menu
+        const actions = getSecondaryReportActions({
+            currentUserLogin: email,
+            currentUserAccountID: accountID,
+            submitterLogin: 'owner@example.com',
+            report: paidBill,
+            chatReport: undefined,
+            reportTransactions: [createTransaction(paidBill)],
+            originalTransaction: undefined,
+            violations: {},
+            bankAccountList: {},
+            policy: memberPolicy,
+            reportActions: [createIOUAction(paidBill)],
+            policies: {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: memberPolicy},
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then they can't cancel the payment, because they couldn't have paid the bill
+        expect(actions).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT);
     });
 
     it('hides Reject on a submitted bill', () => {

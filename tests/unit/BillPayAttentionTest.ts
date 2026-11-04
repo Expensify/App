@@ -124,4 +124,28 @@ describe('Bill Pay green dot', () => {
         expect(badge === CONST.REPORT.ACTION_BADGE.APPROVE).toBe(shouldShowApprove);
         expect(primaryAction === CONST.REPORT.PRIMARY_ACTIONS.APPROVE).toBe(shouldShowApprove);
     });
+
+    it('shows Pay on an approved bill for its payer', () => {
+        // Given an approved bill on a policy that pays bills, with the current user as its owner
+        const paymentPolicy: Policy = {...policy, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES};
+        const approvedBill: Report = {...submittedBill, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED};
+
+        // When the Inbox checks whether the bill needs the payer's attention
+        // Then the owner sees the Pay green dot on the bill itself, because a bill has no parent chat to carry a report preview badge
+        expect(getBadge(approvedBill, 172, 'bob@receiver.com', paymentPolicy)).toEqual({
+            reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
+            actionBadge: CONST.REPORT.ACTION_BADGE.PAY,
+        });
+    });
+
+    it('shows no Pay dot to users who cannot pay, or after payment', () => {
+        // Given the same approved bill
+        const paymentPolicy: Policy = {...policy, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES};
+        const approvedBill: Report = {...submittedBill, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED};
+
+        // When a member who isn't a payer checks it, or the owner checks it after paying it
+        // Then neither sees the Pay green dot
+        expect(getBadge(approvedBill, approverAccountID, approverEmail, paymentPolicy)?.actionBadge).not.toBe(CONST.REPORT.ACTION_BADGE.PAY);
+        expect(getBadge({...approvedBill, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED}, 172, 'bob@receiver.com', paymentPolicy)?.actionBadge).not.toBe(CONST.REPORT.ACTION_BADGE.PAY);
+    });
 });

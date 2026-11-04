@@ -74,6 +74,7 @@ import {
     isActionCreator,
     isArchivedReport,
     isAwaitingFirstLevelApproval,
+    isBillPayer,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
     isExpenseReport as isExpenseReportUtils,
@@ -465,8 +466,7 @@ function isCancelPaymentAction(
     const isExpenseReport = isExpenseReportUtils(report);
     const isIOUReport = isIOUReportUtils(report);
 
-    // Bills can't be paid or have their payment canceled in NewDot yet, even when they were paid in Classic.
-    if ((!isExpenseReport && !isIOUReport) || isBillReport(report)) {
+    if (!isExpenseReport && !isIOUReport) {
         return false;
     }
 
@@ -474,7 +474,10 @@ function isCancelPaymentAction(
         return false;
     }
 
-    const isPayer = isPayerUtils(currentAccountID, currentUserEmail, report, bankAccountList, policy, false);
+    // Bills have their own payers, who aren't always payers of the policy's expense reports.
+    const isPayer = isBillReport(report)
+        ? isBillPayer(report, policy, currentAccountID, currentUserEmail)
+        : isPayerUtils(currentAccountID, currentUserEmail, report, bankAccountList, policy, false);
 
     // A P2P "send money" payment made with the Expensify wallet that is waiting for the receiver to set up their
     // wallet is held until they onboard. The sender (payer) can cancel it while it is waiting, which returns the
@@ -1081,7 +1084,9 @@ function getSecondaryReportActions({
     const hasExportError = hasExportErrorUtils(reportActions, report);
     const didExportFail = !isExported && hasExportError;
 
+    // Only BillPaymentButton can pay a bill, so Pay stays the primary action on a bill.
     if (
+        !isBillReport(report) &&
         isPrimaryPayAction({
             report,
             reportTransactions,

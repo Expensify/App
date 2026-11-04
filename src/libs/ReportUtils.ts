@@ -1052,6 +1052,7 @@ type GetReportStatusParams = {
     stateNum?: number;
     statusNum?: number;
     isDeleted?: boolean;
+    reportType?: string;
     translate: LocaleContextProps['translate'];
 };
 
@@ -3475,6 +3476,37 @@ function canApproveBill(
     );
 }
 
+/** As in Classic, the bill's owner, the policy's reimburser, and the policy's admins and payments admins pay the bill. */
+function isBillPayer(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>, currentUserAccountID: number, currentUserLogin: string): boolean {
+    const reimburser = policy?.reimburser ?? policy?.achAccount?.reimburser;
+    return (
+        report?.ownerAccountID === currentUserAccountID ||
+        (!!reimburser && reimburser === currentUserLogin) ||
+        policy?.role === CONST.POLICY.ROLE.ADMIN ||
+        policy?.role === CONST.POLICY.ROLE.PAYMENTS_ADMIN
+    );
+}
+
+/** Whether the current user can pay the bill. The header's Pay button, the green dot and the Pay badge all use it. */
+function canPayBill(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>, currentUserAccountID: number, currentUserLogin: string): boolean {
+    // A bill stores the amount owed as a negative total, so a total of zero or more leaves nothing to pay.
+    if (!report || !isBillReport(report) || report.isWaitingOnBankAccount || (report.total ?? 0) >= 0 || isPayBlocked(report, policy, false) || !arePaymentsEnabled(policy)) {
+        return false;
+    }
+
+    const isFinallyApproved =
+        report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && (report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED || report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED);
+
+    // Canceling a payment on a policy with approvals turned off leaves the bill submitted and closed, and it can be paid again.
+    const isCanceledWithoutApproval =
+        report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    if (!isFinallyApproved && !isCanceledWithoutApproval) {
+        return false;
+    }
+
+    return isBillPayer(report, policy, currentUserAccountID, currentUserLogin);
+}
+
 function canIOUBePaid(
     iouReport: OnyxInputOrEntry<Report>,
     chatReport: OnyxInputOrEntry<Report>,
@@ -3489,9 +3521,12 @@ function canIOUBePaid(
 ) {
     const iouSettled = isSettled(iouReport);
 
-    // Bills can't be paid in NewDot yet.
-    if (isEmptyObject(iouReport) || iouReport.isWaitingForCancelledReimbursement || isBillReport(iouReport)) {
+    if (isEmptyObject(iouReport) || iouReport.isWaitingForCancelledReimbursement) {
         return false;
+    }
+
+    if (isBillReport(iouReport)) {
+        return canPayBill(iouReport, policy, currentUserAccountID, currentUserLogin);
     }
 
     if (getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
@@ -4981,7 +5016,18 @@ function getDeletedParentActionMessageForChatReport(reportAction: OnyxEntry<Repo
 }
 
 /**
- * Returns the message for a queued payment. An invoice sender needs a business deposit account, so the message on an
+ * Returns the account that must add a bank account before a queued payment can finish. A bill pays the vendor who sent
+ * its invoice, so the vendor adds the bank account, not the bill's owner.
+ */
+function getQueuedPaymentPayeeAccountID(report: OnyxEntry<Report>): number | undefined {
+    if (isBillReport(report)) {
+        return report?.billSenderAccountID ?? report?.ownerAccountID;
+    }
+    return report?.ownerAccountID;
+}
+
+/**
+ * Returns the message for a queued payment. A vendor needs a business deposit account, so the message on a bill or an
  * invoice doesn't ask for a personal bank account.
  */
 function getReimbursementQueuedMessageKey(
@@ -4991,7 +5037,7 @@ function getReimbursementQueuedMessageKey(
     if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
         return 'iou.waitingOnEnabledWallet';
     }
-    return isInvoiceReport(report) ? 'iou.waitingOnVendorBankAccount' : 'iou.waitingOnBankAccount';
+    return isBillReport(report) || isInvoiceReport(report) ? 'iou.waitingOnVendorBankAccount' : 'iou.waitingOnBankAccount';
 }
 
 /**
@@ -5012,15 +5058,15 @@ function getReimbursementQueuedActionMessage({
     shouldUseShortDisplayName?: boolean;
     personalDetails?: Partial<PersonalDetailsList>;
 }): string {
-    const submitterDisplayName =
+    const payeeDisplayName =
         getDisplayNameForParticipant({
-            accountID: report?.ownerAccountID,
+            accountID: getQueuedPaymentPayeeAccountID(report),
             shouldUseShortForm: shouldUseShortDisplayName,
             personalDetailsData: personalDetails,
             formatPhoneNumber,
             hiddenTranslation: translate('common.hidden'),
         }) ?? '';
-    return translate(getReimbursementQueuedMessageKey(report, getOriginalMessage(reportAction)?.paymentType), submitterDisplayName);
+    return translate(getReimbursementQueuedMessageKey(report, getOriginalMessage(reportAction)?.paymentType), payeeDisplayName);
 }
 
 /**
@@ -5339,6 +5385,14 @@ function getReasonAndReportActionThatRequiresAttention({
     // Onyx.connect and can still be stale/missing a policy that's already present in the caller's own snapshot.
     const resolvePolicy = (policyID: string | undefined) => (policiesParam ? policiesParam[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : getPolicy(policyID));
     const policy = resolvePolicy(optionOrReport.policyID);
+
+    // Bills have no parent chat to show a report preview badge, so the payer's green dot goes on the bill itself.
+    if (canPayBill(optionOrReport, policy, currentUserAccountID, currentUserLogin)) {
+        return {
+            reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
+            actionBadge: CONST.REPORT.ACTION_BADGE.PAY,
+        };
+    }
 
     const invoiceReceiverPolicyID = optionOrReport?.invoiceReceiver && 'policyID' in optionOrReport.invoiceReceiver ? optionOrReport.invoiceReceiver.policyID : undefined;
     const invoiceReceiverPolicy = invoiceReceiverPolicyID ? resolvePolicy(invoiceReceiverPolicyID) : undefined;
@@ -13156,7 +13210,14 @@ function getIndicatedMissingPaymentMethod(
     reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>,
     bankAccountList: OnyxEntry<BankAccountList>,
 ): MissingPaymentMethod | undefined {
-    const isSubmitterOfUnsettledReport = !!reportId && isCurrentUserSubmitter(getReport(reportId, deprecatedAllReports)) && !isSettled(reportId);
+    const report = reportId ? getReport(reportId, deprecatedAllReports) : undefined;
+
+    // The bill's owner pays the vendor, so the owner has no bank account to add.
+    if (isBillReport(report)) {
+        return undefined;
+    }
+
+    const isSubmitterOfUnsettledReport = !!reportId && isCurrentUserSubmitter(report) && !isSettled(reportId);
     if (!isSubmitterOfUnsettledReport) {
         return undefined;
     }
@@ -15251,6 +15312,7 @@ function buildOptimisticMarkedAsResolvedReportAction(created = DateUtils.getDBTi
  * State  |  Status  |  What to display?  |
  * 0	  |  0	     |  Draft             |
  * 1	  |  1	     |  Outstanding       |
+ * 1	  |  2	     |  Done (bills only) |
  * 2	  |  2	     |  Done              |
  * 2	  |  3	     |  Approved          |
  * 2	  |  4	     |  Paid              |
@@ -15259,7 +15321,7 @@ function buildOptimisticMarkedAsResolvedReportAction(created = DateUtils.getDBTi
  * ========================================
  */
 
-function getReportStatusTranslation({stateNum, statusNum, isDeleted, translate}: GetReportStatusParams): string {
+function getReportStatusTranslation({stateNum, statusNum, isDeleted, reportType, translate}: GetReportStatusParams): string {
     if (isDeleted) {
         return translate('iou.deleted');
     }
@@ -15273,7 +15335,7 @@ function getReportStatusTranslation({stateNum, statusNum, isDeleted, translate}:
     if (stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
         return translate('common.outstanding');
     }
-    if (stateNum === CONST.REPORT.STATE_NUM.APPROVED && statusNum === CONST.REPORT.STATUS_NUM.CLOSED) {
+    if ((stateNum === CONST.REPORT.STATE_NUM.APPROVED && statusNum === CONST.REPORT.STATUS_NUM.CLOSED) || isSubmittedAndClosedBill(reportType, stateNum, statusNum)) {
         return translate('common.done');
     }
     if (stateNum === CONST.REPORT.STATE_NUM.APPROVED && statusNum === CONST.REPORT.STATUS_NUM.APPROVED) {
@@ -15312,7 +15374,18 @@ function getReportStatusTooltipTranslation({stateNum, statusNum, isDeleted, tran
     return '';
 }
 
-function getReportStatusColorStyle(theme: ThemeColors, stateNum?: number, statusNum?: number, isDeleted?: boolean): {backgroundColor?: ColorValue; textColor?: ColorValue} | undefined {
+/** Canceling the payment of a bill on a policy with approvals turned off leaves the bill submitted and closed. */
+function isSubmittedAndClosedBill(reportType: string | undefined, stateNum: number | undefined, statusNum: number | undefined): boolean {
+    return reportType === CONST.REPORT.TYPE.BILL && stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
+}
+
+function getReportStatusColorStyle(
+    theme: ThemeColors,
+    stateNum?: number,
+    statusNum?: number,
+    isDeleted?: boolean,
+    reportType?: string,
+): {backgroundColor?: ColorValue; textColor?: ColorValue} | undefined {
     if (isDeleted) {
         return theme.reportStatusBadge.deleted;
     }
@@ -15326,7 +15399,7 @@ function getReportStatusColorStyle(theme: ThemeColors, stateNum?: number, status
     if (stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
         return theme.reportStatusBadge.outstanding;
     }
-    if (stateNum === CONST.REPORT.STATE_NUM.APPROVED && statusNum === CONST.REPORT.STATUS_NUM.CLOSED) {
+    if ((stateNum === CONST.REPORT.STATE_NUM.APPROVED && statusNum === CONST.REPORT.STATUS_NUM.CLOSED) || isSubmittedAndClosedBill(reportType, stateNum, statusNum)) {
         return theme.reportStatusBadge.closed;
     }
     if (stateNum === CONST.REPORT.STATE_NUM.APPROVED && statusNum === CONST.REPORT.STATUS_NUM.APPROVED) {
@@ -15795,6 +15868,8 @@ export {
     canBeAutoReimbursed,
     canApproveIOU,
     canApproveBill,
+    canPayBill,
+    isBillPayer,
     canIOUBePaid,
     canSubmitReport,
     canCreateRequest,
@@ -15886,6 +15961,7 @@ export {
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getReimbursementQueuedMessageKey,
+    getQueuedPaymentPayeeAccountID,
     getReportDescription,
     getReportFieldKey,
     getReportFieldMaps,

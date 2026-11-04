@@ -10509,6 +10509,7 @@ const CONST = {
             REPORT_ACTION_AVATAR: 'Report-ReportActionAvatar',
             PARTICIPANTS_ROW: 'Report-ParticipantsRow',
             ROOM_MEMBERS_ROW: 'Report-RoomMembersRow',
+            PAY_BILL_BUTTON: 'Report-PayBillButton',
             EMPTY_STATE: {
                 ADD_EXPENSE: 'Report-EmptyStateAddExpense',
                 CREATE_EXPENSE: 'Report-EmptyStateAddExpenseMenu-CreateExpense',

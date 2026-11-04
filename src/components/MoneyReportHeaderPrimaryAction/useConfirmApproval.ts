@@ -75,8 +75,8 @@ function useConfirmApproval(
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations, accountID, email ?? '', undefined, transactions);
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
 
-    // The approved animation keeps Pay as the primary action until AnimatedSettlementButton ends it. Bills don't show
-    // Pay, so nothing would end the animation on a bill.
+    // The approved animation keeps Pay as the primary action until AnimatedSettlementButton ends it. Bills pay with
+    // BillPaymentButton, so nothing would end the animation on a bill.
     const shouldAnimateApproval = !isBillReport(moneyRequestReport);
 
     const onApprove = (full: boolean) => {

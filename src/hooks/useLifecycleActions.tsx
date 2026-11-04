@@ -202,7 +202,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             return;
         }
 
-        // Bills don't show Pay, so nothing would end the approved animation on a bill.
+        // Bills show BillPaymentButton, which doesn't end the approved animation, so the animation would never end on a bill.
         const shouldAnimateApproval = !skipAnimation && !isBillReport(moneyRequestReport);
         if (shouldAnimateApproval && !isSubmitPolicy(policy)) {
             startApprovedAnimation();
@@ -493,7 +493,8 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                 });
 
-                if (result.action !== ModalActions.CONFIRM || !chatReport) {
+                // A bill has no parent chat, so its payment is canceled without one.
+                if (result.action !== ModalActions.CONFIRM || (!chatReport && !isBillReport(moneyRequestReport))) {
                     return;
                 }
 

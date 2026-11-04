@@ -1,3 +1,4 @@
+import BillPaymentButton from '@components/BillPaymentButton';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsContext';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
@@ -24,6 +25,7 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import isBillReport from '@libs/isBillReport';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
@@ -218,6 +220,15 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
             });
         }
     };
+
+    if (isBillReport(moneyRequestReport)) {
+        return (
+            <BillPaymentButton
+                report={moneyRequestReport}
+                isDisabled={isDisabled}
+            />
+        );
+    }
 
     return (
         <AnimatedSettlementButton

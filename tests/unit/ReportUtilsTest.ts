@@ -145,6 +145,7 @@ import {
     getReimbursableTotal,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
+    getQueuedPaymentPayeeAccountID,
     getReimbursementQueuedMessageKey,
     getReportActionWithSmartscanError,
     getReportFieldMaps,
@@ -157,6 +158,7 @@ import {
     getReportPreviewMessage,
     getReportPreviewMessageForCopy,
     getReportPreviewReportActionMessage,
+    getReportStatusColorStyle,
     getReportStatusTranslation,
     getReportSubtitlePrefix,
     getTaskAssigneeChatOnyxData,
@@ -254,6 +256,8 @@ import {buildTransactionsByReportID} from '@libs/TodosUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+
+import type {ThemeColors} from '@styles/theme/types';
 
 import {createDraftTransactionAndNavigateToParticipantSelector, getAddExpenseDropdownOptions} from '@userActions/IOU/StartExpenseFlows';
 
@@ -4357,6 +4361,58 @@ describe('ReportUtils', () => {
             expect(getReimbursementQueuedMessageKey(invoice, CONST.IOU.PAYMENT_TYPE.EXPENSIFY)).toBe('iou.waitingOnEnabledWallet');
             expect(getReimbursementQueuedMessageKey(expenseReport, CONST.IOU.PAYMENT_TYPE.VBBA)).toBe('iou.waitingOnBankAccount');
             expect(getReimbursementQueuedMessageKey(expenseReport, undefined)).toBe('iou.waitingOnBankAccount');
+        });
+
+        it('returns the vendor bank account message for bills paid by bank account', () => {
+            // Given a bill, which pays the vendor who sent its invoice
+            const bill = createMock<Report>({
+                reportID: '780062',
+                type: CONST.REPORT.TYPE.BILL,
+            });
+
+            // When the queued payment message is chosen
+            // Then the bill asks the vendor for a bank account, because a vendor can't receive payment in a personal one
+            expect(getReimbursementQueuedMessageKey(bill, CONST.IOU.PAYMENT_TYPE.VBBA)).toBe('iou.waitingOnVendorBankAccount');
+        });
+    });
+
+    describe('getQueuedPaymentPayeeAccountID', () => {
+        it('returns the vendor of a bill and the owner of other reports', () => {
+            // Given a bill with a vendor, a bill without one, and an expense report
+            const bill = createMock<Report>({reportID: '780063', type: CONST.REPORT.TYPE.BILL, ownerAccountID: 1, billSenderAccountID: 2});
+            const unlinkedBill = createMock<Report>({reportID: '780064', type: CONST.REPORT.TYPE.BILL, ownerAccountID: 1});
+            const expenseReport = createMock<Report>({reportID: '780065', type: CONST.REPORT.TYPE.EXPENSE, ownerAccountID: 1, billSenderAccountID: 2});
+
+            // When the app finds who must add a bank account for a queued payment
+            // Then a bill names its vendor, falling back to its owner, and other reports name their owner
+            expect(getQueuedPaymentPayeeAccountID(bill)).toBe(2);
+            expect(getQueuedPaymentPayeeAccountID(unlinkedBill)).toBe(1);
+            expect(getQueuedPaymentPayeeAccountID(expenseReport)).toBe(1);
+        });
+
+        it('names the vendor in the queued payment message of a bill', () => {
+            // Given an approved bill whose payment waits because its vendor has no deposit account
+            const vendorAccountID = 780066;
+            const bill = createMock<Report>({reportID: '780067', type: CONST.REPORT.TYPE.BILL, ownerAccountID: currentUserAccountID, billSenderAccountID: vendorAccountID});
+            const queuedAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
+                originalMessage: {paymentType: CONST.IOU.PAYMENT_TYPE.VBBA},
+            });
+
+            // When the bill shows the queued payment
+            const message = getReimbursementQueuedActionMessage({
+                reportAction: queuedAction,
+                report: bill,
+                translate: translateLocal,
+                formatPhoneNumber,
+                personalDetails: {
+                    [currentUserAccountID]: {accountID: currentUserAccountID, displayName: 'Bill Owner'},
+                    [vendorAccountID]: {accountID: vendorAccountID, displayName: 'Vendor'},
+                },
+            });
+
+            // Then it waits for the vendor, who receives the payment, not for the bill's owner
+            expect(message).toBe(translateLocal('iou.waitingOnVendorBankAccount', 'Vendor'));
         });
     });
 
@@ -17966,6 +18022,20 @@ describe('ReportUtils', () => {
             expect(result).toBe(mockTranslate('common.done'));
         });
 
+        it('should return "Done" for a submitted and closed bill', () => {
+            // Given a bill whose payment was canceled on a policy with approvals turned off, which leaves it submitted and closed
+            const stateNum = CONST.REPORT.STATE_NUM.SUBMITTED;
+            const statusNum = CONST.REPORT.STATUS_NUM.CLOSED;
+
+            // When App translates the report status of the bill and of an expense report in the same state
+            const billStatus = getReportStatusTranslation({stateNum, statusNum, reportType: CONST.REPORT.TYPE.BILL, translate: mockTranslate});
+            const expenseReportStatus = getReportStatusTranslation({stateNum, statusNum, reportType: CONST.REPORT.TYPE.EXPENSE, translate: mockTranslate});
+
+            // Then only the bill shows Done, because only bills reach this state
+            expect(billStatus).toBe(mockTranslate('common.done'));
+            expect(expenseReportStatus).toBe('');
+        });
+
         it('should return "Approved" for state 2, status 3', () => {
             const result = getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED, translate: mockTranslate});
             expect(result).toBe(mockTranslate('iou.approved'));
@@ -18005,6 +18075,22 @@ describe('ReportUtils', () => {
                 mockTranslate('iou.deleted'),
             );
             expect(getReportStatusTranslation({stateNum: undefined, statusNum: undefined, isDeleted: true, translate: mockTranslate})).toBe(mockTranslate('iou.deleted'));
+        });
+    });
+
+    describe('getReportStatusColorStyle', () => {
+        it('uses the closed badge style for a submitted and closed bill', () => {
+            // Given a bill whose payment was canceled on a policy with approvals turned off
+            const closedStyle = {backgroundColor: 'closed-background', textColor: 'closed-text'};
+            const theme = createMock<ThemeColors>({reportStatusBadge: {closed: closedStyle}});
+
+            // When the status badge style is resolved for the bill and for an expense report in the same state
+            const billStyle = getReportStatusColorStyle(theme, CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.CLOSED, false, CONST.REPORT.TYPE.BILL);
+            const expenseReportStyle = getReportStatusColorStyle(theme, CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.CLOSED, false, CONST.REPORT.TYPE.EXPENSE);
+
+            // Then only the bill's badge looks like other closed reports
+            expect(billStyle).toBe(closedStyle);
+            expect(expenseReportStyle).toBeUndefined();
         });
     });
 
@@ -24339,6 +24425,15 @@ describe('ReportUtils', () => {
         it('should not indicate a missing payment method once the report is settled', async () => {
             await setUpReportWaitingOnPayment({statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED});
 
+            expect(getIndicatedMissingPaymentMethod(CONST.WALLET.TIER_NAME.SILVER, reportID, queuedAction, {})).toBeUndefined();
+        });
+
+        it('should not indicate a missing payment method to the owner of a bill', async () => {
+            // Given a bill that the current user owns, whose payment waits on the vendor
+            await setUpReportWaitingOnPayment({type: CONST.REPORT.TYPE.BILL});
+
+            // When the queued payment checks what the current user must add
+            // Then it asks for nothing, because the bill's owner pays the vendor and receives no payment
             expect(getIndicatedMissingPaymentMethod(CONST.WALLET.TIER_NAME.SILVER, reportID, queuedAction, {})).toBeUndefined();
         });
     });

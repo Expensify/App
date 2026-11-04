@@ -39,6 +39,7 @@ import {
 import {
     canAddTransaction as canAddTransactionUtil,
     canHoldUnholdReportAction,
+    canPayBill,
     getMoneyRequestSpendBreakdown,
     getParentReport,
     hasExportError as hasExportErrorUtil,
@@ -236,9 +237,8 @@ function isPrimaryPayAction({
     isSecondaryAction,
     canNonPayerAdminPay,
 }: IsPrimaryPayActionParams) {
-    // Bills can't be paid in NewDot yet.
     if (isBillReport(report)) {
-        return false;
+        return canPayBill(report, policy, currentUserAccountID, currentUserLogin);
     }
 
     const isExpenseReport = isExpenseReportUtils(report);
