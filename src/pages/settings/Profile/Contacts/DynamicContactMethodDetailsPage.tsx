@@ -154,7 +154,7 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
             setShouldNavigateOnFocus(true);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps -- Omitting `isFocused` since we don't want this effect to on focus transitions
-    }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, listPath]);
+    }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod]);
 
     // Handle navigation when screen regains focus and flag is set
     useEffect(() => {
