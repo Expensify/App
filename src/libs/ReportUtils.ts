@@ -14703,6 +14703,7 @@ function getChatListItemReportName(
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
     derivedReportName: string | undefined,
+    isInvoiceLinkedToBill = false,
 ): string {
     const {translate, formatPhoneNumber} = Localize;
     const reportForHeader = getReportForHeader(report, parentReport);
@@ -14710,7 +14711,17 @@ function getChatListItemReportName(
         // Search snapshots of invoice reports may only carry `parentReportID` as the invoice room ID, so fall back to it
         // when `chatReportID` is missing (without mutating the Onyx report) so `getInvoiceReportName` resolves the NewDot title.
         const invoiceReport = reportForHeader.chatReportID ? reportForHeader : {...reportForHeader, chatReportID: reportForHeader.parentReportID};
-        return getInvoiceReportName(invoiceReport, linkedTransactions, translate, formatPhoneNumber, convertToDisplayString, personalDetailsList);
+        return getInvoiceReportName(
+            invoiceReport,
+            linkedTransactions,
+            translate,
+            formatPhoneNumber,
+            convertToDisplayString,
+            personalDetailsList,
+            undefined,
+            undefined,
+            isInvoiceLinkedToBill,
+        );
     }
 
     if (action?.reportName) {
