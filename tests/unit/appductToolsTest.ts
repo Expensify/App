@@ -1,15 +1,20 @@
 import {waitForWrites} from '@libs/API';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
+import navigationRef from '@libs/Navigation/navigationRef';
 
 import {completeOnboarding} from '@userActions/Report';
 import {beginSignIn, signUpUser} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {hasGuidedSetupRequest} from '@src/setup/appductTools/appductState';
 import registerAppductTools from '@src/setup/appductTools/index.web';
 import tools from '@src/setup/appductTools/tools';
 import type Account from '@src/types/onyx/Account';
 import type {AnyRequest} from '@src/types/onyx/Request';
+
+import type {NavigationState} from '@react-navigation/native';
 
 import {registerTool} from '@appduct/web';
 import Onyx from 'react-native-onyx';
@@ -25,6 +30,11 @@ jest.mock('@libs/navigateAfterOnboarding', () => ({
     navigateAfterOnboarding: jest.fn(),
     navigateAfterOnboardingWithMicrotaskQueue: jest.fn(),
     navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue: jest.fn(),
+}));
+// Closed by default (isReady false means no navigator is mounted); tests that need the modal open flip these.
+jest.mock('@libs/Navigation/navigationRef', () => ({
+    __esModule: true,
+    default: {isReady: jest.fn(), getRootState: jest.fn()},
 }));
 
 const ANONYMOUS_SESSION = {authToken: 'anon', authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS};
@@ -46,11 +56,24 @@ function mockBeginSignInResponse(account: Account) {
     });
 }
 
+/** Root state with the given navigators on the stack, for the onboarding-modal close check. */
+function rootStateWith(routeNames: string[]): NavigationState {
+    return {key: 'root', index: Math.max(routeNames.length - 1, 0), routeNames, routes: routeNames.map((name) => ({key: name, name})), type: 'stack', stale: false};
+}
+
+/* eslint-disable @typescript-eslint/unbound-method -- jest.fn() mocks don't rely on `this` binding */
+const mockIsReady = jest.mocked(navigationRef.isReady);
+const mockGetRootState = jest.mocked(navigationRef.getRootState);
+/* eslint-enable @typescript-eslint/unbound-method */
+
 beforeEach(async () => {
     jest.useFakeTimers();
     for (const mock of [registerTool, beginSignIn, signUpUser, completeOnboarding, waitForWrites, navigateAfterOnboardingWithMicrotaskQueue]) {
         jest.mocked(mock).mockReset();
     }
+    // Closed again by default after any test that opened the modal
+    mockIsReady.mockReturnValue(false);
+    mockGetRootState.mockReturnValue(rootStateWith([]));
     Onyx.init({keys: ONYXKEYS});
     await Onyx.clear();
 });
@@ -61,8 +84,8 @@ afterEach(async () => {
 });
 
 describe('registration', () => {
-    it('registers the contract tools by name', () => {
-        registerAppductTools();
+    it('registers the contract tools by name', async () => {
+        await registerAppductTools();
         expect(jest.mocked(registerTool).mock.calls.map(([tool]) => tool.name)).toEqual(['get_state', 'sign_in', 'complete_onboarding']);
     });
 });
@@ -113,6 +136,29 @@ describe('sign_in', () => {
         expect(await result).toMatchObject({ok: true, state: {accountID: 42, login: 'x+1@gmail.com'}});
         expect(beginSignIn).toHaveBeenCalledWith('x+1@gmail.com');
         expect(signUpUser).toHaveBeenCalledTimes(1);
+    });
+
+    it('waits for the sign-in attempt response even while ACCOUNT still holds its idle boot value', async () => {
+        // Given the idle ACCOUNT that src/setup/index.ts seeds, and a BeginSignIn whose optimistic isLoading
+        // arrives late the way the real one does, only after Device.getDeviceInfoWithID() resolves
+        await Onyx.multiSet({[ONYXKEYS.SESSION]: ANONYMOUS_SESSION, [ONYXKEYS.ACCOUNT]: CONST.DEFAULT_ACCOUNT_DATA});
+        jest.mocked(beginSignIn).mockImplementation(() => {
+            setTimeout(() => {
+                Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: true, loadingForm: CONST.FORMS.LOGIN_FORM});
+            }, 50);
+            setTimeout(() => {
+                Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false, accountExists: true});
+            }, 150);
+        });
+
+        // When the tool waits for this attempt's loading cycle, the response says the account exists
+        const result = await call('sign_in', {email: 'x@gmail.com'});
+
+        // Then it reports the magic-code need instead of reading the idle value and racing a signup for an
+        // existing account
+        expect(result?.ok).toBe(false);
+        expect(result?.reason).toContain('magic code');
+        expect(signUpUser).not.toHaveBeenCalled();
     });
 
     it('reports already when the session matches the email, without acting', async () => {
@@ -209,6 +255,36 @@ describe('complete_onboarding', () => {
 
         expect(await call('complete_onboarding', {firstName: 'A', lastName: 'B'})).toMatchObject({ok: true, state: {onboardingCompleted: true}});
         expect(completeOnboarding).not.toHaveBeenCalled();
+    });
+
+    it('counts a request parked in the ongoing slot as pending', () => {
+        // Given the sequential queue moves its head request from PERSISTED_REQUESTS to
+        // PERSISTED_ONGOING_REQUESTS before the response lands, and the onboarding flag is optimistic until then
+
+        // When the request sits in either key
+        expect(hasGuidedSetupRequest(QUEUED_GUIDED_SETUP)).toBe(true);
+        expect(hasGuidedSetupRequest(QUEUED_GUIDED_SETUP[0])).toBe(true);
+
+        // Then both are pending, and only an empty queue and slot end the wait
+        expect(hasGuidedSetupRequest([])).toBe(false);
+        expect(hasGuidedSetupRequest(null)).toBe(false);
+        expect(hasGuidedSetupRequest(undefined)).toBe(false);
+        expect(hasGuidedSetupRequest({command: 'CreateReport'})).toBe(false);
+    });
+
+    it('fails when the onboarding modal stays open after navigating', async () => {
+        // Given a completed onboarding whose modal refuses to unmount: navigateAfterOnboarding was called,
+        // but the navigator stays on the stack
+        await seed({flag: true, concierge: false});
+        mockIsReady.mockReturnValue(true);
+        mockGetRootState.mockReturnValue(rootStateWith([NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]));
+
+        // When the close wait times out
+        const result = await call('complete_onboarding', {firstName: 'A', lastName: 'B'});
+
+        // Then the tool fails instead of telling the caller the app is usable behind the modal
+        expect(result?.ok).toBe(false);
+        expect(result?.reason).toContain('modal stayed open');
     });
 
     it('fails with the reason when the response reverts the flag', async () => {

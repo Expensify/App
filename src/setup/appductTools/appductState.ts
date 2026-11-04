@@ -1,7 +1,10 @@
+import {WRITE_COMMANDS} from '@libs/API/types';
+
 import {isAnonymousUser} from '@userActions/Session';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Account, Credentials, IntroSelected, Onboarding, Report, Session as SessionOnyx} from '@src/types/onyx';
+import type {Account, AnyRequest, Credentials, IntroSelected, Onboarding, Report, Session as SessionOnyx} from '@src/types/onyx';
 
 import type {Connection} from 'react-native-onyx';
 
@@ -20,6 +23,7 @@ const state: {
     onboardingPolicyID?: string;
     onboardingAdminsChatReportID?: string;
     completeGuidedSetupQueued?: boolean;
+    completeGuidedSetupOngoing?: boolean;
 } = {};
 
 Onyx.connectWithoutView({key: ONYXKEYS.SESSION, callback: (value) => (state.session = value)});
@@ -30,10 +34,19 @@ Onyx.connectWithoutView({key: ONYXKEYS.NVP_INTRO_SELECTED, callback: (value) => 
 Onyx.connectWithoutView({key: ONYXKEYS.IS_LOADING_APP, callback: (value) => (state.isLoadingApp = value)});
 Onyx.connectWithoutView({key: ONYXKEYS.ONBOARDING_POLICY_ID, callback: (value) => (state.onboardingPolicyID = value)});
 Onyx.connectWithoutView({key: ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, callback: (value) => (state.onboardingAdminsChatReportID = value)});
-Onyx.connectWithoutView({
-    key: ONYXKEYS.PERSISTED_REQUESTS,
-    callback: (requests) => (state.completeGuidedSetupQueued = !!requests?.some((request) => request.command === 'CompleteGuidedSetup')),
-});
+// The sequential queue moves its head request to PERSISTED_ONGOING_REQUESTS before the response lands, so the
+// request is pending while it sits in either key. Watching only the queue would report it as finished mid-flight,
+// when the onboarding flag is still optimistic and a rejection can revert it.
+function hasGuidedSetupRequest(value: AnyRequest | AnyRequest[] | null | undefined): boolean {
+    const requests = Array.isArray(value) ? value : [value];
+    return requests.some((request) => request?.command === WRITE_COMMANDS.COMPLETE_GUIDED_SETUP);
+}
+Onyx.connectWithoutView({key: ONYXKEYS.PERSISTED_REQUESTS, callback: (requests) => (state.completeGuidedSetupQueued = hasGuidedSetupRequest(requests))});
+Onyx.connectWithoutView({key: ONYXKEYS.PERSISTED_ONGOING_REQUESTS, callback: (request) => (state.completeGuidedSetupOngoing = hasGuidedSetupRequest(request))});
+
+function isGuidedSetupPending(): boolean {
+    return !!state.completeGuidedSetupQueued || !!state.completeGuidedSetupOngoing;
+}
 
 // The Concierge report ID arrives from OpenApp after sign-in, so the report itself is connected late.
 let conciergeChatConnection: Connection | undefined;
@@ -46,18 +59,26 @@ Onyx.connectWithoutView({
         state.conciergeReportID = reportID;
         state.conciergeChat = undefined;
         if (conciergeChatConnection) {
-            Onyx.disconnect(conciergeChatConnection);
+            conciergeChatConnection.unsubscribe();
         }
         conciergeChatConnection = reportID ? Onyx.connectWithoutView({key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, callback: (report) => (state.conciergeChat = report)}) : undefined;
     },
 });
 
-function currentAccountID(): number | undefined {
+function getCurrentAccountID(): number | undefined {
     return state.session?.accountID ?? state.credentials?.accountID;
 }
 
-function sessionLogin(): string | undefined {
+function getSessionLogin(): string | undefined {
     return state.session?.email ?? state.credentials?.login;
+}
+
+// beginSignIn applies its optimistic isLoading only once Device.getDeviceInfoWithID() resolves, so ACCOUNT still
+// holds the idle value seeded by src/setup/index.ts right after it is called. A caller that waits for the
+// response has to put the loading state in first, or its very first read passes on that stale value.
+function markSignInAttemptLoading(): Promise<void> {
+    // eslint-disable-next-line rulesdir/prefer-actions-set-data -- pre-applies beginSignIn's own optimistic ACCOUNT update, value for value, so the tool can wait for this attempt's response
+    return Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: true, loadingForm: CONST.FORMS.LOGIN_FORM});
 }
 
 function isSignedIn(): boolean {
@@ -65,9 +86,9 @@ function isSignedIn(): boolean {
 }
 
 // Not hasCompletedGuidedSetupFlowSelector: it returns true for an empty or unloaded value.
-function onboardingCompletedFlag(): boolean | null {
+function getOnboardingCompletedFlag(): boolean | null {
     const value = state.onboarding?.hasCompletedGuidedSetupFlow;
     return typeof value === 'boolean' ? value : null;
 }
 
-export {state, currentAccountID, sessionLogin, isSignedIn, onboardingCompletedFlag};
+export {state, hasGuidedSetupRequest, getCurrentAccountID, getSessionLogin, isSignedIn, isGuidedSetupPending, markSignInAttemptLoading, getOnboardingCompletedFlag};

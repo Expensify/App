@@ -15,7 +15,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 
-import {currentAccountID, isSignedIn, onboardingCompletedFlag, sessionLogin, state} from './appductState';
+import {getCurrentAccountID, getOnboardingCompletedFlag, getSessionLogin, isGuidedSetupPending, isSignedIn, markSignInAttemptLoading, state} from './appductState';
 
 // ok:true means the state was read back inside the app, never just dispatched. already:true means it held
 // before the call. ok:false always carries a reason.
@@ -49,6 +49,7 @@ const OUTPUT_SCHEMA = {
 
 const SIGN_IN_BUDGET_MS = 45_000;
 const ONBOARDING_BUDGET_MS = 60_000;
+const MODAL_CLOSE_BUDGET_MS = 5_000;
 
 const stringInputSchema = (...fields: string[]) => ({
     type: 'object',
@@ -92,9 +93,9 @@ const getState: AppductTool = {
             signedIn: isSignedIn(),
             anonymous: isAnonymousUser(state.session),
             // Personal details first: a fresh sign-up fills them, the session and the credentials at different times.
-            login: getPersonalDetail(currentAccountID())?.login ?? sessionLogin() ?? null,
-            accountID: currentAccountID() ?? null,
-            onboardingCompleted: onboardingCompletedFlag(),
+            login: getPersonalDetail(getCurrentAccountID())?.login ?? getSessionLogin() ?? null,
+            accountID: getCurrentAccountID() ?? null,
+            onboardingCompleted: getOnboardingCompletedFlag(),
             isLoadingApp: state.isLoadingApp ?? null,
         },
     }),
@@ -117,7 +118,7 @@ const signIn: AppductTool = {
         }
         const deadline = Date.now() + SIGN_IN_BUDGET_MS;
         const until = (check: () => boolean) => waitFor(check, deadline - Date.now());
-        const identity = () => ({signedIn: true, accountID: currentAccountID() ?? null, login: sessionLogin() ?? null});
+        const identity = () => ({signedIn: true, accountID: getCurrentAccountID() ?? null, login: getSessionLogin() ?? null});
 
         // The app boots anonymous; nothing can be decided before Onyx carries a session.
         if (!(await until(() => !!state.session))) {
@@ -125,12 +126,16 @@ const signIn: AppductTool = {
         }
 
         if (isSignedIn()) {
-            return (sessionLogin() ?? '').toLowerCase() === email.toLowerCase()
+            return (getSessionLogin() ?? '').toLowerCase() === email.toLowerCase()
                 ? {ok: true, already: true, state: identity()}
-                : fail(`already signed in as ${sessionLogin() ?? 'an unknown login'}, not ${email}`);
+                : fail(`already signed in as ${getSessionLogin() ?? 'an unknown login'}, not ${email}`);
         }
 
         // Like the form, call beginSignIn even for a brand-new account: the response decides sign-up vs validate-code.
+        // The loading flag is set before the call: beginSignIn only applies its own optimistic isLoading after
+        // Device.getDeviceInfoWithID() resolves, so waiting for the idle value alone would read the idle state
+        // seeded at boot and sign an existing account up.
+        await markSignInAttemptLoading();
         beginSignIn(email);
         await until(() => state.account?.isLoading === false);
 
@@ -153,7 +158,7 @@ const signIn: AppductTool = {
     },
 };
 
-function onboardingModalClosed(): boolean {
+function isOnboardingModalClosed(): boolean {
     return !navigationRef.isReady() || !navigationRef.getRootState()?.routes.some((route) => route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR);
 }
 
@@ -174,21 +179,21 @@ const completeOnboardingTool: AppductTool = {
         }
 
         // The flag must be loaded before `false` can be told apart from "not loaded yet".
-        if (!(await waitFor(() => isSignedIn() && state.isLoadingApp === false && onboardingCompletedFlag() !== null, ONBOARDING_BUDGET_MS))) {
+        if (!(await waitFor(() => isSignedIn() && state.isLoadingApp === false && getOnboardingCompletedFlag() !== null, ONBOARDING_BUDGET_MS))) {
             return fail(
                 `onboarding preconditions never held within ${ONBOARDING_BUDGET_MS}ms: ` +
-                    `signedIn=${isSignedIn()}, isLoadingApp=${String(state.isLoadingApp)}, onboardingLoaded=${onboardingCompletedFlag() !== null}`,
+                    `signedIn=${isSignedIn()}, isLoadingApp=${String(state.isLoadingApp)}, onboardingLoaded=${getOnboardingCompletedFlag() !== null}`,
             );
         }
 
         // A queued request from an earlier call is waited for, never posted twice. A completed flag still runs
         // the exit below, so a modal left mounted by an interrupted exit gets closed.
         let already = false;
-        if (state.completeGuidedSetupQueued) {
-            if (!(await waitFor(() => !state.completeGuidedSetupQueued && onboardingCompletedFlag() === true, ONBOARDING_BUDGET_MS))) {
+        if (isGuidedSetupPending()) {
+            if (!(await waitFor(() => !isGuidedSetupPending() && getOnboardingCompletedFlag() === true, ONBOARDING_BUDGET_MS))) {
                 return fail('a CompleteGuidedSetup request stayed queued past the timeout, or its response reverted the flag');
             }
-        } else if (onboardingCompletedFlag() === true) {
+        } else if (getOnboardingCompletedFlag() === true) {
             already = true;
         } else {
             // Without the Concierge chat as its target, completeOnboarding silently does nothing.
@@ -207,17 +212,17 @@ const completeOnboardingTool: AppductTool = {
                 introSelected: state.introSelected,
                 isSelfTourViewed: hasSeenTourSelector(state.onboarding),
                 conciergeChat: state.conciergeChat,
-                currentUserAccountID: currentAccountID() ?? CONST.DEFAULT_NUMBER_ID,
+                currentUserAccountID: getCurrentAccountID() ?? CONST.DEFAULT_NUMBER_ID,
                 delegateAccountID: undefined,
             });
 
             // The promise resolves at queue time and the flag is optimistic until the response settles it.
             // waitForWrites also resolves offline, where the request was only queued locally, so check the queue too.
             await waitForWrites(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP);
-            if (!(await waitFor(() => !state.completeGuidedSetupQueued, 2_000))) {
+            if (!(await waitFor(() => !isGuidedSetupPending(), 2_000))) {
                 return fail('CompleteGuidedSetup never left the queue (offline? the server never saw it)');
             }
-            if (onboardingCompletedFlag() !== true) {
+            if (getOnboardingCompletedFlag() !== true) {
                 return fail('server rejected CompleteGuidedSetup: the onboarding flag reverted to false');
             }
         }
@@ -226,9 +231,11 @@ const completeOnboardingTool: AppductTool = {
         // values the page would read. canUseDefaultRooms is false (a fresh CI account has no betas) and
         // isAnonymousUser is false (the tool only runs once signed in).
         navigateAfterOnboardingWithMicrotaskQueue(getIsSmallScreenWidth(), false, state.conciergeReportID, undefined, false, state.onboardingPolicyID, undefined, false);
-        await waitFor(onboardingModalClosed, 5_000);
+        if (!(await waitFor(isOnboardingModalClosed, MODAL_CLOSE_BUDGET_MS))) {
+            return fail(`the onboarding modal stayed open after navigateAfterOnboarding (${MODAL_CLOSE_BUDGET_MS}ms)`);
+        }
 
-        const result = {ok: true, state: {onboardingCompleted: true, onboardingModalClosed: onboardingModalClosed()}};
+        const result = {ok: true, state: {onboardingCompleted: true, onboardingModalClosed: true}};
         return already ? {...result, already: true} : result;
     },
 };
