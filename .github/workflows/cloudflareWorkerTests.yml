@@ -1,4 +1,5 @@
 name: Cloudflare Worker tests
+# This temporary change tests the staging pull request trigger.
 
 on:
   pull_request:

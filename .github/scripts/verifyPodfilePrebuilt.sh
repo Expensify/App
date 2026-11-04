@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# This temporary change tests the staging pull request trigger.
 # Verifies that a Podfile.lock was resolved against our prebuilt react-native artifacts, not a
 # from-source build - the Podfile is identical either way, only the resolved pod list differs.
 #

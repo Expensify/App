@@ -1,4 +1,5 @@
 name: Check Contributor+ checklist heading
+# This temporary change tests the staging pull request trigger.
 
 on:
   pull_request:

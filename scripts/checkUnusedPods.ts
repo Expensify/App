@@ -28,6 +28,7 @@ import type {PodUsageEntry} from './podUsageShared';
 import {findBlankEntry, validateReviewedDate} from './nativeUsageManifest';
 import {MANIFEST_PATH, countReferences, findUnparsedPodDeclarations, readDeclaredPods, readManifest, readSources} from './podUsageShared';
 
+// This temporary change triggers staging pull request checks for TypeScript and native dependencies.
 const RELATIVE_MANIFEST = path.relative(path.resolve(__dirname, '..'), MANIFEST_PATH);
 const USAGES = new Set(['module', 'headers', 'exempt']);
 

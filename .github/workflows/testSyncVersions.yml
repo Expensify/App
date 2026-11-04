@@ -1,4 +1,5 @@
 name: Test syncVersions script
+# This temporary change tests the staging pull request trigger.
 
 # The syncVersions workflow runs on macOS, and its full version sync path depends on PlistBuddy and
 # BSD `sed -i ''`. Those tests skip themselves on the Ubuntu runner the Bun tests job uses, so this

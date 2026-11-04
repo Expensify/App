@@ -1,5 +1,7 @@
 # `expo-task-manager` patches
 
+<!-- This temporary change tests the staging pull request checks for patch files. -->
+
 ### [expo-task-manager+57.0.6+001+guard-null-headless-loader.patch](expo-task-manager+57.0.6+001+guard-null-headless-loader.patch)
 
 - Reason:
