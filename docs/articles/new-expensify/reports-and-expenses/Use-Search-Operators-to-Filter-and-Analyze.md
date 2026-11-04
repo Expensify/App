@@ -227,7 +227,7 @@ Here are some common examples:
   `type:expense group-by:from submitted:last-month has:submitted-violation sort-by:group-expenses sort-order:desc view:table limit:10`
 
 - **Spend over time (line chart)**  
-  `type:expense group-by:month date:year-to-date view:line`
+  `type:expense group-by:month date:this-year view:line`
 
 - **Last month category breakdown (pie chart)**  
   `type:expense group-by:category date:last-month view:pie`
