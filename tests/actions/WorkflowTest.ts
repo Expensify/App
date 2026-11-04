@@ -140,7 +140,7 @@ describe('actions/Workflow', () => {
                     if (!workflow) {
                         return;
                     }
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(workflow);
                 },
             });

@@ -2773,7 +2773,7 @@ function navigateToAndOpenReport({
         callback: (updatedReport) => {
             const notFoundError = updatedReport?.errorFields?.notFound;
             if (notFoundError === null) {
-                Onyx.disconnect(reportConnection);
+                reportConnection.unsubscribe();
                 return;
             }
 
@@ -2782,7 +2782,7 @@ function navigateToAndOpenReport({
             }
 
             hasAttemptedFallback = true;
-            Onyx.disconnect(reportConnection);
+            reportConnection.unsubscribe();
             createAndOpenNewOptimisticChat(chat.reportID);
         },
     });
@@ -2939,7 +2939,7 @@ function navigateToAndOpenReportWithAccountIDs(
         callback: (updatedReport) => {
             const notFoundError = updatedReport?.errorFields?.notFound;
             if (notFoundError === null) {
-                Onyx.disconnect(reportConnection);
+                reportConnection.unsubscribe();
                 return;
             }
 
@@ -2948,7 +2948,7 @@ function navigateToAndOpenReportWithAccountIDs(
             }
 
             hasAttemptedFallback = true;
-            Onyx.disconnect(reportConnection);
+            reportConnection.unsubscribe();
             createAndOpenNewOptimisticChat(chat.reportID);
         },
     });

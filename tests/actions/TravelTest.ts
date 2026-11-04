@@ -75,7 +75,7 @@ describe('actions/Travel', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.TRAVEL_PROVISIONING,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
