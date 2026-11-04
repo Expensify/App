@@ -979,11 +979,52 @@ describe('DateUtils', () => {
             expect(DateUtils.getFormattedCancellationDate('', undefined)).toBe('');
         });
 
-        it('should fall back to UTC when no timezone offset is present in the ISO string', () => {
+        it('should show the wall-clock time without a timezone label when no timezone offset is present in the ISO string', () => {
+            // Given a wall-clock time with no offset, so its timezone is unknown.
             // Pin "now" before 2026 so the 2026 date is treated as a non-current year and the year is shown.
             jest.useFakeTimers();
             jest.setSystemTime(new Date('2025-01-01T00:00:00Z'));
+
+            // When it is formatted
             const result = DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00', undefined);
+
+            // Then the time is shown as-is with no guessed timezone label
+            expect(result).toBe('Sunday, Apr 19, 2026 3:00 PM');
+        });
+
+        it('should append the local time label when no timezone offset is present in the ISO string', () => {
+            // Given a hotel-local deadline with no offset, so the hotel page passes a label saying it is the hotel's local time
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2026-10-01T00:00:00Z'));
+
+            // When it is formatted with the label
+            const result = DateUtils.getFormattedCancellationDate('2026-10-19T23:59:00', undefined, "hotel's local time");
+
+            // Then the label is shown at the end in place of a timezone label
+            expect(result).toBe("Monday, Oct 19 11:59 PM, hotel's local time");
+        });
+
+        it('should keep the GMT offset label instead of the local time label when an offset is present', () => {
+            // Given a hotel deadline with a known offset
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2026-10-01T00:00:00Z'));
+
+            // When it is formatted with the local time label
+            const result = DateUtils.getFormattedCancellationDate('2026-10-19T23:59:00+01:00', undefined, "hotel's local time");
+
+            // Then the known offset is shown, since it is more precise than the label
+            expect(result).toBe('Monday, Oct 19 11:59 PM, GMT+1');
+        });
+
+        it('should label a UTC time ending in Z as UTC', () => {
+            // Given a deadline that ends in Z, so its timezone is known
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2025-01-01T00:00:00Z'));
+
+            // When it is formatted
+            const result = DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00Z', undefined);
+
+            // Then it keeps the UTC label
             expect(result).toBe('Sunday, Apr 19, 2026 3:00 PM, UTC');
         });
 

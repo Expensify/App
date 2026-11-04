@@ -1,17 +1,19 @@
 /**
- * Finds inline `eslint-disable` directives of the rules in `REASONED_RULES` that give no reason.
+ * Finds inline `eslint-disable` and `oxlint-disable` directives of the rules in `REASONED_RULES` that give no reason.
  * Unlike the bans in `onyxLintBypass.ts`, these rules may be disabled, but only one line at a time
  * and only with a reason after `--`. The reason then sits next to the exception, where a reviewer
  * can judge it.
  *
  * A directive counts when it names the rule, in the `-line` or `-next-line` form, and its text after
- * `--` holds fewer than `MIN_REASON_LENGTH` letters or digits. A block `eslint-disable` that names the
- * rule always counts, even with a reason: one sentence cannot vouch for every read under it. Blanket
+ * `--` holds fewer than `MIN_REASON_LENGTH` letters or digits. A block `eslint-disable` or `oxlint-disable` that
+ * names the rule, including the `// eslint-disable` line-comment form oxlint honors, always counts, even with a
+ * reason: one sentence cannot vouch for every read under it. Blanket
  * directives that name no rule are left to `onyxLintBypass.ts`. A file Babel cannot parse fails closed:
  * every disable naming the rule counts. An `eslint` config comment naming the rule always counts.
  */
 
 import {
+    DIRECTIVE_SEARCH_TERM,
     collectDirectiveMatches,
     configDirectiveNamesBan,
     directiveDescription,
@@ -37,8 +39,8 @@ const ONYX_SNAPSHOT_KEY_RULE: ReasonedRule = {
     id: 'rulesdir/no-onyx-get-snapshot-key',
     name: 'no-onyx-get-snapshot-key',
     appliesTo: isCheckedSourceFile,
-    searchTerms: ['no-onyx-get-snapshot-key', 'eslint'],
-    message: `A disable of rulesdir/no-onyx-get-snapshot-key gives no reason, or is a block eslint-disable or an eslint config comment. Each exception must say, on the line it covers, why live data is right for this Search snapshot key, so a reviewer can judge it. Use eslint-disable-next-line or eslint-disable-line with a reason of at least ${MIN_REASON_LENGTH} letters or digits after \`--\`, for example: \`// eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces a module-level Onyx.connect used only by handlers, never read a snapshot\`.`,
+    searchTerms: ['no-onyx-get-snapshot-key', DIRECTIVE_SEARCH_TERM],
+    message: `A disable of rulesdir/no-onyx-get-snapshot-key gives no reason, or is a block eslint-disable or oxlint-disable or an eslint config comment. Each exception must say, on the line it covers, why live data is right for this Search snapshot key, so a reviewer can judge it. Use eslint-disable-next-line or eslint-disable-line with a reason of at least ${MIN_REASON_LENGTH} letters or digits after \`--\`, for example: \`// eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces a module-level Onyx.connect used only by handlers, never read a snapshot\`.`,
 };
 
 const REASONED_RULES: ReasonedRule[] = [ONYX_SNAPSHOT_KEY_RULE];

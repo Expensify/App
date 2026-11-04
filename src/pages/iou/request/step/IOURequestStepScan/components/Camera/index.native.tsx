@@ -18,6 +18,7 @@ import HapticFeedback from '@libs/HapticFeedback';
 import Log from '@libs/Log';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {cancelSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {getMsSinceJsStartup, getMsSinceNativeAppStart} from '@libs/telemetry/nativeAppStartTime';
 
 import captureReceipt, {shouldTakePhoto} from '@pages/iou/request/step/IOURequestStepScan/captureReceipt';
 import CameraPermissionPrompt from '@pages/iou/request/step/IOURequestStepScan/components/CameraPermissionPrompt';
@@ -33,6 +34,7 @@ import useDocumentEdgeDetection from '@pages/iou/request/step/IOURequestStepScan
 import useCameraInitTelemetry from '@pages/iou/request/step/IOURequestStepScan/hooks/useCameraInitTelemetry';
 import usePhotoUpgrade from '@pages/iou/request/step/IOURequestStepScan/hooks/usePhotoUpgrade';
 import isCameraClosedError from '@pages/iou/request/step/IOURequestStepScan/isCameraClosedError';
+import shouldLightFlashWithTorch, {getTorchFallbackReason} from '@pages/iou/request/step/IOURequestStepScan/utils/shouldLightFlashWithTorch';
 import startReceiptPrepareSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startReceiptPrepareSpan';
 
 import CONST from '@src/CONST';
@@ -40,7 +42,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import {useNavigation} from '@react-navigation/native';
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Alert, View} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import {useAnimatedStyle, useSharedValue, withSequence, withTiming} from 'react-native-reanimated';
@@ -62,6 +64,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
     const {isMultiScanEnabled, canUseMultiScan} = useMultiScanState();
     const {toggleMultiScan} = useMultiScanActions();
     const navigation = useNavigation();
+    const {isBetaEnabled} = usePermissions();
 
     // Ref for double-tap protection (doesn't trigger re-render)
     const isCapturingPhoto = useRef(false);
@@ -93,7 +96,6 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         cameraFocusIndicatorAnimatedStyle,
     } = useNativeCamera({onFocusStart, onFocusCleanup});
 
-    const {isBetaEnabled} = usePermissions();
     const canUseReceiptEnhancement = IS_DOCUMENT_DETECTION_SUPPORTED && isBetaEnabled(CONST.BETAS.RECEIPT_ENHANCEMENT);
     const [isReceiptEnhancementEnabled = false] = useOnyx(ONYXKEYS.IS_RECEIPT_ENHANCEMENT_ENABLED);
     const [isReceiptEnhancementToastVisible, setIsReceiptEnhancementToastVisible] = useState(false);
@@ -105,6 +107,40 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
     };
 
     const hideReceiptEnhancementToast = () => setIsReceiptEnhancementToastVisible(false);
+
+    const isTorchRequested = shouldLightFlashWithTorch({
+        flash,
+        hasFlash,
+        hasTorch: !!device?.hasTorch,
+        isBetaEnabled: isBetaEnabled(CONST.BETAS.SCAN_FLASH_TORCH),
+        isMultiScanEnabled,
+        canUpgradeReceiptQuality,
+    });
+    const torchRequestedAt = useRef(0);
+    useEffect(() => {
+        if (!isTorchRequested) {
+            return;
+        }
+        torchRequestedAt.current = Date.now();
+    }, [isTorchRequested]);
+
+    // CameraX turns the torch off whenever the session stops, and VisionCamera only re-applies `torchMode` when the prop
+    // changes, so a restarted session would stay dark with flash still on.
+    const relightTorchAfterRestart = () => {
+        if (!isTorchRequested) {
+            return;
+        }
+        torchRequestedAt.current = Date.now();
+        camera.current?.controller
+            ?.setTorchMode('on')
+            .then(() => {
+                torchRequestedAt.current = Date.now();
+            })
+            .catch((error: unknown) => {
+                Log.info('[Camera] could not turn the torch back on after the camera restarted', false, {error: getErrorMessage(error)});
+            });
+    };
+
     // VisionCamera restarts the session, blanking the preview, whenever an output or the photo size changes.
     const {photoOutput, cameraAspectRatio, updatePhotoResolution} = useReceiptPhotoOutput(cameraPlatformConfig.scanQualityPrioritization, isInLandscapeMode, canUseReceiptEnhancement);
     const {frameOutput, quad: documentQuad} = useDocumentEdgeDetection({cameraRef: camera, isEnabled: shouldDetectDocument});
@@ -148,11 +184,28 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
     };
 
     const capturePhoto = () => {
+        const torchFallbackReason = isTorchRequested
+            ? getTorchFallbackReason({torchMode: camera.current?.controller?.torchMode, msSinceTorchRequested: Date.now() - torchRequestedAt.current})
+            : undefined;
+        const isTorchOn = isTorchRequested && !torchFallbackReason;
+        const isPhotoCapture = shouldTakePhoto({flash, hasFlash, isInLandscapeMode, isTorchOn});
+        const captureAttributes = {
+            [CONST.TELEMETRY.ATTRIBUTE_CAPTURE_METHOD]: isPhotoCapture ? CONST.TELEMETRY.CAPTURE_METHOD.PHOTO : CONST.TELEMETRY.CAPTURE_METHOD.SNAPSHOT,
+            [CONST.TELEMETRY.ATTRIBUTE_FLASH_USED]: flash && hasFlash,
+        };
+
         if (!isMultiScanEnabled) {
+            const msSinceNativeAppStart = getMsSinceNativeAppStart();
+            const msSinceJsStartup = getMsSinceJsStartup();
             startSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION, {
                 name: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
                 op: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
-                attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: CONST.TELEMETRY.SPAN_PLATFORM.NATIVE},
+                attributes: {
+                    [CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: CONST.TELEMETRY.SPAN_PLATFORM.NATIVE,
+                    ...captureAttributes,
+                    ...(msSinceNativeAppStart !== undefined && {[CONST.TELEMETRY.ATTRIBUTE_DURATION_SINCE_NATIVE_APP_STARTUP_MS]: msSinceNativeAppStart}),
+                    ...(msSinceJsStartup !== undefined && {[CONST.TELEMETRY.ATTRIBUTE_DURATION_SINCE_JS_STARTUP_MS]: msSinceJsStartup}),
+                },
             });
         }
 
@@ -177,7 +230,9 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
             return;
         }
 
-        const isPhotoCapture = shouldTakePhoto({flash, hasFlash, isInLandscapeMode});
+        if (torchFallbackReason) {
+            Log.info('[Camera] the torch is not lighting the receipt yet, so the flash photo is taken', false, {reason: torchFallbackReason});
+        }
 
         startSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE, {
             name: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
@@ -185,8 +240,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
             parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
             attributes: {
                 [CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: CONST.TELEMETRY.SPAN_PLATFORM.NATIVE,
-                [CONST.TELEMETRY.ATTRIBUTE_CAPTURE_METHOD]: isPhotoCapture ? CONST.TELEMETRY.CAPTURE_METHOD.PHOTO : CONST.TELEMETRY.CAPTURE_METHOD.SNAPSHOT,
-                [CONST.TELEMETRY.ATTRIBUTE_FLASH_USED]: flash && hasFlash,
+                ...captureAttributes,
             },
         });
 
@@ -200,7 +254,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         const shouldUpgradeToPhoto = canUpgradeReceiptQuality && !isMultiScanEnabled && !isPhotoCapture;
 
         // The snapshot goes first so its request reaches the native queue ahead of the still.
-        captureReceipt(camera.current, photoOutput, {flash, hasFlash, isPlatformMuted, isInLandscapeMode, path: getReceiptsUploadFolderPath(), onWillCapturePhoto: showBlink})
+        captureReceipt(camera.current, photoOutput, {flash, hasFlash, isPlatformMuted, isInLandscapeMode, isTorchOn, path: getReceiptsUploadFolderPath(), onWillCapturePhoto: showBlink})
             .then((photo: CapturedPhoto) => {
                 endSpanWithAttributes(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE, {
                     [CONST.TELEMETRY.ATTRIBUTE_PHOTO_WIDTH]: photo.width,
@@ -294,6 +348,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                             didCapturePhoto={didCapturePhoto}
                             hasPendingPhotoCapture={hasPendingPhotoCapture}
                             onConfigured={finishCameraSetup}
+                            onStarted={relightTorchAfterRestart}
                             onSessionConfigSelected={handleSessionConfigSelected}
                             shouldShowFlashButton={canUseMultiScan && !canUseReceiptEnhancement}
                             cameraPermissionStatus={cameraPermissionStatus}
@@ -308,6 +363,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                                     </>
                                 ) : null
                             }
+                            isTorchOn={isTorchRequested}
                         />
                     )}
                 </View>
