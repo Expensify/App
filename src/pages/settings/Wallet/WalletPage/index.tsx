@@ -532,11 +532,9 @@ function WalletPage() {
                               return;
                           }
                           if (isWiseGlobalReimbursementsEnabled) {
-                              closeModal(() => {
-                                  // The more info needed page opens on top of the intro, which is its only entry screen
-                                  const introRoute = createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID));
-                                  Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path, introRoute));
-                              });
+                              closeModal(() =>
+                                  Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID))),
+                              );
                               return;
                           }
                           closeModal(() =>
