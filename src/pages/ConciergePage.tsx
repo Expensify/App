@@ -3,6 +3,7 @@ import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -50,6 +51,7 @@ function ConciergePage() {
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
     const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
+    const delegateAccountID = useDelegateAccountID();
     const [hasNonPersonalPolicy] = useOnyx(ONYXKEYS.HAS_NON_PERSONAL_POLICY);
     const [isMigratedUser] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: isMigratedUserSelector});
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
@@ -90,6 +92,7 @@ function ConciergePage() {
                         conciergePersonalDetails,
                         shouldDismissModal: true,
                         checkIfCurrentPageActive: () => !isUnmounted.current,
+                        delegateAccountID,
                     });
                 });
             } else {
@@ -105,6 +108,7 @@ function ConciergePage() {
             conciergePersonalDetails,
             isWaitingForOnboarding,
             isOnboardingSkipped,
+            delegateAccountID,
         ]),
     );
 
