@@ -47,6 +47,7 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         visibility: unknown;
         invoiceReceiver: unknown;
         isHiddenForBillReceiver: unknown;
+        isAwaitingActionFromCurrentUser: unknown;
         parentReportID: unknown;
         parentReportActionID: unknown;
         managerID: unknown;

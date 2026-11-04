@@ -1,4 +1,10 @@
-import {isActionableWhisperRequiringWritePermission, isActionOfType, isConciergeCategoryOptions, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
+import {
+    isActionableWhisperRequiringWritePermission,
+    isActionOfType,
+    isConciergeCategoryOptions,
+    isPaymentActionHiddenOutsideInvoices,
+    shouldReportActionBeVisible,
+} from '@libs/ReportActionsUtils';
 import {isSupportTicket} from '@libs/ReportUtils';
 
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
@@ -10,10 +16,17 @@ import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValu
 
 /**
  * Returns true if the action's visibility depends on runtime context that can't be cached,
- * such as write permissions, policy settings, or sibling actions.
+ * such as write permissions, policy settings, the type of its report, or sibling actions.
  */
 function shouldSkipCachingAction(action: ReportAction): boolean {
-    return isActionableWhisperRequiringWritePermission(action) || isConciergeCategoryOptions(action) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED);
+    // A payment action hidden outside invoices depends on its report's type. The cache doesn't pass a reportID, so it
+    // can't tell that the report is an invoice and would hide the action there.
+    return (
+        isActionableWhisperRequiringWritePermission(action) ||
+        isConciergeCategoryOptions(action) ||
+        isPaymentActionHiddenOutsideInvoices(action) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)
+    );
 }
 
 /**

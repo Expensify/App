@@ -6,9 +6,14 @@ import type * as ContextMenuActionsModule from '@pages/inbox/report/ContextMenu/
 
 import CONST from '@src/CONST';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
 import {formatPhoneNumber} from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('expo-web-browser', () => ({
     openAuthSessionAsync: jest.fn(),
@@ -348,5 +353,39 @@ describe('ContextMenuActions copy message', () => {
         expect(mockGetClipboardText).toHaveBeenCalledWith('workspaceActions.updatedMemberWorkArrangement', undefined);
         expect(mockSetHtml).toHaveBeenCalledWith('workspaceActions.updatedMemberWorkArrangement', 'updated work arrangement');
         expect(mockSetString).not.toHaveBeenCalled();
+    });
+
+    describe('queued payment in a thread', () => {
+        beforeAll(() => {
+            Onyx.init({keys: ONYXKEYS});
+            return waitForBatchedUpdates();
+        });
+
+        afterAll(() => Onyx.clear());
+
+        it('copies the message for the parent invoice, like the shown text', async () => {
+            // Given a queued payment shown at the top of a thread whose parent is an invoice
+            const invoiceReportID = 'queuedInvoice';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, {reportID: invoiceReportID, type: CONST.REPORT.TYPE.INVOICE, ownerAccountID: 2});
+            await waitForBatchedUpdates();
+            const threadReport = createMock<Report>({reportID: 'queuedThread', type: CONST.REPORT.TYPE.CHAT, parentReportID: invoiceReportID, parentReportActionID: '3'});
+            const payload = createReportActionPayload(
+                createMock<CopyMessagePayload['reportAction']>({
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- Auth sends paymentType on originalMessage, which getOriginalMessage reads.
+                    originalMessage: {paymentType: CONST.IOU.PAYMENT_TYPE.VBBA},
+                }),
+            );
+
+            if (!copyMessageAction?.onPress) {
+                throw new Error('Copy message context menu action was not found');
+            }
+
+            // When its message is copied
+            copyMessageAction.onPress(false, {...payload, report: threadReport, formatPhoneNumber});
+
+            // Then it asks the invoice sender for a bank account, because ReimbursementQueuedContent shows the parent invoice's message
+            expect(mockSetString).toHaveBeenCalledWith('iou.waitingOnVendorBankAccount');
+        });
     });
 });
