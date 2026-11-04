@@ -1,7 +1,9 @@
 import type {OpenReportParams, UpdateCommentParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {ApiRequestCommandParameters} from '@libs/API/types';
+import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {AnyRequest, ConflictActionData} from '@src/types/onyx/Request';
@@ -115,9 +117,7 @@ function resolveOpenReportDuplicationConflictAction<TKey extends OnyxKey>(persis
             // ReportFetchHandler when the screen mounts has no participants. Replacing would drop the
             // accountIDList, leaving the server with no way to resolve the optimistic reportID — Auth
             // returns NIL reportSummary and PHP throws "Report not found" (da7984df).
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const queuedHasParticipants = !!(request.data?.emailList || request.data?.accountIDList);
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const newHasParticipants = !!(parameters.emailList || parameters.accountIDList);
             if (queuedHasParticipants && !newHasParticipants) {
                 return {
@@ -275,12 +275,43 @@ function resolveCommentDeletionConflicts<TKey extends OnyxKey>(persistedRequests
     };
 }
 
+/**
+ * The server reads the stored file's extension from the name it is uploaded under, and a download can only put back
+ * an extension the stored copy already has. So dropping it in a rename would leave the file with none for good.
+ */
+function keepExtension(currentName: string, newName: string): string {
+    if (splitExtensionFromFileName(newName).fileExtension) {
+        return newName;
+    }
+    const currentExtension = splitExtensionFromFileName(currentName).fileExtension;
+    return currentExtension ? `${newName}.${currentExtension}` : newName;
+}
+
+/**
+ * The server builds the stored attachment from the uploaded file, so a rename only survives if the queued file
+ * carries the new name. `File.name` is readonly on web, hence the rebuild; native picker results are plain objects.
+ */
+function renameQueuedAttachment(file: unknown, name: string): unknown {
+    if (typeof File !== 'undefined' && file instanceof File) {
+        // The constructor copies only the standard fields, so `uri` and `source` are put back: the native payload
+        // reads them to find the file on disk, and a share lands here as a File rather than a plain object.
+        const renamed = keepExtension(file.name, name);
+        return Object.assign(new File([file], renamed, {type: file.type, lastModified: file.lastModified}), {uri: file.uri, source: file.source});
+    }
+    if (typeof file !== 'object' || file === null) {
+        return file;
+    }
+    const currentName = 'name' in file && typeof file.name === 'string' ? file.name : '';
+    return {...file, name: keepExtension(currentName, name)};
+}
+
 function resolveEditCommentWithNewAddCommentRequest<TKey extends OnyxKey>(
     persistedRequests: Array<OnyxRequest<TKey>>,
     parameters: UpdateCommentParams,
     reportActionID: string,
     addCommentIndex: number,
-    shouldRemoveQueuedAttachment = false,
+    removedAttachmentIDs: string[] = [],
+    renamedAttachmentLabels: Partial<Record<string, string>> = {},
 ): ConflictActionData {
     const indicesToDelete: number[] = [];
     for (const [index, request] of persistedRequests.entries()) {
@@ -295,11 +326,30 @@ function resolveEditCommentWithNewAddCommentRequest<TKey extends OnyxKey>(
     if (currentAddComment) {
         currentAddComment.data = {...currentAddComment.data, ...parameters};
 
-        // The queued request keeps its own file, so without dropping it the server would re-add an attachment the edit removed.
-        if (shouldRemoveQueuedAttachment) {
-            delete currentAddComment.data.file;
-            delete currentAddComment.data.attachmentID;
-            currentAddComment.command = WRITE_COMMANDS.ADD_COMMENT;
+        // The queued request keeps its own files, so without dropping them the server would re-add attachments the edit removed.
+        if (removedAttachmentIDs.length > 0 || Object.keys(renamedAttachmentLabels).length > 0) {
+            const data = currentAddComment.data;
+            const fileKeys = ['file', ...Object.keys(data).filter((key) => CONST.ADDITIONAL_ATTACHMENT_FILE_KEY_REGEX.test(key))];
+            const attachmentIDs = typeof data.attachmentIDs === 'string' ? data.attachmentIDs.split(',') : [data.attachmentID];
+            const keptAttachments = fileKeys
+                .map((key, index) => ({file: data[key], attachmentID: attachmentIDs.at(index)}))
+                .filter(({file, attachmentID}) => !!file && !(typeof attachmentID === 'string' && removedAttachmentIDs.includes(attachmentID)))
+                .map(({file, attachmentID}) => {
+                    const renamedLabel = typeof attachmentID === 'string' ? renamedAttachmentLabels[attachmentID] : undefined;
+                    return {file: renamedLabel ? renameQueuedAttachment(file, renamedLabel) : file, attachmentID};
+                });
+
+            for (const key of fileKeys) {
+                delete data[key];
+            }
+            for (const [index, {file}] of keptAttachments.entries()) {
+                data[index === 0 ? 'file' : `file_${index}`] = file;
+            }
+            data.attachmentID = keptAttachments.at(0)?.attachmentID;
+            data.attachmentIDs = keptAttachments.length > 1 ? keptAttachments.map(({attachmentID}) => attachmentID).join(',') : undefined;
+            if (keptAttachments.length === 0) {
+                currentAddComment.command = WRITE_COMMANDS.ADD_COMMENT;
+            }
         }
 
         nextAction = {

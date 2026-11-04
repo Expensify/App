@@ -8,7 +8,6 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {shouldExcludeAncestorReportAction} from '@libs/ReportUtils';
 
@@ -21,8 +20,7 @@ import type {Report, ReportAction, ReportNameValuePairs, Transaction} from '@src
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {getConciergeFeedbackForReportActionID} from '@selectors/ReportNameValuePairs';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -89,14 +87,11 @@ function ReportActionItemParentAction({
         },
     });
 
-    // The backend marks the thread it opens after a thumbs down, and the answer it collects feedback on is not up for rating again
-    const [conciergeFeedbackForReportActionID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(report?.reportID)}`, {
-        selector: getConciergeFeedbackForReportActionID,
-    });
-
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
 
     const onCloseParentReportActionItem = () => {
         navigateToConciergeChatAndDeleteReport(
@@ -105,6 +100,7 @@ function ReportActionItemParentAction({
             currentUserAccountID,
             introSelected,
             isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
             reportOwnerPersonalDetail,
             currentUserPersonalDetail,
             conciergePersonalDetail,
@@ -121,7 +117,7 @@ function ReportActionItemParentAction({
                 errors={
                     report?.errorFields?.createChatThread ?? (report?.errorFields?.createChat ? getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage') : null)
                 }
-                errorRowStyles={[styles.ml10, styles.mr2]}
+                errorRowStyles={styles.ml10}
                 onClose={onCloseParentReportActionItem}
             >
                 {ancestors.map(({report: ancestorReport, reportAction: ancestorReportAction, shouldDisplayNewMarker}) => (
@@ -137,10 +133,10 @@ function ReportActionItemParentAction({
                         introSelected={introSelected}
                         isReportArchived={isReportArchived}
                         isSelfTourViewed={isSelfTourViewed}
+                        hasCompletedGuidedSetupFlow={hasCompletedGuidedSetupFlow}
                         parentReportAction={parentReportAction}
                         transactionThreadReport={transactionThreadReport}
                         isFirstVisibleReportAction={isFirstVisibleReportAction}
-                        shouldAllowConciergeFeedback={!conciergeFeedbackForReportActionID}
                         shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                         linkedTransactionRouteError={linkedTransactionRouteError}
                         reportsParentHierarchy={reportsParentHierarchy}

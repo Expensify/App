@@ -18,9 +18,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import type {StyleProp, ViewStyle} from 'react-native';
-
-import {useMemo} from 'react';
 import {View} from 'react-native';
 
 import type {PersonalPolicyTypeExcludedProps} from './SubscriptionPlanCard';
@@ -33,25 +30,19 @@ type SubscriptionPlanCardActionButtonProps = {
 
     isSelected: boolean;
     closeComparisonModal?: () => void;
-    style?: StyleProp<ViewStyle>;
 };
 
-function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonModal, isSelected, closeComparisonModal, style}: SubscriptionPlanCardActionButtonProps) {
+function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonModal, isSelected, closeComparisonModal}: SubscriptionPlanCardActionButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const privateSubscription = usePrivateSubscription();
-    const ownerPolicies = useMemo(() => getOwnedPaidPolicies(policies, currentUserAccountID), [policies, currentUserAccountID]);
+    const ownerPolicies = getOwnedPaidPolicies(policies, currentUserAccountID);
 
-    const [canPerformUpgrade, policy] = useMemo(() => {
-        const firstPolicy = ownerPolicies.at(0);
-        if (!firstPolicy || ownerPolicies.length > 1) {
-            return [false, undefined];
-        }
-        return [isPolicyAdmin(firstPolicy), firstPolicy];
-    }, [ownerPolicies]);
+    const policy = ownerPolicies.length === 1 ? ownerPolicies.at(0) : undefined;
+    const canPerformUpgrade = !!policy && isPolicyAdmin(policy);
 
     const handlePlanPress = (planType: PersonalPolicyTypeExcludedProps) => {
         closeComparisonModal?.();
@@ -84,10 +75,8 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
     };
 
     const currentPlanLabel = (
-        <View style={style}>
-            <View style={[styles.button, styles.buttonContainer, styles.outlinedButton]}>
-                <Text style={styles.textLabelSupporting}>{translate('subscription.yourPlan.thisIsYourCurrentPlan')}</Text>
-            </View>
+        <View style={[styles.button, styles.buttonContainer, styles.outlinedButton]}>
+            <Text style={styles.textLabelSupporting}>{translate('subscription.yourPlan.thisIsYourCurrentPlan')}</Text>
         </View>
     );
 
@@ -97,10 +86,7 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
                 return currentPlanLabel;
             }
             return (
-                <Button
-                    style={style}
-                    onPress={() => handlePlanPress(CONST.POLICY.TYPE.TEAM)}
-                >
+                <Button onPress={() => handlePlanPress(CONST.POLICY.TYPE.TEAM)}>
                     <Button.Text>{translate('subscription.yourPlan.downgrade')}</Button.Text>
                 </Button>
             );
@@ -115,7 +101,6 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
             return (
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    style={style}
                     onPress={() => handlePlanPress(CONST.POLICY.TYPE.CORPORATE)}
                 >
                     <Button.Text>{translate('subscription.yourPlan.upgrade')}</Button.Text>

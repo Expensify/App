@@ -55,7 +55,7 @@ function getSelectedOptionData(option: Option & Pick<OptionData, 'reportID'>): O
 }
 
 function InSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: InSelectorProps) {
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const personalDetails = usePersonalDetails();
@@ -119,6 +119,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                     reportAttributesDerived,
                     isTrackIntentUser,
                     pendingDeleteMemberAccountIDs: pendingDeleteMemberAccountIDsByReportID?.[id],
+                    formatPhoneNumber,
                 }),
             ),
             isSelected,
@@ -143,6 +144,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                 translate,
                 currentUserAccountID,
                 rules,
+                formatPhoneNumber,
             },
         );
         return {...report, alternateText};
@@ -180,6 +182,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                   translate,
                   getReportByID,
                   rules,
+                  formatPhoneNumber,
               }).options;
 
     const chatOptions = filterAndOrderOptions({
@@ -198,6 +201,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
             currentUserAccountID,
         },
         translate,
+        formatPhoneNumber,
         rules,
         activePolicyID,
     });

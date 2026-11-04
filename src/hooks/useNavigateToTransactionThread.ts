@@ -13,6 +13,7 @@ import type {Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@selectors/Policy';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
@@ -57,6 +58,7 @@ function useNavigateToTransactionThread() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT, {selector: fullPolicySnapshotLastModifiedByPolicyIDSelector});
 
     return ({transactionID, reportActions, report, transaction, siblingTransactionIDs, carouselSource, backTo}: NavigateToTransactionThreadParams) => {
         // The action that created the expense, not merely one referencing it. In an approved or paid report the
@@ -88,6 +90,7 @@ function useNavigateToTransactionThread() {
                 iouReportAction: iouAction,
                 transaction,
                 personalDetails,
+                fullPolicySnapshotLastModified: report?.policyID ? fullPolicySnapshotLastModifiedByPolicyID?.[report.policyID] : undefined,
             });
             if (transactionThreadReport) {
                 reportIDToNavigate = transactionThreadReport.reportID;

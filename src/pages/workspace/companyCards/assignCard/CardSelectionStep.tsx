@@ -39,7 +39,7 @@ import type SCREENS from '@src/SCREENS';
 import type {UnassignedCard} from '@src/types/onyx/Card';
 
 import {Str} from 'expensify-common';
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type CardSelectionStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION>;
@@ -134,22 +134,17 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
         });
     };
 
-    const searchedListOptions = useMemo(() => {
-        return tokenizedSearch(cardListOptions, searchText, (option) => [option.text]);
-    }, [searchText, cardListOptions]);
+    const searchedListOptions = tokenizedSearch(cardListOptions, searchText, (option) => [option.text]);
 
     const safeAreaPaddingBottomStyle = useBottomSafeSafeAreaPaddingStyle();
 
-    const textInputOptions = useMemo(
-        () => ({
-            headerMessage: searchedListOptions.length ? undefined : translate('common.noResultsFound'),
-            label: cardListOptions.length > CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD ? translate('common.search') : undefined,
-            value: searchText,
-            onChangeText: setSearchText,
-            shouldBeInsideList: true,
-        }),
-        [cardListOptions.length, searchText, searchedListOptions.length, translate],
-    );
+    const textInputOptions = {
+        headerMessage: searchedListOptions.length ? undefined : translate('common.noResultsFound'),
+        label: cardListOptions.length > CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD ? translate('common.search') : undefined,
+        value: searchText,
+        onChangeText: setSearchText,
+        shouldBeInsideList: true,
+    };
 
     const customListHeader = (
         <View>

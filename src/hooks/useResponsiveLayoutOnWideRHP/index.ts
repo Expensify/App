@@ -1,10 +1,27 @@
-import {useWideRHPState} from '@components/WideRHPContextProvider';
+import {useWideRHPState, WideRHPStateContext} from '@components/WideRHPContextProvider';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
 import {useRoute} from '@react-navigation/native';
+import {use} from 'react';
 
 import type ResponsiveLayoutOnWideRHPResult from './types';
+
+/**
+ * Reads the Wide RHP state only inside the RHP, so screens outside it don't re-render when that state changes.
+ */
+function useIsDisplayedInWideRHP({isSmallScreenWidth, isInNarrowPaneModal}: Pick<ResponsiveLayoutResult, 'isSmallScreenWidth' | 'isInNarrowPaneModal'>): boolean {
+    const route = useRoute();
+
+    if (isSmallScreenWidth || !isInNarrowPaneModal) {
+        return false;
+    }
+
+    const {superWideRHPRouteKeys, wideRHPRouteKeys} = use(WideRHPStateContext);
+
+    return wideRHPRouteKeys.includes(route?.key) || superWideRHPRouteKeys.includes(route?.key);
+}
 
 /**
  * useResponsiveLayoutOnWideRHP is a wrapper on useResponsiveLayout. shouldUseNarrowLayout on a wide screen is true when the screen is displayed in RHP.
@@ -33,3 +50,5 @@ export default function useResponsiveLayoutOnWideRHP(): ResponsiveLayoutOnWideRH
         isSuperWideRHPDisplayedOnWideLayout,
     };
 }
+
+export {useIsDisplayedInWideRHP};

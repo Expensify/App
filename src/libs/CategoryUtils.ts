@@ -4,8 +4,8 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, TaxRate, TaxRatesWithDefault} from '@src/types/onyx';
-import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
+import type {Policy, PolicyCategories} from '@src/types/onyx';
+import type {ApprovalRule, MccGroup} from '@src/types/onyx/Policy';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -13,26 +13,6 @@ import {Str} from 'expensify-common';
 
 import StringUtils from './StringUtils';
 import {containsHtmlTag} from './ValidationUtils';
-
-function formatDefaultTaxRateText(translate: LocaleContextProps['translate'], taxID: string, taxRate: TaxRate, policyTaxRates?: TaxRatesWithDefault) {
-    const taxRateText = `${taxRate.name} ${CONST.DOT_SEPARATOR} ${taxRate.value}`;
-
-    if (!policyTaxRates) {
-        return taxRateText;
-    }
-
-    const {defaultExternalID, foreignTaxDefault} = policyTaxRates;
-    let suffix;
-
-    if (taxID === defaultExternalID && taxID === foreignTaxDefault) {
-        suffix = translate('common.default');
-    } else if (taxID === defaultExternalID) {
-        suffix = translate('workspace.taxes.workspaceDefault');
-    } else if (taxID === foreignTaxDefault) {
-        suffix = translate('workspace.taxes.foreignDefault');
-    }
-    return `${taxRateText}${suffix ? ` ${CONST.DOT_SEPARATOR} ${suffix}` : ``}`;
-}
 
 function formatRequireItemizedReceiptsOverText(
     translate: LocaleContextProps['translate'],
@@ -66,27 +46,6 @@ function getCategoryApproverRule(approvalRules: ApprovalRule[], categoryName: st
         rule.applyWhen.find(({condition, field, value}) => condition === CONST.POLICY.RULE_CONDITIONS.MATCHES && field === CONST.POLICY.FIELDS.CATEGORY && value === categoryName),
     );
     return approverRule;
-}
-
-function getCategoryExpenseRule(expenseRules: ExpenseRule[], categoryName: string) {
-    const expenseRule = expenseRules?.find((rule) =>
-        rule.applyWhen.find(({condition, field, value}) => condition === CONST.POLICY.RULE_CONDITIONS.MATCHES && field === CONST.POLICY.FIELDS.CATEGORY && value === categoryName),
-    );
-    return expenseRule;
-}
-
-function getCategoryDefaultTaxRate(expenseRules: ExpenseRule[], categoryName: string, defaultTaxRate?: string) {
-    // Matched the same way the rules are written: on a `category matches <name>` condition rather than on the value
-    // alone. Matching any condition carrying the name could read a rule that a save or delete never targets, so the
-    // rate an expense picks up would not be the one the admin set.
-    const categoryDefaultTaxRate = getCategoryExpenseRule(expenseRules, categoryName)?.tax?.field_id_TAX?.externalID;
-
-    // If the default taxRate is not found in expenseRules, use the default value for policy
-    if (!categoryDefaultTaxRate) {
-        return defaultTaxRate;
-    }
-
-    return categoryDefaultTaxRate;
 }
 
 function updateCategoryInMccGroup(mccGroups: Record<string, MccGroup>, oldCategoryName: string, newCategoryName: string, shouldClearPendingAction?: boolean) {
@@ -142,6 +101,17 @@ function getCategoryGLCode(policyCategories: PolicyCategories | undefined, categ
     }
     const glCode = policyCategories[category]?.['GL Code'];
     return glCode != null ? String(glCode).replaceAll('"', '') : '';
+}
+
+/**
+ * Whether at least one selectable category on the workspace has a non-blank GL code. Disabled and pending-deletion
+ * categories can't be picked in the category picker, so their GL codes don't count.
+ */
+function hasAnyCategoryGLCode(policyCategories: PolicyCategories | undefined): boolean {
+    return Object.entries(policyCategories ?? {}).some(
+        ([categoryName, category]) =>
+            !!category?.enabled && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!getCategoryGLCode(policyCategories, categoryName).trim(),
+    );
 }
 
 function getDecodedCategoryName(categoryName: string) {
@@ -204,6 +174,28 @@ function getCategoryNameErrorMessage(translate: LocaleContextProps['translate'],
         default:
             return translate('common.error.characterLimitExceedCounter', [...StringUtils.sanitizeName(name)].length, CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH);
     }
+}
+
+/**
+ * Finds the stored key of a disabled category whose decoded name is `name`. Pickers hide disabled categories, so a
+ * search can come up empty even though creating the name would fail as a duplicate. A category being deleted is also
+ * stored as disabled until the server confirms, so it is skipped rather than offered back.
+ */
+function getDisabledCategoryKey(policyCategories: PolicyCategories | undefined, name: string): string | undefined {
+    return Object.entries(policyCategories ?? {}).find(
+        ([categoryKey, category]) => !category?.enabled && category?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && getDecodedCategoryName(categoryKey) === name,
+    )?.[0];
+}
+
+/**
+ * Whether a category picker search for `name` can be turned into a category in one tap: either a valid new name, or
+ * the name of a disabled category that can be turned back on. Reserved names, HTML and over-long names never qualify.
+ */
+function canCreateCategoryFromSearch(policyCategories: PolicyCategories | undefined, name: string): boolean {
+    const disabledCategoryKey = getDisabledCategoryKey(policyCategories, name);
+
+    // Passing the name as `currentName` skips only the duplicate check, so a disabled match still has to pass every other rule.
+    return !getCategoryNameError(policyCategories, name, disabledCategoryKey ? name : undefined);
 }
 
 /**
@@ -292,16 +284,15 @@ function hasAnyCategoryRules(categories: PolicyCategories | undefined): boolean 
 }
 
 export {
-    formatDefaultTaxRateText,
     formatRequireItemizedReceiptsOverText,
     getCategoryApproverRule,
-    getCategoryDefaultTaxRate,
     updateCategoryInMccGroup,
     getEnabledCategoriesCount,
     isCategoryMissing,
     isCategoryDescriptionRequired,
     getCategoryDescriptionHint,
     getCategoryGLCode,
+    hasAnyCategoryGLCode,
     getDecodedCategoryName,
     getDecodedLeafCategoryName,
     getDecodedFullCategoryName,
@@ -310,4 +301,6 @@ export {
     hasAnyCategoryRules,
     getCategoryNameError,
     getCategoryNameErrorMessage,
+    getDisabledCategoryKey,
+    canCreateCategoryFromSearch,
 };

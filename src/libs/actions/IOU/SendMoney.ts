@@ -274,7 +274,6 @@ function getSendMoneyParams({
               [recipientAccountID]: {
                   accountID: recipientAccountID,
                   // Disabling this line since participant.displayName can be an empty string
-                  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                   displayName: recipient.displayName || recipient.login,
                   login: recipient.login,
               },
@@ -502,7 +501,7 @@ type SendMoneyActionParams = {
     merchant?: string;
     receipt?: Receipt;
     optimisticChatReportID?: string;
-    shouldStartTracking?: boolean;
+    shouldStartTracking: boolean;
     delegateAccountID: number | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
@@ -512,9 +511,22 @@ function executeSendMoney(
     paymentMethodType: typeof CONST.IOU.PAYMENT_TYPE.ELSEWHERE | typeof CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
     writeCommand: typeof WRITE_COMMANDS.SEND_MONEY_ELSEWHERE | typeof WRITE_COMMANDS.SEND_MONEY_WITH_WALLET,
 ) {
-    const {report, quickAction, amount, currency, comment, currentUserAccountID, recipient, created, merchant, receipt, optimisticChatReportID, delegateAccountID, getCurrencyDecimals} =
-        actionParams;
-    const {shouldStartTracking = true} = actionParams;
+    const {
+        report,
+        quickAction,
+        amount,
+        currency,
+        comment,
+        currentUserAccountID,
+        recipient,
+        created,
+        merchant,
+        receipt,
+        optimisticChatReportID,
+        delegateAccountID,
+        getCurrencyDecimals,
+        shouldStartTracking,
+    } = actionParams;
 
     const {params, optimisticData, successData, failureData} = getSendMoneyParams({
         report,

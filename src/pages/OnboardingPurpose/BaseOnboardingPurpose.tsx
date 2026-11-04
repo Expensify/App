@@ -9,6 +9,7 @@ import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
 import useAutoCreateTrackWorkspace from '@hooks/useAutoCreateTrackWorkspace';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
@@ -40,7 +41,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {useIsFocused} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {PUBLIC_DOMAINS_SET} from 'expensify-common';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
+import React, {useEffect, useImperativeHandle, useRef} from 'react';
 import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 
@@ -61,17 +62,14 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Abacus', 'Binoculars', 'BriefcaseHandshake', 'CalculatorMoney', 'ReceiptUpload', 'PiggyBank']);
 
-    const menuIcons = useMemo(
-        () => ({
-            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: illustrations.BriefcaseHandshake,
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: illustrations.ReceiptUpload,
-            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: illustrations.Abacus,
-            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: illustrations.CalculatorMoney,
-            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: illustrations.PiggyBank,
-            [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: illustrations.Binoculars,
-        }),
-        [illustrations.Abacus, illustrations.Binoculars, illustrations.BriefcaseHandshake, illustrations.CalculatorMoney, illustrations.ReceiptUpload, illustrations.PiggyBank],
-    );
+    const menuIcons = {
+        [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: illustrations.BriefcaseHandshake,
+        [CONST.ONBOARDING_CHOICES.EMPLOYER]: illustrations.ReceiptUpload,
+        [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: illustrations.Abacus,
+        [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: illustrations.CalculatorMoney,
+        [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: illustrations.PiggyBank,
+        [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: illustrations.Binoculars,
+    };
     const {onboardingIsMediumOrLargerScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const delegateAccountID = useDelegateAccountID();
@@ -79,6 +77,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const {onboardingMessages} = useOnboardingMessages();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const isAnonymousUser = useIsAnonymousUser();
 
     const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
 
@@ -194,6 +193,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                             isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                             conciergeReportID,
                             reportNameValuePairs,
+                            isAnonymousUser,
                             onboardingPolicyID,
                             onboardingAdminsChatReportID,
                             false,
@@ -216,9 +216,9 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
         isJoinWorkspaceNavigationPending.current = false;
     }, [isFocused]);
 
-    const handleOuterClick = useCallback(() => {
+    const handleOuterClick = () => {
         setOnboardingErrorMessage('onboarding.errorSelection');
-    }, []);
+    };
 
     const onboardingLocalRef = useRef<TOnboardingRef>(null);
     useImperativeHandle(isFocused ? OnboardingRefManager.ref : onboardingLocalRef, () => ({handleOuterClick}), [handleOuterClick]);

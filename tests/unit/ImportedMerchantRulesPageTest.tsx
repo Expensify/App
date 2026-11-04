@@ -314,6 +314,23 @@ describe('ImportedMerchantRulesPage', () => {
         it('returns an empty lookup when the vendor list has not loaded', () => {
             expect(buildImportedVendorLookup(buildQBOPolicyWithVendors(undefined)).size).toBe(0);
         });
+
+        it('excludes disabled vendors from the lookup', () => {
+            // Given a policy with a vendor marked as disabled in policyVendors
+            const policyWithDisabledVendor = buildQBOPolicyWithVendors([
+                {id: 'v1', name: 'Acme Co', currency: 'USD'},
+                {id: 'v2', name: 'Globex', currency: 'USD'},
+            ]);
+            const policyVendors = {
+                v1: {externalID: 'v1', name: 'Acme Co', enabled: false},
+            };
+
+            // When building the imported vendor lookup
+            const lookup = buildImportedVendorLookup(policyWithDisabledVendor, policyVendors);
+
+            // Then the disabled vendor is excluded and cannot be resolved by name
+            expect(lookup.get('acme co')).toBeUndefined();
+        });
     });
 
     describe('willImportShortCircuitLocally', () => {

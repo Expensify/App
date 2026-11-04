@@ -25,15 +25,12 @@ function StatusBadge({text, backgroundColor, textColor, badgeStyles, tooltipText
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
 
-    const bgColor = (backgroundColor ?? theme.transparent) as string;
-    const txtColor = (textColor ?? theme.text) as string;
-
     const badge = (
         <Badge
             text={text}
             isCondensed
-            badgeStyles={[styles.ml0, styles.borderNone, StyleUtils.getBackgroundColorStyle(bgColor), badgeStyles]}
-            textStyles={StyleUtils.getColorStyle(txtColor)}
+            badgeStyles={[styles.ml0, styles.borderNone, StyleUtils.getBackgroundColorStyle(backgroundColor ?? theme.transparent), badgeStyles]}
+            textStyles={StyleUtils.getColorStyle(textColor ?? theme.text)}
         />
     );
 
