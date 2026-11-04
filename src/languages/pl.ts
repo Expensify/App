@@ -9179,9 +9179,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 describeRuleForConcierge: 'Opisz swoją regułę, a Concierge ją utworzy',
                 gotIt: 'Jasne',
                 createRule: 'Utwórz regułę',
-                fallbackBanner:
-                    'To nie jest standardowa reguła, więc przygotowaliśmy ją jako regułę agenta. Reguły agenta działają po zmianie wydatku lub raportu, na przykład wstrzymując wydatek albo odrzucając raport.',
-                fallbackBannerWithExplanation: (explanation: string) => `To nie jest standardowa reguła, więc przygotowaliśmy ją jako regułę agenta. ${explanation}`,
+                fallbackBanner: 'To nie jest standardowa reguła, więc przygotowaliśmy regułę agenta.',
+                fallbackBannerWithExplanation: (explanation: string) => `To nie jest standardowa reguła, więc przygotowaliśmy regułę agenta. ${explanation}`,
             },
             tabs: {
                 general: 'Ogólne',
@@ -10524,6 +10523,12 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `zaktualizowano „Zapobiegaj oznaczaniu raportów niepodlegających zwrotowi jako opłacone” na „${newValue === 'true' ? 'Włączone' : 'Wyłączone'}” (wcześniej „${oldValue === 'true' ? 'Włączone' : 'Wyłączone'}”)`,
         addedExpensifyCardFeed: (feedName: string) => `dodano źródło danych Karty Expensify „${feedName}”`,
+        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
+            if (!oldValue) {
+                return `ustaw strefę czasową miejsca pracy na „${newValue}”`;
+            }
+            return `zaktualizowano strefę czasową przestrzeni roboczej na „${newValue}” (wcześniej „${oldValue}”)`;
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Nie znaleziono członka.',
@@ -11131,6 +11136,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');
                     return `Otwórz aplikację mobilną Expensify, aby przejrzeć transakcję${amountAndMerchantText ? ` ${amountAndMerchantText}` : ''}`;
                 },
+                autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
+                    `Globalne zwroty zostały włączone przez ${adminName} na koncie ${bankName ? `${bankName} ` : ''} kończącym się na ${lastFour}. Dokładnych kursów wymiany i opłat nie da się wyświetlić przed płatnością, gdy raporty transgraniczne są opłacane automatycznie. Sprawdź swoje <a href="${autoPaySettingsURL}">ustawienia automatycznych płatności</a>, żeby uzyskać więcej informacji o kursach i opłatach.`,
             },
             error: {
                 invalidCredentials: 'Nieprawidłowe dane logowania, sprawdź konfigurację swojego połączenia.',

@@ -1678,6 +1678,23 @@ type OriginalMessageSettlementAccountLocked = {
 };
 
 /**
+ * Model of the Concierge report action that warns #admins about Auto Pay fees once Global Reimbursements is enabled
+ */
+type OriginalMessageAutoPayFeeDisclosure = {
+    /** The policy that has Auto Pay enabled */
+    policyID: string;
+
+    /** The admin who enabled Global Reimbursements */
+    accountID: number;
+
+    /** The name of the bank, which can be empty */
+    bankName: string;
+
+    /** The last four digits of the bank account number */
+    lastFour: string;
+};
+
+/**
  * Model of a HOME_ADDRESS_REQUIRED Concierge report action.
  */
 type OriginalMessageHomeAddressRequired = {
@@ -1850,6 +1867,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED]: OriginalMessageReimbursementDirectorInformationRequired;
     [CONST.REPORT.ACTIONS.TYPE.HOME_ADDRESS_REQUIRED]: OriginalMessageHomeAddressRequired;
     [CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED]: OriginalMessageSettlementAccountLocked;
+    [CONST.REPORT.ACTIONS.TYPE.AUTO_PAY_FEE_DISCLOSURE]: OriginalMessageAutoPayFeeDisclosure;
 } & Omit<OldDotOriginalMessageMap, typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL> &
     Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>, OriginalMessagePolicyChangeLog> &
     Record<PolicyChangeLogCopyReportActionNames, OriginalMessagePolicyChangeCopyLog> & {

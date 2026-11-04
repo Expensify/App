@@ -9226,9 +9226,8 @@ ${reportName}`,
                 describeRuleForConcierge: 'Describe tu regla y Concierge la creará',
                 gotIt: 'Entendido',
                 createRule: 'Crear regla',
-                fallbackBanner:
-                    'Esta no es una regla estándar, así que la redactamos como una regla de agente. Las reglas de agente actúan después de que un gasto o informe cambia, por ejemplo reteniendo el gasto o rechazando el informe.',
-                fallbackBannerWithExplanation: (explanation: string) => `Esta no es una regla estándar, así que la redactamos como una regla de agente. ${explanation}`,
+                fallbackBanner: 'Esta no es una regla estándar, así que redactamos una regla de agente.',
+                fallbackBannerWithExplanation: (explanation: string) => `Esta no es una regla estándar, así que redactamos una regla de agente. ${explanation}`,
             },
             tabs: {
                 general: 'General',
@@ -10401,6 +10400,12 @@ ${reportName}`,
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `actualizó "Impedir marcar los informes no reembolsables como pagados" a "${newValue === 'true' ? 'Habilitado' : 'Deshabilitado'}" (previamente "${oldValue === 'true' ? 'Habilitado' : 'Deshabilitado'}")`,
         addedExpensifyCardFeed: (feedName: string) => `añadió el feed de Tarjeta Expensify "${feedName}"`,
+        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
+            if (!oldValue) {
+                return `establece la zona horaria del espacio de trabajo en «${newValue}»`;
+            }
+            return `actualizó la zona horaria del espacio de trabajo a «${newValue}» (previamente «${oldValue}»)`;
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Miembro no encontrado.',
@@ -10994,6 +10999,8 @@ ${reportName}`,
                 leftTheChatWithName: (nameOrEmail) => `${nameOrEmail ? `${nameOrEmail}: ` : ''}salió del chat`,
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `La cuenta bancaria comercial ${maskedBankAccountNumber} ha sido bloqueada automáticamente debido a un problema con el reembolso o la liquidación de la Tarjeta Expensify. Por favor, soluciona el problema en la <a href='${linkURL}'>configuración del espacio de trabajo</a>.`,
+                autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
+                    `Los reembolsos globales fueron habilitados por ${adminName} en la cuenta ${bankName ? `de ${bankName} ` : ''}que termina en ${lastFour}. Las tasas de cambio exactas y las comisiones no se pueden previsualizar antes del pago cuando los informes transfronterizos se pagan automáticamente. Revisa tu <a href="${autoPaySettingsURL}">configuración de pago automático</a> para obtener más información sobre tasas y comisiones.`,
             },
             error: {
                 invalidCredentials: 'Credenciales no válidas, por favor verifica la configuración de tu conexión.',

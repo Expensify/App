@@ -71,7 +71,7 @@ import Log from './Log';
 import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForCurrentContext';
 import {getIsOffline, subscribe as subscribeNetworkState} from './NetworkState';
 import Parser from './Parser';
-import {arePersonalDetailsMissing, getEffectiveDisplayName} from './PersonalDetailsUtils';
+import {arePersonalDetailsMissing, getEffectiveDisplayName, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowupListFromHtml';
 import {getOriginalMessage, getReportActionHtml, getReportActionMessage, getReportActionText, getTextFromHtml} from './ReportActionMessageUtils';
 import {isActionOfType, isDynamicExternalWorkflowApproveFailedAction, isModifiedExpenseAction, isMoneyRequestAction} from './ReportActionTypeGuards';
@@ -4375,6 +4375,9 @@ function getWorkspaceUpdateFieldMessage(translate: LocalizedTranslate, action: R
         };
         return translate('workspaceActions.updateMonthlyOffset', getAutoReportingOffsetToDisplay(oldValue), getAutoReportingOffsetToDisplay(newValue));
     }
+    if (updatedField && updatedField === CONST.POLICY.COLLECTION_KEYS.TIME_ZONE && (typeof oldValue === 'string' || typeof oldValue === 'undefined') && typeof newValue === 'string') {
+        return translate('workspaceActions.updateWorkspaceTimezone', oldValue ?? '', newValue);
+    }
     return getReportActionText(action);
 }
 
@@ -5769,6 +5772,17 @@ function getSettlementAccountLockedMessage(translate: LocalizedTranslate, action
     return translate('report.actions.type.settlementAccountLocked', originalMessage, workspaceSettingsURL);
 }
 
+function getAutoPayFeeDisclosureMessage(
+    translate: LocalizedTranslate,
+    action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.AUTO_PAY_FEE_DISCLOSURE>,
+    adminDetails: OnyxEntry<PersonalDetails>,
+): string {
+    const {policyID = '', bankName = '', lastFour = ''} = getOriginalMessage(action) ?? {};
+    const adminName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: adminDetails, translate, formatPhoneNumber});
+    const autoPaySettingsURL = `${environmentURL}/${ROUTES.RULES_AUTO_PAY_REPORTS_UNDER.getRoute(policyID)}`;
+    return translate('report.actions.type.autoPayFeeDisclosure', Str.htmlEncode(adminName), Str.htmlEncode(bankName), lastFour, autoPaySettingsURL);
+}
+
 function isCardIssuedAction(
     reportAction: OnyxInputOrEntry<ReportAction>,
 ): reportAction is ReportAction<
@@ -6409,6 +6423,7 @@ export {
     withDEWRoutedActionsObject,
     getReportActionActorAccountID,
     getSettlementAccountLockedMessage,
+    getAutoPayFeeDisclosureMessage,
     stripFollowupListFromHtml,
     getDynamicExternalWorkflowSubmitFailedActionMessage,
     getDynamicExternalWorkflowApproveFailedActionMessage,

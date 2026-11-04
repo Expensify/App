@@ -9176,9 +9176,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 describeRuleForConcierge: 'Descrivi la tua regola e Concierge la creerà',
                 gotIt: 'Capito',
                 createRule: 'Crea regola',
-                fallbackBanner:
-                    'Questa non è una regola standard, quindi l’abbiamo creata come regola agente. Le regole agente agiscono dopo che una spesa o un report vengono modificati, ad esempio bloccando la spesa o rifiutando il report.',
-                fallbackBannerWithExplanation: (explanation: string) => `Questa non è una regola standard, quindi l’abbiamo formulata come regola dell’agente. ${explanation}`,
+                fallbackBanner: 'Questa non è una regola standard, quindi abbiamo creato una regola agente.',
+                fallbackBannerWithExplanation: (explanation: string) => `Questa non è una regola standard, quindi abbiamo creato una regola agente. ${explanation}`,
             },
             tabs: {
                 general: 'Generale',
@@ -10535,6 +10534,12 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `aggiornato "Impedisci di contrassegnare come pagati i report non rimborsabili" in "${newValue === 'true' ? 'Abilitato' : 'Disabilitato'}" (precedentemente "${oldValue === 'true' ? 'Abilitato' : 'Disabilitato'}")`,
         addedExpensifyCardFeed: (feedName: string) => `aggiunto il feed Carta Expensify «${feedName}»`,
+        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
+            if (!oldValue) {
+                return `imposta il fuso orario dello spazio di lavoro su "${newValue}"`;
+            }
+            return `ha aggiornato il fuso orario dello spazio di lavoro a "${newValue}" (in precedenza "${oldValue}")`;
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Membro non trovato.',
@@ -11134,6 +11139,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');
                     return `Apri l'app mobile di Expensify per esaminare la tua transazione di${amountAndMerchantText ? ` ${amountAndMerchantText}` : ''}`;
                 },
+                autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
+                    `I Rimborsi globali sono stati abilitati da ${adminName} sul conto ${bankName ? `${bankName} ` : ''} che termina con ${lastFour}. I tassi di cambio e le commissioni esatti non possono essere visualizzati in anteprima prima del pagamento quando i report transfrontalieri vengono pagati automaticamente. Consulta le tue <a href="${autoPaySettingsURL}">impostazioni di pagamento automatico</a> per maggiori informazioni su tassi e commissioni.`,
             },
             error: {
                 invalidCredentials: 'Credenziali non valide, controlla la configurazione della tua connessione.',

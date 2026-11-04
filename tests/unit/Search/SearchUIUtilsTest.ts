@@ -15947,6 +15947,21 @@ describe('SearchUIUtils', () => {
             );
         });
 
+        test('omits the cash expense notice that only Classic records', () => {
+            // Given a submit snapshot taken by Classic, which records the cash expense notice next to another violation
+            const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
+                transactions: {
+                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT}, {name: CONST.VIOLATIONS.MISSING_CATEGORY}],
+                },
+            });
+
+            // When the submitted violations column is built for the expense
+            const violations = SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal);
+
+            // Then only the other violation is listed, so the column matches Search, Insights and the CSV export
+            expect(violations).toBe(translateLocal('violations.shortName.missingCategory'));
+        });
+
         test('translates maxAge via violations.shortName', () => {
             const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
                 transactions: {

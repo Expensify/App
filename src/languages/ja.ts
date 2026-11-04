@@ -9046,9 +9046,8 @@ ${reportName}`,
                 describeRuleForConcierge: 'ルールの内容を入力すると、Concierge が自動作成します',
                 gotIt: '了解しました',
                 createRule: 'ルールを作成',
-                fallbackBanner:
-                    'これは標準ルールではないため、エージェントルールとして作成しました。エージェントルールは、経費やレポートに変更があった後に動作し、例えば経費を保留にしたり、レポートを却下したりします。',
-                fallbackBannerWithExplanation: (explanation: string) => `これは標準ルールではないため、エージェントルールとして作成しました。${explanation}`,
+                fallbackBanner: 'これは標準ルールではないため、エージェントルールを作成しました。',
+                fallbackBannerWithExplanation: (explanation: string) => `これは標準ルールではないため、エージェントルールを作成しました。${explanation}`,
             },
             tabs: {
                 general: '一般',
@@ -10367,6 +10366,12 @@ ${reportName}`,
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `「精算不要レポートを支払済みにしない」を「${newValue === 'true' ? '有効' : '無効'}」（以前は「${oldValue === 'true' ? '有効' : '無効'}」）に更新しました`,
         addedExpensifyCardFeed: (feedName: string) => `「${feedName}」Expensify カードフィードを追加しました`,
+        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
+            if (!oldValue) {
+                return `ワークスペースのタイムゾーンを「${newValue}」に設定します`;
+            }
+            return `ワークスペースのタイムゾーンを「${newValue}」（以前は「${oldValue}」）に更新しました`;
+        },
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
@@ -10956,6 +10961,8 @@ ${reportName}`,
                     const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');
                     return `Expensify モバイルアプリを開いて、${amountAndMerchantText && `${amountAndMerchantText} `}の取引を確認してください`;
                 },
+                autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
+                    `グローバル払い戻しは、${adminName} さんにより、末尾が ${lastFour} の ${bankName ? `${bankName} ` : ''}アカウントで有効化されました。国境を越えるレポートが自動支払いされる場合、正確な為替レートおよび手数料は支払い前にプレビューできません。レートと手数料の詳細については、<a href="${autoPaySettingsURL}">自動支払い設定</a>をご確認ください。`,
             },
             error: {
                 invalidCredentials: '認証情報が無効です。接続の設定を確認してください。',

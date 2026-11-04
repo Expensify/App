@@ -9153,9 +9153,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 describeRuleForConcierge: 'Beschrijf je regel en Concierge bouwt hem voor je',
                 gotIt: 'Begrepen',
                 createRule: 'Regel maken',
-                fallbackBanner:
-                    'Dit is geen standaardregel, dus hebben we hem opgesteld als een agentregel. Agentregels treden in werking nadat een uitgave of rapport verandert, bijvoorbeeld door de uitgave vast te houden of het rapport af te wijzen.',
-                fallbackBannerWithExplanation: (explanation: string) => `Dit is geen standaardregel, dus hebben we het opgesteld als een agentregel. ${explanation}`,
+                fallbackBanner: 'Dit is geen standaardregel, dus hebben we een agentregel opgesteld.',
+                fallbackBannerWithExplanation: (explanation: string) => `Dit is geen standaardregel, dus hebben we een agentregel opgesteld. ${explanation}`,
             },
             tabs: {
                 general: 'Algemeen',
@@ -10509,6 +10508,12 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `heeft "Voorkom dat niet-vergoedbare rapporten als betaald worden gemarkeerd" bijgewerkt naar "${newValue === 'true' ? 'Ingeschakeld' : 'Uitgeschakeld'}" (voorheen "${oldValue === 'true' ? 'Ingeschakeld' : 'Uitgeschakeld'}")`,
         addedExpensifyCardFeed: (feedName: string) => `"${feedName}" Expensify Kaart-feed toegevoegd`,
+        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
+            if (!oldValue) {
+                return `stel de tijdzone van de werkruimte in op "${newValue}"`;
+            }
+            return `heeft de tijdzone van de werkruimte bijgewerkt naar "${newValue}" (voorheen "${oldValue}")`;
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',
@@ -11110,6 +11115,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');
                     return `Open de mobiele Expensify-app om je${amountAndMerchantText ? ` ${amountAndMerchantText}-` : ' '}transactie te bekijken`;
                 },
+                autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
+                    `Global Reimbursements is ingeschakeld door ${adminName} op de ${bankName ? `${bankName} ` : ''}rekening die eindigt op ${lastFour}. Exacte wisselkoersen en kosten kunnen niet vooraf worden bekeken wanneer grensoverschrijdende rapporten automatisch worden betaald. Bekijk je <a href="${autoPaySettingsURL}">automatische betaalinstellingen</a> voor meer informatie over tarieven en kosten.`,
             },
             error: {
                 invalidCredentials: 'Ongeldige inloggegevens, controleer de configuratie van je verbinding.',

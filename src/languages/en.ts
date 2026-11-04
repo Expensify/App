@@ -10037,9 +10037,8 @@ const translations = {
                 describeRuleForConcierge: 'Describe your rule and Concierge will build it',
                 disclaimer: 'AI agents can make mistakes.',
                 createRule: 'Create rule',
-                fallbackBanner:
-                    "This isn't a standard rule, so we drafted it as an agent rule. Agent rules act after an expense or report changes, for example by holding the expense or rejecting the report.",
-                fallbackBannerWithExplanation: (explanation: string) => `This isn't a standard rule, so we drafted it as an agent rule. ${explanation}`,
+                fallbackBanner: "This isn't a standard rule, so we drafted an agent rule.",
+                fallbackBannerWithExplanation: (explanation: string) => `This isn't a standard rule, so we drafted an agent rule. ${explanation}`,
                 agentCreatedTitle: 'RuleBot has been added to your workspace!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>To enforce your agent rules, we’ve created an agent for you and added it as an admin to your workspace.<br><br>Edit your agent’s details in <a href="${agentsRoute}">Account &gt; Agents</a>.</muted-text>`,
@@ -10406,6 +10405,12 @@ const translations = {
                 return `set the monthly report submission date to "${newValue}"`;
             }
             return `updated the monthly report submission date to "${newValue}" (previously "${oldValue}")`;
+        },
+        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
+            if (!oldValue) {
+                return `set the workspace timezone to "${newValue}"`;
+            }
+            return `updated the workspace timezone to "${newValue}" (previously "${oldValue}")`;
         },
         updateDefaultBillable: (oldValue: string, newValue: string) => `updated "Re-bill expenses to clients" to "${newValue}" (previously "${oldValue}")`,
         updateDefaultReimbursable: (oldValue: string, newValue: string) => `updated "Cash expense default" to "${newValue}" (previously "${oldValue}")`,
@@ -11461,6 +11466,8 @@ const translations = {
                 leftTheChatWithName: (nameOrEmail: string) => `${nameOrEmail ? `${nameOrEmail}: ` : ''}left the chat`,
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `business bank account ${maskedBankAccountNumber} has been automatically locked due to an issue with either Reimbursement or Expensify Card settlement. Please fix the issue in your <a href="${linkURL}">workspace settings</a>.`,
+                autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
+                    `Global Reimbursements was enabled by ${adminName} on the ${bankName ? `${bankName} ` : ''}account ending in ${lastFour}. Exact exchange rates and fees cannot be previewed prior to payment when cross-border reports are auto-paid. Review your <a href="${autoPaySettingsURL}">auto-pay settings</a> for more information on rates and fees.`,
             },
             error: {
                 invalidCredentials: 'Invalid credentials, please check the configuration of your connection.',

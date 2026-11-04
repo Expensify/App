@@ -9671,9 +9671,8 @@ ${reportName}`,
                 describeRuleHeadline: 'Περιγράψτε τον κανόνα σας',
                 describeRuleForConcierge: 'Περιγράψτε τον κανόνα σας και το Concierge θα τον δημιουργήσει',
                 createRule: 'Δημιουργία κανόνα',
-                fallbackBanner:
-                    'Αυτός δεν είναι ένας τυπικός κανόνας, οπότε τον διαμορφώσαμε ως κανόνα πράκτορα. Οι κανόνες πράκτορα εφαρμόζονται αφού αλλάξει μια δαπάνη ή μια αναφορά, για παράδειγμα κρατώντας τη δαπάνη ή απορρίπτοντας την αναφορά.',
-                fallbackBannerWithExplanation: (explanation: string) => `Αυτός δεν είναι ένας τυπικός κανόνας, οπότε τον συντάξαμε ως κανόνα εκπροσώπου. ${explanation}`,
+                fallbackBanner: 'Αυτός δεν είναι τυπικός κανόνας, οπότε συντάξαμε έναν κανόνα πράκτορα.',
+                fallbackBannerWithExplanation: (explanation: string) => `Αυτός δεν είναι τυπικός κανόνας, οπότε συντάξαμε έναν κανόνα πράκτορα. ${explanation}`,
                 suggestionsTab: 'Προτεινόμενο',
                 writeTab: 'Προσαρμοσμένο',
                 findSuggestion: 'Βρείτε έναν κανόνα',
@@ -10749,6 +10748,12 @@ ${reportName}`,
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `ενημερώθηκε το «αποτροπή επισήμανσης μη αποζημιώσιμων αναφορών ως πληρωμένες» σε «${newValue === 'true' ? 'Ενεργοποιημένο' : 'Απενεργοποιημένο'}» (προηγουμένως «${oldValue === 'true' ? 'Ενεργοποιημένο' : 'Απενεργοποιημένο'}»)`,
         addedExpensifyCardFeed: (feedName: string) => `προστέθηκε ροή Κάρτας Expensify «${feedName}»`,
+        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
+            if (!oldValue) {
+                return `ορίστε τη ζώνη ώρας του χώρου εργασίας σε «${newValue}»`;
+            }
+            return `ενημέρωσε τη ζώνη ώρας του χώρου εργασίας σε «${newValue}» (προηγουμένως «${oldValue}»)`;
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Το μέλος δεν βρέθηκε.',
@@ -11368,6 +11373,8 @@ ${reportName}`,
                 leftTheChatWithName: (nameOrEmail: string) => `${nameOrEmail ? `${nameOrEmail}: ` : ''} έφυγε από τη συνομιλία`,
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `ο επαγγελματικός τραπεζικός λογαριασμός ${maskedBankAccountNumber} έχει κλειδωθεί αυτόματα λόγω προβλήματος είτε με τις αποζημιώσεις είτε με τον διακανονισμό της Κάρτας Expensify. Παρακαλούμε διορθώστε το πρόβλημα στις <a href="${linkURL}">ρυθμίσεις χώρου εργασίας</a>.`,
+                autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
+                    `Οι παγκόσμιες αποζημιώσεις ενεργοποιήθηκαν από τον/την ${adminName} στον λογαριασμό ${bankName ? `${bankName} ` : ''}που λήγει σε ${lastFour}. Οι ακριβείς συναλλαγματικές ισοτιμίες και χρεώσεις δεν μπορούν να προβλεφθούν πριν από την πληρωμή όταν οι διασυνοριακές αναφορές πληρώνονται αυτόματα. Εξετάστε τις <a href="${autoPaySettingsURL}">ρυθμίσεις αυτόματης πληρωμής</a> σας για περισσότερες πληροφορίες σχετικά με ισοτιμίες και χρεώσεις.`,
             },
             error: {
                 invalidCredentials: 'Μη έγκυρα διαπιστευτήρια, παρακαλούμε ελέγξτε τη ρύθμιση της σύνδεσής σας.',
