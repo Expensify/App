@@ -17,3 +17,12 @@
 - E/App issue: 🛑
 - PR introducing patch: https://github.com/Expensify/App/pull/100733
 - Reproduction: On web, clear the cache and open a chat whose oldest loaded message shows the sender's avatar. Scroll to that message and wait until older messages from the same sender load. The avatar line should disappear without moving the messages below it.
+
+### [@legendapp+list+3.7.1+003+anchor-data-changes-after-scroll-jumps.patch](@legendapp+list+3.7.1+003+anchor-data-changes-after-scroll-jumps.patch)
+
+- Reason: After a large scroll jump, such as a fast scrollbar drag, LegendList repositions newly measured items without keeping anything in place, so the region the user jumped to can lay out. This lasts until it has measured every item it rendered since the jump. If older messages load in the meantime, their measurements push the visible messages down by a few hundred pixels for a frame. This patch ends that state when the data changes, so the new messages are anchored like any other data change.
+- Scope: Only the web bundles, and only lists that keep their visible content in place on data changes.
+- Upstream PR/issue: 🛑
+- E/App issue: 🛑
+- PR introducing patch: https://github.com/Expensify/App/pull/100733
+- Reproduction: On web, clear the cache and open a chat with a long history. Drag the scrollbar thumb quickly up and down a few times, then hold it near the top until older messages load. The messages on screen should not move.
