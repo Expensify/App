@@ -32,7 +32,6 @@ import Onyx from 'react-native-onyx';
 import clearOnyxAndSeedFullReconnect from './clearOnyxAndSeedFullReconnect';
 import {setShouldForceOffline} from './Network';
 import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
-import {resetAllChecks} from './Welcome';
 
 type PolicyParamsForOpenOrReconnect = {
     policyIDList: string[];
@@ -631,8 +630,6 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     const isStateImported = isUsingImportedState;
     rollbackOngoingRequest();
     const sequentialQueue = getAll();
-    // The cleared state has no Concierge reportID, so opening Concierge must wait for OpenApp instead of creating a duplicate chat
-    resetAllChecks(true);
 
     Navigation.clearPreloadedRoutes();
     // The helper seeds the loading state and LAST_FULL_RECONNECT_TIME so consumers cannot evaluate transient

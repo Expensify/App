@@ -240,7 +240,7 @@ describe('actions/App', () => {
         });
     });
 
-    test('clearOnyxAndResetApp makes onServerDataReady wait for the next OpenApp', async () => {
+    test('clearing the cache makes onServerDataReady wait for the next OpenApp', async () => {
         // Given server data that already finished loading once, so onServerDataReady() is resolved
         jest.spyOn(Navigation, 'clearPreloadedRoutes').mockImplementation(() => {});
         await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, true);
@@ -250,6 +250,7 @@ describe('actions/App', () => {
 
         // When the cache is cleared while offline, so the follow-up OpenApp cannot finish
         await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+        resetAllChecks(true);
         await App.clearOnyxAndResetApp();
         await waitForBatchedUpdates();
 
@@ -274,6 +275,7 @@ describe('actions/App', () => {
         // Given the cache was cleared while offline and a caller is waiting for OpenApp, like a Report a bug tap
         jest.spyOn(Navigation, 'clearPreloadedRoutes').mockImplementation(() => {});
         await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+        resetAllChecks(true);
         await App.clearOnyxAndResetApp();
         await waitForBatchedUpdates();
         let isServerDataReady = false;
@@ -282,6 +284,7 @@ describe('actions/App', () => {
         });
 
         // When the cache is cleared a second time and then the app goes back online and OpenApp finishes
+        resetAllChecks(true);
         await App.clearOnyxAndResetApp();
         await waitForBatchedUpdates();
         expect(isServerDataReady).toBe(false);
