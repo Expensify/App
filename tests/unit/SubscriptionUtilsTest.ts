@@ -36,12 +36,20 @@ import type PrivatePromoDiscount from '@src/types/onyx/PrivatePromoDiscount';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {addDays, addMinutes, addMonths, format as formatDate, getUnixTime, subDays, subSeconds} from 'date-fns';
+import {addDays, addMinutes, addMonths, getUnixTime, subDays, subSeconds} from 'date-fns';
+import {formatInTimeZone} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
 import {STRIPE_CUSTOMER_ID} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+
+/**
+ * The subscription datetime NVPs hold UTC wall clocks, and the helpers under test read them back by appending a `Z`, so a
+ * fixture formatted in the device's zone is off by its offset. Most assertions have day-scale margins that hide
+ * that, but the ones comparing within a day flip outright.
+ */
+const formatDate = (date: Date, dateFormat: string) => formatInTimeZone(date, 'UTC', dateFormat);
 
 const billingGraceEndPeriod: BillingGraceEndPeriod = {
     value: 0,

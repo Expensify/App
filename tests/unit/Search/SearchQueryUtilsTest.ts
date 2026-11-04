@@ -2407,7 +2407,9 @@ describe('SearchQueryUtils', () => {
         describe('date preset and range merging', () => {
             beforeEach(() => {
                 jest.useFakeTimers();
-                jest.setSystemTime(new Date('2026-04-15T12:00:00Z'));
+                // Pinned to local noon, not `12:00Z`. Presets like `year-to-date` resolve "today" in the user's own
+                // zone, so a UTC instant lands on the next local day past +12 and shifts the expected range.
+                jest.setSystemTime(new Date(2026, 3, 15, 12, 0, 0));
             });
 
             afterEach(() => {
