@@ -43,7 +43,6 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {formatPhoneNumber, translate} = useLocalize();
-    // sometimes primaryLogin can be empty string. For phone logins it also lacks the SMS domain, which the login list and API need.
     const contactMethod = addSMSDomainIfPhoneNumber((account?.primaryLogin || currentUserPersonalDetails.email) ?? '');
     const formattedContactMethod = Str.isSMSLogin(contactMethod) ? formatPhoneNumber(contactMethod) : contactMethod;
     const loginData = loginList?.[contactMethod];

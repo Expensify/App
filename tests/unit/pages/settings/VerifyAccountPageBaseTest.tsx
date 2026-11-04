@@ -17,6 +17,7 @@ const PHONE_NUMBER = '+12025550123';
 const FORMATTED_PHONE_NUMBER = '(202) 555-0123';
 
 let mockAccount: Partial<Account> | undefined;
+let mockLogins: Record<string, {errorFields: {validateLogin: Record<string, string>}}> | undefined;
 
 jest.mock('@components/ValidateCodeActionModal/ValidateCodeActionContent', () => jest.fn(() => null));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({})));
@@ -28,7 +29,15 @@ jest.mock('@hooks/useLocalize', () =>
 );
 jest.mock('@hooks/useOnyx', () => {
     const onyxKeys = jest.requireActual<typeof OnyxKeysModule>('@src/ONYXKEYS').default;
-    return jest.fn((key: string) => (key === onyxKeys.ACCOUNT ? [mockAccount] : [undefined]));
+    return jest.fn((key: string) => {
+        if (key === onyxKeys.ACCOUNT) {
+            return [mockAccount];
+        }
+        if (key === onyxKeys.LOGINS) {
+            return [mockLogins];
+        }
+        return [undefined];
+    });
 });
 jest.mock('@libs/Navigation/Navigation', () => ({goBack: jest.fn(), navigate: jest.fn()}));
 jest.mock('@libs/actions/User', () => ({
@@ -41,6 +50,7 @@ jest.mock('@libs/actions/User', () => ({
 type MockValidateCodeActionContentProps = {
     descriptionSecondary: string;
     handleSubmitForm: (validateCode: string) => void;
+    validateError: Record<string, string>;
 };
 
 function getContentProps() {
@@ -51,6 +61,8 @@ function getContentProps() {
 describe('VerifyAccountPageBase', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockAccount = undefined;
+        mockLogins = undefined;
     });
 
     it('validates a phone login with the SMS domain and shows the formatted number', () => {
@@ -69,6 +81,20 @@ describe('VerifyAccountPageBase', () => {
 
         // And the user sees a readable phone number rather than the raw login
         expect(descriptionSecondary).toBe(`contacts.enterSecurityCode ${FORMATTED_PHONE_NUMBER}`);
+    });
+
+    it('passes a phone login validation error to the code form', () => {
+        // Given the login list stores the validation error under the phone number with the SMS domain
+        const errorTimestamp = '123';
+        const validationError = {[errorTimestamp]: 'Incorrect or invalid magic code'};
+        mockAccount = {primaryLogin: PHONE_NUMBER, validated: false};
+        mockLogins = {[`${PHONE_NUMBER}${CONST.SMS.DOMAIN}`]: {errorFields: {validateLogin: validationError}}};
+
+        // When the account verification page is rendered
+        render(<VerifyAccountPageBase />);
+
+        // Then the form receives the error so it can display the failed validation
+        expect(getContentProps().validateError).toEqual(validationError);
     });
 
     it('validates an email login unchanged', () => {
