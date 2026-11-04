@@ -7,12 +7,16 @@ type UseDiscardChangesConfirmationOptions = {
     onTabSwitchDiscard?: () => void | Promise<void>;
 
     /**
-     * Guard the root screen of a multi-step flow: keep prompting while later steps are stacked on top of it, as long as the flow is visible.
-     * Going back inside the flow never removes the root, so only leaving the flow prompts. Intentional exits from a later step must call `suppressFlowDiscardPrompt`.
+     * Use on the first screen of a multi-step flow. The screen keeps prompting while the flow's other steps are open on top of it,
+     * so closing the RHP from any step asks first. Going back between steps never removes the first screen, so it doesn't prompt.
+     * Code that closes the flow on purpose from a later step, such as a submit, must call `suppressFlowDiscardPrompt` first.
      */
     shouldPromptWhenUnfocused?: boolean;
 
-    /** Runs right before a confirmed discard removes this screen, whether this guard prompted or another guard confirmed the same navigation. */
+    /**
+     * Runs after the user picks Discard, right before this screen is removed. Use it to clear the screen's data.
+     * It also runs when the user picked Discard in another screen's prompt for the same navigation.
+     */
     onDiscarded?: () => void;
 };
 

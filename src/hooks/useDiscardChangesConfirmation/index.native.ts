@@ -45,13 +45,15 @@ function useDiscardChangesConfirmation({
     const isReplayingBlockedNavigation = useRef(false);
 
     // Only the focused screen should prompt — a flow-leave reset fires `beforeRemove` for hidden siblings too.
-    // A flow root instead prompts while later steps cover it, and its gate rejects hidden sibling tabs.
+    // The first screen of a flow (`shouldPromptWhenUnfocused`) is the exception: it keeps prompting while the flow's
+    // other steps are open on top of it.
     const isFocused = useIsFocused();
     const isSavingRef = useRef(false);
     useFocusEffect(() => {
         isSavingRef.current = false;
         return () => {
-            // A flow root stays mounted under the step a "Next" moved forward to, so that suppression must not outlive the focus.
+            // The first screen of a flow stays open below the next step after it calls `suppressDiscardPrompt` and moves on.
+            // Turn its prompt back on, so closing the RHP from the next step still asks.
             if (!shouldPromptWhenUnfocused) {
                 return;
             }
@@ -62,7 +64,7 @@ function useDiscardChangesConfirmation({
         if (!shouldPromptWhenUnfocused) {
             return undefined;
         }
-        // A suppression only serves the exit of the flow that armed it: a new flow root starts unmuted, and one that unmounts has left its flow.
+        // Turn the prompt back on when a flow opens or closes, so a submit that muted the previous flow can't mute this one.
         releaseFlowDiscardPromptSuppression();
         return () => releaseFlowDiscardPromptSuppression();
     }, [shouldPromptWhenUnfocused]);
@@ -73,7 +75,7 @@ function useDiscardChangesConfirmation({
     const shouldPromptFor = (action: NavigationAction) => !shouldPromptWhenUnfocused || !isInFlowNavigationForRoot(action, route, getFlowRootStackKey(navigation));
 
     // Callers derive dirtiness from current values and baselines, so this is safe to read during render.
-    // The save suppression and the flow-root gate stay out of it because they read refs and navigation state: the callback below applies them.
+    // The other checks (saving, muted, the flow being on screen) read refs and the navigation state, so the callback below runs them.
     const shouldPreventRemove = (shouldPromptWhenUnfocused || isFocused) && getHasUnsavedChanges();
 
     useRegisterTabSwitchGuard(route.name, hasUnsavedChanges, onTabSwitchDiscard, onCancel);
@@ -117,7 +119,7 @@ function useDiscardChangesConfirmation({
             return;
         }
         if (isReplayingDiscardedNavigation()) {
-            // Another guard already got the user's Discard for this navigation, so only discard here too
+            // The user already picked Discard in another guard's prompt for this navigation. Don't ask again, only clear this screen's data too.
             if (hasUnsavedChanges()) {
                 onDiscarded?.();
             }
