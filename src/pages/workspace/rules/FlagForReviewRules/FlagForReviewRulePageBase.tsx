@@ -332,18 +332,8 @@ function FlagForReviewRulePageBase({
                     <MenuItem.Root accessibilityLabel={`${translate('workspace.rules.flagForReviewRule.flagType')}, ${translate('workspace.rules.flagForReviewRule.flagTypeWarning')}`}>
                         <MenuItem.Row>
                             <MenuItemField.Content name={translate('workspace.rules.flagForReviewRule.flagType')}>
-                                <View style={styles.flexRow}>
-                                    <MenuItem.FieldValue>{translate('workspace.rules.flagForReviewRule.flagTypeWarning')}</MenuItem.FieldValue>
-                                </View>
-                                {/* Keep the explanation's natural line height so wrapped details retain their spacing. */}
-                                <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                    <Text
-                                        style={styles.textLabelSupporting}
-                                        numberOfLines={2}
-                                    >
-                                        {translate('workspace.rules.flagForReviewRule.flagTypeWarningDescription')}
-                                    </Text>
-                                </View>
+                                <MenuItem.FieldValue>{translate('workspace.rules.flagForReviewRule.flagTypeWarning')}</MenuItem.FieldValue>
+                                <MenuItem.Description>{translate('workspace.rules.flagForReviewRule.flagTypeWarningDescription')}</MenuItem.Description>
                             </MenuItemField.Content>
                         </MenuItem.Row>
                     </MenuItem.Root>
