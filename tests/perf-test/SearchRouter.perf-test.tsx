@@ -57,13 +57,17 @@ jest.mock('@src/hooks/useRootNavigationState', () => ({
     }),
 }));
 
-jest.mock('@hooks/useExportedToFilterOptions', () => ({
-    __esModule: true,
-    default: () => ({
+jest.mock('@hooks/useExportedToFilterOptions', () => {
+    // The real hook keeps these stable between renders. A new array on every render would give the input a new parser each time, which production doesn't do.
+    const exportedToFilterData = {
         exportedToFilterOptions: [],
         connectedIntegrationNames: new Set<string>(),
-    }),
-}));
+    };
+    return {
+        __esModule: true,
+        default: () => exportedToFilterData,
+    };
+});
 
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof NativeNavigation>('@react-navigation/native');

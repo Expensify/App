@@ -67,9 +67,7 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
 
     const [chatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
-    // React Compiler cannot memoize values that are computed before a hook call and used after it. These are
-    // computed again below the last hook so the actions passed to the list keep their identity across re-renders,
-    // otherwise every re-render of this hook re-renders every row of the list.
+    // React Compiler does not memoize a value created before a hook call and used after it, so these are computed again below the last hook.
     const allReportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
     const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
 

@@ -211,7 +211,7 @@ function DynamicIOURequestStepDistanceRate({
         let taxRateExternalID;
         let taxValue;
         if (shouldShowTax) {
-            const distanceRateTaxUpdates = getDistanceRateTaxUpdates(policy, currentTransaction, customUnitRateID, getCurrencyDecimals, currentUnit);
+            const distanceRateTaxUpdates = getDistanceRateTaxUpdates(policy, currentTransaction, customUnitRateID, rules, getCurrencyDecimals, currentUnit);
             taxAmount = distanceRateTaxUpdates.taxAmount;
             taxRateExternalID = distanceRateTaxUpdates.taxCode;
             taxValue = distanceRateTaxUpdates.taxValue;

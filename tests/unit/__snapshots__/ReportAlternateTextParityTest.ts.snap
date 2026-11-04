@@ -62,6 +62,8 @@ exports[`getOptionData alternateText parity snapshots report-type and fallback v
 
 exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL 1`] = `"Alice: Fixture last message"`;
 
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) AUTOPAYFEEDISCLOSURE 1`] = `"Global Reimbursements was enabled by Hidden on the account ending in . Exact exchange rates and fees cannot be previewed prior to payment when cross-border reports are auto-paid. Review your auto-pay settings for more information on rates and fees."`;
+
 exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) COMPANYCARDCONNECTIONBROKEN 1`] = `"The  connection is broken. To restore card imports, log into your bank."`;
 
 exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) DELEGATESUBMIT 1`] = `"Alice: Fixture last message"`;
@@ -173,6 +175,8 @@ exports[`getOptionData alternateText parity snapshots special-action chain branc
 exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_BUDGET 1`] = `"Fixture message html"`;
 
 exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_CARD_FEED_LIABILITY 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_CARD_FEED_REIMBURSABLE 1`] = `"Fixture message html"`;
 
 exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_CARD_FEED_STATEMENT_PERIOD 1`] = `"Fixture message html"`;
 
