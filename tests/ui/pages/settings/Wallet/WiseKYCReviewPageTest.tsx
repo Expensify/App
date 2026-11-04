@@ -8,7 +8,6 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import WiseKYCReviewPage from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseKYCReviewPage';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
@@ -19,10 +18,8 @@ import React from 'react';
 import {View as MockView} from 'react-native';
 import Onyx from 'react-native-onyx';
 
-import getOnyxValue from '../../../../utils/getOnyxValue';
 import waitForBatchedUpdatesWithAct from '../../../../utils/waitForBatchedUpdatesWithAct';
 
-const BANK_ACCOUNT_ID = 9053192;
 const BACK_PATH = 'settings/wallet/global-reimbursements/9053192/more-info-needed';
 const KYC_REVIEW_URL = 'https://wise-sandbox.com/embedded-flows/verification?token=abc';
 const WEB_VIEW_TEST_ID = 'wise-kyc-web-view';
@@ -73,11 +70,8 @@ describe('WiseKYCReviewPage', () => {
         await Onyx.clear();
     });
 
-    it('shows the onboarding in review when Wise redirects after a finished form', async () => {
-        // Given Wise's form is open for a business Wise asked for more info
-        await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
-            [BANK_ACCOUNT_ID]: {accountData: {bankAccountID: BANK_ACCOUNT_ID, additionalData: {wise: {status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED}}}},
-        });
+    it('opens the status page with the outcome when Wise redirects after a finished form', async () => {
+        // Given Wise's form is open
         const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
         await renderPage();
 
@@ -85,11 +79,9 @@ describe('WiseKYCReviewPage', () => {
         const shouldLoad = startLoading('https://www.expensify.com/wise-kyc?status=success');
         await waitForBatchedUpdatesWithAct();
 
-        // Then the redirect page does not load, the status page replaces the form, and the account shows in review until the server sends Wise's result
+        // Then the redirect page does not load, and the status page replaces the form with Wise's outcome, which it applies like after Wise's redirect on web
         expect(shouldLoad).toBe(false);
-        expect(navigateSpy).toHaveBeenCalledWith('settings/wallet/global-reimbursements/9053192/status', {forceReplace: true});
-        const bankAccountList = await getOnyxValue(ONYXKEYS.BANK_ACCOUNT_LIST);
-        expect(bankAccountList?.[BANK_ACCOUNT_ID]?.accountData?.additionalData?.wise?.status).toBe(CONST.WISE.ONBOARDING_STATUS.IN_REVIEW);
+        expect(navigateSpy).toHaveBeenCalledWith('settings/wallet/global-reimbursements/9053192/status?status=success', {forceReplace: true});
     });
 
     it('goes back to "More info needed" when the user closes the form', async () => {

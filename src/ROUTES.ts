@@ -254,6 +254,7 @@ const DYNAMIC_ROUTES = {
         path: 'status',
         entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO],
         // Wise's redirect after its KYC form adds the form's outcome as `status`
+        getRoute: (kycReviewFormStatus: string) => getUrlWithParams('status', {status: kycReviewFormStatus}),
         queryParams: ['status'],
     },
     BANK_ACCOUNT_LINK_PLAID: {
