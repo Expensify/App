@@ -3,9 +3,12 @@
  */
 import Log from '@libs/Log';
 
+import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import type {ValueOf} from 'type-fest';
 
 import createDynamicRoute from './dynamicRoutesUtils/createDynamicRoute';
 import findAllMatchingDynamicSuffixes from './dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
@@ -97,7 +100,7 @@ function getEnableGlobalReimbursementsBusinessNavigationRoute(
     return ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.getRoute(bankAccountID, subPage, undefined, params);
 }
 
-function getWiseGlobalReimbursementsIntroNavigationRoute(bankAccountID: number, navigationPathAtSignal?: string): Route {
+function getWiseGlobalReimbursementsIntroNavigationRoute(bankAccountID: number | undefined, navigationPathAtSignal?: string): Route {
     const basePath = navigationPathAtSignal ? getDynamicBasePathFromNavigationPath(navigationPathAtSignal) : undefined;
     const introRoute = DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(bankAccountID);
 
@@ -106,6 +109,29 @@ function getWiseGlobalReimbursementsIntroNavigationRoute(bankAccountID: number, 
     }
 
     return createDynamicRoute(introRoute, ROUTES.SETTINGS_WALLET);
+}
+
+type WiseOnboardingStatus = ValueOf<typeof CONST.WISE.ONBOARDING_STATUS>;
+
+const WISE_ONBOARDING_STATUS_PAGES = {
+    [CONST.WISE.ONBOARDING_STATUS.IN_REVIEW]: CONST.WISE.ONBOARDING_STATUS_PAGE.REVIEW,
+    [CONST.WISE.ONBOARDING_STATUS.APPROVED]: CONST.WISE.ONBOARDING_STATUS_PAGE.APPROVED,
+    [CONST.WISE.ONBOARDING_STATUS.NOT_APPROVED]: CONST.WISE.ONBOARDING_STATUS_PAGE.REJECTED,
+} as const satisfies Record<Exclude<WiseOnboardingStatus, typeof CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED>, ValueOf<typeof CONST.WISE.ONBOARDING_STATUS_PAGE>>;
+
+/**
+ * Picks the Wise page for where the business's onboarding stands. A submitted business has only Wise's form left while Wise asks for more info, and its status otherwise.
+ * The page opens over the intro on the wallet, so leaving it lands on the wallet.
+ */
+function getWiseOnboardingNavigationRoute(bankAccountID: number | undefined, status: WiseOnboardingStatus | undefined): Route {
+    const introRoute = getWiseGlobalReimbursementsIntroNavigationRoute(bankAccountID);
+    if (!status) {
+        return introRoute;
+    }
+    if (status === CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED) {
+        return createDynamicRoute(DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path, introRoute);
+    }
+    return createDynamicRoute(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.getRoute(WISE_ONBOARDING_STATUS_PAGES[status]), introRoute);
 }
 
 /** Whether the intro was opened over a report or search screen, which means the admin got there by paying a report */
@@ -119,6 +145,7 @@ export {
     getEnableGlobalReimbursementsBusinessNavigationRoute,
     getEnableGlobalReimbursementsRootBackPath,
     getWiseGlobalReimbursementsIntroNavigationRoute,
+    getWiseOnboardingNavigationRoute,
     isWiseGlobalReimbursementsIntroOverPayReportScreen,
     shouldUseDynamicEnableGlobalReimbursementsBase,
 };

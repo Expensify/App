@@ -8,6 +8,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import WiseKYCReviewPage from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseKYCReviewPage';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
@@ -18,8 +19,10 @@ import React from 'react';
 import {View as MockView} from 'react-native';
 import Onyx from 'react-native-onyx';
 
+import getOnyxValue from '../../../../utils/getOnyxValue';
 import waitForBatchedUpdatesWithAct from '../../../../utils/waitForBatchedUpdatesWithAct';
 
+const BANK_ACCOUNT_ID = 9053192;
 const BACK_PATH = 'settings/wallet/global-reimbursements/9053192/more-info-needed';
 const KYC_REVIEW_URL = 'https://wise-sandbox.com/embedded-flows/verification?token=abc';
 const WEB_VIEW_TEST_ID = 'wise-kyc-web-view';
@@ -70,15 +73,34 @@ describe('WiseKYCReviewPage', () => {
         await Onyx.clear();
     });
 
-    it('closes the form when Wise redirects to our redirect URL', async () => {
+    it('shows the onboarding in review when Wise redirects after a finished form', async () => {
+        // Given Wise's form is open for a business Wise asked for more info
+        await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+            [BANK_ACCOUNT_ID]: {accountData: {bankAccountID: BANK_ACCOUNT_ID, additionalData: {wise: {status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED}}}},
+        });
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+        await renderPage();
+
+        // When the user finishes the form and Wise redirects away from its site with success
+        const shouldLoad = startLoading('https://www.expensify.com/wise-kyc?status=success');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the redirect page does not load, the status page replaces the form, and the account shows in review until the server sends Wise's result
+        expect(shouldLoad).toBe(false);
+        expect(navigateSpy).toHaveBeenCalledWith('settings/wallet/global-reimbursements/9053192/status?status=review', {forceReplace: true});
+        const bankAccountList = await getOnyxValue(ONYXKEYS.BANK_ACCOUNT_LIST);
+        expect(bankAccountList?.[BANK_ACCOUNT_ID]?.accountData?.additionalData?.wise?.status).toBe(CONST.WISE.ONBOARDING_STATUS.IN_REVIEW);
+    });
+
+    it.each(['failed', 'closed'])('goes back to "More info needed" when the form ends as %s', async (status) => {
         // Given Wise's form is open
         const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
         await renderPage();
 
-        // When the form ends and Wise redirects away from its site with the outcome
-        const shouldLoad = startLoading('https://www.expensify.com/wise-kyc?status=success');
+        // When the form ends without success and Wise redirects away from its site
+        const shouldLoad = startLoading(`https://www.expensify.com/wise-kyc?status=${status}`);
 
-        // Then the redirect page does not load and the user is back on "More info needed"
+        // Then the redirect page does not load and the user is back on "More info needed" to try again
         expect(shouldLoad).toBe(false);
         expect(goBackSpy).toHaveBeenCalledWith(BACK_PATH);
     });

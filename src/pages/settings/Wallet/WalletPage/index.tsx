@@ -41,6 +41,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isBankAccountEligibleForGlobalReimbursements, isPersonalBankAccountMissingInfo, showUnlockAlreadyRequestedModal} from '@libs/BankAccountUtils';
 import {hasDisplayableAssignedCards, isDirectFeed, maskCardNumber} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import {getWiseOnboardingNavigationRoute} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {getStreetLines} from '@libs/PersonalDetailsUtils';
@@ -533,7 +534,9 @@ function WalletPage() {
                           }
                           if (isWiseGlobalReimbursementsEnabled) {
                               closeModal(() =>
-                                  Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID))),
+                                  Navigation.navigate(
+                                      getWiseOnboardingNavigationRoute(paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethod.additionalData?.wise?.status),
+                                  ),
                               );
                               return;
                           }

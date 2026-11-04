@@ -1051,6 +1051,9 @@ const CONST = {
         /** The query param Wise adds to the redirect URL when its hosted KYC form ends, saying how it ended */
         KYC_REVIEW_REDIRECT_STATUS_PARAM: 'status',
 
+        /** The value of that param when the user finished the form */
+        KYC_REVIEW_REDIRECT_STATUS_SUCCESS: 'success',
+
         /** Server-derived state of the Wise onboarding */
         ONBOARDING_STATUS: {
             IN_REVIEW: 'IN_REVIEW',

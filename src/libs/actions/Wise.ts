@@ -2,6 +2,7 @@ import {read} from '@libs/API';
 import {READ_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxData} from '@src/types/onyx/Request';
 
@@ -41,4 +42,12 @@ function clearWiseKYCReviewEmbeddedLink() {
     Onyx.set(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK, null);
 }
 
-export {clearWiseKYCReviewEmbeddedLink, getWiseKYCReviewEmbeddedLink};
+/**
+ * Shows the onboarding as in review as soon as Wise's hosted KYC form ends with success.
+ * Only Wise's webhook tells the server the real result, so the server's next push replaces this value.
+ */
+function markWiseKYCReviewSubmitted(bankAccountID: number) {
+    Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {[bankAccountID]: {accountData: {additionalData: {wise: {status: CONST.WISE.ONBOARDING_STATUS.IN_REVIEW}}}}});
+}
+
+export {clearWiseKYCReviewEmbeddedLink, getWiseKYCReviewEmbeddedLink, markWiseKYCReviewSubmitted};
