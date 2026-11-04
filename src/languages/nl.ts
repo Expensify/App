@@ -1809,6 +1809,15 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmApprovalWithHeldAmount: 'Het rapport bevat uitgaven in de wacht. Alleen conforme uitgaven goedkeuren, of het hele rapport goedkeuren?',
         confirmApprovalAllHoldAmount: 'Alle uitgaven staan in de wacht. Toch goedkeuren?',
         confirmPay: 'Bevestig betalingsbedrag',
+        wisePaymentSummary: {
+            confirmPayment: 'Betaling bevestigen',
+            reportTotal: 'Rapporttotaal',
+            unheldAmountBeingPaid: 'Te betalen bedrag zonder wachtstand',
+            debitAmount: 'Afschrijvingsbedrag',
+            employeeWillReceive: 'Werknemer ontvangt',
+            totalFees: 'Totale kosten',
+            fxRate: 'Wisselkoers',
+        },
         confirmPayAmount: 'Betaal wat niet in de wacht staat, of betaal het volledige rapport.',
         confirmPayAllHoldAmount: () => ({
             one: 'Deze uitgave is gepauzeerd. Wil je toch betalen?',

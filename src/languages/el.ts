@@ -1868,6 +1868,15 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmApprovalWithHeldAmount: 'Η αναφορά περιέχει δαπάνες σε αναμονή. Θέλετε να εγκρίνετε μόνο τις σύμφωνες δαπάνες ή ολόκληρη την αναφορά;',
         confirmApprovalAllHoldAmount: 'Όλες οι δαπάνες είναι σε αναμονή. Θέλετε να εγκρίνετε ούτως ή άλλως;',
         confirmPay: 'Επιβεβαιώστε το ποσό πληρωμής',
+        wisePaymentSummary: {
+            confirmPayment: 'Επιβεβαίωση πληρωμής',
+            reportTotal: 'Σύνολο αναφοράς',
+            unheldAmountBeingPaid: 'Ποσό εκτός αναμονής προς πληρωμή',
+            debitAmount: 'Ποσό χρέωσης',
+            employeeWillReceive: 'Ο υπάλληλος θα λάβει',
+            totalFees: 'Συνολικές χρεώσεις',
+            fxRate: 'Συναλλαγματική ισοτιμία',
+        },
         confirmPayAmount: 'Πληρώστε ό,τι δεν είναι σε αναμονή ή πληρώστε ολόκληρη την αναφορά.',
         confirmPayAllHoldAmount: () => ({
             one: 'Αυτή η δαπάνη έχει τεθεί σε αναμονή. Θέλετε να την πληρώσετε παρ’ όλα αυτά;',

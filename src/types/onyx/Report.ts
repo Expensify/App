@@ -6,6 +6,7 @@ import type {ValueOf} from 'type-fest';
 
 import type * as OnyxCommon from './OnyxCommon';
 import type {AutoReportingOffset, PolicyReportField} from './Policy';
+import type WiseQuote from './WiseQuote';
 
 /** Preference that defines how regular the chat notifications are sent to the user */
 type NotificationPreference = ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>;
@@ -127,6 +128,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Comma separated IDs of the report's settled withdrawals, in ascending order */
         withdrawalIDs?: string;
+
+        /** Wise's latest price for paying this cross-currency report, shown for the admin to confirm before Pay */
+        wiseQuote?: WiseQuote;
 
         chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 

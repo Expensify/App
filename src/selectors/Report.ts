@@ -344,6 +344,7 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         creditedAmount: report.creditedAmount,
         creditedCurrency: report.creditedCurrency,
         withdrawalIDs: report.withdrawalIDs,
+        wiseQuote: report.wiseQuote,
         chatType: report.chatType,
         hasOutstandingChildRequest: report.hasOutstandingChildRequest,
         hasOutstandingChildTask: report.hasOutstandingChildTask,

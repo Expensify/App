@@ -44,6 +44,7 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         creditedAmount: unknown;
         creditedCurrency: unknown;
         withdrawalIDs: unknown;
+        wiseQuote: unknown;
         visibility: unknown;
         invoiceReceiver: unknown;
         parentReportID: unknown;

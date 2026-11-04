@@ -1816,6 +1816,15 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmApprovalWithHeldAmount: 'Der Bericht enthält zurückgestellte Ausgaben. Nur konforme Ausgaben genehmigen oder den gesamten Bericht genehmigen?',
         confirmApprovalAllHoldAmount: 'Alle Ausgaben sind zurückgestellt. Trotzdem genehmigen?',
         confirmPay: 'Zahlungsbetrag bestätigen',
+        wisePaymentSummary: {
+            confirmPayment: 'Zahlung bestätigen',
+            reportTotal: 'Berichtssumme',
+            unheldAmountBeingPaid: 'Zu zahlender nicht zurückgestellter Betrag',
+            debitAmount: 'Abbuchungsbetrag',
+            employeeWillReceive: 'Mitarbeiter erhält',
+            totalFees: 'Gesamtgebühren',
+            fxRate: 'Wechselkurs',
+        },
         confirmPayAmount: 'Bezahle, was nicht zurückgestellt ist, oder bezahle den gesamten Bericht.',
         confirmPayAllHoldAmount: () => ({
             one: 'Diese Ausgabe ist angehalten. Möchtest du trotzdem bezahlen?',
