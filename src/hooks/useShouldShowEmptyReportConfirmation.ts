@@ -7,7 +7,6 @@ import type {Transaction} from '@src/types/onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {accountIDSelector} from '@selectors/Session';
-import {useCallback} from 'react';
 
 import useOnyx from './useOnyx';
 
@@ -27,15 +26,12 @@ function reportIDsWithActiveTransactionsSelector(transactions: OnyxCollection<Tr
 function useShouldShowEmptyReportConfirmation(policyID: string | undefined, skip?: boolean): boolean {
     const [hasDismissedConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
-    const activeTransactionsSelector = useCallback(
-        (transactions: OnyxCollection<Transaction>) => {
-            if (skip) {
-                return {};
-            }
-            return reportIDsWithActiveTransactionsSelector(transactions);
-        },
-        [skip],
-    );
+    const activeTransactionsSelector = (transactions: OnyxCollection<Transaction>) => {
+        if (skip) {
+            return {};
+        }
+        return reportIDsWithActiveTransactionsSelector(transactions);
+    };
     const [reportIDsWithActiveTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: activeTransactionsSelector});
 
     const [hasEmptyReport = false] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {

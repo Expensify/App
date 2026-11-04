@@ -9,6 +9,7 @@ import StringUtils from '@libs/StringUtils';
 
 import CONST from '@src/CONST';
 
+import type {ReactNode} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 
 import React, {useRef} from 'react';
@@ -24,7 +25,7 @@ type InlineTextEditCellProps = {
 
     accessibilityLabel: string;
 
-    /** Style applied to the display text and to the TextInput while editing, so font size and color stay in sync */
+    /** Style for the default display text and the TextInput while editing. With children, only the input uses it. */
     displayTextStyle?: StyleProp<TextStyle>;
 
     /**
@@ -32,6 +33,14 @@ type InlineTextEditCellProps = {
      * Defaults to sanitizeName so a pasted non-breaking space is treated as unchanged when the action would no-op.
      */
     sanitize?: (value: string) => string;
+
+    /**
+     * Display content replacing the default single-line text, for a cell that shows more than the
+     * value being edited, such as a cardholder block whose subtitle is the card name. The box that
+     * normally wraps display content is dropped so that layout keeps its own line heights. Editing
+     * still swaps the whole cell for the input.
+     */
+    children?: ReactNode;
 } & EditableProps<string>;
 
 /**
@@ -43,7 +52,7 @@ type InlineTextEditCellProps = {
  * original value. On narrow layouts EditableCell renders the display text only, so tables keep
  * their existing tap-to-navigate behavior there.
  */
-function InlineTextEditCell({value, accessibilityLabel, displayTextStyle, canEdit, onSave, sanitize = StringUtils.sanitizeName}: InlineTextEditCellProps) {
+function InlineTextEditCell({value, accessibilityLabel, displayTextStyle, canEdit, onSave, sanitize = StringUtils.sanitizeName, children}: InlineTextEditCellProps) {
     const styles = useThemeStyles();
     const inputRef = useRef<BaseTextInputRef | null>(null);
 
@@ -68,6 +77,7 @@ function InlineTextEditCell({value, accessibilityLabel, displayTextStyle, canEdi
             canEdit={canEdit}
             isEditing={isEditing}
             onStartEditing={startEditing}
+            shouldRenderDisplayChrome={!children}
             editContent={
                 <TextInput
                     ref={inputRef}
@@ -87,12 +97,14 @@ function InlineTextEditCell({value, accessibilityLabel, displayTextStyle, canEdi
                 />
             }
         >
-            <TextWithTooltip
-                shouldShowTooltip
-                text={localValue}
-                numberOfLines={1}
-                style={displayTextStyle}
-            />
+            {children ?? (
+                <TextWithTooltip
+                    shouldShowTooltip
+                    text={localValue}
+                    numberOfLines={1}
+                    style={displayTextStyle}
+                />
+            )}
         </EditableCell>
     );
 }

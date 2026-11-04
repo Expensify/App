@@ -39,7 +39,6 @@ function useScreenBoundDynamicRoute(): (dynamicRouteSuffixWithParams: string) =>
         return navigationRef.addListener('state', sync);
     });
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const basePath = focusedBasePath || route?.path;
 
     return (dynamicRouteSuffixWithParams: string) => createDynamicRoute(dynamicRouteSuffixWithParams, basePath);

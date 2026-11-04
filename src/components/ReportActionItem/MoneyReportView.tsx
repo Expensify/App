@@ -1,13 +1,11 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import Icon from '@components/Icon';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import MoneyRequestViewReportFields from '@components/MoneyRequestReportView/MoneyRequestViewReportFields';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -17,22 +15,15 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {resolveReportFieldValue} from '@libs/Formula';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isSingleTransactionReport} from '@libs/MoneyRequestReportUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {
     getBillableAndTaxTotal,
-    getFieldViolation,
-    getFieldViolationTranslation,
     getMoneyRequestSpendBreakdown,
-    getReportFieldKey,
     getReportFieldMaps,
     hasUpdatedTotal,
     isClosedExpenseReportWithNoExpenses as isClosedExpenseReportWithNoExpensesReportUtils,
-    isReportFieldDisabledForUser,
     isReportFieldTargetMatchingReport,
     isSettled as isSettledReportUtils,
     shouldDisplayReportFields as shouldDisplayReportFieldsUtils,
@@ -45,18 +36,21 @@ import AnimatedEmptyStateBackground from '@pages/inbox/report/AnimatedEmptyState
 import {fontScale} from '@styles/typography';
 
 import type {TranslationPaths} from '@src/languages/types';
-import {clearReportFieldKeyErrors} from '@src/libs/actions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import type {StyleProp, TextStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
+
+type BreakdownRow = {
+    label: TranslationPaths;
+    value: string;
+    show: boolean;
+};
 
 type MoneyReportViewProps = {
     report: OnyxEntry<Report>;
@@ -95,13 +89,11 @@ function MoneyReportView({
 }: MoneyReportViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(report?.reportID)}`);
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const isSettled = isSettledReportUtils(report?.reportID);
     const isTotalUpdated = hasUpdatedTotal(report, policy) && !isTotalPending;
 
@@ -127,6 +119,12 @@ function MoneyReportView({
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
     const formattedBillableAmount = convertToDisplayString(billableTotal, report?.currency);
     const formattedTaxAmount = convertToDisplayString(taxTotal, report?.currency);
+    const breakdownRows: BreakdownRow[] = [
+        {label: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount, show: shouldShowReimbursabilityRow},
+        {label: 'cardTransactions.companySpend', value: formattedCompanySpendAmount, show: shouldShowReimbursabilityRow},
+        {label: 'common.billable', value: formattedBillableAmount, show: shouldShowBillableRow},
+        {label: 'common.tax', value: formattedTaxAmount, show: shouldShowTaxRow},
+    ];
     const isPartiallyPaid = !!report?.pendingFields?.partial;
 
     const subAmountTextStyles: StyleProp<TextStyle> = [
@@ -136,35 +134,26 @@ function MoneyReportView({
         StyleUtils.getColorStyle(theme.textSupporting),
     ];
 
-    const {sortedPolicyReportFields, fieldValues, fieldsByName} = useMemo(() => {
-        const {fieldValues: values, fieldsByName: byName} = getReportFieldMaps(report, policy?.fieldList ?? {}, reportNameValuePairs);
-        const sorted = Object.values(byName)
-            .filter((field) => isReportFieldTargetMatchingReport(report, field))
-            .sort(({orderWeight: a}, {orderWeight: b}) => a - b);
-        return {sortedPolicyReportFields: sorted, fieldValues: values, fieldsByName: byName};
-    }, [policy?.fieldList, report, reportNameValuePairs]);
+    const {fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {}, reportNameValuePairs);
+    const policyReportFields = Object.values(fieldsByName).filter((field) => isReportFieldTargetMatchingReport(report, field));
 
-    const isOnlyTitleFieldEnabled = sortedPolicyReportFields.every(shouldHideSingleReportField);
-    const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesReportUtils(report);
+    const isOnlyTitleFieldEnabled = policyReportFields.every(shouldHideSingleReportField);
+    const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesReportUtils(report, transactions.length > 0);
     const shouldDisplayReportFields = shouldDisplayReportFieldsUtils(report, policy);
     const shouldShowReportField = !isClosedExpenseReportWithNoExpenses && shouldDisplayReportFields && !isOnlyTitleFieldEnabled;
 
     const hasPendingAction = transactions.some(getTransactionPendingAction);
 
-    const renderThreadDivider = useMemo(
-        () =>
-            shouldHideThreadDividerLine ? (
-                <UnreadActionIndicator
-                    reportActionID={report?.reportID}
-                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                />
-            ) : (
-                <SpacerView
-                    shouldShow
-                    style={styles.reportHorizontalRule}
-                />
-            ),
-        [shouldHideThreadDividerLine, report?.reportID, styles.reportHorizontalRule],
+    const renderThreadDivider = shouldHideThreadDividerLine ? (
+        <UnreadActionIndicator
+            reportActionID={report?.reportID}
+            shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+        />
+    ) : (
+        <SpacerView
+            shouldShow
+            style={styles.reportHorizontalRule}
+        />
     );
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
 
@@ -174,51 +163,17 @@ function MoneyReportView({
                 {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
                 {!isClosedExpenseReportWithNoExpenses && (
                     <>
-                        {shouldDisplayReportFields &&
-                            (!isCombinedReport || !isOnlyTitleFieldEnabled) &&
-                            sortedPolicyReportFields.map((reportField) => {
-                                if (shouldHideSingleReportField(reportField)) {
-                                    return null;
-                                }
-
-                                const fieldValue = resolveReportFieldValue(reportField, report, policy, fieldValues, fieldsByName, getCurrencyDecimals);
-                                const isFieldDisabled = isReportFieldDisabledForUser(report, reportField, policy, currentUserAccountID, rules);
-                                const fieldKey = getReportFieldKey(reportField.fieldID);
-
-                                const violation = isFieldDisabled ? undefined : getFieldViolation(reportField);
-                                const violationTranslation = getFieldViolationTranslation(reportField, violation);
-
-                                return (
-                                    <OfflineWithFeedback
-                                        // Need to return undefined when we have pendingAction to avoid the duplicate pending action
-                                        pendingAction={pendingAction ? undefined : report?.pendingFields?.[fieldKey as keyof typeof report.pendingFields]}
-                                        errors={report?.errorFields?.[fieldKey]}
-                                        errorRowStyles={styles.ph5}
-                                        key={`menuItem-${fieldKey}`}
-                                        onClose={() => clearReportFieldKeyErrors(report?.reportID, fieldKey)}
-                                    >
-                                        <MenuItemWithTopDescription
-                                            description={Str.UCFirst(reportField.name)}
-                                            title={fieldValue}
-                                            onPress={() => {
-                                                if (!report?.policyID) {
-                                                    return;
-                                                }
-
-                                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EDIT_REPORT_FIELD.getRoute(report.policyID, reportField.fieldID)));
-                                            }}
-                                            shouldShowRightIcon={!isFieldDisabled}
-                                            wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
-                                            shouldGreyOutWhenDisabled={false}
-                                            numberOfLinesTitle={0}
-                                            interactive={!isFieldDisabled}
-                                            titleWithTooltips={[]}
-                                            brickRoadIndicator={violation ? 'error' : undefined}
-                                            errorText={violationTranslation}
-                                        />
-                                    </OfflineWithFeedback>
-                                );
-                            })}
+                        {/* One-expense reports edit their fields in place like the multi-expense report view does, one field
+                            per row since this screen reads as a single expense rather than a table. */}
+                        {shouldDisplayReportFields && (!isCombinedReport || !isOnlyTitleFieldEnabled) && (
+                            <MoneyRequestViewReportFields
+                                report={report}
+                                policy={policy}
+                                pendingAction={pendingAction}
+                                style={styles.mt5}
+                                shouldUseSingleColumn
+                            />
+                        )}
                         {shouldShowTotalRow && (
                             <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
                                 <View style={[styles.flex1, styles.justifyContentCenter]}>
@@ -257,12 +212,7 @@ function MoneyReportView({
 
                         {!!shouldShowBreakdown && (
                             <>
-                                {[
-                                    {label: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount, show: shouldShowReimbursabilityRow},
-                                    {label: 'cardTransactions.companySpend', value: formattedCompanySpendAmount, show: shouldShowReimbursabilityRow},
-                                    {label: 'common.billable', value: formattedBillableAmount, show: shouldShowBillableRow},
-                                    {label: 'common.tax', value: formattedTaxAmount, show: shouldShowTaxRow},
-                                ]
+                                {breakdownRows
                                     .filter(({show}) => show)
                                     .map(({label, value}) => (
                                         <View
@@ -274,7 +224,7 @@ function MoneyReportView({
                                                     style={[styles.textLabelSupporting, hasPendingAction && styles.opacitySemiTransparent]}
                                                     numberOfLines={1}
                                                 >
-                                                    {translate(label as TranslationPaths)}
+                                                    {translate(label)}
                                                 </Text>
                                             </View>
                                             <View style={[styles.flexRow, styles.justifyContentCenter]}>

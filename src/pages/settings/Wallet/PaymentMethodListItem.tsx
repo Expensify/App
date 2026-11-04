@@ -41,14 +41,16 @@ import type {ComponentProps} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import React, {useMemo, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 
+import GlobalReimbursementsEnabledIcon from './GlobalReimbursementsEnabledIcon';
 import PendingDigitalWalletApprovalRow from './PendingDigitalWalletApprovalRow';
 
 type ConnectionStatusDetails = {
     statusText: string;
     statusTone?: 'default' | 'success' | 'danger';
+    statusBadgeTone?: 'default' | 'success' | 'danger';
     tooltipText?: string;
     message?: string;
     actionText?: string;
@@ -89,6 +91,9 @@ type PaymentMethodItem = PaymentMethod & {
 
     /** Wallet the addition was requested from, used to name it in the "Review" CTA row */
     digitalWalletProvider?: ValueOf<typeof CONST.EXPENSIFY_CARD.WALLET_PROVIDER>;
+
+    /** Whether the bank account is set up for global reimbursements, which shows a globe next to its name */
+    isGlobalReimbursementsEnabled?: boolean;
 } & BankIcon;
 
 type PaymentMethodListItemProps = {
@@ -197,47 +202,44 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     }
 
     // Card state pills (below title, next to description)
-    const descriptionAddon = useMemo(() => {
-        if (isNeedingAction && shouldShowDefaultBadge) {
-            return (
-                <Badge
-                    text={translate('paymentMethodList.defaultPaymentMethod')}
-                    isCondensed
-                    badgeStyles={[styles.ml0]}
-                />
-            );
-        }
-        if (item.isCardFrozen) {
-            return (
-                <Badge
-                    text={translate('cardPage.frozen')}
-                    icon={icons.FreezeCard}
-                    isCondensed
-                    badgeStyles={[styles.ml0]}
-                    iconStyles={[styles.mr1]}
-                />
-            );
-        }
-        if (item.connectionStatus) {
-            return (
-                <ConnectionStatusBadge
-                    text={item.connectionStatus.statusText}
-                    tone={item.connectionStatus.statusTone}
-                    tooltipText={item.connectionStatus.tooltipText}
-                />
-            );
-        }
-        if (item.isInactive) {
-            return (
-                <Badge
-                    text={translate('walletPage.cardInactive')}
-                    isCondensed
-                    badgeStyles={[styles.ml0]}
-                />
-            );
-        }
-        return undefined;
-    }, [isNeedingAction, shouldShowDefaultBadge, item.connectionStatus, item.isCardFrozen, item.isInactive, icons.FreezeCard, styles.ml0, styles.mr1, translate]);
+    let descriptionAddon;
+    if (isNeedingAction && shouldShowDefaultBadge) {
+        descriptionAddon = (
+            <Badge
+                text={translate('paymentMethodList.defaultPaymentMethod')}
+                isCondensed
+                badgeStyles={[styles.ml0]}
+            />
+        );
+    } else if (item.isCardFrozen) {
+        descriptionAddon = (
+            <Badge
+                text={translate('cardPage.frozen')}
+                icon={icons.FreezeCard}
+                isCondensed
+                badgeStyles={[styles.ml0]}
+                iconStyles={[styles.mr1]}
+            />
+        );
+    } else if (item.connectionStatus) {
+        descriptionAddon = (
+            <ConnectionStatusBadge
+                text={item.connectionStatus.statusText}
+                tone={item.connectionStatus.statusBadgeTone ?? item.connectionStatus.statusTone}
+                tooltipText={item.connectionStatus.tooltipText}
+            />
+        );
+    } else if (item.isInactive) {
+        descriptionAddon = (
+            <Badge
+                text={translate('walletPage.cardInactive')}
+                isCondensed
+                badgeStyles={[styles.ml0]}
+            />
+        );
+    } else {
+        descriptionAddon = undefined;
+    }
 
     const rightComponent = showThreeDotsMenu ? (
         <View style={styles.alignSelfCenter}>
@@ -256,6 +258,9 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     const menuItemProps: React.ComponentProps<typeof MenuItem> = {
         onPress: handleRowPress,
         title: item.title,
+        titleAddon: item.isGlobalReimbursementsEnabled ? <GlobalReimbursementsEnabledIcon onPress={handleRowPress} /> : undefined,
+        // The globe sits inside the row's button, so screen readers only hear it through the row's label
+        accessibilityLabel: item.isGlobalReimbursementsEnabled ? [item.title, item.description, translate('walletPage.globalReimbursementsEnabled')].filter(Boolean).join(', ') : undefined,
         description: item.description,
         descriptionAddon,
         icon: item.icon,
@@ -290,6 +295,8 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     };
     const menuItem = <MenuItem {...menuItemProps} />;
 
+    const actionAccessibilityLabel = connectionStatus?.actionText ? `${connectionStatus.actionText} ${item.title ?? ''}, ${item.description}` : undefined;
+
     return (
         <OfflineWithFeedback
             onClose={item.canDismissError ? () => dismissError(item) : undefined}
@@ -308,6 +315,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                                     <ConnectionStatusMessage
                                         message={connectionStatus.message}
                                         actionText={connectionStatus.actionText}
+                                        actionAccessibilityLabel={actionAccessibilityLabel}
                                         onActionPress={connectionStatus.onActionPress}
                                         isActionDisabled={connectionStatus.isActionDisabled}
                                         statusTone={connectionStatus.statusTone}

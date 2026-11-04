@@ -1,6 +1,6 @@
 import variables from '@styles/variables';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 
 import type {FeatureTrainingActionsValue, FeatureTrainingStateValue} from './context';
 import type {FeatureTrainingProps} from './types';
@@ -20,42 +20,36 @@ function FeatureTraining({
     const [willShowAgain, setWillShowAgain] = useState(true);
     const {Wrapper, wrapperProps} = useScrollableWrapper({shouldUseScrollView, width});
 
-    const toggleWillShowAgain = useCallback(() => {
+    const toggleWillShowAgain = () => {
         onWillShowAgainChange?.(!willShowAgain);
         setWillShowAgain((prev) => !prev);
-    }, [onWillShowAgainChange, willShowAgain]);
+    };
 
     // Closing after confirm is the consumer's responsibility — call it inside onConfirm when desired.
-    const handleConfirm = useCallback(() => {
+    const handleConfirm = () => {
         onConfirm?.(willShowAgain);
-    }, [onConfirm, willShowAgain]);
+    };
 
-    const handleClose = useCallback(() => onClose?.(), [onClose]);
+    const handleClose = () => onClose?.();
 
-    const stateValue = useMemo<FeatureTrainingStateValue>(
-        () => ({
-            willShowAgain,
-            shouldShowLoadingImmediatelyOnPress: undefined,
-            isCarousel: false,
-            confirmSentryLabel,
-            currentPage: undefined,
-            pageCount: undefined,
-            isLastPage: undefined,
-            contentMinHeight: undefined,
-        }),
-        [willShowAgain, confirmSentryLabel],
-    );
+    const stateValue: FeatureTrainingStateValue = {
+        willShowAgain,
+        shouldShowLoadingImmediatelyOnPress: undefined,
+        isCarousel: false,
+        confirmSentryLabel,
+        currentPage: undefined,
+        pageCount: undefined,
+        isLastPage: undefined,
+        contentMinHeight: undefined,
+    };
 
-    const actionsValue = useMemo<FeatureTrainingActionsValue>(
-        () => ({
-            toggleWillShowAgain,
-            handleConfirm,
-            handleClose,
-            advance: undefined,
-            goBack: undefined,
-        }),
-        [toggleWillShowAgain, handleConfirm, handleClose],
-    );
+    const actionsValue: FeatureTrainingActionsValue = {
+        toggleWillShowAgain,
+        handleConfirm,
+        handleClose,
+        advance: undefined,
+        goBack: undefined,
+    };
 
     return (
         <FeatureTrainingStateContext.Provider value={stateValue}>

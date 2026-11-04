@@ -1,10 +1,9 @@
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import type useReportScrollManager from '@hooks/useReportScrollManager';
 
-import type {OpenReportActionParams} from '@libs/actions/Report';
 import {openReport, pruneReportActionPagesToNewestWindow} from '@libs/actions/Report';
 import {subscribeToNewActionEvent} from '@libs/actions/Report/reportActionSubscribers';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -13,13 +12,17 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useNavigation} from '@react-navigation/native';
-import {useCallback, useEffect, useEffectEvent, useRef, useState} from 'react';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
+import {useEffect, useEffectEvent, useRef, useState} from 'react';
+import Onyx from 'react-native-onyx';
 
 // In the component we are subscribing to the arrival of new actions.
 // As there is the possibility that there are multiple instances of a ReportScreen
@@ -35,10 +38,7 @@ type RAMOnlyReportLoadingState = OnyxEntry<{
 
 type UseReportActionsNewActionLiveTailParams = {
     reportID: string;
-    introSelected: OpenReportActionParams['introSelected'];
-    conciergeChat: OpenReportActionParams['conciergeChat'];
-    isSelfTourViewed: OpenReportActionParams['isSelfTourViewed'];
-    hasCompletedGuidedSetupFlow: OpenReportActionParams['hasCompletedGuidedSetupFlow'];
+    policyID: string | undefined;
     isOffline: boolean;
     reportScrollManager: ReportScrollManager;
     setIsFloatingMessageCounterVisible: (visible: boolean) => void;
@@ -65,11 +65,8 @@ type LiveTailJumpStage = 'idle' | 'open_report' | 'await_scroll' | 'await_prune'
  * it from list `onLayout` outside this hook.
  */
 function useReportActionsNewActionLiveTail({
-    conciergeChat,
     reportID,
-    introSelected,
-    isSelfTourViewed,
-    hasCompletedGuidedSetupFlow,
+    policyID,
     isOffline,
     reportScrollManager,
     setIsFloatingMessageCounterVisible,
@@ -88,9 +85,31 @@ function useReportActionsNewActionLiveTail({
 }: UseReportActionsNewActionLiveTailParams) {
     const navigation = useNavigation<PlatformStackNavigationProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const isInSidePanel = useIsInSidePanel();
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const liveTailJumpRef = useRef<{stage: LiveTailJumpStage}>({stage: 'idle'});
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
+
+    const openReportAtLiveTail = async () => {
+        const [conciergeReportID, introSelected, onboarding, session, fullPolicySnapshotData] = await Onyx.multiGet([
+            ONYXKEYS.CONCIERGE_REPORT_ID,
+            ONYXKEYS.NVP_INTRO_SELECTED,
+            ONYXKEYS.NVP_ONBOARDING,
+            ONYXKEYS.SESSION,
+            `${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(policyID)}`,
+        ]);
+        const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+        const {isSelfTourViewed, hasCompletedGuidedSetupFlow} = guidedSetupAndTourStatusSelector(onboarding);
+        const fullPolicySnapshotLastModified = fullPolicySnapshotLastModifiedSelector(fullPolicySnapshotData);
+        openReport({
+            reportID,
+            introSelected,
+            conciergeChat,
+            hasReportActions: true,
+            currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
+            fullPolicySnapshot: policyID && fullPolicySnapshotLastModified ? {policyID, lastModified: fullPolicySnapshotLastModified} : undefined,
+        });
+    };
 
     const scrollToBottomForCurrentUserAction = useEffectEvent((isFromCurrentUser: boolean, action?: OnyxTypes.ReportAction) => {
         TransitionTracker.runAfterTransitions({
@@ -111,19 +130,17 @@ function useReportActionsNewActionLiveTail({
                 if (shouldJumpToLiveTail) {
                     if (liveTailJumpRef.current.stage === 'idle') {
                         liveTailJumpRef.current = {stage: 'open_report'};
-                        openReport({
-                            reportID,
-                            introSelected,
-                            conciergeChat,
-                            hasReportActions: true,
-                            currentUserAccountID,
-                            isSelfTourViewed,
-                            hasCompletedGuidedSetupFlow,
-                        });
+                        openReportAtLiveTail();
                     }
                     return;
                 }
 
+                // Release the old pagination anchor so offline sends appear without waiting for openReport.
+                if (isOffline && linkedReportActionID && action?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                    liveTailJumpRef.current = {stage: 'await_prune'};
+                    setTreatAsNoPaginationAnchor(true);
+                    navigation.setParams({reportActionID: ''});
+                }
                 const index = sortedVisibleReportActions.findIndex((item) => item.reportActionID === action?.reportActionID);
                 if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                     if (index > 0) {
@@ -147,14 +164,14 @@ function useReportActionsNewActionLiveTail({
         });
     });
 
-    const completeLiveTailPruneAfterScrollToBottom = useCallback(() => {
+    const completeLiveTailPruneAfterScrollToBottom = () => {
         if (liveTailJumpRef.current.stage !== 'await_prune') {
             return;
         }
         pruneReportActionPagesToNewestWindow(reportID, sortedAllReportActionsForPagination, reportActionPages);
         setTreatAsNoPaginationAnchor(false);
         liveTailJumpRef.current = {stage: 'idle'};
-    }, [reportID, sortedAllReportActionsForPagination, reportActionPages, setTreatAsNoPaginationAnchor]);
+    };
 
     useEffect(() => {
         liveTailJumpRef.current = {stage: 'idle'};
@@ -234,6 +251,7 @@ function useReportActionsNewActionLiveTail({
         isScrollToBottomEnabled,
         setIsScrollToBottomEnabled,
         completeLiveTailPruneAfterScrollToBottom,
+        openReportAtLiveTail,
     };
 }
 

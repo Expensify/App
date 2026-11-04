@@ -7,14 +7,15 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import useTravelBillingFundID from '@hooks/useTravelBillingFundID';
 
 import {getCardSettings} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import replaceCompanyCardsRoute from '@libs/Navigation/helpers/replaceCompanyCardsRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, getCurrentSageIntacctEntityName, settingsPendingAction} from '@libs/PolicyUtils';
 import {getIsTravelBillingEnabled, getTravelBillingCardSettingsKey} from '@libs/TravelBillingUtils';
+
+import goBackFromExportConnection from '@navigation/helpers/goBackFromExportConnection';
 
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -30,10 +31,14 @@ function DynamicSageIntacctExportPage({policy}: WithPolicyProps) {
     const policyID = policy?.id;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.path);
     const {export: exportConfig, pendingFields, errorFields} = policy?.connections?.intacct?.config ?? {};
+    // Skip the per-card list on back unless Intacct is exporting as Vendor bill or Credit card charge (see the SAGE_INTACCT case in getExportMenuItem)
+    const sageConfig = exportConfig?.nonReimbursable ?? exportConfig?.reimbursable;
+    const shouldGoBackToSpecificRoute =
+        sageConfig !== CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL && sageConfig !== CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE;
     const travelPayableAccount = policy?.connections?.intacct?.data?.creditCards?.find((account) => account.name === exportConfig?.travelInvoicingPayableAccountID);
 
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(workspaceAccountID));
+    const travelBillingFundID = useTravelBillingFundID(policyID);
+    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(travelBillingFundID));
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
     const isTravelBillingEnabled = getIsTravelBillingEnabled(travelSettings);
 
@@ -60,7 +65,7 @@ function DynamicSageIntacctExportPage({policy}: WithPolicyProps) {
             ? [
                   {
                       title: travelPayableAccount?.name,
-                      description: translate('workspace.common.travelInvoicing'),
+                      description: translate('workspace.common.travelBilling'),
                       action: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TRAVEL_BILLING_CONFIGURATION.path)),
                       subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT],
                   },
@@ -88,7 +93,7 @@ function DynamicSageIntacctExportPage({policy}: WithPolicyProps) {
             title="workspace.sageIntacct.exportDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
-            onBackButtonPress={() => Navigation.goBack(replaceCompanyCardsRoute(backPath))}
+            onBackButtonPress={() => goBackFromExportConnection(shouldGoBackToSpecificRoute, backPath)}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
