@@ -11,6 +11,7 @@ import {getReportOrDraftReport, getTransactionDetails, isExpenseReport, isSelfDM
 import {
     buildOptimisticTransaction,
     getAmount,
+    getBilledDistance,
     getCurrency,
     getDefaultTaxCode,
     getSelectedRouteKey,
@@ -51,7 +52,7 @@ function isUsableSplitRate(rate: number | undefined): rate is number {
  * The nonzero rate a distance expense was calculated with, derived from its amount and distance.
  */
 function getHistoricalDistanceRate(transaction: OnyxEntry<OnyxTypes.Transaction>): number | undefined {
-    const quantity = transaction?.comment?.customUnit?.quantity;
+    const quantity = getBilledDistance(transaction);
     // The edited amount, when there is one, is the amount the current distance was calculated with
     const transactionAmount = getAmount(transaction);
     if (typeof quantity !== 'number' || quantity <= 0 || transactionAmount === 0) {
@@ -738,7 +739,7 @@ function evenlyDistributeSplitExpenseAmounts(
                 // A $0 rate split is always $0 and a $0 expense has no amount to even out, so even out the distance instead.
                 // Each split's amount then comes from its own share of the distance, which is only nonzero for a split
                 // the user moved to a positive rate.
-                const quantity = getEvenSplitQuantity(transaction.comment?.customUnit?.quantity ?? 0, splitCount, index, 0);
+                const quantity = getEvenSplitQuantity(getBilledDistance(transaction) ?? 0, splitCount, index, 0);
                 const splitAmount = Math.round(quantity * rate);
 
                 updatedSplitExpense = {
@@ -867,7 +868,7 @@ function resetSplitExpensesByDateRange({
             const {unit, rate} = resolveSplitItemRate({customUnit: splitExpense.customUnit, fallbackMileageRate: mileageRate, policy, policies});
             if (rate === 0) {
                 // A $0 rate split is always $0, so spread the distance across the dates instead of the amount
-                const quantity = getEvenSplitQuantity(transaction.comment?.customUnit?.quantity ?? 0, dates.length, index, 0);
+                const quantity = getEvenSplitQuantity(getBilledDistance(transaction) ?? 0, dates.length, index, 0);
                 const {customUnit: updatedCustomUnit, merchant} = updateSplitExpenseDistanceFromAmount(
                     0,
                     rate,

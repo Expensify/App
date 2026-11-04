@@ -21,7 +21,7 @@ import {convertDistanceUnit, convertToDistanceInMeters} from './DistanceUnitConv
 import getStoredDefaultP2PMileageRate from './getStoredDefaultP2PMileageRate';
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getUnitRateValue} from './PolicyUtils';
 import replaceAllDigits from './replaceAllDigits';
-import {getAmount, getCurrency, getFormattedCreated, getRateID, isCustomUnitRateIDForP2P, isExpenseUnreported} from './TransactionUtils';
+import {getAmount, getBilledDistance, getCurrency, getFormattedCreated, getRateID, isCustomUnitRateIDForP2P, isExpenseUnreported} from './TransactionUtils';
 
 type MileageRate = {
     customUnitRateID?: string;
@@ -830,7 +830,7 @@ function getDistanceUnit(transaction: OnyxEntry<Transaction>, mileageRate: OnyxE
  * Returns undefined when `currentRate` can have produced the expense's amount.
  */
 function getRateBeforeZeroRateChange(transaction: OnyxEntry<Transaction>, currentRate: number | undefined): number | undefined {
-    const quantity = transaction?.comment?.customUnit?.quantity;
+    const quantity = getBilledDistance(transaction);
     if (typeof quantity !== 'number' || quantity <= 0 || (currentRate !== undefined && currentRate < 0)) {
         return undefined;
     }

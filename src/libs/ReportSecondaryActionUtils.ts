@@ -95,6 +95,7 @@ import {
 } from './ReportUtils';
 import {
     allHavePendingRTERViolation,
+    getBilledDistance,
     getOriginalTransactionWithSplitInfo,
     hasOnlyPendingCardTransactions,
     hasReceipt as hasReceiptTransactionUtils,
@@ -154,8 +155,7 @@ function isSplitAction(
     const {isBillSplit, isExpenseSplit} = getOriginalTransactionWithSplitInfo(reportTransaction, originalTransaction);
 
     // A $0 distance expense can still be split by its billed distance, whether its rate is $0 or its amount was edited to $0
-    const customUnit = reportTransaction?.comment?.customUnit;
-    const hasDistanceToSplit = isDistanceRequestTransactionUtils(reportTransaction) && !!(customUnit?.reimbursableDistance ?? customUnit?.quantity);
+    const hasDistanceToSplit = isDistanceRequestTransactionUtils(reportTransaction) && !!getBilledDistance(reportTransaction);
 
     if (!amount && !isExpenseSplit && !hasDistanceToSplit) {
         return false;

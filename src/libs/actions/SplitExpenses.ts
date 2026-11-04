@@ -6,7 +6,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
-import {buildOptimisticTransaction, getAttendees, getChildTransactions, getOriginalTransactionWithSplitInfo, isDistanceRequest} from '@libs/TransactionUtils';
+import {buildOptimisticTransaction, getAttendees, getBilledDistance, getChildTransactions, getOriginalTransactionWithSplitInfo, isDistanceRequest} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -178,7 +178,7 @@ function initSplitExpense(
             // like "Make splits even" does
             const transactionCustomUnit = transaction.comment.customUnit;
             for (let i = 0; i < splitAmounts.length; i++) {
-                const quantity = getEvenSplitQuantity(transactionCustomUnit.quantity ?? 0, splitAmounts.length, i, 0);
+                const quantity = getEvenSplitQuantity(getBilledDistance(transaction) ?? 0, splitAmounts.length, i, 0);
                 const {customUnit: updatedCustomUnit, merchant} = updateSplitExpenseDistanceFromAmount(
                     0,
                     rate,

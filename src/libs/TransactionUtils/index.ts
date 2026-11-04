@@ -150,6 +150,23 @@ function hasAppliedCommuterExclusion(transaction: OnyxEntry<Transaction>): boole
     return isDistanceRequest(transaction) && (transaction?.comment?.customUnit?.commuterExclusion ?? 0) > 0;
 }
 
+/**
+ * The distance a distance expense is billed for, which leaves out any commuter exclusion.
+ */
+function getBilledDistance(transaction: OnyxEntry<Transaction>): number | undefined {
+    const customUnit = transaction?.comment?.customUnit;
+    if (typeof customUnit?.reimbursableDistance === 'number') {
+        return customUnit.reimbursableDistance;
+    }
+    const quantity = customUnit?.quantity ?? undefined;
+    const commuterExclusion = customUnit?.commuterExclusion;
+    // The reimbursable distance isn't always stored, so derive it the same way the expense displays it
+    if (quantity !== undefined && typeof commuterExclusion === 'number' && commuterExclusion > 0) {
+        return Math.max(0, quantity - commuterExclusion);
+    }
+    return quantity;
+}
+
 function shouldUseCommuterExclusionForDisplay(transaction: OnyxEntry<Transaction>, isPolicyExpenseChat: boolean): boolean {
     return hasAppliedCommuterExclusion(transaction) && isPolicyExpenseChat;
 }
@@ -1898,6 +1915,7 @@ export {
     isManualDistanceRequest,
     isOdometerDistanceRequest,
     hasAppliedCommuterExclusion,
+    getBilledDistance,
     shouldUseCommuterExclusionForDisplay,
     getDisplayTransactionWithoutInvalidCommuterExclusion,
     isDistanceExpenseType,
