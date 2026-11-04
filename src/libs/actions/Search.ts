@@ -503,7 +503,7 @@ function handleActionButtonPress({
             const connectedIntegration = getValidConnectedIntegration(exportPolicy);
 
             if (!connectedIntegration) {
-                Log.info('[SearchExport] Dropping export to accounting: policy has no valid connected integration', false, {reportID: item?.reportID, policyID: item?.policyID});
+                Log.info('[SearchExport] Dropping export to accounting: policy has no valid connected integration', false, {reportID: item?.reportID, policyID});
                 return;
             }
 
