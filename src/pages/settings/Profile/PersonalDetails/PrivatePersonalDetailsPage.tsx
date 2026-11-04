@@ -144,7 +144,7 @@ function PrivatePersonalDetailsPage() {
 
         const stateValue = values[INPUT_IDS.STATE] ?? '';
         const effectiveCountry = values[INPUT_IDS.COUNTRY] ?? '';
-        if (!stateValue.trim()) {
+        if (!stateValue.trim() || (effectiveCountry === CONST.COUNTRY.US && !Object.hasOwn(COMMON_CONST.STATES, stateValue))) {
             errors[INPUT_IDS.STATE] = translate('common.error.fieldRequired');
         }
 
@@ -401,9 +401,9 @@ function PrivatePersonalDetailsPage() {
                                 setSelectedCountry(newCountry);
                                 if (newCountry === CONST.COUNTRY.US) {
                                     const resolved = resolveStateCode(selectedState);
-                                    if (resolved !== selectedState) {
-                                        setSelectedState(resolved);
-                                    }
+                                    const validState = Object.hasOwn(COMMON_CONST.STATES, resolved) ? resolved : '';
+                                    setSelectedState(validState);
+                                    setDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM, {[INPUT_IDS.STATE]: validState});
                                     return;
                                 }
                                 // A previously selected US state (or another country's value) does not apply to the new country.
