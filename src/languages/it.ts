@@ -3123,11 +3123,12 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             inReview: {
                 title: 'In revisione',
-                heading: 'Abbiamo ciò che ci serve.\nTi faremo sapere!',
+                heading: 'Abbiamo ciò che ci serve. Ti faremo sapere!',
                 description: 'La maggior parte delle revisioni richiede da uno a due giorni. Ti invieremo un messaggio con un aggiornamento.',
                 chatWithConcierge: 'Chatta con Concierge',
             },
             approved: {title: 'Account approvato', heading: 'Approvato per pagare in tutto il mondo', description: 'Paga i membri ovunque si trovino.'},
+            rejected: {title: 'Conto bancario rifiutato', heading: 'Il nostro partner ha rifiutato il tuo conto bancario', description: 'Chatta con Concierge per maggiori informazioni.'},
         },
         wiseGlobalReimbursementsIntro: {
             title: 'Configurare i rimborsi globali?',

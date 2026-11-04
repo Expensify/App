@@ -3098,11 +3098,12 @@ const translations: TranslationDeepObject<typeof en> = {
             moreInfoNeeded: {headerTitle: '詳細情報が必要です', title: '追加情報を確認', subtitle: '決済パートナーが直接、追加情報を必要としています。数分で完了します。'},
             inReview: {
                 title: 'レビュー中',
-                heading: '必要な情報はすべて揃いました。\n後ほどご連絡いたします！',
+                heading: '必要な情報はすべて揃いました。後ほどご連絡いたします！',
                 description: '審査のほとんどは1～2日かかります。更新があり次第メッセージでお知らせします。',
                 chatWithConcierge: 'Concierge とチャットする',
             },
             approved: {title: 'アカウントが承認されました', heading: '世界中で支払い承認済み', description: 'メンバーがどこにいても支払いましょう。'},
+            rejected: {title: '銀行口座が拒否されました', heading: 'パートナーがあなたの銀行口座を拒否しました', description: '詳しくは Concierge にチャットでお問い合わせください。'},
         },
         wiseGlobalReimbursementsIntro: {
             title: 'グローバル払い戻しを設定しますか？',

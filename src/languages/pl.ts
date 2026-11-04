@@ -3163,11 +3163,12 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             inReview: {
                 title: 'W trakcie przeglądu',
-                heading: 'Mamy wszystko, czego potrzebujemy.\nWkrótce się odezwiemy!',
+                heading: 'Mamy wszystko, czego potrzebujemy. Wkrótce się odezwiemy!',
                 description: 'Większość weryfikacji zajmuje od jednego do dwóch dni. Damy ci znać, gdy będziemy mieć aktualizację.',
                 chatWithConcierge: 'Czat z Concierge',
             },
             approved: {title: 'Konto zatwierdzone', heading: 'Zatwierdzone do płatności na całym świecie', description: 'Wypłacaj członkom wynagrodzenie, gdziekolwiek są.'},
+            rejected: {title: 'Odrzucono konto bankowe', heading: 'Nasz partner odrzucił twoje konto bankowe', description: 'Porozmawiaj z Concierge, żeby dowiedzieć się więcej.'},
         },
         wiseGlobalReimbursementsIntro: {
             title: 'Skonfigurować globalne zwroty kosztów?',

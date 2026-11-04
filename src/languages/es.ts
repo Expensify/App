@@ -3037,11 +3037,12 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             inReview: {
                 title: 'En revisión',
-                heading: 'Tenemos lo que necesitamos.\n¡Sabrás de nosotros!',
+                heading: 'Tenemos lo que necesitamos. ¡Sabrás de nosotros!',
                 description: 'La mayoría de las revisiones tardan de uno a dos días. Te enviaremos un mensaje con una actualización.',
                 chatWithConcierge: 'Chatea con Concierge',
             },
             approved: {title: 'Cuenta aprobada', heading: 'Aprobada para pagar en todo el mundo', description: 'Paga a los miembros estén donde estén.'},
+            rejected: {title: 'Cuenta bancaria rechazada', heading: 'Nuestro socio rechazó tu cuenta bancaria', description: 'Chatea con Concierge para más información.'},
         },
         wiseGlobalReimbursementsIntro: {
             title: '¿Configurar reembolsos globales?',

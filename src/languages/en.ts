@@ -3208,7 +3208,7 @@ const translations = {
             },
             inReview: {
                 title: 'In review',
-                heading: "We got what we need.\nYou'll hear from us!",
+                heading: "We got what we need. You'll hear from us!",
                 description: "Most reviews take one to two days. We'll message you with an update.",
                 chatWithConcierge: 'Chat with Concierge',
             },
