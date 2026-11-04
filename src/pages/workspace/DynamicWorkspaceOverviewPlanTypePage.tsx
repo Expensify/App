@@ -30,7 +30,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ReactNode} from 'react';
 import type {ValueOf} from 'type-fest';
 
-import {format} from 'date-fns';
+import {format, parseISO} from 'date-fns';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
@@ -102,8 +102,10 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
         }))
         .reverse();
 
+    // `endDate` is a yyyy-MM-dd calendar date. `parseISO` reads it as local midnight, where passing the string straight to
+    // `format` reads it as UTC midnight and shows the previous day in timezones behind UTC.
     const autoRenewalDate = privateSubscription?.endDate
-        ? format(privateSubscription.endDate, CONST.DATE.MONTH_DAY_YEAR_ORDINAL_FORMAT, {locale: dateFnsLocale})
+        ? format(parseISO(privateSubscription.endDate), CONST.DATE.MONTH_DAY_YEAR_ORDINAL_FORMAT, {locale: dateFnsLocale})
         : CardSectionUtils.getNextBillingDate(dateFnsLocale);
 
     const handleUpdatePlan = () => {
