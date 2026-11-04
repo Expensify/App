@@ -1,3 +1,7 @@
+/**
+ * Starts a Digits connection. It mounts for one Connect press and makes sure the workspace is in USD, then either
+ * offers to copy the Digits connection of another workspace or opens the Digits sign-in.
+ */
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -13,15 +17,23 @@ import useStartDigitsOAuth from '@pages/workspace/accounting/digits/useStartDigi
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Policy} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {useEffect, useRef} from 'react';
 
 import type {ConnectToDigitsFlowProps} from './types';
 
+// The flow stays mounted after it opens the sign-in, so it only subscribes to the two values it reads, not the whole policy
+function connectPrerequisitesSelector(policy: OnyxEntry<Policy>) {
+    return {outputCurrency: policy?.outputCurrency, isConnectedToDigits: !!policy?.connections?.digits};
+}
+
 function ConnectToDigitsFlow({policyID}: ConnectToDigitsFlowProps) {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [connectPrerequisites] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: connectPrerequisitesSelector});
     const hasReusablePoliciesConnectedToDigits = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.DIGITS, policyID);
     const shouldBlockCurrencyChange = useShouldBlockCurrencyChange(policyID);
     const startDigitsOAuth = useStartDigitsOAuth();
@@ -51,13 +63,13 @@ function ConnectToDigitsFlow({policyID}: ConnectToDigitsFlowProps) {
         hasStartedRef.current = true;
 
         // Digits only supports companies that operate in USD, so a workspace in another currency has to change it first
-        if (policy?.outputCurrency !== CONST.CURRENCY.USD) {
+        if (connectPrerequisites?.outputCurrency !== CONST.CURRENCY.USD) {
             promptCurrencyChange();
             return;
         }
 
         // "Enter your credentials" reruns the sign-in for the current connection, so only a new connection offers to copy one
-        if (hasReusablePoliciesConnectedToDigits && !policy?.connections?.digits) {
+        if (hasReusablePoliciesConnectedToDigits && !connectPrerequisites?.isConnectedToDigits) {
             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DIGITS_EXISTING_CONNECTIONS.getRoute(policyID));
             return;
         }

@@ -15,10 +15,15 @@ const mockStartDigitsOAuth = jest.fn();
 const mockShowConfirmModal = jest.fn(() => Promise.resolve({action: 'CLOSE'}));
 let mockOutputCurrency: string = CONST.CURRENCY.USD;
 let mockHasReusablePolicies = false;
+let mockIsConnectedToDigits = false;
 
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 jest.mock('@hooks/useConfirmModal', () => () => ({showConfirmModal: mockShowConfirmModal}));
-jest.mock('@hooks/useOnyx', () => () => [{id: '123', outputCurrency: mockOutputCurrency}]);
+// Runs the flow's selector on a policy built from the test's state, so the tests cover the values the flow actually reads
+jest.mock('@hooks/useOnyx', () => (key: string, options?: {selector?: (policy: unknown) => unknown}) => {
+    const policy = {id: '123', outputCurrency: mockOutputCurrency, connections: mockIsConnectedToDigits ? {digits: {}} : undefined};
+    return [options?.selector ? options.selector(policy) : policy];
+});
 jest.mock('@hooks/useHasReusablePoliciesConnectedTo', () => () => mockHasReusablePolicies);
 jest.mock('@hooks/useShouldBlockCurrencyChange', () => () => false);
 jest.mock('@pages/workspace/accounting/digits/useStartDigitsOAuth', () => () => mockStartDigitsOAuth);
@@ -39,6 +44,7 @@ describe('ConnectToDigitsFlow', () => {
         jest.clearAllMocks();
         mockOutputCurrency = CONST.CURRENCY.USD;
         mockHasReusablePolicies = false;
+        mockIsConnectedToDigits = false;
     });
 
     it('should open the Digits sign-in once when Strict Mode replays the mount effect', () => {
@@ -73,6 +79,19 @@ describe('ConnectToDigitsFlow', () => {
         // Then the existing connections page opens once instead of being pushed twice
         expect(mockedNavigate).toHaveBeenCalledTimes(1);
         expect(mockedNavigate).toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING_DIGITS_EXISTING_CONNECTIONS.getRoute(POLICY_ID));
+    });
+
+    it('should go straight to the sign-in when the workspace is already connected to Digits', () => {
+        // Given a workspace already connected to Digits, whose admin also has another Digits workspace
+        mockIsConnectedToDigits = true;
+        mockHasReusablePolicies = true;
+
+        // When "Enter your credentials" starts the flow
+        renderInStrictMode();
+
+        // Then the sign-in opens for the current connection instead of offering to copy another workspace's connection
+        expect(mockedNavigate).not.toHaveBeenCalled();
+        expect(mockStartDigitsOAuth).toHaveBeenCalledWith(POLICY_ID);
     });
 
     it('should run again for the next Connect press', () => {

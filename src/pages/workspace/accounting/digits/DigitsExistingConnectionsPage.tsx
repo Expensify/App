@@ -1,3 +1,7 @@
+/**
+ * Lets an admin copy the Digits connection of another workspace they admin, so they don't sign in to Digits again,
+ * or start a new connection instead.
+ */
 import Header from '@components/Header';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import MenuItemList from '@components/MenuItemList';
