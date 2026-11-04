@@ -1,3 +1,8 @@
+/**
+ * Protects optimistic inline edits from older Search responses. For guarded searches, a local inline-edit write queued
+ * after dispatch can make the snapshot stale, even if that write has already finished. This middleware drops only the
+ * matching snapshot update, preserving other response updates, and marks the search to rerun after waiting for writes.
+ */
 import {READ_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 
@@ -33,13 +38,6 @@ function releaseStaleSnapshotGuard(jsonQuery: string): boolean {
     return discardedSearchQueries.delete(jsonQuery);
 }
 
-/**
- * Inline edits write their optimistic values into the Search snapshot. A search sent before such an edit returns the
- * server's values from before it, and applying that snapshot flips the edited cell back to its old value until the
- * edit's write finishes and another search corrects it. This drops the snapshot from a guarded search's response
- * when a write was queued while it was in flight, so the optimistic values stay on screen, and the search runs again
- * once the writes land.
- */
 const discardStaleSearchSnapshot: Middleware = (requestResponse, request) =>
     requestResponse.then((response) => {
         const hash = request?.data?.hash;
