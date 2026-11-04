@@ -14,7 +14,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {dismissProductTraining} from '@libs/actions/Welcome';
-import {isBankAccountEligibleForGlobalReimbursements} from '@libs/BankAccountUtils';
+import {isBankAccountEligibleForGlobalReimbursements, isWiseOnboardingSubmitted} from '@libs/BankAccountUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {isWiseGlobalReimbursementsIntroOverPayReportScreen} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -98,7 +98,11 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
                                 // Starting onboarding for any account retires both banners for good
                                 dismissProductTraining(CONST.WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER);
                                 dismissProductTraining(CONST.WISE_GLOBAL_REIMBURSEMENTS_WORKSPACE_BANNER);
-                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute()));
+                                // A submitted business only has Wise's form left, so the onboarding would end on the terms with nothing to submit
+                                const nextRoute = isWiseOnboardingSubmitted(bankAccount?.accountData)
+                                    ? DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path
+                                    : DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute();
+                                Navigation.navigate(createDynamicRoute(nextRoute));
                             }}
                         />
                     </FixedFooter>
