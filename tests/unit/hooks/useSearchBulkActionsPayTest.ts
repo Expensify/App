@@ -174,14 +174,9 @@ jest.mock('@hooks/usePolicyForMovingExpenses', () => ({
 jest.mock('@hooks/usePaymentContext', () => ({
     __esModule: true,
     default: () => ({
-        introSelected: undefined,
-        isSelfTourViewed: false,
         activePolicyID: undefined,
         activePolicy: undefined,
         defaultWorkspaceName: undefined,
-        userBillingGracePeriodEnds: undefined,
-        amountOwed: undefined,
-        ownerBillingGracePeriodEnd: undefined,
     }),
     PaymentContextProvider: ({children}: {children: unknown}) => children,
     useReportPaymentContext: () => ({}),

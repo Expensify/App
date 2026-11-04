@@ -10499,7 +10499,7 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
             // No error should be thrown, function should return early
             expect(() => {
-                handleWalletStatementNavigation('123', testIntroSelected, undefined, undefined, undefined, undefined);
+                handleWalletStatementNavigation('123', testIntroSelected, undefined, undefined, undefined, undefined, undefined);
             }).not.toThrow();
         });
 
@@ -10507,7 +10507,7 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
             const TEST_USER_ACCOUNT_ID = 1;
             expect(() => {
-                handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined, 'invalidType', undefined);
+                handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined, undefined, 'invalidType', undefined);
             }).not.toThrow();
         });
 
@@ -10518,7 +10518,7 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
             const TEST_USER_ACCOUNT_ID = 1;
 
-            handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
+            handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
 
             await waitForBatchedUpdates();
 
@@ -10529,7 +10529,7 @@ describe('actions/Report', () => {
         it('should not throw with undefined introSelected', () => {
             const TEST_USER_ACCOUNT_ID = 1;
             expect(() => {
-                handleWalletStatementNavigation('123', undefined, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
+                handleWalletStatementNavigation('123', undefined, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
             }).not.toThrow();
         });
 
@@ -10557,6 +10557,7 @@ describe('actions/Report', () => {
                     isSelfTourViewed,
                     undefined,
                     undefined,
+                    undefined,
                     CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE,
                     undefined,
                 );
@@ -10569,7 +10570,17 @@ describe('actions/Report', () => {
             const isSelfTourViewed = false;
 
             expect(() => {
-                handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, isSelfTourViewed, undefined, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
+                handleWalletStatementNavigation(
+                    '123',
+                    testIntroSelected,
+                    TEST_USER_ACCOUNT_ID,
+                    isSelfTourViewed,
+                    undefined,
+                    undefined,
+                    undefined,
+                    CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE,
+                    undefined,
+                );
             }).not.toThrow();
         });
     });

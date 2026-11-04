@@ -1542,10 +1542,10 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: 'Als u geen website hebt, kunt u in plaats daarvan het LinkedIn-profiel of een socialmediaprofiel van uw bedrijf opgeven.',
         invalidDomainError: 'Je hebt een ongeldig domein ingevoerd. Voer een geldig domein in om door te gaan.',
         publicDomainError: 'Je hebt een openbaar domein ingevoerd. Voer om door te gaan een privé‑domein in.',
-        expenseCount: () => {
+        expenseCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
             return {
-                one: '1 uitgave',
-                other: (count: number) => `${count} declaraties`,
+                one: (count: number) => `${formattedCount ?? count} uitgave`,
+                other: (count: number) => `${formattedCount ?? count} uitgaven`,
             };
         },
         deleteExpense: () => ({
@@ -1708,6 +1708,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: 'Voer een ander bedrag dan nul in voor je verdeling',
             noParticipantSelected: 'Selecteer een deelnemer',
             other: 'Onverwachte fout. Probeer het later opnieuw.',
+            payFailedExpenseDeleted: 'De betaling is mislukt omdat de declaratie is verwijderd.',
             genericCreateFailureMessage: 'Onverwachte fout bij het indienen van deze uitgave. Probeer het later opnieuw.',
             genericCreateInvoiceFailureMessage: 'Onverwachte fout bij het verzenden van deze factuur. Probeer het later opnieuw.',
             genericHoldExpenseFailureMessage: 'Onverwachte fout bij het vasthouden van deze uitgave. Probeer het later opnieuw.',
@@ -3120,6 +3121,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `Ik ga akkoord met de <a href="${CONST.WISE.TERMS_URL}">algemene voorwaarden</a> en het <a href="${CONST.WISE.PRIVACY_URL}">privacybeleid</a> van Wise.`,
                 wiseTermsAccessibilityLabel: 'Ik ga akkoord met de algemene voorwaarden en het privacybeleid van Wise.',
                 error: 'Accepteer alle voorwaarden om door te gaan.',
+                alreadySubmitted: 'Dit bedrijf is al ter beoordeling naar Wise verstuurd.',
+            },
+            moreInfoNeeded: {
+                headerTitle: 'Meer info nodig',
+                title: 'Extra info verifiëren',
+                subtitle: 'Onze betalingspartner heeft rechtstreeks meer info nodig. Dit kost maar een paar minuten.',
             },
         },
         wiseGlobalReimbursementsIntro: {
@@ -3130,6 +3137,7 @@ const translations: TranslationDeepObject<typeof en> = {
             payingReportSubtitle: 'De bankrekeningen van het bedrijf en de medewerker gebruiken verschillende valuta.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Betaal mensen wereldwijd', subtitle: 'Schakel wereldwijde terugbetalingen in op je USD-rekening.'},
+        globalReimbursementsEnabled: 'Wereldwijde terugbetalingen ingeschakeld',
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Kaart toevoegen aan ${walletName}`,
@@ -6993,6 +7001,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             updateFailureMessage: 'Er is een fout opgetreden bij het bijwerken van de categorie, probeer het opnieuw',
             createFailureMessage: 'Er is een fout opgetreden bij het aanmaken van de categorie, probeer het opnieuw.',
             addCategory: 'Categorie toevoegen',
+            createCategoryFromSearch: (categoryName: string) => `Categorie „${categoryName}” aanmaken`,
             editCategory: 'Categorie bewerken',
             editCategories: 'Categorieën bewerken',
             findCategory: 'Categorie zoeken',
@@ -7532,10 +7541,10 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             reimbursementAccount: 'vergoedingsrekening',
             welcomeNote: 'Begin alsjeblieft mijn nieuwe werkruimte te gebruiken',
             delayedSubmission: 'vertraagde indiening',
-            merchantRules: 'Handelaarsregels',
+            merchantRules: 'Standaardinstellingen voor uitgaven',
             merchantRulesCount: () => ({
-                one: '1 handelaarsregel',
-                other: (count: number) => `${count} handelaarsregels`,
+                one: '1 standaarduitgave',
+                other: (count: number) => `${count} onkostendefaults`,
             }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `Je staat op het punt ${newWorkspaceName ?? ''} te maken en te delen met ${totalMembers ?? 0} leden van de oorspronkelijke werkruimte.`,
@@ -8901,8 +8910,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 matchType: 'Overeenkomsttype',
                 matchTypeContains: 'Bevat',
                 matchTypeExact: 'Komt exact overeen',
-                duplicateRuleTitle: 'Vergelijkbare handelaarregel bestaat al',
-                duplicateRulePrompt: (merchantName: string) => `Je bestaande regel voor ‘${merchantName}’ krijgt voorrang op deze regel. Toch opslaan?`,
+                duplicateRuleTitle: 'Vergelijkbare regel bestaat al',
+                duplicateRulePrompt: (conditionName: string) => `Je bestaande regel voor ‘${conditionName}’ krijgt voorrang op deze regel. Toch opslaan?`,
                 saveAnyway: 'Toch opslaan',
                 applyToExistingUnsubmittedExpenses: 'Toepassen op bestaande niet-ingediende uitgaven',
                 findRule: 'Zoek handelsregel',
@@ -8912,17 +8921,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 thenApplyFollowingDefaults: 'Pas vervolgens de volgende standaardinstellingen toe:',
                 vendorUnavailable: 'Leverancier niet beschikbaar',
                 confirmErrorCategory: 'Selecteer een categorie',
-                confirmErrorCategoryTax: 'Selecteer een belastingtarief',
-                confirmErrorCondition: 'Voer een leverancier in',
-                confirmErrorConditionAndDefault: 'Voer een leverancier in en stel minstens één standaard in',
-                turnOnTaxesFirstTitle: 'Zet eerst belastingen aan',
-                turnOnTaxesFirstPrompt: 'Categorischregels stellen een standaardbelastingtarief in. Schakel belastingen in bij de instellingen van je workspace om ze te gebruiken.',
-                categoryRulesApplyGoingForwardTitle: 'Categoriegregels gelden vanaf nu',
-                categoryRulesApplyGoingForwardPrompt: 'Een standaardbelastingtarief is van toepassing op nieuwe uitgaven in deze categorie. Bestaande uitgaven veranderen niet.',
-                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
-                    'Het geselecteerde belastingtarief is nu de standaard voor je werkruimte, waardoor deze regel niet meer geldig is. Kies een ander belastingtarief.',
-                addTaxRateFirstTitle: 'Voeg eerst een belastingtarief toe',
-                addTaxRateFirstPrompt: 'Categorielimieten stellen een standaardbelastingtarief in. Voeg een ander belastingtarief toe dan de standaard van je werkruimte om ze te gebruiken.',
+                confirmErrorCondition: 'Voeg minstens één voorwaarde toe',
+                confirmErrorConditionAndDefault: 'Voeg minstens één voorwaarde toe en stel minstens één standaardwaarde in',
                 createRuleFromExpenseAction: 'Maak een regel',
                 createRuleFromExpensePrompt: 'om je wijzigingen toe te passen op alle onkosten die aan je criteria voldoen.',
             },
@@ -9107,6 +9107,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `Toegestaan ${shownCount > 1 ? 'valuta’s' : 'valuta'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} meer` : ''}`,
                 defaultRulesCannotBeDeleted: 'Standaardregels kunnen niet worden verwijderd',
+                tags: 'Tags',
+                multipleConditions: 'Meerdere voorwaarden',
             },
             agentRules: {
                 title: 'Agentregels',
@@ -9147,9 +9149,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 describeRuleForConcierge: 'Beschrijf je regel en Concierge bouwt hem voor je',
                 gotIt: 'Begrepen',
                 createRule: 'Regel maken',
-                fallbackBanner:
-                    'Dit is geen standaardregel, dus hebben we hem opgesteld als een agentregel. Agentregels treden in werking nadat een uitgave of rapport verandert, bijvoorbeeld door de uitgave vast te houden of het rapport af te wijzen.',
-                fallbackBannerWithExplanation: (explanation: string) => `Dit is geen standaardregel, dus hebben we het opgesteld als een agentregel. ${explanation}`,
+                fallbackBanner: 'Dit is geen standaardregel, dus hebben we een agentregel opgesteld.',
+                fallbackBannerWithExplanation: (explanation: string) => `Dit is geen standaardregel, dus hebben we een agentregel opgesteld. ${explanation}`,
             },
             tabs: {
                 general: 'Algemeen',
@@ -9252,9 +9253,11 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 findRule: 'Regel zoeken',
                 rename: 'Naam wijzigen',
                 update: 'Bijwerken',
-                merchantIs: (merchant: string) => `Handelaar is "${merchant}"`,
                 merchantTypeIs: (merchantType: string) => `Type leverancier is "${merchantType}"`,
                 categoryIs: (category: string) => `Categorie is "${category}"`,
+                tagIs: (tag: string) => `Tag is "${tag}"`,
+                merchantContains: (merchant: string) => `Handelaar bevat "${merchant}"`,
+                merchantExactlyMatches: (merchant: string) => `Handelaar komt exact overeen met "${merchant}"`,
             },
             merchantTypeRule: {merchantType: 'Type handelaar', saveRule: 'Regel opslaan', confirmErrorCategory: 'Selecteer een categorie.'},
             requireFieldsTable: {
@@ -9320,14 +9323,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             },
             agentRulesEmptyState: {title: 'Geen agentregels toegevoegd', subtitle: 'Maak een regel om je werkruimtebeleid te automatiseren.', cta: 'AI-regel toevoegen'},
             categoriesDisabledEmptyState: {title: 'Categorieën zijn niet ingeschakeld', subtitle: 'Schakel categorieën in om meer controle te krijgen over je uitgaven.'},
-            expenseDefaultType: {
-                title: 'Standaardwaarden voor uitgaven toepassen',
-                subtitle: 'Waar moet deze regel op overeenkomen?',
-                merchant: 'Winkelier',
-                merchantDescription: 'Veldwaarden bij uitgaven van een specifieke verkoper bijwerken',
-                category: 'Categorie',
-                categoryDescription: 'Stel een standaardbelastingtarief in voor een specifieke categorie',
-            },
             taxesDisabledEmptyState: {
                 title: 'Belastingen zijn niet ingeschakeld',
                 subtitle: 'Activeer belastingen om in aanmerking komende belastingen vast te leggen en terug te vorderen.',
@@ -10509,6 +10504,12 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `heeft "Voorkom dat niet-vergoedbare rapporten als betaald worden gemarkeerd" bijgewerkt naar "${newValue === 'true' ? 'Ingeschakeld' : 'Uitgeschakeld'}" (voorheen "${oldValue === 'true' ? 'Ingeschakeld' : 'Uitgeschakeld'}")`,
         addedExpensifyCardFeed: (feedName: string) => `"${feedName}" Expensify Kaart-feed toegevoegd`,
+        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
+            if (!oldValue) {
+                return `stel de tijdzone van de werkruimte in op "${newValue}"`;
+            }
+            return `heeft de tijdzone van de werkruimte bijgewerkt naar "${newValue}" (voorheen "${oldValue}")`;
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',
@@ -11110,6 +11111,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');
                     return `Open de mobiele Expensify-app om je${amountAndMerchantText ? ` ${amountAndMerchantText}-` : ' '}transactie te bekijken`;
                 },
+                autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
+                    `Global Reimbursements is ingeschakeld door ${adminName} op de ${bankName ? `${bankName} ` : ''}rekening die eindigt op ${lastFour}. Exacte wisselkoersen en kosten kunnen niet vooraf worden bekeken wanneer grensoverschrijdende rapporten automatisch worden betaald. Bekijk je <a href="${autoPaySettingsURL}">automatische betaalinstellingen</a> voor meer informatie over tarieven en kosten.`,
             },
             error: {
                 invalidCredentials: 'Ongeldige inloggegevens, controleer de configuratie van je verbinding.',
