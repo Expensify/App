@@ -19,7 +19,7 @@ function OptionRowLHN({
     shouldShowMarkAsDoneCopy,
 }: OptionRowLHNProps) {
     const styles = useThemeStyles();
-    const {setHovered, sidebarInnerRowStyle, contentContainerStyles, avatarBackgroundColor, selectedStyle, hoveredStyle} = useOptionRowChrome({
+    const {setHovered, sidebarInnerRowStyle, contentContainerStyles, avatarBackgroundColor} = useOptionRowChrome({
         isOptionFocused,
         viewMode,
     });
@@ -35,8 +35,6 @@ function OptionRowLHN({
                 <OptionRow.Pressable
                     optionItem={optionItem}
                     isOptionFocused={isOptionFocused}
-                    selectedStyle={selectedStyle}
-                    hoveredStyle={hoveredStyle}
                     onSelectRow={onSelectRow}
                     onLayout={onLayout}
                     onHoverIn={() => setHovered(true)}

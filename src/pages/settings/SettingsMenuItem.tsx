@@ -1,5 +1,4 @@
 import MenuItem from '@components/MenuItem';
-import useFlatNavSidebarRowProps from '@components/Navigation/FlatNavigationBar/useFlatNavSidebarRowProps';
 
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 
@@ -23,7 +22,6 @@ type SettingsMenuItemProps = {
 
 function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocused, onPress, wrapperStyle}: SettingsMenuItemProps) {
     const popoverAnchor = useRef(null);
-    const {shouldShowBasicTitle, selectedStyle, hoveredStyle} = useFlatNavSidebarRowProps()(isFocused);
 
     const onSecondaryInteraction = item.link
         ? (event: GestureResponderEvent | MouseEvent) => {
@@ -53,9 +51,7 @@ function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocus
 
     return (
         <MenuItem
-            wrapperStyle={[wrapperStyle, selectedStyle]}
-            hoveredStyle={hoveredStyle}
-            shouldShowBasicTitle={shouldShowBasicTitle}
+            wrapperStyle={wrapperStyle}
             title={keyTitle}
             icon={item.icon}
             iconType={item.iconType}

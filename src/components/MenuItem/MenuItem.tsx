@@ -281,9 +281,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Should we remove the hover background color of the menu item */
         shouldRemoveHoverBackground?: boolean;
 
-        /** Background of the hovered item in place of the default hover background */
-        hoveredStyle?: StyleProp<ViewStyle>;
-
         rightIconAccountID?: number | string;
 
         iconAccountID?: number;
@@ -537,7 +534,6 @@ function MenuItem({
     shouldGreyOutWhenDisabled = true,
     shouldRemoveBackground = false,
     shouldRemoveHoverBackground = false,
-    hoveredStyle,
     shouldUseDefaultCursorWhenDisabled = false,
     shouldShowLoadingSpinnerIcon = false,
     isAnonymousAction = false,
@@ -898,13 +894,7 @@ function MenuItem({
                                             ),
                                         ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
                                         shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
-                                        isHovered &&
-                                            interactive &&
-                                            !focused &&
-                                            !pressed &&
-                                            !shouldRemoveBackground &&
-                                            !shouldRemoveHoverBackground &&
-                                            (hoveredStyle ?? styles.hoveredComponentBG),
+                                        isHovered && interactive && !focused && !pressed && !shouldRemoveBackground && !shouldRemoveHoverBackground && styles.hoveredComponentBG,
                                     ] as StyleProp<ViewStyle>
                                 }
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
