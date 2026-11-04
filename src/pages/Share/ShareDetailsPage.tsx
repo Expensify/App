@@ -179,6 +179,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                                 ?.filter((u) => u.accountID !== personalDetail.accountID)
                                 .map((u) => ({
                                     login: u.login ?? '',
+                                    accountIDForOptimisticData: u.accountID,
                                 })) ?? [],
                         personalDetails,
                         newReportObject: report,

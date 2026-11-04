@@ -3,11 +3,12 @@ name: Check validateCode terminology
 on:
   pull_request:
     types: [opened, synchronize]
-    branches: [main]
+    branches: [main, staging]
     paths: ['**.ts', '**.tsx', '**.md']
 
 jobs:
   check:
+    if: github.actor != 'os-botify[bot]'
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - name: Checkout

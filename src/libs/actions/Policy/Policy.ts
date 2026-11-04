@@ -101,7 +101,7 @@ import {rand64} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import {buildOnyxDataForGovernmentRateAutoUpdate} from '@libs/PolicyDistanceRatesUtils';
+import {buildOnyxDataForGovernmentRateAutoUpdate, getGovernmentRateCountryForCurrency} from '@libs/PolicyDistanceRatesUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {
     getCustomUnitsForDuplication,
@@ -336,6 +336,8 @@ type SetWorkspaceReimbursementActionParams = {
     shouldUpdateLastPaymentMethod?: boolean;
     currentReimbursementChoice: Policy['reimbursementChoice'];
     currentAchAccount: Policy['achAccount'];
+    currentIsCollectDepositAccountsEnabled?: Policy['isCollectDepositAccountsEnabled'];
+    currentReimbursementCountries?: NonNullable<Policy['reimbursement']>['countries'];
     bankAccountList?: BankAccountList;
 };
 
@@ -1487,6 +1489,8 @@ function setWorkspaceReimbursement({
     shouldUpdateLastPaymentMethod,
     currentReimbursementChoice,
     currentAchAccount,
+    currentIsCollectDepositAccountsEnabled,
+    currentReimbursementCountries,
     bankAccountList = {},
 }: SetWorkspaceReimbursementActionParams) {
     const lastUsedPaymentMethod = typeof lastPaymentMethod === 'string' ? lastPaymentMethod : lastPaymentMethod?.expense?.name;
@@ -1619,6 +1623,23 @@ function setWorkspaceReimbursement({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.BANK_ACCOUNT_LIST,
             value: failureBankAccountList,
+        });
+    }
+
+    // Turning payments off also stops collecting employee bank details and clears the reimbursement countries
+    if (reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {isCollectDepositAccountsEnabled: false, reimbursement: {countries: null}},
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                isCollectDepositAccountsEnabled: currentIsCollectDepositAccountsEnabled ?? null,
+                reimbursement: {countries: currentReimbursementCountries ?? null},
+            },
         });
     }
 
@@ -2371,19 +2392,13 @@ function updateGeneralSettings(
         }
     }
 
-    // Enabling government rate auto-update and copying the chosen country's reference rates rides on this request, so the
-    // whole currency change stays a single API call. The server applies the same copy when it saves the currency.
-    const governmentRateAutoUpdateData = governmentRateCountry
-        ? buildOnyxDataForGovernmentRateAutoUpdate(
-              policy.id,
-              distanceUnit,
-              true,
-              governmentMileageRates,
-              currency,
-              governmentRateCountry,
-              !!policy.shouldAutoUpdateGovernmentDistanceRates,
-              policy.autoUpdateGovernmentRateCountry,
-          )
+    // Enabling government rate auto-update and copying the new country's reference rates rides on this request, so the
+    // whole currency change stays a single API call. The server applies the same copy when it saves the currency. EUR needs
+    // the chosen country, and every other supported currency maps to one country, so the rates are filtered by currency.
+    const shouldCopyGovernmentRates =
+        !!governmentRateCountry || (!!policy.shouldAutoUpdateGovernmentDistanceRates && currencyPendingAction !== undefined && !!getGovernmentRateCountryForCurrency(currency));
+    const governmentRateAutoUpdateData = shouldCopyGovernmentRates
+        ? buildOnyxDataForGovernmentRateAutoUpdate(policy, true, governmentMileageRates, currency, governmentRateCountry)
         : undefined;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
@@ -2483,11 +2498,9 @@ function updateGeneralSettings(
         completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
         // The server mirrors this copy through its own SetWorkspaceDistanceAutoUpdate call, so send the client-side
         // optimistic rate IDs to keep the persisted rates consistent with the optimistic Onyx state.
-        ...(governmentRateCountry && {
-            governmentRateCountry,
-            ...(Object.keys(governmentRateAutoUpdateData?.optimisticRateIDs ?? {}).length > 0 && {
-                optimisticRateIDs: JSON.stringify(governmentRateAutoUpdateData?.optimisticRateIDs),
-            }),
+        ...(governmentRateCountry && {governmentRateCountry}),
+        ...(Object.keys(governmentRateAutoUpdateData?.optimisticRateIDs ?? {}).length > 0 && {
+            optimisticRateIDs: JSON.stringify(governmentRateAutoUpdateData?.optimisticRateIDs),
         }),
     };
 
@@ -2978,6 +2991,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                     reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     outputCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    timeZone: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     address: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     type: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -3091,6 +3105,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                     reimbursementChoice: null,
                     name: null,
                     outputCurrency: null,
+                    timeZone: null,
                     address: null,
                     description: null,
                     type: null,
@@ -3567,6 +3582,7 @@ function buildOptimisticDuplicatePolicy(
         areInvoicesEnabled: isInvoicesFeatureSelected,
         areRulesEnabled: isRulesFeatureSelected,
         areWorkflowsEnabled: isWorkflowsFeatureSelected,
+        isCollectDepositAccountsEnabled: isWorkflowsFeatureSelected ? sourcePolicy?.isCollectDepositAccountsEnabled : false,
         areReportFieldsEnabled: isReportsFeatureSelected ? sourcePolicy?.areReportFieldsEnabled : false,
         areInvoiceFieldsEnabled: isInvoiceFieldsFeatureSelected ? sourcePolicy?.areInvoiceFieldsEnabled : false,
         areConnectionsEnabled: isConnectionsFeatureSelected,
@@ -3595,6 +3611,7 @@ function buildOptimisticDuplicatePolicy(
             reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             name: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             outputCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            timeZone: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             address: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             type: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -3762,6 +3779,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
                     reimbursementChoice: null,
                     name: null,
                     outputCurrency: null,
+                    timeZone: null,
                     address: null,
                     description: null,
                     type: null,
@@ -8347,8 +8365,6 @@ export {
     enablePolicyConnections,
     enablePolicyHR,
     enablePolicyRecruiting,
-    enablePolicyMCP,
-    enablePolicyReceiptPartners,
     enablePolicyFeatureForConnection,
     enablePolicyReportFields,
     enablePolicyInvoiceFields,
