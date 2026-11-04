@@ -1,15 +1,15 @@
 import {READ_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 
-import {getLength as getPersistedRequestsLength, getQueuedRequestsCount} from '@userActions/PersistedRequests';
+import {getLength as getPersistedRequestsLength, getQueuedInlineEditWritesCount} from '@userActions/PersistedRequests';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type Middleware from './types';
 
 /**
- * Queries (the `jsonQuery` sent to the backend) of the in-flight searches whose snapshot is dropped if a write was queued
- * while they were in flight, each mapped to how many requests had been queued when it was sent. The query is keyed
+ * Queries (the `jsonQuery` sent to the backend) of the in-flight searches whose snapshot is dropped if a local inline edit
+ * was queued while they were in flight, each mapped to the edit count at dispatch. The query is keyed
  * rather than the hash because it holds the offset: several pages of one hash can be in flight at once, and only the
  * search that asked for the guard may have its snapshot dropped.
  */
@@ -19,12 +19,11 @@ const guardedSearchQueries = new Map<string, number>();
 const discardedSearchQueries = new Set<string>();
 
 /**
- * Guards a search sent after waiting for the write queue to go idle, given how many requests had been queued when it was
- * sent. Any write queued after that was queued while it was in flight, so its response predates that write and is
- * stale, even if the write finishes first.
+ * Guards a search using the local inline-edit count at dispatch. A later edit can make its response stale even if
+ * that edit finishes before the response arrives.
  */
-function guardSearchAgainstStaleSnapshot(jsonQuery: string, queuedRequestsCountWhenSent: number) {
-    guardedSearchQueries.set(jsonQuery, queuedRequestsCountWhenSent);
+function guardSearchAgainstStaleSnapshot(jsonQuery: string, queuedInlineEditWritesCountWhenSent: number) {
+    guardedSearchQueries.set(jsonQuery, queuedInlineEditWritesCountWhenSent);
     discardedSearchQueries.delete(jsonQuery);
 }
 
@@ -45,14 +44,14 @@ const discardStaleSearchSnapshot: Middleware = (requestResponse, request) =>
     requestResponse.then((response) => {
         const hash = request?.data?.hash;
         const jsonQuery = request?.data?.jsonQuery;
-        const queuedRequestsCountWhenSent = typeof jsonQuery === 'string' ? guardedSearchQueries.get(jsonQuery) : undefined;
-        if (request?.command !== READ_COMMANDS.SEARCH || typeof hash !== 'number' || typeof jsonQuery !== 'string' || queuedRequestsCountWhenSent === undefined || !response?.onyxData) {
+        const queuedInlineEditWritesCountWhenSent = typeof jsonQuery === 'string' ? guardedSearchQueries.get(jsonQuery) : undefined;
+        if (request?.command !== READ_COMMANDS.SEARCH || typeof hash !== 'number' || typeof jsonQuery !== 'string' || queuedInlineEditWritesCountWhenSent === undefined || !response?.onyxData) {
             return response;
         }
 
         // Followers can send searches while the leader's writes remain pending. Only writes queued since this search
         // was sent make it stale; counting older pending writes would discard every response and keep running it again.
-        const writesQueuedSinceSent = getQueuedRequestsCount() - queuedRequestsCountWhenSent;
+        const writesQueuedSinceSent = getQueuedInlineEditWritesCount() - queuedInlineEditWritesCountWhenSent;
         if (writesQueuedSinceSent <= 0) {
             return response;
         }

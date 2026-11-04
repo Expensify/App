@@ -1,3 +1,4 @@
+import {WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import sanitizeLogParams from '@libs/sanitizeLogParams';
 
@@ -28,9 +29,19 @@ let crossTabRequestsCallback: (() => void) | undefined;
 // When the counter is 0, any callback must be from a cross-tab storage event,
 // so it is safe to reconcile deletions from the leader tab.
 let pendingOnyxWrites = 0;
-// Counts every request ever added to the queue, including the ones merged from other tabs. Unlike getLength(), it never
-// goes down, so a caller can tell that a request was queued since it last looked even if that request already finished.
-let queuedRequestsCount = 0;
+// Count only locally saved expense edits that can overwrite an inline edit's optimistic snapshot. The count never
+// goes down, so a search can detect an edit queued since dispatch even after that edit finishes.
+let queuedInlineEditWritesCount = 0;
+const INLINE_EDIT_WRITE_COMMANDS = new Set<string>([
+    WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE,
+    WRITE_COMMANDS.UPDATE_MONEY_REQUEST_MERCHANT,
+    WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DESCRIPTION,
+    WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY,
+    WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY,
+    WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAG,
+    // Changing a mileage expense's date can update its distance rate instead of sending the regular date command.
+    WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE,
+]);
 
 function trackOnyxWrite<T>(promise: Promise<T>): Promise<T> {
     pendingOnyxWrites++;
@@ -92,7 +103,6 @@ Onyx.connectWithoutView({
                     }
                 }
                 persistedRequests = [...persistedRequests, ...newFromOtherTabs];
-                queuedRequestsCount += newFromOtherTabs.length;
                 trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests));
                 crossTabRequestsCallback?.();
                 return;
@@ -233,8 +243,8 @@ function getLength(): number {
     return persistedRequests.length + (ongoingRequest ? 1 : 0);
 }
 
-function getQueuedRequestsCount(): number {
-    return queuedRequestsCount;
+function getQueuedInlineEditWritesCount(): number {
+    return queuedInlineEditWritesCount;
 }
 
 function save<TKey extends OnyxKey>(requestToPersist: Request<TKey>): Promise<void> {
@@ -244,7 +254,9 @@ function save<TKey extends OnyxKey>(requestToPersist: Request<TKey>): Promise<vo
         ongoingRequest: ongoingRequest?.command ?? 'null',
         isInitialized,
     });
-    queuedRequestsCount++;
+    if (INLINE_EDIT_WRITE_COMMANDS.has(requestToPersist.command)) {
+        queuedInlineEditWritesCount++;
+    }
     // If not initialized yet, queue the request for later processing
     if (!isInitialized) {
         Log.info('[PersistedRequests] Queueing request until initialization completes', false, {
@@ -560,7 +572,7 @@ export {
     endRequestAndRemoveFromQueue,
     update,
     getLength,
-    getQueuedRequestsCount,
+    getQueuedInlineEditWritesCount,
     getOngoingRequest,
     processNextRequest,
     updateOngoingRequest,

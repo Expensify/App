@@ -123,7 +123,7 @@ import {markExportInitiatedLocally} from './Export';
 import {payMoneyRequest} from './IOU/PayMoneyRequest';
 import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU/RejectMoneyRequest';
 import {approveMoneyRequest} from './IOU/ReportWorkflow';
-import {getQueuedRequestsCount} from './PersistedRequests';
+import {getQueuedInlineEditWritesCount} from './PersistedRequests';
 import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
 import {setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
@@ -1253,12 +1253,12 @@ type InFlightSearchRequest = {
     pendingShouldDiscardStaleSnapshot?: boolean;
     pendingUpgradeRequest?: () => Promise<string | number | undefined> | undefined;
     didSucceed?: boolean;
-    /** Whether its snapshot is dropped if a write is queued while it is in flight. A guarded refetch that joins it turns this on. */
+    /** Drops its snapshot if a local inline edit is queued in flight. A guarded refetch that joins it turns this on. */
     shouldDiscardStaleSnapshot: boolean;
     /** The query it sends, which keys its guard. */
     jsonQuery?: string;
-    /** How many requests had been queued when it was sent after waiting for writes. Unset before that, and for a search that skips the wait. */
-    queuedRequestsCountWhenSent?: number;
+    /** Local inline-edit writes queued at dispatch. Unset until the request is sent, including when it waits for writes. */
+    queuedInlineEditWritesCountWhenSent?: number;
 };
 
 /** Runs the search once the app is back online. */
@@ -1372,8 +1372,7 @@ function search({
      */
     shouldSaveRecentSearch?: boolean;
     /**
-     * When true, fires the search API immediately without waiting for pending writes in the sequential queue. Safe because search
-     * responses only write snapshot keys, so they can't overwrite a pending write's optimistic data. Used by the
+     * When true, fires the search API immediately without waiting for pending writes in the sequential queue. Used by the
      * post-expense-creation flow (where the expense write is deferred) and by home screen sections that would otherwise sit behind
      * a slow OpenApp. Only pass this when the query itself doesn't depend on data OpenApp delivers — otherwise the request is sent
      * with an incomplete filter set and has to be re-fired once that data lands.
@@ -1382,8 +1381,8 @@ function search({
     /** When false, the request leaves `search.isLoading` unset, so the current results stay on screen without a loading state. */
     shouldShowLoading?: boolean;
     /**
-     * When true, the response's snapshot is dropped if writes were queued while the request was in flight, and the search runs
-     * again once they land. Used by the refetch that follows an edit, so a quick second edit (e.g. inline editing a table cell)
+     * When true, the response's snapshot is dropped if local inline-edit writes were queued in flight, and the search runs
+     * again after waiting for writes. Used by the refetch that follows an edit, so a quick second edit (e.g. inline editing a table cell)
      * isn't flipped back to its old value by the results of a search sent before it.
      */
     shouldDiscardStaleSnapshot?: boolean;
@@ -1401,8 +1400,8 @@ function search({
 
         // A search still waiting for writes guards itself once it is sent. One already sent is guarded now, counting every
         // write queued since it was sent, because its response predates all of them.
-        if (inFlightRequest.jsonQuery !== undefined && inFlightRequest.queuedRequestsCountWhenSent !== undefined) {
-            guardSearchAgainstStaleSnapshot(inFlightRequest.jsonQuery, inFlightRequest.queuedRequestsCountWhenSent);
+        if (inFlightRequest.jsonQuery !== undefined && inFlightRequest.queuedInlineEditWritesCountWhenSent !== undefined) {
+            guardSearchAgainstStaleSnapshot(inFlightRequest.jsonQuery, inFlightRequest.queuedInlineEditWritesCountWhenSent);
         }
     }
 
@@ -1440,7 +1439,8 @@ function search({
                     prevReportsLength,
                     isLoading: false,
                     shouldUpdateLastSearchParams,
-                    skipWaitForWrites,
+                    // A stale-snapshot re-fire must wait for the edit, even when the joining call skipped the queue.
+                    skipWaitForWrites: skipWaitForWrites && !inFlightRequest.pendingShouldDiscardStaleSnapshot,
                     shouldSaveRecentSearch: inFlightRequest.pendingShouldSaveRecentSearch,
                     // A re-fire that only adds the save flag returns the same results the finished request just showed,
                     // so it must not show loading again (the footer would flash its skeleton over the totals).
@@ -1517,8 +1517,13 @@ function search({
         });
     }
 
-    const startRequest = () =>
-        makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, successData, finallyData, failureData})
+    const startRequest = () => {
+        // Capture at dispatch for both paths, so a guarded refetch can also join a search that skipped the write wait.
+        inFlightRequestState.queuedInlineEditWritesCountWhenSent = getQueuedInlineEditWritesCount();
+        if (inFlightRequestState.shouldDiscardStaleSnapshot) {
+            guardSearchAgainstStaleSnapshot(jsonQuery, inFlightRequestState.queuedInlineEditWritesCountWhenSent);
+        }
+        return makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, successData, finallyData, failureData})
             .then((result) => {
                 const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const;
                 // To-do responses list the other collections first and the snapshot last.
@@ -1530,8 +1535,8 @@ function search({
                 // queued since the search was sent still needs a run that includes it.
                 const wasWriteQueuedSinceSent =
                     inFlightRequestState.shouldDiscardStaleSnapshot &&
-                    inFlightRequestState.queuedRequestsCountWhenSent !== undefined &&
-                    getQueuedRequestsCount() > inFlightRequestState.queuedRequestsCountWhenSent;
+                    inFlightRequestState.queuedInlineEditWritesCountWhenSent !== undefined &&
+                    getQueuedInlineEditWritesCount() > inFlightRequestState.queuedInlineEditWritesCountWhenSent;
 
                 // Writes were queued behind this search, so run it again once they land. A re-fire already set up by a
                 // joining call runs instead, so it is guarded too.
@@ -1621,6 +1626,7 @@ function search({
                 inFlightSearchRequests.delete(dedupeKey);
                 return inFlightRequestState.pendingUpgradeRequest?.();
             });
+    };
 
     // Catch here so every caller (the page-load fire in useSearchPageSetup and the re-search handlers
     // in SearchPage/SearchPageNarrow) is covered without a separate catch each. Failure and terminal state
@@ -1658,17 +1664,13 @@ function search({
             // A refetch that wants the guard, and its re-fire after a dropped snapshot, only refresh rows already on screen.
             // The wait ends at once when the app is offline, and sending then would fail and replace those rows with an
             // error, so it runs once the app is back online. A re-fire set up by a joining call runs in its place.
-            if (shouldDiscardStaleSnapshot && getIsOffline()) {
+            if (inFlightRequestState.shouldDiscardStaleSnapshot && getIsOffline()) {
                 inFlightSearchRequests.delete(dedupeKey);
                 inFlightRequestState.pendingShouldDiscardStaleSnapshot = true;
                 searchWhenOnline(inFlightRequestState.pendingUpgradeRequest ?? searchAgain);
                 return undefined;
             }
 
-            inFlightRequestState.queuedRequestsCountWhenSent = getQueuedRequestsCount();
-            if (inFlightRequestState.shouldDiscardStaleSnapshot) {
-                guardSearchAgainstStaleSnapshot(jsonQuery, inFlightRequestState.queuedRequestsCountWhenSent);
-            }
             return startRequest();
         })
         .catch((error: unknown) => {
