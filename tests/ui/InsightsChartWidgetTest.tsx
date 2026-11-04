@@ -62,6 +62,7 @@ function renderWidget() {
                 averageTotal={undefined}
                 isDashboardLoaded={undefined}
                 filters={FILTERS}
+                insightsScope={{searchKey: INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND].searchKey, policyIDs: [], date: FILTERS.date, groupCurrency: FILTERS.groupCurrency}}
                 onRetry={jest.fn()}
             />
         </ComposeProviders>,

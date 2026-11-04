@@ -21,6 +21,9 @@ on:
         default: false
 
     outputs:
+      BUILD_SHA:
+        description: Immutable App commit used for the web build and Worker bundle
+        value: ${{ jobs.build.outputs.BUILD_SHA }}
       TAR_FILENAME:
         description: Filename of the .tar.gz web build artifact
         value: ${{ jobs.build.outputs.TAR_FILENAME }}
@@ -36,6 +39,7 @@ jobs:
     name: Build Web
     runs-on: blacksmith-8vcpu-ubuntu-2404
     outputs:
+      BUILD_SHA: ${{ steps.checkout.outputs.commit }}
       TAR_FILENAME: webBuild.tar.gz
       ZIP_FILENAME: webBuild.zip
       SOURCEMAP_FILENAME: merged-source-map.js.map
@@ -43,6 +47,7 @@ jobs:
       PULL_REQUEST_NUMBER: ${{ inputs.pull-request-number }}
     steps:
       - name: Checkout
+        id: checkout
         uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
         with:
           ref: ${{ inputs.ref }}

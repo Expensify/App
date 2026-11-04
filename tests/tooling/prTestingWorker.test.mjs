@@ -1,22 +1,20 @@
-/** Preview deployment behavior and artifact security, using a stateful fake service rather than SDK call-order assertions. */
+/** Preview identity verification and artifact security without live deployments. */
 import {afterEach, describe, expect, test} from 'bun:test';
 
-import {createConfig, getIdentity, getTarget, prepareDirectory} from '@expensify/new-expensify-cloudflare-worker/pr-testing-config';
+import {createConfig, getIdentity, getPreviewCommand, getTarget, prepareDirectory, STATUS_PATH} from '@expensify/new-expensify-cloudflare-worker/pr-testing-config';
 import {spawnSync} from 'node:child_process';
 import {existsSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 
-import {AdhocCloudflareWorkerDeployer} from '../../scripts/adhocCloudflareWorkerDeployer.ts';
+import {verifyPreview} from '../../scripts/deployAdhocCloudflareWorker.ts';
 import extractPRTestingAssets from '../../scripts/extractPRTestingAssets.ts';
 
 describe('PR-testing Worker deployment', () => {
     const {Bun} = globalThis;
     const SHA = 'a'.repeat(40);
-    const OTHER_SHA = 'b'.repeat(40);
     const IDENTITY = getIdentity(SHA, '100', '1');
     const RUNTIME = {compatibility_date: '2026-09-26', compatibility_flags: []};
-    const ZONE = 'c'.repeat(32);
     const ROOT = path.resolve(import.meta.dirname, '../..');
     const temporaryDirectories = [];
 
@@ -32,200 +30,56 @@ describe('PR-testing Worker deployment', () => {
         return directory;
     }
 
-    function previewService(prState = 'open') {
-        const state = {
-            refs: new Map([
-                ['feature/worker', SHA],
-                ['main', OTHER_SHA],
-            ]),
-            deployments: [],
-            statuses: new Map(),
-            worker: null,
-            assets: null,
-        };
-        const github = {
-            pulls: {get: async () => ({data: {state: prState}})},
-            repos: {
-                getCommit: async ({ref}) => {
-                    if (!state.refs.has(ref)) {
-                        throw new Error('Unknown source ref');
-                    }
-                    return {data: {sha: state.refs.get(ref)}};
-                },
-                listDeployments: async ({environment, per_page: limit = 30}) => ({
-                    data: state.deployments
-                        .filter((item) => item.environment === environment)
-                        .toReversed()
-                        .slice(0, limit),
-                }),
-                getDeployment: async ({deployment_id: id}) => {
-                    const item = state.deployments.find((deployment) => deployment.id === id);
-                    if (!item) {
-                        throw new Error('Unknown deployment');
-                    }
-                    return {data: structuredClone(item)};
-                },
-                createDeployment: async (input) => {
-                    const deployment = {id: state.deployments.length + 1, ...structuredClone(input)};
-                    state.deployments.push(deployment);
-                    return {data: deployment};
-                },
-                createDeploymentStatus: async ({deployment_id: id, ...status}) => {
-                    state.statuses.set(id, status);
-                    return {data: status};
-                },
-            },
-        };
-        const controller = new AdhocCloudflareWorkerDeployer({
-            github,
-            fetchImpl: async (url) => {
-                const pathname = new URL(url).pathname;
-                if (pathname === '/__expensify_preview') {
-                    return Response.json(state.worker);
-                }
-                if (pathname === '/preview-build.json') {
-                    return Response.json(state.assets);
-                }
-                throw new Error('Unknown preview endpoint');
-            },
-        });
-        const publish = (identity) => {
-            state.worker = identity;
-            state.assets = identity;
-        };
-        return {controller, state, publish};
-    }
-
-    describe('preview deployment behavior', () => {
-        test('pins the requested revision and publishes a verified preview even after the PR closes', async () => {
-            // Given a closed PR whose branch can move while a requested build is running
-            const {controller, state, publish} = previewService('closed');
-            const request = await controller.register(123, 'feature/worker', '100', '1');
-            state.refs.set('feature/worker', OTHER_SHA);
-            const identity = getIdentity(request.sha, '100', '1');
-            // When that build publishes its original snapshot
-            await controller.deploy(123, Number(request.deploymentID), identity, () => publish(identity));
-            // Then the preview and its reported URL refer to the pinned build, not the newer branch or main
-            expect(state.worker).toEqual(IDENTITY);
-            expect(state.assets).toEqual(IDENTITY);
-            expect(state.statuses.get(Number(request.deploymentID))).toMatchObject({state: 'success', environment_url: 'https://123.pr-testing.expensify.com'});
-        });
-
-        test('only the newest requested build can publish, regardless of completion order or reruns', async () => {
-            // Given overlapping builds, including reruns and workflow IDs beyond safe integer precision
-            for (const [oldRun, oldAttempt, newRun, newAttempt] of [
-                ['100', '1', '101', '1'],
-                ['100', '1', '100', '2'],
-                ['9007199254740992', '1', '9007199254740993', '1'],
-            ]) {
-                const {controller, state, publish} = previewService();
-                const older = await controller.register(123, 'feature/worker', oldRun, oldAttempt);
-                const newer = await controller.register(123, 'feature/worker', newRun, newAttempt);
-                let oldPublished = false;
-                // When the older build finishes late or tries to register again
-                await expect(
-                    controller.deploy(123, Number(older.deploymentID), getIdentity(SHA, oldRun, oldAttempt), () => {
-                        oldPublished = true;
-                    }),
-                ).rejects.toThrow();
-                await expect(controller.register(123, 'feature/worker', oldRun, oldAttempt)).rejects.toThrow();
-                const identity = getIdentity(SHA, newRun, newAttempt);
-                await controller.deploy(123, Number(newer.deploymentID), identity, () => publish(identity));
-                // Then the newest build remains served and the old build never publishes or registers again
-                expect(oldPublished).toBe(false);
-                expect(state.deployments).toHaveLength(2);
-                expect(state.worker).toEqual(identity);
-                expect(state.statuses.get(Number(newer.deploymentID)).state).toBe('success');
+    test('verification requires both Worker code and assets to identify the requested build', async () => {
+        // Given responses from another SHA, run or retry, plus unavailable or malformed endpoints
+        const invalidResponses = [
+            () => Response.json({...IDENTITY, sha: 'b'.repeat(40)}),
+            () => Response.json({...IDENTITY, runID: '101'}),
+            () => Response.json({...IDENTITY, runAttempt: '2'}),
+            () => Response.json(null),
+            () => new Response('not JSON'),
+            () => new Response('unavailable', {status: 503}),
+            () => Promise.reject(new Error('offline')),
+        ];
+        for (const invalidResponse of invalidResponses) {
+            for (const invalidPath of [STATUS_PATH, '/preview-build.json']) {
+                // When either endpoint fails to identify this build
+                const fetchImpl = async (url) => (new URL(url).pathname === invalidPath ? invalidResponse() : Response.json(IDENTITY));
+                // Then an older healthy response from the other endpoint cannot make verification succeed
+                await expect(verifyPreview('123.pr-testing.expensify.com', IDENTITY, fetchImpl, 1)).rejects.toThrow();
             }
-        });
-
-        test('preserves an older queued main build without replacing a newer preview request', async () => {
-            // Given a manual preview registered while an earlier push-to-main build was still queued
-            const {controller, state} = previewService();
-            await controller.register(123, 'feature/worker', '101', '1');
-            state.refs.set(SHA, SHA);
-            // When the queued push is finally prepared
-            const request = await controller.register(123, SHA, '100', '1', true);
-            // Then its web build can use the pinned SHA without deploying over the newer preview
-            expect(request).toEqual({sha: SHA, deploymentID: ''});
-            expect(state.deployments).toHaveLength(1);
-            expect(state.deployments[0].payload.runID).toBe('101');
-        });
-
-        test('cannot publish using another PR deployment record', async () => {
-            // Given a legitimate build record belonging to PR 123
-            const {controller, state} = previewService();
-            const request = await controller.register(123, 'feature/worker', '100', '1');
-            let published = false;
-            // When that record is supplied for PR 456
-            await expect(
-                controller.deploy(456, Number(request.deploymentID), IDENTITY, () => {
-                    published = true;
-                }),
-            ).rejects.toThrow();
-            // Then no preview changes and no success is reported
-            expect(published).toBe(false);
-            expect(state.worker).toBeNull();
-            expect(state.statuses.size).toBe(0);
-        });
-
-        test('a failed upload preserves the previous preview without reporting the new build as successful', async () => {
-            // Given a working older preview and a newly requested build
-            const {controller, state, publish} = previewService();
-            const previous = getIdentity(OTHER_SHA, '99', '1');
-            publish(previous);
-            const request = await controller.register(123, 'feature/worker', '100', '1');
-            // When uploading fails before the new version is activated
-            await expect(
-                controller.deploy(123, Number(request.deploymentID), IDENTITY, () => {
-                    throw new Error('Upload failed');
-                }),
-            ).rejects.toThrow('Upload failed');
-            // Then the old URL still works, but the new build has a failure status rather than a false success
-            expect(state.worker).toEqual(previous);
-            expect(state.assets).toEqual(previous);
-            expect(state.statuses.get(Number(request.deploymentID)).state).toBe('failure');
-        });
-
-        test('verification requires both Worker code and assets to belong to the requested build', async () => {
-            // Given new Worker code paired with assets from an older build
-            const {controller, state} = previewService();
-            state.worker = IDENTITY;
-            state.assets = getIdentity(OTHER_SHA, '99', '1');
-            // When the deployment is checked and then the matching assets become available
-            await expect(controller.verify('123.pr-testing.expensify.com', IDENTITY, 1)).rejects.toThrow();
-            state.assets = IDENTITY;
-            // Then only the matching pair passes verification
-            await expect(controller.verify('123.pr-testing.expensify.com', IDENTITY, 1)).resolves.toBeUndefined();
-        });
+        }
+        // When both endpoints return the requested identity
+        // Then matching code and asset identities pass verification
+        await expect(verifyPreview('123.pr-testing.expensify.com', IDENTITY, async () => Response.json(IDENTITY), 1)).resolves.toBeUndefined();
     });
 
-    test('the CLI provides usage and rejects invalid publishing requests without credentials', () => {
+    test('the CLI provides usage and rejects invalid publishing requests without GitHub credentials', () => {
         // Given a user invoking the CLI outside CI
-        const script = path.join(ROOT, 'scripts/adhocCloudflareWorkerDeployer.ts');
-        // When they ask for help or supply unsupported/incomplete commands
+        const script = path.join(ROOT, 'scripts/deployAdhocCloudflareWorker.ts');
+        // When they ask for help or supply invalid or incomplete options
         expect(spawnSync(process.execPath, [script, '--help']).status).toBe(0);
         for (const args of [
-            ['delete', '--pr-number', '123'],
-            ['deploy', '--pr-number', '123', '--sha', SHA, '--deployment-id', '42', '--request-attempt', '1'],
+            ['--pr-number', 'not-a-number', '--sha', SHA, '--artifact-directory', ROOT],
+            ['--pr-number', '123', '--sha', SHA],
         ]) {
             const result = spawnSync(process.execPath, [script, ...args]);
             // Then invalid requests fail before publishing anything
             expect(result.status).not.toBe(0);
         }
-        // When a branch workflow invokes registration without a run ID
-        const branchWorkflow = spawnSync(process.execPath, [script, 'register', '--pr-number', '123', '--ref', SHA], {
+        // When a branch workflow supplies valid options but no run ID
+        const branchWorkflow = spawnSync(process.execPath, [script, '--pr-number', '123', '--sha', SHA, '--artifact-directory', ROOT], {
             encoding: 'utf8',
             env: {
                 ...process.env,
-                GITHUB_TOKEN: 'test-token',
+                GITHUB_TOKEN: '',
                 GITHUB_WORKFLOW_REF: 'Expensify/App/.github/workflows/testBuild.yml@refs/heads/preview-experiment',
                 GITHUB_RUN_ID: '',
             },
         });
-        // Then it accepts the workflow branch and fails on the missing run ID before making any API request
+        // Then it accepts the branch and needs only build identity, not GitHub authentication
         expect(branchWorkflow.status).not.toBe(0);
-        expect(branchWorkflow.stderr).toContain('GITHUB_RUN_ID is required');
+        expect(branchWorkflow.stderr).toContain('An immutable SHA, run ID and run attempt are required');
     });
 
     describe('artifact security and compatibility', () => {
@@ -245,15 +99,22 @@ describe('PR-testing Worker deployment', () => {
                 vars: {SECRET: 'bad'},
                 r2_buckets: [{binding: 'PREVIOUS_BUILDS'}],
                 services: [{binding: 'PRODUCTION'}],
+                previews: {vars: {ENVIRONMENT: 'production'}, r2_buckets: [{binding: 'PRODUCTION'}]},
             };
             // When the trusted deployment package is produced
-            const packaged = await prepareDirectory(bundle, archive, createConfig(getTarget(123), unsafe, ZONE), IDENTITY, extractPRTestingAssets);
+            const packaged = await prepareDirectory(bundle, archive, createConfig(unsafe), IDENTITY, extractPRTestingAssets);
             temporaryDirectories.push(packaged);
             const config = await Bun.file(path.join(packaged, 'wrangler.json')).json();
             // Then branch-selected hooks and privileged bindings cannot enter the deployment, and source maps stay private
-            expect(config.name).toBe('pr-testing-expensify-123');
-            expect(config.routes).toEqual([{pattern: '123.pr-testing.expensify.com/*', zone_id: ZONE}]);
-            expect(config.vars).toEqual({ENVIRONMENT: 'staging'});
+            expect(config.name).toBe('pr-testing-expensify');
+            expect(config.previews).toEqual({vars: {ENVIRONMENT: 'staging'}});
+            expect([config.routes, config.vars]).toEqual([undefined, undefined]);
+            const environment = {WRANGLER_CI_OVERRIDE_NAME: 'production', CLOUDFLARE_API_TOKEN: 'fixture-token'};
+            const command = getPreviewCommand(123, 'preview.json', environment);
+            expect(command.args).toEqual(['preview', '--worker-name', 'pr-testing-expensify', '--name', '123', '--ignore-base-config', '--config', 'preview.json']);
+            expect(command.env).toEqual({CLOUDFLARE_API_TOKEN: 'fixture-token'});
+            expect(environment.WRANGLER_CI_OVERRIDE_NAME).toBe('production');
+            expect(getTarget(456).name).toBe('456');
             expect(config.assets.binding).toBe('ASSETS');
             expect([config.build, config.r2_buckets, config.services]).toEqual([undefined, undefined, undefined]);
             expect(await Bun.file(path.join(packaged, 'dist/app.js.br')).bytes()).toEqual(new Uint8Array([1, 2, 3]));
@@ -298,7 +159,7 @@ describe('PR-testing Worker deployment', () => {
                 }
                 // When a deployable package is requested
                 // Then it refuses the bundle instead of accepting untrusted deployment behavior
-                await expect(prepareDirectory(bundle, archive, createConfig(getTarget(123), RUNTIME, ZONE), IDENTITY, extractPRTestingAssets)).rejects.toThrow();
+                await expect(prepareDirectory(bundle, archive, createConfig(RUNTIME), IDENTITY, extractPRTestingAssets)).rejects.toThrow();
             }
         });
     });

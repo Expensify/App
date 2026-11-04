@@ -96,11 +96,7 @@ The GitHub workflows require a large list of secrets to deploy, notify and test 
 1. `APPLE_ID` - Required for notarizing desktop code in `desktop/notarize.js`
 1. `APPLE_TEAM_ID` - Required for notarizing desktop code in `desktop/notarize.js`
 1. `APPLE_ID_PASSWORD` - Required for notarizing desktop code in `desktop/notarize.js`
-1. `CLOUDFLARE_TOKEN` - Required for deploying the help site
-1. `CLOUDFLARE_WORKERS_DEPLOY_TOKEN` - Deploys the staging and production web Workers
-1. `CLOUDFLARE_ACCOUNT_ID` - Cloudflare account used for web deployments and R2 asset storage
-1. `CLOUDFLARE_R2_WEB_ASSETS_ACCESS_KEY_ID` and `CLOUDFLARE_R2_WEB_ASSETS_SECRET_ACCESS_KEY` - Store previous web builds in R2 for stale-tab asset recovery
-1. `CLOUDFLARE_PR_TESTING_DEPLOY_TOKEN`, `CLOUDFLARE_PR_TESTING_ACCOUNT_ID` and `CLOUDFLARE_PR_TESTING_ZONE_ID` - Deploy isolated PR-testing Workers and their hostname routes
+1. `CLOUDFLARE_TOKEN` - Purges the help-site Cloudflare cache
 1. `APPLE_CONTACT_EMAIL` - Email used for contact between Expensify and Apple for https://appstoreconnect.apple.com/
 1. `APPLE_CONTACT_PHONE` - Phone number used for contact between Expensify and Apple for https://appstoreconnect.apple.com/
 1. `APPLE_DEMO_EMAIL` - Demo account email used for https://appstoreconnect.apple.com/
