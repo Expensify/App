@@ -7778,6 +7778,8 @@ const translations = {
                 integrationExportTitle: (integration: string, exportPageLink?: string) =>
                     `Choose the ${integration} account where transactions should be exported.${exportPageLink ? ` Select a different <a href="${exportPageLink}">export option</a> to change the available accounts.` : ''}`,
                 lastUpdated: 'Last updated',
+                lastSynced: 'Last synced',
+                lastSuccessfulSync: (value: string) => `Last successful sync: ${value}`,
                 transactionStartDate: 'Transaction start date',
                 bulkUpdateTransactionStartDate: 'Update transaction start date',
                 updateCard: 'Update card',

@@ -43,6 +43,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import {companyCardCustomNamesSelector} from '@selectors/Card';
+import {format, isValid} from 'date-fns';
 import {Str} from 'expensify-common';
 import React, {useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -53,7 +54,7 @@ import WorkspaceCompanyCardsTableControls from './WorkspaceCompanyCardsTableCont
 import WorkspaceCompanyCardsTableHeaderButtons from './WorkspaceCompanyCardsTableHeaderButtons';
 import WorkspaceCompanyCardTableItem from './WorkspaceCompanyCardsTableRow';
 
-type CompanyCardsTableColumnKey = 'member' | 'card' | 'customCardName' | 'exportAccount' | 'actions';
+type CompanyCardsTableColumnKey = 'member' | 'card' | 'customCardName' | 'exportAccount' | 'lastSynced' | 'actions';
 
 type WorkspaceCompanyCardsTableHandle = {
     clearSelection: () => void;
@@ -102,7 +103,7 @@ function WorkspaceCompanyCardsTable({
 }: WorkspaceCompanyCardsTableProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber, getLocalDateFromDatetime} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const tableRef = useRef<TableHandle<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey>>(null);
 
@@ -258,6 +259,18 @@ function WorkspaceCompanyCardsTable({
         },
         ...(shouldShowExportAccountColumn ? [getExportAccountColumn<WorkspaceCompanyCardTableItemData>(translate('workspace.moreFeatures.companyCards.exportAccount'), styles)] : []),
         {
+            key: 'lastSynced',
+            label: translate('workspace.moreFeatures.companyCards.lastSynced'),
+            sortable: false,
+            styling: {
+                containerStyles: [styles.mnw0],
+            },
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.lastSyncedText, fontSize: fontScale.text}],
+                shouldFitContent: true,
+            },
+        },
+        {
             key: 'actions',
             label: '',
             sortable: false,
@@ -278,6 +291,8 @@ function WorkspaceCompanyCardsTable({
         },
     ];
 
+    const unavailableSyncText = translate('common.na');
+    const neverSyncedText = translate('workspace.moreFeatures.companyCards.neverUpdated');
     const cardsData: WorkspaceCompanyCardTableItemData[] = isLoadingOnyxCardList
         ? []
         : (companyCardEntries ?? [])
@@ -297,6 +312,15 @@ function WorkspaceCompanyCardsTable({
                   const hasVisibleCardErrors = !isEmptyObject(cardErrors ?? {});
                   const rowErrors = hasTransactionStartDateErrors ? {...cardErrors, ...transactionStartDateErrors} : cardErrors;
 
+                  // Keep the last successful sync visible even while a new attempt is pending or has failed.
+                  const lastSyncedDate = isAssigned && assignedCard?.lastScrape ? getLocalDateFromDatetime(assignedCard.lastScrape) : undefined;
+                  let lastSyncedText = unavailableSyncText;
+                  if (isAssigned && !assignedCard?.lastScrape) {
+                      lastSyncedText = neverSyncedText;
+                  } else if (lastSyncedDate && isValid(lastSyncedDate)) {
+                      lastSyncedText = format(lastSyncedDate, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+                  }
+
                   return {
                       cardName,
                       keyForList: `${cardName}_${cardID ?? 'unassigned'}_${encryptedCardNumber}`,
@@ -306,6 +330,7 @@ function WorkspaceCompanyCardsTable({
                       disabled: isCardDeleted,
                       isAssigned,
                       assignedCard,
+                      lastSyncedText,
                       cardholder,
                       // Unassigned cards have no details page and so no Accounting section to match, hence no title.
                       exportAccountTitle: shouldShowExportAccountColumn && assignedCard ? getCardExportAccountTitle(cardExportSettings, assignedCard) : undefined,

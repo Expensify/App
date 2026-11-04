@@ -7279,6 +7279,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 integrationExportTitle: (integration: string, exportPageLink?: string) =>
                     `Choisissez le compte ${integration} vers lequel les transactions doivent être exportées.${exportPageLink ? ` Sélectionnez une autre <a href="${exportPageLink}">option d’exportation</a> pour modifier les comptes disponibles.` : ''}`,
                 lastUpdated: 'Dernière mise à jour',
+                lastSynced: 'Dernière synchronisation',
+                lastSuccessfulSync: (value: string) => `Dernière synchronisation réussie : ${value}`,
                 transactionStartDate: 'Date de début de la transaction',
                 bulkUpdateTransactionStartDate: 'Mettre à jour la date de début de la transaction',
                 updateCard: 'Mettre à jour la carte',
