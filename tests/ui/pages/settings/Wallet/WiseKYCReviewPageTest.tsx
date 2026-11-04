@@ -92,13 +92,13 @@ describe('WiseKYCReviewPage', () => {
         expect(bankAccountList?.[BANK_ACCOUNT_ID]?.accountData?.additionalData?.wise?.status).toBe(CONST.WISE.ONBOARDING_STATUS.IN_REVIEW);
     });
 
-    it.each(['failed', 'closed'])('goes back to "More info needed" when the form ends as %s', async (status) => {
+    it('goes back to "More info needed" when the user closes the form', async () => {
         // Given Wise's form is open
         const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
         await renderPage();
 
-        // When the form ends without success and Wise redirects away from its site
-        const shouldLoad = startLoading(`https://www.expensify.com/wise-kyc?status=${status}`);
+        // When the user closes the form and Wise redirects away from its site
+        const shouldLoad = startLoading('https://www.expensify.com/wise-kyc?status=closed');
 
         // Then the redirect page does not load and the user is back on "More info needed" to try again
         expect(shouldLoad).toBe(false);

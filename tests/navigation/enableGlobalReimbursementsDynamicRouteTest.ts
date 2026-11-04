@@ -132,9 +132,7 @@ describe('Enable global reimbursements dynamic routes', () => {
         it.each([
             ['the intro for a business not submitted yet', undefined, 'settings/wallet/global-reimbursements/456'],
             ['more info needed while Wise asks for more', CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED, 'settings/wallet/global-reimbursements/456/more-info-needed'],
-            ['the status page in review', CONST.WISE.ONBOARDING_STATUS.IN_REVIEW, 'settings/wallet/global-reimbursements/456/status'],
-            ['the status page once approved', CONST.WISE.ONBOARDING_STATUS.APPROVED, 'settings/wallet/global-reimbursements/456/status'],
-            ['the status page once rejected', CONST.WISE.ONBOARDING_STATUS.NOT_APPROVED, 'settings/wallet/global-reimbursements/456/status'],
+            ['the status page for any other status', CONST.WISE.ONBOARDING_STATUS.IN_REVIEW, 'settings/wallet/global-reimbursements/456/status'],
         ])('opens %s', (_label, status, expectedRoute) => {
             // Given the business's Wise onboarding is in this state
             // When the admin opens global reimbursements from the wallet

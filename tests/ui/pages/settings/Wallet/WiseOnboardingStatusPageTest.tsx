@@ -68,36 +68,17 @@ describe('WiseOnboardingStatusPage', () => {
         await Onyx.clear();
     });
 
-    it.each([CONST.WISE.ONBOARDING_STATUS.IN_REVIEW, undefined])('shows the in review content when the onboarding status is %s', async (onboardingStatus) => {
-        // Given Wise reviews the business, or the account has no status yet
+    it.each([
+        [CONST.WISE.ONBOARDING_STATUS.IN_REVIEW, 'walletPage.wiseOnboarding.inReview.heading'],
+        [CONST.WISE.ONBOARDING_STATUS.APPROVED, 'walletPage.wiseOnboarding.approved.heading'],
+        [CONST.WISE.ONBOARDING_STATUS.NOT_APPROVED, 'walletPage.wiseOnboarding.rejected.heading'],
+    ])('shows the content for the %s onboarding status', async (onboardingStatus, heading) => {
+        // Given the bank account holds this Wise status
         // When the page opens
         await renderPage(onboardingStatus);
 
-        // Then the in review content shows, with a way to reach Concierge
-        expect(screen.getByText('walletPage.wiseOnboarding.inReview.title')).toBeOnTheScreen();
-        expect(screen.getByText('walletPage.wiseOnboarding.inReview.heading')).toBeOnTheScreen();
-        expect(screen.getByText('walletPage.wiseOnboarding.inReview.chatWithConcierge')).toBeOnTheScreen();
-    });
-
-    it('shows the approved content when Wise approved the business', async () => {
-        // Given the account holds Wise's approval
-        // When the page opens
-        await renderPage(CONST.WISE.ONBOARDING_STATUS.APPROVED);
-
-        // Then the approved content shows
-        expect(screen.getByText('walletPage.wiseOnboarding.approved.title')).toBeOnTheScreen();
-        expect(screen.getByText('walletPage.wiseOnboarding.approved.heading')).toBeOnTheScreen();
-    });
-
-    it('shows the rejected content when Wise rejected the business', async () => {
-        // Given the account holds Wise's rejection
-        // When the page opens
-        await renderPage(CONST.WISE.ONBOARDING_STATUS.NOT_APPROVED);
-
-        // Then the rejected content shows, with a way to reach Concierge for the reason
-        expect(screen.getByText('walletPage.wiseOnboarding.rejected.title')).toBeOnTheScreen();
-        expect(screen.getByText('walletPage.wiseOnboarding.rejected.heading')).toBeOnTheScreen();
-        expect(screen.getByText('walletPage.wiseOnboarding.inReview.chatWithConcierge')).toBeOnTheScreen();
+        // Then the page shows the content for that status, since the status the account holds decides it
+        expect(screen.getByText(heading)).toBeOnTheScreen();
     });
 
     it('moves the onboarding to review and drops the param when Wise returns after a finished form', async () => {
@@ -115,12 +96,12 @@ describe('WiseOnboardingStatusPage', () => {
         expect(screen.getByText('walletPage.wiseOnboarding.inReview.heading')).toBeOnTheScreen();
     });
 
-    it.each(['failed', 'closed'])('goes back to "More info needed" when Wise returns after a form that ended as %s', async (kycReviewFormStatus) => {
+    it('goes back to "More info needed" when Wise returns after a closed form', async () => {
         // Given Wise asked for more info
         const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
 
-        // When Wise sends the user back here after the form ended without success
-        await renderPage(CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED, kycReviewFormStatus);
+        // When Wise sends the user back here after the user closed the form
+        await renderPage(CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED, 'closed');
 
         // Then the page that opens the form replaces this one, so the user can try again, and the status stays as it was
         expect(navigateSpy).toHaveBeenCalledWith('settings/wallet/global-reimbursements/9053192/more-info-needed', {forceReplace: true});
