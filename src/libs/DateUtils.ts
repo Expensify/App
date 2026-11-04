@@ -800,6 +800,29 @@ function formatWithUTCTimeZone(datetime: string, dateFormat: string, dateFnsLoca
 }
 
 /**
+ * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language.
+ */
+const memoizedCreateLongDateInUTCFormatter = memoize((localeCode: string) => new Intl.DateTimeFormat(localeCode, {year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC'}));
+
+/**
+ * Formats a UTC datetime or calendar date as a long date without moving the day to the device's timezone.
+ *
+ * A hand-written `MMMM d, yyyy` fixes the US component order, so German showed its month name before the day and
+ * Spanish lost the `de` it writes between the parts of a date. `Intl` orders the date the way each language does, and
+ * its English output matches the old pattern.
+ *
+ * @returns June 20, 2026
+ */
+function formatToLongDateInUTC(datetime: string, dateFnsLocale: DateFnsLocale | undefined): string {
+    const date = toDate(datetime, {timeZone: 'UTC'});
+    if (!isValid(date)) {
+        return '';
+    }
+    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
+    return memoizedCreateLongDateInUTCFormatter(dateFnsLocale?.code ?? 'en-US').format(date);
+}
+
+/**
  *
  * Format a date using the UTC timezone, for machine-readable output only (e.g. yyyy-MM-dd sent to the API or used as a
  * key). Anything a user reads must go through `formatWithUTCTimeZone` so it follows their language.
@@ -1348,6 +1371,7 @@ const DateUtils = {
     getMonthNames,
     getDaysOfWeek,
     formatWithUTCTimeZone,
+    formatToLongDateInUTC,
     formatMachineDateWithUTCTimeZone,
     getWeekEndsOn,
     isTimeAtLeastOneMinuteInFuture,

@@ -47,7 +47,7 @@ jest.mock('@libs/actions/connections', () => ({
     },
 }));
 jest.mock('@libs/CardUtils', () => ({isExpensifyCardFullySetUp: () => false}));
-jest.mock('@libs/DateUtils', () => ({formatWithUTCTimeZone: jest.fn()}));
+jest.mock('@libs/DateUtils', () => ({formatToLongDateInUTC: jest.fn()}));
 jest.mock('@libs/Environment/Environment', () => ({
     getEnvironmentURL: () => Promise.resolve(''),
     getOldDotURLFromEnvironment: () => '',

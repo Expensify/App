@@ -291,7 +291,7 @@ function formatViolationDate(date: string | undefined, dateFnsLocale: DateFnsLoc
         return undefined;
     }
 
-    return DateUtils.formatWithUTCTimeZone(date, CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale);
+    return DateUtils.formatToLongDateInUTC(date, dateFnsLocale);
 }
 
 const RULE_VIOLATION_FILTER_ORDER = [

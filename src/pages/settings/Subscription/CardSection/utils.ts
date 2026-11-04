@@ -79,8 +79,8 @@ function getBillingStatus({
 
     const endDate = ownerTravelBillingGracePeriodEnd ?? ownerBillingGracePeriodEnd;
 
-    // formatWithUTCTimeZone parses ISO 8601, so an RFC 1123 string from toUTCString would silently format as empty
-    const endDateFormatted = endDate ? DateUtils.formatWithUTCTimeZone(fromUnixTime(endDate).toISOString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale) : null;
+    // formatToLongDateInUTC parses ISO 8601, so an RFC 1123 string from toUTCString would silently format as empty
+    const endDateFormatted = endDate ? DateUtils.formatToLongDateInUTC(fromUnixTime(endDate).toISOString(), dateFnsLocale) : null;
 
     const isCurrentCardExpired = DateUtils.isCardExpired(accountData?.cardMonth ?? 0, accountData?.cardYear ?? 0);
 
@@ -88,7 +88,7 @@ function getBillingStatus({
     const purchaseCurrency = purchase?.currency;
     const purchaseDate = purchase?.created;
     const isBillingFailed = purchase?.message.billingType === CONST.BILLING.TYPE_FAILED_2018;
-    const purchaseDateFormatted = purchaseDate ? DateUtils.formatWithUTCTimeZone(purchaseDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale) : undefined;
+    const purchaseDateFormatted = purchaseDate ? DateUtils.formatToLongDateInUTC(purchaseDate, dateFnsLocale) : undefined;
     const purchaseAmountWithCurrency = convertAmountToDisplayString(purchaseAmount, purchaseCurrency);
 
     switch (subscriptionStatus?.status) {

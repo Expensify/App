@@ -145,7 +145,7 @@ function buildQBOPolicy(refreshTokenExpiresAt: Date, isAuthenticationError = fal
 }
 
 function formatExpiryDate(expiryDate: Date): string {
-    return DateUtils.formatWithUTCTimeZone(expiryDate.toISOString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT, undefined);
+    return DateUtils.formatToLongDateInUTC(expiryDate.toISOString(), undefined);
 }
 
 async function renderPage(PageUnderTest: React.ComponentType<{policy: Policy}>, policy: Policy) {
