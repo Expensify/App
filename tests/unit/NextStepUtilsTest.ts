@@ -1278,6 +1278,39 @@ describe('libs/NextStepUtils', () => {
             expect(message).toBe(`<next-step>Waiting for formatted:${phoneActorLogin} to submit expenses.</next-step>`);
         });
 
+        it.each([CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL, CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID])(
+            'appends the %s timing after the next step message',
+            (autoExportMessageKey) => {
+                // Given a next step from a workspace that auto-exports
+                const nextStep: ReportNextStep = {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
+                    icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+                    autoExport: {messageKey: autoExportMessageKey},
+                };
+
+                // When the message is built
+                const message = buildNextStepMessage(nextStep, translateLocal, undefined, 999999, formatPhoneNumber);
+
+                // Then the export timing follows the main message
+                expect(message).toBe(`<next-step>nextStep.message.noFurtherAction nextStep.autoExport.${autoExportMessageKey}</next-step>`);
+            },
+        );
+
+        it.each([undefined, null])('leaves the message unchanged when the auto-export timing is %s', (autoExport) => {
+            // Given a next step without an export timing, which the backend sends as null to clear an earlier one
+            const nextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
+                icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+                autoExport,
+            };
+
+            // When the message is built
+            const message = buildNextStepMessage(nextStep, translateLocal, undefined, 999999, formatPhoneNumber);
+
+            // Then nothing is appended to it
+            expect(message).toBe('<next-step>nextStep.message.noFurtherAction</next-step>');
+        });
+
         it('renders a monthly automatic-submit eta using the day-of-month it encodes, not one shifted by UTC parsing', () => {
             // A date-only `eta.dateTime` must render as the same day it encodes regardless of the browser timezone.
             // Native `new Date('2026-08-15')` parses as UTC midnight and shows the 14th in UTC-negative timezones;
@@ -1520,6 +1553,95 @@ describe('libs/NextStepUtils', () => {
             });
 
             expect(result?.messageKey).toBe(CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT);
+        });
+
+        it.each([
+            {
+                description: 'clears the after-final-approval export timing on final approval',
+                autoExportMessageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL,
+                predictedNextStatus: CONST.REPORT.STATUS_NUM.APPROVED,
+                total: -500,
+                shouldKeepAutoExport: false,
+            },
+            {
+                description: 'keeps the when-paid export timing on final approval',
+                autoExportMessageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID,
+                predictedNextStatus: CONST.REPORT.STATUS_NUM.APPROVED,
+                total: -500,
+                shouldKeepAutoExport: true,
+            },
+            {
+                description: 'clears the when-paid export timing on final approval when there is no reimbursable spend',
+                autoExportMessageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID,
+                predictedNextStatus: CONST.REPORT.STATUS_NUM.APPROVED,
+                total: 0,
+                shouldKeepAutoExport: false,
+            },
+            {
+                description: 'clears the when-paid export timing on payment',
+                autoExportMessageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID,
+                predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                total: -500,
+                shouldKeepAutoExport: false,
+            },
+            {
+                description: 'clears the export timing when the report goes back to open, like on retract or reject',
+                autoExportMessageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID,
+                predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
+                total: -500,
+                shouldKeepAutoExport: false,
+            },
+            {
+                description: 'clears the export timing when the report is closed',
+                autoExportMessageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL,
+                predictedNextStatus: CONST.REPORT.STATUS_NUM.CLOSED,
+                total: -500,
+                shouldKeepAutoExport: false,
+            },
+            {
+                description: 'keeps the after-final-approval export timing when the report moves to its next approver',
+                autoExportMessageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL,
+                predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                total: -500,
+                shouldKeepAutoExport: true,
+            },
+        ])('$description', ({autoExportMessageKey, predictedNextStatus, total, shouldKeepAutoExport}) => {
+            // Given a submitted report whose next step from the server includes an export timing
+            const report: Report = {
+                ...getOpenSubmitAndCloseReport(),
+                total,
+                reimbursableTotal: total,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                nextStep: {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    autoExport: {messageKey: autoExportMessageKey},
+                },
+            };
+
+            // When the optimistic next step is built for the report's next status
+            const result = buildOptimisticNextStep({
+                rules: undefined,
+                report,
+                policy,
+                currentUserAccountIDParam: currentUserAccountID,
+                currentUserEmailParam: currentUserEmail,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                predictedNextStatus,
+                shouldFixViolations: false,
+                isUnapprove: false,
+                isReopen: false,
+                isTrackIntentUser: false,
+            });
+
+            // Then the timing is either left out, so merging keeps the server's value, or cleared alongside the rest of the step
+            if (shouldKeepAutoExport) {
+                expect(result).not.toHaveProperty('autoExport');
+            } else {
+                expect(result?.autoExport).toBeNull();
+            }
         });
     });
 });

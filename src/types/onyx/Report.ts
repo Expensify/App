@@ -84,6 +84,11 @@ type ReportNextStep = {
 
     /** Currency the submitter's deposit account must use for direct reimbursement, named in the waitingForSubmitterAccount copy */
     requiredDepositCurrency?: string;
+
+    /** Only set while the report waits for final approval or payment on a workspace that auto-exports */
+    autoExport?: {
+        messageKey: ValueOf<typeof CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY>;
+    } | null;
 };
 
 /** Model of report data */
