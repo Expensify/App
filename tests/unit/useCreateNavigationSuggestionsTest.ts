@@ -59,7 +59,7 @@ jest.mock('@hooks/useCurrencyList', () => ({
     useCurrencyListActions: () => ({getCurrencyDecimals: mockGetCurrencyDecimals}),
 }));
 
-// The real hooks below return the same objects across renders, so their mocks do too.
+// Stable references across renders, like the real hooks.
 const mockIcons = {
     Document: mockIcon,
     Location: mockIcon,
@@ -201,7 +201,7 @@ function setupUseOnyx() {
         [ONYXKEYS.IS_LOADING_APP, false],
     ]);
 
-    // Like Onyx, return the previous selected value while the stored value is unchanged.
+    // Like Onyx, reuse the selected value while the stored value is unchanged.
     const selectedValues = new Map<MockOnyxOptions['selector'], Map<string, {value: unknown; selected: unknown}>>();
     mockUseOnyx.mockImplementation((key, options) => {
         const value = mockOnyxValues.get(key);

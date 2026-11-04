@@ -208,10 +208,10 @@ function useMemoizedLazyIllustrationsImpl(names: readonly IllustrationName[]): R
     }, [namesKey, cachedChunk]);
 
     // Do not wrap this mapping in useMemo — OXC can fuse it into pre-rendered elements (#96158).
-    // Keep the split below the hook calls: an array created above them lives across them, and React Compiler then skips caching the returned object, so consumers get a new one on every render.
+    // Split after the hook calls so React Compiler caches the returned object.
     const icons: Record<string, IconAsset> = {};
     for (const name of namesKey.split(',')) {
-        // State only holds the names requested when it was filled, so names added later are read from the cached chunk.
+        // Names added after state was filled are read from the loaded chunk.
         icons[name] = resolveIconComponent(assets[name] ?? getCachedIllustration(name));
     }
     return icons;
@@ -286,10 +286,10 @@ function useMemoizedLazyExpensifyIconsImpl(names: readonly ExpensifyIconName[]):
     }, [namesKey, cachedChunk]);
 
     // Do not wrap this mapping in useMemo — OXC can fuse it into pre-rendered elements (#96158).
-    // Keep the split below the hook calls: an array created above them lives across them, and React Compiler then skips caching the returned object, so consumers get a new one on every render.
+    // Split after the hook calls so React Compiler caches the returned object.
     const icons: Record<string, IconAsset> = {};
     for (const name of namesKey.split(',')) {
-        // State only holds the names requested when it was filled, so names added later are read from the cached chunk.
+        // Names added after state was filled are read from the loaded chunk.
         icons[name] = resolveIconComponent(assets[name] ?? getCachedExpensifyIcon(name));
     }
     return icons;

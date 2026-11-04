@@ -91,7 +91,7 @@ function openBookTravel(policyID: string | undefined, isTravelEnabled: boolean) 
     Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS.getRoute(policyID));
 }
 
-// Built in a separate hook so React Compiler caches these arrays. Built inside useCreateNavigationSuggestions, they would stay live across the useCreateReport call, and the compiler would then rebuild the returned items on every render.
+// Own hook so React Compiler caches these arrays and the items built from them.
 function useCreateNavigationMatchTerms() {
     const {translate} = useLocalize();
 
