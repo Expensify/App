@@ -303,7 +303,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
                                                         ref={actionButtonRef}
                                                         accessibilityLabel={translate('accessibilityHints.openActionsMenu')}
                                                         role={CONST.ROLE.BUTTON}
-                                                        sentryLabel="ConciergePromptBox-AddAttachment"
+                                                        sentryLabel={CONST.SENTRY_LABEL.CONCIERGE_PROMPT_BOX.ADD_ATTACHMENT}
                                                         disabled={!canAddAttachment}
                                                         onPress={(e) => {
                                                             e?.preventDefault();
@@ -363,7 +363,12 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
                             <View style={styles.conciergePromptBoxButtonSpacer} />
                         </View>
                     </View>
-                    <View style={[StyleUtils.getContainerComposeStyles(), styles.pRelative]}>
+                    <View
+                        style={[StyleUtils.getContainerComposeStyles(), styles.pRelative]}
+                        // Composer can't take a sentryLabel, so the label sits on its wrapper, which Sentry and FullStory find from the input.
+                        // sentryLabelExact makes Sentry report every click inside the composer with just the label, whichever inner element was hit.
+                        dataSet={{sentryLabel: CONST.SENTRY_LABEL.CONCIERGE_PROMPT_BOX.INPUT, sentryLabelExact: true}}
+                    >
                         <Composer
                             ref={setComposerRef}
                             style={[styles.textInputCompose, styles.textInputCollapseCompose]}
@@ -442,7 +447,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
                     <View style={styles.justifyContentEnd}>
                         <SubmitDraftButton
                             accessibilityLabel={translate('common.send')}
-                            sentryLabel="ConciergePromptBox-Send"
+                            sentryLabel={CONST.SENTRY_LABEL.CONCIERGE_PROMPT_BOX.SEND}
                             isDisabled={!canSubmit}
                             icon={icons.Send}
                             label={translate('common.send')}

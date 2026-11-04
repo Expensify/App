@@ -46,7 +46,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ExpenseRuleForm, FlagForReviewRuleForm, MerchantRuleForm, MerchantTypeRuleForm, RequireFieldsRuleForm, SpendRuleForm} from '@src/types/form';
-import type {AppReview, Beta, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, NewLogin, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {AppReview, Beta, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, NewLogin, ReportAttributesDerivedValue, Session} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {AnyOnyxServerUpdate, OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
@@ -1193,9 +1193,9 @@ function setContactMethodAsDefault(
     }
 }
 
-function updateTheme(theme: ValueOf<typeof CONST.THEME>, shouldGoBack = true) {
+function updateTheme(theme: ValueOf<typeof CONST.THEME>, shouldGoBack: boolean, session: OnyxEntry<Session>) {
     // When toggling high contrast from the sign-in page, the user is not signed in. So persist the preference locally only.
-    if (!sessionAccountID || isAnonymousUser()) {
+    if (!sessionAccountID || isAnonymousUser(session)) {
         Onyx.set(ONYXKEYS.PREFERRED_THEME, theme);
         return;
     }

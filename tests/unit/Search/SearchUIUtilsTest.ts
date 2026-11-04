@@ -756,6 +756,38 @@ const searchResultsGroupByCategory: OnyxTypes.SearchResults = {
     },
 };
 
+const groupedApproverAccountID = 22982540;
+const searchResultsGroupByApprover: OnyxTypes.SearchResults = {
+    data: {
+        personalDetailsList: {
+            [groupedApproverAccountID]: {
+                accountID: groupedApproverAccountID,
+                displayName: 'Approver',
+                login: 'approver@policy.com',
+            },
+        },
+        [`${CONST.SEARCH.GROUP_PREFIX}${groupedApproverAccountID}` as const]: {
+            accountID: groupedApproverAccountID,
+            count: 3,
+            currency: 'USD',
+            total: 150,
+        },
+    },
+    search: {
+        count: 3,
+        currency: 'USD',
+        hasMoreResults: false,
+        hasResults: true,
+        offset: 0,
+        hash: 0,
+        sortBy: 'date',
+        sortOrder: 'desc',
+        total: 150,
+        isLoading: false,
+        type: 'expense',
+    },
+};
+
 const withoutReportActionErrors = <T extends OnyxTypes.ReportAction>(reportAction: T): Omit<T, 'errors'> => {
     const reportActionWithoutErrors = {...reportAction};
     delete reportActionWithoutErrors.errors;
@@ -884,7 +916,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         cardID: undefined,
         cardName: undefined,
         category: '',
-        comment: {comment: ''},
+        comment: {comment: '', attendees: []},
         created: '2024-12-21',
         submitted: '',
         approved: '',
@@ -951,7 +983,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         cardID: undefined,
         cardName: undefined,
         category: '',
-        comment: {comment: ''},
+        comment: {comment: '', attendees: []},
         created: '2024-12-21',
         submitted: '2024-12-21 13:05:20',
         approved: '',
@@ -1028,7 +1060,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         cardID: undefined,
         cardName: undefined,
         category: '',
-        comment: {comment: ''},
+        comment: {comment: '', attendees: []},
         created: '2025-03-05',
         submitted: '2025-03-05',
         approved: '',
@@ -1100,7 +1132,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         cardID: undefined,
         cardName: undefined,
         category: '',
-        comment: {comment: ''},
+        comment: {comment: '', attendees: []},
         created: '2025-03-05',
         submitted: '2025-03-05',
         approved: '',
@@ -4052,6 +4084,50 @@ describe('SearchUIUtils', () => {
             expect(categorySection.transactionsQueryJSON?.inputQuery).not.toContain('limit:');
         });
 
+        it('should build an approver drill-down for an approver group', () => {
+            // Given an approver-grouped query whose limit is meant to bound how many groups are shown
+            const parsedQuery = buildSearchQueryJSON(`type:expense group-by:${CONST.SEARCH.GROUP_BY.APPROVER} limit:10`);
+            if (!parsedQuery) {
+                throw new Error('Failed to parse approver grouped search query');
+            }
+            expect(parsedQuery.limit).toBe(10);
+
+            // When the approver sections are built
+            const [sections] = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data: searchResultsGroupByApprover.data,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    groupBy: CONST.SEARCH.GROUP_BY.APPROVER,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                    queryJSON: {...parsedQuery},
+                }),
+                SearchUIUtils.isTransactionApproverGroupListItemType,
+            );
+
+            // Then the per-group query drops the grouping and limit, and filters by the approver as a syntax filter
+            const approverSection = sections.at(0);
+            if (!approverSection) {
+                throw new Error('Expected an approver group section');
+            }
+            expect(approverSection.transactionsQueryJSON?.groupBy).toBeUndefined();
+            expect(approverSection.transactionsQueryJSON?.limit).toBeUndefined();
+            expect(approverSection.transactionsQueryJSON?.inputQuery).not.toContain('limit:');
+            expect(approverSection.transactionsQueryJSON?.filters).toEqual({
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER,
+                right: String(groupedApproverAccountID),
+            });
+        });
+
         // Every date granularity drills down through the same `buildDateRangeGroupQuery` builder, so they are
         // covered together: a regression that reintroduced `limit` in that one builder would break all five.
         it.each([
@@ -4748,6 +4824,7 @@ describe('SearchUIUtils', () => {
                     [CONST.SEARCH.DATE_PRESETS.THIS_QUARTER, {start: '2026-01-01', end: '2026-03-31'}],
                     [CONST.SEARCH.DATE_PRESETS.LAST_QUARTER, {start: '2025-10-01', end: '2025-12-31'}],
                     [CONST.SEARCH.DATE_PRESETS.THIS_YEAR, {start: '2026-01-01', end: '2026-12-31'}],
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE, {start: '2026-01-01', end: '2026-12-31'}],
                     [CONST.SEARCH.DATE_PRESETS.LAST_YEAR, {start: '2025-01-01', end: '2025-12-31'}],
                     [CONST.SEARCH.DATE_PRESETS.LAST_30_DAYS, {start: '2026-01-17', end: '2026-02-15'}],
                     [CONST.SEARCH.DATE_PRESETS.LAST_90_DAYS, {start: '2025-11-18', end: '2026-02-15'}],
@@ -4758,7 +4835,8 @@ describe('SearchUIUtils', () => {
                     // When each preset is resolved
                     const range = getDateRangeForPreset(preset);
 
-                    // Then current periods run to the end of the period, previous periods cover the whole period, and rolling day ranges end today
+                    // Then current periods run to the end of the period, previous periods cover the whole period, rolling day ranges end today,
+                    // and the deprecated year to date matches this year
                     expect(range).toEqual(expectedRange);
                 }
             });
@@ -10000,6 +10078,13 @@ describe('SearchUIUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     approver: adminEmail,
                     exporter: adminEmail,
+                    // The export suggestion needs a connection whose exporter is this user
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            lastSync: {isConnected: true, isSuccessful: true, isAuthenticationError: false, source: 'DIRECT'},
+                            config: {export: {exporter: adminEmail}},
+                        },
+                    }),
                     achAccount: {
                         bankAccountID: 1,
                         reimburser: adminEmail,
@@ -10103,6 +10188,13 @@ describe('SearchUIUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     approver: adminEmail,
                     exporter: adminEmail,
+                    // The export suggestion needs a connection whose exporter is this user
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            lastSync: {isConnected: true, isSuccessful: true, isAuthenticationError: false, source: 'DIRECT'},
+                            config: {export: {exporter: adminEmail}},
+                        },
+                    }),
                     areWorkflowsEnabled: false,
                     achAccount: {
                         bankAccountID: 1,
@@ -10174,6 +10266,13 @@ describe('SearchUIUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     approver: adminEmail,
                     exporter: adminEmail,
+                    // The export suggestion needs a connection whose exporter is this user
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            lastSync: {isConnected: true, isSuccessful: true, isAuthenticationError: false, source: 'DIRECT'},
+                            config: {export: {exporter: adminEmail}},
+                        },
+                    }),
                     areWorkflowsEnabled: true,
                     achAccount: {
                         bankAccountID: 1,
@@ -10874,6 +10973,168 @@ describe('SearchUIUtils', () => {
             expect(visibility[CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]).toBe(false);
         });
 
+        it('should show Card accruals, Card statements, and Expensify Card reconciliation, but no Cash accruals, to a Card Admin', () => {
+            // Given a Card Admin on a workspace with approvals, ACH reimbursement, Expensify Cards, and a card feed
+            const cardAdminEmail = 'cardadmin@policy.com';
+            const mockPolicies = {
+                policy1: {
+                    id: 'policy1',
+                    name: 'Card Admin Policy',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    role: CONST.POLICY.ROLE.CARD_ADMIN,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    areExpensifyCardsEnabled: true,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    achAccount: {
+                        bankAccountID: 1234,
+                        reimburser: adminEmail,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        accountNumber: '1234567890',
+                        routingNumber: '1234567890',
+                        addressName: 'Test Address',
+                        bankName: 'Test Bank',
+                    },
+                },
+            };
+            const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {
+                policy1: [
+                    {
+                        id: 'card1',
+                        feed: 'Expensify Card' as const,
+                        fundID: 'fund1',
+                        name: 'Test Card Feed',
+                    },
+                ],
+            };
+
+            // When the suggested searches are computed for that Card Admin
+            const {visibility, shouldShowExpensifyCard} = SearchUIUtils.getSuggestedSearchesVisibility(cardAdminEmail, mockCardFeedsByPolicy, mockPolicies, undefined);
+            const sections = SearchUIUtils.createTypeMenuSections({
+                currentUserEmail: cardAdminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: mockCardFeedsByPolicy,
+                defaultCardFeed: undefined,
+                policies: mockPolicies,
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                draftTransactionIDs: [],
+                isTrackIntentUser: false,
+            });
+            const reconciliationItem = sections.flatMap((section) => section.menuItems).find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
+
+            // Then the role gets the card searches it manages, with reconciliation opening on the Expensify Card, while
+            // Cash accruals stays limited to roles that see reimbursements
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]).toBe(true);
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.STATEMENTS]).toBe(true);
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]).toBe(true);
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]).toBe(false);
+            expect(shouldShowExpensifyCard).toBe(true);
+            expect(reconciliationItem?.searchQuery).toContain('withdrawalType:expensify-card');
+        });
+
+        it('should hide Bank reconciliation from a Card Admin when the workspace only has company cards', () => {
+            // Given a Card Admin on a workspace with approvals and a company card feed, but no Expensify Cards
+            const cardAdminEmail = 'cardadmin@policy.com';
+            const mockPolicies = {
+                policy1: {
+                    id: 'policy1',
+                    name: 'Card Admin Policy',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    role: CONST.POLICY.ROLE.CARD_ADMIN,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    areCompanyCardsEnabled: true,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    achAccount: {
+                        bankAccountID: 1234,
+                        reimburser: adminEmail,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        accountNumber: '1234567890',
+                        routingNumber: '1234567890',
+                        addressName: 'Test Address',
+                        bankName: 'Test Bank',
+                    },
+                },
+            };
+            const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {
+                policy1: [
+                    {
+                        id: 'companyCard1',
+                        feed: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                        fundID: 'fund1',
+                        name: 'Company Card Feed',
+                    },
+                ],
+            };
+
+            // When the suggested searches are computed for that Card Admin
+            const {visibility} = SearchUIUtils.getSuggestedSearchesVisibility(cardAdminEmail, mockCardFeedsByPolicy, mockPolicies, undefined);
+
+            // Then the card searches still show, but Bank reconciliation has no Expensify Card withdrawals to show the role
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]).toBe(true);
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.STATEMENTS]).toBe(true);
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]).toBe(false);
+        });
+
+        it('should keep every accounting search for a user who is an Admin on one workspace and a Card Admin on another', () => {
+            // Given an Admin of a workspace with ACH reimbursement who is also a Card Admin on a workspace with Expensify Cards
+            const mockPolicies = {
+                policy1: {
+                    id: 'policy1',
+                    name: 'Admin Policy',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    achAccount: {
+                        bankAccountID: 1234,
+                        reimburser: adminEmail,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        accountNumber: '1234567890',
+                        routingNumber: '1234567890',
+                        addressName: 'Test Address',
+                        bankName: 'Test Bank',
+                    },
+                },
+                policy2: {
+                    id: 'policy2',
+                    name: 'Card Admin Policy',
+                    owner: 'owner@policy.com',
+                    outputCurrency: 'USD',
+                    role: CONST.POLICY.ROLE.CARD_ADMIN,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    areExpensifyCardsEnabled: true,
+                },
+            };
+            const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {
+                policy2: [
+                    {
+                        id: 'card1',
+                        feed: 'Expensify Card' as const,
+                        fundID: 'fund1',
+                        name: 'Test Card Feed',
+                    },
+                ],
+            };
+
+            // When the suggested searches are computed for that user
+            const {visibility, shouldShowExpensifyCard} = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, mockCardFeedsByPolicy, mockPolicies, undefined);
+
+            // Then the Card Admin role adds the card searches without hiding the Admin's reimbursement searches
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]).toBe(true);
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]).toBe(true);
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.STATEMENTS]).toBe(true);
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]).toBe(true);
+            expect(shouldShowExpensifyCard).toBe(true);
+        });
+
         it('should place todo items (submit, approve, pay) inside the Expense reports section', () => {
             const mockPolicies = {
                 policy1: {
@@ -10886,6 +11147,13 @@ describe('SearchUIUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     approver: adminEmail,
                     exporter: adminEmail,
+                    // The export suggestion needs a connection whose exporter is this user
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            lastSync: {isConnected: true, isSuccessful: true, isAuthenticationError: false, source: 'DIRECT'},
+                            config: {export: {exporter: adminEmail}},
+                        },
+                    }),
                     achAccount: {
                         bankAccountID: 1,
                         reimburser: adminEmail,
@@ -10958,6 +11226,13 @@ describe('SearchUIUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     approver: adminEmail,
                     exporter: adminEmail,
+                    // The export suggestion needs a connection whose exporter is this user
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            lastSync: {isConnected: true, isSuccessful: true, isAuthenticationError: false, source: 'DIRECT'},
+                            config: {export: {exporter: adminEmail}},
+                        },
+                    }),
                     areExpensifyCardsEnabled: true,
                     areCompanyCardsEnabled: true,
                     achAccount: {
@@ -11031,6 +11306,13 @@ describe('SearchUIUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     approver: adminEmail,
                     exporter: adminEmail,
+                    // The export suggestion needs a connection whose exporter is this user
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            lastSync: {isConnected: true, isSuccessful: true, isAuthenticationError: false, source: 'DIRECT'},
+                            config: {export: {exporter: adminEmail}},
+                        },
+                    }),
                     reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                     reimburser: adminEmail,
                     achAccount: {
@@ -11127,6 +11409,13 @@ describe('SearchUIUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     approver: adminEmail,
                     exporter: adminEmail,
+                    // The export suggestion needs a connection whose exporter is this user
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            lastSync: {isConnected: true, isSuccessful: true, isAuthenticationError: false, source: 'DIRECT'},
+                            config: {export: {exporter: adminEmail}},
+                        },
+                    }),
                     reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                     achAccount: {
                         bankAccountID: 1,
@@ -11731,6 +12020,7 @@ describe('SearchUIUtils', () => {
                     connections: createMock<Connections>({
                         [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                             verified: false,
+                            options: {config: {exporter: adminEmail}},
                             lastSync: {
                                 errorDate: new Date().toISOString(),
                                 errorMessage: 'Error',
@@ -11748,6 +12038,8 @@ describe('SearchUIUtils', () => {
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
             expect(response.visibility.export).toBe(false);
 
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            policies[policyKey]!.connections![CONST.POLICY.CONNECTIONS.NAME.NETSUITE]!.verified = true;
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             policies[policyKey]!.connections![CONST.POLICY.CONNECTIONS.NAME.NETSUITE]!.lastSync = {
                 errorDate: '',
@@ -12674,6 +12966,17 @@ describe('SearchUIUtils', () => {
     });
 
     describe('Test getColumnsToShow', () => {
+        test('Should only return default expense columns that the table header renders', () => {
+            // Given the column headings the expense table renders
+            const headerColumns = new Set(getExpenseHeaders().map((header) => header.columnName));
+
+            // When the default expense columns are resolved, with no columns picked
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [createRandomTransaction(1)], type: CONST.SEARCH.DATA_TYPES.EXPENSE});
+
+            // Then each has a heading, since the table is sized from these columns and one that renders nothing leaves empty room in every row
+            expect(columns.filter((column) => !headerColumns.has(column))).toEqual([]);
+        });
+
         test('Should show the vendor column on Search only when picked, and in the report view when an expense has a vendor assigned', () => {
             const transactionWithoutVendor = createRandomTransaction(1);
             const transactionWithVendor = {...createRandomTransaction(2), comment: {vendor: {externalID: 'qbo-1', name: 'Acme Tools', wasManuallySet: true}}};
@@ -15644,6 +15947,21 @@ describe('SearchUIUtils', () => {
             );
         });
 
+        test('omits the cash expense notice that only Classic records', () => {
+            // Given a submit snapshot taken by Classic, which records the cash expense notice next to another violation
+            const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
+                transactions: {
+                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT}, {name: CONST.VIOLATIONS.MISSING_CATEGORY}],
+                },
+            });
+
+            // When the submitted violations column is built for the expense
+            const violations = SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal);
+
+            // Then only the other violation is listed, so the column matches Search, Insights and the CSV export
+            expect(violations).toBe(translateLocal('violations.shortName.missingCategory'));
+        });
+
         test('translates maxAge via violations.shortName', () => {
             const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
                 transactions: {
@@ -15941,6 +16259,102 @@ describe('SearchUIUtils', () => {
                     translateLocal,
                 ),
             ).toBe(`${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.missingTag')}, ${translateLocal('violations.shortName.overLimit')}`);
+        });
+    });
+
+    describe('getGroupColumnWidthFlags', () => {
+        const yearFlags = ['shouldShowYear', 'shouldShowYearSubmitted', 'shouldShowYearApproved', 'shouldShowYearPaid', 'shouldShowYearPosted', 'shouldShowYearExported'] as const;
+        const withoutYear = (transaction: TransactionListItemType): TransactionListItemType => ({
+            ...transaction,
+            ...Object.fromEntries(yearFlags.map((flag) => [flag, false])),
+        });
+
+        it.each(yearFlags)('widens the %s column of an expanded group when one of its transactions needs the year', (flag) => {
+            // Given a group where only the second transaction has a date from a past year in this column, as a group
+            // of expenses paid last year and this year would
+            const transactions = [withoutYear(getTransactionListItem(0)), {...withoutYear(getTransactionListItem(1)), [flag]: true}];
+
+            // When the group's column widths are computed for its rows and its sub-header
+            const flags = SearchUIUtils.getGroupColumnWidthFlags(transactions);
+
+            // Then that date column is wide enough for the year, so the date isn't truncated, and the other date columns stay narrow
+            for (const otherFlag of yearFlags) {
+                expect(flags[otherFlag]).toBe(otherFlag === flag);
+            }
+        });
+
+        it('widens every column once one transaction needs them all, without checking the rest of the group', () => {
+            // Given a group whose first transaction already needs every wide column, followed by one that needs none
+            const widestTransaction = {
+                ...getTransactionListItem(0),
+                ...Object.fromEntries(yearFlags.map((flag) => [flag, true])),
+                isAmountColumnWide: true,
+                isTaxAmountColumnWide: true,
+                isActionColumnWide: true,
+            };
+            const transactions = [widestTransaction, withoutYear(getTransactionListItem(1))];
+
+            // When the group's column widths are computed
+            const flags = SearchUIUtils.getGroupColumnWidthFlags(transactions);
+
+            // Then every column is wide, since a later narrow transaction can't make a column narrow again
+            expect(Object.values(flags).every(Boolean)).toBe(true);
+        });
+
+        it('keeps every date column narrow when all the dates are from this year', () => {
+            // Given a group whose transactions have no date from a past year
+            const transactions = [withoutYear(getTransactionListItem(0)), withoutYear(getTransactionListItem(1))];
+
+            // When the group's column widths are computed
+            const flags = SearchUIUtils.getGroupColumnWidthFlags(transactions);
+
+            // Then no date column reserves room for a year it doesn't show
+            for (const flag of yearFlags) {
+                expect(flags[flag]).toBe(false);
+            }
+        });
+    });
+
+    describe('getGroupTableScrollLayout', () => {
+        const dateColumns = [
+            CONST.SEARCH.TABLE_COLUMNS.DATE,
+            CONST.SEARCH.TABLE_COLUMNS.SUBMITTED,
+            CONST.SEARCH.TABLE_COLUMNS.APPROVED,
+            CONST.SEARCH.TABLE_COLUMNS.PAID,
+            CONST.SEARCH.TABLE_COLUMNS.POSTED,
+            CONST.SEARCH.TABLE_COLUMNS.EXPORTED,
+        ];
+        const narrowFlags = SearchUIUtils.getGroupColumnWidthFlags([]);
+        const wideFlags = {
+            ...narrowFlags,
+            shouldShowYear: true,
+            shouldShowYearSubmitted: true,
+            shouldShowYearApproved: true,
+            shouldShowYearPaid: true,
+            shouldShowYearPosted: true,
+            shouldShowYearExported: true,
+        };
+
+        it('reserves the wide width for date columns that show the year, so the table scrolls before they are clipped', () => {
+            // Given a window that fits the group's date columns at their narrow estimates
+            const narrowLayout = SearchUIUtils.getGroupTableScrollLayout(dateColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, narrowFlags, 10000, true);
+            const windowWidth = narrowLayout.minTableWidth + 1;
+
+            // When the same columns show the year
+            const wideLayout = SearchUIUtils.getGroupTableScrollLayout(dateColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, wideFlags, windowWidth, true);
+
+            // Then each one counts at its wide width, and the table scrolls instead of overflowing the window
+            expect(wideLayout.minTableWidth).toBeGreaterThan(narrowLayout.minTableWidth);
+            expect(wideLayout.shouldScrollHorizontally).toBe(true);
+        });
+
+        it('keeps the existing estimate when no date shows the year', () => {
+            // Given the group's date columns all show this year's dates
+            // When the scroll layout is computed
+            const layout = SearchUIUtils.getGroupTableScrollLayout(dateColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, narrowFlags, 10000, true);
+
+            // Then the minimum width is the same as the shared table estimate, so narrow groups scroll exactly as before
+            expect(layout.minTableWidth).toBe(SearchUIUtils.getTableMinWidth(dateColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, false));
         });
     });
 
@@ -16683,6 +17097,25 @@ describe('hasFilterContentValuesChanged', () => {
     });
 });
 
+describe('getGroupBySections', () => {
+    function getGroupByValues() {
+        return SearchUIUtils.getGroupBySections(translateLocal)
+            .flatMap((section) => section.options)
+            .map((option) => option.value);
+    }
+
+    it('always offers approver grouping alongside from and card', () => {
+        // Given the Display menu group-by sections
+        // When they are built
+        const options = getGroupByValues();
+
+        // Then approver is offered with the other person groupings, with no has-filter requirement
+        expect(options).toContain(CONST.SEARCH.GROUP_BY.FROM);
+        expect(options).toContain(CONST.SEARCH.GROUP_BY.CARD);
+        expect(options).toContain(CONST.SEARCH.GROUP_BY.APPROVER);
+    });
+});
+
 describe('getDatePresets', () => {
     it('offers never for anyApproval', () => {
         // Given anyApproval, where Auth matches never against reports with no approve or forward action
@@ -16695,7 +17128,6 @@ describe('getDatePresets', () => {
             CONST.SEARCH.DATE_PRESETS.THIS_MONTH,
             CONST.SEARCH.DATE_PRESETS.THIS_QUARTER,
             CONST.SEARCH.DATE_PRESETS.THIS_YEAR,
-            CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE,
             CONST.SEARCH.DATE_PRESETS.LAST_WEEK,
             CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
             CONST.SEARCH.DATE_PRESETS.LAST_QUARTER,

@@ -105,6 +105,14 @@ const ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS = [
     SCREENS.WORKSPACE.WORKFLOWS,
 ] as const;
 
+// Every step of the expense default editor is reachable from the workspace Rules flow and from category settings,
+// which enters through its own dynamic route, so each step has to accept both as an entry.
+const EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS = [
+    SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW,
+    SCREENS.WORKSPACE.DYNAMIC_CATEGORY_TAX_RULE_NEW,
+    SCREENS.WORKSPACE.DYNAMIC_CATEGORY_TAX_RULE_EDIT,
+] as const;
+
 const DYNAMIC_ROUTES = {
     VERIFY_ACCOUNT: {
         path: 'verify-account',
@@ -240,7 +248,11 @@ const DYNAMIC_ROUTES = {
     },
     WISE_ACCEPT_TERMS: {
         path: 'accept-terms',
-        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_BUSINESS_ONBOARDING],
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO],
+    },
+    WISE_MORE_INFO_NEEDED: {
+        path: 'more-info-needed',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO],
     },
     BANK_ACCOUNT_LINK_PLAID: {
         path: ':bankAccountID/link-plaid',
@@ -802,6 +814,10 @@ const DYNAMIC_ROUTES = {
         path: 'payable-account/select',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT_EXPENSES],
     },
+    POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_CREDIT_CARD_ACCOUNT_SELECT: {
+        path: 'credit-card-account/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT_EXPENSES],
+    },
     POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_JOURNAL_POSTING_PREFERENCE_SELECT: {
         path: 'journal-posting-preference/select',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT_EXPENSES],
@@ -1105,10 +1121,6 @@ const DYNAMIC_ROUTES = {
         path: 'gl-code',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS],
     },
-    WORKSPACE_CATEGORY_DEFAULT_TAX_RATE: {
-        path: 'tax-rate',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
-    },
     WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER: {
         path: 'flag-amounts',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
@@ -1162,8 +1174,11 @@ const DYNAMIC_ROUTES = {
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_RULES_NEW],
     },
     WORKSPACE_CATEGORY_RULES_TAX_EDIT: {
-        path: 'rules/tax',
+        // A category can hold more than one rule, so the row carries the rule it opens rather than letting the
+        // category name stand in for it.
+        path: 'rules/tax/:ruleID',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
+        getRoute: (ruleID: string) => `rules/tax/${ruleID}` as const,
     },
     RULES_MERCHANT_NEW_FROM_EXPENSE: {
         path: 'merchant-rule/new',
@@ -1173,7 +1188,7 @@ const DYNAMIC_ROUTES = {
     },
     RULES_MERCHANT_MERCHANT_TO_MATCH_FROM_EXPENSE: {
         path: 'rule-merchant-to-match',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
     },
     RULES_MERCHANT_MATCH_TYPE_FROM_EXPENSE: {
         path: 'rule-match-type',
@@ -1181,40 +1196,52 @@ const DYNAMIC_ROUTES = {
     },
     RULES_MERCHANT_MERCHANT_FROM_EXPENSE: {
         path: 'rule-merchant',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
     },
     RULES_MERCHANT_CATEGORY_FROM_EXPENSE: {
         path: 'rule-category',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
     },
     RULES_MERCHANT_TAG_FROM_EXPENSE: {
         path: 'rule-tag/:orderWeight',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
         getRoute: (orderWeight: number) => `rule-tag/${orderWeight}` as const,
     },
     RULES_MERCHANT_TAX_FROM_EXPENSE: {
         path: 'rule-tax',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW, SCREENS.WORKSPACE.DYNAMIC_CATEGORY_TAX_RULE_NEW, SCREENS.WORKSPACE.DYNAMIC_CATEGORY_TAX_RULE_EDIT],
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
     },
     RULES_MERCHANT_VENDOR_FROM_EXPENSE: {
         path: 'rule-vendor',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
     },
     RULES_MERCHANT_DESCRIPTION_FROM_EXPENSE: {
         path: 'rule-description',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
     },
     RULES_MERCHANT_REIMBURSABLE_FROM_EXPENSE: {
         path: 'rule-reimbursable',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
     },
     RULES_MERCHANT_BILLABLE_FROM_EXPENSE: {
         path: 'rule-billable',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+    },
+    RULES_MERCHANT_AMOUNT_FROM_EXPENSE: {
+        path: 'rule-amount',
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+    },
+    RULES_CATEGORY_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-category-to-match',
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+    },
+    RULES_TAG_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-tag-to-match',
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
     },
     RULES_MERCHANT_PREVIEW_MATCHES_FROM_EXPENSE: {
         path: 'rule-matches',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
     },
     NOTIFICATION_PREFERENCES: {
         // `reportID` is intentionally carried as a distinct path param (`notificationReportID`) rather than
@@ -2572,7 +2599,10 @@ const ROUTES = {
     SETTINGS_PAYMENT_CURRENCY: 'setting/preferences/payment-currency',
     SETTINGS_THEME: 'settings/preferences/theme',
     SETTINGS_COPILOT: 'settings/copilot',
-    SETTINGS_SECURITY: 'settings/security',
+    SETTINGS_SECURITY: {
+        route: 'settings/security',
+        getRoute: (forceSetup?: boolean) => `settings/security${forceSetup ? '?forceSetup=true' : ''}` as const,
+    },
     SETTINGS_DEVICE_MANAGEMENT: 'settings/security/device-management',
     SETTINGS_CLOSE: 'settings/security/closeAccount',
     SETTINGS_CLOSE_ACCOUNT_CONFIRM_VALIDATE_CODE: 'settings/security/closeAccount/confirm',
@@ -3191,10 +3221,6 @@ const ROUTES = {
             return getUrlWithBackToParam(`workspaces/${policyID}/overview` as const, backTo);
         },
     },
-    WORKSPACE_ACCOUNTING: {
-        route: 'workspaces/:policyID/accounting',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting` as const,
-    },
     WORKSPACE_OVERVIEW_TIMEZONE: {
         route: 'workspaces/:policyID/overview/timezone',
         getRoute: (policyID: string) => `workspaces/${policyID}/overview/timezone` as const,
@@ -3673,9 +3699,14 @@ const ROUTES = {
             integrationToDisconnect?: ConnectionName,
             shouldDisconnectIntegrationBeforeConnecting?: boolean,
             isIntuitEnterpriseSuite?: boolean,
+            tab?: ValueOf<typeof CONST.TAB.CONNECTIONS>,
         ) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_CONNECTIONS route');
+            }
+
+            if (tab) {
+                return `workspaces/${policyID}/connections?tab=${tab}` as const;
             }
 
             let queryParams = '';
@@ -4142,6 +4173,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/company-cards/settings/statement-close-date',
         getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/settings/statement-close-date` as const,
     },
+    WORKSPACE_COMPANY_CARDS_SETTINGS_REIMBURSABLE: {
+        route: 'workspaces/:policyID/company-cards/settings/reimbursable',
+        getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/settings/reimbursable` as const,
+    },
     WORKSPACE_RULES: {
         route: 'workspaces/:policyID/rules',
         /** @param tab preselects a Rules tab. The page otherwise restores the last one used. */
@@ -4477,10 +4512,6 @@ const ROUTES = {
         route: 'workspaces/:policyID/rules/new',
         getRoute: (policyID: string, categoryName?: string) => `workspaces/${policyID}/rules/new${getOptionalCategoryNameQuery(categoryName)}` as const,
     },
-    RULES_EXPENSE_DEFAULT_TYPE: {
-        route: 'workspaces/:policyID/rules/expense-defaults/new',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/expense-defaults/new` as const,
-    },
     RULES_MERCHANT_NEW: {
         route: 'workspaces/:policyID/rules/merchant-rules/new',
         getRoute: (policyID: string, categoryName?: string) => `workspaces/${policyID}/rules/merchant-rules/new${getOptionalCategoryNameQuery(categoryName)}` as const,
@@ -4547,10 +4578,7 @@ const ROUTES = {
     },
     RULES_MERCHANT_TAX: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/tax',
-        // `categoryName` is set when editing a category tax default, which is identified by its category rather than a
-        // ruleID. It tells the picker to return to that editor instead of the create page.
-        getRoute: (policyID: string, ruleID?: string, categoryName?: string) =>
-            `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/tax${getOptionalCategoryNameQuery(categoryName)}` as const,
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/tax` as const,
     },
     RULES_MERCHANT_VENDOR: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/vendor',
@@ -4568,6 +4596,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/billable',
         getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/billable` as const,
     },
+    RULES_MERCHANT_AMOUNT: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/amount',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/amount` as const,
+    },
     RULES_MERCHANT_EDIT: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID',
         getRoute: (policyID: string, ruleID: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID}` as const,
@@ -4578,13 +4610,11 @@ const ROUTES = {
     },
     RULES_CATEGORY_TO_MATCH: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/category-to-match',
-        // A category tax default has no ruleID, so editing one passes its category for the way back.
-        getRoute: (policyID: string, ruleID?: string, categoryName?: string) =>
-            `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/category-to-match${getOptionalCategoryNameQuery(categoryName)}` as const,
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/category-to-match` as const,
     },
-    RULES_CATEGORY_TAX_EDIT: {
-        route: 'workspaces/:policyID/rules/category-tax-rules/edit/:categoryName',
-        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/rules/category-tax-rules/edit/${encodeURIComponent(categoryName)}` as const,
+    RULES_TAG_TO_MATCH: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/tag-to-match',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/tag-to-match` as const,
     },
     RULES_AGENT_NEW: {
         route: 'workspaces/:policyID/rules/agent-rules/new',
@@ -4721,6 +4751,26 @@ const ROUTES = {
     POLICY_ACCOUNTING_ZOHO_BOOKS_IMPORT: {
         route: 'workspaces/:policyID/accounting/zoho-books/import',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/import` as const,
+    },
+    POLICY_ACCOUNTING_ZOHO_BOOKS_EXPORT: {
+        route: 'workspaces/:policyID/accounting/zoho-books/export',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/export` as const,
+    },
+    POLICY_ACCOUNTING_ZOHO_BOOKS_PREFERRED_EXPORTER: {
+        route: 'workspaces/:policyID/accounting/zoho-books/export/preferred-exporter',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/export/preferred-exporter` as const,
+    },
+    POLICY_ACCOUNTING_ZOHO_BOOKS_VENDOR_BILL_DATE: {
+        route: 'workspaces/:policyID/accounting/zoho-books/export/vendor-bill-date',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/export/vendor-bill-date` as const,
+    },
+    POLICY_ACCOUNTING_ZOHO_BOOKS_DEFAULT_COMPANY_CARD_VENDOR: {
+        route: 'workspaces/:policyID/accounting/zoho-books/export/default-company-card-vendor',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/export/default-company-card-vendor` as const,
+    },
+    POLICY_ACCOUNTING_ZOHO_BOOKS_COMPANY_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/zoho-books/export/company-card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/export/company-card-account` as const,
     },
     POLICY_ACCOUNTING_ZOHO_BOOKS_EXISTING_CONNECTIONS: {
         route: 'workspaces/:policyID/accounting/zoho-books/existing-connections',
@@ -5293,9 +5343,17 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/rillet/export/preferred-exporter',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/preferred-exporter` as const,
     },
-    POLICY_ACCOUNTING_RILLET_VENDOR_BILL_DATE: {
-        route: 'workspaces/:policyID/accounting/rillet/export/vendor-bill-date',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/vendor-bill-date` as const,
+    POLICY_ACCOUNTING_RILLET_REIMBURSABLE: {
+        route: 'workspaces/:policyID/accounting/rillet/export/reimbursable',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/reimbursable` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_REIMBURSEMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/rillet/export/reimbursement-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/reimbursement-account` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_GL_IMPACT_DATE: {
+        route: 'workspaces/:policyID/accounting/rillet/export/gl-impact-date',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/gl-impact-date` as const,
     },
     POLICY_ACCOUNTING_RILLET_COMPANY_CARD_ACCOUNT: {
         route: 'workspaces/:policyID/accounting/rillet/export/company-card-account',
@@ -5329,9 +5387,9 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/rillet/advanced/export-method',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/advanced/export-method` as const,
     },
-    POLICY_ACCOUNTING_RILLET_BILL_PAYMENT_ACCOUNT: {
-        route: 'workspaces/:policyID/accounting/rillet/advanced/bill-payment-account',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/advanced/bill-payment-account` as const,
+    POLICY_ACCOUNTING_RILLET_ACH_PAYMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/rillet/advanced/ach-payment-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/advanced/ach-payment-account` as const,
     },
     POLICY_ACCOUNTING_RILLET_FX_EXPENSE_ACCOUNT: {
         route: 'workspaces/:policyID/accounting/rillet/advanced/fx-expense-account',

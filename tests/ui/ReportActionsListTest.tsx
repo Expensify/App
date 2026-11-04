@@ -275,12 +275,7 @@ const mockReportActions: OnyxTypes.ReportAction[] = [
 
 const renderReportActionsList = (props: {reportID?: string} = {}) => {
     const reportID = props.reportID ?? mockReport.reportID;
-    return render(
-        <ReportActionsList
-            reportID={reportID}
-            conciergeChat={undefined}
-        />,
-    );
+    return render(<ReportActionsList reportID={reportID} />);
 };
 
 // useReportActionsListModel derives app-load state from the request queue via useIsAppLoadPending,
@@ -605,6 +600,10 @@ describe('ReportActionsList (body)', () => {
             });
         });
 
+        afterEach(() => {
+            mockReport.type = undefined;
+        });
+
         const conciergeReply: OnyxTypes.ReportAction = {
             reportID: mockReport.reportID,
             reportActionID: 'concierge-reply',
@@ -628,6 +627,47 @@ describe('ReportActionsList (body)', () => {
             renderReportActionsList();
 
             expect(getRenderedReportActionsListItemProps(conciergeReply).isLatestConciergeFeedbackAction).toBe(true);
+        });
+
+        it('marks a Concierge reply in the transaction thread of a one-expense report', () => {
+            // Given a one-expense report, which shows the comments of its transaction thread that Onyx stores under the thread's reportID
+            const transactionThreadReportID = 'transaction-thread';
+            const transactionID = 'transaction';
+            const expenseAction = {
+                reportID: mockReport.reportID,
+                reportActionID: 'expense',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '2023-01-03',
+                actorAccountID: 123,
+                childReportID: transactionThreadReportID,
+                message: [{type: 'COMMENT', html: '$10.00 expense', text: '$10.00 expense'}],
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: transactionID, IOUReportID: mockReport.reportID, amount: 1000, currency: CONST.CURRENCY.USD},
+                shouldShow: true,
+                pendingAction: null,
+                errors: {},
+            } as OnyxTypes.ReportAction;
+            const threadConciergeReply: OnyxTypes.ReportAction = {...conciergeReply, reportID: transactionThreadReportID};
+            mockReport.type = CONST.REPORT.TYPE.EXPENSE;
+            mockUseReportTransactionsCollection.mockReturnValue({
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {transactionID, reportID: mockReport.reportID} as OnyxTypes.Transaction,
+            });
+            mockUseOnyx.mockImplementation((key, options) => {
+                if (key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`) {
+                    return [[threadConciergeReply], {status: 'loaded'}];
+                }
+                return getMockOnyxValue(key, options);
+            });
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [...mockReportActions, expenseAction],
+            });
+
+            // When the list renders
+            renderReportActionsList();
+
+            // Then the reply shows the prompt, because it is a saved comment even though the expense report does not store it
+            expect(getCapturedVisibleActions()).toContain(threadConciergeReply);
+            expect(getRenderedReportActionsListItemProps(threadConciergeReply).isLatestConciergeFeedbackAction).toBe(true);
         });
 
         it('marks the newest reply of Concierge and of each custom agent', () => {
@@ -803,6 +843,30 @@ describe('ReportActionsList (body)', () => {
             });
         });
 
+        it('clears a completed streamed reply when an unrelated survey is filtered out', () => {
+            // Given an unresolved ticket with a saved reply and an obsolete survey.
+            const supportReport = {...mockReport, type: CONST.REPORT.TYPE.SUPPORT_TICKET};
+            const savedReply = {...conciergeDraftReportAction, reportActionID: 'saved-reply'};
+            const survey = {...conciergeDraftReportAction, reportActionID: 'obsolete-survey', actionName: CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY};
+            const actions = [savedReply, survey, ...mockReportActions];
+            const clearDraft = jest.fn();
+            mockUseOnyx.mockImplementation((key, options) =>
+                key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}` ? [supportReport, {status: 'loaded'}] : getMockOnyxValue(key, options),
+            );
+            mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions: actions, sortedAllReportActions: actions});
+            mockUseConciergeDraft.mockReturnValue({draftReportAction: savedReply, hasActiveDraft: true, isDraftPendingCompletion: false});
+            mockUseConciergeDraftActions.mockReturnValue({clearDraft, dispatchLocalDraftEvent: jest.fn(), revealDraftFromReportAction: jest.fn()});
+
+            // When survey filtering changes the rendered array without inserting a temporary reply.
+            renderReportActionsList();
+
+            // Then only the saved reply remains, and no synthetic autoscroll or retained reply is needed.
+            expect(getCapturedVisibleActions()?.filter((action) => action.reportActionID === savedReply.reportActionID)).toHaveLength(1);
+            expect(getCapturedVisibleActions()).not.toContain(survey);
+            expect(mockUseReportActionsScroll.mock.calls.at(-1)?.at(0)?.draftAutoScrollKey).toBe('');
+            expect(clearDraft).toHaveBeenCalledTimes(1);
+        });
+
         it('clears a completed draft when its saved action is outside the visible page', async () => {
             // Given a saved reply outside the pagination window while its draft is still revealing
             const persistedReportAction: OnyxTypes.ReportAction = {
@@ -834,10 +898,7 @@ describe('ReportActionsList (body)', () => {
             // When the list reconciles against all saved actions
             const {rerender} = render(
                 <TestDraftContext.Provider value={revealingDraftState}>
-                    <ReportActionsList
-                        reportID={mockReport.reportID}
-                        conciergeChat={undefined}
-                    />
+                    <ReportActionsList reportID={mockReport.reportID} />
                 </TestDraftContext.Provider>,
             );
 
@@ -851,10 +912,7 @@ describe('ReportActionsList (body)', () => {
             // When the reveal completes without changing the visible pagination window
             rerender(
                 <TestDraftContext.Provider value={{draftReportAction: persistedReportAction, hasActiveDraft: true, isDraftPendingCompletion: false}}>
-                    <ReportActionsList
-                        reportID={mockReport.reportID}
-                        conciergeChat={undefined}
-                    />
+                    <ReportActionsList reportID={mockReport.reportID} />
                 </TestDraftContext.Provider>,
             );
 

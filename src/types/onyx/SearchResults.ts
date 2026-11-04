@@ -307,6 +307,12 @@ type SearchQuarterGroup = SearchGroupBase & {
     quarter: number;
 };
 
+/** Model of approver grouped search result */
+type SearchApproverGroup = SearchGroupBase & {
+    /** Account ID of the approver */
+    accountID: number;
+};
+
 /** Model of an expense in the search results */
 type SearchTransaction = Transaction & {
     /** Whether the expense was ever rejected, only returned when the Rejected column is shown or sorted by */
@@ -343,6 +349,7 @@ type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTIO
         | SearchWeekGroup
         | SearchYearGroup
         | SearchQuarterGroup
+        | SearchApproverGroup
     >;
 
 /** Model of search results */
@@ -381,4 +388,5 @@ export type {
     SearchWeekGroup,
     SearchYearGroup,
     SearchQuarterGroup,
+    SearchApproverGroup,
 };
