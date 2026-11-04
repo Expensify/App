@@ -101,6 +101,25 @@ describe('FlatNavUtils', () => {
             expect(allKeys).not.toContain(SEARCH_KEYS.TOP_MERCHANTS);
             expect(allKeys).not.toContain(SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER);
         });
+
+        it('should cover every canned search key except Insights', () => {
+            // Given all canned search keys defined in SEARCH_KEYS and the Insights keys handled outside flat nav
+            const allCannedKeys = Object.values(SEARCH_KEYS);
+            const insightKeys = new Set<SearchKey>([
+                SEARCH_KEYS.SPEND_OVER_TIME,
+                SEARCH_KEYS.TOP_SPENDERS,
+                SEARCH_KEYS.TOP_CATEGORIES,
+                SEARCH_KEYS.TOP_MERCHANTS,
+                SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER,
+            ]);
+            const expectedKeys = allCannedKeys.filter((key) => !insightKeys.has(key)).sort();
+
+            // When we collect all keys configured across the section definitions
+            const configuredKeys = FLAT_NAV_SECTION_DEFINITIONS.flatMap((definition) => definition.searchKeys).sort();
+
+            // Then every non-Insight canned search key belongs to exactly one section
+            expect(configuredKeys).toEqual(expectedKeys);
+        });
     });
 
     describe('getFlatNavSectionIDForSearchKey', () => {
