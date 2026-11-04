@@ -59,7 +59,9 @@ type ReportsToDisplayInLHN = Record<
         hasErrorsOtherThanFailedReceipt?: boolean;
         requiresAttention?: boolean;
         isUnreadReport?: boolean;
-        lastVisibleActionCreatedWithThread?: string;
+
+        /** The newest visible message time, counting the hidden one-transaction thread of a single-expense report */
+        lastVisibleActionCreatedForInboxTab?: string;
     }
 >;
 
@@ -158,12 +160,6 @@ function SidebarOrderedReportsContextProvider({
         if (reportUpdates) {
             for (const key of Object.keys(reportUpdates ?? {})) {
                 reportsToUpdate.add(key);
-
-                // The parent's unread state folds in its one-transaction thread, so any change to the thread must recheck the parent too.
-                const parentReportID = chatReports?.[key]?.parentReportID;
-                if (parentReportID && reportAttributes?.[parentReportID]?.oneTransactionThreadReportID === chatReports?.[key]?.reportID) {
-                    reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
-                }
             }
         }
         if (reportNameValuePairsUpdates) {
@@ -214,18 +210,28 @@ function SidebarOrderedReportsContextProvider({
             reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${derivedCurrentReportID}`);
         }
 
+        // The LHN hides the transaction thread of a single-expense report and shows the expense report instead, whose
+        // unread state also depends on the thread. So when the thread changes (e.g. a new comment), recheck its parent too.
+        for (const key of Array.from(reportsToUpdate)) {
+            const parentReportID = chatReports?.[key]?.parentReportID;
+            if (!parentReportID || reportAttributes?.[parentReportID]?.oneTransactionThreadReportID !== chatReports?.[key]?.reportID) {
+                continue;
+            }
+            reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
+        }
+
         return Array.from(reportsToUpdate);
     }, [
         reportUpdates,
         reportNameValuePairsUpdates,
         reportAttributesUpdates,
-        reportAttributes,
         transactionsUpdates,
         transactionViolationsUpdates,
         reportsDraftsUpdates,
         policiesUpdates,
         chatReports,
         transactions,
+        reportAttributes,
         isDefaultRoomsBetaEnabled,
         priorityMode,
         prevIsDefaultRoomsBetaEnabled,

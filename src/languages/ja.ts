@@ -1525,10 +1525,10 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: 'ウェブサイトがない場合は、代わりに自社のLinkedInまたはソーシャルメディアのプロフィールを入力できます。',
         invalidDomainError: '無効なドメインが入力されています。続行するには、有効なドメインを入力してください。',
         publicDomainError: '公開ドメインが入力されています。続行するには、プライベートドメインを入力してください。',
-        expenseCount: () => {
+        expenseCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
             return {
-                one: '1件の経費',
-                other: (count: number) => `${count}件の経費`,
+                one: (count: number) => `${formattedCount ?? count} 件の経費`,
+                other: (count: number) => `${formattedCount ?? count} 件の経費`,
             };
         },
         deleteExpense: () => ({
@@ -1691,6 +1691,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: '分割する金額は 0 以外の数値を入力してください',
             noParticipantSelected: '参加者を選択してください',
             other: '予期しないエラーが発生しました。しばらくしてからもう一度お試しください。',
+            payFailedExpenseDeleted: 'この支払いは、経費精算書が削除されたため失敗しました。',
             genericCreateFailureMessage: 'この経費の送信中に予期しないエラーが発生しました。後でもう一度お試しください。',
             genericCreateInvoiceFailureMessage: 'この請求書の送信中に予期しないエラーが発生しました。後でもう一度お試しください。',
             genericHoldExpenseFailureMessage: 'この経費を保留中に予期しないエラーが発生しました。後でもう一度お試しください。',
@@ -3094,7 +3095,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `Wiseの<a href="${CONST.WISE.TERMS_URL}">利用規約</a>および<a href="${CONST.WISE.PRIVACY_URL}">プライバシーポリシー</a>に同意します。`,
                 wiseTermsAccessibilityLabel: 'Wiseの利用規約およびプライバシーポリシーに同意します。',
                 error: '続行するにはすべての規約に同意してください。',
+                alreadySubmitted: 'このビジネスはすでに審査のためにWiseに送信されています。',
             },
+            moreInfoNeeded: {headerTitle: '詳細情報が必要です', title: '追加情報を確認', subtitle: '決済パートナーが直接、追加情報を必要としています。数分で完了します。'},
         },
         wiseGlobalReimbursementsIntro: {
             title: 'グローバル払い戻しを設定しますか？',
@@ -3104,6 +3107,7 @@ const translations: TranslationDeepObject<typeof en> = {
             payingReportSubtitle: '会社と従業員の銀行口座は異なる通貨を使用しています。',
         },
         wiseGlobalReimbursementsBanner: {title: '世界中の人に支払いましょう', subtitle: 'USD アカウントでグローバル払い戻しを有効にします。'},
+        globalReimbursementsEnabled: 'グローバル精算が有効になりました',
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `${walletName} にカードを追加`,
@@ -5810,9 +5814,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                     ? `Sage Intacct で一致する仕入先がない立替経費に適用するデフォルトの仕入先を設定します。`
                     : `Sage Intacct の仕入先に照合できない経費は、デフォルトでこの仕入先に紐づけられます。`,
             exportDescription: 'Expensify のデータを Sage Intacct へエクスポートする方法を設定します。',
-            exportPreferredExporterNote:
-                '優先されるエクスポーターは任意のワークスペース管理者にできますが、ドメイン設定で会社カードごとに別々のエクスポート先口座を設定している場合は、ドメイン管理者である必要もあります。',
-            exportPreferredExporterSubNote: '一度設定すると、優先エクスポーターは自分のアカウントでエクスポート対象のレポートを確認できるようになります。',
             noAccountsFound: 'アカウントが見つかりません',
             noAccountsFoundDescription: `Sage Intacct に口座を追加して、もう一度接続を同期してください`,
             autoSync: '自動同期',
@@ -6377,9 +6378,13 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             noAccountsFound: 'アカウントが見つかりません',
             noAccountsFoundDescription: 'Rillet で口座を追加して、もう一度同期してください',
             exportDescription: 'Expensify のデータを Rillet にエクスポートする方法を設定します。',
-            exportReimbursable: {label: '返金対象経費の書き出し形式', values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: '仕入先請求書'}}},
+            exportReimbursable: {
+                label: '返金対象経費の書き出し形式',
+                values: {REIMBURSEMENT: {label: '項目別精算'}, VENDOR_BILL: {label: '明細付き仕入先請求書'}},
+                description: '各 Expensify レポートごとに、明細付きの仕入先請求書または精算を作成します。期間が締め切られている場合は、次の未締め期間に計上します。',
+            },
             exportDate: {
-                label: '仕入先の請求書日',
+                label: '総勘定元帳反映日',
                 description: 'レポートを Rillet にエクスポートするときは、この日付を使用します。',
                 values: {
                     [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
@@ -6415,8 +6420,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 },
             },
             syncReimbursedReports: '精算済みレポートを同期',
-            syncReimbursedReportsDescription: 'レポートがACHで支払われると、この勘定科目に買掛金支払が生成されます。',
-            billPaymentAccount: {label: '請求支払用口座', description: '請求書の支払い元を選択すると、Rillet 内に支払いを作成します。'},
+            syncReimbursedReportsDescription: 'レポートが ACH で支払われると、この口座で支払いが作成されます。',
             syncExpensifyCardSettlements: 'Expensify カードの清算を同期する',
             settlementAccount: {label: 'Expensify カードの決済口座', description: '精算用の口座を選択すると、Rillet で支払いを作成します。'},
             syncTravelBillingSettlements: '統合トラベル請求の精算を同期',
@@ -6454,6 +6458,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 label: 'Rillet 通貨換算手数料勘定',
                 description: '海外で行われた支払いについて、会社が為替換算コストを負担する場合、そのコストは仕訳として Rillet のこの勘定科目に計上します。',
             },
+            reimbursementAccount: {label: '精算用口座', description: '精算対象経費のエクスポート先を選択してください。', accountRequiredError: 'Rillet の精算用口座を選択してください。'},
+            achPaymentAccount: {label: 'ACH 支払い口座', description: 'どこからレポートを支払うかを選択すると、Rillet 内に支払いを作成します。'},
         },
         dualEntry: {
             dualEntrySetup: '二重仕訳の設定',
@@ -6902,6 +6908,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             updateFailureMessage: 'カテゴリの更新中にエラーが発生しました。もう一度お試しください。',
             createFailureMessage: 'カテゴリの作成中にエラーが発生しました。もう一度お試しください。',
             addCategory: 'カテゴリを追加',
+            createCategoryFromSearch: (categoryName: string) => `カテゴリ「${categoryName}」を作成`,
             editCategory: 'カテゴリーを編集',
             editCategories: 'カテゴリを編集',
             findCategory: 'カテゴリを検索',
@@ -7433,10 +7440,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             reimbursementAccount: '精算口座',
             welcomeNote: '私の新しいワークスペースを使い始めてください',
             delayedSubmission: '遅延提出',
-            merchantRules: '販売者ルール',
+            merchantRules: '経費のデフォルト設定',
             merchantRulesCount: () => ({
-                one: '1 販売者ルール',
-                other: (count: number) => `${count} 販売者ルール`,
+                one: '1件の経費をデフォルトにする',
+                other: (count: number) => `${count}件の経費のデフォルト設定`,
             }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `元のワークスペースから ${totalMembers ?? 0} 人のメンバーと一緒に、${newWorkspaceName ?? ''} を作成して共有しようとしています。`,
@@ -7470,7 +7477,6 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 title: 'メンバーをコピー',
                 prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
                     one: `${targetWorkspaceName}のメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`,
-                    // Japanese has no "one" plural category, so handle the single-workspace case here
                     other:
                         count === 1
                             ? `${targetWorkspaceName}のメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`
@@ -7993,8 +7999,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 },
             },
             preferredExporter: '優先エクスポーター',
-            exportPreferredExporterNote:
-                '優先されるエクスポーターは任意のワークスペース管理者にできますが、ドメイン設定で会社カードごとに別々のエクスポート先口座を設定している場合は、ドメイン管理者である必要もあります。',
+            exportPreferredExporterNote: '優先するエクスポーターは、どのワークスペース管理者でも設定できます。',
             exportPreferredExporterSubNote: '一度設定すると、優先エクスポーターは自分のアカウントでエクスポート対象のレポートを確認できるようになります。',
             exportAs: 'エクスポート形式',
             exportOutOfPocket: '立替経費のエクスポート形式',
@@ -8797,8 +8802,8 @@ ${reportName}`,
                 matchType: '一致タイプ',
                 matchTypeContains: '含む',
                 matchTypeExact: '完全一致',
-                duplicateRuleTitle: '同様のマーチャントルールが既に存在します',
-                duplicateRulePrompt: (merchantName: string) => `「${merchantName}」に対する既存のルールが、このルールよりも優先されます。保存しますか？`,
+                duplicateRuleTitle: '同様のルールがすでに存在します',
+                duplicateRulePrompt: (conditionName: string) => `現在の「${conditionName}」のルールがこのルールより優先されます。保存しますか？`,
                 saveAnyway: 'とにかく保存',
                 applyToExistingUnsubmittedExpenses: '既存の未提出経費に適用',
                 findRule: '加盟店ルールを検索',
@@ -8808,16 +8813,8 @@ ${reportName}`,
                 thenApplyFollowingDefaults: '次に、以下のデフォルトを適用します。',
                 vendorUnavailable: 'ベンダーを利用できません',
                 confirmErrorCategory: 'カテゴリを選択してください',
-                confirmErrorCategoryTax: '税率を選択してください',
-                confirmErrorCondition: '店舗名を入力してください',
-                confirmErrorConditionAndDefault: '取引先を入力し、少なくとも 1 つのデフォルトを適用してください',
-                turnOnTaxesFirstTitle: '先に税金を有効にしてください',
-                turnOnTaxesFirstPrompt: 'カテゴリルールでは、デフォルトの税率を設定できます。利用するには、ワークスペース設定で税金を有効にしてください。',
-                categoryRulesApplyGoingForwardTitle: 'カテゴリルールは今後に適用されます',
-                categoryRulesApplyGoingForwardPrompt: 'このカテゴリーの新しい経費には、デフォルトの税率が適用されます。既存の経費は変更されません。',
-                confirmErrorCategoryTaxMoveIsWorkspaceDefault: '選択した税率がワークスペースのデフォルトになっているため、このルールは無効になりました。別の税率を選択してください。',
-                addTaxRateFirstTitle: '先に税率を追加してください',
-                addTaxRateFirstPrompt: 'カテゴリルールではデフォルトの税率が設定されます。ワークスペースのデフォルト以外の税率を追加してから、カテゴリルールを使用してください。',
+                confirmErrorCondition: '少なくとも 1 つ条件を追加してください',
+                confirmErrorConditionAndDefault: '少なくとも 1 つの条件を追加し、少なくとも 1 つのデフォルトを適用してください',
                 createRuleFromExpenseAction: 'ルールを作成',
                 createRuleFromExpensePrompt: '条件に一致するすべての経費に変更を適用します。',
             },
@@ -9001,6 +8998,8 @@ ${reportName}`,
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `許可された ${shownCount > 1 ? '通貨' : '通貨'}：${currencies}${hiddenCount > 0 ? `、ほか +${hiddenCount} 件` : ''}`,
                 defaultRulesCannotBeDeleted: '既定のルールは削除できません',
+                tags: 'タグ',
+                multipleConditions: '複数の条件',
             },
             agentRules: {
                 title: 'エージェントルール',
@@ -9041,9 +9040,8 @@ ${reportName}`,
                 describeRuleForConcierge: 'ルールの内容を入力すると、Concierge が自動作成します',
                 gotIt: '了解しました',
                 createRule: 'ルールを作成',
-                fallbackBanner:
-                    'これは標準ルールではないため、エージェントルールとして作成しました。エージェントルールは、経費やレポートに変更があった後に動作し、例えば経費を保留にしたり、レポートを却下したりします。',
-                fallbackBannerWithExplanation: (explanation: string) => `これは標準ルールではないため、エージェントルールとして作成しました。${explanation}`,
+                fallbackBanner: 'これは標準ルールではないため、エージェントルールを作成しました。',
+                fallbackBannerWithExplanation: (explanation: string) => `これは標準ルールではないため、エージェントルールを作成しました。${explanation}`,
             },
             tabs: {
                 general: '一般',
@@ -9146,9 +9144,11 @@ ${reportName}`,
                 findRule: 'ルールを検索',
                 rename: '名前を変更',
                 update: '更新',
-                merchantIs: (merchant: string) => `加盟店名は「${merchant}」です`,
                 merchantTypeIs: (merchantType: string) => `加盟店タイプ: 「${merchantType}」`,
                 categoryIs: (category: string) => `カテゴリは「${category}」です`,
+                tagIs: (tag: string) => `タグは「${tag}」です`,
+                merchantContains: (merchant: string) => `店舗名に「${merchant}」を含む`,
+                merchantExactlyMatches: (merchant: string) => `店舗名が「${merchant}」と完全に一致します`,
             },
             merchantTypeRule: {merchantType: '加盟店種別', saveRule: 'ルールを保存', confirmErrorCategory: 'カテゴリを選択してください。'},
             requireFieldsTable: {
@@ -9214,14 +9214,6 @@ ${reportName}`,
             },
             agentRulesEmptyState: {title: 'エージェントルールが追加されていません', subtitle: 'ワークスペースのポリシーを自動化するルールを作成します。', cta: 'AIルールを追加'},
             categoriesDisabledEmptyState: {title: 'カテゴリが有効になっていません', subtitle: 'カテゴリを有効にして、支出をより細かく管理しましょう。'},
-            expenseDefaultType: {
-                title: '経費のデフォルトを適用',
-                subtitle: 'このルールは何に一致させますか？',
-                merchant: '加盟店',
-                merchantDescription: '特定の加盟店の経費フィールドを更新',
-                category: 'カテゴリ',
-                categoryDescription: '特定のカテゴリにデフォルトの税率を設定する',
-            },
             taxesDisabledEmptyState: {title: '税金は有効になっていません', subtitle: '税金を有効にして、対象となる税金を記録し還付請求できるようにします。', cta: '税金を有効にする'},
         },
         planTypePage: {
@@ -10368,6 +10360,12 @@ ${reportName}`,
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `「精算不要レポートを支払済みにしない」を「${newValue === 'true' ? '有効' : '無効'}」（以前は「${oldValue === 'true' ? '有効' : '無効'}」）に更新しました`,
         addedExpensifyCardFeed: (feedName: string) => `「${feedName}」Expensify カードフィードを追加しました`,
+        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
+            if (!oldValue) {
+                return `ワークスペースのタイムゾーンを「${newValue}」に設定します`;
+            }
+            return `ワークスペースのタイムゾーンを「${newValue}」（以前は「${oldValue}」）に更新しました`;
+        },
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
@@ -10957,6 +10955,8 @@ ${reportName}`,
                     const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');
                     return `Expensify モバイルアプリを開いて、${amountAndMerchantText && `${amountAndMerchantText} `}の取引を確認してください`;
                 },
+                autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
+                    `グローバル払い戻しは、${adminName} さんにより、末尾が ${lastFour} の ${bankName ? `${bankName} ` : ''}アカウントで有効化されました。国境を越えるレポートが自動支払いされる場合、正確な為替レートおよび手数料は支払い前にプレビューできません。レートと手数料の詳細については、<a href="${autoPaySettingsURL}">自動支払い設定</a>をご確認ください。`,
             },
             error: {
                 invalidCredentials: '認証情報が無効です。接続の設定を確認してください。',
@@ -12085,7 +12085,6 @@ ${reportName}`,
             theresAReportWithErrors: 'エラーのあるレポートがあります',
             theresAWorkspaceWithCustomUnitsErrors: 'カスタム単位のエラーがあるワークスペースがあります',
             theresAProblemWithAWorkspaceMember: 'ワークスペースメンバーに問題があります',
-            theresAProblemWithAWorkspaceQBOExport: 'ワークスペース接続のエクスポート設定に問題が発生しました。',
             theresAProblemWithAContactMethod: '連絡方法に問題があります',
             aContactMethodRequiresVerification: '連絡方法の確認が必要です',
             theresAProblemWithAPaymentMethod: '支払方法に問題があります',
@@ -12099,6 +12098,7 @@ ${reportName}`,
             aBankAccountIsLocked: '銀行口座がロックされています',
             completeHrSetup: '人事設定を完了する',
             theresAProblemWithAnHRConnection: '人事連携に問題が発生しています',
+            theresAProblemWithAWorkspaceReimbursementExport: 'ワークスペース接続のエクスポート設定で問題が発生しました。',
             theresAProblemWithYourAgent: 'エージェントに問題があります',
         },
     },

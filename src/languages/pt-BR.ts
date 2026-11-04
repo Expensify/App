@@ -1539,10 +1539,10 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: 'Se você não tiver um site, poderá fornecer o LinkedIn ou o perfil de rede social da sua empresa.',
         invalidDomainError: 'Você inseriu um domínio inválido. Para continuar, insira um domínio válido.',
         publicDomainError: 'Você inseriu um domínio público. Para continuar, insira um domínio privado.',
-        expenseCount: () => {
+        expenseCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
             return {
-                one: '1 despesa',
-                other: (count: number) => `${count} despesas`,
+                one: (count: number) => `Despesa ${formattedCount ?? count}`,
+                other: (count: number) => `${formattedCount ?? count} despesas`,
             };
         },
         deleteExpense: () => ({
@@ -1704,6 +1704,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: 'Insira um valor diferente de zero para a sua divisão',
             noParticipantSelected: 'Selecione um participante',
             other: 'Erro inesperado. Tente novamente mais tarde.',
+            payFailedExpenseDeleted: 'O pagamento falhou porque o relatório de despesas foi excluído.',
             genericCreateFailureMessage: 'Erro inesperado ao enviar esta despesa. Tente novamente mais tarde.',
             genericCreateInvoiceFailureMessage: 'Erro inesperado ao enviar esta fatura. Tente novamente mais tarde.',
             genericHoldExpenseFailureMessage: 'Erro inesperado ao reter esta despesa. Tente novamente mais tarde.',
@@ -3118,6 +3119,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `Concordo com os <a href="${CONST.WISE.TERMS_URL}">termos e condições</a> e a <a href="${CONST.WISE.PRIVACY_URL}">política de privacidade</a> da Wise.`,
                 wiseTermsAccessibilityLabel: 'Concordo com os termos e condições e a política de privacidade da Wise.',
                 error: 'Aceite todos os termos para continuar.',
+                alreadySubmitted: 'Esta empresa já foi enviada à Wise para análise.',
+            },
+            moreInfoNeeded: {
+                headerTitle: 'Mais informações necessárias',
+                title: 'Verificar informações adicionais',
+                subtitle: 'Nosso parceiro de pagamentos precisa de mais informações diretamente. Isso deve levar apenas alguns minutos.',
             },
         },
         wiseGlobalReimbursementsIntro: {
@@ -3128,6 +3135,7 @@ const translations: TranslationDeepObject<typeof en> = {
             payingReportSubtitle: 'As contas bancárias da empresa e do funcionário usam moedas diferentes.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Pague pessoas no mundo todo', subtitle: 'Ative reembolsos globais na sua conta em USD.'},
+        globalReimbursementsEnabled: 'Reembolsos globais ativados',
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Adicionar cartão à ${walletName}`,
@@ -5865,9 +5873,6 @@ ${amount} para ${merchant} - ${date}`,
                     ? `Defina um fornecedor padrão que será aplicado às despesas reembolsáveis que não tiverem um fornecedor correspondente no Sage Intacct.`
                     : `As despesas que não puderem ser associadas aos seus fornecedores do Sage Intacct serão atribuídas a este fornecedor por padrão.`,
             exportDescription: 'Configure como os dados do Expensify são exportados para o Sage Intacct.',
-            exportPreferredExporterNote:
-                'O exportador preferencial pode ser qualquer administrador do espaço de trabalho, mas também deve ser um Administrador de Domínio se você definir diferentes contas de exportação para cartões corporativos individuais em Configurações de Domínio.',
-            exportPreferredExporterSubNote: 'Depois de definido, o exportador preferido verá os relatórios para exportação na própria conta.',
             noAccountsFound: 'Nenhuma conta encontrada',
             noAccountsFoundDescription: `Adicione a conta no Sage Intacct e sincronize a conexão novamente`,
             autoSync: 'Sincronização automática',
@@ -6445,9 +6450,17 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             noAccountsFound: 'Nenhuma conta encontrada',
             noAccountsFoundDescription: 'Adicione contas no Rillet e sincronize a conexão novamente',
             exportDescription: 'Configure como os dados do Expensify são exportados para o Rillet.',
-            exportReimbursable: {label: 'Exportar despesas reembolsáveis como', values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: 'Faturas de fornecedores'}}},
+            exportReimbursable: {
+                label: 'Exportar despesas reembolsáveis como',
+                values: {
+                    REIMBURSEMENT: {label: 'Reembolsos detalhados'},
+                    VENDOR_BILL: {label: 'Contas de fornecedores detalhadas'},
+                },
+                description:
+                    'Vamos criar uma conta de fornecedor ou um reembolso detalhado para cada relatório do Expensify. Se o período estiver fechado, vamos lançar no próximo período aberto.',
+            },
             exportDate: {
-                label: 'Data da fatura do fornecedor',
+                label: 'Data de impacto no razão geral',
                 description: 'Use esta data ao exportar relatórios para o Rillet.',
                 values: {
                     [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
@@ -6489,8 +6502,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 },
             },
             syncReimbursedReports: 'Sincronizar relatórios reembolsados',
-            syncReimbursedReportsDescription: 'Quando um relatório for pago via ACH, um pagamento de conta será gerado nesta conta.',
-            billPaymentAccount: {label: 'Conta de pagamento de contas', description: 'Escolha de onde pagar as contas e nós vamos criar o pagamento no Rillet.'},
+            syncReimbursedReportsDescription: 'Quando um relatório for pago via ACH, um pagamento será gerado nesta conta.',
             syncExpensifyCardSettlements: 'Sincronizar liquidações do Cartão Expensify',
             settlementAccount: {label: 'Conta de liquidação do Cartão Expensify', description: 'Escolha sua conta de liquidação e nós criaremos o pagamento no Rillet.'},
             syncTravelBillingSettlements: 'Sincronizar liquidações de cobrança consolidada de viagens',
@@ -6532,6 +6544,12 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 description:
                     'Quando sua empresa cobrir o custo de conversão de moeda em um pagamento feito no exterior, vamos lançar esse custo nesta conta no Rillet como um lançamento contábil.',
             },
+            reimbursementAccount: {
+                label: 'Conta de reembolso',
+                description: 'Escolha para onde exportar as despesas reembolsáveis.',
+                accountRequiredError: 'Selecione uma conta de reembolso Rillet.',
+            },
+            achPaymentAccount: {label: 'Conta de pagamento ACH', description: 'Escolha de onde pagar os relatórios e criaremos o pagamento no Rillet.'},
         },
         dualEntry: {
             dualEntrySetup: 'Configuração do DualEntry',
@@ -6987,6 +7005,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             updateFailureMessage: 'Ocorreu um erro ao atualizar a categoria, tente novamente',
             createFailureMessage: 'Ocorreu um erro ao criar a categoria, tente novamente.',
             addCategory: 'Adicionar categoria',
+            createCategoryFromSearch: (categoryName: string) => `Criar categoria “${categoryName}”`,
             editCategory: 'Editar categoria',
             editCategories: 'Editar categorias',
             findCategory: 'Encontrar categoria',
@@ -7530,10 +7549,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             reimbursementAccount: 'conta de reembolso',
             welcomeNote: 'Comece a usar meu novo espaço de trabalho',
             delayedSubmission: 'envio atrasado',
-            merchantRules: 'Regras do comerciante',
+            merchantRules: 'Padrões de despesa',
             merchantRulesCount: () => ({
-                one: '1 regra do comerciante',
-                other: (count: number) => `${count} regras do comerciante`,
+                one: '1 despesa padrão',
+                other: (count: number) => `${count} padrões de despesa`,
             }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `Você está prestes to criar e compartilhar ${newWorkspaceName ?? ''} com ${totalMembers ?? 0} membros do workspace original.`,
@@ -8087,8 +8106,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                 },
             },
             preferredExporter: 'Exportador preferido',
-            exportPreferredExporterNote:
-                'O exportador preferencial pode ser qualquer administrador do espaço de trabalho, mas também deve ser um Administrador de Domínio se você definir diferentes contas de exportação para cartões corporativos individuais em Configurações de Domínio.',
+            exportPreferredExporterNote: 'O exportador preferencial pode ser qualquer administrador do workspace.',
             exportPreferredExporterSubNote: 'Depois de definido, o exportador preferido verá os relatórios para exportação na própria conta.',
             exportAs: 'Exportar como',
             exportOutOfPocket: 'Exportar despesas reembolsáveis como',
@@ -8905,8 +8923,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 matchType: 'Tipo de correspondência',
                 matchTypeContains: 'Contém',
                 matchTypeExact: 'Corresponde exatamente',
-                duplicateRuleTitle: 'Já existe uma regra semelhante para este comerciante',
-                duplicateRulePrompt: (merchantName: string) => `Sua regra existente para "${merchantName}" terá prioridade sobre esta. Salvar mesmo assim?`,
+                duplicateRuleTitle: 'Uma regra semelhante já existe',
+                duplicateRulePrompt: (conditionName: string) => `Sua regra existente para "${conditionName}" terá prioridade sobre esta. Deseja salvar mesmo assim?`,
                 saveAnyway: 'Salvar mesmo assim',
                 applyToExistingUnsubmittedExpenses: 'Aplicar às despesas existentes não enviadas',
                 findRule: 'Encontrar regra de comerciante',
@@ -8916,17 +8934,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 thenApplyFollowingDefaults: 'Em seguida, aplica os seguintes padrões:',
                 vendorUnavailable: 'Fornecedor indisponível',
                 confirmErrorCategory: 'Selecione uma categoria',
-                confirmErrorCategoryTax: 'Selecione uma alíquota de imposto',
-                confirmErrorCondition: 'Insira um estabelecimento',
-                confirmErrorConditionAndDefault: 'Insira um comerciante e aplique pelo menos um padrão',
-                turnOnTaxesFirstTitle: 'Ative os impostos primeiro',
-                turnOnTaxesFirstPrompt: 'As regras de categoria definem uma alíquota de imposto padrão. Ative os impostos nas configurações do seu workspace para usá-los.',
-                categoryRulesApplyGoingForwardTitle: 'As regras de categoria se aplicam daqui em diante',
-                categoryRulesApplyGoingForwardPrompt: 'Uma taxa de imposto padrão se aplica às novas despesas desta categoria. As despesas que já existem não serão alteradas.',
-                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
-                    'A alíquota de imposto selecionada agora é o padrão do seu workspace, então esta regra não é mais válida. Escolha uma alíquota de imposto diferente.',
-                addTaxRateFirstTitle: 'Adicione uma alíquota de imposto primeiro',
-                addTaxRateFirstPrompt: 'As regras de categoria definem uma taxa de imposto padrão. Adicione uma taxa diferente da padrão do seu espaço de trabalho para usá-las.',
+                confirmErrorCondition: 'Adicione pelo menos uma condição',
+                confirmErrorConditionAndDefault: 'Adicione pelo menos uma condição e aplique pelo menos um padrão',
                 createRuleFromExpenseAction: 'Criar regra',
                 createRuleFromExpensePrompt: 'para aplicar suas alterações a todas as despesas que correspondem aos seus critérios.',
             },
@@ -9112,6 +9121,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `Permitido ${shownCount > 1 ? 'moedas' : 'moeda'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} mais` : ''}`,
                 defaultRulesCannotBeDeleted: 'Regras padrão não podem ser excluídas',
+                tags: 'Tags',
+                multipleConditions: 'Múltiplas condições',
             },
             agentRules: {
                 title: 'Regras do agente',
@@ -9152,9 +9163,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 describeRuleForConcierge: 'Descreva sua regra e o Concierge vai criá-la',
                 gotIt: 'Entendi',
                 createRule: 'Criar regra',
-                fallbackBanner:
-                    'Esta não é uma regra padrão, então a criamos como uma regra de agente. As regras de agente entram em ação depois que uma despesa ou um relatório é alterado, por exemplo, ao reter a despesa ou rejeitar o relatório.',
-                fallbackBannerWithExplanation: (explanation: string) => `Esta não é uma regra padrão, então nós a elaboramos como uma regra de agente. ${explanation}`,
+                fallbackBanner: 'Esta não é uma regra padrão, então criamos uma regra de agente.',
+                fallbackBannerWithExplanation: (explanation: string) => `Esta não é uma regra padrão, então criamos uma regra de agente. ${explanation}`,
             },
             tabs: {
                 general: 'Geral',
@@ -9257,9 +9267,11 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 findRule: 'Encontrar regra',
                 rename: 'Renomear',
                 update: 'Atualizar',
-                merchantIs: (merchant: string) => `O comerciante é "${merchant}"`,
                 merchantTypeIs: (merchantType: string) => `O tipo de estabelecimento é "${merchantType}"`,
                 categoryIs: (category: string) => `A categoria é "${category}"`,
+                tagIs: (tag: string) => `A etiqueta é "${tag}"`,
+                merchantContains: (merchant: string) => `Estabelecimento contém "${merchant}"`,
+                merchantExactlyMatches: (merchant: string) => `O estabelecimento corresponde exatamente a "${merchant}"`,
             },
             merchantTypeRule: {merchantType: 'Tipo de comerciante', saveRule: 'Salvar regra', confirmErrorCategory: 'Selecione uma categoria.'},
             requireFieldsTable: {
@@ -9325,14 +9337,6 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             },
             agentRulesEmptyState: {title: 'Nenhuma regra de agente adicionada', subtitle: 'Crie uma regra para automatizar as políticas do seu workspace.', cta: 'Adicionar regra de IA'},
             categoriesDisabledEmptyState: {title: 'Categorias não estão ativadas', subtitle: 'Ative categorias para ter mais controle sobre seus gastos.'},
-            expenseDefaultType: {
-                title: 'Aplicar padrões de despesa',
-                subtitle: 'Com o que esta regra deve corresponder?',
-                merchant: 'Comerciante',
-                merchantDescription: 'Atualizar campos em despesas de um comerciante específico',
-                category: 'Categoria',
-                categoryDescription: 'Definir uma taxa de imposto padrão para uma categoria específica',
-            },
             taxesDisabledEmptyState: {title: 'Impostos não estão ativados', subtitle: 'Ative impostos para documentar e recuperar impostos elegíveis.', cta: 'Ativar impostos'},
         },
         planTypePage: {
@@ -10501,6 +10505,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `atualizou "Impedir marcar relatórios não reembolsáveis como pagos" para "${newValue === 'true' ? 'Ativado' : 'Desativado'}" (antes "${oldValue === 'true' ? 'Ativado' : 'Desativado'}")`,
         addedExpensifyCardFeed: (feedName: string) => `adicionou o feed do Cartão Expensify "${feedName}"`,
+        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
+            if (!oldValue) {
+                return `definir o fuso horário do espaço de trabalho para "${newValue}"`;
+            }
+            return `atualizou o fuso horário do workspace para "${newValue}" (antes era "${oldValue}")`;
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',
@@ -11101,6 +11111,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');
                     return `Abra o app móvel da Expensify para revisar sua transação de${amountAndMerchantText ? ` ${amountAndMerchantText}` : ''}`;
                 },
+                autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
+                    `Reembolsos Globais foram ativados por ${adminName} na conta ${bankName ? `${bankName} ` : ''}terminada em ${lastFour}. Taxas de câmbio exatas e tarifas não podem ser pré-visualizadas antes do pagamento quando relatórios internacionais são pagos automaticamente. Revise suas <a href="${autoPaySettingsURL}">configurações de pagamento automático</a> para mais informações sobre taxas de câmbio e tarifas.`,
             },
             error: {
                 invalidCredentials: 'Credenciais inválidas, verifique a configuração da sua conexão.',
@@ -12234,7 +12246,6 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             theresAReportWithErrors: 'Há um relatório com erros',
             theresAWorkspaceWithCustomUnitsErrors: 'Há um workspace com erros de unidades personalizadas',
             theresAProblemWithAWorkspaceMember: 'Há um problema com um membro do workspace',
-            theresAProblemWithAWorkspaceQBOExport: 'Ocorreu um problema com uma configuração de exportação de conexão do workspace.',
             theresAProblemWithAContactMethod: 'Há um problema com um método de contato',
             aContactMethodRequiresVerification: 'É necessário verificar um método de contato',
             theresAProblemWithAPaymentMethod: 'Há um problema com um método de pagamento',
@@ -12248,6 +12259,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             aBankAccountIsLocked: 'Uma conta bancária está bloqueada',
             completeHrSetup: 'Concluir configuração de RH',
             theresAProblemWithAnHRConnection: 'Há um problema com uma conexão de RH',
+            theresAProblemWithAWorkspaceReimbursementExport: 'Ocorreu um problema com uma configuração de exportação da conexão do espaço de trabalho.',
             theresAProblemWithYourAgent: 'Há um problema com seu(s) agente(s)',
         },
     },
