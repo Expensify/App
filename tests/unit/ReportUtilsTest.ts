@@ -5171,6 +5171,7 @@ describe('ReportUtils', () => {
 
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${paidPolicy.id}`, null);
             });
+
             it('the current user is an invited user of the iou report', () => {
                 const report: Report = {
                     ...LHNTestUtils.getFakeReport(),
@@ -13278,7 +13279,9 @@ describe('ReportUtils', () => {
             const reportNameValuePair = {private_isArchived: '2024-01-01 00:00:00.000'};
             expect(isReportOutstanding(report, policy.id, undefined, reportNameValuePair)).toBe(false);
         });
-        it('should return false for an open bill and true for an equivalent expense report', () => {
+
+        it('should keep returning false for an open bill once bills count as expense reports', () => {
+            // isExpenseReport excludes bills today, so this test protects the behavior for when bills count as expense reports.
             // Given an open bill and an open expense report on the same policy
             const expenseReport: Report = {
                 ...createRandomReport(1, undefined),
@@ -13423,7 +13426,8 @@ describe('ReportUtils', () => {
             expect(result).toBe(true);
         });
 
-        it('should return false for a bill and true for an equivalent expense report', async () => {
+        it('should keep returning false for a bill once bills count as expense reports', async () => {
+            // isMoneyRequestReport excludes bills today, so this test protects the behavior for when bills count as expense reports.
             // Given an open bill and an open expense report with the same owner and policy
             const expenseReport: Report = {
                 ...createRandomReport(10005, undefined),

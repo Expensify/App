@@ -123,6 +123,7 @@ import {getEnvironmentURL} from './Environment/Environment';
 import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from './ErrorUtils';
 import getAttachmentDetails from './fileDownload/getAttachmentDetails';
 import getBankAccountLastFourDigits from './getBankAccountLastFourDigits';
+import isBillReport from './isBillReport';
 import isTeachersUnitePolicyID from './isTeachersUnitePolicyID';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
@@ -3267,7 +3268,8 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, rules
  */
 function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, rules: OnyxCollection<Rule>, isReportArchived = false, isMovingTransaction = false): boolean {
     // A bill mirrors the vendor's invoice, so its expenses come only from that invoice.
-    if (moneyRequestReport?.type === CONST.REPORT.UNSUPPORTED_TYPE.BILL || !isMoneyRequestReport(moneyRequestReport)) {
+    // isMoneyRequestReport excludes bills today. This check keeps bills blocked once bills count as expense reports.
+    if (isBillReport(moneyRequestReport) || !isMoneyRequestReport(moneyRequestReport)) {
         return false;
     }
 
@@ -11897,7 +11899,7 @@ function getMoneyRequestOptions(
         isTaskReport(report) ||
         isSupportTicket(report) ||
         isInvoiceReport(report) ||
-        report?.type === CONST.REPORT.UNSUPPORTED_TYPE.BILL ||
+        isBillReport(report) ||
         isSystemChat(report) ||
         isReportArchived ||
         isTripRoom(report)
@@ -13324,7 +13326,8 @@ function isReportOutstanding(
         isEmptyObject(iouReport) ||
         !isExpenseReport(iouReport) ||
         // A bill's expenses come only from the vendor's invoice, so users can't add or move expenses to it.
-        iouReport?.type === CONST.REPORT.UNSUPPORTED_TYPE.BILL ||
+        // isExpenseReport excludes bills today. This check keeps bills blocked once bills count as expense reports.
+        isBillReport(iouReport) ||
         iouReport?.stateNum === undefined ||
         iouReport?.statusNum === undefined ||
         iouReport?.policyID !== policyID ||
