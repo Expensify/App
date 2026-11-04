@@ -12,15 +12,17 @@ import ROUTES from '@src/ROUTES';
 import React from 'react';
 
 type InsightsUpsellStateProps = {
-    /** Workspace the upgrade flow starts on, left out when none or several in scope qualify so the user picks one */
-    policyID?: string;
+    /** Workspaces in scope the user could upgrade. With none the CTA is hidden, and with several the user picks one. */
+    upgradeablePolicyIDs: string[];
 };
 
 /** Stands in for a dashboard's charts when it needs Control and no workspace in scope is on it. */
-function InsightsUpsellState({policyID}: InsightsUpsellStateProps) {
+function InsightsUpsellState({upgradeablePolicyIDs}: InsightsUpsellStateProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Chart']);
+
+    const policyID = upgradeablePolicyIDs.length === 1 ? upgradeablePolicyIDs.at(0) : undefined;
 
     // The route keeps the feature only alongside a workspace, so without one this lands on the generic Control pitch.
     const navigateToUpgrade = () => Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias));
@@ -33,13 +35,17 @@ function InsightsUpsellState({policyID}: InsightsUpsellStateProps) {
             title={translate('insightsPage.upsellState.title')}
             subtitle={translate('insightsPage.upsellState.subtitle')}
             minModalHeight={0}
-            buttons={[
-                {
-                    buttonText: translate('insightsPage.upsellState.button'),
-                    buttonAction: navigateToUpgrade,
-                    buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
-                },
-            ]}
+            buttons={
+                upgradeablePolicyIDs.length > 0
+                    ? [
+                          {
+                              buttonText: translate('insightsPage.upsellState.button'),
+                              buttonAction: navigateToUpgrade,
+                              buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
+                          },
+                      ]
+                    : undefined
+            }
         />
     );
 }

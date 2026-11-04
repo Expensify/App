@@ -39,7 +39,7 @@ import type {InsightsDashboardChart, InsightsDashboardState} from './resolveDash
 
 import InsightsChartWidget from './charts/InsightsChartWidget';
 import InsightsPageControls from './controls/InsightsPageControls';
-import INSIGHTS_DASHBOARD_SPECS, {getPoliciesInScope, getUpgradeablePolicyIDInScope, getVisibleCharts, shouldUpsellControlPlan} from './dashboardSpecs';
+import INSIGHTS_DASHBOARD_SPECS, {getPoliciesInScope, getUpgradeablePolicyIDsInScope, getVisibleCharts, shouldUpsellControlPlan} from './dashboardSpecs';
 import {getQueryGroupBy} from './insightsGroupByUtils';
 import buildInsightsJsonQuery from './insightsQueries';
 import InsightsTabSelector from './InsightsTabSelector';
@@ -59,8 +59,8 @@ type InsightsDashboardContentProps = {
     /** Page-level filters every chart on the dashboard is narrowed by */
     filters: InsightsFilters;
 
-    /** Workspace the upsell's CTA starts the upgrade flow on, left out when none or several in scope qualify */
-    upgradeablePolicyID?: string;
+    /** Workspaces in scope the upsell's CTA can start the upgrade flow on */
+    upgradeablePolicyIDs: string[];
 
     /** Called by the retry button to request the dashboard again */
     onRetry: () => void;
@@ -69,7 +69,7 @@ type InsightsDashboardContentProps = {
     onGroupByChange: (update: Partial<InsightsFilters>) => void;
 };
 
-function InsightsDashboardContent({state, headlineChart, supportingCharts, filters, upgradeablePolicyID, onRetry, onGroupByChange}: InsightsDashboardContentProps) {
+function InsightsDashboardContent({state, headlineChart, supportingCharts, filters, upgradeablePolicyIDs, onRetry, onGroupByChange}: InsightsDashboardContentProps) {
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
     const theme = useTheme();
@@ -131,7 +131,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                     {...scrollProps}
                     addBottomSafeAreaPadding
                 >
-                    {state === INSIGHTS_DASHBOARD_STATE.UPSELL && <InsightsUpsellState policyID={upgradeablePolicyID} />}
+                    {state === INSIGHTS_DASHBOARD_STATE.UPSELL && <InsightsUpsellState upgradeablePolicyIDs={upgradeablePolicyIDs} />}
                     {state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES && <InsightsNoExpensesState />}
                     {state === INSIGHTS_DASHBOARD_STATE.EMPTY && <InsightsEmptyState />}
                 </ScrollView>
@@ -212,7 +212,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     const arePoliciesLoaded = !isLoadingOnyxValue(policiesMetadata);
     // Settled from the policies already in Onyx, so the charts are never requested for a dashboard the upsell stands in for
     const shouldUpsell = arePoliciesLoaded && shouldUpsellControlPlan(dashboardID, policiesInScope, filters.policyIDs, login);
-    const upgradeablePolicyID = shouldUpsell ? getUpgradeablePolicyIDInScope(policiesInScope, login) : undefined;
+    const upgradeablePolicyIDs = shouldUpsell ? getUpgradeablePolicyIDsInScope(policiesInScope, login) : [];
     const query = isResolved && arePoliciesLoaded && !shouldUpsell ? buildInsightsJsonQuery(dashboardID, filters, eligibleCharts) : undefined;
     const hash = query?.hash;
     // The bucket actually queried, which Running total resolves to a real day/month bucket. Toggling Running total alone leaves this unchanged, so it stays a client-side transform with no refetch.
@@ -305,7 +305,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                 headlineChart={headlineChart}
                 supportingCharts={supportingCharts}
                 filters={filters}
-                upgradeablePolicyID={upgradeablePolicyID}
+                upgradeablePolicyIDs={upgradeablePolicyIDs}
                 onRetry={requestDashboard}
                 onGroupByChange={setFilters}
             />

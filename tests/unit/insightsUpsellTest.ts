@@ -1,4 +1,4 @@
-import {getPoliciesInScope, getUpgradeablePolicyIDInScope, shouldUpsellControlPlan} from '@pages/Insights/dashboardSpecs';
+import {getPoliciesInScope, getUpgradeablePolicyIDsInScope, shouldUpsellControlPlan} from '@pages/Insights/dashboardSpecs';
 import {getDashboardState, INSIGHTS_DASHBOARD_STATE} from '@pages/Insights/resolveDashboardState';
 
 import CONST from '@src/CONST';
@@ -140,41 +140,50 @@ describe('insights Control upsell', () => {
         });
     });
 
-    describe('getUpgradeablePolicyIDInScope', () => {
-        it('pre-selects the one workspace in scope the user could upgrade', () => {
+    describe('getUpgradeablePolicyIDsInScope', () => {
+        it('names the one workspace in scope the user could upgrade', () => {
             // Given exactly one upgradeable workspace the user administers, alongside one they are only a member of
             const policies = inScope([buildPolicy(1, CONST.POLICY.TYPE.TEAM), buildPolicy(2, CONST.POLICY.TYPE.TEAM, CONST.POLICY.ROLE.USER)]);
 
             // When the CTA works out where to send them
-            // Then it names the workspace they can actually act on
-            expect(getUpgradeablePolicyIDInScope(policies, LOGIN)).toBe('1');
+            // Then only the workspace they can actually act on qualifies, so the CTA pre-selects it
+            expect(getUpgradeablePolicyIDsInScope(policies, LOGIN)).toEqual(['1']);
         });
 
-        it('leaves the choice open when several qualify', () => {
+        it('names every workspace when several qualify', () => {
             // Given two upgradeable workspaces the user administers
             const policies = inScope([buildPolicy(1, CONST.POLICY.TYPE.TEAM), buildPolicy(2, CONST.POLICY.TYPE.TEAM)]);
 
             // When the CTA works out where to send them
-            // Then it names none, so the CTA sends them to the workspace list to pick one
-            expect(getUpgradeablePolicyIDInScope(policies, LOGIN)).toBeUndefined();
+            // Then both qualify, so the CTA sends them to the workspace list to pick one
+            expect(getUpgradeablePolicyIDsInScope(policies, LOGIN)).toEqual(['1', '2']);
         });
 
-        it('leaves the choice open when the user administers none of them', () => {
+        it('names none when the user administers none of them', () => {
             // Given upgradeable workspaces the user is only a member of
             const policies = inScope([buildPolicy(1, CONST.POLICY.TYPE.TEAM, CONST.POLICY.ROLE.USER), buildPolicy(2, CONST.POLICY.TYPE.TEAM, CONST.POLICY.ROLE.USER)]);
 
             // When the CTA works out where to send them
-            // Then it names none, because the upgrade page would turn them away
-            expect(getUpgradeablePolicyIDInScope(policies, LOGIN)).toBeUndefined();
+            // Then none qualify, so the CTA is hidden rather than leading to a not-found page
+            expect(getUpgradeablePolicyIDsInScope(policies, LOGIN)).toEqual([]);
         });
 
-        it('never names a workspace the upgrade page would reject', () => {
-            // Given the one upgradeable workspace in scope is one the user cannot edit
-            const policies = inScope([buildPolicy(1, CONST.POLICY.TYPE.TEAM, CONST.POLICY.ROLE.USER)]);
+        it('names none for an auditor, who can view the dashboard but not upgrade', () => {
+            // Given a Collect workspace the user audits rather than administers
+            const policies = inScope([buildPolicy(1, CONST.POLICY.TYPE.TEAM, CONST.POLICY.ROLE.AUDITOR)]);
 
             // When the CTA works out where to send them
-            // Then it sends them to the picker rather than a workspace that renders a not-found page
-            expect(getUpgradeablePolicyIDInScope(policies, LOGIN)).toBeUndefined();
+            // Then none qualify, because the upgrade page would turn an auditor away
+            expect(getUpgradeablePolicyIDsInScope(policies, LOGIN)).toEqual([]);
+        });
+
+        it('names none when the only workspace the user could upgrade is outside the filter', () => {
+            // Given an administered Collect workspace that the filter excludes, and a Collect one in scope the user is only a member of
+            const policies = inScope([buildPolicy(1, CONST.POLICY.TYPE.TEAM), buildPolicy(2, CONST.POLICY.TYPE.TEAM, CONST.POLICY.ROLE.USER)], ['2']);
+
+            // When the CTA works out where to send them
+            // Then none qualify, so the CTA never asks them to upgrade a workspace the dashboard isn't showing
+            expect(getUpgradeablePolicyIDsInScope(policies, LOGIN)).toEqual([]);
         });
 
         it('does not count ownership alone, because the upgrade page gates on editing rights', () => {
@@ -182,8 +191,8 @@ describe('insights Control upsell', () => {
             const policies = inScope([{...buildPolicy(1, CONST.POLICY.TYPE.TEAM, CONST.POLICY.ROLE.USER), owner: LOGIN}]);
 
             // When the CTA works out where to send them
-            // Then it names none, since ownership on its own does not get them into the upgrade page
-            expect(getUpgradeablePolicyIDInScope(policies, LOGIN)).toBeUndefined();
+            // Then none qualify, since ownership on its own does not get them into the upgrade page
+            expect(getUpgradeablePolicyIDsInScope(policies, LOGIN)).toEqual([]);
         });
 
         it('skips a workspace that is being deleted, which the upsell check already discounts', () => {
@@ -194,8 +203,8 @@ describe('insights Control upsell', () => {
             ]);
 
             // When the CTA works out where to send them
-            // Then it names none, so the CTA never starts an upgrade on a workspace that is on its way out
-            expect(getUpgradeablePolicyIDInScope(policies, LOGIN)).toBeUndefined();
+            // Then none qualify, so the CTA never starts an upgrade on a workspace that is on its way out
+            expect(getUpgradeablePolicyIDsInScope(policies, LOGIN)).toEqual([]);
         });
 
         it('skips workspaces already on Control', () => {
@@ -204,7 +213,7 @@ describe('insights Control upsell', () => {
 
             // When the CTA works out where to send them
             // Then only the workspace that has somewhere to upgrade to qualifies
-            expect(getUpgradeablePolicyIDInScope(policies, LOGIN)).toBe('2');
+            expect(getUpgradeablePolicyIDsInScope(policies, LOGIN)).toEqual(['2']);
         });
 
         it('skips the personal workspace, which has no plan to upgrade', () => {
@@ -212,17 +221,17 @@ describe('insights Control upsell', () => {
             const policies = inScope([buildPolicy(1, CONST.POLICY.TYPE.PERSONAL), buildPolicy(2, CONST.POLICY.TYPE.TEAM)]);
 
             // When the CTA works out where to send them
-            // Then the personal workspace doesn't count, so the group one is still named outright
-            expect(getUpgradeablePolicyIDInScope(policies, LOGIN)).toBe('2');
+            // Then the personal workspace doesn't count, so only the group one qualifies
+            expect(getUpgradeablePolicyIDsInScope(policies, LOGIN)).toEqual(['2']);
         });
 
         it('counts a free Submit workspace, which can still be upgraded', () => {
-            // Given the one workspace in scope is on the free Submit plan
+            // Given the one workspace in scope the user can edit is on the free Submit plan
             const policies = inScope([buildPolicy(1, CONST.POLICY.TYPE.TEAM, CONST.POLICY.ROLE.USER), buildPolicy(2, CONST.POLICY.TYPE.SUBMIT)]);
 
             // When the CTA works out where to send them
-            // Then Submit is named, because the upgrade flow accepts it rather than only paid plans
-            expect(getUpgradeablePolicyIDInScope(policies, LOGIN)).toBe('2');
+            // Then Submit qualifies, because the upgrade flow accepts it rather than only paid plans
+            expect(getUpgradeablePolicyIDsInScope(policies, LOGIN)).toEqual(['2']);
         });
     });
 

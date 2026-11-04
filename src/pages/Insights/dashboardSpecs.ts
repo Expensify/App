@@ -133,15 +133,13 @@ function shouldUpsellControlPlan(dashboardID: InsightsDashboardID, policiesInSco
 }
 
 /**
- * The workspace the upsell's CTA pre-selects: the one in scope the user could upgrade.
- * Returns undefined when none or several qualify, leaving the user to pick one from the workspace list.
+ * Returns the workspaces in scope the user could upgrade to Control.
  * Eligibility mirrors the upgrade page's own gate so the CTA never lands on a not-found page.
  */
-function getUpgradeablePolicyIDInScope(policiesInScope: Policy[], login: string | undefined): string | undefined {
-    const upgradeable = policiesInScope.filter(
-        (policy) => isGroupPolicy(policy) && !isControlPolicy(policy) && !isArchivedOrPendingDeletePolicy(policy) && canEditWorkspaceSettings(policy, login),
-    );
-    return upgradeable.length === 1 ? upgradeable.at(0)?.id : undefined;
+function getUpgradeablePolicyIDsInScope(policiesInScope: Policy[], login: string | undefined): string[] {
+    return policiesInScope
+        .filter((policy) => isGroupPolicy(policy) && !isControlPolicy(policy) && !isArchivedOrPendingDeletePolicy(policy) && canEditWorkspaceSettings(policy, login))
+        .map((policy) => policy.id);
 }
 
 /** Returns the dashboards the user can open, ignoring the workspace filter. */
@@ -153,6 +151,6 @@ function getAccessibleDashboards(policies: OnyxCollection<Policy>, login: string
     });
 }
 
-export {getAccessibleDashboards, getPoliciesInScope, getUpgradeablePolicyIDInScope, getVisibleCharts, shouldUpsellControlPlan};
+export {getAccessibleDashboards, getPoliciesInScope, getUpgradeablePolicyIDsInScope, getVisibleCharts, shouldUpsellControlPlan};
 export type {InsightsChartSpec};
 export default INSIGHTS_DASHBOARD_SPECS;
