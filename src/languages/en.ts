@@ -176,6 +176,7 @@ const translations = {
             pay: 'Pay',
             fix: 'Fix',
             task: 'Task',
+            mention: 'Mention',
         },
         // @context Used in confirmation or result messages indicating that an action completed successfully, not the abstract noun “success.”
         success: 'Success',
