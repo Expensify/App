@@ -71,6 +71,7 @@ jest.mock('@pages/inbox/report/useReportUnreadMessageScrollTracking', () => ({
 // --- useReportActionsNewActionLiveTail ---
 const mockSetIsScrollToBottomEnabled = jest.fn();
 const mockCompleteLiveTailPrune = jest.fn();
+const mockOpenReportAtLiveTail = jest.fn();
 let mockIsScrollToBottomEnabled = false;
 jest.mock('@pages/inbox/report/useReportActionsNewActionLiveTail', () => ({
     __esModule: true,
@@ -78,6 +79,7 @@ jest.mock('@pages/inbox/report/useReportActionsNewActionLiveTail', () => ({
         isScrollToBottomEnabled: mockIsScrollToBottomEnabled,
         setIsScrollToBottomEnabled: mockSetIsScrollToBottomEnabled,
         completeLiveTailPruneAfterScrollToBottom: mockCompleteLiveTailPrune,
+        openReportAtLiveTail: mockOpenReportAtLiveTail,
     }),
 }));
 
@@ -116,15 +118,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     },
 }));
 
-// --- openReport ---
-const mockOpenReport = jest.fn();
-jest.mock('@userActions/Report', () => ({
-    __esModule: true,
-    openReport: (...args: unknown[]) => {
-        mockOpenReport(...args);
-    },
-}));
-
 // --- react-navigation route ---
 let mockRouteParams: {reportActionID?: string; backTo?: string; shouldScrollToLatest?: string} = {};
 jest.mock('@react-navigation/native', () => {
@@ -144,6 +137,8 @@ jest.mock('@libs/ReportActionsUtils', () => ({
     isTransactionThread: () => mockIsTransactionThread,
     isSentMoneyReportAction: () => mockIsSentMoneyReportAction,
     isReportPreviewAction: () => mockIsReportPreviewAction,
+    // This suite never builds a deleted report preview, so the real function reduces to the action's own errors.
+    getVisibleReportActionErrors: (reportAction?: ReportAction) => reportAction?.errors ?? {},
 }));
 
 // --- ReportUtils ---
@@ -184,7 +179,6 @@ function makeAction(reportActionID: string, overrides: Partial<ReportAction> = {
 function buildParams(overrides: Partial<ScrollParams> = {}): ScrollParams {
     return {
         reportID: REPORT_ID,
-        conciergeChat: undefined,
         report: createMockReport({reportID: REPORT_ID}),
         transactionThreadReport: undefined,
         parentReportAction: undefined,
@@ -385,7 +379,7 @@ describe('useReportActionsScroll', () => {
             expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
             expect(mockMarkNewestActionAsRead).toHaveBeenCalledTimes(1);
             expect(mockNavigate).not.toHaveBeenCalled();
-            expect(mockOpenReport).not.toHaveBeenCalled();
+            expect(mockOpenReportAtLiveTail).not.toHaveBeenCalled();
         });
 
         it('navigates and opens the report when the newest action is not present', async () => {
@@ -397,7 +391,7 @@ describe('useReportActionsScroll', () => {
             });
 
             expect(mockNavigate).toHaveBeenCalledTimes(1);
-            expect(mockOpenReport).toHaveBeenCalledTimes(1);
+            expect(mockOpenReportAtLiveTail).toHaveBeenCalledTimes(1);
             expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
             expect(mockMarkNewestActionAsRead).not.toHaveBeenCalled();
         });
@@ -412,7 +406,7 @@ describe('useReportActionsScroll', () => {
             });
 
             expect(mockNavigate).not.toHaveBeenCalled();
-            expect(mockOpenReport).toHaveBeenCalledTimes(1);
+            expect(mockOpenReportAtLiveTail).toHaveBeenCalledTimes(1);
         });
     });
 
