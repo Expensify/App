@@ -3453,7 +3453,7 @@ function isPaymentRecordedByReimbursedAction(
 }
 
 function isInvoiceReportID(reportID: string | undefined): boolean {
-    return !!reportID && getReportOrDraftReport(reportID)?.type === CONST.REPORT.TYPE.INVOICE;
+    return !!reportID && getReportOrDraftReport({reportID})?.type === CONST.REPORT.TYPE.INVOICE;
 }
 
 /**

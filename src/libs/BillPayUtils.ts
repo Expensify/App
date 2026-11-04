@@ -4,7 +4,7 @@ import type {Policy, Report} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {arePaymentsEnabled} from './PolicyUtils';
+import {arePaymentsEnabled} from './PolicyUtils/payments';
 
 function isBillReport(report: OnyxEntry<Report>): boolean {
     return report?.type === CONST.REPORT.TYPE.BILL;

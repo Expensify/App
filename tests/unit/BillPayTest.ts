@@ -92,7 +92,7 @@ describe('Bill Pay', () => {
         const waitingBill: Report = {...bill, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED, billSenderAccountID: vendorAccountID};
         const queuedAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>>({
             actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
-            originalMessage: {},
+            message: {},
         });
         const personalDetails = {
             [accountID]: {accountID, login: email, displayName: 'Bill Owner'},
@@ -118,7 +118,7 @@ describe('Bill Pay', () => {
         const invoice: Report = {...bill, type: CONST.REPORT.TYPE.INVOICE, ownerAccountID: vendorAccountID};
         const queuedAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>>({
             actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
-            originalMessage: {},
+            message: {},
         });
 
         // When the invoice shows the queued payment.
