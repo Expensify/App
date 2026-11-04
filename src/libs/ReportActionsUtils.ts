@@ -1807,8 +1807,7 @@ function shouldReportActionBeVisible(
     // ReimburseReport and MarkReimbursed add no IOU PAY action to an invoice, and neither does paying its linked bill, so the payment action stays visible on invoices.
     // Auth sets shouldShow to false on MARKED_REIMBURSED actions created from NewDot for the same reason, so invoices ignore it too.
     if (isPaymentRecordedByReimbursedAction(reportAction)) {
-        const originalMessage = getOriginalMessage(reportAction);
-        if (!isInvoiceReportID(reportID) && (originalMessage?.isNewDot || reportAction.shouldShow === false)) {
+        if (isPaymentActionHiddenOutsideInvoices(reportAction) && !isInvoiceReportID(reportAction.reportID ?? reportID)) {
             return false;
         }
 
@@ -3467,11 +3466,11 @@ function isInvoiceReportID(reportID: string | undefined): boolean {
 }
 
 /**
- * Whether the action's visibility depends on its report's type, which the cached visibility can't track because
- * it updates only when report actions change. A NewDot payment action is hidden on most reports but shown on invoices.
+ * Returns true for a REIMBURSED or MARKED_REIMBURSED action that was created from NewDot or that Auth marked with
+ * shouldShow false. Such an action is hidden on every report except an invoice.
  */
-function isNewDotPaymentAction(reportAction: OnyxEntry<ReportAction>): boolean {
-    return isPaymentRecordedByReimbursedAction(reportAction) && !!getOriginalMessage(reportAction)?.isNewDot;
+function isPaymentActionHiddenOutsideInvoices(reportAction: OnyxEntry<ReportAction>): boolean {
+    return isPaymentRecordedByReimbursedAction(reportAction) && (!!getOriginalMessage(reportAction)?.isNewDot || reportAction.shouldShow === false);
 }
 
 /**
@@ -6313,7 +6312,7 @@ export {
     isActionableAddPaymentCard,
     isActionableCardFraudAlert,
     isActionableWhisperRequiringWritePermission,
-    isNewDotPaymentAction,
+    isPaymentActionHiddenOutsideInvoices,
     getExportIntegrationActionFragments,
     getExportIntegrationLastMessageText,
     getExportIntegrationMessageHTML,

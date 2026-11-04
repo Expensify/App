@@ -81,10 +81,11 @@ describe('visibleReportActions', () => {
         expect(result[unrelatedReportID]).toBe(currentValue[unrelatedReportID]);
     });
 
-    it('does not cache the visibility of a NewDot REIMBURSED action', () => {
-        // Given a NewDot REIMBURSED action, which is hidden on expense reports and shown on invoices
+    it('does not cache the visibility of a REIMBURSED action that is hidden outside invoices', () => {
+        // Given a NewDot REIMBURSED action and one that Auth marked with shouldShow false. Both are hidden on expense reports and shown on invoices.
         const reportID = 'reportWithNewDotPayment';
         const reimbursedActionID = 'reimbursedActionID';
+        const hiddenReimbursedActionID = 'hiddenReimbursedActionID';
         const commentActionID = 'commentActionID';
         const reimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
             reportActionID: reimbursedActionID,
@@ -93,9 +94,16 @@ describe('visibleReportActions', () => {
             // eslint-disable-next-line @typescript-eslint/no-deprecated -- Auth sends isNewDot on originalMessage, which getOriginalMessage reads.
             originalMessage: {isNewDot: true},
         };
+        const hiddenReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
+            reportActionID: hiddenReimbursedActionID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+            created: '2026-10-13 12:00:00.500',
+            shouldShow: false,
+        };
         const allReportActions: OnyxCollection<ReportActions> = {
             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {
                 [reimbursedActionID]: reimbursedAction,
+                [hiddenReimbursedActionID]: hiddenReimbursedAction,
                 [commentActionID]: {
                     reportActionID: commentActionID,
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
@@ -123,8 +131,9 @@ describe('visibleReportActions', () => {
             triggeredKeys: new Set<OnyxKey>(),
         });
 
-        // Then it leaves the payment action out, because its visibility depends on the report type, which the cache doesn't track
+        // Then it leaves both payment actions out, because their visibility depends on the report type, which the cache doesn't track
         expect(result[reportID]?.[reimbursedActionID]).toBeUndefined();
+        expect(result[reportID]?.[hiddenReimbursedActionID]).toBeUndefined();
         expect(result[reportID]?.[commentActionID]).toBe(true);
     });
 });
