@@ -1,19 +1,41 @@
-import {isActionableWhisperRequiringWritePermission, isActionOfType, isConciergeCategoryOptions, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
+import {
+    getIOUReportIDFromReportActionPreview,
+    isActionableWhisperRequiringWritePermission,
+    isActionOfType,
+    isConciergeCategoryOptions,
+    shouldReportActionBeVisible,
+} from '@libs/ReportActionsUtils';
 import {isSupportTicket} from '@libs/ReportUtils';
 
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction, ReportActions} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 /**
  * Returns true if the action's visibility depends on runtime context that can't be cached,
- * such as write permissions, policy settings, or sibling actions.
+ * such as write permissions, policy settings, sibling actions, or the report it links to.
  */
-function shouldSkipCachingAction(action: ReportAction): boolean {
-    return isActionableWhisperRequiringWritePermission(action) || isConciergeCategoryOptions(action) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED);
+function shouldSkipCachingAction(action: ReportAction, allReports: OnyxCollection<Report>): boolean {
+    return (
+        isActionableWhisperRequiringWritePermission(action) ||
+        isConciergeCategoryOptions(action) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED) ||
+        isInvoicePreview(action, allReports)
+    );
+}
+
+/**
+ * An invoice preview is hidden from the bill receiver by the invoice's isHiddenForBillReceiver flag. The flag can change
+ * without the preview changing, so the preview's visibility is checked when it is shown instead.
+ */
+function isInvoicePreview(action: ReportAction, allReports: OnyxCollection<Report>): boolean {
+    const linkedReportID = getIOUReportIDFromReportActionPreview(action);
+    return !!linkedReportID && allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${linkedReportID}`]?.type === CONST.REPORT.TYPE.INVOICE;
 }
 
 /**
@@ -26,6 +48,7 @@ function computeReportVisibility(
     currentUserAccountID: number | undefined,
     isSupportTicketReport: boolean,
     isReplacedSupportTicket: boolean,
+    allReports: OnyxCollection<Report>,
 ): Record<string, boolean> {
     const reportVisibility: Record<string, boolean> = {};
 
@@ -38,7 +61,7 @@ function computeReportVisibility(
         if (actionID !== action.reportActionID) {
             continue;
         }
-        if (shouldSkipCachingAction(action)) {
+        if (shouldSkipCachingAction(action, allReports)) {
             continue;
         }
         // A replacement ticket has its own active survey, so the original ticket's survey is stale.
@@ -98,7 +121,7 @@ export default createOnyxDerivedValueConfig({
             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
             const isSupportTicketReport = isSupportTicket(report);
             const isReplacedSupportTicket = isSupportTicketReport && !!allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`]?.reopenedAsReportID;
-            result[reportID] = computeReportVisibility(reportActions, currentUserAccountID, isSupportTicketReport, isReplacedSupportTicket);
+            result[reportID] = computeReportVisibility(reportActions, currentUserAccountID, isSupportTicketReport, isReplacedSupportTicket, allReports);
         }
 
         return result;
