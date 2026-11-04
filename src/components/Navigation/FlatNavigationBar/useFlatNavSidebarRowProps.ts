@@ -1,3 +1,6 @@
+/**
+ * Gives the rows of a tab's sidebar the flat navigation bar's look when the bar is shown, and no overrides otherwise.
+ */
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ThemeStyles} from '@styles/index';
@@ -31,8 +34,8 @@ function getFlatNavSidebarRowProps(isSelected: boolean, shouldUseFlatNavigationB
     return {
         shouldShowBasicTitle: !isSelected,
         titleStyle: isSelected ? undefined : styles.textSupporting,
-        selectedStyle: isSelected ? styles.flatNavigationBarItemSelected : undefined,
-        hoveredStyle: styles.flatNavigationBarItemHovered,
+        selectedStyle: isSelected ? styles.hoveredComponentBG : undefined,
+        hoveredStyle: styles.highlightBG,
     };
 }
 

@@ -52,6 +52,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
     const {singleExecution, isExecuting} = useSingleExecution();
     const activeRoute = useNavigationState((state) => findFocusedRoute(state)?.name);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const menuItemWrapperStyle = styles.sectionMenuItem(shouldUseNarrowLayout);
     const {translate} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const domainAccountID = route.params?.domainAccountID;
@@ -142,7 +143,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                                     icon={item.icon}
                                     onPress={item.action}
                                     brickRoadIndicator={item.brickRoadIndicator}
-                                    wrapperStyle={[styles.sectionMenuItem(shouldUseNarrowLayout), selectedStyle]}
+                                    wrapperStyle={[menuItemWrapperStyle, selectedStyle]}
                                     hoveredStyle={hoveredStyle}
                                     shouldShowBasicTitle={shouldShowBasicTitle}
                                     titleStyle={titleStyle}

@@ -4,8 +4,8 @@ import useFlatNavSidebarRowProps from '@components/Navigation/FlatNavigationBar/
 
 const MOCK_STYLES = {
     textSupporting: {color: '#supporting'},
-    flatNavigationBarItemSelected: {backgroundColor: '#selected'},
-    flatNavigationBarItemHovered: {backgroundColor: '#hovered'},
+    hoveredComponentBG: {backgroundColor: '#selected'},
+    highlightBG: {backgroundColor: '#hovered'},
 };
 
 let mockShouldUseFlatNavigationBar = false;
@@ -48,8 +48,8 @@ describe('useFlatNavSidebarRowProps', () => {
         expect(rowProps).toEqual({
             shouldShowBasicTitle: false,
             titleStyle: undefined,
-            selectedStyle: MOCK_STYLES.flatNavigationBarItemSelected,
-            hoveredStyle: MOCK_STYLES.flatNavigationBarItemHovered,
+            selectedStyle: MOCK_STYLES.hoveredComponentBG,
+            hoveredStyle: MOCK_STYLES.highlightBG,
         });
     });
 
@@ -66,7 +66,7 @@ describe('useFlatNavSidebarRowProps', () => {
             shouldShowBasicTitle: true,
             titleStyle: MOCK_STYLES.textSupporting,
             selectedStyle: undefined,
-            hoveredStyle: MOCK_STYLES.flatNavigationBarItemHovered,
+            hoveredStyle: MOCK_STYLES.highlightBG,
         });
     });
 });
