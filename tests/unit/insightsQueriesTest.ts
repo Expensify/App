@@ -19,6 +19,15 @@ const FILTERS: InsightsFilters = {
 const SPEND_SPEC = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND];
 const COMPLIANCE_SPEC = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.COMPLIANCE];
 
+/** Returns the Compliance supporting chart stored under the given graph key. */
+function getComplianceChart(graphKey: string) {
+    const chart = COMPLIANCE_SPEC.supportingCharts.find((supportingChart) => supportingChart.graphKey === graphKey);
+    if (!chart) {
+        throw new Error(`No Compliance chart for ${graphKey}`);
+    }
+    return chart;
+}
+
 type InsightsPayload = {
     hash: number;
     groupBy: string;
@@ -372,6 +381,32 @@ describe('insightsQueries', () => {
 
             // Then its one point is grouped by day, so it's labeled with the date rather than the quarter
             expect(buildSearchQueryJSON(headlineQuery)?.groupBy).toBe(CONST.SEARCH.GROUP_BY.DAY);
+        });
+
+        it('narrows the member charts by the date of their own stage', () => {
+            // Given the Compliance submitter and approver charts, filtered to this week
+            const filters: InsightsFilters = {...FILTERS, date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_WEEK}};
+
+            // When the page filters are applied to them
+            const submitterQuery = applyInsightsFilters(getComplianceChart(CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_SUBMITTER), filters);
+            const approverQuery = applyInsightsFilters(getComplianceChart(CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_APPROVER), filters);
+
+            // Then each one keeps the violations of its stage over the submissions or approvals of the week, the way the backend counts them, instead of the expense date
+            expect(submitterQuery).toContain('has:submitted-violation submitted:this-week');
+            expect(approverQuery).toContain('has:approved-violation anyApproval:this-week');
+            expect(submitterQuery).not.toContain('date:');
+            expect(approverQuery).not.toContain('date:');
+        });
+
+        it('narrows a member chart by its stage date over a custom range too', () => {
+            // Given the Compliance approver chart, filtered to a range
+            const filters: InsightsFilters = {...FILTERS, date: {from: '2026-11-01', to: '2026-11-07'}};
+
+            // When the page filters are applied to it
+            const approverQuery = applyInsightsFilters(getComplianceChart(CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_APPROVER), filters);
+
+            // Then the range bounds the approval date
+            expect(approverQuery).toContain('anyApproval>=2026-11-01 anyApproval<=2026-11-07');
         });
     });
 });
