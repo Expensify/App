@@ -26,7 +26,7 @@ function buildDisableRequest(overrides: Partial<Request<OnyxKey>> = {}): Request
             ]),
         },
         ...overrides,
-    } as Request<OnyxKey>;
+    };
 }
 
 function buildResponse(overrides: Partial<Response<OnyxKey>> = {}): Response<OnyxKey> {
@@ -34,7 +34,7 @@ function buildResponse(overrides: Partial<Response<OnyxKey>> = {}): Response<Ony
         jsonCode: CONST.JSON_CODE.EXP_ERROR,
         additionalData: {accountIDs: [2, 3]},
         ...overrides,
-    } as Response<OnyxKey>;
+    };
 }
 
 async function getModalSignal() {
