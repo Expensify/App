@@ -241,16 +241,16 @@ type AccountSettingsParamList = {
     };
     [SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD_AVATAR]: undefined;
     [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT]: {
-        accountID: number | string;
+        accountID: number;
     };
     [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_NAME]: {
-        accountID: number | string;
+        accountID: number;
     };
     [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_PROMPT]: {
-        accountID: number | string;
+        accountID: number;
     };
     [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_AVATAR]: {
-        accountID: number | string;
+        accountID: number;
     };
     [SCREENS.SETTINGS.RULES.ADD]: undefined;
     [SCREENS.SETTINGS.RULES.ADD_MERCHANT]: undefined;
