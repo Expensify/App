@@ -10,7 +10,7 @@ const isUserValidatedSelector = (account: OnyxEntry<Account>) => account?.valida
 
 const primaryLoginSelector = (account: OnyxEntry<Account>) => account?.primaryLogin;
 
-const delegatesSelector = (account: OnyxEntry<Account>) => account?.delegatedAccess?.delegates;
+const delegatesSelector = (account: OnyxEntry<Account>) => account?.delegatedAccess;
 
 const canSwitchAccountsSelector = (account: OnyxEntry<Account>) => (account?.delegatedAccess?.delegators?.length ?? 0) > 0 || !!account?.delegatedAccess?.delegate;
 

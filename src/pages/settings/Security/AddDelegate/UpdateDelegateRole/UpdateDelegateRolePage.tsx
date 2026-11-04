@@ -47,11 +47,10 @@ function UpdateDelegateRoleSelectionListHeader() {
 
 function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
     const {translate} = useLocalize();
-    const [delegates] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegatesSelector});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [delegateAccess] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegatesSelector});
     const {currentRole, login} = route.params;
 
-    const currentDelegate = delegates?.find((d) => d.email === login);
+    const currentDelegate = delegateAccess?.delegates?.find((d) => d.email === login);
     const matchingRole = currentDelegate?.role ?? currentRole;
 
     const roleOptions = Object.values(CONST.DELEGATE_ROLE).map((role) => ({
@@ -87,7 +86,7 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
                             updateDelegateRole({
                                 email: login,
                                 role: option.value,
-                                delegatedAccess: account?.delegatedAccess,
+                                delegatedAccess,
                                 validateCode: undefined,
                             });
                             Navigation.goBack(ROUTES.SETTINGS_COPILOT);
