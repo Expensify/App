@@ -12,9 +12,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportNameValuePairs} from '@src/types/onyx';
 
+import type {OnyxCollection} from 'react-native-onyx';
+
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 

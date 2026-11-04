@@ -105,8 +105,7 @@ function AncestorReportActionItem({
     const [isAuthorCustomAgent = false] = usePersonalDetail(authorAccountID, (personalDetail) => !!personalDetail?.isCustomAgent);
 
     // An agent account can be opened through Copilot, and the agent must not rate its own replies
-    const canAuthorCollectFeedback =
-        !isConciergeFeedbackThread && (authorAccountID === CONST.ACCOUNT_ID.CONCIERGE || (isAuthorCustomAgent && authorAccountID !== currentUserAccountID));
+    const canAuthorCollectFeedback = !isConciergeFeedbackThread && (authorAccountID === CONST.ACCOUNT_ID.CONCIERGE || (isAuthorCustomAgent && authorAccountID !== currentUserAccountID));
 
     // The message shown above a thread belongs to the parent report, so its own actions decide whether it is the author's newest answer.
     // The viewed thread's feedback marker is deliberately left out of that decision: the marker outlives the reaction, so consulting it would keep the prompt
