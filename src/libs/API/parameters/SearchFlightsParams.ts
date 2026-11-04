@@ -14,7 +14,7 @@ type SearchFlightsParams = {
     selectedFareID: string;
     legIndex: number;
 
-    /** Every flight instead of an express search, which can return only nonstops on a busy route */
+    /** Every flight instead of an express search, which can return only nonstop flights on a busy route */
     shouldShowAllFlights: boolean;
 };
 

@@ -258,26 +258,8 @@ describe('actions/Travel', () => {
             await waitForBatchedUpdates();
 
             // Then neither key keeps any data
-            const [search, checkout] = await Promise.all([
-                new Promise((resolve) => {
-                    const connection = Onyx.connect({
-                        key: ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH,
-                        callback: (value) => {
-                            Onyx.disconnect(connection);
-                            resolve(value);
-                        },
-                    });
-                }),
-                new Promise((resolve) => {
-                    const connection = Onyx.connect({
-                        key: ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_CHECKOUT,
-                        callback: (value) => {
-                            Onyx.disconnect(connection);
-                            resolve(value);
-                        },
-                    });
-                }),
-            ]);
+            const search = await getOnyxValue(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH);
+            const checkout = await getOnyxValue(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_CHECKOUT);
             expect(search).toBeUndefined();
             expect(checkout).toBeUndefined();
         });

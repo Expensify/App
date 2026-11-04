@@ -84,7 +84,7 @@ function FlightBookingDevPage({route}: FlightBookingDevPageProps) {
         startFlightCheckout(policyID, searchID, fare.fareID);
     };
 
-    // Express search shows only nonstops on a busy route, so this reruns the current leg for every flight
+    // Express search shows only nonstop flights on a busy route, so this reruns the current leg for every flight
     const showAllFlights = () => {
         const query = flightSearch?.query;
         if (!query) {
