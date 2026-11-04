@@ -337,7 +337,8 @@ function ProfilePage({route}: ProfilePageProps) {
                             <MenuItemAction
                                 title={translate('profilePage.copilotIntoAccount')}
                                 icon={expensifyIcons.UserPlus}
-                                onPress={() => switchToDelegator(login)}
+                                // Copiloting into an agent from its own pages lands on Home instead of the default Settings tab, because the agent can't open its Agents pages
+                                onPress={() => switchToDelegator(login, ROUTES.HOME)}
                             />
                         )}
                         {!!accountID && !isAnonymousUserSession() && (

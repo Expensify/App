@@ -11,7 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {domainNameSelector} from '@src/selectors/Domain';
 import {groupByPolicyAccountIDPoliciesSelector} from '@src/selectors/Policy';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -105,7 +105,8 @@ function useAgentsTable() {
                 canManage: true,
                 action: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT.getRoute(accountID))),
                 onChatPress: () => chatWithAgent(accountID),
-                onCopilotPress: () => switchToDelegator(details.login ?? ''),
+                // Copiloting into an agent from its own pages lands on Home instead of the default Settings tab, because the agent can't open its Agents pages
+                onCopilotPress: () => switchToDelegator(details.login ?? '', ROUTES.HOME),
                 dismissError: () => handleErrorClose(pendingAction, accountID),
             },
         ];

@@ -27,7 +27,6 @@ import useGPSTripStateChecker from '@hooks/useGPSTripStateChecker';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import {REQUIRE_2FA_ABOVE_PORTAL_HOST} from '@hooks/useRequire2FAOverlayVisibility';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
 import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -143,7 +142,6 @@ function AuthScreens() {
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
     const {isVisitingSecureLink} = useOnboardingFlowRouter();
-    const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
     useGPSTripStateChecker();
     useGPSInProgressModal();
 
@@ -369,8 +367,10 @@ function AuthScreens() {
                          * Always registered, like the other modal navigators below, so entering onboarding never toggles this
                          * screen in and out of the RootStack mid-session (which resets the navigator's state to its initial
                          * route). OnboardingGuard and useOnboardingFlowRouter gate whether/when a user actually lands here.
+                         * It stays registered for copilot and supportal sessions too, because a copilot switch must not change the
+                         * root screens: browser history entries saved by the other account could no longer be restored.
                          */}
-                        {!shouldSuppressPromotionalUI && !isVisitingSecureLink && (
+                        {!isVisitingSecureLink && (
                             <RootStack.Screen
                                 name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
                                 options={{...rootNavigatorScreenOptions.basicModalNavigator, gestureEnabled: false}}

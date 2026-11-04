@@ -91,7 +91,8 @@ function DynamicEditAgentPage({route, navigation}: DynamicEditAgentPageProps) {
         chatWithAgent(accountID);
     };
     const handleCopilotPress = () => {
-        switchToDelegator(agentLogin);
+        // Copiloting into an agent from its own pages lands on Home instead of the default Settings tab, because the agent can't open its Agents pages
+        switchToDelegator(agentLogin, ROUTES.HOME);
     };
     const handleViewHistoryPress = () => {
         const query = buildQueryStringFromFilterFormValues({
