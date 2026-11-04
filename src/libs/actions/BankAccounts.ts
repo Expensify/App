@@ -1339,10 +1339,7 @@ function clearCorpayBankAccountFields() {
 }
 
 function getWiseBankAccountFields(country: string, currency?: string, inputs?: Record<string, unknown>) {
-    const parameters: GetWiseBankAccountFieldsParams = {country, currency};
-    if (inputs) {
-        parameters.inputs = JSON.stringify(inputs);
-    }
+    const parameters: GetWiseBankAccountFieldsParams = {country, currency, inputs: inputs && JSON.stringify(inputs)};
     const onyxData: OnyxData<typeof ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS> = {
         optimisticData: [
             {
