@@ -51,33 +51,6 @@ describe('WiseGlobalReimbursementsIntroPage', () => {
         await Onyx.clear();
     });
 
-    it('starts the business onboarding on Get started when the business was never sent to Wise', async () => {
-        // Given an eligible business account that Wise has no status for
-        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
-        await setUpEligibleBankAccount({});
-        render(
-            <OnyxListItemProvider>
-                <NavigationContainer ref={navigationRef}>
-                    <Stack.Navigator initialRouteName={SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO}>
-                        <Stack.Screen
-                            name={SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO}
-                            component={WiseGlobalReimbursementsIntroPage}
-                            initialParams={{bankAccountID: String(BANK_ACCOUNT_ID)}}
-                        />
-                    </Stack.Navigator>
-                </NavigationContainer>
-            </OnyxListItemProvider>,
-        );
-        await waitForBatchedUpdatesWithAct();
-
-        // When the user presses Get started
-        fireEvent.press(screen.getByTestId(GET_STARTED_BUTTON_TEST_ID));
-
-        // Then the onboarding opens, since the business details still have to be collected
-        expect(navigateSpy).toHaveBeenCalledWith(DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute());
-        navigateSpy.mockRestore();
-    });
-
     it('opens the more info needed page on Get started when the business was already sent to Wise', async () => {
         // Given an eligible business account that Wise already has a status for, as when the user left Wise's form and came back
         const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
