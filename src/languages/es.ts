@@ -22,8 +22,10 @@ import type {AllConnectionName, PolicyConnectionSyncStage} from './TranslationTy
 import type {TranslationDeepObject} from './types';
 const translations: TranslationDeepObject<typeof en> = {
     billPay: {
-        billSubmitted: ({sender, receiver}) => `creó esta factura en nombre de ${sender}\nenvió esta factura a ${receiver}`,
-        invoiceSubmitted: ({sender, receiver}) => `creó esta factura en nombre de ${sender}\nenvió esta factura a ${receiver}`,
+        billCreated: ({sender}) => `creó esta factura en nombre de ${sender}`,
+        billSubmitted: ({receiver}) => `envió esta factura a ${receiver}`,
+        invoiceCreated: ({sender}) => `creó esta factura en nombre de ${sender}`,
+        invoiceSubmitted: ({receiver}) => `envió esta factura a ${receiver}`,
     },
     common: {
         durationDays: ({count}: {count: number}) => ({

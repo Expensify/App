@@ -44,8 +44,10 @@ type AllCountries = Record<Country, string>;
 
 const translations = {
     billPay: {
-        billSubmitted: ({sender, receiver}: {sender: string; receiver: string}) => `created this bill on behalf of ${sender}\nsent this bill to ${receiver}`,
-        invoiceSubmitted: ({sender, receiver}: {sender: string; receiver: string}) => `created this invoice on behalf of ${sender}\nsent this invoice to ${receiver}`,
+        billCreated: ({sender}: {sender: string}) => `created this bill on behalf of ${sender}`,
+        billSubmitted: ({receiver}: {receiver: string}) => `sent this bill to ${receiver}`,
+        invoiceCreated: ({sender}: {sender: string}) => `created this invoice on behalf of ${sender}`,
+        invoiceSubmitted: ({receiver}: {receiver: string}) => `sent this invoice to ${receiver}`,
     },
     bulkActionBar: {
         label: 'Bulk actions',

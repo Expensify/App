@@ -3,9 +3,9 @@ import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
+import {isBillPayHistoryAction} from '@libs/BillPayReportActionUtils';
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import isBillPaySubmittedAction from '@libs/isBillPaySubmittedAction';
 import {
     getFirstVisibleReportActionID,
     getFeedbackPromptActionIDs,
@@ -139,10 +139,10 @@ function useReportActionsListRenderItem({
         const isAfterCollapsedRun = !!previousRun && !previousRun.isExpanded;
         const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
 
-        // Bill Pay history replaces the stored submission actor.
-        // Keep separate actor headers for the submission and the actions immediately before and after it.
+        // Bill Pay history replaces the stored creation and submission actors.
+        // Keep separate actor headers for these actions and the actions immediately before and after them.
         const shouldKeepBillPayActorHeaders =
-            isBillPaySubmittedAction(reportAction, reportStable, isInvoiceLinkedToBill) || isBillPaySubmittedAction(previousReportAction, reportStable, isInvoiceLinkedToBill);
+            isBillPayHistoryAction(reportAction, reportStable, isInvoiceLinkedToBill) || isBillPayHistoryAction(previousReportAction, reportStable, isInvoiceLinkedToBill);
 
         return (
             <ReportActionPositionContextProvider

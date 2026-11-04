@@ -36,15 +36,20 @@ describe('useReportActionAvatars', () => {
         return waitForBatchedUpdates();
     });
 
-    describe('Bill submission avatars', () => {
+    describe('Bill Pay history avatars', () => {
         const processorAccountID = 456;
 
         afterEach(() => Onyx.clear());
 
-        it.each([processorAccountID, 0])('uses processor %s or Concierge instead of the receiver', async (processor) => {
-            // Given bill intake submits the bill with the receiver's token.
+        it.each([
+            [CONST.REPORT.ACTIONS.TYPE.CREATED, processorAccountID],
+            [CONST.REPORT.ACTIONS.TYPE.CREATED, 0],
+            [CONST.REPORT.ACTIONS.TYPE.SUBMITTED, processorAccountID],
+            [CONST.REPORT.ACTIONS.TYPE.SUBMITTED, 0],
+        ] as const)('credits bill action %s to processor %s or Concierge instead of the receiver', async (actionName, processor) => {
+            // Given bill intake creates and submits the bill with the receiver's token.
             const report: Report = {reportID: '9400', type: CONST.REPORT.UNSUPPORTED_TYPE.BILL, ownerAccountID: 123, managerID: 123};
-            const action = createMock<ReportAction>({actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED, actorAccountID: 123});
+            const action = createMock<ReportAction>({actionName, actorAccountID: 123});
             const createdAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CREATED>>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                 message: {processor},
@@ -69,11 +74,16 @@ describe('useReportActionAvatars', () => {
             });
         });
 
-        it.each([processorAccountID, 0])('uses processor %s or Concierge instead of the vendor on an invoice linked to a bill', async (processor) => {
-            // Given the vendor submits an invoice that bill intake linked to a bill.
+        it.each([
+            [CONST.REPORT.ACTIONS.TYPE.CREATED, processorAccountID],
+            [CONST.REPORT.ACTIONS.TYPE.CREATED, 0],
+            [CONST.REPORT.ACTIONS.TYPE.SUBMITTED, processorAccountID],
+            [CONST.REPORT.ACTIONS.TYPE.SUBMITTED, 0],
+        ] as const)('credits invoice action %s to processor %s or Concierge instead of the vendor', async (actionName, processor) => {
+            // Given bill intake creates and submits an invoice with the vendor's token.
             const vendorAccountID = 321;
             const report: Report = {reportID: '9401', type: CONST.REPORT.TYPE.INVOICE, ownerAccountID: vendorAccountID, managerID: 123};
-            const action = createMock<ReportAction>({actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED, actorAccountID: vendorAccountID});
+            const action = createMock<ReportAction>({actionName, actorAccountID: vendorAccountID});
             const createdAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CREATED>>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                 message: {processor},
@@ -87,7 +97,7 @@ describe('useReportActionAvatars', () => {
             });
             await waitForBatchedUpdates();
 
-            // When the history resolves the author of the invoice submission.
+            // When the history resolves the author of the invoice event.
             const {result} = renderHook(() => useReportActionAvatars({report, action}), {wrapper});
             await act(async () => waitForBatchedUpdates());
 

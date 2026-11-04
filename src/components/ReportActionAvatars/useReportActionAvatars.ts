@@ -7,8 +7,8 @@ import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
+import {isBillPayHistoryAction} from '@libs/BillPayReportActionUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import isBillPaySubmittedAction from '@libs/isBillPaySubmittedAction';
 import {
     getDelegateAccountIDFromReportAction,
     getHumanAgentAccountIDFromReportAction,
@@ -142,13 +142,13 @@ function useReportActionAvatars({
             selector: isLinkedToBillSelector,
         },
     );
-    const isBillPaySubmission = isBillPaySubmittedAction(action, iouReport, isInvoiceLinkedToBill);
-    const [billProcessorAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(isBillPaySubmission ? iouReport?.reportID : undefined)}`, {
+    const isBillPayHistory = isBillPayHistoryAction(action, iouReport, isInvoiceLinkedToBill);
+    const [billProcessorAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(isBillPayHistory ? iouReport?.reportID : undefined)}`, {
         selector: getBillProcessorAccountIDSelector,
     });
 
-    // Bill intake submits as the vendor or the receiver, but the history must credit the person who created the bill or Concierge.
-    const actorAccountID = isBillPaySubmission
+    // Bill intake uses the vendor's or receiver's token, but both history actions must credit the bill's creator or Concierge.
+    const actorAccountID = isBillPayHistory
         ? billProcessorAccountID || CONST.ACCOUNT_ID.CONCIERGE
         : getReportActionActorAccountID(action, iouReport, chatReport, delegatePersonalDetails, shouldUseRealActor);
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(action);

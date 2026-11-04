@@ -10,14 +10,15 @@ import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBa
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {displayNameOrDefaultSelector} from '@src/selectors/PersonalDetails';
-import type {Report} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 
-type BillPaySubmittedContentProps = {
+type BillPayHistoryContentProps = {
     reportID: string | undefined;
+    actionName: ReportAction['actionName'];
 };
 
 // The vendor owns the invoice, and bill intake submits it to the receiver. The receiver owns the bill, and Auth sends the
@@ -31,14 +32,23 @@ const billPayParticipantsSelector = (report: OnyxEntry<Report>) => {
     };
 };
 
-function BillPaySubmittedContent({reportID}: BillPaySubmittedContentProps) {
+function BillPayHistoryContent({reportID, actionName}: BillPayHistoryContentProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const [participants] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {selector: billPayParticipantsSelector});
-    const [sender = ''] = usePersonalDetail(participants?.senderAccountID, displayNameOrDefaultSelector(translate, formatPhoneNumber));
-    const [receiver = ''] = usePersonalDetail(participants?.receiverAccountID, displayNameOrDefaultSelector(translate, formatPhoneNumber));
-    const message = participants?.isInvoice ? translate('billPay.invoiceSubmitted', {sender, receiver}) : translate('billPay.billSubmitted', {sender, receiver});
+    const isCreatedAction = actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
+    const [participant = ''] = usePersonalDetail(
+        isCreatedAction ? participants?.senderAccountID : participants?.receiverAccountID,
+        displayNameOrDefaultSelector(translate, formatPhoneNumber),
+    );
+
+    if (isCreatedAction) {
+        const message = participants?.isInvoice ? translate('billPay.invoiceCreated', {sender: participant}) : translate('billPay.billCreated', {sender: participant});
+        return <ReportActionItemBasicMessage message={message} />;
+    }
+
+    const message = participants?.isInvoice ? translate('billPay.invoiceSubmitted', {receiver: participant}) : translate('billPay.billSubmitted', {receiver: participant});
 
     return <ReportActionItemBasicMessage message={message} />;
 }
 
-export default BillPaySubmittedContent;
+export default BillPayHistoryContent;

@@ -4,24 +4,20 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import isBillPaySubmittedAction from '@libs/isBillPaySubmittedAction';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {getForwardedReportActionMessage, getOriginalMessage, hasPendingDEWApprove, hasPendingDEWSubmit, isActionOfType, isMarkAsClosedAction} from '@libs/ReportActionsUtils';
-import {isInvoiceReport, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {shouldShowMarkAsDone} from '@libs/ReportUtils';
 
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 import ReportActionItemMessageWithExplain from '@pages/inbox/report/ReportActionItemMessageWithExplain';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {isLinkedToBillSelector} from '@src/selectors/ReportNameValuePairs';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
-
-import BillPaySubmittedContent from './BillPaySubmittedContent';
 
 type ApprovalFlowContentProps = {
     action: OnyxTypes.ReportAction;
@@ -37,15 +33,8 @@ function ApprovalFlowContent({action, policyID, reportID, originalReport, isTrac
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action.childReportID)}`);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const [isInvoiceLinkedToBill = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(isInvoiceReport(originalReport) ? reportID : undefined)}`, {
-        selector: isLinkedToBillSelector,
-    });
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
     const isPendingAdd = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
-
-    if (isBillPaySubmittedAction(action, originalReport, isInvoiceLinkedToBill)) {
-        return <BillPaySubmittedContent reportID={reportID} />;
-    }
 
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) || isMarkAsClosedAction(action)) {
         const wasSubmittedViaHarvesting = !isMarkAsClosedAction(action) ? (getOriginalMessage(action)?.harvesting ?? false) : false;

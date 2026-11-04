@@ -13,9 +13,9 @@ import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUnreadMarker from '@hooks/useUnreadMarker';
 
+import {isBillPayHistoryAction, isBillPayReport} from '@libs/BillPayReportActionUtils';
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import isBillPaySubmittedAction from '@libs/isBillPaySubmittedAction';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
@@ -152,7 +152,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         reportActions,
         reportTransactionIDs,
         canPerformWriteAction: !!canPerformWriteAction,
-        shouldShowHarvestCreatedAction,
+        shouldShowCreatedAction: shouldShowHarvestCreatedAction || isBillPayReport(reportStable, isInvoiceLinkedToBill),
         isOffline,
         isWaitingOnBankAccount: !!report?.isWaitingOnBankAccount,
     });
@@ -285,10 +285,10 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         const previousRun = previousReportAction ? runsByAnchorReportActionID.get(previousReportAction.reportActionID) : undefined;
         const isAfterCollapsedRun = indexWithinReportActions > 0 && !!previousRun && !previousRun.isExpanded;
 
-        // Bill Pay history replaces the stored submission actor.
-        // Keep separate actor headers for the submission and the actions immediately before and after it.
+        // Bill Pay history replaces the stored creation and submission actors.
+        // Keep separate actor headers for these actions and the actions immediately before and after them.
         const shouldKeepBillPayActorHeaders =
-            isBillPaySubmittedAction(reportAction, reportStable, isInvoiceLinkedToBill) || isBillPaySubmittedAction(previousReportAction, reportStable, isInvoiceLinkedToBill);
+            isBillPayHistoryAction(reportAction, reportStable, isInvoiceLinkedToBill) || isBillPayHistoryAction(previousReportAction, reportStable, isInvoiceLinkedToBill);
         const displayAsGroup =
             !isAfterCollapsedRun &&
             !shouldKeepBillPayActorHeaders &&

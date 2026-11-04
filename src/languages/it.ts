@@ -36,8 +36,10 @@ type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
     billPay: {
-        billSubmitted: ({sender, receiver}) => `ha creato questa fattura per conto di ${sender}\nha inviato questa fattura a ${receiver}`,
-        invoiceSubmitted: ({sender, receiver}) => `ha creato questa fattura per conto di ${sender}\nha inviato questa fattura a ${receiver}`,
+        billCreated: ({sender}) => `ha creato questa fattura per conto di ${sender}`,
+        billSubmitted: ({receiver}) => `ha inviato questa fattura a ${receiver}`,
+        invoiceCreated: ({sender}) => `ha creato questa fattura per conto di ${sender}`,
+        invoiceSubmitted: ({receiver}) => `ha inviato questa fattura a ${receiver}`,
     },
     common: {
         durationDays: ({count}: {count: number}) => ({

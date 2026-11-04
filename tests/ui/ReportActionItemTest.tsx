@@ -172,10 +172,12 @@ describe('ReportActionItem', () => {
         );
     }
 
-    describe('Bill submission history', () => {
+    describe('Bill Pay creation and submission history', () => {
         const processorAccountID = 456;
 
         it.each([
+            [CONST.REPORT.ACTIONS.TYPE.CREATED, processorAccountID, 'Tom Jones'],
+            [CONST.REPORT.ACTIONS.TYPE.CREATED, 0, 'Concierge'],
             [CONST.REPORT.ACTIONS.TYPE.SUBMITTED, processorAccountID, 'Tom Jones'],
             [CONST.REPORT.ACTIONS.TYPE.SUBMITTED, 0, 'Concierge'],
             [CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, processorAccountID, 'Tom Jones'],
@@ -190,8 +192,14 @@ describe('ReportActionItem', () => {
                 managerID: 789,
                 billSenderAccountID: senderAccountID,
             };
-            const action = {...createReportAction(actionName, {harvesting: true}), reportID: bill.reportID};
-            const createdAction = {...createReportAction(CONST.REPORT.ACTIONS.TYPE.CREATED, processor ? {processor} : {}), reportActionID: '12344'};
+            const createdAction = {
+                ...createReportAction(CONST.REPORT.ACTIONS.TYPE.CREATED, processor ? {processor} : {}),
+                reportActionID: '12344',
+                reportID: bill.reportID,
+                created: '2025-07-12 08:03:17.653',
+            };
+            const isCreation = actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
+            const action = isCreation ? createdAction : {...createReportAction(actionName, {harvesting: true}), reportID: bill.reportID};
             await act(async () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${bill.reportID}`, bill);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${bill.reportID}`, {[createdAction.reportActionID]: createdAction, [action.reportActionID]: action});
@@ -203,20 +211,26 @@ describe('ReportActionItem', () => {
                 });
             });
 
-            // When NewDot renders the submission, it uses the bill wording even for actions saved with a harvest token.
+            // When NewDot renders the event, including submissions saved with a harvest token.
             renderItemWithAction(action, false, bill);
             await waitForBatchedUpdatesWithAct();
 
-            // Then the history names the creator and the original receiver, not the bill's current approver.
+            // Then each event shows only its own message and timestamp, with the creator instead of the token's owner.
             expect(screen.getByText(actorName)).toBeOnTheScreen();
-            expect(screen.getByText('created this bill on behalf of Sender\nsent this bill to Receiver')).toBeOnTheScreen();
+            expect(screen.getByText(isCreation ? 'created this bill on behalf of Sender' : 'sent this bill to Receiver')).toBeOnTheScreen();
+            expect(screen.queryByText(isCreation ? 'sent this bill to Receiver' : 'created this bill on behalf of Sender')).not.toBeOnTheScreen();
+            expect(screen.getByText(DateUtils.datetimeToCalendarTime(CONST.LOCALES.EN, action.created, CONST.DEFAULT_TIME_ZONE.selected))).toBeOnTheScreen();
             expect(screen.queryByText(translateLocal('iou.automaticallySubmitted'))).not.toBeOnTheScreen();
         });
 
         it.each([
-            [processorAccountID, 'Tom Jones'],
-            [0, 'Concierge'],
-        ] as const)('credits an invoice linked to a bill to processor %s as %s', async (processor, actorName) => {
+            [CONST.REPORT.ACTIONS.TYPE.CREATED, processorAccountID, 'Tom Jones'],
+            [CONST.REPORT.ACTIONS.TYPE.CREATED, 0, 'Concierge'],
+            [CONST.REPORT.ACTIONS.TYPE.SUBMITTED, processorAccountID, 'Tom Jones'],
+            [CONST.REPORT.ACTIONS.TYPE.SUBMITTED, 0, 'Concierge'],
+            [CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, processorAccountID, 'Tom Jones'],
+            [CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, 0, 'Concierge'],
+        ] as const)('credits invoice action %s to processor %s as %s', async (actionName, processor, actorName) => {
             // Given the vendor submits the invoice to the receiver, while the creation action records who created the bill.
             const senderAccountID = 321;
             const invoice: Report = {
@@ -225,8 +239,15 @@ describe('ReportActionItem', () => {
                 ownerAccountID: senderAccountID,
                 managerID: ACTOR_ACCOUNT_ID,
             };
-            const action = {...createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {}), reportID: invoice.reportID, actorAccountID: senderAccountID};
-            const createdAction = {...createReportAction(CONST.REPORT.ACTIONS.TYPE.CREATED, processor ? {processor} : {}), reportActionID: '12344', actorAccountID: senderAccountID};
+            const createdAction = {
+                ...createReportAction(CONST.REPORT.ACTIONS.TYPE.CREATED, processor ? {processor} : {}),
+                reportActionID: '12344',
+                reportID: invoice.reportID,
+                actorAccountID: senderAccountID,
+                created: '2025-07-12 08:03:17.653',
+            };
+            const isCreation = actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
+            const action = isCreation ? createdAction : {...createReportAction(actionName, {}), reportID: invoice.reportID, actorAccountID: senderAccountID};
             await act(async () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoice.reportID}`, invoice);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${invoice.reportID}`, {billID: 9878});
@@ -239,13 +260,15 @@ describe('ReportActionItem', () => {
                 });
             });
 
-            // When NewDot renders the invoice submission.
+            // When NewDot renders the invoice event.
             renderItemWithAction(action, false, invoice);
             await waitForBatchedUpdatesWithAct();
 
-            // Then the history credits the bill's creator instead of the vendor, and names the vendor and the receiver.
+            // Then each event shows only its own message and timestamp, with the bill's creator instead of the vendor.
             expect(screen.getByText(actorName)).toBeOnTheScreen();
-            expect(screen.getByText('created this invoice on behalf of Sender\nsent this invoice to Receiver')).toBeOnTheScreen();
+            expect(screen.getByText(isCreation ? 'created this invoice on behalf of Sender' : 'sent this invoice to Receiver')).toBeOnTheScreen();
+            expect(screen.queryByText(isCreation ? 'sent this invoice to Receiver' : 'created this invoice on behalf of Sender')).not.toBeOnTheScreen();
+            expect(screen.getByText(DateUtils.datetimeToCalendarTime(CONST.LOCALES.EN, action.created, CONST.DEFAULT_TIME_ZONE.selected))).toBeOnTheScreen();
         });
 
         it('keeps the usual wording on an invoice that is not linked to a bill', async () => {
@@ -266,6 +289,7 @@ describe('ReportActionItem', () => {
             // Then the history keeps the vendor as the actor and doesn't use the Bill Pay wording.
             expect(screen.getByText('Sender')).toBeOnTheScreen();
             expect(screen.queryByText(/created this invoice on behalf of/)).not.toBeOnTheScreen();
+            expect(screen.queryByText(/sent this invoice to/)).not.toBeOnTheScreen();
         });
     });
 
