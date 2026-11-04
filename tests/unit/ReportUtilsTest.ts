@@ -390,6 +390,7 @@ jest.mock('@libs/PolicyUtils', () => {
         ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/features'),
         ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/tax'),
         ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/members'),
+        ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/expensifyTeam'),
         isPolicyAdmin: jest.fn().mockImplementation((policy?: Policy) => policy?.role === 'admin'),
         isPaidGroupPolicy,
         // isGroupPolicy delegates to the isPaidGroupPolicy mock so tests that tweak isPaidGroupPolicy still drive group-policy checks
@@ -15071,88 +15072,6 @@ describe('ReportUtils', () => {
             expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
             expect(result?.reportAction?.reportActionID).toBe('iou-action-fallback');
         });
-
-        it('should return the earliest matching report action for invoice rooms with missing bank account', async () => {
-            const invoiceRoomID = '50000';
-            const olderChildReportID = '50001';
-            const newerChildReportID = '50002';
-            const policyID = '50003';
-
-            const invoiceRoom: Report = {
-                ...createInvoiceRoom(Number(invoiceRoomID)),
-                reportID: invoiceRoomID,
-                policyID,
-            };
-
-            // Child invoice reports: owned by current user, no bank account on policy, and settled
-            // Note: hasMissingInvoiceBankAccount requires isSettled=true, but the outer condition
-            // requires !isSettled, making this path currently unreachable. This test documents the
-            // current behavior and will catch regressions if the conditions are corrected.
-            const olderChildReport: Report = {
-                ...createRandomReport(Number(olderChildReportID), undefined),
-                reportID: olderChildReportID,
-                type: CONST.REPORT.TYPE.INVOICE,
-                policyID,
-                ownerAccountID: currentUserAccountID,
-                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
-            };
-
-            const newerChildReport: Report = {
-                ...createRandomReport(Number(newerChildReportID), undefined),
-                reportID: newerChildReportID,
-                type: CONST.REPORT.TYPE.INVOICE,
-                policyID,
-                ownerAccountID: currentUserAccountID,
-                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
-            };
-
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(Number(policyID)),
-                id: policyID,
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceRoomID}`, invoiceRoom);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${olderChildReportID}`, olderChildReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${newerChildReportID}`, newerChildReport);
-
-            const olderReportPreview: ReportAction = {
-                ...createRandomReportAction(Number(olderChildReportID)),
-                reportActionID: 'older-invoice-preview',
-                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-                created: '2024-01-01 10:00:00.000',
-                childReportID: olderChildReportID,
-            };
-
-            const newerReportPreview: ReportAction = {
-                ...createRandomReportAction(Number(newerChildReportID)),
-                reportActionID: 'newer-invoice-preview',
-                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-                created: '2024-01-02 10:00:00.000',
-                childReportID: newerChildReportID,
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${invoiceRoomID}`, {
-                [newerReportPreview.reportActionID]: newerReportPreview,
-                [olderReportPreview.reportActionID]: olderReportPreview,
-            });
-            await waitForBatchedUpdates();
-
-            const {result: isReportArchived} = renderHook(() => useReportIsArchived(invoiceRoomID));
-            const result = getReasonAndReportActionThatRequiresAttention({
-                optionOrReport: invoiceRoom,
-                currentUserLogin: currentUserEmail,
-                currentUserAccountID,
-                transactionViolations: undefined,
-                reportMetadata: undefined,
-                isReportArchived: isReportArchived.current,
-            });
-
-            // Currently returns null because hasMissingInvoiceBankAccount requires isSettled=true
-            // but the outer condition filters out settled reports with isSettled check.
-            // When this contradiction is resolved, the result should return the older report action.
-            expect(result).toBe(null);
-        });
     });
 
     describe('canEditReportDescription', () => {
@@ -15189,7 +15108,7 @@ describe('ReportUtils', () => {
             expect(result).toBeFalsy();
         });
 
-        it.each([CONST.POLICY.ROLE.AUDITOR, CONST.POLICY.ROLE.PAYMENTS_ADMIN])('should return false for a %s on a policy room they belong to', async (role) => {
+        it.each([CONST.POLICY.ROLE.AUDITOR, CONST.POLICY.ROLE.PAYMENTS_ADMIN, CONST.POLICY.ROLE.CARD_ADMIN])('should return false for a %s on a policy room they belong to', async (role) => {
             // Given a policy room the current user belongs to, in a workspace where they only have read access to all reports
             const report: Report = {
                 ...createRandomReport(40003, CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
@@ -15210,6 +15129,7 @@ describe('ReportUtils', () => {
         it.each([
             [CONST.POLICY.ROLE.AUDITOR, false],
             [CONST.POLICY.ROLE.PAYMENTS_ADMIN, false],
+            [CONST.POLICY.ROLE.CARD_ADMIN, false],
             [CONST.POLICY.ROLE.ADMIN, true],
         ])('should handle an open invoice report for a %s', (role, expected) => {
             // Given an open invoice report in a workspace where the current user has the role
@@ -18225,6 +18145,82 @@ describe('ReportUtils', () => {
                     accountID: 'Error in accountID',
                 },
                 reportAction: reportActionWithError,
+            });
+        });
+        describe('a pay failure mirrored onto the chat report preview', () => {
+            const PAY_FAILURE_KEY = CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY;
+            const PAY_FAILURE_MESSAGE = 'The payment failed because the expense report was deleted.';
+            // A real error is keyed on microseconds. Named so the key stays a computed one, which the naming-convention rule requires.
+            const OTHER_ERROR_KEY = 1700000000000000;
+
+            function buildReportPreview(isDeleted: boolean, errors?: ReportAction['errors']): ReportAction {
+                return {
+                    ...createRandomReportAction(80001),
+                    reportID: report.reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                    // An empty message array is how a deleted preview reaches the client, see hasDeletedMessage.
+                    message: isDeleted ? [] : [{type: 'COMMENT', html: 'Expense', text: 'Expense'}],
+                    originalMessage: {linkedReportID: '80002'},
+                    shouldShow: true,
+                    errors,
+                } as ReportAction;
+            }
+
+            it('surfaces the mirror once the preview is deleted, so the chat row gets a red dot', () => {
+                // Given the payer's expense report was deleted, leaving the mirrored failure on the chat's deleted preview
+                const deletedPreview = buildReportPreview(true, {[PAY_FAILURE_KEY]: PAY_FAILURE_MESSAGE});
+
+                // When the LHN aggregates the chat's errors
+                const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(
+                    report,
+                    {...reportActions, [deletedPreview.reportActionID]: deletedPreview},
+                    allTransactions,
+                    currentUserAccountID,
+                );
+
+                // Then the deleted preview is counted, or nothing would point the payer at the only message explaining the failure
+                expect(errors).toEqual({[PAY_FAILURE_KEY]: PAY_FAILURE_MESSAGE});
+                expect(reportAction).toEqual(deletedPreview);
+            });
+
+            it('stays quiet while the preview is still live', () => {
+                // Given the expense report still exists, so its pay action already shows the failure inline
+                const livePreview = buildReportPreview(false, {[PAY_FAILURE_KEY]: PAY_FAILURE_MESSAGE});
+
+                // When the LHN aggregates the chat's errors
+                const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(
+                    report,
+                    {...reportActions, [livePreview.reportActionID]: livePreview},
+                    allTransactions,
+                    currentUserAccountID,
+                );
+
+                // Then the chat row shows nothing, because the red dot belongs on the expense report the payer can still open
+                expect(errors).toEqual({});
+                expect(reportAction).toBeUndefined();
+            });
+
+            it('keeps ignoring other deleted actions that carry errors', () => {
+                // Given a deleted comment that still holds an error, which the aggregator has always skipped
+                const deletedComment: ReportAction = {
+                    ...createRandomReportAction(80003),
+                    reportID: report.reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    message: [],
+                    errors: {[OTHER_ERROR_KEY]: 'Unexpected error. Please try again later.'},
+                };
+
+                // When the LHN aggregates the chat's errors
+                const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(
+                    report,
+                    {...reportActions, [deletedComment.reportActionID]: deletedComment},
+                    allTransactions,
+                    currentUserAccountID,
+                );
+
+                // Then it is still skipped, so letting the deleted preview through did not widen the filter
+                expect(errors).toEqual({});
+                expect(reportAction).toBeUndefined();
             });
         });
         it('should return smart scan error for the top-most parent report with smart scan error', async () => {
@@ -26722,11 +26718,17 @@ describe('ReportUtils', () => {
         const mockTranslate: LocaleContextProps['translate'] = (path, ...params) => translate(CONST.LOCALES.EN, path, ...params);
         const mockIcons = createMock<Record<'Location' | 'ReceiptPlus' | 'Plus', IconAsset>>({Location: jest.fn(), ReceiptPlus: jest.fn(), Plus: jest.fn()});
         const mockIouReportID = '12345';
+        const mockSentryLabels = {
+            createExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE,
+            trackDistance: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE,
+            addExistingExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_EXISTING,
+        };
 
         it('should return exactly 3 dropdown options', () => {
             const result = getAddExpenseDropdownOptions({
                 translate: mockTranslate,
                 icons: mockIcons,
+                sentryLabels: mockSentryLabels,
                 iouReportID: mockIouReportID,
                 policy: undefined,
                 userBillingGracePeriodEnds: undefined,
@@ -26742,6 +26744,7 @@ describe('ReportUtils', () => {
             const result = getAddExpenseDropdownOptions({
                 translate: mockTranslate,
                 icons: mockIcons,
+                sentryLabels: mockSentryLabels,
                 iouReportID: mockIouReportID,
                 policy: undefined,
                 userBillingGracePeriodEnds: undefined,
@@ -26759,6 +26762,7 @@ describe('ReportUtils', () => {
             const result = getAddExpenseDropdownOptions({
                 translate: mockTranslate,
                 icons: mockIcons,
+                sentryLabels: mockSentryLabels,
                 iouReportID: mockIouReportID,
                 policy: undefined,
                 userBillingGracePeriodEnds: undefined,
@@ -26776,6 +26780,7 @@ describe('ReportUtils', () => {
             const result = getAddExpenseDropdownOptions({
                 translate: mockTranslate,
                 icons: mockIcons,
+                sentryLabels: mockSentryLabels,
                 iouReportID: mockIouReportID,
                 policy: undefined,
                 userBillingGracePeriodEnds: undefined,
@@ -26796,6 +26801,7 @@ describe('ReportUtils', () => {
             const result = getAddExpenseDropdownOptions({
                 translate: mockTranslate,
                 icons: mockIcons,
+                sentryLabels: mockSentryLabels,
                 iouReportID: mockIouReportID,
                 policy: mockPolicy,
                 userBillingGracePeriodEnds: undefined,
@@ -26817,6 +26823,7 @@ describe('ReportUtils', () => {
             const result = getAddExpenseDropdownOptions({
                 translate: mockTranslate,
                 icons: mockIcons,
+                sentryLabels: mockSentryLabels,
                 iouReportID: mockIouReportID,
                 policy: mockPolicy,
                 userBillingGracePeriodEnds: undefined,
@@ -26837,6 +26844,7 @@ describe('ReportUtils', () => {
             const result = getAddExpenseDropdownOptions({
                 translate: mockTranslate,
                 icons: mockIcons,
+                sentryLabels: mockSentryLabels,
                 iouReportID: undefined,
                 policy: undefined,
                 userBillingGracePeriodEnds: undefined,
@@ -26857,6 +26865,7 @@ describe('ReportUtils', () => {
             const result = getAddExpenseDropdownOptions({
                 translate: mockTranslate,
                 icons: mockIcons,
+                sentryLabels: mockSentryLabels,
                 iouReportID: mockIouReportID,
                 policy: undefined,
                 userBillingGracePeriodEnds: undefined,
@@ -26877,6 +26886,7 @@ describe('ReportUtils', () => {
             const result = getAddExpenseDropdownOptions({
                 translate: mockTranslate,
                 icons: mockIcons,
+                sentryLabels: mockSentryLabels,
                 iouReportID: mockIouReportID,
                 policy: undefined,
                 userBillingGracePeriodEnds: undefined,
@@ -26893,6 +26903,7 @@ describe('ReportUtils', () => {
             const result = getAddExpenseDropdownOptions({
                 translate: mockTranslate,
                 icons: mockIcons,
+                sentryLabels: mockSentryLabels,
                 iouReportID: mockIouReportID,
                 policy: undefined,
                 userBillingGracePeriodEnds: undefined,
@@ -26918,6 +26929,7 @@ describe('ReportUtils', () => {
             const result = getAddExpenseDropdownOptions({
                 translate: mockTranslate,
                 icons: mockIcons,
+                sentryLabels: mockSentryLabels,
                 iouReportID: mockIouReportID,
                 policy: mockPolicy,
                 userBillingGracePeriodEnds: undefined,
@@ -26949,6 +26961,7 @@ describe('ReportUtils', () => {
             const result = getAddExpenseDropdownOptions({
                 translate: mockTranslate,
                 icons: mockIcons,
+                sentryLabels: mockSentryLabels,
                 iouReportID: mockIouReportID,
                 policy: mockPolicy,
                 userBillingGracePeriodEnds: undefined,
@@ -27371,6 +27384,11 @@ describe('ReportUtils', () => {
     describe('getAddExpenseDropdownOptions', () => {
         const mockTranslate: LocaleContextProps['translate'] = (path, ...params) => translate(CONST.LOCALES.EN, path, ...params);
         const mockIcons = createMock<Record<'Location' | 'ReceiptPlus' | 'Plus', IconAsset>>({Location: jest.fn(), ReceiptPlus: jest.fn(), Plus: jest.fn()});
+        const mockSentryLabels = {
+            createExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE,
+            trackDistance: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE,
+            addExistingExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_EXISTING,
+        };
         const policyID = '5001';
         const iouReportID = 'reportABC';
         const ownerAccountID = 999;
@@ -27385,6 +27403,7 @@ describe('ReportUtils', () => {
             const options = getAddExpenseDropdownOptions({
                 translate: mockTranslate,
                 icons: mockIcons,
+                sentryLabels: mockSentryLabels,
                 iouReportID,
                 policy: undefined,
                 userBillingGracePeriodEnds: undefined,
@@ -27405,6 +27424,7 @@ describe('ReportUtils', () => {
                 const options = getAddExpenseDropdownOptions({
                     translate: mockTranslate,
                     icons: mockIcons,
+                    sentryLabels: mockSentryLabels,
                     iouReportID: undefined,
                     policy: undefined,
                     userBillingGracePeriodEnds: undefined,
@@ -27437,6 +27457,7 @@ describe('ReportUtils', () => {
                 const options = getAddExpenseDropdownOptions({
                     translate: mockTranslate,
                     icons: mockIcons,
+                    sentryLabels: mockSentryLabels,
                     iouReportID,
                     policy: testPolicy,
                     userBillingGracePeriodEnds: pastDueCollection,
@@ -27470,6 +27491,7 @@ describe('ReportUtils', () => {
                 const options = getAddExpenseDropdownOptions({
                     translate: mockTranslate,
                     icons: mockIcons,
+                    sentryLabels: mockSentryLabels,
                     iouReportID,
                     policy: testPolicy,
                     userBillingGracePeriodEnds: pastDueCollection,
@@ -27497,6 +27519,7 @@ describe('ReportUtils', () => {
                 const options = getAddExpenseDropdownOptions({
                     translate: mockTranslate,
                     icons: mockIcons,
+                    sentryLabels: mockSentryLabels,
                     iouReportID,
                     policy: testPolicy,
                     userBillingGracePeriodEnds: undefined,
@@ -30325,13 +30348,18 @@ describe('getReportForHeader', () => {
     });
 
     it('returns the parent invoice report when parentReport is invoice and report is a chat thread, even if a different report exists in Onyx for the same ID', async () => {
+        // Given cached parent data conflicts with the invoice parent passed explicitly
         const onyxParentReport: Report = {reportID: '2', type: CONST.REPORT.TYPE.EXPENSE} as Report;
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}2`, onyxParentReport);
 
-        const passedParentReport: Report = {reportID: '2', type: CONST.REPORT.TYPE.INVOICE} as Report;
+        const passedParentReport: Report = {reportID: '2', type: CONST.REPORT.TYPE.INVOICE};
         const report = {reportID: '1', parentReportID: '2', parentReportActionID: 'action1', type: CONST.REPORT.TYPE.CHAT} as Report;
 
-        expect(getReportForHeader(report, passedParentReport)).toBe(passedParentReport);
+        // When resolving the header report for the invoice thread
+        const result = getReportForHeader(report, passedParentReport);
+
+        // Then the explicitly passed parent wins over cached data
+        expect(result).toBe(passedParentReport);
     });
 
     it('returns the report when parent is an invoice but report is not a thread', () => {

@@ -16,6 +16,7 @@ describe('dynamic settings RHP screens on a fresh load', () => {
         ['a report, add payment card', '/r/123/add-payment-card', NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT],
         ['the subscription page', '/settings/subscription/add-payment-card', NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, SCREENS.SETTINGS.SUBSCRIPTION.ROOT],
         ['Teachers Unite, add payment card', '/settings/teachersunite/add-payment-card', NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, SCREENS.SETTINGS.SAVE_THE_WORLD],
+        ['the preferences page, home address country', '/settings/preferences/home-address/country?country=US', NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, SCREENS.SETTINGS.PREFERENCES.ROOT],
         ['a report, personal card details', '/r/123/personal-card/456', NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT],
         ['a report, personal card name', '/r/123/personal-card/456/edit-card-name', NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT],
         ['a report, personal card fix connection', '/r/123/personal-card/456/fix-connection', NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT],

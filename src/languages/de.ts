@@ -35,6 +35,12 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        billCreated: ({sender}) => `hat diese Rechnung im Namen von ${sender} erstellt`,
+        billSubmitted: ({receiver}) => `hat diese Rechnung an ${receiver} gesendet`,
+        invoiceCreated: ({sender}) => `hat diese Rechnung im Namen von ${sender} erstellt`,
+        invoiceSubmitted: ({receiver}) => `hat diese Rechnung an ${receiver} gesendet`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 Tag`,
@@ -1233,6 +1239,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'Compliance',
         runningTotal: 'Laufende Summe',
+        explain: 'Erklären',
+        explainChartPrompt: (chartTitle: string) => `Erklären Sie die Daten in ${chartTitle}.`,
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -1711,6 +1719,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: 'Bitte gib für deine Aufteilung einen von null verschiedenen Betrag ein',
             noParticipantSelected: 'Bitte wählen Sie eine:n Teilnehmende:n aus',
             other: 'Unerwarteter Fehler. Bitte versuchen Sie es später erneut.',
+            payFailedExpenseDeleted: 'Die Zahlung ist fehlgeschlagen, weil die Spesenabrechnung gelöscht wurde.',
             genericCreateFailureMessage: 'Unerwarteter Fehler beim Einreichen dieser Ausgabe. Bitte versuche es später noch einmal.',
             genericCreateInvoiceFailureMessage: 'Unerwarteter Fehler beim Senden dieser Rechnung. Bitte versuche es später noch einmal.',
             genericHoldExpenseFailureMessage: 'Unerwarteter Fehler beim Zurückhalten dieser Ausgabe. Bitte versuche es später erneut.',
@@ -3127,13 +3136,23 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `Ich stimme den <a href="${CONST.WISE.TERMS_URL}">Allgemeinen Geschäftsbedingungen</a> und der <a href="${CONST.WISE.PRIVACY_URL}">Datenschutzerklärung</a> von Wise zu.`,
                 wiseTermsAccessibilityLabel: 'Ich stimme den Allgemeinen Geschäftsbedingungen und der Datenschutzerklärung von Wise zu.',
                 error: 'Bitte akzeptieren Sie alle Bedingungen, um fortzufahren.',
+                alreadySubmitted: 'Dieses Unternehmen wurde bereits zur Prüfung an Wise übermittelt.',
             },
             moreInfoNeeded: {
                 headerTitle: 'Weitere Informationen erforderlich',
                 title: 'Zusätzliche Informationen verifizieren',
                 subtitle: 'Unser Zahlungspartner benötigt direkt weitere Informationen. Das sollte nur ein paar Minuten dauern.',
             },
+            inReview: {
+                title: 'In Prüfung',
+                heading: 'Wir haben alles, was wir brauchen.\nSie hören von uns!',
+                description: 'Die meisten Prüfungen dauern ein bis zwei Tage. Wir senden Ihnen eine Nachricht mit einem Update.',
+                chatWithConcierge: 'Mit Concierge chatten',
+            },
+            approved: {title: 'Konto genehmigt', heading: 'Zur weltweiten Zahlung freigegeben', description: 'Bezahlen Sie Mitglieder, wo immer sie sind.'},
+            rejected: {title: 'Bankkonto abgelehnt', heading: 'Unser Partner hat Ihr Bankkonto abgelehnt', description: 'Chatten Sie mit Concierge, um weitere Informationen zu erhalten.'},
         },
+        wiseSetupInProgress: {message: 'Einrichtung der globalen Rückerstattungen läuft.', continue: 'Fortfahren.'},
         wiseGlobalReimbursementsIntro: {
             title: 'Globale Rückerstattungen einrichten?',
             subtitle: 'Zahlen Sie Mitglieder weltweit in ihrer lokalen Währung.',
@@ -3142,6 +3161,7 @@ const translations: TranslationDeepObject<typeof en> = {
             payingReportSubtitle: 'Die Bankkonten des Unternehmens und der Mitarbeitenden verwenden unterschiedliche Währungen.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Weltweit bezahlen', subtitle: 'Aktivieren Sie globale Erstattungen auf Ihrem USD-Konto.'},
+        globalReimbursementsEnabled: 'Globale Rückerstattungen aktiviert',
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Karte zu ${walletName} hinzufügen`,
@@ -3665,6 +3685,7 @@ ${amount} für ${merchant} – ${date}`,
         appSection: {
             title: 'App-Einstellungen',
         },
+        distanceSection: {title: 'Entfernungseinstellungen'},
         testSection: {
             title: 'Testeinstellungen',
             subtitle: 'Einstellungen zum Debuggen und Testen der App in der Staging-Umgebung.',
@@ -7592,10 +7613,10 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             reimbursementAccount: 'Erstattungskonto',
             welcomeNote: 'Bitte verwende meinen neuen Arbeitsbereich',
             delayedSubmission: 'verspätete Einreichung',
-            merchantRules: 'Standardausgaben',
+            merchantRules: 'Händlerregeln',
             merchantRulesCount: () => ({
-                one: '1 Standard-Ausgabe',
-                other: (count: number) => `${count} Ausgabenvorgaben`,
+                one: '1 Händlerregel',
+                other: (count: number) => `${count} Händlerregeln`,
             }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `Sie sind dabei, ${newWorkspaceName ?? ''} mit ${totalMembers ?? 0} Mitgliedern aus dem ursprünglichen Workspace zu erstellen und zu teilen.`,
@@ -8978,8 +8999,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 matchType: 'Abgleichstyp',
                 matchTypeContains: 'Enthält',
                 matchTypeExact: 'Exakte Übereinstimmung',
-                duplicateRuleTitle: 'Ähnliche Regel existiert bereits',
-                duplicateRulePrompt: (conditionName: string) => `Ihre vorhandene Regel für „${conditionName}“ hat Vorrang vor dieser. Trotzdem speichern?`,
+                duplicateRuleTitle: 'Ähnliche Händlerregel existiert bereits',
+                duplicateRulePrompt: (merchantName: string) => `Ihre bestehende Regel für „${merchantName}“ hat Vorrang vor dieser. Trotzdem speichern?`,
                 saveAnyway: 'Trotzdem speichern',
                 applyToExistingUnsubmittedExpenses: 'Auf bestehende nicht eingereichte Ausgaben anwenden',
                 findRule: 'Händlerregel finden',
@@ -8989,8 +9010,18 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 thenApplyFollowingDefaults: 'Wenden Sie dann die folgenden Standardwerte an:',
                 vendorUnavailable: 'Anbieter nicht verfügbar',
                 confirmErrorCategory: 'Bitte wählen Sie eine Kategorie aus',
-                confirmErrorCondition: 'Bitte fügen Sie mindestens eine Bedingung hinzu',
-                confirmErrorConditionAndDefault: 'Fügen Sie mindestens eine Bedingung hinzu und wenden Sie mindestens eine Standardeinstellung an',
+                confirmErrorCategoryTax: 'Bitte wählen Sie einen Steuersatz aus',
+                confirmErrorCondition: 'Bitte geben Sie einen Händler ein',
+                confirmErrorConditionAndDefault: 'Geben Sie einen Händler ein und wenden Sie mindestens eine Standardeinstellung an',
+                turnOnTaxesFirstTitle: 'Schalten Sie zuerst Steuern ein',
+                turnOnTaxesFirstPrompt: 'Kategorienregeln legen einen Standardsteuersatz fest. Aktivieren Sie Steuern in Ihren Workspace-Einstellungen, um sie zu verwenden.',
+                categoryRulesApplyGoingForwardTitle: 'Kategorienregeln gelten ab jetzt',
+                categoryRulesApplyGoingForwardPrompt: 'Ein Standardsatz für Steuern gilt für neue Ausgaben in dieser Kategorie. Bereits vorhandene Ausgaben werden nicht geändert.',
+                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
+                    'Der ausgewählte Steuersatz ist jetzt die Voreinstellung für Ihren Workspace, daher ist diese Regel nicht mehr gültig. Wählen Sie einen anderen Steuersatz.',
+                addTaxRateFirstTitle: 'Fügen Sie zuerst einen Steuersatz hinzu',
+                addTaxRateFirstPrompt:
+                    'Kategorienregeln legen einen standardmäßigen Steuersatz fest. Fügen Sie einen anderen Steuersatz als den Standard Ihres Arbeitsbereichs hinzu, um sie zu verwenden.',
                 createRuleFromExpenseAction: 'Regel erstellen',
                 createRuleFromExpensePrompt: 'um Ihre Änderungen auf alle Ausgaben anzuwenden, die Ihren Kriterien entsprechen.',
             },
@@ -9176,8 +9207,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `Erlaubt ${shownCount > 1 ? 'Währungen' : 'Währung'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} weitere` : ''}`,
                 defaultRulesCannotBeDeleted: 'Standardregeln können nicht gelöscht werden',
-                tags: 'Tags',
-                multipleConditions: 'Mehrere Bedingungen',
             },
             agentRules: {
                 title: 'Agentenregeln',
@@ -9218,9 +9247,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 describeRuleForConcierge: 'Beschreiben Sie Ihre Regel und Concierge erstellt sie',
                 gotIt: 'Verstanden',
                 createRule: 'Regel erstellen',
-                fallbackBanner:
-                    'Dies ist keine Standardregel, daher haben wir sie als Agentenregel erstellt. Agentenregeln greifen, nachdem sich eine Ausgabe oder ein Bericht geändert hat, zum Beispiel indem sie die Ausgabe zurückhalten oder den Bericht ablehnen.',
-                fallbackBannerWithExplanation: (explanation: string) => `Dies ist keine Standardregel, daher haben wir sie als Agentenregel formuliert. ${explanation}`,
+                fallbackBanner: 'Dies ist keine Standardregel, daher haben wir eine Agentenregel erstellt.',
+                fallbackBannerWithExplanation: (explanation: string) => `Dies ist keine Standardregel, daher haben wir eine Agentenregel erstellt. ${explanation}`,
             },
             tabs: {
                 general: 'Allgemein',
@@ -9323,11 +9351,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 findRule: 'Regel suchen',
                 rename: 'Umbenennen',
                 update: 'Aktualisieren',
+                merchantIs: (merchant: string) => `Händler ist „${merchant}“`,
                 merchantTypeIs: (merchantType: string) => `Händlertyp ist „${merchantType}"`,
                 categoryIs: (category: string) => `Kategorie ist „${category}“`,
-                tagIs: (tag: string) => `Tag ist „${tag}“`,
-                merchantContains: (merchant: string) => `Händler enthält „${merchant}“`,
-                merchantExactlyMatches: (merchant: string) => `Händler stimmt exakt mit „${merchant}“ überein`,
             },
             merchantTypeRule: {merchantType: 'Händlerart', saveRule: 'Regel speichern', confirmErrorCategory: 'Bitte wählen Sie eine Kategorie aus.'},
             requireFieldsTable: {
@@ -9397,6 +9423,14 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 cta: 'KI-Regel hinzufügen',
             },
             categoriesDisabledEmptyState: {title: 'Kategorien sind nicht aktiviert', subtitle: 'Aktivieren Sie Kategorien, um Ihre Ausgaben besser zu kontrollieren.'},
+            expenseDefaultType: {
+                title: 'Standardspesen übernehmen',
+                subtitle: 'Worauf soll diese Regel angewendet werden?',
+                merchant: 'Händler',
+                merchantDescription: 'Felder bei Ausgaben eines bestimmten Händlers aktualisieren',
+                category: 'Kategorie',
+                categoryDescription: 'Legen Sie einen Standardsteuersatz für eine bestimmte Kategorie fest',
+            },
             taxesDisabledEmptyState: {
                 title: 'Steuern sind nicht aktiviert',
                 subtitle: 'Aktivieren Sie Steuern, um anfallende Steuern zu dokumentieren und zurückzufordern.',
@@ -10576,6 +10610,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `aktualisierte „Verhindern, dass nicht erstattungsfähige Berichte als bezahlt markiert werden“ auf „${newValue === 'true' ? 'Aktiviert' : 'Deaktiviert'}“ (zuvor „${oldValue === 'true' ? 'Aktiviert' : 'Deaktiviert'}“)`,
         addedExpensifyCardFeed: (feedName: string) => `„${feedName}“-Expensify-Kartenfeed hinzugefügt`,
+        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
+            if (!oldValue) {
+                return `setzen Sie die Workspace-Zeitzone auf „${newValue}“`;
+            }
+            return `die Workspace-Zeitzone auf „${newValue}“ aktualisiert (zuvor „${oldValue}“)`;
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',
@@ -11198,6 +11238,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');
                     return `Öffne die Expensify Mobile-App, um deine${amountAndMerchantText ? ` ${amountAndMerchantText}-` : ' '}Transaktion zu prüfen`;
                 },
+                autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
+                    `Globale Rückerstattungen wurden von ${adminName} am ${bankName ? `${bankName} ` : ''}Konto mit der Endung ${lastFour} aktiviert. Exakte Wechselkurse und Gebühren können vor der Zahlung nicht angezeigt werden, wenn grenzüberschreitende Berichte automatisch bezahlt werden. Überprüfen Sie Ihre <a href="${autoPaySettingsURL}">Automatikzahlungs-Einstellungen</a> für weitere Informationen zu Kursen und Gebühren.`,
             },
             error: {
                 invalidCredentials: 'Ungültige Anmeldedaten, bitte überprüfen Sie die Konfiguration Ihrer Verbindung.',
@@ -12329,7 +12371,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             isUnreadWithMention: 'Ist ungelesen mit Erwähnung',
             isWaitingForAssigneeToCompleteAction: 'Wartet darauf, dass die zuständige Person die Aktion ausführt',
             hasChildReportAwaitingAction: 'Hat untergeordneten Bericht mit ausstehender Aktion',
-            hasMissingInvoiceBankAccount: 'Hat fehlendes Rechnungskonto für Banküberweisung',
             hasUnresolvedCardFraudAlert: 'Hat eine nicht gelöste Kartenbetrugswarnung',
             hasDEWApproveFailed: 'DEW-Genehmigung fehlgeschlagen',
         },

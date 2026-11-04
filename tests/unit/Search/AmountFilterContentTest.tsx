@@ -26,6 +26,11 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => () => ({didScreenTran
 jest.mock('@hooks/useShouldFooterBeInsideList', () => () => false);
 jest.mock('@hooks/useDefaultExpensePolicy', () => jest.fn(() => undefined));
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key, preferredLocale: 'en'}));
+jest.mock('@hooks/useCurrencyList', () => ({
+    useCurrencyListActions: () => ({
+        getCurrencyDecimals: (currency: string) => (currency === 'JPY' || currency === 'VND' ? 0 : 2),
+    }),
+}));
 
 beforeEach(() => {
     jest.clearAllMocks();
@@ -33,6 +38,56 @@ beforeEach(() => {
 });
 
 describe('AmountFilterContent currency selection', () => {
+    it.each([
+        {currency: 'JPY', decimals: 0},
+        {currency: 'VND', decimals: 0},
+        {currency: 'USD', decimals: 2},
+        {currency: '', decimals: 2},
+        {currency: undefined, decimals: 2},
+    ])('uses $decimals decimal places with currency "$currency"', ({currency, decimals}) => {
+        // Given a selected currency or a currency-less amount filter.
+        render(
+            <AmountFilterInput
+                baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}
+                amount="12"
+                currency={currency}
+                label="Amount"
+                onAmountChange={jest.fn()}
+                onCurrencyChange={jest.fn()}
+            />,
+        );
+
+        // When the filter configures the shared number input.
+        const props = jest.mocked(NumberWithSymbolForm).mock.lastCall?.[0];
+
+        // Then validation uses the currency precision, or two places for Any currency.
+        expect(props?.decimals).toBe(decimals);
+    });
+
+    it('updates precision when switching between zero-decimal and Any currency', () => {
+        // Given a saved USD amount that allows fractional input.
+        render(
+            <AmountFilterContent
+                baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT}
+                value={{EqualTo: '12.34 USD', GreaterThan: undefined, LessThan: undefined}}
+                onChange={jest.fn()}
+            />,
+        );
+        expect(jest.mocked(NumberWithSymbolForm).mock.lastCall?.[0].decimals).toBe(2);
+
+        // When JPY is selected.
+        act(() => jest.mocked(IOURequestStepCurrencyModal).mock.lastCall?.[0].onInputChange?.('JPY'));
+
+        // Then the shared input receives zero precision to reject fractions.
+        expect(jest.mocked(NumberWithSymbolForm).mock.lastCall?.[0]).toMatchObject({currency: 'JPY', decimals: 0});
+
+        // When Any currency is selected.
+        act(() => jest.mocked(IOURequestStepCurrencyModal).mock.lastCall?.[0].onInputChange?.(''));
+
+        // Then two-decimal precision becomes available again.
+        expect(jest.mocked(NumberWithSymbolForm).mock.lastCall?.[0]).toMatchObject({currency: '', decimals: 2});
+    });
+
     it.each(['Greater than ', 'Less than '])('trims the %s label in the currency button name', (label) => {
         // Given a range label whose translation leaves space for an optional amount.
         render(
@@ -206,23 +261,26 @@ describe('AmountFilterContent currency selection', () => {
     });
 
     it('preserves the currency on each side of a between filter', () => {
-        // Given two saved currencies that differ from the policy default.
+        // Given saved range currencies with different precisions and a different policy default.
         jest.mocked(useDefaultExpensePolicy).mockReturnValue(createMock<Policy>({outputCurrency: 'EUR'}));
         const onChange = jest.fn();
         render(
             <AmountFilterContent
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT}
-                value={{EqualTo: undefined, GreaterThan: '10.00 USD', LessThan: '20.00 GBP'}}
+                value={{EqualTo: undefined, GreaterThan: '10.00 JPY', LessThan: '20.00 GBP'}}
                 onChange={onChange}
             />,
         );
 
         // When the range is reopened and confirmed without changes.
-        expect(jest.mocked(NumberWithSymbolForm).mock.calls.map(([props]) => props.currency)).toEqual(['USD', 'GBP']);
+        expect(jest.mocked(NumberWithSymbolForm).mock.calls.map(([{currency, decimals}]) => ({currency, decimals}))).toEqual([
+            {currency: 'JPY', decimals: 0},
+            {currency: 'GBP', decimals: 2},
+        ]);
         fireEvent.press(screen.getByRole('button'));
 
         // Then neither bound inherits the other's currency or changes its numeric scale.
-        expect(onChange).toHaveBeenCalledWith({purchaseAmountEqualTo: undefined, purchaseAmountGreaterThan: '10.00 USD', purchaseAmountLessThan: '20.00 GBP'});
+        expect(onChange).toHaveBeenCalledWith({purchaseAmountEqualTo: undefined, purchaseAmountGreaterThan: '10.00 JPY', purchaseAmountLessThan: '20.00 GBP'});
     });
 
     it('selects Any currency for one range bound without changing the other', () => {
