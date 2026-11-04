@@ -22,7 +22,7 @@ type FooterRowProps = FooterColumnRow & {
     style: StyleProp<TextStyle>;
 };
 
-function FooterRow({href, onPress, translationPath, text, style}: FooterRowProps) {
+function FooterRow({href, onPress, text, style, sentryLabel = CONST.SENTRY_LABEL.SIGN_IN_FOOTER.LINK}: FooterRowProps) {
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
@@ -32,7 +32,7 @@ function FooterRow({href, onPress, translationPath, text, style}: FooterRowProps
             accessible
             accessibilityRole={CONST.ROLE.LINK}
             accessibilityLabel={text}
-            sentryLabel={`${CONST.SENTRY_LABEL_PREFIX.SIGN_IN_FOOTER}${translationPath}`}
+            sentryLabel={sentryLabel}
             onPress={() => {
                 if (onPress) {
                     onPress({} as GestureResponderEvent);

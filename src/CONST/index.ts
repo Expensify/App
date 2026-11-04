@@ -11181,6 +11181,11 @@ const CONST = {
         RECEIPT_PARTNERS: {
             INVITE_RESEND_BUTTON: 'ReceiptPartners-InviteResendButton',
         },
+        SIGN_IN_FOOTER: {
+            LINK: 'SignInFooter-Link',
+            CREATE_ACCOUNT: 'SignInFooter-CreateAccount',
+            LOG_IN: 'SignInFooter-LogIn',
+        },
         SIGN_IN: {
             CONTINUE: 'SignIn-Continue',
             SIGN_IN_BUTTON: 'SignIn-SignInButton',
@@ -11343,7 +11348,6 @@ const CONST = {
         SEARCH_ADVANCED_FILTER: 'Search-Advanced-Filter-',
         SEARCH_FILTER_POPUP_APPLY: 'Search-FilterPopupApply-',
         SOCIALS: 'Socials-',
-        SIGN_IN_FOOTER: 'SignInFooter-',
     },
 
     /** End of a Sentry label built at runtime, like `EmojiPicker-SearchInput-ClearButton`. Same rules as `SENTRY_LABEL_PREFIX`. */

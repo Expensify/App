@@ -99,7 +99,6 @@ describe('touchEventBoundaryProps', () => {
         'Search-Advanced-Filter-category',
         'Search-FilterPopupApply-tag',
         `${CONST.SENTRY_LABEL_PREFIX.SOCIALS}Twitter`,
-        'SignInFooter-footer.aboutExpensify',
         'DynamicHRSyncResultsPage-SkippedEmployees',
     ])('reports a sentryLabel built at runtime in a known format: %s', (sentryLabel) => {
         // Given a sentryLabel built from values in the code

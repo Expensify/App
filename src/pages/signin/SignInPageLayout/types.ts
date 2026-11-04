@@ -1,6 +1,7 @@
 import type {LinkProps, PressProps} from '@components/TextLink';
 
 import type {TranslationPaths} from '@src/languages/types';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type React from 'react';
 import type {ForwardedRef} from 'react';
@@ -37,8 +38,9 @@ type SignInPageLayoutRef = {
     scrollPageToTop: (animated?: boolean) => void;
 };
 
-type FooterColumnRow = (LinkProps | PressProps) & {
-    translationPath: TranslationPaths;
-};
+type FooterColumnRow = (LinkProps | PressProps) &
+    WithSentryLabel & {
+        translationPath: TranslationPaths;
+    };
 
 export type {SignInPageLayoutRef, SignInPageLayoutProps, FooterColumnRow};
