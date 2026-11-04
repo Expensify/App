@@ -51,6 +51,7 @@ jest.mock('@pages/iou/request/step/CreateFlowRootDiscardGuard', () => () => {
     const {View} = jest.requireActual<{View: React.ComponentType<{testID: string}>}>('react-native');
     return createElement(View, {testID: 'MockCreateFlowRootDiscardGuard'});
 });
+jest.mock('@pages/iou/request/step/ScanConfirmationDiscardGuard', () => () => null);
 jest.mock('@rnmapbox/maps', () => {
     return {
         default: jest.fn(),

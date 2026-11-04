@@ -70,6 +70,7 @@ import useSubmitLock from '@pages/iou/request/step/confirmation/submission/useSu
 import {resolveSubmissionPath, SUBMISSION_PATH} from '@pages/iou/request/step/confirmation/submission/utils/resolveSubmissionPath';
 import TelemetrySpanManager from '@pages/iou/request/step/confirmation/TelemetrySpanManager';
 import CreateFlowRootDiscardGuard from '@pages/iou/request/step/CreateFlowRootDiscardGuard';
+import ScanConfirmationDiscardGuard from '@pages/iou/request/step/ScanConfirmationDiscardGuard';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 
@@ -735,6 +736,7 @@ function IOURequestStepConfirmationContent({
                     }}
                 />
             )}
+            {!shouldHideHeader && action === CONST.IOU.ACTION.CREATE && isScanRequest(transaction) && <ScanConfirmationDiscardGuard />}
             <DraftWorkspaceOpener
                 isCreatingTrackExpense={isCreatingTrackExpense}
                 policyID={policyID}
