@@ -17,8 +17,6 @@ import type {ShouldStartLoadRequest} from 'react-native-webview/lib/WebViewTypes
 
 import React from 'react';
 
-const KYC_REVIEW_STATUSES = Object.values(CONST.WISE.KYC_REVIEW_REDIRECT_STATUS);
-
 function parseURL(url: string): URL | undefined {
     try {
         return new URL(url);
@@ -37,8 +35,7 @@ function getRedirectStatus(url: string) {
     if (isWiseURL(url)) {
         return undefined;
     }
-    const status = parseURL(url)?.searchParams.get(CONST.WISE.KYC_REVIEW_REDIRECT_STATUS_PARAM);
-    return KYC_REVIEW_STATUSES.find((knownStatus) => knownStatus === status);
+    return parseURL(url)?.searchParams.get(CONST.WISE.KYC_REVIEW_REDIRECT_STATUS_PARAM);
 }
 
 /** Shows Wise's hosted KYC form in a WebView, as Wise's mobile guides describe, and closes it when the form ends */
