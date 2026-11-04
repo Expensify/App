@@ -8018,7 +8018,6 @@ export {
     canEditSearchColumns,
     getRequiredSearchColumns,
     filterValidHasValues,
-    groupByRequiredColumns,
     navigateToSearchRHP,
     navigateToSearchWithColumns,
     shouldShowDeleteOption,

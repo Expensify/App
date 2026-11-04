@@ -13,10 +13,6 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-let mockIsBetaEnabled = true;
-const mockPinnableTableColumnsBeta = CONST.BETAS.PINNABLE_TABLE_COLUMNS;
-jest.mock('@hooks/usePermissions', () => () => ({isBetaEnabled: (beta: string) => mockIsBetaEnabled && beta === mockPinnableTableColumnsBeta}));
-
 const mockSearchKey = CONST.SEARCH.SEARCH_KEYS.EXPENSES;
 jest.mock('@components/Search/SearchContext', () => ({useSearchQueryContext: () => ({currentSearchKey: mockSearchKey})}));
 
@@ -42,7 +38,6 @@ describe('useHideSearchColumn', () => {
     });
 
     beforeEach(async () => {
-        mockIsBetaEnabled = true;
         jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
         await Onyx.clear();
         await waitForBatchedUpdates();
@@ -57,7 +52,7 @@ describe('useHideSearchColumn', () => {
         const {result} = renderHook(() => useHideSearchColumn(getQueryJSON('type:expense'), SHOWN_COLUMNS));
 
         // When Merchant is hidden from its menu
-        act(() => result.current?.(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)?.());
+        act(() => result.current(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)?.());
 
         // Then the search reloads with every other shown column kept in place, so hiding doesn't reorder the table,
         // and it keeps its key the same way saving from the Columns page does, so a saved search stays selected
@@ -80,7 +75,7 @@ describe('useHideSearchColumn', () => {
         const {result} = renderHook(() => useHideSearchColumn(queryJSON, [CONST.SEARCH.TABLE_COLUMNS.TO, CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME, CONST.SEARCH.TABLE_COLUMNS.TOTAL]));
 
         // When To is hidden from its menu
-        act(() => result.current?.(CONST.SEARCH.TABLE_COLUMNS.TO)?.());
+        act(() => result.current(CONST.SEARCH.TABLE_COLUMNS.TO)?.());
 
         // Then Amount debited stays saved, so it comes back once a row has a debited amount
         const [[route] = ['']] = jest.mocked(Navigation.navigate).mock.calls;
@@ -98,7 +93,7 @@ describe('useHideSearchColumn', () => {
 
         // When the menu for the total column is built
         // Then it can't hide the column, the same as the Columns page
-        expect(result.current?.(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)).toBeUndefined();
+        expect(result.current(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)).toBeUndefined();
     });
 
     it('offers no hide on a grouped table, whose saved columns also cover the expenses its groups expand to', () => {
@@ -107,28 +102,6 @@ describe('useHideSearchColumn', () => {
 
         // When the menu for a column is built
         // Then it can't hide the column, since saving only the shown group columns would drop the expense columns
-        expect(result.current?.(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)).toBeUndefined();
-    });
-
-    it('has no menus for a type whose columns users cannot pick', () => {
-        // Given a task search, whose columns aren't customizable
-        const queryJSON = getQueryJSON('type:task');
-
-        // When its column menus are built
-        const {result} = renderHook(() => useHideSearchColumn(queryJSON, SHOWN_COLUMNS));
-
-        // Then its headings get no menus
-        expect(result.current).toBeUndefined();
-    });
-
-    it('has no menus without the beta', () => {
-        // Given the pinnableTableColumns beta is off
-        mockIsBetaEnabled = false;
-
-        // When the column menus of an expense search are built
-        const {result} = renderHook(() => useHideSearchColumn(getQueryJSON('type:expense'), SHOWN_COLUMNS));
-
-        // Then even an expense search gets no menus
-        expect(result.current).toBeUndefined();
+        expect(result.current(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)).toBeUndefined();
     });
 });
