@@ -152,7 +152,7 @@ export default {
     iosSafeAreaInsetsPercentage: 0.7,
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
-    sidePanelWidth: 375,
+    sidePanelWidth: 400,
     rhpFloatingCardMargin: 12,
     // The frame width compensates for this border.
     rhpFloatingCardBorderWidth: 1,
