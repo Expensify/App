@@ -24,6 +24,7 @@ import WorkspaceCardListLabels from '@pages/workspace/expensifyCard/WorkspaceCar
 import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import type {Card, PersonalDetails, PersonalDetailsList, Policy} from '@src/types/onyx';
 import type {CardLimitType} from '@src/types/onyx/Card';
 import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
@@ -59,9 +60,11 @@ type WorkspaceExpensifyCardTableRowData = TableData & {
     frozenDate?: string;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
+    canEditName?: boolean;
     canEditLimitType?: boolean;
     canEditLimit?: boolean;
     action: () => void;
+    onRenameName?: (newName: string) => void;
     onChangeLimitType?: (limitType: CardLimitType) => void;
     /** Return false, or a promise of false, to keep the limit editor open until a confirm modal resolves. */
     onChangeLimit?: (newLimit: string) => InlineEditSaveResult;
@@ -328,8 +331,8 @@ export default function WorkspaceExpensifyCardsTable({
             compareItems={compareItems}
             isItemInSearch={isItemInSearch}
             shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_EXPENSIFY_CARDS}
             initialSortColumn="name"
-            narrowLayoutSortColumn="name"
             title={translate('workspace.common.expensifyCard')}
             keyExtractor={(item) => item.keyForList}
             selectionEnabled={selectionEnabled}

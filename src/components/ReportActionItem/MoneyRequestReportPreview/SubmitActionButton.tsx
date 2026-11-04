@@ -2,38 +2,36 @@ import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
 import {ReportSubmitToPopoverAnchor, useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 
 import useConfirmModal from '@hooks/useConfirmModal';
-import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProceed';
+import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {hasDynamicExternalWorkflow, isSubmitPolicy} from '@libs/PolicyUtils';
 import {
     hasOnlyHeldExpenses,
     hasViolations as hasViolationsReportUtils,
+    shouldBlockSubmitDueToDeletedWorkspace,
     shouldBlockSubmitDueToPreventSelfApproval,
     shouldBlockSubmitDueToStrictPolicyRules,
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
-import {
-    getTransactionViolations,
-    hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils,
-    hasOnlyPendingCardTransactions,
-    showHeldExpensesBlockModal,
-    showPendingCardTransactionsBlockModal,
-} from '@libs/TransactionUtils';
+import {getTransactionViolations, hasOnlyPendingCardTransactions, showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
-import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolations} from '@src/types/onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {getArchiveReason} from '@selectors/Report';
 import React from 'react';
 
 import {useReportPreviewActions, useReportPreviewAnimationState, useReportPreviewData, useReportPreviewTransactionViolations} from './MoneyRequestReportPreviewContext';
@@ -83,30 +81,17 @@ function SubmitActionButtonContent() {
         delegateEmail,
         delegateAccountID,
     } = useReportPreviewActionButtonData(iouReportID);
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const isChatReportArchived = useReportIsArchived(iouReport?.chatReportID);
+    const [chatArchiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReport?.chatReportID)}`, {selector: getArchiveReason});
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
     const {transactionViolations} = useReportPreviewTransactionViolations();
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail, undefined, transactions);
-    const hasAnyPendingRTERViolation = hasAnyPendingRTERViolationTransactionUtils(
-        transactions,
-        transactionViolations,
-        currentUserEmail,
-        currentUserAccountID,
-        iouReport,
-        submitterLogin,
-        policy,
-    );
     const isDEWSubmission = hasDynamicExternalWorkflow(policy);
-
-    const handleMarkPendingRTERTransactionsAsCash = () => {
-        markPendingRTERTransactionsAsCash(transactions, transactionViolations, Object.values(reportActions ?? {}));
-    };
-
-    const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
 
     // The header's gate receives violations pre-filtered by useTransactionsAndViolationsForReport, which drops dismissals
     // that are only detectable with report/owner/policy context (e.g. RTER violations dismissed under instant submit). The
@@ -121,6 +106,22 @@ function SubmitActionButtonContent() {
             getTransactionViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, iouReport, submitterLogin, policy) ?? [];
     }
 
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
+        isTrackIntentUser,
+        report: iouReport,
+        policy,
+        rules,
+    });
+
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations({
+        reportID: iouReportID,
+        report: iouReport,
+        policy,
+        shouldShowMarkAsDoneCopy,
+        transactions,
+        violationsCollection: filteredTransactionViolations,
+    });
+
     const isBlockSubmitDueToPreventSelfApproval = shouldBlockSubmitDueToPreventSelfApproval(iouReport, policy, rules);
     const isBlockSubmitDueToStrictPolicyRules = shouldBlockSubmitDueToStrictPolicyRules(
         iouReport?.reportID,
@@ -130,14 +131,8 @@ function SubmitActionButtonContent() {
         currentUserEmail,
         transactions,
     );
-    const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval;
-
-    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
-        isTrackIntentUser,
-        report: iouReport,
-        policy,
-        rules,
-    });
+    const isBlockSubmitDueToDeletedWorkspace = shouldBlockSubmitDueToDeletedWorkspace(isChatReportArchived, chatArchiveReason);
+    const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval || isBlockSubmitDueToDeletedWorkspace;
 
     const handleSubmit = () => {
         // A domain that strictly enforces workspace rules, or a workspace that prevents self-approval, makes the backend
@@ -158,15 +153,18 @@ function SubmitActionButtonContent() {
             return;
         }
 
-        confirmPendingRTERAndProceed(() => {
-            if (isSubmitPolicy(policy) && iouReportID) {
-                openReportSubmitToPopover();
-                return;
-            }
+        if (isSubmitPolicy(policy) && iouReportID) {
+            confirmSubmitReportViolations((shouldResolveAcknowledgedViolations) => {
+                openReportSubmitToPopover({shouldResolveAcknowledgedViolations});
+            });
+            return;
+        }
 
+        confirmSubmitReportViolations((shouldResolveAcknowledgedViolations) => {
             submitReport({
                 getCurrencyDecimals,
                 expenseReport: iouReport,
+                expenseReportTransactions: transactions,
                 policy,
                 rules,
                 currentUserAccountIDParam: currentUserAccountID,
@@ -175,11 +173,13 @@ function SubmitActionButtonContent() {
                 isASAPSubmitBetaEnabled,
                 userBillingGracePeriodEnds,
                 amountOwed,
+                shouldResolveAcknowledgedViolations,
                 onSubmitted: startSubmittingAnimation,
                 ownerBillingGracePeriodEnd,
                 delegateEmail,
                 delegateAccountID,
                 submitterLogin,
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
                 isTrackIntentUser,
             });
         });

@@ -34,7 +34,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 type DeleteWorkspaceFlowProps = {
@@ -109,10 +109,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
     );
 
     const hasCardFeedOrExpensifyCard =
-        !isEmptyObject(cardFeeds) ||
-        !isEmptyObject(cardsList) ||
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.policyAccountID);
+        !isEmptyObject(cardFeeds) || !isEmptyObject(cardsList) || ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.policyAccountID);
     const hasExpensifyCardsEnabledOnWorkspace = !!policy?.areExpensifyCardsEnabled && !!policy?.policyAccountID;
     const hasTravelBillingEnabledOnWorkspace = getIsTravelBillingEnabled(getCardSettings(travelCardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US));
     const hasExpensifyCards = Object.values(cardsList ?? {}).some(isCard);
@@ -120,7 +117,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
     const isBlockedByExpensifyCards = hasExpensifyCardsEnabledOnWorkspace && hasExpensifyCards;
     const isBlockedByTravelBilling = hasTravelBillingEnabledOnWorkspace && hasTravelCards;
     // Expensify Cards take priority when both blockers apply.
-    const deleteBlockedErrorKey = isBlockedByExpensifyCards ? 'workspace.common.deleteOpenExpensifyCardsError' : 'workspace.common.deleteTravelInvoicingError';
+    const deleteBlockedErrorKey = isBlockedByExpensifyCards ? 'workspace.common.deleteOpenExpensifyCardsError' : 'workspace.common.deleteTravelBillingError';
     // While offline we can't get the real rejection reason from the backend, so if we already know locally that the workspace is blocked from deletion, block the delete up front instead of queuing one that will fail on reconnect.
     const offlineDeleteBlockedErrorKey = isOffline && (isBlockedByExpensifyCards || isBlockedByTravelBilling) ? deleteBlockedErrorKey : undefined;
 
@@ -131,16 +128,16 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
     const shouldCalculateBillNewDot = !!canDowngrade && ownedPaidPoliciesCounts?.total === 1;
     const {shouldBlockDeletion} = useOutstandingBalanceGuard(ownedPaidPoliciesCounts?.active ?? 0, onDismiss);
 
-    const hideDeleteWorkspaceErrorModal = useCallback(() => {
+    const hideDeleteWorkspaceErrorModal = () => {
         dismissWorkspaceError(policyID, policy?.pendingAction);
-    }, [policyID, policy?.pendingAction]);
+    };
 
-    const dismissDeleteWorkspaceFlow = useCallback(() => {
+    const dismissDeleteWorkspaceFlow = () => {
         hideDeleteWorkspaceErrorModal();
         onDismiss();
-    }, [hideDeleteWorkspaceErrorModal, onDismiss]);
+    };
 
-    const showDeleteWorkspaceErrorModal = useCallback(() => {
+    const showDeleteWorkspaceErrorModal = () => {
         if (!isFocused) {
             dismissDeleteWorkspaceFlow();
             return;
@@ -166,41 +163,38 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
         }).then(() => {
             dismissDeleteWorkspaceFlow();
         });
-    }, [closeModal, deleteBlockedErrorKey, dismissDeleteWorkspaceFlow, isFocused, showConfirmModal, styles.flexRow, styles.renderHTML, translate]);
+    };
 
-    const showGenericDeleteWorkspaceErrorModal = useCallback(
-        (errorMessage: string) => {
-            if (!isFocused) {
-                dismissDeleteWorkspaceFlow();
-                return;
-            }
+    const showGenericDeleteWorkspaceErrorModal = (errorMessage: string) => {
+        if (!isFocused) {
+            dismissDeleteWorkspaceFlow();
+            return;
+        }
 
-            const prompt = CONST.HTML_TAG_REGEX.test(errorMessage) ? (
-                <View style={[styles.renderHTML, styles.flexRow]}>
-                    <RenderHTML
-                        html={errorMessage}
-                        onConciergeLinkPress={() => {
-                            closeModal();
-                            dismissDeleteWorkspaceFlow();
-                        }}
-                    />
-                </View>
-            ) : (
-                errorMessage
-            );
+        const prompt = CONST.HTML_TAG_REGEX.test(errorMessage) ? (
+            <View style={[styles.renderHTML, styles.flexRow]}>
+                <RenderHTML
+                    html={errorMessage}
+                    onConciergeLinkPress={() => {
+                        closeModal();
+                        dismissDeleteWorkspaceFlow();
+                    }}
+                />
+            </View>
+        ) : (
+            errorMessage
+        );
 
-            showConfirmModal({
-                title: translate('workspace.common.delete'),
-                prompt,
-                confirmText: translate('common.buttonConfirm'),
-                shouldShowCancelButton: false,
-                shouldHandleNavigationBack: false,
-            }).then(() => {
-                dismissDeleteWorkspaceFlow();
-            });
-        },
-        [closeModal, dismissDeleteWorkspaceFlow, isFocused, showConfirmModal, styles.flexRow, styles.renderHTML, translate],
-    );
+        showConfirmModal({
+            title: translate('workspace.common.delete'),
+            prompt,
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+            shouldHandleNavigationBack: false,
+        }).then(() => {
+            dismissDeleteWorkspaceFlow();
+        });
+    };
 
     // Always invoked after a re-render (from the start effect below for normal deletes, or from usePayAndDowngrade for billed deletes),
     // so the workspace being deleted and its derived data are read from the latest state.

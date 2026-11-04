@@ -1,3 +1,5 @@
+import isHTMLElement from '@libs/isHTMLElement';
+
 import type {ComponentRef} from 'react';
 import type React from 'react';
 import type {View} from 'react-native';
@@ -6,12 +8,6 @@ import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 
 import useArrowKeyFocusManager from './useArrowKeyFocusManager';
-
-type FocusableContainer = {
-    addEventListener: HTMLElement['addEventListener'];
-    removeEventListener: HTMLElement['removeEventListener'];
-    contains: HTMLElement['contains'];
-};
 
 type UseListKeyboardNavConfig<T extends ComponentRef<typeof View> | HTMLElement> = {
     isActive: boolean;
@@ -50,15 +46,15 @@ function useListKeyboardNav<T extends ComponentRef<typeof View> | HTMLElement>({
         if (!isActive) {
             return;
         }
-        const container = containerRef.current as FocusableContainer | null;
-        if (!container?.addEventListener) {
+        const container = containerRef.current;
+        if (!isHTMLElement(container)) {
             return;
         }
         const handleFocusIn = (event: FocusEvent) => {
             setHasBeenFocused(true);
             setHasFocus(true);
-            const target = event.target as HTMLElement | null;
-            if (target?.id) {
+            const target = event.target;
+            if (isHTMLElement(target) && target.id) {
                 const index = itemKeysRef.current.indexOf(target.id);
                 if (index >= 0) {
                     setFocusedIndex(index);

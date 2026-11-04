@@ -10,6 +10,9 @@ inputs:
   MOBILE_EXPENSIFY_PR_NUMBER:
     description: 'Pull request number for Expensify/Mobile-Expensify repository'
     required: false
+  MOBILE_EXPENSIFY_REF:
+    description: "Mobile-Expensify ref the build checked out ('main', a SHA, or empty for the pinned submodule)"
+    required: false
   GITHUB_TOKEN:
     description: 'Github token for authentication'
     default: '${{ github.token }}'

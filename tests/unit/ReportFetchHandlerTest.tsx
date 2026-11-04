@@ -120,6 +120,75 @@ describe('ReportFetchHandler', () => {
         expect(mockOpenReport).not.toHaveBeenCalled();
     });
 
+    it.each([false, true])('keeps an optimistic support ticket pending without fetching it when offline is %s', async (isOffline) => {
+        // Given a support ticket that can render locally but has not been created on the server
+        mockIsOffline = isOffline;
+        setRouteParams({reportID: REPORT_ID, isPendingCreation: 'true'});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.TYPE.SUPPORT_TICKET});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {isCreatingSupportTicket: true});
+        await waitForBatchedUpdates();
+
+        // When the customer opens the pending ticket
+        renderHandler();
+        await waitForBatchedUpdates();
+
+        // Then the client neither requests a nonexistent report nor releases the pending route
+        expect(mockOpenReport).not.toHaveBeenCalled();
+        expect(mockSetParams).not.toHaveBeenCalledWith({isPendingCreation: undefined});
+    });
+
+    it('resumes fetching after the server creates an optimistic support ticket', async () => {
+        // Given a mounted support ticket waiting for creation
+        setRouteParams({reportID: REPORT_ID, isPendingCreation: 'true'});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.TYPE.SUPPORT_TICKET});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {isCreatingSupportTicket: true});
+        await waitForBatchedUpdates();
+        const {rerender} = renderHandler();
+        await waitForBatchedUpdates();
+        expect(mockOpenReport).not.toHaveBeenCalled();
+        expect(mockSetParams).not.toHaveBeenCalledWith({isPendingCreation: undefined});
+
+        // When creation succeeds, the pending route can be released
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {isCreatingSupportTicket: false});
+        await waitForBatchedUpdates();
+        expect(mockSetParams).toHaveBeenCalledWith({isPendingCreation: undefined});
+        setRouteParams({reportID: REPORT_ID});
+        rerender(<HandlerTree isInPreloadedTab={false} />);
+        await waitForBatchedUpdates();
+
+        // Then fetching the server-created report is safe
+        expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: REPORT_ID}));
+    });
+
+    it.each([false, true])('recovers a pending support ticket after reloading while offline is %s', async (isOffline) => {
+        // Given a pending ticket whose creation request belongs to the current app session
+        mockIsOffline = isOffline;
+        setRouteParams({reportID: REPORT_ID, isPendingCreation: 'true'});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.TYPE.SUPPORT_TICKET});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {isCreatingSupportTicket: true});
+        await waitForBatchedUpdates();
+        const {unmount} = renderHandler();
+        await waitForBatchedUpdates();
+        expect(mockOpenReport).not.toHaveBeenCalled();
+
+        // When the app reloads, the report, URL, and stale persisted metadata survive.
+        // RAM-only state and the in-flight request do not.
+        unmount();
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${REPORT_ID}`, {isOptimisticReport: true});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, null);
+        await waitForBatchedUpdates();
+        const {rerender} = renderHandler();
+        await waitForBatchedUpdates();
+
+        // Then the stale route is released and the report can resolve to server content or not-found once online
+        expect(mockSetParams).toHaveBeenCalledWith({isPendingCreation: undefined});
+        mockIsOffline = false;
+        setRouteParams({reportID: REPORT_ID});
+        rerender(<HandlerTree isInPreloadedTab={false} />);
+        await waitForBatchedUpdates();
+        expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: REPORT_ID}));
+    });
+
     it('expires a stale isPendingCreation flag when the focused screen never receives a report row', async () => {
         // Given a restored route that still carries isPendingCreation but has no submit writing the report
         setRouteParams({reportID: REPORT_ID, isPendingCreation: 'true'});

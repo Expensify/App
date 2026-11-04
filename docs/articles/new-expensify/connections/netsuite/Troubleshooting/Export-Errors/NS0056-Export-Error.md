@@ -168,6 +168,8 @@ Only reports with a positive reimbursable amount can be exported.
 4. Under **Permissions > Lists**, set **Tax Details Tab** to **Full**.
 5. Click **Save**.
 
+This permission remains required when **Export Foreign Currency Amount** is disabled.
+
 ---
 
 # FAQ

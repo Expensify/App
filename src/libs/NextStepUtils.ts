@@ -3,6 +3,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {Policy, Report, ReportAction, Rule, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
+import type {ReportUpcomingStepAction} from '@src/types/onyx/ReportUpcomingSteps';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -25,6 +26,14 @@ import {
     shouldBlockSubmitDueToPreventSelfApproval,
     shouldShowMarkAsDone,
 } from './ReportUtils';
+import {
+    getAutoReportingOffsetsForFrequency,
+    getPolicyAutoReportingOffsets,
+    getWeekdayKey,
+    getWorkspaceTimezone,
+    LAST_WEEKDAY_OFFSETS,
+    sortSemiMonthlyOffsets,
+} from './SubmissionScheduleUtils';
 import {hasSubmissionBlockingViolations} from './TransactionUtils';
 
 type BuildNextStepNewParams = {
@@ -60,6 +69,80 @@ type GetReportNextStepParams = {
     rules: OnyxCollection<Rule>;
 };
 
+/** The backend still sends the legacy ETA key for older clients, so a custom schedule is read from the schedule fields sent with it. */
+function getScheduleETA(eta: ReportNextStep['eta'], translate: LocaleContextProps['translate'], dateFnsLocale: DateFnsLocale | undefined): string | undefined {
+    const frequency = eta?.autoReportingFrequency;
+    const {offset, secondOffset} = getAutoReportingOffsetsForFrequency(frequency, {offset: eta?.autoReportingOffset, secondOffset: eta?.autoReportingOffsetSecondSemiMonthly});
+    const formatDay = (day: number) => format(setDate(new Date(), day), CONST.DATE.ORDINAL_DAY_OF_MONTH, {locale: dateFnsLocale});
+
+    // Default schedules keep their legacy ETA text
+    switch (frequency) {
+        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY:
+            if (offset === CONST.POLICY.AUTO_REPORTING_WEEKDAYS.SUNDAY) {
+                return undefined;
+            }
+            return translate(`nextStep.scheduleEta.weekly.${getWeekdayKey(Number(offset))}`);
+        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY: {
+            const sortedOffsets = sortSemiMonthlyOffsets({offset, secondOffset});
+            const isDefaultSchedule =
+                sortedOffsets.offset === CONST.POLICY.AUTO_REPORTING_DEFAULT_SEMI_MONTHLY_OFFSET && sortedOffsets.secondOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH;
+            if (typeof sortedOffsets.offset !== 'number' || isDefaultSchedule) {
+                return undefined;
+            }
+            const firstDay = formatDay(sortedOffsets.offset);
+            if (sortedOffsets.secondOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
+                return translate('nextStep.scheduleEta.twiceAMonthAndLastDay', {firstDay});
+            }
+            if (typeof sortedOffsets.secondOffset !== 'number') {
+                return undefined;
+            }
+            return translate('nextStep.scheduleEta.twiceAMonth', {firstDay, secondDay: formatDay(sortedOffsets.secondOffset)});
+        }
+        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY: {
+            const lastWeekdayOffset = LAST_WEEKDAY_OFFSETS.find((lastWeekday) => lastWeekday === offset);
+            if (!lastWeekdayOffset) {
+                return undefined;
+            }
+            return translate(`nextStep.scheduleEta.monthlyLastWeekday.${lastWeekdayOffset}`);
+        }
+        default:
+            return undefined;
+    }
+}
+
+/** Sent with the optimistic ETA so it reads the same as the one the backend sends. */
+function getScheduleETAFields(policy: OnyxEntry<Policy>): NonNullable<ReportNextStep['eta']> {
+    const {offset, secondOffset} = getPolicyAutoReportingOffsets(policy);
+    return {
+        autoReportingFrequency: getCorrectedAutoReportingFrequency(policy),
+        autoReportingOffset: offset,
+        autoReportingOffsetSecondSemiMonthly: secondOffset,
+        timeZone: getWorkspaceTimezone(policy),
+    };
+}
+
+function getNextStepETA(
+    nextStep: ReportNextStep,
+    translate: LocaleContextProps['translate'],
+    dateFnsLocale: DateFnsLocale | undefined,
+): {eta?: string; etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>} {
+    const scheduleETA = getScheduleETA(nextStep.eta, translate, dateFnsLocale);
+    if (scheduleETA) {
+        return {eta: scheduleETA, etaType: CONST.NEXT_STEP.ETA_TYPE.KEY};
+    }
+    if (nextStep.eta?.etaKey) {
+        return {eta: translate(`nextStep.eta.${nextStep.eta.etaKey}`), etaType: CONST.NEXT_STEP.ETA_TYPE.KEY};
+    }
+    if (nextStep.eta?.dateTime) {
+        const formatString = nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT ? CONST.DATE.ORDINAL_DAY_OF_MONTH : CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY;
+        // `eta.dateTime` is a date-only string (yyyy-MM-dd). Native `new Date(...)` parses it as UTC midnight,
+        // which shifts the day back by one when formatted in a UTC-negative timezone. `parseISO` parses it as
+        // local midnight so the rendered day matches the day set in the workspace settings.
+        return {eta: format(parseISO(nextStep.eta.dateTime), formatString, {locale: dateFnsLocale}), etaType: CONST.NEXT_STEP.ETA_TYPE.DATE_TIME};
+    }
+    return {};
+}
+
 function buildNextStepMessage(
     nextStep: ReportNextStep,
     translate: LocaleContextProps['translate'],
@@ -78,19 +161,7 @@ function buildNextStepMessage(
         actorType = CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER;
     }
 
-    let eta: string | undefined;
-    let etaType: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE> | undefined;
-    if (nextStep.eta?.etaKey) {
-        eta = translate(`nextStep.eta.${nextStep.eta.etaKey}`);
-        etaType = CONST.NEXT_STEP.ETA_TYPE.KEY;
-    } else if (nextStep.eta?.dateTime) {
-        const formatString = nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT ? CONST.DATE.ORDINAL_DAY_OF_MONTH : CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY;
-        // `eta.dateTime` is a date-only string (yyyy-MM-dd). Native `new Date(...)` parses it as UTC midnight,
-        // which shifts the day back by one when formatted in a UTC-negative timezone. `parseISO` parses it as
-        // local midnight so the rendered day matches the day set in the workspace settings.
-        eta = format(parseISO(nextStep.eta.dateTime), formatString, {locale: dateFnsLocale});
-        etaType = CONST.NEXT_STEP.ETA_TYPE.DATE_TIME;
-    }
+    const {eta, etaType} = getNextStepETA(nextStep, translate, dateFnsLocale);
 
     const requiredDepositCurrency = nextStep.requiredDepositCurrency ? Str.htmlEncode(nextStep.requiredDepositCurrency) : undefined;
     const message =
@@ -202,23 +273,25 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
                         nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.TODAY};
                         break;
                     case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY:
-                        nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.END_OF_WEEK};
+                        nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.END_OF_WEEK, ...getScheduleETAFields(policy)};
                         break;
                     case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY:
-                        nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY};
+                        nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY, ...getScheduleETAFields(policy)};
                         break;
                     case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY:
                         if (policy?.autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
                             nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.LAST_DAY_OF_MONTH};
                         } else if (policy?.autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
                             nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.LAST_BUSINESS_DAY_OF_MONTH};
-                        } else if (policy?.autoReportingOffset !== undefined) {
+                        } else if (typeof policy?.autoReportingOffset === 'number') {
                             let etaDateTime = setDate(new Date(), policy?.autoReportingOffset);
                             if (isPast(etaDateTime)) {
                                 etaDateTime = addMonths(etaDateTime, 1);
                             }
 
                             nextStep.eta = {dateTime: format(etaDateTime, 'yyyy-MM-dd')};
+                        } else {
+                            nextStep.eta = getScheduleETAFields(policy);
                         }
                         break;
                     case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP:
@@ -285,8 +358,12 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
 
         // Generates an optimistic nextStep once a report has been approved
         case CONST.REPORT.STATUS_NUM.APPROVED: {
-            const isReimbursementDisabled = getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
-            if (isInvoiceReport(report) || reimbursableSpend === 0 || isReimbursementDisabled) {
+            const reimbursementChoice = getReimbursementChoice(policy);
+            const isReimbursementDisabled = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+
+            // The server returns no further action for approved reports on workspaces that reimburse outside Expensify (Indirect)
+            const isReimbursementManual = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+            if (isInvoiceReport(report) || reimbursableSpend === 0 || isReimbursementDisabled || isReimbursementManual) {
                 nextStep = nextStepNoActionRequired;
                 break;
             }
@@ -381,6 +458,37 @@ function getReportNextStep({
     return moneyRequestReport?.nextStep;
 }
 
+/** The workflow step each next step waits on. Typed as a full record so a new message key has to pick one. */
+const UPCOMING_STEP_ACTION_BY_MESSAGE_KEY: Record<ValueOf<typeof CONST.NEXT_STEP.MESSAGE_KEY>, ReportUpcomingStepAction | undefined> = {
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: CONST.REPORT.UPCOMING_STEP_ACTION.SUBMIT,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: CONST.REPORT.UPCOMING_STEP_ACTION.SUBMIT,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: CONST.REPORT.UPCOMING_STEP_ACTION.SUBMIT,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: CONST.REPORT.UPCOMING_STEP_ACTION.SUBMIT,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: CONST.REPORT.UPCOMING_STEP_ACTION.SUBMIT,
+    [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: CONST.REPORT.UPCOMING_STEP_ACTION.SUBMIT,
+    [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: CONST.REPORT.UPCOMING_STEP_ACTION.SUBMIT,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: CONST.REPORT.UPCOMING_STEP_ACTION.APPROVE,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: CONST.REPORT.UPCOMING_STEP_ACTION.PAY,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: CONST.REPORT.UPCOMING_STEP_ACTION.PAY,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: undefined,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: undefined,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: undefined,
+    [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: undefined,
+    [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: undefined,
+};
+
+function getUpcomingStepActionForNextStep(nextStep: ReportNextStep | undefined, isOpenReport: boolean): ReportUpcomingStepAction | undefined {
+    if (!nextStep) {
+        return undefined;
+    }
+
+    // A failed DEW approval also asks the submitter to fix issues, but the report is still waiting on its approver
+    if (nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES && !isOpenReport) {
+        return undefined;
+    }
+    return UPCOMING_STEP_ACTION_BY_MESSAGE_KEY[nextStep.messageKey];
+}
+
 /**
  * Whether to show the DEW approve-error next step.
  * Only manual approve failures (`automaticAction` false/absent) should show it. Auto-approval blocks keep the normal
@@ -399,8 +507,10 @@ function shouldShowDynamicExternalWorkflowApproveErrorNextStep(reportAction: Ony
 export {
     getReportNextStep,
     buildNextStepMessage,
+    getNextStepETA,
     buildOptimisticNextStep,
     buildOptimisticFixIssueNextStep,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
     shouldShowDynamicExternalWorkflowApproveErrorNextStep,
+    getUpcomingStepActionForNextStep,
 };

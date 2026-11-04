@@ -28,6 +28,7 @@ import type {
     TransactionMonthGroupListItemType,
     TransactionQuarterGroupListItemType,
     TransactionTagGroupListItemType,
+    TransactionApproverGroupListItemType,
     TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
@@ -165,11 +166,15 @@ type ExpenseSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
 type ExpenseReportSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE_REPORT>;
 type InvoiceSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.INVOICE>;
 type TripSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TRIP>;
+type TripRoomSearchStatus = ValueOf<typeof CONST.SEARCH.TRIP_STATUS>;
 type TaskSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TASK>;
-type SingularSearchStatus = ExpenseSearchStatus | ExpenseReportSearchStatus | InvoiceSearchStatus | TripSearchStatus | TaskSearchStatus;
+type SingularSearchStatus = ExpenseSearchStatus | ExpenseReportSearchStatus | InvoiceSearchStatus | TripSearchStatus | TripRoomSearchStatus | TaskSearchStatus;
 type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
 type SearchView = ValueOf<typeof CONST.SEARCH.VIEW>;
+type SearchFooterCount = ValueOf<typeof CONST.SEARCH.FOOTER_COUNT>;
+type SearchFooterTotal = ValueOf<typeof CONST.SEARCH.FOOTER_TOTAL>;
 type SearchCompareMode = ValueOf<typeof CONST.SEARCH.COMPARE>;
+type SearchChartMetric = ValueOf<typeof CONST.SEARCH.CHART_METRIC>;
 // PieChart is not implemented so we exclude it here to prevent TypeScript errors in `SearchChartView.tsx`.
 type ChartView = Exclude<SearchView, 'table'>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
@@ -182,6 +187,7 @@ type SyntaxFilterKey = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
 type SearchCustomColumnIds =
     | ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE>
     | ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT>
+    | ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.TRIP>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CARD>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.FROM>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WITHDRAWAL_ID>
@@ -192,7 +198,8 @@ type SearchCustomColumnIds =
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MONTH>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WEEK>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.YEAR>
-    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.QUARTER>;
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.QUARTER>
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.APPROVER>;
 
 type SearchQueryContextValue = {
     currentSearchHash: number;
@@ -361,6 +368,7 @@ type SearchDateFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED
@@ -429,8 +437,6 @@ type SearchQueryJSON = {
     similarSearchHash: number;
     flatFilters: QueryFilters;
     isViewExplicitlySet?: boolean;
-    /** Filters generated for a specific group that must keep exact-match semantics when sent to the backend. */
-    exactMatchFilterKeys?: SearchFilterKey[];
 } & SearchQueryAST;
 
 type SearchAutocompleteResult = {
@@ -475,17 +481,15 @@ type GroupedItem =
     | TransactionMonthGroupListItemType
     | TransactionWeekGroupListItemType
     | TransactionYearGroupListItemType
-    | TransactionQuarterGroupListItemType;
+    | TransactionQuarterGroupListItemType
+    | TransactionApproverGroupListItemType;
 
 type SearchChartDataRow = {
     /** The point plotted on the chart */
     point: ChartDataPoint;
 
-    /** The grouped search result the point was built from */
-    item: GroupedItem;
-
-    /** Palette color the chart assigns this group */
-    color?: string;
+    /** The grouped search result the point was built from, left out for a point only the compared period has */
+    item?: GroupedItem;
 };
 
 type SearchFilterCommonProps<T> = {
@@ -543,6 +547,8 @@ export type {
     TableColumnSize,
     SearchGroupBy,
     SearchView,
+    SearchFooterCount,
+    SearchFooterTotal,
     SearchCompareMode,
     ChartView,
     SingularSearchStatus,
@@ -557,5 +563,6 @@ export type {
     SearchCustomColumnIds,
     GroupedItem,
     SearchChartDataRow,
+    SearchChartMetric,
     SearchFilterCommonProps,
 };

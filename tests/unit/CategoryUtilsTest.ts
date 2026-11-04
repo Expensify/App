@@ -7,6 +7,7 @@ import {
     getCategoryNameError,
     getDecodedFullCategoryName,
     getDecodedLeafCategoryName,
+    hasAnyCategoryGLCode,
     hasAnyCategoryRules,
     isCategoryDescriptionRequired,
     isCategoryMissing,
@@ -518,6 +519,51 @@ describe('getCategoryGLCode', () => {
             },
         };
         expect(getCategoryGLCode(categories, 'Meals')).toBe('1200');
+    });
+});
+
+describe('hasAnyCategoryGLCode', () => {
+    it('returns false when the workspace has no categories', () => {
+        // Given no categories, there is no GL code to pick, so the Category GL code cell must stay read-only
+        // When / Then
+        expect(hasAnyCategoryGLCode(undefined)).toBe(false);
+        expect(hasAnyCategoryGLCode({})).toBe(false);
+    });
+
+    it('returns false when every GL code is missing or blank', () => {
+        // Given categories whose GL codes are missing, empty, whitespace or only quotes
+        const categories: PolicyCategories = {
+            Meals: {enabled: true, name: 'Meals', pendingAction: null},
+            Travel: {enabled: true, name: 'Travel', pendingAction: null, 'GL Code': ''}, // eslint-disable-line @typescript-eslint/naming-convention
+            Fuel: {enabled: true, name: 'Fuel', pendingAction: null, 'GL Code': '   '}, // eslint-disable-line @typescript-eslint/naming-convention
+            Rent: {enabled: true, name: 'Rent', pendingAction: null, 'GL Code': '""'}, // eslint-disable-line @typescript-eslint/naming-convention
+        };
+
+        // When / Then a blank code does not count as a GL code
+        expect(hasAnyCategoryGLCode(categories)).toBe(false);
+    });
+
+    it('returns true when at least one category has a GL code', () => {
+        // Given a mix of categories with and without a GL code
+        const categories: PolicyCategories = {
+            Meals: {enabled: true, name: 'Meals', pendingAction: null},
+            Travel: {enabled: true, name: 'Travel', pendingAction: null, 'GL Code': '1200'}, // eslint-disable-line @typescript-eslint/naming-convention
+        };
+
+        // When / Then one code is enough to keep the cell editable
+        expect(hasAnyCategoryGLCode(categories)).toBe(true);
+    });
+
+    it('returns false when the only GL codes are on disabled or pending-deletion categories', () => {
+        // Given GL codes only on categories the category picker won't let the user select
+        const categories: PolicyCategories = {
+            Meals: {enabled: true, name: 'Meals', pendingAction: null},
+            Travel: {enabled: false, name: 'Travel', pendingAction: null, 'GL Code': '1200'}, // eslint-disable-line @typescript-eslint/naming-convention
+            Fuel: {enabled: true, name: 'Fuel', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, 'GL Code': '1300'}, // eslint-disable-line @typescript-eslint/naming-convention
+        };
+
+        // When / Then the cell stays read-only, because the picker would offer no GL code to pick
+        expect(hasAnyCategoryGLCode(categories)).toBe(false);
     });
 });
 

@@ -144,6 +144,17 @@ function getCategoryGLCode(policyCategories: PolicyCategories | undefined, categ
     return glCode != null ? String(glCode).replaceAll('"', '') : '';
 }
 
+/**
+ * Whether at least one selectable category on the workspace has a non-blank GL code. Disabled and pending-deletion
+ * categories can't be picked in the category picker, so their GL codes don't count.
+ */
+function hasAnyCategoryGLCode(policyCategories: PolicyCategories | undefined): boolean {
+    return Object.entries(policyCategories ?? {}).some(
+        ([categoryName, category]) =>
+            !!category?.enabled && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!getCategoryGLCode(policyCategories, categoryName).trim(),
+    );
+}
+
 function getDecodedCategoryName(categoryName: string) {
     return Str.htmlDecode(categoryName);
 }
@@ -204,6 +215,28 @@ function getCategoryNameErrorMessage(translate: LocaleContextProps['translate'],
         default:
             return translate('common.error.characterLimitExceedCounter', [...StringUtils.sanitizeName(name)].length, CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH);
     }
+}
+
+/**
+ * Finds the stored key of a disabled category whose decoded name is `name`. Pickers hide disabled categories, so a
+ * search can come up empty even though creating the name would fail as a duplicate. A category being deleted is also
+ * stored as disabled until the server confirms, so it is skipped rather than offered back.
+ */
+function getDisabledCategoryKey(policyCategories: PolicyCategories | undefined, name: string): string | undefined {
+    return Object.entries(policyCategories ?? {}).find(
+        ([categoryKey, category]) => !category?.enabled && category?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && getDecodedCategoryName(categoryKey) === name,
+    )?.[0];
+}
+
+/**
+ * Whether a category picker search for `name` can be turned into a category in one tap: either a valid new name, or
+ * the name of a disabled category that can be turned back on. Reserved names, HTML and over-long names never qualify.
+ */
+function canCreateCategoryFromSearch(policyCategories: PolicyCategories | undefined, name: string): boolean {
+    const disabledCategoryKey = getDisabledCategoryKey(policyCategories, name);
+
+    // Passing the name as `currentName` skips only the duplicate check, so a disabled match still has to pass every other rule.
+    return !getCategoryNameError(policyCategories, name, disabledCategoryKey ? name : undefined);
 }
 
 /**
@@ -302,6 +335,7 @@ export {
     isCategoryDescriptionRequired,
     getCategoryDescriptionHint,
     getCategoryGLCode,
+    hasAnyCategoryGLCode,
     getDecodedCategoryName,
     getDecodedLeafCategoryName,
     getDecodedFullCategoryName,
@@ -310,4 +344,6 @@ export {
     hasAnyCategoryRules,
     getCategoryNameError,
     getCategoryNameErrorMessage,
+    getDisabledCategoryKey,
+    canCreateCategoryFromSearch,
 };

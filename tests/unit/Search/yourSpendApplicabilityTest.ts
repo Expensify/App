@@ -161,3 +161,35 @@ describe('getYourSpendReportsSignature (outstandingReportIDs)', () => {
         expect(getYourSpendReportsSignature(reports, PAID_GROUP_POLICY_IDS, ACCOUNT_ID).outstandingReportIDs).toBe('r1,r2,r3');
     });
 });
+
+describe('getYourSpendReportsSignature (outstandingReportTotals)', () => {
+    const ACCOUNT_ID = 12345;
+    const PAID_GROUP_POLICY_IDS = ['policy_1', 'policy_2'];
+
+    it('lists outstanding reports with their totals, sorted by report ID', () => {
+        // Given two outstanding reports and one approved report, in unsorted order
+        const reports = reportsCollection([
+            makeReport({reportID: 'r2', total: 2500, currency: 'USD'}),
+            makeReport({reportID: 'r1', total: 1000, currency: 'USD'}),
+            makeReport({reportID: 'r3', total: 500, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED}),
+        ]);
+
+        // When the signature is computed
+        const signature = getYourSpendReportsSignature(reports, PAID_GROUP_POLICY_IDS, ACCOUNT_ID);
+
+        // Then only the outstanding reports are listed, each with its total and currency
+        expect(signature.outstandingReportTotals).toBe('r1:1000:USD,r2:2500:USD');
+    });
+
+    it('changes when an outstanding report total changes but its ID list does not', () => {
+        // Given an outstanding report with a $10.00 total
+        const before = getYourSpendReportsSignature(reportsCollection([makeReport({reportID: 'r1', total: 1000, currency: 'USD'})]), PAID_GROUP_POLICY_IDS, ACCOUNT_ID);
+
+        // When an edit from another device moves its total to $25.00
+        const after = getYourSpendReportsSignature(reportsCollection([makeReport({reportID: 'r1', total: 2500, currency: 'USD'})]), PAID_GROUP_POLICY_IDS, ACCOUNT_ID);
+
+        // Then the ID list stays the same, but the totals signature moves so the "Awaiting approval" search refires
+        expect(after.outstandingReportIDs).toBe(before.outstandingReportIDs);
+        expect(after.outstandingReportTotals).not.toBe(before.outstandingReportTotals);
+    });
+});

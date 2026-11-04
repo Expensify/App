@@ -1,12 +1,12 @@
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import Log from '@libs/Log';
 import {chatIncludesConcierge} from '@libs/ReportUtils';
 
 import {useReportActionActiveEdit} from '@pages/inbox/report/ReportActionEditMessageContext';
+import useShouldEditInComposer from '@pages/inbox/report/useShouldEditInComposer';
 
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 
@@ -35,6 +35,7 @@ import {
 import useComposerFocus from './useComposerFocus';
 import useDebouncedCommentMaxLengthValidation from './useDebouncedCommentMaxLengthValidation';
 import useEditMessage from './useEditMessage';
+import useShouldSkipComposerAutoFocus from './useShouldSkipComposerAutoFocus';
 
 const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
@@ -44,7 +45,7 @@ type ComposerProviderProps = {
 };
 
 function ComposerProvider({children, reportID}: ComposerProviderProps) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldEditInComposer = useShouldEditInComposer();
 
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
     const [initialModalState] = useOnyx(ONYXKEYS.MODAL);
@@ -52,8 +53,10 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
 
+    const shouldSkipAutoFocus = useShouldSkipComposerAutoFocus(report);
+
     const shouldFocusComposerOnScreenFocus = shouldFocusInputOnScreenFocus || !!draftComment;
-    const initialFocused = shouldFocusComposerOnScreenFocus && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
+    const initialFocused = !shouldSkipAutoFocus && shouldFocusComposerOnScreenFocus && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
 
     const includesConcierge = chatIncludesConcierge({participants: report?.participants});
     const userBlockedFromConcierge = isBlockedFromConciergeUserAction(blockedFromConcierge);
@@ -82,7 +85,7 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
 
     const [didResetComposerHeightWhileEditing, setDidResetComposerHeightWhileEditing] = useState(false);
 
-    const isEditingInComposer = shouldUseNarrowLayout && editingState !== 'off' && !didResetComposerHeightWhileEditing;
+    const isEditingInComposer = shouldEditInComposer && editingState !== 'off' && !didResetComposerHeightWhileEditing;
     const effectiveDraft = isEditingInComposer ? editingMessage : draftComment;
 
     const {debouncedCommentMaxLengthValidation, exceededMaxLength, isExceedingMaxLength, isTaskTitle} = useDebouncedCommentMaxLengthValidation({

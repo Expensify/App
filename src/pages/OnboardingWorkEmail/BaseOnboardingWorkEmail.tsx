@@ -11,7 +11,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useContinueJoinWorkspaceOnboarding from '@hooks/useContinueJoinWorkspaceOnboarding';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -32,8 +35,8 @@ import {AddWorkEmail} from '@userActions/Session';
 import {
     addWorkEmailFormError,
     clearOnboardingMergeAccountBlocked,
-    clearOnboardingShouldValidate,
     clearWorkEmailFormErrors,
+    resetOnboardingWorkEmailValidation,
     setOnboardingErrorMessage,
     setOnboardingMergeAccountStepValue,
     setOnboardingMergingAccountBlocked,
@@ -54,7 +57,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useIsFocused} from '@react-navigation/native';
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import type {BaseOnboardingWorkEmailProps} from './types';
@@ -89,6 +92,23 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
     const isJoiningCompanyWorkspace = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
     const {taskReport: addWorkEmailTaskReport} = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.ADD_WORK_EMAIL);
     const returnToOriginReport = useReturnToOriginReport(route.params?.reportID);
+    const [onboardingPersonalDetails] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const delegateAccountID = useDelegateAccountID();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const continueJoinWorkspaceOnboarding = useContinueJoinWorkspaceOnboarding({
+        session,
+        loginList,
+        onboardingValues,
+        onboardingPersonalDetails,
+        introSelected,
+        conciergeReportID,
+        conciergeChat,
+        reportNameValuePairs,
+        delegateAccountID,
+    });
     const [formValue] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM);
     const workEmail = formValue?.[INPUT_IDS.ONBOARDING_WORK_EMAIL];
     const [onboardingErrorMessageTranslationKey] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
@@ -223,64 +243,74 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
         onboardingValues?.isMergingAccountBlocked,
     ]);
 
-    const submitWorkEmail = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
-            const submittedWorkEmail = values[INPUT_IDS.ONBOARDING_WORK_EMAIL].trim();
-            const isCurrentUnvalidatedWorkEmail =
-                isConciergeTaskFlow &&
-                !isCurrentPrimaryValidated &&
-                !!sessionEmail &&
-                submittedWorkEmail.toLowerCase() === sessionEmail.toLowerCase() &&
-                !PUBLIC_DOMAINS_SET.has(submittedWorkEmail.split('@').at(1)?.toLowerCase() ?? '');
+    const submitWorkEmail = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
+        const submittedWorkEmail = values[INPUT_IDS.ONBOARDING_WORK_EMAIL].trim();
+        const isCurrentUnvalidatedWorkEmail =
+            isConciergeTaskFlow &&
+            !isCurrentPrimaryValidated &&
+            !!sessionEmail &&
+            submittedWorkEmail.toLowerCase() === sessionEmail.toLowerCase() &&
+            !PUBLIC_DOMAINS_SET.has(submittedWorkEmail.split('@').at(1)?.toLowerCase() ?? '');
 
-            // The work email was already added in an earlier visit, so let the user resume its validation without
-            // sending AddWorkEmail for the current primary login again.
-            if (isCurrentUnvalidatedWorkEmail) {
-                Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(undefined, true, originReportID), {forceReplace: true});
-                return;
-            }
+        // The work email was already added in an earlier visit, so let the user resume its validation without
+        // sending AddWorkEmail for the current primary login again.
+        if (isCurrentUnvalidatedWorkEmail) {
+            Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(undefined, true, originReportID), {forceReplace: true});
+            return;
+        }
 
-            // AddWorkEmail already made this the account's login, and resending it would merge the account into itself.
-            if (sessionEmail && submittedWorkEmail.toLowerCase() === sessionEmail.toLowerCase()) {
-                setOnboardingShouldValidate(false);
-                return;
-            }
+        // AddWorkEmail already made this the account's login, and resending it would merge the account into itself.
+        if (sessionEmail && submittedWorkEmail.toLowerCase() === sessionEmail.toLowerCase()) {
+            setHasSubmittedWorkEmail(true);
+            setOnboardingShouldValidate(false);
+            return;
+        }
 
-            // The form's onSubmit must stay synchronous, so chain off the Onyx write instead of awaiting it.
-            clearOnboardingShouldValidate(onboardingValues).then(() => {
-                setHasSubmittedWorkEmail(true);
-                AddWorkEmail(submittedWorkEmail, addWorkEmailTaskReport);
-            });
-        },
-        [addWorkEmailTaskReport, isConciergeTaskFlow, isCurrentPrimaryValidated, onboardingValues, originReportID, sessionEmail],
-    );
+        // The form's onSubmit must stay synchronous, so chain off the Onyx write instead of awaiting it.
+        resetOnboardingWorkEmailValidation(onboardingValues).then(() => {
+            setHasSubmittedWorkEmail(true);
+            AddWorkEmail(submittedWorkEmail, addWorkEmailTaskReport);
+        });
+    };
+
+    const isBackButtonMessage = onboardingErrorMessageTranslationKey === 'onboarding.purpose.errorBackButton';
+
+    // The back button message is about leaving onboarding, not about the email, so it never becomes a field error and never blocks the submit
+    const workEmailErrorTranslationKey = onboardingErrorMessageTranslationKey && !isBackButtonMessage ? onboardingErrorMessageTranslationKey : undefined;
 
     useEffect(() => {
-        if (!onboardingErrorMessageTranslationKey) {
+        if (!workEmailErrorTranslationKey) {
             clearWorkEmailFormErrors();
             return;
         }
 
-        addWorkEmailFormError(translate(onboardingErrorMessageTranslationKey));
-    }, [onboardingErrorMessageTranslationKey, translate]);
+        addWorkEmailFormError(translate(workEmailErrorTranslationKey));
+    }, [workEmailErrorTranslationKey, translate]);
 
-    const clearOnboardingErrorMessage = useCallback(() => {
+    const clearOnboardingErrorMessage = () => {
         if (!onboardingErrorMessageTranslationKey) {
             return;
         }
         setOnboardingErrorMessage(null);
-    }, [onboardingErrorMessageTranslationKey]);
+    };
 
-    const handleRegularJoinWorkspaceErrorConfirm = useCallback(() => {
+    const clearBackButtonMessage = () => {
+        if (!isBackButtonMessage) {
+            return;
+        }
+        setOnboardingErrorMessage(null);
+    };
+
+    const handleRegularJoinWorkspaceErrorConfirm = () => {
         setOnboardingErrorMessage(null);
         setOnboardingMergingAccountBlocked(false);
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
-    }, []);
+    };
 
-    const handleConciergeTaskErrorConfirm = useCallback(() => {
+    const handleConciergeTaskErrorConfirm = () => {
         clearOnboardingMergeAccountBlocked();
         returnToOriginReport();
-    }, [returnToOriginReport]);
+    };
 
     // The Concierge task flow returns to the task thread, the regular join flow restarts at the purpose step,
     // and every other flow leaves the blocked view without a confirm action.
@@ -291,7 +321,32 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
         handleMergingAccountBlockedConfirm = handleRegularJoinWorkspaceErrorConfirm;
     }
 
-    const shouldRenderOfflineFeedback = useCallback((errorTranslation: string) => {
+    // This screen normally opens onboarding, so there is nothing to go back to unless the intent list sent us here.
+    // The intent stays saved across a cold start, so check it instead of the route index.
+    const canGoBackToPurpose = isJoiningCompanyWorkspace && !isConciergeTaskFlow;
+
+    const goBackToPurpose = () => {
+        // Clear any work email error so the purpose screen doesn't render it without its translation params.
+        clearOnboardingMergeAccountBlocked();
+        // Pops to the intent list when it's in the stack, or replaces this screen with it, so the user stays in onboarding.
+        Navigation.goBack(ROUTES.ONBOARDING_PURPOSE.getRoute());
+    };
+
+    const handleAndroidBackPress = () => {
+        if (canGoBackToPurpose) {
+            goBackToPurpose();
+            return true;
+        }
+
+        // Otherwise there is no earlier step, so keep the press from closing onboarding and tell the user to finish setup.
+        setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
+        return true;
+    };
+
+    // Android's system back runs the same logic as the header back button.
+    useAndroidBackButtonHandler(handleAndroidBackPress);
+
+    const shouldRenderOfflineFeedback = (errorTranslation: string) => {
         if (
             errorTranslation !== 'onboarding.workEmail2FAError' &&
             errorTranslation !== 'onboarding.mergeBlockScreen.workAccountClosedSubtitle' &&
@@ -300,7 +355,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
             return true;
         }
         return false;
-    }, []);
+    };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
         if (!shouldValidateOnChange) {
@@ -332,24 +387,21 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
         return errors;
     };
 
-    const section: Item[] = useMemo(
-        () => [
-            {
-                icon: illustrations.EnvelopeReceipt,
-                titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionOne',
-                shouldRenderEmail: true,
-            },
-            {
-                icon: illustrations.Profile,
-                titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionTwo',
-            },
-            {
-                icon: illustrations.Gears,
-                titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionThree',
-            },
-        ],
-        [illustrations.EnvelopeReceipt, illustrations.Profile, illustrations.Gears],
-    );
+    const section: Item[] = [
+        {
+            icon: illustrations.EnvelopeReceipt,
+            titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionOne',
+            shouldRenderEmail: true,
+        },
+        {
+            icon: illustrations.Profile,
+            titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionTwo',
+        },
+        {
+            icon: illustrations.Gears,
+            titleTranslationKey: 'onboarding.workEmail.explanationModal.descriptionThree',
+        },
+    ];
 
     return (
         <ScreenWrapper
@@ -359,10 +411,9 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
             testID="BaseOnboardingWorkEmail"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
-            {/* This screen normally opens onboarding, so there is nothing to go back to unless the intent list sent us here. */}
             <OnboardingHeader
-                shouldShowBackButton={isJoiningCompanyWorkspace && !isConciergeTaskFlow}
-                onBackButtonPress={() => Navigation.goBack()}
+                shouldShowBackButton={canGoBackToPurpose}
+                onBackButtonPress={goBackToPurpose}
                 shouldShowCloseButton={isConciergeTaskFlow}
                 onCloseButtonPress={onboardingValues?.isMergingAccountBlocked ? handleConciergeTaskErrorConfirm : returnToOriginReport}
             />
@@ -379,6 +430,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
                     style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
                     formID={ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM}
                     validate={validate}
+                    onBeforeSubmit={clearBackButtonMessage}
                     onSubmit={submitWorkEmail}
                     submitButtonText={translate('onboarding.workEmail.addWorkEmail')}
                     enabledWhenOffline
@@ -418,7 +470,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
                                     // The user already picked an intent, so skipping continues to the last onboarding
                                     // step rather than returning them to the intent list they came from.
                                     if (isJoiningCompanyWorkspace) {
-                                        Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute());
+                                        continueJoinWorkspaceOnboarding();
                                     }
                                 }}
                                 sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.SKIP}

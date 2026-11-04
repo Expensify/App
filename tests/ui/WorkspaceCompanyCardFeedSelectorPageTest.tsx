@@ -1,6 +1,6 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
-import type {CompanyCardFeedWithDomainID} from '@hooks/useCardFeeds';
+import type {CombinedCardFeed, CompanyCardFeedWithDomainID} from '@hooks/useCardFeeds';
 import type {CardFeedListItem} from '@hooks/useOtherFeedsForFeedSelector';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -9,7 +9,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import WorkspaceCompanyCardFeedSelectorPage from '@pages/workspace/companyCards/WorkspaceCompanyCardFeedSelectorPage';
 
-import {clearAddNewCardFlow} from '@userActions/CompanyCards';
+import {clearAddNewCardFlow, linkCardFeedToPolicy} from '@userActions/CompanyCards';
 
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -19,8 +19,14 @@ import React from 'react';
 
 const POLICY_ID = 'policy123';
 
+const OTHER_WORKSPACE_FEED_KEY: CompanyCardFeedWithDomainID = `${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}123`;
+
+// Matches what useOtherFeedsForFeedSelector builds: the row value is `${fundID}_${feed}`, while the selection uses the main list key `${feed}#${fundID}`.
 const OTHER_WORKSPACE_FEED: CardFeedListItem = {
-    value: `${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}123`,
+    // The hook casts its `${fundID}_${feed}` row id to this type the same way.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    value: `123_${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}` as CompanyCardFeedWithDomainID,
+    selectionValue: OTHER_WORKSPACE_FEED_KEY,
     feed: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
     fundID: 123,
     text: 'Other workspace feed',
@@ -32,6 +38,8 @@ let mockIsBlockedToAddNewFeeds = false;
 let mockIsOffline = false;
 let mockOtherFeeds: CardFeedListItem[] = [];
 let mockCommittedFeedName: CompanyCardFeedWithDomainID | undefined;
+let mockCompanyCardFeeds: Partial<Record<CompanyCardFeedWithDomainID, CombinedCardFeed>> = {};
+let mockPrimaryContactMethod = 'admin@example.com';
 let mockCapturedOnResume: ((payload?: () => void) => void) | undefined;
 const mockVerifyAccountAndResume = jest.fn<void, [payload?: () => void]>();
 
@@ -42,6 +50,18 @@ jest.mock('@hooks/useVerifyAccountAndResume', () => ({
         return {isUserValidated: mockIsUserValidated, verifyAccountAndResume: mockVerifyAccountAndResume};
     },
 }));
+
+// The available feeds render in a real SelectionList, which reads focus from navigation.
+jest.mock('@react-navigation/native', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actualNav = jest.requireActual('@react-navigation/native');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actualNav,
+        useIsFocused: () => true,
+        useFocusEffect: jest.fn(),
+    };
+});
 
 jest.mock('@components/HeaderWithBackButton', () => () => null);
 jest.mock(
@@ -79,7 +99,7 @@ jest.mock('@hooks/useCompanyCardIcons', () => ({
 
 jest.mock('@hooks/useCompanyCards', () => ({
     __esModule: true,
-    default: () => ({companyCardFeeds: {}, feedName: mockCommittedFeedName}),
+    default: () => ({companyCardFeeds: mockCompanyCardFeeds, feedName: mockCommittedFeedName}),
 }));
 
 jest.mock('@hooks/useIsBlockedToAddFeed', () => ({
@@ -123,7 +143,7 @@ jest.mock('@hooks/usePolicyFeatureWriteAccess', () => ({
 
 jest.mock('@hooks/usePrimaryContactMethod', () => ({
     __esModule: true,
-    default: () => 'admin@example.com',
+    default: () => mockPrimaryContactMethod,
 }));
 
 jest.mock('@hooks/useThemeIllustrations', () => ({
@@ -189,6 +209,8 @@ describe('WorkspaceCompanyCardFeedSelectorPage', () => {
         mockIsOffline = false;
         mockOtherFeeds = [];
         mockCommittedFeedName = undefined;
+        mockCompanyCardFeeds = {};
+        mockPrimaryContactMethod = 'admin@example.com';
         mockCapturedOnResume = undefined;
     });
 
@@ -201,7 +223,7 @@ describe('WorkspaceCompanyCardFeedSelectorPage', () => {
 
         it('keeps Save disabled when the committed feed is an other-workspace feed the user has not picked', () => {
             // Given the committed feed is the other-workspace feed, so it is staged without the user picking anything
-            mockCommittedFeedName = OTHER_WORKSPACE_FEED.value;
+            mockCommittedFeedName = OTHER_WORKSPACE_FEED_KEY;
 
             // When the page opens
             renderFeedSelectorPage();
@@ -212,7 +234,7 @@ describe('WorkspaceCompanyCardFeedSelectorPage', () => {
 
         it('starts the link flow once the user picks the other-workspace feed', () => {
             // Given the committed feed is the other-workspace feed
-            mockCommittedFeedName = OTHER_WORKSPACE_FEED.value;
+            mockCommittedFeedName = OTHER_WORKSPACE_FEED_KEY;
             renderFeedSelectorPage();
 
             // When the user picks it and presses Save
@@ -241,6 +263,64 @@ describe('WorkspaceCompanyCardFeedSelectorPage', () => {
 
             // Then Save is disabled, because the link request never settles offline
             expect(getSaveButton()).toBeDisabled();
+        });
+
+        const rerenderFeedSelectorPage = (rerender: ReturnType<typeof renderFeedSelectorPage>['rerender']) =>
+            rerender(
+                <WorkspaceCompanyCardFeedSelectorPage
+                    route={route}
+                    navigation={navigation}
+                />,
+            );
+
+        // Mirrors what Onyx holds once the link response lands: the feed leaves "From other workspaces" and shows up in the available feeds list.
+        const moveFeedIntoAvailableList = () => {
+            mockOtherFeeds = [];
+            mockCompanyCardFeeds = {[OTHER_WORKSPACE_FEED_KEY]: {feed: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, domainID: 123}};
+        };
+
+        it('keeps the staged feed checked in place while the link response lands before the page closes', () => {
+            // Given a user with a validated work email stages the other-workspace feed and presses Save
+            mockPrimaryContactMethod = '';
+            jest.mocked(linkCardFeedToPolicy).mockReturnValue(new Promise(() => {}));
+            const {rerender} = renderFeedSelectorPage();
+            fireEvent.press(screen.getByText(OTHER_WORKSPACE_FEED.text ?? ''));
+            fireEvent.press(getSaveButton());
+            expect(linkCardFeedToPolicy).toHaveBeenCalledTimes(1);
+
+            // When the link response reaches Onyx before the page closes
+            moveFeedIntoAvailableList();
+            rerenderFeedSelectorPage(rerender);
+
+            // Then the feed stays checked under "From other workspaces" and no available feed row appears, so nothing moves while the RHP closes
+            expect(screen.getByText('workspace.companyCards.fromOtherWorkspaces')).toBeOnTheScreen();
+            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${OTHER_WORKSPACE_FEED.keyForList}`).props.accessibilityState).toMatchObject({selected: true});
+            expect(screen.queryByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${OTHER_WORKSPACE_FEED_KEY}`)).not.toBeOnTheScreen();
+        });
+
+        it('shows the latest feeds again when linking fails', async () => {
+            // Given a user with a validated work email stages the other-workspace feed, presses Save, and the feeds change while the link request is pending
+            mockPrimaryContactMethod = '';
+            let rejectLink: (error: string) => void = () => {};
+            jest.mocked(linkCardFeedToPolicy).mockReturnValue(
+                new Promise((resolve, reject) => {
+                    rejectLink = reject;
+                }),
+            );
+            const {rerender} = renderFeedSelectorPage();
+            fireEvent.press(screen.getByText(OTHER_WORKSPACE_FEED.text ?? ''));
+            fireEvent.press(getSaveButton());
+            moveFeedIntoAvailableList();
+            rerenderFeedSelectorPage(rerender);
+
+            // When the link request fails
+            await act(async () => {
+                rejectLink('common.genericErrorMessage');
+            });
+
+            // Then the page stops freezing the lists, because the page stays open and has to reflect the current feeds
+            expect(screen.queryByText('workspace.companyCards.fromOtherWorkspaces')).not.toBeOnTheScreen();
+            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${OTHER_WORKSPACE_FEED_KEY}`)).toBeOnTheScreen();
         });
     });
 

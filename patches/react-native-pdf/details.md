@@ -77,3 +77,20 @@
 - Upstream PR/issue: https://github.com/wonday/react-native-pdf/issues/674
 - E/App issue: https://github.com/Expensify/App/issues/101895
 - PR introducing patch: https://github.com/Expensify/App/pull/102389
+
+
+### [react-native-pdf+7.0.2+006+fix-scale-changed-on-resize.patch](react-native-pdf+7.0.2+006+fix-scale-changed-on-resize.patch)
+
+- Reason:
+
+    ```
+    This patch stops onScaleChanged on Android from reporting a zoom change when the PDF view is resized, e.g. when rotating the device between portrait and landscape.
+
+    Android reported the scale as the drawn page width divided by the page width of the first draw. A resize changes the page width, so after rotating the scale was reported as e.g. 2 or 0.5 even though the user didn't zoom. The patch reports the viewer's zoom (getZoom()) instead, which is relative to the page size fitted to the current view size, and only emits the event when the zoom changes. This matches iOS, which recalculates its base scale factor for the new view size on every resize.
+
+    In the attachment carousel a scale different from 1 is treated as zoomed in, which hid the carousel arrows and disabled swiping between attachments after rotating.
+    ```
+
+- Upstream PR/issue: https://github.com/wonday/react-native-pdf/pull/1050, https://github.com/wonday/react-native-pdf/issues/1049
+- E/App issue: https://github.com/Expensify/App/issues/103207
+- PR introducing patch: https://github.com/Expensify/App/pull/103781

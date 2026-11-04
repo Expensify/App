@@ -48,6 +48,7 @@ import {isAdminSelector} from '@src/selectors/Domain';
 import {lastExpensesSearchQuerySelector} from '@src/selectors/SearchFilters';
 import {emailSelector} from '@src/selectors/Session';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ReactNode} from 'react';
@@ -78,6 +79,7 @@ const SEARCH_ROUTER_ICON_NAMES = [
     'Users',
     'Hashtag',
     'Sync',
+    'Connect',
     'Briefcase',
     'Tag',
     'Coins',
@@ -108,7 +110,6 @@ type BuildTopLevelNavigationItemsParams = {
         account: string;
     };
     icons: TopLevelNavigationIcons;
-    isInsightsPageBetaEnabled: boolean;
     getSpendRoute: () => Route;
     getDestinationText: (destination: string) => string;
 };
@@ -132,6 +133,9 @@ type BuildWorkspaceNavigationItemsParams = {
     /** Login used to evaluate Workspace membership and permissions. */
     currentUserLogin: string | undefined;
 
+    /** Personal details used to evaluate Workspace membership and permissions. */
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
+
     /** Icons consumed by the shared Workspace menu source. */
     icons: Parameters<typeof getWorkspaceMenuItems>[0]['icons'];
 
@@ -139,9 +143,6 @@ type BuildWorkspaceNavigationItemsParams = {
     isOffline: boolean;
 
     isVendorMatchingBetaEnabled: boolean;
-
-    /** Whether the Merge ATS beta gating the Recruiting feature is enabled. */
-    isRecruitingBetaEnabled: boolean;
 
     /** Whether navigation should use the narrow-layout Workspace flow. */
     shouldUseNarrowLayout: boolean;
@@ -207,7 +208,7 @@ type BuildAccountNavigationItemsParams = {
 };
 
 // Tab buttons own stateful navigation behavior and do not expose reusable descriptors, so Search Router keeps deterministic destination actions here.
-function buildTopLevelNavigationItems({labels, icons, isInsightsPageBetaEnabled, getSpendRoute, getDestinationText}: BuildTopLevelNavigationItemsParams): NavigationSuggestionSourceItem[] {
+function buildTopLevelNavigationItems({labels, icons, getSpendRoute, getDestinationText}: BuildTopLevelNavigationItemsParams): NavigationSuggestionSourceItem[] {
     return [
         {
             text: getDestinationText(labels.home),
@@ -230,17 +231,13 @@ function buildTopLevelNavigationItems({labels, icons, isInsightsPageBetaEnabled,
             keyForList: 'topLevelSpend',
             matchTerms: [labels.spend],
         },
-        ...(isInsightsPageBetaEnabled
-            ? [
-                  {
-                      text: getDestinationText(labels.insights),
-                      singleIcon: icons.PieChart,
-                      action: () => Navigation.navigate(ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND)),
-                      keyForList: 'topLevelInsights',
-                      matchTerms: [labels.insights],
-                  },
-              ]
-            : []),
+        {
+            text: getDestinationText(labels.insights),
+            singleIcon: icons.PieChart,
+            action: () => Navigation.navigate(ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND)),
+            keyForList: 'topLevelInsights',
+            matchTerms: [labels.insights],
+        },
         {
             text: getDestinationText(labels.workspaces),
             singleIcon: icons.Building,
@@ -287,10 +284,10 @@ function buildWorkspaceNavigationItems({
     policies,
     policyCategories,
     currentUserLogin,
+    currentUserPersonalDetails,
     icons,
     isOffline,
     isVendorMatchingBetaEnabled,
-    isRecruitingBetaEnabled,
     shouldUseNarrowLayout,
     convertToDisplayString,
     getItemText,
@@ -306,10 +303,10 @@ function buildWorkspaceNavigationItems({
                 policy,
                 policyID: policy.id,
                 currentUserLogin,
+                currentUserPersonalDetails,
                 icons,
                 policyCategories: policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`],
                 isVendorMatchingBetaEnabled,
-                isRecruitingBetaEnabled,
                 convertToDisplayString,
             });
 
@@ -321,7 +318,11 @@ function buildWorkspaceNavigationItems({
                     action: () => navigateToWorkspaceSettingsRoute(item.getRoute(), policy.id, shouldUseNarrowLayout, item.screenName),
                     keyForList: `workspace_${policy.id}_${item.screenName}`,
                     rightElement: <WorkspaceIdentityCell policy={policy} />,
-                    matchTerms: item.screenName === SCREENS.WORKSPACE.PROFILE ? [itemText, policy.name] : [itemText],
+                    matchTerms: [
+                        itemText,
+                        ...(item.screenName === SCREENS.WORKSPACE.PROFILE ? [policy.name] : []),
+                        ...(item.searchAliasKeys ?? []).map((translationKey) => getItemText({...item, translationKey})),
+                    ],
                     sortText: policy.name,
                 };
             });
@@ -411,7 +412,6 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
             account: translate('initialSettingsPage.account'),
         },
         icons,
-        isInsightsPageBetaEnabled: isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE),
         getSpendRoute: () => getSearchTabRoute(navigationRef.getRootState(), lastSearchParams, lastExpensesSearchQuerySelector(searchFilters)),
         getDestinationText: (destination) => getGoToText(translate, destination),
     });
@@ -437,10 +437,10 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
         policies: allPolicies,
         policyCategories,
         currentUserLogin,
+        currentUserPersonalDetails,
         icons,
         isOffline: !!isOffline,
         isVendorMatchingBetaEnabled: isBetaEnabled(CONST.BETAS.VENDOR_MATCHING),
-        isRecruitingBetaEnabled: isBetaEnabled(CONST.BETAS.MERGE_ATS),
         shouldUseNarrowLayout,
         convertToDisplayString,
         getItemText: (item) => translate(item.translationKey),

@@ -104,6 +104,26 @@ describe('actions/PolicyRules', () => {
             expect(finalRule?.errors).toBeFalsy();
         });
 
+        it('optimistically adds the title of the agent rule when it is known', async () => {
+            // Given a rule title that is known before the server generates one, for example from a suggestion
+            const fakePolicy = createRandomPolicy(0);
+            const agentRuleID = 'agentRuleWithTitle';
+            const prompt = 'Hold any expense over $75 without a receipt';
+            const title = 'Hold expenses without a receipt';
+
+            mockFetch?.pause?.();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // When the rule is added with the title
+            addPolicyAgentRule(fakePolicy.id, agentRuleID, prompt, title);
+            await waitForBatchedUpdates();
+
+            // Then the optimistic rule has the title, so the list shows it instead of the prompt before the server responds
+            const policy = await getPolicy(fakePolicy.id);
+            expect(policy?.rules?.agentRules?.[agentRuleID]?.title).toBe(title);
+            await mockFetch?.resume?.();
+        });
+
         it('sets an error on the agent rule when the request fails', async () => {
             const fakePolicy = createRandomPolicy(0);
             const agentRuleID = 'agentRule2';
@@ -476,7 +496,7 @@ describe('actions/PolicyRules', () => {
                 scopeID: fakePolicy.id,
                 priority: CONST.RULES.EXPENSE_DEFAULT.PRIORITY,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
+                triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION, CONST.RULES.TRIGGERS.UPDATE_TRANSACTION]),
                 filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'},
                 actions: toIndexMap([{name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, value: 'Coffee'}]),
             });
@@ -544,7 +564,7 @@ describe('actions/PolicyRules', () => {
                 ruleID,
                 priority: CONST.RULES.EXPENSE_DEFAULT.PRIORITY,
                 value: JSON.stringify({
-                    triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
+                    triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION, CONST.RULES.TRIGGERS.UPDATE_TRANSACTION]),
                     filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'},
                     actions: toIndexMap([{name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, value: 'Coffee'}]),
                 }),

@@ -1,3 +1,4 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -6,6 +7,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
@@ -13,9 +15,10 @@ import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateMoneyRequestVendor} from '@libs/actions/IOU/UpdateMoneyRequest';
+import {openPolicyVendorsPage} from '@libs/actions/Policy/Vendor';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {getVendorEmptyState, hasVendorFeature, isXeroActiveMatchingSource, sortVendors} from '@libs/PolicyUtils';
+import {getVendorEmptyState, hasVendorFeature, sortVendors} from '@libs/PolicyUtils';
 import {isPerDiemRequest} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
@@ -24,7 +27,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -52,6 +55,8 @@ function IOURequestStepVendor({
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const [searchValue, setSearchValue] = useState('');
 
+    const [draftVendor, setDraftVendor] = useState<VendorListItem>();
+
     const {policy} = usePolicyForTransaction({
         transaction,
         reportPolicyID: report?.policyID,
@@ -66,7 +71,21 @@ function IOURequestStepVendor({
 
     const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
     const isFeatureAvailable = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
-    const isOnXero = isXeroActiveMatchingSource(policy);
+    // Stale sessions may never have received the policyVendors_ collection, so fetch it if missing.
+    const fetchVendorsIfMissing = () => {
+        if (!isFeatureAvailable || !policy?.id || policyVendors !== undefined) {
+            return;
+        }
+        openPolicyVendorsPage(policy.id);
+    };
+
+    const {isOffline} = useNetwork({onReconnect: fetchVendorsIfMissing});
+
+    useEffect(() => {
+        fetchVendorsIfMissing();
+        // Re-run when the policy loads or the collection is cleared, so a missing fetch retries.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isFeatureAvailable, policy?.id, policyVendors]);
     const emptyState = getVendorEmptyState(policy, translate);
 
     // Vendor is scoped to non-reimbursable expenses on a policy expense chat; block deep-link / stale-open access if the transaction is reimbursable or is an invoice (invoices are non-reimbursable but don't route through the vendor-matching flow).
@@ -75,20 +94,22 @@ function IOURequestStepVendor({
 
     const currentVendorID = transaction?.comment?.vendor?.externalID;
     const currentVendor = currentVendorID ? policyVendors?.[currentVendorID] : undefined;
-    const isCurrentVendorDisabled = !!currentVendorID && !currentVendor?.enabled;
+    const isCurrentVendorDisabled = !!currentVendorID && policyVendors !== undefined && !currentVendor?.enabled;
+
+    const isLoading = !isOffline && policyVendors === undefined;
 
     const enabledVendors = Object.values(policyVendors ?? {}).filter((vendor) => vendor.enabled);
     const sortedEnabledVendors = sortVendors(enabledVendors, localeCompare);
-    const vendorLabel = isOnXero ? translate('common.supplier') : translate('common.vendor');
 
     const trimmedSearch = searchValue.trim().toLowerCase();
+    const selectedVendorID = draftVendor ? draftVendor.value : currentVendorID;
     const enabledRows: VendorListItem[] = sortedEnabledVendors
         .filter((vendor) => !trimmedSearch || vendor.name.toLowerCase().includes(trimmedSearch))
         .map((vendor) => ({
             value: vendor.externalID,
             text: vendor.name,
             keyForList: vendor.externalID,
-            isSelected: vendor.externalID === currentVendorID,
+            isSelected: vendor.externalID === selectedVendorID,
             searchText: vendor.name,
         }));
 
@@ -98,7 +119,7 @@ function IOURequestStepVendor({
                   value: currentVendorID,
                   text: currentVendor?.name ?? transaction?.comment?.vendor?.name ?? '',
                   keyForList: currentVendorID,
-                  isSelected: true,
+                  isSelected: selectedVendorID === currentVendorID,
                   searchText: currentVendor?.name ?? transaction?.comment?.vendor?.name ?? '',
                   alternateText: translate('common.disabled'),
               }
@@ -113,7 +134,7 @@ function IOURequestStepVendor({
                       value: '',
                       text: translate('common.none'),
                       keyForList: 'clear-vendor',
-                      isSelected: false,
+                      isSelected: draftVendor?.keyForList === 'clear-vendor',
                       searchText: '',
                   },
               ]
@@ -147,6 +168,18 @@ function IOURequestStepVendor({
         navigateBack();
     };
 
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: () => {
+            if (!draftVendor) {
+                return;
+            }
+            selectVendor(draftVendor);
+        },
+        isDisabled: !draftVendor || draftVendor.value === currentVendorID,
+    };
+
     const headerMessage = searchValue && data.length === 0 ? translate('common.noResultsFound') : '';
 
     const listEmptyContent =
@@ -163,7 +196,7 @@ function IOURequestStepVendor({
 
     return (
         <StepScreenWrapper
-            headerTitle={vendorLabel}
+            headerTitle={translate('common.vendor')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             shouldShowNotFoundPage={shouldShowNotFoundPage}
@@ -177,17 +210,26 @@ function IOURequestStepVendor({
                 if (!didScreenTransitionEnd) {
                     return null;
                 }
+                if (isLoading) {
+                    return (
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            style={[styles.flex1]}
+                        />
+                    );
+                }
                 return (
                     <SelectionList
                         data={data}
-                        onSelectRow={selectVendor}
+                        onSelectRow={setDraftVendor}
+                        confirmButtonOptions={confirmButtonOptions}
                         textInputOptions={{
                             label: translate('common.search'),
                             value: searchValue,
                             onChangeText: setSearchValue,
                             headerMessage,
                         }}
-                        initiallyFocusedItemKey={shouldShowNoneRow ? undefined : data.find((item) => item.isSelected)?.keyForList}
+                        initiallyFocusedItemKey={shouldShowNoneRow ? undefined : currentVendorID}
                         ListItem={SingleSelectListItem}
                         listEmptyContent={listEmptyContent}
                         shouldSingleExecuteRowSelect

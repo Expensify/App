@@ -25,7 +25,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 
 import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React from 'react';
 
 type NetSuiteCustomListSelectorPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT_CUSTOM_LIST_SELECTOR>;
 
@@ -44,38 +44,31 @@ function NetSuiteCustomListSelectorPage({
 
     const rawCustomLists = policy?.connections?.netsuite?.options?.data?.customLists;
 
-    const {options, showTextInput} = useMemo(() => {
-        const customLists = rawCustomLists ?? [];
-        const customListData = customLists.map((customListRecord) => ({
-            text: customListRecord.name,
-            value: customListRecord.name,
-            isSelected: customListRecord.name === currentCustomListValue,
-            keyForList: customListRecord.name,
-            id: customListRecord.id,
-        }));
+    const customLists = rawCustomLists ?? [];
+    const customListData = customLists.map((customListRecord) => ({
+        text: customListRecord.name,
+        value: customListRecord.name,
+        isSelected: customListRecord.name === currentCustomListValue,
+        keyForList: customListRecord.name,
+        id: customListRecord.id,
+    }));
 
-        // Pin the frozen pre-selected list to the top of the full list before search filtering, so it stays pinned while searching.
-        const orderedCustomListData = moveInitialSelectionToTop(customListData, initialCustomListValue ? [initialCustomListValue] : []);
+    // Pin the frozen pre-selected list to the top of the full list before search filtering, so it stays pinned while searching.
+    const orderedCustomListData = moveInitialSelectionToTop(customListData, initialCustomListValue ? [initialCustomListValue] : []);
+    const searchRegex = new RegExp(Str.escapeForRegExp(debouncedSearchValue.trim()), 'i');
+    const filteredCustomLists = orderedCustomListData.filter((customListRecord) => searchRegex.test(customListRecord.text ?? ''));
+    const isEmpty = debouncedSearchValue.trim() && !filteredCustomLists.length;
+    const {options, showTextInput} = {
+        options: isEmpty ? [] : filteredCustomLists,
+        showTextInput: customListData.length >= CONST.STANDARD_LIST_ITEM_LIMIT,
+    };
 
-        const searchRegex = new RegExp(Str.escapeForRegExp(debouncedSearchValue.trim()), 'i');
-        const filteredCustomLists = orderedCustomListData.filter((customListRecord) => searchRegex.test(customListRecord.text ?? ''));
-        const isEmpty = debouncedSearchValue.trim() && !filteredCustomLists.length;
-
-        return {
-            options: isEmpty ? [] : filteredCustomLists,
-            showTextInput: customListData.length >= CONST.STANDARD_LIST_ITEM_LIMIT,
-        };
-    }, [debouncedSearchValue, rawCustomLists, currentCustomListValue, initialCustomListValue]);
-
-    const textInputOptions = useMemo(
-        () => ({
-            value: searchValue,
-            label: showTextInput ? translate('common.search') : undefined,
-            onChangeText: setSearchValue,
-            headerMessage: debouncedSearchValue.trim() && options.length === 0 ? translate('common.noResultsFound') : '',
-        }),
-        [searchValue, showTextInput, translate, setSearchValue, debouncedSearchValue, options.length],
-    );
+    const textInputOptions = {
+        value: searchValue,
+        label: showTextInput ? translate('common.search') : undefined,
+        onChangeText: setSearchValue,
+        headerMessage: debouncedSearchValue.trim() && options.length === 0 ? translate('common.noResultsFound') : '',
+    };
 
     const label = translate('workspace.netsuite.import.importCustomFields.customLists.fields.listName');
 
@@ -97,7 +90,6 @@ function NetSuiteCustomListSelectorPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
         >
             <ScreenWrapper
-                includePaddingTop={false}
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID="NetSuiteCustomListSelectorPage"
             >

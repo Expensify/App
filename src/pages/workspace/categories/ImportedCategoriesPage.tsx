@@ -28,7 +28,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {RouteProp} from '@react-navigation/native';
 
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 
 type ImportedCategoriesPageProps = {
     route: RouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_IMPORTED | typeof SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_IMPORTED>;
@@ -84,7 +84,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
 
     const requiredColumns = columnRoles.filter((role) => role.isRequired).map((role) => role);
 
-    const validate = useCallback(() => {
+    const validate = () => {
         const columns = Object.values(spreadsheet?.columns ?? {});
         let errors: Errors = {};
 
@@ -108,7 +108,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
             }
         }
         return errors;
-    }, [spreadsheet?.columns, spreadsheet?.data, requiredColumns, translate, columnRoles, containsHeader]);
+    };
 
     const closeImportPageAndModal = () => {
         setIsClosing(true);

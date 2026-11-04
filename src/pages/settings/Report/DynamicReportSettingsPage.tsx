@@ -34,7 +34,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type DynamicReportSettingsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.DYNAMIC_ROOT>;
@@ -49,15 +49,15 @@ function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPagePr
     const currentUserParticipant = currentUserAccountID ? report?.participants?.[currentUserAccountID] : undefined;
     const isArchivedNonExpenseReport = isArchivedNonExpenseReportUtils(report, isReportArchived);
     // The workspace the report is on, null if the user isn't a member of the workspace
-    const linkedWorkspace = useMemo(() => (report?.policyID && policy?.id === report?.policyID ? policy : undefined), [policy, report?.policyID]);
+    const linkedWorkspace = report?.policyID && policy?.id === report?.policyID ? policy : undefined;
     const isMoneyRequestReport = isMoneyRequestReportUtils(report);
     const shouldDisableSettings = isArchivedNonExpenseReport || isEmptyObject(report) || isSelfDM(report);
     const notificationPreferenceValue = getReportNotificationPreferenceForSettings(report, currentUserAccountID);
     const notificationPreference = notificationPreferenceValue ? translate(`notificationPreferencesPage.notificationPreferences.${notificationPreferenceValue}`) : '';
     const writeCapability = isAdminRoom(report) ? CONST.REPORT.WRITE_CAPABILITIES.ADMINS : (report?.writeCapability ?? CONST.REPORT.WRITE_CAPABILITIES.ALL);
     const writeCapabilityText = translate(`writeCapabilityPage.writeCapability.${writeCapability}`);
-    const shouldAllowWriteCapabilityEditing = useMemo(() => canEditWriteCapability(report, linkedWorkspace, isReportArchived), [report, linkedWorkspace, isReportArchived]);
-    const shouldAllowChangeVisibility = useMemo(() => canEditRoomVisibility(linkedWorkspace, isArchivedNonExpenseReport), [linkedWorkspace, isArchivedNonExpenseReport]);
+    const shouldAllowWriteCapabilityEditing = canEditWriteCapability(report, linkedWorkspace, isReportArchived);
+    const shouldAllowChangeVisibility = canEditRoomVisibility(linkedWorkspace, isArchivedNonExpenseReport);
 
     const shouldShowNotificationPref = !isMoneyRequestReport && !!currentUserParticipant;
 
