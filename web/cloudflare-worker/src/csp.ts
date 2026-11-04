@@ -91,6 +91,8 @@ function buildCSP({fontSrcHosts = [], frameSrcHosts = [], scriptSrcHashes = [], 
             'https://cdn.expensify.com',
             'https://cdn.ketchjs.com',
             'https://connect.facebook.net',
+            // PNG exports fetch uploaded avatars rather than only displaying them.
+            'https://d1wpcgnaa73g0y.cloudfront.net',
             'https://edge.fullstory.com',
             'https://events.mapbox.com',
             'https://global.ketchcdn.com',
