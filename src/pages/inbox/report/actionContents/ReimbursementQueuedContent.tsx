@@ -10,7 +10,7 @@ import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
-import {getIndicatedMissingPaymentMethod, getQueuedPaymentPayeeAccountID, getReimbursementQueuedMessageKey, isChatThread} from '@libs/ReportUtils';
+import {getIndicatedMissingPaymentMethod, getQueuedPaymentPayeeAccountID, getReimbursementQueuedMessage, isChatThread} from '@libs/ReportUtils';
 
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 
@@ -53,7 +53,7 @@ function ReimbursementQueuedContent({action, report, iouReport}: ReimbursementQu
     const missingPaymentMethod = getIndicatedMissingPaymentMethod(userWalletTierName, targetReport?.reportID, action, bankAccountList);
 
     return (
-        <ReportActionItemBasicMessage message={translate(getReimbursementQueuedMessageKey(targetReport, paymentType), payeeDisplayName)}>
+        <ReportActionItemBasicMessage message={getReimbursementQueuedMessage(translate, targetReport, paymentType, payeeDisplayName)}>
             <>
                 {missingPaymentMethod === CONST.MISSING_PAYMENT_METHODS.BANK_ACCOUNT && (
                     <ActionableItemButtons layout="horizontal">

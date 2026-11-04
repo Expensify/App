@@ -1631,6 +1631,7 @@ const translations: TranslationDeepObject<typeof en> = {
         rejectedThisReport: 'rifiutato',
         waitingOnBankAccount: (submitterDisplayName: string) => `ha avviato il pagamento, ma sta aspettando che ${submitterDisplayName} aggiunga un conto bancario personale.`,
         waitingOnVendorBankAccount: (vendorDisplayName: string) => `ha avviato il pagamento, ma sta aspettando che ${vendorDisplayName} aggiunga un conto bancario.`,
+        waitingOnUnknownVendorBankAccount: 'ha avviato il pagamento, ma sta aspettando che il fornitore aggiunga un conto bancario.',
         adminCanceledRequest: 'ha annullato il pagamento',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `ha annullato il pagamento di ${amount}, perché ${submitterDisplayName} non ha abilitato il proprio Expensify Wallet entro 30 giorni`,

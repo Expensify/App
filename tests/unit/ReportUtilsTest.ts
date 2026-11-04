@@ -4377,16 +4377,16 @@ describe('ReportUtils', () => {
     });
 
     describe('getQueuedPaymentPayeeAccountID', () => {
-        it('returns the vendor of a bill and the owner of other reports', () => {
+        it('returns the vendor of a bill, nobody for a bill without a vendor, and the owner of other reports', () => {
             // Given a bill with a vendor, a bill without one, and an expense report
             const bill = createMock<Report>({reportID: '780063', type: CONST.REPORT.TYPE.BILL, ownerAccountID: 1, billSenderAccountID: 2});
             const unlinkedBill = createMock<Report>({reportID: '780064', type: CONST.REPORT.TYPE.BILL, ownerAccountID: 1});
             const expenseReport = createMock<Report>({reportID: '780065', type: CONST.REPORT.TYPE.EXPENSE, ownerAccountID: 1, billSenderAccountID: 2});
 
             // When the app finds who must add a bank account for a queued payment
-            // Then a bill names its vendor, falling back to its owner, and other reports name their owner
+            // Then a bill names its vendor and never its owner, who is the payer, and other reports name their owner
             expect(getQueuedPaymentPayeeAccountID(bill)).toBe(2);
-            expect(getQueuedPaymentPayeeAccountID(unlinkedBill)).toBe(1);
+            expect(getQueuedPaymentPayeeAccountID(unlinkedBill)).toBeUndefined();
             expect(getQueuedPaymentPayeeAccountID(expenseReport)).toBe(1);
         });
 
@@ -4413,6 +4413,28 @@ describe('ReportUtils', () => {
 
             // Then it waits for the vendor, who receives the payment, not for the bill's owner
             expect(message).toBe(translateLocal('iou.waitingOnVendorBankAccount', 'Vendor'));
+        });
+
+        it('does not name the payer in the queued payment message of a bill without a vendor', () => {
+            // Given a bill that has no vendor, so only its owner, who pays it, is known
+            const bill = createMock<Report>({reportID: '780068', type: CONST.REPORT.TYPE.BILL, ownerAccountID: currentUserAccountID});
+            const queuedAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
+                originalMessage: {paymentType: CONST.IOU.PAYMENT_TYPE.VBBA},
+            });
+
+            // When the bill shows the queued payment
+            const message = getReimbursementQueuedActionMessage({
+                reportAction: queuedAction,
+                report: bill,
+                translate: translateLocal,
+                formatPhoneNumber,
+                personalDetails: {[currentUserAccountID]: {accountID: currentUserAccountID, displayName: 'Bill Owner'}},
+            });
+
+            // Then it waits for the vendor without a name, instead of naming the owner or leaving a blank name
+            expect(message).toBe(translateLocal('iou.waitingOnUnknownVendorBankAccount'));
+            expect(message).not.toContain('Bill Owner');
         });
     });
 

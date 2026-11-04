@@ -5045,11 +5045,12 @@ function getDeletedParentActionMessageForChatReport(reportAction: OnyxEntry<Repo
 
 /**
  * Returns the account that must add a bank account before a queued payment can finish. A bill pays the vendor who sent
- * its invoice, so the vendor adds the bank account, not the bill's owner.
+ * its invoice, so the vendor adds the bank account. The bill's owner is the payer, so a bill without a known vendor
+ * returns undefined.
  */
 function getQueuedPaymentPayeeAccountID(report: OnyxEntry<Report>): number | undefined {
     if (isBillReport(report)) {
-        return report?.billSenderAccountID ?? report?.ownerAccountID;
+        return report?.billSenderAccountID;
     }
     return report?.ownerAccountID;
 }
@@ -5066,6 +5067,14 @@ function getReimbursementQueuedMessageKey(
         return 'iou.waitingOnEnabledWallet';
     }
     return isBillReport(report) || isInvoiceReport(report) ? 'iou.waitingOnVendorBankAccount' : 'iou.waitingOnBankAccount';
+}
+
+/** Returns the message for a queued payment, naming the payee who must add a bank account when the payee is known. */
+function getReimbursementQueuedMessage(translate: LocalizedTranslate, report: OnyxEntry<Report>, paymentType: string | undefined, payeeDisplayName: string): string {
+    if (isBillReport(report) && !getQueuedPaymentPayeeAccountID(report)) {
+        return translate('iou.waitingOnUnknownVendorBankAccount');
+    }
+    return translate(getReimbursementQueuedMessageKey(report, paymentType), payeeDisplayName);
 }
 
 /**
@@ -5094,7 +5103,7 @@ function getReimbursementQueuedActionMessage({
             formatPhoneNumber,
             hiddenTranslation: translate('common.hidden'),
         }) ?? '';
-    return translate(getReimbursementQueuedMessageKey(report, getOriginalMessage(reportAction)?.paymentType), payeeDisplayName);
+    return getReimbursementQueuedMessage(translate, report, getOriginalMessage(reportAction)?.paymentType, payeeDisplayName);
 }
 
 /**
@@ -15998,6 +16007,7 @@ export {
     getReimbursementQueuedActionMessage,
     getReimbursementQueuedMessageKey,
     getQueuedPaymentPayeeAccountID,
+    getReimbursementQueuedMessage,
     getReportDescription,
     getReportFieldKey,
     getReportFieldMaps,

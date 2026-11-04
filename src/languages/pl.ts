@@ -1669,6 +1669,7 @@ const translations: TranslationDeepObject<typeof en> = {
         rejectedThisReport: 'odrzucono',
         waitingOnBankAccount: (submitterDisplayName: string) => `rozpoczął(-ęła) płatność, ale czeka, aż ${submitterDisplayName} doda osobiste konto bankowe.`,
         waitingOnVendorBankAccount: (vendorDisplayName: string) => `rozpoczął(-ęła) płatność, ale czeka, aż ${vendorDisplayName} doda konto bankowe.`,
+        waitingOnUnknownVendorBankAccount: 'rozpoczął(-ęła) płatność, ale czeka, aż dostawca doda konto bankowe.',
         adminCanceledRequest: 'anulowano płatność',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `anulowano płatność ${amount}, ponieważ ${submitterDisplayName} nie aktywował(-a) swojego portfela Expensify w ciągu 30 dni`,

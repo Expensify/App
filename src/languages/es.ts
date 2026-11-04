@@ -1628,6 +1628,7 @@ const translations: TranslationDeepObject<typeof en> = {
         rejectedThisReport: 'rechazó',
         waitingOnBankAccount: (submitterDisplayName: string) => `inició el pago, pero está esperando a que ${submitterDisplayName} añada una cuenta bancaria personal.`,
         waitingOnVendorBankAccount: (vendorDisplayName: string) => `inició el pago, pero está esperando a que ${vendorDisplayName} añada una cuenta bancaria.`,
+        waitingOnUnknownVendorBankAccount: 'inició el pago, pero está esperando a que el proveedor añada una cuenta bancaria.',
         adminCanceledRequest: 'canceló el pago',
         canceledRequest: (amount, submitterDisplayName) => `canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó tu Billetera Expensify en un plazo de 30 días.`,
         settledAfterAddedBankAccount: (submitterDisplayName, amount) => `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,
