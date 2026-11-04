@@ -79,7 +79,7 @@ function ConnectionsReceiptPartnersPage({route}: ConnectionsReceiptPartnersPageP
                     enableEdgeToEdgeBottomSafeAreaPadding
                 >
                     <Header>
-                        <Header.BackButton onPress={() => Navigation.goBack()} />
+                        <Header.BackButton onPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID))} />
                         {!!uberData?.icon && (
                             <UserAvatar
                                 containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)), styles.mr3]}
