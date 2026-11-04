@@ -6430,4 +6430,4 @@ export {
     isPolicyCopyReportAction,
 };
 
-export type {CompanyAddressOriginalMessage, LastVisibleMessage, UpdateACHAccountOriginalMessage};
+export type {CompanyAddressOriginalMessage, LastVisibleMessage, SystemMessageRun, UpdateACHAccountOriginalMessage};
