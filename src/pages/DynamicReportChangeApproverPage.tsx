@@ -11,6 +11,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {assignReportToMe} from '@libs/actions/IOU/ReportWorkflow';
@@ -54,6 +55,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [selectedApproverType, setSelectedApproverType] = useState<ApproverType>(APPROVER_TYPE.ADD_APPROVER);
     const {isBetaEnabled} = usePermissions();
+    const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
 
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -61,6 +63,8 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_CHANGE_APPROVER.path);
+
+    const canMemberReassignApprover = areStrictPolicyRulesEnabled && currentUserDetails.accountID === report?.managerID;
 
     const goBack = () => {
         Navigation.goBack(backPath);
@@ -106,7 +110,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
             isSelected: selectedApproverType === APPROVER_TYPE.BYPASS_APPROVER,
         });
     }
-    if (isPolicyAdmin(policy) && !isPendingDeletePolicy(policy)) {
+    if ((isPolicyAdmin(policy) || canMemberReassignApprover) && !isPendingDeletePolicy(policy)) {
         data.push({
             text: translate('iou.changeApprover.actions.reassignApprover'),
             keyForList: APPROVER_TYPE.REASSIGN_APPROVER,
