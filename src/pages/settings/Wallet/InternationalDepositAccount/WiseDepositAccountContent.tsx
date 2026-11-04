@@ -29,11 +29,31 @@ import React, {useEffect, useEffectEvent, useState} from 'react';
 
 type WiseDepositAccountContentProps = {
     backTo?: Route;
+
+    /** The form page the URL points at, if any */
+    subPage?: string;
 };
 
 const COUNTRIES = Object.keys(CONST.ALL_COUNTRIES).filter((countryISO) => !CONST.WISE.EXCLUDED_BANK_ACCOUNT_COUNTRIES.includes(countryISO));
 
-function WiseDepositAccountContent({backTo}: WiseDepositAccountContentProps) {
+/**
+ * The fields key is RAM-only, so a reload or a deep link opens a form page with no schema, and the screen shows the country list instead.
+ * The URL is replaced with the base route to match it. This only runs when the screen opens: leaving the flow also clears the schema while the
+ * screen is still closing, and replacing the URL then would open the flow again.
+ */
+function useReturnToCountryListOnOpenWithoutSchema(isOnPageWithoutSchema: boolean, backTo: Route | undefined) {
+    const returnToCountryList = useEffectEvent(() => {
+        if (!isOnPageWithoutSchema) {
+            return;
+        }
+        Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(backTo), {forceReplace: true});
+    });
+    useEffect(() => {
+        returnToCountryList();
+    }, []);
+}
+
+function WiseDepositAccountContent({backTo, subPage}: WiseDepositAccountContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [wiseBankAccountFields] = useOnyx(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS);
@@ -73,6 +93,14 @@ function WiseDepositAccountContent({backTo}: WiseDepositAccountContentProps) {
         }
         seedServerChoices();
     }, [hasSchema, payoutType, formCurrency]);
+
+    useReturnToCountryListOnOpenWithoutSchema(!!subPage && !schema && !wiseBankAccountFields?.isLoading, backTo);
+
+    // Back from the first form page shows the country list again, so the URL drops the form page to match it
+    const returnToCountryList = () => {
+        clearWiseBankAccountFields();
+        Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(backTo), {forceReplace: true});
+    };
 
     const leaveFlow = () => {
         clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
@@ -121,7 +149,7 @@ function WiseDepositAccountContent({backTo}: WiseDepositAccountContentProps) {
                 onSubmit={submitForm}
                 isSubmitting={!!formState?.isLoading}
                 submitError={getLatestErrorMessage(formState)}
-                onBack={clearWiseBankAccountFields}
+                onBack={returnToCountryList}
             />
         );
     }

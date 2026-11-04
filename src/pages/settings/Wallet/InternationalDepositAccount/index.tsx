@@ -62,7 +62,12 @@ function InternationalDepositAccount({route}: InternationalDepositAccountProps) 
     const {isBetaEnabled} = usePermissions();
 
     if (isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS)) {
-        return <WiseDepositAccountContent backTo={backTo} />;
+        return (
+            <WiseDepositAccountContent
+                backTo={backTo}
+                subPage={route.params?.subPage}
+            />
+        );
     }
 
     return <CorpayDepositAccount backTo={backTo} />;
