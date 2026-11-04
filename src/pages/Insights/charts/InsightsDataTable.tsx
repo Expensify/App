@@ -3,7 +3,7 @@ import type {ChartDataPoint, ChartValueFormatter} from '@components/Charts/types
 import {formatChangePercentage} from '@components/Charts/utils/formatTooltipComparison';
 import formatValueWithNote from '@components/Charts/utils/formatValueWithNote';
 import Icon from '@components/Icon';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import {CHART_SERIES_KEY} from '@components/Search/buildChartSeries';
 import type {TransactionCardGroupListItemType, TransactionMemberGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {GroupedItem, SearchChartDataRow} from '@components/Search/types';
@@ -141,7 +141,7 @@ function InsightsDataTable({rows, formatValue, isLoading, onRowPress}: InsightsD
                 }
 
                 return (
-                    <PressableWithoutFeedback
+                    <PressableWithFeedback
                         key={item.keyForList}
                         onPress={() => onRowPress(item)}
                         accessibilityRole={CONST.ROLE.BUTTON}
@@ -150,7 +150,7 @@ function InsightsDataTable({rows, formatValue, isLoading, onRowPress}: InsightsD
                         style={rowStyle}
                     >
                         {rowContent}
-                    </PressableWithoutFeedback>
+                    </PressableWithFeedback>
                 );
             })}
         </View>
