@@ -53,7 +53,6 @@ jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionActions: () => ({clearSelectedTransactions: mockClearSelectedTransactions}),
     useSearchSelectionContext: () => ({
         selectedReports: [{reportID: 'report1'}, {reportID: 'report2'}],
-        selectedTransactions: {},
         excludedTransactions: {tx3: {reportID: 'report3'}},
         areAllMatchingItemsSelected: mockAreAllMatchingItemsSelected,
     }),

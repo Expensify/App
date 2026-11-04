@@ -38,7 +38,7 @@ function SearchChangeWorkspacePage() {
     const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {currentSearchQueryJSON} = useSearchQueryContext();
-    const {selectedReports, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {selectedReports, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
 
     const {data, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
@@ -56,8 +56,7 @@ function SearchChangeWorkspacePage() {
             const allMatchingQuery = currentSearchQueryJSON ? getAllMatchingReportQuery(currentSearchQueryJSON, excludedTransactions) : undefined;
             return allMatchingQuery ? serializeQueryJSONForBackend(allMatchingQuery) : undefined;
         }
-        const reportIDs = selectedReports.length ? selectedReports.map((report) => report.reportID) : Object.values(selectedTransactions).map((transaction) => transaction.reportID);
-        const uniqueReportIDs = [...new Set(reportIDs.filter((reportID): reportID is string => !!reportID))];
+        const uniqueReportIDs = [...new Set(selectedReports.map((report) => report.reportID).filter((reportID): reportID is string => !!reportID))];
         const queryJSON = buildSearchQueryJSON(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID}:${uniqueReportIDs.join(',')}`);
         return uniqueReportIDs.length && queryJSON ? serializeQueryJSONForBackend(queryJSON) : undefined;
     };
