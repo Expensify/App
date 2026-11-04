@@ -1143,8 +1143,9 @@ function setMoneyRequestReimbursable(transactionID: string, reimbursable: boolea
 }
 
 /**
- * Marks a create-flow draft as edited by the user, for fields that have no dedicated flag (category, tag, tax, billable, ...).
- * Call it from user handlers only: auto-fill code writes the same fields and must keep an untouched draft clean.
+ * Marks the draft as changed by the user, for fields that have no flag of their own (category, tag, tax, billable, ...).
+ * Call it only when the user picks a value. Code that fills in defaults writes the same fields and must not call it,
+ * or closing a draft the user didn't touch would ask to discard changes.
  */
 function setMoneyRequestDraftHasUserEdits(transactionID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {

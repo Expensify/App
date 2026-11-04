@@ -238,10 +238,10 @@ function getWaypointsHasUnsavedChanges(
 }
 
 type MoneyRequestDraftUserEditsOptions = {
-    /** Odometer readings saved for later. They persist on their own, so a draft that still matches them loses nothing when the flow closes. */
+    /** Odometer readings the user saved for later. They're kept after the flow closes, so a draft that still matches them has nothing to lose. */
     savedOdometerDraft?: OnyxEntry<OdometerDraft>;
 
-    /** A receipt the flow attached on its own, such as a shared file, which isn't a user edit. */
+    /** A receipt the app attached by itself, such as a file shared to the app. It doesn't count as a change by the user. */
     seededReceiptSource?: ReceiptSource;
 };
 
@@ -251,7 +251,7 @@ type MoneyRequestDraftUserEditsOptions = {
 function hasOdometerDraftUserEdits(comment: Comment | undefined, savedOdometerDraft: OnyxEntry<OdometerDraft>): boolean {
     const hasReadings = (comment?.odometerStart ?? null) !== null || (comment?.odometerEnd ?? null) !== null;
     if (savedOdometerDraft) {
-        // Saved images are re-minted when the draft is hydrated, so only readings can tell a later edit apart from the saved draft.
+        // Saved photos get new URIs each time the draft is loaded, so compare only the readings with the saved ones.
         return (
             hasReadings &&
             ((savedOdometerDraft.odometerStartReading ?? null) !== (comment?.odometerStart ?? null) || (savedOdometerDraft.odometerEndReading ?? null) !== (comment?.odometerEnd ?? null))
@@ -261,8 +261,8 @@ function hasOdometerDraftUserEdits(comment: Comment | undefined, savedOdometerDr
 }
 
 /**
- * Whether the user entered something in a create-flow draft that closing the flow would lose. Fields the flow fills in on its own
- * (default category, tag and tax, billable defaults, the distance amount and merchant, ...) don't count, so an untouched draft stays clean.
+ * Whether the user entered anything in this draft that closing the flow would lose. Values the app fills in by itself (default
+ * category, tag and tax, billable, the distance amount and merchant, ...) don't count, so a draft the user didn't touch has nothing to lose.
  */
 function hasMoneyRequestDraftUserEdits(transaction: OnyxEntry<Transaction>, options: MoneyRequestDraftUserEditsOptions = {}): boolean {
     if (!transaction) {
@@ -284,7 +284,7 @@ function hasMoneyRequestDraftUserEdits(transaction: OnyxEntry<Transaction>, opti
         case CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER:
             return hasOdometerDraftUserEdits(comment, options.savedOdometerDraft);
         case CONST.IOU.REQUEST_TYPE.DISTANCE_GPS:
-            // The trip lives in its own GPS draft, which survives the flow closing.
+            // The GPS trip is saved separately and is kept after the flow closes.
             return false;
         case CONST.IOU.REQUEST_TYPE.PER_DIEM:
             return !!comment?.customUnit?.customUnitRateID || !!comment?.customUnit?.subRates?.length;
@@ -299,7 +299,7 @@ function hasMoneyRequestDraftUserEdits(transaction: OnyxEntry<Transaction>, opti
 }
 
 /**
- * Whether any create-flow draft holds user input. Multi-scan keeps one draft per receipt.
+ * Whether any draft of the flow has user input. Multi-scan has one draft per receipt.
  */
 function haveMoneyRequestDraftsUserEdits(drafts: OnyxCollection<Transaction>, options?: MoneyRequestDraftUserEditsOptions): boolean {
     return Object.values(drafts ?? {}).some((draft) => hasMoneyRequestDraftUserEdits(draft, options));
