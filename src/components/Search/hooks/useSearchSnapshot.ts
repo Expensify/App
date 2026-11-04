@@ -322,6 +322,7 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
         sortOrder,
         validGroupBy,
         {
+            shouldReturnTripRooms,
             policyCategories,
             policyTags,
             fallbackPolicyID: policyForMovingExpensesID,

@@ -11,7 +11,7 @@ import {useEffect, useEffectEvent, useState} from 'react';
 
 import useOnyx from './useOnyx';
 
-type ResumePayload = (() => void) | undefined;
+type ResumePayload = (() => void | Promise<void>) | undefined;
 
 /**
  * Returns a trigger that sends an unvalidated user to the verify-account (security code) screen and,

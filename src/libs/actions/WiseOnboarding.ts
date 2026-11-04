@@ -1,8 +1,9 @@
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 
 import {makeRequestWithSideEffects, write} from '@libs/API';
-import type {UpdateWiseOnboardingAdditionalDataParams} from '@libs/API/parameters';
+import type {SubmitWiseBusinessOnboardingParams, UpdateWiseOnboardingAdditionalDataParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import getWiseOnboardingPageParams from '@libs/getWiseOnboardingPageParams';
 import {rand64} from '@libs/NumberUtils';
 
@@ -103,5 +104,46 @@ function clearWiseOnboardingUnsavedPages() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingUnsavedPages: null});
 }
 
+/** Submits the business to Wise with the answers its pages saved. Auth creates the Wise profile and opens Wise's review in the same request. */
+function submitWiseBusinessOnboarding(params: SubmitWiseBusinessOnboardingParams) {
+    const onyxData: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {isSubmittingWiseBusinessOnboarding: true, isWiseBusinessOnboardingSubmitSuccessful: null, errors: null},
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {isWiseBusinessOnboardingSubmitSuccessful: true},
+            },
+        ],
+        // Key 0 so a message Auth sends with its response always sorts newer than this fallback, even with device clock skew
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {isWiseBusinessOnboardingSubmitSuccessful: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage', 0)},
+            },
+        ],
+        // A 460 answer applies neither the success nor the failure data, so the loading ends here
+        finallyData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {isSubmittingWiseBusinessOnboarding: false},
+            },
+        ],
+    };
+    write(WRITE_COMMANDS.SUBMIT_WISE_BUSINESS_ONBOARDING, params, onyxData);
+}
+
+function clearWiseBusinessOnboardingSubmission() {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isSubmittingWiseBusinessOnboarding: null, isWiseBusinessOnboardingSubmitSuccessful: null});
+}
+
 export default saveWiseOnboardingPage;
-export {clearWiseOnboardingUnsavedPages};
+export {clearWiseBusinessOnboardingSubmission, clearWiseOnboardingUnsavedPages, submitWiseBusinessOnboarding};
