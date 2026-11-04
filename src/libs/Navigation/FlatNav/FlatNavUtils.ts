@@ -77,7 +77,7 @@ const IN_SECTION_TRANSLATION_PATH_OVERRIDES: Partial<Record<SearchKey, Translati
 };
 
 type BuildFlatNavSectionsParams = {
-    /** The Spend sections after travel and insights are omitted, so every visibility rule of the Spend menu applies */
+    /** The Spend sections with insights omitted and travel gated by the travelApproval beta, ensuring all Spend visibility rules apply */
     typeMenuSections: SearchTypeMenuSection[];
 
     /** Already sorted */
