@@ -3090,6 +3090,44 @@ describe('SearchUIUtils', () => {
             expect(transactionItems.some((item) => item.reportID === reportID)).toBe(true);
         });
 
+        it.each([CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT])(
+            'should leave out an invoice hidden for the bill receiver from %s results and still count it for paging',
+            (type) => {
+                // Given a search snapshot that holds an invoice the receiver pays through its linked bill
+                const data: OnyxTypes.SearchResults['data'] = {
+                    ...searchResults.data,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${reportID3}`]: {
+                        ...searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${reportID3}`],
+                        type: CONST.REPORT.TYPE.INVOICE,
+                        isHiddenForBillReceiver: true,
+                    },
+                };
+
+                // When the sections are built
+                const [sections, allDataLength] = SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type,
+                    data,
+                    currentAccountID: adminAccountID,
+                    currentUserEmail: adminEmail,
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                });
+
+                // Then the receiver doesn't see the invoice or its expenses, and the count still includes them for paging
+                const rows = sections as Array<{reportID?: string}>;
+                expect(rows.length).toBeLessThan(allDataLength);
+                expect(rows.some((row) => row.reportID === reportID3)).toBe(false);
+                expect(rows.some((row) => row.reportID === reportID)).toBe(true);
+                expect(SearchUIUtils.isSearchResultsEmpty({...searchResults, data, search: {...searchResults.search, type}})).toBe(false);
+            },
+        );
+
         it('should leave out the report actions of a bill in a chat search', () => {
             // Given a chat search whose snapshot holds a comment on a bill
             const billCommentAction = {
