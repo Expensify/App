@@ -122,10 +122,11 @@ function getVisibleCharts(charts: InsightsChartSpec[], policiesInScope: Policy[]
 /**
  * Whether the dashboard needs Control but no workspace in scope can feed it, so the upsell stands in for the charts.
  * A Control workspace only counts when it would produce charts, so archived ones and ones the user can see no data for are ignored.
+ * A stored filter can still hold workspaces that left Onyx. When none of its workspaces are left, it says nothing about the user's plans, so the dashboard keeps its usual states.
  */
-function shouldUpsellControlPlan(dashboardID: InsightsDashboardID, policiesInScope: Policy[], login: string | undefined): boolean {
+function shouldUpsellControlPlan(dashboardID: InsightsDashboardID, policiesInScope: Policy[], policyIDs: string[], login: string | undefined): boolean {
     const {requiresControlPlan, isPolicyEligible} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
-    if (!requiresControlPlan) {
+    if (!requiresControlPlan || (policyIDs.length > 0 && policiesInScope.length === 0)) {
         return false;
     }
     return !policiesInScope.some((policy) => isControlPolicy(policy) && !isArchivedOrPendingDeletePolicy(policy) && (!isPolicyEligible || isPolicyEligible(policy, login)));

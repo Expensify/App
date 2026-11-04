@@ -211,7 +211,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     const eligibleGraphKeys = eligibleCharts.map(({graphKey}) => graphKey).join(',');
     const arePoliciesLoaded = !isLoadingOnyxValue(policiesMetadata);
     // Settled from the policies already in Onyx, so the charts are never requested for a dashboard the upsell stands in for
-    const shouldUpsell = arePoliciesLoaded && shouldUpsellControlPlan(dashboardID, policiesInScope, login);
+    const shouldUpsell = arePoliciesLoaded && shouldUpsellControlPlan(dashboardID, policiesInScope, filters.policyIDs, login);
     const upgradeablePolicyID = shouldUpsell ? getUpgradeablePolicyIDInScope(policiesInScope, login) : undefined;
     const query = isResolved && arePoliciesLoaded && !shouldUpsell ? buildInsightsJsonQuery(dashboardID, filters, eligibleCharts) : undefined;
     const hash = query?.hash;

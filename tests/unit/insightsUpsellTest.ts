@@ -38,7 +38,7 @@ describe('insights Control upsell', () => {
 
             // When Compliance checks whether it can render
             // Then it has no Control workspace to draw from, so the upsell stands in for the charts
-            expect(shouldUpsellControlPlan(COMPLIANCE, policies, LOGIN)).toBe(true);
+            expect(shouldUpsellControlPlan(COMPLIANCE, policies, ALL_WORKSPACES, LOGIN)).toBe(true);
         });
 
         it('keeps the charts when every workspace in scope is on Control', () => {
@@ -47,7 +47,7 @@ describe('insights Control upsell', () => {
 
             // When Compliance checks whether it can render
             // Then the data is available, so no upsell
-            expect(shouldUpsellControlPlan(COMPLIANCE, policies, LOGIN)).toBe(false);
+            expect(shouldUpsellControlPlan(COMPLIANCE, policies, ALL_WORKSPACES, LOGIN)).toBe(false);
         });
 
         it('keeps the charts when a mixed scope holds at least one Control workspace', () => {
@@ -56,7 +56,7 @@ describe('insights Control upsell', () => {
 
             // When Compliance checks whether it can render
             // Then one Control workspace is enough to have something to chart
-            expect(shouldUpsellControlPlan(COMPLIANCE, policies, LOGIN)).toBe(false);
+            expect(shouldUpsellControlPlan(COMPLIANCE, policies, ALL_WORKSPACES, LOGIN)).toBe(false);
         });
 
         it('ignores Control workspaces the filter leaves out of scope', () => {
@@ -65,7 +65,25 @@ describe('insights Control upsell', () => {
 
             // When only the Collect workspace is in scope
             // Then the out-of-scope Control workspace doesn't count, so the upsell shows
-            expect(shouldUpsellControlPlan(COMPLIANCE, policies, LOGIN)).toBe(true);
+            expect(shouldUpsellControlPlan(COMPLIANCE, policies, ['1'], LOGIN)).toBe(true);
+        });
+
+        it('keeps the usual states when every workspace the filter selects has left Onyx', () => {
+            // Given a Control workspace and a stored filter holding only a workspace the user has since left
+            const policies = inScope([buildPolicy(1, CONST.POLICY.TYPE.CORPORATE)], ['99']);
+
+            // When Compliance checks whether it can render
+            // Then the stale filter says nothing about the user's plans, so no upsell
+            expect(shouldUpsellControlPlan(COMPLIANCE, policies, ['99'], LOGIN)).toBe(false);
+        });
+
+        it('still shows the upsell when the filter mixes a left workspace with a Collect one', () => {
+            // Given a stored filter holding a workspace the user has left and a Collect workspace
+            const policies = inScope([buildPolicy(1, CONST.POLICY.TYPE.TEAM), buildPolicy(2, CONST.POLICY.TYPE.CORPORATE)], ['1', '99']);
+
+            // When Compliance checks whether it can render
+            // Then the workspace still in scope has no Control plan, so the upsell shows
+            expect(shouldUpsellControlPlan(COMPLIANCE, policies, ['1', '99'], LOGIN)).toBe(true);
         });
 
         it('never shows the upsell on a dashboard that does not require Control', () => {
@@ -74,14 +92,14 @@ describe('insights Control upsell', () => {
 
             // When Spend checks whether it can render, having declared no requiresControlPlan
             // Then it charts fine on any plan
-            expect(shouldUpsellControlPlan(SPEND, policies, LOGIN)).toBe(false);
+            expect(shouldUpsellControlPlan(SPEND, policies, ALL_WORKSPACES, LOGIN)).toBe(false);
         });
 
         it('shows the upsell when the scope is empty', () => {
             // Given an account with no workspaces
             // When Compliance checks whether it can render
             // Then there is no Control workspace to draw from
-            expect(shouldUpsellControlPlan(COMPLIANCE, inScope([]), LOGIN)).toBe(true);
+            expect(shouldUpsellControlPlan(COMPLIANCE, inScope([]), ALL_WORKSPACES, LOGIN)).toBe(true);
         });
 
         it('shows the upsell when the only Control workspace is one the user cannot see every member of', () => {
@@ -91,7 +109,7 @@ describe('insights Control upsell', () => {
 
             // When Compliance checks whether it can render
             // Then the Control workspace charts nothing for this user, so withholding the upsell would leave the page blank
-            expect(shouldUpsellControlPlan(COMPLIANCE, policies, LOGIN)).toBe(true);
+            expect(shouldUpsellControlPlan(COMPLIANCE, policies, ALL_WORKSPACES, LOGIN)).toBe(true);
         });
 
         it('keeps the charts when an auditor can see every member of the Control workspace', () => {
@@ -100,7 +118,7 @@ describe('insights Control upsell', () => {
 
             // When Compliance checks whether it can render
             // Then an auditor sees every member's data, so there is something to chart
-            expect(shouldUpsellControlPlan(COMPLIANCE, policies, LOGIN)).toBe(false);
+            expect(shouldUpsellControlPlan(COMPLIANCE, policies, ALL_WORKSPACES, LOGIN)).toBe(false);
         });
 
         it('shows the upsell when the only Control workspace is archived', () => {
@@ -109,7 +127,7 @@ describe('insights Control upsell', () => {
 
             // When Compliance checks whether it can render
             // Then an archived workspace contributes no data, so the upsell stands in
-            expect(shouldUpsellControlPlan(COMPLIANCE, policies, LOGIN)).toBe(true);
+            expect(shouldUpsellControlPlan(COMPLIANCE, policies, ALL_WORKSPACES, LOGIN)).toBe(true);
         });
 
         it('shows the upsell when the only Control workspace is being deleted', () => {
@@ -118,7 +136,7 @@ describe('insights Control upsell', () => {
 
             // When Compliance checks whether it can render
             // Then a workspace on its way out is no reason to withhold the upsell
-            expect(shouldUpsellControlPlan(COMPLIANCE, policies, LOGIN)).toBe(true);
+            expect(shouldUpsellControlPlan(COMPLIANCE, policies, ALL_WORKSPACES, LOGIN)).toBe(true);
         });
     });
 
