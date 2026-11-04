@@ -29,7 +29,7 @@ function useSubmitLock(): SubmitLock {
     const unlockSubmission = () => {
         formHasBeenSubmitted.current = false;
         setIsConfirmed(false);
-        // The submit stays on the flow, so leaving it must prompt again
+        // The submit didn't close the flow, so turn the prompt back on
         releaseFlowDiscardPromptSuppression();
     };
 

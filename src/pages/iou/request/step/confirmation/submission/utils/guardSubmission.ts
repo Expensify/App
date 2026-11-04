@@ -14,7 +14,7 @@ function guardSubmission(submitLock: SubmitLock, submit: (params: CreateTransact
     return (params: CreateTransactionParams): boolean => {
         getSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_LOCATION_SOURCE, CONST.TELEMETRY.SUBMIT_EXPENSE_LOCATION_SOURCE.NONE);
         if (blockDistanceRequestIfNeeded?.()) {
-            // The submit stays on the flow, so leaving it must prompt again
+            // The submit was blocked and the flow stays open, so turn the prompt back on
             releaseFlowDiscardPromptSuppression();
             return false;
         }

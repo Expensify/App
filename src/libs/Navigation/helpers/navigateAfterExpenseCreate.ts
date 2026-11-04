@@ -83,7 +83,7 @@ function navigateAfterExpenseCreate({
     isSelfDMDestination = false,
 }: NavigateAfterExpenseCreateParams) {
     if (shouldNavigate) {
-        // Leaving the flow after creating the expense must not ask the user to discard it
+        // The flow closes because the expense was created, so don't ask to discard it
         suppressFlowDiscardPrompt();
     }
 

@@ -454,7 +454,7 @@ function SubmitExpenseOrchestrator({
     };
 
     const dispatchSubmitHandler = (locationPermissionGranted: boolean) => {
-        // Every handler below leaves the flow, which must not ask the user to discard the expense they just submitted
+        // Every handler below closes the flow after a submit, so don't ask to discard the expense that was just created
         suppressFlowDiscardPrompt();
         startSubmitSpans();
         const rootState = navigationRef.getRootState();

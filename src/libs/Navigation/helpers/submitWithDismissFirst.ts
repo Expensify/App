@@ -70,7 +70,7 @@ function submitWithDismissFirst({
     isLookingAroundUser = false,
     isSelfDMDestination = false,
 }: SubmitWithDismissFirstParams): void {
-    // Every path below leaves the flow, which must not ask the user to discard the expense they just submitted
+    // Every path below closes the flow after a submit, so don't ask to discard the expense that was just created
     suppressFlowDiscardPrompt();
     const shouldStayOnSearch = isSearchTopmostFullScreenRoute();
 

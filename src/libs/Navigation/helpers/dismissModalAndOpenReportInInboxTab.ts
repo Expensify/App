@@ -17,7 +17,7 @@ import setNavigationActionToMicrotaskQueue from './setNavigationActionToMicrotas
  * If the action is done from the report RHP, then we just want to dismiss the money request flow screens.
  */
 function dismissModalAndOpenReportInInboxTab(reportID: string | undefined, isInvoice: boolean | undefined, hasMultipleTransactions: boolean, transactionID?: string) {
-    // Leaving the flow after finishing its action must not ask the user to discard it
+    // The flow closes because the expense was created, so don't ask to discard it
     suppressFlowDiscardPrompt();
     const rootState = navigationRef.getRootState();
     const hasActiveTracking = isSubmitTracking();
