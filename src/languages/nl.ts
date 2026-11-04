@@ -10901,7 +10901,17 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Goedkeurders',
         },
         spendOverTime: 'Uitgaven in de tijd',
-        trip: {tripName: 'Reisnaam', traveler: 'Reiziger', status: {upcoming: 'Gepland', done: 'Afgerond', canceled: 'Geannuleerd', outstanding: 'Uitstaand', rejected: 'Afgewezen'}},
+        trip: {
+            tripName: 'Reisnaam',
+            traveler: 'Reiziger',
+            status: {
+                upcoming: 'Gepland',
+                done: 'Afgerond',
+                canceled: 'Geannuleerd',
+                outstanding: 'Uitstaand',
+                rejected: 'Afgewezen',
+            },
+        },
         tabs: {
             expenseReports: 'Declaraties',
             reports: 'Rapporten',

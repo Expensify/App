@@ -10931,7 +10931,13 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         trip: {
             tripName: 'Nome del viaggio',
             traveler: 'Viaggiatore',
-            status: {upcoming: 'In arrivo', done: 'Completato', canceled: 'Annullato', outstanding: 'In sospeso', rejected: 'Rifiutato'},
+            status: {
+                upcoming: 'In arrivo',
+                done: 'Completato',
+                canceled: 'Annullato',
+                outstanding: 'In sospeso',
+                rejected: 'Rifiutato',
+            },
         },
         tabs: {
             expenseReports: 'Note spese',

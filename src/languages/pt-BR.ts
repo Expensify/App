@@ -10904,7 +10904,17 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             pleaseSelectDatesForBothFromAndTo: 'Selecione datas para De e Até',
         },
         spendOverTime: 'Gastos ao longo do tempo',
-        trip: {tripName: 'Nome da viagem', traveler: 'Viajante', status: {upcoming: 'Próxima', done: 'Concluída', canceled: 'Cancelada', outstanding: 'Pendente', rejected: 'Rejeitado'}},
+        trip: {
+            tripName: 'Nome da viagem',
+            traveler: 'Viajante',
+            status: {
+                upcoming: 'Próxima',
+                done: 'Concluída',
+                canceled: 'Cancelada',
+                outstanding: 'Pendente',
+                rejected: 'Rejeitado',
+            },
+        },
         tabs: {
             expenseReports: 'Relatórios de despesas',
             reports: 'Relatórios',

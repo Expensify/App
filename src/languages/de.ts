@@ -10982,7 +10982,13 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         trip: {
             tripName: 'Reisename',
             traveler: 'Reisende*r',
-            status: {upcoming: 'Bevorstehend', done: 'Abgeschlossen', canceled: 'Storniert', outstanding: 'Ausstehend', rejected: 'Abgelehnt'},
+            status: {
+                upcoming: 'Bevorstehend',
+                done: 'Abgeschlossen',
+                canceled: 'Storniert',
+                outstanding: 'Ausstehend',
+                rejected: 'Abgelehnt',
+            },
         },
         tabs: {
             expenseReports: 'Spesenabrechnungen',

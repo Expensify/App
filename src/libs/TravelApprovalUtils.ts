@@ -127,6 +127,10 @@ function getBookingStatusBadge(translate: LocalizedTranslate, badgeColors: Theme
     }
 
     const colors = colorsByStatus[booking.status];
+    if (!colors) {
+        return undefined;
+    }
+
     return {text: translate(`travel.approval.status.${booking.status}`), backgroundColor: colors.backgroundColor, textColor: colors.textColor};
 }
 

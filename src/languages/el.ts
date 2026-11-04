@@ -10841,7 +10841,13 @@ ${reportName}`,
         trip: {
             tripName: 'Όνομα ταξιδιού',
             traveler: 'Ταξιδιώτης',
-            status: {upcoming: 'Επερχόμενο', done: 'Ολοκληρώθηκε', canceled: 'Ακυρώθηκε', outstanding: 'Εκκρεμές', rejected: 'Απορρίφθηκε'},
+            status: {
+                upcoming: 'Επερχόμενο',
+                done: 'Ολοκληρώθηκε',
+                canceled: 'Ακυρώθηκε',
+                outstanding: 'Εκκρεμές',
+                rejected: 'Απορρίφθηκε',
+            },
         },
         tabs: {
             expenseReports: 'Αναφορές εξόδων',

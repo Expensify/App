@@ -11010,7 +11010,17 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             pleaseSelectDatesForBothFromAndTo: 'Veuillez sélectionner des dates pour De et À',
         },
         spendOverTime: 'Dépenses dans le temps',
-        trip: {tripName: 'Nom du voyage', traveler: 'Voyageur', status: {upcoming: 'À venir', done: 'Terminé', canceled: 'Annulé', outstanding: 'En souffrance', rejected: 'Rejeté'}},
+        trip: {
+            tripName: 'Nom du voyage',
+            traveler: 'Voyageur',
+            status: {
+                upcoming: 'À venir',
+                done: 'Terminé',
+                canceled: 'Annulé',
+                outstanding: 'En souffrance',
+                rejected: 'Rejeté',
+            },
+        },
         tabs: {
             expenseReports: 'Notes de frais',
             reports: 'Notes de frais',

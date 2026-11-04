@@ -183,5 +183,15 @@ describe('TravelApprovalUtils', () => {
             expect(getBookingStatusBadge(translateLocal, BADGE_COLORS, skippedApproval)).toBeUndefined();
             expect(getBookingStatusBadge(translateLocal, BADGE_COLORS, passive)).toBeUndefined();
         });
+
+        it('shows no badge for a status it does not know', () => {
+            // Given a booking whose status is outside the known ones, like a new status from Spotnana
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Onyx can hold a status the type doesn't list yet
+            const unknownStatus = buildBooking({status: 'onHold' as unknown as BookingApproval['status']});
+
+            // When its badge is built
+            // Then no badge shows, so the trip row renders instead of crashing on missing colors
+            expect(getBookingStatusBadge(translateLocal, BADGE_COLORS, unknownStatus)).toBeUndefined();
+        });
     });
 });

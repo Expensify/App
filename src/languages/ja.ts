@@ -7479,6 +7479,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 title: 'メンバーをコピー',
                 prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
                     one: `${targetWorkspaceName}のメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`,
+                    // Japanese has no "one" plural category, so handle the single-workspace case here
                     other:
                         count === 1
                             ? `${targetWorkspaceName}のメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`
@@ -10752,7 +10753,17 @@ ${reportName}`,
             pleaseSelectDatesForBothFromAndTo: '開始日と終了日の両方を選択してください',
         },
         spendOverTime: '時間経過による支出',
-        trip: {tripName: '出張名', traveler: '出張者', status: {upcoming: '予定', done: '完了', canceled: 'キャンセル済み', outstanding: '未払い', rejected: '却下されました'}},
+        trip: {
+            tripName: '出張名',
+            traveler: '出張者',
+            status: {
+                upcoming: '予定',
+                done: '完了',
+                canceled: 'キャンセル済み',
+                outstanding: '未払い',
+                rejected: '却下されました',
+            },
+        },
         tabs: {
             expenseReports: '経費精算書',
             reports: 'レポート',

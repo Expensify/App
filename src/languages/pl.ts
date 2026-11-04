@@ -10925,7 +10925,13 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         trip: {
             tripName: 'Nazwa podróży',
             traveler: 'Podróżny',
-            status: {upcoming: 'Nadchodząca', done: 'Zakończona', canceled: 'Anulowana', outstanding: 'Nierozliczone', rejected: 'Odrzucono'},
+            status: {
+                upcoming: 'Nadchodząca',
+                done: 'Zakończona',
+                canceled: 'Anulowana',
+                outstanding: 'Nierozliczone',
+                rejected: 'Odrzucono',
+            },
         },
         tabs: {
             expenseReports: 'Raporty wydatków',

@@ -7303,6 +7303,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 title: '复制成员',
                 prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
                     one: `确定要用此工作区的成员替换 ${targetWorkspaceName} 的成员吗？`,
+                    // Chinese has no "one" plural category, so handle the single-workspace case here
                     other: count === 1 ? `确定要用此工作区的成员替换 ${targetWorkspaceName} 的成员吗？` : `确定要用此工作区的成员替换 ${count} 个工作区的成员吗？`,
                 }),
             },
@@ -10479,7 +10480,17 @@ ${reportName}`,
             pleaseSelectDatesForBothFromAndTo: '请选择起始和结束日期',
         },
         spendOverTime: '随时间支出',
-        trip: {tripName: '行程名称', traveler: '出行人', status: {upcoming: '即将开始', done: '已完成', canceled: '已取消', outstanding: '未结', rejected: '已拒绝'}},
+        trip: {
+            tripName: '行程名称',
+            traveler: '出行人',
+            status: {
+                upcoming: '即将开始',
+                done: '已完成',
+                canceled: '已取消',
+                outstanding: '未结',
+                rejected: '已拒绝',
+            },
+        },
         tabs: {
             expenseReports: '报销报告',
             reports: '报表',
