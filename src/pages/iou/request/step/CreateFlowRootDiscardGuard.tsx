@@ -3,13 +3,13 @@ import useCreateFlowDiscardGuard from '@hooks/useCreateFlowDiscardGuard';
 import {useNavigation, useRoute} from '@react-navigation/native';
 
 type CreateFlowRootDiscardGuardProps = {
-    /** Side effects that must only run once the user confirms leaving, right before the flow closes */
+    /** Runs after the user picks Discard, before the flow closes */
     onBeforeClose?: () => void | Promise<void>;
 };
 
 /**
- * Guards a create-flow step that dropping a receipt opens as the first screen of the flow, with no start page below it to guard the flow.
- * Anywhere else in the flow, the screen below already guards it, so this one stays out of the way.
+ * Guards a step that is sometimes the first screen of the flow. When the user drops a receipt onto a report or Home, Confirmation
+ * or Participants opens with no start page below it. Anywhere else, the screen below already guards the flow, so this does nothing.
  */
 function CreateFlowRootDiscardGuard({onBeforeClose}: CreateFlowRootDiscardGuardProps) {
     const navigation = useNavigation();

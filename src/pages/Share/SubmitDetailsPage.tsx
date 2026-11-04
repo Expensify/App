@@ -352,7 +352,7 @@ function SubmitDetailsPage({
         shouldPreservePreInsertedRouteOnUnmount: () => hasCalledReveal.current,
     });
 
-    // The shared file is attached by this page itself, so only a receipt the user replaced or cropped counts as an edit
+    // This page attaches the shared file itself, so the file alone isn't a change. A receipt the user replaced or cropped is.
     const hasUserEdits = hasMoneyRequestDraftUserEdits(transaction, {seededReceiptSource: sharedFileSource});
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () => hasUserEdits,
@@ -681,7 +681,7 @@ function SubmitDetailsPage({
                 <HeaderWithBackButton
                     title={translate('iou.confirmDetails')}
                     onBackButtonPress={() => {
-                        // With edits, the discard prompt cleans up only once the user confirms leaving
+                        // With edits, the prompt asks first, and cleans up only if the user picks Discard
                         if (!hasUserEdits) {
                             cleanupPreMount();
                         }

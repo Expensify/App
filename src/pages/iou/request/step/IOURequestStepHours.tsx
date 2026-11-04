@@ -101,7 +101,7 @@ function IOURequestStepHours({
         onCancel: () => {
             focusTimeoutRef.current = setTimeout(() => textInputRef.current?.focus(), CONST.ANIMATED_TRANSITION);
         },
-        // Switching to another tab re-initializes the draft, so that wipe already is the discard
+        // Switching tabs already clears the draft, so Discard has nothing extra to do. Without a handler, the tab switch doesn't ask at all.
         onTabSwitchDiscard: isEmbeddedInStartPage ? noop : undefined,
     });
 

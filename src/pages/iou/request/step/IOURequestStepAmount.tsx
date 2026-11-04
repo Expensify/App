@@ -151,8 +151,8 @@ function IOURequestStepAmount({
 
     const baselineAmount = transactionAmount ? convertToFrontendAmountAsString(transactionAmount, decimals) : '';
 
-    // Embedded in the start page (INVOICE), this step is the root of the flow, so leaving the flow from any later step prompts too.
-    // Its committed amount keeps it dirty once the user has moved on.
+    // In the start page (INVOICE), this step is the first screen of the flow, so closing the RHP from any later step asks first too.
+    // After the user moves on, the saved amount still counts as a change.
     const isFlowRoot = routeName === SCREENS.MONEY_REQUEST.CREATE;
 
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
@@ -169,7 +169,7 @@ function IOURequestStepAmount({
             focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
         },
         shouldPromptWhenUnfocused: isFlowRoot,
-        // Wait for the closing transition so the flow's screens don't flash empty on their way out
+        // Wait for the RHP to finish closing, so its screens don't show empty fields on the way out
         onDiscarded: isFlowRoot ? () => cleanupAfterExpenseCreate({draftTransactionIDs: [transactionID], shouldWaitForUpcomingTransition: true}) : undefined,
     });
 

@@ -4,13 +4,13 @@ import {useRoute} from '@react-navigation/native';
 import noop from 'lodash/noop';
 
 type CreateFlowTabSwitchGuardProps = {
-    /** Whether the create flow's drafts hold user input */
+    /** Whether the flow's drafts have user input */
     hasUnsavedChanges: boolean;
 };
 
 /**
- * Prompts "Discard changes?" before the user switches away from this tab of a create-expense flow while its draft holds user input.
- * Switching to a tab of another request type re-initializes the draft, so that wipe already is the discard.
+ * Asks "Discard changes?" before the user switches to another tab while the draft has their input.
+ * Switching tabs already clears the draft, so Discard has nothing extra to do.
  */
 function CreateFlowTabSwitchGuard({hasUnsavedChanges}: CreateFlowTabSwitchGuardProps) {
     const route = useRoute();

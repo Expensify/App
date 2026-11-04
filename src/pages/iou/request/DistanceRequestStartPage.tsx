@@ -141,7 +141,7 @@ function DistanceRequestStartPage({
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
     }, []);
 
-    // This page is the root of the flow, so leaving it from any step prompts while a draft holds user input
+    // This page is the first screen of the flow, so closing the RHP from any step asks first when a draft has user input
     const {isFlowDirty} = useCreateFlowDiscardGuard({isEnabled: action === CONST.IOU.ACTION.CREATE, savedOdometerDraft});
 
     const navigateBack = () => {

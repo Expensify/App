@@ -197,7 +197,7 @@ function IOURequestStartPage({
     }, []);
 
     /**
-     * Prepares to abandon the flow and returns whether a fullscreen tab was pre-inserted under the RHP.
+     * Cleans up before the flow closes. Returns whether a tab had been opened early under the RHP and was just removed.
      */
     const prepareToCloseFlow = () => {
         // The confirmation is embedded with its header hidden,
@@ -222,12 +222,12 @@ function IOURequestStartPage({
     // mounts for PAY - the embedded confirmation carries the amount inline, so there is no separate step left to skip.
     const shouldEmbedConfirmation = shouldUseTab || iouType === CONST.IOU.TYPE.PAY;
 
-    // This page is the root of the flow, so leaving it from any step prompts while a draft holds user input.
-    // INVOICE is left to its embedded amount step, which guards the flow root itself.
+    // This page is the first screen of the flow, so closing the RHP from any step asks first when a draft has user input.
+    // INVOICE doesn't use it: its first screen is the embedded amount step, which has its own guard.
     const {isFlowDirty} = useCreateFlowDiscardGuard({
         isEnabled: shouldEmbedConfirmation,
-        // Runs only once the user confirms Discard, so cancelling the prompt keeps the span and the pre-inserted tab.
-        // Close the RHP a frame after the restore, as below.
+        // Runs only after the user picks Discard, so Cancel leaves the tracking and the tab under the RHP as they were.
+        // When a tab was removed, close the RHP a frame later, for the same reason as in navigateBack below.
         onBeforeClose: () => {
             if (!prepareToCloseFlow()) {
                 return;
@@ -240,7 +240,7 @@ function IOURequestStartPage({
 
     const navigateBack = () => {
         if (isFlowDirty) {
-            // The discard guard prompts first and prepares to close the flow only once the user confirms Discard
+            // The guard asks first, and cleans up only if the user picks Discard
             Navigation.closeRHPFlow();
             return;
         }
