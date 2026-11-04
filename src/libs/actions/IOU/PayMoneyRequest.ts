@@ -8,6 +8,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {shouldSetUpGlobalReimbursementsBeforePaying} from '@libs/BankAccountUtils';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import isBillReport from '@libs/isBillReport';
 import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -667,8 +668,11 @@ function cancelPayment(
     );
     const approvalMode = policy?.approvalMode ?? CONST.POLICY.APPROVAL_MODE.BASIC;
 
-    const stateNum: ValueOf<typeof CONST.REPORT.STATE_NUM> = CONST.REPORT.STATE_NUM.APPROVED;
-    const statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM> = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.APPROVED;
+    const isOptionalApprovalMode = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+
+    // Auth sets a bill on a policy with approvals turned off back to submitted, while other reports go back to approved.
+    const stateNum: ValueOf<typeof CONST.REPORT.STATE_NUM> = isOptionalApprovalMode && isBillReport(expenseReport) ? CONST.REPORT.STATE_NUM.SUBMITTED : CONST.REPORT.STATE_NUM.APPROVED;
+    const statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM> = isOptionalApprovalMode ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.APPROVED;
 
     // For OPTIONAL approval mode with a connected bank account, the report status is CLOSED but the next step
     // should show "waiting to pay", so we use SUBMITTED as the predictedNextStatus which routes through the

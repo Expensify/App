@@ -2337,6 +2337,43 @@ describe('actions/IOU/PayMoneyRequest', () => {
             }
         });
 
+        it.each([
+            ['a bill', CONST.REPORT.TYPE.BILL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.CLOSED],
+            ['a bill', CONST.REPORT.TYPE.BILL, CONST.POLICY.APPROVAL_MODE.BASIC, CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.APPROVED],
+            ['an expense report', CONST.REPORT.TYPE.EXPENSE, CONST.POLICY.APPROVAL_MODE.OPTIONAL, CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.CLOSED],
+            ['an expense report', CONST.REPORT.TYPE.EXPENSE, CONST.POLICY.APPROVAL_MODE.BASIC, CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.APPROVED],
+        ] as const)('moves %s with approval mode %s to the state Auth gives it when canceling a payment', (_, type, approvalMode, expectedStateNum, expectedStatusNum) => {
+            // Given a paid report on a policy with the given approval mode
+            const policy: Policy = {...createRandomPolicy(101), approvalMode};
+            const paidReport: Report = {
+                ...createRandomReport(101, undefined),
+                type,
+                policyID: policy.id,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                total: -amount,
+                nonReimbursableTotal: 0,
+            };
+            const writeSpy = jest.spyOn(APIActions, 'write').mockImplementation(jest.fn());
+            try {
+                // When the payer cancels the payment
+                cancelPayment(paidReport, undefined, policy, false, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, false, undefined);
+
+                // Then the report shows the state that Auth's CancelReimbursement sets right away. Only a bill on a policy with
+                // approvals turned off goes back to submitted.
+                const optimisticReport = getRequiredOnyxUpdate(
+                    getRequiredWriteCall(writeSpy.mock.calls, 0)[2],
+                    'optimisticData',
+                    `${ONYXKEYS.COLLECTION.REPORT}${paidReport.reportID}`,
+                    Onyx.METHOD.MERGE,
+                    true,
+                ).value;
+                expect(optimisticReport).toMatchObject({stateNum: expectedStateNum, statusNum: expectedStatusNum});
+            } finally {
+                writeSpy.mockRestore();
+            }
+        });
+
         it('pendingAction is not null after canceling the payment failed', async () => {
             let expenseReport: OnyxEntry<Report>;
             let chatReport: OnyxEntry<Report>;
