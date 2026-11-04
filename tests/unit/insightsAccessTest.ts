@@ -1,5 +1,5 @@
 import INSIGHTS_DASHBOARD_SPECS, {getAccessibleDashboards, getVisibleCharts} from '@pages/Insights/dashboardSpecs';
-import {canViewAllPolicyData, hasApprovalsEnabled, hasMultipleMembers} from '@pages/Insights/insightsAccess';
+import {canViewAllPolicyData, hasMultipleMembers} from '@pages/Insights/insightsAccess';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -138,28 +138,6 @@ describe('insightsAccess', () => {
             // Then neither qualifies, so a ranking never lists the user alone
             expect(hasMultipleMembers(singleMemberPolicy)).toBe(false);
             expect(hasMultipleMembers(policyWithoutMembers)).toBe(false);
-        });
-    });
-
-    describe('hasApprovalsEnabled', () => {
-        it('qualifies a workspace whose expenses go through approval', () => {
-            // Given workspaces on the basic and advanced approval workflows
-            const basicPolicy = {...buildPolicy(1, CONST.POLICY.ROLE.ADMIN), approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC};
-            const advancedPolicy = {...buildPolicy(2, CONST.POLICY.ROLE.ADMIN), approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED};
-
-            // When they are checked
-            // Then both qualify, since their expenses have approvers to rank
-            expect(hasApprovalsEnabled(basicPolicy)).toBe(true);
-            expect(hasApprovalsEnabled(advancedPolicy)).toBe(true);
-        });
-
-        it('leaves out a workspace with approvals turned off', () => {
-            // Given a workspace whose approval workflow is optional
-            const policy = {...buildPolicy(1, CONST.POLICY.ROLE.ADMIN), approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL};
-
-            // When it is checked
-            // Then it doesn't qualify, since nobody approves its expenses
-            expect(hasApprovalsEnabled(policy)).toBe(false);
         });
     });
 

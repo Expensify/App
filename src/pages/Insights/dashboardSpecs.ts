@@ -2,6 +2,7 @@
 
 import type {ChartView, SearchChartMetric, SearchGroupBy} from '@components/Search/types';
 
+import {areApprovalsEnabled} from '@libs/PolicyUtils';
 import {isPolicyEligibleForTopCategories, isPolicyEligibleForTopSpenders} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -11,7 +12,7 @@ import type {Beta, InsightsDashboardID, InsightsGraphKey, InsightsSearchKey, Pol
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {canViewAllPolicyData, hasApprovalsEnabled, hasMultipleMembers} from './insightsAccess';
+import {canViewAllPolicyData, hasMultipleMembers} from './insightsAccess';
 
 /** Dates a chart can narrow the page's period by */
 type InsightsDateFilterKey = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL;
@@ -153,7 +154,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                 limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
-                isPolicyEligible: (policy) => hasMultipleMembers(policy) && hasApprovalsEnabled(policy),
+                isPolicyEligible: (policy) => hasMultipleMembers(policy) && areApprovalsEnabled(policy),
             },
         ],
     },
