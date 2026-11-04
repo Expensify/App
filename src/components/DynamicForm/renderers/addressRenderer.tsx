@@ -1,4 +1,5 @@
 import getAddressInputKeys, {getAddressCountry, isStateAsked} from '@components/DynamicForm/utils/getAddressInputKeys';
+import getStateOptions from '@components/DynamicForm/utils/getStateOptions';
 import isSensitiveField from '@components/DynamicForm/utils/isSensitiveField';
 
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
@@ -20,7 +21,8 @@ const renderAddress: DynamicFieldRenderer<'address'> = (field, {values, styles},
         isMenuRow: false,
         input: (
             <AddressFormFields
-                inputKeys={addressKeys}
+                // The state picker takes the code, so it is written over the full name AddressSearch gives outside the US and Canada
+                inputKeys={{...addressKeys, stateCode: addressKeys.state}}
                 // AddressFormFields lists the states of the default country, and assumes the US without one
                 defaultValues={{
                     street: defaultValue ?? '',
@@ -35,6 +37,7 @@ const renderAddress: DynamicFieldRenderer<'address'> = (field, {values, styles},
                 shouldSaveDraft={shouldSaveDraft}
                 shouldDisplayCountrySelector
                 shouldDisplayStateSelector={isStateAsked(country)}
+                stateOptions={getStateOptions(country)}
                 forwardedFSClass={forwardedFSClass}
                 onCountryChange={(pickedCountry) => {
                     // AddressSearch reports the country on every pick and the state reset arrives as '', so only a new country refreshes

@@ -25,6 +25,9 @@ type AddressInputKeys = {
     street2?: string;
     city?: string;
     state?: string;
+
+    /** Where AddressSearch writes the state's code, which it otherwise replaces with the full name outside the US and Canada */
+    stateCode?: string;
     zip?: string;
     country?: string;
     zipPostCode?: string;
@@ -63,6 +66,9 @@ type AddressFormProps = ForwardedFSClassProps & {
     stateSelectorLabel?: string;
     stateSelectorModalHeaderTitle?: string;
     stateSelectorSearchInputTitle?: string;
+
+    /** The states to list instead of the US states or Canadian provinces */
+    stateOptions?: Record<string, string>;
     onCountryChange?: (country: unknown) => void;
     shouldAllowCountryChange?: boolean;
 };
@@ -101,6 +107,7 @@ function AddressFormFields({
     stateSelectorLabel,
     stateSelectorModalHeaderTitle,
     stateSelectorSearchInputTitle,
+    stateOptions,
     onCountryChange,
     shouldAllowCountryChange = true,
     forwardedFSClass,
@@ -158,7 +165,7 @@ function AddressFormFields({
                 <View style={[styles.mt3, styles.mhn5]}>
                     <InputWrapper
                         InputComponent={PushRowWithModal}
-                        optionsList={shouldDisplayCountrySelector && currentlySelectedCountry === CONST.COUNTRY.CA ? PROVINCES_LIST_OPTIONS : STATES_LIST_OPTIONS}
+                        optionsList={stateOptions ?? (shouldDisplayCountrySelector && currentlySelectedCountry === CONST.COUNTRY.CA ? PROVINCES_LIST_OPTIONS : STATES_LIST_OPTIONS)}
                         shouldSaveDraft={shouldSaveDraft}
                         description={stateSelectorLabel ?? translate('common.state')}
                         modalHeaderTitle={stateSelectorModalHeaderTitle ?? translate('common.state')}
