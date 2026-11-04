@@ -160,8 +160,10 @@ describe('AmountForm', () => {
         });
 
         it('supports custom currencyButtonLabel (such as duration units)', async () => {
-            // Given a text-input AmountForm with a custom currencyButtonLabel
+            // Given a text-input AmountForm configured with a custom button label
             const onCurrencyButtonPress = jest.fn();
+
+            // When the form is rendered
             renderForm({
                 displayAsTextInput: true,
                 value: '2',
