@@ -259,8 +259,18 @@ function buildExpenseDefaultFilters(formValues: Partial<ExpenseDefaultFormValues
     return rest.reduce<RuleFilterNode>((left, right) => ({operator: AND, left, right}), firstComparison);
 }
 
-/** Whether the form matches on anything. A rule with no conditions would apply to every expense, and the API rejects it. */
-function hasExpenseDefaultConditions(formValues: Partial<ExpenseDefaultFormValues>): boolean {
+/**
+ * Whether the form matches on anything. A rule with no conditions would apply to every expense, and the API rejects it.
+ *
+ * Off the beta, a merchant is the only thing a rule may match on, so a category or tag alone does not count. The
+ * engine does not apply those rules yet, and letting one be saved leaves an admin with a rule that silently never
+ * fires.
+ */
+function hasExpenseDefaultConditions(formValues: Partial<ExpenseDefaultFormValues>, isExpenseDefaultConditionsBetaEnabled: boolean): boolean {
+    if (!isExpenseDefaultConditionsBetaEnabled) {
+        return !!formValues.merchantToMatch?.trim();
+    }
+
     return !!buildExpenseDefaultFilters(formValues);
 }
 

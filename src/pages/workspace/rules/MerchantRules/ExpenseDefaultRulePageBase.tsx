@@ -118,7 +118,7 @@ const getBooleanTitle = (value: boolean | undefined, translate: LocalizedTransla
 };
 
 /** A rule needs something to match on and something to set. */
-const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm) => {
+const getErrorMessage = (translate: LocalizedTranslate, isExpenseDefaultConditionsBetaEnabled: boolean, form?: MerchantRuleForm) => {
     const matchingCriteriaFields = new Set<string>([
         MERCHANT_RULE_INPUT_IDS.MERCHANT_TO_MATCH,
         MERCHANT_RULE_INPUT_IDS.MATCH_TYPE,
@@ -134,7 +134,7 @@ const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm)
         }
         return value !== undefined && value !== '';
     });
-    const hasCondition = hasExpenseDefaultConditions(form ?? {});
+    const hasCondition = hasExpenseDefaultConditions(form ?? {}, isExpenseDefaultConditionsBetaEnabled);
     if (hasCondition && hasAtLeastOneUpdate) {
         return '';
     }
@@ -267,6 +267,8 @@ function ExpenseDefaultRulePageBase({
         return !!policy?.areTagsEnabled && policyTags.length > 0;
     };
 
+    const isExpenseDefaultConditionsBetaEnabled = isBetaEnabled(CONST.BETAS.EXPENSE_DEFAULT_CONDITIONS);
+
     // `hasCategories` falls back to the category the rule sets, which says nothing about what it matches on, so the
     // condition row asks separately.
     const hasCategoriesToMatch = () => {
@@ -281,6 +283,9 @@ function ExpenseDefaultRulePageBase({
     const hasTagsToMatch = () => {
         if (form?.tagsToMatch?.length) {
             return true;
+        }
+        if (!isExpenseDefaultConditionsBetaEnabled) {
+            return false;
         }
         return !!policy?.areTagsEnabled && policyTags.some((tagList) => hasEnabledOptions(tagList.tags));
     };
@@ -320,7 +325,7 @@ function ExpenseDefaultRulePageBase({
      * When editing, we exclude the current rule from the comparison.
      */
     const checkForDuplicateRule = (formValues: Partial<ExpenseDefaultFormValues>): boolean => {
-        if (!hasExpenseDefaultConditions(formValues)) {
+        if (!hasExpenseDefaultConditions(formValues, isExpenseDefaultConditionsBetaEnabled)) {
             return false;
         }
 
@@ -351,7 +356,7 @@ function ExpenseDefaultRulePageBase({
         });
     };
 
-    const errorMessage = getErrorMessage(translate, form);
+    const errorMessage = getErrorMessage(translate, isExpenseDefaultConditionsBetaEnabled, form);
 
     const goBackToExpenseDefaults = () => {
         Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.EXPENSE_DEFAULTS);
@@ -528,13 +533,15 @@ function ExpenseDefaultRulePageBase({
                           icon: icons.InvoiceGeneric,
                       }
                     : undefined,
-                {
-                    key: 'amount',
-                    description: translate('iou.amount'),
-                    title: amountDisplayName,
-                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_AMOUNT_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_AMOUNT.getRoute(policyID, ruleID))),
-                    icon: icons.Cash,
-                },
+                isExpenseDefaultConditionsBetaEnabled || form?.amount
+                    ? {
+                          key: 'amount',
+                          description: translate('iou.amount'),
+                          title: amountDisplayName,
+                          onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_AMOUNT_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_AMOUNT.getRoute(policyID, ruleID))),
+                          icon: icons.Cash,
+                      }
+                    : undefined,
                 isVendorFeatureEnabled || form?.vendorID
                     ? {
                           key: 'vendorID',
@@ -580,7 +587,7 @@ function ExpenseDefaultRulePageBase({
     ];
 
     const previewMatches = () => {
-        if (!hasExpenseDefaultConditions(form ?? {})) {
+        if (!hasExpenseDefaultConditions(form ?? {}, isExpenseDefaultConditionsBetaEnabled)) {
             setShouldShowError(true);
             return;
         }
