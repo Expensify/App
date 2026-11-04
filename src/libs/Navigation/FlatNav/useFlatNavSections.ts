@@ -1,3 +1,7 @@
+/**
+ * The flat nav sections the user can see, with their items and todo badges. Both the web bar and the mobile bar read it.
+ * It does not check the flat nav beta: consumers only mount when the beta is on.
+ */
 import {useSearchTypeMenuSectionsForNavigation} from '@hooks/useSearchTypeMenuSections';
 import useTodoCounts from '@hooks/useTodoCounts';
 
@@ -11,10 +15,6 @@ type UseFlatNavSectionsParams = {
     isActive?: boolean;
 };
 
-/**
- * The flat nav sections the user can see, with their items and todo badges. Both the web bar and the mobile bar read it.
- * It does not check the flat nav beta: consumers only mount when the beta is on.
- */
 function useFlatNavSections({isActive = true}: UseFlatNavSectionsParams = {}): FlatNavSection[] {
     const typeMenuSections = useSearchTypeMenuSectionsForNavigation(isActive);
     const {counts} = useTodoCounts(isActive);
