@@ -260,7 +260,7 @@ function WorkspaceCompanyCardsTable({
         ...(shouldShowExportAccountColumn ? [getExportAccountColumn<WorkspaceCompanyCardTableItemData>(translate('workspace.moreFeatures.companyCards.exportAccount'), styles)] : []),
         {
             key: 'lastSynced',
-            label: translate('workspace.moreFeatures.companyCards.lastSynced'),
+            label: translate('workspace.moreFeatures.companyCards.lastUpdated'),
             sortable: false,
             styling: {
                 containerStyles: [styles.mnw0],

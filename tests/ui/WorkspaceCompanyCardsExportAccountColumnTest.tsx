@@ -417,7 +417,7 @@ describe('WorkspaceCompanyCardsTable row feedback', () => {
     });
 });
 
-describe('WorkspaceCompanyCardsTable Last synced column', () => {
+describe('WorkspaceCompanyCardsTable Last updated column', () => {
     beforeEach(async () => {
         mockCardFeedErrors = {};
         mockShouldUseNarrowLayout = false;
@@ -446,7 +446,7 @@ describe('WorkspaceCompanyCardsTable Last synced column', () => {
         // Then the column uses the same local timestamp for sizing and display
         const column = capturedColumns.find(({key}) => key === 'lastSynced');
         const row = capturedData.at(0);
-        expect(column?.label).toBe('Last synced');
+        expect(column?.label).toBe('Last updated');
         expect(column?.sortable).toBe(false);
         expect(row?.lastSyncedText).toBe('2026-11-04 10:54:00');
         expect(row && column?.dynamicSizing?.getContentToMeasure(row)).toEqual([{text: '2026-11-04 10:54:00', fontSize: fontScale.text}]);
