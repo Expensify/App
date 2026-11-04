@@ -380,7 +380,7 @@ describe('BankAccountUtils', () => {
         it('returns false when Wise has no status for the business', () => {
             // Given an account whose business was never sent to Wise
             // When checking whether its onboarding was submitted
-            // Then it wasn't, so the Wallet menu starts the flow at the intro
+            // Then it wasn't, so the intro still starts the business onboarding
             expect(isWiseOnboardingSubmitted({additionalData: {}})).toBe(false);
         });
     });
