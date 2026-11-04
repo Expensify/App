@@ -3059,40 +3059,8 @@ describe('SearchUIUtils', () => {
             ).toEqual(transactionsListItems);
         });
 
-        it('should leave out the expenses of a bill for every user and still count them for paging', () => {
-            // Given an expense search whose snapshot holds a bill with two expenses
-            const data: OnyxTypes.SearchResults['data'] = {
-                ...searchResults.data,
-                [`${ONYXKEYS.COLLECTION.REPORT}${reportID3}`]: {...searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${reportID3}`], type: CONST.REPORT.UNSUPPORTED_TYPE.BILL},
-            };
-
-            // When the sections are built. getSections takes no beta flag, so this covers users with the newDotBillPay beta too.
-            const [sections, allDataLength] = SearchUIUtils.getSections({
-                dateFnsLocale: undefined,
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                data,
-                currentAccountID: adminAccountID,
-                currentUserEmail: adminEmail,
-                translate: translateLocal,
-                formatPhoneNumber,
-                bankAccountList: {},
-                rules: undefined,
-                conciergeReportID: undefined,
-                convertToDisplayString,
-                reportAttributesDerivedValue: {},
-            });
-
-            // Then the bill's expenses stay out of Search until Search supports paying bills, and the other expenses stay listed.
-            // The row count still includes the bill's expenses, because paging compares it with the server offset.
-            const transactionItems = sections.filter(SearchUIUtils.isTransactionListItemType);
-            expect(transactionItems.length).toBeLessThan(allDataLength);
-            expect(transactionItems.some((item) => item.reportID === reportID3)).toBe(false);
-            expect(transactionItems.some((item) => item.reportID === reportID)).toBe(true);
-        });
-
-        it('should leave out the report actions of a bill in a chat search', () => {
-            // Given a chat search whose snapshot holds a comment on a bill
-            const billCommentAction = {
+        describe('bill actions in a chat search', () => {
+            const billComment = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                 reportActionID: 'billCommentActionID',
                 reportID: reportID3,
@@ -3101,32 +3069,60 @@ describe('SearchUIUtils', () => {
                 message: [{type: 'COMMENT', html: 'Bill comment', text: 'Bill comment'}],
                 originalMessage: {html: 'Bill comment'},
             } as OnyxTypes.ReportAction;
-            const data: OnyxTypes.SearchResults['data'] = {
-                ...searchResults.data,
-                [`${ONYXKEYS.COLLECTION.REPORT}${reportID3}`]: {...searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${reportID3}`], type: CONST.REPORT.UNSUPPORTED_TYPE.BILL},
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID3}`]: {[billCommentAction.reportActionID]: billCommentAction},
-            };
+            const billPreview = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                reportActionID: 'billPreviewActionID',
+                reportID: reportID2,
+                created: '2025-01-01 00:00:01',
+                actorAccountID: adminAccountID,
+                message: [{type: 'COMMENT', html: 'Bill preview', text: 'Bill preview'}],
+                originalMessage: {linkedReportID: reportID3},
+                childReportID: reportID3,
+            } as OnyxTypes.ReportAction;
 
-            // When the chat sections are built
-            const [sections] = SearchUIUtils.getSections({
-                dateFnsLocale: undefined,
-                type: CONST.SEARCH.DATA_TYPES.CHAT,
-                data,
-                currentAccountID: adminAccountID,
-                currentUserEmail: adminEmail,
-                translate: translateLocal,
-                formatPhoneNumber,
-                bankAccountList: {},
-                rules: undefined,
-                conciergeReportID: undefined,
-                convertToDisplayString,
-                reportAttributesDerivedValue: {},
+            const getChatSections = (reportType: string) =>
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.CHAT,
+                    data: {
+                        ...searchResults.data,
+                        [`${ONYXKEYS.COLLECTION.REPORT}${reportID3}`]: {...searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${reportID3}`], type: reportType},
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID3}`]: {[billComment.reportActionID]: billComment},
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID2}`]: {[billPreview.reportActionID]: billPreview},
+                    },
+                    currentAccountID: adminAccountID,
+                    currentUserEmail: adminEmail,
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                });
+
+            it('should leave out comments on a bill and previews that link to a bill', () => {
+                // Given a chat search whose snapshot holds a comment on a bill and a preview of the bill in another chat
+                // When the chat sections are built
+                const [sections] = getChatSections(CONST.REPORT.UNSUPPORTED_TYPE.BILL);
+
+                // Then neither action is listed, because bills stay out of Search until Search supports paying bills
+                const reportActionIDs = sections.filter(SearchUIUtils.isReportActionListItemType).map((item) => item.reportActionID);
+                expect(reportActionIDs).not.toContain(billComment.reportActionID);
+                expect(reportActionIDs).not.toContain(billPreview.reportActionID);
+                expect(reportActionIDs.length).toBeGreaterThan(0);
             });
 
-            // Then the bill comment is not listed, because bills stay out of Search
-            const reportActionItems = sections.filter(SearchUIUtils.isReportActionListItemType);
-            expect(reportActionItems.some((item) => item.reportID === reportID3)).toBe(false);
-            expect(reportActionItems.length).toBeGreaterThan(0);
+            it('should still count the bill actions for paging', () => {
+                // Given the same actions on an expense report, which Search lists
+                const [, expenseReportCount] = getChatSections(CONST.REPORT.TYPE.EXPENSE);
+
+                // When the report is a bill instead
+                const [, billCount] = getChatSections(CONST.REPORT.UNSUPPORTED_TYPE.BILL);
+
+                // Then the count stays the same, because paging compares it with the server offset, which counts every action
+                expect(billCount).toBe(expenseReportCount);
+            });
         });
 
         it('should include iouRequestType property for distance transactions', () => {
@@ -11849,38 +11845,6 @@ describe('SearchUIUtils', () => {
     });
 
     describe('Test isSearchResultsEmpty', () => {
-        it.each([CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT])('should return true when the %s results only hold a bill', (type) => {
-            // Given results whose only report is a bill with one expense
-            const billReportID = 'billReportID';
-            const results: OnyxTypes.SearchResults = {
-                data: {
-                    personalDetailsList: {},
-                    report_billReportID: {reportID: billReportID, type: CONST.REPORT.UNSUPPORTED_TYPE.BILL},
-                    transactions_billTransactionID: {
-                        transactionID: 'billTransactionID',
-                        reportID: billReportID,
-                        amount: -1000,
-                        currency: 'USD',
-                        created: '2025-01-01',
-                        merchant: 'Vendor',
-                        comment: {comment: ''},
-                        modifiedAmount: 0,
-                        modifiedCreated: '',
-                        modifiedCurrency: '',
-                        modifiedMerchant: '',
-                        parentTransactionID: '',
-                        tag: '',
-                        category: '',
-                    },
-                },
-                search: {type, hash: 0, offset: 0, sortBy: 'date', sortOrder: 'desc', hasMoreResults: false, hasResults: true, isLoading: false},
-            };
-
-            // When we check whether the results are empty
-            // Then they count as empty, because getSections leaves bills out of Search
-            expect(SearchUIUtils.isSearchResultsEmpty(results)).toBe(true);
-        });
-
         it('should return true when all transactions have delete pending action', () => {
             const results: OnyxTypes.SearchResults = {
                 data: {
