@@ -175,9 +175,7 @@ function WorkspaceCompanyCardTableRow({
                                 />
                             )}
                             {!!isPartialNumberMatch && (
-                                <Text style={[styles.textLabelSupporting, styles.lh16, styles.textDanger, styles.mr3]}>
-                                    {translate('workspace.moreFeatures.companyCards.matchesLastFourDigitsOnly')}
-                                </Text>
+                                <Text style={[styles.textLabelError, styles.lh16, styles.mr3]}>{translate('workspace.moreFeatures.companyCards.matchesLastFourDigitsOnly')}</Text>
                             )}
                         </View>
                     </View>

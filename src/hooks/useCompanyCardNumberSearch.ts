@@ -45,7 +45,7 @@ type UseCompanyCardNumberSearch = {
  */
 function useCompanyCardNumberSearch(policyID: string | undefined, feed: CompanyCardFeedWithNumber | undefined, domainAccountID: number | undefined): UseCompanyCardNumberSearch {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const [searchResult] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARD_NUMBER_SEARCH}${policyID}`, {canBeMissing: true});
+    const [searchResult] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARD_NUMBER_SEARCH}${policyID}`);
 
     const immediateNormalized = normalizeCardNumber(searchValue);
     const debouncedNormalized = normalizeCardNumber(debouncedSearchValue);
