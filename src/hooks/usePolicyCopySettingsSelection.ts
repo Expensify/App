@@ -1,3 +1,4 @@
+/** Shares setting selection between copy and duplicate so dependencies stay consistent. */
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {ListItem} from '@components/SelectionList/types';
 

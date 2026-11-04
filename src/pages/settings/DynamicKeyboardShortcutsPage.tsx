@@ -38,13 +38,17 @@ function DynamicKeyboardShortcutsPage() {
         .filter((shortcut): shortcut is Shortcut => !!shortcut.descriptionKey);
 
     const renderShortcut = (shortcut: Shortcut) => (
-        <MenuItem
+        <MenuItem.Root
             key={shortcut.displayName}
-            title={shortcut.displayName}
-            description={translate(`keyboardShortcutsPage.shortcuts.${shortcut.descriptionKey}`)}
-            wrapperStyle={[styles.ph0, styles.cursorAuto]}
-            interactive={false}
-        />
+            style={[styles.ph0, styles.cursorAuto]}
+        >
+            <MenuItem.Row>
+                <MenuItem.Content>
+                    <MenuItem.Title>{shortcut.displayName}</MenuItem.Title>
+                    <MenuItem.Description>{translate(`keyboardShortcutsPage.shortcuts.${shortcut.descriptionKey}`)}</MenuItem.Description>
+                </MenuItem.Content>
+            </MenuItem.Row>
+        </MenuItem.Root>
     );
 
     return (

@@ -67,11 +67,11 @@ You can use the following operators to filter expenses:
 
 | **Syntax** | **Description** | **Example** |
 |---|---|---|
-| `merchant:` | Filter by expense merchant name | `merchant:"Delta Air Lines"` |
+| `merchant:` / `merchant=` | Filter by expense merchant name. `merchant:` matches merchant names that contain the value, and `merchant=` matches the exact merchant name only | `merchant="Delta Air Lines"` |
 | `category:` | Filter by expense category label | `category:"Travel"` |
 | `tag:` | Filter by one or multiple tags | `tag:"Client A"` |
 | `vendor:` | Filter by the vendor assigned to an expense. Available only when one of your workspaces uses vendor matching. | `vendor:"Starbucks"` |
-| `amount:` / `purchase-amount:` | Filter by amount using `=`, `>`, `<`, `>=`, or `<=` | `amount:>100` |
+| `amount:` / `purchase-amount:` | Filter by amount using `=`, `>`, `<`, `>=`, or `<=`. To compare amounts in a specific currency, include the currency code with the amount in quotes. | `amount>"100 USD"` |
 | `status:` | Filter by expense status (`unreported`, `draft`, `outstanding`, `approved`, `paid`, `done`) | `status:approved` |
 | `date:` | Filter by expense date using relative dates or comparison operators for a date range | `date:this-month` |
 | `has:` | Filter by expenses with an `attachment`, `receipt`, `category`, `tag`, or `submitted-violation` | `has:receipt` |
@@ -227,7 +227,7 @@ Here are some common examples:
   `type:expense group-by:from submitted:last-month has:submitted-violation sort-by:group-expenses sort-order:desc view:table limit:10`
 
 - **Spend over time (line chart)**  
-  `type:expense group-by:month date:year-to-date view:line`
+  `type:expense group-by:month date:this-year view:line`
 
 - **Last month category breakdown (pie chart)**  
   `type:expense group-by:category date:last-month view:pie`

@@ -25,6 +25,13 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 const POLICY_ID = '1';
 const TARGET_POLICY_ID = '2';
 
+const travelProvisioningMarkers: Array<Partial<Policy>> = [
+    {travelSettings: {spotnanaEntityID: 'source-entity'}},
+    {travelSettings: {spotnanaCompanyID: 'source-company'}},
+    {travelSettings: {associatedTravelDomainAccountID: '123'}},
+    {isTravelProvisioned: true},
+];
+
 type CapturedSelectionListProps = {
     data: ListItem[];
     footerContent?: React.JSX.Element;
@@ -251,11 +258,11 @@ describe('WorkspaceDuplicateSelectFeaturesForm Rules and Merchant rules', () => 
         expect(getSentParts()).toEqual(expect.arrayContaining(['workflows', 'currency']));
     });
 
-    it('excludes Travel when Overview is deselected and the new policy would have no address', async () => {
-        // Given a source with a Travel entity and company address.
+    it.each(travelProvisioningMarkers)('excludes Travel without Overview/address for provisioning marker %#', async (provisioningMarkers) => {
+        // Given a provisioned source whose cached data may lack the new entity ID.
         await renderForm(false, {
             isTravelEnabled: true,
-            travelSettings: {spotnanaEntityID: 'source-entity'},
+            ...provisioningMarkers,
             address: {addressStreet: '1 Main Street', city: 'Paris', country: 'FR', state: '', zipCode: '75001'},
         });
         expect(getRow('travel')?.isSelected).toBe(true);
@@ -268,11 +275,11 @@ describe('WorkspaceDuplicateSelectFeaturesForm Rules and Merchant rules', () => 
         expect(getSentParts()).not.toContain('travel');
     });
 
-    it('requires Travel consent and sends it only after the checkbox is accepted', async () => {
+    it.each(travelProvisioningMarkers)('requires Travel consent before submitting for provisioning marker %#', async (provisioningMarkers) => {
         // Given a provisioned source that requires fresh consent for the duplicate.
         await renderForm(false, {
             isTravelEnabled: true,
-            travelSettings: {spotnanaEntityID: 'source-entity', spotnanaCompanyID: 'source-company'},
+            ...provisioningMarkers,
             address: {addressStreet: '1 Main Street', city: 'Paris', country: 'FR', state: '', zipCode: '75001'},
         });
         expect(mockSelectionListProps?.confirmButtonOptions.isDisabled).toBe(true);

@@ -1,6 +1,7 @@
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import NavigationBar from '@components/NavigationBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
+import RHPResizeHandle from '@components/RHPResizeHandle';
 import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
 import ScrollView from '@components/ScrollView';
 
@@ -225,8 +226,11 @@ function BaseModal({
     };
 
     // Checks if modal overlaps with topSafeArea. Used to offset tall bottom docked modals with keyboard.
+    // Only a modal that avoids the keyboard is lifted by it. One that doesn't stays put, so the margin would only grow
+    // its wrapper over the backdrop above it, where it swallows the taps meant to dismiss the modal.
     useEffect(() => {
-        if (type !== CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED || !canUseTouchScreen || !isSmallScreenWidth) {
+        if (type !== CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED || !canUseTouchScreen || !isSmallScreenWidth || !avoidKeyboard) {
+            setModalOverlapsWithTopSafeArea(false);
             return;
         }
         const {paddingTop} = StyleUtils.getPlatformSafeAreaPadding(insets);
@@ -244,6 +248,7 @@ function BaseModal({
         modalOverlapsWithTopSafeArea,
         canUseTouchScreen,
         isSmallScreenWidth,
+        avoidKeyboard,
     ]);
 
     const onViewLayout = (e: LayoutChangeEvent) => {
@@ -256,7 +261,7 @@ function BaseModal({
     const isStackedOnRHP = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && !isSmallScreenWidth && (isInNarrowPane || isInNarrowPaneModal) && !shouldKeepRightDockedBackdropInNarrowPane;
     const isResizableSingleRHP = useIsResizableSingleRHP();
     const {width: singleRHPWidth} = useSingleRHPWidth();
-    const rightDockedCardWidth = isStackedOnRHP && isResizableSingleRHP ? singleRHPWidth : undefined;
+    const stackedResizableRHPWidth = isStackedOnRHP && isResizableSingleRHP ? singleRHPWidth : undefined;
 
     const {
         modalStyle,
@@ -287,7 +292,7 @@ function BaseModal({
         enableEdgeToEdgeBottomSafeAreaPadding,
         shouldDisplayBelowModals,
         isStackedOnRHP,
-        rightDockedCardWidth,
+        stackedResizableRHPWidth,
     });
 
     // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
@@ -433,6 +438,16 @@ function BaseModal({
                             )}
                             <ColorSchemeWrapper>{shouldWrapChildrenInScrollView ? <ScrollView>{children}</ScrollView> : children}</ColorSchemeWrapper>
                         </Animated.View>
+                        {stackedResizableRHPWidth !== undefined &&
+                            isVisible && (
+                                // Shifts with the card when the Side Panel opens, since the handle straddles the card's edge.
+                                <Animated.View
+                                    pointerEvents="box-none"
+                                    style={[styles.fullScreen, sidePanelAnimatedStyle]}
+                                >
+                                    <RHPResizeHandle />
+                                </Animated.View>
+                            )}
                         {!keyboardStateContextValue?.isKeyboardActive && <NavigationBar />}
                     </ReanimatedModal>
                 </View>

@@ -11,10 +11,12 @@ import {
     getReceiptPartnersCopySettingsDescription,
     getTimeTrackingCopySettingsDescription,
     hasCurrencyConflictWithAnyTarget,
+    hasTravelEntity,
     isCopyPolicySettingsPartEnabledOnSource,
     isCurrencyBlockedByTargetBA,
     isTargetCompatibleForAccountingPart,
     needsCurrencyForWorkflows,
+    shouldRequireTravelTerms,
     shouldShowCopyPolicySettingsUpgradeStep,
 } from '@libs/CopyPolicySettingsUtils';
 import type {CopyPolicySettingsSourceFeatureContext} from '@libs/CopyPolicySettingsUtils';
@@ -46,6 +48,37 @@ function makePolicyWithCurrency(id: number, outputCurrency: string, hasBankAccou
 
 describe('CopyPolicySettingsUtils', () => {
     beforeAll(() => IntlStore.load(CONST.LOCALES.EN));
+
+    describe('Travel provisioning', () => {
+        it.each([
+            {travelSettings: {spotnanaEntityID: 'source-entity'}},
+            {travelSettings: {spotnanaCompanyID: 'source-company'}},
+            {travelSettings: {associatedTravelDomainAccountID: '123'}},
+            {isTravelProvisioned: true},
+        ] satisfies Array<Partial<Policy>>)('requires consent for provisioned source %# even before a full policy load', (provisioningMarkers) => {
+            // Given a source with only one provisioning marker cached on the device.
+            const policy = {...createRandomPolicy(0), ...provisioningMarkers};
+
+            // When checking Travel availability and consent for copying or duplication.
+            const hasEntity = hasTravelEntity(policy);
+            const requiresTerms = shouldRequireTravelTerms(policy, ['travel']);
+
+            // Then provisioned sources require consent only when Travel is selected.
+            expect(hasEntity).toBe(true);
+            expect(requiresTerms).toBe(true);
+            expect(shouldRequireTravelTerms(policy, ['overview'])).toBe(false);
+        });
+
+        it.each([undefined, {...createRandomPolicy(0), isTravelProvisioned: false, travelSettings: {}}])('does not require consent for an unprovisioned source %#', (policy) => {
+            // Given a source with no provisioning markers or no cached policy.
+            // When checking consent with Travel selected.
+            const requiresTerms = shouldRequireTravelTerms(policy, ['travel']);
+
+            // Then an unprovisioned source does not need Travel consent.
+            expect(requiresTerms).toBe(false);
+            expect(hasTravelEntity(policy)).toBe(false);
+        });
+    });
 
     describe('getConnectionCompanyID', () => {
         it('returns realmId for QuickBooks Online', () => {

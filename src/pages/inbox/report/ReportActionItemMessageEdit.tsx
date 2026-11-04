@@ -120,10 +120,12 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
     );
 
     useEffect(() => {
-        // When the current edit message selection changes, we need to update the selection state
+        // When the current edit message selection changes, we need to update the selection state.
+        // Keep the previous object when start and end are unchanged, so React can skip the extra render.
+        const nextSelection = currentEditMessageSelection ?? defaultSelection;
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        setSelectionState(currentEditMessageSelection ?? defaultSelection);
-    }, [currentEditMessageSelection, defaultSelection, draft.length, setSelection]);
+        setSelectionState((prevSelection) => (prevSelection.start === nextSelection.start && prevSelection.end === nextSelection.end ? prevSelection : nextSelection));
+    }, [currentEditMessageSelection, defaultSelection]);
 
     const [isFocused, setIsFocused] = useState<boolean>(false);
     const {debouncedCommentMaxLengthValidation, isExceedingMaxLength, exceededMaxLength} = useDebouncedCommentMaxLengthValidation({

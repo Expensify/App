@@ -9,7 +9,7 @@ import type {Part} from './actions/Policy/CopyPolicySettings';
 
 import {isAuthenticationError} from './actions/connections';
 import {PART_TO_POLICY_FEATURE} from './actions/Policy/CopyPolicySettings';
-import {canPolicyAccessFeature, isCollectPolicy, isInvoiceFieldsEnabled, isTimeTrackingEnabled} from './PolicyUtils';
+import {canPolicyAccessFeature, isCollectPolicy, isInvoiceFieldsEnabled, isPolicyProvisionedForTravel, isTimeTrackingEnabled} from './PolicyUtils';
 
 type FeatureRow = {
     part: Part;
@@ -388,9 +388,9 @@ function getTimeTrackingCopySettingsDescription(policy: Policy | undefined, tran
     return translate('common.enabled');
 }
 
-/** Matches Auth's entity check; full policy loads include the saved travel settings. */
+/** Cached policies may only have provisioning markers until the full travel settings load. */
 function hasTravelEntity(policy: Policy | undefined): boolean {
-    return !!policy?.travelSettings?.spotnanaEntityID;
+    return !!policy?.travelSettings?.spotnanaEntityID || isPolicyProvisionedForTravel(policy);
 }
 
 function shouldRequireTravelTerms(policy: Policy | undefined, parts: readonly Part[]): boolean {
