@@ -16,6 +16,8 @@ import {
 } from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import STATES_BY_COUNTRY from '@src/CONST/STATES_BY_COUNTRY';
 import type {
     DynamicFormAddressField,
     DynamicFormChoiceField,
@@ -206,6 +208,12 @@ function isAddressRequired(field: DynamicFormAddressField, values: DynamicFormVa
     return field.required || [street, city, state, zipCode, country].some((partKey) => isAnswered(values[partKey]));
 }
 
+/** A state the country's picker does not list, such as a full name AddressSearch saved before the picker took codes, leaves the picker blank, so it is asked again */
+function isStateAnswered(state: FormValue | undefined, country: Country | ''): boolean {
+    const stateOptions = STATES_BY_COUNTRY[country];
+    return isAnswered(state) && (!stateOptions || (typeof state === 'string' && state in stateOptions));
+}
+
 /** Each address part has its own input, so its errors go under its own draft key */
 function getAddressPartErrors(field: DynamicFormAddressField, values: DynamicFormValues, translate: LocalizedTranslate): Array<[inputID: string, message: string]> {
     const addressKeys = getAddressInputKeys(field.key);
@@ -216,7 +224,8 @@ function getAddressPartErrors(field: DynamicFormAddressField, values: DynamicFor
     if (isAddressRequired(field, values)) {
         const requiredPartKeys = [addressKeys.city, addressKeys.country, ...(isZipAsked ? [addressKeys.zipCode] : []), ...(isStateAsked(country) ? [addressKeys.state] : [])];
         for (const partKey of requiredPartKeys) {
-            if (!isAnswered(values[partKey])) {
+            const isPartAnswered = partKey === addressKeys.state ? isStateAnswered(values[partKey], country) : isAnswered(values[partKey]);
+            if (!isPartAnswered) {
                 partErrors.push([partKey, translate('common.error.fieldRequired')]);
             }
         }
