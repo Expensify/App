@@ -9,6 +9,8 @@
     </h1>
 </div>
 
+<!-- CI smoke test: verify that Markdown-only pull requests targeting staging run applicable checks. -->
+
 #### Table of Contents
 * [Local Development](#local-development)
 * [Platform-Specific Setup](#platform-specific-setup)
