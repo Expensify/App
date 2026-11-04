@@ -11,10 +11,16 @@ import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
-import {updateWorkspaceMembersRole} from '@libs/actions/Policy/Member';
+import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
+import {addMembersToWorkspace, updateWorkspaceMembersRole} from '@libs/actions/Policy/Member';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+import {flush as flushSequentialQueue} from '@libs/Network/SequentialQueue';
+import {getPersonalDetailsOnyxDataForOptimisticUsers} from '@libs/PersonalDetailsUtils';
 import {generateAccountID} from '@libs/UserUtils';
+
+import type * as PolicyMemberActions from '@libs/actions/Policy/Member';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -31,20 +37,20 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/actions/Policy/Member', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const actual = jest.requireActual('@libs/actions/Policy/Member');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    const actual = jest.requireActual<typeof PolicyMemberActions>('@libs/actions/Policy/Member');
     return {
         ...actual,
         updateWorkspaceMembersRole: jest.fn(),
     };
 });
 
-TestHelper.setupGlobalFetchMock();
+const mockFetch = TestHelper.setupGlobalFetchMock();
+OnyxUpdateManager();
 
 const updateWorkspaceMembersRoleMock = jest.mocked(updateWorkspaceMembersRole);
 
@@ -96,6 +102,7 @@ describe('WorkspaceMemberDetailsRolePage', () => {
     });
 
     beforeEach(async () => {
+        mockFetch.succeed();
         await TestHelper.signInWithTestUser(selfAccountID, selfEmail, undefined, 'Self');
         await act(async () => {
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
@@ -147,6 +154,89 @@ describe('WorkspaceMemberDetailsRolePage', () => {
         expect(screen.getByText('Workspace admin')).toBeOnTheScreen();
         expect(screen.queryByTestId('NotFoundPage')).not.toBeOnTheScreen();
 
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it.each([true, false])('handles an offline secondary-login invite when success is %s and no primary login mapping is returned', async (isSuccess) => {
+        // Given an offline invite whose Role page resolves the optimistic secondary login before the request completes
+        const secondaryEmail = 'secondary@example.com';
+        const primaryEmail = 'primary@example.com';
+        const primaryAccountID = 7777;
+        const optimisticAccountID = generateAccountID(secondaryEmail);
+        mockFetch.pause();
+        mockFetch.mockAPICommand(WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE, () => ({
+            jsonCode: isSuccess ? 200 : 400,
+            onyxData: isSuccess
+                ? [
+                      {
+                          onyxMethod: Onyx.METHOD.MERGE,
+                          key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                          value: {employeeList: {[secondaryEmail]: null, [primaryEmail]: {email: primaryEmail, role: CONST.POLICY.ROLE.USER}}},
+                      },
+                      {
+                          onyxMethod: Onyx.METHOD.MERGE,
+                          key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                          value: {[primaryAccountID]: TestHelper.buildPersonalDetails(primaryEmail, primaryAccountID, 'Primary')},
+                      },
+                  ]
+                : [],
+        }));
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+            addMembersToWorkspace(
+                {[secondaryEmail]: optimisticAccountID},
+                getPersonalDetailsOnyxDataForOptimisticUsers([secondaryEmail], [optimisticAccountID], (login) => login),
+                '',
+                policy,
+                [ownerAccountID, selfAccountID],
+                CONST.POLICY.ROLE.USER,
+                {accountID: selfAccountID, email: selfEmail, displayName: 'Self'},
+                {},
+            );
+        });
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(optimisticAccountID)});
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByTestId('WorkspaceMemberDetailsRolePage')).toBeOnTheScreen();
+        expect(Navigation.goBack).not.toHaveBeenCalled();
+
+        // When reconnecting processes the real invite request without primaryLoginsInvited
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: false});
+            await mockFetch.resume();
+            flushSequentialQueue();
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then a successful alias swap returns to Members, while a failed invite stays editable with its error intact
+        const syncedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE, 1);
+        expect(syncedPolicy?.primaryLoginsInvited).toBeUndefined();
+        if (isSuccess) {
+            await waitFor(() => expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBERS.getRoute(policy.id)));
+            expect(syncedPolicy?.employeeList?.[primaryEmail]?.role).toBe(CONST.POLICY.ROLE.USER);
+            expect((await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST))?.[optimisticAccountID]).toBeFalsy();
+        } else {
+            expect(syncedPolicy?.employeeList?.[secondaryEmail]?.errors).toBeTruthy();
+            expect(screen.getByTestId('WorkspaceMemberDetailsRolePage')).toBeOnTheScreen();
+            expect(Navigation.goBack).not.toHaveBeenCalled();
+        }
+        expect(screen.queryByTestId('NotFoundPage')).not.toBeOnTheScreen();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('shows not found for a member that never resolved', async () => {
+        // Given a direct link that does not identify any workspace member
+        const unknownAccountID = generateAccountID('unknown@example.com');
+
+        // When opening the Role page without a prior successful member lookup
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(unknownAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the invalid link still shows not found instead of returning to Members
+        expect(screen.getByTestId('NotFoundPage')).toBeOnTheScreen();
+        expect(Navigation.goBack).not.toHaveBeenCalled();
         unmount();
         await waitForBatchedUpdatesWithAct();
     });

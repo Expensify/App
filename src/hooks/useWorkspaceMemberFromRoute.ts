@@ -1,3 +1,4 @@
+/** Resolves member routes across optimistic accountID and secondary-login changes. */
 import {getEmployeeListLogin, getMemberLoginByAccountID} from '@libs/WorkArrangementUtils';
 
 import type {PersonalDetails, PersonalDetailsList, Policy} from '@src/types/onyx';

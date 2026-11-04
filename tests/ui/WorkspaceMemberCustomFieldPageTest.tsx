@@ -16,6 +16,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import {generateAccountID} from '@libs/UserUtils';
 
+import type * as PolicyActions from '@libs/actions/Policy/Policy';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import WorkspaceMemberCustomFieldPage from '@pages/workspace/members/WorkspaceMemberCustomFieldPage';
@@ -35,9 +37,7 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/actions/Policy/Policy', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const actual = jest.requireActual('@libs/actions/Policy/Policy');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    const actual = jest.requireActual<typeof PolicyActions>('@libs/actions/Policy/Policy');
     return {
         ...actual,
         updateMemberCustomField: jest.fn(),

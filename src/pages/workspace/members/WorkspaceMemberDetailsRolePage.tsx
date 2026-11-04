@@ -4,6 +4,7 @@ import type {ListItemType} from '@components/WorkspaceMemberRoleList';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useRedirectOnWorkspaceMemberRemoval from '@hooks/useRedirectOnWorkspaceMemberRemoval';
 import useRedirectSubmitWorkspaceFeatureUpgrade from '@hooks/useRedirectSubmitWorkspaceFeatureUpgrade';
 import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -45,6 +46,7 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const {memberLogin, accountID} = useWorkspaceMemberFromRoute(policy, personalDetails, routeAccountID);
     const member = policy?.employeeList?.[memberLogin];
+    const shouldRedirectToMembers = useRedirectOnWorkspaceMemberRemoval(policyID, routeAccountID, !!member?.role);
     const [selectedRole, setSelectedRole] = useState<ValueOf<typeof CONST.POLICY.ROLE>>();
     const canManageSelectedMemberRole = canMemberAssignRole(policy, currentUserLogin, member?.role);
     // The Authorized Payer (reimburser) must stay a valid payer, so restrict them to the roles that can pay (for example Admin or Payments Admin).
@@ -76,6 +78,10 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
         updateWorkspaceMembersRole(policy, [memberLogin], [accountID], selectedRole);
         Navigation.goBack(memberDetailsRoute);
     };
+
+    if (shouldRedirectToMembers) {
+        return null;
+    }
 
     return (
         <AccessOrNotFoundWrapper
