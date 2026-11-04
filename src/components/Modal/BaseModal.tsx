@@ -1,6 +1,7 @@
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import NavigationBar from '@components/NavigationBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
+import RHPResizeHandle from '@components/RHPResizeHandle';
 import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
 import ScrollView from '@components/ScrollView';
 
@@ -256,7 +257,7 @@ function BaseModal({
     const isStackedOnRHP = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && !isSmallScreenWidth && (isInNarrowPane || isInNarrowPaneModal) && !shouldKeepRightDockedBackdropInNarrowPane;
     const isResizableSingleRHP = useIsResizableSingleRHP();
     const {width: singleRHPWidth} = useSingleRHPWidth();
-    const rightDockedCardWidth = isStackedOnRHP && isResizableSingleRHP ? singleRHPWidth : undefined;
+    const stackedResizableRHPWidth = isStackedOnRHP && isResizableSingleRHP ? singleRHPWidth : undefined;
 
     const {
         modalStyle,
@@ -287,7 +288,7 @@ function BaseModal({
         enableEdgeToEdgeBottomSafeAreaPadding,
         shouldDisplayBelowModals,
         isStackedOnRHP,
-        rightDockedCardWidth,
+        stackedResizableRHPWidth,
     });
 
     // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
@@ -433,6 +434,16 @@ function BaseModal({
                             )}
                             <ColorSchemeWrapper>{shouldWrapChildrenInScrollView ? <ScrollView>{children}</ScrollView> : children}</ColorSchemeWrapper>
                         </Animated.View>
+                        {stackedResizableRHPWidth !== undefined &&
+                            isVisible && (
+                                // Shifts with the card when the Side Panel opens, since the handle straddles the card's edge.
+                                <Animated.View
+                                    pointerEvents="box-none"
+                                    style={[styles.fullScreen, sidePanelAnimatedStyle]}
+                                >
+                                    <RHPResizeHandle />
+                                </Animated.View>
+                            )}
                         {!keyboardStateContextValue?.isKeyboardActive && <NavigationBar />}
                     </ReanimatedModal>
                 </View>

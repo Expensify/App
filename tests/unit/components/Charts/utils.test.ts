@@ -11,6 +11,7 @@ import {
     getAdditionalOffset,
     getDomainPaddingForEdgeSpace,
     getNiceYAxisTicks,
+    getWholeNumberTickCount,
     getCartesianPlotBounds,
     isAngleInSlice,
     isCursorInSkewedLabel,
@@ -700,6 +701,43 @@ describe('getNiceYAxisTicks', () => {
     });
 });
 
+describe('getWholeNumberTickCount', () => {
+    it('asks for as many ticks as the domain has units, so a small count domain is not split into fractions', () => {
+        // Given a domain of 0 to 2 expenses, which the default 5 ticks would split in halves
+        // When the tick count is capped to the whole units the domain spans
+        // Then d3 is asked for 2 ticks, which lands them on 0, 1 and 2
+        expect(getWholeNumberTickCount([0, 2], 5)).toBe(2);
+    });
+
+    it('asks for a single tick on a domain of one unit, which d3 answers with both ends', () => {
+        // Given a domain of 0 to 1, where even 2 ticks would land on 0.5
+        // When the tick count is capped
+        // Then one tick is requested, and d3 returns 0 and 1
+        expect(getWholeNumberTickCount([0, 1], 5)).toBe(1);
+    });
+
+    it('never asks for fewer than one tick, also on a flat domain', () => {
+        // Given every value being zero, so the domain spans nothing
+        // When the tick count is capped
+        // Then it stays at 1 rather than dropping to 0, which would hide the axis
+        expect(getWholeNumberTickCount([0, 0], 5)).toBe(1);
+    });
+
+    it('keeps the default tick count once the domain spans at least that many units', () => {
+        // Given a domain wide enough that d3's own step is already a whole number
+        // When the tick count is capped
+        // Then the default is left alone
+        expect(getWholeNumberTickCount([0, 40], 5)).toBe(5);
+    });
+
+    it('measures the span rather than the max, so negative domains are capped too', () => {
+        // Given a domain running from -1 to 1, a span of 2 units
+        // When the tick count is capped
+        // Then it follows the span and ticks land on -1, 0 and 1
+        expect(getWholeNumberTickCount([-1, 1], 5)).toBe(2);
+    });
+});
+
 describe('getBarLayout', () => {
     it('keeps a 16px gap and fills the rest of the plot with bars', () => {
         // Given a 300px plot with 4 bars, wide enough for the full gap
@@ -828,7 +866,7 @@ describe('getPieChartLoadingHeight', () => {
 
         // Then it reserves one row per slice Home can show, under the donut and the stack gap, since most cards fill the cap
         const rowCount = CONST.SEARCH.TOP_SEARCH_LIMIT;
-        const legendHeight = rowCount * variables.fontSizeNormalHeight + (rowCount - 1) * VictoryTheme.pie.legendRowGap;
+        const legendHeight = rowCount * variables.lineHeightChartLabel + (rowCount - 1) * VictoryTheme.pie.legendRowGap;
         expect(height).toBe(CHART_CONTENT_MIN_HEIGHT + VictoryTheme.pie.legendStackGap + legendHeight);
     });
 

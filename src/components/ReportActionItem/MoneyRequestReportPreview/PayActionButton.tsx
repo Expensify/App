@@ -5,6 +5,7 @@ import type {PaymentActionParams} from '@components/SettlementButton/types';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useHoldMenuModal from '@hooks/useHoldMenuModal';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -15,6 +16,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
+import getHoldMenuAmounts from '@libs/HoldMenuUtils';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
@@ -25,9 +27,11 @@ import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React from 'react';
+import Onyx from 'react-native-onyx';
 
 import {useReportPreviewActions, useReportPreviewActionState, useReportPreviewAnimationState, useReportPreviewData, useReportPreviewUIState} from './MoneyRequestReportPreviewContext';
 import useReportPreviewActionButtonData from './useReportPreviewActionButtonData';
@@ -47,23 +51,16 @@ function PayActionButton() {
 
     const {iouReportID, chatReportID, chatReport, transactions} = useReportPreviewData();
     const {isPaidAnimationRunning, isApprovedAnimationRunning} = useReportPreviewAnimationState();
-    const {stopAnimation, startAnimation, onPaymentOptionsShow, onPaymentOptionsHide, onHoldMenuOpen} = useReportPreviewActions();
+    const {stopAnimation, startAnimation, onPaymentOptionsShow, onPaymentOptionsHide} = useReportPreviewActions();
+    const {showHoldMenu} = useHoldMenuModal();
     const {buttonMaxWidth} = useReportPreviewUIState();
     const {reportPreviewAction, canIOUBePaid, onlyShowPayElsewhere, shouldShowPayButton} = useReportPreviewActionState();
 
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const activePolicy = usePolicy(activePolicyID);
     const actionButtonData = useReportPreviewActionButtonData(iouReportID);
     const {iouReport, policy, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd} = actionButtonData;
     const chatReportPolicy = usePolicy(chatReport?.policyID);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-
-    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const getChatReportActions = usePayChatReportActions(chatReport, existingB2BInvoiceReport);
@@ -74,16 +71,44 @@ function PayActionButton() {
 
     const formattedAmount = getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction, transactions, convertToDisplayString);
 
-    const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
+    // Only the pay flow opens this menu. Approve surfaces its partial/full choice in the approve dropdown instead.
+    const openHoldMenu = (paymentType: PaymentMethodType, methodID?: number) => {
+        if (!iouReport) {
+            return;
+        }
+        // Wait one frame so the current touch animation finishes before the modal opens
+        requestAnimationFrame(() => {
+            showHoldMenu({
+                reportID: iouReportID,
+                chatReportID,
+                paymentType,
+                methodID,
+                ...getHoldMenuAmounts(iouReport, shouldShowPayButton, transactions, convertToDisplayString),
+                onConfirm: startAnimation,
+            });
+        });
+    };
+
+    const runPayment = async ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
         if (!type) {
             return;
         }
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
         } else if (hasHeldExpensesReportUtils(transactions)) {
-            onHoldMenuOpen(type, shouldShowPayButton, methodID);
+            openHoldMenu(type, methodID);
         } else if (chatReport && iouReport) {
-            const currentChatReport = getReportOrDraftReport(chatReportID) ?? chatReport;
+            const [conciergeReportID, introSelected, onboarding, rules, bankAccountList] = await Onyx.multiGet([
+                ONYXKEYS.CONCIERGE_REPORT_ID,
+                ONYXKEYS.NVP_INTRO_SELECTED,
+                ONYXKEYS.NVP_ONBOARDING,
+                ONYXKEYS.COLLECTION.RULE,
+                ONYXKEYS.BANK_ACCOUNT_LIST,
+            ]);
+            const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+            const isSelfTourViewed = hasSeenTourSelector(onboarding);
+            const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
+            const currentChatReport = getReportOrDraftReport({reportID: chatReportID}) ?? chatReport;
             if (isInvoiceReportUtils(iouReport)) {
                 startAnimation();
                 payInvoice({
@@ -157,7 +182,7 @@ function PayActionButton() {
             iouReport={iouReport}
             currency={iouReport?.currency}
             wrapperStyle={buttonMaxWidth}
-            onPress={confirmPayment}
+            onPress={runPayment}
             onPaymentOptionsShow={onPaymentOptionsShow}
             onPaymentOptionsHide={onPaymentOptionsHide}
             formattedAmount={formattedAmount}

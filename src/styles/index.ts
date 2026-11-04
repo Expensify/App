@@ -5,6 +5,7 @@ import {animatedReceiptPaneRHPWidth, animatedWideRHPWidth} from '@components/Wid
 
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
+import RHP_FLOATING_CARD_INSET from '@libs/Navigation/helpers/rhpFloatingCardInset';
 import {getSingleRHPWidthStyleValue} from '@libs/Navigation/helpers/singleRHPWidth';
 
 import CONST from '@src/CONST';
@@ -437,6 +438,12 @@ const staticStyles = (theme: ThemeColors) =>
 
         navigationTabBarLabel: {
             lineHeight: 14,
+        },
+
+        navigationTabBarLabelBoldPlaceholder: {
+            ...visibility.hidden,
+            height: 0,
+            overflow: 'hidden',
         },
 
         link: link(theme),
@@ -2126,6 +2133,15 @@ const staticStyles = (theme: ThemeColors) =>
             marginTop: 8,
             justifyContent: 'center',
             alignItems: 'flex-start',
+        },
+
+        onboardingStickyHeaderContainer: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1,
+            backgroundColor: theme.componentBG,
         },
 
         createMenuContainer: {
@@ -7140,8 +7156,12 @@ const staticStyles = (theme: ThemeColors) =>
         },
         pieChartLegendDot: {
             borderRadius: '50%',
-            width: 12,
-            height: 12,
+            width: 8,
+            height: 8,
+        },
+        pieChartLegendLabel: {
+            fontSize: variables.iconSizeExtraSmall,
+            lineHeight: variables.lineHeightChartLabel,
         },
         // `getPieChartLoadingHeight` sizes the loading chart from the responsive legend styles below, so update it with them.
         pieChartResponsiveRow: {
@@ -7155,7 +7175,8 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
         pieChartLegendSide: {
-            width: VictoryTheme.pie.legendMinWidth,
+            minWidth: VictoryTheme.pie.legendMinWidth,
+            flexShrink: 1,
             justifyContent: 'center',
             rowGap: VictoryTheme.pie.legendRowGap,
         },
@@ -7170,7 +7191,7 @@ const staticStyles = (theme: ThemeColors) =>
             columnGap: 8,
         },
         pieChartLegendDotColumn: {
-            height: variables.lineHeightXLarge,
+            height: variables.lineHeightChartLabel,
             justifyContent: 'center',
         },
         chartInlineTable: {
@@ -7217,7 +7238,7 @@ const dynamicStyles = (theme: ThemeColors) =>
                 top: variables.rhpFloatingCardMargin,
                 bottom: variables.rhpFloatingCardMargin,
                 width: CONST.RHP_RESIZE.HANDLE_HIT_WIDTH,
-                right: getSingleRHPWidthStyleValue(singleRHPWidth, variables.rhpFloatingCardMargin + 2 * variables.rhpFloatingCardBorderWidth - CONST.RHP_RESIZE.HANDLE_HIT_WIDTH / 2),
+                right: getSingleRHPWidthStyleValue(singleRHPWidth, RHP_FLOATING_CARD_INSET - CONST.RHP_RESIZE.HANDLE_HIT_WIDTH / 2),
             }) satisfies ViewStyle,
 
         // Floats the offline indicator above a footer laid over the bottom of a tab root screen, without shrinking the
@@ -8001,6 +8022,10 @@ const plainStyles = (theme: ThemeColors) =>
             ({
                 gap: shouldUseNarrowLayout ? layoutSpacing.cardGap.narrow : layoutSpacing.cardGap.wide,
             }) satisfies ViewStyle,
+
+        insightsAICardText: {
+            width: variables.insightsAICardTextWidth,
+        } satisfies TextStyle,
 
         insightsEmptyStateIllustration: {
             width: variables.insightsEmptyStateIllustrationSize,

@@ -41,4 +41,4 @@ function useThemeStylesActions() {
 }
 
 export default ThemeStylesProvider;
-export {useThemeStylesState, useThemeStylesActions};
+export {useThemeStylesState, useThemeStylesActions, ThemeStylesStateContext, ThemeStylesActionsContext};
