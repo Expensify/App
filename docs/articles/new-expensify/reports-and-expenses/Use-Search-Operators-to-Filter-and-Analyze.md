@@ -71,7 +71,7 @@ You can use the following operators to filter expenses:
 | `category:` | Filter by expense category label | `category:"Travel"` |
 | `tag:` | Filter by one or multiple tags | `tag:"Client A"` |
 | `vendor:` | Filter by the vendor assigned to an expense. Available only when one of your workspaces uses vendor matching. | `vendor:"Starbucks"` |
-| `amount:` / `purchase-amount:` | Filter by amount using `=`, `>`, `<`, `>=`, or `<=` | `amount:>100` |
+| `amount:` / `purchase-amount:` | Filter by amount using `=`, `>`, `<`, `>=`, or `<=`. To compare amounts in a specific currency, include the currency code with the amount in quotes. | `amount>"100 USD"` |
 | `status:` | Filter by expense status (`unreported`, `draft`, `outstanding`, `approved`, `paid`, `done`) | `status:approved` |
 | `date:` | Filter by expense date using relative dates or comparison operators for a date range | `date:this-month` |
 | `has:` | Filter by expenses with an `attachment`, `receipt`, `category`, `tag`, or `submitted-violation` | `has:receipt` |
