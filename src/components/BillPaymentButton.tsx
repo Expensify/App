@@ -6,9 +6,11 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import payBill from '@libs/actions/BillPay';
+import {clearBillPaymentError, payBill} from '@libs/actions/BillPay';
 import Navigation from '@libs/Navigation/Navigation';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
+import {getReimbursableTotal} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,6 +21,9 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
+import Onyx from 'react-native-onyx';
+
+import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from './DelegateNoAccessModalProvider';
@@ -29,7 +34,6 @@ type BillPaymentButtonProps = {
     /** The bill to pay */
     report: OnyxEntry<Report>;
 
-    /** Whether the button is disabled */
     isDisabled?: boolean;
 };
 
@@ -63,7 +67,7 @@ function BillPaymentButton({report, isDisabled = false}: BillPaymentButtonProps)
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
-    const pay = (paymentMethod: PaymentMethodType, bankAccountID?: number) => {
+    const pay = async (paymentMethod: PaymentMethodType, bankAccountID?: number) => {
         if (isAccountLocked) {
             showLockedAccountModal();
             return;
@@ -72,6 +76,7 @@ function BillPaymentButton({report, isDisabled = false}: BillPaymentButtonProps)
             showDelegateNoAccessModal();
             return;
         }
+        const [introSelected, rules] = await Onyx.multiGet([ONYXKEYS.NVP_INTRO_SELECTED, ONYXKEYS.COLLECTION.RULE]);
         payBill({
             report,
             paymentMethodType: paymentMethod,
@@ -79,42 +84,65 @@ function BillPaymentButton({report, isDisabled = false}: BillPaymentButtonProps)
             accountNumber: bankAccountID ? payableBankAccounts?.[bankAccountID]?.accountData?.accountNumber : undefined,
             getCurrencyDecimals,
             delegateAccountID,
+            isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice),
+            rules,
         });
     };
-    const bankAccounts = formatPaymentMethods(payableBankAccounts ?? {}, {}, styles, translate);
 
-    // Each business bank account pays by ACH, shown like the business bank accounts on expense reports. Without one, the
-    // payer starts adding a business bank account to the bill's policy.
-    const businessBankAccountOptions =
-        bankAccounts.length > 0
-            ? bankAccounts.map((bank) => ({
-                  text: bank.title ?? '',
-                  description: bank.description,
-                  icon: typeof bank.icon === 'number' ? icons.Bank : bank.icon,
-                  additionalIconStyles: typeof bank.icon === 'number' ? undefined : bank.iconStyles,
-                  iconWidth: typeof bank.icon === 'number' ? undefined : bank.iconSize,
-                  iconHeight: typeof bank.icon === 'number' ? undefined : bank.iconSize,
-                  shouldIgnoreCompactStyle: true,
-                  value: `${bank.methodID}`,
-                  onSelected: () => pay(CONST.IOU.PAYMENT_TYPE.VBBA, bank.methodID),
-              }))
-            : [
-                  {
-                      text: translate('iou.settleBusiness'),
-                      value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-                      icon: icons.Bank,
-                      onSelected: () =>
-                          Navigation.navigate(report?.policyID ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: report.policyID}) : ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute()),
-                  },
-              ];
+    const markAsPaidOption: DropdownOption<string> = {
+        text: translate('billPay.markAsPaid'),
+        value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+        icon: icons.CheckCircle,
+        onSelected: () => pay(CONST.IOU.PAYMENT_TYPE.ELSEWHERE),
+    };
+
+    // ACH payments are only in USD, so bills in other currencies can only be marked as paid.
+    let options: Array<DropdownOption<string>> = [markAsPaidOption];
+    if (report?.currency === CONST.CURRENCY.USD) {
+        const bankAccounts = formatPaymentMethods(payableBankAccounts ?? {}, {}, styles, translate);
+
+        // Each business bank account pays by ACH, shown like the business bank accounts on expense reports. Without one,
+        // the payer starts adding a business bank account to the bill's policy.
+        const businessBankAccountOptions: Array<DropdownOption<string>> =
+            bankAccounts.length > 0
+                ? bankAccounts.map((bank) => ({
+                      text: bank.title ?? '',
+                      description: bank.description,
+                      icon: typeof bank.icon === 'number' ? icons.Bank : bank.icon,
+                      additionalIconStyles: typeof bank.icon === 'number' ? undefined : bank.iconStyles,
+                      iconWidth: typeof bank.icon === 'number' ? undefined : bank.iconSize,
+                      iconHeight: typeof bank.icon === 'number' ? undefined : bank.iconSize,
+                      shouldIgnoreCompactStyle: true,
+                      value: `${bank.methodID}`,
+                      onSelected: () => pay(CONST.IOU.PAYMENT_TYPE.VBBA, bank.methodID),
+                  }))
+                : [
+                      {
+                          text: translate('iou.settleBusiness'),
+                          value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                          icon: icons.Bank,
+                          onSelected: () =>
+                              Navigation.navigate(
+                                  report?.policyID ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: report.policyID}) : ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(),
+                              ),
+                      },
+                  ];
+        options = [...businessBankAccountOptions, markAsPaidOption];
+    }
 
     return (
         <OfflineWithFeedback
             errors={report?.errorFields?.reimbursed}
             pendingAction={report?.pendingFields?.reimbursed}
+            onClose={() => {
+                if (!report?.reportID) {
+                    return;
+                }
+                clearBillPaymentError(report.reportID);
+            }}
         >
             <ButtonWithDropdownMenu
-                customText={translate('iou.settlePayment', convertToDisplayString(Math.abs(report?.total ?? 0), report?.currency))}
+                customText={translate('iou.settlePayment', convertToDisplayString(Math.abs(getReimbursableTotal(report)), report?.currency))}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 isSplitButton={false}
                 shouldAlwaysShowDropdownMenu
@@ -123,16 +151,7 @@ function BillPaymentButton({report, isDisabled = false}: BillPaymentButtonProps)
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.PAY_BILL_BUTTON}
                 // shouldAlwaysShowDropdownMenu opens the menu on every press, so the button has no action of its own
                 onPress={() => {}}
-                options={[
-                    // ACH payments are only in USD, so bills in other currencies can only be marked as paid
-                    ...(report?.currency === CONST.CURRENCY.USD ? businessBankAccountOptions : []),
-                    {
-                        text: translate('billPay.markAsPaid'),
-                        value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-                        icon: icons.CheckCircle,
-                        onSelected: () => pay(CONST.IOU.PAYMENT_TYPE.ELSEWHERE),
-                    },
-                ]}
+                options={options}
             />
         </OfflineWithFeedback>
     );

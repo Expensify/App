@@ -7,15 +7,17 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import isBillReport from '@libs/isBillReport';
 import Log from '@libs/Log';
+import {buildOptimisticNextStep} from '@libs/NextStepUtils';
+import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction, getReimbursableTotal} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Report, Rule} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {OnyxData} from '@src/types/onyx/Request';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -37,9 +39,15 @@ type PayBillParams = {
 
     /** The copilot paying on behalf of the account, if any */
     delegateAccountID: number | undefined;
+
+    /** Whether the payer chose tracking expenses during onboarding, which changes the next step */
+    isTrackIntentUser: boolean | undefined;
+
+    /** The approval workflow rules, which the optimistic next step reads */
+    rules: OnyxCollection<Rule>;
 };
 
-function payBill({report, paymentMethodType, bankAccountID, accountNumber, getCurrencyDecimals, delegateAccountID}: PayBillParams) {
+function payBill({report, paymentMethodType, bankAccountID, accountNumber, getCurrencyDecimals, delegateAccountID, isTrackIntentUser, rules}: PayBillParams) {
     const isMarkedAsPaid = paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
     if (!report || !isBillReport(report) || (!isMarkedAsPaid && !bankAccountID)) {
         Log.warn('[BillPay] Not paying the bill, because the bill or the bank account for an ACH payment is missing', {reportID: report?.reportID, paymentMethodType});
@@ -69,6 +77,8 @@ function payBill({report, paymentMethodType, bankAccountID, accountNumber, getCu
         getCurrencyDecimals,
     });
 
+    const optimisticNextStep = buildOptimisticNextStep({report, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED, isTrackIntentUser, rules});
+
     const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}` as const;
     const actionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}` as const;
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
@@ -79,8 +89,13 @@ function payBill({report, paymentMethodType, bankAccountID, accountNumber, getCu
                 value: {
                     stateNum: isMarkedAsPaid ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.BILLING,
                     statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                    lastMessageText: getReportActionText(payAction),
+                    lastMessageHtml: getReportActionHtml(payAction),
+                    lastVisibleActionCreated: payAction.created,
+                    nextStep: optimisticNextStep,
                     pendingFields: {
                         reimbursed: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
                     errorFields: {reimbursed: null},
                 },
@@ -95,7 +110,7 @@ function payBill({report, paymentMethodType, bankAccountID, accountNumber, getCu
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: reportKey,
-                value: {pendingFields: {reimbursed: null}},
+                value: {pendingFields: {reimbursed: null, nextStep: null}},
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -110,7 +125,11 @@ function payBill({report, paymentMethodType, bankAccountID, accountNumber, getCu
                 value: {
                     stateNum: report.stateNum,
                     statusNum: report.statusNum,
-                    pendingFields: {reimbursed: null},
+                    lastMessageText: report.lastMessageText ?? null,
+                    lastMessageHtml: report.lastMessageHtml ?? null,
+                    lastVisibleActionCreated: report.lastVisibleActionCreated ?? null,
+                    nextStep: report.nextStep ?? null,
+                    pendingFields: {reimbursed: null, nextStep: null},
                     errorFields: {
                         reimbursed: getMicroSecondOnyxErrorWithTranslationKey('billPay.paymentFailed'),
                     },
@@ -140,5 +159,10 @@ function payBill({report, paymentMethodType, bankAccountID, accountNumber, getCu
     write(WRITE_COMMANDS.PAY_MONEY_REQUEST, params, onyxData);
 }
 
-export default payBill;
+/** Dismisses the error that a failed payment left on the bill's Pay button. */
+function clearBillPaymentError(reportID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {errorFields: {reimbursed: null}});
+}
+
+export {payBill, clearBillPaymentError};
 export type {PayBillParams};

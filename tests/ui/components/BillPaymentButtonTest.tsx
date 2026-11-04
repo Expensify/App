@@ -2,7 +2,9 @@ import {render} from '@testing-library/react-native';
 
 import BillPaymentButton from '@components/BillPaymentButton';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import type * as Localize from '@libs/Localize';
 
 import CONST from '@src/CONST';
@@ -11,9 +13,13 @@ import type {TranslationParameters, TranslationPaths} from '@src/languages/types
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Report} from '@src/types/onyx';
 
+import type {ReactNode} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+
 import Onyx from 'react-native-onyx';
 
 import createMock from '../../utils/createMock';
+import {getOnyxData} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 // The real English copy, so the test reads the option labels users see
@@ -21,6 +27,7 @@ const mockTranslate = <TPath extends TranslationPaths>(key: TPath, ...parameters
     jest.requireActual<typeof Localize>('@libs/Localize').translate(CONST.LOCALES.EN, key, ...parameters);
 
 jest.mock('@components/ButtonWithDropdownMenu', () => ({__esModule: true, default: jest.fn(() => null)}));
+jest.mock('@components/OfflineWithFeedback', () => ({__esModule: true, default: jest.fn(({children}: {children: ReactNode}) => children)}));
 jest.mock('@hooks/useLocalize', () => () => ({
     translate: (key: TranslationPaths, ...parameters: TranslationParameters<TranslationPaths>) => mockTranslate(key, ...parameters),
 }));
@@ -108,5 +115,38 @@ describe('BillPaymentButton', () => {
 
         // Then the bill can only be marked as paid, because PayMoneyRequest pays bills by ACH only in USD
         expect(texts).toEqual(['Mark as paid']);
+    });
+
+    it('shows the reimbursable total on the button', async () => {
+        // Given a USD bill whose reimbursable total differs from its total
+        const bill = createMock<Report>({...makeBill(CONST.CURRENCY.USD), reimbursableTotal: -10000});
+
+        // When the Pay button renders
+        const {customText} = await renderOptions(bill);
+
+        // Then it shows the amount that the payment sends
+        expect(customText).toBe('Pay USD 100.00');
+    });
+
+    it('dismisses the payment error when the payer closes it', async () => {
+        // Given a bill that a failed payment left with an error
+        const bill = createMock<Report>({...makeBill(CONST.CURRENCY.USD), errorFields: {reimbursed: getMicroSecondOnyxErrorWithTranslationKey('billPay.paymentFailed')}});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${bill.reportID}`, bill);
+        render(<BillPaymentButton report={bill} />);
+        await waitForBatchedUpdates();
+
+        // When the payer closes the error
+        jest.mocked(OfflineWithFeedback).mock.calls.at(-1)?.at(0)?.onClose?.();
+        await waitForBatchedUpdates();
+
+        // Then the bill no longer has the error
+        let storedBill: OnyxEntry<Report>;
+        await getOnyxData({
+            key: `${ONYXKEYS.COLLECTION.REPORT}${bill.reportID}`,
+            callback: (value) => {
+                storedBill = value;
+            },
+        });
+        expect(storedBill?.errorFields?.reimbursed).toBeUndefined();
     });
 });
