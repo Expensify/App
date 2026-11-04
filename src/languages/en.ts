@@ -12637,7 +12637,6 @@ const translations = {
             isUnreadWithMention: 'Is unread with mention',
             isWaitingForAssigneeToCompleteAction: 'Is waiting for assignee to complete action',
             hasChildReportAwaitingAction: 'Has child report awaiting action',
-            hasMissingInvoiceBankAccount: 'Has missing invoice bank account',
             hasUnresolvedCardFraudAlert: 'Has unresolved card fraud alert',
             hasDEWApproveFailed: 'Has DEW approve failed',
         },

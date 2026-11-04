@@ -12336,7 +12336,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             isUnreadWithMention: 'Ist ungelesen mit Erwähnung',
             isWaitingForAssigneeToCompleteAction: 'Wartet darauf, dass die zuständige Person die Aktion ausführt',
             hasChildReportAwaitingAction: 'Hat untergeordneten Bericht mit ausstehender Aktion',
-            hasMissingInvoiceBankAccount: 'Hat fehlendes Rechnungskonto für Banküberweisung',
             hasUnresolvedCardFraudAlert: 'Hat eine nicht gelöste Kartenbetrugswarnung',
             hasDEWApproveFailed: 'DEW-Genehmigung fehlgeschlagen',
         },
