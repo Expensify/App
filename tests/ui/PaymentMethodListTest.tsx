@@ -24,8 +24,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 TestHelper.setupGlobalFetchMock();
 
 jest.mock('@libs/Navigation/Navigation', () => ({
-    // Runs the callback right away, as if the screen had finished opening
-    navigate: jest.fn((_route: string, options?: {afterTransition?: () => void}) => options?.afterTransition?.()),
+    navigate: jest.fn(),
     getActiveRoute: jest.fn(() => ''),
     isNavigationReady: jest.fn(() => Promise.resolve()),
 }));
@@ -221,10 +220,11 @@ describe('PaymentMethodList', () => {
         await waitForBatchedUpdatesWithAct();
         fireEvent.press(screen.getByText('Continue.'), {preventDefault: jest.fn()});
 
-        // Then the row shows the setup is in progress, and Continue opens the intro and the onboarding on top of it, which takes the bank account from the intro
+        // Then the row shows the setup is in progress, and Continue opens the onboarding with the intro beneath it, which the onboarding takes the bank account from
         expect(screen.getByText('Global reimbursements setup in progress.', {exact: false})).toBeOnTheScreen();
-        expect(Navigation.navigate).toHaveBeenNthCalledWith(1, `settings/wallet/global-reimbursements/${WISE_BANK_ACCOUNT_ID}`, expect.anything());
-        expect(Navigation.navigate).toHaveBeenNthCalledWith(2, `settings/wallet/global-reimbursements/${WISE_BANK_ACCOUNT_ID}/business-onboarding`);
+        expect(Navigation.navigate).toHaveBeenCalledWith(`settings/wallet/global-reimbursements/${WISE_BANK_ACCOUNT_ID}/business-onboarding`, {
+            dynamicRouteBase: `settings/wallet/global-reimbursements/${WISE_BANK_ACCOUNT_ID}`,
+        });
     });
 
     it("sends the admin to Wise's form when Wise needs more info", async () => {
@@ -238,9 +238,10 @@ describe('PaymentMethodList', () => {
         await waitForBatchedUpdatesWithAct();
         fireEvent.press(screen.getByText('Continue.'), {preventDefault: jest.fn()});
 
-        // Then Continue opens the intro and the more info page on top of it, since Wise waits on the admin rather than the other way around
-        expect(Navigation.navigate).toHaveBeenNthCalledWith(1, `settings/wallet/global-reimbursements/${WISE_BANK_ACCOUNT_ID}`, expect.anything());
-        expect(Navigation.navigate).toHaveBeenNthCalledWith(2, `settings/wallet/global-reimbursements/${WISE_BANK_ACCOUNT_ID}/more-info-needed`);
+        // Then Continue opens the more info page with the intro beneath it, since Wise waits on the admin rather than the other way around
+        expect(Navigation.navigate).toHaveBeenCalledWith(`settings/wallet/global-reimbursements/${WISE_BANK_ACCOUNT_ID}/more-info-needed`, {
+            dynamicRouteBase: `settings/wallet/global-reimbursements/${WISE_BANK_ACCOUNT_ID}`,
+        });
     });
 
     it('shows a submitted Wise onboarding as in progress without Continue', async () => {

@@ -1,3 +1,4 @@
+import insertStateBelow from '@libs/Navigation/helpers/dynamicRoutesUtils/insertStateBelow';
 import getMatchingFullScreenRoute from '@libs/Navigation/helpers/getMatchingFullScreenRoute';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
@@ -180,7 +181,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
     }
 
-    const {forceReplace, shouldSkipInitialSplitNavigatorSidebar, skipMatchingFullScreenRoute} = {...defaultLinkToOptions, ...options};
+    const {forceReplace, shouldSkipInitialSplitNavigatorSidebar, skipMatchingFullScreenRoute, dynamicRouteBase} = {...defaultLinkToOptions, ...options};
 
     const normalizedPath = normalizePath(path);
     const normalizedPathAfterRedirection = getMatchingNewRoute(normalizedPath) ?? normalizedPath;
@@ -188,7 +189,9 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     // This is the state generated with the default getStateFromPath function.
     // It won't include the whole state that will be generated for this path but the focused route will be correct.
     // It is necessary because getActionFromState will generate RESET action for whole state generated with our custom getStateFromPath function.
-    const stateFromPath = getStateFromPath(normalizedPathAfterRedirection);
+    const stateFromPath = dynamicRouteBase
+        ? insertStateBelow(getStateFromPath(normalizedPathAfterRedirection), getStateFromPath(normalizePath(dynamicRouteBase)))
+        : getStateFromPath(normalizedPathAfterRedirection);
     const currentState = navigation.getRootState();
 
     const focusedRouteFromPath = findFocusedRoute(stateFromPath);

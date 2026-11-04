@@ -7,9 +7,8 @@ import type {Route} from '@src/ROUTES';
 import type {BankAccount} from '@src/types/onyx';
 import type {BankAccountAdditionalData} from '@src/types/onyx/BankAccount';
 
-// Runs the callback right away, as if the intro had finished opening
 jest.mock('@libs/Navigation/Navigation', () => ({
-    navigate: jest.fn((_route: string, options?: {afterTransition?: () => void}) => options?.afterTransition?.()),
+    navigate: jest.fn(),
 }));
 
 const INTRO_ROUTE = 'r/123/global-reimbursements/456' as Route;
@@ -47,10 +46,10 @@ describe('navigateToWiseGlobalReimbursements', () => {
         // When an entry point opens global reimbursements over a report
         navigateToWiseGlobalReimbursements(INTRO_ROUTE, DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute(), {skipMatchingFullScreenRoute: true});
 
-        // Then the intro opens first, since the page on top takes its bank account and back path from the intro, and once it is open the onboarding
-        // opens without a page, so it reopens on the first one left unanswered
-        expect(Navigation.navigate).toHaveBeenNthCalledWith(1, INTRO_ROUTE, expect.objectContaining({skipMatchingFullScreenRoute: true}));
-        expect(Navigation.navigate).toHaveBeenNthCalledWith(2, 'r/123/global-reimbursements/456/business-onboarding');
+        // Then the onboarding opens without a page, so it reopens on the first one left unanswered, in the same navigation as the intro beneath it,
+        // since the onboarding takes its bank account and back path from the intro and the intro must not show first
+        expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+        expect(Navigation.navigate).toHaveBeenCalledWith('r/123/global-reimbursements/456/business-onboarding', {skipMatchingFullScreenRoute: true, dynamicRouteBase: INTRO_ROUTE});
     });
 });
 

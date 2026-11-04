@@ -20,9 +20,8 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
-// Runs the callback right away, as if the intro had finished opening
 jest.mock('@libs/Navigation/Navigation', () => ({
-    navigate: jest.fn((_route: string, options?: {afterTransition?: () => void}) => options?.afterTransition?.()),
+    navigate: jest.fn(),
     getActiveRoute: jest.fn(() => 'r/123'),
 }));
 
@@ -93,12 +92,13 @@ describe('EnableGlobalReimbursementsPayModal', () => {
         // When paying a report from that account is blocked
         await blockPay({bankAccount: createBusinessBankAccount(globalReimbursementProvider, wise)});
 
-        // Then the intro opens over the report, with the page that picks up the onboarding on top of it only when the admin has something to do
-        expect(Navigation.navigate).toHaveBeenNthCalledWith(1, INTRO_ROUTE, expect.objectContaining({skipMatchingFullScreenRoute: true}));
+        // Then the intro opens over the report, or the page that picks up the onboarding with the intro beneath it when the admin has something to do
+        expect(Navigation.navigate).toHaveBeenCalledTimes(1);
         if (pageToContinue) {
-            expect(Navigation.navigate).toHaveBeenNthCalledWith(2, `${INTRO_ROUTE}/${pageToContinue}`);
+            expect(Navigation.navigate).toHaveBeenCalledWith(`${INTRO_ROUTE}/${pageToContinue}`, expect.objectContaining({skipMatchingFullScreenRoute: true, dynamicRouteBase: INTRO_ROUTE}));
+        } else {
+            expect(Navigation.navigate).toHaveBeenCalledWith(INTRO_ROUTE, expect.objectContaining({skipMatchingFullScreenRoute: true}));
         }
-        expect(Navigation.navigate).toHaveBeenCalledTimes(pageToContinue ? 2 : 1);
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
     });
 

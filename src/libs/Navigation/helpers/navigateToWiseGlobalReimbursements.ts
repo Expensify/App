@@ -26,15 +26,15 @@ function getWiseOnboardingPageToContinue(bankAccount: OnyxEntry<BankAccount>): s
 }
 
 /**
- * Opens the Wise intro and, for an onboarding the admin can continue, the page that picks it up on top of it.
- * One navigation to the stacked route would put only the top page on the stack, and that page takes its bank account and back path from the intro.
+ * Opens the Wise intro or, for an onboarding the admin can continue, the page that picks it up with the intro beneath it, since that page takes
+ * its bank account and back path from the intro. Both open in one navigation, so the intro does not show first.
  */
 function navigateToWiseGlobalReimbursements(introRoute: Route, pageToContinue: string | undefined, options?: LinkToOptions) {
     if (!pageToContinue) {
         Navigation.navigate(introRoute, options);
         return;
     }
-    Navigation.navigate(introRoute, {...options, afterTransition: () => Navigation.navigate(createDynamicRoute(pageToContinue, introRoute))});
+    Navigation.navigate(createDynamicRoute(pageToContinue, introRoute), {...options, dynamicRouteBase: introRoute});
 }
 
 export default navigateToWiseGlobalReimbursements;

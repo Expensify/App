@@ -62,7 +62,8 @@ function getMinimalAction(action: NavigationAction, state: NavigationState): Min
             return {action: currentAction, targetState: currentState, isFocusedRouteInDifferentScope: true};
         }
 
-        if (!currentRoute.state) {
+        // An action carrying the whole nested state, rather than one screen in it, is applied by the navigator that owns the route.
+        if (!currentRoute.state || (isRecord(currentAction.payload.params) && isRecord(currentAction.payload.params.state))) {
             break;
         }
 
