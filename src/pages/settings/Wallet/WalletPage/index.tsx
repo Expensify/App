@@ -38,7 +38,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isBankAccountEligibleForGlobalReimbursements, isPersonalBankAccountMissingInfo, isWiseOnboardingSubmitted, showUnlockAlreadyRequestedModal} from '@libs/BankAccountUtils';
+import {isBankAccountEligibleForGlobalReimbursements, isPersonalBankAccountMissingInfo, showUnlockAlreadyRequestedModal} from '@libs/BankAccountUtils';
 import {hasDisplayableAssignedCards, isDirectFeed, maskCardNumber} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -532,15 +532,9 @@ function WalletPage() {
                               return;
                           }
                           if (isWiseGlobalReimbursementsEnabled) {
-                              closeModal(() => {
-                                  const introRoute = createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID));
-                                  // A submitted business sees where its onboarding stands, on the status page on top of the intro
-                                  Navigation.navigate(
-                                      isWiseOnboardingSubmitted(paymentMethod.selectedPaymentMethod)
-                                          ? createDynamicRoute(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path, introRoute)
-                                          : introRoute,
-                                  );
-                              });
+                              closeModal(() =>
+                                  Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID))),
+                              );
                               return;
                           }
                           closeModal(() =>
