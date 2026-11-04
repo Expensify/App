@@ -51,7 +51,7 @@ describe('WiseGlobalReimbursementsIntroPage', () => {
         await Onyx.clear();
     });
 
-    it('opens the more info needed page on Get started when the business was already sent to Wise', async () => {
+    it('opens the status page on Get started when the business was already sent to Wise', async () => {
         // Given an eligible business account that Wise already has a status for, as when the user left Wise's form and came back
         const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
         await setUpEligibleBankAccount({wise: {status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED}});
@@ -73,8 +73,8 @@ describe('WiseGlobalReimbursementsIntroPage', () => {
         // When the user presses Get started
         fireEvent.press(screen.getByTestId(GET_STARTED_BUTTON_TEST_ID));
 
-        // Then Wise's form is offered again instead of the onboarding, whose terms would have nothing left to submit
-        expect(navigateSpy).toHaveBeenCalledWith(DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path);
+        // Then the status page offers Wise's form again instead of the onboarding, whose terms would have nothing left to submit
+        expect(navigateSpy).toHaveBeenCalledWith(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path);
         navigateSpy.mockRestore();
     });
 });

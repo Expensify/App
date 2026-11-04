@@ -98,9 +98,9 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
                                 // Starting onboarding for any account retires both banners for good
                                 dismissProductTraining(CONST.WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER);
                                 dismissProductTraining(CONST.WISE_GLOBAL_REIMBURSEMENTS_WORKSPACE_BANNER);
-                                // A submitted business only has Wise's form left, so the onboarding would end on the terms with nothing to submit
+                                // A submitted business has nothing left to submit, so it sees where its onboarding stands instead of ending on the terms
                                 const nextRoute = isWiseOnboardingSubmitted(bankAccount?.accountData)
-                                    ? DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path
+                                    ? DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path
                                     : DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute();
                                 Navigation.navigate(createDynamicRoute(nextRoute));
                             }}
