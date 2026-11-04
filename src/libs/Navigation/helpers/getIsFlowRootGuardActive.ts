@@ -1,4 +1,4 @@
-/** The part of a navigation object the flow root gate reads. `useNavigation()` may have no state yet, so `getState` can return undefined. */
+/** The navigation methods this file uses. `getState` can return undefined before the navigator has any state. */
 type FlowRootGuardNavigation = {
     getState: () => Readonly<{type: string; key: string; index: number; routes: ReadonlyArray<{key: string}>}> | undefined;
     getParent: () => FlowRootGuardNavigation | undefined;
@@ -6,7 +6,8 @@ type FlowRootGuardNavigation = {
 };
 
 /**
- * Returns the navigator that hosts the flow root: the root's own stack, or the stack above it when the root is a tab of a tab navigator.
+ * Returns the stack the flow's first screen is in. When that screen is a tab, such as the Scan tab of the start page, it's the
+ * stack that holds the tabs.
  */
 function getFlowRootHost(navigation: FlowRootGuardNavigation): FlowRootGuardNavigation {
     if (navigation.getState()?.type !== 'tab') {
@@ -16,9 +17,10 @@ function getFlowRootHost(navigation: FlowRootGuardNavigation): FlowRootGuardNavi
 }
 
 /**
- * Whether a flow-root discard guard should react to its route being removed. Unlike the default focus gate, later steps of the flow
- * may be stacked on top of the root, but the flow itself (the navigator hosting the root) must be the visible one.
- * Hidden sibling tabs never react: closing the flow fires `beforeRemove` on every mounted tab.
+ * Whether the flow's first screen should prompt when it's about to be removed. Other screens prompt only when the user is
+ * looking at them, but this one also prompts while the flow's other steps are open on top of it. It still doesn't prompt when:
+ * - it's a tab that isn't selected. Closing the RHP removes every tab, and only the selected one should prompt.
+ * - its flow isn't the one on screen.
  */
 function getIsFlowRootGuardActive(navigation: FlowRootGuardNavigation, routeKey: string): boolean {
     const ownState = navigation.getState();
@@ -29,7 +31,7 @@ function getIsFlowRootGuardActive(navigation: FlowRootGuardNavigation, routeKey:
     return getFlowRootHost(navigation).getParent()?.isFocused() ?? true;
 }
 
-/** The key of the stack that hosts the flow root, so in-flow REPLACEs targeting it can be told apart. */
+/** The key of the stack the flow's first screen is in, to tell whether a REPLACE stays inside the flow. */
 function getFlowRootStackKey(navigation: FlowRootGuardNavigation): string | undefined {
     return getFlowRootHost(navigation).getState()?.key;
 }

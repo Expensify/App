@@ -5,10 +5,12 @@ import type {NavigationAction} from '@react-navigation/native';
 const BACK_ACTION_TYPES = new Set<string>(['GO_BACK', 'POP', 'POP_TO_TOP']);
 
 /**
- * A blocked navigation is replayed through the container, which hands an action without a target to the deepest focused navigator.
- * The RHP overlay sends its GO_BACK without a target from the root-level RHP route, where the root navigator handled it and closed
- * the whole RHP. Replayed through the container, it would only pop the top screen of the inner stack and leave the RHP open.
- * Targeting the root restores the original handling. The spread keeps react-navigation's visited-routes marker.
+ * Makes Discard close the whole RHP when the user clicked outside it.
+ *
+ * Clicking outside the RHP sends a "go back" with no target, which the top-level navigator handles by closing the RHP. After the
+ * user picks Discard, that action is sent again, but this time react-navigation hands it to the innermost navigator, which only
+ * closes the top screen and leaves the RHP open. Targeting the top-level navigator makes it close the RHP, like the original click.
+ * Other actions are returned unchanged. The copy keeps react-navigation's hidden marker that stops the same screen from blocking it again.
  */
 function getNavigationActionForReplay(action: NavigationAction): NavigationAction {
     if (action.target || !action.source || !BACK_ACTION_TYPES.has(action.type)) {

@@ -20,7 +20,7 @@ function getTransactionIDFromRouteParams(params: unknown): string | undefined {
         return params.transactionID;
     }
 
-    // `getActionFromState()` nests a child screen's route params under `params.params` in a RESET payload.
+    // In a RESET, the params of a nested screen are under `params.params`, so look there too.
     return getTransactionIDFromRouteParams(params.params);
 }
 
@@ -35,10 +35,11 @@ function stateContainsRoute(state: PartialState<NavigationState>, routeToMatch: 
 }
 
 /**
- * Whether a navigation that removes the root screen of a flow still keeps the user in that flow, so a flow-root discard guard must let it through.
- * - Browser back/forward after a refresh restores the state with a RESET whose regenerated keys make every route look removed, even when the
- *   restored state still holds the flow root.
- * - `Navigation.goBack(route)` falls back to a REPLACE inside the flow's own stack when the target route isn't in it yet.
+ * Whether a navigation that removes the flow's first screen still keeps the user in the flow, so it shouldn't prompt:
+ * - Browser back or forward after a page refresh rebuilds the whole navigation state (RESET) with new keys, so every screen looks
+ *   removed, even those that stay. If the new state still has the flow's first screen for the same expense, the user is still in the flow.
+ * - `Navigation.goBack(route)` replaces the current screen (REPLACE) when the route it goes back to isn't in the stack yet. Inside the
+ *   flow's own stack, the user is still in the flow. For example, the header back on the confirmation of a dropped receipt opens the start page.
  */
 function isInFlowNavigationForRoot(action: NavigationAction, route: RouteToMatch, ownStackKey: string | undefined): boolean {
     if (action.type === 'REPLACE') {

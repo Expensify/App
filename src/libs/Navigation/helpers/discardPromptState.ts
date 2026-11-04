@@ -1,9 +1,14 @@
 import CONST from '@src/CONST';
 
 /**
- * Shared state for the "Discard changes?" guards of a multi-step flow. A flow-root guard keeps prompting while later steps are
- * stacked on top of it, so an intentional exit from one of those steps (a submit) can't reach the root's own `suppressDiscardPrompt`.
- * It suppresses here instead. The safety timeout keeps a submit that aborts without leaving from muting the root for good.
+ * State shared by all the "Discard changes?" prompts.
+ *
+ * Muting: the first screen of a flow keeps prompting while later steps are open on top of it. When a later step closes the flow
+ * on purpose, such as after a submit, it can't reach that screen's own `suppressDiscardPrompt`, so it mutes the prompt here instead.
+ * If the submit fails and the flow stays open, the caller turns the prompt back on. The timeout is a fallback, so a mute can't last forever.
+ *
+ * Replaying: after the user picks Discard, the blocked navigation is sent again. Other prompts it reaches check
+ * `isReplayingDiscardedNavigation`, so the user isn't asked twice.
  */
 const SUPPRESSION_SAFETY_TIMEOUT_MS = CONST.MAX_TRANSITION_DURATION_MS * 5;
 
@@ -17,7 +22,7 @@ function releaseFlowDiscardPromptSuppression() {
     suppressionTimeoutID = undefined;
 }
 
-/** Mutes every flow-root discard guard for an intentional flow exit, such as a submit that dismisses the RHP. */
+/** Mutes the prompt of every flow's first screen, for code that closes the flow on purpose, such as a submit. */
 function suppressFlowDiscardPrompt() {
     isSuppressed = true;
     clearTimeout(suppressionTimeoutID);
@@ -28,7 +33,7 @@ function isFlowDiscardPromptSuppressed() {
     return isSuppressed;
 }
 
-/** Runs the replay of a navigation the user already confirmed to discard, so the other guards it reaches don't prompt again. */
+/** Sends again a navigation the user already picked Discard for. Other prompts it reaches don't ask again. */
 function runWhileReplayingDiscardedNavigation(replay: () => void) {
     replayDepth += 1;
     try {
