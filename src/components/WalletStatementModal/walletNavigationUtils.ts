@@ -21,6 +21,7 @@ function handleWalletStatementNavigation(
     isSelfTourViewed: boolean | undefined,
     hasCompletedGuidedSetupFlow: boolean | undefined,
     conciergePersonalDetails: OnyxEntry<PersonalDetailsList>,
+    delegateAccountID: number | undefined,
     type?: string,
     url?: string,
 ): void {
@@ -36,6 +37,7 @@ function handleWalletStatementNavigation(
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
             conciergePersonalDetails,
+            delegateAccountID,
         });
         return;
     }
