@@ -1439,6 +1439,8 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.GROUP_CURRENCY ||
                     filterKey === FILTER_KEYS.WITHDRAWAL_TYPE ||
                     filterKey === FILTER_KEYS.TRANSACTION_STATUS ||
+                    filterKey === FILTER_KEYS.INVOICE_NUMBER ||
+                    filterKey === FILTER_KEYS.PO_NUMBER ||
                     filterKey === FILTER_KEYS.ACTION) &&
                 filterValue
             ) {
@@ -1451,10 +1453,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}${operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO]}${sanitizeSearchValue(value)}`;
                 }
             }
-            if (
-                (filterKey === FILTER_KEYS.REPORT_ID || filterKey === FILTER_KEYS.WITHDRAWAL_ID || filterKey === FILTER_KEYS.INVOICE_NUMBER || filterKey === FILTER_KEYS.PO_NUMBER) &&
-                filterValue
-            ) {
+            if ((filterKey === FILTER_KEYS.REPORT_ID || filterKey === FILTER_KEYS.WITHDRAWAL_ID) && filterValue) {
                 const reportIDs = (filterValue as string)
                     .split(',')
                     .map((id) => sanitizeSearchValue(id.trim()))
