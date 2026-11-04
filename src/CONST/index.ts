@@ -832,7 +832,9 @@ const CONST = {
         LONG_DATE_FORMAT_WITH_WEEKDAY: 'eeee, MMMM d, yyyy',
         LONG_DATE_FORMAT_WITH_WEEKDAY_WITHOUT_YEAR: 'eeee, MMMM d',
         ORDINAL_DAY_OF_MONTH: 'do',
-        MONTH_DAY_YEAR_ORDINAL_FORMAT: 'MMMM do, yyyy',
+        // `PPP` is date-fns' long localized date. In en-US it already carries the ordinal day this constant is named
+        // for, so English output is unchanged, while other languages stop being forced into the US component order.
+        MONTH_DAY_YEAR_ORDINAL_FORMAT: 'PPP',
         SECONDS_PER_DAY: 24 * 60 * 60,
         MONTH_DAYS,
     },
