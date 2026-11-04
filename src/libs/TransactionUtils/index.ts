@@ -251,8 +251,8 @@ function hasAnyManuallyEnteredScanField(transaction: OnyxEntry<ManuallyEnteredSc
 
 /**
  * Whether the user started filling the three fields in but stopped short, which blocks confirmation.
- * `canEnterScanFieldsManually` says whether the surface offers those fields at all, since splits, moved tracked
- * expenses and test receipts carry the same flags without ever having shown them.
+ * `canEnterScanFieldsManually` says whether the surface offers those fields at all, since moved tracked expenses
+ * and test receipts carry the same flags without ever having shown them.
  */
 function isPartiallyEnteredScanExpense(transaction: OnyxEntry<ManuallyEnteredScanFields>, canEnterScanFieldsManually = false, isMerchantRequired = true): boolean {
     return canEnterScanFieldsManually && hasAnyManuallyEnteredScanField(transaction) && !hasAllManuallyEnteredScanFields(transaction, isMerchantRequired);
@@ -760,18 +760,16 @@ function getReportOwnerAsAttendee(creatorDetails: OnyxEntry<PersonalDetails>): A
 }
 
 /**
- * Return report owner as default attendee
+ * Return report owner as default attendee. `reportOwnerAccountID` is the owner of the report the transaction is on,
+ * which the caller reads so it is told when that report lands.
  */
-function getReportOwnerAccountIDAsAttendee(transaction: OnyxInputOrEntry<Transaction>, currentUserAccountID: number | undefined) {
+function getReportOwnerAccountIDAsAttendee(transaction: OnyxInputOrEntry<Transaction>, currentUserAccountID: number | undefined, reportOwnerAccountID: number | undefined) {
     if (transaction?.reportID === undefined) {
         return;
     }
 
-    // Get the creator of the transaction by looking at the owner of the report linked to the transaction
-    const report = getReportOrDraftReport(transaction?.reportID);
     // For unreported expenses, the creator ID should belong to the current user because the transaction isn’t part of any report yet
-    const creatorAccountID = isExpenseUnreported(transaction) ? currentUserAccountID : report?.ownerAccountID;
-    return creatorAccountID;
+    return isExpenseUnreported(transaction) ? currentUserAccountID : reportOwnerAccountID;
 }
 
 /**
@@ -1459,7 +1457,7 @@ function getAllSortedTransactions(iouReportID?: string): Array<OnyxEntry<Transac
 function isExpenseSplit(transaction: OnyxEntry<Transaction>, originalTransaction?: OnyxEntry<Transaction>): boolean {
     const isAddedToReport = !!transaction?.reportID && transaction.reportID !== CONST.REPORT.SPLIT_REPORT_ID && transaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
     if (isAddedToReport) {
-        const report = getReportOrDraftReport(transaction.reportID);
+        const report = getReportOrDraftReport({reportID: transaction.reportID});
         if (report && report.type !== CONST.REPORT.TYPE.EXPENSE) {
             return false;
         }

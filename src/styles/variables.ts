@@ -169,6 +169,7 @@ export default {
     conciergeAskColumnMaxWidth: 720,
     centeredContentMaxWidth: 1200,
     insightsEmptyStateIllustrationSize: 136,
+    insightsAICardTextWidth: 250,
     minScanTooltipWidth: 320,
     chartTooltipMinWidth: 200,
     uploadViewMargin: 20,
@@ -228,6 +229,7 @@ export default {
     // otherwise Android clamps the descent and clips descenders and underlines at small device font scales.
     lineHeightXSmall: Math.max(getValueUsingPixelRatio(11, 17), 11),
     lineHeightFinePrint: 12,
+    lineHeightChartLabel: 14,
     lineHeightSmall: getValueUsingPixelRatio(14, 16),
     lineHeightNormal: getValueUsingPixelRatio(16, 21),
     lineHeightLarge: getValueUsingPixelRatio(18, 24),
@@ -612,7 +614,6 @@ export default {
     searchTableColumnGap: 12,
     // The margin and padding each row sits inside on both sides, from `mh5` on its wrapper and `ph3` on the row.
     searchTableRowChromeWidth: (20 + 12) * 2,
-    searchTableRowCheckboxWidth: 24,
     // What the status badge spends around its label, from `condensedBadge`'s horizontal padding and `defaultBadge`'s border.
     statusBadgeChromeWidth: 6 * 2 + 1 * 2,
     // Padding on every side of an editable cell. The edit button sits at this same inset.
