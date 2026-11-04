@@ -1,9 +1,9 @@
 # `@legendapp/list` patches
 
-### [@legendapp+list+3.7.1+001+apply-pending-anchor-correction-on-scroll.patch](@legendapp+list+3.7.1+001+apply-pending-anchor-correction-on-scroll.patch)
+### [@legendapp+list+3.7.1+001+apply-pending-anchor-correction.patch](@legendapp+list+3.7.1+001+apply-pending-anchor-correction.patch)
 
-- Reason: On web, the visible messages jump when older messages load. LegendList moves the scroll offset by the estimated height of the new rows. When those rows are measured, it defers the matching correction to the next frame. The scroll event from the first adjustment then repositions the rows with their measured heights but without that correction, so the visible messages jump by the estimate error for one frame and only partly return. When a deferred correction is pending, apply it in that same scroll-triggered pass.
-- Scope: Only the web bundles, and only while a deferred item-size correction is pending. Large scroll jumps still cancel the deferred correction before this check, so their behavior is unchanged.
+- Reason: On web, LegendList holds a scroll anchor for a moment after a data change and defers the scroll correction for item size changes to the next frame. Any other pass that repositions items before that frame, such as the one a scroll event triggers, moves the visible messages without the correction. They jump for a frame and only partly return. With this patch, the first pass that repositions items applies the pending correction.
+- Scope: Only the web bundles, and only while a deferred item-size correction is pending.
 - Upstream PR/issue: 🛑
 - E/App issue: https://github.com/Expensify/App/pull/100733#issuecomment-6411009930
 - PR introducing patch: https://github.com/Expensify/App/pull/100733
