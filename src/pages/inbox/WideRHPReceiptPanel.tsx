@@ -66,12 +66,16 @@ function WideRHPReceiptPanelGate() {
     const hasMultipleTransactions = (visibleTransactions?.length ?? 0) > 1;
     const isConfirmedMultiTransactionReport = isMoneyRequestOrInvoiceReport && hasMultipleTransactions && shouldDisplayReportTableView(report, visibleTransactions ?? []);
 
+    // A bill with several expenses keeps the narrow view because it doesn't show the expense table yet.
+    const isOneExpenseBill = report?.type === CONST.REPORT.UNSUPPORTED_TYPE.BILL && !hasMultipleTransactions;
+
     const shouldShowWideRHP =
         !isConfirmedMultiTransactionReport &&
         (isTransactionThread(parentReportAction) ||
             parentReportAction?.childType === CONST.REPORT.TYPE.EXPENSE ||
             parentReportAction?.childType === CONST.REPORT.TYPE.IOU ||
             report?.type === CONST.REPORT.TYPE.EXPENSE ||
+            isOneExpenseBill ||
             report?.type === CONST.REPORT.TYPE.IOU ||
             report?.type === CONST.REPORT.TYPE.INVOICE);
 

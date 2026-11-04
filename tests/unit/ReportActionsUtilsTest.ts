@@ -726,6 +726,17 @@ describe('ReportActionsUtils', () => {
             expect(result).toEqual(linkedCreateAction.childReportID);
         });
 
+        it('should return the childReportID for a bill with one expense', () => {
+            // Given a bill with one expense, which should look like a one-expense report
+            const billReport = {...mockedReports[IOUReportID], type: CONST.REPORT.UNSUPPORTED_TYPE.BILL};
+
+            // When we look for the bill's only expense thread
+            const result = getOneTransactionThreadReportID(billReport, mockedReports[mockChatReportID], [linkedCreateAction], false, [IOUTransactionID]);
+
+            // Then the bill opens that expense like a one-expense report
+            expect(result).toEqual(linkedCreateAction.childReportID);
+        });
+
         it('should return CONST.FAKE_REPORT_ID when action exists but childReportID is undefined', () => {
             const result = getOneTransactionThreadReportID(mockedReports[IOUReportID], mockedReports[mockChatReportID], [linkedCreateActionWithoutChildReportID], false, [IOUTransactionID]);
             expect(result).toEqual(CONST.FAKE_REPORT_ID);
