@@ -29,7 +29,7 @@ import KeyboardUtils from '@src/utils/keyboard';
 
 import type {ForwardedRef} from 'react';
 
-import React, {Activity, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {Activity, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Dimensions, View} from 'react-native';
 
 import EmojiPickerMenu from './EmojiPickerMenu';
@@ -38,6 +38,8 @@ const DEFAULT_ANCHOR_ORIGIN = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
 };
+
+const EMPTY_EMOJI_POPOVER_ANCHOR: EmojiPopoverAnchor = {current: null};
 
 type EmojiPickerProps = {
     viewportOffsetTop: number;
@@ -58,14 +60,14 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
     const [isWithoutOverlay, setIsWithoutOverlay] = useState(true);
     const [activeID, setActiveID] = useState<string | null>();
     const emojiPopoverAnchorRef = useRef<EmojiPopoverAnchor | null>(null);
-    const emptyEmojiPopoverAnchor = useRef<EmojiPopoverAnchor['current']>(null);
-    const emojiAnchorDimension = useRef({
+    const [shownEmojiPopoverAnchor, setShownEmojiPopoverAnchor] = useState<EmojiPopoverAnchor>(EMPTY_EMOJI_POPOVER_ANCHOR);
+    const [emojiAnchorDimensions, setEmojiAnchorDimensions] = useState({
         width: 0,
         height: 0,
     });
     const onModalHide = useRef<EmojiPickerOnModalHide>(() => {});
     const onEmojiSelected = useRef<OnEmojiSelected>(() => {});
-    const activeEmoji = useRef<string | undefined>(undefined);
+    const [activeEmoji, setActiveEmoji] = useState<string | undefined>();
     const emojiSearchInput = useRef<BaseTextInputRef | null>(null);
     const composerToRefocusOnClose = useRef<ComposerType | undefined>(undefined);
     const {windowHeight} = useWindowDimensions();
@@ -79,7 +81,7 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
      *
      * Don't directly get the ref from emojiPopoverAnchorRef, instead use getEmojiPopoverAnchor()
      */
-    const getEmojiPopoverAnchor = useCallback(() => emojiPopoverAnchorRef.current ?? emptyEmojiPopoverAnchor, []);
+    const getEmojiPopoverAnchor = () => emojiPopoverAnchorRef.current ?? EMPTY_EMOJI_POPOVER_ANCHOR;
 
     /**
      * Show the emoji picker menu.
@@ -116,7 +118,6 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
 
         onModalHide.current = onModalHideValue;
         onEmojiSelected.current = onEmojiSelectedValue;
-        activeEmoji.current = activeEmojiValue;
         setIsWithoutOverlay(withoutOverlay);
         emojiPopoverAnchorRef.current = emojiPopoverAnchorValue;
         const emojiPopoverAnchor = getEmojiPopoverAnchor();
@@ -136,10 +137,12 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
                         horizontal: value.horizontal,
                         vertical: value.vertical,
                     });
-                    emojiAnchorDimension.current = {
+                    setEmojiAnchorDimensions({
                         width: value.width,
                         height: value.height,
-                    };
+                    });
+                    setShownEmojiPopoverAnchor(emojiPopoverAnchor);
+                    setActiveEmoji(activeEmojiValue);
                     setEmojiPopoverAnchorOrigin(anchorOriginValue);
                     setActiveID(id);
                 });
@@ -150,27 +153,25 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
     /**
      * Hide the emoji picker menu.
      */
-    const hideEmojiPicker = useCallback(
-        (isNavigating?: boolean) => {
-            const activeElementId = DomUtils.getActiveElement()?.id;
-            if (activeElementId !== CONST.COMPOSER.NATIVE_ID) {
-                blurActiveElement();
+    const hideEmojiPicker = (isNavigating?: boolean) => {
+        const activeElementId = DomUtils.getActiveElement()?.id;
+        if (activeElementId !== CONST.COMPOSER.NATIVE_ID) {
+            blurActiveElement();
+        }
+        const currOnModalHide = onModalHide.current;
+        onModalHide.current = () => {
+            if (currOnModalHide) {
+                currOnModalHide(!!isNavigating);
             }
-            const currOnModalHide = onModalHide.current;
-            onModalHide.current = () => {
-                if (currOnModalHide) {
-                    currOnModalHide(!!isNavigating);
-                }
 
-                emojiPopoverAnchorRef.current = null;
-            };
-            setIsEmojiPickerVisible(false);
-            transitionActionSheetState({
-                type: Actions.CLOSE_POPOVER,
-            });
-        },
-        [transitionActionSheetState],
-    );
+            emojiPopoverAnchorRef.current = null;
+            setShownEmojiPopoverAnchor(EMPTY_EMOJI_POPOVER_ANCHOR);
+        };
+        setIsEmojiPickerVisible(false);
+        transitionActionSheetState({
+            type: Actions.CLOSE_POPOVER,
+        });
+    };
 
     const handleModalHide = () => {
         onModalHide.current();
@@ -213,7 +214,10 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
 
     const clearActive = () => setActiveID(null);
 
-    const resetEmojiPopoverAnchor = () => (emojiPopoverAnchorRef.current = null);
+    const resetEmojiPopoverAnchor = () => {
+        emojiPopoverAnchorRef.current = null;
+        setShownEmojiPopoverAnchor(EMPTY_EMOJI_POPOVER_ANCHOR);
+    };
 
     useImperativeHandle(ref, () => ({showEmojiPicker, isActive, clearActive, hideEmojiPicker, isEmojiPickerVisible, resetEmojiPopoverAnchor}));
 
@@ -232,10 +236,10 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
                     horizontal: value.horizontal,
                     vertical: value.vertical,
                 });
-                emojiAnchorDimension.current = {
+                setEmojiAnchorDimensions({
                     width: value.width,
                     height: value.height,
-                };
+                });
             });
         });
         return () => {
@@ -267,7 +271,7 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
                 vertical: emojiPopoverAnchorPosition.vertical,
                 horizontal: emojiPopoverAnchorPosition.horizontal,
             }}
-            anchorRef={getEmojiPopoverAnchor()}
+            anchorRef={shownEmojiPopoverAnchor}
             withoutOverlay={isWithoutOverlay}
             popoverDimensions={{
                 width: CONST.EMOJI_PICKER_SIZE.WIDTH,
@@ -276,7 +280,7 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
             anchorAlignment={emojiPopoverAnchorOrigin}
             outerStyle={StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop)}
             innerContainerStyle={styles.popoverInnerContainer}
-            anchorDimensions={emojiAnchorDimension.current}
+            anchorDimensions={emojiAnchorDimensions}
             avoidKeyboard
             shouldSwitchPositionIfOverflow
             shouldEnableNewFocusManagement
@@ -290,7 +294,7 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
                     <View style={bottomSafeAreaPaddingStyle}>
                         <EmojiPickerMenu
                             onEmojiSelected={selectEmoji}
-                            activeEmoji={activeEmoji.current}
+                            activeEmoji={activeEmoji}
                             ref={(el) => {
                                 emojiSearchInput.current = el;
                             }}
