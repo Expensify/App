@@ -1,5 +1,5 @@
-/** Shares a single column's heading data (name, label, layout style, sorting) from `SortableTableHeader` to the child that renders its heading. */
-import type {StyleProp, ViewStyle} from 'react-native';
+/** Shares a single column's heading data (name, label, alignment, sorting) from `SortableTableHeader` to the child that renders its heading. */
+import type {SearchColumnAlignment} from '@styles/utils';
 
 import React, {createContext, useContext} from 'react';
 
@@ -18,8 +18,8 @@ type SortableColumn = {
     columnName: SearchColumnType;
     label: string;
 
-    /** The heading cell's layout style, which the heading aligns its label by. */
-    style: StyleProp<ViewStyle>;
+    /** Where the column's cells place their content, which the heading follows. */
+    alignment: SearchColumnAlignment;
 
     /** `undefined` when the column doesn't sort. */
     sorting: SortableColumnSorting | undefined;
@@ -43,8 +43,8 @@ type SortableColumnProviderProps = SortableColumn & {
     children: React.ReactNode;
 };
 
-function SortableColumnProvider({columnName, label, style, sorting, labelProps, children}: SortableColumnProviderProps) {
-    const column = {columnName, label, style, sorting, labelProps};
+function SortableColumnProvider({columnName, label, alignment, sorting, labelProps, children}: SortableColumnProviderProps) {
+    const column = {columnName, label, alignment, sorting, labelProps};
     return <SortableColumnContext.Provider value={column}>{children}</SortableColumnContext.Provider>;
 }
 

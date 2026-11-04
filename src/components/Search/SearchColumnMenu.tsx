@@ -19,7 +19,7 @@ import ROUTES from '@src/ROUTES';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 
 import React from 'react';
-import {StyleSheet, View} from 'react-native';
+import {View} from 'react-native';
 
 import type {GetHideColumnHandler} from './hooks/useHideSearchColumn';
 
@@ -37,13 +37,17 @@ type SearchColumnMenuProps = {
 
 /** The column's heading. Pressing it opens the column menu, which holds the sort options. */
 function SearchColumnMenuTrigger() {
-    const {label, style, labelProps} = useSortableColumn();
+    const {label, alignment, labelProps} = useSortableColumn();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
     const isMenuVisible = PopoverMenu.useIsPopoverVisible();
+
+    // The caret goes on the side away from the edge the label is pinned to, so revealing it on hover doesn't move the label.
+    const isCaretBeforeLabel = alignment === 'end';
+    const caretSpacing = isCaretBeforeLabel ? styles.mr1 : styles.ml1;
 
     return (
         <PopoverMenu.Trigger>
@@ -53,15 +57,13 @@ function SearchColumnMenuTrigger() {
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU}
                 wrapperStyle={[styles.flex1, styles.alignSelfStretch]}
                 // Fills the cell, so the whole heading opens the menu, and places the label where the cell would.
-                style={[styles.flex1, styles.alignSelfStretch, styles.justifyContentCenter, {alignItems: StyleSheet.flatten(style)?.alignItems}]}
+                style={[styles.flex1, styles.alignSelfStretch, styles.justifyContentCenter, StyleUtils.getSearchColumnAlignmentStyle(alignment)]}
             >
-                {({hovered}) => (
-                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                        <View style={styles.flexShrink1}>
-                            <SortableHeaderLabel {...labelProps} />
-                        </View>
-                        {/* Collapsed rather than transparent while hidden, so it doesn't take room from the label. */}
-                        <View style={hovered && !isMenuVisible ? styles.ml1 : [StyleUtils.getWidthStyle(0), styles.overflowHidden]}>
+                {({hovered}) => {
+                    const isCaretVisible = hovered && !isMenuVisible;
+                    const caret = (
+                        // Collapsed rather than transparent while hidden, so it doesn't take room from the label.
+                        <View style={isCaretVisible ? caretSpacing : [StyleUtils.getWidthStyle(0), styles.overflowHidden]}>
                             <Icon
                                 src={icons.DownArrow}
                                 fill={theme.icon}
@@ -69,8 +71,18 @@ function SearchColumnMenuTrigger() {
                                 height={variables.iconSizeExtraSmall}
                             />
                         </View>
-                    </View>
-                )}
+                    );
+
+                    return (
+                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                            {isCaretBeforeLabel && caret}
+                            <View style={styles.flexShrink1}>
+                                <SortableHeaderLabel {...labelProps} />
+                            </View>
+                            {!isCaretBeforeLabel && caret}
+                        </View>
+                    );
+                }}
             </PressableWithFeedback>
         </PopoverMenu.Trigger>
     );

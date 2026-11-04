@@ -148,7 +148,7 @@ function SortableTableHeader({
                                 <SortableColumnProvider
                                     columnName={columnName}
                                     label={label}
-                                    style={containerStyle}
+                                    alignment={StyleUtils.getReportTableColumnAlignment(columnName)}
                                     sorting={isSortable ? {activeSortOrder: isActive ? sortOrder : undefined, onSort: (order) => onSortPress(sortByColumnName, order)} : undefined}
                                     labelProps={{text: label, icon, isActive, sortOrder: resolvedSortOrder, innerContainerStyle, textStyle}}
                                 >
