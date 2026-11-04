@@ -64,7 +64,6 @@ function useFrozenSplitTransactionIDs({
                 getLoginByAccountID(itemReport?.ownerAccountID, personalDetails),
                 itemPolicy,
                 parentReport,
-                allPolicies,
             );
         if (isSplitExpenseFrozen(itemReport) || !isEditable) {
             frozenIDs.add(item.transactionID);

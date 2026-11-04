@@ -19,7 +19,6 @@ import type {
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import DistanceRequestUtils from './DistanceRequestUtils';
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
 import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {
@@ -28,7 +27,6 @@ import {
     canMemberWrite,
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
-    getDistanceRateCustomUnitRate,
     getManagerAccountID,
     getReimbursementChoice,
     getSubmitToAccountID,
@@ -135,7 +133,6 @@ function isSplitAction(
     reportOwnerLogin: string | undefined,
     policy?: OnyxEntry<Policy>,
     parentReport?: OnyxEntry<Report>,
-    policies?: OnyxCollection<Policy>,
 ): boolean {
     if (Number(reportTransactions?.length) !== 1 || !report) {
         return false;
@@ -156,23 +153,10 @@ function isSplitAction(
 
     const {isBillSplit, isExpenseSplit} = getOriginalTransactionWithSplitInfo(reportTransaction, originalTransaction);
 
-    // A distance expense on a $0 rate is $0 but still has a distance to split. The rate can belong to a workspace
-    // other than `policy`, e.g. an unreported expense on another workspace's rate, so it's looked up in `policies` too.
-    // A rate changed from $0 after the expense was created doesn't change its amount, so it's still split on the $0 rate.
-    // When no loaded workspace owns it, a $0 amount for a positive distance can only have come from a $0 rate.
-    const distanceCustomUnit = reportTransaction?.comment?.customUnit;
-    const distanceCustomUnitRateID = distanceCustomUnit?.customUnitRateID;
-    const policyDistanceRate = distanceCustomUnitRateID
-        ? (getDistanceRateCustomUnitRate(policy, distanceCustomUnitRateID) ??
-          Object.values(policies ?? {})
-              .map((policyItem) => getDistanceRateCustomUnitRate(policyItem, distanceCustomUnitRateID))
-              .find((rate) => !!rate))
-        : undefined;
-    const splitDistanceRate = policyDistanceRate ? (DistanceRequestUtils.getRateBeforeZeroRateChange(reportTransaction, policyDistanceRate.rate) ?? policyDistanceRate.rate) : undefined;
-    const isZeroRateDistanceExpense =
-        isDistanceRequestTransactionUtils(reportTransaction) && !!distanceCustomUnit?.quantity && !!distanceCustomUnitRateID && (policyDistanceRate ? splitDistanceRate === 0 : !amount);
+    // A $0 distance expense still has a distance to split, whether its rate is $0 or its amount was edited to $0
+    const isZeroAmountDistanceExpense = isDistanceRequestTransactionUtils(reportTransaction) && !!reportTransaction?.comment?.customUnit?.quantity;
 
-    if (!amount && !isExpenseSplit && !isZeroRateDistanceExpense) {
+    if (!amount && !isExpenseSplit && !isZeroAmountDistanceExpense) {
         return false;
     }
 
@@ -1184,7 +1168,7 @@ function getSecondaryReportActions({
     }
 
     if (
-        isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, currentUserAccountID, rules, submitterLogin, policy, parentReport, policies) &&
+        isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, currentUserAccountID, rules, submitterLogin, policy, parentReport) &&
         !shouldShowEditSplitInDeleteAction(report, reportTransactions, reportActions, originalTransaction, currentUserAccountID, policy, rules, submitterLogin, cardList)
     ) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
@@ -1300,7 +1284,6 @@ function getSecondaryTransactionThreadActions({
     isRestrictedToPreferredPolicy = false,
     rules,
     cardList,
-    policies,
 }: {
     currentUserLogin: string;
     currentUserAccountID: number;
@@ -1329,9 +1312,6 @@ function getSecondaryTransactionThreadActions({
     isRestrictedToPreferredPolicy?: boolean;
     rules: OnyxCollection<Rule>;
     cardList: OnyxEntry<CardList>;
-
-    /** Workspaces to look up a distance rate in when `policy` doesn't own it */
-    policies?: OnyxCollection<Policy>;
 }): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
@@ -1352,7 +1332,7 @@ function getSecondaryTransactionThreadActions({
     const parentReportActionsList = Object.values(parentReportActions ?? {});
 
     if (
-        isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, rules, parentReportOwnerLogin, policy, grandParentReport, policies) &&
+        isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, rules, parentReportOwnerLogin, policy, grandParentReport) &&
         !shouldShowEditSplitInDeleteAction(
             parentReport,
             [reportTransaction],

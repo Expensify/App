@@ -825,21 +825,21 @@ function getDistanceUnit(transaction: OnyxEntry<Transaction>, mileageRate: OnyxE
 }
 
 /**
- * The rate a distance expense was calculated with, when its rate has since been changed to or from $0. A $0 rate can't have
- * produced a nonzero amount, and a positive rate only produces a $0 amount when the distance is short enough to round to $0.
+ * The rate a distance expense's amount was calculated with, when `currentRate` can't have produced it. A $0 expense with a distance
+ * is split by its distance like a $0 rate expense, whatever its rate, and a $0 rate can't have produced a nonzero amount.
  * Returns undefined when `currentRate` can have produced the expense's amount.
  */
 function getRateBeforeZeroRateChange(transaction: OnyxEntry<Transaction>, currentRate: number | undefined): number | undefined {
     const quantity = transaction?.comment?.customUnit?.quantity;
-    if (typeof quantity !== 'number' || quantity <= 0 || currentRate === undefined || currentRate < 0) {
+    if (typeof quantity !== 'number' || quantity <= 0 || (currentRate !== undefined && currentRate < 0)) {
         return undefined;
     }
     const amount = getAmount(transaction);
-    if (currentRate === 0 && amount !== 0) {
-        return amount / quantity;
+    if (amount === 0) {
+        return currentRate === 0 ? undefined : 0;
     }
-    if (currentRate > 0 && amount === 0 && Math.round(quantity * currentRate) !== 0) {
-        return 0;
+    if (currentRate === 0) {
+        return amount / quantity;
     }
     return undefined;
 }

@@ -177,7 +177,6 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
             getLoginByAccountID(currentReport?.ownerAccountID, personalDetails),
             effectivePolicy,
             parentReport,
-            allPolicies,
         );
 
     const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, undefined, effectivePolicy, true) ?? {};

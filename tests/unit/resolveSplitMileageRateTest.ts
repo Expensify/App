@@ -337,16 +337,18 @@ describe('resolveSplitMileageRate', () => {
             expect(result.customUnitRateID).toBe(ACTIVE_RATE_ID);
         });
 
-        it('keeps the current rate for a $0 expense whose amount rounded down to $0 on it', () => {
+        it('uses a $0 rate for a $0 expense whose amount rounded down to $0 on its rate', () => {
             // Given a 0.4 mile expense on a $0.01/mi rate, which rounds down to $0
             const roundingPolicy = buildPolicyWithRates({
                 [ACTIVE_RATE_ID]: buildRate(ACTIVE_RATE_ID, {rate: 1}),
             });
             const transaction = buildDistanceTransaction(ACTIVE_RATE_ID, {amount: 0, quantity: 0.4});
 
+            // When the split mileage rate is resolved
             const result = resolveSplitMileageRate({transaction, policy: roundingPolicy, isSelfDMSplit: false, personalPolicyOutputCurrency: undefined});
 
-            expect(result.rate).toBe(1);
+            // Then its splits stay $0 and divide its distance, like any other $0 distance expense
+            expect(result.rate).toBe(0);
         });
     });
 });

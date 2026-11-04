@@ -224,7 +224,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     const isSplitAvailable =
         report &&
         transaction &&
-        isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, rules, currentReportOwnerLogin, effectivePolicy, parentReport, allPolicies);
+        isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, rules, currentReportOwnerLogin, effectivePolicy, parentReport);
 
     const isCategoryRequired = !!effectivePolicy?.requiresCategory && !isSelfDMSplit;
     const categoryValue = getDecodedLeafCategoryName(splitExpenseDraftTransactionDetails?.category ?? '');

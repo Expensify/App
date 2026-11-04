@@ -225,7 +225,8 @@ function resolveSplitMileageRate({
         const fallbackMileageRate = DistanceRequestUtils.getDefaultMileageRate(policy);
         const isZeroRateFallbackForNonZeroExpense = fallbackMileageRate?.rate === 0 && !!getAmount(transaction);
         if (fallbackMileageRate?.rate !== undefined && !isZeroRateFallbackForNonZeroExpense) {
-            return fallbackMileageRate;
+            // A $0 expense stays $0 on the fallback rate too, so its splits divide its distance
+            return getAmount(transaction) === 0 ? {...fallbackMileageRate, rate: 0} : fallbackMileageRate;
         }
     }
     // No policy resolved (e.g. source workspace deleted and no other paid workspace either) AND the
