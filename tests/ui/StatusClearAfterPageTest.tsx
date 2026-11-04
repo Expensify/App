@@ -4,6 +4,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import Icon from '@components/Icon';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import MenuItem from '@components/MenuItem';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import SelectionList from '@components/SelectionList';
@@ -290,6 +291,15 @@ describe('StatusClearAfterPage', () => {
         expect(!!within(timeRow).queryByText(TIME_ERROR)).toBe(timeHasError);
         expect(within(dateRow).queryByText(TIME_ERROR)).not.toBeOnTheScreen();
         expect(within(timeRow).queryByText(DATE_ERROR)).not.toBeOnTheScreen();
+        for (const [row, error, hasError] of [
+            [dateRow, DATE_ERROR, dateHasError],
+            [timeRow, TIME_ERROR, timeHasError],
+        ] as const) {
+            const layout = within(row).UNSAFE_getByType(MenuItem.Row);
+            const content = within(layout).UNSAFE_getByType(MenuItem.Content);
+            expect(!!within(content).queryByText(error)).toBe(hasError);
+            expect(within(layout).UNSAFE_getByType(MenuItem.Trailing)).toBeDefined();
+        }
         expect(getRowIconProps(dateRow).map((icon) => icon.src)).toEqual(dateHasError ? [dotIndicator, arrowRight] : [arrowRight]);
         expect(getRowIconProps(timeRow).map((icon) => icon.src)).toEqual(timeHasError ? [dotIndicator, arrowRight] : [arrowRight]);
         if (dateHasError) {
@@ -299,6 +309,25 @@ describe('StatusClearAfterPage', () => {
             expect(getRowIconProps(timeRow).at(0)?.fill).toBe(theme.danger);
         }
         expect(screen.queryByRole('img', {name: CONST.ACCESSIBILITY_LABELS.ERROR})).not.toBeOnTheScreen();
+    });
+
+    it('keeps empty picker fields as placeholders when the status draft has errors', async () => {
+        // Given the status draft is invalid, independently of the picker draft
+        await renderPage(PAST_CLEAR_AFTER);
+
+        // When the pending picker value is cleared
+        await act(async () => {
+            updateStatusDraftCustomClearAfterDate('');
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then both errors stay in their rows without changing the empty field labels
+        const dateRow = screen.getByRole('button', {name: `Date. ${REVIEW_REQUIRED}`});
+        const timeRow = screen.getByRole('button', {name: `Time. ${REVIEW_REQUIRED}`});
+        expect(within(dateRow).UNSAFE_getByType(MenuItem.FieldNamePlaceholder)).toBeDefined();
+        expect(within(timeRow).UNSAFE_getByType(MenuItem.FieldNamePlaceholder)).toBeDefined();
+        expect(within(dateRow).getByText(DATE_ERROR)).toBeOnTheScreen();
+        expect(within(timeRow).getByText(TIME_ERROR)).toBeOnTheScreen();
     });
 
     it('updates displayed picker values without changing which draft supplies validation', async () => {

@@ -1,7 +1,7 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import MenuItem from '@components/MenuItem';
-import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import type {MenuItemRootProps} from '@components/MenuItem/layout/MenuItemRoot';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -36,6 +36,45 @@ type StatusType = {
     keyForList: string;
     isSelected: boolean;
 };
+
+type StatusExpiryFieldProps = Pick<MenuItemRootProps, 'onPress' | 'sentryLabel'> & {
+    name: string;
+    value: string;
+    error: string;
+};
+
+function StatusExpiryField({name, value, error, onPress, sentryLabel}: StatusExpiryFieldProps) {
+    return (
+        <MenuItem.Root
+            onPress={onPress}
+            sentryLabel={sentryLabel}
+            accessibilityLabel={[name, value].filter(Boolean).join(', ')}
+        >
+            <MenuItem.Row>
+                <MenuItem.Content>
+                    {value ? (
+                        <>
+                            <MenuItem.FieldName>{name}</MenuItem.FieldName>
+                            <MenuItem.FieldValue>{value}</MenuItem.FieldValue>
+                        </>
+                    ) : (
+                        <MenuItem.FieldNamePlaceholder>{name}</MenuItem.FieldNamePlaceholder>
+                    )}
+                    {!!error && (
+                        <MenuItem.HelpText
+                            isError
+                            message={error}
+                        />
+                    )}
+                </MenuItem.Content>
+                <MenuItem.Trailing>
+                    {!!error && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                    <MenuItem.Chevron />
+                </MenuItem.Trailing>
+            </MenuItem.Row>
+        </MenuItem.Root>
+    );
+}
 
 /**
  * @param data - either a value from CONST.CUSTOM_STATUS_TYPES or a dateTime string in the format YYYY-MM-DD HH:mm
@@ -100,11 +139,6 @@ function StatusClearAfterPage() {
 
     const {customDateError, customTimeError} = useValidateCustomDate(translate, draftClearAfter);
 
-    const {redBrickDateIndicator, redBrickTimeIndicator} = {
-        redBrickDateIndicator: customDateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-        redBrickTimeIndicator: customTimeError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-    };
-
     const updateMode = (mode: StatusType) => {
         if (mode.value === draftPeriod) {
             return;
@@ -122,7 +156,7 @@ function StatusClearAfterPage() {
     }, []);
 
     const customStatusDate = DateUtils.extractDate(statusDraftCustomClearAfterDate ?? '');
-    // The sentinel and empty cases are guarded here because, unlike `extractTime12Hour`, the display formatter parses
+    // The Never and empty cases are guarded here because, unlike `extractTime12Hour`, the display formatter parses
     // whatever it is handed.
     const customStatusTime =
         statusDraftCustomClearAfterDate && statusDraftCustomClearAfterDate !== CONST.CUSTOM_STATUS_TYPES.NEVER
@@ -132,44 +166,20 @@ function StatusClearAfterPage() {
     const listFooterContent =
         draftPeriod !== CONST.CUSTOM_STATUS_TYPES.CUSTOM ? undefined : (
             <>
-                <MenuItem.Root
+                <StatusExpiryField
+                    name={translate('statusPage.date')}
+                    value={customStatusDate}
+                    error={customDateError}
                     onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_DATE), false, session)}
                     sentryLabel={CONST.SENTRY_LABEL.CUSTOM_STATUS.CLEAR_AFTER_DATE}
-                    accessibilityLabel={[translate('statusPage.date'), customStatusDate].filter(Boolean).join(', ')}
-                >
-                    <MenuItemField.Row
-                        name={translate('statusPage.date')}
-                        value={customStatusDate}
-                    >
-                        {!!redBrickDateIndicator && <MenuItem.BrickRoadIndicator status={redBrickDateIndicator} />}
-                        <MenuItem.Chevron />
-                    </MenuItemField.Row>
-                    {!!customDateError && (
-                        <MenuItem.HelpText
-                            isError
-                            message={customDateError}
-                        />
-                    )}
-                </MenuItem.Root>
-                <MenuItem.Root
+                />
+                <StatusExpiryField
+                    name={translate('statusPage.time')}
+                    value={customStatusTime}
+                    error={customTimeError}
                     onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME), false, session)}
                     sentryLabel={CONST.SENTRY_LABEL.CUSTOM_STATUS.CLEAR_AFTER_TIME}
-                    accessibilityLabel={[translate('statusPage.time'), customStatusTime].filter(Boolean).join(', ')}
-                >
-                    <MenuItemField.Row
-                        name={translate('statusPage.time')}
-                        value={customStatusTime}
-                    >
-                        {!!redBrickTimeIndicator && <MenuItem.BrickRoadIndicator status={redBrickTimeIndicator} />}
-                        <MenuItem.Chevron />
-                    </MenuItemField.Row>
-                    {!!customTimeError && (
-                        <MenuItem.HelpText
-                            isError
-                            message={customTimeError}
-                        />
-                    )}
-                </MenuItem.Root>
+                />
             </>
         );
 
