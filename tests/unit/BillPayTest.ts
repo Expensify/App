@@ -216,6 +216,32 @@ describe('Bill Pay', () => {
         expect(getSecondaryActions(approvedBill)).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT);
     });
 
+    it('keeps Pay as the primary action on a bill whose expenses are on hold', () => {
+        // Given an approved bill whose only expense was put on hold, for example in Classic, and an expense report in the same state
+        const heldBillTransaction: Transaction = {...createTransaction(approvedBill), comment: {hold: '999'}};
+        const heldExpenseTransaction: Transaction = {...createTransaction(approvedExpenseReport), comment: {hold: '998'}};
+        const getHeldPrimaryAction = (report: Report, transaction: Transaction) =>
+            getReportPrimaryAction({
+                report,
+                currentUserAccountID: accountID,
+                currentUserLogin: email,
+                policy,
+                ownerLogin: email,
+                reportTransactions: [transaction],
+                violations: {},
+                bankAccountList: {},
+                chatReport: undefined,
+                isChatReportArchived: false,
+                rules: undefined,
+            });
+
+        // When the header resolves its primary action
+        // Then the bill still offers Pay, because the More menu has no Pay on bills and Auth pays a bill in full
+        expect(getHeldPrimaryAction(approvedBill, heldBillTransaction)).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+        expect(getHeldPrimaryAction(approvedExpenseReport, heldExpenseTransaction)).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+        expect(getSecondaryActions(approvedBill)).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.PAY);
+    });
+
     it('moves a bill from approval to payment only after final approval', () => {
         // Given a submitted bill
         // When it moves through approval and payment

@@ -505,6 +505,13 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return '';
     }
 
+    // Only BillPaymentButton pays a bill, and the More menu has no Pay on bills, so Pay comes first on a bill the user can
+    // pay. Auth pays a bill in full, held expenses included, so a hold doesn't stop the payment. Remove hold, Mark as cash
+    // and Mark as resolved stay available on the expense itself.
+    if (isBillReport(report) && canPayBill(report, policy, currentUserAccountID, currentUserLogin)) {
+        return CONST.REPORT.PRIMARY_ACTIONS.PAY;
+    }
+
     const allExpensesHeld = hasOnlyHeldExpenses(reportTransactions);
     const isPayActionWithAllExpensesHeld =
         isPrimaryPayAction({
