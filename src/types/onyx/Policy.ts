@@ -30,6 +30,9 @@ type GovernmentRateSnapshot = {
 
     /** Government-published end date (ISO 8601) at the time the rate was copied, omitted if the source rate has none */
     endDate?: string;
+
+    /** Government-published tax reclaimable fraction at the time the rate was copied, omitted if the source rate has none */
+    taxClaimablePercentage?: number;
 };
 
 /** General-purpose optional attributes of the policy distance rate */
@@ -4503,6 +4506,7 @@ export type {
     ApprovalRule,
     ExpenseRule,
     CodingRule,
+    CodingRuleFilter,
     NetSuiteConnectionConfig,
     MccGroup,
     Subrate,

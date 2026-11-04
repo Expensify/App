@@ -84,7 +84,7 @@ function getActiveExpensifyCardFeedID(
     // OR-ed across workspaces, so without this gate an ineligible active workspace's card could hijack the feed.
     const isActivePolicyEligibleForCardAccruals =
         isPaidGroupPolicy(activePolicy) &&
-        (activePolicy?.role === CONST.POLICY.ROLE.ADMIN || activePolicy?.role === CONST.POLICY.ROLE.AUDITOR) &&
+        (activePolicy?.role === CONST.POLICY.ROLE.ADMIN || activePolicy?.role === CONST.POLICY.ROLE.AUDITOR || activePolicy?.role === CONST.POLICY.ROLE.CARD_ADMIN) &&
         (activePolicy?.approvalMode ? activePolicy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false);
 
     if (!isActivePolicyEligibleForCardAccruals) {
