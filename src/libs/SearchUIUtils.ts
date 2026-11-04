@@ -4327,6 +4327,39 @@ function getSortedTransactionData(
         });
     }
 
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.INVOICE_NUMBER) {
+        return data.sort((a, b) => {
+            const aReport = a.report;
+            const bReport = b.report;
+
+            const aValue = aReport?.fieldList?.[CONST.REPORT_FIELD_INVOICE_NUMBER]?.value ?? '';
+            const bValue = bReport?.fieldList?.[CONST.REPORT_FIELD_INVOICE_NUMBER]?.value ?? '';
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.DUE_DATE) {
+        return data.sort((a, b) => {
+            const aReport = a.report;
+            const bReport = b.report;
+
+            const aValue = aReport?.fieldList?.[CONST.REPORT_FIELD_DUE_DATE]?.value ?? '';
+            const bValue = bReport?.fieldList?.[CONST.REPORT_FIELD_DUE_DATE]?.value ?? '';
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.PO_NUMBER) {
+        return data.sort((a, b) => {
+            const aReport = a.report;
+            const bReport = b.report;
+
+            const aValue = aReport?.fieldList?.[CONST.REPORT_FIELD_PO_NUMBER]?.value ?? '';
+            const bValue = bReport?.fieldList?.[CONST.REPORT_FIELD_PO_NUMBER]?.value ?? '';
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
     // Held has no property of its own on the row, so getTransactionSortValue reads it from the hold on the transaction comment
     const sortKey = sortBy === CONST.SEARCH.TABLE_COLUMNS.HELD ? sortBy : sortingProperty;
 
@@ -4480,6 +4513,30 @@ function getSortedReportData(
             // Ranked as 'yes'/'no' to match the backend, with a report that never got the field ranked as not rejected.
             const aValue = a.declined ? CONST.SEARCH.BOOLEAN.YES : CONST.SEARCH.BOOLEAN.NO;
             const bValue = b.declined ? CONST.SEARCH.BOOLEAN.YES : CONST.SEARCH.BOOLEAN.NO;
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.INVOICE_NUMBER) {
+        return data.sort((a, b) => {
+            const aValue = a?.fieldList?.[CONST.REPORT_FIELD_INVOICE_NUMBER]?.value ?? '';
+            const bValue = b?.fieldList?.[CONST.REPORT_FIELD_INVOICE_NUMBER]?.value ?? '';
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.DUE_DATE) {
+        return data.sort((a, b) => {
+            const aValue = a?.fieldList?.[CONST.REPORT_FIELD_DUE_DATE]?.value ?? '';
+            const bValue = b?.fieldList?.[CONST.REPORT_FIELD_DUE_DATE]?.value ?? '';
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.PO_NUMBER) {
+        return data.sort((a, b) => {
+            const aValue = a?.fieldList?.[CONST.REPORT_FIELD_PO_NUMBER]?.value ?? '';
+            const bValue = b?.fieldList?.[CONST.REPORT_FIELD_PO_NUMBER]?.value ?? '';
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }

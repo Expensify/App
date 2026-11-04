@@ -15339,6 +15339,9 @@ const sortableColumnNames = [
     CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID,
     CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID,
     CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
+    CONST.SEARCH.TABLE_COLUMNS.INVOICE_NUMBER,
+    CONST.SEARCH.TABLE_COLUMNS.DUE_DATE,
+    CONST.SEARCH.TABLE_COLUMNS.PO_NUMBER,
 ] as const;
 
 type SortableColumnName = TupleToUnion<typeof sortableColumnNames>;
@@ -15435,6 +15438,12 @@ function getTransactionSortValue(
         case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID:
         case CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS:
             return getReportCustomColumnValue(key, report);
+        case CONST.SEARCH.TABLE_COLUMNS.INVOICE_NUMBER:
+            return report.fieldList?.[CONST.REPORT_FIELD_INVOICE_NUMBER]?.value ?? '';
+        case CONST.SEARCH.TABLE_COLUMNS.DUE_DATE:
+            return report.fieldList?.[CONST.REPORT_FIELD_DUE_DATE]?.value ?? '';
+        case CONST.SEARCH.TABLE_COLUMNS.PO_NUMBER:
+            return report.fieldList?.[CONST.REPORT_FIELD_PO_NUMBER]?.value ?? '';
         default:
             return '';
     }
