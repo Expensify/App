@@ -524,28 +524,26 @@ describe('ReportAlternateTextUtils', () => {
                 lastMessageText: 'Vendor sent an invoice',
             };
             const invoice: Report = {...createRandomReport(1, undefined), reportID: '9201', type: CONST.REPORT.TYPE.INVOICE, isHiddenForBillReceiver: true};
-            const commentAction: ReportAction = {
-                ...createRandomReportAction(2),
+            const commentAction = createMock<ReportAction>({
                 reportActionID: '9202',
+                actorAccountID: CURRENT_USER_ACCOUNT_ID,
                 reportID: room.reportID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                 created: '2026-11-01 10:00:00.000',
                 message: [{type: 'COMMENT', html: 'Thanks for the order', text: 'Thanks for the order'}],
-                originalMessage: {html: 'Thanks for the order', whisperedTo: []},
                 pendingAction: null,
                 isOptimisticAction: false,
-            };
-            const invoicePreviewAction: ReportAction = {
-                ...createRandomReportAction(3),
+            });
+            const invoicePreviewAction = createMock<ReportAction>({
                 reportActionID: '9203',
+                actorAccountID: CURRENT_USER_ACCOUNT_ID,
                 reportID: room.reportID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
                 created: '2026-11-01 11:00:00.000',
-                message: [{type: 'COMMENT', html: 'Vendor sent an invoice', text: 'Vendor sent an invoice'}],
-                originalMessage: {linkedReportID: invoice.reportID},
+                message: {linkedReportID: invoice.reportID},
                 pendingAction: null,
                 isOptimisticAction: false,
-            };
+            });
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${room.reportID}`, room);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoice.reportID}`, invoice);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${room.reportID}`, {

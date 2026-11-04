@@ -3,7 +3,7 @@ import visibleReportActionsConfig from '@libs/actions/OnyxDerived/configs/visibl
 import CONST from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportActions, ReportNameValuePairs} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions, ReportNameValuePairs} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -87,17 +87,16 @@ describe('visibleReportActions', () => {
         const invoiceReportID = 'invoiceReportID';
         const chatReportID = 'chatReportID';
         const expenseReportID = 'expenseReportID';
-        const makePreview = (reportActionID: string, linkedReportID: string) => ({
+        const makePreview = (reportActionID: string, linkedReportID: string): ReportAction => ({
             reportActionID,
             actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
             created: '2026-11-01 12:00:00.000',
-            message: [{type: 'COMMENT', html: 'Preview', text: 'Preview'}],
-            originalMessage: {linkedReportID},
+            message: {linkedReportID},
         });
-        const allReportActions = {
+        const allReportActions: OnyxCollection<ReportActions> = {
             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${roomReportID}`]: {invoicePreviewID: makePreview('invoicePreviewID', invoiceReportID)},
             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`]: {expensePreviewID: makePreview('expensePreviewID', expenseReportID)},
-        } as OnyxCollection<ReportActions>;
+        };
         const allReports: OnyxCollection<Report> = {
             [`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`]: {reportID: invoiceReportID, type: CONST.REPORT.TYPE.INVOICE, isHiddenForBillReceiver: true},
             [`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`]: {reportID: expenseReportID, type: CONST.REPORT.TYPE.EXPENSE},
