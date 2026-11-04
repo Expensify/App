@@ -6,8 +6,8 @@ import {useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnc
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 
-import {isBillReport} from '@libs/BillPayUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import isBillReport from '@libs/isBillReport';
 import {getValidConnectedIntegration, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
 import {

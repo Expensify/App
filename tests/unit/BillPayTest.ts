@@ -1,5 +1,5 @@
 import {maybeUpdateReportNameForFormulaTitle} from '@libs/actions/IOU/MoneyRequestBuilder';
-import {isBillReport} from '@libs/BillPayUtils';
+import isBillReport from '@libs/isBillReport';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
@@ -326,14 +326,16 @@ describe('Bill Pay', () => {
         const formulaPolicy: Policy = {
             ...policy,
             fieldList: {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
+                // eslint-disable-next-line @typescript-eslint/naming-convention -- text_title is the backend field ID
                 text_title: createMock<PolicyReportField>({fieldID: 'text_title', name: 'title', type: CONST.REPORT_FIELD_TYPES.FORMULA, defaultValue: '{report:type}', target: 'expense'}),
             },
         };
         const formulaTitle = createMock<PolicyReportField>({fieldID: 'text_title', name: 'title', type: CONST.REPORT_FIELD_TYPES.FORMULA, defaultValue: '{report:type}'});
-        const namedBill: Report = {...bill, reportName: 'Bill #R00UehkbSWnw'};
+        const namedBill: Report = {...bill, reportName: 'Bill #R00000001upZ'};
         const namedExpenseReport: Report = {...expenseReport, reportName: 'Old name'};
+        // eslint-disable-next-line @typescript-eslint/naming-convention -- expensify_text_title is the backend's NVP name
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${bill.reportID}`, {expensify_text_title: formulaTitle});
+        // eslint-disable-next-line @typescript-eslint/naming-convention -- expensify_text_title is the backend's NVP name
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport.reportID}`, {expensify_text_title: formulaTitle});
         await waitForBatchedUpdates();
 
@@ -344,6 +346,6 @@ describe('Bill Pay', () => {
 
         // Then only the expense report follows the formula, and the bill keeps the name that Auth or the user gave it
         expect(updatedExpenseReport.reportName).toBe('Expense Report');
-        expect(updatedBill.reportName).toBe('Bill #R00UehkbSWnw');
+        expect(updatedBill.reportName).toBe('Bill #R00000001upZ');
     });
 });

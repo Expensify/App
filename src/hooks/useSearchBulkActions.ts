@@ -46,12 +46,12 @@ import {
 } from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
-import {isBillReport} from '@libs/BillPayUtils';
 import {canResolveTransactionCard} from '@libs/CardUtils';
 import {getConnectionCompanyID} from '@libs/CopyPolicySettingsUtils';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import {getExpensifyCardStatementParamsFromFeed, getExpensifyCardStatementSelection} from '@libs/ExpensifyCardStatementUtils';
 import getSelectedTransactionOwnerAccountID from '@libs/getSelectedTransactionOwnerAccountID';
+import isBillReport from '@libs/isBillReport';
 import Log from '@libs/Log';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';

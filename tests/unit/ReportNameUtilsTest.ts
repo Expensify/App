@@ -340,11 +340,11 @@ describe('ReportNameUtils', () => {
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             total: -12500,
             currency: CONST.CURRENCY.USD,
-            reportName: 'Bill #R00UehkbSWnw',
+            reportName: 'Bill #R00000001upZ',
         };
 
         it.each([
-            ['the default name from Auth', 'Bill #R00UehkbSWnw'],
+            ['the default name from Auth', 'Bill #R00000001upZ'],
             ['a name the user gave it', 'Office chairs for the new floor'],
         ])('shows the stored name of a bill with %s', (_, reportName) => {
             // Given a bill with a stored name, on a policy whose title field is a formula

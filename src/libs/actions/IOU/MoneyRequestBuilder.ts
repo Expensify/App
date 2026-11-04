@@ -3,12 +3,12 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import type {WriteReadyBarrier} from '@libs/API';
-import {isBillReport} from '@libs/BillPayUtils';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import type {MinimalTransaction} from '@libs/Formula';
 import {updateIOUOwnerAndTotal} from '@libs/IOUUtils';
+import isBillReport from '@libs/isBillReport';
 import {translateLocal} from '@libs/Localize';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';

@@ -30,8 +30,8 @@ import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 
 import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from './AgentRuleChangeLogUtils';
-import {isBillReport} from './BillPayUtils';
 import getCollator from './CollatorUtils';
+import isBillReport from './isBillReport';
 // eslint-disable-next-line import/no-cycle
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
 import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';

@@ -7,7 +7,7 @@ import type {ValueOf} from 'type-fest';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
 
-import {isBillReport} from './BillPayUtils';
+import isBillReport from './isBillReport';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     canAdminPayReport,

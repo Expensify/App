@@ -9,8 +9,8 @@ import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
-import {isBillReport} from '@libs/BillPayUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import isBillReport from '@libs/isBillReport';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 

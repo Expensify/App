@@ -114,7 +114,6 @@ import {getBankAccountFromID} from './actions/BankAccounts';
 import hasCreditBankAccount from './actions/ReimbursementAccount/hasCreditBankAccount';
 import {getAnchorHref, isAttachmentAnchorTag, isOwnAttachmentURL} from './AttachmentAnchorUtils';
 import {convertAttendeesToArray, normalizeAttendees} from './AttendeeUtils';
-import {isBillReport} from './BillPayUtils';
 import {buildOnboardingMessagesWithoutManageTeam} from './buildOnboardingMessages';
 import {isCardWithPotentialFraud} from './CardUtils';
 import {getCategoryGLCode} from './CategoryUtils';
@@ -124,6 +123,7 @@ import {getEnvironmentURL} from './Environment/Environment';
 import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from './ErrorUtils';
 import getAttachmentDetails from './fileDownload/getAttachmentDetails';
 import getBankAccountLastFourDigits from './getBankAccountLastFourDigits';
+import isBillReport from './isBillReport';
 import isTeachersUnitePolicyID from './isTeachersUnitePolicyID';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
@@ -5325,14 +5325,6 @@ function getReasonAndReportActionThatRequiresAttention({
     const resolvePolicy = (policyID: string | undefined) => (policiesParam ? policiesParam[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : getPolicy(policyID));
     const policy = resolvePolicy(optionOrReport.policyID);
 
-    // Bills have no parent chat to show a report preview badge, so the approver's green dot goes on the bill itself.
-    if (isBillReport(optionOrReport) && canApproveBill(optionOrReport, policy, reportMetadata, currentUserAccountID, getReportTransactions(optionOrReport.reportID))) {
-        return {
-            reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
-            actionBadge: CONST.REPORT.ACTION_BADGE.APPROVE,
-        };
-    }
-
     const invoiceReceiverPolicyID = optionOrReport?.invoiceReceiver && 'policyID' in optionOrReport.invoiceReceiver ? optionOrReport.invoiceReceiver.policyID : undefined;
     const invoiceReceiverPolicy = invoiceReceiverPolicyID ? resolvePolicy(invoiceReceiverPolicyID) : undefined;
     const actionTypeForAssigneeToComplete = getActionTypeForAssigneeToComplete(optionOrReport, parentReportAction);
@@ -5353,8 +5345,17 @@ function getReasonAndReportActionThatRequiresAttention({
         allReportActionsParam: allReportActionsParam ?? allReportActions,
     });
     // Fall back to the chat's outstanding child so the pending-only check still runs when no badge action was found.
-    const iouReportID = getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay) ?? optionOrReport.iouReportID;
+    // A bill has no parent chat, so its own expenses decide whether its approver must act.
+    const iouReportID = isBillReport(optionOrReport) ? optionOrReport.reportID : (getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay) ?? optionOrReport.iouReportID);
     const transactions = getReportTransactions(iouReportID);
+
+    // Bills have no parent chat to show a report preview badge, so the approver's green dot goes on the bill itself.
+    if (canApproveBill(optionOrReport, policy, reportMetadata, currentUserAccountID, transactions)) {
+        return {
+            reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
+            actionBadge: CONST.REPORT.ACTION_BADGE.APPROVE,
+        };
+    }
     const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isPending(t));
 
     const iouReport = reports ? reports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`] : getReportOrDraftReport({reportID: iouReportID});

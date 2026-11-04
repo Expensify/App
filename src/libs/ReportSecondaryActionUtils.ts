@@ -19,7 +19,7 @@ import type {
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {isBillReport} from './BillPayUtils';
+import isBillReport from './isBillReport';
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
 import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {
