@@ -26,7 +26,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CorpayFormField} from '@src/types/onyx';
 
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 
 const STEP_INDEXES = CONST.CORPAY_FIELDS.INDEXES.MAPPING;
 
@@ -160,16 +160,13 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
         });
     }
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> = {};
-            if (!values.acceptTerms) {
-                errors.acceptTerms = translate('common.error.acceptTerms');
-            }
-            return errors;
-        },
-        [translate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> = {};
+        if (!values.acceptTerms) {
+            errors.acceptTerms = translate('common.error.acceptTerms');
+        }
+        return errors;
+    };
 
     const errorMessage = getLatestErrorMessage(reimbursementAccount);
 
@@ -202,7 +199,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
             >
                 <InputWrapper
                     InputComponent={CheckboxWithLabel}
-                    aria-label={`${translate('common.iAcceptThe')} ${translate('common.addCardTermsOfService')}`}
+                    accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.addCardTermsOfService')}`}
                     inputID="acceptTerms"
                     LabelComponent={TermsAndConditionsLabel}
                     style={[styles.mt3]}

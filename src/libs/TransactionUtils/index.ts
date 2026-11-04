@@ -64,6 +64,7 @@ import {getClearedPendingFields, getDistanceMerchantForTransaction, getUpdatedTr
 import {
     calculateTaxAmount,
     getCalculatedTaxAmount,
+    getCategoryTaxCode,
     getCategoryTaxDetails,
     getDefaultTaxCode,
     getDistanceRateTaxUpdates,
@@ -236,9 +237,11 @@ type ManuallyEnteredScanFields = Pick<Transaction, 'iouRequestType' | 'isAmountS
 /**
  * The Scan confirmation's amount / merchant / date are all-or-nothing: leave all three blank to let SmartScan read
  * them, or fill all three in to submit as a manual expense whose receipt is never scanned over.
+ * `isMerchantRequired` mirrors the manual flow, where only a workspace chat requires a merchant: outside of one
+ * (P2P, self DM) a blank merchant doesn't keep the entered amount and date from counting as complete.
  */
-function hasAllManuallyEnteredScanFields(transaction: OnyxEntry<ManuallyEnteredScanFields>): boolean {
-    return isScanRequest(transaction) && !!transaction?.isAmountSet && !!transaction?.isMerchantSet && !!transaction?.isCreatedSet;
+function hasAllManuallyEnteredScanFields(transaction: OnyxEntry<ManuallyEnteredScanFields>, isMerchantRequired = true): boolean {
+    return isScanRequest(transaction) && !!transaction?.isAmountSet && (!isMerchantRequired || !!transaction?.isMerchantSet) && !!transaction?.isCreatedSet;
 }
 
 /** Whether the user filled in at least one of those three fields, which is what turns the scan into a manual expense. */
@@ -248,11 +251,11 @@ function hasAnyManuallyEnteredScanField(transaction: OnyxEntry<ManuallyEnteredSc
 
 /**
  * Whether the user started filling the three fields in but stopped short, which blocks confirmation.
- * `canEnterScanFieldsManually` says whether the surface offers those fields at all, since splits, moved tracked
- * expenses and test receipts carry the same flags without ever having shown them.
+ * `canEnterScanFieldsManually` says whether the surface offers those fields at all, since moved tracked expenses
+ * and test receipts carry the same flags without ever having shown them.
  */
-function isPartiallyEnteredScanExpense(transaction: OnyxEntry<ManuallyEnteredScanFields>, canEnterScanFieldsManually = false): boolean {
-    return canEnterScanFieldsManually && hasAnyManuallyEnteredScanField(transaction) && !hasAllManuallyEnteredScanFields(transaction);
+function isPartiallyEnteredScanExpense(transaction: OnyxEntry<ManuallyEnteredScanFields>, canEnterScanFieldsManually = false, isMerchantRequired = true): boolean {
+    return canEnterScanFieldsManually && hasAnyManuallyEnteredScanField(transaction) && !hasAllManuallyEnteredScanFields(transaction, isMerchantRequired);
 }
 
 function isPerDiemRequest(transaction: OnyxEntry<Transaction>): boolean {
@@ -661,12 +664,10 @@ function getConvertedAmount(
  * For non-expense reports, returns getOriginalAmount() or Math.abs(amount) or Math.abs(modifiedAmount).
  */
 function getOriginalAmountForDisplay(transaction: Pick<Transaction, 'originalAmount' | 'amount' | 'modifiedAmount'>, isExpenseReport: boolean): number {
-    /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
     if (isExpenseReport) {
         return -((transaction.originalAmount || transaction.amount || Number(transaction.modifiedAmount)) ?? 0);
     }
     return getOriginalAmount(transaction as Transaction) || Math.abs(transaction.amount ?? 0) || Math.abs(Number(transaction.modifiedAmount ?? 0));
-    /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 }
 
 /**
@@ -674,7 +675,6 @@ function getOriginalAmountForDisplay(transaction: Pick<Transaction, 'originalAmo
  * Falls back to originalCurrency, then currency, then modifiedCurrency.
  */
 function getOriginalCurrencyForDisplay(transaction: Pick<Transaction, 'originalCurrency' | 'currency' | 'modifiedCurrency' | 'amount'>): string {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     return transaction.originalCurrency || (transaction.amount === 0 ? transaction.modifiedCurrency : transaction.currency) || CONST.CURRENCY.USD;
 }
 
@@ -745,7 +745,6 @@ function getMerchantName(transaction: TransactionWithOptionalSearchFields, trans
 }
 
 function getReportOwnerAsAttendee(creatorDetails: OnyxEntry<PersonalDetails>): Attendee | undefined {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const creatorLogin = creatorDetails?.login || creatorDetails?.displayName || '';
 
     if (!creatorLogin) {
@@ -761,18 +760,16 @@ function getReportOwnerAsAttendee(creatorDetails: OnyxEntry<PersonalDetails>): A
 }
 
 /**
- * Return report owner as default attendee
+ * Return report owner as default attendee. `reportOwnerAccountID` is the owner of the report the transaction is on,
+ * which the caller reads so it is told when that report lands.
  */
-function getReportOwnerAccountIDAsAttendee(transaction: OnyxInputOrEntry<Transaction>, currentUserAccountID: number | undefined) {
+function getReportOwnerAccountIDAsAttendee(transaction: OnyxInputOrEntry<Transaction>, currentUserAccountID: number | undefined, reportOwnerAccountID: number | undefined) {
     if (transaction?.reportID === undefined) {
         return;
     }
 
-    // Get the creator of the transaction by looking at the owner of the report linked to the transaction
-    const report = getReportOrDraftReport(transaction?.reportID);
     // For unreported expenses, the creator ID should belong to the current user because the transaction isn’t part of any report yet
-    const creatorAccountID = isExpenseUnreported(transaction) ? currentUserAccountID : report?.ownerAccountID;
-    return creatorAccountID;
+    return isExpenseUnreported(transaction) ? currentUserAccountID : reportOwnerAccountID;
 }
 
 /**
@@ -803,10 +800,13 @@ function getAttendees(transaction: OnyxInputOrEntry<Transaction>, reportOwnerAsA
 /**
  * Returns attendees joined as a display string. Pass `localeCompare` to sort alphabetically (matches the pill sort);
  * omit it to keep insertion order — used by non-React callers that don't want to thread the comparator.
- * Strips the SMS domain so phone-login attendees render the same as in the rendered pills.
+ * Formats phone-login attendees so they render the same as in the rendered pills.
  */
-function getAttendeesListDisplayString(attendees: Attendee[], localeCompare?: LocaleContextProps['localeCompare']): string {
-    const getName = (a: Attendee) => Str.removeSMSDomain(a.displayName ?? a.email ?? '');
+function getAttendeesListDisplayString(attendees: Attendee[], formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], localeCompare?: LocaleContextProps['localeCompare']): string {
+    const getName = (a: Attendee) => {
+        const name = a.displayName ?? a.email ?? '';
+        return Str.isSMSLogin(name) ? formatPhoneNumber(name) : name;
+    };
     const ordered = localeCompare
         ? // Lowercase to match sortAlphabetically (the pill sort) so joined string and pill order never disagree on case.
           [...attendees].sort((a, b) => localeCompare(getName(a).toLowerCase(), getName(b).toLowerCase()))
@@ -817,10 +817,15 @@ function getAttendeesListDisplayString(attendees: Attendee[], localeCompare?: Lo
 /**
  * Return the list of attendees as a string and modified list of attendees as a string if present.
  */
-function getFormattedAttendees(modifiedAttendees?: Attendee[], attendees?: Attendee[], localeCompare?: LocaleContextProps['localeCompare']): [string, string] {
+function getFormattedAttendees(
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    modifiedAttendees?: Attendee[],
+    attendees?: Attendee[],
+    localeCompare?: LocaleContextProps['localeCompare'],
+): [string, string] {
     const oldAttendees = modifiedAttendees ?? [];
     const newAttendees = attendees ?? [];
-    return [getAttendeesListDisplayString(oldAttendees, localeCompare), getAttendeesListDisplayString(newAttendees, localeCompare)];
+    return [getAttendeesListDisplayString(oldAttendees, formatPhoneNumber, localeCompare), getAttendeesListDisplayString(newAttendees, formatPhoneNumber, localeCompare)];
 }
 
 /**
@@ -984,7 +989,6 @@ function getTagForDisplay(transaction: OnyxEntry<Pick<Transaction, 'tag'>>, tagI
 }
 
 function getCreated(transaction: OnyxInputOrEntry<Transaction>): string {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     return transaction?.modifiedCreated ? transaction.modifiedCreated : transaction?.created || '';
 }
 
@@ -1198,6 +1202,14 @@ function isScanning(transaction: OnyxEntry<Transaction>): boolean {
 
 function isReceiptBeingScanned(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_READY || transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCANNING;
+}
+
+/**
+ * Manual expenses never show a scan to the user, so a backend scan of their receipt shouldn't block receipt edits.
+ * This checks iouRequestType directly instead of using getRequestType, which treats a missing type as manual.
+ */
+function isReceiptScanBlockingEdit(transaction: OnyxInputOrEntry<Transaction>): boolean {
+    return isReceiptBeingScanned(transaction) && transaction?.iouRequestType !== CONST.IOU.REQUEST_TYPE.MANUAL;
 }
 
 /**
@@ -1445,7 +1457,7 @@ function getAllSortedTransactions(iouReportID?: string): Array<OnyxEntry<Transac
 function isExpenseSplit(transaction: OnyxEntry<Transaction>, originalTransaction?: OnyxEntry<Transaction>): boolean {
     const isAddedToReport = !!transaction?.reportID && transaction.reportID !== CONST.REPORT.SPLIT_REPORT_ID && transaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
     if (isAddedToReport) {
-        const report = getReportOrDraftReport(transaction.reportID);
+        const report = getReportOrDraftReport({reportID: transaction.reportID});
         if (report && report.type !== CONST.REPORT.TYPE.EXPENSE) {
             return false;
         }
@@ -1874,6 +1886,7 @@ export {
     hasEReceipt,
     hasRoute,
     isReceiptBeingScanned,
+    isReceiptScanBlockingEdit,
     didReceiptScanSucceed,
     getValidWaypoints,
     doesMoneyRequestDraftHaveUserInput,
@@ -1953,6 +1966,7 @@ export {
     getAllSortedTransactions,
     getFormattedPostedDate,
     getPostedDate,
+    getCategoryTaxCode,
     getCategoryTaxDetails,
     isPerDiemRequest,
     isViolationDismissed,

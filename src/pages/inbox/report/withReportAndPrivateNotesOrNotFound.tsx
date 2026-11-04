@@ -63,8 +63,8 @@ function WithReportAndPrivateNotesOrNotFoundImpl<TProps extends WithReportAndPri
             return;
         }
 
-        getReportPrivateNote(report?.reportID);
-    }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered, isReconnecting]);
+        getReportPrivateNote(report?.reportID, session);
+    }, [report?.reportID, session, isOffline, isPrivateNotesFetchTriggered, isReconnecting]);
 
     const shouldShowFullScreenLoadingIndicator = !isPrivateNotesFetchFinished;
 

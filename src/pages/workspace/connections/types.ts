@@ -35,7 +35,7 @@ type ConnectionListing = {
     /** Only set while the integration is connected to the workspace */
     status?: ConnectionStatus;
 
-    onConnect: () => void;
+    onConnect?: () => void;
 
     /** Shows an "Offer" badge for a partner promotion. The badge only opens the offer when `onPress` is set. */
     offer?: {onPress?: () => void};

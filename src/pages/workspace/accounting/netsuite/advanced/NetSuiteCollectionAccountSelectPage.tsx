@@ -23,7 +23,7 @@ import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 function NetSuiteCollectionAccountSelectPage({policy}: WithPolicyConnectionsProps) {
@@ -34,44 +34,32 @@ function NetSuiteCollectionAccountSelectPage({policy}: WithPolicyConnectionsProp
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const config = policy?.connections?.netsuite?.options.config;
-    const netsuiteCollectionAccountOptions = useMemo<SelectorType[]>(
-        () => getNetSuiteCollectionAccountOptions(policy ?? undefined, config?.collectionAccount),
-        [config?.collectionAccount, policy],
+    const netsuiteCollectionAccountOptions: SelectorType[] = getNetSuiteCollectionAccountOptions(policy ?? undefined, config?.collectionAccount);
+
+    const initiallyFocusedOptionKey = netsuiteCollectionAccountOptions?.find((mode) => mode.isSelected)?.keyForList;
+
+    const updateCollectionAccount = ({value}: SelectorType) => {
+        if (config?.collectionAccount !== value && policyID) {
+            updateNetSuiteCollectionAccount(policyID, value, config?.collectionAccount);
+        }
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
+    };
+
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.netsuite.noAccountsFound')}
+            subtitle={translate('workspace.netsuite.noAccountsFoundDescription')}
+            containerStyle={styles.pb10}
+        />
     );
 
-    const initiallyFocusedOptionKey = useMemo(() => netsuiteCollectionAccountOptions?.find((mode) => mode.isSelected)?.keyForList, [netsuiteCollectionAccountOptions]);
-
-    const updateCollectionAccount = useCallback(
-        ({value}: SelectorType) => {
-            if (config?.collectionAccount !== value && policyID) {
-                updateNetSuiteCollectionAccount(policyID, value, config?.collectionAccount);
-            }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
-        },
-        [policyID, config?.collectionAccount],
-    );
-
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.Telescope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.netsuite.noAccountsFound')}
-                subtitle={translate('workspace.netsuite.noAccountsFoundDescription')}
-                containerStyle={styles.pb10}
-            />
-        ),
-        [illustrations.Telescope, translate, styles.pb10],
-    );
-
-    const headerContent = useMemo(
-        () => (
-            <View>
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.netsuite.advancedConfig.collectionsAccountDescription')}</Text>
-            </View>
-        ),
-        [translate, styles.pb5, styles.ph5],
+    const headerContent = (
+        <View>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.netsuite.advancedConfig.collectionsAccountDescription')}</Text>
+        </View>
     );
 
     return (

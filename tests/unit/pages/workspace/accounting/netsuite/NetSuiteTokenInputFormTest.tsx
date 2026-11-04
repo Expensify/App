@@ -114,7 +114,7 @@ describe('NetSuiteTokenInputForm', () => {
             submitForm();
 
             // Then isMigration is false so the backend connects fresh without preserving TBA credentials
-            expect(mockedConnectToNetSuiteOAuthSetup).toHaveBeenCalledWith(POLICY_ID, ACCOUNT_ID, ENVIRONMENT_URL, false);
+            expect(mockedConnectToNetSuiteOAuthSetup).toHaveBeenCalledWith(POLICY_ID, ACCOUNT_ID, ENVIRONMENT_URL, false, undefined);
         });
 
         it('forwards isMigration=true so the backend preserves TBA credentials until OAuth is verified', () => {
@@ -123,7 +123,7 @@ describe('NetSuiteTokenInputForm', () => {
             submitForm();
 
             // Then isMigration is forwarded so the backend treats this as a migration
-            expect(mockedConnectToNetSuiteOAuthSetup).toHaveBeenCalledWith(POLICY_ID, ACCOUNT_ID, ENVIRONMENT_URL, true);
+            expect(mockedConnectToNetSuiteOAuthSetup).toHaveBeenCalledWith(POLICY_ID, ACCOUNT_ID, ENVIRONMENT_URL, true, undefined);
         });
 
         it('does not write the token-based credentials', () => {

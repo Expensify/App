@@ -14,7 +14,6 @@ import CONST from '@src/CONST';
 import type {ComponentRef} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
-import {deepEqual} from 'fast-equals';
 import React, {useEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
@@ -145,7 +144,6 @@ function OptionRow({
         subscriptColor = focusedBackgroundColor;
     }
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const reportID = (option.iouReportID ?? option.reportID) || undefined;
 
     return (
@@ -303,29 +301,6 @@ function OptionRow({
 
 OptionRow.displayName = 'OptionRow';
 
-export default React.memo(
-    OptionRow,
-    (prevProps, nextProps) =>
-        prevProps.isDisabled === nextProps.isDisabled &&
-        prevProps.isMultilineSupported === nextProps.isMultilineSupported &&
-        prevProps.isSelected === nextProps.isSelected &&
-        prevProps.shouldHaveOptionSeparator === nextProps.shouldHaveOptionSeparator &&
-        prevProps.showTitleTooltip === nextProps.showTitleTooltip &&
-        // eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- icons array is created inline in some usages (e.g., BaseReactionList) with unstable references
-        deepEqual(prevProps.option.icons, nextProps.option.icons) &&
-        prevProps.optionIsFocused === nextProps.optionIsFocused &&
-        prevProps.option.text === nextProps.option.text &&
-        prevProps.option.alternateText === nextProps.option.alternateText &&
-        prevProps.option.descriptiveText === nextProps.option.descriptiveText &&
-        prevProps.option.brickRoadIndicator === nextProps.option.brickRoadIndicator &&
-        prevProps.option.shouldShowSubscript === nextProps.option.shouldShowSubscript &&
-        prevProps.option.ownerAccountID === nextProps.option.ownerAccountID &&
-        prevProps.option.subtitle === nextProps.option.subtitle &&
-        prevProps.option.pendingAction === nextProps.option.pendingAction &&
-        prevProps.option.customIcon === nextProps.option.customIcon &&
-        prevProps.option.tabIndex === nextProps.option.tabIndex &&
-        // eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- amountInputProps origin and reference stability cannot be determined across all usages
-        deepEqual(prevProps.option.amountInputProps, nextProps.option.amountInputProps),
-);
+export default OptionRow;
 
 export type {OptionRowProps};

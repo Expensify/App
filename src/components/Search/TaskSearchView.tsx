@@ -53,7 +53,7 @@ function TaskSearchView({
 }: TaskSearchViewProps) {
     const {type} = queryJSON;
 
-    const {isOffline, isKeyboardShown, safeAreaPaddingBottomStyle, isLargeScreenWidth, toggleAll, selectedTransactions, listRef, onLongPressRow, modal, handleSelectRow, scrollToListIndex} =
+    const {isOffline, isKeyboardShown, safeAreaPaddingBottomStyle, isLargeScreenWidth, toggleAll, selectedTransactions, listRef, onLongPressRow, handleSelectRow, scrollToListIndex} =
         useSearchListViewState({data, isMobileSelectionModeEnabled, onSelectRow, shouldPreventLongPressRow: true});
 
     // Task is a flat list, so visibility and selection counts are a single pass over the rows.
@@ -63,7 +63,7 @@ function TaskSearchView({
     const selectedItemsLength = data.reduce((acc, item) => acc + (item.keyForList && selectedTransactions[item.keyForList]?.isSelected ? 1 : 0), 0);
     const totalItems = data.filter((item) => !isRowDeleted(item)).length;
 
-    const renderItem = (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => (
+    const renderItem = (item: SearchListItem, index: number, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => (
         // Task rows never animate their exit (only grouped expenses do), so the wrapper just preserves the overflow clip.
         <AnimatedExitRow
             shouldApplyAnimation={false}
@@ -71,7 +71,6 @@ function TaskSearchView({
         >
             <TaskListItem
                 showTooltip
-                isFocused={isItemFocused}
                 onSelectRow={handleSelectRow}
                 onLongPressRow={onLongPressRow}
                 canSelectMultiple={canSelectMultiple}
@@ -86,6 +85,21 @@ function TaskSearchView({
     const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === totalItems && hasLoadedAllTransactions;
     const selectAllButtonVisible = canSelectMultiple && !searchTableHeader;
 
+    const selectionTopBar = tableHeaderVisible ? (
+        <SelectionTopBar
+            isLargeScreenWidth={isLargeScreenWidth}
+            shouldSplitGroups={false}
+            canSelectMultiple={canSelectMultiple}
+            isSelectAllChecked={isSelectAllChecked}
+            selectedItemsLength={selectedItemsLength}
+            totalItems={totalItems}
+            hasLoadedAllTransactions={hasLoadedAllTransactions}
+            selectAllButtonVisible={selectAllButtonVisible}
+            onAllCheckboxPress={toggleAll}
+            SearchTableHeader={searchTableHeader}
+        />
+    ) : undefined;
+
     return (
         <SearchListViewLayout
             columns={columns}
@@ -98,21 +112,8 @@ function TaskSearchView({
             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
             containerStyle={containerStyle}
         >
-            {tableHeaderVisible && (
-                <SelectionTopBar
-                    isLargeScreenWidth={isLargeScreenWidth}
-                    shouldSplitGroups={false}
-                    canSelectMultiple={canSelectMultiple}
-                    isSelectAllChecked={isSelectAllChecked}
-                    selectedItemsLength={selectedItemsLength}
-                    totalItems={totalItems}
-                    hasLoadedAllTransactions={hasLoadedAllTransactions}
-                    selectAllButtonVisible={selectAllButtonVisible}
-                    onAllCheckboxPress={toggleAll}
-                    SearchTableHeader={searchTableHeader}
-                />
-            )}
             <BaseSearchList
+                selectionTopBar={selectionTopBar}
                 data={data}
                 renderItem={renderItem}
                 onSelectRow={handleSelectRow}
@@ -131,7 +132,6 @@ function TaskSearchView({
                 contentContainerStyle={contentContainerStyle}
                 newTransactions={newTransactions}
             />
-            {modal}
         </SearchListViewLayout>
     );
 }

@@ -11,7 +11,6 @@ import type {NativeScrollEvent, NativeSyntheticEvent, View} from 'react-native';
 import React, {createContext, useContext} from 'react';
 
 import type {TableListMetadata} from './buildTableListData';
-import type {ColumnResizeController} from './columnResize/useColumnResize/types';
 import type {FilterConfig} from './middlewares/filtering';
 import type {ActiveSorting, SortOrder} from './middlewares/sorting';
 import type {TableHeaderProps} from './TableHeader';
@@ -61,6 +60,15 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** Whether or not selection is enabled for the table */
     selectionEnabled?: boolean;
 
+    /** The keys of the rows the selection currently covers. */
+    selectedKeys: string[];
+
+    /**
+     * Whether the floating bulk action bar is showing for the current selection. The list reads it too, because it has
+     * to reserve the space the bar floats over or its last rows sit behind the bar once scrolled to the bottom.
+     */
+    isBulkActionBarVisible: boolean;
+
     /** Whether the selection UX should key off the real screen size instead of shouldUseNarrowLayout (for tables inside a narrow pane modal / RHP) */
     shouldEnableSelectionInNarrowPaneModal?: boolean;
 
@@ -84,9 +92,6 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
 
     /** Row box width while resizable, so the row background follows a drag. `undefined` otherwise. */
     rowWidth: string | undefined;
-
-    /** Lets the header render column edge handles. `undefined` when resizing is off, which includes native and narrow layouts. */
-    columnResize: ColumnResizeController | undefined;
 
     /** Width the rows are really given, so the measured area less any vertical scrollbar. `0` until the first layout. */
     tableWidth: number;
@@ -153,7 +158,6 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
     dynamicGridTemplateColumns: undefined,
     scrollWidth: undefined,
     rowWidth: undefined,
-    columnResize: undefined,
     tableWidth: 0,
     activeFilters: {},
     activeSorting: {
@@ -178,6 +182,8 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
     },
     isEmptyResult: false,
     isDefaultViewEmpty: false,
+    selectedKeys: [],
+    isBulkActionBarVisible: false,
     shouldUseNarrowTableLayout: false,
     isMobileSelectionEnabled: false,
 };

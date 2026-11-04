@@ -32,6 +32,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import {format} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
@@ -39,6 +40,7 @@ import {View} from 'react-native';
 type WorkspaceCardSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS>;
 
 function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
     const policyID = route.params?.policyID;
@@ -107,7 +109,7 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
                                 onPress={
                                     isSettlementFrequencyBlocked
                                         ? undefined
-                                        : callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY.getRoute(policyID)))
+                                        : callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY.getRoute(policyID)), false, session)
                                 }
                             >
                                 <MenuItemField.Row

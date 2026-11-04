@@ -6,6 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearRilletErrorField, updateRilletEnableNewCategories, updateRilletFieldMapping, updateRilletSyncTaxRates} from '@libs/actions/connections/Rillet';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -13,6 +14,7 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -29,6 +31,7 @@ function RilletImportPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))}
             displayName="RilletImportPage"
             headerTitle="workspace.accounting.import"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
