@@ -10609,6 +10609,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `mis à jour « Empêcher de marquer les notes de frais non remboursables comme payées » en « ${newValue === 'true' ? 'Activé' : 'Désactivé'} » (auparavant « ${oldValue === 'true' ? 'Activé' : 'Désactivé'} »)`,
         addedExpensifyCardFeed: (feedName: string) => `a ajouté le flux Carte Expensify « ${feedName} »`,
+        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
+            if (!oldValue) {
+                return `définir le fuseau horaire de l’espace de travail sur « ${newValue} »`;
+            }
+            return `a mis à jour le fuseau horaire de l'espace de travail sur « ${newValue} » (auparavant « ${oldValue} »)`;
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',

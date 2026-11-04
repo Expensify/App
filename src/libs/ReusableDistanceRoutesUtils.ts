@@ -1,8 +1,8 @@
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReusableDistanceRoute, Transaction} from '@src/types/onyx';
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 
+import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import DateUtils from './DateUtils';
@@ -56,8 +56,8 @@ function filterRoutes(routes: ReusableDistanceRoute[], searchValue: string): Reu
 /**
  * Formats the inserted timestamp of the source expense for the Last used badge
  */
-function formatLastUsed(inserted: string): string {
-    return DateUtils.formatWithUTCTimeZone(inserted, CONST.DATE.MONTH_DAY_ABBR_FORMAT, undefined);
+function formatLastUsed(inserted: string, dateFnsLocale: DateFnsLocale | undefined): string {
+    return DateUtils.formatMonthDayWithUTCTimeZone(inserted, dateFnsLocale);
 }
 
 /**

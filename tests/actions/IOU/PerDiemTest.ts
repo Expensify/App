@@ -23,6 +23,7 @@ import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
+import {de} from 'date-fns/locale/de';
 import Onyx from 'react-native-onyx';
 
 import createPersonalDetails from '../../utils/collections/personalDetails';
@@ -375,6 +376,52 @@ describe('PerDiem', () => {
     });
 
     describe('getPerDiemExpenseInformation', () => {
+        it('preserves the merchant date punctuation required by persisted per-diem receipts', () => {
+            // Given a destination with a comma and the explicit German locale used when creating an expense
+            const params = createMock<Parameters<typeof getPerDiemExpenseInformation>[0]>({
+                dateFnsLocale: de,
+                parentChatReport: {},
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                transactionParams: {
+                    comment: '',
+                    currency: CONST.CURRENCY.USD,
+                    created: '2026-01-22',
+                    customUnit: {
+                        customUnitID: 'per-diem',
+                        customUnitRateID: 'berlin',
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                        attributes: {dates: {start: '2026-01-22T12:00:00Z', end: '2026-01-23T12:00:00Z'}},
+                        subRates: [{id: 'day', name: 'Day', quantity: 1, rate: 1000}],
+                        quantity: 1,
+                    },
+                    attendees: [],
+                    reimbursable: true,
+                },
+                participantParams: {payeeAccountID: RORY_ACCOUNT_ID, payeeEmail: RORY_EMAIL, participant: {accountID: 123, login: 'test@example.com'}},
+                policyParams: {
+                    policy: {
+                        ...createRandomPolicy(1),
+                        customUnits: {perDiem: {name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL, rates: {berlin: {name: 'Berlin, Germany'}}}},
+                    },
+                },
+                recentlyUsedParams: {},
+                policyTags: {},
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                policyRecentlyUsedCurrencies: [],
+                isASAPSubmitBetaEnabled: true,
+                personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                formatPhoneNumber,
+            });
+
+            // When the actual action builder prepares the optimistic transaction that is persisted and sent to the API
+            const result = getPerDiemExpenseInformation(params);
+
+            // Then its merchant retains the date-part separators expected by existing receipt parsers
+            expect(result.transaction.merchant).toBe('Berlin, Germany, Jan. 22, 2026 - Jan. 23, 2026');
+            expect(result.transaction.created).toBe('2026-01-22');
+        });
+
         it('should include policyRecentlyUsedCurrencies when provided', () => {
             const testCurrency = CONST.CURRENCY.GBP;
             const initialCurrencies = [CONST.CURRENCY.USD, CONST.CURRENCY.EUR];

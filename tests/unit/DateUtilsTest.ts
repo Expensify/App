@@ -1,5 +1,6 @@
 // cspell:ignore Montag Dienstag Freitag Sonntag März Τρίτη Κυριακή Januar grudzień janv styczeń stycznia
 // cspell:ignore Ιανουάριος Ιανουαρίου -- German, Polish, French and Greek weekday and month
+// cspell:ignore jueves enero jeudi janvier Donnerstag Πέμπτη giovedì gennaio donderdag januari czwartek quinta feira
 // names, asserted verbatim so the locale-driven formatters are covered rather than only the English path.
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
@@ -17,10 +18,15 @@ import {addDays, addMinutes, endOfDay, format, set, setHours, setMinutes, startO
 import {fromZonedTime, toZonedTime, format as tzFormat} from 'date-fns-tz';
 import {de} from 'date-fns/locale/de';
 import {el} from 'date-fns/locale/el';
+import {enUS} from 'date-fns/locale/en-US';
+import {es} from 'date-fns/locale/es';
 import {fr} from 'date-fns/locale/fr';
+import {it as itLocale} from 'date-fns/locale/it';
 import {ja} from 'date-fns/locale/ja';
 import {nl} from 'date-fns/locale/nl';
 import {pl} from 'date-fns/locale/pl';
+import {ptBR} from 'date-fns/locale/pt-BR';
+import {zhCN} from 'date-fns/locale/zh-CN';
 import Onyx from 'react-native-onyx';
 
 import {translateLocal} from '../utils/TestHelper';
@@ -79,12 +85,27 @@ describe('DateUtils', () => {
         expect(formattedDate).toBe('Monday, November 7, 2022');
     });
 
-    it('formatToLongDateWithWeekday should translate the weekday and month names', () => {
-        // Only the words follow the locale here. `LONG_DATE_FORMAT_WITH_WEEKDAY` is still the hand-written
-        // `eeee, MMMM d, yyyy`, so the component order stays US — German would otherwise read `Montag, 7. November
-        // 2022` and Japanese `2022年11月7日月曜日`. Localizing that ordering is a separate change to `CONST.DATE`.
-        expect(DateUtils.formatToLongDateWithWeekday(datetime, de)).toBe('Montag, November 7, 2022');
-        expect(DateUtils.formatToLongDateWithWeekday(datetime, ja)).toBe('月曜日, 11月 7, 2022');
+    it.each([
+        [enUS, 'Thursday, January 22, 2026'],
+        [es, 'jueves, 22 de enero de 2026'],
+        [fr, 'jeudi 22 janvier 2026'],
+        [de, 'Donnerstag, 22. Januar 2026'],
+        [el, 'Πέμπτη 22 Ιανουαρίου 2026'],
+        [itLocale, 'giovedì 22 gennaio 2026'],
+        [ja, '2026年1月22日木曜日'],
+        [nl, 'donderdag 22 januari 2026'],
+        [pl, 'czwartek, 22 stycznia 2026'],
+        [ptBR, 'quinta-feira, 22 de janeiro de 2026'],
+        [zhCN, '2026年1月22日星期四'],
+    ])('formats full weekday dates using the conventions of $code', (locale, expected) => {
+        // Given a calendar date shared by every supported locale
+        const date = new Date(2026, 0, 22);
+
+        // When the display formatter receives that explicit locale
+        const result = DateUtils.formatToLongDateWithWeekday(date, locale);
+
+        // Then ordering, punctuation, and connecting words match an independently reviewed label
+        expect(result).toBe(expected);
     });
 
     it('formatToDayOfWeek should return a weekday', () => {
@@ -319,7 +340,7 @@ describe('DateUtils', () => {
 
         it('formats locale-sensitive tokens in the locale it is given', () => {
             // The suite runs in English, so a Greek month name can only come from the locale argument.
-            expect(DateUtils.formatWithUTCTimeZone(datetime, CONST.DATE.MONTH_DAY_ABBR_FORMAT, el)).toEqual('Νοε 7');
+            expect(DateUtils.formatMonthDayWithUTCTimeZone(datetime, el)).toEqual('7 Νοε');
         });
     });
 
@@ -613,10 +634,10 @@ describe('DateUtils', () => {
             expect(DateUtils.getStatusUntilDate(translateLocal, de, sameDay, currentTimeZone, currentTimeZone)).toBe('Until 15:34');
 
             const sameYear = tzFormat(toZonedTime(new Date('2025-12-02T20:15:00Z'), currentTimeZone), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: currentTimeZone});
-            expect(DateUtils.getStatusUntilDate(translateLocal, de, sameYear, currentTimeZone, currentTimeZone)).toBe('Until 12-02 12:15');
+            expect(DateUtils.getStatusUntilDate(translateLocal, de, sameYear, currentTimeZone, currentTimeZone)).toBe('Until 02.12. 12:15');
 
             const otherYear = tzFormat(toZonedTime(new Date('2026-03-02T20:15:00Z'), currentTimeZone), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: currentTimeZone});
-            expect(DateUtils.getStatusUntilDate(translateLocal, de, otherYear, currentTimeZone, currentTimeZone)).toBe('Until 2026-03-02 12:15');
+            expect(DateUtils.getStatusUntilDate(translateLocal, de, otherYear, currentTimeZone, currentTimeZone)).toBe('Until 02.03.2026 12:15');
         });
 
         it('returns empty string when input date is empty', () => {
@@ -659,17 +680,15 @@ describe('DateUtils', () => {
             expect(result).toBe(`Until ${expectedLabel}`);
         });
 
-        it('returns "Until MM-dd h:mm a" for future date within the same year in a different timezone', () => {
-            const twoDaysLaterLA = addDays(set(toZonedTime(new Date(), currentTimeZone), {hours: 15, minutes: 0, seconds: 0, milliseconds: 0}), 2);
-            const inputDateStrParis = tzFormat(twoDaysLaterLA, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: inputTimeZoneParis});
+        it('localizes a future same-year date after converting the owner timezone to the viewer timezone', () => {
+            // Given a Paris status that expires two days after the viewer's current date
+            const inputDateStrParis = '2025-10-21 15:00:00';
 
+            // When a Los Angeles viewer reads its expiry
             const result = DateUtils.getStatusUntilDate(translateLocal, undefined, inputDateStrParis, inputTimeZoneParis, currentTimeZone);
 
-            const date = fromZonedTime(inputDateStrParis, inputTimeZoneParis);
-            const converted = toZonedTime(date, currentTimeZone);
-            const expectedLabel = tzFormat(converted, `${CONST.DATE.SHORT_DATE_FORMAT} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {timeZone: currentTimeZone});
-
-            expect(result).toBe(`Until ${expectedLabel}`);
+            // Then English uses its own date separator and the converted local time
+            expect(result).toBe('Until 10/21 6:00 AM');
         });
 
         it('returns "Until MM-dd h:mm a" when "until today" crosses into next day in current timezone', () => {
@@ -678,25 +697,18 @@ describe('DateUtils', () => {
 
             const result = DateUtils.getStatusUntilDate(translateLocal, undefined, inputDateStrTokyo, inputTimeZoneTokyo, currentTimeZone);
 
-            const date = fromZonedTime(inputDateStrTokyo, inputTimeZoneTokyo);
-            const converted = toZonedTime(date, currentTimeZone);
-
-            const expectedLabel = tzFormat(converted, `${CONST.DATE.SHORT_DATE_FORMAT} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {timeZone: currentTimeZone});
-
-            expect(result).toBe(`Until ${expectedLabel}`);
+            expect(result).toBe('Until 10/20 7:59 AM');
         });
 
-        it('returns "Until yyyy-MM-dd h:mm a" for a date in a different year across timezones', () => {
-            const laFutureDateStr = '2026-01-02 09:15:00';
-            const inputDateStrTokyo = tzFormat(fromZonedTime(laFutureDateStr, currentTimeZone), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: inputTimeZoneTokyo});
+        it('includes the localized year for a future date across timezones', () => {
+            // Given a Tokyo wall time that is January 2 at 9:15 AM in Los Angeles
+            const inputDateStrTokyo = '2026-01-03 02:15:00';
 
+            // When the viewer reads that status in a different calendar year from now
             const result = DateUtils.getStatusUntilDate(translateLocal, undefined, inputDateStrTokyo, inputTimeZoneTokyo, currentTimeZone);
 
-            const date = fromZonedTime(inputDateStrTokyo, inputTimeZoneTokyo);
-            const converted = toZonedTime(date, currentTimeZone);
-            const expectedLabel = tzFormat(converted, `${CONST.DATE.FNS_FORMAT_STRING} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {timeZone: currentTimeZone});
-
-            expect(result).toBe(`Until ${expectedLabel}`);
+            // Then the date includes its year and the time is converted exactly once
+            expect(result).toBe('Until 01/02/2026 9:15 AM');
         });
     });
 
@@ -881,6 +893,17 @@ describe('DateUtils', () => {
             const americaNewYork = 'America/New_York' as SelectedTimezone;
             const result = DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20 02:00:00', americaNewYork, undefined);
             expect(result).toBe('June 19th, 2026');
+        });
+
+        it('keeps a date-only snapshot start on its calendar day in a UTC-negative timezone', () => {
+            // Given a snapshot calendar date rather than a UTC instant
+            const date = '2026-01-22';
+
+            // When the selected timezone is behind UTC
+            const result = DateUtils.formatViolationSnapshotStartedAtDate(date, 'America/Los_Angeles', de);
+
+            // Then the day is preserved and the full date uses German conventions
+            expect(result).toBe('22. Januar 2026');
         });
 
         it('should return empty string for invalid date', () => {

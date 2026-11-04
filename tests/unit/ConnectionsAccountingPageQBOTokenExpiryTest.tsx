@@ -6,8 +6,6 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type TextComponent from '@components/Text';
 
-import DateUtils from '@libs/DateUtils';
-
 import ConnectionsAccountingPage from '@pages/workspace/connections/ConnectionsAccountingPage';
 
 import CONST from '@src/CONST';
@@ -144,10 +142,6 @@ function buildQBOPolicy(refreshTokenExpiresAt: Date, isAuthenticationError = fal
     };
 }
 
-function formatExpiryDate(expiryDate: Date): string {
-    return DateUtils.formatWithUTCTimeZone(expiryDate.toISOString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT, undefined);
-}
-
 async function renderPage(PageUnderTest: React.ComponentType<{policy: Policy}>, policy: Policy) {
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
@@ -165,9 +159,13 @@ describe.each(PAGES_UNDER_TEST)('$pageName QBO refresh token expiry warning', ({
     });
 
     beforeEach(() => {
+        jest.useFakeTimers({doNotFake: ['setImmediate', 'nextTick']});
+        jest.setSystemTime(new Date('2026-01-22T12:00:00Z'));
         jest.clearAllMocks();
         mockCanWriteAccounting = true;
     });
+
+    afterEach(() => jest.useRealTimers());
 
     it('should warn with the expiry date and offer to reconnect when the token expires within the warning window', async () => {
         // Given a healthy QBO connection whose refresh token expires in a few days
@@ -175,7 +173,7 @@ describe.each(PAGES_UNDER_TEST)('$pageName QBO refresh token expiry warning', ({
         await renderPage(PageUnderTest, buildQBOPolicy(expiryDate));
 
         // Then the connection row explains when the connection will expire
-        expect(screen.getByText(`Your QuickBooks Online connection expires on ${formatExpiryDate(expiryDate)}.`, {exact: false})).toBeOnTheScreen();
+        expect(screen.getByText('Your QuickBooks Online connection expires on January 25, 2026.', {exact: false})).toBeOnTheScreen();
 
         // And the overflow menu gains a credentials entry that reads Reconnect rather than Enter your credentials
         expect(screen.getByText(`${OVERFLOW_MENU_ITEM_PREFIX}Reconnect`)).toBeOnTheScreen();
@@ -195,7 +193,7 @@ describe.each(PAGES_UNDER_TEST)('$pageName QBO refresh token expiry warning', ({
         await renderPage(PageUnderTest, buildQBOPolicy(expiryDate));
 
         // Then the row says the connection already expired and still offers to reconnect
-        expect(screen.getByText(`Your QuickBooks Online connection expired on ${formatExpiryDate(expiryDate)}.`, {exact: false})).toBeOnTheScreen();
+        expect(screen.getByText('Your QuickBooks Online connection expired on January 21, 2026.', {exact: false})).toBeOnTheScreen();
         expect(screen.getByRole('link', {name: 'Reconnect'})).toBeOnTheScreen();
     });
 

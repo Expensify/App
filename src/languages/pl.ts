@@ -10517,6 +10517,12 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `zaktualizowano „Zapobiegaj oznaczaniu raportów niepodlegających zwrotowi jako opłacone” na „${newValue === 'true' ? 'Włączone' : 'Wyłączone'}” (wcześniej „${oldValue === 'true' ? 'Włączone' : 'Wyłączone'}”)`,
         addedExpensifyCardFeed: (feedName: string) => `dodano źródło danych Karty Expensify „${feedName}”`,
+        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
+            if (!oldValue) {
+                return `ustaw strefę czasową miejsca pracy na „${newValue}”`;
+            }
+            return `zaktualizowano strefę czasową przestrzeni roboczej na „${newValue}” (wcześniej „${oldValue}”)`;
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Nie znaleziono członka.',

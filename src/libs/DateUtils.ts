@@ -64,6 +64,46 @@ type WeekDay = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 const TIMEZONE_UPDATE_THROTTLE_MINUTES = 5;
 
+const LONG_DATE_OPTIONS: Intl.DateTimeFormatOptions = {year: 'numeric', month: 'long', day: 'numeric'};
+const MONTH_DAY_OPTIONS: Intl.DateTimeFormatOptions = {month: 'short', day: 'numeric'};
+const NUMERIC_MONTH_DAY_OPTIONS: Intl.DateTimeFormatOptions = {month: '2-digit', day: '2-digit'};
+
+/**
+ * Formats the calendar fields of a Date, including dates already adjusted to a user's timezone.
+ * Pass an explicit timeZone only when date represents an unadjusted instant.
+ */
+function formatDisplayDate(date: Date | undefined, dateFnsLocale: DateFnsLocale | undefined, options: Intl.DateTimeFormatOptions = LONG_DATE_OPTIONS): string {
+    if (!date || !isValid(date)) {
+        return '';
+    }
+
+    // The date-fns locale comes from the app preference, and its code supplies Intl's regional tag as well.
+    // Semantic options preserve non-ordinal English dates while letting other locales choose their own grammar.
+    return new Intl.DateTimeFormat(dateFnsLocale?.code ?? enUS.code, options).format(date);
+}
+
+/** Formats a UTC datetime or calendar-date string without moving its displayed day to the device's timezone. */
+function formatUTCDateForDisplay(datetime: string, dateFnsLocale: DateFnsLocale | undefined, options: Intl.DateTimeFormatOptions = LONG_DATE_OPTIONS): string {
+    return formatDisplayDate(toDate(datetime, {timeZone: 'UTC'}), dateFnsLocale, {...options, timeZone: 'UTC'});
+}
+
+function formatMonthDayWithUTCTimeZone(datetime: string, dateFnsLocale: DateFnsLocale | undefined): string {
+    return formatUTCDateForDisplay(datetime, dateFnsLocale, MONTH_DAY_OPTIONS);
+}
+
+/** The caller supplies now in the same timezone representation as date, so the year decision matches the visible day. */
+function formatDateWithOptionalYear(date: Date, dateFnsLocale: DateFnsLocale | undefined, now = new Date()): string {
+    if (!isValid(date)) {
+        return '';
+    }
+    return isSameYear(date, now) ? formatDisplayDate(date, dateFnsLocale, MONTH_DAY_OPTIONS) : format(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, {locale: dateFnsLocale ?? enUS});
+}
+
+function formatUTCDateWithOptionalYear(datetime: string, dateFnsLocale: DateFnsLocale | undefined): string {
+    const date = toZonedTime(toDate(datetime, {timeZone: 'UTC'}), 'UTC');
+    return formatDateWithOptionalYear(date, dateFnsLocale, toZonedTime(new Date(), 'UTC'));
+}
+
 function isDate(arg: unknown): arg is Date {
     return Object.prototype.toString.call(arg) === '[object Date]';
 }
@@ -171,6 +211,10 @@ const fallbackToSupportedTimezone = memoize((timezoneInput: SelectedTimezone): S
     }
 });
 
+function formatDisplayDateInTimeZone(datetime: string, timeZone: SelectedTimezone, dateFnsLocale: DateFnsLocale | undefined): string {
+    return formatDisplayDate(new Date(datetime), dateFnsLocale, {...LONG_DATE_OPTIONS, weekday: 'long', timeZone: fallbackToSupportedTimezone(timeZone)});
+}
+
 /**
  * Formats an ISO-formatted datetime string to local date and time string
  *
@@ -208,7 +252,7 @@ function datetimeToCalendarTime(locale: Locale | undefined, datetime: string, cu
         return `${yesterdayAt} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}${tz}`;
     }
     if (date >= startOfCurrentWeek && date <= endOfCurrentWeek) {
-        return `${format(date, CONST.DATE.MONTH_DAY_ABBR_FORMAT, {locale: dateFnsLocale})} ${at} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}${tz}`;
+        return `${formatDisplayDate(date, dateFnsLocale, MONTH_DAY_OPTIONS)} ${at} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}${tz}`;
     }
     return `${format(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, {locale: dateFnsLocale})} ${at} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}${tz}`;
 }
@@ -259,11 +303,7 @@ function getZoneAbbreviation(datetime: string | Date, selectedTimezone: Selected
  * @returns Sunday, July 9, 2023
  */
 function formatToLongDateWithWeekday(datetime: string | Date, dateFnsLocale: DateFnsLocale | undefined): string {
-    const date = new Date(datetime);
-    if (!isValid(date)) {
-        return '';
-    }
-    return format(date, CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY, {locale: dateFnsLocale});
+    return formatDisplayDate(new Date(datetime), dateFnsLocale, {...LONG_DATE_OPTIONS, weekday: 'long'});
 }
 
 /**
@@ -272,7 +312,7 @@ function formatToLongDateWithWeekday(datetime: string | Date, dateFnsLocale: Dat
  * @returns Sunday, July 9
  */
 function formatToLongDateWithWeekdayWithoutYear(datetime: string | Date, dateFnsLocale: DateFnsLocale | undefined): string {
-    return format(new Date(datetime), CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY_WITHOUT_YEAR, {locale: dateFnsLocale});
+    return formatDisplayDate(new Date(datetime), dateFnsLocale, {weekday: 'long', month: 'long', day: 'numeric'});
 }
 
 /**
@@ -525,7 +565,7 @@ function formatDateTimeTo12Hour(dateTimeString: string, dateFnsLocale: DateFnsLo
         return '';
     }
     const date = new Date(dateTimeString);
-    return format(date, `${CONST.DATE.FNS_FORMAT_STRING} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {locale: dateFnsLocale});
+    return `${formatDisplayDate(date, dateFnsLocale, {...NUMERIC_MONTH_DAY_OPTIONS, year: 'numeric'})} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}`;
 }
 
 /**
@@ -600,11 +640,17 @@ function getStatusUntilDate(
 
     // If it's further in the future than tomorrow but within the same year
     if (isAfter(input, now) && isSameYear(input, now)) {
-        return translate('statusPage.untilTime', format(input, `${CONST.DATE.SHORT_DATE_FORMAT} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {locale: dateFnsLocale}));
+        return translate(
+            'statusPage.untilTime',
+            `${formatDisplayDate(input, dateFnsLocale, NUMERIC_MONTH_DAY_OPTIONS)} ${format(input, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}`,
+        );
     }
 
     // If it's in another year
-    return translate('statusPage.untilTime', format(input, `${CONST.DATE.FNS_FORMAT_STRING} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {locale: dateFnsLocale}));
+    return translate(
+        'statusPage.untilTime',
+        `${formatDisplayDate(input, dateFnsLocale, {...NUMERIC_MONTH_DAY_OPTIONS, year: 'numeric'})} ${format(input, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}`,
+    );
 }
 
 /**
@@ -1125,7 +1171,11 @@ function formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt: string
     }
 
     try {
-        const date = violationSnapshotStartedAt.includes(' ') ? toDate(violationSnapshotStartedAt, {timeZone: 'UTC'}) : parse(violationSnapshotStartedAt, 'yyyy-MM-dd', new Date());
+        if (!violationSnapshotStartedAt.includes(' ')) {
+            // A date-only snapshot is a calendar boundary, not an instant to shift into the viewer's timezone.
+            return format(parse(violationSnapshotStartedAt, CONST.DATE.FNS_FORMAT_STRING, new Date()), CONST.DATE.MONTH_DAY_YEAR_ORDINAL_FORMAT, {locale: dateFnsLocale});
+        }
+        const date = toDate(violationSnapshotStartedAt, {timeZone: 'UTC'});
         return formatInTimeZoneWithFallback(date, timeZone, CONST.DATE.MONTH_DAY_YEAR_ORDINAL_FORMAT, {locale: dateFnsLocale});
     } catch (error) {
         Log.warn('[DateUtils] Failed to format violation snapshot started at date', {violationSnapshotStartedAt, timeZone, error});
@@ -1308,6 +1358,12 @@ function getNextNthOfMonth(nth: number) {
 
 const DateUtils = {
     isDate,
+    formatDisplayDate,
+    formatUTCDateForDisplay,
+    formatDisplayDateInTimeZone,
+    formatMonthDayWithUTCTimeZone,
+    formatDateWithOptionalYear,
+    formatUTCDateWithOptionalYear,
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
     formatToLongDateWithWeekdayWithoutYear,

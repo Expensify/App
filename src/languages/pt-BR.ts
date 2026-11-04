@@ -10505,6 +10505,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `atualizou "Impedir marcar relatórios não reembolsáveis como pagos" para "${newValue === 'true' ? 'Ativado' : 'Desativado'}" (antes "${oldValue === 'true' ? 'Ativado' : 'Desativado'}")`,
         addedExpensifyCardFeed: (feedName: string) => `adicionou o feed do Cartão Expensify "${feedName}"`,
+        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
+            if (!oldValue) {
+                return `definir o fuso horário do espaço de trabalho para "${newValue}"`;
+            }
+            return `atualizou o fuso horário do workspace para "${newValue}" (antes era "${oldValue}")`;
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',
