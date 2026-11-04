@@ -986,7 +986,7 @@ describe('ReportActionItem', () => {
 
             expect(openLink).toHaveBeenCalledTimes(1);
             // Without areRulesEnabled on policy, the link points to the help URL
-            expect(openLink).toHaveBeenCalledWith(CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL, expect.any(String));
+            expect(openLink).toHaveBeenCalledWith(CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL, expect.any(String), false, undefined);
         });
     });
 
@@ -2042,6 +2042,20 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(/5678/)).toBeOnTheScreen();
+        });
+
+        it('AUTO_PAY_FEE_DISCLOSURE action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.AUTO_PAY_FEE_DISCLOSURE, {
+                policyID: 'pol123',
+                accountID: ACTOR_ACCOUNT_ID,
+                bankName: 'Chase',
+                lastFour: '5678',
+            });
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/enabled by test@test.com on the Chase account ending in 5678/)).toBeOnTheScreen();
+            expect(screen.getAllByRole(CONST.ROLE.LINK, {name: 'auto-pay settings'}).length).toBeGreaterThan(0);
         });
 
         it('RENAMED action', async () => {
@@ -3349,7 +3363,7 @@ describe('ReportActionItem', () => {
             fireEvent.press(bankLoginLink);
 
             expect(openLink).toHaveBeenCalledTimes(1);
-            expect(openLink).toHaveBeenCalledWith(expect.stringContaining('settings/wallet/personal-card/100'), expect.anything(), expect.anything());
+            expect(openLink).toHaveBeenCalledWith(expect.stringContaining('/personal-card/100'), expect.anything(), expect.anything(), undefined);
         });
 
         it('isCardBrokenConnectionAction renders tappable bank login link for personal broken connection 30 days', async () => {
@@ -3373,7 +3387,7 @@ describe('ReportActionItem', () => {
             fireEvent.press(bankLoginLink);
 
             expect(openLink).toHaveBeenCalledTimes(1);
-            expect(openLink).toHaveBeenCalledWith(expect.stringContaining('settings/wallet/personal-card/100'), expect.anything(), expect.anything());
+            expect(openLink).toHaveBeenCalledWith(expect.stringContaining('/personal-card/100'), expect.anything(), expect.anything(), undefined);
         });
 
         it('isCardBrokenConnectionAction renders no tappable link when card connection is not broken', async () => {

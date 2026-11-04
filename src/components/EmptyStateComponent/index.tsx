@@ -12,7 +12,7 @@ import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFrag
 import CONST from '@src/CONST';
 
 import isEmpty from 'lodash/isEmpty';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import type {EmptyStateComponentProps} from './types';
@@ -37,14 +37,11 @@ function EmptyStateComponent({
     const styles = useThemeStyles();
     const doesSubtitleContainCustomEmojiAndMore = containsCustomEmoji(subtitle ?? '') && !containsOnlyCustomEmoji(subtitle ?? '');
 
-    const HeaderComponent = useMemo(
-        () => (
-            <ImageSVG
-                style={StyleSheet.flatten(headerContentStyles)}
-                src={headerMedia}
-            />
-        ),
-        [headerMedia, headerContentStyles],
+    const HeaderComponent = (
+        <ImageSVG
+            style={StyleSheet.flatten(headerContentStyles)}
+            src={headerMedia}
+        />
     );
 
     return (
@@ -71,7 +68,7 @@ function EmptyStateComponent({
                         {children}
                         {!isEmpty(buttons) && (
                             <View style={[styles.gap2, styles.mt6, styles.flexRow, styles.flexWrap, styles.justifyContentCenter]}>
-                                {buttons?.map(({buttonText, buttonAction, buttonVariant, icon, isDisabled, style, innerStyles, hoverStyles, dropDownOptions}) =>
+                                {buttons?.map(({buttonText, buttonAction, buttonVariant, icon, isDisabled, style, innerStyles, hoverStyles, dropDownOptions, sentryLabel}) =>
                                     dropDownOptions ? (
                                         <ButtonWithDropdownMenu
                                             variant={CONST.BUTTON_VARIANT.SUCCESS}
@@ -82,6 +79,7 @@ function EmptyStateComponent({
                                             options={dropDownOptions}
                                             isSplitButton={false}
                                             style={style}
+                                            sentryLabel={sentryLabel}
                                         />
                                     ) : (
                                         <Button
@@ -92,6 +90,7 @@ function EmptyStateComponent({
                                             style={style}
                                             innerStyles={innerStyles}
                                             hoverStyles={hoverStyles}
+                                            sentryLabel={sentryLabel}
                                         >
                                             {!!icon && <Button.Icon src={icon} />}
                                             {!!buttonText && <Button.Text>{buttonText}</Button.Text>}

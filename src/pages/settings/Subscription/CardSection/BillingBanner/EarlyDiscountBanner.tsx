@@ -19,7 +19,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import BillingBanner from './BillingBanner';
@@ -57,62 +57,44 @@ function EarlyDiscountBanner({isSubscriptionPage, onboardingHelpDropdownButton, 
         return () => clearInterval(intervalID);
     }, [firstDayFreeTrial]);
 
-    const dismissButton = useMemo(
-        () =>
-            discountInfo?.discountType === 25 && (
-                <Tooltip text={translate('common.close')}>
-                    <PressableWithFeedback
-                        onPress={() => {
-                            setIsDismissed(true);
-                            onDismissedDiscountBanner?.();
-                        }}
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('common.close')}
-                        sentryLabel={CONST.SENTRY_LABEL.EARLY_DISCOUNT_BANNER.DISMISS_BUTTON}
-                    >
-                        <Icon
-                            src={icons.Close}
-                            fill={theme.icon}
-                        />
-                    </PressableWithFeedback>
-                </Tooltip>
-            ),
-        [theme.icon, translate, onDismissedDiscountBanner, discountInfo?.discountType, icons.Close],
+    const dismissButton = discountInfo?.discountType === 25 && (
+        <Tooltip text={translate('common.close')}>
+            <PressableWithFeedback
+                onPress={() => {
+                    setIsDismissed(true);
+                    onDismissedDiscountBanner?.();
+                }}
+                role={CONST.ROLE.BUTTON}
+                accessibilityLabel={translate('common.close')}
+                sentryLabel={CONST.SENTRY_LABEL.EARLY_DISCOUNT_BANNER.DISMISS_BUTTON}
+            >
+                <Icon
+                    src={icons.Close}
+                    fill={theme.icon}
+                />
+            </PressableWithFeedback>
+        </Tooltip>
     );
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
-    const rightComponent = useMemo(() => {
-        const smallScreenStyle = shouldDisplayButtonsInSeparateLine ? [styles.flex0, styles.flexBasis100, styles.justifyContentCenter] : [];
-        return (
-            <View style={[styles.flexRow, styles.gap2, smallScreenStyle, styles.alignItemsCenter]}>
-                {onboardingHelpDropdownButton}
-                <Button
-                    variant={!hasActiveScheduledCall ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
-                    style={shouldDisplayButtonsInSeparateLine ? [styles.earlyDiscountButton, styles.flexGrow2] : styles.mr2}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()))}
-                >
-                    <Button.Text>{translate('subscription.billingBanner.earlyDiscount.claimOffer')}</Button.Text>
-                </Button>
-                {!shouldDisplayButtonsInSeparateLine && dismissButton}
-            </View>
-        );
-    }, [
-        shouldDisplayButtonsInSeparateLine,
-        hasActiveScheduledCall,
-        styles.flex0,
-        styles.flexBasis100,
-        styles.justifyContentCenter,
-        styles.flexRow,
-        styles.gap2,
-        styles.alignItemsCenter,
-        styles.earlyDiscountButton,
-        styles.flexGrow2,
-        styles.mr2,
-        onboardingHelpDropdownButton,
-        translate,
-        dismissButton,
-    ]);
+    const smallScreenStyle = shouldDisplayButtonsInSeparateLine ? [styles.flex0, styles.mnw100, styles.maxWidth100Percentage, styles.justifyContentCenter] : [];
+    const rightComponent = (
+        <View
+            key={shouldDisplayButtonsInSeparateLine ? 'separate-line' : 'inline'}
+            style={[styles.flexRow, styles.gap2, smallScreenStyle, styles.alignItemsCenter]}
+        >
+            {onboardingHelpDropdownButton}
+            <Button
+                variant={!hasActiveScheduledCall ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
+                style={shouldDisplayButtonsInSeparateLine ? [styles.earlyDiscountButton, styles.flexGrow2] : styles.mr2}
+                onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()))}
+            >
+                <Button.Text>{translate('subscription.billingBanner.earlyDiscount.claimOffer')}</Button.Text>
+            </Button>
+            {!shouldDisplayButtonsInSeparateLine && dismissButton}
+        </View>
+    );
 
     if (!firstDayFreeTrial || !lastDayFreeTrial || !discountInfo) {
         return null;

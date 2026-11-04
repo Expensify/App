@@ -2,6 +2,7 @@ import type {ReportHierarchyInfo} from '@libs/actions/ClearReportActionErrors';
 import {getOriginalMessage, isClosedAction} from '@libs/ReportActionsUtils';
 import {
     canShowReportRecipientLocalTime,
+    getPolicyExpenseChat,
     getPolicyIDsWithEmptyReportsForAccount,
     isArchivedReport,
     isChatRoom,
@@ -75,6 +76,10 @@ function reportAvatarKindSelector(report: OnyxEntry<Report>): ValueOf<typeof CON
             if (isThread(report)) {
                 return CONST.REPORT_AVATAR_KIND.CHAT_THREAD;
             }
+            // Only a trip room missing its parent fields gets here. Legacy `isTripRoom` requires type=chat, so one without a type stays DEFAULT.
+            if (report.chatType === CONST.REPORT.CHAT_TYPE.TRIP_ROOM) {
+                return CONST.REPORT_AVATAR_KIND.TRIP_ROOM;
+            }
             break;
         case undefined:
             // Legacy `getIcons` classifies chats purely off chatType, so a chat row whose `type` hasn't populated
@@ -96,7 +101,7 @@ function reportAvatarKindSelector(report: OnyxEntry<Report>): ValueOf<typeof CON
         case CONST.REPORT.CHAT_TYPE.INVOICE:
             return CONST.REPORT_AVATAR_KIND.ROOM;
         default:
-            // DM, self-DM, system, a trip room without its parent fields and anything unclassified
+            // DM, self-DM, system, a trip room without a type and anything unclassified
             return CONST.REPORT_AVATAR_KIND.DEFAULT;
     }
 }
@@ -330,6 +335,7 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         created: report.created,
         submitted: report.submitted,
         approved: report.approved,
+        paid: report.paid,
         submitterUserID: report.submitterUserID,
         submitterPayrollID: report.submitterPayrollID,
         orderDealNumbers: report.orderDealNumbers,
@@ -337,6 +343,7 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         debitedCurrency: report.debitedCurrency,
         creditedAmount: report.creditedAmount,
         creditedCurrency: report.creditedCurrency,
+        withdrawalIDs: report.withdrawalIDs,
         chatType: report.chatType,
         hasOutstandingChildRequest: report.hasOutstandingChildRequest,
         hasOutstandingChildTask: report.hasOutstandingChildTask,
@@ -422,6 +429,9 @@ function reportParentChainSelector(reportID: string | undefined) {
     };
 }
 
+const policyExpenseChatSelector = (ownerAccountID: number | undefined, policyID: string | undefined) => (reports: OnyxCollection<Report>) =>
+    getPolicyExpenseChat(ownerAccountID, policyID, reports ?? {});
+
 /**
  * Creates a selector returning only the reports for the given IDs, so a consumer that knows the exact
  * reports it needs doesn't re-render when any other report in the account changes.
@@ -460,6 +470,7 @@ export {
     getStableReportSelector,
     isDraftReportSelector,
     reportParentChainSelector,
+    policyExpenseChatSelector,
     reportsByIDsSelector,
 };
 
