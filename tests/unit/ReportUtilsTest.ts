@@ -20303,6 +20303,18 @@ describe('ReportUtils', () => {
             expect(result).toBe(false);
         });
 
+        it('returns false when the member cannot create expenses on the source workspace', async () => {
+            // Given an open expense report on a workspace where the current user has the approve-only role
+            const sourceReport = await buildOpenSourceReport();
+
+            // When it's checked whether a duplicate can stay on that report
+            const result = canDuplicateExpenseIntoSourceReport(buildParams(sourceReport, {policy: {...sourcePolicy, role: CONST.POLICY.ROLE.APPROVE_ONLY}}));
+
+            // Then the duplicate falls back to the default workspace routing, because duplicating
+            // would create a new expense the member is not allowed to create there
+            expect(result).toBe(false);
+        });
+
         it('returns false when the source is not an expense report', () => {
             // Given a source that is a chat rather than an expense report, like a self-DM tracked expense
             // When it's checked whether a duplicate can stay on that source

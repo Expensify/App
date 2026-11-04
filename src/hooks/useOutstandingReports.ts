@@ -61,7 +61,7 @@ export default function useOutstandingReports(
         return [];
     }
 
-    // Null means the workspace is loaded but the owner cannot create expenses on it. Undefined means the policy is not loaded yet.
+    // Null means the policy is loaded but the owner cannot create expenses on it. Undefined means the policy is not loaded yet.
     if (eligiblePoliciesID?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyID}`] === null) {
         return [];
     }
