@@ -60,7 +60,7 @@ import {View} from 'react-native';
 
 import type {NavigationSuggestionSourceItem} from './SearchRouterHelpers';
 
-import {buildNavigationSuggestions, getGoToText} from './SearchRouterHelpers';
+import {buildNavigationSuggestions, canQueryMatchNavigationSuggestions, getGoToText} from './SearchRouterHelpers';
 import useCreateNavigationSuggestions from './useCreateNavigationSuggestions';
 
 type TopLevelNavigationIcons = Record<'Home' | 'Inbox' | 'ReceiptMultiple' | 'PieChart' | 'Building' | 'Globe' | 'Gear', IconAsset>;
@@ -98,6 +98,7 @@ const SEARCH_ROUTER_ICON_NAMES = [
 // Saved searches are user-defined searches, not canned destinations, so they are excluded from go-to navigation suggestions.
 const SAVED_SEARCHES_SECTION_PATH = 'search.savedSearchesMenuItemTitle';
 const SECURITY_MATCH_TERMS = ['password', '2fa', 'two factor', 'two-factor'];
+const NO_NAVIGATION_SUGGESTIONS: SearchQueryItem[] = [];
 
 type BuildTopLevelNavigationItemsParams = {
     labels: {
@@ -400,6 +401,11 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const typeMenuSections = useSearchTypeMenuSectionsForNavigation(shouldWatchForApprovals);
     const {accountMenuItemsData, generalMenuItemsData} = useSettingsNavigationMenuData();
+
+    // The router opens with an empty query, which matches nothing. Building every workspace's menu items is the slowest part of opening it for accounts with many workspaces, so skip the builders until the query can match.
+    if (!canQueryMatchNavigationSuggestions(query)) {
+        return NO_NAVIGATION_SUGGESTIONS;
+    }
 
     const topLevelItems = buildTopLevelNavigationItems({
         labels: {
