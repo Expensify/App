@@ -367,8 +367,7 @@ function AuthScreens() {
                          * Always registered, like the other modal navigators below, so entering onboarding never toggles this
                          * screen in and out of the RootStack mid-session (which resets the navigator's state to its initial
                          * route). OnboardingGuard and useOnboardingFlowRouter gate whether/when a user actually lands here.
-                         * It stays registered for copilot and supportal sessions too, because a copilot switch must not change the
-                         * root screens: browser history entries saved by the other account could no longer be restored.
+                         * Also registered in copilot sessions, since changing root screens on a switch breaks browser back.
                          */}
                         {!isVisitingSecureLink && (
                             <RootStack.Screen

@@ -772,10 +772,7 @@ function resetToAppRoot() {
     navigationRef.current?.reset({index: 0, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}]});
 }
 
-/**
- * Drops the navigation caches that belong to the current session, so the next session can't restore them.
- * Every session boundary (sign-out and copilot switches) must call this, so add any new per-session navigation cache here.
- */
+/** Called on every session boundary (sign-out, copilot switch), so add any new per-session navigation cache here. */
 function clearSessionNavigationState() {
     clearPreservedNavigatorStates();
     clearLastVisitedTabPaths();

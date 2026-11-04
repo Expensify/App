@@ -72,12 +72,7 @@ function clearOnyxForDelegateTransition(extraSeeds?: OnyxMultiSetInput): Promise
     return clearOnyxAndSeedFullReconnect(KEYS_TO_PRESERVE_DELEGATE_ACCESS, extraSeeds);
 }
 
-/**
- * Navigation state belongs to the account it was built for, so drop it on a delegate-access transition like we do on sign-out.
- * Otherwise screens of the previous account stay mounted (e.g. their workspace chat in the Inbox tab) and show "not found".
- * By default the fresh navigation state lands on the Settings tab, where accounts are usually switched.
- * It never throws, because it runs in the middle of the account switch and a failed reset must not abort it.
- */
+/** Never throws: it runs mid-switch, and a failed navigation reset must not abort the account switch. */
 function resetNavigationForDelegateTransition(route: Route = ROUTES.SETTINGS) {
     Navigation.clearSessionNavigationState();
 
@@ -85,7 +80,7 @@ function resetNavigationForDelegateTransition(route: Route = ROUTES.SETTINGS) {
         return;
     }
     try {
-        // Rebuilt like a cold start restore of this path, so the router builds it for the new account's root screens
+        // stale: true makes the router rebuild the state against the new account's root screens
         navigationRef.resetRoot({...getAdaptedStateFromPath(route), stale: true});
     } catch (error) {
         Log.hmmm('[Delegate] Failed to reset navigation for delegate transition', {error: ErrorUtils.getErrorMessage(error)});

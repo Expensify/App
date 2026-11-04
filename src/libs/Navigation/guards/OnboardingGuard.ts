@@ -292,8 +292,7 @@ const OnboardingGuard: NavigationGuard = {
             return {type: 'REDIRECT', route: ROUTES.HOME};
         }
 
-        // The onboarding navigator is registered for copilot and supportal sessions so the root screens don't change
-        // on a copilot switch, but those sessions must never enter onboarding on behalf of the account they access.
+        // The onboarding navigator is registered for these sessions too, so keep them out of it here
         const isPromotionalUISuppressed = context.isSupportalSession || isActingAsDelegateSelector(account);
         const isNavigatingWithReplace = isNavigatingToOnboardingFlowWithReplaceAction(action);
         if (isPromotionalUISuppressed && (isNavigatingToOnboardingFlow(action) || isNavigatingWithReplace)) {
