@@ -1587,10 +1587,10 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: 'Αν δεν έχετε ιστοσελίδα, μπορείτε αντί γι’ αυτό να δώσετε το προφίλ της εταιρείας σας στο LinkedIn ή σε κάποιο μέσο κοινωνικής δικτύωσης.',
         invalidDomainError: 'Έχετε εισαγάγει μη έγκυρο τομέα. Για να συνεχίσετε, παρακαλούμε εισαγάγετε έναν έγκυρο τομέα.',
         publicDomainError: 'Έχετε εισαγάγει ένα δημόσιο domain. Για να συνεχίσετε, παρακαλούμε εισαγάγετε ένα ιδιωτικό domain.',
-        expenseCount: () => {
+        expenseCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
             return {
-                one: '1 δαπάνη',
-                other: (count: number) => `${count} δαπάνες`,
+                one: (count: number) => `έξοδο ${formattedCount ?? count}`,
+                other: (count: number) => `${formattedCount ?? count} έξοδα`,
             };
         },
         deleteExpense: () => ({
@@ -1777,6 +1777,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: 'Παρακαλούμε εισαγάγετε ένα μη μηδενικό ποσό για τη διαίρεσή σας',
             noParticipantSelected: 'Παρακαλούμε επιλέξτε έναν συμμετέχοντα',
             other: 'Απρόσμενο σφάλμα. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
+            payFailedExpenseDeleted: 'Η πληρωμή απέτυχε επειδή η έκθεση εξόδων διαγράφηκε.',
             genericCreateFailureMessage: 'Μη αναμενόμενο σφάλμα κατά την αποστολή αυτής της δαπάνης. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
             genericCreateInvoiceFailureMessage: 'Προέκυψε απροσδόκητο σφάλμα κατά την αποστολή αυτού του τιμολογίου. Παρακαλούμε προσπαθήστε ξανά αργότερα.',
             genericHoldExpenseFailureMessage: 'Προέκυψε απρόσμενο σφάλμα κατά την κράτηση αυτής της δαπάνης. Δοκιμάστε ξανά αργότερα.',
@@ -3179,6 +3180,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `Αποδέχομαι τους <a href="${CONST.WISE.TERMS_URL}">όρους και προϋποθέσεις</a> και την <a href="${CONST.WISE.PRIVACY_URL}">πολιτική απορρήτου</a> της Wise.`,
                 wiseTermsAccessibilityLabel: 'Αποδέχομαι τους όρους και προϋποθέσεις και την πολιτική απορρήτου της Wise.',
                 error: 'Αποδεχτείτε όλους τους όρους για να συνεχίσετε.',
+                alreadySubmitted: 'Αυτή η επιχείρηση έχει ήδη υποβληθεί στη Wise για έλεγχο.',
+            },
+            moreInfoNeeded: {
+                headerTitle: 'Απαιτούνται περισσότερες πληροφορίες',
+                title: 'Επαληθεύστε επιπλέον πληροφορίες',
+                subtitle: 'Ο συνεργάτης μας για τις πληρωμές χρειάζεται περισσότερες πληροφορίες απευθείας. Αυτό θα σας πάρει μόνο λίγα λεπτά.',
             },
         },
         wiseGlobalReimbursementsIntro: {
@@ -3189,6 +3196,7 @@ const translations: TranslationDeepObject<typeof en> = {
             payingReportSubtitle: 'Οι τραπεζικοί λογαριασμοί της εταιρείας και των εργαζομένων χρησιμοποιούν διαφορετικά νομίσματα.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Πληρώστε ανθρώπους παγκοσμίως', subtitle: 'Ενεργοποιήστε τις παγκόσμιες αποζημιώσεις στον λογαριασμό USD σας.'},
+        globalReimbursementsEnabled: 'Έγινε ενεργοποίηση των παγκόσμιων αποζημιώσεων',
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Προσθήκη κάρτας στο ${walletName}`,
@@ -5969,9 +5977,6 @@ ${amount} για ${merchant} - ${date}`,
                     ? `Ορίστε έναν προεπιλεγμένο προμηθευτή που θα εφαρμόζεται σε αποζημιώσιμες δαπάνες που δεν έχουν αντίστοιχο προμηθευτή στο Sage Intacct.`
                     : `Οι δαπάνες που δεν μπορούν να αντιστοιχιστούν στους προμηθευτές σας στο Sage Intacct θα αντιστοιχίζονται από προεπιλογή σε αυτόν τον προμηθευτή.`,
             exportDescription: 'Διαμορφώστε τον τρόπο με τον οποίο τα δεδομένα του Expensify εξάγονται στο Sage Intacct.',
-            exportPreferredExporterNote:
-                'Ο προτιμώμενος εξαγωγέας μπορεί να είναι οποιοσδήποτε διαχειριστής χώρου εργασίας, αλλά πρέπει επίσης να είναι διαχειριστής τομέα αν ορίσετε διαφορετικούς λογαριασμούς εξαγωγής για μεμονωμένες εταιρικές κάρτες στις ρυθμίσεις τομέα.',
-            exportPreferredExporterSubNote: 'Αφού οριστεί, ο προτιμώμενος εξαγωγέας θα βλέπει τις αναφορές προς εξαγωγή στον λογαριασμό του.',
             noAccountsFound: 'Δεν βρέθηκαν λογαριασμοί',
             noAccountsFoundDescription: `Παρακαλούμε προσθέστε τον λογαριασμό στο Sage Intacct και συγχρονίστε ξανά τη σύνδεση`,
             autoSync: 'Αυτόματος συγχρονισμός',
@@ -6570,13 +6575,14 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             exportReimbursable: {
                 label: 'Εξαγωγή αποζημιώσιμων εξόδων ως',
                 values: {
-                    [CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {
-                        label: 'Τιμολόγια προμηθευτών',
-                    },
+                    REIMBURSEMENT: {label: 'Αναλυτικές αποζημιώσεις'},
+                    VENDOR_BILL: {label: 'Αναλυτικοί λογαριασμοί προμηθευτών'},
                 },
+                description:
+                    'Θα δημιουργούμε ένα αναλυτικό τιμολόγιο προμηθευτή ή μια αποζημίωση για κάθε αναφορά Expensify. Αν η περίοδος είναι κλειστή, θα καταχωρούμε στην επόμενη ανοιχτή περίοδο.',
             },
             exportDate: {
-                label: 'Ημερομηνία τιμολογίου προμηθευτή',
+                label: 'Ημερομηνία επίδρασης στο Γ/Λ',
                 description: 'Χρησιμοποιήστε αυτήν την ημερομηνία κατά την εξαγωγή αναφορών στο Rillet.',
                 values: {
                     [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
@@ -6623,11 +6629,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 },
             },
             syncReimbursedReports: 'Συγχρονισμός αποζημιωμένων αναφορών',
-            syncReimbursedReportsDescription: 'Όταν μια αναφορά πληρώνεται μέσω ACH, θα δημιουργείται μια πληρωμή τιμολογίου σε αυτόν τον λογαριασμό.',
-            billPaymentAccount: {
-                label: 'Λογαριασμός πληρωμής λογαριασμών',
-                description: 'Επιλέξτε από πού θα πληρώνονται οι λογαριασμοί και θα δημιουργήσουμε την πληρωμή στο Rillet.',
-            },
+            syncReimbursedReportsDescription: 'Όταν μια αναφορά πληρωθεί μέσω ACH, θα δημιουργηθεί μια πληρωμή σε αυτόν τον λογαριασμό.',
             syncExpensifyCardSettlements: 'Συγχρονισμός διακανονισμών Κάρτας Expensify',
             settlementAccount: {
                 label: 'Λογαριασμός διακανονισμού κάρτας Expensify',
@@ -6672,6 +6674,12 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 description:
                     'Όταν η εταιρεία σας καλύπτει το κόστος μετατροπής νομίσματος για μια πληρωμή στο εξωτερικό, θα καταχωρούμε αυτό το κόστος σε αυτόν τον λογαριασμό στο Rillet ως λογιστική εγγραφή.',
             },
+            reimbursementAccount: {
+                label: 'Λογαριασμός αποζημίωσης',
+                description: 'Επιλέξτε πού θα εξαχθούν οι επιστρεπτέες δαπάνες.',
+                accountRequiredError: 'Παρακαλούμε επιλέξτε έναν λογαριασμό αποζημίωσης Rillet.',
+            },
+            achPaymentAccount: {label: 'λογαριασμός πληρωμών ACH', description: 'Επιλέξτε από πού θα πληρώνονται οι αναφορές και θα δημιουργήσουμε την πληρωμή στο Rillet.'},
         },
         dualEntry: {
             dualEntrySetup: 'Ρύθμιση DualEntry',
@@ -7143,6 +7151,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             updateFailureMessage: 'Παρουσιάστηκε σφάλμα κατά την ενημέρωση της κατηγορίας, δοκιμάστε ξανά',
             createFailureMessage: 'Παρουσιάστηκε σφάλμα κατά τη δημιουργία της κατηγορίας, παρακαλούμε δοκιμάστε ξανά',
             addCategory: 'Προσθήκη κατηγορίας',
+            createCategoryFromSearch: (categoryName: string) => `Δημιουργία κατηγορίας «${categoryName}»`,
             editCategory: 'Επεξεργασία κατηγορίας',
             editCategories: 'Επεξεργαστείτε κατηγορίες',
             findCategory: 'Εύρεση κατηγορίας',
@@ -7688,10 +7697,10 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             reimbursementAccount: 'λογαριασμός αποζημίωσης',
             welcomeNote: 'Παρακαλώ αρχίστε να χρησιμοποιείτε τον νέο χώρο εργασίας μου',
             delayedSubmission: 'καθυστερημένη υποβολή',
-            merchantRules: 'Κανόνες εμπόρων',
+            merchantRules: 'Προεπιλογές δαπανών',
             merchantRulesCount: () => ({
-                one: '1 κανόνας εμπόρου',
-                other: (count: number) => `${count} κανόνες εμπόρου`,
+                one: 'Προεπιλογή 1 δαπάνης',
+                other: (count: number) => `Προεπιλογές για ${count} δαπάνες`,
             }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `Πρόκειται να δημιουργήσετε και να κοινοποιήσετε το ${newWorkspaceName ?? ''} με ${totalMembers ?? 0} μέλη από τον αρχικό χώρο εργασίας.`,
@@ -8258,8 +8267,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 },
             },
             preferredExporter: 'Προτιμώμενος εξαγωγέας',
-            exportPreferredExporterNote:
-                'Ο προτιμώμενος εξαγωγέας μπορεί να είναι οποιοσδήποτε διαχειριστής χώρου εργασίας, αλλά πρέπει επίσης να είναι διαχειριστής τομέα αν ορίσετε διαφορετικούς λογαριασμούς εξαγωγής για μεμονωμένες εταιρικές κάρτες στις ρυθμίσεις τομέα.',
+            exportPreferredExporterNote: 'Ο προτιμώμενος εξαγωγέας μπορεί να είναι οποιοσδήποτε διαχειριστής χώρου εργασίας.',
             exportPreferredExporterSubNote: 'Αφού οριστεί, ο προτιμώμενος εξαγωγέας θα βλέπει τις αναφορές προς εξαγωγή στον λογαριασμό του.',
             exportAs: 'Εξαγωγή ως',
             exportOutOfPocket: 'Εξαγωγή προσωπικών δαπανών ως',
@@ -9311,8 +9319,8 @@ ${reportName}`,
                 matchType: 'Τύπος αντιστοίχισης',
                 matchTypeContains: 'Περιέχει',
                 matchTypeExact: 'Ακριβής αντιστοιχία',
-                duplicateRuleTitle: 'Υπάρχει ήδη παρόμοιος κανόνας εμπόρου',
-                duplicateRulePrompt: (merchantName: string) => `Ο υπάρχων κανόνας σας για το «${merchantName}» θα έχει προτεραιότητα έναντι αυτού. Να γίνει αποθήκευση έτσι κι αλλιώς;`,
+                duplicateRuleTitle: 'Υπάρχει ήδη παρόμοιος κανόνας',
+                duplicateRulePrompt: (conditionName: string) => `Ο υπάρχων κανόνας σας για το «${conditionName}» θα έχει προτεραιότητα έναντι αυτού. Να γίνει αποθήκευση ούτως ή άλλως;`,
                 saveAnyway: 'Αποθήκευση ούτως ή άλλως',
                 applyToExistingUnsubmittedExpenses: 'Εφαρμογή σε υφιστάμενες μη υποβληθείσες δαπάνες',
                 expenseDefaultsTitle: 'Προεπιλογές εξόδων',
@@ -9331,20 +9339,8 @@ ${reportName}`,
                 importColumnUpdatedVendor: 'Ενημερώθηκε ο προμηθευτής',
                 vendorUnavailable: 'Ο προμηθευτής δεν είναι διαθέσιμος',
                 confirmErrorCategory: 'Παρακαλώ επιλέξτε κατηγορία',
-                confirmErrorCategoryTax: 'Επιλέξτε έναν φορολογικό συντελεστή',
-                confirmErrorCondition: 'Παρακαλούμε εισαγάγετε έναν έμπορο',
-                confirmErrorConditionAndDefault: 'Προσθέστε έναν έμπορο και ορίστε τουλάχιστον μία προεπιλογή',
-                turnOnTaxesFirstTitle: 'Ενεργοποιήστε πρώτα τους φόρους',
-                turnOnTaxesFirstPrompt:
-                    'Οι κανόνες κατηγορίας ορίζουν έναν προεπιλεγμένο φορολογικό συντελεστή. Ενεργοποιήστε τους φόρους στις ρυθμίσεις του χώρου εργασίας σας για να τους χρησιμοποιήσετε.',
-                categoryRulesApplyGoingForwardTitle: 'Οι κανόνες κατηγορίας ισχύουν από εδώ και στο εξής',
-                categoryRulesApplyGoingForwardPrompt:
-                    'Ένας προεπιλεγμένος φορολογικός συντελεστής εφαρμόζεται σε νέες δαπάνες σε αυτή την κατηγορία. Οι δαπάνες που υπάρχουν ήδη δεν θα αλλάξουν.',
-                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
-                    'Ο επιλεγμένος φορολογικός συντελεστής είναι πλέον η προεπιλογή για τον χώρο εργασίας σας, επομένως αυτός ο κανόνας δεν είναι πλέον έγκυρος. Επιλέξτε έναν διαφορετικό φορολογικό συντελεστή.',
-                addTaxRateFirstTitle: 'Προσθέστε πρώτα έναν φορολογικό συντελεστή',
-                addTaxRateFirstPrompt:
-                    'Οι κανόνες κατηγορίας ορίζουν έναν προεπιλεγμένο φορολογικό συντελεστή. Προσθέστε έναν φορολογικό συντελεστή διαφορετικό από την προεπιλογή του χώρου εργασίας σας για να τους χρησιμοποιήσετε.',
+                confirmErrorCondition: 'Παρακαλούμε προσθέστε τουλάχιστον μία συνθήκη',
+                confirmErrorConditionAndDefault: 'Προσθέστε τουλάχιστον μία συνθήκη και εφαρμόστε τουλάχιστον μία προεπιλογή',
                 createRuleFromExpenseAction: 'Δημιουργία κανόνα',
                 createRuleFromExpensePrompt: 'για να εφαρμόσετε τις αλλαγές σας σε όλες τις δαπάνες που ταιριάζουν με τα κριτήριά σας.',
             },
@@ -9391,9 +9387,11 @@ ${reportName}`,
                 findRule: 'Εύρεση κανόνα',
                 rename: 'Μετονομασία',
                 update: 'Ενημέρωση',
-                merchantIs: (merchant: string) => `Ο έμπορος είναι «${merchant}»`,
                 merchantTypeIs: (merchantType: string) => `Ο τύπος εμπόρου είναι «${merchantType}»`,
                 categoryIs: (category: string) => `Η κατηγορία είναι «${category}»`,
+                tagIs: (tag: string) => `Η ετικέτα είναι «${tag}»`,
+                merchantContains: (merchant: string) => `Ο έμπορος περιέχει «${merchant}»`,
+                merchantExactlyMatches: (merchant: string) => `Ο έμπορος ταιριάζει ακριβώς με «${merchant}»`,
             },
             merchantTypeRule: {
                 merchantType: 'Τύπος εμπόρου',
@@ -9643,6 +9641,8 @@ ${reportName}`,
                     [CONST.SPEND_RULES.CATEGORIES.TRAVEL_AGENCIES]: 'Ταξιδιωτικά πρακτορεία',
                 },
                 defaultRulesCannotBeDeleted: 'Οι προεπιλεγμένοι κανόνες δεν μπορούν να διαγραφούν',
+                tags: 'Ετικέτες',
+                multipleConditions: 'Πολλαπλές συνθήκες',
             },
             agentRules: {
                 title: 'Κανόνες αντιπροσώπου',
@@ -9665,9 +9665,8 @@ ${reportName}`,
                 describeRuleHeadline: 'Περιγράψτε τον κανόνα σας',
                 describeRuleForConcierge: 'Περιγράψτε τον κανόνα σας και το Concierge θα τον δημιουργήσει',
                 createRule: 'Δημιουργία κανόνα',
-                fallbackBanner:
-                    'Αυτός δεν είναι ένας τυπικός κανόνας, οπότε τον διαμορφώσαμε ως κανόνα πράκτορα. Οι κανόνες πράκτορα εφαρμόζονται αφού αλλάξει μια δαπάνη ή μια αναφορά, για παράδειγμα κρατώντας τη δαπάνη ή απορρίπτοντας την αναφορά.',
-                fallbackBannerWithExplanation: (explanation: string) => `Αυτός δεν είναι ένας τυπικός κανόνας, οπότε τον συντάξαμε ως κανόνα εκπροσώπου. ${explanation}`,
+                fallbackBanner: 'Αυτός δεν είναι τυπικός κανόνας, οπότε συντάξαμε έναν κανόνα πράκτορα.',
+                fallbackBannerWithExplanation: (explanation: string) => `Αυτός δεν είναι τυπικός κανόνας, οπότε συντάξαμε έναν κανόνα πράκτορα. ${explanation}`,
                 suggestionsTab: 'Προτεινόμενο',
                 writeTab: 'Προσαρμοσμένο',
                 findSuggestion: 'Βρείτε έναν κανόνα',
@@ -9691,14 +9690,6 @@ ${reportName}`,
                 title: 'Δεν προστέθηκαν κανόνες πράκτορα',
                 subtitle: 'Δημιουργήστε έναν κανόνα για την αυτοματοποίηση των πολιτικών του χώρου εργασίας σας.',
                 cta: 'Προσθήκη κανόνα AI',
-            },
-            expenseDefaultType: {
-                title: 'Εφαρμογή προεπιλογών εξόδων',
-                subtitle: 'Σε τι πρέπει να αντιστοιχεί αυτός ο κανόνας;',
-                merchant: 'Έμπορος',
-                merchantDescription: 'Ενημέρωση πεδίων σε δαπάνες από συγκεκριμένο έμπορο',
-                category: 'Κατηγορία',
-                categoryDescription: 'Ορίστε προεπιλεγμένο φορολογικό συντελεστή για μια συγκεκριμένη κατηγορία',
             },
             taxesDisabledEmptyState: {
                 title: 'Οι φόροι δεν είναι ενεργοποιημένοι',
@@ -10751,6 +10742,12 @@ ${reportName}`,
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `ενημερώθηκε το «αποτροπή επισήμανσης μη αποζημιώσιμων αναφορών ως πληρωμένες» σε «${newValue === 'true' ? 'Ενεργοποιημένο' : 'Απενεργοποιημένο'}» (προηγουμένως «${oldValue === 'true' ? 'Ενεργοποιημένο' : 'Απενεργοποιημένο'}»)`,
         addedExpensifyCardFeed: (feedName: string) => `προστέθηκε ροή Κάρτας Expensify «${feedName}»`,
+        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
+            if (!oldValue) {
+                return `ορίστε τη ζώνη ώρας του χώρου εργασίας σε «${newValue}»`;
+            }
+            return `ενημέρωσε τη ζώνη ώρας του χώρου εργασίας σε «${newValue}» (προηγουμένως «${oldValue}»)`;
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Το μέλος δεν βρέθηκε.',
@@ -11370,6 +11367,8 @@ ${reportName}`,
                 leftTheChatWithName: (nameOrEmail: string) => `${nameOrEmail ? `${nameOrEmail}: ` : ''} έφυγε από τη συνομιλία`,
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `ο επαγγελματικός τραπεζικός λογαριασμός ${maskedBankAccountNumber} έχει κλειδωθεί αυτόματα λόγω προβλήματος είτε με τις αποζημιώσεις είτε με τον διακανονισμό της Κάρτας Expensify. Παρακαλούμε διορθώστε το πρόβλημα στις <a href="${linkURL}">ρυθμίσεις χώρου εργασίας</a>.`,
+                autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
+                    `Οι παγκόσμιες αποζημιώσεις ενεργοποιήθηκαν από τον/την ${adminName} στον λογαριασμό ${bankName ? `${bankName} ` : ''}που λήγει σε ${lastFour}. Οι ακριβείς συναλλαγματικές ισοτιμίες και χρεώσεις δεν μπορούν να προβλεφθούν πριν από την πληρωμή όταν οι διασυνοριακές αναφορές πληρώνονται αυτόματα. Εξετάστε τις <a href="${autoPaySettingsURL}">ρυθμίσεις αυτόματης πληρωμής</a> σας για περισσότερες πληροφορίες σχετικά με ισοτιμίες και χρεώσεις.`,
             },
             error: {
                 invalidCredentials: 'Μη έγκυρα διαπιστευτήρια, παρακαλούμε ελέγξτε τη ρύθμιση της σύνδεσής σας.',
@@ -12032,6 +12031,7 @@ ${reportName}`,
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `Απαιτείται το πεδίο ${fieldName}`,
         reportContainsExpensesWithViolations: 'Η αναφορά περιέχει δαπάνες με παραβιάσεις.',
+        reportHasErrors: 'Η αναφορά έχει σφάλματα.',
     },
     violationDismissal: {
         rter: {
@@ -12531,7 +12531,7 @@ ${reportName}`,
             theresAReportWithErrors: 'Υπάρχει μια αναφορά με σφάλματα',
             theresAWorkspaceWithCustomUnitsErrors: 'Υπάρχει ένας χώρος εργασίας με σφάλματα προσαρμοσμένων μονάδων',
             theresAProblemWithAWorkspaceMember: 'Υπάρχει πρόβλημα με ένα μέλος του χώρου εργασίας',
-            theresAProblemWithAWorkspaceQBOExport: 'Παρουσιάστηκε πρόβλημα με μια ρύθμιση εξαγωγής σύνδεσης χώρου εργασίας.',
+            theresAProblemWithAWorkspaceReimbursementExport: 'Παρουσιάστηκε πρόβλημα με μια ρύθμιση εξαγωγής σύνδεσης χώρου εργασίας.',
             theresAProblemWithAContactMethod: 'Υπάρχει πρόβλημα με μια μέθοδο επικοινωνίας',
             aContactMethodRequiresVerification: 'Απαιτείται επαλήθευση μιας μεθόδου επικοινωνίας',
             theresAProblemWithAPaymentMethod: 'Υπάρχει πρόβλημα με μία μέθοδο πληρωμής',
