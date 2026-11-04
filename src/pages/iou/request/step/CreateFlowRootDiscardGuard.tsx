@@ -17,7 +17,7 @@ function CreateFlowRootDiscardGuard({onBeforeClose}: CreateFlowRootDiscardGuardP
 
     useCreateFlowDiscardGuard({
         isEnabled: true,
-        getIsFlowRoot: () => navigation.getState()?.routes.at(0)?.key === route.key,
+        shouldPrompt: () => navigation.getState()?.routes.at(0)?.key === route.key,
         onBeforeClose,
     });
 

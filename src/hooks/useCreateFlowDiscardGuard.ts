@@ -15,8 +15,8 @@ type UseCreateFlowDiscardGuardParams = {
     /** Whether to guard the flow. Only the first screen of a create expense flow should. */
     isEnabled: boolean;
 
-    /** For a screen that is only sometimes the first screen of the flow. Checked each time the guard runs. */
-    getIsFlowRoot?: () => boolean;
+    /** Checked each time the guard runs. Return false to not ask this time, e.g. on a screen that is only sometimes the first one. */
+    shouldPrompt?: () => boolean;
 
     /** Odometer readings the user saved for later. They're kept after the flow closes, so they aren't something to lose. */
     savedOdometerDraft?: OnyxEntry<OdometerDraft>;
@@ -29,13 +29,13 @@ type UseCreateFlowDiscardGuardParams = {
  * Asks "Discard changes?" when the user closes a create expense flow from any step while a draft has their input. Discard clears
  * the drafts. Use it on the flow's first screen: going back between steps never removes that screen, so it doesn't prompt.
  */
-function useCreateFlowDiscardGuard({isEnabled, getIsFlowRoot, savedOdometerDraft, onBeforeClose}: UseCreateFlowDiscardGuardParams) {
+function useCreateFlowDiscardGuard({isEnabled, shouldPrompt, savedOdometerDraft, onBeforeClose}: UseCreateFlowDiscardGuardParams) {
     // Starting a flow clears all drafts, so every draft here belongs to this flow. Multi-scan has one draft per receipt.
     const [drafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
     const isFlowDirty = isEnabled && haveMoneyRequestDraftsUserEdits(drafts, {savedOdometerDraft});
 
     useDiscardChangesConfirmation({
-        getHasUnsavedChanges: () => isFlowDirty && (getIsFlowRoot?.() ?? true),
+        getHasUnsavedChanges: () => isFlowDirty && (shouldPrompt?.() ?? true),
         shouldPromptWhenUnfocused: isEnabled,
         onConfirm: onBeforeClose,
         // Wait for the RHP to finish closing, so its screens don't show empty fields on the way out
