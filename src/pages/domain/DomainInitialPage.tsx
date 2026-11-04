@@ -1,6 +1,7 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
+import useFlatNavSidebarRowProps from '@components/Navigation/FlatNavigationBar/useFlatNavSidebarRowProps';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
 import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
@@ -44,6 +45,7 @@ type DomainInitialPageProps = PlatformStackScreenProps<DomainSplitNavigatorParam
 function DomainInitialPage({route}: DomainInitialPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(DOMAIN_MENU_ICON_NAMES);
     const styles = useThemeStyles();
+    const getFlatNavRowProps = useFlatNavSidebarRowProps();
     const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.WORKSPACES);
     const tabRootScrollProps = useTabRootScrollProps(styles.flexColumn);
     const waitForNavigate = useWaitForNavigation();
@@ -129,20 +131,26 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                             Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
                             In this case where user can click on menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
                         */}
-                        {domainMenuItems.map((item) => (
-                            <HighlightableMenuItem
-                                key={item.translationKey}
-                                disabled={isExecuting && !(item.screenName && activeRoute?.startsWith(item.screenName))}
-                                title={translate(item.translationKey)}
-                                icon={item.icon}
-                                onPress={item.action}
-                                brickRoadIndicator={item.brickRoadIndicator}
-                                wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
-                                focused={!!(item.screenName && activeRoute?.startsWith(item.screenName))}
-                                shouldIconUseAutoWidthStyle
-                                shouldGreyOutWhenDisabled={false}
-                            />
-                        ))}
+                        {domainMenuItems.map((item) => {
+                            const isItemFocused = !!(item.screenName && activeRoute?.startsWith(item.screenName));
+                            const {shouldShowBasicTitle, selectedStyle, hoveredStyle} = getFlatNavRowProps(isItemFocused);
+                            return (
+                                <HighlightableMenuItem
+                                    key={item.translationKey}
+                                    disabled={isExecuting && !isItemFocused}
+                                    title={translate(item.translationKey)}
+                                    icon={item.icon}
+                                    onPress={item.action}
+                                    brickRoadIndicator={item.brickRoadIndicator}
+                                    wrapperStyle={[styles.sectionMenuItem(shouldUseNarrowLayout), selectedStyle]}
+                                    hoveredStyle={hoveredStyle}
+                                    shouldShowBasicTitle={shouldShowBasicTitle}
+                                    focused={isItemFocused}
+                                    shouldIconUseAutoWidthStyle
+                                    shouldGreyOutWhenDisabled={false}
+                                />
+                            );
+                        })}
                     </View>
                 </ScrollView>
             </FullPageNotFoundView>
