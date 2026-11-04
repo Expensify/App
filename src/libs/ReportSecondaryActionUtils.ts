@@ -153,8 +153,9 @@ function isSplitAction(
 
     const {isBillSplit, isExpenseSplit} = getOriginalTransactionWithSplitInfo(reportTransaction, originalTransaction);
 
-    // A $0 distance expense can still be split by its distance, whether its rate is $0 or its amount was edited to $0
-    const hasDistanceToSplit = isDistanceRequestTransactionUtils(reportTransaction) && !!reportTransaction?.comment?.customUnit?.quantity;
+    // A $0 distance expense can still be split by its billed distance, whether its rate is $0 or its amount was edited to $0
+    const customUnit = reportTransaction?.comment?.customUnit;
+    const hasDistanceToSplit = isDistanceRequestTransactionUtils(reportTransaction) && !!(customUnit?.reimbursableDistance ?? customUnit?.quantity);
 
     if (!amount && !isExpenseSplit && !hasDistanceToSplit) {
         return false;
