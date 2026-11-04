@@ -6,6 +6,7 @@ import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ExpenseFieldDropdown from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
 import ExpenseFieldRow from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldRow';
+import ReportFieldDropdown from '@components/MoneyRequestConfirmationList/sections/ReportFieldDropdown';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -1715,12 +1716,26 @@ function MoneyRequestView({
                 )}
                 {shouldShowReport && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('reportID')}>
-                        <ExpenseFieldRow
+                        <ExpenseFieldDropdown
                             name={translate('common.report')}
                             value={reportNameToDisplay}
                             onPress={openReportPage}
                             copyValue={reportNameToDisplay !== translate('common.none') ? reportNameToDisplay : undefined}
                             isInteractive={canEditReport}
+                            // An upgrade, and a per diem expense moving to another workspace, each go on to a page of their own
+                            shouldOpenInDropdown={!shouldNavigateToUpgradePath && !isPerDiemRequest}
+                            listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
+                            renderDropdown={(dropdownProps) =>
+                                !!transactionThreadReport?.reportID && (
+                                    <ReportFieldDropdown
+                                        {...dropdownProps}
+                                        transactionID={transaction.transactionID}
+                                        reportID={transactionThreadReport.reportID}
+                                        action={CONST.IOU.ACTION.EDIT}
+                                        iouType={iouType}
+                                    />
+                                )
+                            }
                         />
                     </OfflineWithFeedback>
                 )}
