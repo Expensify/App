@@ -6424,9 +6424,9 @@ const translations = {
             tokenInput: {
                 title: 'NetSuite setup',
                 tokenAuthenticationPrompt: {
-                    beforeLink: 'Or connect with ',
+                    beforeLink: 'Or connect with',
                     link: 'token-based authentication',
-                    afterLink: ' (SOAP) instead.',
+                    afterLink: '(SOAP) instead.',
                 },
                 formSteps: {
                     installBundle: {

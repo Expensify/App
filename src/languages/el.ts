@@ -6300,9 +6300,9 @@ ${amount} για ${merchant} - ${date}`,
             tokenInput: {
                 title: 'Ρύθμιση NetSuite',
                 tokenAuthenticationPrompt: {
-                    beforeLink: 'Ή συνδεθείτε με ',
+                    beforeLink: 'Ή συνδεθείτε με',
                     link: 'έλεγχο ταυτότητας βάσει διακριτικού',
-                    afterLink: ' (SOAP) αντ’ αυτού.',
+                    afterLink: '(SOAP) αντ’ αυτού.',
                 },
                 formSteps: {
                     installBundle: {

@@ -6178,9 +6178,9 @@ ${amount} voor ${merchant} - ${date}`,
             tokenInput: {
                 title: 'NetSuite-configuratie',
                 tokenAuthenticationPrompt: {
-                    beforeLink: 'Of maak in plaats daarvan verbinding met ',
+                    beforeLink: 'Of maak in plaats daarvan verbinding met',
                     link: 'token-gebaseerde authenticatie',
-                    afterLink: ' (SOAP).',
+                    afterLink: '(SOAP).',
                 },
                 formSteps: {
                     installBundle: {

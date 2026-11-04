@@ -6131,9 +6131,9 @@ ${amount} para ${merchant} - ${date}`,
             tokenInput: {
                 title: 'Netsuite configuración',
                 tokenAuthenticationPrompt: {
-                    beforeLink: 'O conéctate con ',
+                    beforeLink: 'O conéctate con',
                     link: 'autenticación basada en tokens',
-                    afterLink: ' (SOAP) en su lugar.',
+                    afterLink: '(SOAP) en su lugar.',
                 },
                 formSteps: {
                     installBundle: {
