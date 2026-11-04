@@ -473,7 +473,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldD
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
             {!shouldDisplayNarrowVersion && (
-                <Text style={[styles.mutedTextLabel, styles.textAlignRight, styles.tabularNums]}>
+                <Text style={[styles.mutedTextLabel, styles.textAlignRight]}>
                     {translate('common.currentOfTotal', {current: currentTransactionIndex + 1, total: transactionIDsList.length})}
                 </Text>
             )}

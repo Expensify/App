@@ -258,7 +258,7 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
             {shouldDisplayNavigationArrows && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                     {!shouldDisplayNarrowVersion && (
-                        <Text style={[styles.mutedTextLabel, styles.textAlignRight, styles.tabularNums]}>
+                        <Text style={[styles.mutedTextLabel, styles.textAlignRight]}>
                             {translate('common.currentOfTotal', {current: currentIndex + 1, total: allReportsCount})}
                         </Text>
                     )}
