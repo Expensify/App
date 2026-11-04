@@ -39,7 +39,7 @@ import RejectedContent from './WiseOnboardingStatus/RejectedContent';
 
 type WiseOnboardingStatusPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ONBOARDING_STATUS>;
 
-function WiseOnboardingStatusPage({route}: WiseOnboardingStatusPageProps) {
+function WiseOnboardingStatusPage({route, navigation}: WiseOnboardingStatusPageProps) {
     const bankAccountID = Number(route.params.bankAccountID);
     const introPath = useDynamicBackPath(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path);
     const entryPath = stripDynamicRouteSuffixFromPath(introPath, DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.path);
@@ -78,8 +78,9 @@ function WiseOnboardingStatusPage({route}: WiseOnboardingStatusPageProps) {
         if (kycReviewFormStatus === CONST.WISE.KYC_REVIEW_REDIRECT_STATUS_SUCCESS && onboardingStatus === CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED) {
             markWiseKYCReviewSubmitted(bankAccountID);
         }
-        Navigation.setParams({status: undefined});
-    }, [kycReviewFormStatus, hasBankAccount, onboardingStatus, bankAccountID]);
+        // The screen's own navigation reaches the route even on a cold start, when the navigators above it are not listening yet
+        navigation.setParams({status: undefined});
+    }, [kycReviewFormStatus, hasBankAccount, onboardingStatus, bankAccountID, navigation]);
 
     // On a cold direct link the account list can be empty until the payment-method fetch finishes, so wait for it before judging the account
     const isWaitingForBankAccount = !hasBankAccount && !!isLoadingPaymentMethods;

@@ -84,7 +84,6 @@ describe('WiseOnboardingStatusPage', () => {
 
     it('moves the onboarding to review and drops the param when Wise returns after a finished form', async () => {
         // Given Wise asked for more info, and its form ended with success and sent the user back here
-        const setParamsSpy = jest.spyOn(Navigation, 'setParams').mockImplementation(() => {});
         await renderPage(CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED, 'success');
 
         // When the page applies the form's outcome
@@ -93,13 +92,12 @@ describe('WiseOnboardingStatusPage', () => {
         // Then the account shows in review until the server sends Wise's result, and the param leaves the URL so a reload does not apply it again
         const bankAccountList = await getOnyxValue(ONYXKEYS.BANK_ACCOUNT_LIST);
         expect(bankAccountList?.[BANK_ACCOUNT_ID]?.accountData?.additionalData?.wise?.status).toBe(CONST.WISE.ONBOARDING_STATUS.IN_REVIEW);
-        expect(setParamsSpy).toHaveBeenCalledWith({status: undefined});
+        expect(navigationRef.getCurrentRoute()?.params).toEqual({bankAccountID: String(BANK_ACCOUNT_ID)});
         expect(screen.getByText('walletPage.wiseOnboarding.inReview.heading')).toBeOnTheScreen();
     });
 
     it('keeps asking for more info and drops the param when Wise returns after a closed form', async () => {
         // Given Wise asked for more info
-        const setParamsSpy = jest.spyOn(Navigation, 'setParams').mockImplementation(() => {});
 
         // When Wise sends the user back here after the user closed the form
         await renderPage(CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED, 'closed');
@@ -107,13 +105,12 @@ describe('WiseOnboardingStatusPage', () => {
         // Then the status stays, so the page still offers the form, and the param leaves the URL
         const bankAccountList = await getOnyxValue(ONYXKEYS.BANK_ACCOUNT_LIST);
         expect(bankAccountList?.[BANK_ACCOUNT_ID]?.accountData?.additionalData?.wise?.status).toBe(CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED);
-        expect(setParamsSpy).toHaveBeenCalledWith({status: undefined});
+        expect(navigationRef.getCurrentRoute()?.params).toEqual({bankAccountID: String(BANK_ACCOUNT_ID)});
         expect(screen.getByText('walletPage.wiseOnboarding.moreInfoNeeded.title')).toBeOnTheScreen();
     });
 
     it('keeps the status the server sent when Wise returns after the onboarding moved on', async () => {
         // Given Wise already approved the business
-        const setParamsSpy = jest.spyOn(Navigation, 'setParams').mockImplementation(() => {});
 
         // When an old redirect from Wise's form opens the page again, for example from the browser history
         await renderPage(CONST.WISE.ONBOARDING_STATUS.APPROVED, 'success');
@@ -121,7 +118,7 @@ describe('WiseOnboardingStatusPage', () => {
         // Then the approval stays, since only an onboarding waiting for the form takes its outcome, and the param still leaves the URL
         const bankAccountList = await getOnyxValue(ONYXKEYS.BANK_ACCOUNT_LIST);
         expect(bankAccountList?.[BANK_ACCOUNT_ID]?.accountData?.additionalData?.wise?.status).toBe(CONST.WISE.ONBOARDING_STATUS.APPROVED);
-        expect(setParamsSpy).toHaveBeenCalledWith({status: undefined});
+        expect(navigationRef.getCurrentRoute()?.params).toEqual({bankAccountID: String(BANK_ACCOUNT_ID)});
     });
 
     it.each([CONST.WISE.ONBOARDING_STATUS.IN_REVIEW, CONST.WISE.ONBOARDING_STATUS.NOT_APPROVED])('opens Concierge from the %s content', async (onboardingStatus) => {
