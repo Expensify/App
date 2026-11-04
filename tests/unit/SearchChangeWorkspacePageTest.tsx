@@ -5,6 +5,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 
 import {queueBulkChangeReportPolicy} from '@libs/actions/Search';
 import findAllMatchingDynamicSuffixes from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
+import Navigation from '@libs/Navigation/Navigation';
 
 import SearchChangeWorkspacePage from '@pages/Search/SearchChangeWorkspacePage';
 
@@ -31,6 +32,7 @@ const mockQueryJSON: SearchQueryJSON = {
 };
 const mockClearSelectedTransactions = jest.fn();
 let mockAreAllMatchingItemsSelected = false;
+let mockSelectedReports = [{reportID: 'report1'}, {reportID: 'report2'}];
 let mockSelectRow: ((option: {policyID: string}) => void) | undefined;
 let mockConfirm: (() => void) | undefined;
 
@@ -52,7 +54,7 @@ jest.mock('@components/Search/SearchContext', () => ({
     useSearchQueryContext: () => ({currentSearchQueryJSON: mockQueryJSON}),
     useSearchSelectionActions: () => ({clearSelectedTransactions: mockClearSelectedTransactions}),
     useSearchSelectionContext: () => ({
-        selectedReports: [{reportID: 'report1'}, {reportID: 'report2'}],
+        selectedReports: mockSelectedReports,
         excludedTransactions: {tx3: {reportID: 'report3'}},
         areAllMatchingItemsSelected: mockAreAllMatchingItemsSelected,
     }),
@@ -62,6 +64,8 @@ jest.mock('@libs/actions/Search', () => ({
 }));
 jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
+    closeRHPFlow: jest.fn(),
+    setNavigationActionToMicrotaskQueue: jest.fn((callback: () => void) => callback()),
     navigate: jest.fn(),
     getActiveRouteWithoutParams: jest.fn(() => ''),
     getActiveRoute: jest.fn(() => ''),
@@ -94,6 +98,7 @@ describe('SearchChangeWorkspacePage', () => {
         jest.clearAllMocks();
         mockSelectRow = undefined;
         mockConfirm = undefined;
+        mockSelectedReports = [{reportID: 'report1'}, {reportID: 'report2'}];
         await Onyx.clear();
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy2`, {id: 'policy2', name: 'Workspace 2', type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.USER});
     });
@@ -120,6 +125,35 @@ describe('SearchChangeWorkspacePage', () => {
         expect(queuedQuery).toContain('report1');
         expect(queuedQuery).toContain('report2');
         expect(queuedQuery).not.toContain('report3');
+    });
+    it('closes when it opens with no reports selected', async () => {
+        // Given the page opens from a refresh or a direct link, so Search has nothing selected
+        mockSelectedReports = [];
+
+        // When it renders
+        render(
+            <OnyxListItemProvider>
+                <SearchChangeWorkspacePage />
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it closes instead of showing a Save that has no reports to move
+        expect(Navigation.closeRHPFlow).toHaveBeenCalled();
+    });
+
+    it('stays open while reports are selected', async () => {
+        // Given reports are selected in Search
+        // When the page renders
+        render(
+            <OnyxListItemProvider>
+                <SearchChangeWorkspacePage />
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it stays open so a workspace can be picked
+        expect(Navigation.closeRHPFlow).not.toHaveBeenCalled();
     });
 });
 

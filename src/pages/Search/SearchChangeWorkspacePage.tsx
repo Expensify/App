@@ -24,7 +24,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-import React, {useState} from 'react';
+import React, {useLayoutEffect, useRef, useState} from 'react';
 
 /** Lets the user pick the workspace to move the reports selected on Search to. */
 function SearchChangeWorkspacePage() {
@@ -61,6 +61,18 @@ function SearchChangeWorkspacePage() {
         return uniqueReportIDs.length && queryJSON ? serializeQueryJSONForBackend(queryJSON) : undefined;
     };
 
+    const hasQueuedChangeRef = useRef(false);
+
+    // A refresh or a direct link opens this page with nothing selected, so there are no reports to move.
+    useLayoutEffect(() => {
+        if (selectedReports.length || hasQueuedChangeRef.current) {
+            return;
+        }
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            Navigation.closeRHPFlow();
+        });
+    }, [selectedReports.length]);
+
     const changeWorkspace = () => {
         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
         if (!policyID || !policy) {
@@ -76,6 +88,7 @@ function SearchChangeWorkspacePage() {
             return;
         }
         queueBulkChangeReportPolicy(jsonQuery, policyID);
+        hasQueuedChangeRef.current = true;
         clearSelectedTransactions();
         Navigation.goBack();
     };
