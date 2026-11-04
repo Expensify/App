@@ -175,26 +175,17 @@ function MerchantTypeRulePageBase({policyID, groupID, testID}: MerchantTypeRuleP
                         <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.rules.merchantRules.expenseDefaultsSubtitle')}</Text>
                         <Text style={[styles.textLabel, styles.textStrong, styles.lh16]}>{translate('workspace.rules.merchantRules.ifAnyExpenseMatches')}</Text>
                     </View>
-                    <MenuItem.Root accessibilityLabel={`${translate('workspace.rules.merchantTypeRule.merchantType')}, ${merchantTypeDisplayName}`}>
-                        <MenuItem.Row>
-                            {/* The field name can wrap up to the lock because these cells have no extra gap. */}
-                            <View style={[styles.flexRow, styles.flex1]}>
-                                <MenuItemField.Content name={translate('workspace.rules.merchantTypeRule.merchantType')}>
-                                    <View style={styles.flexRow}>
-                                        <MenuItem.FieldValue>{merchantTypeDisplayName}</MenuItem.FieldValue>
-                                    </View>
-                                </MenuItemField.Content>
-                                <MenuItem.Trailing>
-                                    <Icon
-                                        src={icons.Lock}
-                                        fill={theme.icon}
-                                        width={variables.iconSizeNormal}
-                                        height={variables.iconSizeNormal}
-                                    />
-                                </MenuItem.Trailing>
-                            </View>
-                        </MenuItem.Row>
-                    </MenuItem.Root>
+                    <MenuItemField
+                        name={translate('workspace.rules.merchantTypeRule.merchantType')}
+                        value={merchantTypeDisplayName}
+                    >
+                        <Icon
+                            src={icons.Lock}
+                            fill={theme.icon}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                        />
+                    </MenuItemField>
                     <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
                     <Text style={[styles.textLabel, styles.textStrong, styles.lh16, styles.ph5, styles.pv3]}>{translate('workspace.rules.merchantRules.thenApplyFollowingDefaults')}</Text>
                     <MenuItem.Root
