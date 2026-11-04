@@ -34,6 +34,7 @@ type AgentZeroProcessingStatusEvent = {
     updates: Array<{
         onyxMethod: 'merge';
         key: `${typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${string}`;
+        parentReportActionID?: string;
         value: {
             agentZeroProcessingRequestIndicator: Record<string, string | null>;
         };

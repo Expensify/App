@@ -27,24 +27,23 @@ function isAgentZeroProcessingIndicatorMap(indicator: AgentZeroProcessingIndicat
     return typeof indicator === 'object' && indicator !== null && !Array.isArray(indicator);
 }
 
-/**
- * Reads the AgentZero processing-indicator label for a single agent, trimmed.
- *
- * Tolerates a legacy scalar value (a plain string written by an older backend during a deploy
- * overlap) by attributing it to Concierge — that matches the pre-per-agent behavior.
- */
-function getAgentZeroProcessingLabel(reportNameValuePairs: OnyxEntry<ReportNameValuePairs>, agentAccountID: number): string {
+function getAgentZeroProcessingLabels(reportNameValuePairs: OnyxEntry<ReportNameValuePairs>, parentReportActionID?: string): Record<string, string | null> {
     const indicator = reportNameValuePairs?.agentZeroProcessingRequestIndicator;
-    if (!indicator) {
-        return '';
-    }
+    let unscopedLabels: Record<string, string | null> = {};
     if (typeof indicator === 'string') {
-        return agentAccountID === CONST.ACCOUNT_ID.CONCIERGE ? indicator.trim() : '';
+        // Older servers can still send a single label for Concierge.
+        unscopedLabels = {[CONST.ACCOUNT_ID.CONCIERGE]: indicator};
+    } else if (indicator && isAgentZeroProcessingIndicatorMap(indicator)) {
+        unscopedLabels = indicator;
     }
-    if (!isAgentZeroProcessingIndicatorMap(indicator)) {
-        return '';
-    }
-    const label = indicator[String(agentAccountID)];
+
+    const threadLabels = parentReportActionID ? reportNameValuePairs?.agentZeroProcessingRequestIndicatorByParentAction?.[parentReportActionID] : undefined;
+    return threadLabels ? {...unscopedLabels, ...threadLabels} : unscopedLabels;
+}
+
+/** Reads the processing label for a single agent, trimmed. */
+function getAgentZeroProcessingLabel(reportNameValuePairs: OnyxEntry<ReportNameValuePairs>, agentAccountID: number, parentReportActionID?: string): string {
+    const label = getAgentZeroProcessingLabels(reportNameValuePairs, parentReportActionID)[String(agentAccountID)];
     return typeof label === 'string' ? label.trim() : '';
 }
 
@@ -52,18 +51,8 @@ function getAgentZeroProcessingLabel(reportNameValuePairs: OnyxEntry<ReportNameV
  * Sorted list of agent accountIDs that currently have a non-empty processing label — the set of
  * agents the server is actively processing for in this report. Drives which thinking bubbles render.
  */
-function agentZeroProcessingAgentIDsSelector(reportNameValuePairs: OnyxEntry<ReportNameValuePairs>): number[] {
-    const indicator = reportNameValuePairs?.agentZeroProcessingRequestIndicator;
-    if (!indicator) {
-        return [];
-    }
-    if (typeof indicator === 'string') {
-        return indicator.trim() ? [CONST.ACCOUNT_ID.CONCIERGE] : [];
-    }
-    if (!isAgentZeroProcessingIndicatorMap(indicator)) {
-        return [];
-    }
-    return Object.entries(indicator)
+function agentZeroProcessingAgentIDsSelector(reportNameValuePairs: OnyxEntry<ReportNameValuePairs>, parentReportActionID?: string): number[] {
+    return Object.entries(getAgentZeroProcessingLabels(reportNameValuePairs, parentReportActionID))
         .filter(([, label]) => typeof label === 'string' && !!label.trim())
         .map(([key]) => Number(key))
         .filter((accountID) => !Number.isNaN(accountID))

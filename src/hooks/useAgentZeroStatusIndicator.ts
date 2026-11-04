@@ -54,13 +54,18 @@ const DEBOUNCE_DELAY = 150; // ms
  *   the custom agent's accountID otherwise). Used to read this agent's server label and to
  *   decide when its final reply has landed: the indicator only clears once the newest
  *   reportAction's actorAccountID matches this agent AND the server NVP signals done.
+ * @param parentReportActionID - The thread's current parent action for live statuses.
  */
-function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = CONST.ACCOUNT_ID.CONCIERGE): AgentZeroStatusState {
+function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = CONST.ACCOUNT_ID.CONCIERGE, parentReportActionID?: string): AgentZeroStatusState {
     // Server-driven processing label for this agent, from report name-value pairs (e.g. "Looking
     // up categories..."). The selector narrows to this agent's slot so the hook only re-renders
     // when its own label changes.
-    const serverLabelSelector = (reportNameValuePairs: OnyxEntry<ReportNameValuePairs>) => getAgentZeroProcessingLabel(reportNameValuePairs, agentAccountID);
-    const [serverLabel] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: serverLabelSelector});
+    const serverStatusSelector = (reportNameValuePairs: OnyxEntry<ReportNameValuePairs>) => ({
+        label: getAgentZeroProcessingLabel(reportNameValuePairs, agentAccountID, parentReportActionID),
+        hasScopedLabel: !!(parentReportActionID && reportNameValuePairs?.agentZeroProcessingRequestIndicatorByParentAction?.[parentReportActionID]?.[agentAccountID]?.trim()),
+    });
+    const [serverStatus] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: serverStatusSelector});
+    const {label: serverLabel, hasScopedLabel} = serverStatus ?? {};
 
     // Track the newest report action so we can fetch missed actions and detect actual Concierge replies.
     const [newestReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: getNewestReportActionSelector});
@@ -141,7 +146,11 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
         AgentZeroOptimisticStore.clear(reportID, agentAccountID);
         displayedLabelRef.current = '';
         setDisplayedLabel('');
-        clearAgentZeroProcessingIndicator(reportID, agentAccountID);
+        if (parentReportActionID) {
+            clearAgentZeroProcessingIndicator(reportID, agentAccountID, parentReportActionID);
+        } else {
+            clearAgentZeroProcessingIndicator(reportID, agentAccountID);
+        }
         getNewerActions(reportID, newestReportActionRef.current?.reportActionID);
     };
 
@@ -180,14 +189,18 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
         onReconnect: () => {
             const wasOptimistic = pendingOptimisticRequests > 0;
 
-            if (wasOptimistic) {
+            // The history response only reconciles legacy labels. Clear this thread location separately
+            // so a missed clear does not leave stale progress or erase a label buffered for another location.
+            if (hasScopedLabel && parentReportActionID) {
+                clearAgentZeroProcessingIndicator(reportID, agentAccountID, parentReportActionID);
+            } else if (wasOptimistic) {
                 clearAgentZeroProcessingIndicator(reportID, agentAccountID);
             }
 
             // Fetch missed actions so the Onyx-driven Concierge-reply detection can fire.
             getNewerActions(reportID, newestReportActionRef.current?.reportActionID);
 
-            if (serverLabel || wasOptimistic) {
+            if ((serverLabel && !hasScopedLabel) || wasOptimistic) {
                 startSafetyTimer();
             }
         },

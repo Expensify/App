@@ -15,6 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {NewLogin} from '@src/types/onyx';
 
+import {agentZeroProcessingAgentIDsSelector, getAgentZeroProcessingLabel} from '@selectors/ReportNameValuePairs';
 import {CONST as COMMON_CONST} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
@@ -1294,6 +1295,59 @@ describe('actions/User', () => {
             expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(42);
             expect(OnyxUpdatesReliably.default).not.toHaveBeenCalled();
             expect(API.makeRequestWithSideEffects).not.toHaveBeenCalled();
+        });
+
+        it('uses the current parent action when expense status and move updates arrive out of order', async () => {
+            // Given the thread is showing a status for the old parent action.
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}1001` as const;
+            const oldParentActionID = '1003';
+            const newParentActionID = '1004';
+            await Onyx.merge(reportKey, {parentReportActionID: oldParentActionID});
+            const sendThreadStatus = (parentReportActionID: string, status: string | null) => {
+                Pusher.sendEvent(CHANNEL_NAME, Pusher.TYPE.AGENT_ZERO_PROCESSING_STATUS, {
+                    updates: [{onyxMethod: 'merge', key: REPORT_NVP_KEY, parentReportActionID, value: {agentZeroProcessingRequestIndicator: {[ACTOR_ACCOUNT_ID]: status}}}],
+                });
+            };
+            const getThreadStatus = async () => {
+                const report = await getOnyxValue(reportKey);
+                const reportNameValuePairs = await getOnyxValue(REPORT_NVP_KEY);
+                return {
+                    label: getAgentZeroProcessingLabel(reportNameValuePairs, ACTOR_ACCOUNT_ID, report?.parentReportActionID),
+                    agentIDs: agentZeroProcessingAgentIDsSelector(reportNameValuePairs, report?.parentReportActionID),
+                };
+            };
+            Pusher.sendEvent(CHANNEL_NAME, Pusher.TYPE.AGENT_ZERO_PROCESSING_STATUS, processingStatusEvent);
+            sendThreadStatus(oldParentActionID, 'Old status');
+
+            // When the new parent action's status arrives before the move itself.
+            sendThreadStatus(newParentActionID, 'New status');
+            await waitForBatchedUpdates();
+
+            // Then the thread still shows the old status until the move applies.
+            expect(await getThreadStatus()).toEqual({label: 'Old status', agentIDs: [ACTOR_ACCOUNT_ID]});
+
+            // When the move applies and the old run sends a late label.
+            await Onyx.merge(reportKey, {parentReportActionID: newParentActionID});
+            sendThreadStatus(oldParentActionID, 'Late status');
+            await waitForBatchedUpdates();
+
+            // Then the old label cannot replace the new one.
+            expect(await getThreadStatus()).toEqual({label: 'New status', agentIDs: [ACTOR_ACCOUNT_ID]});
+
+            // When the old run clears its status.
+            sendThreadStatus(oldParentActionID, null);
+            await waitForBatchedUpdates();
+
+            // Then the new status survives and the unscoped parent indicator stays independent.
+            expect(await getThreadStatus()).toEqual({label: 'New status', agentIDs: [ACTOR_ACCOUNT_ID]});
+            expect(await getOnyxValue(PARENT_REPORT_NVP_KEY)).toEqual({agentZeroProcessingRequestIndicator: {[ACTOR_ACCOUNT_ID]: 'Thinking...'}});
+
+            // When the new run clears its own status.
+            sendThreadStatus(newParentActionID, null);
+            await waitForBatchedUpdates();
+
+            // Then the thread stops showing a status, including the earlier unscoped label.
+            expect(await getThreadStatus()).toEqual({label: '', agentIDs: []});
         });
 
         it('applies new processing status after an older OpenApp response clears the indicator', async () => {

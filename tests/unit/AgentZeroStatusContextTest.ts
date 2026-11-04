@@ -2,7 +2,7 @@ import {act, render, renderHook, waitFor} from '@testing-library/react-native';
 
 import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 
-import {clearAgentZeroProcessingIndicator, subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
+import {clearAgentZeroProcessingIndicator, getNewerActions, subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
 import AgentZeroOptimisticStore from '@libs/AgentZeroOptimisticStore';
 import AgentZeroReasoningStore from '@libs/AgentZeroReasoningStore';
 import {setForceOffline} from '@libs/NetworkState';
@@ -972,6 +972,75 @@ describe('AgentZeroStatusContext', () => {
                 expect(result.current.isProcessing).toBe(false);
             });
             expect(result.current.statusLabel).toBe('');
+        });
+
+        it.each(['timeout', 'reconnect'] as const)('clears the old status on %s without clearing the next parent action status', async (recovery) => {
+            // Given the next parent action's live status arrives before the thread move.
+            const parentReportActionID = '456';
+            const nextParentReportActionID = '789';
+            const newestReportActionID = '1234';
+            const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}` as const;
+            await seedServerDrivenReport({
+                type: CONST.REPORT.TYPE.CHAT,
+                parentReportID: '321',
+                parentReportActionID,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [newestReportActionID]: {
+                    reportActionID: newestReportActionID,
+                    actorAccountID: currentUserAccountID,
+                },
+            });
+            await Onyx.merge(reportNameValuePairsKey, {
+                agentZeroProcessingRequestIndicatorByParentAction: {
+                    [parentReportActionID]: {[customAgentAccountID]: 'Old status'},
+                    [nextParentReportActionID]: {
+                        [customAgentAccountID]: 'New status',
+                    },
+                },
+            });
+            jest.mocked(getNewerActions).mockImplementationOnce(() => {
+                Onyx.merge(reportNameValuePairsKey, {
+                    agentZeroProcessingRequestIndicator: null,
+                });
+            });
+            const actualReportActions = jest.requireActual<{
+                clearAgentZeroProcessingIndicator: typeof clearAgentZeroProcessingIndicator;
+            }>('@libs/actions/Report');
+            mockClearAgentZeroProcessingIndicator.mockImplementation(actualReportActions.clearAgentZeroProcessingIndicator);
+            const useThreadStatus = () => useAgentZeroStatusIndicator(reportID, customAgentAccountID, useAgentZeroStatus().parentReportActionID);
+            const {result, unmount} = renderHook(useThreadStatus, {wrapper});
+            await waitForBatchedUpdates();
+            expect(result.current.statusLabel).toBe('Old status');
+
+            // When the status expires or the connection recovers after a missed clear.
+            if (recovery === 'reconnect') {
+                act(() => setForceOffline(true));
+                await waitForBatchedUpdates();
+                act(() => setForceOffline(false));
+            } else {
+                act(() => {
+                    safetyCallback?.();
+                });
+            }
+            await waitForBatchedUpdates();
+
+            // Then recovery clears the original parent action's label.
+            expect(mockClearAgentZeroProcessingIndicator).toHaveBeenCalledWith(reportID, customAgentAccountID, parentReportActionID);
+            expect(getNewerActions).toHaveBeenCalledWith(reportID, newestReportActionID);
+            expect(result.current.isProcessing).toBe(false);
+
+            // When the move replaces the bubble for the old parent action.
+            unmount();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                parentReportID: '654',
+                parentReportActionID: nextParentReportActionID,
+            });
+            const {result: newStatus} = renderHook(useThreadStatus, {wrapper});
+            await waitForBatchedUpdates();
+
+            // Then the status for the new parent action is still visible.
+            expect(newStatus.current.statusLabel).toBe('New status');
         });
 
         it('should auto-clear optimistic indicator after safety timeout', async () => {
