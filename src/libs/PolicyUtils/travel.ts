@@ -10,6 +10,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {getAdminsPrivateEmailDomains} from './domains';
+import {canMemberWrite} from './permissions';
 import {getActivePolicies} from './policy';
 import {isPaidGroupPolicy} from './policyType';
 
@@ -36,6 +37,20 @@ function canMemberUseTravel(policy: OnyxEntry<Policy>, login: string | undefined
  */
 function isMemberTravelAccessTurnedOff(policy: OnyxEntry<Policy>, login: string | undefined): boolean {
     return !!login && policy?.employeeList?.[login]?.canUseTravel === false;
+}
+
+/**
+ * Whether a member can turn travel on or off for another member. Workspace admins and travel admins can, but only full
+ * workspace admins can change it for the workspace owner and other workspace admins, matching Auth.
+ */
+function canMemberChangeTravelAccess(policy: OnyxEntry<Policy>, login: string, targetLogin: string): boolean {
+    if (!canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.TRAVEL)) {
+        return false;
+    }
+    if (canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES)) {
+        return true;
+    }
+    return policy?.owner !== targetLogin && policy?.employeeList?.[targetLogin]?.role !== CONST.POLICY.ROLE.ADMIN;
 }
 
 function isNonUSDPolicy(policy: OnyxEntry<Policy>): boolean {
@@ -68,4 +83,4 @@ function getTravelStep(
     return CONST.TRAVEL.STEPS.GET_STARTED_TRAVEL;
 }
 
-export {isWorkspaceProvisionedForTravel, hasAcceptedTravelTerms, canMemberUseTravel, isMemberTravelAccessTurnedOff, isNonUSDPolicy, getTravelStep};
+export {isWorkspaceProvisionedForTravel, hasAcceptedTravelTerms, canMemberUseTravel, isMemberTravelAccessTurnedOff, canMemberChangeTravelAccess, isNonUSDPolicy, getTravelStep};

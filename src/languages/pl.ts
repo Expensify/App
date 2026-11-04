@@ -5305,6 +5305,8 @@ ${amount} dla ${merchant} - ${date}`,
                         return 'Administrator osób';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Administrator płatności';
+                    case CONST.POLICY.ROLE.TRAVEL_ADMIN:
+                        return 'Administrator podróży';
                     case CONST.POLICY.ROLE.APPROVE_ONLY:
                         return 'Tylko zatwierdzanie';
                     case CONST.POLICY.ROLE.USER:
@@ -5347,6 +5349,7 @@ ${amount} dla ${merchant} - ${date}`,
             cardAdminAlternateText: 'Zarządzaj kartami przestrzeni roboczej.',
             peopleAdminAlternateText: 'Zarządzaj członkami i procesami akceptacji.',
             paymentsAdminAlternateText: 'Zarządzaj płatnościami w przepływie pracy.',
+            travelAdminAlternateText: 'Zarządzaj tym, kto może rezerwować podróże, oraz ustawieniami Expensify Travel.',
             approveOnlyAlternateText: 'Tylko zatwierdzanie raportów.',
             readOnlyActionTitle: 'Nie tak szybko…',
             readOnlyActionPrompt: 'Twoja rola w przestrzeni roboczej może wyświetlać te ustawienia, ale nie może ich edytować.',
@@ -7664,6 +7667,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             cardAdmins: 'Administratorzy kart',
             peopleAdmins: 'Administratorzy osób',
             paymentsAdmins: 'Administratorzy płatności',
+            travelAdmins: 'Administratorzy podróży',
             members: 'Członkowie',
             workArrangement: 'Ustalenia dotyczące pracy',
             officeBased: 'Praca w biurze',

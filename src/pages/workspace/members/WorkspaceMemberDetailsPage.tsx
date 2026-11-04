@@ -49,6 +49,7 @@ import {
     areApprovalsEnabled,
     arePaymentsEnabled,
     canMemberAssignRole,
+    canMemberChangeTravelAccess,
     canMemberManageMemberWithRole,
     canMemberUseTravel,
     canMemberWrite,
@@ -152,8 +153,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const canChangeOfficeLocation = shouldShowOfficeLocation && canWriteMembers;
     const shouldShowTravelSettings = isWorkspaceProvisionedForTravel(policy?.travelSettings);
 
-    // Travel access is changed through a command that only full workspace admins can call
-    const canChangeTravelSettings = shouldShowTravelSettings && isPolicyAdmin(policy);
+    const canChangeTravelSettings = shouldShowTravelSettings && canMemberChangeTravelAccess(policy, currentUserLogin, memberLogin);
     const canManageSelectedMemberRole = canMemberAssignRole(policy, currentUserLogin, member?.role);
     const canRemoveSelectedMember = canWriteMembers && !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canMemberManageMemberWithRole(policy, currentUserLogin, member?.role);
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID];

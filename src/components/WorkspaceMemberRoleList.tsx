@@ -105,6 +105,13 @@ function getAssignableWorkspaceMemberRoleItems(
             keyForList: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
         },
         {
+            value: CONST.POLICY.ROLE.TRAVEL_ADMIN,
+            text: translate('workspace.common.roleName', CONST.POLICY.ROLE.TRAVEL_ADMIN),
+            alternateText: translate('workspace.common.travelAdminAlternateText'),
+            isSelected: currentRole === CONST.POLICY.ROLE.TRAVEL_ADMIN,
+            keyForList: CONST.POLICY.ROLE.TRAVEL_ADMIN,
+        },
+        {
             value: CONST.POLICY.ROLE.USER,
             text: translate('common.member'),
             alternateText: translate('workspace.common.memberAlternateText'),

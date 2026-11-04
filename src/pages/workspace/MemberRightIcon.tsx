@@ -32,6 +32,7 @@ export default function MemberRightIcon({role, owner, login, badgeStyles}: Membe
         role === CONST.POLICY.ROLE.CARD_ADMIN ||
         role === CONST.POLICY.ROLE.PEOPLE_ADMIN ||
         role === CONST.POLICY.ROLE.PAYMENTS_ADMIN ||
+        role === CONST.POLICY.ROLE.TRAVEL_ADMIN ||
         role === CONST.POLICY.ROLE.APPROVE_ONLY
     ) {
         badgeText = translate('workspace.common.roleName', role);

@@ -68,6 +68,7 @@ import {
     arePaymentsEnabled,
     canEditWorkspaceSettings as canEditWorkspaceSettingsUtil,
     canMemberAssignRole,
+    canMemberChangeTravelAccess,
     canMemberManageMemberWithRole,
     canMemberRead,
     canMemberWrite,
@@ -203,8 +204,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const {approvalWorkflows, enforcedApprovalWorkflows, approverPendingActionByMemberEmail} = useApprovalWorkflows(policy);
 
     const isProvisionedForTravel = isWorkspaceProvisionedForTravel(policy?.travelSettings);
-    // Travel access is changed through a command that only full workspace admins can call
-    const canChangeTravelAccess = isPolicyAdmin(policy);
     const canSelectMultiple = canWriteMembers && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
 
     let confirmModalPrompt;
@@ -491,7 +490,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             // A member still being added or without a loaded accountID would be sent to the server under an accountID it
             // doesn't know
             canEditTravelAccess:
-                canChangeTravelAccess &&
+                canMemberChangeTravelAccess(policy, currentUserLogin ?? '', login) &&
                 !isSelectionModeActive &&
                 !isPendingDeleteOrError &&
                 policyEmployee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
