@@ -22,16 +22,18 @@ import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 
 import type {NativeTabLayoutProps} from './NativeTabLayout';
 
+import isTabHostFullWidth from './isTabHostFullWidth';
 import NativeTabBarShadow from './NativeTabBarShadow';
-import useFloatingButtonsHorizontalInsets from './useFloatingButtonsHorizontalInsets';
 import {getFloatingButtonsBottom} from './useNativeTabBarOptions';
 
 /** What a narrow layout draws over the tabs along with the native bar, kept apart so wide layouts skip its hooks. */
 function NativeTabBarOverlay({state, descriptors}: Pick<NativeTabLayoutProps, 'state' | 'descriptors'>) {
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const styles = useThemeStyles();
-    const {bottom: bottomInset} = useSafeAreaInsets();
-    const floatingButtonsHorizontalInsets = useFloatingButtonsHorizontalInsets();
+    const {bottom: bottomInset, left: leftInset, right: rightInset} = useSafeAreaInsets();
+    // A full-width tab host doesn't keep the buttons out of the horizontal safe area, so they do it themselves.
+    const floatingButtonsLeft = isTabHostFullWidth ? leftInset : 0;
+    const floatingButtonsRight = isTabHostFullWidth ? rightInset : 0;
     const activeRoute = state.routes[state.index];
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[activeRoute?.name ?? SCREENS.HOME] ?? NAVIGATION_TABS.HOME;
 
@@ -58,7 +60,7 @@ function NativeTabBarOverlay({state, descriptors}: Pick<NativeTabLayoutProps, 's
                 >
                     <NativeTabBarShadow />
                     <View
-                        style={styles.nativeTabBarFloatingButtons(getFloatingButtonsBottom(bottomInset), floatingButtonsHorizontalInsets.left, floatingButtonsHorizontalInsets.right)}
+                        style={styles.nativeTabBarFloatingButtons(getFloatingButtonsBottom(bottomInset), floatingButtonsLeft, floatingButtonsRight)}
                         pointerEvents="box-none"
                     >
                         <View style={[styles.navigationTabBarFABItem, styles.ph0, styles.floatingActionButtonPosition]}>
