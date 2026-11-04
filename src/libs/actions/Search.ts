@@ -1250,7 +1250,6 @@ type InFlightSearchRequest = {
     didSucceed?: boolean;
     /** Whether the response's snapshot should be dropped, and the request run again, when an inline edit is queued in this tab while the request is in flight. */
     shouldDiscardStaleSnapshot: boolean;
-    /** The query it sends, which keys its guard. */
     jsonQuery?: string;
     /** How many inline edit writes this tab had queued when the request was sent. It is compared with the current count when the response arrives, to tell whether an edit was queued while the request was in flight. */
     queuedInlineEditWritesCountWhenSent?: number;
@@ -1524,7 +1523,6 @@ function search({
     }
 
     const startRequest = () => {
-        // Capture at dispatch for both paths, so a guarded refetch can also join a search that skipped the write wait.
         inFlightRequestState.queuedInlineEditWritesCountWhenSent = getQueuedInlineEditWritesCount();
         if (inFlightRequestState.shouldDiscardStaleSnapshot) {
             guardSearchAgainstStaleSnapshot(jsonQuery, inFlightRequestState.queuedInlineEditWritesCountWhenSent);
