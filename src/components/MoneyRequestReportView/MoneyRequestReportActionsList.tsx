@@ -15,6 +15,7 @@ import useUnreadMarker from '@hooks/useUnreadMarker';
 
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import isBillPaySubmittedAction from '@libs/isBillPaySubmittedAction';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
@@ -43,6 +44,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {getStableReportSelector} from '@src/selectors/Report';
 import {pendingNewTransactionIDsSelector} from '@src/selectors/ReportMetaData';
+import {isLinkedToBillSelector} from '@src/selectors/ReportNameValuePairs';
 import type * as OnyxTypes from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
@@ -143,6 +145,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`);
     const shouldShowHarvestCreatedAction = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
+    const isInvoiceLinkedToBill = isLinkedToBillSelector(reportNameValuePairs);
 
     const {visibleReportActions, visibleReportActionsNewestFirst, lastAction, firstVisibleReportActionID} = useMoneyRequestReportVisibleActions({
         reportID,
@@ -281,8 +284,13 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         const previousReportAction = indexWithinReportActions > 0 ? displayReportActions.at(indexWithinReportActions - 1) : undefined;
         const previousRun = previousReportAction ? runsByAnchorReportActionID.get(previousReportAction.reportActionID) : undefined;
         const isAfterCollapsedRun = indexWithinReportActions > 0 && !!previousRun && !previousRun.isExpanded;
+
+        // Bill Pay history overrides the stored submission actor, so either neighbor needs its own actor header.
+        const shouldKeepBillPayActorHeaders =
+            isBillPaySubmittedAction(reportAction, reportStable, isInvoiceLinkedToBill) || isBillPaySubmittedAction(previousReportAction, reportStable, isInvoiceLinkedToBill);
         const displayAsGroup =
             !isAfterCollapsedRun &&
+            !shouldKeepBillPayActorHeaders &&
             !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, canonicalIndex, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
             hasNextActionMadeBySameActor(visibleReportActions, canonicalIndex, isOffline);
         const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;

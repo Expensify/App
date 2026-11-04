@@ -212,6 +212,61 @@ describe('ReportActionItem', () => {
             expect(screen.getByText('created this bill on behalf of Sender\nsent this bill to Receiver')).toBeOnTheScreen();
             expect(screen.queryByText(translateLocal('iou.automaticallySubmitted'))).not.toBeOnTheScreen();
         });
+
+        it.each([
+            [processorAccountID, 'Tom Jones'],
+            [0, 'Concierge'],
+        ] as const)('credits an invoice linked to a bill to processor %s as %s', async (processor, actorName) => {
+            // Given the vendor submits the invoice to the receiver, while the creation action records who created the bill.
+            const senderAccountID = 321;
+            const invoice: Report = {
+                reportID: '9877',
+                type: CONST.REPORT.TYPE.INVOICE,
+                ownerAccountID: senderAccountID,
+                managerID: ACTOR_ACCOUNT_ID,
+            };
+            const action = {...createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {}), reportID: invoice.reportID, actorAccountID: senderAccountID};
+            const createdAction = {...createReportAction(CONST.REPORT.ACTIONS.TYPE.CREATED, processor ? {processor} : {}), reportActionID: '12344', actorAccountID: senderAccountID};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoice.reportID}`, invoice);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${invoice.reportID}`, {billID: 9878});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${invoice.reportID}`, {[createdAction.reportActionID]: createdAction, [action.reportActionID]: action});
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [ACTOR_ACCOUNT_ID]: {accountID: ACTOR_ACCOUNT_ID, displayName: 'Receiver'},
+                    [senderAccountID]: {accountID: senderAccountID, displayName: 'Sender'},
+                    [processorAccountID]: {accountID: processorAccountID, displayName: 'Tom Jones', login: 'tom@example.com'},
+                    [CONST.ACCOUNT_ID.CONCIERGE]: {accountID: CONST.ACCOUNT_ID.CONCIERGE, displayName: 'Concierge', login: 'concierge@expensify.com'},
+                });
+            });
+
+            // When NewDot renders the invoice submission.
+            renderItemWithAction(action, false, invoice);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the history credits the bill's creator instead of the vendor, and names the vendor and the receiver.
+            expect(screen.getByText(actorName)).toBeOnTheScreen();
+            expect(screen.getByText('created this invoice on behalf of Sender\nsent this invoice to Receiver')).toBeOnTheScreen();
+        });
+
+        it('keeps the usual wording on an invoice that is not linked to a bill', async () => {
+            // Given an invoice that was sent without bill intake, so it has no linked bill.
+            const senderAccountID = 321;
+            const invoice: Report = {reportID: '9879', type: CONST.REPORT.TYPE.INVOICE, ownerAccountID: senderAccountID, managerID: ACTOR_ACCOUNT_ID};
+            const action = {...createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {}), reportID: invoice.reportID, actorAccountID: senderAccountID};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoice.reportID}`, invoice);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${invoice.reportID}`, {[action.reportActionID]: action});
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[senderAccountID]: {accountID: senderAccountID, displayName: 'Sender'}});
+            });
+
+            // When NewDot renders the invoice submission.
+            renderItemWithAction(action, false, invoice);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the history keeps the vendor as the actor and doesn't use the Bill Pay wording.
+            expect(screen.getByText('Sender')).toBeOnTheScreen();
+            expect(screen.queryByText(/created this invoice on behalf of/)).not.toBeOnTheScreen();
+        });
     });
 
     describe('Edited file attachments', () => {

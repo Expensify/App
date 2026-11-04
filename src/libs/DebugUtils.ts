@@ -479,6 +479,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'welcomeMessage':
         case 'origin':
         case 'originalID':
+        case 'billID':
         case 'conciergeFeedbackForReportActionID':
         case 'submitterUserID':
         case 'submitterPayrollID':
@@ -720,6 +721,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 transactionCount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 origin: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 originalID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                billID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 conciergeFeedbackForReportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 supportTicketCalendarLink: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 reopenedAsReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,

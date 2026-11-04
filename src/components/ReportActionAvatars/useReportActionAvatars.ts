@@ -8,7 +8,7 @@ import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import isBillSubmittedAction from '@libs/isBillSubmittedAction';
+import isBillPaySubmittedAction from '@libs/isBillPaySubmittedAction';
 import {
     getDelegateAccountIDFromReportAction,
     getHumanAgentAccountIDFromReportAction,
@@ -37,6 +37,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {getStableReportSelector} from '@src/selectors/Report';
 import {getBillProcessorAccountIDSelector, getReportActionByIDSelector} from '@src/selectors/ReportAction';
 import {pendingDeleteMemberAccountIDsSelector} from '@src/selectors/ReportMetaData';
+import {isLinkedToBillSelector} from '@src/selectors/ReportNameValuePairs';
 import type {InvitedEmailsToAccountIDs, OnyxInputOrEntry, Policy, Report, ReportAction} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 
@@ -135,13 +136,19 @@ function useReportActionAvatars({
 
     const delegateAccountID = getDelegateAccountIDFromReportAction(action);
     const delegatePersonalDetails = delegateAccountID ? personalDetails?.[delegateAccountID] : undefined;
-    const isBillSubmission = isBillSubmittedAction(action, iouReport);
-    const [billProcessorAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(isBillSubmission ? iouReport?.reportID : undefined)}`, {
+    const [isInvoiceLinkedToBill = false] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(isInvoiceReport(iouReport) ? iouReport?.reportID : undefined)}`,
+        {
+            selector: isLinkedToBillSelector,
+        },
+    );
+    const isBillPaySubmission = isBillPaySubmittedAction(action, iouReport, isInvoiceLinkedToBill);
+    const [billProcessorAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(isBillPaySubmission ? iouReport?.reportID : undefined)}`, {
         selector: getBillProcessorAccountIDSelector,
     });
 
-    // Bill intake submits as the receiver, but the history must credit the person who created the bill or Concierge.
-    const actorAccountID = isBillSubmission
+    // Bill intake submits as the vendor or the receiver, but the history must credit the person who created the bill or Concierge.
+    const actorAccountID = isBillPaySubmission
         ? billProcessorAccountID || CONST.ACCOUNT_ID.CONCIERGE
         : getReportActionActorAccountID(action, iouReport, chatReport, delegatePersonalDetails, shouldUseRealActor);
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(action);

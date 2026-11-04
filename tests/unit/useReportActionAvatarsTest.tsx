@@ -68,6 +68,36 @@ describe('useReportActionAvatars', () => {
                 source: processor ? 'https://example.com/tom.png' : 'https://example.com/concierge.png',
             });
         });
+
+        it.each([processorAccountID, 0])('uses processor %s or Concierge instead of the vendor on an invoice linked to a bill', async (processor) => {
+            // Given the vendor submits an invoice that bill intake linked to a bill.
+            const vendorAccountID = 321;
+            const report: Report = {reportID: '9401', type: CONST.REPORT.TYPE.INVOICE, ownerAccountID: vendorAccountID, managerID: 123};
+            const action = createMock<ReportAction>({actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED, actorAccountID: vendorAccountID});
+            const createdAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CREATED>>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                message: {processor},
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {billID: 9402});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {created: createdAction});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [vendorAccountID]: {accountID: vendorAccountID, displayName: 'Vendor', avatar: 'https://example.com/vendor.png'},
+                [processorAccountID]: {accountID: processorAccountID, displayName: 'Tom Jones', avatar: 'https://example.com/tom.png'},
+                [CONST.ACCOUNT_ID.CONCIERGE]: {accountID: CONST.ACCOUNT_ID.CONCIERGE, displayName: 'Concierge', avatar: 'https://example.com/concierge.png'},
+            });
+            await waitForBatchedUpdates();
+
+            // When the history resolves the author of the invoice submission.
+            const {result} = renderHook(() => useReportActionAvatars({report, action}), {wrapper});
+            await act(async () => waitForBatchedUpdates());
+
+            // Then the avatar identifies the bill's creator, or Concierge for an emailed invoice, instead of the vendor.
+            expect(result.current.avatars.at(0)).toMatchObject({
+                id: processor || CONST.ACCOUNT_ID.CONCIERGE,
+                name: processor ? 'Tom Jones' : 'Concierge',
+                source: processor ? 'https://example.com/tom.png' : 'https://example.com/concierge.png',
+            });
+        });
     });
 
     describe('isWorkspaceActor', () => {
