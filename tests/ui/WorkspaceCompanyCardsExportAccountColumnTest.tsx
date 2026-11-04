@@ -16,9 +16,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card} from '@src/types/onyx';
 import type {CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
+import type {ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
 import type {PartialDeep} from 'type-fest';
 
-import type {ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -99,12 +99,7 @@ jest.mock('@components/Table', () => {
 
     // Kept outside MockTable, which the React Compiler treats as a component: capturing render props into a module
     // variable is only for this test's assertions and would otherwise look like an impure component body.
-    function captureTableProps(
-        columns: MockTableProps['columns'],
-        data: MockTableProps['data'],
-        compareItems: MockTableProps['compareItems'],
-        renderItem: MockTableProps['renderItem'],
-    ) {
+    function captureTableProps(columns: MockTableProps['columns'], data: MockTableProps['data'], compareItems: MockTableProps['compareItems'], renderItem: MockTableProps['renderItem']) {
         capturedColumns = columns;
         capturedData = data;
         capturedCompareItems = compareItems;
