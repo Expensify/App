@@ -79,4 +79,3 @@ function getUnreadReportsForUnreadIndicator(
 }
 
 export default {getUnreadReportsForUnreadIndicator};
-export type {UnreadIndicatorData};
