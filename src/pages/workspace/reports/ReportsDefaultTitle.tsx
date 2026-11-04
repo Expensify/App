@@ -58,10 +58,12 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
     // The default report title is a single-line value, so show any title saved with line breaks on one line.
     const customNameDefaultValue = StringUtils.lineBreaksToSpaces(Str.htmlDecode(titleField?.defaultValue ?? ''));
 
+    const normalizeDefaultTitle = (defaultTitle: string) => StringUtils.lineBreaksToSpaces(defaultTitle).trim();
+
     const validateCustomName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM> = {};
         // Validate the same single-line value that submitForm saves.
-        const defaultTitle = StringUtils.lineBreaksToSpaces(values.defaultTitle).trim();
+        const defaultTitle = normalizeDefaultTitle(values.defaultTitle);
         if (!defaultTitle) {
             errors[INPUT_IDS.DEFAULT_TITLE] = translate('common.error.fieldRequired');
         } else if (defaultTitle.length > CONST.REPORT_TITLE_FORMULA_LIMIT) {
@@ -81,7 +83,7 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
 
     const submitForm = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM>) => {
         // The input can wrap to multiple lines while editing, but the title is a single-line value. Squash any pasted line breaks before saving.
-        const defaultTitle = StringUtils.lineBreaksToSpaces(values.defaultTitle).trim();
+        const defaultTitle = normalizeDefaultTitle(values.defaultTitle);
         setPolicyDefaultReportTitle(policyID, defaultTitle, policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE], getReviewWorkspaceSettingsTaskCompletion());
         Navigation.goBack();
     };
