@@ -42,7 +42,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {ForwardedRef, RefObject} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -209,7 +208,7 @@ function SearchAutocompleteList({
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const reportAttributes = useReportAttributes();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
-    const [recentSearches, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
+    const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {
         selector: expensifyLoginsSelector,
@@ -257,8 +256,6 @@ function SearchAutocompleteList({
         ...SEARCH_ROUTER_OPTIONS_CONFIG,
         isSearching: !!autocompleteQueryValue.trim(),
     });
-
-    const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
 
     useEffect(() => {
         return () => {
@@ -374,14 +371,11 @@ function SearchAutocompleteList({
     const hasCommittedListRef = useRef(false);
     const committedListOptionsRef = useRef(listOptions);
     // Commit the query span in a layout effect so the span's end time reflects when the list is laid out
-    // for this query before paint. The list's first commit after the loading skeleton is cancelled so open latency
-    // stays with ManualOpenSearchRouter. While the skeleton is shown, the list is not rendered, so the span keeps waiting for it.
+    // for this query before paint. The list's first commit is cancelled so open latency
+    // stays with ManualOpenSearchRouter.
     // While options are still loading, searchOptions is the empty default list, so committing would record a bogus zero-result query.
     // Cancel instead of waiting so Onyx cold-load time does not get folded into query latency.
     useLayoutEffect(() => {
-        if (!isRecentSearchesDataLoaded) {
-            return;
-        }
         const isListMountCommit = !hasCommittedListRef.current;
         hasCommittedListRef.current = true;
         // useFilteredOptions rebuilds listOptions on the first query after open or clear, and when an Onyx dependency changes.
@@ -393,7 +387,7 @@ function SearchAutocompleteList({
             return;
         }
         markSearchRouterQueryCommitted(autocompleteQueryValue, {localResultCount, areOptionsRebuilt}, isListMountCommit);
-    }, [autocompleteQueryValue, localResultCount, listOptions, isRecentSearchesDataLoaded, isLoadingOptions]);
+    }, [autocompleteQueryValue, localResultCount, listOptions, isLoadingOptions]);
     const prevQueryRef = useRef(effectiveInputQueryValue);
     const innerListRef = useRef<SelectionListWithSectionsHandle | null>(null);
     const hasSetInitialFocusRef = useRef(false);
@@ -759,12 +753,11 @@ function SearchAutocompleteList({
         loadAllRecentReports();
     }, [trimmedAutocompleteQueryValue, isLoadingOptions, recentReportsOptions.length, hasMoreRecentReports, loadAllRecentReports]);
 
-    const isLoading = !isRecentSearchesDataLoaded;
     const suggestionsAnnouncement = suggestionsCount > 0 ? translate('search.suggestionsAvailable', {count: suggestionsCount}, trimmedAutocompleteQueryValue) : '';
     useDebouncedAccessibilityAnnouncement(suggestionsAnnouncement, !!suggestionsAnnouncement, autocompleteQueryValue);
 
     const noResultsFoundText = translate('common.noResultsFound');
-    const shouldAnnounceNoResults = !isLoading && suggestionsCount === 0 && !!trimmedAutocompleteQueryValue;
+    const shouldAnnounceNoResults = suggestionsCount === 0 && !!trimmedAutocompleteQueryValue;
     useDebouncedAccessibilityAnnouncement(noResultsFoundText, shouldAnnounceNoResults, autocompleteQueryValue);
 
     const recentReportKeys = new Set(styledRecentReports.map((report) => report.keyForList));
@@ -878,16 +871,6 @@ function SearchAutocompleteList({
         lastProgrammaticFocusKeyRef.current = firstRecentReportKey;
         innerListRef.current?.updateAndScrollToFocusedIndex(firstRecentReportFlatIndex, true);
     }, [autocompleteQueryValue, firstRecentReportFlatIndex, firstRecentReportKey, normalizedReferenceText, shouldHighlightFirstItem]);
-
-    if (isLoading) {
-        return (
-            <OptionsListSkeletonView
-                fixedNumItems={4}
-                shouldStyleAsTable
-                speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
-            />
-        );
-    }
 
     return (
         <SelectionListWithSections<AutocompleteListItem>
