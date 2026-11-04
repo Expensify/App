@@ -257,6 +257,7 @@ function DatePicker({
                     textInputContainerStyles={[textInputContainerStyles, isModalVisible && styles.borderColorFocus]}
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
+                    clearButtonSentryLabel={CONST.SENTRY_LABEL.DATE_PICKER.CLEAR_BUTTON}
                     clearButtonStyle={[styles.mh0, {paddingHorizontal: iconPaddingHorizontal}]}
                     forwardedFSClass={forwardedFSClass}
                     autoComplete={autoComplete}
