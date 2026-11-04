@@ -10,6 +10,6 @@
     Suppress the diagnostic on the four overrides; the methods themselves keep working.
     ```
 
-- Upstream PR/issue: Fixed upstream in 27.0.0, which adds the same `@Suppress("ACCIDENTAL_OVERRIDE")` on all four overrides (26.12.0, the last 26.x, covers only `ReactEmbeddedViewManager.setProperty`). Drop this patch when bumping to >= 27.0.0. That is a major: on iOS `AirshipFrameworkProxy` moves from CocoaPods to Swift Package Manager, and it requires React Native >= 0.85.
+- Upstream PR/issue: Fixed upstream in 27.0.0, which adds the same `@Suppress("ACCIDENTAL_OVERRIDE")` on all four overrides. Drop this patch when bumping to >= 27.0.0. That is a major: on iOS `AirshipFrameworkProxy` moves from CocoaPods to Swift Package Manager, and it requires React Native >= 0.85.
 - E/App issue: https://github.com/Expensify/App/issues/101427
 - PR introducing patch: https://github.com/Expensify/App/pull/101739

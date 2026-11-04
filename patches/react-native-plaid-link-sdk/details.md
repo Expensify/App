@@ -34,6 +34,6 @@
     `currentActivity` property reads in `PlaidModule.kt` fail to compile. Read `reactApplicationContext.currentActivity`.
     ```
 
-- Upstream PR/issue: Fixed upstream from 12.7.0 (12.6.0 is still broken). Drop this patch when bumping to >= 12.7.0. 13.x rewrote the Android module on Expo Modules (`expo.modules.plaidlinksdk`), which is a separate migration.
+- Upstream PR/issue: Fixed upstream from 12.7.0 (12.6.0 is still broken). Drop this patch when bumping to >= 12.7.0.
 - E/App issue: https://github.com/Expensify/App/issues/101427
 - PR introducing patch: https://github.com/Expensify/App/pull/101739

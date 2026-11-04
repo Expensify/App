@@ -10,6 +10,6 @@
     "Function invocation 'currentActivity()' expected". Read `reactApplicationContext.currentActivity` instead.
     ```
 
-- Upstream PR/issue: Fixed upstream from 12.0.0 (11.x still has the bare `currentActivity`). Drop this patch when bumping to >= 12.0.0 (11.0.0 stops shipping CommonJS, 12.0.0 moves iOS to Swift 6 concurrency). AGP 9 Kotlin plugin clash: https://github.com/react-native-documents/document-picker/pull/1004 (open, not needed with `android.builtInKotlin=false`).
+- Upstream PR/issue: Fixed upstream from 12.0.0 (11.x still has the bare `currentActivity`). Drop this patch when bumping to >= 12.0.0 (11.0.0 stops shipping CommonJS, 12.0.0 moves iOS to Swift 6 concurrency).
 - E/App issue: https://github.com/Expensify/App/issues/101427
 - PR introducing patch: https://github.com/Expensify/App/pull/101739
