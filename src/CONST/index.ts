@@ -1048,8 +1048,19 @@ const CONST = {
         TERMS_URL: 'https://wise.com/terms-and-conditions',
         PRIVACY_URL: 'https://wise.com/privacy-policy',
 
+        /** The hosts that serve Wise's hosted KYC form, in production and in Wise's sandbox */
+        KYC_REVIEW_FORM_HOSTS: ['wise.com', 'wise-sandbox.com'],
+
         /** The query param Wise adds to the redirect URL when its hosted KYC form ends, saying how it ended */
         KYC_REVIEW_REDIRECT_STATUS_PARAM: 'status',
+
+        /** The values Wise documents for the status param of the redirect URL */
+        KYC_REVIEW_REDIRECT_STATUS: {
+            SUCCESS: 'success',
+            FAILED: 'failed',
+            CLOSED: 'closed',
+            ERROR: 'error',
+        },
 
         /** Server-derived state of the Wise onboarding */
         ONBOARDING_STATUS: {

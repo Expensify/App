@@ -21,7 +21,7 @@ import Onyx from 'react-native-onyx';
 import waitForBatchedUpdatesWithAct from '../../../../utils/waitForBatchedUpdatesWithAct';
 
 const BACK_PATH = 'settings/wallet/global-reimbursements/9053192/more-info-needed';
-const KYC_REVIEW_URL = 'https://sandbox.transferwise.tech/embedded-flows/kyc-review?token=abc';
+const KYC_REVIEW_URL = 'https://wise-sandbox.com/embedded-flows/verification?token=abc';
 const WEB_VIEW_TEST_ID = 'wise-kyc-web-view';
 
 // The mock passes the navigation check on, so a test can fire it like the native WebView does
@@ -37,8 +37,8 @@ jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => 'settings/wallet/glob
 
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
-async function renderPage() {
-    await Onyx.set(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK, {url: KYC_REVIEW_URL, isLoading: false});
+async function renderPage(url = KYC_REVIEW_URL) {
+    await Onyx.set(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK, {url, isLoading: false});
     render(
         <OnyxListItemProvider>
             <NavigationContainer ref={navigationRef}>
@@ -89,10 +89,31 @@ describe('WiseKYCReviewPage', () => {
         await renderPage();
 
         // When the form goes to its next page on Wise's site, even one that carries a status param
-        const shouldLoad = startLoading('https://sandbox.transferwise.tech/embedded-flows/kyc-review/documents?status=pending');
+        const shouldLoad = startLoading('https://wise-sandbox.com/embedded-flows/verification/documents?status=success');
 
         // Then the page loads and the form stays open
         expect(shouldLoad).toBe(true);
         expect(goBackSpy).not.toHaveBeenCalled();
+    });
+
+    it('keeps the form open when the redirect carries a status Wise does not document', async () => {
+        // Given Wise's form is open
+        const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
+        await renderPage();
+
+        // When a page outside Wise's site carries an unknown status
+        const shouldLoad = startLoading('https://www.expensify.com/wise-kyc?status=pending');
+
+        // Then it is not treated as the end of the form
+        expect(shouldLoad).toBe(true);
+        expect(goBackSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not show a link outside Wise', async () => {
+        // Given the server sends a link that does not point to Wise
+        await renderPage('https://wise.example.com/embedded-flows/verification?token=abc');
+
+        // Then no WebView shows it
+        expect(screen.queryByTestId(WEB_VIEW_TEST_ID)).toBeNull();
     });
 });
