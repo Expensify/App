@@ -62,6 +62,7 @@ import {
     getCombinedReportActions,
     getCompanyAddressUpdateMessage,
     getCompanyCardConnectionBroken30DaysMessage,
+    getCompanyCardConsentExpiringMessage,
     getCompanyCardConnectionBrokenMessage,
     getConciergeAutoSelectDistanceRateMessage,
     getCurrencyConversionFeeMessage,
@@ -1462,6 +1463,8 @@ function getReportAlternateText({
             alternateText = Parser.htmlToText(getCompanyCardConnectionBrokenMessage(translate, lastAction));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS)) {
             alternateText = Parser.htmlToText(getCompanyCardConnectionBroken30DaysMessage(translate, lastAction));
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING)) {
+            alternateText = Parser.htmlToText(getCompanyCardConsentExpiringMessage(translate, lastAction));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN)) {
             alternateText = Parser.htmlToText(getCardConnectionBrokenMessage(undefined, getOriginalMessage(lastAction)?.cardName, translate, false));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS)) {
