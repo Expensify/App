@@ -2,6 +2,7 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import BaseModal from '@components/Modal/BaseModal';
 import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
+import type BaseModalProps from '@components/Modal/types';
 
 import CONST from '@src/CONST';
 
@@ -63,7 +64,7 @@ function findModalContainer(): TestInstance {
     return node;
 }
 
-function TallBottomSheet({avoidKeyboard}: {avoidKeyboard: boolean}) {
+function TallBottomSheet({avoidKeyboard}: Pick<BaseModalProps, 'avoidKeyboard'>) {
     return (
         <BaseModal
             isVisible
