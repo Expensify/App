@@ -1353,6 +1353,8 @@ const translations = {
     },
     insightsPage: {
         viewOnSpend: 'View on Spend',
+        explain: 'Explain',
+        explainChartPrompt: (chartTitle: string) => `Explain the data in ${chartTitle}.`,
         compliance: 'Compliance',
         runningTotal: 'Running total',
         compare: {
@@ -3841,6 +3843,9 @@ const translations = {
     preferencesPage: {
         appSection: {
             title: 'App preferences',
+        },
+        distanceSection: {
+            title: 'Distance preferences',
         },
         testSection: {
             title: 'Test preferences',
@@ -8096,10 +8101,10 @@ const translations = {
             reimbursementAccount: 'reimbursement account',
             welcomeNote: 'Please start using my new workspace',
             delayedSubmission: 'delayed submission',
-            merchantRules: 'Expense defaults',
+            merchantRules: 'Merchant rules',
             merchantRulesCount: () => ({
-                one: '1 expense default',
-                other: (count: number) => `${count} expense defaults`,
+                one: '1 merchant rule',
+                other: (count: number) => `${count} merchant rules`,
             }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `You’re about to create and share ${newWorkspaceName ?? ''} with ${totalMembers ?? 0} members from the original workspace.`,
@@ -9689,8 +9694,8 @@ const translations = {
                 matchType: 'Match type',
                 matchTypeContains: 'Contains',
                 matchTypeExact: 'Exactly matches',
-                duplicateRuleTitle: 'Similar rule already exists',
-                duplicateRulePrompt: (conditionName: string) => `Your existing rule for "${conditionName}" will take priority over this one. Save anyway?`,
+                duplicateRuleTitle: 'Similar merchant rule already exists',
+                duplicateRulePrompt: (merchantName: string) => `Your existing rule for "${merchantName}" will take priority over this one. Save anyway?`,
                 saveAnyway: 'Save anyway',
                 applyToExistingUnsubmittedExpenses: 'Apply to existing unsubmitted expenses',
                 expenseDefaultsTitle: 'Expense defaults',
@@ -9698,8 +9703,24 @@ const translations = {
                 ifAnyExpenseMatches: 'If any expense matches:',
                 thenApplyFollowingDefaults: 'Then apply the following defaults:',
                 confirmErrorCategory: 'Please select a category',
-                confirmErrorCondition: 'Please add at least one condition',
-                confirmErrorConditionAndDefault: 'Add at least one condition, and apply at least one default',
+                confirmErrorCategoryTax: 'Please select a tax rate',
+                confirmErrorCategoryTaxMoveIsWorkspaceDefault: 'The selected tax rate is now your workspace default, so this rule is no longer valid. Choose a different tax rate.',
+                confirmErrorCondition: 'Please enter a merchant',
+                confirmErrorConditionAndDefault: 'Enter a merchant, and apply at least one default',
+                turnOnTaxesFirstTitle: 'Turn on taxes first',
+                turnOnTaxesFirstPrompt: 'Category rules set a default tax rate. Turn on taxes in your workspace settings to use them.',
+                addTaxRateFirstTitle: 'Add a tax rate first',
+                addTaxRateFirstPrompt: 'Category rules set a default tax rate. Add a tax rate other than your workspace default to use them.',
+                categoryRulesApplyGoingForwardTitle: 'Category rules apply going forward',
+                categoryRulesApplyGoingForwardPrompt: "A default tax rate applies to new expenses in this category. Expenses that already exist won't change.",
+            },
+            expenseDefaultType: {
+                title: 'Apply expense defaults',
+                subtitle: 'What should this rule match on?',
+                merchant: 'Merchant',
+                merchantDescription: 'Update fields on expenses from a specific merchant',
+                category: 'Category',
+                categoryDescription: 'Set a default tax rate for a specific category',
             },
             newRule: {
                 title: 'New rule',
@@ -9745,9 +9766,7 @@ const translations = {
                 rename: 'Rename',
                 update: 'Update',
                 categoryIs: (category: string) => `Category is "${category}"`,
-                merchantContains: (merchant: string) => `Merchant contains "${merchant}"`,
-                merchantExactlyMatches: (merchant: string) => `Merchant exactly matches "${merchant}"`,
-                tagIs: (tag: string) => `Tag is "${tag}"`,
+                merchantIs: (merchant: string) => `Merchant is "${merchant}"`,
                 merchantTypeIs: (merchantType: string) => `Merchant type is "${merchantType}"`,
             },
             merchantTypeRule: {
@@ -9974,9 +9993,7 @@ const translations = {
                 confirmErrorCardRequired: 'Card is a required field',
                 confirmErrorApplyAtLeastOneSpendRule: 'Apply at least one spend rule',
                 categories: 'Categories',
-                tags: 'Tags',
                 merchants: 'Merchants',
-                multipleConditions: 'Multiple conditions',
                 currencies: 'Currencies',
                 noAvailableCards: 'All cards already have a rule',
                 noAvailableCardsSubtitle: 'Edit an existing card rule to make changes',
