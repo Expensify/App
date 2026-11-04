@@ -42,6 +42,7 @@ import {
     getAssignedCompanyCardMessage,
     getAutoCategorizeNewExpensesMessage,
     getAutoPayApprovedReportsEnabledMessage,
+    getAutoPayFeeDisclosureMessage,
     getAutoReimbursementMessage,
     getCardConnectionBrokenMessage,
     getCardIssuedMessage,
@@ -1601,6 +1602,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const iouAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
                     const missingFields = getOriginalMessage(reportAction)?.missingFields;
                     setClipboardMessage(translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction, currentUserAccountID), missingFields}));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.AUTO_PAY_FEE_DISCLOSURE)) {
+                    setClipboardMessage(getAutoPayFeeDisclosureMessage(translate, reportAction, getPersonalDetailsByID(getOriginalMessage(reportAction)?.accountID, personalDetails)));
                 } else if (content) {
                     setClipboardMessageWithCleanedMentions(content, reportIDToName);
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {

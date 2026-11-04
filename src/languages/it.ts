@@ -1539,10 +1539,10 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: 'Se non hai un sito web, puoi fornire invece il profilo LinkedIn o il profilo sui social media della tua azienda.',
         invalidDomainError: 'Hai inserito un dominio non valido. Per continuare, inserisci un dominio valido.',
         publicDomainError: 'Hai inserito un dominio pubblico. Per continuare, inserisci un dominio privato.',
-        expenseCount: () => {
+        expenseCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
             return {
-                one: '1 spesa',
-                other: (count: number) => `${count} spese`,
+                one: (count: number) => `Spesa ${formattedCount ?? count}`,
+                other: (count: number) => `${formattedCount ?? count} spese`,
             };
         },
         deleteExpense: () => ({
@@ -1706,6 +1706,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: 'Inserisci un importo diverso da zero per la tua suddivisione',
             noParticipantSelected: 'Seleziona un partecipante',
             other: 'Errore imprevisto. Riprova più tardi.',
+            payFailedExpenseDeleted: 'Il pagamento non è riuscito perché la nota spese è stata eliminata.',
             genericCreateFailureMessage: 'Errore imprevisto durante l’invio di questa nota spese. Riprova più tardi.',
             genericCreateInvoiceFailureMessage: 'Errore imprevisto nell’invio di questa fattura. Riprova più tardi.',
             genericHoldExpenseFailureMessage: 'Errore imprevisto durante il blocco di questa spesa. Riprova più tardi.',
@@ -3115,6 +3116,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `Accetto i <a href="${CONST.WISE.TERMS_URL}">termini e condizioni</a> e l’<a href="${CONST.WISE.PRIVACY_URL}">informativa sulla privacy</a> di Wise.`,
                 wiseTermsAccessibilityLabel: 'Accetto i termini e condizioni e l’informativa sulla privacy di Wise.',
                 error: 'Accetta tutti i termini per continuare.',
+                alreadySubmitted: 'Questa azienda è già stata inviata a Wise per la revisione.',
+            },
+            moreInfoNeeded: {
+                headerTitle: 'Ulteriori informazioni necessarie',
+                title: 'Verifica informazioni aggiuntive',
+                subtitle: 'Il nostro partner per i pagamenti ha bisogno di altre informazioni direttamente da te. Ci vorranno solo un paio di minuti.',
             },
         },
         wiseGlobalReimbursementsIntro: {
@@ -3125,6 +3132,7 @@ const translations: TranslationDeepObject<typeof en> = {
             payingReportSubtitle: 'I conti bancari dell’azienda e del dipendente utilizzano valute diverse.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Paga persone in tutto il mondo', subtitle: 'Abilita i rimborsi globali sul tuo conto in USD.'},
+        globalReimbursementsEnabled: 'Rimborsi globali abilitati',
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Aggiungi carta a ${walletName}`,
@@ -5863,9 +5871,6 @@ ${amount} per ${merchant} - ${date}`,
                     ? `Imposta un fornitore predefinito che verrà applicato alle spese rimborsabili che non hanno un fornitore corrispondente in Sage Intacct.`
                     : `Le spese che non possono essere abbinate ai tuoi fornitori Sage Intacct verranno associate per impostazione predefinita a questo fornitore.`,
             exportDescription: 'Configura come i dati di Expensify vengono esportati in Sage Intacct.',
-            exportPreferredExporterNote:
-                'L’esportatore preferito può essere qualsiasi amministratore dello spazio di lavoro, ma deve anche essere un Amministratore del dominio se imposti conti di esportazione diversi per le singole carte aziendali nelle Impostazioni del dominio.',
-            exportPreferredExporterSubNote: 'Una volta impostato, l’esportatore preferito vedrà nel proprio account i report da esportare.',
             noAccountsFound: 'Nessun account trovato',
             noAccountsFoundDescription: `Aggiungi l’account in Sage Intacct e sincronizza di nuovo la connessione`,
             autoSync: 'Sincronizzazione automatica',
@@ -6998,6 +7003,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             updateFailureMessage: 'Si è verificato un errore durante l’aggiornamento della categoria, riprova per favore',
             createFailureMessage: 'Si è verificato un errore durante la creazione della categoria, riprova per favore',
             addCategory: 'Aggiungi categoria',
+            createCategoryFromSearch: (categoryName: string) => `Crea categoria «${categoryName}»`,
             editCategory: 'Modifica categoria',
             editCategories: 'Modifica categorie',
             findCategory: 'Trova categoria',
@@ -7546,10 +7552,10 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             reimbursementAccount: 'conto di rimborso',
             welcomeNote: 'Inizia a usare il mio nuovo workspace',
             delayedSubmission: 'invio posticipato',
-            merchantRules: 'Regole del commerciante',
+            merchantRules: 'Impostazioni spese',
             merchantRulesCount: () => ({
-                one: '1 regola del commerciante',
-                other: (count: number) => `${count} regole del commerciante`,
+                one: '1 rimborso predefinito',
+                other: (count: number) => `${count} impostazioni predefinite spesa`,
             }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `Stai per creare e condividere ${newWorkspaceName ?? ''} con ${totalMembers ?? 0} membri dello spazio di lavoro originale.`,
@@ -8104,8 +8110,7 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                 },
             },
             preferredExporter: 'Esportatore preferito',
-            exportPreferredExporterNote:
-                'L’esportatore preferito può essere qualsiasi amministratore dello spazio di lavoro, ma deve anche essere un Amministratore del dominio se imposti conti di esportazione diversi per le singole carte aziendali nelle Impostazioni del dominio.',
+            exportPreferredExporterNote: 'L’esportatore preferito può essere qualsiasi amministratore dello spazio di lavoro.',
             exportPreferredExporterSubNote: 'Una volta impostato, l’esportatore preferito vedrà nel proprio account i report da esportare.',
             exportAs: 'Esporta come',
             exportOutOfPocket: 'Esporta le spese anticipate come',
@@ -8925,8 +8930,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 matchType: 'Tipo di corrispondenza',
                 matchTypeContains: 'Contiene',
                 matchTypeExact: 'Corrisponde esattamente',
-                duplicateRuleTitle: "Una regola simile per l'esercente esiste già",
-                duplicateRulePrompt: (merchantName: string) => `La regola esistente per "${merchantName}" avrà la priorità su questa. Salvare comunque?`,
+                duplicateRuleTitle: 'Esiste già una regola simile',
+                duplicateRulePrompt: (conditionName: string) => `La regola esistente per "${conditionName}" avrà la precedenza su questa. Salvare comunque?`,
                 saveAnyway: 'Salva comunque',
                 applyToExistingUnsubmittedExpenses: 'Applica alle spese esistenti non inviate',
                 findRule: 'Trova regola esercente',
@@ -8936,18 +8941,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 thenApplyFollowingDefaults: 'Quindi applica le seguenti impostazioni predefinite:',
                 vendorUnavailable: 'Fornitore non disponibile',
                 confirmErrorCategory: 'Seleziona una categoria',
-                confirmErrorCategoryTax: "Seleziona un'aliquota fiscale",
-                confirmErrorCondition: 'Inserisci un esercente',
-                confirmErrorConditionAndDefault: 'Inserisci un esercente e applica almeno un valore predefinito',
-                turnOnTaxesFirstTitle: 'Attiva prima le tasse',
-                turnOnTaxesFirstPrompt: 'Le regole di categoria impostano un’aliquota fiscale predefinita. Attiva le imposte nelle impostazioni dello spazio di lavoro per usarle.',
-                categoryRulesApplyGoingForwardTitle: 'Le regole di categoria si applicano da ora in poi',
-                categoryRulesApplyGoingForwardPrompt: 'Un’aliquota fiscale predefinita viene applicata alle nuove spese in questa categoria. Le spese già esistenti non verranno modificate.',
-                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
-                    'L’aliquota fiscale selezionata è ora quella predefinita del tuo workspace, quindi questa regola non è più valida. Scegli un’altra aliquota fiscale.',
-                addTaxRateFirstTitle: "Aggiungi prima un'aliquota fiscale",
-                addTaxRateFirstPrompt:
-                    'Le regole di categoria impostano un’aliquota fiscale predefinita. Aggiungi un’aliquota diversa da quella predefinita dello spazio di lavoro per poterle usare.',
+                confirmErrorCondition: 'Aggiungi almeno una condizione',
+                confirmErrorConditionAndDefault: 'Aggiungi almeno una condizione e applica almeno un valore predefinito',
                 createRuleFromExpenseAction: 'Crea una regola',
                 createRuleFromExpensePrompt: 'per applicare le modifiche a tutte le spese che corrispondono ai tuoi criteri.',
             },
@@ -9133,6 +9128,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `Consentito ${shownCount > 1 ? 'valute' : 'valuta'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} altri` : ''}`,
                 defaultRulesCannotBeDeleted: 'Le regole predefinite non possono essere eliminate',
+                tags: 'Tag',
+                multipleConditions: 'Condizioni multiple',
             },
             agentRules: {
                 title: 'Regole agente',
@@ -9173,9 +9170,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 describeRuleForConcierge: 'Descrivi la tua regola e Concierge la creerà',
                 gotIt: 'Capito',
                 createRule: 'Crea regola',
-                fallbackBanner:
-                    'Questa non è una regola standard, quindi l’abbiamo creata come regola agente. Le regole agente agiscono dopo che una spesa o un report vengono modificati, ad esempio bloccando la spesa o rifiutando il report.',
-                fallbackBannerWithExplanation: (explanation: string) => `Questa non è una regola standard, quindi l’abbiamo formulata come regola dell’agente. ${explanation}`,
+                fallbackBanner: 'Questa non è una regola standard, quindi abbiamo creato una regola agente.',
+                fallbackBannerWithExplanation: (explanation: string) => `Questa non è una regola standard, quindi abbiamo creato una regola agente. ${explanation}`,
             },
             tabs: {
                 general: 'Generale',
@@ -9278,9 +9274,11 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 findRule: 'Trova regola',
                 rename: 'Rinomina',
                 update: 'Aggiorna',
-                merchantIs: (merchant: string) => `L'esercente è "${merchant}"`,
                 merchantTypeIs: (merchantType: string) => `Il tipo di esercente è "${merchantType}"`,
                 categoryIs: (category: string) => `La categoria è "${category}"`,
+                tagIs: (tag: string) => `Il tag è "${tag}"`,
+                merchantContains: (merchant: string) => `L'esercente contiene "${merchant}"`,
+                merchantExactlyMatches: (merchant: string) => `L’esercente corrisponde esattamente a "${merchant}"`,
             },
             merchantTypeRule: {merchantType: 'Tipo di esercente', saveRule: 'Salva regola', confirmErrorCategory: 'Seleziona una categoria.'},
             requireFieldsTable: {
@@ -9346,14 +9344,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             },
             agentRulesEmptyState: {title: 'Nessuna regola agente aggiunta', subtitle: 'Crea una regola per automatizzare le policy del tuo workspace.', cta: 'Aggiungi regola IA'},
             categoriesDisabledEmptyState: {title: 'Le categorie non sono abilitate', subtitle: 'Attiva le categorie per avere un maggiore controllo sulle tue spese.'},
-            expenseDefaultType: {
-                title: 'Applica impostazioni predefinite spesa',
-                subtitle: 'Su cosa dovrebbe corrispondere questa regola?',
-                merchant: 'Commerciante',
-                merchantDescription: 'Aggiorna i campi delle spese di un determinato esercente',
-                category: 'Categoria',
-                categoryDescription: "Imposta un'aliquota fiscale predefinita per una categoria specifica",
-            },
             taxesDisabledEmptyState: {title: 'Le imposte non sono abilitate', subtitle: 'Abilita le imposte per documentare e recuperare quelle ammissibili.', cta: 'Abilita imposte'},
         },
         planTypePage: {
@@ -10538,6 +10528,12 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `aggiornato "Impedisci di contrassegnare come pagati i report non rimborsabili" in "${newValue === 'true' ? 'Abilitato' : 'Disabilitato'}" (precedentemente "${oldValue === 'true' ? 'Abilitato' : 'Disabilitato'}")`,
         addedExpensifyCardFeed: (feedName: string) => `aggiunto il feed Carta Expensify «${feedName}»`,
+        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
+            if (!oldValue) {
+                return `imposta il fuso orario dello spazio di lavoro su "${newValue}"`;
+            }
+            return `ha aggiornato il fuso orario dello spazio di lavoro a "${newValue}" (in precedenza "${oldValue}")`;
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Membro non trovato.',
@@ -11137,6 +11133,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');
                     return `Apri l'app mobile di Expensify per esaminare la tua transazione di${amountAndMerchantText ? ` ${amountAndMerchantText}` : ''}`;
                 },
+                autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
+                    `I Rimborsi globali sono stati abilitati da ${adminName} sul conto ${bankName ? `${bankName} ` : ''} che termina con ${lastFour}. I tassi di cambio e le commissioni esatti non possono essere visualizzati in anteprima prima del pagamento quando i report transfrontalieri vengono pagati automaticamente. Consulta le tue <a href="${autoPaySettingsURL}">impostazioni di pagamento automatico</a> per maggiori informazioni su tassi e commissioni.`,
             },
             error: {
                 invalidCredentials: 'Credenziali non valide, controlla la configurazione della tua connessione.',
