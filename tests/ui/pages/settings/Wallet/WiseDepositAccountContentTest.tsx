@@ -48,7 +48,8 @@ describe('WiseDepositAccountContent', () => {
     let navigateSpy: jest.SpyInstance;
 
     beforeAll(() => {
-        Onyx.init({keys: ONYXKEYS});
+        // Registered as the app does, so the tests see the form only in memory
+        Onyx.init({keys: ONYXKEYS, ramOnlyKeys: [ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS]});
     });
 
     beforeEach(async () => {

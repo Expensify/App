@@ -51,6 +51,8 @@ describe('actions/BankAccounts', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
+            // Registered as the app does, so the Wise form tests see it only in memory
+            ramOnlyKeys: [ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS],
         });
     });
 
