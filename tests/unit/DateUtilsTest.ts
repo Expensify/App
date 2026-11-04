@@ -866,9 +866,21 @@ describe('DateUtils', () => {
             expect(DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20', undefined, undefined)).toBe('');
         });
 
-        it('should format a date-only value in the target timezone', () => {
+        it('should format a date-only value as its calendar date', () => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             const result = DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20', UTC as SelectedTimezone, undefined);
+            expect(result).toBe('June 20th, 2026');
+        });
+
+        it('should keep a date-only value on its own day in a timezone behind UTC', () => {
+            // Given a date-only snapshot boundary and a user whose timezone is behind UTC
+            const americaNewYork: SelectedTimezone = 'America/New_York';
+
+            // When the boundary is formatted for that user
+            const result = DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20', americaNewYork, undefined);
+
+            // Then the stored day is shown. A date-only value is a calendar boundary, so moving it into the user's
+            // timezone as if it were midnight UTC would wrongly show June 19.
             expect(result).toBe('June 20th, 2026');
         });
 
