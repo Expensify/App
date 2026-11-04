@@ -213,4 +213,3 @@ function setPolicyTravelMemberAccess(policy: OnyxEntry<OnyxTypes.Policy>, member
 }
 
 export {enablePolicyTravel, setPolicyTravelSettings, setPolicyTravelMemberAccess};
-export type {TravelMemberAccessTarget};
