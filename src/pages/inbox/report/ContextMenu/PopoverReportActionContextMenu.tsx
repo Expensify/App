@@ -25,9 +25,50 @@ import {scheduleOnRN} from 'react-native-worklets';
 
 import type {ContextMenuAction} from './ContextMenuActions';
 import type {ContextMenuAnchor, ContextMenuType, ReportActionContextMenu} from './ReportActionContextMenu';
+import type {UseDeleteReportActionParams} from './useDeleteReportAction';
 
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
-import DeleteReportActionConfirmation from './DeleteReportActionConfirmation';
+import useDeleteReportAction from './useDeleteReportAction';
+
+type DeleteReportActionConfirmModalProps = UseDeleteReportActionParams & {
+    isVisible: boolean;
+
+    shouldSetModalVisibility: boolean;
+
+    onCancel: () => void;
+
+    onModalHide: () => void;
+};
+
+function DeleteReportActionConfirmModal({
+    reportID,
+    reportAction,
+    isVisible,
+    shouldSetModalVisibility,
+    onConfirm,
+    onClose,
+    onCancel,
+    onModalHide,
+    deleteAfterModalHide,
+}: DeleteReportActionConfirmModalProps) {
+    const {translate} = useLocalize();
+    const confirmDelete = useDeleteReportAction({reportID, reportAction, onConfirm, onClose, deleteAfterModalHide});
+
+    return (
+        <ConfirmModal
+            title={translate('reportActionContextMenu.deleteAction', reportAction)}
+            isVisible={isVisible}
+            shouldSetModalVisibility={shouldSetModalVisibility}
+            onConfirm={confirmDelete}
+            onCancel={onCancel}
+            onModalHide={onModalHide}
+            prompt={translate('reportActionContextMenu.deleteConfirmation', reportAction)}
+            confirmText={translate('common.delete')}
+            cancelText={translate('common.cancel')}
+            buttonVariant={CONST.BUTTON_VARIANT.DANGER}
+        />
+    );
+}
 
 function extractPointerEvent(event: GestureResponderEvent | MouseEvent): MouseEvent | NativeTouchEvent {
     if ('nativeEvent' in event) {
@@ -41,7 +82,6 @@ type PopoverReportActionContextMenuProps = {
 };
 
 function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuProps) {
-    const {translate} = useLocalize();
     const reportIDRef = useRef<string | undefined>(undefined);
     const typeRef = useRef<ContextMenuType | undefined>(undefined);
     const reportActionRef = useRef<NonNullable<OnyxEntry<ReportAction>> | null>(null);
@@ -321,6 +361,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const finishDeleteModalHide = () => {
         clearActiveReportAction();
         callbackWhenDeleteModalHide.current();
+        // A new delete was requested while the previous confirmation was still hiding, so keep it mounted
         if (isDeleteCommentConfirmModalVisible) {
             return;
         }
@@ -394,28 +435,17 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 />
             </PopoverWithMeasuredContent>
             {!!deleteModalTarget && (
-                <DeleteReportActionConfirmation
+                <DeleteReportActionConfirmModal
                     reportID={deleteModalTarget.reportID}
                     reportAction={deleteModalTarget.reportAction}
+                    isVisible={isDeleteCommentConfirmModalVisible}
+                    shouldSetModalVisibility={shouldSetModalVisibilityForDeleteConfirmation}
                     onConfirm={runConfirmDeleteCallback}
                     onClose={closeDeleteModal}
+                    onCancel={hideDeleteModal}
+                    onModalHide={finishDeleteModalHide}
                     deleteAfterModalHide={deleteCommentAfterModalHide}
-                >
-                    {(confirmDelete) => (
-                        <ConfirmModal
-                            title={translate('reportActionContextMenu.deleteAction', deleteModalTarget.reportAction)}
-                            isVisible={isDeleteCommentConfirmModalVisible}
-                            shouldSetModalVisibility={shouldSetModalVisibilityForDeleteConfirmation}
-                            onConfirm={confirmDelete}
-                            onCancel={hideDeleteModal}
-                            onModalHide={finishDeleteModalHide}
-                            prompt={translate('reportActionContextMenu.deleteConfirmation', deleteModalTarget.reportAction)}
-                            confirmText={translate('common.delete')}
-                            cancelText={translate('common.cancel')}
-                            buttonVariant={CONST.BUTTON_VARIANT.DANGER}
-                        />
-                    )}
-                </DeleteReportActionConfirmation>
+                />
             )}
         </>
     );

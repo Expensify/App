@@ -60,6 +60,7 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
     const [isWithoutOverlay, setIsWithoutOverlay] = useState(true);
     const [activeID, setActiveID] = useState<string | null>();
     const emojiPopoverAnchorRef = useRef<EmojiPopoverAnchor | null>(null);
+    // Render reads the anchor from state because refs cannot be read during render, while imperative calls use emojiPopoverAnchorRef
     const [shownEmojiPopoverAnchor, setShownEmojiPopoverAnchor] = useState<EmojiPopoverAnchor>(EMPTY_EMOJI_POPOVER_ANCHOR);
     const [emojiAnchorDimensions, setEmojiAnchorDimensions] = useState({
         width: 0,
@@ -150,6 +151,11 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
         );
     };
 
+    const resetEmojiPopoverAnchor = () => {
+        emojiPopoverAnchorRef.current = null;
+        setShownEmojiPopoverAnchor(EMPTY_EMOJI_POPOVER_ANCHOR);
+    };
+
     /**
      * Hide the emoji picker menu.
      */
@@ -164,8 +170,7 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
                 currOnModalHide(!!isNavigating);
             }
 
-            emojiPopoverAnchorRef.current = null;
-            setShownEmojiPopoverAnchor(EMPTY_EMOJI_POPOVER_ANCHOR);
+            resetEmojiPopoverAnchor();
         };
         setIsEmojiPickerVisible(false);
         transitionActionSheetState({
@@ -213,11 +218,6 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
     const isActive = (id: string) => !!id && id === activeID;
 
     const clearActive = () => setActiveID(null);
-
-    const resetEmojiPopoverAnchor = () => {
-        emojiPopoverAnchorRef.current = null;
-        setShownEmojiPopoverAnchor(EMPTY_EMOJI_POPOVER_ANCHOR);
-    };
 
     useImperativeHandle(ref, () => ({showEmojiPicker, isActive, clearActive, hideEmojiPicker, isEmojiPickerVisible, resetEmojiPopoverAnchor}));
 

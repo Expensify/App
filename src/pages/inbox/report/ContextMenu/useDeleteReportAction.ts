@@ -1,6 +1,6 @@
 /**
  * Owns the Onyx reads and the delete logic for the report action delete confirmation. PopoverReportActionContextMenu
- * stays mounted for the whole app, so it mounts this only while the confirmation is in use.
+ * stays mounted for the whole app, so it calls this only from a component that is mounted while the confirmation is in use.
  */
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 
@@ -28,11 +28,9 @@ import {getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 
-import type {ReactNode} from 'react';
-
 import {DeviceEventEmitter} from 'react-native';
 
-type DeleteReportActionConfirmationProps = {
+type UseDeleteReportActionParams = {
     reportID: string | undefined;
 
     reportAction: ReportAction | null;
@@ -45,12 +43,10 @@ type DeleteReportActionConfirmationProps = {
 
     /** Runs a comment delete once the confirmation is fully hidden */
     deleteAfterModalHide: (deleteComment: () => void) => void;
-
-    /** Renders the confirmation modal with the handler that deletes the report action */
-    children: (confirmDelete: () => void) => ReactNode;
 };
 
-function DeleteReportActionConfirmation({reportID, reportAction, onConfirm, onClose, deleteAfterModalHide, children}: DeleteReportActionConfirmationProps) {
+/** Returns the handler that deletes the report action when the user confirms */
+function useDeleteReportAction({reportID, reportAction, onConfirm, onClose, deleteAfterModalHide}: UseDeleteReportActionParams) {
     const {isOffline} = useNetwork();
     const isReportArchived = useReportIsArchived(reportID);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
@@ -167,7 +163,8 @@ function DeleteReportActionConfirmation({reportID, reportAction, onConfirm, onCl
         onClose();
     };
 
-    return children(deleteReportActionAndClose);
+    return deleteReportActionAndClose;
 }
 
-export default DeleteReportActionConfirmation;
+export default useDeleteReportAction;
+export type {UseDeleteReportActionParams};
