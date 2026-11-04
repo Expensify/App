@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {shouldShowInitialCategoryFilterLoading} from '@hooks/useSearchFilterSync';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 
 import {close} from '@libs/actions/Modal';
 import {setSearchContext} from '@libs/actions/Search';
@@ -22,6 +23,7 @@ import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
 import {buildQueryStringWithResetFilters, hasFiltersChangedFromDefault, isSearchQuerySavable, removeNegation} from '@libs/SearchQueryUtils';
 import {
     FILTER_VIEW_MAP,
+    getFiltersFormWithTripRoomStatuses,
     getFilterViewLabelKey,
     isAmountFilterKey,
     isDateFilterKey,
@@ -172,8 +174,9 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
     const {currentSearchQueryJSON, currentSearchKey, currentDefaultSearchQueryJSON, currentDefaultSearchQueryFilterKeys} = useSearchQueryContext();
     const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
     const isSavedSearch = !!searchKeyToSavedSearchID(currentSearchKey);
+    const shouldReturnTripRooms = useShouldReturnTripRooms(queryJSON.type);
     const filters = mapFiltersFormToLabelValueList(
-        searchAdvancedFiltersForm,
+        shouldReturnTripRooms ? getFiltersFormWithTripRoomStatuses(searchAdvancedFiltersForm) : searchAdvancedFiltersForm,
         currentDefaultSearchQueryFilterKeys,
         SKIPPED_SEARCH_FILTERS,
         translate,
