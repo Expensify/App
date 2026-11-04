@@ -3143,6 +3143,7 @@ const translations: TranslationDeepObject<typeof en> = {
             approved: {title: 'Account goedgekeurd', heading: 'Goedgekeurd om wereldwijd te betalen', description: 'Betaal leden, waar ze ook zijn.'},
             rejected: {title: 'Bankrekening afgewezen', heading: 'Onze partner heeft je bankrekening afgewezen', description: 'Chat met Concierge voor meer informatie.'},
         },
+        wiseSetupInProgress: {message: 'Instellen van wereldwijde terugbetalingen bezig.', continue: 'Doorgaan.'},
         wiseGlobalReimbursementsIntro: {
             title: 'Wereldwijde terugbetalingen instellen?',
             subtitle: 'Betaal leden wereldwijd in hun eigen lokale valuta.',
@@ -12787,5 +12788,28 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         mobileClaimPrompt: 'Bezoek Expensify in je webbrowser om je verlengingskorting te claimen.',
     },
     bulkActionBar: {label: 'Bulkacties', clearSelection: 'Selectie wissen', loadingSelection: 'Selectie laden'},
+    reportHistoryPage: {
+        title: 'Rapportgeschiedenis',
+        created: 'heeft rapport gemaakt',
+        submitted: 'heeft ingediend',
+        approved: 'heeft goedgekeurd',
+        paid: 'heeft betaald',
+        toSubmit: 'indienen',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return 'automatisch indienen';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `automatisch indienen op de ${eta} van elke maand` : `${eta} automatisch indienen`;
+        },
+        toApprove: 'goedkeuren',
+        toPay: 'betalen',
+        minutesAgo: (count: number) => `${count} min geleden`,
+        hoursAgo: (count: number) => `${count} u geleden`,
+        daysAgo: () => ({
+            one: '1 d geleden',
+            other: (count: number) => `${count} d geleden`,
+        }),
+        offlineMessage: 'Je bent offline. Rapportgeschiedenis is mogelijk verouderd.',
+    },
 };
 export default translations;
