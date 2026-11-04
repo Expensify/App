@@ -42,7 +42,7 @@ Reconnecting restores access without removing your imported data or your Xero co
 
 You are returned to Expensify once the connection is restored.
 
-If the Workspace is not connected to Xero at all, [learn how to connect to Xero](/articles/expensify-classic/connections/xero/Connect-To-Xero).
+If the Workspace is not connected to Xero at all, [learn how to connect to Xero](/articles/expensify-classic/connections/Accounting/xero/Connect-To-Xero).
 
 ---
 

@@ -31,9 +31,9 @@ If your team uses **QuickBooks Online**, **Xero**, **NetSuite**, or **Sage Intac
 
 ## Accounting Integration Guides
 - [Connect to QuickBooks Online](https://help.expensify.com/articles/new-expensify/connections/Accounting/quickbooks-online/Connect-to-QuickBooks-Online)
-- [Connect to Xero](https://help.expensify.com/articles/new-expensify/connections/xero/Connect-to-Xero)
-- [Connect to NetSuite](https://help.expensify.com/articles/new-expensify/connections/netsuite/Connect-To-NetSuite)
-- [Connect to Sage Intacct](https://help.expensify.com/articles/new-expensify/connections/sage-intacct/Connect-to-Sage-Intacct)
+- [Connect to Xero](https://help.expensify.com/articles/new-expensify/connections/Accounting/xero/Connect-to-Xero)
+- [Connect to NetSuite](https://help.expensify.com/articles/new-expensify/connections/Accounting/netsuite/Connect-To-NetSuite)
+- [Connect to Sage Intacct](https://help.expensify.com/articles/new-expensify/connections/Accounting/sage-intacct/Connect-to-Sage-Intacct)
 
 ---
 

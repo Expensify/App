@@ -42,7 +42,7 @@ Expensify must be able to write to the Created From field during export.
 5. On the **Access** tab, confirm **Default Access Level** is **Edit**. If the **Role** list includes the role used by the Expensify connection, such as **Expensify Integration**, confirm its access level is also **Edit**.
 6. Select **Save**.
 
-If you can't find **custbody_createdfrom_expensify**, install or update the Expensify Connect bundle in NetSuite before continuing. [Learn how to install the Expensify Connect bundle in NetSuite](/articles/expensify-classic/connections/netsuite/Connect-To-NetSuite).
+If you can't find **custbody_createdfrom_expensify**, install or update the Expensify Connect bundle in NetSuite before continuing. [Learn how to install the Expensify Connect bundle in NetSuite](/articles/expensify-classic/connections/Accounting/netsuite/Connect-To-NetSuite).
 
 ---
 

@@ -59,11 +59,11 @@ topics:
     hub: /new-expensify/hubs/connections/
     links:
       - label: Connect to NetSuite
-        href: /articles/new-expensify/connections/netsuite/Connect-To-NetSuite
+        href: /articles/new-expensify/connections/Accounting/netsuite/Connect-To-NetSuite
       - label: Connect to QuickBooks Online
         href: /articles/new-expensify/connections/Accounting/quickbooks-online/Connect-to-QuickBooks-Online
       - label: Connect to Xero
-        href: /articles/new-expensify/connections/xero/Connect-to-Xero
+        href: /articles/new-expensify/connections/Accounting/xero/Connect-to-Xero
 
   - title: Workflows
     icon: /assets/images/workflow.svg

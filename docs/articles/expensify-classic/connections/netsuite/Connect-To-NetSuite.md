@@ -8,7 +8,7 @@ order: 1
 
 Expensify integrates directly with NetSuite to automate report exports, customize your coding preferences, and leverage NetSuite's advanced features. Follow the steps below to set up the integration.
 
-**Note:** New NetSuite connections use OAuth 2.0, which you can only set up in New Expensify. To connect NetSuite, switch to New Expensify and follow the steps in [Connect to NetSuite in New Expensify](/articles/new-expensify/connections/netsuite/Connect-To-NetSuite). After you connect, the connection works in both Expensify Classic and New Expensify.
+**Note:** New NetSuite connections use OAuth 2.0, which you can only set up in New Expensify. To connect NetSuite, switch to New Expensify and follow the steps in [Connect to NetSuite in New Expensify](/articles/new-expensify/connections/Accounting/netsuite/Connect-To-NetSuite). After you connect, the connection works in both Expensify Classic and New Expensify.
 
 # Before You Connect NetSuite to Expensify
 
@@ -36,7 +36,7 @@ The latest bundle version includes the permissions Expensify needs for OAuth 2.0
 
 # Step 2: Enable Token-Based Authentication
 
-**Note:** Steps 2–4 and Step 12 describe how existing token-based connections were set up. You can no longer create a new token-based connection. Existing token-based connections keep working until they migrate to OAuth 2.0, and we'll let you know well before token-based authentication is removed. To set up a new connection, follow the steps in [Connect to NetSuite in New Expensify](/articles/new-expensify/connections/netsuite/Connect-To-NetSuite).
+**Note:** Steps 2–4 and Step 12 describe how existing token-based connections were set up. You can no longer create a new token-based connection. Existing token-based connections keep working until they migrate to OAuth 2.0, and we'll let you know well before token-based authentication is removed. To set up a new connection, follow the steps in [Connect to NetSuite in New Expensify](/articles/new-expensify/connections/Accounting/netsuite/Connect-To-NetSuite).
 
 1. In NetSuite, navigate to **Setup > Company > Enable Features > SuiteCloud > Manage Authentication**.
 2. Enable **Token-Based Authentication**.
