@@ -35,6 +35,12 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        billCreated: ({sender}) => `a créé cette facture au nom de ${sender}`,
+        billSubmitted: ({receiver}) => `a envoyé cette facture à ${receiver}`,
+        invoiceCreated: ({sender}) => `a créé cette facture au nom de ${sender}`,
+        invoiceSubmitted: ({receiver}) => `a envoyé cette facture à ${receiver}`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `${count} jour`,
@@ -12367,7 +12373,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             isUnreadWithMention: 'Est non lu avec mention',
             isWaitingForAssigneeToCompleteAction: 'En attente que l’assigné termine l’action',
             hasChildReportAwaitingAction: 'Une note de frais enfant est en attente d’action',
-            hasMissingInvoiceBankAccount: 'A un compte bancaire de facture manquant',
             hasUnresolvedCardFraudAlert: 'A une alerte de fraude de carte non résolue',
             hasDEWApproveFailed: 'L’approbation DEW a échoué',
         },

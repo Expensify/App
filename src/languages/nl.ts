@@ -35,6 +35,12 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        billCreated: ({sender}) => `heeft deze factuur aangemaakt namens ${sender}`,
+        billSubmitted: ({receiver}) => `heeft deze factuur verzonden naar ${receiver}`,
+        invoiceCreated: ({sender}) => `heeft deze factuur aangemaakt namens ${sender}`,
+        invoiceSubmitted: ({receiver}) => `heeft deze factuur verzonden naar ${receiver}`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 dag`,
@@ -12251,7 +12257,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             isUnreadWithMention: 'Is ongelezen met vermelding',
             isWaitingForAssigneeToCompleteAction: 'Wacht totdat de verantwoordelijke de actie voltooit',
             hasChildReportAwaitingAction: 'Heeft onderliggend rapport dat op actie wacht',
-            hasMissingInvoiceBankAccount: 'Heeft ontbrekend bankrekeningnummer voor factuur',
             hasUnresolvedCardFraudAlert: 'Heeft onopgeloste kaartfraudewaarschuwing',
             hasDEWApproveFailed: 'DEW-goedkeuring mislukt',
         },

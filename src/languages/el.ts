@@ -32,6 +32,12 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        billCreated: ({sender}) => `δημιούργησε αυτόν τον λογαριασμό εκ μέρους του ${sender}`,
+        billSubmitted: ({receiver}) => `έστειλε αυτόν τον λογαριασμό στον ${receiver}`,
+        invoiceCreated: ({sender}) => `δημιούργησε αυτό το τιμολόγιο εκ μέρους του ${sender}`,
+        invoiceSubmitted: ({receiver}) => `έστειλε αυτό το τιμολόγιο στον ${receiver}`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 ημέρα`,
@@ -12536,7 +12542,6 @@ ${reportName}`,
             isUnreadWithMention: 'Είναι μη αναγνωσμένο με αναφορά',
             isWaitingForAssigneeToCompleteAction: 'Αναμονή για την ολοκλήρωση ενέργειας από τον υπεύθυνο',
             hasChildReportAwaitingAction: 'Υπάρχει θυγατρική αναφορά σε αναμονή ενέργειας',
-            hasMissingInvoiceBankAccount: 'Έχει ελλιπή τραπεζικό λογαριασμό τιμολογίου',
             hasUnresolvedCardFraudAlert: 'Έχει μη επιλυμένη ειδοποίηση απάτης με κάρτα',
             hasDEWApproveFailed: 'Η έγκριση DEW απέτυχε',
         },

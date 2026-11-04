@@ -35,6 +35,12 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        billCreated: ({sender}) => `criou esta conta em nome de ${sender}`,
+        billSubmitted: ({receiver}) => `enviou esta conta para ${receiver}`,
+        invoiceCreated: ({sender}) => `criou esta fatura em nome de ${sender}`,
+        invoiceSubmitted: ({receiver}) => `enviou esta fatura para ${receiver}`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `${count} dia`,
@@ -12248,7 +12254,6 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             isUnreadWithMention: 'Está não lido com menção',
             isWaitingForAssigneeToCompleteAction: 'Aguardando o responsável concluir a ação',
             hasChildReportAwaitingAction: 'Tem relatório filho aguardando ação',
-            hasMissingInvoiceBankAccount: 'Tem conta bancária da fatura ausente',
             hasUnresolvedCardFraudAlert: 'Tem alerta de fraude no cartão não resolvido',
             hasDEWApproveFailed: 'Falha na aprovação do DEW',
         },
