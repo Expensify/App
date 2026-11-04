@@ -1,12 +1,11 @@
+import CarouselCounter from '@components/MoneyRequestReportView/CarouselCounter';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PrevNextButtons from '@components/PrevNextButtons';
-import Text from '@components/Text';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
 import useCarouselTransactionIDs from '@hooks/useCarouselTransactionIDs';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
-import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -87,7 +86,6 @@ const collectParentReportActions = (
 
 function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldDisplayNarrowVersion}: MoneyRequestReportRHPNavigationButtonsProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
     // Shared with the header, which uses the same filtered list to decide whether to render this carousel at all.
     const {transactionIDs: transactionIDsList, snapshot} = useCarouselTransactionIDs();
     // Snapshot-backed flows (e.g. Home "Recently added") seed a descriptor per sibling so the carousel can
@@ -473,9 +471,10 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldD
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
             {!shouldDisplayNarrowVersion && (
-                <Text style={[styles.mutedTextLabel, styles.textAlignRight]}>
-                    {translate('common.currentOfTotal', {current: currentTransactionIndex + 1, total: transactionIDsList.length})}
-                </Text>
+                <CarouselCounter
+                    current={currentTransactionIndex + 1}
+                    total={transactionIDsList.length}
+                />
             )}
             <PrevNextButtons
                 isPrevButtonDisabled={!canNavigateToPrevious}
