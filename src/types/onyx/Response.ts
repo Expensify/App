@@ -36,6 +36,12 @@ type Response<TKey extends OnyxKey> = {
 
     reportID?: string;
 
+    /** Authoritative transaction thread for an edit; 0 means Auth has no thread for the expense. */
+    transactionThreadReportID?: number | string;
+
+    /** Null means no action is included in this response; an action saved by an earlier retry may still exist. */
+    modifiedExpenseReportAction?: Record<string, unknown> | null;
+
     /**
      * Whether the sequential queue should not send any requests to the server.
      * Used when there's a gap between client and server updates.
@@ -124,6 +130,9 @@ type Response<TKey extends OnyxKey> = {
     /** Transactions pending 3DS review returned from GetTransactionsPending3DSReview */
     transactionsPending3DSReview?: TransactionsPending3DSReview;
 
+    /** Cache key returned from GetExpensifyCardStatementPDF */
+    statementKey?: string;
+
     /** Whether the ParseExpenseFilters command successfully parsed the natural-language query */
     success?: boolean;
 
@@ -132,9 +141,6 @@ type Response<TKey extends OnyxKey> = {
 
     /** Human-readable summary of the parsed filters returned by ParseExpenseFilters on success */
     humanReadableSummary?: string;
-
-    /** Cache key returned from GetExpensifyCardStatementPDF */
-    statementKey?: string;
 };
 
 export default Response;

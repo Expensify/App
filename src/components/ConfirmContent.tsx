@@ -14,7 +14,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {ReactNode} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
-import React from 'react';
+import React, {useContext} from 'react';
 import {View} from 'react-native';
 
 import ActivityIndicator from './ActivityIndicator';
@@ -22,6 +22,7 @@ import Button from './Button';
 import HeaderTitle from './HeaderTitle';
 import Icon from './Icon';
 import ImageSVG from './ImageSVG';
+import ModalContext from './Modal/ModalContext';
 import {PressableWithoutFeedback} from './Pressable';
 import ScrollView from './ScrollView';
 import Text from './Text';
@@ -140,6 +141,10 @@ function ConfirmContent({
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['Close']);
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
+    const {isContentWrappedInScrollView} = useContext(ModalContext);
+
+    // Nested vertical ScrollViews can't share a drag: iOS keeps it in the inner one, Android gives it to the outer one.
+    const shouldScrollPrompt = shouldEnablePromptScroll && !isContentWrappedInScrollView;
 
     const isCentered = shouldCenterContent;
 
@@ -209,7 +214,7 @@ function ConfirmContent({
                         {isTitleLoading && <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL} />}
                     </View>
                     {subtitleContent}
-                    {shouldEnablePromptScroll ? <ScrollView style={styles.confirmModalPromptScrollable}>{promptContent}</ScrollView> : promptContent}
+                    {shouldScrollPrompt ? <ScrollView style={styles.confirmModalPromptScrollable}>{promptContent}</ScrollView> : promptContent}
                 </View>
 
                 {shouldStackButtons ? (

@@ -1,21 +1,20 @@
-type MockPaymentContextOverrides = Partial<typeof defaultMockPaymentContextValue>;
+import type {PaymentContextValue} from '@hooks/usePaymentContext';
 
-const defaultMockPaymentContextValue = {
+type MockPaymentContextOverrides = Partial<PaymentContextValue>;
+
+const defaultMockPaymentContextValue: PaymentContextValue = {
     currentUserAccountID: 1,
     currentUserLogin: 'test@example.com',
     email: 'test@example.com',
     localCurrencyCode: 'USD',
-    introSelected: undefined,
     isASAPSubmitBetaEnabled: false,
-    isSelfTourViewed: false,
+    isWiseReimbursementsBetaEnabled: false,
     activePolicyID: undefined,
     activePolicy: undefined,
-    conciergeReportID: undefined,
     defaultWorkspaceName: 'Test Workspace',
-    userBillingGracePeriodEnds: undefined,
-    amountOwed: undefined,
-    ownerBillingGracePeriodEnd: undefined,
     delegateEmail: undefined,
+    delegateAccountID: undefined,
+    readSearchActionInputs: () => Promise.resolve({conciergeChat: undefined, introSelected: undefined, isSelfTourViewed: false, amountOwed: undefined, bankAccountList: undefined}),
 };
 
 function createMockUsePaymentContextModule(overrides: MockPaymentContextOverrides = {}) {

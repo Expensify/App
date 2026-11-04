@@ -63,6 +63,13 @@ type ValueSelectionListProps = Pick<
 type ValuePickerProps = ForwardedFSClassProps & {
     value?: string;
     label?: string;
+
+    /** Title of the picker's modal, when it differs from the label */
+    modalHeaderTitle?: string;
+
+    /** Whether screen readers hear the error with the row's name, since the row hides the error line from them on native */
+    shouldReadErrorWithLabel?: boolean;
+
     items?: ValuePickerItem[];
     placeholder?: string;
 

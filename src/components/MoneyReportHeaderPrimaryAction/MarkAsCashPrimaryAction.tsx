@@ -13,7 +13,7 @@ import type {SimpleActionProps} from './types';
 
 import useTransactionThreadData from './useTransactionThreadData';
 
-function MarkAsCashPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
+function MarkAsCashPrimaryAction({reportID, chatReportID, isDisabled}: SimpleActionProps) {
     const {translate} = useLocalize();
     const {requestParentReportAction, iouTransactionID, transactionThreadReport} = useTransactionThreadData(reportID, chatReportID);
     const transactionViolations = useTransactionViolations(iouTransactionID);
@@ -21,6 +21,7 @@ function MarkAsCashPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
     return (
         <Button
             variant={CONST.BUTTON_VARIANT.SUCCESS}
+            isDisabled={isDisabled}
             onPress={() => {
                 if (!requestParentReportAction || !iouTransactionID || !transactionThreadReport?.reportID) {
                     return;

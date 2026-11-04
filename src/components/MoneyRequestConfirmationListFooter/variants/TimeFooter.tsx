@@ -1,18 +1,17 @@
 import ConfirmationFieldList from '@components/MoneyRequestConfirmationListFooter/ConfirmationFieldList';
+import ExpenseFormFooterLayout from '@components/MoneyRequestConfirmationListFooter/ExpenseFormFooterLayout';
 import TimeDetailsFields from '@components/MoneyRequestConfirmationListFooter/fieldGroups/detailsFields/TimeDetailsFields';
-import ReceiptSection from '@components/MoneyRequestConfirmationListFooter/sections/ReceiptSection';
 import type {TimeFooterProps} from '@components/MoneyRequestConfirmationListFooter/types';
 
 import React from 'react';
-import {View} from 'react-native';
 
 function TimeFooter({policy, policyTags, selectedParticipants, amountDisplay, requiredFlags, visibilityFlags, errorState, toggleHandlers = {}, receiptOptions}: TimeFooterProps) {
     return (
-        <View>
-            <ReceiptSection
-                policy={policy}
-                {...receiptOptions}
-            />
+        <ExpenseFormFooterLayout
+            policy={policy}
+            receiptOptions={receiptOptions}
+            hasParticipantSection={visibilityFlags.hasParticipantSection}
+        >
             <ConfirmationFieldList
                 policy={policy}
                 policyTags={policyTags}
@@ -27,10 +26,11 @@ function TimeFooter({policy, policyTags, selectedParticipants, amountDisplay, re
                     policy={policy}
                     amountDisplay={amountDisplay}
                     isDescriptionRequired={requiredFlags.isDescriptionRequired}
+                    descriptionHint={requiredFlags.descriptionHint}
                     errorState={errorState}
                 />
             </ConfirmationFieldList>
-        </View>
+        </ExpenseFormFooterLayout>
     );
 }
 

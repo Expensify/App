@@ -3,10 +3,11 @@ import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isFilterNegatable} from '@libs/SearchQueryUtils';
-import {getHasOptions, getMultiSelectFilterOptions, getSingleSelectFilterOptions} from '@libs/SearchUIUtils';
+import {getHasOptions, getMultiSelectFilterOptions, getSingleSelectFilterOptions, normalizeTripStatuses} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
@@ -34,6 +35,7 @@ import TagSelector from './TagSelector';
 import TaxRateSelector from './TaxRateSelector';
 import TypeSelector from './TypeSelector';
 import UserSelector from './UserSelector';
+import VendorSelector from './VendorSelector';
 import WorkspaceSelector from './WorkspaceSelector';
 
 type FilterKeys = Exclude<SearchFilter['key'], SearchDateFilterKeys | SearchAmountFilterKeys | SearchTextFilterKeys | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD>;
@@ -49,6 +51,8 @@ type ListFilterContentProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[
 type SingleSelectFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS;
 type SingleSelectListFilterContentProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[SingleSelectFilterKeys] | undefined> & {
@@ -136,6 +140,7 @@ function HasMultiSelectListFilterContent({value = [], type = CONST.SEARCH.DATA_T
 
 function MultiSelectListFilterContent({baseFilterKey, value = [], type = CONST.SEARCH.DATA_TYPES.EXPENSE, selectionListStyle, footer, onChange}: MultiSelectListFilterContentProps) {
     const {translate} = useLocalize();
+    const shouldReturnTripRooms = useShouldReturnTripRooms(type);
 
     if (baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
         return (
@@ -149,8 +154,9 @@ function MultiSelectListFilterContent({baseFilterKey, value = [], type = CONST.S
         );
     }
 
-    const items = getMultiSelectFilterOptions(baseFilterKey, type, translate);
-    const multiSelectValues = items.filter((item) => (value as string[]).includes(item.value));
+    const items = getMultiSelectFilterOptions(baseFilterKey, type, translate, undefined, undefined, shouldReturnTripRooms);
+    const selectedValues = shouldReturnTripRooms && baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS ? normalizeTripStatuses(value as string[]) : (value as string[]);
+    const multiSelectValues = items.filter((item) => selectedValues.includes(item.value));
 
     return (
         <MultiSelect
@@ -194,6 +200,7 @@ function ListFilterContent({
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY: {
             const Component = {
                 [CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED]: FeedSelector,
@@ -203,6 +210,7 @@ function ListFilterContent({
                 [CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE]: TaxRateSelector,
                 [CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO]: ExportedToSelector,
                 [CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG]: TagSelector,
+                [CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR]: VendorSelector,
                 [CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY]: CategorySelector,
             }[baseFilterKey];
             content = (
@@ -250,6 +258,8 @@ function ListFilterContent({
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE: {
             const isSingleSelectFilterValue = (v: ListFilterContentProps['value']): v is SingleSelectListFilterContentProps['value'] => {
@@ -292,6 +302,7 @@ function ListFilterContent({
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM: {
             content = (
                 <UserSelector

@@ -94,6 +94,7 @@ describe('Navigation Guard System', () => {
             isLoading: false,
             currentUrl: '',
             isSupportalSession: false,
+            isDelegateSession: false,
         };
 
         it('should return ALLOW when no guards are registered', () => {

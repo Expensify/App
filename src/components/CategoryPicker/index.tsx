@@ -1,3 +1,4 @@
+import Icon from '@components/Icon';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {ListItem} from '@components/SelectionList/types';
@@ -5,24 +6,32 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useDebouncedState from '@hooks/useDebouncedState';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLoadPolicyCategories from '@hooks/useLoadPolicyCategories';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getCategoryListSections} from '@libs/CategoryOptionListUtils';
 import type {Category} from '@libs/CategoryOptionListUtils';
-import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
+import {canCreateCategoryFromSearch, getEnabledCategoriesCount} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getHeaderMessageForNonUserList, getNoneOption} from '@libs/OptionsListUtils';
 import type {OptionTree} from '@libs/OptionsListUtils/types';
+import StringUtils from '@libs/StringUtils';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
-import React from 'react';
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports -- Need original useOnyx to avoid reading partial Search snapshot policy data (GL code flags are trimmed from the snapshot).
 import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
@@ -30,6 +39,13 @@ type CategoryPickerProps = {
     policyID: string | undefined;
     selectedCategory?: string;
     onSubmit: (item: ListItem) => void;
+
+    /**
+     * Receives the sanitized search text when the user taps the create row. The row is offered only when this is passed,
+     * the search has no results, and the text can be a category name (or names a disabled category).
+     */
+    onCreateCategory?: (categoryName: string) => void;
+
     shouldShowNoneOption?: boolean;
 
     /**
@@ -39,6 +55,22 @@ type CategoryPickerProps = {
 
     /** Whether the search input should auto-focus when the picker mounts. Only opted into by the inline-edit popover wrapper. */
     shouldAutoFocusSearchInput?: boolean;
+
+    /**
+     * Whether to show GL codes regardless of the workspace setting. When false, CategoryPicker reads
+     * `showCategoryGLCodes && glCodes` from the policy in Onyx.
+     */
+    shouldAlwaysShowGLCode?: boolean;
+
+    /** Number of enabled categories at which the search input appears. Defaults to `CONST.STANDARD_LIST_ITEM_LIMIT`. */
+    searchInputThreshold?: number;
+
+    /**
+     * Reports how many rows the unfiltered list renders, for a pop-over wrapper to size itself from. The category
+     * count does not match: nested names add a row per parent, a selected out-of-policy category adds one, and
+     * the `Recent` and `All` headings add one each. Only reported unfiltered, so searching never resizes it.
+     */
+    onRenderedRowCountChange?: (rowCount: number) => void;
 };
 
 const getSelectedOptions = (selectedCategory?: string): Category[] => {
@@ -55,16 +87,33 @@ const getSelectedOptions = (selectedCategory?: string): Category[] => {
     ];
 };
 
-function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOption = false, addBottomSafeAreaPadding = false, shouldAutoFocusSearchInput = false}: CategoryPickerProps) {
+function CategoryPicker({
+    selectedCategory,
+    policyID,
+    onSubmit,
+    onCreateCategory,
+    shouldShowNoneOption = false,
+    addBottomSafeAreaPadding = false,
+    shouldAutoFocusSearchInput = false,
+    shouldAlwaysShowGLCode = false,
+    searchInputThreshold = CONST.STANDARD_LIST_ITEM_LIMIT,
+    onRenderedRowCountChange,
+}: CategoryPickerProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
+    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const {inputCallbackRef} = useAutoFocusInput();
-    const [shouldShowGLCode] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`, {
+    const [shouldShowGLCodeFromPolicy] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`, {
         selector: (policy) => !!policy?.showCategoryGLCodes && !!policy?.glCodes,
     });
+    const shouldShowGLCode = shouldAlwaysShowGLCode || !!shouldShowGLCodeFromPolicy;
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${getNonEmptyStringOnyxID(policyID)}`);
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
     const {isOffline} = useNetwork();
+
+    // Backfill the policy's categories on demand so lazy-loaded accounts don't get stuck showing only the selected category.
+    const {isLoadingPolicyCategories} = useLoadPolicyCategories(policyID);
 
     const {translate, localeCompare} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
@@ -82,6 +131,7 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOpt
         recentlyUsedCategories: validPolicyRecentlyUsedCategories,
         translate,
         shouldShowGLCode,
+        searchInputThreshold,
     });
 
     const noneOption: OptionTree[] = shouldShowNoneOption
@@ -105,16 +155,75 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOpt
     const sectionsWithNoneOption =
         noneOption.length > 0 ? [...sections.slice(0, selectedCategorySectionIndex + 1), noneOptionSection, ...sections.slice(selectedCategorySectionIndex + 1)] : sections;
 
+    const sectionsWithTitleStyles = sectionsWithNoneOption.map((section) => ({...section, data: section.data.map((category) => ({...category, titleStyles: styles.w100}))}));
     const categoryData = sectionsWithNoneOption.flatMap((section) => section.data);
+    const renderedRowCount = sectionsWithNoneOption.reduce((total, section) => total + section.data.length + (section.title ? 1 : 0), 0);
+
+    useEffect(() => {
+        if (debouncedSearchValue) {
+            return;
+        }
+        onRenderedRowCountChange?.(renderedRowCount);
+    }, [renderedRowCount, debouncedSearchValue, onRenderedRowCountChange]);
+
     const categoriesCount = getEnabledCategoriesCount(categories);
     const selectedOptionKey = categoryData.find((category) => category.searchText === selectedCategory)?.keyForList;
+
+    // While the on-demand fetch above is in flight, show the list skeleton instead of flashing the selected-only
+    // fallback. A draft collection is a complete local list, so it renders immediately rather than waiting on the read.
+    const isLoadingNewOptions = isLoadingPolicyCategories && policyCategoriesDraft === undefined;
+
+    const createCategoryName = StringUtils.sanitizeName(debouncedSearchValue);
+    const shouldShowCreateCategoryRow = !!onCreateCategory && !isLoadingNewOptions && categoryData.length === 0 && canCreateCategoryFromSearch(categories, createCategoryName);
+
+    // The create row has to be a list item: an empty list renders its empty state instead of the list, and a row can take keyboard focus.
+    const buildCreateCategorySection = () => {
+        const createCategoryRowText = translate('workspace.categories.createCategoryFromSearch', createCategoryName);
+        return {
+            title: '',
+            data: [
+                {
+                    text: createCategoryRowText,
+                    keyForList: createCategoryName,
+                    searchText: createCategoryName,
+                    tooltipText: createCategoryRowText,
+                    isDisabled: false,
+                    isSelected: false,
+                    shouldHideSelectionButton: true,
+                    titleStyles: styles.w100,
+                    leftElement: (
+                        <View style={[styles.mr3, styles.justifyContentCenter]}>
+                            <Icon
+                                src={icons.Plus}
+                                fill={theme.icon}
+                                width={variables.iconSizeNormal}
+                                height={variables.iconSizeNormal}
+                            />
+                        </View>
+                    ),
+                },
+            ],
+            sectionIndex: sectionsWithNoneOption.length,
+        };
+    };
+    const visibleSections = shouldShowCreateCategoryRow ? [...sectionsWithTitleStyles, buildCreateCategorySection()] : sectionsWithTitleStyles;
+
+    const selectCategory = (item: ListItem) => {
+        // The create row only shows when nothing matched, so whenever it is shown it is the only row that can be tapped.
+        if (shouldShowCreateCategoryRow) {
+            onCreateCategory(createCategoryName);
+            return;
+        }
+        onSubmit(item);
+    };
 
     const textInputOptions = {
         value: searchValue,
         label: translate('common.search'),
         onChangeText: setSearchValue,
-        headerMessage: getHeaderMessageForNonUserList(categoryData.length > 0, debouncedSearchValue),
+        headerMessage: getHeaderMessageForNonUserList(translate, categoryData.length > 0, debouncedSearchValue),
         hint: offlineMessage,
+        style: {headerMessageStyle: shouldShowCreateCategoryRow ? styles.pb2 : undefined},
         // Auto-focus is opt-in (inline-edit popover only) and skipped on touch surfaces to avoid popping the keyboard.
         disableAutoFocus: !(shouldAutoFocusSearchInput && canFocusInputOnScreenFocus()),
         ref: inputCallbackRef as (ref: BaseTextInputRef | null) => void,
@@ -122,15 +231,17 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOpt
 
     return (
         <SelectionListWithSections
-            sections={sectionsWithNoneOption}
-            onSelectRow={onSubmit}
+            // The list only renders the skeleton when it has no items, so the sections have to be emptied too.
+            // Otherwise the selected-only fallback row still shows while the fetch is in flight.
+            sections={isLoadingNewOptions ? getEmptyArray<never>() : visibleSections}
+            onSelectRow={selectCategory}
             ListItem={SingleSelectListItem}
-            shouldShowTextInput={categoriesCount >= CONST.STANDARD_LIST_ITEM_LIMIT}
+            shouldShowTextInput={categoriesCount >= searchInputThreshold}
             textInputOptions={textInputOptions}
+            shouldShowLoadingPlaceholder={isLoadingNewOptions}
+            isLoadingNewOptions={isLoadingNewOptions}
             initiallyFocusedItemKey={selectedOptionKey}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
-            style={{listItemTitleStyles: styles.w100}}
-            isRowMultilineSupported
             titleNumberOfLines={CONST.TRANSACTION_TAG_AND_CATEGORY_PICKER_MAX_TITLE_LINES}
         />
     );

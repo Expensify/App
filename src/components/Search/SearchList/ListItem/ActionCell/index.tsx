@@ -8,20 +8,22 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 
 import CONST from '@src/CONST';
-import type {Report} from '@src/types/onyx';
+import type {Report, Transaction} from '@src/types/onyx';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 
+import actionSentryLabelsMap from './actionSentryLabelsMap';
 import actionTranslationsMap from './actionTranslationsMap';
+import ApproveActionCell from './ApproveActionCell';
 import PayActionCell from './PayActionCell';
 
 type ActionCellProps = {
     action?: SearchTransactionAction;
     isSelected?: boolean;
-    onButtonPress: (event?: ModifiedMouseEvent) => void;
+    onButtonPress: (event?: ModifiedMouseEvent) => void | Promise<void>;
     isChildListItem?: boolean;
     isLoading?: boolean;
     policyID?: string;
@@ -32,6 +34,7 @@ type ActionCellProps = {
     chatReport?: OnyxEntry<Report>;
     /** Whether a SUBMIT action should render the "Mark as done" copy instead of "Submit" (see shouldShowMarkAsDone) */
     shouldShowMarkAsDoneCopy?: boolean;
+    snapshotTransactions?: Transaction[];
 };
 
 function ActionCell({
@@ -47,6 +50,7 @@ function ActionCell({
     shouldDisablePointerEvents,
     chatReport,
     shouldShowMarkAsDoneCopy = false,
+    snapshotTransactions,
 }: ActionCellProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -73,6 +77,20 @@ function ActionCell({
             >
                 <ViewButton.Text>{text}</ViewButton.Text>
             </ViewButton>
+        );
+    }
+
+    if (action === CONST.SEARCH.ACTION_TYPES.APPROVE) {
+        return (
+            <ApproveActionCell
+                isLoading={isLoading}
+                reportID={reportID}
+                policyID={policyID}
+                hash={hash}
+                shouldDisablePointerEvents={shouldDisablePointerEvents}
+                chatReport={chatReport}
+                snapshotTransactions={snapshotTransactions}
+            />
         );
     }
 
@@ -106,7 +124,7 @@ function ActionCell({
             stayNormalOnDisable={shouldDisablePointerEvents}
             innerStyles={buttonInnerStyles}
             isNested
-            sentryLabel={CONST.SENTRY_LABEL.SEARCH.ACTION_CELL_ACTION}
+            sentryLabel={actionSentryLabelsMap[action]}
         >
             <Button.Text>{text}</Button.Text>
         </Button>

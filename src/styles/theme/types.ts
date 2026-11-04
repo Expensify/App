@@ -2,6 +2,7 @@ import type {NavBarButtonStyle} from '@libs/NavBarManager/types';
 
 import type CONST from '@src/CONST';
 
+import type {ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import type {ColorScheme, StatusBarStyle} from '..';
@@ -65,6 +66,10 @@ type ThemeColors = {
     signInSidebar: Color;
     sidebar: Color;
     sidebarHover: Color;
+    floatingTabBarSelectedBG: Color;
+    androidTabBarActiveIndicatorBG: Color;
+    /** A CSS box-shadow, not a color. */
+    androidTabBarShadow: NonNullable<ViewStyle['boxShadow']>;
     heading: Color;
     textLight: Color;
     textDark: Color;
@@ -72,6 +77,7 @@ type ThemeColors = {
     textBackground: Color;
     textMutedReversed: Color;
     textError: Color;
+    textSuccess: Color;
     offline: Color;
     modalBackground: Color;
     cardBG: Color;
@@ -94,6 +100,8 @@ type ThemeColors = {
     imageCropBackgroundColor: Color;
     fallbackIconColor: Color;
     reactionActiveBackground: Color;
+    /** Background of a selected option among mutually exclusive choices */
+    selectedOptionBG: Color;
     reactionActiveText: Color;
     badgeDefaultBG: Color;
     badgeSuccessBG: Color;
@@ -102,6 +110,8 @@ type ThemeColors = {
     badgeDangerText: Color;
     badgeAdHoc: Color;
     badgeAdHocHover: Color;
+    badgeOfferBG: Color;
+    badgeOfferText: Color;
     bordersBold: Color;
     buttonIcon: Color;
     mentionText: Color;

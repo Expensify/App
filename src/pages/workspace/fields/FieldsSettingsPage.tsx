@@ -12,7 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PolicyFeature} from '@libs/PolicyUtils';
-import {getReportFieldKey} from '@libs/ReportUtils';
+import {getReportFieldKey, hasEnabledListValue} from '@libs/ReportUtils';
 import {getReportFieldInitialValue, getReportFieldTypeTranslationKey, isReportFieldImportedFromIntegration, isReportFieldTargetValid} from '@libs/WorkspaceReportFieldUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -75,7 +75,7 @@ function FieldsSettingsPage({
 
     const isDateFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.DATE;
     const isListFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.LIST;
-    const isListFieldEmpty = isListFieldType && reportField.disabledOptions.filter((disabledListValue) => !disabledListValue).length <= 0;
+    const isListFieldEmpty = isListFieldType && !hasEnabledListValue(reportField);
     const listValues = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {})?.sort(localeCompare);
 
     const deleteReportFieldAndHideModal = () => {

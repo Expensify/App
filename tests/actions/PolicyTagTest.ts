@@ -21,13 +21,14 @@ import {
     setPolicyShowTagGLCodes,
     setPolicyTagApprover,
     setPolicyTagGLCode,
+    setPolicyTagLevelsRequired,
     setPolicyTagsRequired,
     setWorkspaceTagEnabled,
 } from '@libs/actions/Policy/Tag';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyTagLists, PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
+import type {PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
@@ -2411,6 +2412,120 @@ describe('actions/Policy', () => {
         });
     });
 
+    describe('Tag lists that share a name', () => {
+        // A no-header import of independent tags with GL codes in adjacent columns can return tag lists that share a name.
+        // Their Onyx keys and orderWeights stay unique.
+        const buildTagListsWithDuplicateNames = (): PolicyTagLists => ({
+            Clients: {name: 'Clients', required: false, orderWeight: 0, tags: {Engineering: {name: 'Engineering', enabled: true}}},
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            'Sub-projects': {name: 'Sub-projects', required: false, orderWeight: 1, tags: {'North America': {name: 'North America', enabled: true}}},
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            'Sub-projects_2': {name: 'Sub-projects', required: false, orderWeight: 2, tags: {'Project Apollo': {name: 'Project Apollo', enabled: true}}},
+        });
+
+        const setUpPolicy = async () => {
+            const fakePolicy = {...createRandomPolicy(0), areTagsEnabled: true, hasMultipleTagLists: true};
+            const fakePolicyTags = buildTagListsWithDuplicateNames();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+            await waitForBatchedUpdates();
+            return {fakePolicy, fakePolicyTags};
+        };
+
+        it('setPolicyTagsRequired updates the list at the given index, not the first list with the same name', async () => {
+            // Given two tag lists named "Sub-projects" at orderWeight 1 and 2
+            const {fakePolicy} = await setUpPolicy();
+            mockFetch.pause();
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+
+            // When the list at index 2 is made required
+            setPolicyTagsRequired(policyData.current, true, 2, false);
+            await waitForBatchedUpdates();
+
+            // Then only the list stored under "Sub-projects_2" is required
+            const policyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
+            expect(policyTags?.['Sub-projects_2']?.required).toBe(true);
+            expect(policyTags?.['Sub-projects']?.required).toBe(false);
+            mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('setWorkspaceTagEnabled updates the list at the given index, not the first list with the same name', async () => {
+            // Given two tag lists named "Sub-projects" at orderWeight 1 and 2
+            const {fakePolicy} = await setUpPolicy();
+            mockFetch.pause();
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+
+            // When a tag of the list at index 2 is disabled
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            setWorkspaceTagEnabled(policyData.current, {'Project Apollo': {name: 'Project Apollo', enabled: false}}, 2, false);
+            await waitForBatchedUpdates();
+
+            // Then the tag is disabled in "Sub-projects_2", and nothing is written to the first "Sub-projects" list
+            const policyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
+            expect(policyTags?.['Sub-projects_2']?.tags['Project Apollo']?.enabled).toBe(false);
+            expect(Object.keys(policyTags?.['Sub-projects']?.tags ?? {})).toEqual(['North America']);
+            mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('renamePolicyTagList renames the list at the given index, not the first list with the same name', async () => {
+            // Given two tag lists named "Sub-projects" at orderWeight 1 and 2
+            const {fakePolicy, fakePolicyTags} = await setUpPolicy();
+            mockFetch.pause();
+
+            // When the list at index 2 is renamed to "Projects"
+            renamePolicyTagList(fakePolicy.id, {oldName: 'Sub-projects', newName: 'Projects'}, fakePolicyTags, 2);
+            await waitForBatchedUpdates();
+
+            // Then "Sub-projects_2" is replaced by "Projects" with its own tags, and the first "Sub-projects" list is untouched
+            const policyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
+            expect(policyTags?.['Sub-projects_2']).toBeUndefined();
+            expect(policyTags?.Projects?.orderWeight).toBe(2);
+            expect(Object.keys(policyTags?.Projects?.tags ?? {})).toEqual(['Project Apollo']);
+            expect(policyTags?.['Sub-projects']?.orderWeight).toBe(1);
+            expect(Object.keys(policyTags?.['Sub-projects']?.tags ?? {})).toEqual(['North America']);
+            mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('setPolicyTagLevelsRequired updates each list by its own key, not the first list with the same name', async () => {
+            // Given two tag lists named "Sub-projects" at orderWeight 1 and 2
+            const {fakePolicy} = await setUpPolicy();
+            mockFetch.pause();
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+
+            // When the list at orderWeight 2 is made required and the list at orderWeight 1 stays optional in one save
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            setPolicyTagLevelsRequired(policyData.current, {1: false, 2: true}, false);
+            await waitForBatchedUpdates();
+
+            // Then each change is written to its own list, so the two same-named lists don't overwrite each other
+            const policyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
+            expect(policyTags?.['Sub-projects_2']?.required).toBe(true);
+            expect(policyTags?.['Sub-projects']?.required).toBe(false);
+            mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('setPolicyTagGLCode updates the tag in the list at the given orderWeight, not the first list with the same name', async () => {
+            // Given two tag lists named "Sub-projects" at orderWeight 1 and 2
+            const {fakePolicy, fakePolicyTags} = await setUpPolicy();
+            mockFetch.pause();
+
+            // When the GL code of a tag in the list at orderWeight 2 is set
+            setPolicyTagGLCode({policyID: fakePolicy.id, tagName: 'Project Apollo', tagListIndex: 2, glCode: '500', policyTags: fakePolicyTags});
+            await waitForBatchedUpdates();
+
+            // Then the GL code is set in "Sub-projects_2", and nothing is written to the first "Sub-projects" list
+            const policyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
+            expect(policyTags?.['Sub-projects_2']?.tags['Project Apollo']?.['GL Code']).toBe('500');
+            expect(Object.keys(policyTags?.['Sub-projects']?.tags ?? {})).toEqual(['North America']);
+            mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+    });
+
     describe('SetPolicyTagGLCode', () => {
         it('should update GL code for a tag with optimistic and success data', async () => {
             // Given a policy with a tag that has an existing GL Code
@@ -2556,6 +2671,51 @@ describe('actions/Policy', () => {
             if (updatedPolicyTags?.[tagListName]?.tags[tagName].pendingAction) {
                 expect(updatedPolicyTags[tagListName].tags[tagName].pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
             }
+        });
+
+        it('should update GL code for a dependent tag stored under a unique record key', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            const tagListName = 'Project';
+            const engineeringRoadshowKey = 'Roadshow-1';
+            const fakePolicyTags: PolicyTagLists = {
+                [tagListName]: {
+                    name: tagListName,
+                    orderWeight: 1,
+                    required: false,
+                    tags: {
+                        Roadshow: {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Marketing$'}},
+                    },
+                },
+            };
+            const engineeringRoadshowTag: PolicyTag = {
+                name: 'Roadshow',
+                enabled: true,
+                rules: {parentTagsFilter: '^Engineering$'},
+            };
+            engineeringRoadshowTag['GL Code'] = '1111';
+            fakePolicyTags[tagListName].tags[engineeringRoadshowKey] = engineeringRoadshowTag;
+            const newGLCode = 'NEW_GL_CODE_789';
+
+            mockFetch.pause();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+
+            setPolicyTagGLCode({
+                policyID: fakePolicy.id,
+                tagName: 'Roadshow',
+                tagListIndex: 1,
+                glCode: newGLCode,
+                policyTags: fakePolicyTags,
+                parentTagsFilter: '^Engineering$',
+            });
+            await waitForBatchedUpdates();
+
+            const updatedPolicyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
+
+            expect(updatedPolicyTags?.[tagListName]?.tags['Roadshow-1']['GL Code']).toBe(newGLCode);
+            expect(updatedPolicyTags?.[tagListName]?.tags.Roadshow['GL Code']).toBeUndefined();
+
+            mockFetch.resume();
+            await waitForBatchedUpdates();
         });
     });
 

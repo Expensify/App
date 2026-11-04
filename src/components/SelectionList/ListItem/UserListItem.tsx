@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
-import type {ListItem, UserListItemProps} from './types';
+import type {ListItem, ListItemProps} from './types';
 
 import UserListItemContent from './UserListItemContent';
 
@@ -26,13 +26,9 @@ function UserListItem<TItem extends ListItem>({
     shouldPreventEnterKeySubmit,
     onFocus,
     shouldSyncFocus,
-    wrapperStyle,
-    pressableStyle,
-    forwardedFSClass,
     shouldDisableHoverStyle,
-    shouldHighlightSelectedItem,
     selectionButtonPosition = CONST.SELECTION_BUTTON_POSITION.RIGHT,
-}: UserListItemProps<TItem>) {
+}: ListItemProps<TItem>) {
     // Disable accessible grouping when a right-side button is visible, so VoiceOver can focus it independently.
     const shouldDisableAccessibleGrouping = !!item.actionElement && !canSelectMultiple;
 
@@ -56,19 +52,14 @@ function UserListItem<TItem extends ListItem>({
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
-            pressableStyle={pressableStyle}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             accessible={shouldDisableAccessibleGrouping ? false : undefined}
             shouldDisableHoverStyle={shouldDisableHoverStyle}
-            shouldHighlightSelectedItem={shouldHighlightSelectedItem}
         >
-            <ListItemComposed.Row style={wrapperStyle}>
+            <ListItemComposed.Row style={item.itemStyle}>
                 {selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.LEFT && selectionButton}
-                <UserListItemContent
-                    item={item}
-                    forwardedFSClass={forwardedFSClass}
-                />
+                <UserListItemContent item={item} />
                 {shouldShowRBRIndicator(item) && <ListItemComposed.RBRIndicator item={item} />}
                 {selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.RIGHT && selectionButton}
                 {item.actionElement}

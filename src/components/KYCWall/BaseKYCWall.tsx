@@ -6,18 +6,20 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useReportTransactions from '@hooks/useReportTransactions';
 
 import {openPersonalBankAccountSetupView, setPersonalBankAccountContinueKYCOnSuccess} from '@libs/actions/BankAccounts';
 import {completePaymentOnboarding, savePreferredPaymentMethod} from '@libs/actions/IOU/PayMoneyRequest';
-import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
+import {navigateToBankAccountRoute, prepareStandaloneBankAccountSetup} from '@libs/actions/ReimbursementAccount';
 import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
-import {doesPolicyHavePartiallySetupBankAccount} from '@libs/BankAccountUtils';
+import {doesPolicyHavePartiallySetupBankAccount, isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Log from '@libs/Log';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
+import {getAccessiblePolicyBankAccount} from '@libs/PolicyPaymentUtils';
 import {getAllPolicyExpenseChatReportActions, getBankAccountRoute, getInvoiceReceiverPolicyID, isExpenseReport as isExpenseReportReportUtils, isIOUReport} from '@libs/ReportUtils';
 import {getEligibleExistingBusinessBankAccounts, getOpenConnectedToPolicyBusinessBankAccounts} from '@libs/WorkflowUtils';
 
@@ -28,15 +30,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import {doesPersonalDetailExistSelector, personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
+import {doesPersonalDetailExist, loginSelector} from '@src/selectors/PersonalDetails';
 import {lastWorkspaceNumberSelector, ownerPoliciesSelector} from '@src/selectors/Policy';
-import type {BankAccountList, PersonalDetailsList, Policy} from '@src/types/onyx';
+import type {BankAccountList, Policy} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import viewRef from '@src/types/utils/viewRef';
 
 import type {ComponentRef} from 'react';
 import type {EmitterSubscription, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
@@ -82,13 +83,8 @@ function KYCWall({
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const ownerAccountID = iouReport?.ownerAccountID;
-    const employeeLoginSelector = useCallback((personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsLoginSelector(ownerAccountID)(personalDetailsList), [ownerAccountID]);
-    const [employeeLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: employeeLoginSelector});
-    const doesSubmitterPersonalDetailExistSelector = useCallback(
-        (personalDetailsList: OnyxEntry<PersonalDetailsList>) => doesPersonalDetailExistSelector(ownerAccountID)(personalDetailsList),
-        [ownerAccountID],
-    );
-    const [doesSubmitterPersonalDetailExist] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: doesSubmitterPersonalDetailExistSelector});
+    const [employeeLogin] = usePersonalDetail(ownerAccountID, loginSelector);
+    const [doesSubmitterPersonalDetailExist] = usePersonalDetail(ownerAccountID, doesPersonalDetailExist);
 
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -212,7 +208,7 @@ function KYCWall({
                         return;
                     }
 
-                    const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, currentUserEmail, currentUserDetails.displayName);
+                    const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, currentUserEmail, currentUserDetails.displayName, translate);
                     const {policyID, workspaceChatReportID, adminsChatReportID} =
                         createWorkspaceFromIOUPayment({
                             iouReport,
@@ -227,6 +223,7 @@ function KYCWall({
                             reportActionsList: filteredReportActions,
                             doesEmployeePersonalDetailExist: doesSubmitterPersonalDetailExist ?? false,
                             getCurrencyDecimals,
+                            reportTransactions,
                             hasOwnedPaidPolicy: ownerPoliciesSelector(policies, currentUserAccountID).length > 0,
                         }) ?? {};
                     if (policyID && iouReport?.policyID) {
@@ -247,6 +244,34 @@ function KYCWall({
                     setNavigationActionToMicrotaskQueue(() => {
                         Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, backTo: workspaceReportRoute}));
                     });
+                    return;
+                }
+
+                // Adding a funding source for a report must preserve an existing workspace bank account. Use the
+                // wallet setup without a policyID, rather than linking a new or existing account to the workspace.
+                const expenseReportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`] ?? policy;
+                if (isExpenseReportReportUtils(iouReport) && expenseReportPolicy?.achAccount?.bankAccountID) {
+                    const workspaceBankAccount = getAccessiblePolicyBankAccount(expenseReportPolicy, bankAccountList);
+                    if (workspaceBankAccount && isBankAccountPartiallySetup(workspaceBankAccount.accountData?.state)) {
+                        navigateToBankAccountRoute({policyID: expenseReportPolicy.id, backTo: Navigation.getActiveRoute()});
+                        return;
+                    }
+
+                    const currency = expenseReportPolicy.outputCurrency ?? iouReport?.currency ?? CONST.CURRENCY.USD;
+                    const partialBusinessBankAccount = Object.values(bankAccountList).find(
+                        (bankAccount) =>
+                            bankAccount.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+                            isBankAccountPartiallySetup(bankAccount.accountData?.state) &&
+                            !bankAccount.accountData?.policyIDs?.length &&
+                            bankAccount.bankCurrency === currency,
+                    );
+                    if (partialBusinessBankAccount?.accountData?.bankAccountID) {
+                        navigateToBankAccountRoute({bankAccountID: partialBusinessBankAccount.accountData.bankAccountID, backTo: Navigation.getActiveRoute()});
+                        return;
+                    }
+
+                    prepareStandaloneBankAccountSetup(currency);
+                    navigateToBankAccountRoute({backTo: Navigation.getActiveRoute()});
                     return;
                 }
 

@@ -3,6 +3,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Section from '@components/Section';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -15,7 +16,7 @@ import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 import {isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import Navigation from '@libs/Navigation/Navigation';
-import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
+import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
 
@@ -32,7 +33,7 @@ import ROUTES from '@src/ROUTES';
 
 import type {TupleToUnion} from 'type-fest';
 
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useRef} from 'react';
 
 type WorkspaceInvoiceVBASectionProps = {
     /** The policy ID currently being configured */
@@ -52,6 +53,7 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
     const icons = useMemoizedLazyExpensifyIcons(['Star', 'Trashcan']);
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal, cardEdgeToEdge} = useLayoutSpacing();
     const {translate} = useLocalize();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -66,26 +68,28 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
 
     const eligibleBusinessBankAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency);
     const hasValidExistingAccounts = eligibleBusinessBankAccounts.length > 0;
-    const hasMultipleEligibleBankAccounts = eligibleBusinessBankAccounts.length > 1;
-    const hasInvoiceDefaultBankAccount = transferBankAccountID !== CONST.DEFAULT_NUMBER_ID;
-    const isInvoiceDefaultBankAccountMissing = hasInvoiceDefaultBankAccount && !eligibleBusinessBankAccounts.some((account) => account.accountData?.bankAccountID === transferBankAccountID);
-    const shouldShowMakeDefaultButton = !paymentMethod.isSelectedPaymentMethodDefault && (hasMultipleEligibleBankAccounts || isInvoiceDefaultBankAccountMissing);
+    const availableBankAccounts = eligibleBusinessBankAccounts.filter((account) => account.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const getAvailableBankAccountID = (bankAccountID: number | string) =>
+        availableBankAccounts.find((account) => account.accountData?.bankAccountID === bankAccountID)?.accountData?.bankAccountID;
+    // The backend saves no invoice default when an account is added and keeps it after that account is deleted, so the first available account stands in.
+    const invoiceDefaultBankAccountID = getAvailableBankAccountID(transferBankAccountID) ?? availableBankAccounts.at(0)?.accountData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    // The invoice default can change while a menu is open, so the menu and Make default check the current accounts, not the values captured when the menu opened.
+    const selectedAvailableBankAccountID = getAvailableBankAccountID(paymentMethod.methodID);
+    const shouldShowMakeDefaultButton = selectedAvailableBankAccountID !== undefined && selectedAvailableBankAccountID !== invoiceDefaultBankAccountID;
     const isSupportedGlobalReimbursement = isCurrencySupportedForGlobalReimbursement((policy?.outputCurrency ?? '') as CurrencyType);
 
     const isNonUSDWorkspace = policy?.outputCurrency !== CONST.CURRENCY.USD;
     const achData = reimbursementAccount?.achData;
 
-    const shouldShowContinueModal = useMemo(() => {
-        return hasInProgressVBBA(achData, isNonUSDWorkspace, policyID);
-    }, [achData, isNonUSDWorkspace, policyID]);
+    const shouldShowContinueModal = hasInProgressVBBA(achData, isNonUSDWorkspace, policyID);
 
-    const confirmCurrencyChangeAndHideModal = useCallback(() => {
+    const confirmCurrencyChangeAndHideModal = () => {
         if (!policy) {
             return;
         }
 
-        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id, true));
-    }, [policy]);
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id, {isForcedToChangeCurrency: true}));
+    };
 
     /**
      * Display the delete/default menu, or the add payment method menu
@@ -107,7 +111,7 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
                 };
             }
             setPaymentMethod({
-                isSelectedPaymentMethodDefault: transferBankAccountID === methodID,
+                isSelectedPaymentMethodDefault: invoiceDefaultBankAccountID === methodID,
                 selectedPaymentMethod: accountData ?? {},
                 selectedPaymentMethodType: accountType,
                 formattedSelectedPaymentMethod,
@@ -116,30 +120,26 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
         }
     };
 
-    const deletePaymentMethod = useCallback(() => {
+    const deletePaymentMethod = () => {
         const bankAccountID = paymentMethod.selectedPaymentMethod.bankAccountID;
         if (paymentMethod.selectedPaymentMethodType !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || !bankAccountID) {
             return;
         }
 
-        const remainingEligibleBankAccountID = eligibleBusinessBankAccounts.find((account) => account.accountData?.bankAccountID !== bankAccountID)?.accountData?.bankAccountID;
-        if (transferBankAccountID === bankAccountID && remainingEligibleBankAccountID) {
-            setInvoicingTransferBankAccount(remainingEligibleBankAccountID, policyID, bankAccountID);
+        const remainingAvailableBankAccountID = availableBankAccounts.find((account) => account.accountData?.bankAccountID !== bankAccountID)?.accountData?.bankAccountID;
+        if (transferBankAccountID === bankAccountID && remainingAvailableBankAccountID) {
+            setInvoicingTransferBankAccount(remainingAvailableBankAccountID, policyID, bankAccountID);
         }
 
         deletePaymentBankAccount(bankAccountID, personalPolicyID);
-    }, [eligibleBusinessBankAccounts, paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethodType, personalPolicyID, policyID, transferBankAccountID]);
+    };
 
-    const makeDefaultPaymentMethod = useCallback(() => {
-        // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
-        const paymentMethods = formatPaymentMethods(bankAccountList ?? {}, {}, styles, translate);
-        const previousPaymentMethod = paymentMethods.find((method) => !!method.isDefault);
-        const currentPaymentMethod = paymentMethods.find((method) => method.methodID === paymentMethod.methodID);
-        if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
-            setInvoicingTransferBankAccount(currentPaymentMethod?.methodID ?? CONST.DEFAULT_NUMBER_ID, policyID, previousPaymentMethod?.methodID ?? CONST.DEFAULT_NUMBER_ID);
+    const makeDefaultPaymentMethod = () => {
+        if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && selectedAvailableBankAccountID !== undefined) {
+            setInvoicingTransferBankAccount(selectedAvailableBankAccountID, policyID, transferBankAccountID);
         }
         resetSelectedPaymentMethodData();
-    }, [bankAccountList, styles, translate, paymentMethod.selectedPaymentMethodType, paymentMethod.methodID, policyID, resetSelectedPaymentMethodData]);
+    };
 
     const onBankAccountRowPressed = ({accountData}: PaymentMethodPressHandlerParams) => {
         const accountPolicyID = accountData?.additionalData?.policyID;
@@ -192,81 +192,54 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
         continueAddBankAccountFlow();
     };
 
-    const threeDotsMenuItems = useMemo(() => {
-        const items: PopoverMenuItem[] = [];
-
-        if (isPopoverBottomMount) {
-            items.push({
-                text: paymentMethod.formattedSelectedPaymentMethod.title,
-                icon: paymentMethod.formattedSelectedPaymentMethod.icon?.icon,
-                numberOfLinesTitle: 0,
-                iconHeight: paymentMethod.formattedSelectedPaymentMethod.icon?.iconHeight ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize,
-                iconWidth: paymentMethod.formattedSelectedPaymentMethod.icon?.iconWidth ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize,
-                iconStyles: paymentMethod.formattedSelectedPaymentMethod.icon?.iconStyles,
-                description: paymentMethod.formattedSelectedPaymentMethod.description,
-                wrapperStyle: [styles.mb1, styles.ph5, styles.pt5],
-                interactive: false,
-                displayInDefaultIconColor: true,
-            });
-        }
-
-        if (shouldShowMakeDefaultButton) {
-            items.push({
-                text: translate('walletPage.setDefaultConfirmation'),
-                icon: icons.Star,
-                onSelected: () => {
-                    makeDefaultPaymentMethod();
-                },
-                numberOfLinesTitle: 0,
-            });
-        }
-
+    const items: PopoverMenuItem[] = [];
+    if (isPopoverBottomMount) {
         items.push({
-            text: translate('common.delete'),
-            icon: icons.Trashcan,
-            onSelected: () => {
-                closeModal(() => {
-                    showConfirmModal({
-                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-                        title: translate('walletPage.deleteAccount'),
-                        prompt: translate('walletPage.deleteConfirmation'),
-                        confirmText: translate('common.delete'),
-                        cancelText: translate('common.cancel'),
-                        shouldShowCancelButton: true,
-                        onModalHide: resetSelectedPaymentMethodData,
-                    }).then((result) => {
-                        if (result.action !== ModalActions.CONFIRM) {
-                            return;
-                        }
-
-                        deletePaymentMethod();
-                    });
-                });
-            },
+            text: paymentMethod.formattedSelectedPaymentMethod.title,
+            icon: paymentMethod.formattedSelectedPaymentMethod.icon?.icon,
+            numberOfLinesTitle: 0,
+            iconHeight: paymentMethod.formattedSelectedPaymentMethod.icon?.iconHeight ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize,
+            iconWidth: paymentMethod.formattedSelectedPaymentMethod.icon?.iconWidth ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize,
+            iconStyles: paymentMethod.formattedSelectedPaymentMethod.icon?.iconStyles,
+            description: paymentMethod.formattedSelectedPaymentMethod.description,
+            wrapperStyle: [styles.mb1, styles.ph5, styles.pt5],
+            interactive: false,
+            displayInDefaultIconColor: true,
         });
-
-        return items;
-    }, [
-        isPopoverBottomMount,
-        shouldShowMakeDefaultButton,
-        translate,
-        icons.Trashcan,
-        icons.Star,
-        paymentMethod.formattedSelectedPaymentMethod.title,
-        paymentMethod.formattedSelectedPaymentMethod.icon?.icon,
-        paymentMethod.formattedSelectedPaymentMethod.icon?.iconHeight,
-        paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize,
-        paymentMethod.formattedSelectedPaymentMethod.icon?.iconWidth,
-        paymentMethod.formattedSelectedPaymentMethod.icon?.iconStyles,
-        paymentMethod.formattedSelectedPaymentMethod.description,
-        styles.mb1,
-        styles.ph5,
-        styles.pt5,
-        makeDefaultPaymentMethod,
-        showConfirmModal,
-        deletePaymentMethod,
-        resetSelectedPaymentMethodData,
-    ]);
+    }
+    if (shouldShowMakeDefaultButton) {
+        items.push({
+            text: translate('walletPage.setDefaultConfirmation'),
+            icon: icons.Star,
+            onSelected: () => {
+                makeDefaultPaymentMethod();
+            },
+            numberOfLinesTitle: 0,
+        });
+    }
+    items.push({
+        text: translate('common.delete'),
+        icon: icons.Trashcan,
+        onSelected: () => {
+            closeModal(() => {
+                showConfirmModal({
+                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+                    title: translate('walletPage.deleteAccount'),
+                    prompt: translate('walletPage.deleteConfirmation'),
+                    confirmText: translate('common.delete'),
+                    cancelText: translate('common.cancel'),
+                    shouldShowCancelButton: true,
+                    onModalHide: resetSelectedPaymentMethodData,
+                }).then((result) => {
+                    if (result.action !== ModalActions.CONFIRM) {
+                        return;
+                    }
+                    deletePaymentMethod();
+                });
+            });
+        },
+    });
+    const threeDotsMenuItems = items;
 
     return (
         <Section
@@ -281,12 +254,12 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
                 onAddBankAccountPress={onAddBankAccountPress}
                 onThreeDotsMenuPress={paymentMethodPressed}
                 shouldSkipDefaultAccountValidation
-                invoiceTransferBankAccountID={transferBankAccountID}
+                invoiceTransferBankAccountID={invoiceDefaultBankAccountID}
                 activePaymentMethodID={transferBankAccountID}
                 threeDotsMenuItems={canWriteMoreFeatures ? threeDotsMenuItems : undefined}
                 addBankAccountItemStyle={!canWriteMoreFeatures ? styles.buttonOpacityDisabled : undefined}
-                style={[styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}
-                listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                style={[styles.mt5, cardEdgeToEdge]}
+                listItemStyle={cardPaddingHorizontal}
                 filterType={CONST.BANK_ACCOUNT.TYPE.BUSINESS}
             />
         </Section>

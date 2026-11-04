@@ -1,13 +1,10 @@
-import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList} from '@src/types/onyx';
+import type {PersonalDetails} from '@src/types/onyx';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
-import type {OnyxEntry} from 'react-native-onyx';
-
-import React, {createContext, useCallback} from 'react';
+import React, {createContext} from 'react';
 
 import {useSession} from './OnyxListItemProvider';
 
@@ -20,15 +17,12 @@ const CurrentUserPersonalDetailsContext = createContext<CurrentUserPersonalDetai
 function CurrentUserPersonalDetailsProvider({children}: {children: React.ReactNode}) {
     const session = useSession();
     const userAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    const userAccountSelector = useCallback(
-        (allPersonalDetails: OnyxEntry<PersonalDetailsList>): CurrentUserPersonalDetails => ({
-            ...allPersonalDetails?.[userAccountID],
-            accountID: userAccountID,
-            email: session?.email,
-        }),
-        [session?.email, userAccountID],
-    );
-    const [currentUserPersonalDetails = defaultCurrentUserPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: userAccountSelector});
+    const userAccountSelector = (personalDetail: PersonalDetails | undefined): CurrentUserPersonalDetails => ({
+        ...personalDetail,
+        accountID: userAccountID,
+        email: session?.email,
+    });
+    const [currentUserPersonalDetails = defaultCurrentUserPersonalDetails] = usePersonalDetail(userAccountID, userAccountSelector);
 
     return <CurrentUserPersonalDetailsContext.Provider value={currentUserPersonalDetails}>{children}</CurrentUserPersonalDetailsContext.Provider>;
 }

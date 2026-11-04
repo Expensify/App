@@ -16,6 +16,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
+import {hasApprovalWorkflowRules} from '@libs/WorkflowUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
@@ -23,8 +24,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Policy from '@src/types/onyx/Policy';
 import type {MergeApprovalMode, PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
+import type Rule from '@src/types/onyx/Rule';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import React, {useState} from 'react';
@@ -39,7 +41,13 @@ type HRApprovalModeProviderConfig<T extends ApprovalModeValue = ApprovalModeValu
     getCurrentApprovalMode: (policy: OnyxEntry<Policy>) => T | undefined;
     getProviderName: (policy: OnyxEntry<Policy>) => string;
     getHeaderTitle: (providerName: string) => string;
-    handleSave: (params: {policyID: string; draftApprovalMode: T; currentApprovalMode: T | undefined; connectionSyncProgress?: OnyxEntry<PolicyConnectionSyncProgress>}) => void;
+    handleSave: (params: {
+        policyID: string;
+        draftApprovalMode: T;
+        currentApprovalMode: T | undefined;
+        rules: OnyxCollection<Rule>;
+        connectionSyncProgress?: OnyxEntry<PolicyConnectionSyncProgress>;
+    }) => void;
 };
 
 type ApprovalModeListItem<T extends ApprovalModeValue = ApprovalModeValue> = ListItem & {
@@ -57,6 +65,7 @@ function HRApprovalModePageBase<T extends ApprovalModeValue>({policyID, config}:
     const {showConfirmModal} = useConfirmModal();
     const policy = usePolicy(policyID);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const providerName = config.getProviderName(policy);
     const currentApprovalMode = config.getCurrentApprovalMode(policy);
@@ -94,20 +103,29 @@ function HRApprovalModePageBase<T extends ApprovalModeValue>({policyID, config}:
             return;
         }
 
-        config.handleSave({policyID, draftApprovalMode, currentApprovalMode, connectionSyncProgress});
+        config.handleSave({policyID, draftApprovalMode, currentApprovalMode, rules, connectionSyncProgress});
         Navigation.goBack();
     };
 
     const confirmSaveApprovalMode = () => {
+        // In every mode but custom the provider's syncs set the approvers, so the backend deletes the workspace's approval workflow rules
+        const shouldDeleteApprovalWorkflowRules = hasApprovalWorkflowRules(rules, policyID) && draftApprovalMode !== config.approvalModes.CUSTOM;
         showConfirmModal({
             title: translate('workspace.merge.approvalModeWarningTitle'),
             prompt: (
                 <View style={[styles.renderHTML, styles.flexRow]}>
-                    <RenderHTML html={translate('workspace.merge.approvalModeWarningPrompt', providerName, CONST.CONFIGURE_APPROVAL_WORKFLOWS_HELP_URL)} />
+                    <RenderHTML
+                        html={
+                            shouldDeleteApprovalWorkflowRules
+                                ? translate('workspace.merge.approvalModeDeleteWorkflowsWarningPrompt', providerName, CONST.CONFIGURE_APPROVAL_WORKFLOWS_HELP_URL)
+                                : translate('workspace.merge.approvalModeWarningPrompt', providerName, CONST.CONFIGURE_APPROVAL_WORKFLOWS_HELP_URL)
+                        }
+                    />
                 </View>
             ),
             confirmText: translate('workspace.merge.approvalModeWarningConfirm'),
             cancelText: translate('common.cancel'),
+            ...(shouldDeleteApprovalWorkflowRules && {buttonVariant: CONST.BUTTON_VARIANT.DANGER}),
         }).then((result) => {
             if (result?.action !== ModalActions.CONFIRM) {
                 return;

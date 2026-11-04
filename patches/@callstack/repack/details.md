@@ -1,6 +1,6 @@
 # `@callstack/repack` patches
 
-### [@callstack+repack+5.3.0+001+clamp-dev-server-progress.patch](@callstack+repack+5.3.0+001+clamp-dev-server-progress.patch)
+### [@callstack+repack+5.4.1+001+clamp-dev-server-progress.patch](@callstack+repack+5.4.1+001+clamp-dev-server-progress.patch)
 
 - Reason:
 
@@ -12,32 +12,34 @@
     and resets it on the `watchRun` and `invalid` hooks when a new compilation starts.
     ```
 
-- Upstream PR/issue: https://github.com/callstack/repack/issues/1459 - filed with a standalone reproduction. Delete this patch once a release clamps the forwarded percentage.
+- Rewritten against 5.4.1 on the bump from 5.3.0. The 5.3.0 version of this patch targeted the pre-lazy-compilation `Compiler.js` and no longer applies: upstream released per-platform lazy compilation, so the progress handler now sits behind an `activePlatforms` guard and `isCompilationInProgress` is a per-platform record. Same clamp, new anchors.
+- Upstream PR/issue: https://github.com/callstack/repack/issues/1459 - filed with a standalone reproduction; closed as will-not-fix, so this stays until upstream changes its mind.
 - E/App issue: None. Reported during review of the PR below.
 - PR Introducing Patch: https://github.com/Expensify/App/pull/99407
 
-### [@callstack+repack+5.3.0+002+lazy-platform-compilation.patch](@callstack+repack+5.3.0+002+lazy-platform-compilation.patch)
+### [@callstack+repack+5.4.1+002+resume-stdin-for-ctrl-c.patch](@callstack+repack+5.4.1+002+resume-stdin-for-ctrl-c.patch)
 
 - Reason:
 
     ```
-    Back-port of upstream lazy platform compilation. On 5.3.0 the dev server starts every configured
-    platform compiling immediately, so a machine running one app also pays for a full compile of the
-    other platform (measured: iOS 188.3s and Android 190.7s, both compiled although only iOS was ever
-    requested). Narrowing the server to one platform does not fix it: that server cannot serve the
-    other platform's bundle at all, so a second app reusing the running server gets nothing.
-
-    This patch keeps every platform configured and parks each child compiler at its first watch run
-    until something actually asks for that platform's bundle. A platform is activated by
-    `getAsset`, i.e. by a bundle request, and only activated platforms emit progress and build
-    signals, so one progress stream serves the platform in use. Bookkeeping moved from the
-    MultiCompiler hooks to the child compilers because rspack only fires the aggregated `done` once
-    every child has reported, and a parked child never reports. `close()` releases parked compilations
-    before the compiler closes, as upstream does.
+    `npm run ios` / `npm run android` show a prompt before the dev server starts (simulator picker,
+    "port in use, use another port?"). The prompt framework closes with `input.unpipe()`, and Node's
+    `Readable.unpipe()` calls `pause()` on its source, so `process.stdin` is paused when the dev server
+    takes over. `setupInteractions` then calls `setRawMode(true)`, which clears the TTY's ISIG flag: the
+    kernel stops turning Ctrl+C into SIGINT, and the 0x03 byte is deliverable only as stream data. A
+    paused stream delivers nothing, so the `keypress` listener never fires, the `process.on('SIGINT')`
+    handler next to it is unreachable, and the process keeps serving bundles until something external
+    kills it. The `r` / `d` / `j` / `a` shortcuts are dead in the same session for the same reason.
+    This patch adds the `process.stdin.resume()` that `@rock-js/plugin-metro` does after entering raw mode.
     ```
 
-- Also updates `dist/commands/rspack/Compiler.d.ts`: its declarations describe the pre-patch shape (`isCompilationInProgress: boolean`) and omit the new members.
-- Depends on `001`: both patches edit the progress handling in `dist/commands/rspack/Compiler.js`, and this one is authored against the post-`001` file. Keep them in numeric order.
-- Upstream PR/issue: https://github.com/callstack/repack/pull/1430 - merged into `main`, not in any release yet; staged for 5.4.0 by https://github.com/callstack/repack/pull/1441. Delete this patch when a release containing it is pinned.
-- E/App issue: None. Found while answering review on the PR below.
-- PR Introducing Patch: https://github.com/Expensify/App/pull/99407
+- Reproduced and verified in a pseudo-terminal with real control bytes injected, against the published 5.4.1 tarball: before the patch the process is alive 4s after Ctrl+C with `stdin.isPaused() === true` and `r` does nothing; after the patch stdin flows, Ctrl+C exits the process, and `r` runs `onReload`.
+- Does not restore `Ctrl+Z` or `Ctrl+\`. Re.Pack maps `Ctrl+Z` to `process.emit('SIGTSTP')`, an emitter event with no listener anywhere in `@callstack/repack`, `@rock-js/*` or `repack-dev-server`, so nothing suspends the process; `Ctrl+\` has no keypress mapping at all. Both need key handling from upstream, separate from the paused stream this patch fixes.
+- Upstream PR/issue: https://github.com/callstack/repack/issues/1515 - open, filed with the same one-line fix and reproduction. `setupInteractions.js` is byte-identical in 5.4.2 and the canary at time of writing, so no upgrade escapes it. Drop this patch once upstream ships the resume.
+- E/App issue: https://github.com/Expensify/App/issues/105422
+- PR Introducing Patch: https://github.com/Expensify/App/pull/105612
+
+Removed on the bump to `@callstack/repack@5.4.1`:
+
+- `002+lazy-platform-compilation` — upstream released the feature (`dist/commands/rspack/Compiler.js` now parks each child compiler until `getAsset` requests that platform). Was https://github.com/callstack/repack/pull/1430.
+- `003+android-fonts-raw` and `004+android-keep-xml` — https://github.com/callstack/repack/issues/1472 fixed both: the assets loader emits `require()`'d font files to `res/raw` as well as `res/font` (`dist/loaders/assetsLoader/assetsLoader.js`), and the assets copy step writes `res/raw/keep.xml` with `tools:keep` for every copied resource (`dist/plugins/utils/AssetsCopyProcessor.js`), matching Metro. Verified against the published 5.4.1 tarball, and on device: Expensify/App#103243 shipped an AdHoc build on the 5.4.1 canary where fonts resolve from `raw` and all 765 `raw` assets plus 22 drawables survive `shrinkResources=true`. E/App issue: https://github.com/Expensify/App/issues/102619.

@@ -39,7 +39,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     dismissModalWithReport: jest.fn(),
     goBack: jest.fn(),
     getTopmostReportId: jest.fn(() => topMostReportID),
-    setNavigationActionToMicrotaskQueue: jest.fn(),
+    setNavigationActionToMicrotaskQueue: jest.fn((callback: () => void) => callback()),
     removeScreenByKey: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     getReportRouteByID: jest.fn(),
@@ -59,19 +59,6 @@ jest.mock('@react-navigation/native');
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
 const mockedIsReportTopmostSplitNavigator = jest.mocked(isReportTopmostSplitNavigator);
-// In production, requestMoney defers its API.write() call until the target screen's
-// content lays out (or a safety timeout fires). In tests there is no target component
-// to flush the deferred write, so we bypass the deferral by executing the callback immediately.
-jest.mock('@libs/deferredLayoutWrite', () => ({
-    registerDeferredWrite: (_key: string, callback: () => void) => callback(),
-    flushDeferredWrite: jest.fn(),
-    cancelDeferredWrite: jest.fn(),
-    hasDeferredWrite: () => false,
-    getOptimisticWatchKey: () => undefined,
-    deferOrExecuteWrite: (apiWrite: () => void) => apiWrite(),
-    reserveDeferredWriteChannel: jest.fn(),
-    resetForTesting: jest.fn(),
-}));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 const unapprovedCashHash = 71801560;
@@ -100,6 +87,10 @@ jest.mock('@src/libs/SearchQueryUtils', () => {
 
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    // This factory runs while PolicyUtils is still loading inside an import cycle, so the barrel's `export *` helpers
+    // aren't on it yet. Spread them from their own modules, which load fully.
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/members'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/expensifyTeam'),
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
     isGroupPolicy: jest.fn().mockReturnValue(true),
     isPolicyOwner: jest.fn().mockImplementation((policy?: OnyxEntry<Policy>, currentUserAccountID?: number) => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID),
@@ -724,6 +715,44 @@ describe('actions/IOU', () => {
                 await waitForBatchedUpdates();
 
                 // Then back returns to the report the expense lives on
+                expect(getConfirmationRouteBackTo()).toBe(ROUTES.REPORT_WITH_ID.getRoute(selfDMReport.reportID));
+            });
+
+            it('should defer navigating to the confirmation page until the draft workspace is merged in as the recipient', async () => {
+                // Given the real navigation deferral rather than the synchronous mock used by the other tests
+                const {selfDMReport, trackedExpense} = await setUpSelfDMTrackedExpense();
+                mockedIsReportTopmostSplitNavigator.mockReturnValue(false);
+                jest.mocked(Navigation.setNavigationActionToMicrotaskQueue).mockImplementationOnce(
+                    jest.requireActual<{default: typeof Navigation.setNavigationActionToMicrotaskQueue}>('@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue').default,
+                );
+
+                // When the expense is submitted to the employer and there is no workspace to submit to
+                createDraftTransactionAndNavigateToParticipantSelector({
+                    reportID: selfDMReport.reportID,
+                    reportActions: undefined,
+                    actionName: CONST.IOU.ACTION.SUBMIT,
+                    reportActionID: '1',
+                    introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                    draftTransactionIDs: [],
+                    activePolicy: undefined,
+                    userBillingGracePeriodEnds: undefined,
+                    amountOwed: 0,
+                    transaction: trackedExpense,
+                    currentUserAccountID: RORY_ACCOUNT_ID,
+                    currentUserEmail: RORY_EMAIL,
+                    currentUserLocalCurrency: '',
+                    submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
+                    defaultWorkspaceName: "Rory's Workspace",
+                    filteredPoliciesCount: 0,
+                    firstPolicy: undefined,
+                });
+
+                // Then navigation does not happen synchronously, because the participants merge has not landed yet and the
+                // confirmation page would render without a recipient and auto-open the Choose recipient picker
+                expect(Navigation.navigate).not.toHaveBeenCalled();
+
+                // And it happens once the merge has been applied
+                await waitForBatchedUpdates();
                 expect(getConfirmationRouteBackTo()).toBe(ROUTES.REPORT_WITH_ID.getRoute(selfDMReport.reportID));
             });
 

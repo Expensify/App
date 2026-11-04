@@ -1,7 +1,7 @@
 type ParseExpenseFiltersParams = {
     nlQuery: string;
     policyID?: string;
-    today?: string;
+    today: string;
 };
 
 export default ParseExpenseFiltersParams;

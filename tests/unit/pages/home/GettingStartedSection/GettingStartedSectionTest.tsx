@@ -17,6 +17,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../../../../utils/createMock';
+import {getGlobalFetchMock} from '../../../../utils/TestHelper';
 import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
 
 const TEST_POLICY_ID = 'ABC123';
@@ -124,6 +125,8 @@ describe('GettingStartedSection', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        // When rules are enabled, the section sends GetRules, so mock fetch to keep that request off the real network.
+        global.fetch = getGlobalFetchMock();
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -543,7 +546,9 @@ describe('GettingStartedSection', () => {
             const row = screen.getByText(/homePage\.gettingStartedSection\.connectAccounting:/);
             fireEvent.press(row);
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_ACCOUNTING.getRoute(TEST_POLICY_ID));
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                ROUTES.WORKSPACE_CONNECTIONS.getRoute(TEST_POLICY_ID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.ACCOUNTING),
+            );
         });
 
         it('navigates to workspace categories when "Customize categories" row is pressed', async () => {

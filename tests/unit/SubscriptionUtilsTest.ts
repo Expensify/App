@@ -1336,7 +1336,7 @@ describe('SubscriptionUtils', () => {
         });
 
         it('returns undefined when the user has no owned paid workspace', () => {
-            expect(getFreeTrialText(accountID, translate, {}, undefined, undefined, undefined)).toBeUndefined();
+            expect(getFreeTrialText(accountID, translate, {}, undefined, undefined, undefined, undefined)).toBeUndefined();
             expect(translateMock).not.toHaveBeenCalled();
         });
 
@@ -1347,7 +1347,7 @@ describe('SubscriptionUtils', () => {
                 choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
             };
 
-            expect(getFreeTrialText(accountID, translate, ownedPaidPolicies, introSelected, firstDayFreeTrial, lastDayFreeTrial)).toBe('preTrial');
+            expect(getFreeTrialText(accountID, translate, ownedPaidPolicies, introSelected, firstDayFreeTrial, lastDayFreeTrial, undefined)).toBe('preTrial');
             expect(translateMock).toHaveBeenCalledWith('subscription.billingBanner.preTrial.title');
         });
 
@@ -1359,7 +1359,7 @@ describe('SubscriptionUtils', () => {
             };
 
             const expectedRemainingDays = calculateRemainingFreeTrialDays(lastDayFreeTrial);
-            const result = getFreeTrialText(accountID, translate, ownedPaidPolicies, introSelected, firstDayFreeTrial, lastDayFreeTrial);
+            const result = getFreeTrialText(accountID, translate, ownedPaidPolicies, introSelected, firstDayFreeTrial, lastDayFreeTrial, undefined);
 
             expect(translateMock).toHaveBeenCalledWith('subscription.billingBanner.trialStarted.badgeTitle', {count: expectedRemainingDays});
             expect(result).toBe(`trialStarted:${expectedRemainingDays}`);
@@ -1369,7 +1369,31 @@ describe('SubscriptionUtils', () => {
             const firstDayFreeTrial = formatDate(subDays(new Date(), 20), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
             const lastDayFreeTrial = formatDate(subDays(new Date(), 2), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
 
-            expect(getFreeTrialText(accountID, translate, ownedPaidPolicies, undefined, firstDayFreeTrial, lastDayFreeTrial)).toBeUndefined();
+            expect(getFreeTrialText(accountID, translate, ownedPaidPolicies, undefined, firstDayFreeTrial, lastDayFreeTrial, undefined)).toBeUndefined();
+            expect(translateMock).not.toHaveBeenCalled();
+        });
+
+        it('returns undefined when the annual subscription is expiring soon, even during a free trial', () => {
+            // Given an owner on a free trial whose annual subscription ends within a month with auto-renew off
+            const firstDayFreeTrial = formatDate(subDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+            const lastDayFreeTrial = formatDate(addDays(new Date(), 30), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+            const introSelected: OnyxEntry<IntroSelected> = {
+                choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+            };
+            const privateSubscription: OnyxEntry<PrivateSubscription> = {
+                addNewUsersAutomatically: false,
+                autoRenew: false,
+                autoRenewLastChangedDate: '',
+                endDate: formatDate(addDays(new Date(), 10), CONST.DATE.FNS_FORMAT_STRING),
+                startDate: formatDate(subDays(new Date(), 355), CONST.DATE.FNS_FORMAT_STRING),
+                type: CONST.SUBSCRIPTION.TYPE.ANNUAL,
+            };
+
+            // When the badge text is computed
+            const result = getFreeTrialText(accountID, translate, ownedPaidPolicies, introSelected, firstDayFreeTrial, lastDayFreeTrial, privateSubscription);
+
+            // Then no trial badge is shown, so it matches the expiring-soon banner on the Subscription page
+            expect(result).toBeUndefined();
             expect(translateMock).not.toHaveBeenCalled();
         });
     });

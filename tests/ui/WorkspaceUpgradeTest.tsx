@@ -121,6 +121,59 @@ describe('WorkspaceUpgrade', () => {
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.SET_POLICY_RULES_ENABLED, 1);
     });
 
+    it('should not turn on auto-pay approved reports after upgrading when payments are not set up', async () => {
+        const policy: Policy = {
+            ...LHNTestUtils.getFakePolicy(),
+            areWorkflowsEnabled: true,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+        };
+
+        // Given a Collect workspace with reimbursements on but no business bank account
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        });
+
+        // And the upgrade page is opened for auto-pay approved reports
+        const {unmount} = renderPage(SCREENS.WORKSPACE.UPGRADE, {policyID: policy.id, featureName: CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.alias});
+
+        // When the workspace is upgraded and the upgrade page is left
+        fireEvent.press(screen.getByTestId('upgrade-button'));
+        await waitForBatchedUpdatesWithAct();
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPGRADE_TO_CORPORATE, 1);
+        unmount();
+        await waitForBatchedUpdates();
+
+        // Then auto-pay is not turned on, so it can't activate by itself once a bank account is connected later
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ENABLE_POLICY_AUTO_REIMBURSEMENT_LIMIT, 0);
+    });
+
+    it('should turn on auto-pay approved reports after upgrading when payments are set up', async () => {
+        const policy: Policy = {
+            ...LHNTestUtils.getFakePolicy(),
+            areWorkflowsEnabled: true,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+            achAccount: {bankAccountID: 1234, accountNumber: '', routingNumber: '', addressName: '', bankName: '', reimburser: ''},
+        };
+
+        // Given a Collect workspace with workflows, reimbursements, and a business bank account set up
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        });
+
+        // And the upgrade page is opened for auto-pay approved reports
+        const {unmount} = renderPage(SCREENS.WORKSPACE.UPGRADE, {policyID: policy.id, featureName: CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.alias});
+
+        // When the workspace is upgraded and the upgrade page is left
+        fireEvent.press(screen.getByTestId('upgrade-button'));
+        await waitForBatchedUpdatesWithAct();
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPGRADE_TO_CORPORATE, 1);
+        unmount();
+        await waitForBatchedUpdates();
+
+        // Then auto-pay is turned on
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ENABLE_POLICY_AUTO_REIMBURSEMENT_LIMIT, 1);
+    });
+
     it('should upgrade a Submit workspace to Corporate when unlocking a Control-tier rules feature', async () => {
         const policy: Policy = {...LHNTestUtils.getFakePolicy(), type: CONST.POLICY.TYPE.SUBMIT};
 
@@ -292,6 +345,50 @@ describe('WorkspaceUpgrade', () => {
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
+
+    it('should render the generic Control upgrade view instead of Advanced Approvals for auto-pay approved reports', async () => {
+        const policy: Policy = LHNTestUtils.getFakePolicy();
+
+        // Given that a policy is initialized in Onyx
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        });
+
+        // When the upgrade page is opened from the Auto-pay approved reports toggle, which requires Control but not advanced approvals
+        const {unmount} = renderPage(SCREENS.WORKSPACE.UPGRADE, {policyID: policy.id, featureName: CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.alias});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the generic Control title is shown
+        expect(await screen.findByText(TestHelper.translateLocal('workspace.upgrade.commonFeatures.title'))).toBeTruthy();
+
+        // And the Advanced Approvals copy is not shown
+        expect(screen.queryByText(TestHelper.translateLocal('workspace.upgrade.approvals.title'))).toBeNull();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it.each([CONST.UPGRADE_FEATURE_INTRO_MAPPING.preventSelfApproval.alias, CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoApproveCompliantReports.alias])(
+        'should keep the Advanced Approvals upgrade view for %s',
+        async (featureName) => {
+            const policy: Policy = LHNTestUtils.getFakePolicy();
+
+            // Given that a policy is initialized in Onyx
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            });
+
+            // When the upgrade page is opened from an approval toggle, which is an advanced approvals feature
+            const {unmount} = renderPage(SCREENS.WORKSPACE.UPGRADE, {policyID: policy.id, featureName});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the Advanced Approvals title is shown
+            expect(await screen.findByText(TestHelper.translateLocal('workspace.upgrade.approvals.title'))).toBeTruthy();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        },
+    );
 
     it.each([ROUTES.WORKSPACE_COMPANY_CARDS.getRoute('1'), ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute('1')])(
         'should resume the add-card flow nested under %s after acknowledging the company cards upgrade',

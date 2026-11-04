@@ -117,6 +117,31 @@ This document lists all implemented telemetry metrics in the Expensify App.
 - Technical: Autocomplete list finalized ([`src/components/Search/SearchAutocompleteList.tsx`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/components/Search/SearchAutocompleteList.tsx#L126))
 **Attributes**: `trigger: 'keyboard'` when opened via keyboard shortcut
 
+### Search Router Keystroke
+
+**Constant**: `CONST.TELEMETRY.SPAN_SEARCH_ROUTER_QUERY`
+**Sentry Name**: `ManualSearchRouterQuery`
+**Threshold**: None yet. P90 is set after about 2 weeks of baseline data, per `SIZE_TIER`. Compare before and after changes such as removing the input debounce per `query_length_bucket` (ideally also per `query_ordinal`), not as a single overall P90, because without the debounce the measured attempts shift toward short prefixes and `query_ordinal` counts different queries.
+**What's Measured**: Time from an input keystroke that produced a query to the autocomplete list committing updated suggestions while the Search Router is open. Rapid keystrokes coalesce so that each evaluation is measured from the keystroke that actually produced the query. Only typed queries are measured, and at most `CONST.TELEMETRY.SEARCH_ROUTER_MAX_MEASURED_QUERIES_PER_OPEN` query attempts are started per open session (see Notes for what is left out).
+**Start**: The input keystroke that produced the query. The span starts at the input change event's timestamp (native/DOM event time, on the same clock as `performance.now()`), so time the event spent waiting for a busy JS thread is included. `onSearchQueryChange` falls back to `performance.now()` when the timestamp is unavailable or invalid (missing, in the future, or older than `SEARCH_ROUTER_QUERY_MAX_DURATION_MS`). Note: On mWeb (e.g. Chrome on Android with predictive virtual keyboards), text entry often runs through IME composition where the live-markdown web input fires `onChangeText` without `onChange`, so the timestamp is unavailable and falls back to `performance.now()`; mWeb numbers should not be compared 1:1 with desktop or native. The span starts at that timestamp once the query settles for evaluation ([`src/components/Search/SearchRouter/SearchRouter.tsx`](https://github.com/Expensify/App/blob/main/src/components/Search/SearchRouter/SearchRouter.tsx), [`src/libs/telemetry/searchRouterQuerySpans.ts`](https://github.com/Expensify/App/blob/main/src/libs/telemetry/searchRouterQuerySpans.ts))
+**End**:
+- User sees: Autocomplete list committed with suggestions for the typed query (measured before paint; on-screen presentation may lag slightly)
+- Technical: Layout effect after the commit for that query via `markSearchRouterQueryCommitted()` ([`src/components/Search/SearchAutocompleteList.tsx`](https://github.com/Expensify/App/blob/main/src/components/Search/SearchAutocompleteList.tsx), [`src/libs/telemetry/searchRouterQuerySpans.ts`](https://github.com/Expensify/App/blob/main/src/libs/telemetry/searchRouterQuerySpans.ts)). The list's first commit after the recent-searches loading skeleton cancels the span as `list_mount` so initial open latency is left to `ManualOpenSearchRouter`.
+**Attributes**:
+- `query_length_bucket`: bucketed free-text character length with syntax filters stripped (`0-empty`: 0 chars, `1-short`: 1–2 chars, `2-medium`: 3–5 chars, `3-long`: 6–12 chars, `4-very-long`: >12 chars). Prefixed with numbers so Sentry sorts them in order; query text is never recorded
+- `has_filter`: boolean indicating whether the query contains syntax filters or autocomplete tokens (even when multiple filters like `from:` and `in:` are combined in the same query)
+- `autocomplete_key`: single syntax filter key currently being actively autocompleted under the cursor (e.g. `to`, `in`, normalized `reportField` for dynamic fields) or `'none'`. Only one filter can be actively autocompleted at a time; queries combining multiple filters are captured by `has_filter`
+- `query_ordinal`: 1-indexed attempt number in the current session (up to `CONST.TELEMETRY.SEARCH_ROUTER_MAX_MEASURED_QUERIES_PER_OPEN`)
+- `local_result_count`: number of local matches from `getSearchOptions` before ordering (`recentReports` + `personalDetails`); excludes autocomplete suggestions, `userToInvite` and server search results, so it can differ from the rows shown
+- `options_rebuilt`: whether the option list (`listOptions`) was rebuilt for this commit (e.g. first query after open/clear, when the cache is skipped and contacts are built, or after an Onyx update) instead of being reused; compare samples split by it
+- `render_duration_ms`: milliseconds from the debounced query being applied (state update scheduled) to the autocomplete list's layout-effect commit. Includes React scheduling, rendering of the SearchRouter subtree (option filtering, autocomplete suggestions, sections) and any other JS work in between; excludes the input/debounce wait.
+- `cancel_reason`: cancellation reason when cancelled (`superseded`, `cleared`, `closed`, `unmounted`, `list_mount`, `timed_out`, `options_not_ready`). A span running longer than `CONST.TELEMETRY.SEARCH_ROUTER_QUERY_MAX_DURATION_MS`, measured from its input start, is cancelled as `timed_out`, including when a slow or late render commits the list after that.
+**Notes**:
+- Keystrokes that don't outlast the debounce are never measured on their own, including retyping the last evaluated query right after clearing the input.
+- Queries set without typing, such as by picking a contextual or autocomplete suggestion, are not measured and don't count toward the cap.
+- Changing the query while the list is still evaluating the previous one cancels that span as `superseded`, or as `cleared` when the input is cleared.
+- A keystroke that reaches JS only after the list committed can't be detected, so that span still ends. This applies on every platform: the list render, its commit and the layout effect that ends the span run in one JS task, so a keystroke typed during a slow render waits in the event queue until the span has already ended.
+
 ### Open Create Expense
 
 **Constant**: `CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE`
@@ -142,6 +167,19 @@ This document lists all implemented telemetry metrics in the Expensify App.
 - Technical: Confirm-details container layout complete (onLayout event)
 **Attributes**: `report_id`, `route_from`
 **Notes**: The flow enters through a native OS share surface (the iOS Share Extension or Android share intent) and continues in the loaded app’s participant selector. It is scoped to the submit flow only (route `SHARE_SUBMIT_DETAILS`); the shared selector's track/share flow (`SHARE_DETAILS`) is not instrumented. Abandoned attempts (user backs out before the screen renders) are canceled on unmount and tagged `canceled`. The existing `ShareExtensionOpenSubmitFlow` name is retained for Sentry historical continuity.
+
+### Submit Expense to Destination Visible
+
+**Constant**: `CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE`
+**Sentry Name**: `ManualSubmitToDestinationVisible`
+**Threshold**: 400ms (P90)
+**What's Measured**: Time from submitting an expense to its destination (the report or Search) being on screen
+**Start**: The user submits an expense, from the confirmation step or a flow that skips it (`startTracking` in `src/libs/telemetry/submitFollowUpAction.ts`, called from `SubmitExpenseOrchestrator.tsx`, `submitWithDismissFirst.ts`, `SendMoney.ts` and `DynamicIOURequestStepCompanyInfo.tsx`)
+**End**:
+- User sees: The destination report or Search, possibly with deferred parts still showing placeholders
+- Technical: Destination focus or layout, depending on the follow-up action (`useSubmitToDestinationVisible`, `useEndSubmitNavigationSpans`, the deferred Search skeleton layout in `SearchWithNavigationDeferredMount.tsx`). For `dismiss_modal_only`, some dismiss paths end the span in their `afterTransition` callback (`submitDismissStrategies.ts`, `dismissModalAndOpenReportInInboxTab.ts`). The rest, e.g. dismissing a super-wide RHP, leave it to the destination report, which ends it on focus or layout (`ReportScreen.tsx`, `SearchMoneyRequestReportPage.tsx`)
+**Attributes**: `scenario`, `iou_type`, `iou_request_type`, `has_receipt`, `is_from_global_create`, `submit_follow_up_action`, `report_id`, `fast_path_handler`, `is_warm`, `was_list_empty`, `canceled`
+**Notes**: Measures perceived ready, not fully mounted. See [DEFER_AFTER_PAINT.md](DEFER_AFTER_PAINT.md#telemetry) for how deferred and pre-mounted destinations affect it. Spans still open after 60s are canceled and not sent.
 
 ### Send Message
 

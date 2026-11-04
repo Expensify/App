@@ -2,13 +2,13 @@
 title: Connect to Rillet
 description: Learn how to connect Rillet to Expensify with an API key to sync your accounting data.
 keywords: [New Expensify, Rillet integration, connect Rillet, Rillet API key, accounting sync, Rillet setup]
-internalScope: Audience is Workspace Admins connecting Rillet as an accounting integration. Covers adding the Rillet connection, entering the API key, and selecting a subsidiary. Does not cover configuring import, export, or advanced sync settings.
+internalScope: Audience is Workspace Admins connecting Rillet as an accounting integration. Covers adding the Rillet connection, entering the API key, and selecting an entity. Does not cover configuring import, export, or advanced sync settings.
 order: 1
 ---
 
 # Connect to Rillet
 
-Connect Rillet to your Expensify workspace to sync your accounting data. This article walks you through connecting Rillet, selecting a subsidiary, and completing the initial setup.
+Connect Rillet to your Expensify workspace to sync your accounting data. This article walks you through connecting Rillet, selecting an entity, and completing the initial setup.
 
 Once connected, the integration imports:
 
@@ -35,7 +35,7 @@ To connect Rillet, you must:
 3. In the **Connections** section next to **Rillet**, select **Connect**.
 4. In the **Rillet setup** page that opens, follow the on-screen instructions to generate an API key in Rillet, paste it into the **API key** field, and click **Confirm**.
 
-Expensify validates the API key, connects to your Rillet organization, and retrieves your available subsidiaries.
+Expensify validates the API key, connects to your Rillet organization, and retrieves your available entities.
 
 **Note:** Your API key is encrypted and stored securely on Expensify's servers. It is never exposed in the app or stored on your device.
 
@@ -48,11 +48,11 @@ Expensify validates the API key, connects to your Rillet organization, and retri
 After the connection is established, the **Connections** section updates to show your connected Rillet integration, including:
 
 - The connection status and last sync timestamp.
-- The selected subsidiary.
+- The selected entity.
 - The **Import**, **Export**, and **Advanced** configuration settings.
 - Additional integration options under **Other**.
 
-If your Rillet organization has multiple subsidiaries, you can choose which one to connect. If only one eligible subsidiary is available, Expensify selects it automatically. The selected subsidiary determines which accounting data is available in Expensify.
+If your Rillet organization has multiple entities, you can choose which one to connect. If only one eligible entity is available, Expensify selects it automatically. The selected entity determines which accounting data is available in Expensify.
 
 After the initial sync completes, you can configure your import, export, and advanced accounting settings. Learn how to [configure your Rillet import, export, and advanced settings](/articles/new-expensify/connections/rillet/Configure-Rillet).
 
@@ -84,6 +84,6 @@ Yes. Expensify encrypts your API key and stores it securely on its servers. The 
 
 Tax rates are only imported if your Rillet organization returns them. If no tax rates are available, tax rate options won't appear in Expensify.
 
-## Can I change which subsidiary is used?
+## Can I change which entity is used?
 
-Yes. If your Rillet organization has multiple subsidiaries, you can select a different subsidiary at any time from the **Connections** section. Expensify will sync data from the newly selected subsidiary, including its accounts, dimensions, and tax rates.
+Yes. If your Rillet organization has multiple entities, you can select a different entity at any time from the **Connections** section. Expensify will sync data from the newly selected entity, including its accounts, dimensions, and tax rates.

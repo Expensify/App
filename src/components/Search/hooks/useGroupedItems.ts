@@ -22,6 +22,7 @@ function getGroupedAccountIDs(data: SearchResults['data'] = {}): number[] {
 /**
  * Turns a search snapshot into the sorted rows a chart plots, grouped and ordered the way the query asks for.
  * Returns nothing until the snapshot holds data, which is what a caller reads as "not loaded yet".
+ * Caps the rows to the query's limit, since the backend may return more rows than the chart shows.
  */
 function useGroupedItems(searchResults: OnyxEntry<SearchResults>, queryJSON: Readonly<SearchQueryJSON> | undefined): GroupedItem[] | undefined {
     const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
@@ -30,7 +31,8 @@ function useGroupedItems(searchResults: OnyxEntry<SearchResults>, queryJSON: Rea
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const groupBy = queryJSON?.groupBy;
-    const [onyxPersonalDetailsList] = usePersonalDetailsByIDs(groupBy === CONST.SEARCH.GROUP_BY.FROM ? getGroupedAccountIDs(searchResults?.data) : undefined);
+    const shouldLoadGroupPersonalDetails = groupBy === CONST.SEARCH.GROUP_BY.FROM || groupBy === CONST.SEARCH.GROUP_BY.APPROVER;
+    const [onyxPersonalDetailsList] = usePersonalDetailsByIDs(shouldLoadGroupPersonalDetails ? getGroupedAccountIDs(searchResults?.data) : undefined);
 
     const sortedSections =
         searchResults?.data && queryJSON && groupBy && login
@@ -61,7 +63,9 @@ function useGroupedItems(searchResults: OnyxEntry<SearchResults>, queryJSON: Rea
               )
             : undefined;
 
-    return sortedSections && isGroupedItemArray(sortedSections) ? sortedSections : undefined;
+    const limitedSections = sortedSections && queryJSON?.limit ? sortedSections.slice(0, queryJSON.limit) : sortedSections;
+
+    return limitedSections && isGroupedItemArray(limitedSections) ? limitedSections : undefined;
 }
 
 export default useGroupedItems;

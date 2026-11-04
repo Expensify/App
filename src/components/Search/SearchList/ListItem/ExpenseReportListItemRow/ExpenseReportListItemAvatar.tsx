@@ -68,7 +68,14 @@ function ExpenseReportListItemAvatar({item}: ExpenseReportListItemAvatarProps) {
         );
     }
 
-    return <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR), styles.alignItemsStretch]}>{avatarContent}</View>;
+    return (
+        <View
+            style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR), styles.alignItemsStretch, styles.userSelectNone]}
+            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+        >
+            {avatarContent}
+        </View>
+    );
 }
 
 export default ExpenseReportListItemAvatar;

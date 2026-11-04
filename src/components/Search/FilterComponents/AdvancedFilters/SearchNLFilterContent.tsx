@@ -4,6 +4,7 @@
  */
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
+import ScrollView from '@components/ScrollView';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -13,6 +14,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {parseExpenseFilters} from '@libs/actions/Search';
+import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import {getFilterFromQuery} from '@libs/SearchQueryUtils';
 
 import variables from '@styles/variables';
@@ -25,8 +27,8 @@ import type {Route} from '@src/ROUTES';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import React, {useState} from 'react';
-import {View} from 'react-native';
+import React, {useEffect, useRef, useState} from 'react';
+import {Platform, View} from 'react-native';
 
 type SearchNLFilterContentProps = {
     /** Called with the destination route once the query is successfully parsed */
@@ -40,9 +42,12 @@ type SearchNLFilterContentProps = {
 
     /** Size of the submit button */
     size?: Exclude<ValueOf<typeof CONST.BUTTON_SIZE>, typeof CONST.BUTTON_SIZE.SMALL>;
+
+    /** Whether the input takes the focus once it is shown */
+    autoFocus?: boolean;
 };
 
-function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle, size = CONST.BUTTON_SIZE.MEDIUM}: SearchNLFilterContentProps) {
+function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle, size = CONST.BUTTON_SIZE.MEDIUM, autoFocus}: SearchNLFilterContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [nlQuery, setNlQuery] = useState('');
@@ -51,7 +56,18 @@ function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle,
     const {currentSearchQueryJSON} = useSearchQueryContext();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
+    const isMounted = useRef(true);
+    useEffect(
+        () => () => {
+            isMounted.current = false;
+        },
+        [],
+    );
+
     const handleSubmit = () => {
+        if (isLoading) {
+            return;
+        }
         const trimmedQuery = nlQuery.trim();
         if (!trimmedQuery) {
             return;
@@ -62,18 +78,30 @@ function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle,
         const policyID = !isPolicyIDNegated && queryPolicyIDValues?.at(0) ? queryPolicyIDValues.at(0) : activePolicyID;
         parseExpenseFilters(trimmedQuery, policyID)
             .then((result) => {
+                if (!isMounted.current) {
+                    return;
+                }
                 setIsLoading(false);
                 if (!result) {
                     return;
                 }
                 if (result.success) {
-                    const searchQuery = new URL(result.searchURL).searchParams.get('q') ?? '';
+                    let searchQuery: string;
+                    try {
+                        searchQuery = new URL(result.searchURL).searchParams.get('q') ?? '';
+                    } catch {
+                        setErrorMessage(translate('common.genericErrorMessage'));
+                        return;
+                    }
                     onSuccess(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery}));
                 } else {
                     setErrorMessage(result.message);
                 }
             })
             .catch(() => {
+                if (!isMounted.current) {
+                    return;
+                }
                 setIsLoading(false);
                 setErrorMessage(translate('common.genericErrorMessage'));
             });
@@ -81,7 +109,10 @@ function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle,
 
     return (
         <View style={[styles.flex1]}>
-            <View style={[styles.ph5, styles.pt4, containerStyle]}>
+            <ScrollView
+                style={[styles.flex1]}
+                contentContainerStyle={[styles.ph5, styles.pt4, containerStyle]}
+            >
                 <Text style={styles.mb5}>{translate('search.filters.describeSearch.description')}</Text>
                 <TextInput
                     label={translate('search.filters.describeSearch.inputLabel')}
@@ -90,17 +121,23 @@ function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle,
                     value={nlQuery}
                     onChangeText={setNlQuery}
                     onKeyPress={(e) => {
-                        if (e.nativeEvent.key !== 'Enter' || ('shiftKey' in e.nativeEvent && e.nativeEvent.shiftKey)) {
+                        if (Platform.OS !== 'web') {
                             return;
                         }
+                        // On web, nativeEvent is a native DOM KeyboardEvent; the cast is safe for IME composition detection.
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                        if (e.nativeEvent.key !== 'Enter' || ('shiftKey' in e.nativeEvent && e.nativeEvent.shiftKey) || isEnterWhileComposition(e as unknown as KeyboardEvent)) {
+                            return;
+                        }
+                        e.preventDefault();
                         handleSubmit();
                     }}
-                    autoFocus
+                    autoFocus={autoFocus}
                     autoGrowHeight
                     maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                 />
-            </View>
-            <View style={buttonContainerStyle ?? [styles.mtAuto, styles.m4, styles.mb5]}>
+            </ScrollView>
+            <View style={buttonContainerStyle ?? [styles.m4, styles.mb5]}>
                 <FormHelpMessage
                     isError
                     message={errorMessage}
@@ -109,7 +146,7 @@ function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle,
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={size}
                     isLoading={isLoading}
-                    isDisabled={isLoading}
+                    isDisabled={isLoading || !nlQuery.trim()}
                     onPress={handleSubmit}
                 >
                     <Button.KeyboardShortcut />
