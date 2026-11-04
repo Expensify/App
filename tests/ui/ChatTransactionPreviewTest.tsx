@@ -65,8 +65,8 @@ const splitAction = {
     reportActionID: 'split1',
     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
     created: '2026-10-20 00:00:00.000',
-    originalMessage: {IOUTransactionID: 'transaction1', type: CONST.IOU.REPORT_ACTION_TYPE.SPLIT, amount: 100, currency: 'USD'},
 } as ReportAction;
+const SEARCH_CHAT_QUERY = `q=${encodeURIComponent('type:chat')}`;
 
 /** Points snapshot-aware Onyx reads at the test's Search snapshot, the way the Search page does for its rows */
 function SearchSnapshotQueryProvider({children}: ChildrenProps) {
@@ -118,7 +118,7 @@ describe('ChatTransactionPreview', () => {
 
     it('opens split details with the chat reportID when pressed from a Search row', async () => {
         // Given a split preview rendered in a Type: Chat search row, where the active route is the Search root with no reportID
-        mockActiveRoute.mockReturnValue('search?q=type%3Achat');
+        mockActiveRoute.mockReturnValue(`search?${SEARCH_CHAT_QUERY}`);
         const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
 
         // When the split preview is pressed
@@ -140,7 +140,7 @@ describe('ChatTransactionPreview', () => {
         fireEvent.press(screen.getByText('Transaction preview'));
 
         // Then split details opens on top of Search with the chat reportID, so it is not the full screen not-found page
-        expect(navigateSpy).toHaveBeenCalledWith('search/split/split1?q=type%3Achat&reportID=chat1');
+        expect(navigateSpy).toHaveBeenCalledWith(`search/split/split1?${SEARCH_CHAT_QUERY}&reportID=chat1`);
     });
 
     it('keeps the split details route unchanged when pressed inside a chat', async () => {

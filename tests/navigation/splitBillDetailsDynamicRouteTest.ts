@@ -11,7 +11,7 @@ import type {NavigationState, PartialState} from '@react-navigation/native';
 const SUFFIX = DYNAMIC_ROUTES.SPLIT_BILL_DETAILS.path;
 const CHAT_REPORT_ID = '111';
 const REPORT_ACTION_ID = '222';
-const SEARCH_CHAT_ROUTE = 'search?q=type%3Achat';
+const SEARCH_CHAT_ROUTE = `search?q=${encodeURIComponent('type:chat')}`;
 
 type FocusedRoute = {name?: string; params?: unknown};
 
