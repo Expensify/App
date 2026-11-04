@@ -99,31 +99,20 @@ describe('service worker navigation', () => {
         [`/index.html?${APP_UPDATE_QUERY_PARAM}=true`, true],
     ])('uses cached HTML for ordinary visits and the network for upgrades to %s', async (pathname, isUpgrade) => {
         // Given a saved shell is available and only upgrades require fresh HTML
+        const response = createMock<Response>({});
+        mockMatchPrecache.mockResolvedValue(response);
+        mockUpgradeNavigation.mockResolvedValue(response);
         const handler = mockNavigationRoute.mock.calls.at(0)?.[0];
         const options = {url: new URL(pathname, 'https://new.expensify.com')};
 
         // When the worker handles a navigation
-        await handler?.(options);
+        const result = await handler?.(options);
 
         // Then ordinary visits do not start a network request and upgrades do not wait on a cache read
         expect(mockNetworkOnly.mock.calls.at(0)?.[0].networkTimeoutSeconds).toBeUndefined();
         expect(mockUpgradeNavigation).toHaveBeenCalledTimes(isUpgrade ? 1 : 0);
         expect(mockMatchPrecache).toHaveBeenCalledTimes(isUpgrade ? 0 : 1);
-    });
-
-    it('returns the saved shell without waiting for the network', async () => {
-        // Given the network would never respond but a complete installed shell is available
-        const response = createMock<Response>({});
-        mockMatchPrecache.mockResolvedValue(response);
-        mockUpgradeNavigation.mockImplementationOnce(() => new Promise<Response>(() => {}));
-        const handler = mockNavigationRoute.mock.calls.at(0)?.[0];
-
-        // When an ordinary visit opens the app
-        const result = await handler?.({url: new URL('https://new.expensify.com/r/123')});
-
-        // Then it opens the saved shell without starting the request that would hang
         expect(result).toBe(response);
-        expect(mockUpgradeNavigation).not.toHaveBeenCalled();
     });
 
     it('tries the network when the installed shell is missing', async () => {
