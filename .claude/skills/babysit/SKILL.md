@@ -72,7 +72,7 @@ claude-review and Codex skip drafts. While `notes` says the PR is a draft, expec
 3. Show the human the triage. For each finding: who posted it, `file:line`, your verdict (fix, dismiss, or escalate) with one line why, and the fix or reply you prepared. The human picks which findings to fix.
 4. Make only the fixes the human picked. Re-verify any fix that changes behavior with `/playwright-app-testing` or `/agent-device`.
 5. Show the human the batch: the diff, every drafted reply, and the threads you'd resolve. Wait for approval.
-6. Push, then reply: `git push origin HEAD`, post the approved replies, and resolve the threads you fixed or disproved. Replies go after the push so the fix is on the PR when the reviewer reads them.
+6. Push, then reply. Stage by path, never `git add -A`, `git add .` or `git commit -a`, because after a merge they stage the stale local `Mobile-Expensify` checkout and revert its pointer. `git diff --ignore-submodules=none upstream/main -- Mobile-Expensify` prints nothing unless the PR moves it on purpose, otherwise `git checkout upstream/main -- Mobile-Expensify`. Then `git push origin HEAD`, post the approved replies, and resolve the threads you fixed or disproved. Replies go after the push so the fix is on the PR when the reviewer reads them.
 7. Run `--watch` until the verdict changes, then start again at step 1.
 
 ## Replying
