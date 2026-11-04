@@ -163,7 +163,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     const {listID, listProps, shouldBeAlignedToTop, isFloatingMessageCounterVisible, isActionBadgeAboveViewport, scrollToBottomAndMarkReportAsRead, scrollToActionBadgeTarget} =
         useReportActionsListScroll({
             reportID,
-            sortedVisibleReportActions,
+            // Hidden surveys still prove that the selected page contains the newest action.
+            sortedVisibleReportActions: paymentFilteredVisibleReportActions,
             renderedVisibleReportActions: listData,
             reportActionIDToDisplayIndex,
             hasScrolledOverThreshold,

@@ -14,6 +14,7 @@ import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePrevious from '@hooks/usePrevious';
 import type useReportActionsScroll from '@hooks/useReportActionsScroll';
+import * as ReportScrollManager from '@hooks/useReportScrollManager';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
@@ -21,6 +22,7 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import type useUnreadMarker from '@hooks/useUnreadMarker';
 
 import DateUtils from '@libs/DateUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import Visibility from '@libs/Visibility';
 
@@ -32,6 +34,8 @@ import CollapsedSystemMessages from '@pages/inbox/report/CollapsedSystemMessages
 import ReportActionsList from '@pages/inbox/report/ReportActionsList';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
+import * as ReportActionsNewActionLiveTail from '@pages/inbox/report/useReportActionsNewActionLiveTail';
+import * as ReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
 import useScrollToEditingReportAction from '@pages/inbox/report/useScrollToEditingReportAction';
 
 import CONST from '@src/CONST';
@@ -374,6 +378,72 @@ describe('ReportActionsList (body)', () => {
     });
 
     describe('Support survey unread markers', () => {
+        it.each([
+            {hasUnreadMarker: true, hasNewestPage: true},
+            {hasUnreadMarker: false, hasNewestPage: true},
+            {hasUnreadMarker: true, hasNewestPage: false},
+            {hasUnreadMarker: false, hasNewestPage: false},
+        ])('handles a hidden newest survey (latest page loaded: $hasNewestPage, unread marker: $hasUnreadMarker)', ({hasUnreadMarker, hasNewestPage}) => {
+            // Given a cached survey newer than the reply, but not necessarily in the loaded page
+            const reply = {...mockReportActions[1], created: '2023-01-01 00:04:00.000'};
+            const survey = {...reply, reportActionID: 'hidden-survey', actionName: CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY, created: '2023-01-01 00:05:00.000'};
+            const supportReport = {...mockReport, type: CONST.REPORT.TYPE.SUPPORT_TICKET, lastVisibleActionCreated: survey.created};
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockUseOnyx.mockImplementation((key, options) =>
+                key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}` ? [supportReport, {status: 'loaded'}] : getMockOnyxValue(key, options),
+            );
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: hasNewestPage ? [survey, reply] : [reply],
+                sortedAllReportActions: [survey, reply],
+                hasNewerActions: !hasNewestPage,
+            });
+            mockUseUnreadMarker.mockReturnValue({unreadMarkerReportActionID: hasUnreadMarker ? reply.reportActionID : null, unreadMarkerReportActionIndex: hasUnreadMarker ? 0 : -1});
+            const markNewestActionAsRead = jest.fn();
+            mockUseMarkAsRead.mockReturnValue({markNewestActionAsRead, completeSkippedMarkAsRead: jest.fn()});
+            const scrollToBottom = jest.fn();
+            const scrollToIndex = jest.fn();
+            const openReportAtLiveTail = jest.fn();
+            const activeRouteSpy = jest.spyOn(Navigation, 'getReportRHPActiveRoute').mockReturnValue('');
+            const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+            const scrollManagerSpy = jest.spyOn(ReportScrollManager, 'default').mockReturnValue(createMock<ReturnType<typeof ReportScrollManager.default>>({scrollToBottom, scrollToIndex}));
+            const trackingSpy = jest
+                .spyOn(ReportUnreadMessageScrollTracking, 'default')
+                .mockReturnValue(createMock<ReturnType<typeof ReportUnreadMessageScrollTracking.default>>({setIsFloatingMessageCounterVisible: jest.fn()}));
+            const liveTailSpy = jest
+                .spyOn(ReportActionsNewActionLiveTail, 'default')
+                .mockReturnValue(createMock<ReturnType<typeof ReportActionsNewActionLiveTail.default>>({openReportAtLiveTail}));
+            const defaultScrollImplementation = mockUseReportActionsScroll.getMockImplementation();
+            mockUseReportActionsScroll.mockImplementation(jest.requireActual<{default: typeof useReportActionsScroll}>('@hooks/useReportActionsScroll').default);
+
+            try {
+                // When the user clicks the counter or Latest with the actual scroll hook mounted
+                renderReportActionsList();
+                const scrollResult = mockUseReportActionsScroll.mock.results.at(-1)?.value as ReturnType<typeof useReportActionsScroll> | undefined;
+                act(() => scrollResult?.scrollToBottomAndMarkReportAsRead());
+
+                // Then only a loaded latest page is marked read; a cached survey alone cannot prove freshness
+                expect(getCapturedVisibleActions()).not.toContain(survey);
+                expect(markNewestActionAsRead).toHaveBeenCalledTimes(hasNewestPage ? 1 : 0);
+                expect(openReportAtLiveTail).toHaveBeenCalledTimes(!hasNewestPage && !hasUnreadMarker ? 1 : 0);
+                if (hasUnreadMarker) {
+                    expect(scrollToIndex).toHaveBeenCalledWith(0);
+                } else {
+                    expect(scrollToBottom).toHaveBeenCalled();
+                }
+            } finally {
+                scrollManagerSpy.mockRestore();
+                trackingSpy.mockRestore();
+                liveTailSpy.mockRestore();
+                activeRouteSpy.mockRestore();
+                navigateSpy.mockRestore();
+                mockUseReportActionsScroll.mockReset();
+                if (defaultScrollImplementation) {
+                    mockUseReportActionsScroll.mockImplementation(defaultScrollImplementation);
+                }
+            }
+        });
+
         it('keeps the offline unread divider above the reply when a newer survey is hidden', () => {
             // Given a reply received offline and a newer hidden survey
             const supportReport = {...mockReport, type: CONST.REPORT.TYPE.SUPPORT_TICKET, lastReadTime: '2023-01-01 00:02:00.000'};
