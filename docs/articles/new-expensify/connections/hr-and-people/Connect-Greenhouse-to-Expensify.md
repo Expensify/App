@@ -5,6 +5,7 @@ keywords: [New Expensify, Greenhouse, Greenhouse integration, connect Greenhouse
 internalScope: Audience is Workspace Admins on Control plans. Covers connecting Greenhouse through the Recruiting page, completing the initial setup, choosing which candidates to import, setting the candidate approval mode, managing Greenhouse syncs, and disconnecting Greenhouse. Does not cover HR integrations, accounting integrations, or the legacy Greenhouse webhook integration in Expensify Classic.
 contentType: task
 platform: new
+order: 6
 ---
 
 # Connect Greenhouse to Expensify

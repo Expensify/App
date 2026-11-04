@@ -3,6 +3,7 @@ title: Connect an HR integration to Expensify
 description: Learn how to connect a supported HR provider to your Expensify workspace to sync employees and approval workflows, and how to find your provider with the Find integration search.
 keywords: [New Expensify, HR integration, connect HR, HR provider, HRIS, sync employees, Find integration, approval workflow]
 internalScope: Audience is Workspace Admins on Control plans. Covers the shared flow for connecting a supported HR provider to a workspace and finding a provider with the Find integration search. Does not cover provider-specific setup details (see the dedicated BambooHR, HiBob, and Workday articles), the Gusto and TriNet integrations, or accounting integrations.
+order: 1
 ---
 
 # Connect an HR integration to Expensify
@@ -18,7 +19,7 @@ Once connected, an HR integration can:
 
 You can connect only one HR platform to a workspace at a time.
 
-To import candidates from an applicant tracking system (ATS), such as Greenhouse, use the **Recruiting** page instead of the **HR** page. Learn how to [connect Greenhouse to Expensify](/articles/new-expensify/connections/Connect-Greenhouse-to-Expensify).
+To import candidates from an applicant tracking system (ATS), such as Greenhouse, use the **Recruiting** page instead of the **HR** page. Learn how to [connect Greenhouse to Expensify](/articles/new-expensify/connections/hr-and-people/Connect-Greenhouse-to-Expensify).
 
 ---
 
@@ -63,7 +64,7 @@ The **HR & People** tab on the **Connections** page lists the HR providers you c
 - UKG Ready
 - Workday
 
-Gusto and TriNet also appear on the **HR & People** tab, but they use a different setup process. Learn how to [connect Gusto to Expensify](/articles/new-expensify/connections/Connect-Gusto-to-Expensify) or [connect TriNet to Expensify](/articles/new-expensify/connections/TriNet).
+Gusto and TriNet also appear on the **HR & People** tab, but they use a different setup process. Learn how to [connect Gusto to Expensify](/articles/new-expensify/connections/hr-and-people/Connect-Gusto-to-Expensify) or [connect TriNet to Expensify](/articles/new-expensify/connections/hr-and-people/TriNet).
 
 ---
 
@@ -82,7 +83,7 @@ Gusto and TriNet also appear on the **HR & People** tab, but they use a differen
 
 > **Note:** During the initial sync, you'll see a **Your connection is syncing** message. The initial sync can take several minutes to complete, especially for larger HR accounts, so keep the page open until the sync finishes.
 
-For provider-specific setup details, see the dedicated articles for [BambooHR](/articles/new-expensify/connections/Connect-BambooHR-to-Expensify), [HiBob](/articles/new-expensify/connections/Connect-HiBob-to-Expensify), and [Workday](/articles/new-expensify/connections/Connect-Workday-to-Expensify).
+For provider-specific setup details, see the dedicated articles for [BambooHR](/articles/new-expensify/connections/hr-and-people/Connect-BambooHR-to-Expensify), [HiBob](/articles/new-expensify/connections/hr-and-people/Connect-HiBob-to-Expensify), and [Workday](/articles/new-expensify/connections/hr-and-people/Connect-Workday-to-Expensify).
 
 ---
 

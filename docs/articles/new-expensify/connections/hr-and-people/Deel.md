@@ -3,6 +3,7 @@ title: Integrate Deel and Expensify
 description: Learn how to integrate Expensify with Deel to automate expense syncing for employee reimbursements.
 keywords: [New Expensify, integrate Deel Expensify, Expensify Deel integration, expense syncing Deel, reimbursements Deel Expensify, approval workflow Deel]
 internalScope: Audience is Workspace Admins and Deel Organization Managers. Covers integrating Expensify with Deel and understanding how the sync works. Does not cover employee or contractor usage within Deel.
+order: 9
 ---
 
 # Integrate Deel and Expensify

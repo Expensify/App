@@ -2,6 +2,7 @@
 title: Rippling
 description: Learn how to sync employee and expense data between Expensify and Rippling for seamless management.
 keywords: [Rippling, Expensify integration, employee sync, expense reports, payroll]
+order: 10
 ---
 
 Expensify’s integration with Rippling allows you to sync employee and expense data effortlessly. This connection helps automate employee management, simplify access, and streamline expense reporting.
