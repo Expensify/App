@@ -2,7 +2,7 @@ import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationLi
 
 import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 
-import {isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
+import {isDistanceRequest as isDistanceRequestTransactionUtils, isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
 
 import useRequestMoneySubmission from '@pages/iou/request/step/confirmation/submission/useRequestMoneySubmission';
 import useTrackExpenseSubmission from '@pages/iou/request/step/confirmation/submission/useTrackExpenseSubmission';
@@ -25,7 +25,8 @@ type RequestMoneyConfirmationProps = ConfirmationVariantProps & {
  * Both submissions stay mounted so switching "To" doesn't remount the orchestrator and the list.
  */
 function RequestMoneyConfirmation({submissionPath, submissionParams, orchestratorProps, listProps}: RequestMoneyConfirmationProps) {
-    const {transaction, policy, iouType, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest, isPolicyExpenseChat, isSelfDMDestination, submitLock} = submissionParams;
+    const {transaction, policy, iouType, isManualDistanceRequest, isOdometerDistanceRequest, isPolicyExpenseChat, isSelfDMDestination, submitLock} = submissionParams;
+    const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
 
     const transactionTaxValues = getTransactionTaxValues({transaction, policy, iouType, isPolicyExpenseChat, isSelfDMDestination});
 
