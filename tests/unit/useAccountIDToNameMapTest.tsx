@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import useAccountIDToNameMap, {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
+import useAccountIDToNameMap, {getMentionedAccountIDs, useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
@@ -150,5 +150,81 @@ describe('useMentionedAccountIDToNameMap', () => {
         // Given the HTML contains no mention-user tags
         // Then the map should be empty
         expect(hook.result.current).toEqual({});
+    });
+
+    it('keeps the same reference when an unrelated personal detail changes', async () => {
+        // Given a map scoped to one mentioned user, while another user exists
+        await Onyx.set(
+            ONYXKEYS.PERSONAL_DETAILS_LIST,
+            buildList([
+                [1, createPersonalDetails(1, {login: 'alice@example.com'})],
+                [2, createPersonalDetails(2, {login: 'bob@example.com'})],
+            ]),
+        );
+        const hook = renderHook(() => useMentionedAccountIDToNameMap('<mention-user accountID="1"/>'));
+        await act(async () => {
+            await waitForBatchedUpdates();
+        });
+        const firstResult = hook.result.current;
+
+        // When the user who is not mentioned changes
+        const unmentionedAccountID = 2;
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[unmentionedAccountID]: {login: 'bob2@example.com'}});
+            await waitForBatchedUpdates();
+        });
+
+        // Then the selector output is unchanged, so the caller does not re-render for that write
+        expect(hook.result.current).toBe(firstResult);
+    });
+
+    it('updates when the mentioned user changes', async () => {
+        // Given a map scoped to one mentioned user
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, buildList([[1, createPersonalDetails(1, {login: 'alice@example.com'})]]));
+        const hook = renderHook(() => useMentionedAccountIDToNameMap('<mention-user accountID="1"/>'));
+        await act(async () => {
+            await waitForBatchedUpdates();
+        });
+        expect(hook.result.current['1']).toBe('alice@example.com');
+
+        // When that user's login changes
+        const mentionedAccountID = 1;
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[mentionedAccountID]: {login: 'alice2@example.com'}});
+            await waitForBatchedUpdates();
+        });
+
+        // Then the new login is what htmlToMarkdown will see
+        expect(hook.result.current['1']).toBe('alice2@example.com');
+    });
+});
+
+describe('getMentionedAccountIDs', () => {
+    it('collects every accountID form ExpensiMark accepts, once each', () => {
+        // Given HTML with quoted, unquoted, self-closing and duplicated user mentions, plus an attribute before accountID
+        const html = '<mention-user accountID="5"></mention-user> <mention-user accountID=6/> <mention-user data-x="y" accountID="5" /> <mention-user>@plain</mention-user>';
+
+        // When extracting the mentioned accountIDs
+        const accountIDs = getMentionedAccountIDs(html);
+
+        // Then each accountID appears once, as a number, and the tag without an accountID is ignored
+        expect(accountIDs).toEqual([5, 6]);
+    });
+
+    it('matches the tag case-insensitively like ExpensiMark does', () => {
+        // Given a mention tag in upper case, which ExpensiMark still converts
+        const html = '<MENTION-USER accountID="7"></MENTION-USER>';
+
+        // When extracting the mentioned accountIDs
+        // Then the upper case tag is not skipped by the pre-check
+        expect(getMentionedAccountIDs(html)).toEqual([7]);
+    });
+
+    it('returns an empty list when there is no user mention', () => {
+        // Given HTML without a mention-user tag, and no HTML at all
+        // When extracting the mentioned accountIDs
+        // Then nothing is returned, so callers subscribe to nothing
+        expect(getMentionedAccountIDs('hello <mention-report reportID="1"/>')).toEqual([]);
+        expect(getMentionedAccountIDs(undefined)).toEqual([]);
     });
 });

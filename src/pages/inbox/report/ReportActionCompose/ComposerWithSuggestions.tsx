@@ -4,16 +4,15 @@ import Composer from '@components/Composer';
 import type {ComposerRef, CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 
-import {buildAccountIDToNameMap, getMentionedAccountIDs} from '@hooks/useAccountIDToNameMap';
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePrevious from '@hooks/usePrevious';
-import {buildReportIDToNameMap} from '@hooks/useReportIDToNameMap';
+import {buildReportIDToNameMap, getMentionedReportIDs} from '@hooks/useReportIDToNameMap';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -63,6 +62,7 @@ import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {DeviceEventEmitter, NativeModules, StyleSheet, View} from 'react-native';
+import Onyx from 'react-native-onyx';
 import {useAnimatedRef} from 'react-native-reanimated';
 
 import type {SuggestionsRef} from './ReportActionCompose';
@@ -287,8 +287,10 @@ function ComposerWithSuggestions({
 
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [personalDetailsList] = useAllPersonalDetails();
+    // The last message is what ArrowUp opens for editing, so only the users it mentions need to be subscribed to
+    const lastReportActionMessage = Array.isArray(lastReportAction?.message) ? (lastReportAction?.message?.at(-1) ?? null) : (lastReportAction?.message ?? null);
+    const lastReportActionHtml = lastReportActionMessage?.html ?? '';
+    const accountIDToName = useMentionedAccountIDToNameMap(lastReportActionHtml);
 
     const commentRef = useRef(initialText);
 
@@ -577,13 +579,12 @@ function ComposerWithSuggestions({
         if (webEvent.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && selection.start <= 0 && isEmptyComment && !includeChronos) {
             webEvent.preventDefault();
             if (lastReportAction) {
-                const message = Array.isArray(lastReportAction?.message) ? (lastReportAction?.message?.at(-1) ?? null) : (lastReportAction?.message ?? null);
-                const html = message?.html ?? '';
-                const markdown = Parser.htmlToMarkdown(html, {
-                    reportIDToName: buildReportIDToNameMap(reports),
-                    accountIDToName: buildAccountIDToNameMap(personalDetailsList, getMentionedAccountIDs(html)),
+                // Report names were served by a module-level Onyx.connect in Parser until the hook migration, and this handler never runs inside a Search scope
+                // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces a module-level Onyx.connect used only by handlers, never read inside a Search scope
+                Onyx.get(ONYXKEYS.COLLECTION.REPORT).then((reports) => {
+                    const reportIDToName = buildReportIDToNameMap(reports, getMentionedReportIDs(lastReportActionHtml));
+                    saveReportActionDraft(reportID, lastReportAction, reportActions, Parser.htmlToMarkdown(lastReportActionHtml, {reportIDToName, accountIDToName}), isOffline);
                 });
-                saveReportActionDraft(reportID, lastReportAction, reportActions, markdown, isOffline);
             }
         }
         // Flag emojis like "Wales" have several code points. Default backspace key action does not remove such flag emojis completely.
