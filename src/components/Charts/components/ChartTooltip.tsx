@@ -56,6 +56,7 @@ type ChartTooltipProps = {
     /** Called once the content is laid out, which is the first moment it is on screen on native */
     onContentLayout?: () => void;
 
+    /** Called after the tooltip is dismissed by a press on it */
     onPress?: () => void;
 };
 
