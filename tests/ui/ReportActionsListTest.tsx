@@ -843,6 +843,30 @@ describe('ReportActionsList (body)', () => {
             });
         });
 
+        it('clears a completed streamed reply when an unrelated survey is filtered out', () => {
+            // Given an unresolved ticket with a saved reply and an obsolete survey.
+            const supportReport = {...mockReport, type: CONST.REPORT.TYPE.SUPPORT_TICKET};
+            const savedReply = {...conciergeDraftReportAction, reportActionID: 'saved-reply'};
+            const survey = {...conciergeDraftReportAction, reportActionID: 'obsolete-survey', actionName: CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY};
+            const actions = [savedReply, survey, ...mockReportActions];
+            const clearDraft = jest.fn();
+            mockUseOnyx.mockImplementation((key, options) =>
+                key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}` ? [supportReport, {status: 'loaded'}] : getMockOnyxValue(key, options),
+            );
+            mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions: actions, sortedAllReportActions: actions});
+            mockUseConciergeDraft.mockReturnValue({draftReportAction: savedReply, hasActiveDraft: true, isDraftPendingCompletion: false});
+            mockUseConciergeDraftActions.mockReturnValue({clearDraft, dispatchLocalDraftEvent: jest.fn(), revealDraftFromReportAction: jest.fn()});
+
+            // When survey filtering changes the rendered array without inserting a temporary reply.
+            renderReportActionsList();
+
+            // Then only the saved reply remains, and no synthetic autoscroll or retained reply is needed.
+            expect(getCapturedVisibleActions()?.filter((action) => action.reportActionID === savedReply.reportActionID)).toHaveLength(1);
+            expect(getCapturedVisibleActions()).not.toContain(survey);
+            expect(mockUseReportActionsScroll.mock.calls.at(-1)?.at(0)?.draftAutoScrollKey).toBe('');
+            expect(clearDraft).toHaveBeenCalledTimes(1);
+        });
+
         it('clears a completed draft when its saved action is outside the visible page', async () => {
             // Given a saved reply outside the pagination window while its draft is still revealing
             const persistedReportAction: OnyxTypes.ReportAction = {
