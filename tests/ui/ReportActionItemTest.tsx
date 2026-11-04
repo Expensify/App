@@ -271,6 +271,76 @@ describe('ReportActionItem', () => {
             expect(screen.getByText(DateUtils.datetimeToCalendarTime(CONST.LOCALES.EN, action.created, CONST.DEFAULT_TIME_ZONE.selected))).toBeOnTheScreen();
         });
 
+        it.each([
+            [CONST.REPORT.UNSUPPORTED_TYPE.BILL, CONST.REPORT.ACTIONS.TYPE.CREATED, 'created this bill on behalf of sender1@sender.com'],
+            [CONST.REPORT.UNSUPPORTED_TYPE.BILL, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, 'sent this bill to receiver@receiver.com'],
+            [CONST.REPORT.TYPE.INVOICE, CONST.REPORT.ACTIONS.TYPE.CREATED, 'created this invoice on behalf of sender1@sender.com'],
+            [CONST.REPORT.TYPE.INVOICE, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, 'sent this invoice to receiver@receiver.com'],
+        ] as const)('uses the submission emails when personal details omit names for %s %s', async (type, actionName, message) => {
+            // Given the API omits the other company's names and logins but includes both emails with the submission.
+            const senderAccountID = 321;
+            const isInvoice = type === CONST.REPORT.TYPE.INVOICE;
+            const report: Report = {
+                reportID: '9880',
+                type,
+                ownerAccountID: isInvoice ? senderAccountID : ACTOR_ACCOUNT_ID,
+                managerID: ACTOR_ACCOUNT_ID,
+                billSenderAccountID: isInvoice ? undefined : senderAccountID,
+            };
+            const createdAction = {...createReportAction(CONST.REPORT.ACTIONS.TYPE.CREATED, {}), reportActionID: '12344'};
+            const submittedAction = {
+                ...createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {to: 'receiver@receiver.com'}),
+                submitterEmail: 'sender1@sender.com',
+            };
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, isInvoice ? {billID: 9881} : {});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [createdAction.reportActionID]: createdAction,
+                    [submittedAction.reportActionID]: submittedAction,
+                });
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [ACTOR_ACCOUNT_ID]: {accountID: ACTOR_ACCOUNT_ID},
+                    [senderAccountID]: {accountID: senderAccountID},
+                    [CONST.ACCOUNT_ID.CONCIERGE]: {accountID: CONST.ACCOUNT_ID.CONCIERGE, displayName: 'Concierge', login: CONST.EMAIL.CONCIERGE},
+                });
+            });
+
+            // When the receiver opens the bill or the sender opens its invoice.
+            renderItemWithAction(actionName === CONST.REPORT.ACTIONS.TYPE.CREATED ? createdAction : submittedAction, false, report);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the history names the participant from the submission rather than displaying Hidden.
+            expect(screen.getByText('Concierge')).toBeOnTheScreen();
+            expect(screen.getByText(message)).toBeOnTheScreen();
+            expect(screen.queryByText(/on behalf of Hidden|sent this (bill|invoice) to Hidden/)).not.toBeOnTheScreen();
+        });
+
+        it('keeps the invoice submission receiver when the current manager changes', async () => {
+            // Given the invoice now has a different manager from the account that received its submission.
+            const currentManagerAccountID = 789;
+            const invoice: Report = {reportID: '9882', type: CONST.REPORT.TYPE.INVOICE, ownerAccountID: 321, managerID: currentManagerAccountID};
+            const action = {...createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {submittedTo: ACTOR_ACCOUNT_ID, to: 'receiver@receiver.com'}), actorAccountID: 321};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoice.reportID}`, invoice);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${invoice.reportID}`, {billID: 9883});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${invoice.reportID}`, {[action.reportActionID]: action});
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [ACTOR_ACCOUNT_ID]: {accountID: ACTOR_ACCOUNT_ID, displayName: 'Original receiver'},
+                    [currentManagerAccountID]: {accountID: currentManagerAccountID, displayName: 'Current manager'},
+                    [CONST.ACCOUNT_ID.CONCIERGE]: {accountID: CONST.ACCOUNT_ID.CONCIERGE, displayName: 'Concierge', login: CONST.EMAIL.CONCIERGE},
+                });
+            });
+
+            // When the sender opens the invoice's submission history.
+            renderItemWithAction(action, false, invoice);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the history names the account recorded on that submission, not the current manager.
+            expect(screen.getByText('sent this invoice to Original receiver')).toBeOnTheScreen();
+            expect(screen.queryByText('sent this invoice to Current manager')).not.toBeOnTheScreen();
+        });
+
         it('keeps the usual wording on an invoice that is not linked to a bill', async () => {
             // Given an invoice that was sent without bill intake, so it has no linked bill.
             const senderAccountID = 321;

@@ -68,6 +68,29 @@ function getBillProcessorAccountIDSelector(reportActions: OnyxEntry<ReportAction
     return getOriginalMessage(createdAction)?.processor;
 }
 
+function getBillPayHistoryParticipantSelector(reportActions: OnyxEntry<ReportActions>, reportActionID: string) {
+    const action = reportActions?.[reportActionID];
+    const isCreatedAction = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CREATED);
+    const submission = isCreatedAction
+        ? Object.values(reportActions ?? {}).find(
+              (reportAction) =>
+                  (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED)) &&
+                  !!reportAction.submitterEmail,
+          )
+        : action;
+    const originalMessage =
+        isActionOfType(submission, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(submission, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED)
+            ? getOriginalMessage(submission)
+            : undefined;
+
+    return {
+        isCreatedAction,
+        senderLogin: submission?.submitterEmail,
+        receiverLogin: originalMessage?.to,
+        receiverAccountID: originalMessage?.submittedTo,
+    };
+}
+
 function getReimbursedExpectedDateSelector(reportActions: OnyxEntry<ReportActions>, paymentCreated: string): string | undefined {
     let latestReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> | undefined;
     for (const reportAction of Object.values(reportActions ?? {})) {
@@ -192,6 +215,7 @@ function getParentReportActionWithoutThreadRepliesSelector(parentReportActions: 
 }
 
 export {
+    getBillPayHistoryParticipantSelector,
     getBillProcessorAccountIDSelector,
     getLatestFeedbackActionIDByAuthorSelector,
     getParentReportActionSelector,

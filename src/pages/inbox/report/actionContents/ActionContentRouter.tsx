@@ -196,7 +196,7 @@ function ActionContentRouter({
         return (
             <BillPayHistoryContent
                 reportID={actionOwnerReportID}
-                actionName={action.actionName}
+                reportActionID={action.reportActionID}
             />
         );
     }

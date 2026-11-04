@@ -379,6 +379,12 @@ function useReportActionAvatars({
         avatars = [firstAvatar, policyChatReportIcon];
     }
 
+    // Intake history credits Concierge even when personal details are missing or still use the account's email as its name.
+    if (isBillPayHistory && actorAccountID === CONST.ACCOUNT_ID.CONCIERGE) {
+        avatars = [{id: actorAccountID, type: CONST.ICON_TYPE_AVATAR, source: defaultAvatars.ConciergeAvatar, name: CONST.CONCIERGE_DISPLAY_NAME}];
+        avatarType = CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE;
+    }
+
     // When a human Concierge agent reveals themselves, show a subscript avatar
     // with Concierge as the main avatar and the agent as the secondary avatar
     if (humanAgentAccountID && avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE) {

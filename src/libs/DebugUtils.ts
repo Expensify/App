@@ -768,6 +768,7 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
         case 'childOldestFourAccountIDs':
         case 'childLastVisibleActionCreated':
         case 'actor':
+        case 'submitterEmail':
         case 'avatar':
         case 'childLastMoneyRequestComment':
         case 'reportActionTimestamp':
@@ -812,6 +813,7 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                 sequenceNumber: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 actionName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 actorAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                submitterEmail: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 actor: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 person: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 created: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1382,6 +1384,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 sequenceNumber: 'number',
                 actionName: CONST.REPORT.ACTIONS.TYPE,
                 actorAccountID: 'number',
+                submitterEmail: 'string',
                 actor: 'string',
                 person: 'array',
                 shouldShow: 'boolean',

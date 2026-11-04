@@ -70,7 +70,7 @@ describe('useReportActionAvatars', () => {
             expect(result.current.avatars.at(0)).toMatchObject({
                 id: expectedAccountID,
                 name: processor ? 'Tom Jones' : 'Concierge',
-                source: processor ? 'https://example.com/tom.png' : 'https://example.com/concierge.png',
+                source: processor ? 'https://example.com/tom.png' : expect.objectContaining({src: 'mock-ConciergeAvatar'}),
             });
         });
 
@@ -93,7 +93,7 @@ describe('useReportActionAvatars', () => {
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 [vendorAccountID]: {accountID: vendorAccountID, displayName: 'Vendor', avatar: 'https://example.com/vendor.png'},
                 [processorAccountID]: {accountID: processorAccountID, displayName: 'Tom Jones', avatar: 'https://example.com/tom.png'},
-                [CONST.ACCOUNT_ID.CONCIERGE]: {accountID: CONST.ACCOUNT_ID.CONCIERGE, displayName: 'Concierge', avatar: 'https://example.com/concierge.png'},
+                [CONST.ACCOUNT_ID.CONCIERGE]: {accountID: CONST.ACCOUNT_ID.CONCIERGE, displayName: CONST.EMAIL.CONCIERGE, login: CONST.EMAIL.CONCIERGE},
             });
             await waitForBatchedUpdates();
 
@@ -105,7 +105,7 @@ describe('useReportActionAvatars', () => {
             expect(result.current.avatars.at(0)).toMatchObject({
                 id: processor || CONST.ACCOUNT_ID.CONCIERGE,
                 name: processor ? 'Tom Jones' : 'Concierge',
-                source: processor ? 'https://example.com/tom.png' : 'https://example.com/concierge.png',
+                source: processor ? 'https://example.com/tom.png' : expect.objectContaining({src: 'mock-ConciergeAvatar'}),
             });
         });
     });

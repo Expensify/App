@@ -269,6 +269,9 @@ type OriginalMessageSubmitted = {
 
     expenseReportID?: string;
 
+    /** Account that received this submission, even if the report's current manager later changes. */
+    submittedTo?: number;
+
     /** Was the report submitted via harvesting (delayed submit) */
     harvesting?: boolean;
 

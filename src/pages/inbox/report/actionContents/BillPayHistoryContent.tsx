@@ -4,13 +4,14 @@ import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {displayNameOrDefaultSelector} from '@src/selectors/PersonalDetails';
-import type {Report, ReportAction} from '@src/types/onyx';
+import {getBillPayHistoryParticipantSelector} from '@src/selectors/ReportAction';
+import type {PersonalDetails, Report} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -18,7 +19,7 @@ import React from 'react';
 
 type BillPayHistoryContentProps = {
     reportID: string | undefined;
-    actionName: ReportAction['actionName'];
+    reportActionID: string;
 };
 
 // The vendor owns the invoice, and bill intake submits it to the receiver. The receiver owns the bill, and Auth sends the
@@ -32,13 +33,25 @@ const billPayParticipantsSelector = (report: OnyxEntry<Report>) => {
     };
 };
 
-function BillPayHistoryContent({reportID, actionName}: BillPayHistoryContentProps) {
+function BillPayHistoryContent({reportID, reportActionID}: BillPayHistoryContentProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const [participants] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {selector: billPayParticipantsSelector});
-    const isCreatedAction = actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
+    const [historyParticipant] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`, {
+        selector: (reportActions) => getBillPayHistoryParticipantSelector(reportActions, reportActionID),
+    });
+    const isCreatedAction = historyParticipant?.isCreatedAction;
+
+    // The API can omit names and logins from personal details for the other company. The submission already includes both emails.
+    const participantNameSelector = (personalDetails: PersonalDetails | undefined) =>
+        temporaryGetDisplayNameOrDefault({
+            passedPersonalDetails: personalDetails,
+            defaultValue: formatPhoneNumber((isCreatedAction ? historyParticipant?.senderLogin : historyParticipant?.receiverLogin) ?? ''),
+            translate,
+            formatPhoneNumber,
+        });
     const [participant = ''] = usePersonalDetail(
-        isCreatedAction ? participants?.senderAccountID : participants?.receiverAccountID,
-        displayNameOrDefaultSelector(translate, formatPhoneNumber),
+        isCreatedAction ? participants?.senderAccountID : (historyParticipant?.receiverAccountID ?? participants?.receiverAccountID),
+        participantNameSelector,
     );
 
     if (isCreatedAction) {
