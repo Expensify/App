@@ -1,7 +1,7 @@
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
-import {canSendWiseMoreInfo, getLastFourDigits} from '@libs/BankAccountUtils';
+import {canOpenWiseMoreInfoForm, getLastFourDigits} from '@libs/BankAccountUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,8 +24,8 @@ const wiseMoreInfoNeededBankAccountsSelector = (bankAccountList: OnyxEntry<BankA
     const bankAccounts: WiseMoreInfoNeededBankAccount[] = [];
     for (const bankAccount of Object.values(bankAccountList ?? {})) {
         const bankAccountID = bankAccount?.accountData?.bankAccountID;
-        // Only those who can send the info get the task
-        if (!bankAccountID || !canSendWiseMoreInfo(bankAccount)) {
+        // The task links to the Wise form, so skip accounts it would not open for
+        if (!bankAccountID || !canOpenWiseMoreInfoForm(bankAccount)) {
             continue;
         }
         bankAccounts.push({
