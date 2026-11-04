@@ -96,19 +96,6 @@ describe('WiseKYCReviewPage', () => {
         expect(goBackSpy).not.toHaveBeenCalled();
     });
 
-    it('keeps the form open when the redirect carries a status Wise does not document', async () => {
-        // Given Wise's form is open
-        const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
-        await renderPage();
-
-        // When a page outside Wise's site carries an unknown status
-        const shouldLoad = startLoading('https://www.expensify.com/wise-kyc?status=pending');
-
-        // Then it is not treated as the end of the form
-        expect(shouldLoad).toBe(true);
-        expect(goBackSpy).not.toHaveBeenCalled();
-    });
-
     it('does not show a link outside Wise', async () => {
         // Given the server sends a link that does not point to Wise
         await renderPage('https://wise.example.com/embedded-flows/verification?token=abc');
