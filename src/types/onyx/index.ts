@@ -126,7 +126,7 @@ import type ImportedSpreadsheet from './ImportedSpreadsheet';
 import type ImportedSpreadsheetMemberData from './ImportedSpreadsheetMemberData';
 import type InitiatingBankAccountUnlock from './InitiatingBankAccountUnlock';
 import type InsightsDashboard from './InsightsDashboard';
-import type {InsightsDashboardID, InsightsGraphKey, InsightsSearchKey} from './InsightsDashboard';
+import type {AIInsight, InsightsDashboardID, InsightsGraphKey, InsightsSearchKey} from './InsightsDashboard';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type JoinablePolicies from './JoinablePolicies';
@@ -203,6 +203,7 @@ import type ReportMetadata from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
 import type LastSearchParams from './ReportNavigation';
 import type ReportPaginationState from './ReportPaginationState';
+import type ReportUpcomingSteps from './ReportUpcomingSteps';
 import type ReportUserIsTyping from './ReportUserIsTyping';
 import type ReportViolationName from './ReportViolationName';
 import type Request from './Request';
@@ -228,7 +229,7 @@ import type Session from './Session';
 import type ShareBankAccount from './ShareBankAccount';
 import type ShareTempFile from './ShareTempFile';
 import type SidePanel from './SidePanel';
-import type {SidePanelContext} from './SidePanel';
+import type {InsightsScope, SidePanelContext} from './SidePanel';
 import type StripeCustomerID from './StripeCustomerID';
 import type SuggestedAgent from './SuggestedAgent';
 import type SuggestedAgentRule from './SuggestedAgentRule';
@@ -261,6 +262,7 @@ import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
+import type WiseBankAccountFields from './WiseBankAccountFields';
 import type {WiseKYCReviewEmbeddedLink} from './WiseKYCReview';
 import type WorkspaceMembersSelectedForBulkEdit from './WorkspaceMembersSelectedForBulkEdit';
 import type WorkspaceMembersSelectedForRoleChange from './WorkspaceMembersSelectedForRoleChange';
@@ -320,6 +322,7 @@ export type {
     FundList,
     GovernmentMileageRate,
     GpsDraftDetails,
+    AIInsight,
     InsightsDashboard,
     InsightsDashboardID,
     InsightsGraphKey,
@@ -405,6 +408,7 @@ export type {
     ReportLoadingState,
     ReportMetadata,
     ReportPaginationState,
+    ReportUpcomingSteps,
     ReportViolationName,
     ReportLayoutGroupBy,
     ReportLayoutOption,
@@ -491,6 +495,7 @@ export type {
     VerifyValidateCodeAction,
     ShareTempFile,
     CorpayFields,
+    WiseBankAccountFields,
     WiseKYCReviewEmbeddedLink,
     CorpayFormField,
     DynamicFormAddressField,
@@ -518,6 +523,7 @@ export type {
     EnableGlobalReimbursementsModal,
     SidePanel,
     SidePanelContext,
+    InsightsScope,
     LastPaymentMethodType,
     ReportAttributesDerivedValue,
     LastSearchParams,
