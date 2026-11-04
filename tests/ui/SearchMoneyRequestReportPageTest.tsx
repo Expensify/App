@@ -428,7 +428,7 @@ describe('SearchMoneyRequestReportPage bill access', () => {
             // When the page renders the bill
             renderPage({
                 allReportTransactions: {[transaction.transactionID]: transaction},
-                report: {...mockReport, type: CONST.REPORT.UNSUPPORTED_TYPE.BILL},
+                report: {...mockReport, type: CONST.REPORT.TYPE.BILL},
             });
             await waitForBatchedUpdatesWithAct();
 

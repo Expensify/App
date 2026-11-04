@@ -3063,7 +3063,7 @@ describe('SearchUIUtils', () => {
             // Given an expense search whose snapshot holds a bill with two expenses
             const data: OnyxTypes.SearchResults['data'] = {
                 ...searchResults.data,
-                [`${ONYXKEYS.COLLECTION.REPORT}${reportID3}`]: {...searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${reportID3}`], type: CONST.REPORT.UNSUPPORTED_TYPE.BILL},
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportID3}`]: {...searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${reportID3}`], type: CONST.REPORT.TYPE.BILL},
             };
 
             // When the sections are built. getSections takes no beta flag, so this covers users with the newDotBillPay beta too.
@@ -3103,7 +3103,7 @@ describe('SearchUIUtils', () => {
             } as OnyxTypes.ReportAction;
             const data: OnyxTypes.SearchResults['data'] = {
                 ...searchResults.data,
-                [`${ONYXKEYS.COLLECTION.REPORT}${reportID3}`]: {...searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${reportID3}`], type: CONST.REPORT.UNSUPPORTED_TYPE.BILL},
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportID3}`]: {...searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${reportID3}`], type: CONST.REPORT.TYPE.BILL},
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID3}`]: {[billCommentAction.reportActionID]: billCommentAction},
             };
 
