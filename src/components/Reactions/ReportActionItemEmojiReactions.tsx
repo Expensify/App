@@ -10,6 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getEmojiReactionDetails, mergeReactionsByEmoji} from '@libs/EmojiUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -22,7 +23,7 @@ import {isFullySupportedLocale} from '@src/CONST/LOCALES';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActionReactions} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import sortBy from 'lodash/sortBy';
 import React from 'react';
@@ -78,7 +79,11 @@ function ReportActionItemEmojiReactions({reportAction, reportID, isEditingInline
 
     const reportActionID = reportAction.reportActionID;
     const [emojiReactions = getEmptyObject<ReportActionReactions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+    // The actions are only read when a reaction is toggled, and that can't happen before the action has a reaction.
+    // Every sent message updates them, so subscribing on rows without reactions would re-render all of them.
+    // Removing the last reaction leaves the emoji entry with null users, so the users are checked instead of the entries.
+    const hasActiveReactions = Object.values(emojiReactions).some((reaction) => Object.values(reaction?.users ?? {}).some((user) => !isEmptyObject(user?.skinTones)));
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(hasActiveReactions ? reportID : undefined)}`);
 
     // Prime the locale emoji table when this action has reactions.
     // Skip the default locale since getLocalizedEmojiName never reads localeEmojis for it.
