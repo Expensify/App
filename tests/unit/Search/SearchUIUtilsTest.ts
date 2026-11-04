@@ -11855,7 +11855,7 @@ describe('SearchUIUtils', () => {
             const results: OnyxTypes.SearchResults = {
                 data: {
                     personalDetailsList: {},
-                    report_billReportID: {reportID: billReportID, type: CONST.REPORT.UNSUPPORTED_TYPE.BILL},
+                    report_billReportID: {reportID: billReportID, type: CONST.REPORT.TYPE.BILL},
                     transactions_billTransactionID: {
                         transactionID: 'billTransactionID',
                         reportID: billReportID,

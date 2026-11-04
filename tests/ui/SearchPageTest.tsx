@@ -754,7 +754,7 @@ describe('SearchPageNarrow', () => {
         const snapshotWithBill = getExpenseSnapshot(false);
         snapshotWithBill.data = {
             ...snapshotWithBill.data,
-            [`${ONYXKEYS.COLLECTION.REPORT}1`]: {...snapshotWithBill.data[`${ONYXKEYS.COLLECTION.REPORT}1`], type: CONST.REPORT.UNSUPPORTED_TYPE.BILL},
+            [`${ONYXKEYS.COLLECTION.REPORT}1`]: {...snapshotWithBill.data[`${ONYXKEYS.COLLECTION.REPORT}1`], type: CONST.REPORT.TYPE.BILL},
         };
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, snapshotWithBill);
