@@ -43,7 +43,13 @@ const discardStaleSearchSnapshot: Middleware = (requestResponse, request) =>
         const hash = request?.data?.hash;
         const jsonQuery = request?.data?.jsonQuery;
         const queuedInlineEditWritesCountWhenSent = typeof jsonQuery === 'string' ? guardedSearchQueries.get(jsonQuery) : undefined;
-        if (request?.command !== READ_COMMANDS.SEARCH || typeof hash !== 'number' || typeof jsonQuery !== 'string' || queuedInlineEditWritesCountWhenSent === undefined || !response?.onyxData) {
+        if (
+            request?.command !== READ_COMMANDS.SEARCH ||
+            typeof hash !== 'number' ||
+            typeof jsonQuery !== 'string' ||
+            queuedInlineEditWritesCountWhenSent === undefined ||
+            !response?.onyxData
+        ) {
             return response;
         }
 
