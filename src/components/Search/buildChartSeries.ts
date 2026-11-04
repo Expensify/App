@@ -40,8 +40,11 @@ type ChartComparedRows = {
 
 /** One value every group is compared against, drawn as a horizontal line */
 type ChartAverage = {
-    /** The average, in the same units and currency as a group's total */
-    total: number;
+    /** The average, in the units of the chart's metric: a group's total, in its units and currency, or its number of expenses */
+    value: number;
+
+    /** The average group total, named beside a count average, in the same units and currency as a group's total */
+    total?: number;
 };
 
 /** What the chart is compared against, drawn as a second series */
@@ -49,7 +52,7 @@ type ChartComparison = ChartComparedRows | ChartAverage;
 
 /** Returns whether the chart is compared against an average rather than other rows */
 function isChartAverage(comparison: ChartComparison | undefined): comparison is ChartAverage {
-    return !!comparison && 'total' in comparison;
+    return !!comparison && 'value' in comparison;
 }
 
 /** Tooltip label of the average for each group-by */
@@ -159,8 +162,7 @@ function buildChartSeries({
 }: BuildChartSeriesParams): SearchChartModel {
     const {getDateRange} = CHART_GROUP_BY_CONFIG[groupBy];
     const isCountMetric = metric === CONST.SEARCH.CHART_METRIC.COUNT;
-    // The average is an average of spend, so a chart plotting counts has nothing to compare it against.
-    const average = !isCountMetric && isChartAverage(comparison) ? comparison : undefined;
+    const average = isChartAverage(comparison) ? comparison : undefined;
     const comparedRows = comparison && !isChartAverage(comparison) ? comparison : undefined;
     const periods = comparedRows?.periods;
     const getValue = (item: GroupedItem) => (isCountMetric ? item.count : convertToFrontendAmountAsInteger(item.total ?? 0, getCurrencyDecimals(item.currency ?? CONST.CURRENCY.USD)));
@@ -171,12 +173,14 @@ function buildChartSeries({
     // A time bucket's counterpart covers other dates, so compared time buckets are keyed by start date. Other groups match by their own key.
     const comparedByKey = new Map(comparedRows?.data.map((item) => [(periods && getDateRange?.(item)?.start) ?? item.keyForList, item]));
     // The average is in the same currency as the rows
-    const averageValue = average && convertToFrontendAmountAsInteger(average.total, getCurrencyDecimals(data.at(0)?.currency ?? CONST.CURRENCY.USD));
+    const averageCurrency = data.at(0)?.currency;
+    const averageValue = average && (isCountMetric ? average.value : convertToFrontendAmountAsInteger(average.value, getCurrencyDecimals(averageCurrency ?? CONST.CURRENCY.USD)));
+    const averageTotal = average?.total === undefined ? undefined : formatTotal?.(average.total, averageCurrency);
 
     /** Returns a group's compared value, share and total, plus its bucket labels when it is compared against another period, or nothing when the chart isn't compared */
     const getCompared = (item: GroupedItem) => {
         if (averageValue !== undefined) {
-            return {value: averageValue, percentOfTotal: undefined};
+            return {value: averageValue, percentOfTotal: undefined, total: averageTotal};
         }
         if (!comparedRows) {
             return undefined;
@@ -312,4 +316,4 @@ function buildChartSeries({
 }
 
 export {buildChartSeries, getSliceColorsByDataIndex, isChartAverage, CHART_SERIES_KEY};
-export type {ChartComparison, SearchChartModel};
+export type {ChartAverage, ChartComparison, SearchChartModel};

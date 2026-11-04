@@ -1,8 +1,12 @@
+import type {ChartAverage} from '@components/Search/buildChartSeries';
+import type {SearchChartMetric} from '@components/Search/types';
+
 import {hasGroupWithExpenses} from '@libs/resolveInsightsChartData';
 import {isGroupEntry, isSearchDataLoaded} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import type {InsightsDashboard} from '@src/types/onyx';
+import type {InsightsGraph} from '@src/types/onyx/InsightsDashboard';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -26,9 +30,17 @@ type InsightsDashboardState = ValueOf<typeof INSIGHTS_DASHBOARD_STATE>;
 type InsightsDashboardChart = InsightsChartQuery & {
     snapshot: OnyxEntry<SearchResults>;
     previousPeriodSnapshot?: OnyxEntry<SearchResults>;
-    averageTotal?: number;
+    average?: ChartAverage;
     isDashboardLoaded?: boolean;
 };
+
+/** Returns the graph's average of the metric its chart plots, with the average amount beside a count. */
+function getGraphAverage(graph: InsightsGraph | undefined, metric: SearchChartMetric | undefined): ChartAverage | undefined {
+    if (metric === CONST.SEARCH.CHART_METRIC.COUNT) {
+        return graph?.averageCount === undefined ? undefined : {value: graph.averageCount, total: graph.averageAmount};
+    }
+    return graph?.averageAmount === undefined ? undefined : {value: graph.averageAmount};
+}
 
 /** Checks whether GetInsights has responded for the dashboard's filters, since only its response sets `inputQuery`. */
 function hasDashboardResponse(dashboard: OnyxEntry<InsightsDashboard>): boolean {
@@ -72,5 +84,5 @@ function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: b
     return INSIGHTS_DASHBOARD_STATE.READY;
 }
 
-export {INSIGHTS_DASHBOARD_STATE, getDashboardState, hasDashboardResponse};
+export {INSIGHTS_DASHBOARD_STATE, getDashboardState, getGraphAverage, hasDashboardResponse};
 export type {InsightsDashboardState, InsightsDashboardChart};

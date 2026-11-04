@@ -432,7 +432,7 @@ describe('buildChartSeries', () => {
         // When the series is built for a bar chart compared against the average
         const {series, rows} = buildChartSeries({
             data,
-            comparison: {total: 43000},
+            comparison: {value: 43000},
             groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
             translate: translateLocal,
             dateFnsLocale: undefined,
@@ -757,8 +757,8 @@ describe('buildChartSeries with the count metric', () => {
         expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([6, 5]);
     });
 
-    it('drops the average from a chart of counts, since the average the search returns is one of spend', () => {
-        // Given merchant groups plotted by how many expenses they hold, and the all-merchant average spend
+    it('draws a count average as the expense count itself, naming the average amount beside it', () => {
+        // Given merchant groups plotted by how many expenses they hold, and the average number of expenses and amount per merchant
         const data = [merchantGroup('Person', 480000, 12), merchantGroup('Target', 190000, 41)];
 
         // When the series is built for a bar chart plotting counts against the average
@@ -768,16 +768,18 @@ describe('buildChartSeries with the count metric', () => {
             dateFnsLocale: undefined,
             colorScheme: CONST.COLOR_SCHEME.LIGHT,
             data,
-            comparison: {total: 43000},
+            comparison: {value: 26.5, total: 335000},
             metric: CONST.SEARCH.CHART_METRIC.COUNT,
             view: CONST.SEARCH.VIEW.BAR,
             getLabel,
             getCurrencyDecimals,
+            formatTotal: (total) => `$${total / 100}`,
         });
 
-        // Then only the primary series is drawn, because a line at $430 on an axis counting expenses would measure neither
-        expect(series).toHaveLength(1);
-        expect(rows.every((row) => row.point.values[CHART_SERIES_KEY.COMPARISON] === undefined)).toBe(true);
+        // Then every group carries the fractional count as is, since dividing it like cents would sink the line below the counts, and the average amount for the tooltip to name
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([26.5, 26.5]);
+        expect(rows.map((row) => row.point.seriesTotals?.[CHART_SERIES_KEY.COMPARISON])).toEqual(['$3350', '$3350']);
+        expect(series.at(1)).toEqual({key: CHART_SERIES_KEY.COMPARISON, label: 'All-merchant average', isAverage: true});
     });
 
     it('names the money each group totals beside its count, since a count says nothing about the spend behind it', () => {
