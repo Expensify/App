@@ -139,7 +139,8 @@ function useReportActionsListRenderItem({
         const isAfterCollapsedRun = !!previousRun && !previousRun.isExpanded;
         const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
 
-        // Bill Pay history overrides the stored submission actor, so either neighbor needs its own actor header.
+        // Bill Pay history replaces the stored submission actor.
+        // Keep separate actor headers for the submission and the actions immediately before and after it.
         const shouldKeepBillPayActorHeaders =
             isBillPaySubmittedAction(reportAction, reportStable, isInvoiceLinkedToBill) || isBillPaySubmittedAction(previousReportAction, reportStable, isInvoiceLinkedToBill);
 
