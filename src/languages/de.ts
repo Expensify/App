@@ -3143,6 +3143,14 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: 'Zusätzliche Informationen verifizieren',
                 subtitle: 'Unser Zahlungspartner benötigt direkt weitere Informationen. Das sollte nur ein paar Minuten dauern.',
             },
+            inReview: {
+                title: 'In Prüfung',
+                heading: 'Wir haben alles, was wir brauchen.\nSie hören von uns!',
+                description: 'Die meisten Prüfungen dauern ein bis zwei Tage. Wir senden Ihnen eine Nachricht mit einem Update.',
+                chatWithConcierge: 'Mit Concierge chatten',
+            },
+            approved: {title: 'Konto genehmigt', heading: 'Zur weltweiten Zahlung freigegeben', description: 'Bezahlen Sie Mitglieder, wo immer sie sind.'},
+            rejected: {title: 'Bankkonto abgelehnt', heading: 'Unser Partner hat Ihr Bankkonto abgelehnt', description: 'Chatten Sie mit Concierge, um weitere Informationen zu erhalten.'},
         },
         wiseGlobalReimbursementsIntro: {
             title: 'Globale Rückerstattungen einrichten?',

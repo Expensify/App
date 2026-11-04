@@ -3216,6 +3216,22 @@ const translations = {
                 title: 'Verify additional info',
                 subtitle: 'Our payments partner needs more info directly. This should only take a couple of minutes.',
             },
+            inReview: {
+                title: 'In review',
+                heading: "We got what we need.\nYou'll hear from us!",
+                description: "Most reviews take one to two days. We'll message you with an update.",
+                chatWithConcierge: 'Chat with Concierge',
+            },
+            approved: {
+                title: 'Account approved',
+                heading: 'Approved to pay worldwide',
+                description: 'Pay members wherever they are.',
+            },
+            rejected: {
+                title: 'Bank account rejected',
+                heading: 'Our partner rejected your bank account',
+                description: 'Chat with Concierge for more information.',
+            },
         },
         wiseGlobalReimbursementsIntro: {
             headerTitle: 'Global reimbursements',

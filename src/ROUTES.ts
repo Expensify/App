@@ -246,6 +246,12 @@ const DYNAMIC_ROUTES = {
         path: 'more-info-needed',
         entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO],
     },
+    WISE_ONBOARDING_STATUS: {
+        path: 'status',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO],
+        getRoute: (status: ValueOf<typeof CONST.WISE.ONBOARDING_STATUS_PAGE>) => getUrlWithParams('status', {status}),
+        queryParams: ['status'],
+    },
     BANK_ACCOUNT_LINK_PLAID: {
         path: ':bankAccountID/link-plaid',
         entryScreens: [SCREENS.SETTINGS.WALLET.ROOT],

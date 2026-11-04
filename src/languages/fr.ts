@@ -3148,6 +3148,14 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: 'Vérifier des informations supplémentaires',
                 subtitle: 'Notre partenaire de paiement a besoin de plus d’informations directement. Cela ne devrait prendre que quelques minutes.',
             },
+            inReview: {
+                title: "En cours d'examen",
+                heading: 'Nous avons tout ce dont nous avons besoin.\nVous aurez de nos nouvelles !',
+                description: 'La plupart des examens prennent un à deux jours. Nous vous enverrons un message avec une mise à jour.',
+                chatWithConcierge: 'Discuter avec Concierge',
+            },
+            approved: {title: 'Compte approuvé', heading: 'Approuvé pour être payé dans le monde entier', description: "Payez les membres où qu'ils soient."},
+            rejected: {title: 'Compte bancaire rejeté', heading: 'Notre partenaire a rejeté votre compte bancaire', description: "Discutez avec Concierge pour plus d'informations."},
         },
         wiseGlobalReimbursementsIntro: {
             title: 'Configurer les remboursements globaux ?',
