@@ -40,6 +40,8 @@ const translations: TranslationDeepObject<typeof en> = {
         billSubmitted: ({receiver}) => `将此账单发送给 ${receiver}`,
         invoiceCreated: ({sender}) => `代表 ${sender} 创建了此发票`,
         invoiceSubmitted: ({receiver}) => `将此发票发送给 ${receiver}`,
+        markAsPaid: '标记为已支付',
+        paymentFailed: '无法支付此账单。请重试。',
     },
     common: {
         durationDays: ({count}: {count: number}) => ({

@@ -37,6 +37,8 @@ const translations: TranslationDeepObject<typeof en> = {
         billSubmitted: ({receiver}) => `έστειλε αυτόν τον λογαριασμό στον ${receiver}`,
         invoiceCreated: ({sender}) => `δημιούργησε αυτό το τιμολόγιο εκ μέρους του ${sender}`,
         invoiceSubmitted: ({receiver}) => `έστειλε αυτό το τιμολόγιο στον ${receiver}`,
+        markAsPaid: 'Σήμανση ως πληρωμένο',
+        paymentFailed: 'Δεν μπορέσαμε να πληρώσουμε αυτόν τον λογαριασμό. Δοκιμάστε ξανά.',
     },
     common: {
         durationDays: ({count}: {count: number}) => ({

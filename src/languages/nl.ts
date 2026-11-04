@@ -40,6 +40,8 @@ const translations: TranslationDeepObject<typeof en> = {
         billSubmitted: ({receiver}) => `heeft deze factuur verzonden naar ${receiver}`,
         invoiceCreated: ({sender}) => `heeft deze factuur aangemaakt namens ${sender}`,
         invoiceSubmitted: ({receiver}) => `heeft deze factuur verzonden naar ${receiver}`,
+        markAsPaid: 'Markeren als betaald',
+        paymentFailed: 'We konden deze factuur niet betalen. Probeer het opnieuw.',
     },
     common: {
         durationDays: ({count}: {count: number}) => ({

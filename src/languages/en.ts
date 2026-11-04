@@ -48,6 +48,8 @@ const translations = {
         billSubmitted: ({receiver}: {receiver: string}) => `sent this bill to ${receiver}`,
         invoiceCreated: ({sender}: {sender: string}) => `created this invoice on behalf of ${sender}`,
         invoiceSubmitted: ({receiver}: {receiver: string}) => `sent this invoice to ${receiver}`,
+        markAsPaid: 'Mark as paid',
+        paymentFailed: 'We couldn’t pay this bill. Please try again.',
     },
     bulkActionBar: {
         label: 'Bulk actions',

@@ -40,6 +40,8 @@ const translations: TranslationDeepObject<typeof en> = {
         billSubmitted: ({receiver}) => `この請求書を ${receiver} に送信しました`,
         invoiceCreated: ({sender}) => `${sender} に代わってこの請求書を作成しました`,
         invoiceSubmitted: ({receiver}) => `この請求書を ${receiver} に送信しました`,
+        markAsPaid: '支払済みにする',
+        paymentFailed: 'この請求書を支払えませんでした。もう一度お試しください。',
     },
     common: {
         durationDays: ({count}: {count: number}) => ({
