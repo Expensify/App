@@ -23,6 +23,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
+import {isLinkedToBillSelector} from '@selectors/ReportNameValuePairs';
 import {format} from 'date-fns';
 /**
  * This file contains utility functions for managing and computing report names
@@ -452,7 +453,13 @@ function getInvoiceReportName(
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
     policy?: OnyxEntry<Policy>,
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
+    isLinkedToBill = false,
 ): string {
+    // Users can rename an invoice linked to a bill, so it shows its stored name even when it has an invoice room.
+    if (isLinkedToBill && report?.reportName) {
+        return report.reportName;
+    }
+
     const moneyRequestReportName = getMoneyRequestReportName({
         report,
         policy,
@@ -1409,6 +1416,7 @@ function computeReportName({
             personalDetailsList,
             policy,
             invoiceReceiverPolicy,
+            isLinkedToBillSelector(allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]),
         );
     }
 
