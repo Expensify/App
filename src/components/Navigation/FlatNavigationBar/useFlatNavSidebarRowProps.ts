@@ -16,6 +16,9 @@ type FlatNavSidebarRowProps = {
     /** Supporting text color for rows that are not selected, matching the flat navigation bar's labels */
     titleStyle?: TextStyle;
 
+    /** Default text color while a row that is not selected is hovered, as the flat navigation bar's labels do */
+    hoveredTitleStyle?: TextStyle;
+
     /** Background of the selected row, the one the flat navigation bar's selected row uses */
     selectedStyle?: ViewStyle;
 
@@ -34,6 +37,7 @@ function getFlatNavSidebarRowProps(isSelected: boolean, shouldUseFlatNavigationB
     return {
         shouldShowBasicTitle: !isSelected,
         titleStyle: isSelected ? undefined : styles.textSupporting,
+        hoveredTitleStyle: isSelected ? undefined : styles.themeTextColor,
         selectedStyle: isSelected ? styles.hoveredComponentBG : undefined,
         hoveredStyle: styles.highlightBG,
     };

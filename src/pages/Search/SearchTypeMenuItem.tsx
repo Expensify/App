@@ -50,7 +50,7 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const getFlatNavRowProps = useFlatNavSidebarRowProps();
-    const {shouldShowBasicTitle, titleStyle, selectedStyle, hoveredStyle} = getFlatNavRowProps(focused);
+    const {shouldShowBasicTitle, titleStyle, hoveredTitleStyle, selectedStyle, hoveredStyle} = getFlatNavRowProps(focused);
     const {isVisuallyCollapsed} = useSearchSidebarCollapse();
     const labelAnimatedStyle = useSearchSidebarCollapseFadeStyle();
     const inlineBadgeAnimatedStyle = useSearchSidebarCollapseFadeStyle();
@@ -117,7 +117,7 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
                     )}
                     <Animated.View style={[styles.justifyContentCenter, styles.flex1, styles.ml3, labelAnimatedStyle]}>
                         <Text
-                            style={[styles.popoverMenuText, !shouldShowBasicTitle && styles.textStrong, titleStyle]}
+                            style={[styles.popoverMenuText, !shouldShowBasicTitle && styles.textStrong, titleStyle, hovered && hoveredTitleStyle]}
                             numberOfLines={1}
                         >
                             {title}

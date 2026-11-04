@@ -315,7 +315,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                             {workspaceMenuItems.map((item) => {
                                 const isConnectionsItem = item.screenName === SCREENS.WORKSPACE.CONNECTIONS;
                                 const isItemFocused = getItemScreenNames(item).some((screenName) => activeRoute?.startsWith(screenName));
-                                const {shouldShowBasicTitle, titleStyle, selectedStyle, hoveredStyle} = getFlatNavRowProps(isItemFocused);
+                                const {shouldShowBasicTitle, titleStyle, hoveredTitleStyle, selectedStyle, hoveredStyle} = getFlatNavRowProps(isItemFocused);
                                 const onPress = () => {
                                     if (isConnectionsItem) {
                                         hideConnectionsTooltip();
@@ -335,6 +335,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                         hoveredStyle={hoveredStyle}
                                         shouldShowBasicTitle={shouldShowBasicTitle}
                                         titleStyle={titleStyle}
+                                        hoveredTitleStyle={hoveredTitleStyle}
                                         highlighted={!!item?.highlighted}
                                         focused={isItemFocused}
                                         role={CONST.ROLE.TAB}

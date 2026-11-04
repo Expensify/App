@@ -4,6 +4,7 @@ import useFlatNavSidebarRowProps from '@components/Navigation/FlatNavigationBar/
 
 const MOCK_STYLES = {
     textSupporting: {color: '#supporting'},
+    themeTextColor: {color: '#text'},
     hoveredComponentBG: {backgroundColor: '#selected'},
     highlightBG: {backgroundColor: '#hovered'},
 };
@@ -48,12 +49,13 @@ describe('useFlatNavSidebarRowProps', () => {
         expect(rowProps).toEqual({
             shouldShowBasicTitle: false,
             titleStyle: undefined,
+            hoveredTitleStyle: undefined,
             selectedStyle: MOCK_STYLES.hoveredComponentBG,
             hoveredStyle: MOCK_STYLES.highlightBG,
         });
     });
 
-    it('gives a row that is not selected a regular weight supporting colored title and no selected background', () => {
+    it('gives a row that is not selected a regular weight supporting colored title that turns to the default color on hover, and no selected background', () => {
         // Given the flat navigation bar is shown
         mockShouldUseFlatNavigationBar = true;
         const {result} = renderHook(() => useFlatNavSidebarRowProps());
@@ -61,10 +63,11 @@ describe('useFlatNavSidebarRowProps', () => {
         // When a row that is not selected asks for its props
         const rowProps = result.current(false);
 
-        // Then the row matches the bar's rows that are not selected, which use regular weight and the supporting text color
+        // Then the row matches the bar's rows that are not selected, which use regular weight and the supporting text color, and the default text color on hover
         expect(rowProps).toEqual({
             shouldShowBasicTitle: true,
             titleStyle: MOCK_STYLES.textSupporting,
+            hoveredTitleStyle: MOCK_STYLES.themeTextColor,
             selectedStyle: undefined,
             hoveredStyle: MOCK_STYLES.highlightBG,
         });

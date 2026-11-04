@@ -24,7 +24,7 @@ type SettingsMenuItemProps = {
 function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocused, onPress, wrapperStyle}: SettingsMenuItemProps) {
     const popoverAnchor = useRef(null);
     const getFlatNavRowProps = useFlatNavSidebarRowProps();
-    const {shouldShowBasicTitle, titleStyle, selectedStyle, hoveredStyle} = getFlatNavRowProps(isFocused);
+    const {shouldShowBasicTitle, titleStyle, hoveredTitleStyle, selectedStyle, hoveredStyle} = getFlatNavRowProps(isFocused);
 
     const onSecondaryInteraction = item.link
         ? (event: GestureResponderEvent | MouseEvent) => {
@@ -58,6 +58,7 @@ function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocus
             hoveredStyle={hoveredStyle}
             shouldShowBasicTitle={shouldShowBasicTitle}
             titleStyle={titleStyle}
+            hoveredTitleStyle={hoveredTitleStyle}
             title={keyTitle}
             icon={item.icon}
             iconType={item.iconType}

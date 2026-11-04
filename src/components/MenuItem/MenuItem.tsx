@@ -284,6 +284,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Background of the hovered item in place of the default hover background */
         hoveredStyle?: StyleProp<ViewStyle>;
 
+        /** Added to the title's style while the item is hovered. Applies to plain text titles, not HTML or parsed ones. */
+        hoveredTitleStyle?: StyleProp<TextStyle>;
+
         rightIconAccountID?: number | string;
 
         iconAccountID?: number;
@@ -538,6 +541,7 @@ function MenuItem({
     shouldRemoveBackground = false,
     shouldRemoveHoverBackground = false,
     hoveredStyle,
+    hoveredTitleStyle,
     shouldUseDefaultCursorWhenDisabled = false,
     shouldShowLoadingSpinnerIcon = false,
     isAnonymousAction = false,
@@ -1085,7 +1089,7 @@ function MenuItem({
                                                                 )}
                                                                 {!shouldRenderAsHTML && !shouldParseTitle && !!title && (
                                                                     <Text
-                                                                        style={combinedTitleTextStyle}
+                                                                        style={[combinedTitleTextStyle, isHovered && hoveredTitleStyle]}
                                                                         numberOfLines={numberOfLinesTitle || undefined}
                                                                         dataSet={{
                                                                             [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled,
