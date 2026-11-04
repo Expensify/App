@@ -53,6 +53,9 @@ import useReportActionsListScroll from './useReportActionsListScroll';
 import useReportActionsListTelemetry from './useReportActionsListTelemetry';
 
 const REPORT_ACTIONS_DRAW_DISTANCE = 1500;
+// Close to a typical message row. Unmeasured rows keep this estimate, and LegendList's 100px default made every
+// measurement shift the scroll offset. On web, dragging the scrollbar undoes each shift, which shows as a jump.
+const REPORT_ACTIONS_ESTIMATED_ITEM_SIZE = 50;
 
 function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportActionsListProps) {
     const styles = useThemeStyles();
@@ -264,6 +267,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     data={listData}
                     renderItem={renderItem}
                     drawDistance={REPORT_ACTIONS_DRAW_DISTANCE}
+                    estimatedItemSize={REPORT_ACTIONS_ESTIMATED_ITEM_SIZE}
                     recycleItems
                     experimental_hideItemsUntilMeasured
                     renderScrollComponent={Platform.OS === 'web' ? undefined : renderActionSheetAwareScrollView}
