@@ -251,6 +251,7 @@ function TransactionListItemInner<TItem extends ListItem>({
             hash: currentSearchHash,
             item: liveTransactionItem,
             goToItem: () => onSelectRow(item, transactionPreviewData, event),
+            policyID: explicitPolicyID,
             snapshotReport,
             snapshotPolicy,
             submitterLogin,

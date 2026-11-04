@@ -260,6 +260,7 @@ type HandleActionButtonPressParams = {
     hash: number;
     item: TransactionListItemType | TransactionReportGroupListItemType;
     goToItem: () => void;
+    policyID?: string;
     snapshotReport: Report;
     snapshotPolicy: Policy;
     submitterLogin: string | undefined;
@@ -307,6 +308,7 @@ function handleActionButtonPress({
     hash,
     item,
     goToItem,
+    policyID,
     snapshotReport,
     snapshotPolicy,
     submitterLogin,
@@ -371,6 +373,7 @@ function handleActionButtonPress({
                 hash,
                 item,
                 goToItem,
+                policyID,
                 snapshotReport,
                 snapshotPolicy,
                 lastPaymentMethod,
@@ -620,6 +623,7 @@ type GetPayActionCallbackParams = {
     hash: number;
     item: TransactionListItemType | TransactionReportGroupListItemType;
     goToItem: () => void;
+    policyID: string | undefined;
     snapshotReport: Report;
     snapshotPolicy: Policy;
     lastPaymentMethod: OnyxEntry<LastPaymentMethod>;
@@ -653,6 +657,7 @@ function getPayActionCallback({
     hash,
     item,
     goToItem,
+    policyID,
     snapshotReport,
     snapshotPolicy,
     lastPaymentMethod,
@@ -685,7 +690,7 @@ function getPayActionCallback({
         Log.info('[SearchPay] Dropping row pay: item has no reportID');
         return;
     }
-    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(snapshotReport));
+    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(policyID, personalPolicyID, lastPaymentMethod, getReportType(snapshotReport));
 
     if (!lastPolicyPaymentMethod || !Object.values(CONST.IOU.PAYMENT_TYPE).includes(lastPolicyPaymentMethod)) {
         goToItem();
