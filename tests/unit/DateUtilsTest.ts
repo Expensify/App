@@ -70,7 +70,7 @@ describe('DateUtils', () => {
     const timezone = 'Atlantic/Reykjavik';
 
     it('getZoneAbbreviation should show zone abbreviation from the datetime', () => {
-        const zoneAbbreviation = DateUtils.getZoneAbbreviation(datetime, timezone);
+        const zoneAbbreviation = DateUtils.getZoneAbbreviation(datetime, timezone, undefined);
         expect(zoneAbbreviation).toBe('GMT+0');
     });
 

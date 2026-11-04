@@ -245,10 +245,12 @@ function datetimeToRelative(locale: Locale | undefined, datetime: string, curren
  * @param selectedTimezone
  * @returns
  */
-function getZoneAbbreviation(datetime: string | Date, selectedTimezone: SelectedTimezone): string {
-    const abbreviation = formatInTimeZone(datetime, selectedTimezone, 'zzz');
+function getZoneAbbreviation(datetime: string | Date, selectedTimezone: SelectedTimezone, dateFnsLocale: DateFnsLocale | undefined): string {
+    // The zone name comes from `Intl`, so passing the language gives its own name for the zone, such as the German
+    // abbreviation for Central European Summer Time, instead of always the English one.
+    const abbreviation = formatInTimeZone(datetime, selectedTimezone, 'zzz', {locale: dateFnsLocale});
     if (abbreviation === 'GMT') {
-        return formatInTimeZone(datetime, selectedTimezone, 'O');
+        return formatInTimeZone(datetime, selectedTimezone, 'O', {locale: dateFnsLocale});
     }
     return abbreviation;
 }
