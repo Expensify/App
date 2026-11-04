@@ -205,6 +205,7 @@ function SearchAutocompleteList({
 
     const {isBetaEnabled} = usePermissions();
     const isDefaultRoomsBetaEnabled = isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS);
+    const isTravelApprovalBetaEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_APPROVAL);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const reportAttributes = useReportAttributes();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
@@ -435,6 +436,7 @@ function SearchAutocompleteList({
         getReportByID,
         draftComments,
         isDefaultRoomsBetaEnabled,
+        isTravelApprovalBetaEnabled,
         countryCode,
         loginList,
         policies,
