@@ -1,6 +1,7 @@
 import {applyConciergeDraftEvent, getCachedDraft, getNextVisibleConciergeDraftMarkdown, setCachedDraft, stripIncompleteMarkdown} from '@pages/inbox/conciergeDraftState';
 
 import CONST from '@src/CONST';
+import type {PersonalDetailsList} from '@src/types/onyx';
 
 const REPORT_ID = '123';
 const REPORT_ACTION_ID = '456';
@@ -151,6 +152,19 @@ describe('conciergeDraftState', () => {
             false,
         );
         expect(getFirstMessageText(completedDraft)).toBe(bodyMarkdown);
+    });
+
+    it('should resolve user mentions in the draft text from the passed personal details', () => {
+        // Given final HTML that mentions a user by accountID, and a personal details list that knows that user
+        const mentionedAccountID = 5;
+        const finalRenderedHTML = `<comment>Ask <mention-user accountID="${mentionedAccountID}"/> about it</comment>`;
+        const personalDetailsList: PersonalDetailsList = {[mentionedAccountID]: {accountID: mentionedAccountID, login: 'alice@example.com'}};
+
+        // When the completed event is applied with that list
+        const draft = applyConciergeDraftEvent(null, createDraftEvent({status: 'completed', finalRenderedHTML}), REPORT_ID, false, personalDetailsList);
+
+        // Then the text form of the message names the mentioned user instead of hiding it
+        expect(getFirstMessageText(draft)).toBe('Ask @alice@example.com about it');
     });
 
     it('should ignore stale events from the same stream session', () => {
