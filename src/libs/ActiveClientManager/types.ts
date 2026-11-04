@@ -11,4 +11,4 @@ type LogTab = {clientID: string; isLeader: boolean};
 
 type GetLogTab = () => LogTab | undefined;
 
-export type {GetLogTab, Init, IsClientTheLeader, IsReady, LogTab, OnBecomeLeader};
+export type {GetLogTab, Init, IsClientTheLeader, IsReady, OnBecomeLeader};
