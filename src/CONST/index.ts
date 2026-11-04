@@ -2097,6 +2097,7 @@ const CONST = {
                 // Hidden action that only carries the violations snapshot of an expense added to a report that was already awaiting its first approval
                 ADD_EXPENSE_ON_SUBMITTED: 'ADDEXPENSEONSUBMITTED',
                 APPROVED: 'APPROVED',
+                AUTO_PAY_FEE_DISCLOSURE: 'AUTOPAYFEEDISCLOSURE',
                 CARD_MISSING_ADDRESS: 'CARDMISSINGADDRESS',
                 CARD_ISSUED: 'CARDISSUED',
                 CARD_ISSUED_VIRTUAL: 'CARDISSUEDVIRTUAL',

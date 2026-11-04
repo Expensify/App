@@ -11361,6 +11361,8 @@ ${reportName}`,
                 leftTheChatWithName: (nameOrEmail: string) => `${nameOrEmail ? `${nameOrEmail}: ` : ''} έφυγε από τη συνομιλία`,
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `ο επαγγελματικός τραπεζικός λογαριασμός ${maskedBankAccountNumber} έχει κλειδωθεί αυτόματα λόγω προβλήματος είτε με τις αποζημιώσεις είτε με τον διακανονισμό της Κάρτας Expensify. Παρακαλούμε διορθώστε το πρόβλημα στις <a href="${linkURL}">ρυθμίσεις χώρου εργασίας</a>.`,
+                autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
+                    `Οι παγκόσμιες αποζημιώσεις ενεργοποιήθηκαν από τον/την ${adminName} στον λογαριασμό ${bankName ? `${bankName} ` : ''}που λήγει σε ${lastFour}. Οι ακριβείς συναλλαγματικές ισοτιμίες και χρεώσεις δεν μπορούν να προβλεφθούν πριν από την πληρωμή όταν οι διασυνοριακές αναφορές πληρώνονται αυτόματα. Εξετάστε τις <a href="${autoPaySettingsURL}">ρυθμίσεις αυτόματης πληρωμής</a> σας για περισσότερες πληροφορίες σχετικά με ισοτιμίες και χρεώσεις.`,
             },
             error: {
                 invalidCredentials: 'Μη έγκυρα διαπιστευτήρια, παρακαλούμε ελέγξτε τη ρύθμιση της σύνδεσής σας.',
