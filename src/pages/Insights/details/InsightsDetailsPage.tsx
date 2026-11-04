@@ -1,20 +1,17 @@
+import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Header from '@components/Header';
-import Icon from '@components/Icon';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {buildChartDrillDownQuery} from '@components/Search/chartDrillDown';
 import Text from '@components/Text';
 
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
-import useTheme from '@hooks/useTheme';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {InsightsDetailsParamList} from '@libs/Navigation/types';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -27,22 +24,22 @@ import useInsightsFilters from '@pages/Insights/useInsightsFilters';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
 import {View} from 'react-native';
 
 import {resolveInsightsDetailsItem} from './insightsDetailsItem';
+import InsightsTopExpenses from './InsightsTopExpenses';
+import useInsightsTopExpenses, {TOP_EXPENSES_STATE} from './useInsightsTopExpenses';
 
 type InsightsDetailsPageProps = PlatformStackScreenProps<InsightsDetailsParamList, typeof SCREENS.INSIGHTS_DETAILS>;
 
 /** Details of a point clicked on an Insights chart, opened in the RHP. */
 function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowUpRight']);
     const {translate, dateFnsLocale} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBetaEnabled} = usePermissions();
     const {graphKey, item: itemKey, end: periodEnd} = route.params;
     const {filters, isResolved} = useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND);
@@ -64,6 +61,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
               })
             : undefined;
     const viewAllQuery = chartQueryJSON && item ? buildChartDrillDownQuery(chartQueryJSON, item.filterQuery) : undefined;
+    const topExpenses = useInsightsTopExpenses(viewAllQuery);
 
     if (!isBetaEnabled(CONST.BETAS.INSIGHTS_AI) || !chartSpec || (isResolved && !item)) {
         return (
@@ -72,6 +70,61 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
             </ScreenWrapper>
         );
     }
+
+    const renderContent = () => {
+        if (!item || !viewAllQuery) {
+            return null;
+        }
+
+        switch (topExpenses.state) {
+            case TOP_EXPENSES_STATE.STALE:
+                return (
+                    <FullPageErrorView
+                        shouldShow
+                        title={translate('search.searchResults.staleResults.title')}
+                        subtitle={translate('search.searchResults.staleResults.subtitle')}
+                        illustration="ChartSync"
+                        illustrationWidth={variables.iconSizeUltraLarge}
+                        illustrationHeight={variables.iconSizeUltraLarge}
+                        buttonTranslationKey="search.searchResults.staleResults.buttonText"
+                        onButtonPress={topExpenses.retry}
+                    />
+                );
+            case TOP_EXPENSES_STATE.ERROR:
+                return (
+                    <FullPageErrorView
+                        shouldShow
+                        title={translate('errorPage.title', {isBreakLine: shouldUseNarrowLayout})}
+                        subtitle={translate('errorPage.subtitle')}
+                        buttonTranslationKey="common.tryAgain"
+                        onButtonPress={topExpenses.retry}
+                    />
+                );
+            default:
+                return (
+                    <ScrollView
+                        contentContainerStyle={[styles.ph5, styles.pb5, styles.gap5]}
+                        addBottomSafeAreaPadding
+                    >
+                        <View style={styles.gap1}>
+                            <Text
+                                variant="label"
+                                style={styles.textSupporting}
+                            >
+                                {translate(chartSpec.titleKey)}
+                            </Text>
+                            <Text variant="h1">{item.title}</Text>
+                        </View>
+                        <InsightsTopExpenses
+                            expenses={topExpenses.expenses}
+                            isLoading={topExpenses.state === TOP_EXPENSES_STATE.LOADING}
+                            isOffline={topExpenses.state === TOP_EXPENSES_STATE.OFFLINE}
+                            viewAllQuery={viewAllQuery}
+                        />
+                    </ScrollView>
+                );
+        }
+    };
 
     return (
         <ScreenWrapper
@@ -83,39 +136,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                 <Header.BackButton />
                 <Header.Title title={translate('common.details')} />
             </Header>
-            {!!item && (
-                <ScrollView
-                    contentContainerStyle={[styles.ph5, styles.pb5, styles.gap4]}
-                    addBottomSafeAreaPadding
-                >
-                    <View style={styles.gap1}>
-                        <Text
-                            variant="label"
-                            style={styles.textSupporting}
-                        >
-                            {translate(chartSpec.titleKey)}
-                        </Text>
-                        <Text variant="h1">{item.title}</Text>
-                    </View>
-                    {!!viewAllQuery && (
-                        <PressableWithoutFeedback
-                            onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: viewAllQuery}))}
-                            accessibilityRole={CONST.ROLE.LINK}
-                            accessibilityLabel={translate('insightsPage.viewAll')}
-                            sentryLabel="Insights-DetailsViewAll"
-                            style={[styles.flexRow, styles.alignItemsCenter, styles.alignSelfStart, styles.gap1]}
-                        >
-                            <Text style={styles.link}>{translate('insightsPage.viewAll')}</Text>
-                            <Icon
-                                src={icons.ArrowUpRight}
-                                fill={theme.link}
-                                width={variables.iconSizeExtraSmall}
-                                height={variables.iconSizeExtraSmall}
-                            />
-                        </PressableWithoutFeedback>
-                    )}
-                </ScrollView>
-            )}
+            {renderContent()}
         </ScreenWrapper>
     );
 }

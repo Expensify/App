@@ -1,12 +1,11 @@
 import Checkbox from '@components/Checkbox';
-import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
+import {useSession} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import StatusBadge from '@components/StatusBadge';
 import TransactionItemRow from '@components/TransactionItemRow';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -16,15 +15,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import {hasPendingSearchWrite} from '@libs/pendingSearchWrite';
-import {getReportStatusColorStyle, getReportStatusTooltipTranslation, getReportStatusTranslation, isOneTransactionReport} from '@libs/ReportUtils';
-import {createAndOpenSearchTransactionThread, getSections, getSortedSections, getValidGroupBy, isCreatedDateType} from '@libs/SearchUIUtils';
+import {getReportStatusColorStyle, getReportStatusTooltipTranslation, getReportStatusTranslation} from '@libs/ReportUtils';
+import {getSections, getSortedSections, getValidGroupBy, isCreatedDateType} from '@libs/SearchUIUtils';
 import {isDeletedTransaction} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
-import {fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@src/selectors/Policy';
 import type {SearchResults} from '@src/types/onyx';
 
 import type {ListRenderItemInfo, StyleProp, ViewStyle} from 'react-native';
@@ -50,6 +46,7 @@ import {FlatList, View} from 'react-native';
 import type {TransactionListItemType} from './SearchList/ListItem/types';
 import type {SearchColumnType, SearchQueryJSON} from './types';
 
+import useOpenSearchTransaction from './hooks/useOpenSearchTransaction';
 import UserInfoCellsWithArrow from './SearchList/ListItem/UserInfoCellsWithArrow';
 import SearchTableHeader from './SearchTableHeader';
 
@@ -82,17 +79,12 @@ function SearchStaticList({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
-    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString} = useCurrencyListActions();
     const session = useSession();
-    const personalDetails = usePersonalDetails();
     const accountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const email = session?.email;
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
-    const delegateAccountID = useDelegateAccountID();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT, {selector: fullPolicySnapshotLastModifiedByPolicyIDSelector});
 
     const [showPendingExpensePlaceholder, setShowPendingExpensePlaceholder] = useState(() => hasPendingSearchWrite() || Navigation.getIsFullscreenPreInsertedUnderRHP());
 
@@ -140,49 +132,7 @@ function SearchStaticList({
         }, [showPendingExpensePlaceholder, sortedData.length, onDestinationVisible]),
     );
 
-    const onPressItem = (item: TransactionListItemType) => {
-        const backTo = Navigation.getActiveRoute();
-
-        if (!item.reportAction?.childReportID) {
-            const shouldOpenTransactionThread = !isOneTransactionReport(item.report) || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-            // introSelected and conciergeChat are passed as undefined to avoid extra Onyx subscriptions in this lightweight placeholder.
-            // They're only used for guided-setup onboarding data, which is gated behind introSelected/onboarding checks
-            // that won't apply here - the user has already completed onboarding if they're submitting expenses.
-            createAndOpenSearchTransactionThread({
-                getCurrencyDecimals,
-                item,
-                introSelected: undefined,
-                conciergeChat: undefined,
-                backTo,
-                currentUserLogin: email ?? '',
-                currentUserAccountID: accountID,
-                personalDetails,
-                isSelfTourViewed,
-                hasCompletedGuidedSetupFlow,
-                delegateAccountID,
-                IOUTransactionID: item.reportAction?.childReportID,
-                shouldNavigate: shouldOpenTransactionThread,
-                fullPolicySnapshotLastModifiedByPolicyID,
-            });
-            if (shouldOpenTransactionThread) {
-                return;
-            }
-        }
-
-        const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-        const isFromOneTransactionReport = isOneTransactionReport(item.report);
-
-        let reportID = item.reportID;
-        if (item.reportAction?.childReportID && (isFromSelfDM || !isFromOneTransactionReport)) {
-            reportID = item.reportAction.childReportID;
-        }
-
-        if (!reportID) {
-            return;
-        }
-
-        requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
-    };
+    const onPressItem = useOpenSearchTransaction();
 
     const renderItem = ({item, index}: ListRenderItemInfo<TransactionListItemType>) => {
         if (!('transactionID' in item)) {

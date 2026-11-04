@@ -10468,6 +10468,8 @@ const CONST = {
             CONTROL_COMPARE: 'Insights-ControlCompare',
             DASHBOARD_TAB: 'Insights-DashboardTab',
             TABLE_ROW: 'Insights-TableRow',
+            DETAILS_TOP_EXPENSE: 'Insights-DetailsTopExpense',
+            DETAILS_VIEW_ALL_TOP_EXPENSES: 'Insights-DetailsViewAll-TopExpenses',
         },
         EXPENSE_RULES: {
             TABLE_ROW: 'ExpenseRules-TableRow',

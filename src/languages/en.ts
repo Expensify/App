@@ -1349,6 +1349,8 @@ const translations = {
         viewOnSpend: 'View on Spend',
         viewDetails: 'View details',
         viewAll: 'View all',
+        topExpenses: 'Top expenses',
+        noExpensesInRange: 'No expenses in this range',
         compliance: 'Compliance',
         runningTotal: 'Running total',
         compare: {
