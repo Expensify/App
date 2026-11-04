@@ -7019,6 +7019,9 @@ ${amount} para ${merchant} - ${date}`,
                     offDescription: 'No puede reservar viajes',
                     onDescription: 'Puede reservar viajes',
                     travelAccess: 'Acceso a viajes',
+                    changeTravelAccess: 'Cambiar acceso a viajes',
+                    turnOnTravel: 'Activar viajes',
+                    turnOffTravel: 'Desactivar viajes',
                 },
                 travelBilling: {
                     travelBookingSection: {
