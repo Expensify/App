@@ -1056,10 +1056,16 @@ function formatToMonthDay(date: Date, dateFnsLocale: DateFnsLocale | undefined, 
  * @returns Jun 20, or Jun 20, 2025 for a past year
  */
 function formatToMonthDayWithOptionalYearInUTC(datetime: string, dateFnsLocale: DateFnsLocale | undefined): string {
-    if (doesDateBelongToAPastYear(datetime)) {
+    const date = toDate(datetime, {timeZone: 'UTC'});
+    if (!isValid(date)) {
+        return '';
+    }
+    // Read the date's year in UTC, the timezone it is shown in, and compare it with the device's current year. Reading the
+    // date in the device's timezone treated a January 1 date as the previous year behind UTC and added a year to it.
+    if (date.getUTCFullYear() !== new Date().getFullYear()) {
         return formatWithUTCTimeZone(datetime, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, dateFnsLocale);
     }
-    return formatToMonthDay(toDate(datetime, {timeZone: 'UTC'}), dateFnsLocale, 'UTC');
+    return formatToMonthDay(date, dateFnsLocale, 'UTC');
 }
 
 /**

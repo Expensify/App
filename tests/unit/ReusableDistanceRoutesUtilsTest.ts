@@ -1,8 +1,11 @@
+import {de} from 'date-fns/locale/de';
+import {ja} from 'date-fns/locale/ja';
+
 import type {ReusableDistanceRoute, Transaction} from '../../src/types/onyx';
 import type {WaypointCollection} from '../../src/types/onyx/Transaction';
 
 import CONST from '../../src/CONST';
-import {filterRoutes, getAvailableReusableDistanceRoutes, getOrderedWaypoints, getRouteEndpoints, getRouteThumbnailSource} from '../../src/libs/ReusableDistanceRoutesUtils';
+import {filterRoutes, formatLastUsed, getAvailableReusableDistanceRoutes, getOrderedWaypoints, getRouteEndpoints, getRouteThumbnailSource} from '../../src/libs/ReusableDistanceRoutesUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 
 const createRoute = (transactionID: string, addresses: string[]): ReusableDistanceRoute => ({
@@ -16,6 +19,20 @@ const createRoute = (transactionID: string, addresses: string[]): ReusableDistan
 });
 
 describe('ReusableDistanceRoutesUtils', () => {
+    it.each([
+        ['German', de, '22. Jan.'],
+        ['Japanese', ja, '1月22日'],
+    ] as const)('formats the Last used date in %s', (languageName, locale, expected) => {
+        // Given a source expense inserted late on a UTC calendar day
+        const inserted = '2026-01-22 23:30:00';
+
+        // When the badge asks for an explicit-locale date
+        const label = formatLastUsed(inserted, locale);
+
+        // Then the label uses that locale without moving to a different day
+        expect(label).toBe(expected);
+    });
+
     describe('filterRoutes', () => {
         const routes = [
             createRoute('1', ['Expensify Lounge, San Francisco, CA', 'Marina Green East Beach, San Francisco, CA']),

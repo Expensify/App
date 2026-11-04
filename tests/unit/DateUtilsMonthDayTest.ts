@@ -58,6 +58,21 @@ describe('DateUtils month and day', () => {
             expect(DateUtils.formatToMonthDayWithOptionalYearInUTC(`${CURRENT_YEAR}-01-01 00:00:00`, undefined)).toBe('Jan 1');
         });
 
+        it('leaves out the year for January 1 of the current year in every timezone', () => {
+            // Given a stored January 1 date, at midday on January 1 in UTC, when it is January 1 on every device
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2026-01-01T12:00:00Z'));
+
+            try {
+                // When it is formatted
+                // Then the date's year is read in UTC, the timezone it is shown in. Read in the device's timezone, the
+                // stored midnight falls on December 31 behind UTC and the date was mistaken for the previous year.
+                expect(DateUtils.formatToMonthDayWithOptionalYearInUTC('2026-01-01', de)).toBe('1. Jan.');
+            } finally {
+                jest.useRealTimers();
+            }
+        });
+
         it('returns an empty string for an empty date', () => {
             // Given a missing date
             // When it is formatted
