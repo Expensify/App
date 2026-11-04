@@ -35,6 +35,12 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        billCreated: ({sender}) => `criou esta conta em nome de ${sender}`,
+        billSubmitted: ({receiver}) => `enviou esta conta para ${receiver}`,
+        invoiceCreated: ({sender}) => `criou esta fatura em nome de ${sender}`,
+        invoiceSubmitted: ({receiver}) => `enviou esta fatura para ${receiver}`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `${count} dia`,
@@ -3128,7 +3134,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: 'Verificar informações adicionais',
                 subtitle: 'Nosso parceiro de pagamentos precisa de mais informações diretamente. Isso deve levar apenas alguns minutos.',
             },
+            inReview: {
+                title: 'Em revisão',
+                heading: 'Temos o que precisamos.\nVocê vai receber notícias nossas!',
+                description: 'A maioria das análises leva de um a dois dias. Vamos enviar uma mensagem para você com uma atualização.',
+                chatWithConcierge: 'Conversar com Concierge',
+            },
+            approved: {title: 'Conta aprovada', heading: 'Aprovado para pagar no mundo todo', description: 'Pague membros onde quer que estejam.'},
+            rejected: {title: 'Conta bancária rejeitada', heading: 'Nosso parceiro recusou sua conta bancária', description: 'Converse com o Concierge para mais informações.'},
         },
+        wiseSetupInProgress: {message: 'Configuração de reembolsos globais em andamento.', continue: 'Continuar.'},
         wiseGlobalReimbursementsIntro: {
             title: 'Configurar reembolsos globais?',
             subtitle: 'Pague membros no mundo todo na moeda local deles.',
@@ -12773,5 +12788,28 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         mobileClaimPrompt: 'Visite o Expensify no seu navegador para resgatar seu desconto de renovação.',
     },
     bulkActionBar: {label: 'Ações em massa', clearSelection: 'Limpar seleção', loadingSelection: 'Carregando seleção'},
+    reportHistoryPage: {
+        title: 'Histórico do relatório',
+        created: 'criou o relatório',
+        submitted: 'enviou',
+        approved: 'aprovou',
+        paid: 'pagou',
+        toSubmit: 'enviar',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return 'enviar automaticamente';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `enviar automaticamente no dia ${eta} de cada mês` : `enviar automaticamente ${eta}`;
+        },
+        toApprove: 'aprovar',
+        toPay: 'pagar',
+        minutesAgo: (count: number) => `${count} min atrás`,
+        hoursAgo: (count: number) => `${count}h atrás`,
+        daysAgo: () => ({
+            one: '1d atrás',
+            other: (count: number) => `${count}d atrás`,
+        }),
+        offlineMessage: 'Você está offline. O histórico de relatórios pode estar desatualizado.',
+    },
 };
 export default translations;

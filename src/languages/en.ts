@@ -43,6 +43,12 @@ type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 
 const translations = {
+    billPay: {
+        billCreated: ({sender}: {sender: string}) => `created this bill on behalf of ${sender}`,
+        billSubmitted: ({receiver}: {receiver: string}) => `sent this bill to ${receiver}`,
+        invoiceCreated: ({sender}: {sender: string}) => `created this invoice on behalf of ${sender}`,
+        invoiceSubmitted: ({receiver}: {receiver: string}) => `sent this invoice to ${receiver}`,
+    },
     bulkActionBar: {
         label: 'Bulk actions',
         clearSelection: 'Clear selection',
@@ -3210,7 +3216,24 @@ const translations = {
                 title: 'Verify additional info',
                 subtitle: 'Our payments partner needs more info directly. This should only take a couple of minutes.',
             },
+            inReview: {
+                title: 'In review',
+                heading: "We got what we need.\nYou'll hear from us!",
+                description: "Most reviews take one to two days. We'll message you with an update.",
+                chatWithConcierge: 'Chat with Concierge',
+            },
+            approved: {
+                title: 'Account approved',
+                heading: 'Approved to pay worldwide',
+                description: 'Pay members wherever they are.',
+            },
+            rejected: {
+                title: 'Bank account rejected',
+                heading: 'Our partner rejected your bank account',
+                description: 'Chat with Concierge for more information.',
+            },
         },
+        wiseSetupInProgress: {message: 'Global reimbursements setup in progress.', continue: 'Continue.'},
         wiseGlobalReimbursementsIntro: {
             headerTitle: 'Global reimbursements',
             title: 'Set up global reimbursements?',
@@ -3887,6 +3910,29 @@ const translations = {
         roomDescription: 'Room description',
         roomDescriptionOptional: 'Room description (optional)',
         explainerText: 'Set a custom description for the room.',
+    },
+    reportHistoryPage: {
+        title: 'Report history',
+        offlineMessage: "You're offline. Report history may be outdated.",
+        created: 'created report',
+        submitted: 'submitted',
+        approved: 'approved',
+        paid: 'paid',
+        toSubmit: 'to submit',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return 'to automatically submit';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `to automatically submit on the ${eta} of each month` : `to automatically submit ${eta}`;
+        },
+        toApprove: 'to approve',
+        toPay: 'to pay',
+        minutesAgo: (count: number) => `${count}m ago`,
+        hoursAgo: (count: number) => `${count}h ago`,
+        daysAgo: () => ({
+            one: '1d ago',
+            other: (count: number) => `${count}d ago`,
+        }),
     },
     groupChat: {
         lastMemberTitle: 'Heads up!',

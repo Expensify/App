@@ -35,6 +35,12 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        billCreated: ({sender}) => `${sender} に代わってこの請求書を作成しました`,
+        billSubmitted: ({receiver}) => `この請求書を ${receiver} に送信しました`,
+        invoiceCreated: ({sender}) => `${sender} に代わってこの請求書を作成しました`,
+        invoiceSubmitted: ({receiver}) => `この請求書を ${receiver} に送信しました`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 日`,
@@ -3100,7 +3106,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 alreadySubmitted: 'このビジネスはすでに審査のためにWiseに送信されています。',
             },
             moreInfoNeeded: {headerTitle: '詳細情報が必要です', title: '追加情報を確認', subtitle: '決済パートナーが直接、追加情報を必要としています。数分で完了します。'},
+            inReview: {
+                title: 'レビュー中',
+                heading: '必要な情報はすべて揃いました。\n後ほどご連絡いたします！',
+                description: '審査のほとんどは1～2日かかります。更新があり次第メッセージでお知らせします。',
+                chatWithConcierge: 'Concierge とチャットする',
+            },
+            approved: {title: 'アカウントが承認されました', heading: '世界中で支払い承認済み', description: 'メンバーがどこにいても支払いましょう。'},
+            rejected: {title: '銀行口座が拒否されました', heading: 'パートナーがあなたの銀行口座を拒否しました', description: '詳しくは Concierge にチャットでお問い合わせください。'},
         },
+        wiseSetupInProgress: {message: 'グローバル払い戻しの設定が進行中です。', continue: '続行。'},
         wiseGlobalReimbursementsIntro: {
             title: 'グローバル払い戻しを設定しますか？',
             subtitle: '世界中のメンバーに現地通貨で支払えます。',
@@ -12609,5 +12624,28 @@ ${reportName}`,
         mobileClaimPrompt: '更新割引を受け取るには、Web ブラウザで Expensify にアクセスしてください。',
     },
     bulkActionBar: {label: '一括操作', clearSelection: '選択をクリア', loadingSelection: '選択内容を読み込み中'},
+    reportHistoryPage: {
+        title: 'レポート履歴',
+        created: 'レポートを作成しました',
+        submitted: '送信済み',
+        approved: '承認済み',
+        paid: '支払い済み',
+        toSubmit: '送信する',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return '自動送信する';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `毎月${eta}に自動で送信する` : `${eta}自動送信する`;
+        },
+        toApprove: '承認する',
+        toPay: '支払う',
+        minutesAgo: (count: number) => `${count}分前`,
+        hoursAgo: (count: number) => `${count}時間前`,
+        daysAgo: () => ({
+            one: '1日前',
+            other: (count: number) => `${count}日前`,
+        }),
+        offlineMessage: 'オフラインです。レポート履歴が最新ではない可能性があります。',
+    },
 };
 export default translations;

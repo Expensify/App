@@ -32,6 +32,12 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        billCreated: ({sender}) => `δημιούργησε αυτόν τον λογαριασμό εκ μέρους του ${sender}`,
+        billSubmitted: ({receiver}) => `έστειλε αυτόν τον λογαριασμό στον ${receiver}`,
+        invoiceCreated: ({sender}) => `δημιούργησε αυτό το τιμολόγιο εκ μέρους του ${sender}`,
+        invoiceSubmitted: ({receiver}) => `έστειλε αυτό το τιμολόγιο στον ${receiver}`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 ημέρα`,
@@ -3189,7 +3195,20 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: 'Επαληθεύστε επιπλέον πληροφορίες',
                 subtitle: 'Ο συνεργάτης μας για τις πληρωμές χρειάζεται περισσότερες πληροφορίες απευθείας. Αυτό θα σας πάρει μόνο λίγα λεπτά.',
             },
+            inReview: {
+                title: 'Υπό εξέταση',
+                heading: 'Πήραμε ό,τι χρειαζόμαστε.\nΘα επικοινωνήσουμε μαζί σας!',
+                description: 'Οι περισσότερες αξιολογήσεις διαρκούν μία έως δύο ημέρες. Θα σας στείλουμε μήνυμα με μια ενημέρωση.',
+                chatWithConcierge: 'Συνομιλήστε με το Concierge',
+            },
+            approved: {title: 'Ο λογαριασμός εγκρίθηκε', heading: 'Εγκρίθηκε για πληρωμές παγκοσμίως', description: 'Πληρώστε τα μέλη όπου κι αν βρίσκονται.'},
+            rejected: {
+                title: 'Ο λογαριασμός τράπεζας απορρίφθηκε',
+                heading: 'Ο συνεργάτης μας απέρριψε τον τραπεζικό σας λογαριασμό',
+                description: 'Συνομιλήστε με το Concierge για περισσότερες πληροφορίες.',
+            },
         },
+        wiseSetupInProgress: {message: 'Η ρύθμιση των παγκόσμιων αποζημιώσεων βρίσκεται σε εξέλιξη.', continue: 'Συνέχεια.'},
         wiseGlobalReimbursementsIntro: {
             title: 'Να ρυθμιστούν οι παγκόσμιες αποζημιώσεις;',
             subtitle: 'Πληρώστε μέλη παγκοσμίως στο τοπικό τους νόμισμα.',
@@ -13083,5 +13102,28 @@ ${reportName}`,
         mobileClaimPrompt: 'Επισκεφθείτε το Expensify στον φυλλομετρητή σας για να διεκδικήσετε την έκπτωση ανανέωσης.',
     },
     bulkActionBar: {label: 'Μαζικές ενέργειες', clearSelection: 'Καθαρισμός επιλογής', loadingSelection: 'Φόρτωση επιλογής'},
+    reportHistoryPage: {
+        title: 'Ιστορικό αναφοράς',
+        created: 'δημιούργησε αναφορά',
+        submitted: 'υπέβαλε',
+        approved: 'ενέκρινε',
+        paid: 'πλήρωσε',
+        toSubmit: 'να υποβάλει',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return 'να υποβάλει αυτόματα';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `να υποβάλει αυτόματα στις ${eta} κάθε μήνα` : `να υποβάλει αυτόματα ${eta}`;
+        },
+        toApprove: 'να εγκρίνει',
+        toPay: 'να πληρώσει',
+        minutesAgo: (count: number) => `πριν από ${count} λεπ.`,
+        hoursAgo: (count: number) => `πριν από ${count} ώρ.`,
+        daysAgo: () => ({
+            one: 'πριν από 1 ημ.',
+            other: (count: number) => `πριν από ${count} ημ.`,
+        }),
+        offlineMessage: 'Είστε εκτός σύνδεσης. Το ιστορικό αναφορών μπορεί να είναι παρωχημένο.',
+    },
 };
 export default translations;

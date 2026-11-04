@@ -1,4 +1,4 @@
-import clearWorkboxRecoveryCaches from '@libs/clearWorkboxRecoveryCaches';
+import {getAppUpdateURL} from '@libs/AppUpdateURL';
 import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
@@ -29,7 +29,7 @@ function markReloadAttempted(): boolean {
 
 /**
  * Web should always serve the latest version, so a 426 usually means the browser loaded an old bundle from its cache.
- * The app version is baked into the bundle, so the request can only be retried with a new bundle: clear the caches and reload,
+ * The app version is baked into the bundle, so the request can only be retried with a new bundle: reload from the network,
  * and show the Update Required screen if the same bundle version still gets a 426 afterwards.
  */
 function alertUser() {
@@ -40,11 +40,11 @@ function alertUser() {
     hasHandledUpdateRequired = true;
 
     if (markReloadAttempted()) {
-        clearWorkboxRecoveryCaches().then(() => window.location.reload());
+        window.location.replace(getAppUpdateURL(window.location.href));
         return;
     }
 
-    Log.alert('[UpdateRequired] Got a 426 on web after clearing the cache and reloading', {appVersion: pkg.version});
+    Log.alert('[UpdateRequired] Got a 426 on web after reloading', {appVersion: pkg.version});
     Onyx.set(ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED, true);
 }
 
