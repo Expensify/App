@@ -3240,6 +3240,11 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, rules
         return false;
     }
 
+    // A bill must keep exactly the expenses of the vendor's invoice.
+    if (isBillReport(moneyRequestReport)) {
+        return false;
+    }
+
     // Adding or deleting transactions is not allowed on a closed report
     if (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && !isOpenReport(moneyRequestReport)) {
         return false;
@@ -3267,8 +3272,7 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, rules
  * - if current user is not the submitter of an expense report
  */
 function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, rules: OnyxCollection<Rule>, isReportArchived = false, isMovingTransaction = false): boolean {
-    // A bill's expenses come only from the vendor's invoice.
-    if (!isMoneyRequestReport(moneyRequestReport) || isBillReport(moneyRequestReport)) {
+    if (!isMoneyRequestReport(moneyRequestReport)) {
         return false;
     }
 
@@ -3302,10 +3306,6 @@ function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, rules: OnyxCol
  * - report is a non-approved IOU
  */
 function canDeleteTransaction(moneyRequestReport: OnyxEntry<Report>, rules: OnyxCollection<Rule>, isReportArchived = false): boolean {
-    // A bill must keep the expenses of the vendor's invoice.
-    if (isBillReport(moneyRequestReport)) {
-        return false;
-    }
     return canAddOrDeleteTransactions(moneyRequestReport, rules, isReportArchived);
 }
 
