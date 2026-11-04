@@ -19,6 +19,8 @@ import type {UseOnyxResult} from 'react-native-onyx';
 
 import React from 'react';
 
+import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
+
 const TEST_INVOICE_REPORT_ID = '1001';
 const TEST_CHAT_REPORT_ID = '2002';
 const TEST_HASH = 12345;
@@ -102,12 +104,7 @@ jest.mock('@hooks/usePaymentContext', () => ({
         currentUserAccountID: 1,
         email: 'payer@test.com',
         localCurrencyCode: 'USD',
-        introSelected: undefined,
         isASAPSubmitBetaEnabled: false,
-        isSelfTourViewed: false,
-        userBillingGracePeriodEnds: undefined,
-        amountOwed: undefined,
-        ownerBillingGracePeriodEnd: undefined,
         activePolicyID: undefined,
         activePolicy: undefined,
         defaultWorkspaceName: '',
@@ -180,7 +177,7 @@ describe('PayActionCell', () => {
         expect(mockedPayInvoice).not.toHaveBeenCalled();
     });
 
-    it('pays a money request with a fallback chat report when no chatReport prop is supplied', () => {
+    it('pays a money request with a fallback chat report when no chatReport prop is supplied', async () => {
         // Given an expense report row whose chat report is not loaded (no chatReport prop) while the report itself carries a chatReportID
         mockedIsInvoiceReport.mockReturnValue(false);
         mockedUseReportWithTransactionsAndViolations.mockReturnValue([expenseReport, [], undefined]);
@@ -203,6 +200,7 @@ describe('PayActionCell', () => {
                 payAsBusiness: false,
             });
         });
+        await waitForBatchedUpdates();
 
         // Then the payment should proceed with a minimal fallback chat report built from the known IDs
         expect(mockedPayMoneyRequest).toHaveBeenCalledWith(
@@ -213,7 +211,7 @@ describe('PayActionCell', () => {
         );
     });
 
-    it('pays a money request with the loaded chat report when it is supplied', () => {
+    it('pays a money request with the loaded chat report when it is supplied', async () => {
         // Given an expense report row whose chat report is loaded and passed down as a prop
         mockedIsInvoiceReport.mockReturnValue(false);
         mockedUseReportWithTransactionsAndViolations.mockReturnValue([expenseReport, [], undefined]);
@@ -236,6 +234,7 @@ describe('PayActionCell', () => {
                 payAsBusiness: false,
             });
         });
+        await waitForBatchedUpdates();
 
         // Then the payment should use the loaded chat report
         expect(mockedPayMoneyRequest).toHaveBeenCalledWith(
@@ -246,7 +245,7 @@ describe('PayActionCell', () => {
         );
     });
 
-    it('does not pay a money request and logs the reason when the chat is not loaded and no chatReportID is available', () => {
+    it('does not pay a money request and logs the reason when the chat is not loaded and no chatReportID is available', async () => {
         // Given an expense report row whose chat report is not loaded and which has no chatReportID to build a fallback from
         mockedIsInvoiceReport.mockReturnValue(false);
         mockedUseReportWithTransactionsAndViolations.mockReturnValue([{...expenseReport, chatReportID: undefined, parentReportID: undefined}, [], undefined]);
@@ -269,6 +268,8 @@ describe('PayActionCell', () => {
                 payAsBusiness: false,
             });
         });
+
+        await waitForBatchedUpdates();
 
         // Then no payment should happen and the drop should be logged because there is no way to resolve any chat report
         expect(mockedPayMoneyRequest).not.toHaveBeenCalled();
