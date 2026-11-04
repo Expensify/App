@@ -10,6 +10,7 @@ import React from 'react';
 
 type ShareButtonProps = {
     onPress: () => void;
+    /** Disables the button and shows a loading indicator while sharing. Defaults to false. */
     isLoading?: boolean;
 };
 

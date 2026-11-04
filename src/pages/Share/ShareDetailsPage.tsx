@@ -83,6 +83,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [message, setMessage] = useState(isTextShared ? (currentAttachment?.content ?? '') : '');
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
+    // State drives the loading UI; the ref blocks repeated share calls before React re-renders.
     const [isSharing, setIsSharing] = useState(false);
     const isSharingRef = useRef(false);
 
