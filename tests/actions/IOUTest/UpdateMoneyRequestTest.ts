@@ -691,7 +691,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             const {onyxData} = getUpdateTrackExpenseParams({
                 transactionID,
-                transactionThreadReportID: transactionThreadReport.reportID,
+                transactionThread: transactionThreadReport,
+                transactionThreadParentReport: selfDMReport,
                 transactionChanges: {amount: 20000},
                 policy: createRandomPolicy(1),
                 delegateAccountID: undefined,
@@ -2297,6 +2298,11 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             const transactionID = 'track_distance_precision';
             const transactionThreadReportID = 'thread_precision';
             const policyID = 'policy_precision';
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'self-dm-report',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
 
             const fakeTransaction: Transaction = {
                 transactionID,
@@ -2319,14 +2325,14 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             const fakePolicy = createRandomPolicy(Number(1));
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, fakeThreadReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
             // When the caller passes a higher-precision distance than what `customUnit.quantity` would round to
             const {params} = getUpdateTrackExpenseParams({
                 transactionID,
-                transactionThreadReportID,
+                transactionThread: fakeThreadReport,
+                transactionThreadParentReport: selfDMReport,
                 transactionChanges: {distance: 5.555},
                 policy: fakePolicy,
                 delegateAccountID: undefined,
@@ -2343,6 +2349,11 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             const snapshotHash = 1122334455;
             const customUnitRateID = 'rate_id';
             const policyID = 'policy_date_violation';
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'self-dm-report',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
 
             const fakeTransaction: Transaction = {
                 transactionID,
@@ -2366,7 +2377,6 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             const fakeThreadReport = createMock<Report>({
                 reportID: transactionThreadReportID,
                 type: CONST.REPORT.TYPE.CHAT,
-                parentReportID: 'self-dm-report',
             });
             const fakePolicy: Policy = {
                 ...createRandomPolicy(Number(1)),
@@ -2394,14 +2404,14 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, fakeThreadReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, []);
             await waitForBatchedUpdates();
 
             const {onyxData} = getUpdateTrackExpenseParams({
                 transactionID,
-                transactionThreadReportID,
+                transactionThread: fakeThreadReport,
+                transactionThreadParentReport: selfDMReport,
                 transactionChanges: {created: '2026-06-15'},
                 policy: fakePolicy,
                 delegateAccountID: undefined,
@@ -2447,6 +2457,46 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     }),
                 }),
             );
+        });
+
+        it('does not target a report key when the transaction thread is missing', () => {
+            // Given a tracked expense edit with no transaction thread
+            const transactionID = 'track_missing_thread';
+            const policyID = 'policy_missing_thread';
+            const fakeTransaction: Transaction = {
+                transactionID,
+                amount: 5000,
+                currency: CONST.CURRENCY.USD,
+                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                merchant: 'Missing Thread',
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        quantity: 5,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                    waypoints: {},
+                },
+            };
+            const fakePolicy = {...createRandomPolicy(Number(1)), id: policyID};
+
+            // When building the params without a transaction thread
+            const {onyxData} = getUpdateTrackExpenseParams({
+                transactionID,
+                transaction: fakeTransaction,
+                transactionThread: undefined,
+                transactionThreadParentReport: undefined,
+                transactionChanges: {distance: 5.555},
+                policy: fakePolicy,
+                delegateAccountID: undefined,
+                currencyContext: {getCurrencyDecimals: getCurrencyDecimalsLocal, getCurrencySymbol: getCurrencySymbolLocal},
+            });
+
+            // Then no optimistic or failure update targets a report key built from an undefined report ID.
+            const updates = [...(onyxData.optimisticData ?? []), ...(onyxData.failureData ?? [])];
+            expect(updates.map((update) => update.key)).not.toContain(`${ONYXKEYS.COLLECTION.REPORT}undefined`);
         });
     });
 
