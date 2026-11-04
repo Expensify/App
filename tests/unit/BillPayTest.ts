@@ -21,7 +21,7 @@ import {
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyReportField, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {Policy, PolicyReportField, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -88,9 +88,10 @@ function createIOUAction(report: Report): ReportAction<typeof CONST.REPORT.ACTIO
     });
 }
 
-function getPrimaryAction(report: Report) {
+function getPrimaryAction(report: Report, reportNameValuePairs?: ReportNameValuePairs) {
     return getReportPrimaryAction({
         report,
+        reportNameValuePairs,
         currentUserAccountID: accountID,
         currentUserLogin: email,
         policy,
@@ -240,6 +241,22 @@ describe('Bill Pay', () => {
         expect(getHeldPrimaryAction(approvedBill, heldBillTransaction)).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
         expect(getHeldPrimaryAction(approvedExpenseReport, heldExpenseTransaction)).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
         expect(getSecondaryActions(approvedBill)).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.PAY);
+    });
+
+    it('hides Pay on a bill whose linked invoice was deleted', () => {
+        // Given an approved bill whose name value pairs loaded without an invoiceID, because the vendor deleted the invoice
+        const unlinkedPairs: ReportNameValuePairs = {};
+        const linkedPairs: ReportNameValuePairs = {invoiceID: 4321};
+
+        // When the header resolves its primary action, with the pairs missing, linked and unlinked
+        // Then Pay shows unless the loaded pairs have no invoice, because PayMoneyRequest pays the owner of the linked invoice
+        expect(getPrimaryAction(approvedBill, unlinkedPairs)).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+        expect(canPayBill(approvedBill, policy, accountID, email, unlinkedPairs)).toBe(false);
+        expect(getPrimaryAction(approvedBill, linkedPairs)).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+        expect(canPayBill(approvedBill, policy, accountID, email, linkedPairs)).toBe(true);
+
+        // And a bill whose pairs haven't loaded yet keeps Pay, so Pay doesn't flash off and on while the bill opens
+        expect(getPrimaryAction(approvedBill)).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
     });
 
     it('moves a bill from approval to payment only after final approval', () => {

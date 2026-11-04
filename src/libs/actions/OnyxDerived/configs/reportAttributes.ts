@@ -664,6 +664,7 @@ export default createOnyxDerivedValueConfig({
                     policies,
                     reportMetadata: reportReportMetadata,
                     cardList,
+                    reportNameValuePairs: reportNameValuePair,
                     currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     currentUserLogin: session?.email ?? '',
                 });

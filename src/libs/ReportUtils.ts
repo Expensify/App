@@ -87,8 +87,9 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate}
 import type {SvgProps} from 'react-native-svg';
 import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
 
-/* eslint-disable max-lines */
 import {findFocusedRoute} from '@react-navigation/native';
+/* eslint-disable max-lines */
+import {isBillLinkedToInvoiceSelector} from '@selectors/ReportNameValuePairs';
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import lodashEscape from 'lodash/escape';
@@ -3515,10 +3516,24 @@ function isBillPayer(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<
     );
 }
 
-/** Whether the current user can pay the bill. The header's Pay button, the green dot and the Pay badge all use it. */
-function canPayBill(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>, currentUserAccountID: number, currentUserLogin: string): boolean {
+/**
+ * Whether the current user can pay the bill. The header's Pay button, the green dot and the Pay badge all use it. Pass
+ * the bill's name value pairs where they're available. Without them the bill counts as linked to the vendor's invoice.
+ */
+function canPayBill(
+    report: OnyxInputOrEntry<Report>,
+    policy: OnyxInputOrEntry<Policy>,
+    currentUserAccountID: number,
+    currentUserLogin: string,
+    reportNameValuePairs?: OnyxEntry<ReportNameValuePairs>,
+): boolean {
     // A bill stores the amount owed as a negative total, so a total of zero or more leaves nothing to pay.
     if (!report || !isBillReport(report) || report.isWaitingOnBankAccount || (report.total ?? 0) >= 0 || isPayBlocked(report, policy, false) || !arePaymentsEnabled(policy)) {
+        return false;
+    }
+
+    // PayMoneyRequest pays the owner of the linked invoice, so it can't pay a bill whose invoice was deleted.
+    if (isBillLinkedToInvoiceSelector(reportNameValuePairs) === false) {
         return false;
     }
 
@@ -5348,6 +5363,9 @@ type GetReasonAndReportActionThatRequiresAttentionParams = {
     policies?: OnyxCollection<Policy>;
     reportMetadata: OnyxEntry<ReportMetadata>;
     cardList?: OnyxEntry<CardList>;
+
+    /** The report's own name value pairs, which tell whether a bill can be paid */
+    reportNameValuePairs?: OnyxEntry<ReportNameValuePairs>;
 };
 
 function getReasonAndReportActionThatRequiresAttention({
@@ -5362,6 +5380,7 @@ function getReasonAndReportActionThatRequiresAttention({
     policies: policiesParam,
     reportMetadata: reportMetadataParam,
     cardList,
+    reportNameValuePairs,
 }: GetReasonAndReportActionThatRequiresAttentionParams): ReasonAndReportActionThatRequiresAttention | null {
     if (!optionOrReport) {
         return null;
@@ -5424,7 +5443,7 @@ function getReasonAndReportActionThatRequiresAttention({
     const policy = resolvePolicy(optionOrReport.policyID);
 
     // Bills have no parent chat to show a report preview badge, so the payer's green dot goes on the bill itself.
-    if (canPayBill(optionOrReport, policy, currentUserAccountID, currentUserLogin)) {
+    if (canPayBill(optionOrReport, policy, currentUserAccountID, currentUserLogin, reportNameValuePairs)) {
         return {
             reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
             actionBadge: CONST.REPORT.ACTION_BADGE.PAY,
@@ -14949,6 +14968,7 @@ function generateReportAttributes({
     policies,
     reportMetadata,
     cardList,
+    reportNameValuePairs,
     currentUserLogin,
     currentUserAccountID,
 }: {
@@ -14966,6 +14986,7 @@ function generateReportAttributes({
     policies: OnyxCollection<Policy>;
     reportMetadata?: OnyxEntry<ReportMetadata>;
     cardList?: OnyxEntry<CardList>;
+    reportNameValuePairs?: OnyxEntry<ReportNameValuePairs>;
 }) {
     const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`];
     const parentReportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`];
@@ -14996,6 +15017,7 @@ function generateReportAttributes({
             policies,
             reportMetadata,
             cardList,
+            reportNameValuePairs,
         }) ?? {};
 
     return {

@@ -78,5 +78,23 @@ function isLinkedToBillSelector(reportNameValuePairs: OnyxEntry<ReportNameValueP
     return !!reportNameValuePairs?.billID;
 }
 
-export {getAgentZeroProcessingLabel, agentZeroProcessingAgentIDsSelector, isLinkedToBillSelector, latestCalendlyCallSelector, reportNameValuePairsArchivedSelector};
+/**
+ * Whether a bill is linked to the vendor's invoice. Returns undefined while the bill's name value pairs are missing, so
+ * callers don't treat a bill as unlinked before its pairs load.
+ */
+function isBillLinkedToInvoiceSelector(reportNameValuePairs: OnyxEntry<ReportNameValuePairs>): boolean | undefined {
+    if (!reportNameValuePairs) {
+        return undefined;
+    }
+    return !!reportNameValuePairs.invoiceID;
+}
+
+export {
+    getAgentZeroProcessingLabel,
+    agentZeroProcessingAgentIDsSelector,
+    isBillLinkedToInvoiceSelector,
+    isLinkedToBillSelector,
+    latestCalendlyCallSelector,
+    reportNameValuePairsArchivedSelector,
+};
 export type {ReportNameValuePairsArchivedState};

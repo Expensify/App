@@ -3,7 +3,7 @@ import {getReasonAndReportActionThatRequiresAttention} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -41,9 +41,10 @@ const billTransaction = createMock<Transaction>({
     created: '2026-11-01',
 });
 
-function getBadge(report: Report, accountID: number, email: string, reportPolicy: Policy = policy) {
+function getBadge(report: Report, accountID: number, email: string, reportPolicy: Policy = policy, reportNameValuePairs?: ReportNameValuePairs) {
     return getReasonAndReportActionThatRequiresAttention({
         optionOrReport: report,
+        reportNameValuePairs,
         currentUserLogin: email,
         currentUserAccountID: accountID,
         transactionViolations: undefined,
@@ -147,5 +148,16 @@ describe('Bill Pay green dot', () => {
         // Then neither sees the Pay green dot
         expect(getBadge(approvedBill, approverAccountID, approverEmail, paymentPolicy)?.actionBadge).not.toBe(CONST.REPORT.ACTION_BADGE.PAY);
         expect(getBadge({...approvedBill, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED}, 172, 'bob@receiver.com', paymentPolicy)?.actionBadge).not.toBe(CONST.REPORT.ACTION_BADGE.PAY);
+    });
+
+    it('shows no Pay dot on a bill whose linked invoice was deleted', () => {
+        // Given an approved bill that its owner can pay, with name value pairs that have no invoiceID
+        const paymentPolicy: Policy = {...policy, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES};
+        const approvedBill: Report = {...submittedBill, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED};
+
+        // When the Inbox checks whether the bill needs the owner's attention
+        // Then only the linked bill gets the Pay dot, matching the header, which hides Pay on the unlinked bill
+        expect(getBadge(approvedBill, 172, 'bob@receiver.com', paymentPolicy, {})?.actionBadge).not.toBe(CONST.REPORT.ACTION_BADGE.PAY);
+        expect(getBadge(approvedBill, 172, 'bob@receiver.com', paymentPolicy, {invoiceID: 4321})?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.PAY);
     });
 });

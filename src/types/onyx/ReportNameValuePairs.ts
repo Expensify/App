@@ -65,6 +65,9 @@ type ReportNameValuePairs = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** On an invoice, the reportID of the bill linked to it. Auth sends it as a number, and an empty value means no bill. */
     billID?: string | number;
 
+    /** On a bill, the reportID of the invoice linked to it. Auth sends it as a number and clears it when the invoice is deleted. */
+    invoiceID?: string | number;
+
     /** The follow-up support ticket created after this ticket was reopened */
     reopenedAsReportID?: string;
 
