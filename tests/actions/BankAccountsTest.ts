@@ -458,6 +458,25 @@ describe('actions/BankAccounts', () => {
             expect(form?.isLoading).toBe(false);
         });
 
+        test('sends confirmVerificationOfPayee only when the caller confirms it', async () => {
+            // Given the server records what it got
+            const requests: Array<Record<string, unknown>> = [];
+            mockFetch.mockAPICommand(WRITE_COMMANDS.CREATE_WISE_BANK_ACCOUNT, (params) => {
+                requests.push({...params});
+                return {onyxData: []};
+            });
+
+            // When one account is created with an explicit false and another with a confirmation
+            createWiseBankAccount('GB', 'GBP', {}, false);
+            await waitForBatchedUpdates();
+            createWiseBankAccount('GB', 'GBP', {}, true);
+            await waitForBatchedUpdates();
+
+            // Then false is left out, since the request would send it as the string "false", and the confirmation is sent
+            expect(requests.at(0)).not.toHaveProperty('confirmVerificationOfPayee');
+            expect(requests.at(1)).toEqual(expect.objectContaining({confirmVerificationOfPayee: 'true'}));
+        });
+
         test('shows an error on the form when the request fails', async () => {
             // Given the server rejects the request
             mockFetch.fail?.();
