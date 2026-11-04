@@ -176,9 +176,7 @@ describe('WorkspaceWorkflowsPageRevamp - Payer row visibility', () => {
         await waitForBatchedUpdatesWithAct();
         fireEvent.press(screen.getByText(TestHelper.translateLocal('common.confirm')));
         await waitForBatchedUpdatesWithAct();
-        expect(setReimbursementSpy).toHaveBeenCalledWith(
-            expect.objectContaining({policyID: POLICY_ID, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO}),
-        );
+        expect(setReimbursementSpy).toHaveBeenCalledWith(expect.objectContaining({policyID: POLICY_ID, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO}));
     });
 
     it('shows the Payer row when reimbursementChoice is REIMBURSEMENT_YES and a bank account exists', async () => {
