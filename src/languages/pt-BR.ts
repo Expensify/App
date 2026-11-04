@@ -6999,6 +6999,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                         title: 'Sincronizar codificação com o Expensify Travel',
                         subtitle: 'Envie as categorias, tags e campos de relatório deste workspace para o Expensify Travel para que os viajantes os respondam no momento da reserva.',
                     },
+                    autoEnableNewMembers: {
+                        title: 'Ativar viagens automaticamente para novos membros',
+                        subtitle: 'Qualquer pessoa que entrar neste espaço de trabalho pode reservar viagens imediatamente.',
+                    },
                 },
                 members: {
                     offDescription: 'Não pode reservar viagens',
@@ -7007,6 +7011,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                     changeTravelAccess: 'Alterar acesso a viagens',
                     turnOnTravel: 'Ativar viagens',
                     turnOffTravel: 'Desativar viagens',
+                    manageMembers: 'Gerenciar membros',
+                    membersWithTravelAccess: ({enabledCount, totalCount}: {enabledCount: number; totalCount: number}) => `Podem reservar viagens: ${enabledCount} de ${totalCount}`,
                 },
                 travelBilling: {
                     travelBookingSection: {

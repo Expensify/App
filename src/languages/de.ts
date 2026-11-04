@@ -7042,6 +7042,10 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                         title: 'Codierung mit Expensify Travel synchronisieren',
                         subtitle: 'Kategorien, Tags und Berichtsfelder dieses Arbeitsbereichs an Expensify Travel übertragen, damit Reisende sie beim Buchen beantworten.',
                     },
+                    autoEnableNewMembers: {
+                        title: 'Reisen für neue Mitglieder automatisch aktivieren',
+                        subtitle: 'Alle, die diesem Workspace beitreten, können sofort Reisen buchen.',
+                    },
                 },
                 members: {
                     offDescription: 'Kann keine Reisen buchen',
@@ -7050,6 +7054,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     changeTravelAccess: 'Reisezugriff ändern',
                     turnOnTravel: 'Reisen aktivieren',
                     turnOffTravel: 'Reisen deaktivieren',
+                    manageMembers: 'Mitglieder verwalten',
+                    membersWithTravelAccess: ({enabledCount, totalCount}: {enabledCount: number; totalCount: number}) => `Können Reisen buchen: ${enabledCount} von ${totalCount}`,
                 },
                 travelBilling: {
                     travelBookingSection: {

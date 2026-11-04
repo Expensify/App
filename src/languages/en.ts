@@ -7489,6 +7489,10 @@ const translations = {
                         title: 'Sync coding to Expensify Travel',
                         subtitle: "Push this workspace's categories, tags, and report fields to Expensify Travel so travelers answer them at booking time.",
                     },
+                    autoEnableNewMembers: {
+                        title: 'Automatically turn on travel for new members',
+                        subtitle: 'Anyone who joins this workspace can book travel right away.',
+                    },
                 },
                 members: {
                     offDescription: "Can't book travel",
@@ -7497,6 +7501,8 @@ const translations = {
                     changeTravelAccess: 'Change travel access',
                     turnOnTravel: 'Turn on travel',
                     turnOffTravel: 'Turn off travel',
+                    manageMembers: 'Manage members',
+                    membersWithTravelAccess: ({enabledCount, totalCount}: {enabledCount: number; totalCount: number}) => `Can book travel: ${enabledCount} of ${totalCount}`,
                 },
                 travelBilling: {
                     travelBookingSection: {
