@@ -1,5 +1,3 @@
-import type {Route} from '@src/ROUTES';
-
 type ActionPayload = {
     params?: unknown;
 };
@@ -18,8 +16,6 @@ type LinkToOptions = {
     waitForTransition?: boolean;
     // If true, skip full-screen route matching when opening an RHP. Use when the central pane should stay on the current tab.
     skipMatchingFullScreenRoute?: boolean;
-    // The screen a stacked dynamic route opens on, put beneath it in the same navigation so it does not show while the route opens.
-    dynamicRouteBase?: Route;
 };
 
 export type {ActionPayload, LinkToOptions};
