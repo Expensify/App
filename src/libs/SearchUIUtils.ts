@@ -3914,27 +3914,30 @@ function getQuarterSections(
     return [quarterSectionsValues, quarterSectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
-/** Bills stay out of Search for every user until Search supports paying bills. */
-function getBillReportIDs(data: OnyxTypes.SearchResults['data']): Set<string> {
-    const billReportIDs = new Set<string>();
+/**
+ * Bills stay out of Search for every user until Search supports paying bills. A bill receiver pays through the bill,
+ * so the vendor invoice linked to it stays out of their Search too.
+ */
+function getHiddenReportIDs(data: OnyxTypes.SearchResults['data']): Set<string> {
+    const hiddenReportIDs = new Set<string>();
     for (const key of Object.keys(data)) {
         if (!isReportEntry(key)) {
             continue;
         }
         const report = data[key];
-        if (report?.reportID && report.type === CONST.REPORT.TYPE.BILL) {
-            billReportIDs.add(report.reportID);
+        if (report?.reportID && (report.type === CONST.REPORT.TYPE.BILL || report.isHiddenForBillReceiver)) {
+            hiddenReportIDs.add(report.reportID);
         }
     }
-    return billReportIDs;
+    return hiddenReportIDs;
 }
 
-function omitBillRows<T extends {reportID?: string}>(rows: T[], data: OnyxTypes.SearchResults['data']): T[] {
-    const billReportIDs = getBillReportIDs(data);
-    if (billReportIDs.size === 0) {
+function omitHiddenReportRows<T extends {reportID?: string}>(rows: T[], data: OnyxTypes.SearchResults['data']): T[] {
+    const hiddenReportIDs = getHiddenReportIDs(data);
+    if (hiddenReportIDs.size === 0) {
         return rows;
     }
-    return rows.filter((row) => !row.reportID || !billReportIDs.has(row.reportID));
+    return rows.filter((row) => !row.reportID || !hiddenReportIDs.has(row.reportID));
 }
 
 /**
@@ -3970,11 +3973,10 @@ function getSections({
     reportAttributesDerivedValue,
     shouldReturnTripRooms = false,
 }: GetSectionsParams): GetSectionsResult {
-    // Bill rows are removed after counting, because paging compares the count with the server offset, which includes bills.
-    // The expense report view needs no filter, because it only lists IOU, expense, and invoice reports.
+    // Hidden rows are removed after counting, because paging compares the count with the server offset, which includes them.
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         const [reportActionRows, reportActionCount] = getReportActionsSections(data, reportAttributesDerivedValue, visibleReportActionsData);
-        return [omitBillRows(reportActionRows, data), reportActionCount, false];
+        return [omitHiddenReportRows(reportActionRows, data), reportActionCount, false];
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
         return [...getTaskSections(data, formatPhoneNumber, translate, conciergeReportID, reportNameValuePairs, reportAttributesDerivedValue, queryJSON), false];
@@ -3984,7 +3986,7 @@ function getSections({
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        return getReportSections({
+        const [reportRows, reportCount, hasDeletedReportTransaction] = getReportSections({
             data,
             currentSearch,
             currentAccountID,
@@ -4001,6 +4003,7 @@ function getSections({
             onyxPersonalDetailsList,
             convertToDisplayString,
         });
+        return [omitHiddenReportRows(reportRows, data), reportCount, hasDeletedReportTransaction];
     }
 
     if (groupBy) {
@@ -4051,7 +4054,7 @@ function getSections({
         cardList,
         onyxPersonalDetailsList,
     });
-    return [omitBillRows(transactionRows, data), transactionCount, hasDeletedTransaction];
+    return [omitHiddenReportRows(transactionRows, data), transactionCount, hasDeletedTransaction];
 }
 
 type GroupBySortFunction = (
@@ -4624,8 +4627,8 @@ function isSearchResultsEmpty(searchResults: SearchResults, groupBy?: SearchGrou
         return !Object.keys(searchResults?.data).some((key) => isGroupEntry(key));
     }
 
-    // Bills don't count as results, because getSections leaves them out of Search.
-    const billReportIDs = getBillReportIDs(searchResults?.data);
+    // Bills and invoices hidden for the bill receiver don't count as results, because getSections leaves them out of Search.
+    const hiddenReportIDs = getHiddenReportIDs(searchResults?.data);
 
     if (searchResults?.search?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
         return !Object.keys(searchResults?.data).some((key) => {
@@ -4633,7 +4636,7 @@ function isSearchResultsEmpty(searchResults: SearchResults, groupBy?: SearchGrou
                 return false;
             }
             const report = searchResults?.data[key as keyof typeof searchResults.data] as OnyxTypes.Report;
-            return report?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !billReportIDs.has(report?.reportID);
+            return report?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !hiddenReportIDs.has(report?.reportID);
         });
     }
 
@@ -4642,8 +4645,8 @@ function isSearchResultsEmpty(searchResults: SearchResults, groupBy?: SearchGrou
             return false;
         }
         const transaction = searchResults?.data[key as keyof typeof searchResults.data] as OnyxTypes.Transaction;
-        const isBillExpense = !!transaction?.reportID && billReportIDs.has(transaction.reportID);
-        return transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isBillExpense;
+        const isHiddenExpense = !!transaction?.reportID && hiddenReportIDs.has(transaction.reportID);
+        return transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isHiddenExpense;
     });
 }
 

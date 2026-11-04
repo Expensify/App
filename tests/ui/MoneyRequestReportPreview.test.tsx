@@ -306,19 +306,6 @@ describe('MoneyRequestReportPreview', () => {
         }
     });
 
-    it('renders nothing for an invoice that is hidden for the bill receiver', async () => {
-        // Given a report preview whose report is an invoice that the receiver pays through its linked bill
-        setReportPreviewData({iouReport: {...mockIOUReport, isHiddenForBillReceiver: true}});
-
-        // When the chat renders the preview
-        renderPage({});
-        await waitForBatchedUpdatesWithAct();
-
-        // Then the preview is empty, so the receiver only sees the bill
-        expect(screen.queryByTestId('MoneyRequestReportPreviewContent-wrapper')).not.toBeOnTheScreen();
-        expect(screen.queryByText(getReportName(mockIOUReport))).not.toBeOnTheScreen();
-    });
-
     it('renders the report total when the preview has more than one transaction', async () => {
         renderPage({});
         await waitForBatchedUpdatesWithAct();

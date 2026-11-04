@@ -578,6 +578,62 @@ describe('ReportAlternateTextUtils', () => {
     });
 
     describe('getLastMessageTextForReport', () => {
+        it('describes the last visible message instead of an invoice hidden for the bill receiver', async () => {
+            // Given an invoice room whose newest action previews an invoice that the receiver pays through its linked bill
+            const room: Report = {
+                ...createRandomReport(0, CONST.REPORT.CHAT_TYPE.INVOICE),
+                reportID: '9200',
+                lastMessageText: 'Vendor sent an invoice',
+            };
+            const invoice: Report = {...createRandomReport(1, undefined), reportID: '9201', type: CONST.REPORT.TYPE.INVOICE, isHiddenForBillReceiver: true};
+            const commentAction = createMock<ReportAction>({
+                reportActionID: '9202',
+                actorAccountID: CURRENT_USER_ACCOUNT_ID,
+                reportID: room.reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2026-11-01 10:00:00.000',
+                message: [{type: 'COMMENT', html: 'Thanks for the order', text: 'Thanks for the order'}],
+                pendingAction: null,
+                isOptimisticAction: false,
+            });
+            const invoicePreviewAction = createMock<ReportAction>({
+                reportActionID: '9203',
+                actorAccountID: CURRENT_USER_ACCOUNT_ID,
+                reportID: room.reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                created: '2026-11-01 11:00:00.000',
+                message: {linkedReportID: invoice.reportID},
+                pendingAction: null,
+                isOptimisticAction: false,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${room.reportID}`, room);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoice.reportID}`, invoice);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${room.reportID}`, {
+                [commentAction.reportActionID]: commentAction,
+                [invoicePreviewAction.reportActionID]: invoicePreviewAction,
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // When the Inbox computes the room's last message
+            const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                report: room,
+                lastActorDetails: null,
+                isReportArchived: false,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
+                rules: undefined,
+            });
+
+            // Then it shows the comment, because the receiver must not see the invoice in the Inbox
+            expect(lastMessage).toBe('Thanks for the order');
+        });
+
         it('formats an agent prompt update from its original message', () => {
             const report: Report = createRandomReport(0, undefined);
             const agentPromptUpdatedAction: ReportAction = {

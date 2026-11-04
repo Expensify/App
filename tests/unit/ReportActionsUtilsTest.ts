@@ -2963,6 +2963,32 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('shouldReportActionBeVisible', () => {
+        it.each([
+            [true, false],
+            [false, true],
+        ])('shows an invoice preview only when the invoice is not hidden for the bill receiver (isHiddenForBillReceiver: %s)', async (isHiddenForBillReceiver, expectedVisibility) => {
+            // Given an invoice room preview of an invoice that the current user may pay through its linked bill
+            const invoiceReportID = '9100';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, {reportID: invoiceReportID, type: CONST.REPORT.TYPE.INVOICE, isHiddenForBillReceiver});
+            await waitForBatchedUpdates();
+            const reportPreviewAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>({
+                reportActionID: '9101',
+                reportID: '9102',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                created: '2026-11-01 00:00:00.000',
+                message: [{type: 'COMMENT', html: 'Invoice', text: 'Invoice'}],
+                originalMessage: {linkedReportID: invoiceReportID},
+            });
+
+            // When the chat checks whether to show the preview, with and without the cached visibility
+            const visibility = ReportActionsUtils.shouldReportActionBeVisible(reportPreviewAction, reportPreviewAction.reportActionID, true);
+            const cachedVisibility = ReportActionsUtils.isReportActionVisible(reportPreviewAction, '9102', true, {});
+
+            // Then the bill receiver doesn't see the invoice preview, so the whole message row stays out of the chat
+            expect(visibility).toBe(expectedVisibility);
+            expect(cachedVisibility).toBe(expectedVisibility);
+        });
+
         it('keeps a closed support ticket action visible', () => {
             const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED> = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,

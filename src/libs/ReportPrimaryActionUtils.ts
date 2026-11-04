@@ -25,19 +25,11 @@ import {
     isPreferredExporter,
     isSubmitAndClose,
     isSubmitPolicy,
-    isSubmitterApproveBlockedOnSubmitWorkspace,
 } from './PolicyUtils';
-import {
-    getAllReportActions,
-    getOneTransactionThreadReportID,
-    getOriginalMessage,
-    getReportAction,
-    hasPendingDEWApprove,
-    hasPendingDEWSubmit,
-    isMoneyRequestAction,
-} from './ReportActionsUtils';
+import {getAllReportActions, getOneTransactionThreadReportID, getOriginalMessage, getReportAction, hasPendingDEWSubmit, isMoneyRequestAction} from './ReportActionsUtils';
 import {
     canAddTransaction as canAddTransactionUtil,
+    canApproveExpenseReport,
     canHoldUnholdReportAction,
     canPayBill,
     getMoneyRequestSpendBreakdown,
@@ -70,8 +62,6 @@ import {
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
-    isPending,
-    isScanning,
     isTransactionSubmittable,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
@@ -189,38 +179,7 @@ function isSubmitAction(
 }
 
 function isApproveAction(report: Report, reportTransactions: Transaction[], currentUserAccountID: number, reportMetadata: OnyxEntry<ReportMetadata>, policy?: Policy) {
-    // Cheap report-level checks first so the transaction scans below only run for reports the user can approve
-    const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
-    const isCurrentUserManager = managerID === currentUserAccountID;
-    if (!isCurrentUserManager || !isExpenseReportUtils(report) || !isProcessingReportUtils(report) || reportTransactions.length === 0) {
-        return false;
-    }
-
-    if (isArchivedOrPendingDeletePolicy(policy)) {
-        return false;
-    }
-
-    if (isSubmitterApproveBlockedOnSubmitWorkspace(policy, report.ownerAccountID, currentUserAccountID)) {
-        return false;
-    }
-
-    const isSubmitWorkspace = isSubmitPolicy(policy);
-    const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
-    if (!isApprovalEnabled && !isSubmitWorkspace) {
-        return false;
-    }
-
-    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
-    if (hasPendingDEWApprove(reportMetadata, isDEWPolicy)) {
-        return false;
-    }
-
-    const isAnyReceiptBeingScanned = reportTransactions.some((transaction) => isScanning(transaction));
-    if (isAnyReceiptBeingScanned) {
-        return false;
-    }
-
-    return !reportTransactions.every((transaction) => isPending(transaction));
+    return canApproveExpenseReport(report, reportTransactions, currentUserAccountID, reportMetadata, policy);
 }
 
 function isPrimaryPayAction({

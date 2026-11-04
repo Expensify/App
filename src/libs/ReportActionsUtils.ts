@@ -1718,6 +1718,15 @@ function getVisibleReportActionErrors(reportAction: OnyxEntry<ReportAction>): Re
 }
 
 /**
+ * Whether the action previews a vendor invoice that the current user pays through its linked bill. The bill receiver
+ * must not see that invoice in chats, but can still open it directly.
+ */
+function isReportPreviewHiddenForBillReceiver(reportAction: OnyxEntry<ReportAction>): boolean {
+    const linkedReportID = getIOUReportIDFromReportActionPreview(reportAction);
+    return !!linkedReportID && !!getReportOrDraftReport({reportID: linkedReportID})?.isHiddenForBillReceiver;
+}
+
+/**
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
  * and supported type, it's not deleted and also not closed.
  */
@@ -1823,6 +1832,10 @@ function shouldReportActionBeVisible(
     }
 
     if (!isVisiblePreviewOrMoneyRequest(reportAction)) {
+        return false;
+    }
+
+    if (isReportPreviewHiddenForBillReceiver(reportAction)) {
         return false;
     }
 

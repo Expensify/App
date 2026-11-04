@@ -3449,9 +3449,51 @@ function canApproveIOU(
 }
 
 /**
- * Whether the current user can approve the bill. It mirrors the Approve button in the report header, so the bill's
- * green dot and Approve badge never show when the header has no Approve button.
+ * Whether the report header shows Approve to the current user. The bill green dot uses it too, so the dot never shows
+ * without the button.
  */
+function canApproveExpenseReport(
+    report: OnyxEntry<Report>,
+    reportTransactions: Transaction[],
+    currentUserAccountID: number,
+    reportMetadata: OnyxEntry<ReportMetadata>,
+    policy: OnyxEntry<Policy>,
+): boolean {
+    // Cheap report-level checks first so the transaction scans below only run for reports the user can approve
+    const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
+    const isCurrentUserManager = managerID === currentUserAccountID;
+    if (!report || !isCurrentUserManager || !isExpenseReport(report) || !isProcessingReport(report) || reportTransactions.length === 0) {
+        return false;
+    }
+
+    if (isArchivedOrPendingDeletePolicy(policy)) {
+        return false;
+    }
+
+    if (isSubmitterApproveBlockedOnSubmitWorkspace(policy, report.ownerAccountID, currentUserAccountID)) {
+        return false;
+    }
+
+    const isSubmitWorkspace = isSubmitPolicy(policy);
+    const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    if (!isApprovalEnabled && !isSubmitWorkspace) {
+        return false;
+    }
+
+    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+    if (hasPendingDEWApprove(reportMetadata, isDEWPolicy)) {
+        return false;
+    }
+
+    const isAnyReceiptBeingScanned = reportTransactions.some((transaction) => isScanning(transaction));
+    if (isAnyReceiptBeingScanned) {
+        return false;
+    }
+
+    return !reportTransactions.every((transaction) => isPending(transaction));
+}
+
+/** Whether the current user can approve the bill now. The header hides Approve when every expense is on hold. */
 function canApproveBill(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
@@ -3459,21 +3501,7 @@ function canApproveBill(
     currentUserAccountID: number,
     reportTransactions: Transaction[],
 ): boolean {
-    if (!isBillReport(report) || report?.managerID !== currentUserAccountID || !isProcessingReport(report)) {
-        return false;
-    }
-
-    const isApprovalEnabled = !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
-    if (!isApprovalEnabled && !isSubmitPolicy(policy)) {
-        return false;
-    }
-
-    // The header shows no Approve button while a receipt scans or when every expense is on hold.
-    return (
-        canApproveIOU(report, policy, reportMetadata, currentUserAccountID, reportTransactions) &&
-        !reportTransactions.some((transaction) => isScanning(transaction)) &&
-        !hasOnlyHeldExpenses(reportTransactions)
-    );
+    return isBillReport(report) && canApproveExpenseReport(report, reportTransactions, currentUserAccountID, reportMetadata, policy) && !hasOnlyHeldExpenses(reportTransactions);
 }
 
 /** As in Classic, the bill's owner, the policy's reimburser, and the policy's admins and payments admins pay the bill. */
@@ -5398,24 +5426,30 @@ function getReasonAndReportActionThatRequiresAttention({
     const invoiceReceiverPolicy = invoiceReceiverPolicyID ? resolvePolicy(invoiceReceiverPolicyID) : undefined;
     const actionTypeForAssigneeToComplete = getActionTypeForAssigneeToComplete(optionOrReport, parentReportAction);
 
+    // A bill holds no report previews, so it skips the scan for them below.
+    const isBill = isBillReport(optionOrReport);
+
     // Compute IOU candidate upfront so we can compare timestamps with task candidate
-    const {reportAction: iouReportActionToApproveOrPay, actionBadge} = getIOUReportActionWithBadge({
-        chatReport: optionOrReport,
-        policy,
-        reportMetadata,
-        invoiceReceiverPolicy,
-        currentUserLogin,
-        currentUserAccountID,
-        chatReportActions: reportActions,
-        allViolations: transactionViolations,
-        // Always false here because of the early return above, but we still pass it so getIOUReportActionWithBadge doesn't read the archived state from the Onyx cache
-        isChatReportArchived: isReportArchived,
-        allReports: reports,
-        allReportActionsParam: allReportActionsParam ?? allReportActions,
-    });
-    // Fall back to the chat's outstanding child so the pending-only check still runs when no badge action was found.
+    const {reportAction: iouReportActionToApproveOrPay, actionBadge} = isBill
+        ? {reportAction: undefined, actionBadge: undefined}
+        : getIOUReportActionWithBadge({
+              chatReport: optionOrReport,
+              policy,
+              reportMetadata,
+              invoiceReceiverPolicy,
+              currentUserLogin,
+              currentUserAccountID,
+              chatReportActions: reportActions,
+              allViolations: transactionViolations,
+              // Always false here because of the early return above, but we still pass it so getIOUReportActionWithBadge doesn't read the archived state from the Onyx cache
+              isChatReportArchived: isReportArchived,
+              allReports: reports,
+              allReportActionsParam: allReportActionsParam ?? allReportActions,
+          });
+
     // A bill has no parent chat, so its own expenses decide whether its approver must act.
-    const iouReportID = isBillReport(optionOrReport) ? optionOrReport.reportID : (getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay) ?? optionOrReport.iouReportID);
+    // Fall back to the chat's outstanding child so the pending-only check still runs when no badge action was found.
+    const iouReportID = isBill ? optionOrReport.reportID : (getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay) ?? optionOrReport.iouReportID);
     const transactions = getReportTransactions(iouReportID);
 
     // Bills have no parent chat to show a report preview badge, so the approver's green dot goes on the bill itself.
@@ -5425,6 +5459,7 @@ function getReasonAndReportActionThatRequiresAttention({
             actionBadge: CONST.REPORT.ACTION_BADGE.APPROVE,
         };
     }
+
     const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isPending(t));
 
     const iouReport = reports ? reports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`] : getReportOrDraftReport({reportID: iouReportID});
@@ -15870,6 +15905,7 @@ export {
     canApproveBill,
     canPayBill,
     isBillPayer,
+    canApproveExpenseReport,
     canIOUBePaid,
     canSubmitReport,
     canCreateRequest,
