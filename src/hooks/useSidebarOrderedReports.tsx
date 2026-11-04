@@ -59,6 +59,9 @@ type ReportsToDisplayInLHN = Record<
         hasErrorsOtherThanFailedReceipt?: boolean;
         requiresAttention?: boolean;
         isUnreadReport?: boolean;
+
+        /** The newest visible message time, counting the hidden one-transaction thread of a single-expense report */
+        lastVisibleActionCreatedForInboxTab?: string;
     }
 >;
 
@@ -207,6 +210,16 @@ function SidebarOrderedReportsContextProvider({
             reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${derivedCurrentReportID}`);
         }
 
+        // The LHN hides the transaction thread of a single-expense report and shows the expense report instead, whose
+        // unread state also depends on the thread. So when the thread changes (e.g. a new comment), recheck its parent too.
+        for (const key of Array.from(reportsToUpdate)) {
+            const parentReportID = chatReports?.[key]?.parentReportID;
+            if (!parentReportID || reportAttributes?.[parentReportID]?.oneTransactionThreadReportID !== chatReports?.[key]?.reportID) {
+                continue;
+            }
+            reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
+        }
+
         return Array.from(reportsToUpdate);
     }, [
         reportUpdates,
@@ -218,6 +231,7 @@ function SidebarOrderedReportsContextProvider({
         policiesUpdates,
         chatReports,
         transactions,
+        reportAttributes,
         isDefaultRoomsBetaEnabled,
         priorityMode,
         prevIsDefaultRoomsBetaEnabled,
@@ -250,6 +264,7 @@ function SidebarOrderedReportsContextProvider({
             reportsToDisplay = SidebarUtils.updateReportsToDisplayInLHN({
                 displayedReports: currentReportsToDisplay,
                 reports: chatReports,
+                policies: allPolicies,
                 updatedReportsKeys: effectiveUpdatedReports,
                 currentReportId: derivedCurrentReportID,
                 isInFocusMode: priorityMode === CONST.PRIORITY_MODE.GSD,
@@ -271,6 +286,7 @@ function SidebarOrderedReportsContextProvider({
             reportsToDisplay = SidebarUtils.getReportsToDisplayInLHN({
                 currentReportId: derivedCurrentReportID,
                 reports: chatReports,
+                policies: allPolicies,
                 isDefaultRoomsBetaEnabled,
                 priorityMode,
                 draftComments: reportsDrafts,
@@ -308,6 +324,7 @@ function SidebarOrderedReportsContextProvider({
         guideAccountIDs,
         prevGuideAccountIDs,
         session,
+        allPolicies,
     ]);
 
     // Derive a stable boolean map indicating which reports have drafts.

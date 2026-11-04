@@ -1587,7 +1587,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
     failureData?.push(...(convertTrackedExpenseInformation.failureData ?? []));
 
     if (transactionThreadReportID) {
-        const transactionThreadReport = getReportOrDraftReport(transactionThreadReportID);
+        const transactionThreadReport = getReportOrDraftReport({reportID: transactionThreadReportID});
 
         optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,

@@ -306,6 +306,7 @@ function EmptySearchViewContent({
                                 ? [
                                       {
                                           buttonText: translate('emptySearchView.takeATestDrive'),
+                                          sentryLabel: CONST.SENTRY_LABEL.SEARCH.EMPTY_STATE.TAKE_TEST_DRIVE,
                                           buttonAction: startTestDriveAction,
                                       },
                                   ]
@@ -314,6 +315,7 @@ function EmptySearchViewContent({
                                 ? [
                                       {
                                           buttonText: translate('quickAction.createReport'),
+                                          sentryLabel: CONST.SENTRY_LABEL.SEARCH.EMPTY_STATE.CREATE_REPORT,
                                           buttonAction: createReport,
                                           buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                       },
@@ -347,12 +349,14 @@ function EmptySearchViewContent({
                                     ? [
                                           {
                                               buttonText: translate('emptySearchView.takeATestDrive'),
+                                              sentryLabel: CONST.SENTRY_LABEL.SEARCH.EMPTY_STATE.TAKE_TEST_DRIVE,
                                               buttonAction: startTestDriveAction,
                                           },
                                       ]
                                     : []),
                                 {
                                     buttonText: translate('iou.createExpense'),
+                                    sentryLabel: CONST.SENTRY_LABEL.SEARCH.EMPTY_STATE.CREATE_EXPENSE,
                                     buttonAction: () => handleCreateMoneyRequest(CONST.IOU.TYPE.CREATE),
                                     buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                 },
@@ -382,6 +386,7 @@ function EmptySearchViewContent({
                                 ? [
                                       {
                                           buttonText: translate('emptySearchView.takeATestDrive'),
+                                          sentryLabel: CONST.SENTRY_LABEL.SEARCH.EMPTY_STATE.TAKE_TEST_DRIVE,
                                           buttonAction: startTestDriveAction,
                                       },
                                   ]
@@ -390,6 +395,7 @@ function EmptySearchViewContent({
                                 ? [
                                       {
                                           buttonText: translate('workspace.invoices.sendInvoice'),
+                                          sentryLabel: CONST.SENTRY_LABEL.SEARCH.EMPTY_STATE.SEND_INVOICE,
                                           buttonAction: () => handleCreateMoneyRequest(CONST.IOU.TYPE.INVOICE),
                                           buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                       },

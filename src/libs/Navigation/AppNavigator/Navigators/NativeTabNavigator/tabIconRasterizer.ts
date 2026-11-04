@@ -156,12 +156,17 @@ function drawTabIcon(layout: TabIconLayout, {name, color, dotColor, label}: TabI
     const scale = PixelRatio.get();
     const contentSize = layout.glyphSize * scale;
     const paragraph = label ? makeLabelParagraph(label, scale) : undefined;
+    // The label is bold only when selected, so both states are framed for the larger weight and the glyph stays put.
+    const otherWeightParagraph = label ? makeLabelParagraph({...label, isBold: !label.isBold}, scale) : undefined;
+    const labelWidth = Math.max(paragraph?.getLongestLine() ?? 0, otherWeightParagraph?.getLongestLine() ?? 0);
+    const labelHeight = Math.max(paragraph?.getHeight() ?? 0, otherWeightParagraph?.getHeight() ?? 0);
+    otherWeightParagraph?.dispose();
     const {canvasWidth, canvasHeight, contentLeft, contentTop, labelLeft, labelTop} = getTabIconFrame(
         layout,
         contentSize,
         (label?.gap ?? 0) * scale,
-        paragraph?.getLongestLine() ?? 0,
-        paragraph?.getHeight() ?? 0,
+        labelWidth,
+        labelHeight,
         !!label,
         scale,
     );
@@ -178,7 +183,11 @@ function drawTabIcon(layout: TabIconLayout, {name, color, dotColor, label}: TabI
         drawStatusDot(canvas, contentLeft + contentSize, contentTop, scale, dotColor);
     }
     if (paragraph) {
-        paragraph.paint(canvas, labelLeft, labelTop);
+        // Centers the label in its bold-sized box: horizontally under the icon, vertically beside it.
+        const isStacked = layout.direction === 'stacked';
+        const centeringOffsetX = isStacked ? (labelWidth - paragraph.getLongestLine()) / 2 : 0;
+        const centeringOffsetY = isStacked ? 0 : (labelHeight - paragraph.getHeight()) / 2;
+        paragraph.paint(canvas, labelLeft + centeringOffsetX, labelTop + centeringOffsetY);
         paragraph.dispose();
     }
 

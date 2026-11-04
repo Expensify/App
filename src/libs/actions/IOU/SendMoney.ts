@@ -177,7 +177,9 @@ function getSendMoneyParams({
               value: {
                   ...chatReport,
                   // Set and clear pending fields on the chat report
-                  pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                  pendingFields: {
+                      createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                  },
                   lastReadTime: DateUtils.getDBTime(),
                   lastVisibleActionCreated: reportPreviewAction.created,
               },
@@ -239,7 +241,9 @@ function getSendMoneyParams({
         ? {
               onyxMethod: Onyx.METHOD.MERGE,
               key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTransactionThread.reportID}`,
-              value: {[optimisticCreatedActionForTransactionThread?.reportActionID]: optimisticCreatedActionForTransactionThread},
+              value: {
+                  [optimisticCreatedActionForTransactionThread?.reportActionID]: optimisticCreatedActionForTransactionThread,
+              },
           }
         : undefined;
 
@@ -327,7 +331,9 @@ function getSendMoneyParams({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
             value: {
-                [optimisticCreatedActionForIOUReport.reportActionID]: {pendingAction: null},
+                [optimisticCreatedActionForIOUReport.reportActionID]: {
+                    pendingAction: null,
+                },
                 [optimisticIOUReportAction.reportActionID]: {
                     pendingAction: null,
                 },
@@ -388,12 +394,20 @@ function getSendMoneyParams({
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTransactionThread.reportID}`,
-            value: {[optimisticCreatedActionForTransactionThread?.reportActionID]: {pendingAction: null}},
+            value: {
+                [optimisticCreatedActionForTransactionThread?.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTransactionThread.reportID}`,
-            value: {[optimisticCreatedActionForTransactionThread?.reportActionID]: {errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage')}},
+            value: {
+                [optimisticCreatedActionForTransactionThread?.reportActionID]: {
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
+                },
+            },
         });
     }
 
@@ -504,7 +518,7 @@ type SendMoneyActionParams = {
     merchant?: string;
     receipt?: Receipt;
     optimisticChatReportID?: string;
-    shouldStartTracking?: boolean;
+    shouldStartTracking: boolean;
     delegateAccountID: number | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
@@ -529,9 +543,9 @@ function executeSendMoney(
         optimisticChatReportID,
         delegateAccountID,
         getCurrencyDecimals,
+        shouldStartTracking,
         formatPhoneNumber,
     } = actionParams;
-    const {shouldStartTracking = true} = actionParams;
 
     const {params, optimisticData, successData, failureData} = getSendMoneyParams({
         report,
@@ -570,8 +584,12 @@ function executeSendMoney(
         writeCommand,
         params,
         {optimisticData, successData, failureData},
-        resolveWriteBarrier({optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`}),
-        {onWriteStarted: () => notifyNewAction(chatReportIDForNotification, undefined, true)},
+        resolveWriteBarrier({
+            optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
+        }),
+        {
+            onWriteStarted: () => notifyNewAction(chatReportIDForNotification, undefined, true),
+        },
     );
 }
 

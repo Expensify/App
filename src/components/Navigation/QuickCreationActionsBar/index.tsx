@@ -141,6 +141,7 @@ function QuickCreationActionsBar() {
                 onPress={handleExpense}
                 style={styles.quickCreationActionsBarButton}
                 testID={CONST.TEST_ID.QUICK_CREATION_ACTIONS_BAR.EXPENSE}
+                sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.QUICK_CREATE.EXPENSE}
                 accessibilityLabel={translate('common.expense')}
             >
                 <Button.Icon src={icons.ReceiptPlus} />
@@ -152,6 +153,7 @@ function QuickCreationActionsBar() {
                 isDisabled={!isCreateReportReady}
                 style={styles.quickCreationActionsBarButton}
                 testID={CONST.TEST_ID.QUICK_CREATION_ACTIONS_BAR.REPORT}
+                sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.QUICK_CREATE.REPORT}
                 accessibilityLabel={translate('common.report')}
             >
                 <Button.Icon src={icons.DocumentPlus} />
@@ -162,6 +164,7 @@ function QuickCreationActionsBar() {
                 onPress={handleDistance}
                 style={styles.quickCreationActionsBarButton}
                 testID={CONST.TEST_ID.QUICK_CREATION_ACTIONS_BAR.DISTANCE}
+                sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.QUICK_CREATE.DISTANCE}
                 accessibilityLabel={translate('common.distance')}
             >
                 <Button.Icon src={icons.LocationAdd} />
@@ -173,6 +176,7 @@ function QuickCreationActionsBar() {
                     onPress={handleBookTravel}
                     style={styles.quickCreationActionsBarButton}
                     testID={CONST.TEST_ID.QUICK_CREATION_ACTIONS_BAR.BOOK_TRAVEL}
+                    sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.QUICK_CREATE.BOOK_TRAVEL}
                     accessibilityLabel={translate('workspace.common.travel')}
                 >
                     <Button.Icon src={icons.LuggageWithLinesPlus} />
