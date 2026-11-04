@@ -5437,7 +5437,9 @@ type GetHasOptionsConfig = {
     selectedValues?: readonly string[];
 };
 
-/** Migrated Control workspaces leave areRulesEnabled undefined, so this falls back to Classic category rules in that case. */
+/**
+ * Migrated Control workspaces leave areRulesEnabled undefined, so this falls back to Classic category rules in that case.
+ */
 function isRulesBasedViolationAvailable(policy: OnyxTypes.Policy, policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>): boolean {
     return arePolicyRulesEnabled(policy, policy.id ? policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`] : undefined);
 }
