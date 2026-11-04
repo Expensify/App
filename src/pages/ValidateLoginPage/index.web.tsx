@@ -1,3 +1,4 @@
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ExpiredValidateCodeModal from '@components/ValidateCode/ExpiredValidateCodeModal';
 import JustSignedInModal from '@components/ValidateCode/JustSignedInModal';
@@ -177,11 +178,14 @@ function ValidateLoginPage({
                 />
             )}
             {((!effectiveAutoAuthState ? shouldStartSignInWithValidateCode : autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN) || isCompletingDirectSignIn) && (
-                <FullScreenLoadingIndicator
-                    // No "Go Back" button: this is a deep-link entry point, so there is usually no history to pop back to.
-                    shouldUseGoBackButton={false}
-                    testID="validate-login-loading"
-                />
+                // Offline, the sign-in request waits in the queue until the network returns, so show why instead of a bare spinner.
+                <FullPageOfflineBlockingView>
+                    <FullScreenLoadingIndicator
+                        // No "Go Back" button: this is a deep-link entry point, so there is usually no history to pop back to.
+                        shouldUseGoBackButton={false}
+                        testID="validate-login-loading"
+                    />
+                </FullPageOfflineBlockingView>
             )}
         </>
     );

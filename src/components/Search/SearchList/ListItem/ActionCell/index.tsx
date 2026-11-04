@@ -15,6 +15,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 
+import actionSentryLabelsMap from './actionSentryLabelsMap';
 import actionTranslationsMap from './actionTranslationsMap';
 import ApproveActionCell from './ApproveActionCell';
 import PayActionCell from './PayActionCell';
@@ -22,7 +23,7 @@ import PayActionCell from './PayActionCell';
 type ActionCellProps = {
     action?: SearchTransactionAction;
     isSelected?: boolean;
-    onButtonPress: (event?: ModifiedMouseEvent) => void;
+    onButtonPress: (event?: ModifiedMouseEvent) => void | Promise<void>;
     isChildListItem?: boolean;
     isLoading?: boolean;
     policyID?: string;
@@ -123,7 +124,7 @@ function ActionCell({
             stayNormalOnDisable={shouldDisablePointerEvents}
             innerStyles={buttonInnerStyles}
             isNested
-            sentryLabel={CONST.SENTRY_LABEL.SEARCH.ACTION_CELL_ACTION}
+            sentryLabel={actionSentryLabelsMap[action]}
         >
             <Button.Text>{text}</Button.Text>
         </Button>
