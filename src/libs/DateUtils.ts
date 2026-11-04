@@ -1064,19 +1064,37 @@ function getFormattedDateRangeForPerDiem(date1: Date, date2: Date, dateFnsLocale
 }
 
 /**
- * Returns a formatted date range with the number of days in the range.
- * Format: "YYYY-MM-DD to YYYY-MM-DD (X days)"
+ * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language.
  */
-function getFormattedSplitDateRange(translateParam: LocaleContextProps['translate'], startDate: string | undefined, endDate: string | undefined): string {
+const memoizedCreateSplitDateFormatter = memoize((localeCode: string) => new Intl.DateTimeFormat(localeCode, {year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC'}));
+
+/**
+ * Returns a formatted date range with the number of days in the range.
+ * Format: "Jan 10, 2024 to Jan 15, 2024 (6 days)"
+ *
+ * The dates used to be shown as the raw `yyyy-MM-dd` values, which no language writes that way. They are formatted in
+ * UTC because a `yyyy-MM-dd` string is read as UTC midnight, so the shown day matches the picked day in every timezone.
+ */
+function getFormattedSplitDateRange(
+    translateParam: LocaleContextProps['translate'],
+    startDate: string | undefined,
+    endDate: string | undefined,
+    dateFnsLocale: DateFnsLocale | undefined,
+): string {
     if (!startDate || !endDate) {
         return '';
     }
 
     const start = new Date(startDate);
     const end = new Date(endDate);
+    if (!isValid(start) || !isValid(end)) {
+        return '';
+    }
     const daysCount = differenceInDays(end, start) + 1;
+    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
+    const formatter = memoizedCreateSplitDateFormatter(dateFnsLocale?.code ?? 'en-US');
 
-    return translateParam('iou.splitDateRange', startDate, endDate, daysCount);
+    return translateParam('iou.splitDateRange', formatter.format(start), formatter.format(end), daysCount);
 }
 
 /**

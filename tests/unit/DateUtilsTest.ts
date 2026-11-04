@@ -704,49 +704,82 @@ describe('DateUtils', () => {
         const translateEN = <TPath extends TranslationPaths>(path: TPath, ...params: TranslationParameters<TPath>) => translate(LOCALE, path, ...params);
 
         it('should return empty string when startDate is undefined', () => {
-            const result = DateUtils.getFormattedSplitDateRange(translateEN, undefined, '2024-01-15');
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, undefined, '2024-01-15', undefined);
             expect(result).toBe('');
         });
 
         it('should return empty string when endDate is undefined', () => {
-            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-10', undefined);
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-10', undefined, undefined);
             expect(result).toBe('');
         });
 
         it('should return empty string when both dates are undefined', () => {
-            const result = DateUtils.getFormattedSplitDateRange(translateEN, undefined, undefined);
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, undefined, undefined, undefined);
             expect(result).toBe('');
         });
 
+        it('should show readable dates instead of the raw yyyy-MM-dd values', () => {
+            // Given a split over a few days, shown to an English user
+            // When its date range title is built
+            // Then each date is an abbreviated date with a year, since nobody writes dates as the stored `yyyy-MM-dd`
+            expect(DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-10', '2024-01-15', undefined)).toBe('Jan 10, 2024 to Jan 15, 2024 (6 days)');
+        });
+
+        it('should order the dates the way the language does', () => {
+            // Given the same split shown with German date formatting
+            // When its date range title is built
+            // Then the day comes before the month in each date
+            expect(DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-10', '2024-01-15', de)).toBe('10. Jan. 2024 to 15. Jan. 2024 (6 days)');
+        });
+
+        it('should return empty string when a date cannot be read', () => {
+            // Given a split whose start date is not a valid date
+            // When its date range title is built
+            // Then nothing is shown instead of `Intl` throwing a RangeError
+            expect(DateUtils.getFormattedSplitDateRange(translateEN, 'not a date', '2024-01-15', undefined)).toBe('');
+        });
+
         it('should return plural form for multiple days', () => {
-            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-10', '2024-01-15');
-            expect(result).toContain('2024-01-10');
+            // Given a split over six days
+            // When its title is built
+            // Then both dates and the plural day count are shown
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-10', '2024-01-15', undefined);
+            expect(result).toContain('Jan 10, 2024');
             expect(result).toContain('to');
-            expect(result).toContain('2024-01-15');
+            expect(result).toContain('Jan 15, 2024');
             expect(result).toContain('6 days');
         });
 
         it('should return correct format for 2 days', () => {
-            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-10', '2024-01-11');
-            expect(result).toContain('2024-01-10');
+            // Given a split over two consecutive days
+            // When its title is built
+            // Then the count includes both the first and last day
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-10', '2024-01-11', undefined);
+            expect(result).toContain('Jan 10, 2024');
             expect(result).toContain('to');
-            expect(result).toContain('2024-01-11');
+            expect(result).toContain('Jan 11, 2024');
             expect(result).toContain('2 days');
         });
 
         it('should handle cross-month date ranges', () => {
-            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-25', '2024-02-05');
-            expect(result).toContain('2024-01-25');
+            // Given a split that runs from January into February
+            // When its title is built
+            // Then the count spans the month boundary
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-25', '2024-02-05', undefined);
+            expect(result).toContain('Jan 25, 2024');
             expect(result).toContain('to');
-            expect(result).toContain('2024-02-05');
+            expect(result).toContain('Feb 5, 2024');
             expect(result).toContain('12 days');
         });
 
         it('should handle cross-year date ranges', () => {
-            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2023-12-25', '2024-01-05');
-            expect(result).toContain('2023-12-25');
+            // Given a split that runs over New Year
+            // When its title is built
+            // Then each date carries its own year
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2023-12-25', '2024-01-05', undefined);
+            expect(result).toContain('Dec 25, 2023');
             expect(result).toContain('to');
-            expect(result).toContain('2024-01-05');
+            expect(result).toContain('Jan 5, 2024');
             expect(result).toContain('12 days');
         });
     });
