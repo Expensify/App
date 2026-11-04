@@ -127,7 +127,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                 onPress={navigateToWorkspaces}
                             />
                         </ScrollView>
-                        <View style={styles.flatNavigationBarFooter}>
+                        <View style={styles.pb3}>
                             <View style={[styles.flexRow, styles.ph3]}>
                                 <SupportalSwitcherButton isSidebarHovered={isBarHovered} />
                             </View>

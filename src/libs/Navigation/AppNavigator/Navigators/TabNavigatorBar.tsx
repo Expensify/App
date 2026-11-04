@@ -98,7 +98,7 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
     // tabNavigatorBarContainer's negative margin gives that width back, leaving only the bar's width as layout space.
     return (
         <View
-            style={[styles.tabNavigatorBarContainer, StyleUtils.getWidthStyle(navigationBarWidth + variables.sideBarWithLHBWidth), !isBlockingViewVisible && {zIndex: 1}]}
+            style={[styles.tabNavigatorBarContainer, StyleUtils.getWidthStyle(navigationBarWidth + variables.sideBarWithLHBWidth), !isBlockingViewVisible && styles.zIndex1]}
             pointerEvents="box-none"
         >
             {shouldUseFlatNavigationBar ? <FlatNavigationBar selectedTab={selectedTab} /> : <NavigationTabBar selectedTab={selectedTab} />}

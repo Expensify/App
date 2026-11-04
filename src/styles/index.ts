@@ -908,23 +908,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.flatNavigationBarAccountItemHeight,
         },
 
-        flatNavigationBarItemSelected: {
-            backgroundColor: theme.hoverComponentBG,
-        },
-
-        flatNavigationBarItemHovered: {
-            backgroundColor: theme.highlightBG,
-        },
-
         flatNavigationBarDivider: {
             height: 1,
             marginHorizontal: variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding,
             marginVertical: 8,
             backgroundColor: theme.border,
-        },
-
-        flatNavigationBarFooter: {
-            paddingBottom: 12,
         },
 
         button: {

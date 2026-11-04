@@ -34,6 +34,7 @@ type FlatNavItemProps = {
     /** Dot drawn on the icon when the destination needs the user's attention */
     statusIndicatorColor?: string;
 
+    /** Spoken name of the row, defaults to label */
     accessibilityLabel?: string;
 
     sentryLabel: string;
@@ -49,9 +50,9 @@ function FlatNavItem({label, icon, renderLeftElement, isSelected, isTall = false
 
     const getRowBackgroundColor = (isHovered: boolean): ColorValue | undefined => {
         if (isSelected) {
-            return styles.flatNavigationBarItemSelected.backgroundColor;
+            return styles.hoveredComponentBG.backgroundColor;
         }
-        return isHovered ? styles.flatNavigationBarItemHovered.backgroundColor : undefined;
+        return isHovered ? styles.highlightBG.backgroundColor : undefined;
     };
 
     return (
@@ -64,8 +65,8 @@ function FlatNavItem({label, icon, renderLeftElement, isSelected, isTall = false
             style={({hovered}) => [
                 styles.flatNavigationBarItem,
                 isTall && styles.flatNavigationBarAccountItem,
-                isSelected && styles.flatNavigationBarItemSelected,
-                hovered && !isSelected && styles.flatNavigationBarItemHovered,
+                isSelected && styles.hoveredComponentBG,
+                hovered && !isSelected && styles.highlightBG,
             ]}
         >
             {({hovered}) => {
