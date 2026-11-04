@@ -1,5 +1,5 @@
 import MenuItem from '@components/MenuItem';
-import useFlatNavSidebarRowProps from '@components/Navigation/FlatNavigationBar/useFlatNavSidebarRowProps';
+import type {FlatNavSidebarRowProps} from '@components/Navigation/FlatNavigationBar/useFlatNavSidebarRowProps';
 
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 
@@ -19,12 +19,14 @@ type SettingsMenuItemProps = {
     isScreenFocused: boolean;
     onPress: () => void;
     wrapperStyle: StyleProp<ViewStyle>;
+
+    /** Overrides that give the row the flat navigation bar's look, empty when the bar is not shown */
+    flatNavRowProps: FlatNavSidebarRowProps;
 };
 
-function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocused, onPress, wrapperStyle}: SettingsMenuItemProps) {
+function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocused, onPress, wrapperStyle, flatNavRowProps}: SettingsMenuItemProps) {
     const popoverAnchor = useRef(null);
-    const getFlatNavRowProps = useFlatNavSidebarRowProps();
-    const {shouldShowBasicTitle, titleStyle, hoveredTitleStyle, selectedStyle, hoveredStyle} = getFlatNavRowProps(isFocused);
+    const {shouldShowBasicTitle, titleStyle, hoveredTitleStyle, selectedStyle, hoveredStyle} = flatNavRowProps;
 
     const onSecondaryInteraction = item.link
         ? (event: GestureResponderEvent | MouseEvent) => {

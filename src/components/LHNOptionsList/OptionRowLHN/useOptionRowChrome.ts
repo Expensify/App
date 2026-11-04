@@ -19,6 +19,7 @@ type UseOptionRowChromeParams = {
     /** Display density mode. `COMPACT` switches to the compact layout styles. */
     viewMode: NonNullable<OptionRowLHNProps['viewMode']>;
 
+    /** Whether the row takes the flat navigation bar's selected and hover backgrounds */
     shouldUseFlatNavigationBar: boolean;
 };
 
