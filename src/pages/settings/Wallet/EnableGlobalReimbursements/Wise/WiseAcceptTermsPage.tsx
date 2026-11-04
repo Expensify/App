@@ -37,7 +37,7 @@ import type {BankAccountList, ReimbursementAccount} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useEffectEvent, useState} from 'react';
 import {View} from 'react-native';
 
 import getPageWithServerError from './getPageWithServerError';
@@ -144,7 +144,8 @@ function WiseAcceptTermsPage({route}: WiseAcceptTermsPageProps) {
     const pageToFix = hasSubmitFinished && !isSubmitSuccessful ? getPageWithServerError(serverErrorFields) : undefined;
     const submitError = hasSubmitFinished && !isSubmitSuccessful && !isAlreadySubmitted ? submission?.error : undefined;
 
-    useEffect(() => {
+    // The back path follows the focused route, so once this page is replaced it no longer ends in the terms and must not navigate again
+    const leaveTermsAfterSubmission = useEffectEvent(() => {
         if (isSubmitSuccessful) {
             clearDraftValues(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
             clearSensitiveAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
@@ -158,7 +159,11 @@ function WiseAcceptTermsPage({route}: WiseAcceptTermsPageProps) {
         }
         // The error shows under the field, on the page that asked for it
         openOnboardingPage(pageToFix.key);
-    }, [isSubmitSuccessful, pageToFix, introPath, openOnboardingPage]);
+    });
+
+    useEffect(() => {
+        leaveTermsAfterSubmission();
+    }, [isSubmitSuccessful, pageToFix]);
 
     const confirm = () => {
         if (isAlreadySubmitted) {
