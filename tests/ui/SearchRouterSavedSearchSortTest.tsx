@@ -31,11 +31,14 @@ const mockGetSearchKeyForQuery = jest.fn(() => undefined);
 
 jest.mock('@components/Search/SearchContext', () => ({
     ...jest.requireActual<typeof import('@components/Search/SearchContext')>('@components/Search/SearchContext'),
-    useSearchQueryContext: () => ({
-        currentSearchQueryJSON: mockCurrentQuery,
-        currentSearchHash: mockCurrentQuery?.hash,
-        currentSearchKey: mockIsSavedSearch ? savedSearchIDToSearchKey('saved-sort') : CONST.SEARCH.SEARCH_KEYS.EXPENSES,
-    }),
+    useSearchQueryContext: () => {
+        const mockCONST = jest.requireActual<typeof import('@src/CONST')>('@src/CONST').default;
+        return {
+            currentSearchQueryJSON: mockCurrentQuery,
+            currentSearchHash: mockCurrentQuery?.hash,
+            currentSearchKey: mockIsSavedSearch ? `${mockCONST.SEARCH.SAVED_SEARCH_PREFIX}saved-sort` : mockCONST.SEARCH.SEARCH_KEYS.EXPENSES,
+        };
+    },
     useSearchQueryActions: () => ({setShouldResetSearchQuery: jest.fn(), getSearchKeyForQuery: mockGetSearchKeyForQuery}),
 }));
 
