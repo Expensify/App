@@ -10489,9 +10489,9 @@ const CONST = {
             WORKSPACE_SELECTOR_SELECT_ALL: 'Search-WorkspaceSelectorSelectAll',
             STATIC_LIST_ITEM: 'Search-StaticListItem',
             STATIC_LIST_WIDE_ITEM: 'Search-StaticListWideItem',
-            ADVANCED_FILTERS_POPUP_DESCRIBE_SEARCH: 'SearchAdvancedFiltersPopup-DescribeSearch',
-            ADVANCED_FILTERS_BASE_DESCRIBE_SEARCH: 'SearchAdvancedFiltersBase-DescribeSearch',
-            DATE_SELECT_POPUP_BACK: 'DateSelectPopup-Back',
+            ADVANCED_FILTERS_POPUP_DESCRIBE_SEARCH: 'Search-AdvancedFiltersPopupDescribeSearch',
+            ADVANCED_FILTERS_BASE_DESCRIBE_SEARCH: 'Search-AdvancedFiltersBaseDescribeSearch',
+            DATE_SELECT_POPUP_BACK: 'Search-DateSelectPopupBack',
         },
         INSIGHTS: {
             CONTROL_DATE: 'Insights-ControlDate',
@@ -10739,7 +10739,9 @@ const CONST = {
             SUBSCRIPTION: 'Account-Subscription',
         },
         HOME_PAGE: {
-            SECTION_EXPAND_TOGGLE: 'HomePage-SectionExpandToggle',
+            SECTION_EXPAND_TOGGLE_TIME_SENSITIVE: 'HomePage-SectionExpandToggle-TimeSensitive',
+            SECTION_EXPAND_TOGGLE_TO_DOS: 'HomePage-SectionExpandToggle-ToDos',
+            SECTION_EXPAND_TOGGLE_YOUR_SPEND: 'HomePage-SectionExpandToggle-YourSpend',
             INSIGHTS_OVERFLOW_MENU: 'HomePage-InsightsOverflowMenu',
             INSIGHT_TITLE_DROPDOWN: 'HomePage-InsightTitleDropdown',
             RECENTLY_ADDED_ROW: 'HomePage-RecentlyAddedRow',
@@ -10905,8 +10907,8 @@ const CONST = {
                 CARD_EXPORT: 'WorkspaceCompanyCards-CardExport',
                 UNASSIGN_CARD: 'WorkspaceCompanyCards-UnassignCard',
                 TRANSACTION_START_DATE: 'WorkspaceCompanyCards-TransactionStartDate',
-                IMPORT_FROM_FILE_TEMPLATE_LINK: 'ImportFromFileStep-TemplateLink',
-                IMPORT_FROM_FILE_HELP_GUIDE_LINK: 'ImportFromFileStep-HelpGuideLink',
+                IMPORT_FROM_FILE_TEMPLATE_LINK: 'WorkspaceCompanyCards-ImportFromFileTemplateLink',
+                IMPORT_FROM_FILE_HELP_GUIDE_LINK: 'WorkspaceCompanyCards-ImportFromFileHelpGuideLink',
             },
             LIST: {
                 NEW_WORKSPACE_BUTTON: 'WorkspaceList-NewWorkspaceButton',
@@ -11110,7 +11112,7 @@ const CONST = {
             CONTINUE: 'Onboarding-Continue',
             SKIP: 'Onboarding-Skip',
             JOIN_WORKSPACE: 'Onboarding-JoinWorkspace',
-            HEADER_BACK: 'OnboardingHeader-Back',
+            HEADER_BACK: 'Onboarding-HeaderBack',
         },
         BASE_ANCHOR_FOR_ATTACHMENTS_ONLY: {
             DOWNLOAD_BUTTON: 'BaseAnchorForAttachmentsOnly-DownloadButton',
@@ -11123,7 +11125,7 @@ const CONST = {
             SWITCH_BETWEEN_METHODS: 'TwoFactorAuth-SwitchBetweenMethods',
             COPY: 'TwoFactorAuth-Copy',
             COPY_CODES: 'TwoFactorAuth-CopyCodes',
-            SECRET_COPY: 'TwoFactorAuthSecret-Copy',
+            SECRET_COPY: 'TwoFactorAuth-SecretCopy',
         },
         VALIDATE_CODE: {
             RESEND_CODE: 'ValidateCode-ResendCode',
@@ -11134,11 +11136,11 @@ const CONST = {
             STEP_BUTTON: 'InteractiveStepSubHeader-StepButton',
         },
         SOCIALS: {
-            PODCAST: 'Socials-Podcast',
-            TWITTER: 'Socials-Twitter',
-            INSTAGRAM: 'Socials-Instagram',
-            FACEBOOK: 'Socials-Facebook',
-            LINKEDIN: 'Socials-Linkedin',
+            PODCAST: 'Socials-Link-Podcast',
+            TWITTER: 'Socials-Link-Twitter',
+            INSTAGRAM: 'Socials-Link-Instagram',
+            FACEBOOK: 'Socials-Link-Facebook',
+            LINKEDIN: 'Socials-Link-LinkedIn',
         },
         CONFIRM_CONTENT: {
             DISMISS_BUTTON: 'ConfirmContent-DismissButton',
@@ -11209,7 +11211,7 @@ const CONST = {
         },
         EDIT_AGENT_PAGE: {
             AVATAR: 'EditAgentPage-Avatar',
-            BOT_AVATAR_SELECTOR: 'EditAgentAvatar-BotAvatarSelector',
+            BOT_AVATAR_SELECTOR: 'EditAgentPage-BotAvatarSelector',
         },
         SETTINGS_PROFILE: {
             AVATAR: 'SettingsProfile-Avatar',
