@@ -8,3 +8,12 @@
 - E/App issue: https://github.com/Expensify/App/pull/100733#issuecomment-6411009930
 - PR introducing patch: https://github.com/Expensify/App/pull/100733
 - Reproduction: On web, open a chat with more history than the first page. Scroll to the top until older messages load. The message at the top of the screen should stay in place instead of jumping and snapping back.
+
+### [@legendapp+list+3.7.1+002+anchor-end-aligned-lists-to-last-visible-item.patch](@legendapp+list+3.7.1+002+anchor-end-aligned-lists-to-last-visible-item.patch)
+
+- Reason: When items change size or data changes, LegendList keeps the first visible item in place. In a chat, the oldest loaded message shows the sender's avatar, and it loses that header once older messages from the same sender load. Its height shrinks, so every message below it moves up. An inverted list keeps the bottom in place instead. For lists with `alignItemsAtEnd`, this patch anchors the last visible item, so a size change above it only moves the content above.
+- Scope: Only the web bundles, and only lists with `alignItemsAtEnd`. Other lists still anchor the first visible item.
+- Upstream PR/issue: 🛑
+- E/App issue: 🛑
+- PR introducing patch: https://github.com/Expensify/App/pull/100733
+- Reproduction: On web, clear the cache and open a chat whose oldest loaded message shows the sender's avatar. Scroll to that message and wait until older messages from the same sender load. The avatar line should disappear without moving the messages below it.
