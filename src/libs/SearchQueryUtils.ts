@@ -187,8 +187,8 @@ function buildMerchantFilterQuery(
 const VALID_EXPENSE_TYPES = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE));
 const VALID_RECEIPT_TYPES = new Set<string>(Object.values(CONST.SEARCH.RECEIPT_TYPE));
 const VALID_VIOLATION_NAMES = new Set<string>(Object.values(CONST.VIOLATIONS));
-// cashExpenseWithNoReceipt shares the "Receipt required" label with receiptRequired, so offering both would show two identical options.
-// It is still accepted when typed in a query.
+
+// Search, Insights and the CSV export skip the cash expense notice that only Classic records, so violation filter skips it too.
 const VIOLATION_FILTER_VALUES: OnyxTypes.ViolationName[] = Object.values(CONST.VIOLATIONS).filter((name) => name !== CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT);
 
 function isViolationName(name: string): name is OnyxTypes.ViolationName {
