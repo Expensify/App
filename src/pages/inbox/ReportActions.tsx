@@ -46,7 +46,6 @@ function ReportActions() {
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
     const isAppLoadPending = useIsAppLoadPending();
     const isReportLoadPending = useIsReportLoadPending(reportIDFromRoute);
@@ -64,8 +63,7 @@ function ReportActions() {
     // branches below) — matching the previous behavior, where this skeleton lived inside the
     // chat-only ReportActionsView.
     //
-    // Concierge is excluded so the body still mounts under the app-load skeleton, seeding sessionStartTime
-    // before content appeared.
+    // Concierge is excluded so its welcome screen shows while the app loads.
     const isConciergeMainDM = isConciergeChatReport(report, conciergeReportID);
     const shouldShowAppLoadSkeleton = isAppLoadPending && !isOffline && !!report && !shouldWaitForTransactions && !shouldDisplayMoneyRequestActionsList && !isConciergeMainDM;
 
@@ -94,7 +92,6 @@ function ReportActions() {
     return (
         <>
             <ReportActionsList
-                conciergeChat={conciergeChat}
                 key={report.reportID}
                 reportID={report.reportID}
             />

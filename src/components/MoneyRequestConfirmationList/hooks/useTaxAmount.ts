@@ -1,14 +1,20 @@
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useOnyx from '@hooks/useOnyx';
+import useRulesPrefetch from '@hooks/useRulesPrefetch';
 
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {calculateTaxAmount, getDefaultTaxCode, getTaxValue, hasTaxRateWithMatchingValue} from '@libs/TransactionUtils';
+import {arePolicyRulesEnabled, getDistanceRateCustomUnit} from '@libs/PolicyUtils';
+import {calculateTaxAmount, getCategoryTaxCode, getDefaultTaxCode, getTaxValue, hasTaxRateWithMatchingValue} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect, useState} from 'react';
 
 type UseTaxAmountParams = {
     /** Transaction whose tax we're computing */
@@ -59,11 +65,45 @@ function useTaxAmount({
     previousTransactionCurrency,
 }: UseTaxAmountParams) {
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
+    // A category's tax default lives in the `rules_` collection, which only `GetRules` populates. Onyx hydrates it
+    // as empty first, so without waiting the expense picks up the workspace default and the rule never applies.
+    const {areRulesLoading} = useRulesPrefetch(arePolicyRulesEnabled(policy, policyCategories));
 
     // Update the tax code when the default changes (for example, because the transaction currency changed)
-    const defaultTaxCode = getDefaultTaxCode(policy, transaction) ?? (isMovingTransactionFromTrackExpense ? (getDefaultTaxCode(policyForMovingExpenses, transaction) ?? '') : '');
+    const workspaceDefaultTaxCode = getDefaultTaxCode(policy, transaction) ?? (isMovingTransactionFromTrackExpense ? (getDefaultTaxCode(policyForMovingExpenses, transaction) ?? '') : '');
+    const previousWorkspaceDefaultTaxCode = getDefaultTaxCode(policy, transaction, previousTransactionCurrency);
+    const hasCurrencyChanged = transaction?.currency !== previousTransactionCurrency;
+    // The distance rate's default category is written by CategoryDefaultsSetter after this runs, so the rule is
+    // resolved against the category the expense is about to carry rather than the empty one this render still sees.
+    const category = transaction?.category || (isDistanceRequest ? (getDistanceRateCustomUnit(policy)?.defaultCategory ?? '') : '');
+    // The category whose rate the expense is currently carrying, which only moves on once a rate has been resolved
+    // for it. While the rules are loading nothing is resolved, so a category picked in that window stays pending
+    // here until they land. Tracking the last rendered category instead would let the change pass unseen, and the
+    // rate the old category left behind would then be held in place as though the user had chosen it.
+    const [previousCategory, setPreviousCategory] = useState(category);
+    useEffect(() => {
+        if (areRulesLoading || previousCategory === category) {
+            return;
+        }
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- the category has to advance only once a render has resolved a rate for it, which is not knowable during that render
+        setPreviousCategory(category);
+    }, [areRulesLoading, category, previousCategory]);
+    // Only the workspace default follows the currency, so after a currency change the selection is compared against that
+    // default. The rest of the time it is compared against the rate the category asked for before this render, so that
+    // changing category is not mistaken for a rate the user picked. Comparing against the new category's rule instead
+    // would make the rate the old category left behind look chosen, and the new rule would never be applied.
+    const previousDefaultTaxCode = hasCurrencyChanged
+        ? previousWorkspaceDefaultTaxCode
+        : (getCategoryTaxCode(previousCategory, transaction, policy, rules, previousTransactionCurrency) ?? previousWorkspaceDefaultTaxCode);
+    // A tax that was the old currency's workspace default keeps following that default, so it moves to the new
+    // currency's one instead of being taken over by the category rule.
+    const isFollowingWorkspaceDefault = hasCurrencyChanged && !!transaction?.taxCode && transaction.taxCode === previousWorkspaceDefaultTaxCode;
+    // A category tax rule outranks the workspace default, so resolve it here as well. Otherwise this default overwrites
+    // the rule's tax rate on the first render of the confirmation page.
+    const defaultTaxCode = isFollowingWorkspaceDefault ? workspaceDefaultTaxCode : (getCategoryTaxCode(category, transaction, policy, rules) ?? workspaceDefaultTaxCode);
     const defaultTaxValue = getTaxValue(policy, transaction, defaultTaxCode) ?? null;
-    const previousDefaultTaxCode = getDefaultTaxCode(policy, transaction, previousTransactionCurrency);
     const shouldKeepCurrentTaxSelection = hasTaxRateWithMatchingValue(policy, transaction) && transaction?.taxCode !== previousDefaultTaxCode;
 
     const commuterExclusionData = isDistanceRequest
@@ -84,7 +124,7 @@ function useTaxAmount({
 
     const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
 
-    return {defaultTaxCode, defaultTaxValue, shouldKeepCurrentTaxSelection, taxAmountInSmallestCurrencyUnits};
+    return {defaultTaxCode, defaultTaxValue, shouldKeepCurrentTaxSelection, taxAmountInSmallestCurrencyUnits, areRulesLoading};
 }
 
 export default useTaxAmount;

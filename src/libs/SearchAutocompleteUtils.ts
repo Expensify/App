@@ -6,7 +6,6 @@ import type {PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyU
 
 import type {MarkdownRange} from '@expensify/react-native-live-markdown';
 import type {OnyxCollection} from 'react-native-onyx';
-import type {SharedValue} from 'react-native-reanimated/lib/typescript/commonTypes';
 
 import {getTagNamesFromTagsLists} from './PolicyUtils';
 import {parse} from './SearchParser/autocompleteParser';
@@ -15,6 +14,7 @@ import {getUserFriendlyKey, getUserFriendlyValue} from './SearchQueryUtils';
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS: SearchFilterKey[] = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY,
@@ -24,6 +24,13 @@ const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS: SearchFilterKey[] = [
 
 type AutocompleteParserRange = Pick<SearchAutocompleteQueryRange, 'value' | 'start' | 'length'> & {key: string};
 type AutocompleteParserResult = {autocomplete: AutocompleteParserRange | null; ranges: AutocompleteParserRange[]};
+type KnownFilterValues = {
+    userLogins: ReadonlySet<string>;
+    currencies: ReadonlySet<string>;
+    categories: ReadonlySet<string>;
+    tags: ReadonlySet<string>;
+    exportedTo: ReadonlySet<string>;
+};
 
 /** The generated parser also produces non-canonical keys. Only prove the fields used by ordinary query consumers. */
 function isAutocompleteParserResult(value: unknown): value is AutocompleteParserResult {
@@ -195,16 +202,7 @@ const userFriendlyColumnList = new Set(
  * @private
  * Determines if a specific value in the search syntax can/should be highlighted as valid or not
  */
-function filterOutRangesWithCorrectValue(
-    range: AutocompleteParserRange,
-    substitutionMap: SubstitutionMap,
-    userLogins: SharedValue<string[]>,
-    currencyList: SharedValue<string[]>,
-    categoryList: SharedValue<string[]>,
-    tagList: SharedValue<string[]>,
-    exportedToList: SharedValue<string[]>,
-    currentType: string,
-) {
+function filterOutRangesWithCorrectValue(range: AutocompleteParserRange, substitutionMap: SubstitutionMap, knownValues: KnownFilterValues, currentType: string, hasExplicitType: boolean) {
     'worklet';
 
     const typeList = Object.values(CONST.SEARCH.DATA_TYPES) as string[];
@@ -231,6 +229,11 @@ function filterOutRangesWithCorrectValue(
 
     switch (range.key) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN:
+            // `in:` is only supported for chats and tasks. A bare `in:` with no explicit type resolves to `type:chat`.
+            if (hasExplicitType && currentType !== CONST.SEARCH.DATA_TYPES.CHAT && currentType !== CONST.SEARCH.DATA_TYPES.TASK) {
+                return false;
+            }
+            return substitutionMap[`${range.key}:${range.value}`] !== undefined;
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID:
@@ -240,17 +243,18 @@ function filterOutRangesWithCorrectValue(
 
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE:
-            return substitutionMap[`${range.key}:${range.value}`] !== undefined || userLogins.get().includes(range.value) || range.value === CONST.SEARCH.ME;
+            return substitutionMap[`${range.key}:${range.value}`] !== undefined || knownValues.userLogins.has(range.value) || range.value === CONST.SEARCH.ME;
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY:
-            return currencyList.get().includes(range.value);
+            return knownValues.currencies.has(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT:
             return footerCountList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL:
@@ -274,9 +278,9 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION:
             return actionList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY:
-            return categoryList.get().includes(range.value) || range.value === CONST.SEARCH.CATEGORY_EMPTY_VALUE;
+            return knownValues.categories.has(range.value) || range.value === CONST.SEARCH.CATEGORY_EMPTY_VALUE;
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG:
-            return tagList.get().includes(range.value);
+            return knownValues.tags.has(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY:
             if (currentType !== CONST.SEARCH.DATA_TYPES.EXPENSE && currentType !== CONST.SEARCH.DATA_TYPES.INVOICE && currentType !== CONST.SEARCH.DATA_TYPES.TRIP) {
                 return false;
@@ -306,7 +310,7 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR:
             return range.value.length > 0;
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO:
-            return exportedToList.get().includes(range.value);
+            return knownValues.exportedTo.has(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID:
             return !['', 'null', 'undefined', '0', '-1'].includes(range.value);
@@ -334,16 +338,7 @@ function filterOutRangesWithCorrectValue(
  * Parses input string using the autocomplete parser and returns array of markdown ranges that can be used by RNMarkdownTextInput.
  * It is a simpler version of search parser that can be run on UI thread.
  */
-function parseForLiveMarkdown(
-    input: string,
-    currentUserName: string,
-    map: SubstitutionMap,
-    userLogins: SharedValue<string[]>,
-    currencyList: SharedValue<string[]>,
-    categoryList: SharedValue<string[]>,
-    tagList: SharedValue<string[]>,
-    exportedToList: SharedValue<string[]>,
-): MarkdownRange[] {
+function parseForLiveMarkdown(input: string, currentUserName: string, map: SubstitutionMap, knownValues: KnownFilterValues): MarkdownRange[] {
     'worklet';
 
     const parsedAutocomplete: unknown = parse(input);
@@ -351,13 +346,15 @@ function parseForLiveMarkdown(
         return [];
     }
     const ranges = parsedAutocomplete.ranges;
-    const typeRange = ranges.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
+
+    // The search parser applies repeated `type:` filters in order, so the last one decides the query type.
+    const typeRange = ranges.findLast((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
     const currentType = typeRange?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
     return ranges
-        .filter((range) => filterOutRangesWithCorrectValue(range, map, userLogins, currencyList, categoryList, tagList, exportedToList, currentType))
+        .filter((range) => filterOutRangesWithCorrectValue(range, map, knownValues, currentType, !!typeRange))
         .map((range) => {
-            const isCurrentUserMention = userLogins.get().includes(range.value) || range.value === currentUserName || range.value === CONST.SEARCH.ME;
+            const isCurrentUserMention = knownValues.userLogins.has(range.value) || range.value === currentUserName || range.value === CONST.SEARCH.ME;
             const type = isCurrentUserMention ? 'mention-here' : 'mention-user';
 
             return {start: range.start, type, length: range.length};
@@ -418,3 +415,4 @@ export {
     parseForAutocomplete,
     parseForLiveMarkdown,
 };
+export type {KnownFilterValues};

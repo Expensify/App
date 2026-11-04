@@ -5,6 +5,8 @@ import useLocalize from '@hooks/useLocalize';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
@@ -13,7 +15,7 @@ import React from 'react';
 
 import PaymentActivityTableRow from './PaymentActivityTableRow';
 
-type PaymentActivityTableColumnKey = 'member';
+type PaymentActivityTableColumnKey = 'member' | 'actions';
 
 type PaymentActivityRowData = TableData & {
     accountID: number;
@@ -26,6 +28,9 @@ type PaymentActivityRowData = TableData & {
 
     /** The active user's formatted email/phone shown as the subtitle */
     email: string;
+
+    /** Opens the active user's public profile */
+    action: () => void;
 };
 
 type PaymentActivityTableProps = {
@@ -49,6 +54,12 @@ function PaymentActivityTable({activeUsers, countsMembers, headerComponent}: Pay
         {
             key: 'member',
             label: activeUsersLabel,
+            sortable: false,
+        },
+        {
+            key: 'actions',
+            label: '',
+            width: variables.tableCaretColumnWidth,
             sortable: false,
         },
     ];

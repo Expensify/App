@@ -11,10 +11,12 @@ import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
+import recordBlockedNavigation from '@libs/Navigation/AppNavigator/createRootStackNavigator/recordBlockedNavigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 
+import OnboardingPrivateDomain from '@pages/OnboardingPrivateDomain/index.native';
 import OnboardingWorkEmail from '@pages/OnboardingWorkEmail/index.native';
 import OnboardingWorkEmailValidation from '@pages/OnboardingWorkEmailValidation/index.native';
 import OnboardingWorkspaces from '@pages/OnboardingWorkspaces/index.native';
@@ -23,6 +25,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Onboarding} from '@src/types/onyx';
 
@@ -50,6 +53,11 @@ jest.mock('@rnmapbox/maps', () => {
 
 // Jest resolves the platform-neutral no-op variant, so use the Android one that actually registers the handler.
 jest.mock('@hooks/useAndroidBackButtonHandler', () => jest.requireActual<Record<string, unknown>>('@hooks/useAndroidBackButtonHandler/index.android'));
+
+// Jest resolves the native no-op variant, so use the web one that reports a blocked browser back press.
+jest.mock('@libs/Navigation/AppNavigator/createRootStackNavigator/recordBlockedNavigation', () =>
+    jest.requireActual<Record<string, unknown>>('@libs/Navigation/AppNavigator/createRootStackNavigator/recordBlockedNavigation/index.web'),
+);
 
 TestHelper.setupGlobalFetchMock();
 
@@ -85,6 +93,10 @@ function OnboardingModalNavigator() {
             <OnboardingStack.Screen
                 name={SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION}
                 component={OnboardingWorkEmailValidation}
+            />
+            <OnboardingStack.Screen
+                name={SCREENS.ONBOARDING.PRIVATE_DOMAIN}
+                component={OnboardingPrivateDomain}
             />
             <OnboardingStack.Screen
                 name={SCREENS.ONBOARDING.PERSONAL_DETAILS}
@@ -151,7 +163,7 @@ async function getOnboardingValues() {
     return onboardingValues;
 }
 
-describe('Onboarding work email validation (Android system back)', () => {
+describe('Onboarding work email back presses (Android system back and blocked browser back)', () => {
     let backHandlerSpy: jest.SpyInstance;
     const hardwareBackHandlers: Array<(event: HardwareBackPressEvent) => boolean | null | undefined> = [];
 
@@ -166,6 +178,14 @@ describe('Onboarding work email validation (Android system back)', () => {
             consumed = [...hardwareBackHandlers].reverse().some((handler) => handler(mockHardwareBackPressEvent) === true);
         });
         return consumed;
+    };
+
+    /** Does what the router does when OnboardingGuard blocks a browser back press: it records the block while the browser dispatches popstate. */
+    const pressBlockedBrowserBack = () => {
+        act(() => {
+            recordBlockedNavigation();
+            window.dispatchEvent(new PopStateEvent('popstate'));
+        });
     };
 
     beforeAll(() => {
@@ -503,5 +523,183 @@ describe('Onboarding work email validation (Android system back)', () => {
             },
         });
         expect(errorMessage).toBeUndefined();
+    });
+
+    it('should return to the work email screen on a system back press when private-domain is the only route', async () => {
+        // Given the stack BaseOnboardingWorkEmail leaves behind once a new work email is added: private-domain replaced
+        // work email, so it is the only route and an unhandled system back would escape the onboarding modal
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                shouldValidate: false,
+            });
+            // Keeps the screen's navigate-away effect from firing, so the only navigation under test is the back press.
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false});
+        });
+
+        renderOnboardingStack([SCREENS.ONBOARDING.PRIVATE_DOMAIN]);
+
+        await waitForBatchedUpdatesWithAct();
+
+        expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.PRIVATE_DOMAIN]);
+
+        // When Android's system back button is pressed
+        const consumed = pressHardwareBack();
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the screen handles the press like the header back button and lands on the work email screen
+        expect(consumed).toBe(true);
+        await waitFor(() => {
+            expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.WORK_EMAIL]);
+        });
+
+        // Then `shouldValidate` is cleared, as the header back button does, so work email doesn't forward straight back
+        expect((await getOnboardingValues())?.shouldValidate).toBeUndefined();
+    });
+
+    it('should go to the work email screen, not the intent list, on a system back press when work email opened private-domain', async () => {
+        // Given the user picked "Join my company workspace", added a new work email, and work email replaced itself with
+        // private-domain, so the intent list is the route behind it
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                shouldValidate: false,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false});
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+        });
+
+        renderOnboardingStack([SCREENS.ONBOARDING.PURPOSE]);
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Push private-domain after mount, so its back handler subscribes after the NavigationContainer's one and gets
+        // the press first, as it does in the app
+        act(() => {
+            navigationRef.dispatch(StackActions.push(SCREENS.ONBOARDING.PRIVATE_DOMAIN, {backTo: ROUTES.ONBOARDING_WORK_EMAIL.getRoute()}));
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.PURPOSE, SCREENS.ONBOARDING.PRIVATE_DOMAIN]);
+
+        // When Android's system back button is pressed
+        const consumed = pressHardwareBack();
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it goes where the header back button goes, the work email screen, instead of popping to the intent list
+        expect(consumed).toBe(true);
+        await waitFor(() => {
+            expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.PURPOSE, SCREENS.ONBOARDING.WORK_EMAIL]);
+        });
+    });
+
+    it('should keep the default system back on private-domain in the Concierge task flow', async () => {
+        // Given private-domain opened from a Join Workspace Concierge task after onboarding finished, where the header
+        // shows a close button instead of back
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: true,
+                shouldValidate: false,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false});
+        });
+
+        renderOnboardingStack([SCREENS.ONBOARDING.PERSONAL_DETAILS]);
+
+        await waitForBatchedUpdatesWithAct();
+
+        act(() => {
+            navigationRef.dispatch(StackActions.push(SCREENS.ONBOARDING.PRIVATE_DOMAIN, {isJoinWorkspaceTask: 'true'}));
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.PERSONAL_DETAILS, SCREENS.ONBOARDING.PRIVATE_DOMAIN]);
+
+        // When Android's system back button is pressed
+        pressHardwareBack();
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the screen leaves the press to the navigator, which pops it, instead of running the header back logic
+        // that would open the work email screen
+        await waitFor(() => {
+            expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.PERSONAL_DETAILS]);
+        });
+    });
+
+    it('should return to the work email screen when a browser back press on private-domain is blocked', async () => {
+        // Given private-domain is the only route after work email replaced itself, so a browser back press would leave
+        // onboarding and OnboardingGuard blocks it
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                shouldValidate: false,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false});
+        });
+
+        renderOnboardingStack([SCREENS.ONBOARDING.PRIVATE_DOMAIN]);
+
+        await waitForBatchedUpdatesWithAct();
+
+        // When OnboardingGuard blocks a browser back press
+        pressBlockedBrowserBack();
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the screen runs the header back logic and lands on the work email screen
+        await waitFor(() => {
+            expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.WORK_EMAIL]);
+        });
+        expect((await getOnboardingValues())?.shouldValidate).toBeUndefined();
+    });
+
+    it('should clear the back button message when a browser back press on private-domain is blocked', async () => {
+        // Given private-domain opened from the intent list is the only route, so the header back logic returns to the
+        // intent list, which shows any saved onboarding message
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false});
+        });
+
+        renderOnboardingStack([SCREENS.ONBOARDING.PERSONAL_DETAILS]);
+
+        await waitForBatchedUpdatesWithAct();
+
+        act(() => {
+            navigationRef.dispatch(StackActions.replace(SCREENS.ONBOARDING.PRIVATE_DOMAIN, {backTo: ROUTES.ONBOARDING_PURPOSE.getRoute()}));
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.PRIVATE_DOMAIN]);
+
+        // When OnboardingGuard blocks a browser back press, which saves its back button message
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.purpose.errorBackButton');
+        });
+        pressBlockedBrowserBack();
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the intent list opens without the message, because the press was handled instead of ignored
+        await waitFor(() => {
+            expect(getOnboardingRouteNames()).toEqual([SCREENS.ONBOARDING.PURPOSE]);
+        });
+        expect(await getOnyxValue(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY)).toBeFalsy();
     });
 });
