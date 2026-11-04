@@ -11443,7 +11443,7 @@ function reasonForReportToBeInOptionList({
     }
 
     // Members and admins are always participants, so this workspace chat is only here for the "From" on a report shared with the user.
-    if (isPolicyExpenseChat(report) && !isReportArchived && !!report.participants && !!currentUserAccountID && !report.participants[currentUserAccountID]) {
+    if (isPolicyExpenseChat(report) && !report.isOwnPolicyExpenseChat && !isReportArchived && !!report.participants && !!currentUserAccountID && !report.participants[currentUserAccountID]) {
         return null;
     }
 
