@@ -142,6 +142,7 @@ autocompleteKey "key"
       / submitterPayrollID
       / orderDealNumbers
       / reportFieldDynamic
+      / dueDate
       / columns
       / limit
       / footerCount

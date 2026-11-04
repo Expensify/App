@@ -109,6 +109,9 @@ purchaseAmount = "purchaseAmount"i / "purchase-amount"i {return "purchaseAmount"
 purchaseCurrency = "purchaseCurrency"i / "purchase-currency"i {return "purchaseCurrency"}
 amountDebited = "amountDebited"i / "amount-debited"i {return "amountDebited"}
 amountReimbursed = "amountReimbursed"i / "amount-reimbursed"i {return "amountReimbursed"}
+invoiceNumber = "invoiceNumber"i / "invoice-number"i { return "invoiceNumber"; }
+poNumber = "poNumber"i / "po-number"i { return "poNumber"; }
+dueDate = "dueDate"i / "due-date"i { return "dueDate"; }
 columns = "columns"i {
   isColumnsContext = true;
   return "columns";

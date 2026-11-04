@@ -332,6 +332,9 @@ key "key"
       / purchaseAmount
       / policyID
       / status
+      / dueDate
+      / invoiceNumber
+      / poNumber
       / footerCount
       / footerCurrency
       / footerTotal
