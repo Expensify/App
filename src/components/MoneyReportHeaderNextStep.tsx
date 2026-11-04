@@ -45,7 +45,7 @@ function MoneyReportHeaderNextStep({reportID}: MoneyReportHeaderNextStepProps) {
             >
                 <MoneyReportHeaderStatusBar
                     nextStep={optimisticNextStep}
-                    reportID={reportID}
+                    reportType={reportType}
                 />
             </MoneyReportHeaderHistoryButton>
         );
