@@ -17,20 +17,16 @@ For an introduction to the available insights and what they show, see [Learn Abo
 ## Where to find Insights
 
 
-Insights displays spending visualizations based on your permissions and workspace configuration. Where you access insights depends on your platform.
+Insights displays spending visualizations based on your permissions and workspace configuration.
 
-On web: 
-In the navigation tabs on the left, select **Insights**.
-
-On mobile: 
-In the navigation tabs on the bottom, select **Spend**. Then, in the navigation menu, select the individual insight you want to view.
+In the navigation tabs (on the left on web, on the bottom on mobile), select **Insights**.
 
 ## How to filter insights
 
 You can adjust the data shown across **Insights** using these shared filters:
 
 - **Date:** Choose the period you want to analyze.
-- **Compare:** Compare spending with the **Previous period** or the **Average**. This filter is only available on web.
+- **Compare:** Compare spending with the **Previous period** or the **Average**.
 - **Workspace:** Choose which workspace expenses to include.
 - **Group currency:** Choose the currency used to group spending amounts.
 

@@ -270,7 +270,7 @@ function updateMoneyRequestDate({
     if (shouldRecalculateRate) {
         const distanceRateTaxUpdates =
             !isTrackExpense && isTaxTrackingEnabled(true, effectivePolicy, true) && transaction
-                ? getDistanceRateTaxUpdates(effectivePolicy, transaction, newRateID, rules, getCurrencyDecimals)
+                ? getDistanceRateTaxUpdates(effectivePolicy, transaction, newRateID, getCurrencyDecimals)
                 : undefined;
 
         updateMoneyRequestDistanceRate({
@@ -1977,6 +1977,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
               isSplitTransaction,
               policy,
               personalPolicyOutputCurrency,
+              getCurrencyDecimals,
               getCurrencySymbol,
           })
         : undefined;
@@ -2567,7 +2568,7 @@ function getUpdateTrackExpenseParams(
         distanceOriginalPolicy,
         currentTransactionViolations,
     } = params;
-    const {personalPolicyOutputCurrency, getCurrencySymbol} = currencyContext;
+    const {personalPolicyOutputCurrency, getCurrencyDecimals, getCurrencySymbol} = currencyContext;
     const optimisticData: Array<
         OnyxUpdate<
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
@@ -2607,6 +2608,7 @@ function getUpdateTrackExpenseParams(
               isFromExpenseReport: false,
               policy: policyForTransaction,
               personalPolicyOutputCurrency,
+              getCurrencyDecimals,
               getCurrencySymbol,
           })
         : null;
