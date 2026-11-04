@@ -1186,6 +1186,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: '合规',
         runningTotal: '累计总额',
+        explain: '解释',
+        explainChartPrompt: (chartTitle: string) => `解释「${chartTitle}」中的数据。`,
     },
     allSettingsScreen: {
         subscription: '订阅',

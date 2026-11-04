@@ -1221,6 +1221,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'コンプライアンス',
         runningTotal: '累計合計',
+        explain: '説明',
+        explainChartPrompt: (chartTitle: string) => `${chartTitle} のデータを説明します。`,
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',

@@ -1237,6 +1237,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'Conformité',
         runningTotal: 'Total cumulé',
+        explain: 'Expliquer',
+        explainChartPrompt: (chartTitle: string) => `Expliquez les données dans ${chartTitle}.`,
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
