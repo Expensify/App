@@ -1,7 +1,7 @@
 import {setPolicyTravelMemberAccess} from '@libs/actions/Policy/Travel';
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {canMemberUseTravel, isMemberTravelAccessTurnedOff} from '@libs/PolicyUtils';
+import {canMemberChangeTravelAccess, canMemberUseTravel, isMemberTravelAccessTurnedOff} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import type {Policy, PolicyEmployee} from '@src/types/onyx';
@@ -13,6 +13,18 @@ jest.mock('@libs/API');
 const mockWrite = jest.mocked(write);
 
 const MEMBER = {email: 'member@example.com', accountID: 2};
+
+/** The members of the workspace used to check who can change travel access, with their workspace roles. */
+const WORKSPACE_MEMBERS: Array<[string, PolicyEmployee['role']]> = [
+    ['owner@example.com', CONST.POLICY.ROLE.ADMIN],
+    ['admin@example.com', CONST.POLICY.ROLE.ADMIN],
+    ['admin2@example.com', CONST.POLICY.ROLE.ADMIN],
+    ['traveladmin@example.com', CONST.POLICY.ROLE.TRAVEL_ADMIN],
+    ['traveladmin2@example.com', CONST.POLICY.ROLE.TRAVEL_ADMIN],
+    ['peopleadmin@example.com', CONST.POLICY.ROLE.PEOPLE_ADMIN],
+    ['member@example.com', CONST.POLICY.ROLE.USER],
+    ['member2@example.com', CONST.POLICY.ROLE.USER],
+];
 
 function buildPolicy(employee: PolicyEmployee): Policy {
     return {
@@ -93,6 +105,47 @@ describe('Policy travel member access', () => {
             // Then only an explicit true shows them as able to book, and only an explicit false blocks booking
             expect(canMemberUseTravel(policy, MEMBER.email)).toBe(expectedCanUseTravel);
             expect(isMemberTravelAccessTurnedOff(policy, MEMBER.email)).toBe(expectedTurnedOff);
+        });
+
+        it.each([
+            ['admin@example.com', 'owner@example.com', true],
+            ['admin@example.com', 'admin2@example.com', true],
+            ['admin@example.com', 'member@example.com', true],
+            ['traveladmin@example.com', 'member@example.com', true],
+            ['traveladmin@example.com', 'traveladmin2@example.com', true],
+            ['traveladmin@example.com', 'admin@example.com', false],
+            ['traveladmin@example.com', 'owner@example.com', false],
+            ['peopleadmin@example.com', 'member@example.com', false],
+            ['member@example.com', 'member2@example.com', false],
+        ])('lets %s change travel access for %s: %s', (login, targetLogin, expected) => {
+            // Given a Control workspace with an owner, workspace admins, travel admins, a People Admin, and members
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                owner: 'owner@example.com',
+                employeeList: Object.fromEntries(WORKSPACE_MEMBERS.map(([email, role]) => [email, {email, role}])),
+            };
+
+            // When we check whether the member can change the target's travel access
+            // Then members who manage travel can, except that only full admins can change it for the owner and workspace admins, like Auth
+            expect(canMemberChangeTravelAccess(policy, login, targetLogin)).toBe(expected);
+        });
+
+        it('keeps travel admins from changing the owner even when the owner is not listed as an admin', () => {
+            // Given a Control workspace whose owner's employeeList entry doesn't say admin
+            const ownerEmail = 'owner@example.com';
+            const travelAdminEmail = 'traveladmin@example.com';
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                owner: ownerEmail,
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.USER},
+                    [travelAdminEmail]: {email: travelAdminEmail, role: CONST.POLICY.ROLE.TRAVEL_ADMIN},
+                },
+            };
+
+            // When a travel admin checks whether they can change the owner's travel access
+            // Then they can't, because Auth treats the owner as an admin whatever role is listed
+            expect(canMemberChangeTravelAccess(policy, travelAdminEmail, ownerEmail)).toBe(false);
         });
     });
 });

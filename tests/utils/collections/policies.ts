@@ -27,7 +27,7 @@ export default function createRandomPolicy(index: number, type?: ValueOf<typeof 
         outputCurrency: randCurrencyCode(),
         // `owner` is a display-only role derived from `policy.owner` in the UI, it has no permission bundle,
         // so randomizing it makes permission checks fail closed nondeterministically.
-        role: rand(Object.values(CONST.POLICY.ROLE).filter((role) => role !== CONST.POLICY.ROLE.APPROVE_ONLY && role !== CONST.POLICY.ROLE.OWNER)),
+        role: rand(Object.values(CONST.POLICY.ROLE).filter((role) => role !== CONST.POLICY.ROLE.APPROVE_ONLY && role !== CONST.POLICY.ROLE.TRAVEL_ADMIN && role !== CONST.POLICY.ROLE.OWNER)),
         owner: randEmail(),
         ownerAccountID: index,
         avatarURL: randAvatar(),
