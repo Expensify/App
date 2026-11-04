@@ -56,7 +56,6 @@ import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionU
 import {
     canDuplicateExpenseIntoSourceReport,
     generateReportID,
-    getPolicyExpenseChat,
     isCurrentUserSubmitter,
     isDM,
     isExpenseReport,
@@ -84,6 +83,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {policyExpenseChatSelector} from '@src/selectors/Report';
 import type {Transaction} from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
@@ -232,7 +232,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         transaction &&
         getTransactionThreadPrimaryAction(currentUserLogin ?? '', accountID, report, parentReport, parentOwnerLogin, transaction, transactionViolations, policy, false)
     );
-    const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
+    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyExpenseChatSelector(accountID, defaultExpensePolicy?.id)});
 
     // Duplicate expense target: the expense's report when it can accept the copy, otherwise the default workspace chat
     const canDuplicateIntoSourceReport = canDuplicateExpenseIntoSourceReport({
