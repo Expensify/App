@@ -3,6 +3,7 @@ import type {TransactionListItemType} from '@components/Search/SearchList/ListIt
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type {CardList, OriginalMessageIOU, Policy, PolicyCategories, Report, ReportAction, ReportLoadingState, Transaction, TransactionViolations} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -31,11 +32,30 @@ import {
 import {getSupersededPendingCardTransactionIDs, getVisibleTransactionViolations, isTransactionPendingDelete} from './TransactionUtils';
 
 /**
+ * Returns the Onyx timestamp key and the matching translation path for whichever reject error field the backend
+ * set on this expense (`reject`, `rejectCorporateCard`, or `rejectOther`).
+ */
+function getTransactionRejectError(transaction: OnyxEntry<Transaction>): {key: string; translationKey: TranslationPaths} | undefined {
+    const rejectKey = Object.keys(getLatestErrorField(transaction, 'reject')).at(0);
+    if (rejectKey) {
+        return {key: rejectKey, translationKey: 'iou.rejectReport.couldNotRejectExpense'};
+    }
+
+    const rejectCorporateCardKey = Object.keys(getLatestErrorField(transaction, 'rejectCorporateCard')).at(0);
+    if (rejectCorporateCardKey) {
+        return {key: rejectCorporateCardKey, translationKey: 'iou.rejectReport.couldNotRejectCorporateCardExpense'};
+    }
+
+    const rejectOtherKey = Object.keys(getLatestErrorField(transaction, 'rejectOther')).at(0);
+    return rejectOtherKey ? {key: rejectOtherKey, translationKey: 'iou.rejectReport.couldNotRejectExpenseContactConcierge'} : undefined;
+}
+
+/**
  * The key of a reject the backend recorded against an expense it has already moved. It reports those under the
  * expense's own `reject` field rather than the generic `errors`, and it is what disables the row.
  */
 function getTransactionRejectErrorKey(transaction: OnyxEntry<Transaction>): string | undefined {
-    return Object.keys(getLatestErrorField(transaction, 'reject')).at(0);
+    return getTransactionRejectError(transaction)?.key;
 }
 
 /** Whether a row can be selected. A click, Select All and a shift+click range all use this, so they agree on which rows are selectable. */
@@ -128,7 +148,11 @@ function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>,
         }
 
         // A reject the server refused leaves the expense on the report with an error the user has to dismiss.
-        if (!isEmptyObject(transaction.errorFields?.reject ?? {})) {
+        if (
+            !isEmptyObject(transaction.errorFields?.reject ?? {}) ||
+            !isEmptyObject(transaction.errorFields?.rejectCorporateCard ?? {}) ||
+            !isEmptyObject(transaction.errorFields?.rejectOther ?? {})
+        ) {
             return true;
         }
 
@@ -330,6 +354,7 @@ export {
     shouldDisplayReportTableView,
     shouldWaitForTransactions,
     isBillableEnabledOnPolicy,
+    getTransactionRejectError,
     getTransactionRejectErrorKey,
     isSelectableReportTransaction,
     isEveryReportTransactionSelected,

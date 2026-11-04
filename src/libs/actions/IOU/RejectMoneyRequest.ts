@@ -179,7 +179,7 @@ function prepareRejectMoneyRequestData({
     // A reject starts from a clean slate, dropping the error and the report pin left behind by an earlier failed one.
     const staleRejectErrorCleanup = {
         errors: null,
-        errorFields: {reject: null},
+        errorFields: {reject: null, rejectCorporateCard: null, rejectOther: null},
         rejectFailedFromReportID: null,
     };
     const transactionCommentCleanup = (() => {
