@@ -17,9 +17,16 @@ import React from 'react';
 
 type ReportActionsListRowProps = Omit<ReportActionsListItemRendererProps, 'onExpandedSystemMessageReady'> & {
     index: number;
+
+    /** Set only when this row anchors a collapsed run of system messages. The row then renders the run instead of the action. */
     collapsedSystemMessageRun?: SystemMessageRun;
+
+    /** Set only when the unread marker falls inside the collapsed run and the thread divider does not hide it */
     collapsedSystemMessageRunUnreadMarkerReportActionID?: string;
+
     expandSystemMessageRun: (reportActionIDs: string[]) => void;
+
+    /** Passed only to the row whose action has focus requested */
     onExpandedSystemMessageReady?: (reportActionID: string, target: ComponentRef<typeof View> | null) => void;
     hasPreviousMessages: boolean;
     showFullHistory: boolean;
