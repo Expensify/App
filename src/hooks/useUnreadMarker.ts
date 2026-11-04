@@ -1,4 +1,4 @@
-import {wasMessageReceivedWhileOffline} from '@libs/ReportActionsUtils';
+import {isReportActionFromCurrentUser, wasMessageReceivedWhileOffline} from '@libs/ReportActionsUtils';
 import Visibility from '@libs/Visibility';
 
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
@@ -124,7 +124,9 @@ function useUnreadMarker({
     let oldestUnreadReportActionMarker: [string, number] | undefined;
     if (oldestUnreadReportActionID && !hasOnceLoadedReportActions) {
         const visibleIndex = sortedVisibleReportActions.findIndex((action) => action.reportActionID === oldestUnreadReportActionID);
-        if (visibleIndex >= 0) {
+        // A stale lastReadTime can make a message sent by the current user on another device the pagination anchor.
+        // Use the scan result instead when the current user authored that action.
+        if (visibleIndex >= 0 && !isReportActionFromCurrentUser(sortedVisibleReportActions.at(visibleIndex), currentUserAccountID)) {
             oldestUnreadReportActionMarker = [oldestUnreadReportActionID, visibleIndex];
         }
     }

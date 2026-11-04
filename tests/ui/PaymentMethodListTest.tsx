@@ -8,7 +8,7 @@ import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CardList} from '@src/types/onyx';
+import type {BankAccount, BankAccountList, Card, CardList} from '@src/types/onyx';
 
 import {PortalProvider} from '@gorhom/portal';
 import React from 'react';
@@ -60,6 +60,42 @@ const renderAssignedCardsList = () =>
         </ComposeProviders>,
     );
 
+function createBusinessBankAccount(bankAccountID: number, addressName: string, isGlobalReimbursementEnabled?: boolean): BankAccount {
+    return createMock<BankAccount>({
+        methodID: bankAccountID,
+        title: addressName,
+        bankCurrency: CONST.CURRENCY.USD,
+        bankCountry: CONST.COUNTRY.US,
+        accountType: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+        accountData: {
+            bankAccountID,
+            addressName,
+            accountNumber: '1234',
+            type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+            state: CONST.BANK_ACCOUNT.STATE.OPEN,
+            additionalData: {currency: CONST.CURRENCY.USD, isGlobalReimbursementEnabled},
+        },
+    });
+}
+
+function createBankAccountList(...bankAccounts: BankAccount[]): BankAccountList {
+    return Object.fromEntries(bankAccounts.map((bankAccount) => [String(bankAccount.methodID), bankAccount]));
+}
+
+// Renders the bank accounts list the same way the Wallet page does
+const renderBankAccountsList = () =>
+    render(
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+            <PortalProvider>
+                <PaymentMethodList
+                    shouldShowConnectionStatus
+                    shouldShowAddBankAccount={false}
+                    onPress={() => {}}
+                />
+            </PortalProvider>
+        </ComposeProviders>,
+    );
+
 describe('PaymentMethodList', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -103,5 +139,43 @@ describe('PaymentMethodList', () => {
         // Then each card gets its own row, because an admin-issued virtual card is a distinct card
         expect(screen.getByText(CONST.EXPENSIFY_CARD.BANK)).toBeOnTheScreen();
         expect(screen.getByText('Admin virtual card')).toBeOnTheScreen();
+    });
+
+    it('shows the globe on a bank account set up for global reimbursements', async () => {
+        // Given a business account the backend marks as set up for global reimbursements, for a user on the Wise beta
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.WISE_REIMBURSEMENTS]);
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, createBankAccountList(createBusinessBankAccount(1, 'Chase Checking', true)));
+        });
+
+        // When the bank accounts list renders
+        renderBankAccountsList();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the row shows the globe, so the admin can tell this account pays worldwide
+        expect(screen.getByText('Chase Checking')).toBeOnTheScreen();
+        expect(screen.getByLabelText('Global reimbursements enabled')).toBeOnTheScreen();
+
+        // And the row's label says so too, because a screen reader can't reach the globe inside the row's button
+        expect(screen.getByLabelText(/^Chase Checking, .*Global reimbursements enabled$/)).toBeOnTheScreen();
+    });
+
+    it.each([
+        ['the account is not set up for global reimbursements', false, true],
+        ['the user is not on the Wise beta', true, false],
+    ])('hides the globe when %s', async (_label, isGlobalReimbursementEnabled, isOnWiseBeta) => {
+        // Given a business account
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BETAS, isOnWiseBeta ? [CONST.BETAS.WISE_REIMBURSEMENTS] : []);
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, createBankAccountList(createBusinessBankAccount(1, 'Chase Checking', isGlobalReimbursementEnabled)));
+        });
+
+        // When the bank accounts list renders
+        renderBankAccountsList();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then no globe shows, because the account can't pay worldwide or global reimbursements are not released to the user yet
+        expect(screen.getByText('Chase Checking')).toBeOnTheScreen();
+        expect(screen.queryByLabelText('Global reimbursements enabled')).not.toBeOnTheScreen();
     });
 });
