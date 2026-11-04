@@ -3922,7 +3922,7 @@ function getBillReportIDs(data: OnyxTypes.SearchResults['data']): Set<string> {
             continue;
         }
         const report = data[key];
-        if (report?.reportID && report.type === CONST.REPORT.UNSUPPORTED_TYPE.BILL) {
+        if (report?.reportID && report.type === CONST.REPORT.TYPE.BILL) {
             billReportIDs.add(report.reportID);
         }
     }

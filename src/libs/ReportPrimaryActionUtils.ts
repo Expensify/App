@@ -7,6 +7,7 @@ import type {ValueOf} from 'type-fest';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
 
+import {isBillReport} from './BillPayUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     canAdminPayReport,
@@ -235,6 +236,11 @@ function isPrimaryPayAction({
     isSecondaryAction,
     canNonPayerAdminPay,
 }: IsPrimaryPayActionParams) {
+    // Bills can't be paid in NewDot yet.
+    if (isBillReport(report)) {
+        return false;
+    }
+
     const isExpenseReport = isExpenseReportUtils(report);
 
     if (isPayBlocked(report, policy, isArchivedReport(reportNameValuePairs) || !!isChatReportArchived)) {
@@ -390,6 +396,11 @@ function isReviewDuplicatesAction(
     policy: Policy | undefined,
     violations: OnyxCollection<TransactionViolation[]>,
 ) {
+    // Resolving duplicates deletes expenses, and a bill must keep the expenses of the vendor's invoice.
+    if (isBillReport(report)) {
+        return false;
+    }
+
     const hasDuplicates = reportTransactions.some((transaction) =>
         isDuplicate(transaction, currentUserEmail, currentUserAccountID, report, ownerLogin, policy, violations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID]),
     );

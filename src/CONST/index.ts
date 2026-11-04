@@ -2412,6 +2412,7 @@ const CONST = {
         TYPE: {
             CHAT: 'chat',
             EXPENSE: 'expense',
+            BILL: 'bill',
             IOU: 'iou',
             TASK: 'task',
             SUPPORT_TICKET: 'supportTicket',
@@ -2419,7 +2420,6 @@ const CONST = {
         },
         UNSUPPORTED_TYPE: {
             PAYCHECK: 'paycheck',
-            BILL: 'bill',
         },
         CHAT_TYPE: chatTypes,
         WORKSPACE_CHAT_ROOMS: {
