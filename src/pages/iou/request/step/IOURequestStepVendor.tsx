@@ -5,7 +5,6 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import type {ListItem} from '@components/SelectionList/types';
 
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
-import useInitialValue from '@hooks/useInitialValue';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -104,9 +103,6 @@ function IOURequestStepVendor({
     const enabledVendors = Object.values(policyVendors ?? {}).filter((vendor) => vendor.enabled);
     const sortedEnabledVendors = sortVendors(enabledVendors, localeCompare);
 
-    // Freeze the vendor selected when the page opened so the optimistic update on select (or an external change) doesn't reorder the list while it stays open.
-    const initialVendorID = useInitialValue(() => currentVendorID);
-
     const trimmedSearch = searchValue.trim().toLowerCase();
     const selectedVendorID = draftVendor ? draftVendor.value : currentVendorID;
 
@@ -119,11 +115,14 @@ function IOURequestStepVendor({
         searchText: vendor.name,
     }));
 
-    // Pin the vendor selected when the page opened to the top of the full list, then filter, so it stays first both in the full list and in search results (filtering a pre-ordered list keeps the pinned row on top). No-ops for short lists.
-    const orderedEnabledRows = moveInitialSelectionToTop(enabledRows, initialVendorID ? [initialVendorID] : []);
+    // Pin the currently saved vendor to the top of the full list, then filter, so it stays first both in the full list and
+    // in search results (filtering a pre-ordered list keeps the pinned row on top). Reading currentVendorID live pins the
+    // saved vendor as soon as it loads (deep-link / fresh session); tapping a row only stages a draft, so it never reorders
+    // the list. No-ops for short lists.
+    const orderedEnabledRows = moveInitialSelectionToTop(enabledRows, currentVendorID ? [currentVendorID] : []);
     // Only treat the selection as pinned when the list is long enough to pin. On a short list nothing is reordered, so a
     // selection that merely sorts first alphabetically must keep the "None" row above it, not below.
-    const isSelectionPinnedToTop = shouldMoveInitialSelectionToTop(enabledRows.length) && !!initialVendorID && orderedEnabledRows.at(0)?.value === initialVendorID;
+    const isSelectionPinnedToTop = shouldMoveInitialSelectionToTop(enabledRows.length) && !!currentVendorID && orderedEnabledRows.at(0)?.value === currentVendorID;
     const filteredEnabledRows = trimmedSearch ? orderedEnabledRows.filter((row) => (row.text ?? '').toLowerCase().includes(trimmedSearch)) : orderedEnabledRows;
 
     const disabledCurrentVendorRow: VendorListItem | undefined =

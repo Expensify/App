@@ -94,7 +94,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 const IOURequestStepVendor = require<{
-    default: ComponentType<{report: Report; route: {params: {action: string; iouType: string; transactionID: string; reportActionID: string}}; transaction: Transaction}>;
+    default: ComponentType<{report: Report; route: {params: {action: string; iouType: string; transactionID: string; reportActionID: string}}; transaction?: Transaction}>;
 }>('@pages/iou/request/step/IOURequestStepVendor').default;
 
 const getListProps = () => {
@@ -112,14 +112,18 @@ const buildPolicyVendors = (count: number): PolicyVendors =>
         return acc;
     }, {});
 
-const renderPicker = (currentVendorID?: string) =>
-    render(
-        <IOURequestStepVendor
-            report={createMock<Report>({reportID: 'r1', policyID: '1'})}
-            route={{params: {action: CONST.IOU.ACTION.EDIT, iouType: CONST.IOU.TYPE.SUBMIT, transactionID: 't1', reportActionID: 'ra1'}}}
-            transaction={createMock<Transaction>({transactionID: 't1', reimbursable: false, comment: currentVendorID ? {vendor: {externalID: currentVendorID}} : undefined})}
-        />,
-    );
+const buildTransaction = (currentVendorID?: string) =>
+    createMock<Transaction>({transactionID: 't1', reimbursable: false, comment: currentVendorID ? {vendor: {externalID: currentVendorID}} : undefined});
+
+const pickerElement = (transaction?: Transaction) => (
+    <IOURequestStepVendor
+        report={createMock<Report>({reportID: 'r1', policyID: '1'})}
+        route={{params: {action: CONST.IOU.ACTION.EDIT, iouType: CONST.IOU.TYPE.SUBMIT, transactionID: 't1', reportActionID: 'ra1'}}}
+        transaction={transaction}
+    />
+);
+
+const renderPicker = (currentVendorID?: string) => render(pickerElement(buildTransaction(currentVendorID)));
 
 describe('IOURequestStepVendor', () => {
     beforeEach(() => {
@@ -140,6 +144,22 @@ describe('IOURequestStepVendor', () => {
         expect(data.at(1)?.keyForList).toBe('clear-vendor');
         // ...and the rest keep their alphabetical order
         expect(data.at(2)?.keyForList).toBe('v01');
+    });
+
+    it('pins the saved vendor once the transaction loads asynchronously (deep-link / fresh session)', () => {
+        // Given the picker renders in a fresh/deep-linked session before the transaction (and its saved vendor) has loaded
+        mockState.policyVendors = buildPolicyVendors(13);
+        const {rerender} = render(pickerElement(undefined));
+        // Nothing is pinned yet because there is no saved vendor to anchor on
+        expect(getListProps().data.at(0)?.keyForList).toBe('v01');
+
+        // When the transaction arrives with vendor 07 saved
+        rerender(pickerElement(buildTransaction('v07')));
+
+        // Then the saved vendor is pinned to the top without needing to close and reopen the picker
+        const {data} = getListProps();
+        expect(data.at(0)?.keyForList).toBe('v07');
+        expect(data.at(1)?.keyForList).toBe('clear-vendor');
     });
 
     it('keeps the selected vendor pinned at the top of the search results', () => {
