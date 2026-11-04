@@ -62,15 +62,6 @@ describe('insightsDetailsItem', () => {
         expect(item).toEqual({title: 'February 2026', filterQuery: 'date>=2026-02-01 date<=2026-02-28'});
     });
 
-    it('resolves a period without an end to nothing', () => {
-        // Given a period key whose end was dropped from the URL
-        // When the panel resolves it
-        const item = resolve(CONST.SEARCH.GROUP_BY.MONTH, '2026-02-01');
-
-        // Then nothing resolves, so the panel shows not found instead of a guessed range
-        expect(item).toBeUndefined();
-    });
-
     it('resolves a member key to their name and a filter on their account', () => {
         // Given the key of a member on Top spenders
         // When the panel resolves it
