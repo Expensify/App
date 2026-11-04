@@ -5708,10 +5708,10 @@ const CONST = {
     },
 
     HELP_DOC_LINKS: {
-        'Intuit Enterprise Suite': 'https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Configure-Quickbooks-Online',
-        'QuickBooks Online': 'https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Configure-Quickbooks-Online',
+        'Intuit Enterprise Suite': 'https://help.expensify.com/articles/new-expensify/connections/Accounting/quickbooks-online/Configure-Quickbooks-Online',
+        'QuickBooks Online': 'https://help.expensify.com/articles/new-expensify/connections/Accounting/quickbooks-online/Configure-Quickbooks-Online',
         'QuickBooks Desktop': '',
-        quickbooks: 'https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Configure-Quickbooks-Online',
+        quickbooks: 'https://help.expensify.com/articles/new-expensify/connections/Accounting/quickbooks-online/Configure-Quickbooks-Online',
         NetSuite: 'https://help.expensify.com/articles/new-expensify/connections/netsuite/Configure-Netsuite',
         Xero: 'https://help.expensify.com/articles/new-expensify/connections/xero/Configure-Xero',
         Intacct: 'https://help.expensify.com/articles/new-expensify/connections/sage-intacct/Configure-Sage-Intacct',

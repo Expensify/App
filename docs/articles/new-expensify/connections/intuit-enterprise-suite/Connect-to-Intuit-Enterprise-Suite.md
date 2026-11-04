@@ -65,4 +65,4 @@ No. A workspace can have only one accounting connection at a time. If QuickBooks
 
 ## Should I connect QuickBooks Online instead?
 
-Connect **QuickBooks Online** if your Intuit subscription is Simple Start, Essentials, or Essentials Plus. Learn how to [connect to QuickBooks Online](/articles/new-expensify/connections/quickbooks-online/Connect-to-QuickBooks-Online).
+Connect **QuickBooks Online** if your Intuit subscription is Simple Start, Essentials, or Essentials Plus. Learn how to [connect to QuickBooks Online](/articles/new-expensify/connections/Accounting/quickbooks-online/Connect-to-QuickBooks-Online).
