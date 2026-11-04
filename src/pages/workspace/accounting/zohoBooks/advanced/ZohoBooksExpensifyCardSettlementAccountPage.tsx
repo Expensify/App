@@ -1,6 +1,6 @@
 /**
  * Lets an admin pick the workspace-level Zoho Books account that Expensify Card settlements are created in.
- * Settlements are in USD, so it lists only the USD accounts from the bank and credit card accounts the backend syncs.
+ * Settlements are in USD, so it lists only active USD bank accounts.
  */
 import BlockingView from '@components/BlockingViews/BlockingView';
 import type {ListItem} from '@components/SelectionList/types';
@@ -52,7 +52,7 @@ function ZohoBooksExpensifyCardSettlementAccountPage({policy}: WithPolicyConnect
 
     const data: AccountListItem[] =
         zohoBooksData?.bankAccounts
-            ?.filter((accountItem) => accountItem.currency === CONST.CURRENCY.USD)
+            ?.filter((accountItem) => accountItem.isActive && accountItem.accountType === CONST.ZOHO_BOOKS_ACCOUNT_TYPE.BANK && accountItem.currency === CONST.CURRENCY.USD)
             .map((accountItem) => ({
                 value: accountItem.id,
                 text: accountItem.name,

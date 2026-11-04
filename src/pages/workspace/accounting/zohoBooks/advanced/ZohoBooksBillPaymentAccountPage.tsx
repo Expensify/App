@@ -1,6 +1,6 @@
 /**
  * Lets an admin pick the Zoho Books account that bill payments are recorded against when Expensify marks a reimbursed report's bill paid.
- * It lists the active bank and credit card accounts the backend syncs for this picker, and is only reachable while reimbursed report sync is on.
+ * It lists only active bank accounts, and is only reachable while reimbursed report sync is on.
  */
 import BlockingView from '@components/BlockingViews/BlockingView';
 import type {ListItem} from '@components/SelectionList/types';
@@ -47,12 +47,14 @@ function ZohoBooksBillPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
     const shouldBeBlocked = !syncReimbursedReports;
 
     const data: AccountListItem[] =
-        zohoBooksData?.bankAccounts?.map((accountItem) => ({
-            value: accountItem.id,
-            text: accountItem.name,
-            keyForList: accountItem.id,
-            isSelected: billPaymentAccountID === accountItem.id,
-        })) ?? [];
+        zohoBooksData?.bankAccounts
+            ?.filter((accountItem) => accountItem.isActive && accountItem.accountType === CONST.ZOHO_BOOKS_ACCOUNT_TYPE.BANK)
+            .map((accountItem) => ({
+                value: accountItem.id,
+                text: accountItem.name,
+                keyForList: accountItem.id,
+                isSelected: billPaymentAccountID === accountItem.id,
+            })) ?? [];
     const {filteredData, textInputOptions} = useSelectionListSearch(data);
 
     const headerContent = (
