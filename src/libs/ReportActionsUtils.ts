@@ -4375,6 +4375,9 @@ function getWorkspaceUpdateFieldMessage(translate: LocalizedTranslate, action: R
         };
         return translate('workspaceActions.updateMonthlyOffset', getAutoReportingOffsetToDisplay(oldValue), getAutoReportingOffsetToDisplay(newValue));
     }
+    if (updatedField && updatedField === CONST.POLICY.COLLECTION_KEYS.TIME_ZONE && (typeof oldValue === 'string' || typeof oldValue === 'undefined') && typeof newValue === 'string') {
+        return translate('workspaceActions.updateWorkspaceTimezone', oldValue ?? '', newValue);
+    }
     return getReportActionText(action);
 }
 

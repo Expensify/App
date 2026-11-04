@@ -80,6 +80,7 @@ import {
     getUpdatedCardFeedReimbursableMessage,
     getUpdatedCardFeedStatementPeriodMessage,
     getUpdatedOfficeLocationMessage,
+    getWorkspaceUpdateFieldMessage,
     hasNextActionMadeBySameActor,
     hasReasoning,
     isConsecutiveActionMadeByPreviousActor,
@@ -5175,6 +5176,49 @@ describe('ReportActionsUtils', () => {
             } as ReportAction;
             const result = getPolicyChangeLogMaxExpenseAgeMessage(translateLocal, action);
             expect(result).toBe('changed max expense age to "60" days (previously "30")');
+        });
+    });
+
+    describe('getWorkspaceUpdateFieldMessage', () => {
+        it('should return the App message when the workspace timezone changes', () => {
+            // Given a timezone update whose server text would otherwise be shown as is
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD,
+                reportActionID: '1',
+                created: '',
+                message: [{type: 'COMMENT', text: 'updated timeZone from "America/New_York" to "Asia/Kolkata"'}],
+                originalMessage: {
+                    updatedField: CONST.POLICY.COLLECTION_KEYS.TIME_ZONE,
+                    oldValue: 'America/New_York',
+                    newValue: 'Asia/Kolkata',
+                },
+            } as ReportAction;
+
+            // When building the message
+            const result = getWorkspaceUpdateFieldMessage(translateLocal, action);
+
+            // Then App wording is used so the text stays the same whichever server message arrives last
+            expect(result).toBe('updated the workspace timezone to "Asia/Kolkata" (previously "America/New_York")');
+        });
+
+        it('should return the App message when the workspace had no timezone before', () => {
+            // Given a timezone update for a workspace that never had a timezone, so the server sends no old value
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD,
+                reportActionID: '1',
+                created: '',
+                message: [{type: 'COMMENT', text: 'updated timeZone to "Asia/Kolkata"'}],
+                originalMessage: {
+                    updatedField: CONST.POLICY.COLLECTION_KEYS.TIME_ZONE,
+                    newValue: 'Asia/Kolkata',
+                },
+            } as ReportAction;
+
+            // When building the message
+            const result = getWorkspaceUpdateFieldMessage(translateLocal, action);
+
+            // Then App wording is still used instead of falling back to the server text
+            expect(result).toBe('set the workspace timezone to "Asia/Kolkata"');
         });
     });
 

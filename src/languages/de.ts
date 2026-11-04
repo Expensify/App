@@ -10578,6 +10578,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `aktualisierte „Verhindern, dass nicht erstattungsfähige Berichte als bezahlt markiert werden“ auf „${newValue === 'true' ? 'Aktiviert' : 'Deaktiviert'}“ (zuvor „${oldValue === 'true' ? 'Aktiviert' : 'Deaktiviert'}“)`,
         addedExpensifyCardFeed: (feedName: string) => `„${feedName}“-Expensify-Kartenfeed hinzugefügt`,
+        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
+            if (!oldValue) {
+                return `setzen Sie die Workspace-Zeitzone auf „${newValue}“`;
+            }
+            return `die Workspace-Zeitzone auf „${newValue}“ aktualisiert (zuvor „${oldValue}“)`;
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',
