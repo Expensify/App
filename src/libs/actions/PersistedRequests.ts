@@ -29,8 +29,9 @@ let crossTabRequestsCallback: (() => void) | undefined;
 // When the counter is 0, any callback must be from a cross-tab storage event,
 // so it is safe to reconcile deletions from the leader tab.
 let pendingOnyxWrites = 0;
-// Count only locally saved expense edits that can overwrite an inline edit's optimistic snapshot. The count never
-// goes down, so a search can detect an edit queued since dispatch even after that edit finishes.
+// Tracks how many inline edit writes this tab has queued. A search saves this count when it is sent and compares it when
+// its response arrives: if it went up, an edit was queued while the search was in flight, so the response is stale. The
+// count never goes down, so this still works after the edit's write has finished and left the queue.
 let queuedInlineEditWritesCount = 0;
 const INLINE_EDIT_WRITE_COMMANDS = new Set<string>([
     WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE,
