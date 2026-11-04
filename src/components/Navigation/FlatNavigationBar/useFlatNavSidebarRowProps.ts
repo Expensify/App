@@ -27,7 +27,7 @@ type FlatNavSidebarRowProps = {
 };
 
 /**
- * Gives a row of a tab's sidebar (Inbox, Spend, Workspaces, Domains, Account) the look of the flat navigation bar's
+ * Gives a row of a tab's sidebar (Inbox, Workspaces, Domains, Account) the look of the flat navigation bar's
  * rows when the bar is shown, and no overrides otherwise, so the sidebars stay as they are for users outside the beta.
  */
 function getFlatNavSidebarRowProps(isSelected: boolean, shouldUseFlatNavigationBar: boolean, styles: ThemeStyles): FlatNavSidebarRowProps {
