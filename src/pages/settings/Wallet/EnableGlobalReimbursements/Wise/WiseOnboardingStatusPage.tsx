@@ -1,6 +1,6 @@
 /**
  * Shows where the business's Wise onboarding stands for one bank account: in review, approved, or rejected.
- * It opens over the intro, and the `status` query param picks the content.
+ * It opens over the intro and shows the status the bank account holds. Wise also sends the user here when its KYC form ends.
  */
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -13,11 +13,14 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import stripDynamicRouteSuffixFromPath from '@libs/Navigation/helpers/dynamicRoutesUtils/stripDynamicRouteSuffixFromPath';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
+import {markWiseKYCReviewSubmitted} from '@userActions/Wise';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -25,7 +28,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import type {ValueOf} from 'type-fest';
+import type {ReactNode} from 'react';
 
 import React, {useEffect} from 'react';
 
@@ -35,27 +38,13 @@ import RejectedContent from './WiseOnboardingStatus/RejectedContent';
 
 type WiseOnboardingStatusPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ONBOARDING_STATUS>;
 
-type WiseOnboardingStatusPageStatus = ValueOf<typeof CONST.WISE.ONBOARDING_STATUS_PAGE>;
-
-const HEADER_TITLES = {
-    [CONST.WISE.ONBOARDING_STATUS_PAGE.REVIEW]: 'walletPage.wiseOnboarding.inReview.title',
-    [CONST.WISE.ONBOARDING_STATUS_PAGE.APPROVED]: 'walletPage.wiseOnboarding.approved.title',
-    [CONST.WISE.ONBOARDING_STATUS_PAGE.REJECTED]: 'walletPage.wiseOnboarding.rejected.title',
-} as const satisfies Record<WiseOnboardingStatusPageStatus, TranslationPaths>;
-
-/**
- * A missing or unknown status shows the in review content, since that is what the admin sees right after submitting.
- */
-function getStatus(status: string | undefined): WiseOnboardingStatusPageStatus {
-    return Object.values(CONST.WISE.ONBOARDING_STATUS_PAGE).find((value) => value === status) ?? CONST.WISE.ONBOARDING_STATUS_PAGE.REVIEW;
-}
-
 function WiseOnboardingStatusPage({route}: WiseOnboardingStatusPageProps) {
     const bankAccountID = Number(route.params.bankAccountID);
     const introPath = useDynamicBackPath(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path);
     const entryPath = stripDynamicRouteSuffixFromPath(introPath, DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.path);
-    const status = getStatus(route.params.status);
+    const kycReviewFormStatus = route.params.status;
     const [hasBankAccount] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: (bankAccountList) => !!bankAccountList?.[bankAccountID]});
+    const [onboardingStatus] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: (bankAccountList) => bankAccountList?.[bankAccountID]?.accountData?.additionalData?.wise?.status});
     const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS);
 
     const {translate} = useLocalize();
@@ -79,11 +68,42 @@ function WiseOnboardingStatusPage({route}: WiseOnboardingStatusPageProps) {
         goBackToEntryPoint();
     }, [isWiseReimbursementsBetaEnabled, goBackToEntryPoint]);
 
+    // Wise reloads the app here with how its KYC form ended, so the page applies it once and drops it from the URL, which keeps a reload from applying it again
+    useEffect(() => {
+        if (!kycReviewFormStatus || !hasBankAccount) {
+            return;
+        }
+        if (kycReviewFormStatus !== CONST.WISE.KYC_REVIEW_REDIRECT_STATUS_SUCCESS) {
+            // The form was closed or failed, so the user goes back to the page that opens it again
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path, introPath), {forceReplace: true});
+            return;
+        }
+        markWiseKYCReviewSubmitted(bankAccountID);
+        Navigation.setParams({status: undefined});
+    }, [kycReviewFormStatus, hasBankAccount, bankAccountID, introPath]);
+
     // On a cold direct link the account list can be empty until the payment-method fetch finishes, so wait for it before judging the account
     const isWaitingForBankAccount = !hasBankAccount && !!isLoadingPaymentMethods;
 
     if (isWaitingForBankAccount || !isWiseReimbursementsBetaEnabled) {
         return <FullScreenLoadingIndicator shouldUseGoBackButton />;
+    }
+
+    let title: TranslationPaths;
+    let content: ReactNode;
+    switch (onboardingStatus) {
+        case CONST.WISE.ONBOARDING_STATUS.APPROVED:
+            title = 'walletPage.wiseOnboarding.approved.title';
+            content = <ApprovedContent onDone={goBackToEntryPoint} />;
+            break;
+        case CONST.WISE.ONBOARDING_STATUS.NOT_APPROVED:
+            title = 'walletPage.wiseOnboarding.rejected.title';
+            content = <RejectedContent onDone={goBackToEntryPoint} />;
+            break;
+        default:
+            // Any other status shows the review, since that is what follows the form right before the review status reaches the account
+            title = 'walletPage.wiseOnboarding.inReview.title';
+            content = <InReviewContent onDone={goBackToEntryPoint} />;
     }
 
     return (
@@ -97,11 +117,9 @@ function WiseOnboardingStatusPage({route}: WiseOnboardingStatusPageProps) {
             >
                 <Header>
                     <Header.BackButton onPress={goBackToEntryPoint} />
-                    <Header.Title title={translate(HEADER_TITLES[status])} />
+                    <Header.Title title={translate(title)} />
                 </Header>
-                {status === CONST.WISE.ONBOARDING_STATUS_PAGE.REVIEW && <InReviewContent onDone={goBackToEntryPoint} />}
-                {status === CONST.WISE.ONBOARDING_STATUS_PAGE.APPROVED && <ApprovedContent onDone={goBackToEntryPoint} />}
-                {status === CONST.WISE.ONBOARDING_STATUS_PAGE.REJECTED && <RejectedContent onDone={goBackToEntryPoint} />}
+                {content}
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

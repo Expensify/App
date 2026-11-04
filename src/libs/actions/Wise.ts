@@ -9,7 +9,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import Onyx from 'react-native-onyx';
 
 /** Fetches a fresh link to Wise's hosted KYC form for the bank account. The server puts the link in `wiseKYCReviewEmbeddedLink`. */
-function getWiseKYCReviewEmbeddedLink(bankAccountID: number) {
+function getWiseKYCReviewEmbeddedLink(bankAccountID: number, redirectUrl: string) {
     const onyxData: OnyxData<typeof ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK> = {
         optimisticData: [
             {
@@ -34,7 +34,7 @@ function getWiseKYCReviewEmbeddedLink(bankAccountID: number) {
         ],
     };
 
-    read(READ_COMMANDS.GET_WISE_KYC_REVIEW_EMBEDDED_LINK, {bankAccountID}, onyxData);
+    read(READ_COMMANDS.GET_WISE_KYC_REVIEW_EMBEDDED_LINK, {bankAccountID, redirectUrl}, onyxData);
 }
 
 /** Drops the link, which carries a token */

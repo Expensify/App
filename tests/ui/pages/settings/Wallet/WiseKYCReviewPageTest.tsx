@@ -87,7 +87,7 @@ describe('WiseKYCReviewPage', () => {
 
         // Then the redirect page does not load, the status page replaces the form, and the account shows in review until the server sends Wise's result
         expect(shouldLoad).toBe(false);
-        expect(navigateSpy).toHaveBeenCalledWith('settings/wallet/global-reimbursements/9053192/status?status=review', {forceReplace: true});
+        expect(navigateSpy).toHaveBeenCalledWith('settings/wallet/global-reimbursements/9053192/status', {forceReplace: true});
         const bankAccountList = await getOnyxValue(ONYXKEYS.BANK_ACCOUNT_LIST);
         expect(bankAccountList?.[BANK_ACCOUNT_ID]?.accountData?.additionalData?.wise?.status).toBe(CONST.WISE.ONBOARDING_STATUS.IN_REVIEW);
     });

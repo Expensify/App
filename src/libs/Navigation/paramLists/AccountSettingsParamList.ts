@@ -206,7 +206,9 @@ type AccountSettingsParamList = {
     };
     [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ONBOARDING_STATUS]: {
         bankAccountID: string;
-        status?: ValueOf<typeof CONST.WISE.ONBOARDING_STATUS_PAGE>;
+
+        /** How Wise's hosted KYC form ended, which Wise adds when it redirects back to this page */
+        status?: string;
     };
     [SCREENS.SETTINGS.WALLET.EDIT_BANK_ACCOUNT_NICKNAME]: {
         bankAccountID: string;

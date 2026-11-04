@@ -6,6 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -13,9 +14,11 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import stripDynamicRouteSuffixFromPath from '@libs/Navigation/helpers/dynamicRoutesUtils/stripDynamicRouteSuffixFromPath';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import openWiseKYCReview from '@libs/openWiseKYCReview';
+import addTrailingForwardSlash from '@libs/UrlUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -37,6 +40,7 @@ function WiseMoreInfoNeededPage({route}: WiseMoreInfoNeededPageProps) {
     const introPath = useDynamicBackPath(DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path);
     const entryPath = stripDynamicRouteSuffixFromPath(introPath, DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.path);
     const [embeddedLink] = useOnyx(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK);
+    const {environmentURL} = useEnvironment();
 
     const {translate} = useLocalize();
     // A read lost to a dropped connection applies no failureData, so reconnecting clears the stuck loading state, but keeps a link the open form still shows
@@ -110,7 +114,11 @@ function WiseMoreInfoNeededPage({route}: WiseMoreInfoNeededPageProps) {
                         sentryLabel={CONST.SENTRY_LABEL.WISE_MORE_INFO_NEEDED.CONTINUE}
                         onPress={() => {
                             setHasRequestedLink(true);
-                            getWiseKYCReviewEmbeddedLink(bankAccountID);
+                            // Wise sends the user to the status page when its form ends, which on web reloads the app there
+                            getWiseKYCReviewEmbeddedLink(
+                                bankAccountID,
+                                `${addTrailingForwardSlash(environmentURL)}${createDynamicRoute(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path, introPath)}`,
+                            );
                         }}
                     />
                 </FixedFooter>

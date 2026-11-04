@@ -113,12 +113,6 @@ function getWiseGlobalReimbursementsIntroNavigationRoute(bankAccountID: number |
 
 type WiseOnboardingStatus = ValueOf<typeof CONST.WISE.ONBOARDING_STATUS>;
 
-const WISE_ONBOARDING_STATUS_PAGES = {
-    [CONST.WISE.ONBOARDING_STATUS.IN_REVIEW]: CONST.WISE.ONBOARDING_STATUS_PAGE.REVIEW,
-    [CONST.WISE.ONBOARDING_STATUS.APPROVED]: CONST.WISE.ONBOARDING_STATUS_PAGE.APPROVED,
-    [CONST.WISE.ONBOARDING_STATUS.NOT_APPROVED]: CONST.WISE.ONBOARDING_STATUS_PAGE.REJECTED,
-} as const satisfies Record<Exclude<WiseOnboardingStatus, typeof CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED>, ValueOf<typeof CONST.WISE.ONBOARDING_STATUS_PAGE>>;
-
 /**
  * Picks the Wise page for where the business's onboarding stands. A submitted business has only Wise's form left while Wise asks for more info, and its status otherwise.
  * The page opens over the intro on the wallet, so leaving it lands on the wallet.
@@ -128,10 +122,8 @@ function getWiseOnboardingNavigationRoute(bankAccountID: number | undefined, sta
     if (!status) {
         return introRoute;
     }
-    if (status === CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED) {
-        return createDynamicRoute(DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path, introRoute);
-    }
-    return createDynamicRoute(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.getRoute(WISE_ONBOARDING_STATUS_PAGES[status]), introRoute);
+    const pagePath = status === CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED ? DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path : DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path;
+    return createDynamicRoute(pagePath, introRoute);
 }
 
 /** Whether the intro was opened over a report or search screen, which means the admin got there by paying a report */

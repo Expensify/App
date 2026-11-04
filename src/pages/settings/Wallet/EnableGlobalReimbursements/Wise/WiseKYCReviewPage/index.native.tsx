@@ -55,7 +55,7 @@ function WiseKYCReviewPage({route}: WiseKYCReviewPageProps) {
         markWiseKYCReviewSubmitted(Number(route.params.bankAccountID));
         // The status page replaces the form, so back from it does not reopen the form
         const introPath = stripDynamicRouteSuffixFromPath(backPath, DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path);
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.getRoute(CONST.WISE.ONBOARDING_STATUS_PAGE.REVIEW), introPath), {forceReplace: true});
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path, introPath), {forceReplace: true});
         return false;
     };
 
