@@ -4,7 +4,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, TaxRate, TaxRatesWithDefault} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyCategory, TaxRate, TaxRatesWithDefault} from '@src/types/onyx';
 import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -120,6 +120,13 @@ function isCategoryMissing(category: string | undefined): boolean {
     }
 
     return category === CONST.SEARCH.CATEGORY_EMPTY_VALUE || category === CONST.SEARCH.CATEGORY_DEFAULT_VALUE;
+}
+
+/**
+ * Returns true when the category is visible to everyone or to this member.
+ */
+function isCategoryVisibleToMember(policyCategory: PolicyCategory | undefined, accountID: number): boolean {
+    return !!policyCategory && (!policyCategory.visibleTo || !!policyCategory.visibleTo[accountID]);
 }
 
 function isCategoryDescriptionRequired(policyCategories: PolicyCategories | undefined, category: string | undefined, areRulesEnabled: boolean | undefined): boolean {
@@ -346,4 +353,5 @@ export {
     getCategoryNameErrorMessage,
     getDisabledCategoryKey,
     canCreateCategoryFromSearch,
+    isCategoryVisibleToMember,
 };

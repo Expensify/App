@@ -7886,6 +7886,7 @@ const CONST = {
         AUTO_REPORTED_REJECTED_EXPENSE: 'autoReportedRejectedExpense',
         BILLABLE_EXPENSE: 'billableExpense',
         CASH_EXPENSE_WITH_NO_RECEIPT: 'cashExpenseWithNoReceipt',
+        CATEGORY_NOT_ALLOWED: 'categoryNotAllowed',
         CATEGORY_OUT_OF_POLICY: 'categoryOutOfPolicy',
         CONVERSION_SURCHARGE: 'conversionSurcharge',
         CUSTOM_UNIT_OUT_OF_POLICY: 'customUnitOutOfPolicy',

@@ -40,6 +40,12 @@ const categoryOutOfPolicyViolation = {
     showInReview: true,
 };
 
+const categoryNotAllowedViolation = {
+    name: CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED,
+    type: CONST.VIOLATION_TYPES.VIOLATION,
+    showInReview: true,
+};
+
 const missingCategoryViolation = {
     name: CONST.VIOLATIONS.MISSING_CATEGORY,
     type: CONST.VIOLATION_TYPES.VIOLATION,
@@ -1841,6 +1847,54 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
             });
             expect(result.value).toEqual(expect.arrayContaining([categoryOutOfPolicyViolation, ...transactionViolations]));
+        });
+
+        it('should remove the categoryNotAllowed violation when the owner can use the new category', () => {
+            // Given an expense with categoryNotAllowed, recoded to a category the owner can see
+            const ownerAccountID = 1;
+            policyCategories = {Food: {name: 'Food', enabled: true, visibleTo: {[ownerAccountID]: true}}};
+            const iouReport = createMock<Report>({reportID: '1234', type: CONST.REPORT.TYPE.EXPENSE, ownerAccountID});
+
+            // When the violations are recalculated
+            const result = ViolationsUtils.getViolationsOnyxData({
+                isVendorMatchingBetaEnabled: false,
+                ownerLogin: undefined,
+                updatedTransaction: transaction,
+                transactionViolations: [categoryNotAllowedViolation],
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+                iouReport,
+            });
+
+            // Then the violation is removed
+            expect(result.value).not.toContainEqual(categoryNotAllowedViolation);
+        });
+
+        it('should keep the categoryNotAllowed violation when the owner still cannot use the category', () => {
+            // Given an expense with categoryNotAllowed, coded to a category only another member can see
+            const ownerAccountID = 1;
+            policyCategories = {Food: {name: 'Food', enabled: true, visibleTo: {2: true}}};
+            const iouReport = createMock<Report>({reportID: '1234', type: CONST.REPORT.TYPE.EXPENSE, ownerAccountID});
+
+            // When the violations are recalculated
+            const result = ViolationsUtils.getViolationsOnyxData({
+                isVendorMatchingBetaEnabled: false,
+                ownerLogin: undefined,
+                updatedTransaction: transaction,
+                transactionViolations: [categoryNotAllowedViolation],
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+                iouReport,
+            });
+
+            // Then the violation stays
+            expect(result.value).toContainEqual(categoryNotAllowedViolation);
         });
 
         it('should not include a categoryOutOfPolicy violation when category is in policy', () => {

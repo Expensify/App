@@ -4,7 +4,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import {convertAttendeesToArray, getAttendeesMinusOwnerCount, getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {isPersonalCard} from '@libs/CardUtils';
-import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
+import {getDecodedCategoryName, isCategoryMissing, isCategoryVisibleToMember} from '@libs/CategoryUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
@@ -823,6 +823,13 @@ const ViolationsUtils = {
                 newTransactionViolations = reject(newTransactionViolations, {name: 'categoryOutOfPolicy'});
             }
 
+            // Remove 'categoryNotAllowed' violation if the owner can see the category
+            const ownerAccountID = iouReport?.ownerAccountID;
+            const hasCategoryNotAllowedViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED);
+            if (hasCategoryNotAllowedViolation && ownerAccountID && isCategoryVisibleToMember(categoryData, ownerAccountID)) {
+                newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED});
+            }
+
             // Remove 'missingCategory' violation if category is valid according to policy
             if (hasMissingCategoryViolation && (isCategoryInPolicy || isSelfDM)) {
                 newTransactionViolations = reject(newTransactionViolations, {name: 'missingCategory'});
@@ -1244,6 +1251,8 @@ const ViolationsUtils = {
                 return translate('violations.billableExpense');
             case 'cashExpenseWithNoReceipt':
                 return translate('violations.cashExpenseWithNoReceipt', !isEmptyObject(violation.data) ? convertToDisplayString(amount, currency) : undefined);
+            case 'categoryNotAllowed':
+                return translate('violations.categoryNotAllowed');
             case 'categoryOutOfPolicy':
                 return translate('violations.categoryOutOfPolicy');
             case 'conversionSurcharge':
