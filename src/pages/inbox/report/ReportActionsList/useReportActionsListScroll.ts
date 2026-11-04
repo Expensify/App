@@ -36,7 +36,6 @@ function keyExtractor(item: OnyxTypes.ReportAction): string {
 /** Owns initial positioning, pagination, unread tracking, and scroll events for the report-actions list. */
 function useReportActionsListScroll({
     reportID,
-    conciergeChat,
     sortedVisibleReportActions,
     renderedVisibleReportActions: listData,
     reportActionIDToDisplayIndex,
@@ -124,7 +123,6 @@ function useReportActionsListScroll({
         onLoad,
     } = useReportActionsScroll({
         reportID,
-        conciergeChat,
         report,
         transactionThreadReport,
         parentReportAction,
