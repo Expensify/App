@@ -41,7 +41,6 @@ function TabsAdapter({items, value, onInputChange = () => {}, errorText, forward
     return (
         <FSClassView
             ref={ref}
-            style={styles.mb3}
             forwardedFSClass={forwardedFSClass}
         >
             {/* The tabs answer a question instead of switching views, so they are a radio group to screen readers */}
@@ -57,6 +56,8 @@ function TabsAdapter({items, value, onInputChange = () => {}, errorText, forward
                     shouldShowLabelWhenInactive
                     itemRole={CONST.ROLE.RADIO}
                     itemGroupAccessibilityLabel={accessibilityLabel}
+                    // The selector pads itself for the top of a page, while here it sits inside a field row that spaces and aligns it like an input
+                    contentContainerStyles={[styles.ph0, styles.pb0]}
                 />
             </View>
             {!!errorText && <FormHelpMessage message={errorText} />}

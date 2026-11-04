@@ -166,6 +166,7 @@ function AddressStepImpl({
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{formTitle}</Text>
                 {!!formPOBoxDisclaimer && <Text style={[styles.textSupporting]}>{formPOBoxDisclaimer}</Text>}
                 <AddressFormFields
+                    containerStyles={styles.mt6}
                     inputKeys={inputFieldsIDs}
                     streetTranslationKey={streetTranslationKey}
                     defaultValues={defaultValues}
