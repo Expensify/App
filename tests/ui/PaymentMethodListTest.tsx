@@ -1,6 +1,7 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
@@ -83,7 +84,7 @@ function createCardList(...cards: Card[]): CardList {
 // Renders the assigned cards list the same way the Wallet page does, with connection statuses on
 const renderAssignedCardsList = () =>
     render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
             <PortalProvider>
                 <PaymentMethodList
                     shouldShowAssignedCards
@@ -131,7 +132,7 @@ function createWiseBusinessBankAccount(wise: BankAccountAdditionalData['wise']):
 // Renders the bank accounts list the same way the Wallet page does with the Wise beta on
 const renderBankAccountsList = (shouldShowWiseSetupInProgress = true) =>
     render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
             <PortalProvider>
                 <PaymentMethodList
                     shouldShowConnectionStatus

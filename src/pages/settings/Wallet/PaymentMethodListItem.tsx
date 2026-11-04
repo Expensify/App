@@ -179,6 +179,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     const isNeedingAction = isAccountNeedingAction(item);
     const digitalWalletApprovalCardID = item.digitalWalletApprovalCardID;
     const connectionStatus = item.connectionStatus;
+    const hasStatusMessages = !!connectionStatus || !!item.wiseMoreInfoNeeded;
 
     // Check if this is a Chase personal bank account connected via Plaid
     const isChaseAccountConnectedViaPlaid =
@@ -299,10 +300,10 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
         rightComponent,
         interactive: item.interactive,
         success: item.isMethodActive,
+        // The messages under the row share its hover background, so the row doesn't draw its own
+        ...(hasStatusMessages ? {shouldRemoveBackground: true, shouldRemoveHoverBackground: true} : {}),
         ...(connectionStatus
             ? {
-                  shouldRemoveBackground: true,
-                  shouldRemoveHoverBackground: true,
                   brickRoadIndicator: connectionStatus.message ? undefined : item.brickRoadIndicator,
               }
             : {
@@ -323,12 +324,12 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
             errorRowStyles={styles.paymentMethodErrorRow}
             shouldShowErrorMessages={!!item.errors && (item.shouldShowErrorMessages ?? true)}
         >
-            {connectionStatus ? (
+            {hasStatusMessages ? (
                 <Hoverable>
                     {(isHovered) => (
                         <View style={[isHovered && styles.hoveredComponentBG]}>
                             {menuItem}
-                            {!!connectionStatus.message && (
+                            {!!connectionStatus?.message && (
                                 <View style={styles.mb2}>
                                     <ConnectionStatusMessage
                                         message={connectionStatus.message}
@@ -338,6 +339,14 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                                         isActionDisabled={connectionStatus.isActionDisabled}
                                         statusTone={connectionStatus.statusTone}
                                         onLinkPress={connectionStatus.onLinkPress}
+                                    />
+                                </View>
+                            )}
+                            {!!item.wiseMoreInfoNeeded && (
+                                <View style={styles.mb2}>
+                                    <WiseMoreInfoNeededRow
+                                        bankAccountID={item.wiseMoreInfoNeeded.bankAccountID}
+                                        canReview={item.wiseMoreInfoNeeded.canReview}
                                     />
                                 </View>
                             )}
@@ -362,13 +371,6 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                     cardID={digitalWalletApprovalCardID}
                     walletProvider={item.digitalWalletProvider}
                     style={[styles.pv3, cardPaddingHorizontal]}
-                />
-            )}
-            {!!item.wiseMoreInfoNeeded && (
-                <WiseMoreInfoNeededRow
-                    bankAccountID={item.wiseMoreInfoNeeded.bankAccountID}
-                    canReview={item.wiseMoreInfoNeeded.canReview}
-                    style={[styles.mb2, cardPaddingHorizontal]}
                 />
             )}
             {!!item.wiseSetupInProgress && (
