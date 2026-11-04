@@ -69,6 +69,21 @@ function isDate(arg: unknown): arg is Date {
 }
 
 /**
+ * Copies a date's wall-clock fields in the device's timezone onto the same fields in UTC.
+ *
+ * An `Intl.DateTimeFormat` created without a `timeZone` keeps the device's timezone from when it was created, so a
+ * cached one would keep showing the old day after the device moves to another timezone. Cached formatters are created
+ * with `timeZone: 'UTC'` instead and given the result of this function, which reads the device's timezone on every call.
+ */
+function toUTCWallClockDate(date: Date): Date {
+    const utcDate = new Date(0);
+    // `setUTCFullYear` rather than `Date.UTC`, which treats the years 0 to 99 as 1900 to 1999
+    utcDate.setUTCFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+    utcDate.setUTCHours(date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds());
+    return utcDate;
+}
+
+/**
  * Get the day of the week that the week starts on
  */
 function getWeekStartsOn(): WeekDay {
@@ -855,9 +870,11 @@ function getLastBusinessDayOfMonth(inputDate: Date): number {
 /**
  * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language and
  * whether the year is shown.
+ * They format in UTC, so pass dates through `toUTCWallClockDate` to show them in the device's current timezone.
  */
 const memoizedCreateDateRangeDateFormatter = memoize(
-    (localeCode: string, shouldIncludeYear: boolean) => new Intl.DateTimeFormat(localeCode, {year: shouldIncludeYear ? 'numeric' : undefined, month: 'short', day: 'numeric'}),
+    (localeCode: string, shouldIncludeYear: boolean) =>
+        new Intl.DateTimeFormat(localeCode, {year: shouldIncludeYear ? 'numeric' : undefined, month: 'short', day: 'numeric', timeZone: 'UTC'}),
 );
 
 /**
@@ -876,7 +893,7 @@ function getFormattedDateRange(translate: LocalizedTranslate, dateFnsLocale: Dat
     const localeCode = dateFnsLocale?.code ?? 'en-US';
     if (isSameDay(date1, date2)) {
         // Dates are from the same day
-        return memoizedCreateDateRangeDateFormatter(localeCode, false).format(date1);
+        return memoizedCreateDateRangeDateFormatter(localeCode, false).format(toUTCWallClockDate(date1));
     }
     if (isSameMonth(date1, date2)) {
         // Dates in the same month and year, differ by days
@@ -884,13 +901,13 @@ function getFormattedDateRange(translate: LocalizedTranslate, dateFnsLocale: Dat
         // Hermes, which runs the app on iOS and Android, may not implement `formatRange` even though the type says it
         // always exists, so join two localized dates there.
         if (!monthDayFormatter.formatRange) {
-            return `${monthDayFormatter.format(date1)} – ${monthDayFormatter.format(date2)}`;
+            return `${monthDayFormatter.format(toUTCWallClockDate(date1))} – ${monthDayFormatter.format(toUTCWallClockDate(date2))}`;
         }
-        return monthDayFormatter.formatRange(date1, date2);
+        return monthDayFormatter.formatRange(toUTCWallClockDate(date1), toUTCWallClockDate(date2));
     }
     const formatter = memoizedCreateDateRangeDateFormatter(localeCode, !isSameYear(date1, date2));
     // Dates differ by months, or by years
-    return `${formatter.format(date1)} ${translate('common.to').toLowerCase()} ${formatter.format(date2)}`;
+    return `${formatter.format(toUTCWallClockDate(date1))} ${translate('common.to').toLowerCase()} ${formatter.format(toUTCWallClockDate(date2))}`;
 }
 
 /**
