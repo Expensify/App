@@ -113,17 +113,19 @@ function WiseDepositAccountContent({backTo, subPage}: WiseDepositAccountContentP
         getWiseBankAccountFields(selectedCountry);
     };
 
+    // A refresh that failed leaves the server's currency behind the user's pick, so the user's answer wins over what the server last sent
+    const getAnswerCurrency = (answers: Record<string, unknown>) => (typeof answers.currency === 'string' ? answers.currency : wiseBankAccountFields?.currency);
+
     const refreshForm = (inputID: string, value: FormValue) => {
         const schemaKeys = new Set(schema && 'pages' in schema ? schema.pages.flatMap((page) => page.content.map((item) => item.key)) : []);
         const isCurrentField = (key: string) => schemaKeys.has(key) || schemaKeys.has(key.split('.').at(0) ?? key);
         const answers: Record<string, unknown> = Object.fromEntries(Object.entries(draftValues ?? {}).filter(([key]) => isCurrentField(key)));
         answers[inputID] = value;
-        const currency = typeof answers.currency === 'string' ? answers.currency : wiseBankAccountFields?.currency;
-        getWiseBankAccountFields(selectedCountry, currency, answers);
+        getWiseBankAccountFields(selectedCountry, getAnswerCurrency(answers), answers);
     };
 
     const submitForm = (answers: DynamicFormValues) => {
-        createWiseBankAccount(selectedCountry, wiseBankAccountFields?.currency, answers);
+        createWiseBankAccount(selectedCountry, getAnswerCurrency(answers), answers);
     };
 
     if (wiseBankAccountFields?.isLoading) {
