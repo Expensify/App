@@ -37,7 +37,7 @@ function renderForm(props: AmountFormProps = {}) {
     return render(wrapForm(props));
 }
 
-// AmountForm routes `displayAsTextInput` without a currency button to NumericField; other variants stay on the
+// AmountForm routes `displayAsTextInput` without a currency button to AmountFormField; other variants stay on the
 // legacy NumberWithSymbolForm. These tests pin that routing and the behavior parity of the migrated path.
 describe('AmountForm', () => {
     beforeAll(() => {
@@ -58,7 +58,7 @@ describe('AmountForm', () => {
         });
     });
 
-    describe('displayAsTextInput without a currency button (NumericField path)', () => {
+    describe('displayAsTextInput without a currency button (AmountFormField path)', () => {
         it('renders the currency symbol, validates with currency decimals, and reports changes', async () => {
             // Given a text-input AmountForm for USD (2 decimal places)
             const onInputChange = jest.fn();
@@ -161,7 +161,7 @@ describe('AmountForm', () => {
     });
 
     describe('default variant without displayAsTextInput (legacy path)', () => {
-        it('renders the legacy number pad instead of NumericField', async () => {
+        it('renders the legacy number pad instead of AmountFormField', async () => {
             renderForm({value: '10', currency: 'USD'});
             await waitForBatchedUpdatesWithAct();
 

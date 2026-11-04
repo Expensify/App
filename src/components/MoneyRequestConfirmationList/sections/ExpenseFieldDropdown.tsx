@@ -199,7 +199,7 @@ function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, li
                     shouldMeasureAnchorPositionFromTop: !layout.shouldOpenAbove,
                     shouldSwitchPositionIfOverflow: false,
                     popoverWidth: isSmallScreenWidth ? CONST.POPOVER_DROPDOWN_WIDTH : layout.width,
-                    popoverHeight: isSmallScreenWidth ? CONST.POPOVER_DROPDOWN_MAX_HEIGHT : layout.height,
+                    popoverHeight: isSmallScreenWidth ? CONST.POPOVER_DROPDOWN_MAX_HEIGHT + listHeaderHeight : layout.height,
                 })}
         </>
     );

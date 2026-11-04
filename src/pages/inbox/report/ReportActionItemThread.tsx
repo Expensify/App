@@ -8,8 +8,9 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {navigateToAndOpenChildReport} from '@libs/actions/Report';
+import {navigateToAndOpenChildReport, navigateToSupportTicket} from '@libs/actions/Report';
 import {getParticipantsPersonalDetails} from '@libs/PersonalDetailsUtils';
+import {isCreatedSupportTicketReportAction} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,11 +59,12 @@ function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInt
 
     // While an agent is still replying, the server can report zero replies, so count the in-progress reply
     const numberOfReplies = isAgentProcessingInThread ? Math.max(reportAction.childVisibleActionCount ?? 0, 1) : (reportAction.childVisibleActionCount ?? 0);
-    const childAccountIDs =
-        reportAction.childOldestFourAccountIDs
-            ?.split(',')
-            .map((accountID) => Number(accountID))
-            .filter((accountID): accountID is number => typeof accountID === 'number') ?? [];
+    // A thread with no replies yet has an empty `childOldestFourAccountIDs`, which must give an empty list so the processing agents are shown
+    const childAccountIDs = (reportAction.childOldestFourAccountIDs ?? '')
+        .split(',')
+        .filter(Boolean)
+        .map((accountID) => Number(accountID))
+        .filter((accountID) => !Number.isNaN(accountID) && accountID !== CONST.DEFAULT_NUMBER_ID);
     const accountIDs = childAccountIDs.length === 0 && processingAgentIDs ? processingAgentIDs : childAccountIDs;
     const mostRecentReply = `${reportAction.childLastVisibleActionCreated}`;
 
@@ -77,6 +79,10 @@ function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInt
             <View style={[styles.chatItemMessage]}>
                 <PressableWithSecondaryInteraction
                     onPress={() => {
+                        if (isCreatedSupportTicketReportAction(reportAction)) {
+                            navigateToSupportTicket(childReport?.reportID ?? reportAction.childReportID);
+                            return;
+                        }
                         const participantsPersonalDetails = getParticipantsPersonalDetails([currentUserAccountID, Number(reportAction.actorAccountID)], personalDetails);
                         navigateToAndOpenChildReport(childReport, reportAction, report, currentUserAccountID, introSelected, participantsPersonalDetails, isSelfTourViewed, conciergeChat);
                     }}

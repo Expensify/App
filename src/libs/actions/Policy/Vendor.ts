@@ -1,16 +1,19 @@
 /**
  * Actions for enabling/disabling policy vendors and clearing their offline errors.
  */
+import type PolicyData from '@hooks/usePolicyData/types';
+
 import {write, read} from '@libs/API';
 import type {SetPolicyVendorsEnabledParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
+import type {PolicyOptimisticOnyxData} from '@libs/ReportUtils';
+import {pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyVendor, PolicyVendors} from '@src/types/onyx';
-import type {OnyxData} from '@src/types/onyx/Request';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -21,9 +24,11 @@ type SetPolicyVendorsEnabledArgs = {
     vendorIDs: string[];
     enabled: boolean;
     policyVendors?: OnyxEntry<PolicyVendors>;
+    policyData?: PolicyData;
+    isVendorMatchingBetaEnabled?: boolean;
 };
 
-function setPolicyVendorsEnabled({policyID, vendorIDs, enabled, policyVendors}: SetPolicyVendorsEnabledArgs) {
+function setPolicyVendorsEnabled({policyID, vendorIDs, enabled, policyVendors, policyData, isVendorMatchingBetaEnabled}: SetPolicyVendorsEnabledArgs) {
     if (!vendorIDs.length) {
         return;
     }
@@ -67,7 +72,7 @@ function setPolicyVendorsEnabled({policyID, vendorIDs, enabled, policyVendors}: 
         };
     }
 
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_VENDORS> = {
+    const onyxData: PolicyOptimisticOnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -90,6 +95,10 @@ function setPolicyVendorsEnabled({policyID, vendorIDs, enabled, policyVendors}: 
             },
         ],
     };
+
+    if (policyData) {
+        pushTransactionViolationsOnyxData(onyxData, policyData, isVendorMatchingBetaEnabled, {}, {}, {}, undefined, optimisticVendors);
+    }
 
     const parameters: SetPolicyVendorsEnabledParams = {
         policyID,

@@ -19,9 +19,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import Parser from '@libs/Parser';
 import type {OptionData as PersonalDetailOptionData} from '@libs/PersonalDetailOptionsListUtils/types';
-import {getLoginByAccountID, getPersonalDetailForAccountID, getPersonalDetailsForAccountIDs, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getLoginByAccountID, getPersonalDetailByEmail, getPersonalDetailForAccountID, getPersonalDetailsForAccountIDs, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {
+    canCreateExpensesOnPolicy,
     canSendInvoiceFromWorkspace,
     canSubmitPerDiemExpenseFromWorkspace,
     getCountOfEnabledTagsOfList,
@@ -147,7 +148,12 @@ function isPersonalDetailsReady(personalDetails: OnyxEntry<PersonalDetailsList>)
  * Get the participant option for a report.
  */
 function getParticipantsOption(participant: OptionData | Participant, personalDetails: OnyxEntry<PersonalDetailsList>, translate: LocalizedTranslate): Participant & {keyForList: string} {
-    const detail = participant.accountID ? getPersonalDetailsForAccountIDs([participant.accountID], personalDetails)[participant.accountID] : undefined;
+    // An optimistic accountID is dropped from personal details once the server assigns the real one, so a draft that
+    // still holds it would point at no one. Resolve it by login to the canonical account. A phone number typed into the
+    // participant search is stored without the SMS domain, but the canonical account's login has it.
+    const canonicalDetail =
+        participant.accountID && !personalDetails?.[participant.accountID] && participant.login ? getPersonalDetailByEmail(addSMSDomainIfPhoneNumber(participant.login)) : undefined;
+    const detail = canonicalDetail ?? (participant.accountID ? getPersonalDetailsForAccountIDs([participant.accountID], personalDetails)[participant.accountID] : undefined);
     const login = detail?.login || participant.login || '';
     const formattedLogin = formatPhoneNumberPhoneUtils(login);
     // When detail has a login the participant is a real Expensify user — use their profile name.
@@ -277,7 +283,7 @@ function getAlternateText(
         rules,
     }: GetAlternateTextConfig,
 ) {
-    const report = getReportOrDraftReport(option.reportID);
+    const report = getReportOrDraftReport({reportID: option.reportID});
     const isAdminRoom = reportUtilsIsAdminRoom(report);
     const isAnnounceRoom = reportUtilsIsAnnounceRoom(report);
     const isGroupChat = reportUtilsIsGroupChat(report);
@@ -571,20 +577,19 @@ function createOption({
 
     // Set core display properties that are used in SearchOption context
     result.text = reportName;
-    result.icons = getIcons(
+    result.icons = getIcons({
         report,
-        formatPhoneNumberPhoneUtils,
-        translateFn,
+        formatPhoneNumber: formatPhoneNumberPhoneUtils,
+        translate: translateFn,
         personalDetails,
-        personalDetail?.avatar,
-        personalDetail?.login,
-        personalDetail?.accountID,
-        null,
-        undefined,
-        result?.private_isArchived,
+        defaultIcon: personalDetail?.avatar,
+        defaultName: personalDetail?.login,
+        defaultAccountID: personalDetail?.accountID,
+        policy: null,
+        isReportArchived: result?.private_isArchived,
         pendingDeleteMemberAccountIDs,
         conciergeReportID,
-    );
+    });
     result.subtitle = subtitle;
 
     // Set login and accountID only for single participant cases (used in SearchOption context)
@@ -635,7 +640,7 @@ function getReportOption({
     pendingDeleteMemberAccountIDs,
 }: GetReportOptionParams): OptionData {
     const {translate, dateFnsLocale, convertToDisplayString, formatPhoneNumber} = localize;
-    const report = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDraft);
+    const report = getReportOrDraftReport({reportID: participant.reportID, reportDraft});
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true);
     const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
 
@@ -1938,6 +1943,7 @@ function isValidReport(
         isDefaultRoomsBetaEnabled = false,
         includeMultipleParticipantReports = false,
         includeOwnedWorkspaceChats = false,
+        excludeWorkspacesWithoutCreateExpensePermission = false,
         includeThreads = false,
         includeTasks = false,
         includeMoneyRequests = false,
@@ -1959,7 +1965,7 @@ function isValidReport(
         conciergeReportID,
     } = config;
     const topmostReportId = Navigation.getTopmostReportId();
-    const doesReportHaveViolations = !!getViolatingReportIDForRBRInLHN(option.item, transactionViolations);
+    const doesReportHaveViolations = !!getViolatingReportIDForRBRInLHN(option.item, transactionViolations, policy);
 
     const shouldBeInOptionList = shouldReportBeInOptionList({
         report: option.item,
@@ -1999,6 +2005,10 @@ function isValidReport(
     }
 
     if (isPolicyExpenseChat && !includeOwnedWorkspaceChats) {
+        return false;
+    }
+
+    if (isPolicyExpenseChat && excludeWorkspacesWithoutCreateExpensePermission && !canCreateExpensesOnPolicy(policy)) {
         return false;
     }
 

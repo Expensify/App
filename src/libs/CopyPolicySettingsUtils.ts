@@ -117,6 +117,12 @@ function getConnectionCompanyID(policy: Policy | undefined, connectionName: Conn
             return readCredentialsCompanyID(connections[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]?.config);
         case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
             return readCredentialsCompanyID(connections[CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]?.config);
+        case CONST.POLICY.CONNECTIONS.NAME.DIGITS: {
+            // Digits credentials carry a per-sign-in connection key rather than the company, so two workspaces signed
+            // in to the same Digits company are only recognized as such by the company the sync returned.
+            const companyID = connections[CONST.POLICY.CONNECTIONS.NAME.DIGITS]?.data?.company?.id;
+            return companyID || undefined;
+        }
         default:
             return undefined;
     }
