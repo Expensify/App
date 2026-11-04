@@ -1,10 +1,11 @@
-import {canApproveBill, isBillReport} from '@libs/BillPayUtils';
+import {isBillReport} from '@libs/BillPayUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryReportActions, getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
 import {
     canAddTransaction,
+    canApproveBill,
     canDeleteMoneyRequestReport,
     canDeleteTransaction,
     canEditFieldOfMoneyRequest,
@@ -171,10 +172,11 @@ describe('Bill Pay', () => {
         // Given a submitted bill waiting on its approver
         // When the approver and another user check whether they can approve it, before and after approval
         // Then only the approver can, and only while the bill is submitted
-        expect(canApproveBill(bill, accountID)).toBe(true);
-        expect(canApproveBill(bill, 456)).toBe(false);
-        expect(canApproveBill(approvedBill, accountID)).toBe(false);
-        expect(canApproveBill(expenseReport, accountID)).toBe(false);
+        const transactions = [createTransaction(bill)];
+        expect(canApproveBill(bill, policy, undefined, accountID, transactions)).toBe(true);
+        expect(canApproveBill(bill, policy, undefined, 456, transactions)).toBe(false);
+        expect(canApproveBill(approvedBill, policy, undefined, accountID, transactions)).toBe(false);
+        expect(canApproveBill(expenseReport, policy, undefined, accountID, transactions)).toBe(false);
     });
 
     it('shows Approve as the primary action of a submitted bill for its approver', () => {

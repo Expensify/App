@@ -114,7 +114,7 @@ import {getBankAccountFromID} from './actions/BankAccounts';
 import hasCreditBankAccount from './actions/ReimbursementAccount/hasCreditBankAccount';
 import {getAnchorHref, isAttachmentAnchorTag, isOwnAttachmentURL} from './AttachmentAnchorUtils';
 import {convertAttendeesToArray, normalizeAttendees} from './AttendeeUtils';
-import {canApproveBill, isBillReport} from './BillPayUtils';
+import {isBillReport} from './BillPayUtils';
 import {buildOnboardingMessagesWithoutManageTeam} from './buildOnboardingMessages';
 import {isCardWithPotentialFraud} from './CardUtils';
 import {getCategoryGLCode} from './CategoryUtils';
@@ -3447,6 +3447,34 @@ function canApproveIOU(
     return reportTransactions.length > 0 && isCurrentUserManager && !isReportOpen && !isApproved && !iouSettled && !isReportPayAtEnd && !isReportClosed;
 }
 
+/**
+ * Whether the current user can approve the bill. It mirrors the Approve button in the report header, so the bill's
+ * green dot and Approve badge never show when the header has no Approve button.
+ */
+function canApproveBill(
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    reportMetadata: OnyxEntry<ReportMetadata>,
+    currentUserAccountID: number,
+    reportTransactions: Transaction[],
+): boolean {
+    if (!isBillReport(report) || report?.managerID !== currentUserAccountID || !isProcessingReport(report)) {
+        return false;
+    }
+
+    const isApprovalEnabled = !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    if (!isApprovalEnabled && !isSubmitPolicy(policy)) {
+        return false;
+    }
+
+    // The header shows no Approve button while a receipt scans or when every expense is on hold.
+    return (
+        canApproveIOU(report, policy, reportMetadata, currentUserAccountID, reportTransactions) &&
+        !reportTransactions.some((transaction) => isScanning(transaction)) &&
+        !hasOnlyHeldExpenses(reportTransactions)
+    );
+}
+
 function canIOUBePaid(
     iouReport: OnyxInputOrEntry<Report>,
     chatReport: OnyxInputOrEntry<Report>,
@@ -5281,14 +5309,6 @@ function getReasonAndReportActionThatRequiresAttention({
         }
     }
 
-    // Bills have no parent chat to show a report preview badge, so the approver's green dot goes on the bill itself.
-    if (canApproveBill(optionOrReport, currentUserAccountID)) {
-        return {
-            reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
-            actionBadge: CONST.REPORT.ACTION_BADGE.APPROVE,
-        };
-    }
-
     if (isJoinRequestInAdminRoom(optionOrReport, currentUserLogin)) {
         return {
             reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_JOIN_REQUEST,
@@ -5304,6 +5324,15 @@ function getReasonAndReportActionThatRequiresAttention({
     // Onyx.connect and can still be stale/missing a policy that's already present in the caller's own snapshot.
     const resolvePolicy = (policyID: string | undefined) => (policiesParam ? policiesParam[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : getPolicy(policyID));
     const policy = resolvePolicy(optionOrReport.policyID);
+
+    // Bills have no parent chat to show a report preview badge, so the approver's green dot goes on the bill itself.
+    if (isBillReport(optionOrReport) && canApproveBill(optionOrReport, policy, reportMetadata, currentUserAccountID, getReportTransactions(optionOrReport.reportID))) {
+        return {
+            reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
+            actionBadge: CONST.REPORT.ACTION_BADGE.APPROVE,
+        };
+    }
+
     const invoiceReceiverPolicyID = optionOrReport?.invoiceReceiver && 'policyID' in optionOrReport.invoiceReceiver ? optionOrReport.invoiceReceiver.policyID : undefined;
     const invoiceReceiverPolicy = invoiceReceiverPolicyID ? resolvePolicy(invoiceReceiverPolicyID) : undefined;
     const actionTypeForAssigneeToComplete = getActionTypeForAssigneeToComplete(optionOrReport, parentReportAction);
@@ -15738,6 +15767,7 @@ export {
     canDeleteTransaction,
     canBeAutoReimbursed,
     canApproveIOU,
+    canApproveBill,
     canIOUBePaid,
     canSubmitReport,
     canCreateRequest,
