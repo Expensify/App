@@ -44,6 +44,7 @@ import {
     isCardBrokenConnectionAction,
     isCardIssuedAction,
     isCreatedTaskReportAction,
+    isDeletedReportPreviewWithError,
     isCreatedSupportTicketReportAction,
     isIOURequestReportAction,
     isMemberChangeAction,
@@ -71,6 +72,7 @@ import {Str} from 'expensify-common';
 import React from 'react';
 
 import ApprovalFlowContent from './ApprovalFlowContent';
+import AutoPayFeeDisclosureContent from './AutoPayFeeDisclosureContent';
 import CardBrokenConnectionContent from './CardBrokenConnectionContent';
 import ChatMessageContent from './ChatMessageContent';
 import ChatTransactionPreview from './ChatTransactionPreview';
@@ -214,7 +216,8 @@ function ActionContentRouter({
             />
         );
     }
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isClosedExpenseReportWithNoExpenses) {
+    // No report left to open, so show the placeholder rather than a link to nothing.
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && (isClosedExpenseReportWithNoExpenses || isDeletedReportPreviewWithError(action))) {
         return <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedReport')}</deleted-action>`} />;
     }
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
@@ -589,6 +592,9 @@ function ActionContentRouter({
                 <RenderHTML html={`<comment><muted-text>${getSettlementAccountLockedMessage(translate, action)}</muted-text></comment>`} />
             </ReportActionItemBasicMessage>
         );
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.AUTO_PAY_FEE_DISCLOSURE)) {
+        return <AutoPayFeeDisclosureContent action={action} />;
     }
 
     return (

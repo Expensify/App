@@ -916,7 +916,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         cardID: undefined,
         cardName: undefined,
         category: '',
-        comment: {comment: ''},
+        comment: {comment: '', attendees: []},
         created: '2024-12-21',
         submitted: '',
         approved: '',
@@ -983,7 +983,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         cardID: undefined,
         cardName: undefined,
         category: '',
-        comment: {comment: ''},
+        comment: {comment: '', attendees: []},
         created: '2024-12-21',
         submitted: '2024-12-21 13:05:20',
         approved: '',
@@ -1060,7 +1060,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         cardID: undefined,
         cardName: undefined,
         category: '',
-        comment: {comment: ''},
+        comment: {comment: '', attendees: []},
         created: '2025-03-05',
         submitted: '2025-03-05',
         approved: '',
@@ -1132,7 +1132,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         cardID: undefined,
         cardName: undefined,
         category: '',
-        comment: {comment: ''},
+        comment: {comment: '', attendees: []},
         created: '2025-03-05',
         submitted: '2025-03-05',
         approved: '',
@@ -10973,6 +10973,168 @@ describe('SearchUIUtils', () => {
             expect(visibility[CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]).toBe(false);
         });
 
+        it('should show Card accruals, Card statements, and Expensify Card reconciliation, but no Cash accruals, to a Card Admin', () => {
+            // Given a Card Admin on a workspace with approvals, ACH reimbursement, Expensify Cards, and a card feed
+            const cardAdminEmail = 'cardadmin@policy.com';
+            const mockPolicies = {
+                policy1: {
+                    id: 'policy1',
+                    name: 'Card Admin Policy',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    role: CONST.POLICY.ROLE.CARD_ADMIN,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    areExpensifyCardsEnabled: true,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    achAccount: {
+                        bankAccountID: 1234,
+                        reimburser: adminEmail,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        accountNumber: '1234567890',
+                        routingNumber: '1234567890',
+                        addressName: 'Test Address',
+                        bankName: 'Test Bank',
+                    },
+                },
+            };
+            const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {
+                policy1: [
+                    {
+                        id: 'card1',
+                        feed: 'Expensify Card' as const,
+                        fundID: 'fund1',
+                        name: 'Test Card Feed',
+                    },
+                ],
+            };
+
+            // When the suggested searches are computed for that Card Admin
+            const {visibility, shouldShowExpensifyCard} = SearchUIUtils.getSuggestedSearchesVisibility(cardAdminEmail, mockCardFeedsByPolicy, mockPolicies, undefined);
+            const sections = SearchUIUtils.createTypeMenuSections({
+                currentUserEmail: cardAdminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: mockCardFeedsByPolicy,
+                defaultCardFeed: undefined,
+                policies: mockPolicies,
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                draftTransactionIDs: [],
+                isTrackIntentUser: false,
+            });
+            const reconciliationItem = sections.flatMap((section) => section.menuItems).find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
+
+            // Then the role gets the card searches it manages, with reconciliation opening on the Expensify Card, while
+            // Cash accruals stays limited to roles that see reimbursements
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]).toBe(true);
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.STATEMENTS]).toBe(true);
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]).toBe(true);
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]).toBe(false);
+            expect(shouldShowExpensifyCard).toBe(true);
+            expect(reconciliationItem?.searchQuery).toContain('withdrawalType:expensify-card');
+        });
+
+        it('should hide Bank reconciliation from a Card Admin when the workspace only has company cards', () => {
+            // Given a Card Admin on a workspace with approvals and a company card feed, but no Expensify Cards
+            const cardAdminEmail = 'cardadmin@policy.com';
+            const mockPolicies = {
+                policy1: {
+                    id: 'policy1',
+                    name: 'Card Admin Policy',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    role: CONST.POLICY.ROLE.CARD_ADMIN,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    areCompanyCardsEnabled: true,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    achAccount: {
+                        bankAccountID: 1234,
+                        reimburser: adminEmail,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        accountNumber: '1234567890',
+                        routingNumber: '1234567890',
+                        addressName: 'Test Address',
+                        bankName: 'Test Bank',
+                    },
+                },
+            };
+            const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {
+                policy1: [
+                    {
+                        id: 'companyCard1',
+                        feed: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                        fundID: 'fund1',
+                        name: 'Company Card Feed',
+                    },
+                ],
+            };
+
+            // When the suggested searches are computed for that Card Admin
+            const {visibility} = SearchUIUtils.getSuggestedSearchesVisibility(cardAdminEmail, mockCardFeedsByPolicy, mockPolicies, undefined);
+
+            // Then the card searches still show, but Bank reconciliation has no Expensify Card withdrawals to show the role
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]).toBe(true);
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.STATEMENTS]).toBe(true);
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]).toBe(false);
+        });
+
+        it('should keep every accounting search for a user who is an Admin on one workspace and a Card Admin on another', () => {
+            // Given an Admin of a workspace with ACH reimbursement who is also a Card Admin on a workspace with Expensify Cards
+            const mockPolicies = {
+                policy1: {
+                    id: 'policy1',
+                    name: 'Admin Policy',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    achAccount: {
+                        bankAccountID: 1234,
+                        reimburser: adminEmail,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        accountNumber: '1234567890',
+                        routingNumber: '1234567890',
+                        addressName: 'Test Address',
+                        bankName: 'Test Bank',
+                    },
+                },
+                policy2: {
+                    id: 'policy2',
+                    name: 'Card Admin Policy',
+                    owner: 'owner@policy.com',
+                    outputCurrency: 'USD',
+                    role: CONST.POLICY.ROLE.CARD_ADMIN,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    areExpensifyCardsEnabled: true,
+                },
+            };
+            const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {
+                policy2: [
+                    {
+                        id: 'card1',
+                        feed: 'Expensify Card' as const,
+                        fundID: 'fund1',
+                        name: 'Test Card Feed',
+                    },
+                ],
+            };
+
+            // When the suggested searches are computed for that user
+            const {visibility, shouldShowExpensifyCard} = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, mockCardFeedsByPolicy, mockPolicies, undefined);
+
+            // Then the Card Admin role adds the card searches without hiding the Admin's reimbursement searches
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]).toBe(true);
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]).toBe(true);
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.STATEMENTS]).toBe(true);
+            expect(visibility[CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]).toBe(true);
+            expect(shouldShowExpensifyCard).toBe(true);
+        });
+
         it('should place todo items (submit, approve, pay) inside the Expense reports section', () => {
             const mockPolicies = {
                 policy1: {
@@ -15785,6 +15947,21 @@ describe('SearchUIUtils', () => {
             );
         });
 
+        test('omits the cash expense notice that only Classic records', () => {
+            // Given a submit snapshot taken by Classic, which records the cash expense notice next to another violation
+            const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
+                transactions: {
+                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT}, {name: CONST.VIOLATIONS.MISSING_CATEGORY}],
+                },
+            });
+
+            // When the submitted violations column is built for the expense
+            const violations = SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal);
+
+            // Then only the other violation is listed, so the column matches Search, Insights and the CSV export
+            expect(violations).toBe(translateLocal('violations.shortName.missingCategory'));
+        });
+
         test('translates maxAge via violations.shortName', () => {
             const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
                 transactions: {
@@ -17083,6 +17260,62 @@ describe('Trip search', () => {
             ]),
         );
         expect(options.map((option) => option.text)).not.toContain(translateLocal('iou.endDate'));
+    });
+
+    it('maps the current and past statuses to upcoming and done', () => {
+        // Given statuses a saved trip search used before trip rooms, next to one trip rooms use
+        // When they're normalized for trip rooms
+        // Then current and past mean upcoming and done, and duplicates collapse
+        expect(SearchUIUtils.normalizeTripStatuses([CONST.SEARCH.STATUS.TRIP.CURRENT, CONST.SEARCH.STATUS.TRIP.PAST, CONST.SEARCH.TRIP_STATUS.UPCOMING])).toEqual([
+            CONST.SEARCH.TRIP_STATUS.UPCOMING,
+            CONST.SEARCH.TRIP_STATUS.DONE,
+        ]);
+        expect(SearchUIUtils.normalizeTripStatuses([CONST.SEARCH.TRIP_STATUS.CANCELED])).toEqual([CONST.SEARCH.TRIP_STATUS.CANCELED]);
+    });
+
+    it('offers upcoming, done and canceled as trip room statuses', () => {
+        // Given a trip search with and without the TravelApproval beta
+        const getStatusValues = (shouldReturnTripRooms: boolean) =>
+            SearchUIUtils.getMultiSelectFilterOptions(FILTER_KEYS.STATUS, CONST.SEARCH.DATA_TYPES.TRIP, translateLocal, undefined, undefined, shouldReturnTripRooms).map(
+                (option) => option.value,
+            );
+
+        // When the Status filter options are built
+        // Then trip rooms offer their own statuses, and the expense search keeps current and past
+        expect(getStatusValues(true)).toEqual([CONST.SEARCH.TRIP_STATUS.UPCOMING, CONST.SEARCH.TRIP_STATUS.DONE, CONST.SEARCH.TRIP_STATUS.CANCELED]);
+        expect(getStatusValues(false)).toEqual([CONST.SEARCH.STATUS.TRIP.CURRENT, CONST.SEARCH.STATUS.TRIP.PAST]);
+    });
+
+    it('labels both the trip room and the older trip statuses in filter chips', () => {
+        // Given trip queries with a trip room status and with a status from before trip rooms
+        const getStatusLabel = (status: string) =>
+            SearchUIUtils.mapFiltersFormToLabelValueList(
+                {type: CONST.SEARCH.DATA_TYPES.TRIP, status: [status]},
+                new Set(),
+                undefined,
+                translateLocal,
+                undefined,
+                localeCompare,
+                (amount: number) => `${amount}`,
+            ).find((filter) => filter.key === FILTER_KEYS.STATUS)?.value;
+
+        // When the chips are labelled
+        // Then both show their name, so a saved search with an older status still reads right
+        expect(getStatusLabel(CONST.SEARCH.TRIP_STATUS.UPCOMING)).toBe(translateLocal('search.trip.status.upcoming'));
+        expect(getStatusLabel(CONST.SEARCH.STATUS.TRIP.CURRENT)).toBe(translateLocal('search.filters.current'));
+    });
+
+    it('shows the trip room status in the chip of a saved search with an older status', () => {
+        // Given a trip rooms query saved with current, which trip rooms read as upcoming
+        const form = SearchUIUtils.getFiltersFormWithTripRoomStatuses({type: CONST.SEARCH.DATA_TYPES.TRIP, status: [CONST.SEARCH.STATUS.TRIP.CURRENT, CONST.SEARCH.TRIP_STATUS.UPCOMING]});
+
+        // When the chips are labelled
+        const statusLabel = SearchUIUtils.mapFiltersFormToLabelValueList(form, new Set(), undefined, translateLocal, undefined, localeCompare, (amount: number) => `${amount}`).find(
+            (filter) => filter.key === FILTER_KEYS.STATUS,
+        )?.value;
+
+        // Then the chip reads Upcoming once, matching the Status filter
+        expect(statusLabel).toBe(translateLocal('search.trip.status.upcoming'));
     });
 
     it('labels the date sort as Start date only for trip rooms', () => {

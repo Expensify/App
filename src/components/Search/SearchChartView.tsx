@@ -228,6 +228,7 @@ function SearchChartView({
                 onSlicePress={onItemPress}
                 valueUnit={unit?.value}
                 valueUnitPosition={unitPosition}
+                valueDecimals={getCurrencyDecimals(currency)}
                 formatValue={formatValue}
                 shouldShowLegend={shouldShowGroupLabels}
                 shouldUseResponsiveLegend={shouldUseResponsiveLabels}
