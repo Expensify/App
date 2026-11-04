@@ -13,6 +13,7 @@ import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 import useResponsiveLayout from './useResponsiveLayout';
 import useSidePanelState from './useSidePanelState';
+import useSidePanelWidth from './useSidePanelWidth';
 import useWindowDimensions from './useWindowDimensions';
 
 type SingleRHPWidth = SingleRHPWidthBounds & {
@@ -26,9 +27,10 @@ function useSingleRHPWidth(): SingleRHPWidth {
     const {windowWidth} = useWindowDimensions();
     const {isExtraLargeScreenWidth} = useResponsiveLayout();
     const {shouldHideSidePanel} = useSidePanelState();
+    const {width: sidePanelWidth} = useSidePanelWidth();
 
     // Mirrors when SidePanelContextProvider shifts the RHP left by the panel's width.
-    const {min, max} = getSingleRHPWidthBounds(windowWidth, isExtraLargeScreenWidth && !shouldHideSidePanel ? variables.sidePanelWidth : 0);
+    const {min, max} = getSingleRHPWidthBounds(windowWidth, isExtraLargeScreenWidth && !shouldHideSidePanel ? sidePanelWidth : 0);
 
     // The beta can turn off without a chance to clear the saved width, and there is no handle to drag it back then.
     if (!isBetaEnabled(CONST.BETAS.RESIZABLE_RHP)) {

@@ -1,6 +1,7 @@
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelDisplayStatus from '@hooks/useSidePanelDisplayStatus';
+import useSidePanelWidth from '@hooks/useSidePanelWidth';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import SidePanelActions from '@libs/actions/SidePanel';
@@ -8,8 +9,6 @@ import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import {getServerAnchoredDBTime} from '@libs/NetworkState';
 import {canEditWorkspaceSettings, shouldShowPolicy} from '@libs/PolicyUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-
-import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -66,16 +65,18 @@ const SidePanelActionsContext = createContext<SidePanelActionsContextProps>({
 function SidePanelContextProvider({children}: PropsWithChildren) {
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
-    const sidePanelWidth = shouldUseNarrowLayout ? windowWidth : variables.sidePanelWidth;
+    const {width: wideSidePanelWidth} = useSidePanelWidth();
+    const sidePanelWidth = shouldUseNarrowLayout ? windowWidth : wideSidePanelWidth;
 
     const [isSidePanelTransitionEnded, setIsSidePanelTransitionEnded] = useState(true);
     const {shouldHideSidePanel, shouldHideSidePanelBackdrop, shouldHideHelpButton, isSidePanelHiddenOrLargeScreen, sidePanelNVP} = useSidePanelDisplayStatus();
     const shouldHideToolTip = isExtraLargeScreenWidth ? !isSidePanelTransitionEnded : !shouldHideSidePanel;
 
     const shouldApplySidePanelOffset = isExtraLargeScreenWidth && !shouldHideSidePanel;
-    const sidePanelOffset = useRef(new Animated.Value(shouldApplySidePanelOffset ? variables.sidePanelWidth : 0));
+    const sidePanelOffset = useRef(new Animated.Value(shouldApplySidePanelOffset ? wideSidePanelWidth : 0));
     const sidePanelTranslateX = useRef(new Animated.Value(shouldHideSidePanel ? sidePanelWidth : 0));
     const sidePanelWidthRef = useRef(sidePanelWidth);
+    const wideSidePanelWidthRef = useRef(wideSidePanelWidth);
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [onboardingRHPVariant] = useOnyx(ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT);
@@ -110,6 +111,19 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
         sidePanelWidthRef.current = sidePanelWidth;
     }, [sidePanelWidth]);
 
+    // A dragged or re-clamped width moves the content beside a docked panel at once, without the open/close animation.
+    useEffect(() => {
+        if (wideSidePanelWidthRef.current === wideSidePanelWidth) {
+            return;
+        }
+        wideSidePanelWidthRef.current = wideSidePanelWidth;
+
+        if (!shouldApplySidePanelOffset) {
+            return;
+        }
+        sidePanelOffset.current.setValue(wideSidePanelWidth);
+    }, [wideSidePanelWidth, shouldApplySidePanelOffset]);
+
     // sidePanelWidth dependency in useEffect below caused the help panel content to slide in on window resize
     useEffect(() => {
         // We need to set transition state to false when animation starts, then back to true when it completes.
@@ -118,7 +132,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
         setIsSidePanelTransitionEnded(false);
         Animated.parallel([
             Animated.timing(sidePanelOffset.current, {
-                toValue: shouldApplySidePanelOffset ? variables.sidePanelWidth : 0,
+                toValue: shouldApplySidePanelOffset ? wideSidePanelWidthRef.current : 0,
                 duration: CONST.SIDE_PANEL_ANIMATED_TRANSITION,
                 useNativeDriver: true,
             }),

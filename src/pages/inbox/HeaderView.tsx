@@ -34,11 +34,14 @@ import usePolicy from '@hooks/usePolicy';
 import {useDerivedReportNamesByReportIDs} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRootNavigationState from '@hooks/useRootNavigationState';
+import useSidePanelActions from '@hooks/useSidePanelActions';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import getFocusedReportParams from '@libs/Navigation/helpers/getFocusedReportParams';
 import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportRouteForCurrentContext';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
@@ -94,6 +97,7 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -121,10 +125,11 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getStableReportSelector});
     const parentReportAction = useParentReportAction(report, {shouldIgnoreThreadReplies: true});
 
-    const icons = useMemoizedLazyExpensifyIcons(['BackArrow', 'Close', 'DotIndicator', 'Plus']);
+    const icons = useMemoizedLazyExpensifyIcons(['BackArrow', 'Close', 'DotIndicator', 'Expand', 'Plus']);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const isInSidePanel = useIsInSidePanel();
+    const {closeSidePanel} = useSidePanelActions();
     const route = useRoute();
     const openParentReportInCurrentTab = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID) ?? getNonEmptyStringOnyxID(report?.reportID)}`, {
@@ -387,6 +392,15 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     // shouldUseNarrowLayout true for any RHP regardless of actual screen width.
     const shouldShowCloseButton = (!!isInSidePanel && !shouldUseNarrowLayout) || isAgentReportInRHP;
     const shouldShowBackButton = (shouldUseNarrowLayout || !!isInSidePanel) && !shouldShowCloseButton;
+    // Hidden when the same chat already fills the focused view, since expanding would show nothing new.
+    const isReportFocusedOutsideSidePanel = useRootNavigationState((state) => !!state && !!reportID && getFocusedReportParams(state)?.reportID === reportID);
+    const shouldShowExpandButton = !!isInSidePanel && !shouldUseNarrowLayout && !isReportFocusedOutsideSidePanel;
+
+    // Moves the Side Panel's chat into the full Inbox view.
+    const expandSidePanel = () => {
+        closeSidePanel();
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+    };
 
     const onboardingHelpDropdownButton = (
         <OnboardingHelpDropdownButton
@@ -537,6 +551,22 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     {!shouldUseNarrowLayout && isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton reportID={report.reportID} />}
                                     {!isParentReportLoading && canJoin && !shouldUseNarrowLayout && joinButton}
                                 </View>
+                                {shouldShowExpandButton && (
+                                    <Tooltip text={translate('common.expand')}>
+                                        <PressableWithoutFeedback
+                                            onPress={expandSidePanel}
+                                            style={[styles.touchableButtonImage]}
+                                            role={CONST.ROLE.BUTTON}
+                                            accessibilityLabel={translate('common.expand')}
+                                            sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.EXPAND_BUTTON}
+                                        >
+                                            <Icon
+                                                src={icons.Expand}
+                                                fill={theme.icon}
+                                            />
+                                        </PressableWithoutFeedback>
+                                    </Tooltip>
+                                )}
                                 {shouldShowCloseButton && (
                                     <Tooltip text={translate('common.close')}>
                                         <PressableWithoutFeedback
