@@ -4506,7 +4506,6 @@ export type {
     ApprovalRule,
     ExpenseRule,
     CodingRule,
-    CodingRuleFilter,
     NetSuiteConnectionConfig,
     MccGroup,
     Subrate,
