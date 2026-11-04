@@ -4,9 +4,10 @@ import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON, getRangeQuer
 
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {InsightsDashboard, InsightsDashboardID, InsightsGraphKey} from '@src/types/onyx';
 
-import type {InsightsChartSpec} from './dashboardSpecs';
+import type {InsightsChartSpec, InsightsDateFilterKey} from './dashboardSpecs';
 import type {InsightsFilters} from './insightsFilters';
 
 import INSIGHTS_DASHBOARD_SPECS, {VIOLATION_HAS_VALUES} from './dashboardSpecs';
@@ -15,21 +16,29 @@ import {getQueryGroupBy} from './insightsGroupByUtils';
 /** How many periods before the selected date range the Average mode spans */
 const COMPARE_AVERAGE_PERIOD_COUNT = 1;
 
-/** Builds the date filter in the shape a search query is built from. */
-function buildDateFormValues(date: InsightsFilters['date']): Partial<SearchAdvancedFiltersForm> {
+/** The form fields each date a chart can be narrowed by is written to */
+const DATE_FORM_KEYS = {
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE]: {on: FILTER_KEYS.DATE_ON, range: FILTER_KEYS.DATE_RANGE},
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED]: {on: FILTER_KEYS.SUBMITTED_ON, range: FILTER_KEYS.SUBMITTED_RANGE},
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL]: {on: FILTER_KEYS.ANY_APPROVAL_ON, range: FILTER_KEYS.ANY_APPROVAL_RANGE},
+} as const;
+
+/** Builds the date filter in the shape a search query is built from, on the expense date unless another date is given. */
+function buildDateFormValues(date: InsightsFilters['date'], dateFilterKey: InsightsDateFilterKey = CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE): Partial<SearchAdvancedFiltersForm> {
+    const {on, range} = DATE_FORM_KEYS[dateFilterKey];
     if ('preset' in date) {
-        return {dateOn: date.preset};
+        return {[on]: date.preset};
     }
     if ('on' in date) {
-        return {dateOn: date.on};
+        return {[on]: date.on};
     }
-    return {dateRange: getRangeQueryValue(date.from, date.to)};
+    return {[range]: getRangeQueryValue(date.from, date.to)};
 }
 
 /** Builds the page's filters in the shape a search query is built from. Leaves the workspaces out when none are selected, which reports on all of them. */
-function buildFilterFormValues(filters: InsightsFilters, shouldIncludeDate = true): Partial<SearchAdvancedFiltersForm> {
+function buildFilterFormValues(filters: InsightsFilters, shouldIncludeDate = true, dateFilterKey?: InsightsDateFilterKey): Partial<SearchAdvancedFiltersForm> {
     return {
-        ...(shouldIncludeDate && buildDateFormValues(filters.date)),
+        ...(shouldIncludeDate && buildDateFormValues(filters.date, dateFilterKey)),
         groupCurrency: filters.groupCurrency,
         ...(filters.policyIDs.length > 0 && {policyID: filters.policyIDs}),
     };
@@ -72,7 +81,7 @@ function buildInsightsQueryString(filters: InsightsFilters): SearchQueryString {
 /** Builds a chart's query with the page's filters applied. */
 function applyInsightsFilters(chart: InsightsChartSpec, filters: InsightsFilters, compare?: SearchCompareMode): SearchQueryString {
     return buildQueryStringFromFilterFormValues(
-        {...buildFilterFormValues(filters), has: chart.has, groupBy: chart.groupBy ?? getQueryGroupBy(filters), view: chart.view, compare},
+        {...buildFilterFormValues(filters, true, chart.dateFilterKey), has: chart.has, groupBy: chart.groupBy ?? getQueryGroupBy(filters), view: chart.view, compare},
         {sortBy: chart.sortBy, sortOrder: chart.sortOrder, limit: chart.limit},
     );
 }

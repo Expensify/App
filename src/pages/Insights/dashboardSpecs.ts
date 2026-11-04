@@ -13,6 +13,9 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import {canViewAllPolicyData, hasApprovalsEnabled, hasMultipleMembers} from './insightsAccess';
 
+/** Dates a chart can narrow the page's period by */
+type InsightsDateFilterKey = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL;
+
 type InsightsChartSpec = {
     /** Slot the request names the chart's snapshot under, and the response's `graphs` confirms it in */
     graphKey: InsightsGraphKey;
@@ -30,6 +33,9 @@ type InsightsChartSpec = {
 
     /** Narrows the chart's query to expenses that have these */
     has?: HasFilterValues;
+
+    /** The date the page's date filter applies to, so the chart's Spend query matches what the backend counts. Defaults to the expense date. */
+    dateFilterKey?: InsightsDateFilterKey;
 
     /** The chart is shown when any workspace in scope passes this. A chart that declares none is always shown. */
     isPolicyEligible?: (policy: Policy, login: string | undefined) => boolean;
@@ -127,6 +133,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_SUBMITTER,
                 titleKey: 'insightsPage.violationsBySubmitter',
                 has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION],
+                dateFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
                 view: CONST.SEARCH.VIEW.BAR,
                 groupBy: CONST.SEARCH.GROUP_BY.FROM,
                 metric: CONST.SEARCH.CHART_METRIC.COUNT,
@@ -139,6 +146,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_APPROVER,
                 titleKey: 'insightsPage.violationsByApprover',
                 has: [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION],
+                dateFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL,
                 view: CONST.SEARCH.VIEW.BAR,
                 groupBy: CONST.SEARCH.GROUP_BY.APPROVER,
                 metric: CONST.SEARCH.CHART_METRIC.COUNT,
@@ -167,5 +175,5 @@ function getAccessibleDashboards(policies: OnyxCollection<Policy>, login: string
 }
 
 export {getAccessibleDashboards, getVisibleCharts, VIOLATION_HAS_VALUES};
-export type {InsightsChartSpec};
+export type {InsightsChartSpec, InsightsDateFilterKey};
 export default INSIGHTS_DASHBOARD_SPECS;
