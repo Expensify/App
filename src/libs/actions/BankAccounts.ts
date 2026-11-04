@@ -1343,11 +1343,11 @@ function getWiseBankAccountFields(country: string, currency?: string, inputs?: R
     if (inputs) {
         parameters.inputs = JSON.stringify(inputs);
     }
-    const onyxData: OnyxData<typeof ONYXKEYS.WISE_BANK_ACCOUNT_FIELDS> = {
+    const onyxData: OnyxData<typeof ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.WISE_BANK_ACCOUNT_FIELDS,
+                key: ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS,
                 value: {
                     isLoading: true,
                     errors: null,
@@ -1357,7 +1357,7 @@ function getWiseBankAccountFields(country: string, currency?: string, inputs?: R
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.WISE_BANK_ACCOUNT_FIELDS,
+                key: ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS,
                 value: {
                     errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
@@ -1366,7 +1366,7 @@ function getWiseBankAccountFields(country: string, currency?: string, inputs?: R
         finallyData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.WISE_BANK_ACCOUNT_FIELDS,
+                key: ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS,
                 value: {
                     isLoading: false,
                 },
@@ -1390,7 +1390,7 @@ function createWiseBankAccount(country: string, currency: string | undefined, in
 }
 
 function clearWiseBankAccountFields() {
-    Onyx.set(ONYXKEYS.WISE_BANK_ACCOUNT_FIELDS, null);
+    Onyx.set(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS, null);
 }
 
 function clearReimbursementAccountBankCreation() {

@@ -35,7 +35,7 @@ const COUNTRIES = Object.keys(CONST.ALL_COUNTRIES).filter((countryISO) => !CONST
 function WiseDepositAccountContent({backTo}: WiseDepositAccountContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [wiseBankAccountFields] = useOnyx(ONYXKEYS.WISE_BANK_ACCOUNT_FIELDS);
+    const [wiseBankAccountFields] = useOnyx(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS);
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT);
     const [formState] = useOnyx(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
     const [country] = useOnyx(ONYXKEYS.COUNTRY);
