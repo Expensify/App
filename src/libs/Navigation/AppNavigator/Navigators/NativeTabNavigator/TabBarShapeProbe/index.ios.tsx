@@ -34,7 +34,10 @@ function TabBarShapeProbe({isTabBarShown}: TabBarShapeProbeProps) {
             style={styles.fullScreen}
             pointerEvents="none"
         >
-            <SafeAreaListener onChange={recordTabScreenBottomInset} />
+            <SafeAreaListener
+                key={isTabBarShown ? 'shown' : 'hidden'}
+                onChange={recordTabScreenBottomInset}
+            />
         </View>
     );
 }
