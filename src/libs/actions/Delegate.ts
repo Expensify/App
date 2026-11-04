@@ -127,6 +127,10 @@ type WithValidateCode = {
     validateCode: string;
 };
 
+type WithOptionalValidateCode = {
+    validateCode?: string;
+};
+
 type WithFieldName = {
     // Constrain to known keys to avoid misspells at call sites
     fieldName: 'addDelegate' | 'updateDelegateRole' | 'connect' | 'removeDelegator' | 'removeDelegate';
@@ -183,7 +187,7 @@ type RemoveDelegateParams = WithEmail & WithDelegatedAccess;
 type ClearDelegateErrorsByFieldParams = WithEmail & WithFieldName & WithDelegatedAccess;
 
 // Update existing delegate role (requires code)
-type UpdateDelegateRoleParams = WithEmail & WithRole & WithValidateCode & WithDelegatedAccess;
+type UpdateDelegateRoleParams = WithEmail & WithRole & WithOptionalValidateCode & WithDelegatedAccess;
 
 // Is connected as delegate?
 type IsConnectedAsDelegateParams = WithDelegatedAccess;
