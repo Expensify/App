@@ -145,6 +145,7 @@ import {
     getReimbursableTotal,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
+    getReimbursementQueuedMessageKey,
     getReportActionWithSmartscanError,
     getReportFieldMaps,
     getReportFieldsByPolicyID,
@@ -4254,6 +4255,106 @@ describe('ReportUtils', () => {
             });
 
             expect(result).toContain('HiddenMarker');
+        });
+
+        it.each([
+            {
+                reportType: CONST.REPORT.TYPE.INVOICE,
+                expected: 'started payment, but is waiting for Vendor to add a bank account.',
+            },
+            {
+                reportType: CONST.REPORT.TYPE.EXPENSE,
+                expected: 'started payment, but is waiting for Vendor to add a personal bank account.',
+            },
+            {
+                reportType: CONST.REPORT.TYPE.IOU,
+                expected: 'started payment, but is waiting for Vendor to add a personal bank account.',
+            },
+        ])('names the report owner and asks for the right bank account on a $reportType report', ({reportType, expected}) => {
+            // Given a payment that waits for the report owner to add a bank account
+            const ownerAccountID = 780040;
+            const reportAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
+                reportActionID: '780041',
+                created: '2024-01-01 00:00:00',
+                originalMessage: {paymentType: CONST.IOU.PAYMENT_TYPE.VBBA},
+            });
+
+            // When the report shows the queued payment
+            const result = getReimbursementQueuedActionMessage({
+                reportAction,
+                report: createMock<Report>({
+                    reportID: '780042',
+                    type: reportType,
+                    ownerAccountID,
+                }),
+                translate: translateLocal,
+                formatPhoneNumber,
+                personalDetails: {
+                    [ownerAccountID]: {
+                        accountID: ownerAccountID,
+                        login: 'billing@vendor.com',
+                        displayName: 'Vendor',
+                    },
+                },
+            });
+
+            // Then an invoice asks its sender for a bank account, because an invoice sender can't be paid into a personal one
+            expect(result).toBe(expected);
+        });
+
+        it('asks the invoice sender to enable their wallet when the payment uses the Expensify wallet', () => {
+            // Given an invoice payment that waits for the sender's wallet
+            const ownerAccountID = 780050;
+            const reportAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
+                reportActionID: '780051',
+                created: '2024-01-01 00:00:00',
+                originalMessage: {paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY},
+            });
+
+            // When the invoice shows the queued payment
+            const result = getReimbursementQueuedActionMessage({
+                reportAction,
+                report: createMock<Report>({
+                    reportID: '780052',
+                    type: CONST.REPORT.TYPE.INVOICE,
+                    ownerAccountID,
+                }),
+                translate: translateLocal,
+                formatPhoneNumber,
+                personalDetails: {
+                    [ownerAccountID]: {
+                        accountID: ownerAccountID,
+                        login: 'billing@vendor.com',
+                        displayName: 'Vendor',
+                    },
+                },
+            });
+
+            // Then it keeps the wallet message, because only bank account payments changed for invoices
+            expect(result).toBe(translateLocal('iou.waitingOnEnabledWallet', 'Vendor'));
+        });
+    });
+
+    describe('getReimbursementQueuedMessageKey', () => {
+        it('returns the vendor bank account message only for invoices paid by bank account', () => {
+            // Given invoices and expense reports paid by bank account or by wallet
+            const invoice = createMock<Report>({
+                reportID: '780060',
+                type: CONST.REPORT.TYPE.INVOICE,
+            });
+            const expenseReport = createMock<Report>({
+                reportID: '780061',
+                type: CONST.REPORT.TYPE.EXPENSE,
+            });
+
+            // When the queued payment message is chosen
+            // Then only invoices paid by bank account skip the personal bank account message
+            expect(getReimbursementQueuedMessageKey(invoice, CONST.IOU.PAYMENT_TYPE.VBBA)).toBe('iou.waitingOnVendorBankAccount');
+            expect(getReimbursementQueuedMessageKey(invoice, CONST.IOU.PAYMENT_TYPE.EXPENSIFY)).toBe('iou.waitingOnEnabledWallet');
+            expect(getReimbursementQueuedMessageKey(expenseReport, CONST.IOU.PAYMENT_TYPE.VBBA)).toBe('iou.waitingOnBankAccount');
+            expect(getReimbursementQueuedMessageKey(expenseReport, undefined)).toBe('iou.waitingOnBankAccount');
         });
     });
 
@@ -13706,6 +13807,48 @@ describe('ReportUtils', () => {
 
             // There should be some kind of a reason (any reason is fine)
             expect(result).toHaveProperty('reason');
+        });
+
+        it('should give the sender a green dot on their invoice while it waits on them', () => {
+            // Given an invoice that Auth says waits on its sender, like for a bank account to finish a payment
+            const waitingInvoice: Report = {
+                ...createRandomReport(30001, undefined),
+                type: CONST.REPORT.TYPE.INVOICE,
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID + 2,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                isAwaitingActionFromCurrentUser: true,
+            };
+            const getReason = (report: Report) =>
+                getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: report,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID,
+                    transactionViolations: undefined,
+                    reportMetadata: undefined,
+                    isReportArchived: false,
+                    allReportActions: {},
+                });
+
+            // When the Inbox checks whether the invoice needs attention
+            // Then the sender gets a green dot, because they must act before the payment can finish
+            expect(getReason(waitingInvoice)?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
+
+            // And the invoice shows no green dot once it stops waiting, for anyone who didn't send it, or on a report that isn't an invoice
+            expect(
+                getReason({
+                    ...waitingInvoice,
+                    isAwaitingActionFromCurrentUser: false,
+                }),
+            ).toBeNull();
+            expect(
+                getReason({
+                    ...waitingInvoice,
+                    ownerAccountID: currentUserAccountID + 1,
+                }),
+            ).toBeNull();
+            expect(getReason({...waitingInvoice, type: CONST.REPORT.TYPE.EXPENSE})).toBeNull();
         });
 
         describe('card fraud alert', () => {
