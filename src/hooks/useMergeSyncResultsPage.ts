@@ -65,12 +65,12 @@ function useMergeSyncResultsPage(policyID: string, connectionName?: HRConnection
         const hasResultsScreen = !!getSyncResultsRoutePath(syncConnectionName);
         const isSyncRunning = hasResultsScreen && !!stageInProgress && stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE;
 
-        if (isSyncRunning) {
+        if (isSyncRunning && isFocused) {
             didWatchSyncRunRef.current = true;
         }
 
         const isSyncDoneWithResult = hasResultsScreen && stageInProgress === CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE && !!syncResult;
-        const didSyncComplete = isFocused && isSyncDoneWithResult && didWatchSyncRunRef.current;
+        const didSyncComplete = isSyncDoneWithResult && didWatchSyncRunRef.current;
 
         if (didSyncComplete && syncResult && syncConnectionName) {
             pendingSyncResultRef.current = {connectionName: syncConnectionName, result: syncResult};

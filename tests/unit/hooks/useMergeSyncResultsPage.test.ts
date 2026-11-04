@@ -204,6 +204,52 @@ describe('useMergeSyncResultsPage', () => {
         expect(mockNavigate).toHaveBeenCalledWith(RESULTS_ROUTE);
     });
 
+    it.each([true, false])('captures completion after blur before shared progress is replaced (separate result update: %s)', async (separateResultUpdate) => {
+        // Given a run observed on this screen before the user leaves
+        const {rerender} = await renderWith([RUNNING, '2026-08-26 10:00:00.000']);
+        mockIsFocused = false;
+        rerender({});
+
+        // When completion arrives while blurred, including a result sent separately from JOB_DONE
+        if (separateResultUpdate) {
+            await pushSyncProgress(JOB_DONE, '2026-08-26 10:00:05.000');
+        }
+        await pushSyncProgress(JOB_DONE, '2026-08-26 10:00:06.000', RESULT);
+        await act(async () => {
+            await Onyx.set(SYNC_PROGRESS_KEY, syncProgress(JOB_DONE, '2026-08-26 10:00:07.000', undefined, CONST.POLICY.CONNECTIONS.NAME.XERO));
+            await waitForBatchedUpdates();
+        });
+
+        // Then navigation waits for this screen and survives replacement of the shared entry
+        expect(mockNavigate).not.toHaveBeenCalled();
+        mockIsFocused = true;
+        rerender({});
+        expect(mockBuildDynamicRoute).toHaveBeenCalledWith(DYNAMIC_ROUTES.WORKSPACE_HR_SYNC_RESULTS.path);
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
+        expect(mockNavigate).toHaveBeenCalledWith(RESULTS_ROUTE);
+
+        // When focus changes again, the completed run must not reopen its results
+        mockIsFocused = false;
+        rerender({});
+        mockIsFocused = true;
+        rerender({});
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+
+    it('opens nothing for a run observed only while blurred', async () => {
+        // Given a mounted screen that never watched this run while focused
+        mockIsFocused = false;
+        const {rerender} = await renderWith([RUNNING, '2026-08-26 10:00:00.000']);
+
+        // When the run finishes before the user visits the screen
+        await pushSyncProgress(JOB_DONE, '2026-08-26 10:00:05.000', RESULT);
+        mockIsFocused = true;
+        rerender({});
+
+        // Then visiting the screen must not open results for an unwatched run
+        expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
     describe('without a connection to watch', () => {
         it('opens the results screen for whichever HR or recruiting provider syncs', async () => {
             await renderWith([RUNNING, '2026-08-26 10:00:00.000'], undefined);
