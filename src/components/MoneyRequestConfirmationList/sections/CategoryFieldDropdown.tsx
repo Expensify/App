@@ -61,6 +61,8 @@ function CategoryFieldDropdown({transactionID, policy, selectedCategory, canAddC
     });
     // Only the create row's re-enable path reads this, so skip the report scan when the row can't show.
     const policyData = usePolicyData(canAddCategory ? policy?.id : undefined);
+    // Creating a category requires a real workspace; writing to a draft would clear its default categories.
+    const canCreateSearchedCategory = canAddCategory && !!policyData.policy?.id && policyData.policy.id === policy?.id;
     const createAndApplyCategory = useCreateAndApplyCategory({policyID: policy?.id, policyData, updateCategory});
 
     const openAddCategory = () => {
@@ -86,7 +88,7 @@ function CategoryFieldDropdown({transactionID, policy, selectedCategory, canAddC
             onSelected={handleSelected}
             onAddCategory={canAddCategory ? openAddCategory : undefined}
             addCategorySentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.ADD_CATEGORY_BUTTON}
-            onCreateCategory={canAddCategory ? createAndApplyCategory : undefined}
+            onCreateCategory={canCreateSearchedCategory ? createAndApplyCategory : undefined}
         />
     );
 }
