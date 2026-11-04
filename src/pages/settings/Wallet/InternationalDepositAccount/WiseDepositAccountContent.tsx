@@ -9,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
@@ -24,7 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useEffectEvent, useState} from 'react';
 
 type WiseDepositAccountContentProps = {
     backTo?: Route;
@@ -46,22 +47,32 @@ function WiseDepositAccountContent({backTo}: WiseDepositAccountContentProps) {
     const formCurrency = wiseBankAccountFields?.currency;
     const schema = wiseBankAccountFields?.schema;
 
-    useEffect(() => {
-        if (!schema) {
-            return;
-        }
+    // The currency and payout type selects start on what the server picked. A value the server just sent replaces the user's pick, while a screen
+    // that opens on a later page only fills what the draft is missing, so a pick kept after a failed refresh survives the next page.
+    const hasSchema = !!schema;
+    const previousPayoutType = usePrevious(payoutType);
+    const previousFormCurrency = usePrevious(formCurrency);
+    const shouldSeed = (serverValue: string | undefined, previousServerValue: string | undefined, draftValue: unknown): serverValue is string =>
+        !!serverValue && draftValue !== serverValue && (serverValue !== previousServerValue || !draftValue);
+    const seedServerChoices = useEffectEvent(() => {
         const seed: Record<string, string> = {};
-        if (payoutType && draftValues?.payoutType !== payoutType) {
+        if (shouldSeed(payoutType, previousPayoutType, draftValues?.payoutType)) {
             seed.payoutType = payoutType;
         }
-        if (formCurrency && draftValues?.currency !== formCurrency) {
+        if (shouldSeed(formCurrency, previousFormCurrency, draftValues?.currency)) {
             seed.currency = formCurrency;
         }
         if (Object.keys(seed).length === 0) {
             return;
         }
         setDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, seed);
-    }, [schema, payoutType, formCurrency, draftValues?.payoutType, draftValues?.currency]);
+    });
+    useEffect(() => {
+        if (!hasSchema) {
+            return;
+        }
+        seedServerChoices();
+    }, [hasSchema, payoutType, formCurrency]);
 
     const leaveFlow = () => {
         clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
