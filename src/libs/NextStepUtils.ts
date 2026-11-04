@@ -149,6 +149,7 @@ function buildNextStepMessage(
     dateFnsLocale: DateFnsLocale | undefined,
     currentUserAccountID: number,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    reportType?: Report['type'],
 ): string {
     // Escape actor name to prevent HTML injection since this will be rendered as HTML
     const actor = Str.safeEscape(getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber, hiddenTranslation: translate('common.hidden')}) ?? '');
@@ -164,10 +165,18 @@ function buildNextStepMessage(
     const {eta, etaType} = getNextStepETA(nextStep, translate, dateFnsLocale);
 
     const requiredDepositCurrency = nextStep.requiredDepositCurrency ? Str.htmlEncode(nextStep.requiredDepositCurrency) : undefined;
-    const message =
-        nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT
-            ? translate('nextStep.message.waitingForSubmitterAccount', actor, actorType, eta, etaType, requiredDepositCurrency)
-            : translate(`nextStep.message.${nextStep.messageKey}`, actor, actorType, eta, etaType);
+    // Auth sends the same approve and pay next steps for bills and expense reports, so the report type picks the wording.
+    const isBill = reportType === CONST.REPORT.UNSUPPORTED_TYPE.BILL;
+    let message: string;
+    if (nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT) {
+        message = translate('nextStep.message.waitingForSubmitterAccount', actor, actorType, eta, etaType, requiredDepositCurrency);
+    } else if (nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE) {
+        message = translate('nextStep.message.waitingToApprove', actor, actorType, eta, etaType, isBill);
+    } else if (nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY) {
+        message = translate('nextStep.message.waitingToPay', actor, actorType, eta, etaType, isBill);
+    } else {
+        message = translate(`nextStep.message.${nextStep.messageKey}`, actor, actorType, eta, etaType);
+    }
     return `<next-step>${message}</next-step>`;
 }
 
