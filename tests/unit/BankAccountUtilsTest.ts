@@ -14,6 +14,7 @@ import {
     isBankAccountPartiallySetup,
     isBankAccountEligibleForGlobalReimbursements,
     isGlobalReimbursementsEnabled,
+    isWiseOnboardingSubmitted,
     isPersonalBankAccountMissingInfo,
     isUserAddressVerificationRequired,
     isUserDOBVerificationRequired,
@@ -365,6 +366,22 @@ describe('BankAccountUtils', () => {
             // When deciding whether its row shows the globe
             // Then it doesn't, so the row never claims more than the backend allows
             expect(isGlobalReimbursementsEnabled(bankAccount)).toBe(false);
+        });
+    });
+
+    describe('isWiseOnboardingSubmitted', () => {
+        it('returns true once Wise has a status for the business', () => {
+            // Given an account whose business Wise already reviews
+            // When checking whether its onboarding was submitted
+            // Then it was, because Wise only has a status for a submitted business
+            expect(isWiseOnboardingSubmitted({additionalData: {wise: {status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED}}})).toBe(true);
+        });
+
+        it('returns false when Wise has no status for the business', () => {
+            // Given an account whose business was never sent to Wise
+            // When checking whether its onboarding was submitted
+            // Then it wasn't, so the Wallet menu starts the flow at the intro
+            expect(isWiseOnboardingSubmitted({additionalData: {}})).toBe(false);
         });
     });
 

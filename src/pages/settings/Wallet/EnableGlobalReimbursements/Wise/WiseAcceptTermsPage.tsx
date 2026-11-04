@@ -15,6 +15,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {isWiseOnboardingSubmitted} from '@libs/BankAccountUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -97,13 +98,10 @@ function WiseAcceptTermsPage({route}: WiseAcceptTermsPageProps) {
     const [shouldShowError, setShouldShowError] = useState(false);
     const [submission] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: submissionSelector});
     const [serverErrorFields] = useOnyx(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, {selector: serverErrorFieldsSelector});
-    const wiseStatusSelector = (bankAccountList: OnyxEntry<BankAccountList>) => bankAccountList?.[bankAccountID]?.accountData?.additionalData?.wise?.status;
-    const [wiseStatus] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: wiseStatusSelector});
+    const isAlreadySubmittedSelector = (bankAccountList: OnyxEntry<BankAccountList>) => isWiseOnboardingSubmitted(bankAccountList?.[bankAccountID]?.accountData);
+    const [isAlreadySubmitted = false] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: isAlreadySubmittedSelector});
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isWiseReimbursementsBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.WISE_REIMBURSEMENTS);
-
-    // Wise has a status for the business only once it was submitted, so there is nothing left to submit
-    const isAlreadySubmitted = !!wiseStatus;
 
     // The terms replaced the onboarding pages, so going back to one of them puts it in their place
     const openOnboardingPage = (pageKey: string) => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute(pageKey), introPath), {forceReplace: true});
