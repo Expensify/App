@@ -219,6 +219,9 @@ const oldRoutes: Record<string, string> = {
     '/*/*/merchant/*/*': '/r/$4/expense-merchant?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/description/*/*/*': '/r/$4/expense-description?action=$1&iouType=$2&transactionID=$3&reportID=$4&reportActionID=$5',
     '/*/*/description/*/*': '/r/$4/expense-description?action=$1&iouType=$2&transactionID=$3&reportID=$4',
+    // Keeps the split edit route opened from the Search split overview's Date tab as-is
+    // (/search/split-expense-overview-search/date/split-expense/edit/...), otherwise the legacy date patterns below rewrite it into a broken route.
+    '/*/*/date/split-expense/edit/*': '/$1/$2/date/split-expense/edit/$3',
     '/*/*/date/*/*/*': '/r/$4/expense-date?action=$1&iouType=$2&transactionID=$3&reportID=$4&reportActionID=$5',
     '/*/*/date/*/*': '/r/$4/expense-date?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/participants/participants-details/*': '/$1/$2/participants/participants-details/$3',
