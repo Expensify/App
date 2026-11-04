@@ -3,6 +3,7 @@ import FullScreenWebView from '@components/FullScreenWebView';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useEnvironment from '@hooks/useEnvironment';
 import useOnyx from '@hooks/useOnyx';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -18,11 +19,11 @@ import type {ShouldStartLoadRequest} from 'react-native-webview/lib/WebViewTypes
 
 import React from 'react';
 
-/** Reads how Wise's form ended from a navigation that leaves Wise's site for the redirect URL, or returns null for any other navigation */
-function getRedirectStatus(url: string, formURL: string): string | null {
+/** Reads how Wise's form ended from a navigation to our redirect URL, or returns null for any other navigation, including links to other sites */
+function getRedirectStatus(url: string, environmentURL: string): string | null {
     try {
         const {host, searchParams} = new URL(url);
-        return host === new URL(formURL).host ? null : searchParams.get(CONST.WISE.KYC_REVIEW_REDIRECT_STATUS_PARAM);
+        return host === new URL(environmentURL).host ? searchParams.get(CONST.WISE.KYC_REVIEW_REDIRECT_STATUS_PARAM) : null;
     } catch {
         return null;
     }
@@ -32,12 +33,13 @@ function getRedirectStatus(url: string, formURL: string): string | null {
 function WiseKYCReviewPage() {
     const [kycReviewURL] = useOnyx(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK, {selector: (embeddedLink) => embeddedLink?.url});
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WISE_KYC_REVIEW.path);
+    const {environmentURL} = useEnvironment();
 
     const goBack = () => Navigation.goBack(backPath);
 
     // Wise ends the form by redirecting to our redirect URL with the outcome in a query param, so the WebView stops there instead of loading that page
     const closeFormOnRedirect = ({url}: ShouldStartLoadRequest) => {
-        const status = kycReviewURL ? getRedirectStatus(url, kycReviewURL) : null;
+        const status = getRedirectStatus(url, environmentURL);
         if (!status) {
             return true;
         }

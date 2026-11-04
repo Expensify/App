@@ -8,6 +8,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import WiseKYCReviewPage from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseKYCReviewPage';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
@@ -75,21 +76,24 @@ describe('WiseKYCReviewPage', () => {
         const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
         await renderPage();
 
-        // When the form ends and Wise redirects away from its site
-        const shouldLoad = startLoading(`https://www.expensify.com/wise-kyc?status=${status}`);
+        // When the form ends and Wise redirects to the status page on our site
+        const shouldLoad = startLoading(`${CONST.NEW_EXPENSIFY_URL}/${BACK_PATH}?status=${status}`);
 
         // Then the redirect page does not load, and the status page underneath gets the outcome to apply, like after Wise's redirect on web
         expect(shouldLoad).toBe(false);
         expect(goBackSpy).toHaveBeenCalledWith(`${BACK_PATH}?status=${status}`, {compareParams: false});
     });
 
-    it("keeps the form open while the user moves between the form's pages", async () => {
+    it.each([
+        ["the form's next page on Wise's site", 'https://wise-sandbox.com/embedded-flows/verification/documents?status=success'],
+        ['a link to another site', 'https://www.example.com/help?status=success'],
+    ])('keeps the form open when it goes to %s, even with a status param', async (_, url) => {
         // Given Wise's form is open
         const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
         await renderPage();
 
-        // When the form goes to its next page on Wise's site, even one that carries a status param
-        const shouldLoad = startLoading('https://wise-sandbox.com/embedded-flows/verification/documents?status=success');
+        // When the form goes somewhere other than our site
+        const shouldLoad = startLoading(url);
 
         // Then the page loads and the form stays open
         expect(shouldLoad).toBe(true);
