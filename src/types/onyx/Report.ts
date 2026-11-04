@@ -188,6 +188,18 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Invoice room receiver data */
         invoiceReceiver?: InvoiceReceiver;
 
+        /** Account of the vendor who sent the invoice behind this bill. The bill's owner is the receiver who pays it. */
+        billSenderAccountID?: number;
+
+        /** Whether Auth treats this report as a bill or as an invoice the current user receives and pays through Bill Pay */
+        isBillPayReport?: boolean;
+
+        /** Whether the receiver must not see this invoice, because they pay it through its linked bill */
+        isHiddenForBillReceiver?: boolean;
+
+        /** Whether the current user must act on this invoice, like a vendor who must add a bank account before the payment of its linked bill can finish */
+        isAwaitingActionFromCurrentUser?: boolean;
+
         /** Number of transactions in the report */
         transactionCount?: number;
 

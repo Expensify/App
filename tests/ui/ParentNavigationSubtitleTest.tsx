@@ -1,19 +1,31 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
+import type * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportActionVisible} from '@libs/ReportActionsUtils';
+
+import IntlStore from '@src/languages/IntlStore';
+import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 
 import type {RouteProp} from '@react-navigation/native';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import type Report from '../../src/types/onyx/Report';
+
 import ParentNavigationSubtitle from '../../src/components/ParentNavigationSubtitle';
+import CONST from '../../src/CONST';
 import NAVIGATORS from '../../src/NAVIGATORS';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import SCREENS from '../../src/SCREENS';
 import createMock from '../utils/createMock';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+const mockTranslate = <TPath extends TranslationPaths>(key: TPath, ...parameters: TranslationParameters<TPath>) =>
+    jest.requireActual<typeof Localize>('@libs/Localize').translate(CONST.LOCALES.EN, key, ...parameters);
+
+jest.mock('@hooks/useLocalize', () => () => ({translate: mockTranslate}));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
@@ -90,6 +102,10 @@ function getMockRootStateWithReportsSplitStack(parentReportID: string, expenseRe
 }
 
 describe('ParentNavigationSubtitle', () => {
+    beforeAll(async () => {
+        await IntlStore.load(CONST.LOCALES.EN);
+    });
+
     beforeEach(() => {
         jest.clearAllMocks();
         jest.mocked(isReportActionVisible).mockReturnValue(false);
@@ -303,6 +319,64 @@ describe('ParentNavigationSubtitle', () => {
 
         expect(Navigation.goBack).not.toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenCalled();
+    });
+
+    describe('subtitle of a bill without a parent report', () => {
+        const billReportID = 'bill-report';
+        const subtitleData = {workspaceName: 'Receiver Policy'};
+
+        beforeAll(() => {
+            Onyx.init({keys: ONYXKEYS});
+        });
+
+        beforeEach(async () => {
+            await Onyx.clear();
+            mockUseRoute.mockReturnValue(createMock<AnyRoute>({name: SCREENS.REPORT}));
+            mockUseRootNavigationState.mockImplementation((selector?: (state: unknown) => unknown) => selector?.({routes: []}));
+        });
+
+        it('shows the status and policy name without a parent link or connecting words', async () => {
+            // Given a bill has no parent chat to open.
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${billReportID}`, createMock<Report>({reportID: billReportID, type: CONST.REPORT.TYPE.BILL}));
+
+            // When the subtitle renders with only the policy name.
+            render(
+                <ParentNavigationSubtitle
+                    parentNavigationSubtitleData={subtitleData}
+                    reportID={billReportID}
+                    statusText="Approved"
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            // Then the subtitle keeps the status without suggesting that the bill belongs to a chat.
+            expect(screen.getByText('Approved')).toBeTruthy();
+            expect(screen.getByText(subtitleData.workspaceName, {exact: true})).toBeTruthy();
+            expect(screen.queryByText(/From|\bin\b/)).toBeNull();
+            expect(screen.queryByTestId('parent-navigation-subtitle-link')).toBeNull();
+        });
+
+        it('keeps the parent link and connecting words for an expense report', async () => {
+            // Given an expense report belongs to a policy expense chat.
+            const expenseReportID = 'expense-report';
+            const parentReportID = 'policy-expense-chat';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {reportID: expenseReportID, hasParentAccess: true});
+
+            // When its subtitle renders with a chat and a policy name.
+            render(
+                <ParentNavigationSubtitle
+                    parentNavigationSubtitleData={{reportName: "bob's expenses", ...subtitleData}}
+                    reportID={expenseReportID}
+                    parentReportID={parentReportID}
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            // Then expense reports still show where the request came from.
+            expect(screen.getByTestId('parent-navigation-subtitle-link')).toBeTruthy();
+            expect(screen.getByText('From ')).toBeTruthy();
+            expect(screen.getByText(` in ${subtitleData.workspaceName}`)).toBeTruthy();
+        });
     });
 
     describe('visible report actions subscription', () => {

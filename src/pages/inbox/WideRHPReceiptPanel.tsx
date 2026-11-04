@@ -72,6 +72,7 @@ function WideRHPReceiptPanelGate() {
             parentReportAction?.childType === CONST.REPORT.TYPE.EXPENSE ||
             parentReportAction?.childType === CONST.REPORT.TYPE.IOU ||
             report?.type === CONST.REPORT.TYPE.EXPENSE ||
+            report?.type === CONST.REPORT.TYPE.BILL ||
             report?.type === CONST.REPORT.TYPE.IOU ||
             report?.type === CONST.REPORT.TYPE.INVOICE);
 

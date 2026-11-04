@@ -726,6 +726,17 @@ describe('ReportActionsUtils', () => {
             expect(result).toEqual(linkedCreateAction.childReportID);
         });
 
+        it('should return the childReportID for a bill with one expense', () => {
+            // Given a bill with one expense, which should look like a one-expense report
+            const billReport = {...mockedReports[IOUReportID], type: CONST.REPORT.TYPE.BILL};
+
+            // When we look for the bill's only expense thread
+            const result = getOneTransactionThreadReportID(billReport, mockedReports[mockChatReportID], [linkedCreateAction], false, [IOUTransactionID]);
+
+            // Then the bill opens that expense like a one-expense report
+            expect(result).toEqual(linkedCreateAction.childReportID);
+        });
+
         it('should return CONST.FAKE_REPORT_ID when action exists but childReportID is undefined', () => {
             const result = getOneTransactionThreadReportID(mockedReports[IOUReportID], mockedReports[mockChatReportID], [linkedCreateActionWithoutChildReportID], false, [IOUTransactionID]);
             expect(result).toEqual(CONST.FAKE_REPORT_ID);
@@ -3072,6 +3083,53 @@ describe('ReportActionsUtils', () => {
             // Then the action should NOT be visible (IOU PAY action is shown instead)
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(false);
+        });
+
+        it.each([
+            [CONST.REPORT.TYPE.BILL, false],
+            [CONST.REPORT.TYPE.INVOICE, true],
+            [CONST.REPORT.TYPE.EXPENSE, false],
+        ] as const)('shows a NewDot REIMBURSED action on a %s report: %s', async (reportType, isVisible) => {
+            // Given a NewDot payment action on a report. Paying a bill adds no IOU PAY action to its invoice.
+            const reportID = '9001';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, type: reportType});
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: '1',
+                created: '2025-01-01',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid this bill'}],
+                originalMessage: {isNewDot: true},
+            };
+
+            // When the action's visibility is checked for its report
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, undefined, reportID);
+
+            // Then only invoices show it, because other reports show their IOU PAY action instead
+            expect(actual).toBe(isVisible);
+        });
+
+        it.each([
+            [CONST.REPORT.TYPE.BILL, false],
+            [CONST.REPORT.TYPE.INVOICE, true],
+            [CONST.REPORT.TYPE.EXPENSE, false],
+        ] as const)('shows a NewDot MARKED_REIMBURSED action that Auth hides on a %s report: %s', async (reportType, isVisible) => {
+            // Given a report marked as paid from NewDot. Auth sets shouldShow to false on it, because expense reports and bills show an IOU PAY action instead.
+            const reportID = '9002';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, type: reportType});
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '2',
+                created: '2026-10-30 21:11:55.001',
+                message: [{type: 'TEXT', style: 'normal', text: 'marked this report as reimbursed'}],
+                originalMessage: {isNewDot: true, message: ''},
+                shouldShow: false,
+            };
+
+            // When the action's visibility is checked for its report
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, undefined, reportID);
+
+            // Then only invoices show it, because marking a bill as paid adds no IOU PAY action to its invoice
+            expect(actual).toBe(isVisible);
         });
 
         it('should return false for TAKE_CONTROL when automaticAction is true and mentionedAccountIDs is empty', () => {

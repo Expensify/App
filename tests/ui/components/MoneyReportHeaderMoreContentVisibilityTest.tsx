@@ -117,4 +117,26 @@ describe('useMoneyReportHeaderMoreContentVisibility', () => {
         expect(result.current.shouldShowNextStep).toBe(false);
         expect(result.current.hasStatusOrNextStep).toBe(false);
     });
+
+    it('shows the next step for an invoice whose payment waits for the sender to add a bank account, even without policy data', () => {
+        // Given a vendor invoice whose next step asks the sender to add a bank account, without the payer policy loaded
+        mockedIsInvoiceReport.mockReturnValue(true);
+        const waitingInvoice = {...report, nextStep: {messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT, icon: CONST.NEXT_STEP.ICONS.HOURGLASS}} as Report;
+        mockedUseOnyx.mockImplementation((key) => {
+            if (key === `${ONYXKEYS.COLLECTION.REPORT}${TEST_REPORT_ID}`) {
+                return createOnyxResult<Report>(waitingInvoice);
+            }
+            if (key === `${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}`) {
+                return createOnyxResult<Policy>(policyValue);
+            }
+            return createOnyxResult(undefined);
+        });
+
+        // When the header decides what to show under the title
+        const {result} = renderHook(() => useMoneyReportHeaderMoreContentVisibility(TEST_REPORT_ID));
+
+        // Then it shows the next step, because the sender must add a bank account before they can be paid
+        expect(result.current.shouldShowNextStep).toBe(true);
+        expect(result.current.hasStatusOrNextStep).toBe(true);
+    });
 });

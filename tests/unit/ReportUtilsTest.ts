@@ -156,6 +156,7 @@ import {
     getReportPreviewMessage,
     getReportPreviewMessageForCopy,
     getReportPreviewReportActionMessage,
+    getReportStatusColorStyle,
     getReportStatusTranslation,
     getReportSubtitlePrefix,
     getTaskAssigneeChatOnyxData,
@@ -251,6 +252,8 @@ import {buildTransactionsByReportID} from '@libs/TodosUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+
+import type {ThemeColors} from '@styles/theme/types';
 
 import {createDraftTransactionAndNavigateToParticipantSelector, getAddExpenseDropdownOptions} from '@userActions/IOU/StartExpenseFlows';
 
@@ -4042,6 +4045,24 @@ describe('ReportUtils', () => {
 
             const actual = getParentNavigationSubtitle(expenseReport, testPolicy, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
             expect(actual.workspaceName).toBe('Direct Policy Name');
+        });
+
+        it.each([true, false])('returns only the policy name for a bill when the policy is available: %s', (hasPolicy) => {
+            // Given a bill can receive its policy name without the policy record.
+            const billReport: Report = {
+                reportID: 'bill-subtitle',
+                type: CONST.REPORT.TYPE.BILL,
+                policyID: 'bill-policy',
+                policyName: 'Bill Policy',
+                ownerAccountID: currentUserAccountID,
+            };
+            const billPolicy = hasPolicy ? createMock<Policy>({id: 'bill-policy', name: 'Current Bill Policy'}) : undefined;
+
+            // When the header builds the bill subtitle.
+            const subtitle = getParentNavigationSubtitle(billReport, billPolicy, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
+
+            // Then it omits the owner's expense chat and uses the current policy name when available.
+            expect(subtitle).toEqual({workspaceName: hasPolicy ? 'Current Bill Policy' : 'Bill Policy'});
         });
 
         it('should use the policy name from the passed policy parameter for invoice reports', () => {
@@ -13707,6 +13728,37 @@ describe('ReportUtils', () => {
             expect(result).toHaveProperty('reason');
         });
 
+        it('should give the vendor a green dot on their invoice while it waits on them', () => {
+            // Given an invoice that Auth says waits on its sender, like for a bank account to finish the payment of its linked bill
+            const waitingInvoice: Report = {
+                ...createRandomReport(30001, undefined),
+                type: CONST.REPORT.TYPE.INVOICE,
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID + 2,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                isAwaitingActionFromCurrentUser: true,
+            };
+            const getReason = (report: Report) =>
+                getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: report,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID,
+                    transactionViolations: undefined,
+                    reportMetadata: undefined,
+                    isReportArchived: false,
+                    allReportActions: {},
+                });
+
+            // When the Inbox checks whether the invoice needs attention
+            // Then the vendor gets a green dot, because the invoice has no parent chat that could show one
+            expect(getReason(waitingInvoice)?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
+
+            // And the invoice shows no green dot once it stops waiting, or for anyone who didn't send it
+            expect(getReason({...waitingInvoice, isAwaitingActionFromCurrentUser: false})).toBeNull();
+            expect(getReason({...waitingInvoice, ownerAccountID: currentUserAccountID + 1})).toBeNull();
+        });
+
         describe('card fraud alert', () => {
             const fraudReport: OptionData = {
                 ...createRandomReport(40000, undefined),
@@ -17798,6 +17850,18 @@ describe('ReportUtils', () => {
             expect(result).toBe(mockTranslate('common.done'));
         });
 
+        it('should return "Done" for a submitted and closed report', () => {
+            // Given a payment cancellation closes the report without an approval step
+            const stateNum = CONST.REPORT.STATE_NUM.SUBMITTED;
+            const statusNum = CONST.REPORT.STATUS_NUM.CLOSED;
+
+            // When App translates the report status
+            const result = getReportStatusTranslation({stateNum, statusNum, translate: mockTranslate});
+
+            // Then App labels the closed workflow Done, not Paid
+            expect(result).toBe(mockTranslate('common.done'));
+        });
+
         it('should return "Approved" for state 2, status 3', () => {
             const result = getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED, translate: mockTranslate});
             expect(result).toBe(mockTranslate('iou.approved'));
@@ -17837,6 +17901,20 @@ describe('ReportUtils', () => {
                 mockTranslate('iou.deleted'),
             );
             expect(getReportStatusTranslation({stateNum: undefined, statusNum: undefined, isDeleted: true, translate: mockTranslate})).toBe(mockTranslate('iou.deleted'));
+        });
+    });
+
+    describe('getReportStatusColorStyle', () => {
+        it('uses the closed badge style for a submitted and closed report', () => {
+            // Given the report is closed without an approval step
+            const closedStyle = {backgroundColor: 'closed-background', textColor: 'closed-text'};
+            const theme = createMock<ThemeColors>({reportStatusBadge: {closed: closedStyle}});
+
+            // When the status badge style is resolved
+            const style = getReportStatusColorStyle(theme, CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.CLOSED);
+
+            // Then the badge looks like other closed reports
+            expect(style).toBe(closedStyle);
         });
     });
 

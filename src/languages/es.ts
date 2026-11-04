@@ -21,6 +21,10 @@ import type {CompanyCardBalanceParams} from './params';
 import type {AllConnectionName, PolicyConnectionSyncStage} from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        markAsPaid: 'Marcar como pagada',
+        paymentFailed: 'No pudimos pagar esta factura. Inténtalo de nuevo.',
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 día`,
@@ -1617,6 +1621,7 @@ const translations: TranslationDeepObject<typeof en> = {
         forwarded: (memo) => `aprobó${memo ? `, dijo ${memo}` : ''}`,
         rejectedThisReport: 'rechazó',
         waitingOnBankAccount: (submitterDisplayName: string) => `inició el pago, pero está esperando a que ${submitterDisplayName} añada una cuenta bancaria personal.`,
+        waitingOnVendorBankAccount: (vendorDisplayName: string) => `inició el pago, pero está esperando a que ${vendorDisplayName} añada una cuenta bancaria.`,
         adminCanceledRequest: 'canceló el pago',
         canceledRequest: (amount, submitterDisplayName) => `canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó tu Billetera Expensify en un plazo de 30 días.`,
         settledAfterAddedBankAccount: (submitterDisplayName, amount) => `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,
@@ -2132,14 +2137,14 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Esperando a que un administrador solucione ellos problemas.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: (actor, actorType, _eta, _etaType) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: (actor, actorType, _eta, _etaType, isBill = false) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Esperando a que <strong>tú</strong> apruebes los gastos.`;
+                        return isBill ? `Esperando a que <strong>tú</strong> apruebes la factura.` : `Esperando a que <strong>tú</strong> apruebes los gastos.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Esperando a que <strong>${actor}</strong> apruebe los gastos.`;
+                        return isBill ? `Esperando a que <strong>${actor}</strong> apruebe la factura.` : `Esperando a que <strong>${actor}</strong> apruebe los gastos.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Esperando a que un administrador apruebe los gastos.`;
+                        return isBill ? `Esperando a que un administrador apruebe la factura.` : `Esperando a que un administrador apruebe los gastos.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (actor, actorType, _eta, _etaType) => {

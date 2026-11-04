@@ -11,6 +11,7 @@ import type {ValueOf} from 'type-fest';
 import {addMonths, format, isPast, parseISO, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
 
+import {isBillReport} from './BillPayUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimbursementChoice, getReimburserAccountID, isArchivedPolicy} from './PolicyUtils';
 import {getOriginalMessage} from './ReportActionMessageUtils';
 import {isDynamicExternalWorkflowApproveFailedAction} from './ReportActionTypeGuards';
@@ -126,6 +127,7 @@ function buildNextStepMessage(
     dateFnsLocale: DateFnsLocale | undefined,
     currentUserAccountID: number,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    reportType?: Report['type'],
 ): string {
     // Escape actor name to prevent HTML injection since this will be rendered as HTML
     const actor = Str.safeEscape(getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber, hiddenTranslation: translate('common.hidden')}) ?? '');
@@ -157,10 +159,14 @@ function buildNextStepMessage(
     }
 
     const requiredDepositCurrency = nextStep.requiredDepositCurrency ? Str.htmlEncode(nextStep.requiredDepositCurrency) : undefined;
-    const message =
-        nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT
-            ? translate('nextStep.message.waitingForSubmitterAccount', actor, actorType, eta, etaType, requiredDepositCurrency)
-            : translate(`nextStep.message.${nextStep.messageKey}`, actor, actorType, eta, etaType);
+    let message: string;
+    if (nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT) {
+        message = translate('nextStep.message.waitingForSubmitterAccount', actor, actorType, eta, etaType, requiredDepositCurrency);
+    } else if (nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE) {
+        message = translate('nextStep.message.waitingToApprove', actor, actorType, eta, etaType, reportType === CONST.REPORT.TYPE.BILL);
+    } else {
+        message = translate(`nextStep.message.${nextStep.messageKey}`, actor, actorType, eta, etaType);
+    }
     return `<next-step>${message}</next-step>`;
 }
 
@@ -354,8 +360,9 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             const reimbursementChoice = getReimbursementChoice(policy);
             const isReimbursementDisabled = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 
-            // The server returns no further action for approved reports on workspaces that reimburse outside Expensify (Indirect)
-            const isReimbursementManual = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+            // The server returns no further action for approved expense reports on policies that reimburse outside Expensify (Indirect).
+            // Bills still wait for the payer, because manual reimbursement only skips expense reports.
+            const isReimbursementManual = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL && !isBillReport(report);
             if (isInvoiceReport(report) || reimbursableSpend === 0 || isReimbursementDisabled || isReimbursementManual) {
                 nextStep = nextStepNoActionRequired;
                 break;
