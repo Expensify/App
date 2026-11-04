@@ -56,6 +56,7 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
         isLoadingInitialReportActions,
         isLoadingApp,
         reportActionsLength,
+        hasReportActionPages,
         oldestUnreadReportAction,
         isSingleExpenseReport,
         isMissingReportActions,
@@ -102,7 +103,16 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
     // actions that arrives right after the initial load shifts the list and breaks the anchor to the linked action.
     const shouldShowSkeletonForLinkedMessageLoad = !!reportActionIDFromRoute && !isOffline && !hasOnceLoadedReportActions && isReportLoadPending;
 
-    const shouldShowInitialSkeleton = shouldShowSkeletonForConciergePanel || shouldShowSkeletonForInitialLoad || shouldShowSkeletonForAppLoad || shouldShowSkeletonForLinkedMessageLoad;
+    // Actions cached without a loaded page, such as the few that OpenApp returns after a cache clear, are scattered
+    // across the history. Showing them would open the chat at old messages that jump away once OpenReport loads the newest page.
+    const shouldShowSkeletonForUnpagedActions = isReportLoadPending && !hasOnceLoadedReportActions && !hasReportActionPages && !report?.pendingFields?.createReport && !isOffline;
+
+    const shouldShowInitialSkeleton =
+        shouldShowSkeletonForConciergePanel ||
+        shouldShowSkeletonForInitialLoad ||
+        shouldShowSkeletonForAppLoad ||
+        shouldShowSkeletonForLinkedMessageLoad ||
+        shouldShowSkeletonForUnpagedActions;
 
     const hasDerivedValueTimingIssue = reportActionsLength > 0 && isMissingReportActions;
 
