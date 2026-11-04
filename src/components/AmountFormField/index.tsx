@@ -30,6 +30,15 @@ import AmountFormFieldSignFlipButton from './primitives/AmountFormFieldSignFlipB
  * </AmountFormField>
  * ```
  *
+ * Accessories that belong inside the input border are composed as children of the input:
+ *
+ * ```tsx
+ * <AmountFormField.Input label="Amount">
+ *   <AmountFormField.SignFlipButton />
+ *   <AmountFormField.CurrencyPickerButton currency={currency} onPress={openCurrencyPicker} />
+ * </AmountFormField.Input>
+ * ```
+ *
  * The `useAmountFormFieldState` and `useAmountFormFieldActions` hooks are also exported
  * for custom composed primitives.
  */
