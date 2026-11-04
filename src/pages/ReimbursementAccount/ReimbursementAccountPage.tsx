@@ -65,7 +65,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {ComponentRef} from 'react';
-import type {TupleToUnion} from 'type-fest';
 
 import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
@@ -81,7 +80,6 @@ import getStepToOpenFromRouteParams from './USD/utils/getStepToOpenFromRoutePara
 import VerifiedBankAccountFlowEntryPoint from './VerifiedBankAccountFlowEntryPoint';
 
 type ReimbursementAccountPageProps = WithPolicyOnyxProps & PlatformStackScreenProps<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>;
-type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 const OFFLINE_ACCESSIBLE_STEPS = [
     CONST.BANK_ACCOUNT.STEP.COUNTRY,
@@ -111,7 +109,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const subStepParam = route.params?.subStep;
     const backTo = route.params?.backTo;
     const isChangingBankAccount = !!route.params?.isChangingBankAccount;
-    const isComingFromExpensifyCard = (backTo as string)?.includes(CONST.EXPENSIFY_CARD.ROUTE as string);
+    const isComingFromExpensifyCard = backTo?.includes(CONST.EXPENSIFY_CARD.ROUTE);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -151,9 +149,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     }
     const isNonUSDWorkspace = !!policyCurrency && policyCurrency !== CONST.CURRENCY.USD;
     const hasUnsupportedCurrency =
-        isComingFromExpensifyCard && isNonUSDWorkspace
-            ? !isCurrencySupportedForECards(policyCurrency)
-            : policyCurrency && !isCurrencySupportedForGlobalReimbursement(policyCurrency as CurrencyType);
+        isComingFromExpensifyCard && isNonUSDWorkspace ? !isCurrencySupportedForECards(policyCurrency) : policyCurrency && !isCurrencySupportedForGlobalReimbursement(policyCurrency);
 
     const nonUSDCountryDraftValue = reimbursementAccountDraft?.country ?? '';
     let workspaceRoute = '';

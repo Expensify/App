@@ -32,6 +32,7 @@ import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getIOUActionForTransactionID, getReportAction} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isMoneyRequestReportPendingDeletion, isValidReportIDFromPath} from '@libs/ReportUtils';
+import {isTransactionEntry} from '@libs/SearchUIUtils';
 import {cancelSendMessageSpansForReport} from '@libs/telemetry/sendMessageSpans';
 import {doesDeleteNavigateBackUrlIncludeDuplicatesReview, getParentReportActionDeletionStatus, hasLoadedReportActions, isThreadReportDeleted} from '@libs/TransactionNavigationUtils';
 
@@ -47,7 +48,6 @@ import {clearDeleteTransactionNavigateBackUrl, createTransactionThreadReport, op
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type {Transaction, TransactionViolations} from '@src/types/onyx';
 
 import {PortalHost} from '@gorhom/portal';
 import {useIsFocused} from '@react-navigation/native';
@@ -169,23 +169,21 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             snapshotViolations: undefined,
         };
     } else {
-        const snapshotData = snapshot.data as Record<string, unknown>;
-        const transactionKey = Object.keys(snapshotData).find((key) => {
-            if (!key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
-                return false;
-            }
-            const candidate = snapshotData[key];
-            return typeof candidate === 'object' && candidate !== null && 'reportID' in candidate && candidate.reportID === reportIDFromRoute;
-        });
+        const snapshotData = snapshot.data;
+        const transactionKey = Object.keys(snapshotData)
+            .filter(isTransactionEntry)
+            .find((key) => {
+                const candidate = snapshotData[key];
+                return typeof candidate === 'object' && candidate !== null && 'reportID' in candidate && candidate.reportID === reportIDFromRoute;
+            });
         if (!transactionKey) {
             derivedValue = {
                 snapshotTransaction: undefined,
                 snapshotViolations: undefined,
             };
         } else {
-            const transaction = snapshotData[transactionKey] as Transaction;
-            const violationKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`;
-            const violations = snapshotData[violationKey] as TransactionViolations | undefined;
+            const transaction = snapshotData[transactionKey];
+            const violations = snapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
             derivedValue = {
                 snapshotTransaction: transaction,
                 snapshotViolations: violations,

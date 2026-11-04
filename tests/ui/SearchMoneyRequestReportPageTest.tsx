@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 import {render} from '@testing-library/react-native';
 
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -32,6 +31,7 @@ import type * as ReactNavigation from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const REPORT_ID = '9990001';
@@ -87,22 +87,22 @@ jest.mock('@pages/inbox/ReactionListWrapper', () => jest.fn(() => null));
 jest.mock('@pages/inbox/report/ReportActionEditMessageContext', () => ({ReportActionEditMessageContextProvider: jest.fn(() => null)}));
 jest.mock('@gorhom/portal', () => ({PortalHost: jest.fn(() => null)}));
 
-const mockUseNetwork = useNetwork as jest.MockedFunction<typeof useNetwork>;
-const mockUseOnyx = useOnyx as jest.MockedFunction<typeof useOnyx>;
-const mockUseCurrentUserPersonalDetails = useCurrentUserPersonalDetails as jest.MockedFunction<typeof useCurrentUserPersonalDetails>;
-const mockUsePersonalDetails = usePersonalDetails as jest.MockedFunction<typeof usePersonalDetails>;
-const mockUseDismissOnMoneyRequestReportRemoval = useDismissOnMoneyRequestReportRemoval as jest.MockedFunction<typeof useDismissOnMoneyRequestReportRemoval>;
-const mockUseSubmitToDestinationVisible = useSubmitToDestinationVisible as jest.MockedFunction<typeof useSubmitToDestinationVisible>;
-const mockUseReportIsArchived = useReportIsArchived as jest.MockedFunction<typeof useReportIsArchived>;
-const mockUseIsReportReadyToDisplay = useIsReportReadyToDisplay as jest.MockedFunction<typeof useIsReportReadyToDisplay>;
-const mockUseParentReportAction = useParentReportAction as jest.MockedFunction<typeof useParentReportAction>;
-const mockUseDerivedReportNameByReportID = useDerivedReportNameByReportID as jest.MockedFunction<typeof useDerivedReportNameByReportID>;
-const mockUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
-const mockUseClearReportActionDraftsOnReportChange = useClearReportActionDraftsOnReportChange as jest.MockedFunction<typeof useClearReportActionDraftsOnReportChange>;
-const mockUseTransactionsAndViolationsForReport = useTransactionsAndViolationsForReport as jest.MockedFunction<typeof useTransactionsAndViolationsForReport>;
-const mockUseTransactionThreadReportID = useTransactionThreadReportID as jest.MockedFunction<typeof useTransactionThreadReportID>;
-const mockUseSearchResultsContext = useSearchResultsContext as jest.MockedFunction<typeof useSearchResultsContext>;
-const mockCreateTransactionThreadReport = createTransactionThreadReport as jest.MockedFunction<typeof createTransactionThreadReport>;
+const mockUseNetwork = jest.mocked(useNetwork);
+const mockUseOnyx = jest.mocked(useOnyx);
+const mockUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
+const mockUsePersonalDetails = jest.mocked(usePersonalDetails);
+const mockUseDismissOnMoneyRequestReportRemoval = jest.mocked(useDismissOnMoneyRequestReportRemoval);
+const mockUseSubmitToDestinationVisible = jest.mocked(useSubmitToDestinationVisible);
+const mockUseReportIsArchived = jest.mocked(useReportIsArchived);
+const mockUseIsReportReadyToDisplay = jest.mocked(useIsReportReadyToDisplay);
+const mockUseParentReportAction = jest.mocked(useParentReportAction);
+const mockUseDerivedReportNameByReportID = jest.mocked(useDerivedReportNameByReportID);
+const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
+const mockUseClearReportActionDraftsOnReportChange = jest.mocked(useClearReportActionDraftsOnReportChange);
+const mockUseTransactionsAndViolationsForReport = jest.mocked(useTransactionsAndViolationsForReport);
+const mockUseTransactionThreadReportID = jest.mocked(useTransactionThreadReportID);
+const mockUseSearchResultsContext = jest.mocked(useSearchResultsContext);
+const mockCreateTransactionThreadReport = jest.mocked(createTransactionThreadReport);
 
 const mockReport: OnyxTypes.Report = {
     reportID: REPORT_ID,
@@ -124,7 +124,7 @@ const mockReportLoadingState: OnyxTypes.ReportLoadingState = {
 
 /** Builds a minimal reportAction fixture. The self-heal effect only reads reportActionID/actionName/originalMessage. */
 function buildReportAction(overrides: Partial<OnyxTypes.ReportAction> = {}): OnyxTypes.ReportAction {
-    return {
+    return createMock<OnyxTypes.ReportAction>({
         reportActionID: 'defaultActionID',
         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
         created: '2024-01-01 00:00:00',
@@ -136,7 +136,7 @@ function buildReportAction(overrides: Partial<OnyxTypes.ReportAction> = {}): Ony
         pendingAction: null,
         errors: {},
         ...overrides,
-    } as OnyxTypes.ReportAction;
+    });
 }
 
 function buildIOUAction(reportActionID: string, transactionID: string): OnyxTypes.ReportAction {
@@ -158,14 +158,15 @@ function buildTransaction(transactionID: string, reportID: string, overrides: Pa
         created: '2024-01-01',
         merchant: 'Test Merchant',
         ...overrides,
-    } as OnyxTypes.Transaction;
+    } satisfies OnyxTypes.Transaction;
 }
 
 type RenderOptions = {
     allReportTransactions?: Record<string, OnyxTypes.Transaction>;
     reportActions?: OnyxTypes.ReportAction[];
     transactionThreadReportID?: string;
-    snapshotData?: Record<string, unknown>;
+    snapshotData?: OnyxTypes.SearchResults['data'];
+    allReportViolations?: ReturnType<typeof useTransactionsAndViolationsForReport>['violations'];
     report?: OnyxTypes.Report | undefined;
 };
 
@@ -178,28 +179,30 @@ async function seedReportActions(reportID: string, actions: OnyxTypes.ReportActi
 }
 
 // Only the fields the page reads from `route` (and no `navigation`, which it never touches) are relevant to these tests.
-const pageProps = {
+const pageProps = createMock<React.ComponentProps<typeof SearchMoneyRequestReportPage>>({
     route: {
         params: {reportID: REPORT_ID, backTo: undefined},
         name: SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
         key: 'route-key',
     },
-} as unknown as React.ComponentProps<typeof SearchMoneyRequestReportPage>;
+});
 
 function renderPage(options: RenderOptions) {
-    const {allReportTransactions = {}, reportActions = [], transactionThreadReportID = undefined, snapshotData} = options;
+    const {allReportTransactions = {}, reportActions = [], transactionThreadReportID = undefined, snapshotData, allReportViolations = {}} = options;
     // `'report' in options` distinguishes "not passed" (default to mockReport) from an explicit
     // `{report: undefined}` (the report-not-loaded-yet case) — a destructuring default would swallow the latter.
     const report = 'report' in options ? options.report : mockReport;
-    mockUseTransactionsAndViolationsForReport.mockReturnValue({transactions: allReportTransactions, violations: {}, isLoaded: true});
+    mockUseTransactionsAndViolationsForReport.mockReturnValue({transactions: allReportTransactions, violations: allReportViolations, isLoaded: true});
     mockUseTransactionThreadReportID.mockReturnValue({
         transactionThreadReportID,
         effectiveTransactionThreadReportID: transactionThreadReportID,
         reportActions,
     });
-    mockUseSearchResultsContext.mockReturnValue({
-        currentSearchResults: snapshotData ? ({data: snapshotData, search: {}} as never) : undefined,
-    } as ReturnType<typeof useSearchResultsContext>);
+    mockUseSearchResultsContext.mockReturnValue(
+        createMock<ReturnType<typeof useSearchResultsContext>>({
+            currentSearchResults: snapshotData ? createMock<OnyxTypes.SearchResults>({data: snapshotData, search: {}}) : undefined,
+        }),
+    );
     mockUseOnyx.mockImplementation((key: string) => {
         if (key === `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`) {
             return [mockReportLoadingState, {status: 'loaded'}];
@@ -228,7 +231,7 @@ describe('SearchMoneyRequestReportPage (legacy transaction self-heal)', () => {
         jest.clearAllMocks();
 
         mockUseNetwork.mockReturnValue({isOffline: false});
-        mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: 1, login: 'test@example.com', email: 'test@example.com'} as ReturnType<typeof useCurrentUserPersonalDetails>);
+        mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: 1, login: 'test@example.com', email: 'test@example.com'});
         mockUsePersonalDetails.mockReturnValue({});
         mockUseDismissOnMoneyRequestReportRemoval.mockReturnValue(undefined);
         mockUseSubmitToDestinationVisible.mockReturnValue(jest.fn());
@@ -259,54 +262,67 @@ describe('SearchMoneyRequestReportPage (legacy transaction self-heal)', () => {
     });
 
     it('self-heals when the report has a single non-IOU action (e.g. just CREATED)', async () => {
+        // Given real report actions identify the current report's legacy transaction
         const createdAction = buildReportAction({reportActionID: 'a1', actionName: CONST.REPORT.ACTIONS.TYPE.CREATED});
         await seedReportActions(REPORT_ID, [createdAction]);
         const transaction = buildTransaction('txn1', REPORT_ID);
 
+        // When the real page effect evaluates the available report and transaction data
         renderPage({allReportTransactions: {[transaction.transactionID]: transaction}, reportActions: [createdAction]});
         await waitForBatchedUpdatesWithAct();
 
+        // Then thread creation respects the report and transaction identity guards
         expect(mockCreateTransactionThreadReport).toHaveBeenCalledWith(expect.objectContaining({transaction: expect.objectContaining({transactionID: 'txn1'})}));
     });
 
     it('self-heals when the report has multiple non-IOU actions (CREATED + SUBMITTED), none of them IOU', async () => {
+        // Given real report actions identify the current report's legacy transaction
         const createdAction = buildReportAction({reportActionID: 'a1', actionName: CONST.REPORT.ACTIONS.TYPE.CREATED});
         const submittedAction = buildReportAction({reportActionID: 'a2', actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED});
         await seedReportActions(REPORT_ID, [createdAction, submittedAction]);
         const transaction = buildTransaction('txn2', REPORT_ID);
 
+        // When the real page effect evaluates the available report and transaction data
         renderPage({allReportTransactions: {[transaction.transactionID]: transaction}, reportActions: [createdAction, submittedAction]});
         await waitForBatchedUpdatesWithAct();
 
+        // Then thread creation respects the report and transaction identity guards
         expect(mockCreateTransactionThreadReport).toHaveBeenCalledWith(expect.objectContaining({transaction: expect.objectContaining({transactionID: 'txn2'})}));
     });
 
     it('does not self-heal when the reportActions are stale data from a different report', async () => {
+        // Given these actions exist only in another report's Onyx bucket
         const staleAction1 = buildReportAction({reportActionID: 'stale1', actionName: CONST.REPORT.ACTIONS.TYPE.CREATED});
         const staleAction2 = buildReportAction({reportActionID: 'stale2', actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED});
         // These reportActionIDs only exist under the OTHER report's Onyx bucket, not under REPORT_ID's.
         await seedReportActions(OTHER_REPORT_ID, [staleAction1, staleAction2]);
         const transaction = buildTransaction('txn3', REPORT_ID);
 
+        // When the real page effect evaluates the available report and transaction data
         renderPage({allReportTransactions: {[transaction.transactionID]: transaction}, reportActions: [staleAction1, staleAction2]});
         await waitForBatchedUpdatesWithAct();
 
+        // Then thread creation respects the report and transaction identity guards
         expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
     });
 
     it('does not self-heal (and does not double-create) when a real IOU action for the transaction already exists', async () => {
+        // Given real report actions identify the current report's legacy transaction
         const createdAction = buildReportAction({reportActionID: 'a1', actionName: CONST.REPORT.ACTIONS.TYPE.CREATED});
         const iouAction = buildIOUAction('iou1', 'txn4');
         await seedReportActions(REPORT_ID, [createdAction, iouAction]);
         const transaction = buildTransaction('txn4', REPORT_ID);
 
+        // When the real page effect evaluates the available report and transaction data
         renderPage({allReportTransactions: {[transaction.transactionID]: transaction}, reportActions: [createdAction, iouAction]});
         await waitForBatchedUpdatesWithAct();
 
+        // Then thread creation respects the report and transaction identity guards
         expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
     });
 
     it('picks the transaction matching the current report from the search snapshot, even when it is not the first key', async () => {
+        // Given real report actions identify the current report's legacy transaction
         const createdAction = buildReportAction({reportActionID: 'a1', actionName: CONST.REPORT.ACTIONS.TYPE.CREATED});
         await seedReportActions(REPORT_ID, [createdAction]);
 
@@ -315,24 +331,27 @@ describe('SearchMoneyRequestReportPage (legacy transaction self-heal)', () => {
 
         // Insertion order matters here: the wrong-report transaction key comes first in the snapshot blob,
         // so picking "the first transactions_ key" (the pre-fix behavior) would resolve to the wrong transaction.
-        const snapshotData: Record<string, unknown> = {
-            [`${ONYXKEYS.COLLECTION.TRANSACTION}${wrongReportTransaction.transactionID}`]: wrongReportTransaction,
-            [`${ONYXKEYS.COLLECTION.TRANSACTION}${correctTransaction.transactionID}`]: correctTransaction,
-        };
+        const snapshotData: OnyxTypes.SearchResults['data'] = {};
+        snapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${wrongReportTransaction.transactionID}`] = wrongReportTransaction;
+        snapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${correctTransaction.transactionID}`] = correctTransaction;
 
         // No transactions in the main collection, forcing the component to fall back to the snapshot.
+        // When the real page effect evaluates the available report and transaction data
         renderPage({allReportTransactions: {}, reportActions: [createdAction], snapshotData});
         await waitForBatchedUpdatesWithAct();
 
+        // Then thread creation respects the report and transaction identity guards
         expect(mockCreateTransactionThreadReport).toHaveBeenCalledWith(expect.objectContaining({transaction: expect.objectContaining({transactionID: 'correctTxn'})}));
     });
 
     it('does not self-heal while the report has not loaded yet, and retries once it does (does not get stuck)', async () => {
+        // Given real report actions identify the current report's legacy transaction
         const createdAction = buildReportAction({reportActionID: 'a1', actionName: CONST.REPORT.ACTIONS.TYPE.CREATED});
         const submittedAction = buildReportAction({reportActionID: 'a2', actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED});
         await seedReportActions(REPORT_ID, [createdAction, submittedAction]);
         const transaction = buildTransaction('txn5', REPORT_ID);
 
+        // When the page opens before its report has loaded
         const {rerender} = renderPage({
             allReportTransactions: {[transaction.transactionID]: transaction},
             reportActions: [createdAction, submittedAction],
@@ -340,6 +359,7 @@ describe('SearchMoneyRequestReportPage (legacy transaction self-heal)', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
+        // Then thread creation respects the report and transaction identity guards
         expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
 
         // The report finishes loading on a later render. If the effect had already marked itself as
@@ -362,10 +382,12 @@ describe('SearchMoneyRequestReportPage (legacy transaction self-heal)', () => {
         rerender(<SearchMoneyRequestReportPage {...pageProps} />);
         await waitForBatchedUpdatesWithAct();
 
+        // Then thread creation respects the report and transaction identity guards
         expect(mockCreateTransactionThreadReport).toHaveBeenCalledWith(expect.objectContaining({transaction: expect.objectContaining({transactionID: 'txn5'})}));
     });
 
     it('does not self-heal when the loaded report belongs to a different reportID than the route (stale report from a previous navigation)', async () => {
+        // Given real report actions identify the current report's legacy transaction
         const createdAction = buildReportAction({reportActionID: 'a1', actionName: CONST.REPORT.ACTIONS.TYPE.CREATED});
         const submittedAction = buildReportAction({reportActionID: 'a2', actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED});
         await seedReportActions(REPORT_ID, [createdAction, submittedAction]);
@@ -374,6 +396,7 @@ describe('SearchMoneyRequestReportPage (legacy transaction self-heal)', () => {
         // reportActions and transaction have already moved on to REPORT_ID.
         const staleReport: OnyxTypes.Report = {...mockReport, reportID: OTHER_REPORT_ID};
 
+        // When the real page effect evaluates the available report and transaction data
         renderPage({
             allReportTransactions: {[transaction.transactionID]: transaction},
             reportActions: [createdAction, submittedAction],
@@ -381,6 +404,139 @@ describe('SearchMoneyRequestReportPage (legacy transaction self-heal)', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
+        // Then thread creation respects the report and transaction identity guards
         expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
+    });
+
+    it('keeps the first matching snapshot object and selects only its own violations', async () => {
+        // Given unrelated keys and a wrong-report transaction precede two matching transactions
+        const createdAction = buildReportAction({reportActionID: 'ordered-created'});
+        await seedReportActions(REPORT_ID, [createdAction]);
+        const wrong = buildTransaction('wrong', OTHER_REPORT_ID);
+        const first = buildTransaction('first', REPORT_ID);
+        const second = buildTransaction('second', REPORT_ID);
+        const firstViolations = [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}] satisfies OnyxTypes.TransactionViolations;
+        const secondViolations = [{name: CONST.VIOLATIONS.MISSING_TAG, type: CONST.VIOLATION_TYPES.VIOLATION}] satisfies OnyxTypes.TransactionViolations;
+        const snapshotData: OnyxTypes.SearchResults['data'] = {};
+        snapshotData[`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`] = mockReport;
+        snapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${wrong.transactionID}`] = wrong;
+        snapshotData[`${ONYXKEYS.COLLECTION.POLICY}workspace`] = {
+            id: 'workspace',
+            name: 'Snapshot workspace',
+            outputCurrency: CONST.CURRENCY.USD,
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            owner: 'owner@example.com',
+        };
+        snapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${second.transactionID}`] = secondViolations;
+        snapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${first.transactionID}`] = first;
+        snapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${second.transactionID}`] = second;
+        snapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${first.transactionID}`] = firstViolations;
+
+        // When the real page falls back to its typed snapshot
+        renderPage({reportActions: [createdAction], snapshotData});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then insertion order and the selected transactionID determine both exact argument identities
+        expect(mockCreateTransactionThreadReport).toHaveBeenCalledTimes(1);
+        const call = mockCreateTransactionThreadReport.mock.calls.at(0);
+        expect(call).toBeDefined();
+        expect(call?.[0].transaction).toBe(first);
+        expect(call?.[0].transactionViolations).toBe(firstViolations);
+    });
+
+    it('leaves violations absent when only another snapshot transaction has them', async () => {
+        // Given the selected transaction has no violation key of its own
+        const createdAction = buildReportAction({reportActionID: 'missing-violations'});
+        await seedReportActions(REPORT_ID, [createdAction]);
+        const transaction = buildTransaction('withoutViolations', REPORT_ID);
+        const snapshotData: OnyxTypes.SearchResults['data'] = {};
+        snapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
+        snapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}other`] = [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}];
+
+        // When the page selects that transaction
+        renderPage({reportActions: [createdAction], snapshotData});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then an unrelated array cannot substitute for absence
+        expect(mockCreateTransactionThreadReport).toHaveBeenCalledTimes(1);
+        const call = mockCreateTransactionThreadReport.mock.calls.at(0);
+        expect(call).toBeDefined();
+        expect(call?.[0].transaction).toBe(transaction);
+        expect(call?.[0].transactionViolations).toBeUndefined();
+    });
+
+    const unrelatedSnapshotData: OnyxTypes.SearchResults['data'] = {};
+    unrelatedSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}wrong`] = buildTransaction('wrong', OTHER_REPORT_ID);
+    const snapshotScenarios: Array<{name: string; snapshotData: OnyxTypes.SearchResults['data'] | undefined}> = [
+        {name: 'absent snapshot', snapshotData: undefined},
+        {name: 'empty snapshot', snapshotData: {}},
+        {name: 'no matching transaction', snapshotData: unrelatedSnapshotData},
+    ];
+
+    it.each(snapshotScenarios)('does not create a thread for $name', async ({snapshotData}) => {
+        // Given report actions are available but no matching transaction can be selected
+        const createdAction = buildReportAction({reportActionID: 'no-match'});
+        await seedReportActions(REPORT_ID, [createdAction]);
+
+        // When the production fallback inspects absent, empty, or unrelated data
+        renderPage({reportActions: [createdAction], snapshotData});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then no thread is created from missing or wrong-report input
+        expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
+    });
+
+    it('prefers live transaction and violation identities over competing snapshot data', async () => {
+        // Given live data and snapshot data disagree for the current report
+        const createdAction = buildReportAction({reportActionID: 'live-created'});
+        await seedReportActions(REPORT_ID, [createdAction]);
+        const live = buildTransaction('live', REPORT_ID);
+        const snapshot = buildTransaction('snapshot', REPORT_ID);
+        const liveViolations = [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}] satisfies OnyxTypes.TransactionViolations;
+        const snapshotViolations = [{name: CONST.VIOLATIONS.MISSING_TAG, type: CONST.VIOLATION_TYPES.VIOLATION}] satisfies OnyxTypes.TransactionViolations;
+
+        const snapshotData: OnyxTypes.SearchResults['data'] = {};
+        snapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${snapshot.transactionID}`] = snapshot;
+        snapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${snapshot.transactionID}`] = snapshotViolations;
+
+        // When the page sees a live collection member, with violations at its existing ID lookup
+        renderPage({
+            allReportTransactions: {[live.transactionID]: live},
+            allReportViolations: {[live.transactionID]: liveViolations},
+            reportActions: [createdAction],
+            snapshotData,
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then snapshot fallback cannot replace either live object
+        expect(mockCreateTransactionThreadReport).toHaveBeenCalledTimes(1);
+        const call = mockCreateTransactionThreadReport.mock.calls.at(0);
+        expect(call).toBeDefined();
+        expect(call?.[0].transaction).toBe(live);
+        expect(call?.[0].transactionViolations).toBe(liveViolations);
+    });
+
+    it('prefers live violations for a transaction selected from the snapshot', async () => {
+        // Given the current hook lookup supplies violations while the transaction exists only in the snapshot
+        const createdAction = buildReportAction({reportActionID: 'live-violations'});
+        await seedReportActions(REPORT_ID, [createdAction]);
+        const transaction = buildTransaction('snapshotWithLiveViolations', REPORT_ID);
+        const liveViolations = [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}] satisfies OnyxTypes.TransactionViolations;
+        const snapshotViolations = [{name: CONST.VIOLATIONS.MISSING_TAG, type: CONST.VIOLATION_TYPES.VIOLATION}] satisfies OnyxTypes.TransactionViolations;
+        const snapshotData: OnyxTypes.SearchResults['data'] = {};
+        snapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
+        snapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] = snapshotViolations;
+
+        // When the real page finds both competing violation arrays using its unchanged key convention
+        renderPage({reportActions: [createdAction], snapshotData, allReportViolations: {[transaction.transactionID]: liveViolations}});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then live violations win independently of the transaction fallback
+        expect(mockCreateTransactionThreadReport).toHaveBeenCalledTimes(1);
+        const call = mockCreateTransactionThreadReport.mock.calls.at(0);
+        expect(call).toBeDefined();
+        expect(call?.[0].transaction).toBe(transaction);
+        expect(call?.[0].transactionViolations).toBe(liveViolations);
     });
 });
