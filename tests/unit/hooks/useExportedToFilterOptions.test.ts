@@ -63,6 +63,17 @@ describe('useExportedToFilterOptions', () => {
         expect(result.current.connectedIntegrationNames).toContain(CONST.POLICY.CONNECTIONS.NAME.QBO);
     });
 
+    it('leaves Digits out of the options even when a policy is connected to it', async () => {
+        // Given a policy connected to Digits, whose exports the exported-status cell can't show yet
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicyWithConnection('1', CONST.POLICY.CONNECTIONS.NAME.DIGITS));
+
+        // When the hook builds the options the exported-to autocomplete suggests
+        const {result} = renderHook(() => useExportedToFilterOptions());
+
+        // Then Digits isn't offered, so typing "exported-to:" can't reach a value the filter picker also hides
+        expect(result.current.exportedToFilterOptions).not.toContain(CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[CONST.POLICY.CONNECTIONS.NAME.DIGITS]);
+    });
+
     it('includes integration custom template name from options when getExportTemplates returns integration template', () => {
         const customName = 'Export Layout';
         mockGetExportTemplates.mockReturnValue({
