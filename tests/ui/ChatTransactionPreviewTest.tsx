@@ -121,7 +121,7 @@ describe('ChatTransactionPreview', () => {
         mockActiveRoute.mockReturnValue(`search?${SEARCH_CHAT_QUERY}`);
         const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
 
-        // When the split preview is pressed
+        // When the preview card is pressed, which handles the press before the search row can
         render(
             <ComposeProviders components={[OnyxListItemProvider]}>
                 <SearchScopeProvider>
@@ -148,7 +148,7 @@ describe('ChatTransactionPreview', () => {
         mockActiveRoute.mockReturnValue('r/chat1');
         const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
 
-        // When the split preview is pressed outside Search
+        // When the preview is pressed outside the Search list, where the chat route is already a valid base
         render(
             <ComposeProviders components={[OnyxListItemProvider]}>
                 <ChatTransactionPreview

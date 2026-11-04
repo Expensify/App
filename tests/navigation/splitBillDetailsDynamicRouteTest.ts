@@ -33,7 +33,7 @@ describe('Split bill details dynamic route', () => {
         // Given a split preview pressed in a Type: Chat search row, where the Search root route has no reportID of its own
         const route = createDynamicRoute(DYNAMIC_ROUTES.SPLIT_BILL_DETAILS.getRoute(REPORT_ACTION_ID, CHAT_REPORT_ID), SEARCH_CHAT_ROUTE);
 
-        // When the URL is parsed into navigation state
+        // When the app resolves it, which is where the Search root used to fail the entry screen check
         const focusedRoute = getFocusedRoute(getStateFromPath(route));
 
         // Then split details is focused with the chat and action it needs, instead of the full screen not-found page
@@ -45,7 +45,7 @@ describe('Split bill details dynamic route', () => {
         // Given split details opened from the Search root, which is also the URL a refresh restores
         const route = createDynamicRoute(DYNAMIC_ROUTES.SPLIT_BILL_DETAILS.getRoute(REPORT_ACTION_ID, CHAT_REPORT_ID), SEARCH_CHAT_ROUTE);
 
-        // When computing the back path from the current URL
+        // When Back is resolved from that URL, as it is after a refresh with no history to pop
         const match = findAllMatchingDynamicSuffixes(route).find((m) => m.pattern === SUFFIX);
         expect(match).toBeDefined();
         if (!match) {
@@ -62,7 +62,7 @@ describe('Split bill details dynamic route', () => {
         const reportRoute = `r/${CHAT_REPORT_ID}`;
         const route = createDynamicRoute(DYNAMIC_ROUTES.SPLIT_BILL_DETAILS.getRoute(REPORT_ACTION_ID), reportRoute);
 
-        // When the URL is parsed into navigation state
+        // When the app resolves it, to guard the existing chat entry against the new Search root entry
         const focusedRoute = getFocusedRoute(getStateFromPath(route));
 
         // Then no reportID query is added and split details still gets the chat reportID from the report route
