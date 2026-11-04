@@ -69,6 +69,21 @@ function isDate(arg: unknown): arg is Date {
 }
 
 /**
+ * Copies a date's wall-clock fields in the device's timezone onto the same fields in UTC.
+ *
+ * An `Intl.DateTimeFormat` created without a `timeZone` keeps the device's timezone from when it was created, so a
+ * cached one would keep showing the old day after the device moves to another timezone. Cached formatters are created
+ * with `timeZone: 'UTC'` instead and given the result of this function, which reads the device's timezone on every call.
+ */
+function toUTCWallClockDate(date: Date): Date {
+    const utcDate = new Date(0);
+    // `setUTCFullYear` rather than `Date.UTC`, which treats the years 0 to 99 as 1900 to 1999
+    utcDate.setUTCFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+    utcDate.setUTCHours(date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds());
+    return utcDate;
+}
+
+/**
  * Get the day of the week that the week starts on
  */
 function getWeekStartsOn(): WeekDay {
@@ -1029,9 +1044,10 @@ function doesDateBelongToAPastYear(date: string): boolean {
 
 /**
  * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language and
- * timezone.
+ * timezone. A formatter with no timezone would keep the device's timezone from when it was created, so local dates are
+ * formatted in UTC after `toUTCWallClockDate` instead.
  */
-const memoizedCreateMonthDayFormatter = memoize((localeCode: string, timeZone: string | undefined) => new Intl.DateTimeFormat(localeCode, {month: 'short', day: 'numeric', timeZone}));
+const memoizedCreateMonthDayFormatter = memoize((localeCode: string, timeZone: string) => new Intl.DateTimeFormat(localeCode, {month: 'short', day: 'numeric', timeZone}));
 
 /**
  * Formats a date as an abbreviated month and day, e.g. `Jun 20`.
@@ -1046,7 +1062,11 @@ function formatToMonthDay(date: Date, dateFnsLocale: DateFnsLocale | undefined, 
         return '';
     }
     // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
-    return memoizedCreateMonthDayFormatter(dateFnsLocale?.code ?? 'en-US', timeZone).format(date);
+    const localeCode = dateFnsLocale?.code ?? 'en-US';
+    if (timeZone) {
+        return memoizedCreateMonthDayFormatter(localeCode, timeZone).format(date);
+    }
+    return memoizedCreateMonthDayFormatter(localeCode, 'UTC').format(toUTCWallClockDate(date));
 }
 
 /**
