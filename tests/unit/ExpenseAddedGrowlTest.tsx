@@ -166,7 +166,7 @@ describe('ExpenseAddedGrowl', () => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS,
                 callback: (value) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(value);
                 },
             });

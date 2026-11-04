@@ -241,7 +241,7 @@ describe('actions/IOU', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
                                 callback: (allReports) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
 
                                     // A chat report, a transaction thread, and an iou report should be created
                                     const chatReports = Object.values(allReports ?? {}).filter((report) => report?.type === CONST.REPORT.TYPE.CHAT);
@@ -274,13 +274,13 @@ describe('actions/IOU', () => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`,
                                 callback: (iouReportMetadata) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
                                     expect(iouReportMetadata?.isOptimisticReport).toBe(true);
 
                                     const loadingStateConnection = Onyx.connect({
                                         key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${iouReportID}`,
                                         callback: (iouReportLoadingState) => {
-                                            Onyx.disconnect(loadingStateConnection);
+                                            loadingStateConnection.unsubscribe();
                                             expect(iouReportLoadingState?.hasOnceLoadedReportActions).toBe(true);
                                             resolve();
                                         },
@@ -295,7 +295,7 @@ describe('actions/IOU', () => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
                                 callback: (reportActionsForIOUReport) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
 
                                     // The IOU report should have a CREATED action and IOU action
                                     expect(Object.values(reportActionsForIOUReport ?? {}).length).toBe(2);
@@ -341,7 +341,7 @@ describe('actions/IOU', () => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread?.reportID}`,
                                 callback: (reportActionsForTransactionThread) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
 
                                     // The transaction thread should have a CREATED action
                                     expect(Object.values(reportActionsForTransactionThread ?? {}).length).toBe(1);
@@ -363,7 +363,7 @@ describe('actions/IOU', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.TRANSACTION,
                                 callback: (allTransactions) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
 
                                     // There should be one transaction
                                     expect(Object.values(allTransactions ?? {}).length).toBe(1);
@@ -398,7 +398,7 @@ describe('actions/IOU', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.SNAPSHOT,
                                 callback: (snapshotData) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
 
                                     // Snapshot data shouldn't be updated optimistically for requestMoney when the current search query type is invoice.
                                     // Onyx resolves a registered collection with no members to the frozen `{}` once init has run.
@@ -415,7 +415,7 @@ describe('actions/IOU', () => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
                                 callback: (reportActionsForIOUReport) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
                                     expect(Object.values(reportActionsForIOUReport ?? {}).length).toBe(2);
                                     for (const reportAction of Object.values(reportActionsForIOUReport ?? {})) {
                                         expect(reportAction?.pendingAction).toBeFalsy();
@@ -431,7 +431,7 @@ describe('actions/IOU', () => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                                 callback: (transaction) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
                                     expect(transaction?.pendingAction).toBeFalsy();
                                     resolve();
                                 },
@@ -507,7 +507,7 @@ describe('actions/IOU', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
                                 callback: (allReports) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
 
                                     // The same chat report should be reused, a transaction thread and an IOU report should be created
                                     expect(Object.values(allReports ?? {}).length).toBe(3);
@@ -535,7 +535,7 @@ describe('actions/IOU', () => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
                                 callback: (allIOUReportActions) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
 
                                     iouCreatedAction = Object.values(allIOUReportActions ?? {}).find((reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
                                     iouAction = Object.values(allIOUReportActions ?? {}).find((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
@@ -572,7 +572,7 @@ describe('actions/IOU', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.TRANSACTION,
                                 callback: (allTransactions) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
 
                                     // There should be one transaction
                                     expect(Object.values(allTransactions ?? {}).length).toBe(1);
@@ -610,7 +610,7 @@ describe('actions/IOU', () => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
                                 callback: (reportActionsForIOUReport) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
                                     expect(Object.values(reportActionsForIOUReport ?? {}).length).toBe(2);
                                     for (const reportAction of Object.values(reportActionsForIOUReport ?? {})) {
                                         expect(reportAction?.pendingAction).toBeFalsy();
@@ -626,7 +626,7 @@ describe('actions/IOU', () => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                                 callback: (transaction) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
                                     expect(transaction?.pendingAction).toBeFalsy();
                                     resolve();
                                 },
@@ -743,7 +743,7 @@ describe('actions/IOU', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
                                 callback: (allReports) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
 
                                     // No new reports should be created
                                     expect(Object.values(allReports ?? {}).length).toBe(3);
@@ -767,7 +767,7 @@ describe('actions/IOU', () => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
                                 callback: (reportActionsForIOUReport) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
 
                                     expect(Object.values(reportActionsForIOUReport ?? {}).length).toBe(3);
                                     newIOUAction = Object.values(reportActionsForIOUReport ?? {}).find(
@@ -803,7 +803,7 @@ describe('actions/IOU', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.TRANSACTION,
                                 callback: (allTransactions) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
 
                                     // There should be two transactions
                                     expect(Object.values(allTransactions ?? {}).length).toBe(2);
@@ -832,7 +832,7 @@ describe('actions/IOU', () => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
                                 callback: (reportActionsForIOUReport) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
                                     expect(Object.values(reportActionsForIOUReport ?? {}).length).toBe(3);
                                     for (const reportAction of Object.values(reportActionsForIOUReport ?? {})) {
                                         expect(reportAction?.pendingAction).toBeFalsy();
@@ -848,7 +848,7 @@ describe('actions/IOU', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.TRANSACTION,
                                 callback: (allTransactions) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
                                     for (const transaction of Object.values(allTransactions ?? {})) {
                                         expect(transaction?.pendingAction).toBeFalsy();
                                     }
@@ -912,7 +912,7 @@ describe('actions/IOU', () => {
                                 const connection = Onyx.connect({
                                     key: ONYXKEYS.COLLECTION.REPORT,
                                     callback: (allReports) => {
-                                        Onyx.disconnect(connection);
+                                        connection.unsubscribe();
 
                                         // A chat report, transaction thread and an iou report should be created
                                         const chatReports = Object.values(allReports ?? {}).filter((report) => report?.type === CONST.REPORT.TYPE.CHAT);
@@ -943,7 +943,7 @@ describe('actions/IOU', () => {
                                 const connection = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
                                     callback: (reportActionsForIOUReport) => {
-                                        Onyx.disconnect(connection);
+                                        connection.unsubscribe();
 
                                         // The chat report should have a CREATED action and IOU action
                                         expect(Object.values(reportActionsForIOUReport ?? {}).length).toBe(2);
@@ -989,7 +989,7 @@ describe('actions/IOU', () => {
                                 const connection = Onyx.connect({
                                     key: ONYXKEYS.COLLECTION.TRANSACTION,
                                     callback: (allTransactions) => {
-                                        Onyx.disconnect(connection);
+                                        connection.unsubscribe();
 
                                         // There should be one transaction
                                         expect(Object.values(allTransactions ?? {}).length).toBe(1);
@@ -1020,7 +1020,7 @@ describe('actions/IOU', () => {
                                 const connection = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
                                     callback: (reportActionsForIOUReport) => {
-                                        Onyx.disconnect(connection);
+                                        connection.unsubscribe();
                                         expect(Object.values(reportActionsForIOUReport ?? {}).length).toBe(2);
                                         iouAction = Object.values(reportActionsForIOUReport ?? {}).find((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
                                             isMoneyRequestAction(reportAction),
@@ -1037,7 +1037,7 @@ describe('actions/IOU', () => {
                                 const connection = Onyx.connect({
                                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                                     callback: (reportActionsForTransactionThread) => {
-                                        Onyx.disconnect(connection);
+                                        connection.unsubscribe();
                                         expect(Object.values(reportActionsForTransactionThread ?? {}).length).toBe(3);
                                         transactionThreadAction = Object.values(
                                             reportActionsForTransactionThread?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport?.reportID}`] ?? {},
@@ -1054,7 +1054,7 @@ describe('actions/IOU', () => {
                                 const connection = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                                     callback: (transaction) => {
-                                        Onyx.disconnect(connection);
+                                        connection.unsubscribe();
                                         expect(transaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                                         expect(transaction?.errors).toBeTruthy();
                                         expect(Object.values(transaction?.errors ?? {}).at(0)).toEqual(translateLocal('iou.error.genericCreateFailureMessage'));
@@ -1082,7 +1082,7 @@ describe('actions/IOU', () => {
                                 const connection = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
                                     callback: (reportActionsForReport) => {
-                                        Onyx.disconnect(connection);
+                                        connection.unsubscribe();
                                         iouAction = Object.values(reportActionsForReport ?? {}).find((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
                                             isMoneyRequestAction(reportAction),
                                         );
@@ -1100,7 +1100,7 @@ describe('actions/IOU', () => {
                                 const connection = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
                                     callback: (reportActionsForReport) => {
-                                        Onyx.disconnect(connection);
+                                        connection.unsubscribe();
                                         iouAction = Object.values(reportActionsForReport ?? {}).find((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
                                             isMoneyRequestAction(reportAction),
                                         );
@@ -1118,7 +1118,7 @@ describe('actions/IOU', () => {
                                 const connection = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport?.reportID}`,
                                     callback: (reportActionsForReport) => {
-                                        Onyx.disconnect(connection);
+                                        connection.unsubscribe();
                                         expect(reportActionsForReport).toMatchObject({});
                                         resolve();
                                     },
@@ -1133,7 +1133,7 @@ describe('actions/IOU', () => {
                                 const connection = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                                     callback: (transaction) => {
-                                        Onyx.disconnect(connection);
+                                        connection.unsubscribe();
                                         expect(transaction).toBeFalsy();
                                         resolve();
                                     },
@@ -1162,7 +1162,7 @@ describe('actions/IOU', () => {
                                 const connection = Onyx.connect({
                                     key: ONYXKEYS.COLLECTION.REPORT,
                                     callback: (allReports) => {
-                                        Onyx.disconnect(connection);
+                                        connection.unsubscribe();
                                         for (const report of Object.values(allReports ?? {})) {
                                             expect(report).toBeFalsy();
                                         }
@@ -1179,7 +1179,7 @@ describe('actions/IOU', () => {
                                 const connection = Onyx.connect({
                                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                                     callback: (allReportActions) => {
-                                        Onyx.disconnect(connection);
+                                        connection.unsubscribe();
                                         for (const reportAction of Object.values(allReportActions ?? {})) {
                                             expect(reportAction).toBeFalsy();
                                         }
@@ -1196,7 +1196,7 @@ describe('actions/IOU', () => {
                                 const connection = Onyx.connect({
                                     key: ONYXKEYS.COLLECTION.TRANSACTION,
                                     callback: (allTransactions) => {
-                                        Onyx.disconnect(connection);
+                                        connection.unsubscribe();
                                         for (const transaction of Object.values(allTransactions ?? {})) {
                                             expect(transaction).toBeFalsy();
                                         }
@@ -1575,7 +1575,7 @@ describe('actions/IOU', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(report?.nonReimbursableTotal ?? 0);
                     },
                 });
@@ -1625,7 +1625,7 @@ describe('actions/IOU', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(report?.nonReimbursableTotal ?? 0);
                     },
                 });
@@ -1766,7 +1766,7 @@ describe('actions/IOU', () => {
                     key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`,
                     callback: (recentlyUsedTags) => {
                         resolve(recentlyUsedTags ?? {});
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                     },
                 });
             });
@@ -2035,7 +2035,7 @@ describe('actions/IOU', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
                     callback: (reports) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(reports);
                     },
                 });
@@ -2057,7 +2057,7 @@ describe('actions/IOU', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                     callback: (actions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(actions);
                     },
                 });
@@ -2076,7 +2076,7 @@ describe('actions/IOU', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
                     callback: (transactions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(transactions);
                     },
                 });
@@ -2136,7 +2136,7 @@ describe('actions/IOU', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
                     callback: (reports) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.reportID}`]);
                     },
                 });
@@ -2214,7 +2214,7 @@ describe('actions/IOU', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
                                 callback: (allReports) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
 
                                     // A NEW chat report should be created for RORY and CARLOS
                                     // The existing chat report between RORY and JULES should still exist
@@ -2306,7 +2306,7 @@ describe('actions/IOU', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
                                 callback: (allReports) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
 
                                     // The existing chat report should be reused
                                     const chatReports = Object.values(allReports ?? {}).filter((report) => report?.type === CONST.REPORT.TYPE.CHAT);
@@ -2389,7 +2389,7 @@ describe('actions/IOU', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
                                 callback: (allReports) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
 
                                     // The policy expense chat report should be reused (participant validation skipped)
                                     const policyExpenseChats = Object.values(allReports ?? {}).filter((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
@@ -2467,7 +2467,7 @@ describe('actions/IOU', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
                                 callback: (allReports) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
 
                                     // Even though participants don't match (JULES vs CARLOS),
                                     // since the chatReport is a policy expense chat, it should be reused
@@ -2546,7 +2546,7 @@ describe('actions/IOU', () => {
                             const connection = Onyx.connect({
                                 key: ONYXKEYS.COLLECTION.REPORT,
                                 callback: (allReports) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
 
                                     // The self-DM report should be reused (participant validation should be skipped)
                                     // No new 1:1 DM chat with accountID 0 should be created
