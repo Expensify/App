@@ -42,6 +42,7 @@ import {
     getAssignedCompanyCardMessage,
     getAutoCategorizeNewExpensesMessage,
     getAutoPayApprovedReportsEnabledMessage,
+    getAutoPayFeeDisclosureMessage,
     getAutoReimbursementMessage,
     getCardConnectionBrokenMessage,
     getCardIssuedMessage,
@@ -119,6 +120,7 @@ import {
     getUpdatedBudgetMessage,
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
+    getUpdatedCardFeedReimbursableMessage,
     getUpdatedDefaultTitleMessage,
     getUpdatedEmployeeOfficeLocationMessage,
     getUpdatedIndividualBudgetNotificationMessage,
@@ -1466,6 +1468,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getUpdatedCardFeedLiabilityMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD)) {
                     setClipboardMessage(getUpdatedCardFeedStatementPeriodMessage(translate, reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_REIMBURSABLE)) {
+                    setClipboardMessage(getUpdatedCardFeedReimbursableMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
                     setClipboardMessage(getTravelUpdateMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE)) {
@@ -1598,6 +1602,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const iouAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
                     const missingFields = getOriginalMessage(reportAction)?.missingFields;
                     setClipboardMessage(translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction, currentUserAccountID), missingFields}));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.AUTO_PAY_FEE_DISCLOSURE)) {
+                    setClipboardMessage(getAutoPayFeeDisclosureMessage(translate, reportAction, getPersonalDetailsByID(getOriginalMessage(reportAction)?.accountID, personalDetails)));
                 } else if (content) {
                     setClipboardMessageWithCleanedMentions(content, reportIDToName);
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {

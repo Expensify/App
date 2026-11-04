@@ -116,10 +116,6 @@ type WorkspaceSettingsParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
-    [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_DEFAULT_TAX_RATE]: {
-        policyID: string;
-        categoryName: string;
-    };
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_FLAG_AMOUNTS_OVER]: {
         policyID: string;
         categoryName: string;
@@ -190,6 +186,7 @@ type WorkspaceSettingsParamList = {
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_TAX_RULE_EDIT]: {
         policyID: string;
         categoryName: string;
+        ruleID: string;
     };
     [SCREENS.WORKSPACE.UPGRADE]: {
         policyID?: string;
@@ -885,6 +882,9 @@ type WorkspaceSettingsParamList = {
         policyID: string;
         expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT_EXPENSES_CREDIT_CARD_ACCOUNT_SELECT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT]: {
         policyID: string;
         expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>;
@@ -1082,7 +1082,13 @@ type WorkspaceSettingsParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_PREFERRED_EXPORTER]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.RILLET_VENDOR_BILL_DATE]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.RILLET_REIMBURSABLE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.RILLET_REIMBURSEMENT_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.RILLET_GL_IMPACT_DATE]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_COMPANY_CARD_ACCOUNT]: {
@@ -1111,7 +1117,7 @@ type WorkspaceSettingsParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_EXPORT_METHOD]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.RILLET_BILL_PAYMENT_ACCOUNT]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.RILLET_ACH_PAYMENT_ACCOUNT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_FX_EXPENSE_ACCOUNT]: {
@@ -1505,6 +1511,7 @@ type WorkspaceSettingsParamList = {
     [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_REIMBURSABLE]: {policyID: string};
     [SCREENS.WORKSPACE.DYNAMIC_EXPENSIFY_CARD_DETAILS]: {
         policyID: string;
         cardID: string;
@@ -1600,9 +1607,6 @@ type WorkspaceSettingsParamList = {
         policyID: string;
         categoryName?: string;
     };
-    [SCREENS.WORKSPACE.RULES_EXPENSE_DEFAULT_TYPE]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.RULES_MERCHANT_NEW]: {
         policyID: string;
         categoryName?: string;
@@ -1651,6 +1655,19 @@ type WorkspaceSettingsParamList = {
         ruleID?: undefined;
     };
     [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_BILLABLE]: {
+        policyID: string;
+        ruleID?: undefined;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_AMOUNT]: {
+        policyID: string;
+        ruleID?: undefined;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_CATEGORY_TO_MATCH]: {
+        policyID: string;
+        ruleID?: undefined;
+        categoryName?: undefined;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_TAG_TO_MATCH]: {
         policyID: string;
         ruleID?: undefined;
     };
@@ -1807,6 +1824,10 @@ type WorkspaceSettingsParamList = {
         policyID: string;
         ruleID: string;
     };
+    [SCREENS.WORKSPACE.RULES_MERCHANT_AMOUNT]: {
+        policyID: string;
+        ruleID: string;
+    };
     [SCREENS.WORKSPACE.RULES_MERCHANT_EDIT]: {
         policyID: string;
         ruleID: string;
@@ -1820,9 +1841,9 @@ type WorkspaceSettingsParamList = {
         ruleID: string;
         categoryName?: string;
     };
-    [SCREENS.WORKSPACE.RULES_CATEGORY_TAX_EDIT]: {
+    [SCREENS.WORKSPACE.RULES_TAG_TO_MATCH]: {
         policyID: string;
-        categoryName: string;
+        ruleID: string;
     };
     [SCREENS.WORKSPACE.PER_DIEM_IMPORT]: {
         policyID: string;

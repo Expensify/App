@@ -22,7 +22,7 @@ Go to **Account > Subscription**.
 
 If a billing issue exists, the Workspace owner will see:
 
-- A red dot on **Account** in the navigation tabs (on the left on web, on the bottom on mobile).
+- A red dot on **Account** in the navigation tabs on web, or on your profile icon on mobile.
 - A red dot next to **Subscription** under **Account**.
 - A message at the top of **Account > Subscription** explaining why payment couldn't be processed and what you need to do next.
 
@@ -32,9 +32,10 @@ The notification remains visible until the billing issue is resolved.
 
 ## How to fix a billing issue
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile) go to **Account > Subscription**.
-2. Review the message at the top of the page.
-3. Complete the action shown.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Subscription**.
+3. Review the message at the top of the page.
+4. Complete the action shown.
 
 | If the message says... | Do this |
 | --- | --- |
