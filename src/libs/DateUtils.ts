@@ -69,6 +69,21 @@ function isDate(arg: unknown): arg is Date {
 }
 
 /**
+ * Copies a date's wall-clock fields in the device's timezone onto the same fields in UTC.
+ *
+ * An `Intl.DateTimeFormat` created without a `timeZone` keeps the device's timezone from when it was created, so a
+ * cached one would keep showing the old day after the device moves to another timezone. Cached formatters are created
+ * with `timeZone: 'UTC'` instead and given the result of this function, which reads the device's timezone on every call.
+ */
+function toUTCWallClockDate(date: Date): Date {
+    const utcDate = new Date(0);
+    // `setUTCFullYear` rather than `Date.UTC`, which treats the years 0 to 99 as 1900 to 1999
+    utcDate.setUTCFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+    utcDate.setUTCHours(date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds());
+    return utcDate;
+}
+
+/**
  * Get the day of the week that the week starts on
  */
 function getWeekStartsOn(): WeekDay {
@@ -1222,9 +1237,11 @@ function getShortFormattedMonthForSearch(year: number, month: number, dateFnsLoc
 /**
  * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language and
  * whether the year is shown.
+ * They format in UTC, so pass dates through `toUTCWallClockDate` to show them in the device's current timezone.
  */
 const memoizedCreateSearchDateRangeFormatter = memoize(
-    (localeCode: string, shouldIncludeYear: boolean) => new Intl.DateTimeFormat(localeCode, {year: shouldIncludeYear ? 'numeric' : undefined, month: 'short', day: 'numeric'}),
+    (localeCode: string, shouldIncludeYear: boolean) =>
+        new Intl.DateTimeFormat(localeCode, {year: shouldIncludeYear ? 'numeric' : undefined, month: 'short', day: 'numeric', timeZone: 'UTC'}),
 );
 
 /**
@@ -1237,9 +1254,9 @@ function formatSearchDateRange(start: Date, end: Date, dateFnsLocale: DateFnsLoc
     // Hermes, which runs the app on iOS and Android, may not implement `formatRange` even though the type says it always
     // exists, so join two localized dates there.
     if (!formatter.formatRange) {
-        return `${formatter.format(start)} – ${formatter.format(end)}`;
+        return `${formatter.format(toUTCWallClockDate(start))} – ${formatter.format(toUTCWallClockDate(end))}`;
     }
-    return formatter.formatRange(start, end);
+    return formatter.formatRange(toUTCWallClockDate(start), toUTCWallClockDate(end));
 }
 
 /**
