@@ -40,7 +40,7 @@ import ROUTES from '@src/ROUTES';
 import type {Rate} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import {getAllValidConnectedIntegration, getWorkflowRules, getWorkspaceRules} from './utils';
@@ -341,13 +341,20 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         );
     }, [duplicateWorkspace?.fileURI, policyID]);
 
+    // Rows can show up or go away while the form is open, as the source's data loads or when another admin changes the source.
+    // Select the rows that show up, like every row when the form opens, and drop the ones that went away, keeping the admin's choices for the rest.
+    const itemValues = items.map((item) => item.value);
+    const itemValuesKey = itemValues.join();
+    const previousItemValuesRef = useRef<string[]>([]);
     useEffect(() => {
-        if (!items.length) {
-            return;
-        }
-        setSelectedItems(items.map((i) => i.value));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [items.length]);
+        const previousItemValues = previousItemValuesRef.current;
+        previousItemValuesRef.current = itemValues;
+        setSelectedItems((currentSelectedItems) => [
+            ...currentSelectedItems.filter((value) => itemValues.includes(value)),
+            ...itemValues.filter((value) => !previousItemValues.includes(value) && !currentSelectedItems.includes(value)),
+        ]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- itemValuesKey stands for itemValues, so this runs only when a row shows up or goes away
+    }, [itemValuesKey]);
 
     useEffect(() => {
         fetchWorkspaceRelatedData();
