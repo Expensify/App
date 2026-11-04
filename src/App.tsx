@@ -34,7 +34,6 @@ import {ModalProvider} from './components/Modal/Global/ModalContext';
 import NavigationBar from './components/NavigationBar';
 import OnyxListItemProvider from './components/OnyxListItemProvider';
 import PopoverContextProvider from './components/PopoverProvider';
-import SafeArea from './components/SafeArea';
 import ScrollOffsetContextProvider from './components/ScrollOffsetContextProvider';
 import SidePanelContextProvider from './components/SidePanel/SidePanelContextProvider';
 import SVGDefinitionsProvider from './components/SVGDefinitionsProvider';
@@ -114,7 +113,6 @@ function App() {
                                         SVGDefinitionsProvider,
                                         HTMLEngineProvider,
                                         PortalProvider,
-                                        SafeArea,
                                         PopoverContextProvider,
                                         CurrentReportIDContextProvider,
                                         ConciergeChatHistoryProvider,

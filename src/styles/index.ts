@@ -4146,11 +4146,6 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.appBG,
         },
 
-        iPhoneXSafeArea: {
-            backgroundColor: theme.appBG,
-            flex: 1,
-        },
-
         transferBalancePayment: {
             borderWidth: 1,
             borderRadius: variables.componentBorderRadiusNormal,
