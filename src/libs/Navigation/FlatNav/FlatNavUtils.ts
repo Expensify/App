@@ -2,10 +2,12 @@
  * Pure builders for the flat nav sections: which Spend searches sit under which section, which of them the user can
  * see, their badges, and which section and item a search key belongs to. Hooks in this folder feed it Onyx data.
  */
+import type {TodoCounts} from '@hooks/useTodoCounts';
+
 import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import type {SearchTypeMenuItem} from '@libs/SearchSuggestionUtils';
-import {formatBadgeText, getItemBadgeText, TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
+import {formatBadgeText, getItemBadgeText, isTodoSearchKey} from '@libs/SearchUIUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -74,8 +76,6 @@ const IN_SECTION_TRANSLATION_PATH_OVERRIDES: Partial<Record<SearchKey, Translati
     [CONST.SEARCH.SEARCH_KEYS.REPORTS]: 'search.tabs.myReports',
 };
 
-type FlatNavTodoCounts = Partial<Record<SearchKey, number>> & Record<string, number>;
-
 type BuildFlatNavSectionsParams = {
     /** The Spend sections after travel and insights are omitted, so every visibility rule of the Spend menu applies */
     typeMenuSections: SearchTypeMenuSection[];
@@ -83,7 +83,7 @@ type BuildFlatNavSectionsParams = {
     /** Already sorted */
     savedSearchItems: FlatNavSavedSearchItem[];
 
-    todoCounts: FlatNavTodoCounts;
+    todoCounts: TodoCounts;
 };
 
 /**
@@ -99,16 +99,16 @@ function getFlatNavSectionIDForSearchKey(searchKey: SearchKey | undefined): Flat
     return FLAT_NAV_SECTION_DEFINITIONS.find((definition) => definition.searchKeys.some((key) => key === searchKey))?.id;
 }
 
-function getFlatNavSectionBadgeText(items: FlatNavItem[], todoCounts: FlatNavTodoCounts): string | undefined {
-    const todoItems = items.filter((item) => TODO_SEARCH_KEYS.has(item.key));
-    if (todoItems.length === 0) {
+function getFlatNavSectionBadgeText(items: FlatNavItem[], todoCounts: TodoCounts): string | undefined {
+    const todoSearchKeys = items.map((item) => item.key).filter(isTodoSearchKey);
+    if (todoSearchKeys.length === 0) {
         return undefined;
     }
-    const total = todoItems.reduce((sum, item) => sum + (todoCounts[item.key] ?? 0), 0);
+    const total = todoSearchKeys.reduce((sum, searchKey) => sum + todoCounts[searchKey], 0);
     return formatBadgeText(total) || undefined;
 }
 
-function buildCannedSearchItem(searchKey: FlatNavCannedSearchKey, menuItem: SearchTypeMenuItem, sectionID: FlatNavSectionID, todoCounts: FlatNavTodoCounts): FlatNavCannedSearchItem {
+function buildCannedSearchItem(searchKey: FlatNavCannedSearchKey, menuItem: SearchTypeMenuItem, sectionID: FlatNavSectionID, todoCounts: TodoCounts): FlatNavCannedSearchItem {
     return {
         type: FLAT_NAV.ITEM_TYPE.CANNED_SEARCH,
         key: searchKey,

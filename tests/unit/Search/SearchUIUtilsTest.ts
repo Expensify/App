@@ -10032,6 +10032,23 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    describe('isTodoSearchKey', () => {
+        it('should accept only the searches that have a to-do count', () => {
+            // Given the to-do searches and searches that have no to-do count
+            const todoSearchKeys = [CONST.SEARCH.SEARCH_KEYS.SUBMIT, CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.PAY, CONST.SEARCH.SEARCH_KEYS.EXPORT];
+            const otherSearchKeys = [CONST.SEARCH.SEARCH_KEYS.EXPENSES, CONST.SEARCH.SEARCH_KEYS.REPORTS, CONST.SEARCH.SEARCH_KEYS.STATEMENTS];
+
+            // When we check each of them
+            // Then only the to-do searches are accepted, since only they can index the live to-do counts
+            for (const searchKey of todoSearchKeys) {
+                expect(SearchUIUtils.isTodoSearchKey(searchKey)).toBe(true);
+            }
+            for (const searchKey of otherSearchKeys) {
+                expect(SearchUIUtils.isTodoSearchKey(searchKey)).toBe(false);
+            }
+        });
+    });
+
     describe('Test createTypeMenuItems', () => {
         it('should return the default menu items', () => {
             const menuItems = SearchUIUtils.createTypeMenuSections({

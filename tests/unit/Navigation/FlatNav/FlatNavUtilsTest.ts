@@ -1,3 +1,5 @@
+import type {TodoCounts} from '@hooks/useTodoCounts';
+
 import FLAT_NAV from '@libs/Navigation/FlatNav/FLAT_NAV';
 import type {BuildFlatNavSectionsParams} from '@libs/Navigation/FlatNav/FlatNavUtils';
 import {
@@ -20,6 +22,14 @@ const {SEARCH_KEYS} = CONST.SEARCH;
 const ACCOUNT_ID = 1;
 const SAVED_SEARCHES_TRANSLATION_PATH = 'search.savedSearchesMenuItemTitle';
 const suggestedSearches = getSuggestedSearches(ACCOUNT_ID);
+
+const createTodoCounts = (overrides: Partial<TodoCounts> = {}): TodoCounts => ({
+    [SEARCH_KEYS.SUBMIT]: 0,
+    [SEARCH_KEYS.APPROVE]: 0,
+    [SEARCH_KEYS.PAY]: 0,
+    [SEARCH_KEYS.EXPORT]: 0,
+    ...overrides,
+});
 
 /** Mirrors what the Spend menu hands over: one section per group, holding only the searches the user can see. */
 function createTypeMenuSections(keys: SearchKey[], {hasSavedSearchesSection = false}: {hasSavedSearchesSection?: boolean} = {}): SearchTypeMenuSection[] {
@@ -137,7 +147,7 @@ describe('FlatNavUtils', () => {
             const typeMenuSections = createTypeMenuSections([SEARCH_KEYS.EXPENSES, SEARCH_KEYS.REPORTS]);
 
             // When we build the sections
-            const params: BuildFlatNavSectionsParams = {typeMenuSections, savedSearchItems: [], todoCounts: {}};
+            const params: BuildFlatNavSectionsParams = {typeMenuSections, savedSearchItems: [], todoCounts: createTodoCounts()};
             const sections = buildFlatNavSections(params);
 
             // Then Accounting, Travel and Saved are left out, and Reports holds just its own search
@@ -150,7 +160,7 @@ describe('FlatNavUtils', () => {
             const typeMenuSections = createTypeMenuSections([SEARCH_KEYS.EXPENSES, SEARCH_KEYS.REPORTS, SEARCH_KEYS.SUBMIT]);
 
             // When we build the sections
-            const sections = buildFlatNavSections({typeMenuSections, savedSearchItems: [], todoCounts: {[SEARCH_KEYS.SUBMIT]: 3}});
+            const sections = buildFlatNavSections({typeMenuSections, savedSearchItems: [], todoCounts: createTodoCounts({[SEARCH_KEYS.SUBMIT]: 3})});
 
             // Then Reports contains only My reports and Drafts (submit), with the badge counting only drafts
             expect(getSection(sections, FLAT_NAV.SECTION.REPORTS)?.items.map((item) => item.key)).toEqual([SEARCH_KEYS.REPORTS, SEARCH_KEYS.SUBMIT]);
@@ -162,7 +172,7 @@ describe('FlatNavUtils', () => {
             const typeMenuSections = createTypeMenuSections([SEARCH_KEYS.PAY, SEARCH_KEYS.APPROVE, SEARCH_KEYS.SUBMIT, SEARCH_KEYS.REPORTS, SEARCH_KEYS.EXPENSES]);
 
             // When we build the sections
-            const params: BuildFlatNavSectionsParams = {typeMenuSections, savedSearchItems: [], todoCounts: {}};
+            const params: BuildFlatNavSectionsParams = {typeMenuSections, savedSearchItems: [], todoCounts: createTodoCounts()};
             const sections = buildFlatNavSections(params);
 
             // Then the Reports items follow the definition so every bar renders the same order
@@ -182,7 +192,7 @@ describe('FlatNavUtils', () => {
             ]);
 
             // When we build the sections
-            const params: BuildFlatNavSectionsParams = {typeMenuSections, savedSearchItems: [], todoCounts: {}};
+            const params: BuildFlatNavSectionsParams = {typeMenuSections, savedSearchItems: [], todoCounts: createTodoCounts()};
             const sections = buildFlatNavSections(params);
 
             // Then Accounting holds all five, in the order of its definition
@@ -200,7 +210,7 @@ describe('FlatNavUtils', () => {
             const typeMenuSections = createTypeMenuSections([SEARCH_KEYS.EXPENSES, SEARCH_KEYS.REPORTS, SEARCH_KEYS.STATEMENTS]);
 
             // When we build the sections
-            const params: BuildFlatNavSectionsParams = {typeMenuSections, savedSearchItems: [], todoCounts: {}};
+            const params: BuildFlatNavSectionsParams = {typeMenuSections, savedSearchItems: [], todoCounts: createTodoCounts()};
             const sections = buildFlatNavSections(params);
 
             // Then flat nav does not add them back, and Accounting keeps only what the menu showed
@@ -218,8 +228,8 @@ describe('FlatNavUtils', () => {
             const withoutTrips = createTypeMenuSections([SEARCH_KEYS.EXPENSES, SEARCH_KEYS.REPORTS]);
 
             // When we build the sections for both
-            const sectionsWithTrips = buildFlatNavSections({typeMenuSections: withTrips, savedSearchItems: [], todoCounts: {}});
-            const sectionsWithoutTrips = buildFlatNavSections({typeMenuSections: withoutTrips, savedSearchItems: [], todoCounts: {}});
+            const sectionsWithTrips = buildFlatNavSections({typeMenuSections: withTrips, savedSearchItems: [], todoCounts: createTodoCounts()});
+            const sectionsWithoutTrips = buildFlatNavSections({typeMenuSections: withoutTrips, savedSearchItems: [], todoCounts: createTodoCounts()});
 
             // Then Travel follows the menu
             expect(getSection(sectionsWithTrips, FLAT_NAV.SECTION.TRAVEL)?.items.map((item) => item.key)).toEqual([SEARCH_KEYS.TRIPS]);
@@ -232,7 +242,7 @@ describe('FlatNavUtils', () => {
             const savedSearchItems = [createSavedSearchItem('1'), createSavedSearchItem('2')];
 
             // When we build the sections
-            const sections = buildFlatNavSections({typeMenuSections, savedSearchItems, todoCounts: {}});
+            const sections = buildFlatNavSections({typeMenuSections, savedSearchItems, todoCounts: createTodoCounts()});
 
             // Then Saved is last and holds the saved searches in the order given
             expect(sections.at(-1)?.id).toBe(FLAT_NAV.SECTION.SAVED);
@@ -245,7 +255,7 @@ describe('FlatNavUtils', () => {
             const savedSearchItems = [createSavedSearchItem('1', {isDisabled: true})];
 
             // When we build the sections
-            const sections = buildFlatNavSections({typeMenuSections, savedSearchItems, todoCounts: {}});
+            const sections = buildFlatNavSections({typeMenuSections, savedSearchItems, todoCounts: createTodoCounts()});
 
             // Then flat nav hides them too
             expect(getSection(sections, FLAT_NAV.SECTION.SAVED)).toBeUndefined();
@@ -256,7 +266,7 @@ describe('FlatNavUtils', () => {
             const typeMenuSections = createTypeMenuSections([SEARCH_KEYS.EXPENSES, SEARCH_KEYS.REPORTS], {hasSavedSearchesSection: true});
 
             // When we build the sections
-            const params: BuildFlatNavSectionsParams = {typeMenuSections, savedSearchItems: [], todoCounts: {}};
+            const params: BuildFlatNavSectionsParams = {typeMenuSections, savedSearchItems: [], todoCounts: createTodoCounts()};
             const sections = buildFlatNavSections(params);
 
             // Then there is no empty Saved section
@@ -268,7 +278,7 @@ describe('FlatNavUtils', () => {
             const typeMenuSections = createTypeMenuSections([SEARCH_KEYS.EXPENSES, SEARCH_KEYS.REPORTS, SEARCH_KEYS.APPROVE]);
 
             // When we build the sections
-            const params: BuildFlatNavSectionsParams = {typeMenuSections, savedSearchItems: [], todoCounts: {}};
+            const params: BuildFlatNavSectionsParams = {typeMenuSections, savedSearchItems: [], todoCounts: createTodoCounts()};
             const sections = buildFlatNavSections(params);
 
             // Then the Reports section does not repeat its own label for the reports search, and the others keep theirs
@@ -283,7 +293,7 @@ describe('FlatNavUtils', () => {
             const typeMenuSections = createTypeMenuSections([SEARCH_KEYS.EXPENSES, SEARCH_KEYS.REPORTS]);
 
             // When we build the sections
-            const params: BuildFlatNavSectionsParams = {typeMenuSections, savedSearchItems: [], todoCounts: {}};
+            const params: BuildFlatNavSectionsParams = {typeMenuSections, savedSearchItems: [], todoCounts: createTodoCounts()};
             const sections = buildFlatNavSections(params);
 
             // Then the item keeps what navigation needs to open it
@@ -330,7 +340,7 @@ describe('FlatNavUtils', () => {
 
         it('should cap a count above the maximum', () => {
             // Given a count above the badge maximum
-            const todoCounts = {[SEARCH_KEYS.SUBMIT]: CONST.SEARCH.TODO_BADGE_MAX_COUNT + 1};
+            const todoCounts = createTodoCounts({[SEARCH_KEYS.SUBMIT]: CONST.SEARCH.TODO_BADGE_MAX_COUNT + 1});
 
             // When we build the sections
             const sections = buildFlatNavSections({typeMenuSections, savedSearchItems: [], todoCounts});
@@ -341,7 +351,7 @@ describe('FlatNavUtils', () => {
 
         it('should sum the submit, approve and pay counts for the Reports section', () => {
             // Given todo counts
-            const todoCounts = {[SEARCH_KEYS.SUBMIT]: 2, [SEARCH_KEYS.APPROVE]: 3, [SEARCH_KEYS.PAY]: 4, [SEARCH_KEYS.EXPORT]: 9};
+            const todoCounts = createTodoCounts({[SEARCH_KEYS.SUBMIT]: 2, [SEARCH_KEYS.APPROVE]: 3, [SEARCH_KEYS.PAY]: 4, [SEARCH_KEYS.EXPORT]: 9});
 
             // When we build the sections
             const sections = buildFlatNavSections({typeMenuSections, savedSearchItems: [], todoCounts});
@@ -352,7 +362,7 @@ describe('FlatNavUtils', () => {
 
         it('should show the export count on the Accounting section', () => {
             // Given an export count
-            const todoCounts = {[SEARCH_KEYS.EXPORT]: 5};
+            const todoCounts = createTodoCounts({[SEARCH_KEYS.EXPORT]: 5});
 
             // When we build the sections
             const sections = buildFlatNavSections({typeMenuSections, savedSearchItems: [], todoCounts});
@@ -366,7 +376,7 @@ describe('FlatNavUtils', () => {
             const savedTypeMenuSections = createTypeMenuSections([SEARCH_KEYS.EXPENSES, SEARCH_KEYS.REPORTS, SEARCH_KEYS.SUBMIT], {hasSavedSearchesSection: true});
 
             // When we build the sections with no count for the todo searches
-            const sections = buildFlatNavSections({typeMenuSections: savedTypeMenuSections, savedSearchItems: [createSavedSearchItem('1')], todoCounts: {}});
+            const sections = buildFlatNavSections({typeMenuSections: savedTypeMenuSections, savedSearchItems: [createSavedSearchItem('1')], todoCounts: createTodoCounts()});
 
             // Then no section has a badge: Expenses and Saved have no todo searches, and Reports has a zero count
             expect(sections.map((section) => section.badgeText)).toEqual([undefined, undefined, undefined]);
@@ -375,7 +385,7 @@ describe('FlatNavUtils', () => {
         it('should not count a todo search the user cannot see', () => {
             // Given a count for approve, but a Spend menu that does not show it
             const menuWithoutApprove = createTypeMenuSections([SEARCH_KEYS.EXPENSES, SEARCH_KEYS.REPORTS, SEARCH_KEYS.SUBMIT]);
-            const todoCounts = {[SEARCH_KEYS.SUBMIT]: 1, [SEARCH_KEYS.APPROVE]: 10};
+            const todoCounts = createTodoCounts({[SEARCH_KEYS.SUBMIT]: 1, [SEARCH_KEYS.APPROVE]: 10});
 
             // When we build the sections
             const sections = buildFlatNavSections({typeMenuSections: menuWithoutApprove, savedSearchItems: [], todoCounts});
@@ -386,19 +396,19 @@ describe('FlatNavUtils', () => {
 
         it('should return undefined from getFlatNavSectionBadgeText for items without a todo search', () => {
             // Given the items of the Expenses section
-            const sections = buildFlatNavSections({typeMenuSections, savedSearchItems: [], todoCounts: {[SEARCH_KEYS.SUBMIT]: 3}});
+            const sections = buildFlatNavSections({typeMenuSections, savedSearchItems: [], todoCounts: createTodoCounts({[SEARCH_KEYS.SUBMIT]: 3})});
             const items = getSection(sections, FLAT_NAV.SECTION.EXPENSES)?.items ?? [];
 
             // When we compute their badge
             // Then there is none, since Expenses contains no todo searches like approve or submit
-            expect(getFlatNavSectionBadgeText(items, {[SEARCH_KEYS.SUBMIT]: 3})).toBeUndefined();
+            expect(getFlatNavSectionBadgeText(items, createTodoCounts({[SEARCH_KEYS.SUBMIT]: 3}))).toBeUndefined();
         });
     });
 
     describe('getActiveFlatNavItem', () => {
         const savedSearchKey = savedSearchIDToSearchKey('1');
         const typeMenuSections = createTypeMenuSections([SEARCH_KEYS.EXPENSES, SEARCH_KEYS.REPORTS, SEARCH_KEYS.SUBMIT, SEARCH_KEYS.STATEMENTS], {hasSavedSearchesSection: true});
-        const sections = buildFlatNavSections({typeMenuSections, savedSearchItems: [createSavedSearchItem('1')], todoCounts: {}});
+        const sections = buildFlatNavSections({typeMenuSections, savedSearchItems: [createSavedSearchItem('1')], todoCounts: createTodoCounts()});
 
         it('should find the section and item of a visible canned search', () => {
             // Given the search key of a visible canned search
@@ -452,7 +462,7 @@ describe('FlatNavUtils', () => {
             const sections = buildFlatNavSections({
                 typeMenuSections: createTypeMenuSections([SEARCH_KEYS.EXPENSES, SEARCH_KEYS.REPORTS, SEARCH_KEYS.APPROVE]),
                 savedSearchItems: [],
-                todoCounts: {},
+                todoCounts: createTodoCounts(),
             });
 
             // When we resolve what the section opens
@@ -467,7 +477,7 @@ describe('FlatNavUtils', () => {
             const sections = buildFlatNavSections({
                 typeMenuSections: createTypeMenuSections([SEARCH_KEYS.EXPENSES, SEARCH_KEYS.REPORTS], {hasSavedSearchesSection: true}),
                 savedSearchItems: [createSavedSearchItem('1', {isDisabled: true}), createSavedSearchItem('2')],
-                todoCounts: {},
+                todoCounts: createTodoCounts(),
             });
 
             // When we resolve what the section opens

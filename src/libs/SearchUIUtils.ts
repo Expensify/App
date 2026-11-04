@@ -63,6 +63,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import type {RowChromeWidths} from '@components/Table/columnResize/getResizableColumnLayout';
 
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
+import type {TodoCounts} from '@hooks/useTodoCounts';
 
 import type {ThemeColors} from '@styles/theme/types';
 import variables from '@styles/variables';
@@ -714,6 +715,11 @@ function doesSearchItemMatchSort(key: SearchKey, itemSortBy: string | undefined,
 const TODO_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.SUBMIT, CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.PAY, CONST.SEARCH.SEARCH_KEYS.EXPORT]);
 const MONTHLY_ACCRUAL_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]);
 const RECONCILIATION_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.STATEMENTS, CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]);
+
+/** Narrows a search key to a to-do search, so its live count can be read from TodoCounts. */
+function isTodoSearchKey(searchKey: SearchKey): searchKey is keyof TodoCounts {
+    return TODO_SEARCH_KEYS.has(searchKey);
+}
 
 /**
  * Determines if the current user is eligible for the approve suggestion on a given policy.
@@ -8014,6 +8020,7 @@ export {
     getSingleSelectFilterOptions,
     getMultiSelectFilterOptions,
     TODO_SEARCH_KEYS,
+    isTodoSearchKey,
     MONTHLY_ACCRUAL_SEARCH_KEYS,
     RECONCILIATION_SEARCH_KEYS,
     FILTER_VIEW_MAP,
