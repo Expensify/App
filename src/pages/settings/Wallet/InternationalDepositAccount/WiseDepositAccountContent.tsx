@@ -1,4 +1,4 @@
-/** Renders the Wise-backed employee bank-account country picker and dynamic form flow. */
+/** Lets an employee pick the country of their bank account, then fills in the bank account form Wise defines for it. */
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import DynamicFormFlow from '@components/DynamicForm';
 import type {DynamicFormValues} from '@components/DynamicForm/types';
