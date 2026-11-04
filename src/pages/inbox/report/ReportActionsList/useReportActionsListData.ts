@@ -1,7 +1,7 @@
 /** Prepares chronological report rows, including streamed drafts, initial snapshots, and collapsed system messages. */
 import useInitial from '@hooks/useInitial';
 
-import {getReportActionMessage, isNewerReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
+import {getReportActionMessage, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isExpenseReport, isIOUReport, isInvoiceReport, isResolvedSupportTicket, isSupportTicket} from '@libs/ReportUtils';
 
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
@@ -13,6 +13,8 @@ import CONST from '@src/CONST';
 import {useEffect, useState} from 'react';
 
 import type {UseReportActionsListDataParams} from './types';
+
+import getReportActionsWithStreamedReply from './getReportActionsWithStreamedReply';
 
 function useReportActionsListData({
     sortedVisibleReportActions,
@@ -39,58 +41,29 @@ function useReportActionsListData({
         ? sortedAllReportActions?.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY && action.created >= latestResolvedSupportTicketAction.created)
         : undefined;
 
-    const visibleReportActions = (() => {
-        if (!draftReportAction) {
-            return sortedVisibleReportActions;
-        }
-
-        if (showHiddenHistory && sessionStartTime && draftReportAction.created < sessionStartTime) {
-            return sortedVisibleReportActions;
-        }
-
-        // A completed reveal belongs to the saved action, even when pagination keeps that action off screen.
-        if (persistedDraftReportAction && !isDraftPendingCompletion) {
-            return sortedVisibleReportActions;
-        }
-
-        // Insert the synthetic draft into the already-descending render list without treating it as a persisted report action.
-        for (const [index, action] of sortedVisibleReportActions.entries()) {
-            if (action.reportActionID === draftReportAction.reportActionID) {
-                // Completed local replies can retain their pending add flag after the server merges followups.
-                if (!isDraftPendingCompletion) {
-                    return sortedVisibleReportActions;
-                }
-
-                const visibleReportActionsWithDraft = [...sortedVisibleReportActions];
-                visibleReportActionsWithDraft[index] = draftReportAction;
-                return visibleReportActionsWithDraft;
-            }
-            if (isNewerReportAction(draftReportAction, action)) {
-                const visibleReportActionsWithDraft = [...sortedVisibleReportActions];
-                visibleReportActionsWithDraft.splice(index, 0, draftReportAction);
-                return visibleReportActionsWithDraft;
-            }
-        }
-
-        const visibleReportActionsWithDraft = [...sortedVisibleReportActions];
-        visibleReportActionsWithDraft.push(draftReportAction);
-        return visibleReportActionsWithDraft;
-    })();
+    const shouldHideDraft = !!(showHiddenHistory && sessionStartTime && draftReportAction && draftReportAction.created < sessionStartTime);
+    const {reportActionsWithStreamedReply, isSyntheticDraftVisible} = getReportActionsWithStreamedReply({
+        sortedVisibleReportActions,
+        draftReportAction,
+        isDraftPendingCompletion,
+        hasPersistedDraft: !!persistedDraftReportAction,
+        shouldHideDraft,
+    });
 
     const shouldFilterSupportTicketSurveys =
         isSupportTicket(report) &&
-        visibleReportActions.some(
+        reportActionsWithStreamedReply.some(
             (action) =>
                 action.actionName === CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY &&
                 (shouldHideSupportTicketSurvey || action.reportActionID !== latestSupportTicketSurveyAction?.reportActionID),
         );
     const renderedVisibleReportActions = shouldFilterSupportTicketSurveys
-        ? visibleReportActions.filter(
+        ? reportActionsWithStreamedReply.filter(
               (action) =>
                   action.actionName !== CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY ||
                   (!shouldHideSupportTicketSurvey && action.reportActionID === latestSupportTicketSurveyAction?.reportActionID),
           )
-        : visibleReportActions;
+        : reportActionsWithStreamedReply;
 
     // OpenReport starts with a tiny cached page before replacing it with the hydrated page. Keep that
     // already-visible page mounted until hydration finishes instead of exposing intermediate estimated
@@ -125,7 +98,6 @@ function useReportActionsListData({
 
     const draftMessageHTML = draftReportAction ? getReportActionMessage(draftReportAction)?.html : undefined;
     const draftReportActionID = draftReportAction?.reportActionID;
-    const isSyntheticDraftVisible = !!draftReportAction && renderedVisibleReportActions !== sortedVisibleReportActions;
 
     useEffect(() => {
         if (!draftReportAction || isSyntheticDraftVisible) {

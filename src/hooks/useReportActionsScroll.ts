@@ -5,7 +5,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {isReportPreviewAction} from '@libs/ReportActionsUtils';
+import {getVisibleReportActionErrors, isReportPreviewAction} from '@libs/ReportActionsUtils';
 import {getReportLastVisibleActionCreated, shouldReportAlignToTop} from '@libs/ReportUtils';
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
@@ -18,14 +18,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import type {ViewableItemsChanged} from '@src/types/utils/ReactNativeCompat';
 
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
-import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
-import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
 import {useEffect, useEffectEvent, useState} from 'react';
 
 import useLinkedReportActionScroll from './useLinkedReportActionScroll';
@@ -38,9 +37,6 @@ import useScrollToEndOnNewMessageReceived from './useScrollToEndOnNewMessageRece
 type UseReportActionsScrollParams = {
     /** Identifies the mounted list, including linked-message and hydration remounts. */
     listID: string;
-
-    /** The Concierge chat report */
-    conciergeChat: OnyxEntry<OnyxTypes.Report>;
 
     /** The ID of the report currently being looked at */
     reportID: string;
@@ -132,7 +128,6 @@ type UseReportActionsScrollResult = {
 
 function useReportActionsScroll({
     listID,
-    conciergeChat,
     reportID,
     report,
     transactionThreadReport,
@@ -156,14 +151,8 @@ function useReportActionsScroll({
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const linkedReportActionID = route?.params?.reportActionID;
     const {isOffline} = useNetworkWithOfflineStatus();
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
     const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${getNonEmptyStringOnyxID(reportID)}`);
-    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(report?.policyID)}`, {
-        selector: fullPolicySnapshotLastModifiedSelector,
-    });
-    const fullPolicySnapshot = report?.policyID && fullPolicySnapshotLastModified ? {policyID: report.policyID, lastModified: fullPolicySnapshotLastModified} : undefined;
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const prevIsLoadingInitialReportActions = usePrevious(reportLoadingState?.isLoadingInitialReportActions);
 
@@ -249,11 +238,8 @@ function useReportActionsScroll({
     }, [isComposerFullSize]);
 
     const {isScrollToBottomEnabled, setIsScrollToBottomEnabled, completeLiveTailPruneAfterScrollToBottom, requestLiveTailJump} = useReportActionsNewActionLiveTail({
-        conciergeChat,
         reportID,
-        introSelected,
-        isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
-        hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+        policyID: report?.policyID,
         isOffline,
         reportScrollManager,
         setIsFloatingMessageCounterVisible,
@@ -269,7 +255,6 @@ function useReportActionsScroll({
         treatAsNoPaginationAnchor,
         prevIsLoadingInitialReportActions,
         reportLoadingState,
-        fullPolicySnapshot,
     });
 
     // Consume an explicit live-tail request after the data render, not on an unrelated future
@@ -323,7 +308,8 @@ function useReportActionsScroll({
         return () => clearTimeout(timer);
     }, [actionIdToHighlight]);
 
-    const lastIOUActionWithError = sortedVisibleReportActions.find((action) => action.errors);
+    // Only errors the user can actually see should pull the list down to them.
+    const lastIOUActionWithError = sortedVisibleReportActions.find((action) => !isEmptyValueObject(getVisibleReportActionErrors(action)));
     const prevLastIOUActionWithError = usePrevious(lastIOUActionWithError);
 
     // Scroll to the bottom when a new errored action appears, so the user sees the failed money request. Re-checked

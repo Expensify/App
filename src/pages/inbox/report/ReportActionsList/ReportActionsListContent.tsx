@@ -57,7 +57,12 @@ const REPORT_ACTIONS_DRAW_DISTANCE = 1500;
 // measurement shift the scroll offset. On web, dragging the scrollbar undoes each shift, which shows as a jump.
 const REPORT_ACTIONS_ESTIMATED_ITEM_SIZE = 50;
 
-function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportActionsListProps) {
+/**
+ * Renders the report-actions list. Reads its data from `ReportActionsListStateContext` / `ReportActionsListActionsContext` and holds the
+ * UI-close hooks (`useUnreadMarker` / `useMarkAsRead` / `useReportActionsScroll`). `ReportActionsSkeletonGuard`
+ * mounts it only once content is ready, so those hooks never run while a skeleton shows.
+ */
+function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
@@ -157,7 +162,6 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         scrollToActionBadgeTarget,
     } = useReportActionsListScroll({
         reportID,
-        conciergeChat,
         sortedVisibleReportActions,
         renderedVisibleReportActions: listData,
         reportActionIDToDisplayIndex,

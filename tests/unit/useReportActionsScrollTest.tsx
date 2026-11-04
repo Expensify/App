@@ -124,15 +124,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     },
 }));
 
-// --- openReport ---
-const mockOpenReport = jest.fn();
-jest.mock('@userActions/Report', () => ({
-    __esModule: true,
-    openReport: (...args: unknown[]) => {
-        mockOpenReport(...args);
-    },
-}));
-
 // --- react-navigation route ---
 let mockRouteParams: {reportActionID?: string; backTo?: string; shouldScrollToLatest?: string} = {};
 let mockIsFocused = true;
@@ -154,6 +145,8 @@ jest.mock('@libs/ReportActionsUtils', () => ({
     isTransactionThread: () => mockIsTransactionThread,
     isSentMoneyReportAction: () => mockIsSentMoneyReportAction,
     isReportPreviewAction: () => mockIsReportPreviewAction,
+    // This suite never builds a deleted report preview, so the real function reduces to the action's own errors.
+    getVisibleReportActionErrors: (reportAction?: ReportAction) => reportAction?.errors ?? {},
 }));
 
 // --- ReportUtils ---
@@ -195,7 +188,6 @@ function buildParams(overrides: Partial<ScrollParams> = {}): ScrollParams {
     return {
         listID: REPORT_ID,
         reportID: REPORT_ID,
-        conciergeChat: undefined,
         report: createMockReport({reportID: REPORT_ID}),
         transactionThreadReport: undefined,
         parentReportAction: undefined,
@@ -771,7 +763,7 @@ describe('useReportActionsScroll', () => {
             expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
             expect(mockMarkNewestActionAsRead).toHaveBeenCalledTimes(1);
             expect(mockNavigate).not.toHaveBeenCalled();
-            expect(mockOpenReport).not.toHaveBeenCalled();
+            expect(mockRequestLiveTailJump).not.toHaveBeenCalled();
         });
 
         it('waits for the latest page before scrolling when the newest action is not present', async () => {

@@ -13,7 +13,6 @@ type ReportActionsListProps = {
     /** The ID of the report to display actions for */
     reportID: string;
 
-    conciergeChat: OnyxEntry<OnyxTypes.Report>;
     onLayout?: (event: LayoutChangeEvent) => void;
 };
 
@@ -29,7 +28,6 @@ type UseReportActionsListDataParams = {
 type UseReportActionsListScrollParams = Pick<
     Parameters<typeof useReportActionsScroll>[0],
     | 'reportID'
-    | 'conciergeChat'
     | 'sortedVisibleReportActions'
     | 'renderedVisibleReportActions'
     | 'markNewestActionAsRead'

@@ -30,7 +30,6 @@ const PAGINATION_THRESHOLD = 0.75;
 
 function useReportActionsListScroll({
     reportID,
-    conciergeChat,
     sortedVisibleReportActions,
     renderedVisibleReportActions: listData,
     reportActionIDToDisplayIndex,
@@ -202,7 +201,6 @@ function useReportActionsListScroll({
     } = useReportActionsScroll({
         listID,
         reportID,
-        conciergeChat,
         report,
         transactionThreadReport,
         parentReportAction,

@@ -2,6 +2,7 @@ import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
 
+import {shouldKeepBillPayActorHeader} from '@libs/BillPayReportActionUtils';
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
@@ -24,15 +25,12 @@ import {
     isSupportTicket,
 } from '@libs/ReportUtils';
 
-import CollapsedSystemMessages from '@pages/inbox/report/CollapsedSystemMessages';
-import {ReportActionPositionContextProvider} from '@pages/inbox/report/ReportActionIndexContext';
 import {useReportActionsListState} from '@pages/inbox/report/ReportActionsListContext';
-import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
-import ShowPreviousMessagesButton from '@pages/inbox/report/ShowPreviousMessagesButton';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {getStableReportSelector} from '@src/selectors/Report';
+import {isLinkedToBillSelector} from '@src/selectors/ReportNameValuePairs';
 import type * as OnyxTypes from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
@@ -43,6 +41,8 @@ import {accountIDSelector} from '@selectors/Session';
 import React from 'react';
 
 import type {UseReportActionsListRenderItemParams} from './types';
+
+import ReportActionsListRow from './ReportActionsListRow';
 
 /** Builds the report-actions row renderer and the `extraData` values that must re-render rows when they change. */
 function useReportActionsListRenderItem({
@@ -84,6 +84,7 @@ function useReportActionsListRenderItem({
     const [chatReportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportStable?.chatReportID)}`, {selector: getStableReportSelector});
     const reportsParentHierarchy = useReportsParentHierarchy(reportID);
     const isHarvestCreatedExpenseReportAction = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
+    const isInvoiceLinkedToBill = isLinkedToBillSelector(reportNameValuePairs);
 
     const firstVisibleReportActionID = getFirstVisibleReportActionID(sortedReportActions, isOffline);
 
@@ -135,64 +136,48 @@ function useReportActionsListRenderItem({
         const isAfterCollapsedRun = !!previousRun && !previousRun.isExpanded;
         const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
 
+        const collapsedSystemMessageRun = systemMessageRun && !systemMessageRun.isExpanded ? systemMessageRun : undefined;
+
         return (
-            <ReportActionPositionContextProvider
+            <ReportActionsListRow
                 index={index}
                 isNewest={index === listData.length - 1}
-                isRecycling
-            >
-                {systemMessageRun && !systemMessageRun.isExpanded ? (
-                    <CollapsedSystemMessages
-                        count={systemMessageRun.reportActionIDs.length}
-                        earliestReportAction={systemMessageRun.earliestReportAction}
-                        report={reportStable}
-                        onPress={() => expandSystemMessageRun(systemMessageRun.reportActionIDs)}
-                        unreadMarkerReportActionID={
-                            unreadMarkerReportActionID &&
-                            systemMessageRun.reportActionIDs.includes(unreadMarkerReportActionID) &&
-                            (!shouldUseThreadDividerLine || !shouldHideThreadDividerLine)
-                                ? unreadMarkerReportActionID
-                                : undefined
-                        }
-                    />
-                ) : (
-                    <ReportActionsListItemRenderer
-                        reportAction={reportAction}
-                        parentReportAction={parentReportAction}
-                        parentReportActionForTransactionThread={parentReportActionForTransactionThread}
-                        report={reportStable}
-                        transactionThreadReport={transactionThreadReport}
-                        chatReport={chatReportStable}
-                        linkedReportActionID={linkedReportActionID}
-                        displayAsGroup={
-                            !isAfterCollapsedRun &&
-                            !isConsecutiveChronosAutomaticTimerAction(reportActionsToRender, canonicalIndex, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
-                            isConsecutiveActionMadeByPreviousActor(reportActionsToRender, canonicalIndex, isOffline)
-                        }
-                        shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                        shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
-                        shouldDisplayReplyDivider={reportActionsToRender.length > 1}
-                        isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
-                        isLatestConciergeFeedbackAction={latestConciergeFeedbackActionIDs.includes(reportAction.reportActionID)}
-                        reportsParentHierarchy={reportsParentHierarchy}
-                        onExpandedSystemMessageReady={
-                            reportAction.reportActionID === focusRequestedReportActionID ? (target) => onExpandedSystemMessageReady(reportAction.reportActionID, target) : undefined
-                        }
-                        shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-                        isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReportAction}
-                        shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
-                    />
-                )}
-                {!!reportStable?.reportID && (
-                    <ShowPreviousMessagesButton
-                        reportID={reportStable.reportID}
-                        actionType={reportAction.actionName}
-                        hasPreviousMessages={!!hasPreviousMessages}
-                        showFullHistory={!showHiddenHistory}
-                        onPress={onShowPreviousMessages}
-                    />
-                )}
-            </ReportActionPositionContextProvider>
+                collapsedSystemMessageRun={collapsedSystemMessageRun}
+                collapsedSystemMessageRunUnreadMarkerReportActionID={
+                    unreadMarkerReportActionID &&
+                    collapsedSystemMessageRun?.reportActionIDs.includes(unreadMarkerReportActionID) &&
+                    (!shouldUseThreadDividerLine || !shouldHideThreadDividerLine)
+                        ? unreadMarkerReportActionID
+                        : undefined
+                }
+                expandSystemMessageRun={expandSystemMessageRun}
+                onExpandedSystemMessageReady={reportAction.reportActionID === focusRequestedReportActionID ? onExpandedSystemMessageReady : undefined}
+                hasPreviousMessages={!!hasPreviousMessages}
+                showFullHistory={!showHiddenHistory}
+                onShowPreviousMessages={onShowPreviousMessages}
+                reportAction={reportAction}
+                parentReportAction={parentReportAction}
+                parentReportActionForTransactionThread={parentReportActionForTransactionThread}
+                report={reportStable}
+                transactionThreadReport={transactionThreadReport}
+                chatReport={chatReportStable}
+                linkedReportActionID={linkedReportActionID}
+                displayAsGroup={
+                    !isAfterCollapsedRun &&
+                    !shouldKeepBillPayActorHeader(reportAction, previousReportAction, reportStable, isInvoiceLinkedToBill) &&
+                    !isConsecutiveChronosAutomaticTimerAction(reportActionsToRender, canonicalIndex, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
+                    isConsecutiveActionMadeByPreviousActor(reportActionsToRender, canonicalIndex, isOffline)
+                }
+                shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
+                shouldDisplayReplyDivider={reportActionsToRender.length > 1}
+                isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
+                isLatestConciergeFeedbackAction={latestConciergeFeedbackActionIDs.includes(reportAction.reportActionID)}
+                reportsParentHierarchy={reportsParentHierarchy}
+                shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+                isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReportAction}
+                shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
+            />
         );
     };
 
