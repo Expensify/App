@@ -19,7 +19,7 @@ import DateUtils from './DateUtils';
 import {getDistanceUnitLabel, getFormattedDistanceInUnits} from './DistanceDisplayUtils';
 import {convertDistanceUnit, convertToDistanceInMeters} from './DistanceUnitConversionUtils';
 import getStoredDefaultP2PMileageRate from './getStoredDefaultP2PMileageRate';
-import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getUnitRateValue} from './PolicyUtils';
+import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getUnitRateValue} from './PolicyUtils/customUnits';
 import replaceAllDigits from './replaceAllDigits';
 import {getAmount, getBilledDistance, getCurrency, getFormattedCreated, getRateID, isCustomUnitRateIDForP2P, isExpenseUnreported} from './TransactionUtils';
 

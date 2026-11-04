@@ -1048,12 +1048,58 @@ const CONST = {
         TERMS_URL: 'https://wise.com/terms-and-conditions',
         PRIVACY_URL: 'https://wise.com/privacy-policy',
 
+        /** Countries missing from Wise's supported list, so the bank account picker leaves them out */
+        EXCLUDED_BANK_ACCOUNT_COUNTRIES: [
+            'AC',
+            'AF',
+            'AQ',
+            'BI',
+            'BL',
+            'BY',
+            'CD',
+            'CF',
+            'CG',
+            'CU',
+            'EH',
+            'ER',
+            'GS',
+            'IO',
+            'IQ',
+            'IR',
+            'KM',
+            'KP',
+            'LY',
+            'MF',
+            'MM',
+            'PN',
+            'PS',
+            'RU',
+            'SD',
+            'SO',
+            'SS',
+            'SY',
+            'TA',
+            'TD',
+            'TF',
+            'TK',
+            'TM',
+            'VE',
+            'YE',
+            'ZW',
+        ] as string[],
+
         /** Server-derived state of the Wise onboarding */
         ONBOARDING_STATUS: {
             IN_REVIEW: 'IN_REVIEW',
             ACTION_REQUIRED: 'ACTION_REQUIRED',
             APPROVED: 'APPROVED',
             NOT_APPROVED: 'NOT_APPROVED',
+        },
+        /** The content the onboarding status page shows, read from its `status` query param */
+        ONBOARDING_STATUS_PAGE: {
+            REVIEW: 'review',
+            APPROVED: 'approved',
+            REJECTED: 'rejected',
         },
         /** The steps UpdateWiseOnboardingAdditionalData accepts: our intake pages, and the EDD pages keyed by Wise's KYC requirement key. The server answers any other step with 400 Invalid step. */
         ONBOARDING_STEP: {
@@ -1472,7 +1518,6 @@ const CONST = {
         GLOBAL_REIMBURSEMENTS: 'globalReimbursements',
         WISE_REIMBURSEMENTS: 'wiseReimbursements',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
-        TRAVEL_CODING_SYNC: 'travelCodingSync',
         ARCHIVE_POLICIES: 'archivePolicies',
         MERGE_ATS: 'mergeATSConnections',
         REPORT_MERGE: 'reportMerge',
@@ -1958,6 +2003,11 @@ const CONST = {
         ROLE: {
             ADMIN: 'admin',
             MEMBER: 'member',
+        },
+        UPCOMING_STEP_ACTION: {
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
         },
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
@@ -5081,10 +5131,13 @@ const CONST = {
         /** Subsections of the Rules > Expense defaults table, listed in the order they render. */
         EXPENSE_DEFAULTS_SECTION: {
             CATEGORIES: 'categories',
-            TAGS: 'tags',
             MERCHANTS: 'merchants',
-            MULTIPLE_CONDITIONS: 'multipleConditions',
             MERCHANT_TYPES: 'merchantTypes',
+        },
+        /** What an expense default rule matches on, chosen before the editor opens and kept in its draft. */
+        EXPENSE_DEFAULT_RULE_TYPE: {
+            MERCHANT: 'merchant',
+            CATEGORY: 'category',
         },
         DEFAULT_REPORT_NAME_PATTERN: '{report:type} {report:startdate}',
         DEFAULT_FIELD_LIST_TYPE: 'formula',
@@ -9663,7 +9716,6 @@ const CONST = {
         EXPENSE_DEFAULT: {
             /** Expense fields a `Set` action can write to */
             FIELD: {
-                AMOUNT: 'amount',
                 BILLABLE: 'billable',
                 CATEGORY: 'category',
                 COMMENT: 'comment',
@@ -9816,7 +9868,6 @@ const CONST = {
         IS_UNREAD_WITH_MENTION: 'isUnreadWithMention',
         IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION: 'isWaitingForAssigneeToCompleteAction',
         HAS_CHILD_REPORT_AWAITING_ACTION: 'hasChildReportAwaitingAction',
-        HAS_MISSING_INVOICE_BANK_ACCOUNT: 'hasMissingInvoiceBankAccount',
         HAS_UNRESOLVED_CARD_FRAUD_ALERT: 'hasUnresolvedCardFraudAlert',
         HAS_DEW_APPROVE_FAILED: 'hasDEWApproveFailed',
     },
@@ -10225,6 +10276,9 @@ const CONST = {
     },
 
     SENTRY_LABEL: {
+        NUMBER_WITH_SYMBOL_FORM: {
+            INPUT: 'NumberWithSymbolForm-Input',
+        },
         TEST_TOOL_MENU: {
             SERVER: 'TestToolMenu-Server',
         },
@@ -10258,6 +10312,17 @@ const CONST = {
         },
         WISE_MORE_INFO_NEEDED: {
             CONTINUE: 'WiseMoreInfoNeeded-Continue',
+        },
+        WISE_ONBOARDING_IN_REVIEW: {
+            CHAT_WITH_CONCIERGE: 'WiseOnboardingInReview-ChatWithConcierge',
+            DONE: 'WiseOnboardingInReview-Done',
+        },
+        WISE_ONBOARDING_REJECTED: {
+            CHAT_WITH_CONCIERGE: 'WiseOnboardingRejected-ChatWithConcierge',
+            GOT_IT: 'WiseOnboardingRejected-GotIt',
+        },
+        WISE_ONBOARDING_APPROVED: {
+            DONE: 'WiseOnboardingApproved-Done',
         },
         PRODUCT_MARKETING_WINDOW: {
             CTA: 'ProductMarketingWindow-CTA',
@@ -10463,6 +10528,7 @@ const CONST = {
             CONTROL_GROUP_CURRENCY: 'Insights-ControlGroupCurrency',
             CONTROL_GROUP_BY: 'Insights-ControlGroupBy',
             CONTROL_COMPARE: 'Insights-ControlCompare',
+            AI_EXPLAIN: 'Insights-AIExplain',
             DASHBOARD_TAB: 'Insights-DashboardTab',
         },
         EXPENSE_RULES: {
@@ -10489,6 +10555,7 @@ const CONST = {
             ATTACHMENT_PICKER_MENU_ADD_ATTACHMENT: 'Report-AttachmentPickerMenuAddAttachment',
             REPORT_ACTION_ITEM_CREATED: 'Report-ReportActionItemCreated',
             REPORT_ACTION_ITEM_MESSAGE_ENTER_SIGNER_INFO: 'Report-ReportActionItemMessageEnterSignerInfo',
+            REPORT_ACTION_ITEM_ADD_HOME_ADDRESS: 'Report-ReportActionItemAddHomeAddress',
             REPORT_ACTION_ITEM_MESSAGE_EDIT_CANCEL_BUTTON: 'Report-ReportActionItemMessageEditCancelButton',
             REPORT_ACTION_ITEM_MESSAGE_EDIT_SAVE_BUTTON: 'Report-ReportActionItemMessageEditSaveButton',
             REPORT_ACTION_ITEM_SINGLE_AVATAR_BUTTON: 'Report-ReportActionItemSingleAvatarButton',
@@ -10501,10 +10568,13 @@ const CONST = {
             MODERATION_BUTTON: 'Report-ModerationButton',
             MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL: 'MoneyRequestReportActionsList-SelectAll',
             MONEY_REQUEST_REPORT_TRANSACTION_ITEM: 'MoneyRequestReportTransactionItem',
+            MONEY_REPORT_HEADER_NEXT_STEP: 'Report-MoneyReportHeaderNextStep',
+            MONEY_REPORT_HEADER_STATUS_BAR: 'Report-MoneyReportHeaderStatusBar',
             REPORT_FIELD_DELETE_BUTTON: 'Report-ReportFieldDeleteButton',
             REPORT_ACTION_AVATAR: 'Report-ReportActionAvatar',
             PARTICIPANTS_ROW: 'Report-ParticipantsRow',
             ROOM_MEMBERS_ROW: 'Report-RoomMembersRow',
+            SELECTION_MODE_MENU_ITEM: 'Report-SelectionModeMenuItem',
             EMPTY_STATE: {
                 ADD_EXPENSE: 'Report-EmptyStateAddExpense',
                 CREATE_EXPENSE: 'Report-EmptyStateAddExpenseMenu-CreateExpense',
@@ -10984,7 +11054,6 @@ const CONST = {
                 INDIVIDUAL_EXPENSES_MENU_ITEM: 'WorkspaceRules-IndividualExpensesMenuItem',
                 SPEND_RULE_ITEM: 'WorkspaceRules-SpendRuleItem',
                 MERCHANT_RULE_ITEM: 'WorkspaceRules-MerchantRuleItem',
-                TAG_RULE_ITEM: 'WorkspaceRules-TagRuleItem',
                 REQUIRE_FIELDS_RULE_ITEM: 'WorkspaceRules-RequireFieldsRuleItem',
                 REQUIRE_FIELDS_RULE_SAVE: 'WorkspaceRules-RequireFieldsRuleSave',
                 REQUIRE_FIELDS_RULE_DESCRIBE: 'WorkspaceRules-RequireFieldsRuleDescribe',
@@ -11188,6 +11257,7 @@ const CONST = {
             LANGUAGE: 'SettingsPreferences-Language',
             PAYMENT_CURRENCY: 'SettingsPreferences-PaymentCurrency',
             THEME: 'SettingsPreferences-Theme',
+            HOME_ADDRESS: 'SettingsPreferences-HomeAddress',
         },
         SETTINGS_SECURITY: {
             TWO_FACTOR_AUTH: 'SettingsSecurity-TwoFactorAuth',

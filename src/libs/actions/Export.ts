@@ -76,7 +76,7 @@ function clearStaleExportDownloads() {
     const connectionID = Onyx.connectWithoutView({
         key: ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD,
         callback: (exportDownloads) => {
-            Onyx.disconnect(connectionID);
+            connectionID.unsubscribe();
             if (!exportDownloads) {
                 return;
             }

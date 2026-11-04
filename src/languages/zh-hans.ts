@@ -35,6 +35,12 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        billCreated: ({sender}) => `代表 ${sender} 创建了此账单`,
+        billSubmitted: ({receiver}) => `将此账单发送给 ${receiver}`,
+        invoiceCreated: ({sender}) => `代表 ${sender} 创建了此发票`,
+        invoiceSubmitted: ({receiver}) => `将此发票发送给 ${receiver}`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 天`,
@@ -1186,6 +1192,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: '合规',
         runningTotal: '累计总额',
+        explain: '解释',
+        explainChartPrompt: (chartTitle: string) => `解释「${chartTitle}」中的数据。`,
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -3024,7 +3032,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 alreadySubmitted: '该企业已提交给 Wise 进行审核。',
             },
             moreInfoNeeded: {headerTitle: '需要更多信息', title: '验证其他信息', subtitle: '我们的支付合作伙伴需要直接向你获取更多信息。这只需要几分钟时间。'},
+            inReview: {
+                title: '审核中',
+                heading: '我们已经获得所需信息。\n我们会再联系你！',
+                description: '大多数审核需要一到两天。我们会发送消息告知最新进展。',
+                chatWithConcierge: '与 Concierge 聊天',
+            },
+            approved: {title: '账户已批准', heading: '获批可在全球范围内支付', description: '无论成员身在何处，都能支付给他们。'},
+            rejected: {title: '银行账户已被拒绝', heading: '我们的合作伙伴拒绝了你的银行账户', description: '与 Concierge 聊天以获取更多信息。'},
         },
+        wiseSetupInProgress: {message: '全球报销设置进行中。', continue: '继续。'},
         wiseGlobalReimbursementsIntro: {
             title: '设置全球报销？',
             subtitle: '按当地货币向全球成员付款。',
@@ -3528,6 +3545,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         appSection: {
             title: '应用偏好设置',
         },
+        distanceSection: {title: '距离偏好'},
         testSection: {
             title: '测试偏好设置',
             subtitle: '用于在预发布环境中调试和测试应用的设置。',
@@ -7270,10 +7288,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             reimbursementAccount: '报销账户',
             welcomeNote: '请开始使用我的新工作区',
             delayedSubmission: '延迟提交',
-            merchantRules: '报销默认设置',
+            merchantRules: '商家规则',
             merchantRulesCount: () => ({
-                one: '1 笔费用默认值',
-                other: (count: number) => `${count} 个报销默认值`,
+                one: '1 商家规则',
+                other: (count: number) => `${count} 商家规则`,
             }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `您即将创建并共享 ${newWorkspaceName ?? ''}，其中包含来自原始工作区的 ${totalMembers ?? 0} 位成员。`,
@@ -7306,6 +7324,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 title: '复制成员',
                 prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
                     one: `确定要用此工作区的成员替换 ${targetWorkspaceName} 的成员吗？`,
+                    // Chinese has no "one" plural category, so handle the single-workspace case here
                     other: count === 1 ? `确定要用此工作区的成员替换 ${targetWorkspaceName} 的成员吗？` : `确定要用此工作区的成员替换 ${count} 个工作区的成员吗？`,
                 }),
             },
@@ -8597,8 +8616,8 @@ ${reportName}`,
                 matchType: '匹配类型',
                 matchTypeContains: '包含',
                 matchTypeExact: '完全匹配',
-                duplicateRuleTitle: '已存在类似规则',
-                duplicateRulePrompt: (conditionName: string) => `您现有的规则“${conditionName}”将优先于此规则。仍要保存吗？`,
+                duplicateRuleTitle: '已存在类似的商家规则',
+                duplicateRulePrompt: (merchantName: string) => `您现有针对“${merchantName}”的规则将优先于此规则。仍要保存吗？`,
                 saveAnyway: '仍然保存',
                 applyToExistingUnsubmittedExpenses: '应用到现有未提交的报销费用',
                 findRule: '查找商户规则',
@@ -8608,8 +8627,16 @@ ${reportName}`,
                 thenApplyFollowingDefaults: '然后应用以下默认设置：',
                 vendorUnavailable: '供应商不可用',
                 confirmErrorCategory: '请选择一个类别',
-                confirmErrorCondition: '请至少添加一个条件',
-                confirmErrorConditionAndDefault: '请至少添加一个条件，并应用至少一个默认值',
+                confirmErrorCategoryTax: '请选择税率',
+                confirmErrorCondition: '请输入商家',
+                confirmErrorConditionAndDefault: '输入商家，并至少应用一个默认设置',
+                turnOnTaxesFirstTitle: '请先启用税费',
+                turnOnTaxesFirstPrompt: '类别规则会设置默认税率。请在工作区设置中启用税费以使用此功能。',
+                categoryRulesApplyGoingForwardTitle: '类别规则将从现在起生效',
+                categoryRulesApplyGoingForwardPrompt: '此类别中的新报销将应用默认税率，已存在的报销不会改变。',
+                confirmErrorCategoryTaxMoveIsWorkspaceDefault: '所选税率现在已成为您的工作区默认税率，因此此规则不再有效。请选择其他税率。',
+                addTaxRateFirstTitle: '请先添加税率',
+                addTaxRateFirstPrompt: '类别规则会设置一个默认税率。请添加一个不同于工作区默认值的税率以使用类别规则。',
                 createRuleFromExpenseAction: '创建规则',
                 createRuleFromExpensePrompt: '将您的更改应用于所有符合条件的报销。',
             },
@@ -8791,8 +8818,6 @@ ${reportName}`,
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `已允许 ${shownCount > 1 ? '货币' : '货币'}：${currencies}${hiddenCount > 0 ? `，还有 +${hiddenCount} 项` : ''}`,
                 defaultRulesCannotBeDeleted: '默认规则无法删除',
-                tags: '标签',
-                multipleConditions: '多个条件',
             },
             agentRules: {
                 title: '代理规则',
@@ -8926,11 +8951,9 @@ ${reportName}`,
                 findRule: '查找规则',
                 rename: '重命名',
                 update: '更新',
+                merchantIs: (merchant: string) => `商户为“${merchant}”`,
                 merchantTypeIs: (merchantType: string) => `商户类型为"${merchantType}"`,
                 categoryIs: (category: string) => `类别为“${category}”`,
-                tagIs: (tag: string) => `标签为“${tag}”`,
-                merchantContains: (merchant: string) => `商户包含“${merchant}”`,
-                merchantExactlyMatches: (merchant: string) => `商家与“${merchant}”完全匹配`,
             },
             merchantTypeRule: {merchantType: '商户类型', saveRule: '保存规则', confirmErrorCategory: '请选择一个类别。'},
             requireFieldsTable: {
@@ -8988,6 +9011,14 @@ ${reportName}`,
             },
             agentRulesEmptyState: {title: '未添加代理规则', subtitle: '创建规则以自动化您的工作区策略。', cta: '添加 AI 规则'},
             categoriesDisabledEmptyState: {title: '类别未启用', subtitle: '启用类别以更好地控制您的支出。'},
+            expenseDefaultType: {
+                title: '应用报销默认值',
+                subtitle: '此规则应匹配什么内容？',
+                merchant: '商户',
+                merchantDescription: '更新来自特定商家的报销项目字段',
+                category: '类别',
+                categoryDescription: '为特定类别设置默认税率',
+            },
             taxesDisabledEmptyState: {title: '税费未启用', subtitle: '启用税费以记录并追回符合条件的税款。', cta: '启用税费'},
         },
         planTypePage: {
@@ -11777,7 +11808,6 @@ ${reportName}`,
             isUnreadWithMention: '未读且被提及',
             isWaitingForAssigneeToCompleteAction: '正在等待受托人完成操作',
             hasChildReportAwaitingAction: '有子报销单等待处理',
-            hasMissingInvoiceBankAccount: '缺少发票银行账户',
             hasUnresolvedCardFraudAlert: '存在未解决的银行卡欺诈警报',
             hasDEWApproveFailed: 'DEW 审批是否失败',
         },
@@ -12283,5 +12313,28 @@ ${reportName}`,
         mobileClaimPrompt: '请在网页浏览器中访问 Expensify 以领取您的续订折扣。',
     },
     bulkActionBar: {label: '批量操作', clearSelection: '清除选择', loadingSelection: '正在加载所选内容'},
+    reportHistoryPage: {
+        title: '报表历史',
+        created: '已创建报表',
+        submitted: '已提交',
+        approved: '已批准',
+        paid: '已付款',
+        toSubmit: '提交',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return '自动提交';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `在每月的 ${eta} 自动提交` : `${eta}自动提交`;
+        },
+        toApprove: '批准',
+        toPay: '支付',
+        minutesAgo: (count: number) => `${count} 分钟前`,
+        hoursAgo: (count: number) => `${count} 小时前`,
+        daysAgo: () => ({
+            one: '1 天前',
+            other: (count: number) => `${count} 天前`,
+        }),
+        offlineMessage: '您已离线。报表历史可能不是最新的。',
+    },
 };
 export default translations;
