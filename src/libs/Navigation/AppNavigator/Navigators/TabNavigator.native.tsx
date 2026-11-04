@@ -22,6 +22,7 @@ import type {NativeTabLayoutProps} from './NativeTabNavigator/NativeTabLayout';
 import isTabHostFullWidth from './NativeTabNavigator/isTabHostFullWidth';
 import NativeTabLayout from './NativeTabNavigator/NativeTabLayout';
 import TabBarShapeProbe from './NativeTabNavigator/TabBarShapeProbe';
+import getIsTabBarVertical from './NativeTabNavigator/TabBarShapeProbe/getIsTabBarVertical';
 import TabBarShapeContext from './NativeTabNavigator/TabBarShapeProbe/TabBarShapeContext';
 import tabScreenListeners from './NativeTabNavigator/tabScreenListeners';
 import useNativeTabBarOptions from './NativeTabNavigator/useNativeTabBarOptions';
@@ -44,10 +45,9 @@ const renderNativeTabLayout = (props: NativeTabLayoutProps) => <NativeTabLayout 
 
 function TabNavigator() {
     const {shouldShowNativeTabBar, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled} = useNativeTabNavigator();
-    const {left: windowLeftInset, right: windowRightInset} = useSafeAreaInsets();
-    // A guess until TabBarShapeProbe measures the bar: a column sits in a side inset of its own, while a notched phone in
-    // landscape has the same inset on both sides and keeps its bar along the bottom.
-    const [isTabBarVertical, setIsTabBarVertical] = useState(() => windowLeftInset !== windowRightInset);
+    const windowInsets = useSafeAreaInsets();
+    const [tabScreenBottomInset, setTabScreenBottomInset] = useState<number>();
+    const isTabBarVertical = getIsTabBarVertical(tabScreenBottomInset, windowInsets);
     const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarVertical, dotColors, tabLabels});
     // Either the tab host or each tab screen keeps out of the horizontal safe area, depending on where the bar can sit.
     const renderTabScreenLayout = (props: ScreenLayoutProps) => {
@@ -109,7 +109,9 @@ function TabNavigator() {
     );
 
     return (
-        <TabBarShapeContext.Provider value={setIsTabBarVertical}>{isTabHostFullWidth ? tabNavigator : <HorizontalSafeArea>{tabNavigator}</HorizontalSafeArea>}</TabBarShapeContext.Provider>
+        <TabBarShapeContext.Provider value={setTabScreenBottomInset}>
+            {isTabHostFullWidth ? tabNavigator : <HorizontalSafeArea>{tabNavigator}</HorizontalSafeArea>}
+        </TabBarShapeContext.Provider>
     );
 }
 
