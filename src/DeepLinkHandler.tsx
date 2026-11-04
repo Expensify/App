@@ -10,7 +10,9 @@ import {usePersonalDetailsByIDs} from './hooks/usePersonalDetails';
 import {openReportFromDeepLink} from './libs/actions/Link';
 import * as Report from './libs/actions/Report';
 import {hasAuthToken, isAnonymousUser} from './libs/actions/Session';
+import getPlatform from './libs/getPlatform';
 import Log from './libs/Log';
+import {clearDraftForQuickActionLink} from './libs/Navigation/linkingConfig/quickActionDraft';
 import {getReportIDFromLink} from './libs/ReportUtils';
 import {endSpan} from './libs/telemetry/activeSpans';
 import {hasSecureLinkKey} from './libs/Url';
@@ -117,6 +119,14 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                 // account to a route it lacks access to.
                 if (!isCurrentlyAuthenticated && initialUrlProcessed.current) {
                     return;
+                }
+
+                // Clear before onInitialUrl() so the create screen mounts without the old draft. Only the first run
+                // clears, because this effect re-runs with the same URL while the user may already be typing. Web is
+                // left out because refreshing a create URL there must keep what the user already entered.
+                const platform = getPlatform();
+                if (url && !initialUrlProcessed.current && (platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS)) {
+                    clearDraftForQuickActionLink(url);
                 }
 
                 initialUrlProcessed.current = true;
