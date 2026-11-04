@@ -1,3 +1,4 @@
+// cspell:ignore Zote Čeněk Øresund øresund
 /* eslint-disable @typescript-eslint/naming-convention */
 import {act, renderHook} from '@testing-library/react-native';
 
