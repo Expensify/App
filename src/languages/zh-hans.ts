@@ -6759,6 +6759,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     offDescription: '无法预订差旅',
                     onDescription: '可以预订差旅',
                     travelAccess: '差旅权限',
+                    changeTravelAccess: '更改差旅权限',
+                    turnOnTravel: '开启差旅',
+                    turnOffTravel: '关闭差旅',
                 },
                 travelBilling: {
                     travelBookingSection: {

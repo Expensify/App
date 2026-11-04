@@ -6914,6 +6914,9 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     offDescription: '出張を予約できません',
                     onDescription: '出張を予約できます',
                     travelAccess: '出張へのアクセス',
+                    changeTravelAccess: '出張へのアクセスを変更',
+                    turnOnTravel: '出張をオンにする',
+                    turnOffTravel: '出張をオフにする',
                 },
                 travelBilling: {
                     travelBookingSection: {

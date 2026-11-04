@@ -7165,6 +7165,9 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     offDescription: 'Δεν μπορεί να κάνει κρατήσεις ταξιδιών',
                     onDescription: 'Μπορεί να κάνει κρατήσεις ταξιδιών',
                     travelAccess: 'Πρόσβαση σε ταξίδια',
+                    changeTravelAccess: 'Αλλαγή πρόσβασης σε ταξίδια',
+                    turnOnTravel: 'Ενεργοποίηση ταξιδιών',
+                    turnOffTravel: 'Απενεργοποίηση ταξιδιών',
                 },
                 travelBilling: {
                     travelBookingSection: {
