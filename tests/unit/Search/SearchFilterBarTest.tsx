@@ -37,7 +37,6 @@ function renderFilter(key: SearchFilter['key'], value: SearchFilter['value']) {
         value,
         label: 'Filter',
         PopoverComponent: () => null,
-        sentryLabel: 'Search-Filter',
         onClosePress: undefined,
     };
     return render(<SearchFilterBar item={item} />);

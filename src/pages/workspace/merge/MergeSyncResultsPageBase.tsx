@@ -135,7 +135,7 @@ function MergeSyncResultsPageBase({policyID, category}: MergeSyncResultsPageBase
                     {renderResultSummary(translate('workspace.merge.syncResults.removed'), removedCount)}
                     <PressableWithoutFeedback
                         accessibilityLabel={translate('workspace.merge.syncResults.skipped')}
-                        sentryLabel={`${testID}-SkippedEmployees`}
+                        sentryLabel={`${testID}${CONST.SENTRY_LABEL_SUFFIX.SKIPPED_EMPLOYEES}`}
                         role={CONST.ROLE.BUTTON}
                         onPress={() => setIsSkippedSectionExpanded((isExpanded) => !isExpanded)}
                         style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}

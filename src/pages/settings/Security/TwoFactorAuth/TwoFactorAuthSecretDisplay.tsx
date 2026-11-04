@@ -66,7 +66,7 @@ function TwoFactorAuthSecretDisplay({contactMethod, secretKey, description}: Two
                     onPress={() => Clipboard.setString(secretKey)}
                     styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCopyCodeButton]}
                     textStyles={[styles.buttonMediumText]}
-                    sentryLabel="TwoFactorAuthSecret-Copy"
+                    sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.COPY_SECRET}
                 />
             </View>
         </>

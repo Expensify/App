@@ -43,7 +43,7 @@ function OnboardingHeader({onBackButtonPress, onCloseButtonPress, shouldShowBack
                     style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.back')}
-                    sentryLabel="OnboardingHeader-Back"
+                    sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.BACK}
                 >
                     <Icon
                         src={icons.BackArrow}

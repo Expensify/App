@@ -44,7 +44,7 @@ function HomeSectionExpandToggle({isExpanded, onPress, collapsedLabel, wrapperSt
             onPress={onPress}
             role={CONST.ROLE.BUTTON}
             accessibilityLabel={label}
-            sentryLabel="HomeSectionExpandToggle"
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.SECTION_EXPAND_TOGGLE}
             style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv3, cardPaddingHorizontal, wrapperStyle]}
         >
             <View style={[styles.alignItemsCenter, styles.justifyContentCenter, {width: variables.componentSizeNormal, height: variables.componentSizeNormal}]}>

@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -27,7 +28,7 @@ type PressableSubscriptAvatarProps = {
     onAvatarPress: (avatar: IconType) => void;
 
     /** Sentry label applied to both pressables */
-    sentryLabel: string;
+    sentryLabel: SentryLabel;
 
     containerStyle?: StyleProp<ViewStyle>;
 };

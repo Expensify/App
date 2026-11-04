@@ -10218,6 +10218,29 @@ const CONST = {
     SENTRY_LABEL: {
         TEST_TOOL_MENU: {
             SERVER: 'TestToolMenu-Server',
+            RELEASE_OPTIONS: 'TestToolsModalPage-ReleaseOptions',
+            DISMISS: 'TestToolsModalNavigator-Dismiss',
+        },
+        BANNER: {
+            CLOSE: 'Banner-Close',
+        },
+        DISTANCE_REQUEST_FOOTER: {
+            ADD_STOP: 'DistanceRequestFooter-AddStop',
+            REUSE_ROUTE: 'DistanceRequestFooter-ReuseRoute',
+        },
+        FEED_SELECTOR: {
+            BUTTON: 'FeedSelector',
+        },
+        GROWL_NOTIFICATION: {
+            DISMISS: 'GrowlNotification-Dismiss',
+            ACTION: 'GrowlNotification-Action',
+        },
+        STORYBOOK: {
+            MENU_ITEM_COMPARISON: 'menuItemComparisonStorySentryLabel',
+            POPOVER_MENU_V2_TRIGGER: 'PopoverMenuV2.Story.Trigger',
+        },
+        POPOVER_MENU: {
+            DISMISS_BUTTON: 'PopoverMenu.DismissButton',
         },
         BILLING_BANNER: {
             RIGHT_ICON: 'BillingBanner-RightIcon',
@@ -10310,6 +10333,7 @@ const CONST = {
         },
         MODAL: {
             DISMISS_DIALOG: 'Modal-DismissDialog',
+            CENTERED_LAYOUT_BACKDROP: 'CenteredModalLayout-backdrop',
         },
         ATTACHMENT_PREVIEW: {
             VIDEO_THUMBNAIL: 'AttachmentPreview-VideoThumbnail',
@@ -10422,6 +10446,11 @@ const CONST = {
             SORTABLE_HEADER: 'Search-SortableHeader',
             UNREPORTED_EXPENSE_LIST_ITEM: 'UnreportedExpenseListItem',
             WORKSPACE_SELECTOR_SELECT_ALL: 'Search-WorkspaceSelectorSelectAll',
+            DATE_SELECT_POPUP_BACK: 'DateSelectPopup-Back',
+            STATIC_LIST_ITEM: 'SearchStaticList-item',
+            STATIC_LIST_WIDE_ITEM: 'SearchStaticList-wide-item',
+            ADVANCED_FILTERS_POPUP_DESCRIBE_SEARCH: 'SearchAdvancedFiltersPopup-DescribeSearch',
+            ADVANCED_FILTERS_PAGE_DESCRIBE_SEARCH: 'SearchAdvancedFiltersBase-DescribeSearch',
         },
         INSIGHTS: {
             CONTROL_DATE: 'Insights-ControlDate',
@@ -10430,6 +10459,7 @@ const CONST = {
             CONTROL_GROUP_BY: 'Insights-ControlGroupBy',
             CONTROL_COMPARE: 'Insights-ControlCompare',
             DASHBOARD_TAB: 'Insights-DashboardTab',
+            CHART_MENU: 'InsightsChartMenu',
         },
         EXPENSE_RULES: {
             TABLE_ROW: 'ExpenseRules-TableRow',
@@ -10441,6 +10471,7 @@ const CONST = {
         },
         REPORT: {
             FLOATING_MESSAGE_COUNTER: 'Report-FloatingMessageCounter',
+            CONCIERGE_THINKING_TOGGLE_REASONING: 'ConciergeThinkingMessage-ToggleReasoning',
             SEND_BUTTON: 'Report-SendButton',
             ATTACHMENT_PICKER_CREATE_BUTTON: 'Report-AttachmentPickerCreateButton',
             ATTACHMENT_PICKER_EXPAND_BUTTON: 'Report-AttachmentPickerExpandButton',
@@ -10652,6 +10683,13 @@ const CONST = {
             WIDGET_ITEM: 'HomePage-WidgetItem',
             GETTING_STARTED_ROW: 'HomePage-GettingStartedRow',
             GETTING_STARTED_FOOTER_HELP: 'HomePage-GettingStartedFooterHelp',
+            SECTION_EXPAND_TOGGLE: 'HomeSectionExpandToggle',
+            CONCIERGE_PROMPT_ADD_ATTACHMENT: 'ConciergePromptBox-AddAttachment',
+            CONCIERGE_PROMPT_SEND: 'ConciergePromptBox-Send',
+            INSIGHT_TITLE_DROPDOWN: 'InsightTitleDropdown',
+            INSIGHTS_OVERFLOW_MENU: 'InsightsOverflowMenu',
+            RECENTLY_ADDED_ROW: 'RecentlyAddedRow',
+            RECENTLY_ADDED_OVERFLOW_MENU: 'RecentlyAddedOverflowMenu',
         },
         CATEGORY_PICKER_MODAL: {
             BACK_BUTTON: 'CategoryPickerModal-BackButton',
@@ -10689,6 +10727,7 @@ const CONST = {
         },
         MAP_VIEW: {
             COMPASS: 'compass',
+            TOGGLE_DISTANCE_UNIT: 'MapView-ToggleDistanceUnit',
         },
         NEW_CHAT: {
             IMPORT_CONTACTS_ITEM: 'NewChat-ImportContacts',
@@ -10799,6 +10838,8 @@ const CONST = {
                 CARD_EXPORT: 'WorkspaceCompanyCards-CardExport',
                 UNASSIGN_CARD: 'WorkspaceCompanyCards-UnassignCard',
                 TRANSACTION_START_DATE: 'WorkspaceCompanyCards-TransactionStartDate',
+                IMPORT_TEMPLATE_LINK: 'ImportFromFileStep-TemplateLink',
+                IMPORT_HELP_GUIDE_LINK: 'ImportFromFileStep-HelpGuideLink',
             },
             LIST: {
                 NEW_WORKSPACE_BUTTON: 'WorkspaceList-NewWorkspaceButton',
@@ -11011,6 +11052,7 @@ const CONST = {
             CONTINUE: 'Onboarding-Continue',
             SKIP: 'Onboarding-Skip',
             JOIN_WORKSPACE: 'Onboarding-JoinWorkspace',
+            BACK: 'OnboardingHeader-Back',
         },
         BASE_ANCHOR_FOR_ATTACHMENTS_ONLY: {
             DOWNLOAD_BUTTON: 'BaseAnchorForAttachmentsOnly-DownloadButton',
@@ -11023,6 +11065,7 @@ const CONST = {
             SWITCH_BETWEEN_METHODS: 'TwoFactorAuth-SwitchBetweenMethods',
             COPY: 'TwoFactorAuth-Copy',
             COPY_CODES: 'TwoFactorAuth-CopyCodes',
+            COPY_SECRET: 'TwoFactorAuthSecret-Copy',
         },
         VALIDATE_CODE: {
             RESEND_CODE: 'ValidateCode-ResendCode',
@@ -11031,9 +11074,6 @@ const CONST = {
         },
         INTERACTIVE_STEP_SUB_HEADER: {
             STEP_BUTTON: 'InteractiveStepSubHeader-StepButton',
-        },
-        SOCIALS: {
-            LINK: 'Socials',
         },
         CONFIRM_CONTENT: {
             DISMISS_BUTTON: 'ConfirmContent-DismissButton',
@@ -11052,6 +11092,7 @@ const CONST = {
         },
         RADIO_BUTTON: {
             BUTTON: 'RadioButton-Button',
+            WITH_LABEL: 'RadioButtonWithLabel',
         },
         REFERRAL_PROGRAM: {
             CTA: 'ReferralProgram-CTA',
@@ -11104,6 +11145,7 @@ const CONST = {
         },
         EDIT_AGENT_PAGE: {
             AVATAR: 'EditAgentPage-Avatar',
+            BOT_AVATAR_SELECTOR: 'EditAgentAvatar-BotAvatarSelector',
         },
         SETTINGS_PROFILE: {
             AVATAR: 'SettingsProfile-Avatar',
@@ -11228,6 +11270,24 @@ const CONST = {
             CLOSE_BUTTON: 'FeatureTraining-CloseButton',
             BACK_BUTTON: 'FeatureTraining-BackButton',
         },
+    },
+
+    /**
+     * Start of a Sentry label built at runtime, like `Search-Filter-merchant`. The rest of the label isn't checked, so
+     * only add one here when the rest comes from the code and can't carry user data.
+     */
+    SENTRY_LABEL_PREFIX: {
+        SEARCH_FILTER: 'Search-Filter-',
+        SEARCH_ADVANCED_FILTER: 'Search-Advanced-Filter-',
+        SEARCH_FILTER_POPUP_APPLY: 'Search-FilterPopupApply-',
+        SOCIALS: 'Socials-',
+        SIGN_IN_FOOTER: 'SignInFooter-',
+    },
+
+    /** End of a Sentry label built at runtime, like `EmojiPicker-SearchInput-ClearButton`. Same rules as `SENTRY_LABEL_PREFIX`. */
+    SENTRY_LABEL_SUFFIX: {
+        CLEAR_BUTTON: '-ClearButton',
+        SKIPPED_EMPLOYEES: '-SkippedEmployees',
     },
 
     /**

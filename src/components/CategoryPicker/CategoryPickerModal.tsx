@@ -17,6 +17,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React, {useState} from 'react';
 
@@ -41,7 +42,7 @@ type CategoryPickerModalProps = {
     onAddCategory?: () => void;
 
     /** Sentry label for the add button, so each caller's presses are attributed to it */
-    addCategorySentryLabel?: string;
+    addCategorySentryLabel?: SentryLabel;
 } & Omit<AnchoredSelectionListPopoverProps, 'optionCount' | 'isSearchable' | 'title' | 'backButtonSentryLabel' | 'headerActions' | 'shouldShowHeader' | 'children'>;
 
 function CategoryPickerModal({

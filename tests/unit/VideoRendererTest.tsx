@@ -22,6 +22,7 @@ jest.mock('@components/VideoPlayerPreview', () => {
     return ({onShowModalPress, fileName}: {onShowModalPress: () => void; fileName: string}) => {
         // Get PressableWithoutFeedback inside the component to avoid Jest mock issues
         const {PressableWithoutFeedback} = jest.requireActual<typeof PressableModule>('@components/Pressable');
+        const {SENTRY_LABEL} = jest.requireActual<{default: typeof CONST}>('@src/CONST').default;
 
         const handlePress = () => {
             onShowModalPress?.();
@@ -33,7 +34,7 @@ jest.mock('@components/VideoPlayerPreview', () => {
                 onPress={handlePress}
                 accessibilityRole="button"
                 accessibilityLabel={fileName}
-                sentryLabel="VideoRendererTest-ShowModalButton"
+                sentryLabel={SENTRY_LABEL.ATTACHMENT_PREVIEW.VIDEO_THUMBNAIL}
             />
         );
     };

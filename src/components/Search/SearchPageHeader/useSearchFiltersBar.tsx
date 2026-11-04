@@ -7,7 +7,7 @@ import ReportFieldPopup from '@components/Search/FilterDropdowns/ReportFieldPopu
 import TextFilterPopup from '@components/Search/FilterDropdowns/TextFilterPopup';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
-import type {SearchFilterKey, SearchQueryJSON} from '@components/Search/types';
+import type {SearchQueryJSON} from '@components/Search/types';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -21,14 +21,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
 import {buildQueryStringWithResetFilters, hasFiltersChangedFromDefault, isSearchQuerySavable, removeNegation} from '@libs/SearchQueryUtils';
 import {getFilterViewLabelKey, isAmountFilterKey, isDateFilterKey, isReportFieldKey, isTextFilterKey, mapFiltersFormToLabelValueList, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
-import type {SearchFilter} from '@libs/SearchUIUtils';
+import type {MappedFilterKey, SearchFilter} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {ReactNode} from 'react';
@@ -61,8 +61,8 @@ type FilterPopupProps = {
     updateFilterForm: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
-function getFilterSentryLabel(filterKey: SearchAdvancedFiltersKey | SearchFilterKey) {
-    return `Search-Filter-${filterKey}`;
+function getFilterSentryLabel(filterKey: MappedFilterKey): SentryLabel {
+    return `${CONST.SENTRY_LABEL_PREFIX.SEARCH_FILTER}${filterKey}`;
 }
 
 function FilterPopup({baseFilterKey, isDefault, searchAdvancedFiltersForm, closeOverlay, setPopoverWidth, updateFilterForm}: FilterPopupProps) {

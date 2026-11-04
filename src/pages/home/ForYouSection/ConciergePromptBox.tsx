@@ -303,7 +303,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
                                                         ref={actionButtonRef}
                                                         accessibilityLabel={translate('accessibilityHints.openActionsMenu')}
                                                         role={CONST.ROLE.BUTTON}
-                                                        sentryLabel="ConciergePromptBox-AddAttachment"
+                                                        sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.CONCIERGE_PROMPT_ADD_ATTACHMENT}
                                                         disabled={!canAddAttachment}
                                                         onPress={(e) => {
                                                             e?.preventDefault();
@@ -442,7 +442,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
                     <View style={styles.justifyContentEnd}>
                         <SubmitDraftButton
                             accessibilityLabel={translate('common.send')}
-                            sentryLabel="ConciergePromptBox-Send"
+                            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.CONCIERGE_PROMPT_SEND}
                             isDisabled={!canSubmit}
                             icon={icons.Send}
                             label={translate('common.send')}

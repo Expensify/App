@@ -40,7 +40,6 @@ function Probe({consumerOnPress, consumerNativeID, consumerAccessibilityState, c
             nativeID={merged.nativeID}
             accessibilityState={merged.accessibilityState}
             accessibilityLabel="probe"
-            sentryLabel="probe"
         >
             <Text>probe</Text>
         </PressableWithFeedback>

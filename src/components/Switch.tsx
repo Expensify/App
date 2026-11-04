@@ -6,6 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React, {useLayoutEffect, useRef} from 'react';
 import Animated, {cancelAnimation, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -133,7 +134,10 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, pending = false, 
             // disable hover dim for switch
             hoverDimmingValue={1}
             pressDimmingValue={0.8}
-            sentryLabel={enhancedAccessibilityLabel}
+            // The accessibility label can contain user data like category or tag names, which reaches `data-sentry-label`
+            // on web. Native drops it because it's not a known label. Remove this cast once switches get their own labels.
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            sentryLabel={enhancedAccessibilityLabel as SentryLabel}
         >
             <Animated.View style={[styles.switchTrack, animatedSwitchTrackStyle]}>
                 <Animated.View style={[styles.switchThumb, animatedThumbStyle]}>

@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ValueOf} from 'type-fest';
 
@@ -33,7 +34,7 @@ type PressableDiagonalAvatarsProps = {
     onAvatarPress: (avatar: IconType) => void;
 
     /** Sentry label applied to both pressables */
-    sentryLabel: string;
+    sentryLabel: SentryLabel;
 };
 
 /** `PressableDiagonalAvatars` renders a diagonal avatar stack where each avatar is its own press target. */

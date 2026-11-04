@@ -95,10 +95,11 @@ describe('touchEventBoundaryProps', () => {
         `${CONST.SENTRY_LABEL.LHN.OPTION_ROW}-ClearButton`,
         'Search-Filter-merchant',
         'Search-Filter-statusNot',
-        'Search-Filter-reportField-project-code',
+        'Search-Filter-reportField',
         'Search-Advanced-Filter-category',
         'Search-FilterPopupApply-tag',
-        `${CONST.SENTRY_LABEL.SOCIALS.LINK}-Twitter`,
+        `${CONST.SENTRY_LABEL_PREFIX.SOCIALS}Twitter`,
+        'SignInFooter-footer.aboutExpensify',
         'DynamicHRSyncResultsPage-SkippedEmployees',
     ])('reports a sentryLabel built at runtime in a known format: %s', (sentryLabel) => {
         // Given a sentryLabel built from values in the code
@@ -108,6 +109,18 @@ describe('touchEventBoundaryProps', () => {
         // Then the tap is named after it
         expect(label).toBe(sentryLabel);
     });
+
+    it.each([...Object.values(CONST.SENTRY_LABEL_PREFIX).map((prefix) => `${prefix}Value`), ...Object.values(CONST.SENTRY_LABEL_SUFFIX).map((suffix) => `Value${suffix}`)])(
+        'reports a sentryLabel built with every prefix and suffix in CONST: %s',
+        (sentryLabel) => {
+            // Given a sentryLabel built with a prefix or suffix from CONST, which the SentryLabel type allows
+            // When the user taps the element with that label
+            const {label} = touch({sentryLabel});
+
+            // Then the tap is named after it, so adding a prefix or suffix to CONST is enough to make its labels work on native
+            expect(label).toBe(sentryLabel);
+        },
+    );
 
     it.each(['Search-Filter', 'ClearButton', 'Report-Search-Filter-tag', 'LHN-OptionRow-ClearButton-Icon'])(
         'does not report a sentryLabel that only contains a known prefix or suffix: %s',

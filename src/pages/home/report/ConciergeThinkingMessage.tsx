@@ -206,7 +206,7 @@ function ConciergeThinkingMessageContent({accountID, reasoningHistory, statusLab
                     disabled={!hasReasoningHistory}
                     accessibilityRole={hasReasoningHistory ? CONST.ROLE.BUTTON : undefined}
                     accessibilityLabel={getAccessibilityLabel()}
-                    sentryLabel="ConciergeThinkingMessage-ToggleReasoning"
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT.CONCIERGE_THINKING_TOGGLE_REASONING}
                     accessible
                 >
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>

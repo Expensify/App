@@ -36,7 +36,7 @@ function ListPopup({baseFilterKey, isDefault, values, label, updateFilterForm, c
             label={label}
             onApply={applyChanges}
             shouldShowActionButtons={!isDefault || !!value?.length}
-            applySentryLabel={`Search-FilterPopupApply-${baseFilterKey}`}
+            applySentryLabel={`${CONST.SENTRY_LABEL_PREFIX.SEARCH_FILTER_POPUP_APPLY}${baseFilterKey}`}
         >
             <ListFilterContent
                 baseFilterKey={baseFilterKey}

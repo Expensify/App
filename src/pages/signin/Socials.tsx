@@ -72,7 +72,7 @@ function Socials() {
                     accessibilityLabel={translate(social.label)}
                     style={[styles.mr1, styles.mt1]}
                     shouldUseAutoHitSlop={false}
-                    sentryLabel={`${CONST.SENTRY_LABEL.SOCIALS.LINK}-${social.iconURL}`}
+                    sentryLabel={`${CONST.SENTRY_LABEL_PREFIX.SOCIALS}${social.iconURL}`}
                 >
                     {({hovered, pressed}) => (
                         <Icon

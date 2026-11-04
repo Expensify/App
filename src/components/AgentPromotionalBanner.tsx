@@ -6,6 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import BillingBanner from '@pages/settings/Subscription/CardSection/BillingBanner/BillingBanner';
 
 import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
@@ -27,7 +28,7 @@ type AgentPromotionalBannerProps = {
     onDismiss: () => void;
 
     /** Sentry label for the dismiss button. */
-    dismissSentryLabel: string;
+    dismissSentryLabel: SentryLabel;
 
     /** Optional CTA text. When omitted, the CTA is not rendered. */
     ctaText?: string;
@@ -36,7 +37,7 @@ type AgentPromotionalBannerProps = {
     onCtaPress?: () => void;
 
     /** Sentry label for the CTA. Required when `ctaText` is set. */
-    ctaSentryLabel?: string;
+    ctaSentryLabel?: SentryLabel;
 
     /** Extra styles applied to the outer container. */
     style?: StyleProp<ViewStyle>;

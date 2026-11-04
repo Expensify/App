@@ -32,7 +32,7 @@ function FooterRow({href, onPress, translationPath, text, style}: FooterRowProps
             accessible
             accessibilityRole={CONST.ROLE.LINK}
             accessibilityLabel={text}
-            sentryLabel={translationPath}
+            sentryLabel={`${CONST.SENTRY_LABEL_PREFIX.SIGN_IN_FOOTER}${translationPath}`}
             onPress={() => {
                 if (onPress) {
                     onPress({} as GestureResponderEvent);

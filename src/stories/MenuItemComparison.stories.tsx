@@ -625,14 +625,14 @@ function Comparison() {
                     <MenuItemWithTopDescription
                         description="Display"
                         title="Comfortable"
-                        sentryLabel="menuItemComparisonStorySentryLabel"
+                        sentryLabel={CONST.SENTRY_LABEL.STORYBOOK.MENU_ITEM_COMPARISON}
                         onPress={noop}
                     />
                 }
                 composable={
                     <MenuItem.Root
                         onPress={noop}
-                        sentryLabel="menuItemComparisonStorySentryLabel"
+                        sentryLabel={CONST.SENTRY_LABEL.STORYBOOK.MENU_ITEM_COMPARISON}
                     >
                         <MenuItem.Row>
                             <MenuItem.Content>

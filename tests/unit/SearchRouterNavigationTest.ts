@@ -261,7 +261,7 @@ function createSettingsMenuItem(translationKey: MenuData['translationKey'], scre
         translationKey,
         icon: mockIcon,
         screenName,
-        sentryLabel: translationKey,
+        sentryLabel: CONST.SENTRY_LABEL.SETTINGS_GENERAL.HELP,
         action,
     };
 }

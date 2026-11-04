@@ -1,6 +1,8 @@
 import {useFeatureTrainingActions, useFeatureTrainingState} from '@components/FeatureTraining/context';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
+
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
@@ -10,7 +12,7 @@ type ConfirmButtonProps = {
     children: string;
 
     /** Sentry label for the confirm button; falls back to the root confirmSentryLabel */
-    sentryLabel?: string;
+    sentryLabel?: SentryLabel;
 
     /** Style for the button container, e.g. flex1 when sharing a ButtonRow */
     style?: StyleProp<ViewStyle>;
