@@ -292,6 +292,7 @@ function AddressSearch({
                 }
                 onInputChange?.(inputValue, inputKey);
             }
+            // After the loop, so a caller that points stateCode at its state input gets the code over the full name
             if (renamedInputKeys?.stateCode) {
                 onInputChange?.(stateCode, renamedInputKeys.stateCode);
             }
