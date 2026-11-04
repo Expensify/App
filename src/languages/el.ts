@@ -1259,7 +1259,7 @@ const translations: TranslationDeepObject<typeof en> = {
     insightsPage: {
         tagLevel: (level: string) => `Επίπεδο ετικέτας ${level}`,
         tagLevelLabel: 'Επίπεδο ετικέτας',
-        parent: 'Γονικό',
+        parent: 'Γονέας',
         shareOfTotal: 'Μερίδιο του συνόλου (%)',
         viewOnSpend: 'Προβολή στο Spend',
         emptyState: {title: 'Τίποτα προς εμφάνιση', subtitle: 'Δοκιμάστε να προσαρμόσετε τα κριτήριά σας παραπάνω'},
@@ -1283,7 +1283,7 @@ const translations: TranslationDeepObject<typeof en> = {
             allSpenderAverage: 'Μέσος όρος όλων των δαπανών',
             allMerchantAverage: 'Μέσος όρος όλων των εμπόρων',
             allCategoryAverage: 'Μέσος όρος όλων των κατηγοριών',
-            tagAverage: 'Μέσος όρος ετικέτας',
+            tagAverage: 'Μέση ετικέτα',
             averageValue: (amount: string) => `${amount} κατά μέσο όρο`,
         },
         compliance: 'Συμμόρφωση',

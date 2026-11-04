@@ -1201,10 +1201,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     insightsPage: {
-        tagLevel: (level: string) => `タグレベル${level}`,
+        tagLevel: (level: string) => `タグレベル ${level}`,
         tagLevelLabel: 'タグレベル',
         parent: '親',
-        shareOfTotal: '合計に占める割合（%）',
+        shareOfTotal: '全体に占める割合（％）',
         viewOnSpend: '支出で表示',
         emptyState: {title: '表示するものはありません', subtitle: '上の条件を調整してみてください'},
         noExpensesState: {title: 'お金の使い道を確認する', subtitle: '経費が登録されると、支出の傾向や上位の加盟店など、さまざまな情報を確認できるようになります。'},
@@ -7500,7 +7500,6 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 title: 'メンバーをコピー',
                 prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
                     one: `${targetWorkspaceName}のメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`,
-                    // Japanese has no "one" plural category, so handle the single-workspace case here
                     other:
                         count === 1
                             ? `${targetWorkspaceName}のメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`
@@ -10804,7 +10803,7 @@ ${reportName}`,
             insights: 'インサイト',
             topSpenders: '上位の支出者',
             topCategories: '上位カテゴリ',
-            topTags: '上位タグ',
+            topTags: '人気のタグ',
             topMerchants: '上位加盟店',
             violationsBySubmitter: '申請者による違反',
             travel: '出張',

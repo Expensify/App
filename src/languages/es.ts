@@ -1231,7 +1231,7 @@ const translations: TranslationDeepObject<typeof en> = {
             allSpenderAverage: 'Promedio de todos los que gastan',
             allMerchantAverage: 'Promedio de todos los comercios',
             allCategoryAverage: 'Promedio de todas las categorías',
-            tagAverage: 'Promedio de la etiqueta',
+            tagAverage: 'Media de etiqueta',
             averageValue: (amount: string) => `${amount} prom de media`,
         },
         compliance: 'Cumplimiento',
