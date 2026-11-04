@@ -3,7 +3,6 @@ import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoo
 import Section from '@components/Section';
 
 import useConfirmModal from '@hooks/useConfirmModal';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultWorkspaceTravelGuard from '@hooks/useDefaultWorkspaceTravelGuard';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -16,7 +15,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearPolicyErrorField} from '@libs/actions/Policy/Policy';
 import {setPolicyTravelSettings} from '@libs/actions/Policy/Travel';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
-import {canMemberRead} from '@libs/PolicyUtils';
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
@@ -39,15 +37,10 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
     const StyleUtils = useStyleUtils();
     const policy = usePolicy(policyID);
     const {canWrite: canWriteMoreFeatures, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
-    const {canWrite: canWriteTravel, withReadOnlyFallback: withTravelReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TRAVEL);
     const icons = useMemoizedLazyExpensifyIcons(['LuggageWithLines']);
     const illustrations = useMemoizedLazyIllustrations(['RocketDude']);
     const {isBetaEnabled} = usePermissions();
     const {showConfirmModal} = useConfirmModal();
-    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-
-    // Travel admins only see who can book travel, so the workspace settings stay with the members who can read them
-    const canReadMoreFeatures = canMemberRead(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const blockIfDefaultWorkspaceLacksTravel = useDefaultWorkspaceTravelGuard();
     const isPreventSpotnanaTravelEnabled = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
 
@@ -98,9 +91,9 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
                 subtitleMuted
                 isCentralPane
             >
-                <View style={[styles.mt3, !canWriteTravel && styles.buttonOpacityDisabled]}>
+                <View style={[styles.mt3, !canWriteMoreFeatures && styles.buttonOpacityDisabled]}>
                     <MenuItemSectionRoot
-                        onPress={withTravelReadOnlyFallback(handleManageTravel)}
+                        onPress={withReadOnlyFallback(handleManageTravel)}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BOOK_TRAVEL_BUTTON}
                     >
                         <MenuItem.Row>
@@ -108,7 +101,7 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
                             <MenuItem.Content>
                                 <MenuItem.Title>{bookTravelText}</MenuItem.Title>
                             </MenuItem.Content>
-                            {canWriteTravel && (
+                            {canWriteMoreFeatures && (
                                 <MenuItem.Trailing>
                                     <MenuItem.NewWindowIcon />
                                 </MenuItem.Trailing>
@@ -116,24 +109,22 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
                         </MenuItem.Row>
                     </MenuItemSectionRoot>
                 </View>
-                {canReadMoreFeatures && (
-                    <ToggleSettingOptionRow
-                        title={translate('workspace.moreFeatures.travel.settings.autoAddTripName.title')}
-                        subtitle={translate('workspace.moreFeatures.travel.settings.autoAddTripName.subtitle')}
-                        shouldPlaceSubtitleBelowSwitch
-                        switchAccessibilityLabel={translate('workspace.moreFeatures.travel.settings.autoAddTripName.title')}
-                        isActive={autoAddTripName}
-                        onToggle={toggleAutoAddTripName}
-                        disabled={!canWriteMoreFeatures}
-                        disabledAction={withReadOnlyFallback()}
-                        showLockIcon={!canWriteMoreFeatures}
-                        pendingAction={policy?.pendingFields?.autoAddTripName}
-                        errors={policy?.errorFields?.autoAddTripName ?? undefined}
-                        onCloseError={() => clearPolicyErrorField(policyID, 'autoAddTripName')}
-                        wrapperStyle={styles.mt3}
-                    />
-                )}
-                {canReadMoreFeatures && isCodingSyncBetaEnabled && (
+                <ToggleSettingOptionRow
+                    title={translate('workspace.moreFeatures.travel.settings.autoAddTripName.title')}
+                    subtitle={translate('workspace.moreFeatures.travel.settings.autoAddTripName.subtitle')}
+                    shouldPlaceSubtitleBelowSwitch
+                    switchAccessibilityLabel={translate('workspace.moreFeatures.travel.settings.autoAddTripName.title')}
+                    isActive={autoAddTripName}
+                    onToggle={toggleAutoAddTripName}
+                    disabled={!canWriteMoreFeatures}
+                    disabledAction={withReadOnlyFallback()}
+                    showLockIcon={!canWriteMoreFeatures}
+                    pendingAction={policy?.pendingFields?.autoAddTripName}
+                    errors={policy?.errorFields?.autoAddTripName ?? undefined}
+                    onCloseError={() => clearPolicyErrorField(policyID, 'autoAddTripName')}
+                    wrapperStyle={styles.mt3}
+                />
+                {isCodingSyncBetaEnabled && (
                     <ToggleSettingOptionRow
                         title={translate('workspace.moreFeatures.travel.settings.codingSync.title')}
                         subtitle={translate('workspace.moreFeatures.travel.settings.codingSync.subtitle')}
@@ -151,7 +142,7 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
                     />
                 )}
             </Section>
-            {canReadMoreFeatures && <WorkspaceTravelBillingSection policyID={policyID} />}
+            <WorkspaceTravelBillingSection policyID={policyID} />
         </>
     );
 }

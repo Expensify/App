@@ -3,7 +3,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -11,7 +10,7 @@ import {setPolicyTravelMemberAccess} from '@libs/actions/Policy/Travel';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canMemberChangeTravelAccess, canMemberUseTravel, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
+import {canMemberUseTravel, isPolicyAdmin, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
 import {getTravelMemberAccessOptions} from '@libs/TravelMemberOptionUtils';
 import type {TravelMemberOption} from '@libs/TravelMemberOptionUtils';
 import {getMemberLoginByAccountID} from '@libs/WorkArrangementUtils';
@@ -43,13 +42,12 @@ function WorkspaceMemberTravelSettingPage({policy, personalDetails, route}: Work
     const accountID = Number(route.params.accountID);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
 
     const memberLogin = personalDetails?.[accountID]?.login ?? getMemberLoginByAccountID(policy, accountID);
     const member = {email: memberLogin, accountID};
     // A member still being added has an optimistic accountID the server doesn't know yet
     const canChangeTravelSetting =
-        canMemberChangeTravelAccess(policy, currentUserLogin, memberLogin) &&
+        isPolicyAdmin(policy) &&
         isWorkspaceProvisionedForTravel(policy?.travelSettings) &&
         !!policy?.employeeList?.[memberLogin] &&
         policy.employeeList[memberLogin]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
@@ -69,7 +67,7 @@ function WorkspaceMemberTravelSettingPage({policy, personalDetails, route}: Work
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
-            policyFeature={CONST.POLICY.POLICY_FEATURE.TRAVEL}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
             shouldBeBlocked={!canChangeTravelSetting}
         >
