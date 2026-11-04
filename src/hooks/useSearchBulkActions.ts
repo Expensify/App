@@ -80,7 +80,15 @@ import {
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
-import {buildSearchQueryJSON, buildSearchQueryString, getFilterFromQuery, isDefaultExpensesQuery, queryHasViolationFilter, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
+import {
+    buildSearchQueryJSON,
+    buildSearchQueryString,
+    getAllMatchingReportQuery,
+    getFilterFromQuery,
+    isDefaultExpensesQuery,
+    queryHasViolationFilter,
+    serializeQueryJSONForBackend,
+} from '@libs/SearchQueryUtils';
 import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
 import type {SearchGroupKey} from '@libs/SearchUIUtils';
 import {
@@ -440,25 +448,6 @@ const NON_EXPORTABLE_COLUMNS = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COL
 
 function getExportableColumns(columns: SearchColumnType[]): SearchColumnType[] {
     return columns.filter((column) => !NON_EXPORTABLE_COLUMNS.has(column));
-}
-
-function getAllMatchingReportQuery(queryJSON: SearchQueryJSON, excludedTransactions: SelectedTransactions): SearchQueryJSON | undefined {
-    const excludedEntries = Object.values(excludedTransactions);
-    if (excludedEntries.some((transaction) => !transaction.reportID)) {
-        return undefined;
-    }
-    const excludedReportIDs = [...new Set(excludedEntries.map((transaction) => transaction.reportID).filter((reportID): reportID is string => !!reportID))];
-    if (excludedReportIDs.length === 0) {
-        return queryJSON;
-    }
-
-    const flatFilters = queryJSON.flatFilters.map((filter) => ({...filter, filters: [...filter.filters]}));
-    flatFilters.push({
-        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
-        filters: excludedReportIDs.map((reportID) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: reportID})),
-    });
-
-    return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, flatFilters}));
 }
 
 /**
@@ -3572,5 +3561,5 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 }
 
 export default useSearchBulkActions;
-export {getAllMatchingReportQuery, getFullyDeletedGroupKeysByTransactionID, getGroupKeysSelectedViaGroup, getSelectedGroupKeys, shouldShowBulkDuplicateOption};
+export {getFullyDeletedGroupKeysByTransactionID, getGroupKeysSelectedViaGroup, getSelectedGroupKeys, shouldShowBulkDuplicateOption};
 export type {SearchHeaderOptionValue};
