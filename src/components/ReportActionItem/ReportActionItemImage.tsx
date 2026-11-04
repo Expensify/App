@@ -162,8 +162,8 @@ function ReportActionItemImage({
     // While the receipt is regenerating its stored URL is stale, so draw the live route from `routes.coordinates`
     // (via `ConfirmedRoute`) instead of loading the now-404'd image.
     // Offline `ConfirmedRoute` can only draw a placeholder, while the queued edit hasn't touched the stored map yet.
-    // Keep that map when the route is unchanged. A route edit nulls the distance or flags `waypoints`/`routes`.
-    const hasPendingRouteChange = isFetchingWaypointsFromServer(transaction) || !!transaction?.pendingFields?.routes;
+    // Keep that map when the route is unchanged. A route edit nulls the distance or flags `waypoints`/`routes`/`selectedRouteKey`.
+    const hasPendingRouteChange = isFetchingWaypointsFromServer(transaction) || !!transaction?.pendingFields?.routes || !!transaction?.pendingFields?.selectedRouteKey;
     const canUseCachedMapOffline =
         shouldUseCachedMapWhenOffline && isOffline && typeof transaction?.receipt?.source === 'string' && hasLocallyKnownDistance(transaction) && !hasPendingRouteChange;
     const showMapAsImage = isMapDistanceRequest && (hasErrors || hasPendingDistanceReceiptRegeneration(transaction)) && !canUseCachedMapOffline;
