@@ -28,6 +28,7 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useState} from 'react';
 
 import CurrencyPopup from './CurrencyPopup';
@@ -45,6 +46,7 @@ type DisplayPopupProps = {
 };
 
 function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayPopupProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isLargeScreenWidth, isSmallScreenWidth} = useResponsiveLayout(); // eslint-disable-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -77,7 +79,8 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
         };
 
         const isExpenseType = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
-        const isTripType = queryJSON.type === CONST.SEARCH.DATA_TYPES.TRIP;
+        // Trip rooms have no group-by, so only a trip search without the TravelApproval beta offers it
+        const isTripType = queryJSON.type === CONST.SEARCH.DATA_TYPES.TRIP && !shouldReturnTripRooms;
         const sortByValue = queryJSON.sortBy;
         const sortOrderValue = queryJSON.sortOrder;
         const groupByValue = searchAdvancedFilters[CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY];
@@ -101,7 +104,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                         value={validGroupByValue ? translate(`search.filters.groupBy.${validGroupByValue}`) : undefined}
                     />
                 )}
-                {!!groupBy && (
+                {!!groupBy && !shouldReturnTripRooms && (
                     <MenuItemField
                         name={translate('common.groupCurrency')}
                         onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY)}
@@ -128,10 +131,14 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                 {shouldShowColumnsButton && (
                     <CompactMenuContext.Provider value>
                         <MenuItem.Root
-                            onPress={callFunctionIfActionIsAllowed(() => {
-                                closeOverlay();
-                                openSearchColumns();
-                            })}
+                            onPress={callFunctionIfActionIsAllowed(
+                                () => {
+                                    closeOverlay();
+                                    openSearchColumns();
+                                },
+                                false,
+                                session,
+                            )}
                             accessibilityLabel={translate('search.editColumns')}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMNS_BUTTON}
                         >
