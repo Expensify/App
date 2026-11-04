@@ -1461,8 +1461,10 @@ function getReportActionActorAccountID(
     // When true (e.g. in search results) the actual author is returned instead of the Concierge
     // display override used in inbox timelines for automated actions.
     shouldUseRealActor = false,
-    // Bill intake saves Bill Pay creation and submission actions with the vendor's or receiver's token, so their stored actor is
-    // not the person who created the bill. Callers that show those actions pass the invoice link and the creation processor.
+
+    // Bill intake saves a bill's creation and submission actions under the receiver's account,
+    // and its invoice's actions under the vendor's account. The history should show the person
+    // who entered the bill instead, or Concierge if the bill came from an email.
     billPayHistory?: {isInvoiceLinkedToBill: boolean; processorAccountID: number | undefined},
 ): number | undefined {
     if (billPayHistory && isBillPayHistoryAction(reportAction, iouReport, billPayHistory.isInvoiceLinkedToBill)) {
