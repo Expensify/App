@@ -6,6 +6,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import {acquireSearchWriteBarrier, flushPendingSearchWrite, hasPendingSearchWrite, markPendingSearchWrite, resetForTesting, setSearchWriteWatchKey} from '@libs/pendingSearchWrite';
 import type * as ReportActionMessageUtils from '@libs/ReportActionMessageUtils';
 import type * as ReportActionTypeGuards from '@libs/ReportActionTypeGuards';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 
 import CONST from '@src/CONST';
@@ -107,15 +108,41 @@ describe('useOptimisticSearchTracking', () => {
         expect(result.current.searchDataWithOptimisticTransaction).not.toHaveProperty(TRANSACTION_KEY);
     });
 
+    it('keeps a matching optimistic expense visible without a server response', () => {
+        // Given a merchant-filtered search and a matching expense whose write is pending
+        const queryJSON = buildSearchQueryJSON('type:expense merchant:Unique');
+        if (!queryJSON) {
+            throw new Error('Expected a valid merchant query');
+        }
+        markPendingSearchWrite();
+        setSearchWriteWatchKey(TRANSACTION_KEY);
+
+        // When Search mounts before the server has indexed the expense
+        const {result} = renderTracking(queryJSON.hash, {queryJSON});
+
+        // Then the row appears immediately and survives the tracking timeout without a server response
+        expect(result.current.searchDataWithOptimisticTransaction).toHaveProperty(TRANSACTION_KEY);
+        expect(result.current.trackingState.isOptimisticTrackingCleared).toBe(false);
+        act(() => jest.advanceTimersByTime(10_000));
+        expect(result.current.searchDataWithOptimisticTransaction).toHaveProperty(TRANSACTION_KEY);
+
+        // When a second pending creation rearms the mounted search, it must also appear immediately
+        act(() => result.current.trackingState.clearOptimisticTracking());
+        act(() => result.current.rearmTracking());
+        expect(result.current.searchDataWithOptimisticTransaction).toHaveProperty(TRANSACTION_KEY);
+    });
+
     it('does not add the optimistic transaction when it does not match the query filters', () => {
         // Given a submission whose expense is still pending
         markPendingSearchWrite();
         setSearchWriteWatchKey(TRANSACTION_KEY);
 
-        // When Search mounts with a merchant filter, which only the server evaluates and "Unique merchant" doesn't match
-        const {result} = renderTracking(333, {
-            queryJSON: makeQueryJSON(333, [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'I'}]}]),
-        });
+        // When Search mounts with a merchant filter that "Unique merchant" does not match
+        const queryJSON = buildSearchQueryJSON('type:expense merchant:Other');
+        if (!queryJSON) {
+            throw new Error('Expected a valid merchant query');
+        }
+        const {result} = renderTracking(queryJSON.hash, {queryJSON});
 
         // Then the expense is left out and tracking stops, since the server will never return it for this query
         expect(result.current.searchDataWithOptimisticTransaction).not.toHaveProperty(TRANSACTION_KEY);
