@@ -40,7 +40,7 @@ const categoryOutOfPolicyViolation = {
     showInReview: true,
 };
 
-const categoryNotAllowedViolation = {
+const restrictedCategoryViolation = {
     name: CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED,
     type: CONST.VIOLATION_TYPES.VIOLATION,
     showInReview: true,
@@ -1860,7 +1860,7 @@ describe('getViolationsOnyxData', () => {
                 isVendorMatchingBetaEnabled: false,
                 ownerLogin: undefined,
                 updatedTransaction: transaction,
-                transactionViolations: [categoryNotAllowedViolation],
+                transactionViolations: [restrictedCategoryViolation],
                 policy,
                 policyTagList: policyTags,
                 policyCategories,
@@ -1870,13 +1870,14 @@ describe('getViolationsOnyxData', () => {
             });
 
             // Then the violation is removed
-            expect(result.value).not.toContainEqual(categoryNotAllowedViolation);
+            expect(result.value).not.toContainEqual(restrictedCategoryViolation);
         });
 
         it('should keep the categoryNotAllowed violation when the owner still cannot use the category', () => {
             // Given an expense with categoryNotAllowed, coded to a category only another member can see
             const ownerAccountID = 1;
-            policyCategories = {Food: {name: 'Food', enabled: true, visibleTo: {2: true}}};
+            const otherAccountID = 2;
+            policyCategories = {Food: {name: 'Food', enabled: true, visibleTo: {[otherAccountID]: true}}};
             const iouReport = createMock<Report>({reportID: '1234', type: CONST.REPORT.TYPE.EXPENSE, ownerAccountID});
 
             // When the violations are recalculated
@@ -1884,7 +1885,7 @@ describe('getViolationsOnyxData', () => {
                 isVendorMatchingBetaEnabled: false,
                 ownerLogin: undefined,
                 updatedTransaction: transaction,
-                transactionViolations: [categoryNotAllowedViolation],
+                transactionViolations: [restrictedCategoryViolation],
                 policy,
                 policyTagList: policyTags,
                 policyCategories,
@@ -1894,7 +1895,7 @@ describe('getViolationsOnyxData', () => {
             });
 
             // Then the violation stays
-            expect(result.value).toContainEqual(categoryNotAllowedViolation);
+            expect(result.value).toContainEqual(restrictedCategoryViolation);
         });
 
         it('should not include a categoryOutOfPolicy violation when category is in policy', () => {

@@ -825,8 +825,8 @@ const ViolationsUtils = {
 
             // Remove 'categoryNotAllowed' violation if the owner can see the category
             const ownerAccountID = iouReport?.ownerAccountID;
-            const hasCategoryNotAllowedViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED);
-            if (hasCategoryNotAllowedViolation && ownerAccountID && isCategoryVisibleToMember(categoryData, ownerAccountID)) {
+            const hasRestrictedCategoryViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED);
+            if (hasRestrictedCategoryViolation && ownerAccountID && isCategoryVisibleToMember(categoryData, ownerAccountID)) {
                 newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED});
             }
 
