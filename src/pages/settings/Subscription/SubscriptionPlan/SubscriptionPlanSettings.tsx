@@ -53,6 +53,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {GestureResponderEvent} from 'react-native';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {authTokenTypeSelector} from '@selectors/Session';
 import {View} from 'react-native';
 
 import type {PersonalPolicyTypeExcludedProps} from './SubscriptionPlanCard';
@@ -77,6 +78,7 @@ function AnnualSavingsTooltip() {
     const theme = useTheme();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const icons = useMemoizedLazyExpensifyIcons(['Info']);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
@@ -97,7 +99,7 @@ function AnnualSavingsTooltip() {
         if (!href.endsWith(CONST.PRICING)) {
             return;
         }
-        openLink(CONST.PRICING, environmentURL);
+        openLink(CONST.PRICING, environmentURL, false, session);
     };
 
     const stopRowPress = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
@@ -147,7 +149,8 @@ function AnnualSavingsTooltip() {
 
 function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: SubscriptionPlanSettingsProps) {
     const styles = useThemeStyles();
-    const {cardPaddingHorizontal, cardPaddingTop} = useLayoutSpacing();
+    const {cardPadding, cardPaddingHorizontal} = useLayoutSpacing();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate, dateFnsLocale} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Tag', 'Coins']);
     const privateSubscription = usePrivateSubscription();
@@ -275,7 +278,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
 
     return (
         <View testID="SubscriptionPlanSettings">
-            <View style={[cardPaddingHorizontal, cardPaddingTop, styles.pb2]}>
+            <View style={[cardPadding, styles.pb2]}>
                 <View>
                     <Text style={styles.textLabelSupporting}>{translate('subscription.yourPlan.plan')}</Text>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
@@ -322,7 +325,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
             </View>
             <OfflineWithFeedback pendingAction={privateSubscription.pendingFields?.type}>
                 <MenuItem.Root
-                    onPress={callFunctionIfActionIsAllowed(navigateToSubscriptionDetails)}
+                    onPress={callFunctionIfActionIsAllowed(navigateToSubscriptionDetails, false, session)}
                     testID="SubscriptionPlanSettings-subscriptionType"
                     accessibilityLabel={`${translate('subscription.subscriptionSettings.subscriptionType')}, ${subscriptionTypeValue}`}
                 >
@@ -365,7 +368,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                                     if (!href.endsWith(CONST.PRICING)) {
                                         return;
                                     }
-                                    openLink(CONST.PRICING, environmentURL);
+                                    openLink(CONST.PRICING, environmentURL, false, session);
                                 }}
                             />
                         </View>
