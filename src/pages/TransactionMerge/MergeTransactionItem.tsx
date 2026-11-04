@@ -14,13 +14,26 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type Transaction from '@src/types/onyx/Transaction';
 
 import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import React, {useRef} from 'react';
 
-function MergeTransactionItem<TItem extends ListItem>({item, isFocused, showTooltip, isDisabled, onFocus, shouldSyncFocus, onSelectRow, isLastItem}: ListItemProps<TItem>) {
+/** A transaction rendered as a selectable row in the merge-expenses list */
+type MergeTransactionListItemType = Transaction & ListItem;
+
+function MergeTransactionItem<TItem extends MergeTransactionListItemType>({
+    item,
+    isFocused,
+    showTooltip,
+    isDisabled,
+    onFocus,
+    shouldSyncFocus,
+    onSelectRow,
+    isLastItem,
+}: ListItemProps<TItem>) {
     const styles = useThemeStyles();
     const transactionItem = item as unknown as TransactionListItemType;
     const theme = useTheme();
@@ -81,3 +94,4 @@ function MergeTransactionItem<TItem extends ListItem>({item, isFocused, showTool
 }
 
 export default MergeTransactionItem;
+export type {MergeTransactionListItemType};

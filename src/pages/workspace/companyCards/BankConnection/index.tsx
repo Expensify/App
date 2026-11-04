@@ -1,13 +1,14 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
 import useCardFeeds from '@hooks/useCardFeeds';
+import useCompanyCardConnectionError from '@hooks/useCompanyCardConnectionError';
 import useDuplicateFeedDetection from '@hooks/useDuplicateFeedDetection';
 import useImportPlaidAccounts from '@hooks/useImportPlaidAccounts';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
@@ -25,7 +26,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import WorkspaceCompanyCardsErrorConfirmation from '@pages/workspace/companyCards/WorkspaceCompanyCardsErrorConfirmation';
 
 import {updateSelectedFeed} from '@userActions/Card';
-import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
+import {clearAddNewCompanyCardErrors, setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import {getCompanyCardBankConnection} from '@userActions/getCompanyCardBankConnection';
 
 import CONST from '@src/CONST';
@@ -34,7 +35,7 @@ import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
 import openBankConnection from './openBankConnection';
 
@@ -61,10 +62,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const [shouldBlockWindowOpen, setShouldBlockWindowOpen] = useState(false);
     const selectedBank = addNewCard?.data?.selectedBank;
     const bankName = feed ? getBankName(getCompanyCardFeed(feed)) : (addNewCard?.data?.plaidConnectedFeed ?? selectedBank);
-    const {isNewFeedConnected, newFeed} = useMemo(
-        () => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds ?? {}, addNewCard?.data?.plaidConnectedFeed),
-        [addNewCard?.data?.plaidConnectedFeed, cardFeeds, prevFeedsData],
-    );
+    const {isNewFeedConnected, newFeed} = checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds ?? {}, addNewCard?.data?.plaidConnectedFeed);
     const {isOffline} = useNetwork();
     const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.cardToAssign?.plaidAccessToken;
     const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
@@ -74,19 +72,19 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.[feed]) : false;
     const headerTitleAddCards = translate('workspace.companyCards.addCards');
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
-    const isNewFeedHasError = !!(newFeed && cardFeeds?.[newFeed]?.errors);
+    const {errorMessage, hasError: isNewFeedHasError} = useCompanyCardConnectionError({cardFeeds, addNewCard, newFeed, isAddingNewCard: !feed});
     // importPlaidAccounts only writes these errors while repairing an existing feed, so the add-card flow ignores them
     const hasImportError = !!feed && !isEmptyObject(assignCard?.errors);
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
     const {checkForDuplicateFeed} = useDuplicateFeedDetection({policyID, isPlaid});
 
-    const onOpenBankConnectionFlow = useCallback(() => {
+    const onOpenBankConnectionFlow = () => {
         if (!url) {
             return;
         }
         customWindow = openBankConnection(url);
-    }, [url]);
+    };
 
     useEffect(() => {
         if (!policyID || !isBlockedToAddNewFeeds || feed) {
@@ -106,6 +104,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
             return;
         }
 
+        clearAddNewCompanyCardErrors();
         setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
     };
 
@@ -203,13 +202,11 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const getContent = () => {
         if (hasImportError) {
             return (
-                <ConfirmationPage
+                <ConfirmationPageDefault
                     heading={translate('workspace.companyCards.error.feedCouldNotBeLoadedTitle')}
                     description={translate('common.genericErrorMessage')}
                     illustration={illustrations.BrokenCompanyCardBankConnection}
                     illustrationStyle={styles.errorStateCardIllustration}
-                    containerStyle={styles.h100}
-                    shouldShowButton
                     buttonText={translate('common.buttonConfirm')}
                     onButtonPress={() => Navigation.closeRHPFlow()}
                 />
@@ -220,6 +217,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
                 <WorkspaceCompanyCardsErrorConfirmation
                     policyID={policyID}
                     newFeed={newFeed}
+                    errorMessage={errorMessage}
                 />
             );
         }

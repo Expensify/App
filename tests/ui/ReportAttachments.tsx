@@ -42,7 +42,7 @@ jest.mock('@rnmapbox/maps', () => {
 });
 jest.mock('@src/components/Attachments/AttachmentCarousel/Pager/usePageScrollHandler', () => jest.fn());
 
-const renderPage = (initialRouteName: typeof SCREENS.REPORT_ATTACHMENTS, initialParams: AuthScreensParamList[typeof SCREENS.REPORT_ATTACHMENTS]) => {
+const renderPage = (initialRouteName: typeof SCREENS.REPORT_ATTACHMENTS | typeof SCREENS.REPORT_ADD_ATTACHMENT, initialParams: AuthScreensParamList[typeof SCREENS.REPORT_ATTACHMENTS]) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, AttachmentModalContextProvider, CurrentReportIDContextProvider, PortalProvider, PlaybackContextProvider]}>
             <NavigationContainer>
@@ -50,12 +50,28 @@ const renderPage = (initialRouteName: typeof SCREENS.REPORT_ATTACHMENTS, initial
                     <Stack.Screen
                         name={SCREENS.REPORT_ATTACHMENTS}
                         component={AttachmentModalScreen}
-                        initialParams={initialParams}
+                        initialParams={initialRouteName === SCREENS.REPORT_ATTACHMENTS ? initialParams : undefined}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.REPORT_ADD_ATTACHMENT}
+                        component={AttachmentModalScreen}
+                        initialParams={initialRouteName === SCREENS.REPORT_ADD_ATTACHMENT ? initialParams : undefined}
                     />
                 </Stack.Navigator>
             </NavigationContainer>
         </ComposeProviders>,
     );
+};
+
+/** Returns the params of the OpenReport request sent for the given report */
+const getOpenReportParams = (reportID: string) => {
+    const openReportRequest = getFetchMockCalls(WRITE_COMMANDS.OPEN_REPORT).find((request) => {
+        const body = request[1]?.body;
+        const requestParams = body instanceof FormData ? Object.fromEntries(body) : {};
+        return requestParams?.reportID === reportID;
+    });
+    const body = openReportRequest?.[1]?.body;
+    return body instanceof FormData ? Object.fromEntries(body) : undefined;
 };
 
 // // Given report attachment data results consisting of involved user login, user account id, report & report action and attachment id
@@ -226,4 +242,30 @@ describe('ReportAttachments', () => {
         // Then the report should fetched by OpenReport API command
         expect(openReportRequest).toBeDefined();
     });
+
+    it.each([SCREENS.REPORT_ATTACHMENTS, SCREENS.REPORT_ADD_ATTACHMENT])(
+        "sends the report policy's full policy snapshot marker when %s fetches a cached workspace report",
+        async (screenName) => {
+            // Given a cached workspace report whose actions are not loaded, and a full policy snapshot marker for its policy
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportAttachmentID}`, {...reportAttachmentOnyx, policyID: 'policy1'});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}policy1`, {lastModified: 123});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // When the attachment screen opens for an attachment of that report
+            renderPage(screenName, {
+                source: 'https://staging.expensify.com/chat-attachments/7006877151048865417/w_d060af4fb7ac4a815e6ed99df9ef8dd216fdd8c7.png',
+                type: 'r',
+                reportID: reportAttachmentID,
+                isAuthTokenRequired: true,
+                originalFileName: 'Screenshot_2025-02-05_at_13.03.32.png',
+                accountID: TEST_USER_ACCOUNT_ID,
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the report is fetched with the marker, so OpenReport can skip the large policy collections
+            expect(getOpenReportParams(reportAttachmentID)).toEqual(expect.objectContaining({fullPolicySnapshotPolicyID: 'policy1', fullPolicySnapshotLastModified: '123'}));
+        },
+    );
 });

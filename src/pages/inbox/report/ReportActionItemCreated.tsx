@@ -8,6 +8,7 @@ import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticPersonalDetails from '@hooks/useOptimisticPersonalDetails';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -19,9 +20,9 @@ import {clearCreateChatError} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {conciergePersonalDetailSelector, isOptimisticPersonalDetailSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
-import React, {memo} from 'react';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {isPersonalDetailOptimistic} from '@selectors/PersonalDetails';
+import React from 'react';
 import {View} from 'react-native';
 
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
@@ -43,18 +44,20 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
     const {accountID: currentUserAccountID} = currentUserPersonalDetail;
-    const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: conciergePersonalDetailSelector});
-    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(report?.ownerAccountID)});
+    const [conciergePersonalDetail] = usePersonalDetail(CONST.ACCOUNT_ID.CONCIERGE);
+    const [reportOwnerPersonalDetail] = usePersonalDetail(report?.ownerAccountID);
     const optimisticPersonalDetails = useOptimisticPersonalDetails();
 
     const otherParticipantAccountID =
         Object.keys(report?.participants ?? {})
             .map(Number)
             .find((id) => id !== currentUserAccountID) ?? CONST.DEFAULT_NUMBER_ID;
-    const [isParticipantOptimistic = true] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: isOptimisticPersonalDetailSelector(otherParticipantAccountID)});
+    const [isParticipantOptimistic = true] = usePersonalDetail(otherParticipantAccountID, isPersonalDetailOptimistic);
 
     if (!isChatReport(report)) {
         return null;
@@ -66,19 +69,20 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
         <OfflineWithFeedback
             pendingAction={report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat}
             errors={report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat}
-            errorRowStyles={[styles.ml10, styles.mr2, styles.mb2]}
+            errorRowStyles={[styles.ml10, styles.mb2]}
             onClose={() =>
-                clearCreateChatError(
+                clearCreateChatError({
                     report,
                     conciergeReportID,
                     introSelected,
                     currentUserAccountID,
                     isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow,
                     reportOwnerPersonalDetail,
                     currentUserPersonalDetail,
                     conciergePersonalDetail,
                     optimisticPersonalDetails,
-                )
+                })
             }
         >
             <View style={[styles.pRelative]}>
@@ -126,4 +130,4 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     );
 }
 
-export default memo(ReportActionItemCreated);
+export default ReportActionItemCreated;

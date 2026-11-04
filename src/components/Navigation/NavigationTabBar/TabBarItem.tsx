@@ -1,6 +1,6 @@
 import Icon from '@components/Icon';
-import Text from '@components/Text';
 
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -10,6 +10,8 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 import React from 'react';
 import {View} from 'react-native';
+
+import TabBarLabel from './TabBarLabel';
 
 type TabBarItemProps = {
     icon: IconAsset;
@@ -33,27 +35,29 @@ function getIconFill(isSelected: boolean, isHovered: boolean, theme: ReturnType<
 function TabBarItem({icon, label, isSelected, isHovered = false, statusIndicatorColor, numberOfLines = 2}: TabBarItemProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const iconSize = shouldUseNarrowLayout ? variables.iconFloatingTabBar : variables.iconBottomBar;
 
     return (
-        <>
+        <View style={[styles.navigationTabBarItem, shouldUseNarrowLayout && styles.navigationTabBarItemNarrow, shouldUseNarrowLayout && isSelected && styles.navigationTabBarItemSelected]}>
             <View>
                 <Icon
                     src={icon}
                     fill={getIconFill(isSelected, isHovered, theme)}
-                    width={variables.iconBottomBar}
-                    height={variables.iconBottomBar}
+                    width={iconSize}
+                    height={iconSize}
                 />
                 {!!statusIndicatorColor && (
                     <View style={[styles.navigationTabBarStatusIndicator, styles.statusIndicatorColor(statusIndicatorColor), isHovered && {borderColor: theme.sidebarHover}]} />
                 )}
             </View>
-            <Text
+            <TabBarLabel
+                label={label}
+                isSelected={isSelected}
                 numberOfLines={numberOfLines}
-                style={[styles.textSmall, styles.textAlignCenter, styles.mt1Half, isSelected ? styles.textBold : styles.textSupporting, styles.navigationTabBarLabel]}
-            >
-                {label}
-            </Text>
-        </>
+                style={shouldUseNarrowLayout ? styles.mt1 : styles.mt1Half}
+            />
+        </View>
     );
 }
 

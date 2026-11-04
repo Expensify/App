@@ -9,7 +9,7 @@ import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {InviteMemberListItemProps, ListItem} from './types';
+import type {ListItem, ListItemProps} from './types';
 
 /**
  * A user row with avatar, name, and subtitle used for person selection and invitation. Adds
@@ -29,15 +29,13 @@ function InviteMemberListItem<TItem extends ListItem>({
     onDismissError,
     onFocus,
     shouldSyncFocus,
-    wrapperStyle,
-    isMultilineSupported,
-}: InviteMemberListItemProps<TItem>) {
+    titleNumberOfLines = 1,
+}: ListItemProps<TItem>) {
     const styles = useThemeStyles();
     const {formatPhoneNumber} = useLocalize();
 
     const firstItemIconID = Number(item?.icons?.at(0)?.id);
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const accountID = !item.reportID ? item.accountID || firstItemIconID : undefined;
 
     const shouldShowSelectionButton = !item.shouldHideSelectionButton && !(item.isDisabled && !item.isSelected);
@@ -58,7 +56,7 @@ function InviteMemberListItem<TItem extends ListItem>({
         >
             <ListItemComposed.Row
                 testID={item.text}
-                style={wrapperStyle}
+                style={item.itemStyle}
             >
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
                     {(!!item.reportID || !!accountID || !!item.text || !!item.alternateText) &&
@@ -66,6 +64,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                             <ListItemComposed.UserAvatar
                                 accountID={accountID}
                                 fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
+                                accountEmail={item.login ?? undefined}
                             />
                         ) : (
                             <ListItemComposed.ReportAvatar
@@ -78,12 +77,12 @@ function InviteMemberListItem<TItem extends ListItem>({
                             <TextWithTooltip
                                 shouldShowTooltip={shouldShowTooltip}
                                 text={Str.isSMSLogin(item.text ?? '') ? formatPhoneNumber(item.text ?? '') : (item.text ?? '')}
-                                numberOfLines={isMultilineSupported ? 2 : 1}
+                                numberOfLines={titleNumberOfLines}
                                 style={[
                                     styles.optionDisplayName,
                                     styles.sidebarLinkText,
                                     item.isBold !== false && styles.sidebarLinkTextBold,
-                                    isMultilineSupported ? styles.preWrap : styles.pre,
+                                    titleNumberOfLines > 1 ? styles.preWrap : styles.pre,
                                     item.alternateText ? styles.mb1 : null,
                                 ]}
                             />

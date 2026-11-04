@@ -9,7 +9,7 @@ import {PROMPT_NAMES, SCENARIO_NAMES} from '@components/MultifactorAuthenticatio
  */
 const BACKEND_MESSAGE = {
     REGISTRATION_REQUIRED: 'Registration required',
-    INVALID_VALIDATE_CODE: 'Invalid validate code',
+    INVALID_VALIDATE_CODE: 'Invalid validateCode',
     TRANSACTION_EXPIRED: 'Transaction review period expired',
     TRANSACTION_ALREADY_APPROVED: 'Transaction already approved',
     TRANSACTION_ALREADY_DENIED: 'Transaction already denied',
@@ -157,6 +157,7 @@ const API_RESPONSE_MAP = {
 
     /** No custom error handling — all responses rely on category fallback reasons. */
     CHANGE_CARD_PIN: {},
+    CREATE_DIGITAL_WALLET: {},
 } as const;
 
 type DeepLeafValues<T> = T extends Record<string, unknown> ? DeepLeafValues<T[keyof T]> : T;

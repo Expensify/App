@@ -16,6 +16,7 @@ import Onyx from 'react-native-onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
+import {getGlobalFetchMock} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const POLICY_ID = '1';
@@ -114,6 +115,8 @@ describe('Select features pages with an empty tag group', () => {
     });
 
     beforeEach(async () => {
+        // Both pages send GetRules when they mount, so mock fetch to keep that request off the real network.
+        global.fetch = getGlobalFetchMock();
         mockSelectionListData.length = 0;
         mockSelectionListProps = undefined;
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, createRandomPolicy(Number(POLICY_ID)));

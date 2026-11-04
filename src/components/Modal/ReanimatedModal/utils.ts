@@ -5,13 +5,18 @@ import CONST from '@src/CONST';
 import type {ViewStyle} from 'react-native';
 import type {ValidKeyframeProps} from 'react-native-reanimated/lib/typescript/commonTypes';
 
-import {Easing} from 'react-native-reanimated';
+import {cubicBezier, Easing} from 'react-native-reanimated';
 
 import type {AnimationIn, AnimationOut} from './types';
 
-const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0).factory();
+// Control points of the modal easing curve, shared by the worklet easing and the CSS animation easing so both stay in sync
+const EASING_CONTROL_POINTS = [0.76, 0.0, 0.24, 1.0] as const;
 
-function getModalInAnimation(animationType: AnimationIn): ValidKeyframeProps {
+const easing = Easing.bezier(...EASING_CONTROL_POINTS).factory();
+
+const cssEasing = cubicBezier(...EASING_CONTROL_POINTS);
+
+function getModalInAnimation(animationType: AnimationIn, fadeOpacity: number = variables.overlayOpacity): ValidKeyframeProps {
     switch (animationType) {
         case 'slideInRight':
             return {
@@ -33,7 +38,7 @@ function getModalInAnimation(animationType: AnimationIn): ValidKeyframeProps {
             return {
                 from: {opacity: 0},
                 to: {
-                    opacity: variables.overlayOpacity,
+                    opacity: fadeOpacity,
                     easing,
                 },
             };
@@ -69,7 +74,7 @@ function getModalInAnimationStyle(animationType: AnimationIn): (progress: number
     }
 }
 
-function getModalOutAnimation(animationType: AnimationOut): ValidKeyframeProps {
+function getModalOutAnimation(animationType: AnimationOut, fadeOpacity: number = variables.overlayOpacity): ValidKeyframeProps {
     switch (animationType) {
         case 'slideOutRight':
             return {
@@ -89,7 +94,7 @@ function getModalOutAnimation(animationType: AnimationOut): ValidKeyframeProps {
             };
         case 'fadeOut':
             return {
-                from: {opacity: variables.overlayOpacity},
+                from: {opacity: fadeOpacity},
                 to: {
                     opacity: 0,
                     easing,
@@ -109,4 +114,4 @@ function getModalOutAnimation(animationType: AnimationOut): ValidKeyframeProps {
     }
 }
 
-export {getModalInAnimation, getModalOutAnimation, getModalInAnimationStyle, easing};
+export {getModalInAnimation, getModalOutAnimation, getModalInAnimationStyle, easing, cssEasing};

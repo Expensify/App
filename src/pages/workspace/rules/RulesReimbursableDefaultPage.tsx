@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -18,7 +18,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 
 type RulesReimbursableDefaultPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_REIMBURSABLE_DEFAULT>;
 
@@ -46,22 +46,19 @@ function RulesReimbursableDefaultPage({
         keyForList: mode,
     }));
 
-    const saveAndGoBack = useCallback(() => {
+    const saveAndGoBack = () => {
         if (!selectedMode) {
             return;
         }
         setPolicyReimbursableMode(policyID, selectedMode, policy?.defaultReimbursable, policy?.disabledFields?.reimbursable);
         Navigation.goBack();
-    }, [policyID, selectedMode, policy?.defaultReimbursable, policy?.disabledFields?.reimbursable]);
+    };
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.save'),
-            onConfirm: saveAndGoBack,
-        }),
-        [saveAndGoBack, translate],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveAndGoBack,
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -74,10 +71,7 @@ function RulesReimbursableDefaultPage({
                 shouldEnableMaxHeight
                 testID="RulesReimbursableDefaultPage"
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.rules.generalTab.cashExpenses')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.rules.generalTab.cashExpenses')} />
                 <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mt3, styles.mh5, styles.mb5]}>
                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.cashExpenseDefaultDescription')}</Text>
                 </Text>

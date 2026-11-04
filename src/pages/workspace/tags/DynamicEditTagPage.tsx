@@ -14,8 +14,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {escapeTagName, getCleanedTagName, getTagListByOrderWeight} from '@libs/PolicyUtils';
-import {isRequiredFulfilled} from '@libs/ValidationUtils';
+import {getCleanedTagName, getTagListByOrderWeight} from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
+import {getTagNameError, getTagNameErrorMessage} from '@libs/TagUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -29,7 +30,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {Keyboard} from 'react-native';
 
 type DynamicEditTagPageProps =
@@ -50,40 +51,27 @@ function DynamicEditTagPage({route}: DynamicEditTagPageProps) {
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_EDIT;
     const backPath = useDynamicBackPath(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_EDIT.path : DYNAMIC_ROUTES.WORKSPACE_TAG_EDIT.path);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
-            const tagName = values.tagName.trim();
-            const escapedTagName = escapeTagName(values.tagName.trim());
-            const {tags} = getTagListByOrderWeight(policyTags, orderWeight);
-            if (!isRequiredFulfilled(tagName)) {
-                errors.tagName = translate('workspace.tags.tagRequiredError');
-            } else if (escapedTagName === '0') {
-                errors.tagName = translate('workspace.tags.invalidTagNameError');
-            } else if (tags?.[escapedTagName] && currentTagName !== tagName) {
-                errors.tagName = translate('workspace.tags.existingTagError');
-            } else if ([...tagName].length > CONST.API_TRANSACTION_TAG_MAX_LENGTH) {
-                // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-                errors.tagName = translate('common.error.characterLimitExceedCounter', [...tagName].length, CONST.API_TRANSACTION_TAG_MAX_LENGTH);
-            }
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
+        const {tags} = getTagListByOrderWeight(policyTags, orderWeight);
+        const error = getTagNameError(tags, values.tagName, currentTagName);
 
-            return errors;
-        },
-        [policyTags, orderWeight, currentTagName, translate],
-    );
+        if (error) {
+            errors.tagName = getTagNameErrorMessage(translate, error, values.tagName);
+        }
 
-    const editTag = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
-            const tagName = values.tagName.trim();
-            // Do not call the API if the edited tag name is the same as the current tag name
-            if (currentTagName !== tagName) {
-                renamePolicyTag(policyData, {oldName: route.params.tagName, newName: values.tagName.trim()}, orderWeight, isVendorMatchingBetaEnabled);
-            }
-            Keyboard.dismiss();
-            Navigation.goBack(backPath);
-        },
-        [policyData, currentTagName, route.params.tagName, orderWeight, backPath, isVendorMatchingBetaEnabled],
-    );
+        return errors;
+    };
+
+    const editTag = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
+        const tagName = StringUtils.sanitizeName(values.tagName);
+        // Do not call the API if the edited tag name is the same as the current tag name
+        if (currentTagName !== tagName) {
+            renamePolicyTag(policyData, {oldName: route.params.tagName, newName: tagName}, orderWeight, isVendorMatchingBetaEnabled);
+        }
+        Keyboard.dismiss();
+        Navigation.goBack(backPath);
+    };
 
     return (
         <AccessOrNotFoundWrapper

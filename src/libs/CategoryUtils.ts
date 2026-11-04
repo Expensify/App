@@ -11,6 +11,9 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
 
+import StringUtils from './StringUtils';
+import {containsHtmlTag} from './ValidationUtils';
+
 function formatDefaultTaxRateText(translate: LocaleContextProps['translate'], taxID: string, taxRate: TaxRate, policyTaxRates?: TaxRatesWithDefault) {
     const taxRateText = `${taxRate.name} ${CONST.DOT_SEPARATOR} ${taxRate.value}`;
 
@@ -126,6 +129,13 @@ function isCategoryDescriptionRequired(policyCategories: PolicyCategories | unde
     return !!policyCategories[category]?.areCommentsRequired;
 }
 
+function getCategoryDescriptionHint(policyCategories: PolicyCategories | undefined, category: string | undefined, areRulesEnabled: boolean | undefined): string {
+    if (!policyCategories || !category || !areRulesEnabled) {
+        return '';
+    }
+    return policyCategories[category]?.commentHint ?? '';
+}
+
 function getCategoryGLCode(policyCategories: PolicyCategories | undefined, category: string | undefined): string {
     if (!policyCategories || !category) {
         return '';
@@ -134,8 +144,99 @@ function getCategoryGLCode(policyCategories: PolicyCategories | undefined, categ
     return glCode != null ? String(glCode).replaceAll('"', '') : '';
 }
 
+/**
+ * Whether at least one selectable category on the workspace has a non-blank GL code. Disabled and pending-deletion
+ * categories can't be picked in the category picker, so their GL codes don't count.
+ */
+function hasAnyCategoryGLCode(policyCategories: PolicyCategories | undefined): boolean {
+    return Object.entries(policyCategories ?? {}).some(
+        ([categoryName, category]) =>
+            !!category?.enabled && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!getCategoryGLCode(policyCategories, categoryName).trim(),
+    );
+}
+
 function getDecodedCategoryName(categoryName: string) {
     return Str.htmlDecode(categoryName);
+}
+
+/** The reason a proposed category name is invalid. Callers translate it via `getCategoryNameErrorMessage`. */
+type CategoryNameError =
+    | typeof CONST.INPUT_VALIDATION_ERRORS.REQUIRED
+    | typeof CONST.INPUT_VALIDATION_ERRORS.EXISTING
+    | typeof CONST.INPUT_VALIDATION_ERRORS.INVALID
+    | typeof CONST.INPUT_VALIDATION_ERRORS.TOO_LONG;
+
+/**
+ * Validates a category name against every rule (required, HTML-like characters, unique, reserved, length). This is the single
+ * source of truth shared by the create form, the RHP edit form, and inline table editing. Pass
+ * `currentName` (the decoded display name) when editing so renaming a category to its own name isn't flagged
+ * as a duplicate. Uniqueness also matches HTML-encoded stored names such as `Food &amp; Drink` vs `Food & Drink`.
+ * Returns an error code, or undefined when the name is valid.
+ */
+function getCategoryNameError(policyCategories: PolicyCategories | undefined, newName: string, currentName?: string): CategoryNameError | undefined {
+    const sanitized = StringUtils.sanitizeName(newName);
+
+    if (StringUtils.isEmptyString(sanitized)) {
+        return CONST.INPUT_VALIDATION_ERRORS.REQUIRED;
+    }
+
+    // The Name page rejects these in FormProvider. Inline rename only calls this helper, so `</>` would otherwise save from the table.
+    if (containsHtmlTag(sanitized)) {
+        return CONST.INPUT_VALIDATION_ERRORS.INVALID;
+    }
+
+    // Category keys may be HTML-encoded, so uniqueness compares decoded names. currentName is already decoded by the caller.
+    if (sanitized !== currentName && Object.keys(policyCategories ?? {}).some((name) => getDecodedCategoryName(name) === sanitized)) {
+        return CONST.INPUT_VALIDATION_ERRORS.EXISTING;
+    }
+
+    if (sanitized === CONST.INVALID_CATEGORY_NAME || sanitized === CONST.SEARCH.CATEGORY_DEFAULT_VALUE) {
+        return CONST.INPUT_VALIDATION_ERRORS.INVALID;
+    }
+
+    // Spread to count Unicode code points rather than UTF-16 code units.
+    if ([...sanitized].length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
+        return CONST.INPUT_VALIDATION_ERRORS.TOO_LONG;
+    }
+
+    return undefined;
+}
+
+/** Translates a {@link CategoryNameError} into a user-facing message for the given name. */
+function getCategoryNameErrorMessage(translate: LocaleContextProps['translate'], error: CategoryNameError, name: string): string {
+    switch (error) {
+        case CONST.INPUT_VALIDATION_ERRORS.REQUIRED:
+            return translate('workspace.categories.categoryRequiredError');
+        case CONST.INPUT_VALIDATION_ERRORS.EXISTING:
+            return translate('workspace.categories.existingCategoryError');
+        case CONST.INPUT_VALIDATION_ERRORS.INVALID:
+            return translate('workspace.categories.invalidCategoryName');
+        case CONST.INPUT_VALIDATION_ERRORS.TOO_LONG:
+        default:
+            return translate('common.error.characterLimitExceedCounter', [...StringUtils.sanitizeName(name)].length, CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH);
+    }
+}
+
+/**
+ * Finds the stored key of a disabled category whose decoded name is `name`. Pickers hide disabled categories, so a
+ * search can come up empty even though creating the name would fail as a duplicate. A category being deleted is also
+ * stored as disabled until the server confirms, so it is skipped rather than offered back.
+ */
+function getDisabledCategoryKey(policyCategories: PolicyCategories | undefined, name: string): string | undefined {
+    return Object.entries(policyCategories ?? {}).find(
+        ([categoryKey, category]) => !category?.enabled && category?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && getDecodedCategoryName(categoryKey) === name,
+    )?.[0];
+}
+
+/**
+ * Whether a category picker search for `name` can be turned into a category in one tap: either a valid new name, or
+ * the name of a disabled category that can be turned back on. Reserved names, HTML and over-long names never qualify.
+ */
+function canCreateCategoryFromSearch(policyCategories: PolicyCategories | undefined, name: string): boolean {
+    const disabledCategoryKey = getDisabledCategoryKey(policyCategories, name);
+
+    // Passing the name as `currentName` skips only the duplicate check, so a disabled match still has to pass every other rule.
+    return !getCategoryNameError(policyCategories, name, disabledCategoryKey ? name : undefined);
 }
 
 /**
@@ -232,11 +333,17 @@ export {
     getEnabledCategoriesCount,
     isCategoryMissing,
     isCategoryDescriptionRequired,
+    getCategoryDescriptionHint,
     getCategoryGLCode,
+    hasAnyCategoryGLCode,
     getDecodedCategoryName,
     getDecodedLeafCategoryName,
     getDecodedFullCategoryName,
     processCategoryNameSegments,
     getAvailableNonPersonalPolicyCategories,
     hasAnyCategoryRules,
+    getCategoryNameError,
+    getCategoryNameErrorMessage,
+    getDisabledCategoryKey,
+    canCreateCategoryFromSearch,
 };

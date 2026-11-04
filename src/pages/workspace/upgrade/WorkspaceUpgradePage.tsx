@@ -18,6 +18,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getAutoUpdateGovernmentRateCountry, isSharedGovernmentRateCurrency} from '@libs/PolicyDistanceRatesUtils';
 import {
     canEditWorkspaceSettings,
     canModifyPlan,
@@ -25,6 +26,7 @@ import {
     getDistanceRateCustomUnit,
     getPerDiemCustomUnit,
     getUserFriendlyWorkspaceType,
+    isAutoPayApprovedReportsAvailable,
     isControlPolicy,
     isPaidGroupPolicy,
     isSubmitPolicy,
@@ -187,8 +189,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoicing.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.id:
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.id:
                 return Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.id:
+                // Connections upgrades for HR and passes itself as the page to return to
+                return Navigation.goBack(route.params.backTo ?? ROUTES.WORKSPACE_CONNECTIONS_HR.getRoute(policyID));
             default:
                 return route.params.backTo ? Navigation.goBack(route.params.backTo) : Navigation.goBack();
         }
@@ -199,6 +203,15 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.path, route.params.backTo ?? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)), {
                 forceReplace: true,
             });
+            return;
+        }
+        if (
+            feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.governmentDistanceRates.id &&
+            policyID &&
+            isSharedGovernmentRateCurrency(policy?.outputCurrency) &&
+            !getAutoUpdateGovernmentRateCountry(policy)
+        ) {
+            Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_GOVERNMENT_RATE_COUNTRY.getRoute(policyID), {forceReplace: true});
             return;
         }
         goBack();
@@ -231,13 +244,30 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }
         switch (feature.id) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.preventSelfApproval.id:
-                setPolicyPreventSelfApproval(policyID, true, policy?.preventSelfApproval);
+                setPolicyPreventSelfApproval(policyID, true, policy?.preventSelfApproval, getReviewWorkspaceSettingsTaskCompletion());
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoApproveCompliantReports.id:
-                enableAutoApprovalOptions(policyID, true, policy?.shouldShowAutoApprovalOptions, policy?.autoApproval?.limit, policy?.autoApproval?.auditRate);
+                enableAutoApprovalOptions(
+                    policyID,
+                    true,
+                    policy?.shouldShowAutoApprovalOptions,
+                    policy?.autoApproval?.limit,
+                    policy?.autoApproval?.auditRate,
+                    getReviewWorkspaceSettingsTaskCompletion(),
+                );
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.id:
-                enablePolicyAutoReimbursementLimit(policyID, true, policy?.shouldShowAutoReimbursementLimitOption, policy?.autoReimbursement?.limit);
+                // The upgrade is reachable before payments are set up; turning auto-pay on then would silently activate it once a bank account is connected.
+                if (!isAutoPayApprovedReportsAvailable(policy)) {
+                    break;
+                }
+                enablePolicyAutoReimbursementLimit(
+                    policyID,
+                    true,
+                    policy?.shouldShowAutoReimbursementLimitOption,
+                    policy?.autoReimbursement?.limit,
+                    getReviewWorkspaceSettingsTaskCompletion(),
+                );
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id:
                 switch (route.params.featureName) {
@@ -276,11 +306,15 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                     enablePolicyRules(policy, true, isVendorMatchingBetaEnabled, false, policyDataRef.current);
                 }
                 break;
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.governmentDistanceRates.id:
-                if (distanceRateCustomUnit) {
-                    setWorkspaceDistanceAutoUpdate(policyID, distanceRateCustomUnit, true, governmentMileageRates ?? [], policy?.outputCurrency);
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.governmentDistanceRates.id: {
+                const storedGovernmentRateCountry = getAutoUpdateGovernmentRateCountry(policy);
+                const isSharedCurrency = isSharedGovernmentRateCurrency(policy?.outputCurrency);
+                if (!policy || !distanceRateCustomUnit || (isSharedCurrency && !storedGovernmentRateCountry)) {
+                    break;
                 }
+                setWorkspaceDistanceAutoUpdate(policy, true, governmentMileageRates ?? [], isSharedCurrency ? storedGovernmentRateCountry : undefined);
                 break;
+            }
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.publicReceiptVisibility.id:
                 setPolicyReceiptVisibilityPublic(policyID, true, policy?.isReceiptVisibilityPublic);
                 break;
@@ -292,10 +326,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 enablePerDiem(policyID, true, perDiemCustomUnit?.customUnitID, false);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.id:
-                enablePolicyHR(policyID, true);
+                enablePolicyHR(policyID, true, false);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.recruiting.id:
-                enablePolicyRecruiting(policyID, true);
+                enablePolicyRecruiting(policyID, true, false);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id:

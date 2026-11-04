@@ -1,14 +1,18 @@
 import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useParentReportAction from '@hooks/useParentReportAction';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+import {resolveTransactionThreadReport} from '@libs/ReportActionsUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
@@ -26,6 +30,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {transactionThreadReportIDSelector} from '@selectors/ReportAction';
 import React from 'react';
 
 import Camera from './Camera';
@@ -51,6 +56,13 @@ function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditRec
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
+    const [transactionThreadReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transaction?.reportID)}`, {
+        selector: transactionThreadReportIDSelector(transaction?.transactionID),
+    });
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
+    const parentReportAction = useParentReportAction(report);
+    const delegateAccountID = useDelegateAccountID();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
 
@@ -82,6 +94,9 @@ function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditRec
                 transactionPolicyTagList: policyTagList,
                 transactionViolations,
                 transactionReport,
+                delegateAccountID,
+                currentUserPersonalDetails,
+                transactionThreadReport: resolveTransactionThreadReport(transaction, transactionThreadReport, report, parentReportAction),
             });
         } else {
             setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);
@@ -111,6 +126,7 @@ function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditRec
                 onPicked={validateFiles}
                 onAttachmentPickerStatusChange={setIsLoaderVisible}
                 isReplacingReceipt
+                canUpgradeReceiptQuality={false}
             />
         </StepScreenDragAndDropWrapper>
     );

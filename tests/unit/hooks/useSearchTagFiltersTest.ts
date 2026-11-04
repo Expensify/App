@@ -2,14 +2,14 @@ import {act, renderHook, waitFor} from '@testing-library/react-native';
 
 import useSearchTagFilters from '@hooks/useSearchTagFilters';
 
-import {clearSearchTagFiltersState, openSearchTagFiltersPage, setSearchTagFiltersPagination} from '@libs/actions/Search';
+import {openSearchTagFiltersPage, setSearchTagFiltersPagination} from '@libs/actions/Search';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {SearchTagFilterItem} from '@src/types/onyx';
 
 const mockOpenSearchTagFiltersPage = jest.mocked(openSearchTagFiltersPage);
 const mockSetSearchTagFiltersPagination = jest.mocked(setSearchTagFiltersPagination);
-const mockClearSearchTagFiltersState = jest.mocked(clearSearchTagFiltersState);
 
 const onyxData: Record<string, unknown> = {};
 
@@ -27,9 +27,8 @@ jest.mock('@hooks/useNetwork', () => ({
 }));
 
 jest.mock('@libs/actions/Search', () => ({
-    openSearchTagFiltersPage: jest.fn(() => Promise.resolve({hasMore: false, nextCursor: ''})),
+    openSearchTagFiltersPage: jest.fn(() => Promise.resolve({hasMore: false, nextCursor: '', tags: []})),
     setSearchTagFiltersPagination: jest.fn(),
-    clearSearchTagFiltersState: jest.fn(),
 }));
 
 jest.mock('@libs/Log', () => ({
@@ -38,25 +37,44 @@ jest.mock('@libs/Log', () => ({
 
 const POLICY_ID = 'policy-1';
 
-function setPartialTagFilterState(searchQuery: string) {
-    onyxData[ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION] = {
+function getPaginationKey(policyIDs = POLICY_ID) {
+    return `${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION}${policyIDs || 'all'}`;
+}
+
+function getResultsKey(policyIDs = POLICY_ID) {
+    return `${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS}${policyIDs || 'all'}`;
+}
+
+function setPartialTagFilterState(searchQuery: string, policyIDs = POLICY_ID) {
+    const results = [{tagName: `${searchQuery}-match`, tagListName: 'TagList'}];
+    onyxData[getPaginationKey(policyIDs)] = {
         hasMore: true,
         nextCursor: 'cursor-1',
         searchQuery,
+        policyIDs,
+        baseResults: results,
+        baseHasMore: true,
+        baseCursor: 'cursor-1',
     };
-    onyxData[ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS] = [{tagName: `${searchQuery}-match`, tagListName: 'TagList'}];
+    onyxData[getResultsKey(policyIDs)] = results;
 }
 
-function setCompleteTagFilterState(searchQuery: string) {
-    onyxData[ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION] = {
-        hasMore: false,
-        nextCursor: '',
-        searchQuery,
-    };
-    onyxData[ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS] = [
+function setCompleteTagFilterState(searchQuery: string, policyIDs = POLICY_ID): SearchTagFilterItem[] {
+    const results: SearchTagFilterItem[] = [
         {tagName: `${searchQuery}-match`, tagListName: 'TagList'},
         {tagName: 'other-tag', tagListName: 'TagList'},
     ];
+    onyxData[getPaginationKey(policyIDs)] = {
+        hasMore: false,
+        nextCursor: '',
+        searchQuery,
+        policyIDs,
+        baseResults: results,
+        baseHasMore: false,
+        baseCursor: '',
+    };
+    onyxData[getResultsKey(policyIDs)] = results;
+    return results;
 }
 
 describe('useSearchTagFilters', () => {
@@ -66,13 +84,9 @@ describe('useSearchTagFilters', () => {
         }
         mockIsOffline = false;
         mockUseOnyx.mockClear();
-        mockOpenSearchTagFiltersPage.mockClear().mockResolvedValue({hasMore: false, nextCursor: ''});
-        mockSetSearchTagFiltersPagination.mockClear().mockImplementation((hasMore, nextCursor, searchQuery) => {
-            onyxData[ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION] = {hasMore, nextCursor, searchQuery};
-        });
-        mockClearSearchTagFiltersState.mockClear().mockImplementation(() => {
-            delete onyxData[ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS];
-            delete onyxData[ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION];
+        mockOpenSearchTagFiltersPage.mockClear().mockResolvedValue({hasMore: false, nextCursor: '', tags: []});
+        mockSetSearchTagFiltersPagination.mockClear().mockImplementation((hasMore, nextCursor, searchQuery, policyIDs, baseResults, baseHasMore, baseCursor) => {
+            onyxData[getPaginationKey(policyIDs)] = {hasMore, nextCursor, searchQuery, policyIDs, baseResults, baseHasMore, baseCursor};
         });
     });
 
@@ -91,14 +105,23 @@ describe('useSearchTagFilters', () => {
         expect(mockOpenSearchTagFiltersPage).not.toHaveBeenCalledWith(expect.objectContaining({searchQuery: 'marketing'}), expect.anything());
     });
 
-    it('clears persisted pagination and cached tags when the filter unmounts', () => {
-        setPartialTagFilterState('marketing');
+    it('preserves cached tags when the filter unmounts so they remain available offline', () => {
+        setPartialTagFilterState('');
 
         const {unmount} = renderHook(() => useSearchTagFilters(POLICY_ID));
 
         unmount();
 
-        expect(mockClearSearchTagFiltersState).toHaveBeenCalledTimes(1);
+        expect(onyxData[getResultsKey()]).toEqual([{tagName: '-match', tagListName: 'TagList'}]);
+        expect(onyxData[getPaginationKey()]).toEqual(expect.objectContaining({hasMore: true, nextCursor: 'cursor-1', searchQuery: ''}));
+
+        mockIsOffline = true;
+        mockOpenSearchTagFiltersPage.mockClear();
+
+        const {result} = renderHook(() => useSearchTagFilters(POLICY_ID));
+
+        expect(mockOpenSearchTagFiltersPage).not.toHaveBeenCalled();
+        expect(result.current.searchResults).toEqual([{tagName: '-match', tagListName: 'TagList'}]);
     });
 
     it('re-fetches on remount after leaving the filter so pagination can continue', async () => {
@@ -125,7 +148,7 @@ describe('useSearchTagFilters', () => {
         });
 
         await waitFor(() => {
-            expect(onyxData[ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION]).toEqual(expect.objectContaining({hasMore: true, nextCursor: 'cursor-2', searchQuery: ''}));
+            expect(onyxData[getPaginationKey()]).toEqual(expect.objectContaining({hasMore: true, nextCursor: 'cursor-2', searchQuery: ''}));
         });
 
         mockOpenSearchTagFiltersPage.mockClear().mockResolvedValueOnce({hasMore: false, nextCursor: ''});
@@ -138,7 +161,7 @@ describe('useSearchTagFilters', () => {
             expect(mockOpenSearchTagFiltersPage).toHaveBeenCalledWith(
                 expect.objectContaining({searchQuery: '', policyIDs: POLICY_ID, cursor: 'cursor-2', limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE}),
                 false,
-                [],
+                [{tagName: '-match', tagListName: 'TagList'}],
             );
         });
     });
@@ -150,7 +173,7 @@ describe('useSearchTagFilters', () => {
         const {result} = renderHook(() => useSearchTagFilters(POLICY_ID));
 
         await waitFor(() => {
-            expect(onyxData[ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION]).toEqual(expect.objectContaining({hasMore: true, nextCursor: 'cursor-2'}));
+            expect(onyxData[getPaginationKey()]).toEqual(expect.objectContaining({hasMore: true, nextCursor: 'cursor-2'}));
         });
 
         // Keep the next page request in flight so the search starts while it is still pending
@@ -211,13 +234,13 @@ describe('useSearchTagFilters', () => {
             result.current.searchTags('marketing');
         });
 
-        expect(mockSetSearchTagFiltersPagination).toHaveBeenCalledWith(true, 'cursor-1', 'marketing');
+        expect(mockSetSearchTagFiltersPagination).toHaveBeenCalledWith(true, 'cursor-1', 'marketing', POLICY_ID, expect.any(Array), true, 'cursor-1');
 
         act(() => {
             result.current.searchTags('');
         });
 
-        expect(mockSetSearchTagFiltersPagination).toHaveBeenCalledWith(true, 'cursor-1', '');
+        expect(mockSetSearchTagFiltersPagination).toHaveBeenCalledWith(true, 'cursor-1', '', POLICY_ID, expect.any(Array), true, 'cursor-1');
 
         mockIsOffline = false;
         mockOpenSearchTagFiltersPage.mockClear();
@@ -232,12 +255,18 @@ describe('useSearchTagFilters', () => {
     });
 
     it('does not call the API when searching with a complete cached dataset', async () => {
-        setCompleteTagFilterState('');
+        const cachedTags = setCompleteTagFilterState('');
+        mockOpenSearchTagFiltersPage.mockResolvedValueOnce({
+            hasMore: false,
+            nextCursor: '',
+            tags: cachedTags,
+        });
 
         const {result} = renderHook(() => useSearchTagFilters(POLICY_ID));
 
-        await act(async () => {
-            await Promise.resolve();
+        await waitFor(() => {
+            expect(mockOpenSearchTagFiltersPage).toHaveBeenCalledWith(expect.objectContaining({searchQuery: '', policyIDs: POLICY_ID}), true);
+            expect(result.current.isSearching).toBe(false);
         });
         mockOpenSearchTagFiltersPage.mockClear();
 
@@ -246,16 +275,22 @@ describe('useSearchTagFilters', () => {
         });
 
         expect(mockOpenSearchTagFiltersPage).not.toHaveBeenCalled();
-        expect(mockSetSearchTagFiltersPagination).toHaveBeenCalledWith(false, '', 'marketing');
+        expect(mockSetSearchTagFiltersPagination).toHaveBeenCalledWith(false, '', 'marketing', POLICY_ID, expect.any(Array), false, '');
     });
 
     it('does not call the API on consecutive keystrokes when searching with a complete cached dataset', async () => {
-        setCompleteTagFilterState('');
+        const cachedTags = setCompleteTagFilterState('');
+        mockOpenSearchTagFiltersPage.mockResolvedValueOnce({
+            hasMore: false,
+            nextCursor: '',
+            tags: cachedTags,
+        });
 
         const {result} = renderHook(() => useSearchTagFilters(POLICY_ID));
 
-        await act(async () => {
-            await Promise.resolve();
+        await waitFor(() => {
+            expect(mockOpenSearchTagFiltersPage).toHaveBeenCalledWith(expect.objectContaining({searchQuery: '', policyIDs: POLICY_ID}), true);
+            expect(result.current.isSearching).toBe(false);
         });
         mockOpenSearchTagFiltersPage.mockClear();
 
@@ -264,14 +299,14 @@ describe('useSearchTagFilters', () => {
         });
 
         expect(mockOpenSearchTagFiltersPage).not.toHaveBeenCalled();
-        expect(mockSetSearchTagFiltersPagination).toHaveBeenCalledWith(false, '', 'm');
+        expect(mockSetSearchTagFiltersPagination).toHaveBeenCalledWith(false, '', 'm', POLICY_ID, expect.any(Array), false, '');
 
         act(() => {
             result.current.searchTags('ma');
         });
 
         expect(mockOpenSearchTagFiltersPage).not.toHaveBeenCalled();
-        expect(mockSetSearchTagFiltersPagination).toHaveBeenCalledWith(false, '', 'ma');
+        expect(mockSetSearchTagFiltersPagination).toHaveBeenCalledWith(false, '', 'ma', POLICY_ID, expect.any(Array), false, '');
     });
 
     it('re-fetches when clearing a server search that only cached partial results', async () => {
@@ -283,12 +318,12 @@ describe('useSearchTagFilters', () => {
             expect(mockOpenSearchTagFiltersPage).toHaveBeenCalledTimes(1);
         });
 
-        onyxData[ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION] = {
+        onyxData[getPaginationKey()] = {
             hasMore: false,
             nextCursor: '',
             searchQuery: 'ch',
         };
-        onyxData[ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS] = [
+        onyxData[getResultsKey()] = [
             {tagName: 'chicago', tagListName: 'TagList'},
             {tagName: 'charlotte', tagListName: 'TagList'},
         ];
@@ -307,16 +342,199 @@ describe('useSearchTagFilters', () => {
         });
     });
 
-    it('resets the search query on mount without refetching when the full empty-query dataset is already cached', async () => {
+    it('returns server search results for a non-empty query online', async () => {
+        setPartialTagFilterState('');
+        const matchingTags = [{tagName: 'marketing', tagListName: 'TagList'}];
+        mockOpenSearchTagFiltersPage.mockResolvedValueOnce({hasMore: false, nextCursor: '', tags: []});
+
+        const {result, rerender} = renderHook(() => useSearchTagFilters(POLICY_ID));
+
+        await waitFor(() => {
+            expect(result.current.isSearching).toBe(false);
+        });
+
+        mockOpenSearchTagFiltersPage.mockClear();
+        mockOpenSearchTagFiltersPage.mockImplementationOnce((params) => {
+            onyxData[getResultsKey(params.policyIDs)] = matchingTags;
+            return Promise.resolve({hasMore: false, nextCursor: '', tags: matchingTags});
+        });
+
+        act(() => {
+            result.current.searchTags('market');
+        });
+
+        await waitFor(() => {
+            expect(mockOpenSearchTagFiltersPage).toHaveBeenCalledWith(expect.objectContaining({searchQuery: 'market', policyIDs: POLICY_ID}), true);
+        });
+
+        rerender({});
+
+        expect(result.current.searchResults).toEqual(matchingTags);
+    });
+
+    it('re-fetches from server on mount even when the full empty-query dataset is already cached', async () => {
         setCompleteTagFilterState('');
 
         renderHook(() => useSearchTagFilters(POLICY_ID));
 
-        await act(async () => {
-            await Promise.resolve();
+        await waitFor(() => {
+            expect(mockOpenSearchTagFiltersPage).toHaveBeenCalledWith(
+                expect.objectContaining({searchQuery: '', policyIDs: POLICY_ID, cursor: '', limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE}),
+                true,
+            );
         });
+    });
+
+    it('resets a non-empty search query on unmount and restores base tag results so offline reopening has full base tags', () => {
+        const baseTags = [
+            {tagName: 'accounting', tagListName: 'TagList'},
+            {tagName: 'engineering', tagListName: 'TagList'},
+        ];
+        onyxData[getPaginationKey()] = {
+            hasMore: false,
+            nextCursor: '',
+            searchQuery: 'marketing',
+            policyIDs: POLICY_ID,
+            baseResults: baseTags,
+            baseHasMore: true,
+            baseCursor: 'cursor-base-1',
+        };
+        onyxData[getResultsKey()] = [{tagName: 'marketing', tagListName: 'TagList'}];
+
+        const {unmount} = renderHook(() => useSearchTagFilters(POLICY_ID));
+
+        unmount();
+
+        expect(mockSetSearchTagFiltersPagination).toHaveBeenCalledWith(true, 'cursor-base-1', '', POLICY_ID, baseTags, true, 'cursor-base-1');
+        expect(onyxData[getPaginationKey()]).toEqual(
+            expect.objectContaining({
+                hasMore: true,
+                nextCursor: 'cursor-base-1',
+                searchQuery: '',
+                policyIDs: POLICY_ID,
+                baseResults: baseTags,
+                baseHasMore: true,
+                baseCursor: 'cursor-base-1',
+            }),
+        );
+
+        mockIsOffline = true;
+        mockOpenSearchTagFiltersPage.mockClear();
+
+        const {result} = renderHook(() => useSearchTagFilters(POLICY_ID));
 
         expect(mockOpenSearchTagFiltersPage).not.toHaveBeenCalled();
-        expect(mockSetSearchTagFiltersPagination).toHaveBeenCalledWith(false, '', '');
+        expect(result.current.searchQuery).toBe('');
+        expect(result.current.searchResults).toEqual(baseTags);
+        expect(result.current.hasMore).toBe(true);
+    });
+
+    it('preserves base tags when searching online so going offline and reopening shows all base tags', async () => {
+        const baseTags = [
+            {tagName: 'accounting', tagListName: 'TagList'},
+            {tagName: 'finance', tagListName: 'TagList'},
+            {tagName: 'engineering', tagListName: 'TagList'},
+        ];
+
+        mockOpenSearchTagFiltersPage.mockResolvedValueOnce({
+            hasMore: true,
+            nextCursor: 'cursor-1',
+            tags: baseTags,
+        });
+
+        const {result, unmount} = renderHook(() => useSearchTagFilters(POLICY_ID));
+
+        await waitFor(() => {
+            expect(mockOpenSearchTagFiltersPage).toHaveBeenCalledWith(expect.objectContaining({searchQuery: '', policyIDs: POLICY_ID}), true);
+        });
+
+        mockOpenSearchTagFiltersPage.mockResolvedValueOnce({
+            hasMore: false,
+            nextCursor: '',
+            tags: [{tagName: 'engineering', tagListName: 'TagList'}],
+        });
+
+        act(() => {
+            result.current.searchTags('eng');
+        });
+
+        await waitFor(() => {
+            expect(mockOpenSearchTagFiltersPage).toHaveBeenCalledWith(expect.objectContaining({searchQuery: 'eng'}), true);
+        });
+
+        onyxData[getResultsKey()] = [{tagName: 'engineering', tagListName: 'TagList'}];
+
+        unmount();
+
+        mockIsOffline = true;
+        mockOpenSearchTagFiltersPage.mockClear();
+
+        const {result: offlineResult, rerender: offlineRerender} = renderHook(() => useSearchTagFilters(POLICY_ID));
+
+        expect(mockOpenSearchTagFiltersPage).not.toHaveBeenCalled();
+        expect(offlineResult.current.searchQuery).toBe('');
+        expect(offlineResult.current.searchResults).toEqual(baseTags);
+        expect(offlineResult.current.hasMore).toBe(true);
+
+        act(() => {
+            offlineResult.current.searchTags('acc');
+        });
+        offlineRerender({});
+
+        expect(mockOpenSearchTagFiltersPage).not.toHaveBeenCalled();
+        expect(offlineResult.current.searchQuery).toBe('acc');
+        expect(offlineResult.current.searchResults).toEqual(baseTags);
+    });
+
+    it('resets a non-empty search query on unmount while preserving complete cached tags', () => {
+        setCompleteTagFilterState('');
+
+        const {result, unmount} = renderHook(() => useSearchTagFilters(POLICY_ID));
+
+        act(() => {
+            result.current.searchTags('marketing');
+        });
+
+        expect(result.current.searchQuery).toBe('marketing');
+
+        unmount();
+
+        expect(onyxData[getResultsKey()]).toEqual([
+            {tagName: '-match', tagListName: 'TagList'},
+            {tagName: 'other-tag', tagListName: 'TagList'},
+        ]);
+        expect(onyxData[getPaginationKey()]).toEqual(expect.objectContaining({hasMore: false, nextCursor: '', searchQuery: '', policyIDs: POLICY_ID}));
+
+        mockIsOffline = true;
+        mockOpenSearchTagFiltersPage.mockClear();
+
+        const {result: remountResult} = renderHook(() => useSearchTagFilters(POLICY_ID));
+
+        expect(mockOpenSearchTagFiltersPage).not.toHaveBeenCalled();
+        expect(remountResult.current.searchQuery).toBe('');
+        expect(remountResult.current.searchResults).toEqual([
+            {tagName: '-match', tagListName: 'TagList'},
+            {tagName: 'other-tag', tagListName: 'TagList'},
+        ]);
+    });
+
+    it('isolates cache by policyIDs so different workspaces do not share results and offline typing does not overwrite other policies', () => {
+        setCompleteTagFilterState('', 'policy-1');
+
+        mockIsOffline = true;
+        mockOpenSearchTagFiltersPage.mockClear();
+
+        const {result} = renderHook(() => useSearchTagFilters('policy-2'));
+
+        expect(mockOpenSearchTagFiltersPage).not.toHaveBeenCalled();
+        expect(result.current.searchResults).toBeUndefined();
+        expect(result.current.hasMore).toBe(false);
+
+        act(() => {
+            result.current.searchTags('eng');
+        });
+
+        expect(result.current.searchResults).toBeUndefined();
+        expect(onyxData[getPaginationKey('policy-1')]).toEqual(expect.objectContaining({policyIDs: 'policy-1'}));
     });
 });

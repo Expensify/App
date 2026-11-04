@@ -1,7 +1,7 @@
 ---
 title: Connect a Personal Bank Account
 description: Learn how to connect your personal bank account to receive reimbursements in Expensify, including support for both US and international accounts.
-keywords: [New Expensify, bank account, personal bank account, reimbursements, wallet, US bank account, global reimbursements, manual bank connection, add bank account for reimbursement, reimbursement account setup, wallet, deposit account, direct deposit, update bank account, review badge, missing info, validate your account, security code, log into your bank, connect manually]
+keywords: [New Expensify, bank account, personal bank account, reimbursements, wallet, US bank account, global reimbursements, manual bank connection, add bank account for reimbursement, reimbursement account setup, wallet, deposit account, direct deposit, update bank account, review badge, missing info, validate your account, security code, log into your bank, connect manually, edit nickname, bank account nickname]
 internalScope: Audience is members receiving reimbursements. Covers connecting and updating personal bank accounts, does not cover business bank accounts or workspace-level payment settings.
 ---
 
@@ -64,7 +64,7 @@ Once updated, the **Review** badge will be removed from the bank account.
 
 ## Can I add more than one personal bank account?
 
-Yes. You can add multiple accounts, but only one can be selected as the default for reimbursements.
+Yes. You can add multiple accounts, but only one can be selected as the default for reimbursements. To tell your accounts apart, go to **Account > Wallet > Bank accounts**, select the three dots **(⋮)** next to an account, select **Edit nickname**, enter a new name, and click **Save**.
 
 ## Why am I asked for a security code when I add a bank account?
 

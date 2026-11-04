@@ -15,6 +15,7 @@ import {isSafari} from '@libs/Browser';
 import ConciergePromptBox, {PLACEHOLDER_SKELETON_TEST_ID} from '@pages/home/ForYouSection/ConciergePromptBox';
 
 import {close} from '@userActions/Modal';
+import type * as ReportActionsModule from '@userActions/Report';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 
 import CONST from '@src/CONST';
@@ -157,9 +158,21 @@ jest.mock('@libs/Browser', () => ({
 }));
 
 jest.mock('@pages/Share/getFileSize', () => jest.fn(() => Promise.resolve(100)));
+// The real module goes through React Native's Image.getSize, whose native ImageLoader mock in jest-expo still uses the
+// old callback signature and throws, so pasted images get their dimensions from this stub instead.
+jest.mock('react-native-image-size', () => ({
+    __esModule: true,
+    default: {getSize: jest.fn(() => Promise.resolve({width: 320, height: 240}))},
+}));
 
 jest.mock('@userActions/Modal', () => ({
     close: jest.fn(),
+}));
+
+// Typing a mention searches for users on the server, and that request must not reach the network in tests.
+jest.mock('@userActions/Report', () => ({
+    ...jest.requireActual<typeof ReportActionsModule>('@userActions/Report'),
+    searchUserInServer: jest.fn(),
 }));
 
 jest.mock('@userActions/Session', () => ({

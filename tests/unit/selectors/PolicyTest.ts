@@ -1,16 +1,20 @@
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {FullPolicySnapshot, Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {
+    createPolicyViolationVisibilitySelector,
+    isCollectingDepositAccountsSelector,
+    createIsInternationalCountrySelector,
     activeAdminPoliciesSelector,
     adminPoliciesConnectedToQBDSelector,
     createHasAdminPolicyWithXeroConnectionSelector,
     createHasWorkspaceToSubmitToSelector,
     createOwnedPaidPoliciesCountsSelector,
     createTimeSensitiveAdminPoliciesSelector,
+    fullPolicySnapshotLastModifiedByPolicyIDSelector,
     hasOnlyPersonalPoliciesSelector,
     hasReusablePoliciesConnectedToSelector,
     reusablePoliciesConnectedToSelector,
@@ -58,6 +62,53 @@ describe('createOwnedPaidPoliciesCountsSelector', () => {
         };
         const selector = createOwnedPaidPoliciesCountsSelector(OWNER_ACCOUNT_ID);
         expect(selector(policies)).toEqual({total: 2, active: 1});
+    });
+
+    it('excludes archived policies from both counts', () => {
+        // Given an owned paid workspace and an archived owned paid workspace
+        const policies: OnyxCollection<Policy> = {
+            policy1: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.TEAM), pendingAction: null},
+            policy2: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.CORPORATE), pendingAction: null, archivedDate: '2026-09-24 11:29:34.000'},
+        };
+
+        // When the counts are selected
+        const selector = createOwnedPaidPoliciesCountsSelector(OWNER_ACCOUNT_ID);
+
+        // Then the archived workspace is ignored, so the remaining one is still counted as the user's last paid workspace
+        expect(selector(policies)).toEqual({total: 1, active: 1});
+    });
+
+    it('excludes archived policies but keeps pending deletion in the total count', () => {
+        // Given an active, a pending delete and an archived owned paid workspace
+        const policies: OnyxCollection<Policy> = {
+            policy1: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.TEAM), pendingAction: null},
+            policy2: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.CORPORATE), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            policy3: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.CORPORATE), pendingAction: null, archivedDate: '2026-09-24 11:29:34.000'},
+        };
+
+        // When the counts are selected
+        const selector = createOwnedPaidPoliciesCountsSelector(OWNER_ACCOUNT_ID);
+
+        // Then only the archived workspace drops out of the total, while the pending delete one is still excluded from the active count
+        expect(selector(policies)).toEqual({total: 2, active: 1});
+    });
+
+    it('excludes a policy that is being archived optimistically', () => {
+        // Given an owned paid workspace and another one mid-archive, which `archivePolicy` marks with `archivedDate` and a pending UPDATE rather than a pending DELETE
+        const policies: OnyxCollection<Policy> = {
+            policy1: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.TEAM), pendingAction: null},
+            policy2: {
+                ...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.CORPORATE),
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                archivedDate: '2026-09-24 11:29:34.000',
+            },
+        };
+
+        // When the counts are selected
+        const selector = createOwnedPaidPoliciesCountsSelector(OWNER_ACCOUNT_ID);
+
+        // Then the workspace being archived is already excluded, so the pending UPDATE does not keep it in the counts
+        expect(selector(policies)).toEqual({total: 1, active: 1});
     });
 
     it('returns zero active when all owned paid policies are pending deletion', () => {
@@ -573,5 +624,185 @@ describe('createHasWorkspaceToSubmitToSelector', () => {
         };
 
         expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN)(policies)).toBe(true);
+    });
+});
+
+describe('isCollectingDepositAccountsSelector', () => {
+    it('returns true when any workspace collects deposit accounts', () => {
+        // Given one workspace that collects deposit accounts and one that does not
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {isCollectDepositAccountsEnabled: false}),
+            policy2: buildSelectorPolicy(2, {isCollectDepositAccountsEnabled: true}),
+        };
+
+        // When checking whether the collect flow applies to the user
+        // Then it does, because the collecting workspace still wants the employee's details
+        expect(isCollectingDepositAccountsSelector(policies)).toBe(true);
+    });
+
+    it('returns false when no workspace collects deposit accounts', () => {
+        // Given only workspaces that do not collect deposit accounts
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {isCollectDepositAccountsEnabled: false}),
+            policy2: buildSelectorPolicy(2, {}),
+        };
+
+        // When checking whether the collect flow applies to the user
+        // Then it is not offered, because nobody is asking the employee for their details
+        expect(isCollectingDepositAccountsSelector(policies)).toBe(false);
+    });
+
+    it('returns false when the only collecting workspace is pending deletion', () => {
+        // Given a collecting workspace that is on its way out
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {isCollectDepositAccountsEnabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+        };
+
+        // When checking whether the collect flow applies to the user
+        // Then it is not offered, because that workspace will never reimburse anyone
+        expect(isCollectingDepositAccountsSelector(policies)).toBe(false);
+    });
+});
+
+describe('createIsInternationalCountrySelector', () => {
+    const collectingGB: OnyxCollection<Policy> = {
+        policy1: buildSelectorPolicy(1, {isCollectDepositAccountsEnabled: true, reimbursement: {countries: {GB: {}}}}),
+    };
+
+    it('returns false when every collecting workspace banks in that country', () => {
+        // Given a collecting workspace with a GB bank account
+        // When the employee adds a GB account
+        // Then local details are collected, because the employer can pay them domestically
+        expect(createIsInternationalCountrySelector('GB')(collectingGB)).toBe(false);
+    });
+
+    it('returns true when no collecting workspace banks in that country', () => {
+        // Given a collecting workspace that only banks in GB
+        // When the employee adds a DE account
+        // Then wire details are collected, because the money has to arrive from abroad
+        expect(createIsInternationalCountrySelector('DE')(collectingGB)).toBe(true);
+    });
+
+    it('returns true when only some collecting workspaces bank in that country', () => {
+        // Given one collecting workspace banking in GB and another banking in the US
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {isCollectDepositAccountsEnabled: true, reimbursement: {countries: {GB: {}}}}),
+            policy2: buildSelectorPolicy(2, {isCollectDepositAccountsEnabled: true, reimbursement: {countries: {US: {}}}}),
+        };
+
+        // When the employee adds a GB account
+        // Then wire details are collected, because the one account has to work for the US workspace too
+        expect(createIsInternationalCountrySelector('GB')(policies)).toBe(true);
+    });
+
+    it('ignores a workspace that is pending deletion', () => {
+        // Given a collecting workspace banking in GB and an archived one banking in the US
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {isCollectDepositAccountsEnabled: true, reimbursement: {countries: {GB: {}}}}),
+            policy2: buildSelectorPolicy(2, {
+                isCollectDepositAccountsEnabled: true,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                reimbursement: {countries: {US: {}}},
+            }),
+        };
+
+        // When the employee adds a GB account
+        // Then local details are collected, because the archived workspace will never pay them
+        expect(createIsInternationalCountrySelector('GB')(policies)).toBe(false);
+    });
+
+    it('ignores a workspace that does not collect deposit accounts', () => {
+        // Given a collecting workspace banking in GB and a non-collecting one banking in the US
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {isCollectDepositAccountsEnabled: true, reimbursement: {countries: {GB: {}}}}),
+            policy2: buildSelectorPolicy(2, {isCollectDepositAccountsEnabled: false, reimbursement: {countries: {US: {}}}}),
+        };
+
+        // When the employee adds a GB account
+        // Then local details are collected, because that workspace says nothing about how they are paid
+        expect(createIsInternationalCountrySelector('GB')(policies)).toBe(false);
+    });
+
+    it('returns true for a collecting workspace that banks nowhere', () => {
+        // Given a collecting workspace with no bank account country yet
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {isCollectDepositAccountsEnabled: true}),
+        };
+
+        // When the employee adds a GB account
+        // Then wire details are collected, because that workspace cannot pay anyone domestically
+        expect(createIsInternationalCountrySelector('GB')(policies)).toBe(true);
+    });
+});
+
+describe('fullPolicySnapshotLastModifiedByPolicyIDSelector', () => {
+    it('maps each policyID to the lastModified of its full policy snapshot', () => {
+        // Given full policy snapshots for two policies and a snapshot without a lastModified
+        const snapshots: OnyxCollection<FullPolicySnapshot> = {
+            [`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}policy1`]: {lastModified: 123},
+            [`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}policy2`]: {lastModified: 456},
+            [`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}policy3`]: {},
+        };
+
+        // When the snapshots are mapped by policy
+        // Then each policyID comes from its key, and the snapshot without a lastModified is left out so it is never sent to OpenReport
+        expect(fullPolicySnapshotLastModifiedByPolicyIDSelector(snapshots)).toEqual({policy1: 123, policy2: 456});
+    });
+});
+
+describe('createPolicyViolationVisibilitySelector', () => {
+    const currentUserEmail = 'me@test.com';
+    const otherEmail = 'other@test.com';
+
+    it('should keep only the fields violation visibility reads and the current user membership', () => {
+        // Given a policy with several members and fields violation visibility doesn't read
+        const policy = createMock<Policy>({
+            id: 'P1',
+            name: 'Workspace',
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            owner: otherEmail,
+            outputCurrency: CONST.CURRENCY.USD,
+            autoReporting: true,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            isAttendeeTrackingEnabled: true,
+            autoCategorizeNewExpenses: false,
+            employeeList: {[currentUserEmail]: {email: currentUserEmail}, [otherEmail]: {email: otherEmail}},
+            lastModified: '2026-01-01',
+        });
+
+        // When the row builds the policy for violation visibility
+        const violationPolicy = createPolicyViolationVisibilitySelector(currentUserEmail)(policy);
+
+        // Then adding or editing another member can't re-render the row, while the role, workflow and membership the violation check reads stay
+        expect(violationPolicy).toEqual({
+            id: 'P1',
+            name: 'Workspace',
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            owner: otherEmail,
+            outputCurrency: CONST.CURRENCY.USD,
+            autoReporting: true,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            isAttendeeTrackingEnabled: true,
+            autoCategorizeNewExpenses: false,
+            employeeList: {[currentUserEmail]: {email: currentUserEmail}},
+        });
+    });
+
+    it('should drop the employee list when the current user is not a member', () => {
+        // Given a policy whose employee list doesn't include the current user
+        const policy = createMock<Policy>({id: 'P1', employeeList: {[otherEmail]: {email: otherEmail}}});
+
+        // When the row builds the policy for violation visibility
+        // Then the row sees no membership, matching the full policy's answer for the current user
+        expect(createPolicyViolationVisibilitySelector(currentUserEmail)(policy)?.employeeList).toBeUndefined();
+    });
+
+    it('should return undefined when the policy is not loaded', () => {
+        // Given a report whose policy is not in Onyx
+        // When the row builds the policy for violation visibility
+        // Then it gets undefined, like the full policy read would
+        expect(createPolicyViolationVisibilitySelector(currentUserEmail)(undefined)).toBeUndefined();
     });
 });

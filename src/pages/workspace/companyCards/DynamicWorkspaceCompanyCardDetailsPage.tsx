@@ -99,6 +99,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'ZohoBooksSquare',
         'BusinessCentralSquare',
         'GustoSquare',
     ]);
@@ -255,12 +256,10 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                             {!!card?.nameValuePairs?.errorFields?.cardTitle && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                         </MenuItemField>
                     </OfflineWithFeedback>
-                    <MenuItemWithTopDescription
-                        numberOfLinesTitle={3}
-                        description={translate('workspace.moreFeatures.companyCards.cardNumber')}
-                        title={maskCardNumber(card?.cardName ?? '', bank, true)}
-                        interactive={false}
-                        titleStyle={styles.walletCardNumber}
+                    <MenuItemField
+                        name={translate('workspace.moreFeatures.companyCards.cardNumber')}
+                        value={maskCardNumber(card?.cardName ?? '', bank, true)}
+                        numberOfLinesValue={3}
                     />
                     <OfflineWithFeedback
                         pendingAction={card?.pendingFields?.scrapeMinDate}
@@ -288,28 +287,29 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                         />
                     )}
                     {canWriteCompanyCards && (
-                        <MenuItem
-                            icon={expensifyIcons.RemoveMembers}
-                            title={translate('workspace.moreFeatures.companyCards.unassignCard')}
-                            style={styles.mb1}
-                            onPress={() => {
-                                showConfirmModal({
-                                    shouldSetModalVisibility: false,
-                                    title: translate('workspace.moreFeatures.companyCards.unassignCard'),
-                                    prompt: translate('workspace.moreFeatures.companyCards.unassignCardDescription'),
-                                    confirmText: translate('workspace.moreFeatures.companyCards.unassign'),
-                                    cancelText: translate('common.cancel'),
-                                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-                                }).then((result) => {
-                                    if (result.action !== ModalActions.CONFIRM) {
-                                        return;
-                                    }
+                        <View style={styles.mb1}>
+                            <MenuItemAction
+                                icon={expensifyIcons.RemoveMembers}
+                                title={translate('workspace.moreFeatures.companyCards.unassignCard')}
+                                onPress={() => {
+                                    showConfirmModal({
+                                        shouldSetModalVisibility: false,
+                                        title: translate('workspace.moreFeatures.companyCards.unassignCard'),
+                                        prompt: translate('workspace.moreFeatures.companyCards.unassignCardDescription'),
+                                        confirmText: translate('workspace.moreFeatures.companyCards.unassign'),
+                                        cancelText: translate('common.cancel'),
+                                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+                                    }).then((result) => {
+                                        if (result.action !== ModalActions.CONFIRM) {
+                                            return;
+                                        }
 
-                                    unassignCard();
-                                });
-                            }}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.UNASSIGN_CARD}
-                        />
+                                        unassignCard();
+                                    });
+                                }}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.UNASSIGN_CARD}
+                            />
+                        </View>
                     )}
                     {exportMenuItem?.shouldShowMenuItem ? (
                         <>

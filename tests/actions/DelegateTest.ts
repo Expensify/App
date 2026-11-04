@@ -6,8 +6,12 @@ import {
     connect,
     isConnectedAsDelegate,
     removeDelegate,
+    removeSelfAsDelegate,
+    resumeSelfRemovalAsDelegate,
     updateDelegateRole,
 } from '@libs/actions/Delegate';
+import * as API from '@libs/API';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {pause, resetQueue} from '@libs/Network/SequentialQueue';
 
@@ -63,7 +67,7 @@ describe('actions/Delegate', () => {
                     callback: (account) => {
                         // @ts-expect-error - errorFields is not defined in the type
                         expect(account?.delegatedAccess?.delegators?.at(0)?.errorFields).toBeDefined();
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve();
                     },
                 });
@@ -78,7 +82,7 @@ describe('actions/Delegate', () => {
                     callback: (account) => {
                         // @ts-expect-error - errorFields is not defined in the type
                         expect(account?.delegatedAccess?.delegators?.at(0)?.errorFields).toBeUndefined();
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve();
                     },
                 });
@@ -101,7 +105,7 @@ describe('actions/Delegate', () => {
                     callback: (account) => {
                         expect(account?.delegatedAccess?.delegates?.at(0)?.email).toBe('test@test.com');
                         expect(account?.delegatedAccess?.delegates?.at(0)?.role).toBe(CONST.DELEGATE_ROLE.ALL);
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve();
                     },
                 });
@@ -161,7 +165,7 @@ describe('actions/Delegate', () => {
                     key: ONYXKEYS.ACCOUNT,
                     callback: (account) => {
                         expect(account?.delegatedAccess?.delegates?.at(0)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve();
                     },
                 });
@@ -210,7 +214,7 @@ describe('actions/Delegate', () => {
                         // The targeted errors should be cleared
                         expect(errorFields?.addDelegate?.['test@test.com']).toBeUndefined();
 
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve();
                     },
                 });
@@ -244,7 +248,7 @@ describe('actions/Delegate', () => {
                         const firstDelegate = account?.delegatedAccess?.delegates?.at(0);
                         expect(firstDelegate?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
                         expect(firstDelegate?.pendingFields?.role).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve();
                     },
                 });
@@ -272,7 +276,7 @@ describe('actions/Delegate', () => {
                     key: ONYXKEYS.ACCOUNT,
                     callback: (account) => {
                         expect(isConnectedAsDelegate({delegatedAccess: account?.delegatedAccess})).toBe(false);
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve();
                     },
                 });
@@ -298,7 +302,6 @@ describe('actions/Delegate', () => {
                 credentials: {},
                 session: {authToken: 'restrictedToken', authTokenType: CONST.AUTH_TOKEN_TYPES.DELEGATE},
                 activePolicyID: undefined,
-                isFromOldDot: true,
             });
             await waitForBatchedUpdates();
 
@@ -307,6 +310,115 @@ describe('actions/Delegate', () => {
             await expect(getOnyxValue(ONYXKEYS.STASHED_CREDENTIALS)).resolves.toEqual(stashedCredentials);
         });
     });
+
+    // Stubbing the flow's API methods counts as chained API calls for this rule
+    /* eslint-disable rulesdir/no-multiple-api-calls */
+    describe('removeSelfAsDelegate', () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it.each([
+            [
+                'removes the copilot access once the server restores the original session',
+                {authToken: 'copilotRefreshedToken', encryptedAuthToken: 'encrypted', requesterID: 2, requesterEmail: 'copilot@test.com'},
+                false,
+                true,
+                {email: 'copilot@test.com', authToken: 'copilotRefreshedToken'},
+            ],
+            [
+                'removes the copilot access when restoring the original session is interrupted after SESSION was written',
+                {authToken: 'copilotRefreshedToken', encryptedAuthToken: 'encrypted', requesterID: 2, requesterEmail: 'copilot@test.com'},
+                true,
+                true,
+                {email: 'copilot@test.com', authToken: 'copilotRefreshedToken'},
+            ],
+            [
+                'removes the copilot access once the original session is restored from the stash',
+                {authToken: undefined, encryptedAuthToken: undefined, requesterID: undefined, requesterEmail: undefined},
+                false,
+                true,
+                {email: 'copilot@test.com', authToken: 'copilotAuthToken'},
+            ],
+            [
+                'keeps the copilot access and shows an error when the original session could not be restored',
+                new Error('Network error'),
+                false,
+                false,
+                {email: 'delegator@test.com', authToken: 'restrictedToken'},
+            ],
+        ])('%s', async (_description, disconnectResponse, shouldOpenAppFail, shouldRemoveDelegator, expectedSession) => {
+            // Given a copilot acting as the delegator, with their own session and login stashed
+            const stashedSession = {authToken: 'copilotAuthToken', email: 'copilot@test.com', accountID: 2};
+            const stashedCredentials = {autoGeneratedLogin: 'copilotLogin', autoGeneratedPassword: 'copilotPassword'};
+            await Onyx.set(ONYXKEYS.SESSION, {authToken: 'restrictedToken', email: 'delegator@test.com', accountID: 1, authTokenType: CONST.AUTH_TOKEN_TYPES.DELEGATE});
+            let pendingRemovalAtDisconnect: string | undefined;
+            jest.spyOn(API, 'makeRequestWithSideEffects').mockImplementation(async () => {
+                pendingRemovalAtDisconnect = await getOnyxValue(ONYXKEYS.PENDING_SELF_COPILOT_REMOVAL);
+                if (disconnectResponse instanceof Error) {
+                    throw disconnectResponse;
+                }
+                return {jsonCode: CONST.JSON_CODE.SUCCESS, ...disconnectResponse};
+            });
+            jest.spyOn(API, 'writeWithNoDuplicatesOpenAppConflictAction').mockImplementation(() => (shouldOpenAppFail ? Promise.reject(new Error('OpenApp failed')) : Promise.resolve()));
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+            const readSpy = jest.spyOn(API, 'read').mockImplementation(() => {});
+
+            // When the copilot removes themselves from the delegator's copilots
+            await removeSelfAsDelegate({delegatorEmail: 'delegator@test.com', delegateEmail: 'copilot@test.com', stashedCredentials, stashedSession});
+            await waitForBatchedUpdates();
+
+            // Then the removal is saved as pending before the session is ended, so a kill mid-flow can't lose it
+            expect(pendingRemovalAtDisconnect).toBe('delegator@test.com');
+
+            // And the access is revoked only once the copilot is back on their own account, so the app never runs on a revoked token
+            const removeDelegatorCalls = writeSpy.mock.calls.filter(([command]) => command === WRITE_COMMANDS.REMOVE_DELEGATOR);
+            expect(removeDelegatorCalls).toHaveLength(shouldRemoveDelegator ? 1 : 0);
+            await expect(getOnyxValue(ONYXKEYS.SESSION)).resolves.toEqual(expect.objectContaining(expectedSession));
+            if (shouldRemoveDelegator) {
+                expect(writeSpy).toHaveBeenCalledWith(
+                    WRITE_COMMANDS.REMOVE_DELEGATOR,
+                    {delegatorEmail: 'delegator@test.com'},
+                    expect.objectContaining({optimisticData: expect.arrayContaining([{onyxMethod: Onyx.METHOD.SET, key: ONYXKEYS.PENDING_SELF_COPILOT_REMOVAL, value: null}])}),
+                );
+                expect(readSpy).toHaveBeenCalledWith(READ_COMMANDS.OPEN_SECURITY_SETTINGS_PAGE, null);
+                return;
+            }
+
+            // And a failed restore leaves the copilot on the delegator's account with an error on their own row and nothing pending
+            const account = await getOnyxValue(ONYXKEYS.ACCOUNT);
+            expect(account?.delegatedAccess?.errorFields?.removeDelegate?.['copilot@test.com']).toBeDefined();
+            await expect(getOnyxValue(ONYXKEYS.PENDING_SELF_COPILOT_REMOVAL)).resolves.toBeUndefined();
+        });
+    });
+
+    describe('resumeSelfRemovalAsDelegate', () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it.each([
+            ['queues the removal once the copilot is back on their own account', false, 1],
+            ['cancels the removal when the copilot is still acting as the delegator, as the restore never happened', true, 0],
+        ])('%s', async (_description, isDelegateSession, expectedRemoveDelegatorCalls) => {
+            // Given a self-removal that a kill interrupted after it was saved as pending
+            await Onyx.set(ONYXKEYS.PENDING_SELF_COPILOT_REMOVAL, 'delegator@test.com');
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+            jest.spyOn(API, 'read').mockImplementation(() => {});
+
+            // When the app starts again
+            resumeSelfRemovalAsDelegate({delegatorEmail: 'delegator@test.com', isDelegateSession});
+            await waitForBatchedUpdates();
+
+            // Then the removal is only completed when the copilot's own session was restored
+            const removeDelegatorCalls = writeSpy.mock.calls.filter(([command]) => command === WRITE_COMMANDS.REMOVE_DELEGATOR);
+            expect(removeDelegatorCalls).toHaveLength(expectedRemoveDelegatorCalls);
+            if (isDelegateSession) {
+                await expect(getOnyxValue(ONYXKEYS.PENDING_SELF_COPILOT_REMOVAL)).resolves.toBeUndefined();
+            }
+        });
+    });
+    /* eslint-enable rulesdir/no-multiple-api-calls */
 
     describe('clearOnyxForDelegateTransition', () => {
         it('keeps IS_LOADING_APP=true after the clear so DelegateAccessHandler does not see HAS_LOADED_APP=true && IS_LOADING_APP=undefined and fire a duplicate openApp', async () => {
@@ -326,7 +438,7 @@ describe('actions/Delegate', () => {
                     key: ONYXKEYS.IS_LOADING_APP,
                     callback: (value) => {
                         expect(value).toBe(true);
-                        Onyx.disconnect(conn);
+                        conn.unsubscribe();
                         resolve();
                     },
                 });
@@ -338,7 +450,7 @@ describe('actions/Delegate', () => {
                     key: ONYXKEYS.HAS_LOADED_APP,
                     callback: (value) => {
                         expect(value).toBe(true);
-                        Onyx.disconnect(conn);
+                        conn.unsubscribe();
                         resolve();
                     },
                 });
@@ -350,7 +462,7 @@ describe('actions/Delegate', () => {
                     key: ONYXKEYS.NVP_PRIORITY_MODE,
                     callback: (value) => {
                         expect(value).toBeUndefined();
-                        Onyx.disconnect(conn);
+                        conn.unsubscribe();
                         resolve();
                     },
                 });
@@ -377,7 +489,7 @@ describe('actions/Delegate', () => {
                         expect(typeof value).toBe('string');
                         expect(value && value.length > 0).toBe(true);
                         expect((value ?? '') >= before).toBe(true);
-                        Onyx.disconnect(conn);
+                        conn.unsubscribe();
                         resolve();
                     },
                 });
@@ -389,7 +501,7 @@ describe('actions/Delegate', () => {
                     key: ONYXKEYS.NVP_PRIORITY_MODE,
                     callback: (value) => {
                         expect(value).toBeUndefined();
-                        Onyx.disconnect(conn);
+                        conn.unsubscribe();
                         resolve();
                     },
                 });

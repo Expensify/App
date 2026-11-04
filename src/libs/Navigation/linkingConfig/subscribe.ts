@@ -1,5 +1,5 @@
-import {hasAuthToken} from '@libs/actions/Session';
 import continuePlaidOAuth from '@libs/continuePlaidOAuth';
+import {hasAuthToken} from '@libs/CurrentUserStore';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 

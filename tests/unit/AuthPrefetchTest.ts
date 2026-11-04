@@ -55,7 +55,7 @@ describe('auth startup prefetch cleanup', () => {
     it('clears native startup prefetches before resetting Onyx for an identity transition', async () => {
         const clearOnyxAndSeedFullReconnect = (await import('@userActions/clearOnyxAndSeedFullReconnect')).default;
 
-        await clearOnyxAndSeedFullReconnect([ONYXKEYS.SESSION], {[ONYXKEYS.IS_LOADING_APP]: true});
+        await clearOnyxAndSeedFullReconnect([ONYXKEYS.SESSION]);
 
         expect(mockClearPrefetchOnAppStart).toHaveBeenCalledTimes(2);
         expect(mockMultiSet).toHaveBeenCalledWith({

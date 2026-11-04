@@ -11,6 +11,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 
@@ -18,9 +19,10 @@ import Navigation from '@navigation/Navigation';
 
 import {navigateToConciergeChat} from '@userActions/Report';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -34,13 +36,17 @@ function Finish() {
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
 
     const handleBackButtonPress = () => {
         Navigation.dismissModal();
     };
-    const handleNavigateToConciergeChat = () => navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, shouldDismissModal: true});
+    const handleNavigateToConciergeChat = () =>
+        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, conciergePersonalDetails, shouldDismissModal: true});
 
     return (
         <ScreenWrapper
@@ -57,7 +63,7 @@ function Finish() {
                 <Section
                     title={translate('finishStep.letsFinish')}
                     icon={illustrations.ConciergeBubble}
-                    containerStyles={[styles.mb8, styles.mh5]}
+                    containerStyles={styles.mb8}
                     titleStyles={[styles.mb3, styles.textHeadline]}
                 >
                     <Text style={[styles.mb6, styles.mt3, styles.textLabelSupportingEmptyValue]}>{translate('finishStep.thanksFor')}</Text>
@@ -73,7 +79,6 @@ function Finish() {
                     title={translate('finishStep.enable2FA')}
                     icon={illustrations.ShieldYellow}
                     titleStyles={[styles.mb4, styles.textHeadline]}
-                    containerStyles={[styles.mh5]}
                 >
                     <View style={styles.mb6}>
                         <Text style={[styles.mt3, styles.textLabelSupportingEmptyValue]}>{translate('finishStep.weTake')}</Text>

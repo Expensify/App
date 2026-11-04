@@ -5,7 +5,7 @@ import {getAllPolicyValues, getConnectedIntegrationNamesForPolicies, getFilterFr
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ExportTemplate, Policy} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -14,7 +14,6 @@ import useOnyx from './useOnyx';
 
 type UseExportedToFilterDataResult = {
     exportedToFilterOptions: string[];
-    combinedUniqueExportTemplates: ExportTemplate[];
     connectedIntegrationNames: Set<string>;
 };
 
@@ -35,7 +34,6 @@ function exportedToPoliciesSelector(policies: OnyxCollection<Policy>): OnyxColle
             id: policy.id,
             name: policy.name,
             connections: policy.connections,
-            exportLayouts: policy.exportLayouts,
             outputCurrency: policy.outputCurrency,
             role: policy.role,
             areCompanyCardsEnabled: policy.areCompanyCardsEnabled,
@@ -52,20 +50,17 @@ function exportedToPoliciesSelector(policies: OnyxCollection<Policy>): OnyxColle
  */
 export default function useExportedToFilterOptions(): UseExportedToFilterDataResult {
     const {currentSearchQueryJSON} = useSearchQueryContext();
-    const policyIDs = getFilterFromQuery(currentSearchQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
-
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: exportedToPoliciesSelector});
 
     // When search is scoped to workspaces, use only those policies otherwise use all.
-    const policiesToUse = getAllPolicyValues(policyIDs, ONYXKEYS.COLLECTION.POLICY, policies);
-    const {combinedExportTemplates: combinedUniqueExportTemplates} = useCombinedExportTemplates(policiesToUse);
+    const policiesToUse = getAllPolicyValues(getFilterFromQuery(currentSearchQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID), ONYXKEYS.COLLECTION.POLICY, policies);
+    const combinedExportTemplates = useCombinedExportTemplates(policiesToUse);
 
     const integrationConnectionNamesSet = new Set<string>(CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES);
 
     const standardAndCustomExportTemplates: string[] = [];
-    for (const template of combinedUniqueExportTemplates) {
-        // Classic export formats map to in-app templates and cannot be identified in exported-to filter.
-        if (template.type === CONST.EXPORT_TEMPLATE_TYPES.IN_APP || integrationConnectionNamesSet.has(template.templateName)) {
+    for (const template of combinedExportTemplates) {
+        if (integrationConnectionNamesSet.has(template.templateName)) {
             continue;
         }
 
@@ -74,6 +69,8 @@ export default function useExportedToFilterOptions(): UseExportedToFilterDataRes
         standardAndCustomExportTemplates.push(filterValue);
     }
 
+    // React Compiler stops memoizing a value made before a hook call and passed to a function after it, unless the hook also received it, so the policy IDs are read again here.
+    const policyIDs = getFilterFromQuery(currentSearchQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
     const connectedIntegrationNames = policyIDs.value?.length === 0 ? new Set<string>() : getConnectedIntegrationNamesForPolicies(policies, policyIDs);
 
     const connectedIntegrationSearchValues = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.flatMap((connectionName) => {
@@ -88,7 +85,6 @@ export default function useExportedToFilterOptions(): UseExportedToFilterDataRes
 
     return {
         exportedToFilterOptions,
-        combinedUniqueExportTemplates,
         connectedIntegrationNames,
     };
 }

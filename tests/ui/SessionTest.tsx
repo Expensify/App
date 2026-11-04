@@ -119,7 +119,7 @@ describe('Deep linking', () => {
                 },
                 [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: 'randomID',
             });
-            return originalSignInWithShortLivedAuthToken(TEST_AUTH_TOKEN_1);
+            return originalSignInWithShortLivedAuthToken(TEST_AUTH_TOKEN_1, false, undefined, undefined);
         });
 
         // Set the keys the app needs to finish loading rather than going through
@@ -145,7 +145,7 @@ describe('Deep linking', () => {
 
     afterEach(async () => {
         if (lastVisitedPathConnectionID) {
-            Onyx.disconnect(lastVisitedPathConnectionID);
+            lastVisitedPathConnectionID.unsubscribe();
             lastVisitedPathConnectionID = undefined;
         }
         cleanup();
@@ -414,7 +414,7 @@ describe('signInWithShortLivedAuthToken', () => {
             }),
         );
 
-        Session.signInWithShortLivedAuthToken('token', true);
+        Session.signInWithShortLivedAuthToken('token', true, undefined, undefined);
         await waitForBatchedUpdates();
 
         let isAuthenticating: boolean | undefined;
@@ -425,7 +425,7 @@ describe('signInWithShortLivedAuthToken', () => {
             },
         });
         await waitForBatchedUpdates();
-        Onyx.disconnect(connectionID);
+        connectionID.unsubscribe();
 
         // Guard is already set even though getDeviceInfoWithID (and thus the redeem's optimisticData) has NOT resolved.
         expect(isAuthenticating).toBe(true);

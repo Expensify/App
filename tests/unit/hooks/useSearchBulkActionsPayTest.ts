@@ -24,6 +24,7 @@ let mockBulkPayButtonOptions: Array<Record<string, unknown>> = [{text: 'Pay with
 jest.mock('@libs/actions/IOU/PayMoneyRequest', () => ({
     payMoneyRequest: jest.fn(),
     payInvoice: jest.fn(),
+    getBankAccountToSetUpBeforePaying: jest.fn(),
 }));
 
 // On iOS the offline modal is deferred until the payment popover finishes dismissing (via TransitionTracker),
@@ -36,6 +37,7 @@ jest.mock('@libs/deferModalPresentationAfterPopoverDismiss', () => ({
 jest.mock('@libs/actions/Search', () => {
     const actualSearch = jest.requireActual<typeof SearchActions>('@libs/actions/Search');
     return {
+        openSearchCardFiltersPage: jest.fn(),
         getExportTemplates: jest.fn(() => ({customTemplates: [], defaultTemplates: []})),
         exportSearchItemsToCSV: jest.fn(),
         queueExportSearchItemsToCSV: jest.fn(),
@@ -123,6 +125,12 @@ jest.mock('@hooks/useNetwork', () => ({
     default: () => ({isOffline: mockIsOffline}),
 }));
 
+const mockShowDecisionModal = jest.fn();
+jest.mock('@hooks/useDecisionModal', () => ({
+    __esModule: true,
+    default: () => ({showDecisionModal: mockShowDecisionModal}),
+}));
+
 jest.mock('@hooks/useEnvironment', () => ({
     __esModule: true,
     default: () => ({isProduction: false, isDevelopment: true, environment: 'development'}),
@@ -166,14 +174,9 @@ jest.mock('@hooks/usePolicyForMovingExpenses', () => ({
 jest.mock('@hooks/usePaymentContext', () => ({
     __esModule: true,
     default: () => ({
-        introSelected: undefined,
-        isSelfTourViewed: false,
         activePolicyID: undefined,
         activePolicy: undefined,
         defaultWorkspaceName: undefined,
-        userBillingGracePeriodEnds: undefined,
-        amountOwed: undefined,
-        ownerBillingGracePeriodEnd: undefined,
     }),
     PaymentContextProvider: ({children}: {children: unknown}) => children,
     useReportPaymentContext: () => ({}),
@@ -337,7 +340,7 @@ describe('useSearchBulkActions - Pay option', () => {
         });
 
         // Then the offline modal should open and no payment should be triggered because payments must not be queued while offline
-        expect(result.current.isOfflineModalVisible).toBe(true);
+        expect(mockShowDecisionModal).toHaveBeenCalledWith(expect.objectContaining({title: 'common.youAppearToBeOffline', prompt: 'common.offlinePrompt'}));
         expect(payMoneyRequest).not.toHaveBeenCalled();
     });
 
