@@ -210,8 +210,6 @@ function isFooterTotal(value: string): value is SearchFooterTotal {
 }
 
 const VALID_GROUP_BYS = new Set<string>(Object.values(CONST.SEARCH.GROUP_BY));
-// Auth also accepts approver, which is not an option in the App grouping picker.
-const AUTH_GROUP_BYS = new Set([...VALID_GROUP_BYS, 'approver']);
 const SEARCH_TYPES_SUPPORTING_GROUP_BY = new Set<string>([CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.DATA_TYPES.TRIP]);
 const SEARCH_TYPES_REJECTING_UNREPORTED_REPORT_ID = new Set<string>([CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, CONST.SEARCH.DATA_TYPES.INVOICE]);
 
@@ -1240,7 +1238,7 @@ function getSearchQueryError(queryJSON: Readonly<SearchQueryJSON>): TranslationP
     }
 
     const type = queryJSON.type.toLowerCase();
-    if (queryJSON.groupBy && (typeof queryJSON.groupBy !== 'string' || !AUTH_GROUP_BYS.has(queryJSON.groupBy.toLowerCase()) || !SEARCH_TYPES_SUPPORTING_GROUP_BY.has(type))) {
+    if (queryJSON.groupBy && (typeof queryJSON.groupBy !== 'string' || !VALID_GROUP_BYS.has(queryJSON.groupBy.toLowerCase()) || !SEARCH_TYPES_SUPPORTING_GROUP_BY.has(type))) {
         return 'search.searchResults.unsupportedGrouping';
     }
 

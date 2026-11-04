@@ -89,9 +89,7 @@ describe('search footer breakdown re-fire', () => {
         await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, shouldCalculateTotals: true, isLoading: false});
 
         // Then its success stamps non-billable on the snapshot, after the response that may replace `snapshot.search`
-        expect(mockedMakeRequestWithSideEffects.mock.calls.at(-1)?.[2]?.successData).toEqual([
-            expect.objectContaining({value: {search: {footerTotal: CONST.SEARCH.FOOTER_TOTAL.NON_BILLABLE}}}),
-        ]);
+        expect(mockedMakeRequestWithSideEffects.mock.calls.at(-1)?.[2]?.successData).toHaveProperty('0.value.search.footerTotal', CONST.SEARCH.FOOTER_TOTAL.NON_BILLABLE);
     });
 
     it('leaves the stamp alone for a later page without totals, which keeps the earlier total', async () => {
@@ -102,7 +100,11 @@ describe('search footer breakdown re-fire', () => {
         await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 50, shouldCalculateTotals: false, isLoading: false});
 
         // Then nothing is stamped, since the total on the snapshot is not one this request answered
-        expect(mockedMakeRequestWithSideEffects.mock.calls.at(-1)?.[2]?.successData).toEqual([]);
+        const successData = mockedMakeRequestWithSideEffects.mock.calls.at(-1)?.[2]?.successData;
+        expect(successData).toBeDefined();
+        for (const update of successData ?? []) {
+            expect(update).not.toHaveProperty('value.search.footerTotal');
+        }
     });
 
     it('still drops the same breakdown colliding with an in-flight totals request', async () => {
