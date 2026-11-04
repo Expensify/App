@@ -176,6 +176,7 @@ function DynamicIOURequestStepDate({
                 isDraft: isTransactionDraft,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 getCurrencyDecimals,
+                rules,
             });
         }
 
