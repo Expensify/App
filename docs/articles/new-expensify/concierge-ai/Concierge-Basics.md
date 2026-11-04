@@ -24,7 +24,7 @@ All rolled into one!
 You can chat with Concierge from anywhere in the app:
 
 - **On web:** Click the **Help** icon at the top right corner of the page. 
-- **On mobile:** Tap **Account** > **Help** and tap **Concierge** to navigate to the Concierge chat.
+- **On mobile:** Tap your profile icon, then tap **Help** > **Concierge** to navigate to the Concierge chat.
 - **From a report or chat:** Click or tap the **Help** icon in the header of the report you’re viewing. Concierge opens with that report as context (in the side panel on web, in the Concierge chat on mobile), so you can ask it to act on that report without naming it.
 - **From the search bar:** Type your question in the search bar and select **Ask Concierge**. Your message is sent to Concierge immediately.
 

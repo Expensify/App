@@ -17,6 +17,7 @@ const sessionEmailAndAccountIDSelector = (session: OnyxEntry<Session>) => ({emai
 
 const authTokenSelector = (session: OnyxEntry<Session>) => session?.authToken;
 
+const authTokenTypeAndAccountIDSelector = (session: OnyxEntry<Session>) => session && {authTokenType: session.authTokenType, accountID: session.accountID};
 /** Keeps only the auth token type, which is all `isAnonymousUser` needs, so subscribers don't re-render on unrelated session changes */
 const authTokenTypeSelector = (session: OnyxEntry<Session>) => session && {authTokenType: session.authTokenType};
 
@@ -28,9 +29,10 @@ export {
     accountIDSelector,
     sessionEmailAndAccountIDSelector,
     authTokenSelector,
+    authTokenTypeSelector,
+    authTokenTypeAndAccountIDSelector,
     hasNonAnonymousSessionSelector,
     isSupportalSessionSelector,
     isDelegateSessionSelector,
     isAnonymousSessionSelector,
-    authTokenTypeSelector,
 };
