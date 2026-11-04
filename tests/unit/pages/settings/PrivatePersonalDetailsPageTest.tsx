@@ -22,8 +22,18 @@ jest.mock('@libs/actions/FormActions', () => ({setDraftValues: jest.fn(), clearD
 jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn()}));
 jest.mock('@components/Form/FormProvider', () => jest.fn(({children}: React.PropsWithChildren) => children));
 jest.mock('@components/Form/InputWrapper', () => jest.fn(() => null));
-jest.mock('@components/ScreenWrapper', () => ({children}: React.PropsWithChildren) => children);
-jest.mock('@components/DelegateNoAccessWrapper', () => ({children}: React.PropsWithChildren) => children);
+jest.mock(
+    '@components/ScreenWrapper',
+    () =>
+        ({children}: React.PropsWithChildren) =>
+            children,
+);
+jest.mock(
+    '@components/DelegateNoAccessWrapper',
+    () =>
+        ({children}: React.PropsWithChildren) =>
+            children,
+);
 jest.mock('@components/HeaderWithBackButton', () => () => null);
 jest.mock('@components/AddressSearch', () => () => null);
 jest.mock('@components/CountrySelector', () => () => null);
