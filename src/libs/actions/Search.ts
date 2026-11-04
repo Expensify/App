@@ -1460,7 +1460,7 @@ function search({
     const inFlightRequestState: InFlightSearchRequest = {shouldCalculateTotals, shouldSaveRecentSearch, footerTotal, shouldReturnTripRooms: isTripRoomsSearch, shouldDiscardStaleSnapshot};
     inFlightSearchRequests.set(dedupeKey, inFlightRequestState);
 
-    // Runs this search again, guarded and without a loading state, to refresh the rows already on screen.
+    // Sends this Search API request again after its snapshot was dropped or went stale, with `shouldDiscardStaleSnapshot` and no loading state.
     const searchAgain = () =>
         search({
             queryJSON,
