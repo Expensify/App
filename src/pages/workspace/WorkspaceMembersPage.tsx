@@ -140,7 +140,7 @@ function resolveMemberAccountID(email: string, policyMemberEmailsToAccountIDs: M
 function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembersPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'common.members');
     const tableRef = useRef<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey, string>>(null);
-    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Download', 'FallbackAvatar', 'Location', 'Plus', 'RemoveMembers', 'Suitcase', 'Sync', 'Table', 'UserPencil']);
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Download', 'FallbackAvatar', 'Location', 'Plus', 'RemoveMembers', 'Sync', 'Table', 'UserPencil']);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, true);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -203,11 +203,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID];
     const {approvalWorkflows, enforcedApprovalWorkflows, approverPendingActionByMemberEmail} = useApprovalWorkflows(policy);
 
-    // Members who only manage travel can select members too, so they can change travel access in bulk
     const isProvisionedForTravel = isWorkspaceProvisionedForTravel(policy?.travelSettings);
-    const canWriteTravel = isProvisionedForTravel && canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.TRAVEL);
-    const canSelectMembers = canWriteMembers || canWriteTravel;
-    const canSelectMultiple = canSelectMembers && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
+    const canSelectMultiple = canWriteMembers && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
 
     let confirmModalPrompt;
     const hiddenText = translate('common.hidden');
@@ -476,14 +473,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             officeLocationName: shouldShowOfficeLocationColumn ? getMemberOfficeLocation(officeLocations, policyEmployee.officeID)?.name : undefined,
             bankAccountLastFour: memberBankAccounts?.[accountID]?.bankAccountLastFour,
             isInteractive: !details.isOptimisticPersonalDetail,
-            // Members who only manage travel can select the members whose travel access they can change
             isSelectionDisabled:
+                !canWriteMembers ||
                 accountID === policy?.ownerAccountID ||
                 accountID === session?.accountID ||
-                !(
-                    (canWriteMembers && canMemberManageMemberWithRole(policy, currentUserLogin ?? '', policyEmployee.role)) ||
-                    (canWriteTravel && canMemberChangeTravelAccess(policy, currentUserLogin ?? '', login))
-                ),
+                !canMemberManageMemberWithRole(policy, currentUserLogin ?? '', policyEmployee.role),
             shouldShowEmployeeUserID: shouldShowCustomField1Column,
             shouldShowEmployeePayrollID: shouldShowCustomField2Column,
             errors: getLatestErrorMessageField(policyEmployee),
@@ -618,8 +612,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         const selectedEmployeesRoles = selectedEmployees.map((email) => {
             return policy?.employeeList?.[email]?.role;
         });
-        const canManageSelectedEmployees = canWriteMembers && selectedEmployeesRoles.every((role) => canMemberManageMemberWithRole(policy, currentUserLogin ?? '', role));
-        const canChangeSelectedTravelAccess = canWriteTravel && selectedEmployees.every((email) => canMemberChangeTravelAccess(policy, currentUserLogin ?? '', email));
+        const canManageSelectedEmployees = selectedEmployeesRoles.every((role) => canMemberManageMemberWithRole(policy, currentUserLogin ?? '', role));
         const options: Array<DropdownOption<WorkspaceMemberBulkActionType>> = [];
 
         // The Authorized Payer (reimburser) must stay a valid payer, so a selection holding them may only be moved to a role that can pay.
@@ -640,7 +633,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             });
         }
 
-        if (isPaidGroupPolicy(policy) && canWriteMembers && shouldShowOfficeLocations) {
+        if (isPaidGroupPolicy(policy) && shouldShowOfficeLocations) {
             options.push({
                 text: translate('workspace.people.changeOfficeLocation'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.CHANGE_OFFICE_LOCATION,
@@ -651,7 +644,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
         if (
             isPaidGroupPolicy(policy) &&
-            canWriteMembers &&
             policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE &&
             isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS)
         ) {
@@ -660,15 +652,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.CHANGE_WORK_ARRANGEMENT,
                 icon: icons.Building,
                 onSelected: () => editSelectedEmployees(ROUTES.WORKSPACE_MEMBERS_CHANGE_WORK_ARRANGEMENT.getRoute(policyID)),
-            });
-        }
-
-        if (canChangeSelectedTravelAccess) {
-            options.push({
-                text: translate('workspace.moreFeatures.travel.members.changeTravelAccess'),
-                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.CHANGE_TRAVEL_ACCESS,
-                icon: icons.Suitcase,
-                onSelected: () => editSelectedEmployees(ROUTES.WORKSPACE_MEMBERS_CHANGE_TRAVEL_ACCESS.getRoute(policyID)),
             });
         }
 
@@ -756,15 +739,14 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
     const getHeaderButtons = () => {
-        // The wide layout offers bulk actions in the floating bar over the table instead, so its header keeps the
-        // page's own buttons no matter what is selected. Members who only manage travel have no buttons of their own.
-        const shouldShowBulkActions = shouldUseNarrowLayout && canSelectMultiple;
-        if (!shouldShowBulkActions && !canWriteMembers) {
+        if (!canWriteMembers) {
             return null;
         }
         const bulkActionOptions = getBulkActionsButtonOptions();
 
-        return shouldShowBulkActions ? (
+        // The wide layout offers these actions in the floating bar over the table instead, so its header keeps the
+        // page's own buttons no matter what is selected.
+        return shouldUseNarrowLayout && canSelectMultiple ? (
             <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 shouldAlwaysShowDropdownMenu
@@ -859,7 +841,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         ref={tableRef}
                         members={data}
                         policy={policy}
-                        canSelectMembers={canSelectMembers}
+                        canSelectMembers={canWriteMembers}
                         selectedKeys={selectedEmployees}
                         shouldShowCustomField1Column={shouldShowCustomField1Column}
                         shouldShowCustomField2Column={shouldShowCustomField2Column}
@@ -870,7 +852,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         shouldShowTravelColumn={shouldShowTravelColumn}
                         onRowSelectionChange={setSelectedEmployees}
                         headerComponent={tableHeaderComponent}
-                        bulkActionOptions={canSelectMembers ? getBulkActionsButtonOptions() : undefined}
+                        bulkActionOptions={canWriteMembers ? getBulkActionsButtonOptions() : undefined}
                     />
                 </>
             )}

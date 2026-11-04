@@ -7047,9 +7047,6 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     offDescription: 'Kann keine Reisen buchen',
                     onDescription: 'Kann Reisen buchen',
                     travelAccess: 'Reisezugriff',
-                    changeTravelAccess: 'Reisezugriff ändern',
-                    turnOnTravel: 'Reisen aktivieren',
-                    turnOffTravel: 'Reisen deaktivieren',
                 },
                 travelBilling: {
                     travelBookingSection: {

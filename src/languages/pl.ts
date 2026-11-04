@@ -7023,9 +7023,6 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     offDescription: 'Nie może rezerwować podróży',
                     onDescription: 'Może rezerwować podróże',
                     travelAccess: 'Dostęp do podróży',
-                    changeTravelAccess: 'Zmień dostęp do podróży',
-                    turnOnTravel: 'Włącz podróże',
-                    turnOffTravel: 'Wyłącz podróże',
                 },
                 travelBilling: {
                     travelBookingSection: {

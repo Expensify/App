@@ -7010,9 +7010,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     offDescription: 'Non può prenotare viaggi',
                     onDescription: 'Può prenotare viaggi',
                     travelAccess: 'Accesso ai viaggi',
-                    changeTravelAccess: "Modifica l'accesso ai viaggi",
-                    turnOnTravel: 'Attiva i viaggi',
-                    turnOffTravel: 'Disattiva i viaggi',
                 },
                 travelBilling: {
                     travelBookingSection: {

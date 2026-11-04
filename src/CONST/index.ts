@@ -5231,7 +5231,6 @@ const CONST = {
             CHANGE_ROLE: 'changeRole',
             CHANGE_OFFICE_LOCATION: 'changeOfficeLocation',
             CHANGE_WORK_ARRANGEMENT: 'changeWorkArrangement',
-            CHANGE_TRAVEL_ACCESS: 'changeTravelAccess',
         },
         BULK_ACTION_TYPES: {
             DELETE: 'delete',

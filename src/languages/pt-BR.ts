@@ -7004,9 +7004,6 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                     offDescription: 'Não pode reservar viagens',
                     onDescription: 'Pode reservar viagens',
                     travelAccess: 'Acesso a viagens',
-                    changeTravelAccess: 'Alterar acesso a viagens',
-                    turnOnTravel: 'Ativar viagens',
-                    turnOffTravel: 'Desativar viagens',
                 },
                 travelBilling: {
                     travelBookingSection: {

@@ -6997,9 +6997,6 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                     offDescription: 'Kan geen reizen boeken',
                     onDescription: 'Kan reizen boeken',
                     travelAccess: 'Reistoegang',
-                    changeTravelAccess: 'Reistoegang wijzigen',
-                    turnOnTravel: 'Reizen inschakelen',
-                    turnOffTravel: 'Reizen uitschakelen',
                 },
                 travelBilling: {
                     travelBookingSection: {
