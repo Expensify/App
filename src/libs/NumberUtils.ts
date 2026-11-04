@@ -69,4 +69,14 @@ function clamp(value: number, min: number, max: number): number {
     return Math.min(Math.max(value, min), max);
 }
 
-export {rand64, generateHexadecimalValue, generateRandomInt, parseFloatAnyLocale, roundToTwoDecimalPlaces, clamp};
+/**
+ * Returns the widest number, in Expensify Neue, that has as many digits as `value`. Its digits are proportional: 0 is the
+ * widest and 8 is the widest non-zero one, so the result is 8 followed by 0s (8, 80, 800, ...). Text that shows a changing
+ * count can render this number invisibly to reserve a width that never shifts, without `tabular-nums`, which gives the
+ * font's 1 a serif.
+ */
+function getWidestNumberWithSameDigitCount(value: number): number {
+    return Number(`8${'0'.repeat(String(Math.trunc(Math.abs(value))).length - 1)}`);
+}
+
+export {rand64, generateHexadecimalValue, generateRandomInt, parseFloatAnyLocale, roundToTwoDecimalPlaces, clamp, getWidestNumberWithSameDigitCount};
