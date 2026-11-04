@@ -35,7 +35,7 @@ type InsightsChartSpec = {
     isPolicyEligible?: (policy: Policy, login: string | undefined) => boolean;
 };
 
-/** Compliance charts plot only the expenses whose violations were kept at submission or approval */
+/** Violations kept at submission or approval */
 const VIOLATION_HAS_VALUES: HasFilterValues = [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION];
 
 type InsightsDashboardSpec = {
@@ -126,7 +126,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             {
                 graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_SUBMITTER,
                 titleKey: 'insightsPage.violationsBySubmitter',
-                has: VIOLATION_HAS_VALUES,
+                has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION],
                 view: CONST.SEARCH.VIEW.BAR,
                 groupBy: CONST.SEARCH.GROUP_BY.FROM,
                 metric: CONST.SEARCH.CHART_METRIC.COUNT,
@@ -138,7 +138,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             {
                 graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_APPROVER,
                 titleKey: 'insightsPage.violationsByApprover',
-                has: VIOLATION_HAS_VALUES,
+                has: [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION],
                 view: CONST.SEARCH.VIEW.BAR,
                 groupBy: CONST.SEARCH.GROUP_BY.APPROVER,
                 metric: CONST.SEARCH.CHART_METRIC.COUNT,
