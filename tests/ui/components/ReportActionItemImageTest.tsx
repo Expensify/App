@@ -49,7 +49,7 @@ function buildTransaction(overrides: Partial<Transaction> = {}): Transaction {
         comment: {customUnit: {quantity: 10}},
         receipt: {source: STORED_MAP_URL, state: CONST.IOU.RECEIPT_STATE.OPEN},
         ...overrides,
-    } as Transaction;
+    };
 }
 
 // A rate edit queues these pending fields, which make the server regenerate the map
