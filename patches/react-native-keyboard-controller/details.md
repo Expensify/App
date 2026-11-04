@@ -22,4 +22,4 @@
   
 - Upstream PR/issue: https://github.com/kirillzyusko/react-native-keyboard-controller/pull/1685
 - E/App issue: https://github.com/Expensify/App/pull/100733#issuecomment-6411009930
-- PR introducing patch: https://github.com/Expensify/App/pull/100733
+- PR introducing patch: https://github.com/Expensify/App/pull/106003
