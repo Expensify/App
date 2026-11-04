@@ -35,6 +35,12 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        billCreated: ({sender}) => `a créé cette facture au nom de ${sender}`,
+        billSubmitted: ({receiver}) => `a envoyé cette facture à ${receiver}`,
+        invoiceCreated: ({sender}) => `a créé cette facture au nom de ${sender}`,
+        invoiceSubmitted: ({receiver}) => `a envoyé cette facture à ${receiver}`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `${count} jour`,
@@ -1237,6 +1243,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'Conformité',
         runningTotal: 'Total cumulé',
+        explain: 'Expliquer',
+        explainChartPrompt: (chartTitle: string) => `Expliquez les données dans ${chartTitle}.`,
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -1716,6 +1724,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: 'Veuillez saisir un montant non nul pour votre répartition',
             noParticipantSelected: 'Veuillez sélectionner un participant',
             other: 'Erreur inattendue. Veuillez réessayer plus tard.',
+            payFailedExpenseDeleted: 'Le paiement a échoué car la note de frais a été supprimée.',
             genericCreateFailureMessage: 'Erreur inattendue lors de la soumission de cette dépense. Veuillez réessayer plus tard.',
             genericCreateInvoiceFailureMessage: 'Erreur inattendue lors de l’envoi de cette facture. Veuillez réessayer plus tard.',
             genericHoldExpenseFailureMessage: 'Erreur inattendue lors de la mise en attente de cette dépense. Veuillez réessayer ultérieurement.',
@@ -3132,6 +3141,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `J’accepte les <a href="${CONST.WISE.TERMS_URL}">conditions générales</a> et la <a href="${CONST.WISE.PRIVACY_URL}">politique de confidentialité</a> de Wise.`,
                 wiseTermsAccessibilityLabel: 'J’accepte les conditions générales et la politique de confidentialité de Wise.',
                 error: 'Veuillez accepter toutes les conditions pour continuer.',
+                alreadySubmitted: 'Cette entreprise a déjà été envoyée à Wise pour examen.',
+            },
+            moreInfoNeeded: {
+                headerTitle: 'Plus d’informations nécessaires',
+                title: 'Vérifier des informations supplémentaires',
+                subtitle: 'Notre partenaire de paiement a besoin de plus d’informations directement. Cela ne devrait prendre que quelques minutes.',
             },
         },
         wiseGlobalReimbursementsIntro: {
@@ -3142,6 +3157,7 @@ const translations: TranslationDeepObject<typeof en> = {
             payingReportSubtitle: 'Les comptes bancaires de l’entreprise et de l’employé utilisent des devises différentes.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Payer des personnes dans le monde entier', subtitle: 'Activez les remboursements globaux sur votre compte en USD.'},
+        globalReimbursementsEnabled: 'Remboursements globaux activés',
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Ajouter la carte à ${walletName}`,
@@ -3667,6 +3683,7 @@ ${amount} pour ${merchant} - ${date}`,
         appSection: {
             title: 'Préférences de l’application',
         },
+        distanceSection: {title: 'Préférences de distance'},
         testSection: {
             title: 'Préférences de test',
             subtitle: 'Paramètres pour aider à déboguer et tester l’application sur l’environnement de staging.',
@@ -7612,10 +7629,10 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             reimbursementAccount: 'compte de remboursement',
             welcomeNote: 'Veuillez commencer à utiliser mon nouvel espace de travail',
             delayedSubmission: 'soumission retardée',
-            merchantRules: 'Valeurs par défaut des dépenses',
+            merchantRules: 'Règles de commerçant',
             merchantRulesCount: () => ({
-                one: '1 dépense par défaut',
-                other: (count: number) => `${count} paramètres par défaut de dépenses`,
+                one: '1 règle de commerçant',
+                other: (count: number) => `${count} règles de commerçant`,
             }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `Vous êtes sur le point de créer et de partager ${newWorkspaceName ?? ''} avec ${totalMembers ?? 0} membres de l’espace de travail d’origine.`,
@@ -9006,8 +9023,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 matchType: 'Type de correspondance',
                 matchTypeContains: 'Contient',
                 matchTypeExact: 'Correspond exactement',
-                duplicateRuleTitle: 'Une règle similaire existe déjà',
-                duplicateRulePrompt: (conditionName: string) => `Votre règle existante pour « ${conditionName} » aura la priorité sur celle-ci. Enregistrer quand même ?`,
+                duplicateRuleTitle: 'Une règle de commerçant similaire existe déjà',
+                duplicateRulePrompt: (merchantName: string) => `Votre règle existante pour « ${merchantName} » aura la priorité sur celle-ci. Enregistrer quand même ?`,
                 saveAnyway: 'Enregistrer quand même',
                 applyToExistingUnsubmittedExpenses: 'Appliquer aux dépenses non soumises existantes',
                 findRule: 'Règle de recherche de commerçant',
@@ -9017,8 +9034,19 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 thenApplyFollowingDefaults: 'Appliquez ensuite les valeurs par défaut suivantes :',
                 vendorUnavailable: 'Fournisseur indisponible',
                 confirmErrorCategory: 'Veuillez sélectionner une catégorie',
-                confirmErrorCondition: 'Veuillez ajouter au moins une condition',
-                confirmErrorConditionAndDefault: 'Ajoutez au moins une condition et appliquez au moins une valeur par défaut',
+                confirmErrorCategoryTax: 'Veuillez sélectionner un taux de taxe',
+                confirmErrorCondition: 'Veuillez saisir un commerçant',
+                confirmErrorConditionAndDefault: 'Saisissez un commerçant et appliquez au moins un paramètre par défaut',
+                turnOnTaxesFirstTitle: 'Activer d’abord les taxes',
+                turnOnTaxesFirstPrompt: 'Les règles de catégorie définissent un taux de taxe par défaut. Activez les taxes dans les paramètres de votre espace de travail pour les utiliser.',
+                categoryRulesApplyGoingForwardTitle: 'Les règles de catégorie s’appliquent à partir de maintenant',
+                categoryRulesApplyGoingForwardPrompt:
+                    'Un taux de taxe par défaut s’applique aux nouvelles dépenses de cette catégorie. Les dépenses déjà existantes ne seront pas modifiées.',
+                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
+                    'Le taux de taxe sélectionné est désormais le taux par défaut de votre espace de travail, cette règle n’est donc plus valide. Choisissez un autre taux de taxe.',
+                addTaxRateFirstTitle: 'Ajoutez d’abord un taux de taxe',
+                addTaxRateFirstPrompt:
+                    'Les règles de catégorie définissent un taux de taxe par défaut. Ajoutez un taux de taxe autre que le taux par défaut de votre espace de travail pour les utiliser.',
                 createRuleFromExpenseAction: 'Créer une règle',
                 createRuleFromExpensePrompt: 'pour appliquer vos modifications à toutes les dépenses qui correspondent à vos critères.',
             },
@@ -9204,8 +9232,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `Autorisé ${shownCount > 1 ? 'devises' : 'devise'} : ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} de plus` : ''}`,
                 defaultRulesCannotBeDeleted: 'Les règles par défaut ne peuvent pas être supprimées',
-                tags: 'Tags',
-                multipleConditions: 'Conditions multiples',
             },
             agentRules: {
                 title: 'Règles d’agent',
@@ -9246,9 +9272,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 describeRuleForConcierge: 'Décrivez votre règle et Concierge la créera',
                 gotIt: 'Compris',
                 createRule: 'Créer une règle',
-                fallbackBanner:
-                    'Ce n’est pas une règle standard, nous l’avons donc rédigée comme une règle d’agent. Les règles d’agent agissent après la modification d’une dépense ou d’une note de frais, par exemple en bloquant la dépense ou en rejetant la note de frais.',
-                fallbackBannerWithExplanation: (explanation: string) => `Ce n’est pas une règle standard, nous l’avons donc rédigée comme une règle d’agent. ${explanation}`,
+                fallbackBanner: 'Ce n’est pas une règle standard, nous avons donc rédigé une règle d’agent.',
+                fallbackBannerWithExplanation: (explanation: string) => `Ce n’est pas une règle standard, nous avons donc rédigé une règle d’agent. ${explanation}`,
             },
             tabs: {
                 general: 'Général',
@@ -9351,11 +9376,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 findRule: 'Trouver une règle',
                 rename: 'Renommer',
                 update: 'Mettre à jour',
+                merchantIs: (merchant: string) => `Le commerçant est « ${merchant} »`,
                 merchantTypeIs: (merchantType: string) => `Le type de commerçant est « ${merchantType} »`,
                 categoryIs: (category: string) => `La catégorie est « ${category} »`,
-                tagIs: (tag: string) => `Le tag est « ${tag} »`,
-                merchantContains: (merchant: string) => `Le commerçant contient « ${merchant} »`,
-                merchantExactlyMatches: (merchant: string) => `Le commerçant correspond exactement à « ${merchant} »`,
             },
             merchantTypeRule: {merchantType: 'Type de marchand', saveRule: 'Enregistrer la règle', confirmErrorCategory: 'Veuillez sélectionner une catégorie.'},
             requireFieldsTable: {
@@ -9425,6 +9448,14 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 cta: 'Ajouter une règle IA',
             },
             categoriesDisabledEmptyState: {title: 'Les catégories ne sont pas activées', subtitle: 'Activez les catégories pour mieux contrôler vos dépenses.'},
+            expenseDefaultType: {
+                title: 'Appliquer les valeurs de dépense par défaut',
+                subtitle: 'Sur quoi cette règle doit-elle faire correspondre ?',
+                merchant: 'Commerçant',
+                merchantDescription: 'Mettre à jour les champs des dépenses d’un commerçant spécifique',
+                category: 'Catégorie',
+                categoryDescription: 'Définir un taux de taxe par défaut pour une catégorie spécifique',
+            },
             taxesDisabledEmptyState: {title: 'Les taxes ne sont pas activées', subtitle: 'Activez les taxes pour documenter et récupérer les taxes admissibles.', cta: 'Activer les taxes'},
         },
         planTypePage: {
@@ -10612,6 +10643,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `mis à jour « Empêcher de marquer les notes de frais non remboursables comme payées » en « ${newValue === 'true' ? 'Activé' : 'Désactivé'} » (auparavant « ${oldValue === 'true' ? 'Activé' : 'Désactivé'} »)`,
         addedExpensifyCardFeed: (feedName: string) => `a ajouté le flux Carte Expensify « ${feedName} »`,
+        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
+            if (!oldValue) {
+                return `définir le fuseau horaire de l’espace de travail sur « ${newValue} »`;
+            }
+            return `a mis à jour le fuseau horaire de l'espace de travail sur « ${newValue} » (auparavant « ${oldValue} »)`;
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',
@@ -11213,6 +11250,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');
                     return `Ouvrez l'application mobile Expensify pour examiner votre transaction de${amountAndMerchantText ? ` ${amountAndMerchantText}` : ''}`;
                 },
+                autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
+                    `Les remboursements globaux ont été activés par ${adminName} sur le compte n° ${bankName ? `${bankName} ` : ''} se terminant par ${lastFour}. Les taux de change exacts et les frais ne peuvent pas être prévisualisés avant le paiement lorsque les notes de frais transfrontalières sont payées automatiquement. Consultez vos <a href="${autoPaySettingsURL}">paramètres de paiement automatique</a> pour plus d’informations sur les taux et les frais.`,
             },
             error: {
                 invalidCredentials: 'Identifiants invalides, veuillez vérifier la configuration de votre connexion.',
@@ -12344,7 +12383,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             isUnreadWithMention: 'Est non lu avec mention',
             isWaitingForAssigneeToCompleteAction: 'En attente que l’assigné termine l’action',
             hasChildReportAwaitingAction: 'Une note de frais enfant est en attente d’action',
-            hasMissingInvoiceBankAccount: 'A un compte bancaire de facture manquant',
             hasUnresolvedCardFraudAlert: 'A une alerte de fraude de carte non résolue',
             hasDEWApproveFailed: 'L’approbation DEW a échoué',
         },
