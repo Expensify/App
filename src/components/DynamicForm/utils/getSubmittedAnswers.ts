@@ -11,7 +11,7 @@ import {getListItems, getListItemSensitiveAnswers} from './listItems';
 function getSubmittedAnswers(fields: DynamicFormField[], values: DynamicFormValues, allFields = fields): DynamicFormValues {
     const answers: DynamicFormValues = {};
     for (const field of getVisibleFields(fields, values, allFields)) {
-        // AddressSearch fills the state even where no state is asked, with a region name Wise rejects
+        // AddressSearch fills the state even where no state is asked, with a region name the user never sees
         const hiddenStateKey = field.type === 'address' && !isStateAsked(getAddressCountry(field.key, values)) ? getAddressInputKeys(field.key).state : undefined;
         for (const key of getAnswerKeys(field)) {
             if (values[key] !== undefined && key !== hiddenStateKey) {
