@@ -8,19 +8,14 @@ import type {ValueOf} from 'type-fest';
 
 import createMock from '../../utils/createMock';
 
-function makeBankAccount(
-    bankAccountID: number,
-    accountNumber: string,
-    status?: ValueOf<typeof CONST.WISE.ONBOARDING_STATUS>,
-    state: ValueOf<typeof CONST.BANK_ACCOUNT.STATE> = CONST.BANK_ACCOUNT.STATE.OPEN,
-): BankAccount {
+function makeBankAccount(bankAccountID: number, accountNumber: string, status?: ValueOf<typeof CONST.WISE.ONBOARDING_STATUS>): BankAccount {
     return createMock<BankAccount>({
         bankCurrency: CONST.CURRENCY.USD,
         accountData: {
             bankAccountID,
             accountNumber,
             type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
-            state,
+            state: CONST.BANK_ACCOUNT.STATE.OPEN,
             additionalData: {currency: CONST.CURRENCY.USD, wise: {status}},
         },
     });
@@ -40,19 +35,6 @@ describe('wiseMoreInfoNeededBankAccountsSelector', () => {
 
         // Then only the first account gets a task, named by its last four digits like in the design
         expect(bankAccounts).toEqual([{bankAccountID: 1, bankAccountLastFour: '1234'}]);
-    });
-
-    it('skips an account the user cannot open the business onboarding for', () => {
-        // Given an account Wise asked for more info on that is not open, so the business onboarding cannot be opened for it
-        const bankAccountList = createMock<BankAccountList>({
-            1: makeBankAccount(1, 'XXXXXX1234', CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED, CONST.BANK_ACCOUNT.STATE.VERIFYING),
-        });
-
-        // When Home picks the accounts for the "Verify bank account" task
-        const bankAccounts = wiseMoreInfoNeededBankAccountsSelector(bankAccountList);
-
-        // Then there is no task, because the user could not send Wise the info
-        expect(bankAccounts).toEqual([]);
     });
 
     it('returns nothing when there is no bank account list', () => {

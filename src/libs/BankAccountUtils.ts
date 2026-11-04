@@ -324,14 +324,6 @@ function isWiseOnboardingMoreInfoNeeded(bankAccount: OnyxEntry<Pick<OnyxTypes.Ba
     );
 }
 
-/**
- * Whether Wise needs more info and the form that collects it would open for this account. The form shows Not Found for an account
- * that is not eligible for global reimbursements (for example, one that is no longer open), so the Wallet row hides Review and Home skips the task.
- */
-function canOpenWiseMoreInfoForm(bankAccount: OnyxEntry<Pick<OnyxTypes.BankAccount, 'accountData' | 'pendingAction'> & {bankCurrency?: string}>): boolean {
-    return isWiseOnboardingMoreInfoNeeded(bankAccount) && isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData, bankAccount?.bankCurrency);
-}
-
 function doesPolicyHavePartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>, policyID: string) {
     if (!bankAccountList) {
         return false;
@@ -508,7 +500,6 @@ export {
     isWiseOnboardingPendingSubmit,
     isWiseOnboardingAwaitingDecision,
     isWiseOnboardingMoreInfoNeeded,
-    canOpenWiseMoreInfoForm,
     getDefaultCompanyWebsite,
     getBankAccountState,
     hasBankAccountAllowDebit,

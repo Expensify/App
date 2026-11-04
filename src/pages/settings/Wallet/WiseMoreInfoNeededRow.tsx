@@ -13,23 +13,20 @@ import React from 'react';
  */
 type WiseMoreInfoNeededRowProps = {
     bankAccountID: number;
-
-    /** Whether the user can open the business onboarding for the account, so the Review button can take them to send the info */
-    canReview: boolean;
 };
 
 /**
  * Prompts the admin under the Wallet bank account row to send Wise the info it asked for, so global reimbursements can be enabled.
  * It renders like the bank account's connection status message, so the prompts under one bank account look the same.
  */
-function WiseMoreInfoNeededRow({bankAccountID, canReview}: WiseMoreInfoNeededRowProps) {
+function WiseMoreInfoNeededRow({bankAccountID}: WiseMoreInfoNeededRowProps) {
     const {translate} = useLocalize();
 
     return (
         <ConnectionStatusMessage
             message={translate('walletPage.wiseMoreInfoNeeded')}
             statusTone="success"
-            actionText={canReview ? translate('common.review') : undefined}
+            actionText={translate('common.review')}
             onActionPress={() => navigateToWiseMoreInfoNeeded(bankAccountID)}
             actionSentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.WISE_MORE_INFO_NEEDED_REVIEW}
         />

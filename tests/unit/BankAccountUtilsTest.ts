@@ -20,7 +20,6 @@ import {
     isUserDOBVerificationRequired,
     isWiseOnboardingAwaitingDecision,
     isWiseOnboardingMoreInfoNeeded,
-    canOpenWiseMoreInfoForm,
     PERSONAL_INFO_STEP,
     shouldSetUpGlobalReimbursementsBeforePaying,
 } from '@libs/BankAccountUtils';
@@ -1284,44 +1283,6 @@ describe('BankAccountUtils', () => {
             // When checking whether the admin has to send Wise more info
             // Then it does not, so nothing points to an account queued for removal
             expect(isWiseOnboardingMoreInfoNeeded(bankAccount)).toBe(false);
-        });
-    });
-
-    describe('canOpenWiseMoreInfoForm', () => {
-        const actionRequiredAccountData: AccountData = {
-            bankAccountID: 1,
-            type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
-            state: CONST.BANK_ACCOUNT.STATE.OPEN,
-            additionalData: {currency: CONST.CURRENCY.USD, wise: {status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED}},
-        };
-
-        it('returns true when Wise asked for more info on an eligible account', () => {
-            // Given an open USD business account Wise asked for more info on
-            const bankAccount = createMock<BankAccount>({accountData: actionRequiredAccountData});
-
-            // When checking whether the Wise form would open
-            // Then it would, so the Wallet row offers Review and Home shows the task
-            expect(canOpenWiseMoreInfoForm(bankAccount)).toBe(true);
-        });
-
-        it('returns false when the account is not eligible for the Wise form', () => {
-            // Given an account Wise asked for more info on that is not open
-            const bankAccount = createMock<BankAccount>({accountData: {...actionRequiredAccountData, state: CONST.BANK_ACCOUNT.STATE.PENDING}});
-
-            // When checking whether the Wise form would open
-            // Then it would not, so the Wallet row only shows the message and Home shows no task
-            expect(canOpenWiseMoreInfoForm(bankAccount)).toBe(false);
-        });
-
-        it('returns false when Wise does not need more info', () => {
-            // Given an eligible account whose Wise onboarding is in review
-            const bankAccount = createMock<BankAccount>({
-                accountData: {...actionRequiredAccountData, additionalData: {currency: CONST.CURRENCY.USD, wise: {status: CONST.WISE.ONBOARDING_STATUS.IN_REVIEW}}},
-            });
-
-            // When checking whether the Wise form would open
-            // Then it would not, because there is nothing to send
-            expect(canOpenWiseMoreInfoForm(bankAccount)).toBe(false);
         });
     });
 });

@@ -17,7 +17,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {
     canLinkPlaid,
-    canOpenWiseMoreInfoForm,
     getBankAccountConnectionStatus,
     getBankAccountState,
     isGlobalReimbursementsEnabled,
@@ -668,13 +667,12 @@ function PaymentMethodList({
             // Cards share this list, and only a bank account's data carries the bankAccountID the Home task reads too
             const wiseBankAccountID = paymentMethod.accountData && 'bankAccountID' in paymentMethod.accountData ? paymentMethod.accountData.bankAccountID : undefined;
             const shouldShowWiseMoreInfoNeeded = shouldShowConnectionStatus && isWiseGlobalReimbursementsEnabled && isWiseOnboardingMoreInfoNeeded(paymentMethod) && !!wiseBankAccountID;
-            const canReviewWiseMoreInfoNeeded = shouldShowWiseMoreInfoNeeded && canOpenWiseMoreInfoForm(paymentMethod);
             // An error or a connection problem on the row is more urgent, so the Wise prompt only adds the green dot when the row has none
-            const wiseMoreInfoNeededBrickRoadIndicator = canReviewWiseMoreInfoNeeded ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined;
+            const wiseMoreInfoNeededBrickRoadIndicator = shouldShowWiseMoreInfoNeeded ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined;
 
             return {
                 ...paymentMethod,
-                wiseMoreInfoNeeded: shouldShowWiseMoreInfoNeeded && wiseBankAccountID ? {bankAccountID: wiseBankAccountID, canReview: canReviewWiseMoreInfoNeeded} : undefined,
+                wiseMoreInfoNeeded: shouldShowWiseMoreInfoNeeded && wiseBankAccountID ? {bankAccountID: wiseBankAccountID} : undefined,
                 title: paymentMethod.title?.includes(CONST.MASKED_PAN_PREFIX) ? paymentMethod.accountData?.additionalData?.bankName : paymentMethod.title,
                 onPress: paymentMethodPress,
                 onThreeDotsMenuPress: paymentMethodThreeDotsPress,

@@ -97,9 +97,6 @@ type PaymentMethodItem = PaymentMethod & {
     /** The bank account Wise asked for more info on, which shows the "More information needed" row */
     wiseMoreInfoNeeded?: {
         bankAccountID: number;
-
-        /** Whether the user can open the business onboarding for the account, which shows the Review button */
-        canReview: boolean;
     };
 
     /** The bank account's Wise onboarding that is in progress, which shows the in-progress row */
@@ -344,10 +341,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                             )}
                             {!!item.wiseMoreInfoNeeded && (
                                 <View style={styles.mb2}>
-                                    <WiseMoreInfoNeededRow
-                                        bankAccountID={item.wiseMoreInfoNeeded.bankAccountID}
-                                        canReview={item.wiseMoreInfoNeeded.canReview}
-                                    />
+                                    <WiseMoreInfoNeededRow bankAccountID={item.wiseMoreInfoNeeded.bankAccountID} />
                                 </View>
                             )}
                         </View>
