@@ -102,6 +102,9 @@ function DynamicIOURequestStepCategory({
     const categoryForDisplay = isCategoryMissing(transactionCategory) ? '' : transactionCategory;
 
     const canCreateCategory = canCreateCategoryInSitu(policy, currentUserEmailParam);
+    // Creating a category requires a real workspace. Writing to a draft would clear its default categories.
+    const isDraftOnlyPolicy = !policyData.policy?.id || policyData.policy.id !== policyID;
+    const canCreateSearchedCategory = canCreateCategory && !isDraftOnlyPolicy;
     const createCategoryMenuItems = canCreateCategory
         ? [
               {
@@ -249,7 +252,7 @@ function DynamicIOURequestStepCategory({
                     selectedCategory={categoryForDisplay}
                     policyID={policyID ?? report?.policyID}
                     onSubmit={updateCategory}
-                    onCreateCategory={canCreateCategory ? createSearchedCategory : undefined}
+                    onCreateCategory={canCreateSearchedCategory ? createSearchedCategory : undefined}
                 />
             )}
         </StepScreenWrapper>

@@ -35,6 +35,12 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        billCreated: ({sender}) => `${sender} に代わってこの請求書を作成しました`,
+        billSubmitted: ({receiver}) => `この請求書を ${receiver} に送信しました`,
+        invoiceCreated: ({sender}) => `${sender} に代わってこの請求書を作成しました`,
+        invoiceSubmitted: ({receiver}) => `この請求書を ${receiver} に送信しました`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 日`,
@@ -1221,6 +1227,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'コンプライアンス',
         runningTotal: '累計合計',
+        explain: '説明',
+        explainChartPrompt: (chartTitle: string) => `${chartTitle} のデータを説明します。`,
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -3612,6 +3620,7 @@ ${date} の ${merchant} への ${amount}`,
         appSection: {
             title: 'アプリの設定',
         },
+        distanceSection: {title: '距離の設定'},
         testSection: {
             title: 'テスト設定',
             subtitle: 'ステージング環境でアプリのデバッグとテストを行うための設定です。',
@@ -7440,10 +7449,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             reimbursementAccount: '精算口座',
             welcomeNote: '私の新しいワークスペースを使い始めてください',
             delayedSubmission: '遅延提出',
-            merchantRules: '経費のデフォルト設定',
+            merchantRules: '販売者ルール',
             merchantRulesCount: () => ({
-                one: '1件の経費をデフォルトにする',
-                other: (count: number) => `${count}件の経費のデフォルト設定`,
+                one: '1 販売者ルール',
+                other: (count: number) => `${count} 販売者ルール`,
             }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `元のワークスペースから ${totalMembers ?? 0} 人のメンバーと一緒に、${newWorkspaceName ?? ''} を作成して共有しようとしています。`,
@@ -7477,6 +7486,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 title: 'メンバーをコピー',
                 prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
                     one: `${targetWorkspaceName}のメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`,
+                    // Japanese has no "one" plural category, so handle the single-workspace case here
                     other:
                         count === 1
                             ? `${targetWorkspaceName}のメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`
@@ -8802,8 +8812,8 @@ ${reportName}`,
                 matchType: '一致タイプ',
                 matchTypeContains: '含む',
                 matchTypeExact: '完全一致',
-                duplicateRuleTitle: '同様のルールがすでに存在します',
-                duplicateRulePrompt: (conditionName: string) => `現在の「${conditionName}」のルールがこのルールより優先されます。保存しますか？`,
+                duplicateRuleTitle: '同様のマーチャントルールが既に存在します',
+                duplicateRulePrompt: (merchantName: string) => `「${merchantName}」に対する既存のルールが、このルールよりも優先されます。保存しますか？`,
                 saveAnyway: 'とにかく保存',
                 applyToExistingUnsubmittedExpenses: '既存の未提出経費に適用',
                 findRule: '加盟店ルールを検索',
@@ -8813,8 +8823,16 @@ ${reportName}`,
                 thenApplyFollowingDefaults: '次に、以下のデフォルトを適用します。',
                 vendorUnavailable: 'ベンダーを利用できません',
                 confirmErrorCategory: 'カテゴリを選択してください',
-                confirmErrorCondition: '少なくとも 1 つ条件を追加してください',
-                confirmErrorConditionAndDefault: '少なくとも 1 つの条件を追加し、少なくとも 1 つのデフォルトを適用してください',
+                confirmErrorCategoryTax: '税率を選択してください',
+                confirmErrorCondition: '店舗名を入力してください',
+                confirmErrorConditionAndDefault: '取引先を入力し、少なくとも 1 つのデフォルトを適用してください',
+                turnOnTaxesFirstTitle: '先に税金を有効にしてください',
+                turnOnTaxesFirstPrompt: 'カテゴリルールでは、デフォルトの税率を設定できます。利用するには、ワークスペース設定で税金を有効にしてください。',
+                categoryRulesApplyGoingForwardTitle: 'カテゴリルールは今後に適用されます',
+                categoryRulesApplyGoingForwardPrompt: 'このカテゴリーの新しい経費には、デフォルトの税率が適用されます。既存の経費は変更されません。',
+                confirmErrorCategoryTaxMoveIsWorkspaceDefault: '選択した税率がワークスペースのデフォルトになっているため、このルールは無効になりました。別の税率を選択してください。',
+                addTaxRateFirstTitle: '先に税率を追加してください',
+                addTaxRateFirstPrompt: 'カテゴリルールではデフォルトの税率が設定されます。ワークスペースのデフォルト以外の税率を追加してから、カテゴリルールを使用してください。',
                 createRuleFromExpenseAction: 'ルールを作成',
                 createRuleFromExpensePrompt: '条件に一致するすべての経費に変更を適用します。',
             },
@@ -8998,8 +9016,6 @@ ${reportName}`,
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `許可された ${shownCount > 1 ? '通貨' : '通貨'}：${currencies}${hiddenCount > 0 ? `、ほか +${hiddenCount} 件` : ''}`,
                 defaultRulesCannotBeDeleted: '既定のルールは削除できません',
-                tags: 'タグ',
-                multipleConditions: '複数の条件',
             },
             agentRules: {
                 title: 'エージェントルール',
@@ -9144,11 +9160,9 @@ ${reportName}`,
                 findRule: 'ルールを検索',
                 rename: '名前を変更',
                 update: '更新',
+                merchantIs: (merchant: string) => `加盟店名は「${merchant}」です`,
                 merchantTypeIs: (merchantType: string) => `加盟店タイプ: 「${merchantType}」`,
                 categoryIs: (category: string) => `カテゴリは「${category}」です`,
-                tagIs: (tag: string) => `タグは「${tag}」です`,
-                merchantContains: (merchant: string) => `店舗名に「${merchant}」を含む`,
-                merchantExactlyMatches: (merchant: string) => `店舗名が「${merchant}」と完全に一致します`,
             },
             merchantTypeRule: {merchantType: '加盟店種別', saveRule: 'ルールを保存', confirmErrorCategory: 'カテゴリを選択してください。'},
             requireFieldsTable: {
@@ -9214,6 +9228,14 @@ ${reportName}`,
             },
             agentRulesEmptyState: {title: 'エージェントルールが追加されていません', subtitle: 'ワークスペースのポリシーを自動化するルールを作成します。', cta: 'AIルールを追加'},
             categoriesDisabledEmptyState: {title: 'カテゴリが有効になっていません', subtitle: 'カテゴリを有効にして、支出をより細かく管理しましょう。'},
+            expenseDefaultType: {
+                title: '経費のデフォルトを適用',
+                subtitle: 'このルールは何に一致させますか？',
+                merchant: '加盟店',
+                merchantDescription: '特定の加盟店の経費フィールドを更新',
+                category: 'カテゴリ',
+                categoryDescription: '特定のカテゴリにデフォルトの税率を設定する',
+            },
             taxesDisabledEmptyState: {title: '税金は有効になっていません', subtitle: '税金を有効にして、対象となる税金を記録し還付請求できるようにします。', cta: '税金を有効にする'},
         },
         planTypePage: {
@@ -10360,6 +10382,12 @@ ${reportName}`,
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `「精算不要レポートを支払済みにしない」を「${newValue === 'true' ? '有効' : '無効'}」（以前は「${oldValue === 'true' ? '有効' : '無効'}」）に更新しました`,
         addedExpensifyCardFeed: (feedName: string) => `「${feedName}」Expensify カードフィードを追加しました`,
+        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
+            if (!oldValue) {
+                return `ワークスペースのタイムゾーンを「${newValue}」に設定します`;
+            }
+            return `ワークスペースのタイムゾーンを「${newValue}」（以前は「${oldValue}」）に更新しました`;
+        },
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
@@ -10949,6 +10977,8 @@ ${reportName}`,
                     const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');
                     return `Expensify モバイルアプリを開いて、${amountAndMerchantText && `${amountAndMerchantText} `}の取引を確認してください`;
                 },
+                autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
+                    `グローバル払い戻しは、${adminName} さんにより、末尾が ${lastFour} の ${bankName ? `${bankName} ` : ''}アカウントで有効化されました。国境を越えるレポートが自動支払いされる場合、正確な為替レートおよび手数料は支払い前にプレビューできません。レートと手数料の詳細については、<a href="${autoPaySettingsURL}">自動支払い設定</a>をご確認ください。`,
             },
             error: {
                 invalidCredentials: '認証情報が無効です。接続の設定を確認してください。',
@@ -12063,7 +12093,6 @@ ${reportName}`,
             isUnreadWithMention: '未読（メンションあり）',
             isWaitingForAssigneeToCompleteAction: '担当者のアクション完了を待機中',
             hasChildReportAwaitingAction: '対応が必要な子レポートがあります',
-            hasMissingInvoiceBankAccount: '請求書の銀行口座が未設定',
             hasUnresolvedCardFraudAlert: '未解決のカード不正利用アラートがあります',
             hasDEWApproveFailed: 'DEW の承認が失敗しました',
         },
