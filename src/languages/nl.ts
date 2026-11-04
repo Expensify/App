@@ -1212,6 +1212,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     insightsPage: {
+        tagLevel: (level: string) => `Tag niveau ${level}`,
+        tagLevelLabel: 'Tag niveau',
+        parent: 'Bovenliggend',
+        shareOfTotal: 'Aandeel van totaal (%)',
         viewOnSpend: 'Bekijken in Uitgaven',
         emptyState: {title: 'Niets om weer te geven', subtitle: 'Probeer je criteria hierboven aan te passen'},
         noExpensesState: {title: 'Zie waar je geld naartoe gaat', subtitle: 'Zodra je uitgaven hebt, zie je bestedingspatronen, topverkopers en meer.'},
@@ -1234,6 +1238,7 @@ const translations: TranslationDeepObject<typeof en> = {
             allSpenderAverage: 'Gemiddelde per uitgave',
             allMerchantAverage: 'Gemiddelde voor alle handelaren',
             allCategoryAverage: 'Gemiddelde voor alle categorieën',
+            tagAverage: 'Taggemiddelde',
             averageValue: (amount: string) => `${amount} gem.`,
         },
         compliance: 'Naleving',

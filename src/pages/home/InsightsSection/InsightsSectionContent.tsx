@@ -16,6 +16,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import {INSIGHTS_CHART_STATE} from '@libs/resolveInsightsChartData';
 import type {SearchKey} from '@libs/SearchKeyUtils';
 
+import InsightsTagPolicyLoader from '@pages/Insights/InsightsTagPolicyLoader';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -33,7 +35,7 @@ function InsightsSectionContent() {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Expand']);
 
-    const {configs: insightConfigs, isResolved: isConfigResolved, shouldShowRunningTotal} = useHomeInsightConfigs();
+    const {configs: insightConfigs, isResolved: isConfigResolved, shouldShowRunningTotal, tagPolicyIDs} = useHomeInsightConfigs();
     const [selectedKey, selectedKeyMetadata] = useOnyx(ONYXKEYS.NVP_HOME_SELECTED_INSIGHT);
 
     // The persisted key can name an insight the user is no longer eligible for, so fall back to the first option.
@@ -48,7 +50,7 @@ function InsightsSectionContent() {
     };
 
     if (!config || !queryJSON || !groupBy) {
-        return null;
+        return <InsightsTagPolicyLoader policyIDs={tagPolicyIDs} />;
     }
 
     const navigateToInsights = () => Navigation.navigate(ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND));
@@ -103,7 +105,12 @@ function InsightsSectionContent() {
     );
 
     if (canUseTouchScreen()) {
-        return widget;
+        return (
+            <>
+                <InsightsTagPolicyLoader policyIDs={tagPolicyIDs} />
+                {widget}
+            </>
+        );
     }
 
     return (
@@ -112,6 +119,7 @@ function InsightsSectionContent() {
             onPress={navigateToInsights}
             sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.WIDGET_ITEM}
         >
+            <InsightsTagPolicyLoader policyIDs={tagPolicyIDs} />
             {widget}
         </PressableWithoutFeedback>
     );

@@ -1166,6 +1166,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     insightsPage: {
+        tagLevel: (level: string) => `标签级别 ${level}`,
+        tagLevelLabel: '标签级别',
+        parent: '父级',
+        shareOfTotal: '占总额的比例（%）',
         viewOnSpend: '在支出中查看',
         emptyState: {title: '没有可显示的内容', subtitle: '请尝试调整上面的条件'},
         noExpensesState: {title: '查看你的资金流向', subtitle: '添加报销后，您就能查看消费趋势、主要商家等更多信息。'},
@@ -1188,6 +1192,7 @@ const translations: TranslationDeepObject<typeof en> = {
             allSpenderAverage: '所有消费人平均',
             allMerchantAverage: '所有商户平均值',
             allCategoryAverage: '所有类别平均值',
+            tagAverage: '标签平均值',
             averageValue: (amount: string) => `${amount} 平均`,
         },
         compliance: '合规',

@@ -1213,6 +1213,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     insightsPage: {
+        tagLevel: (level: string) => `Tag-Ebene ${level}`,
+        tagLevelLabel: 'Tag-Ebene',
+        parent: 'Übergeordnet',
+        shareOfTotal: 'Anteil am Gesamtbetrag (%)',
         viewOnSpend: 'In Ausgaben anzeigen',
         emptyState: {title: 'Nichts anzuzeigen', subtitle: 'Versuchen Sie, Ihre Kriterien oben anzupassen'},
         noExpensesState: {title: 'Sehen Sie, wohin Ihr Geld fließt', subtitle: 'Sobald Sie Ausgaben haben, finden Sie Ausgabentrends, Top-Händler und mehr.'},
@@ -1235,6 +1239,7 @@ const translations: TranslationDeepObject<typeof en> = {
             allSpenderAverage: 'Durchschnitt aller Zahlenden',
             allMerchantAverage: 'Durchschnitt über alle Händler',
             allCategoryAverage: 'Durchschnitt aller Kategorien',
+            tagAverage: 'Tag-Durchschnitt',
             averageValue: (amount: string) => `${amount} durchschnittl.`,
         },
         compliance: 'Compliance',

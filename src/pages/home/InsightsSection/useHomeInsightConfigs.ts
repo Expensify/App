@@ -26,6 +26,7 @@ const HOME_INSIGHT_ICONS: Record<HomeInsightGraphKey, SearchTypeMenuItem['icon']
     [CONST.INSIGHTS.GRAPH.TOP_SPENDERS]: 'User',
     [CONST.INSIGHTS.GRAPH.TOP_MERCHANTS]: 'Basket',
     [CONST.INSIGHTS.GRAPH.TOP_CATEGORIES]: 'Folder',
+    [CONST.INSIGHTS.GRAPH.TOP_TAGS]: 'Tag',
 };
 
 /** Whether the chart is one Home can show. */
@@ -55,16 +56,16 @@ function buildInsightConfigFromChart(chart: HomeInsightChartSpec, filters: Insig
  * Builds the configs for the Home insights the current user should see, in display order.
  * Home's supported charts use the Insights dashboard filters and visibility.
  */
-function useHomeInsightConfigs(): {configs: SearchTypeMenuItem[]; isResolved: boolean; shouldShowRunningTotal: boolean} {
+function useHomeInsightConfigs(): {configs: SearchTypeMenuItem[]; isResolved: boolean; shouldShowRunningTotal: boolean; tagPolicyIDs: string[]} {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const {filters, isResolved: areFiltersResolved} = useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND);
+    const {filters, isResolved: areFiltersResolved, tagPolicyIDs} = useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND, policies);
 
     const {headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND];
     const configs = getVisibleCharts([headlineChart, ...supportingCharts], policies, filters.policyIDs, session?.email)
         .filter(isHomeInsightChart)
         .map((chart) => buildInsightConfigFromChart(chart, filters));
-    return {configs, isResolved: areFiltersResolved, shouldShowRunningTotal: filters.groupBy === INSIGHTS_RUNNING_TOTAL_GROUP_BY && isRunningTotalAvailable(filters.date)};
+    return {configs, isResolved: areFiltersResolved, shouldShowRunningTotal: filters.groupBy === INSIGHTS_RUNNING_TOTAL_GROUP_BY && isRunningTotalAvailable(filters.date), tagPolicyIDs};
 }
 
 export default useHomeInsightConfigs;

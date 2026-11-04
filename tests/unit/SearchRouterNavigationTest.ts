@@ -183,6 +183,7 @@ const domainIcons = {
 };
 const spendIcons = {
     Basket: mockIcon,
+    Tag: mockIcon,
     CalendarSolid: mockIcon,
     Receipt: mockIcon,
     MoneyBag: mockIcon,

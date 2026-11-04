@@ -26,6 +26,9 @@ type InsightsFilters = {
 
     /** What the period on screen is drawn against, or nothing when the charts show it alone. */
     compare?: SearchCompareMode;
+
+    /** Selected 1-based tag position on Spend; other dashboards omit it. */
+    tagLevel?: number;
 };
 
 const DEFAULT_INSIGHTS_FILTERS: Omit<InsightsFilters, 'groupCurrency'> = {

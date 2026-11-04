@@ -11,6 +11,7 @@ import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDropdown';
 import InsightsGroupCurrencyControl from '@pages/Insights/controls/InsightsGroupCurrencyControl';
 import InsightsPageControls from '@pages/Insights/controls/InsightsPageControls';
+import InsightsTagLevelControl from '@pages/Insights/controls/InsightsTagLevelControl';
 import InsightsWorkspaceControl from '@pages/Insights/controls/InsightsWorkspaceControl';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
@@ -216,6 +217,54 @@ describe('Insights controls', () => {
 
         // Then the chart is asked to regroup by quarter
         expect(onChange).toHaveBeenCalledWith({groupBy: CONST.SEARCH.GROUP_BY.QUARTER});
+    });
+
+    it('applies a configured tag position only after Apply', async () => {
+        // Given level one named Department and level two named Location
+        const onChange = jest.fn();
+        renderWithProviders(
+            <InsightsTagLevelControl
+                tagLevel={1}
+                options={[
+                    {value: 1, label: 'Department'},
+                    {value: 2, label: 'Location'},
+                ]}
+                onChange={onChange}
+            />,
+        );
+
+        // When the user selects Location without applying it yet
+        await openPill(/^Department$/);
+        fireEvent.press(screen.getByText('Location'));
+        expect(onChange).not.toHaveBeenCalled();
+        fireEvent.press(screen.getByText(APPLY));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then only the tag level changes, leaving date and time grouping intact
+        expect(onChange).toHaveBeenCalledWith({tagLevel: 2});
+    });
+
+    it('resets the tag position to level one', async () => {
+        // Given a chart showing the second configured level
+        const onChange = jest.fn();
+        renderWithProviders(
+            <InsightsTagLevelControl
+                tagLevel={2}
+                options={[
+                    {value: 1, label: 'Department'},
+                    {value: 2, label: 'Location'},
+                ]}
+                onChange={onChange}
+            />,
+        );
+
+        // When the user resets the shared grouping menu
+        await openPill(/^Location$/);
+        fireEvent.press(screen.getByText(RESET));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then level one is selected and saved by the dashboard
+        expect(onChange).toHaveBeenCalledWith({tagLevel: 1});
     });
 
     it('resets the grouping to month', async () => {

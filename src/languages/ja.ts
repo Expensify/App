@@ -1201,6 +1201,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     insightsPage: {
+        tagLevel: (level: string) => `タグレベル${level}`,
+        tagLevelLabel: 'タグレベル',
+        parent: '親',
+        shareOfTotal: '合計に占める割合（%）',
         viewOnSpend: '支出で表示',
         emptyState: {title: '表示するものはありません', subtitle: '上の条件を調整してみてください'},
         noExpensesState: {title: 'お金の使い道を確認する', subtitle: '経費が登録されると、支出の傾向や上位の加盟店など、さまざまな情報を確認できるようになります。'},
@@ -1223,6 +1227,7 @@ const translations: TranslationDeepObject<typeof en> = {
             allSpenderAverage: '全利用者の平均',
             allMerchantAverage: '全加盟店の平均',
             allCategoryAverage: '全カテゴリ平均',
+            tagAverage: 'タグ平均',
             averageValue: (amount: string) => `平均 ${amount}`,
         },
         compliance: 'コンプライアンス',

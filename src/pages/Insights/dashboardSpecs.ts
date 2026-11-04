@@ -97,7 +97,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 groupBy: CONST.SEARCH.GROUP_BY.TAG,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-                limit: CONST.INSIGHTS.RANKING_LIMIT,
+                limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
                 isPolicyEligible: isPolicyEligibleForTopTags,
             },
         ],

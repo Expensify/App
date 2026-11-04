@@ -1352,6 +1352,10 @@ const translations = {
         },
     },
     insightsPage: {
+        tagLevel: (level: string) => `Tag level ${level}`,
+        tagLevelLabel: 'Tag level',
+        parent: 'Parent',
+        shareOfTotal: 'Share of total (%)',
         viewOnSpend: 'View on Spend',
         explain: 'Explain',
         explainChartPrompt: (chartTitle: string) => `Explain the data in ${chartTitle}.`,
@@ -1369,6 +1373,7 @@ const translations = {
             allSpenderAverage: 'All-spender average',
             allMerchantAverage: 'All-merchant average',
             allCategoryAverage: 'All-category average',
+            tagAverage: 'Tag average',
             averageValue: (amount: string) => `${amount} avg`,
             dayLabel: (day?: number) => (day === undefined ? 'Day' : `Day ${day}`),
             weekLabel: (week?: number) => (week === undefined ? 'Week' : `Week ${week}`),

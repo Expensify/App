@@ -1257,6 +1257,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     insightsPage: {
+        tagLevel: (level: string) => `Επίπεδο ετικέτας ${level}`,
+        tagLevelLabel: 'Επίπεδο ετικέτας',
+        parent: 'Γονικό',
+        shareOfTotal: 'Μερίδιο του συνόλου (%)',
         viewOnSpend: 'Προβολή στο Spend',
         emptyState: {title: 'Τίποτα προς εμφάνιση', subtitle: 'Δοκιμάστε να προσαρμόσετε τα κριτήριά σας παραπάνω'},
         noExpensesState: {title: 'Δείτε πού πηγαίνουν τα χρήματά σας', subtitle: 'Μόλις έχετε δαπάνες, θα βλέπετε τάσεις δαπανών, κορυφαίους εμπόρους και άλλα.'},
@@ -1279,6 +1283,7 @@ const translations: TranslationDeepObject<typeof en> = {
             allSpenderAverage: 'Μέσος όρος όλων των δαπανών',
             allMerchantAverage: 'Μέσος όρος όλων των εμπόρων',
             allCategoryAverage: 'Μέσος όρος όλων των κατηγοριών',
+            tagAverage: 'Μέσος όρος ετικέτας',
             averageValue: (amount: string) => `${amount} κατά μέσο όρο`,
         },
         compliance: 'Συμμόρφωση',

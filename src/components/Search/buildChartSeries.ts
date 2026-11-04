@@ -36,6 +36,9 @@ type ChartComparedRows = {
 
     /** Set when the rows are another period's */
     periods?: ChartComparisonPeriods;
+
+    /** Replaces period dates for a comparison against each group's own historical average. */
+    label?: string;
 };
 
 /** One value every group is compared against, drawn as a horizontal line */
@@ -289,7 +292,7 @@ function buildChartSeries({
     const primarySeries: ChartSeries = {key: CHART_SERIES_KEY.PRIMARY, label: periods && formatDates(periods.primary, dateFnsLocale)};
     const comparisonSeries: ChartSeries | undefined = average
         ? {key: CHART_SERIES_KEY.COMPARISON, label: translate(AVERAGE_LABEL_KEYS[groupBy] ?? 'insightsPage.compare.average'), isAverage: true}
-        : comparedRows && {key: CHART_SERIES_KEY.COMPARISON, color: comparedRows.color, label: periods && formatDates(periods.comparison, dateFnsLocale)};
+        : comparedRows && {key: CHART_SERIES_KEY.COMPARISON, color: comparedRows.color, label: comparedRows.label ?? (periods && formatDates(periods.comparison, dateFnsLocale))};
 
     return {
         series: comparisonSeries ? [primarySeries, comparisonSeries] : [primarySeries],

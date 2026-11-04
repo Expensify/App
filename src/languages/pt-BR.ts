@@ -1212,6 +1212,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     insightsPage: {
+        tagLevel: (level: string) => `Nível de tag ${level}`,
+        tagLevelLabel: 'Nível de tag',
+        parent: 'Pai',
+        shareOfTotal: 'Parcela do total (%)',
         viewOnSpend: 'Ver em Gastos',
         emptyState: {title: 'Nada para mostrar', subtitle: 'Tente ajustar seus critérios acima'},
         noExpensesState: {title: 'Veja para onde vai o seu dinheiro', subtitle: 'Quando você tiver despesas, vai encontrar tendências de gastos, principais estabelecimentos e muito mais.'},
@@ -1234,6 +1238,7 @@ const translations: TranslationDeepObject<typeof en> = {
             allSpenderAverage: 'Média entre todos os gastadores',
             allMerchantAverage: 'Média de todos os estabelecimentos',
             allCategoryAverage: 'Média de todas as categorias',
+            tagAverage: 'Média da tag',
             averageValue: (amount: string) => `${amount} média`,
         },
         compliance: 'Conformidade',

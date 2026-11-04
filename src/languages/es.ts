@@ -1205,6 +1205,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     insightsPage: {
+        tagLevel: (level: string) => `Nivel de etiqueta ${level}`,
+        tagLevelLabel: 'Nivel de etiqueta',
+        parent: 'Principal',
+        shareOfTotal: 'Porcentaje del total (%)',
         viewOnSpend: 'Ver en Gastos',
         emptyState: {title: 'Nada que mostrar', subtitle: 'Prueba a ajustar tus criterios de arriba'},
         noExpensesState: {title: 'Ve adónde va tu dinero', subtitle: 'Una vez que tengas gastos, encontrarás tendencias de gasto, principales comercios y mucho más.'},
@@ -1227,6 +1231,7 @@ const translations: TranslationDeepObject<typeof en> = {
             allSpenderAverage: 'Promedio de todos los que gastan',
             allMerchantAverage: 'Promedio de todos los comercios',
             allCategoryAverage: 'Promedio de todas las categorías',
+            tagAverage: 'Promedio de la etiqueta',
             averageValue: (amount: string) => `${amount} prom de media`,
         },
         compliance: 'Cumplimiento',
