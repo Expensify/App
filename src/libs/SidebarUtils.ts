@@ -84,6 +84,7 @@ import {
     isTripRoom,
     isUnread,
     isUnreadWithMention,
+    isUnsupportedReportType,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
 } from './ReportUtils';
@@ -148,6 +149,7 @@ type ShouldDisplayReportInLHNParams = {
     currentReportId: string | undefined;
     isInFocusMode: boolean;
     isDefaultRoomsBetaEnabled: boolean;
+    isBillPayBetaEnabled?: boolean;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
     draftComment: OnyxEntry<string>;
     transactions: OnyxCollection<Transaction>;
@@ -168,6 +170,7 @@ function shouldDisplayReportInLHN({
     currentReportId,
     isInFocusMode,
     isDefaultRoomsBetaEnabled,
+    isBillPayBetaEnabled = false,
     transactionViolations,
     draftComment,
     transactions,
@@ -184,7 +187,7 @@ function shouldDisplayReportInLHN({
         return {shouldDisplay: false};
     }
 
-    if ((Object.values(CONST.REPORT.UNSUPPORTED_TYPE) as string[]).includes(report?.type ?? '')) {
+    if (isUnsupportedReportType(report.type, isBillPayBetaEnabled)) {
         return {shouldDisplay: false};
     }
 
@@ -241,6 +244,7 @@ function shouldDisplayReportInLHN({
         currentReportId,
         isInFocusMode,
         isDefaultRoomsBetaEnabled,
+        isBillPayBetaEnabled,
         excludeEmptyChats: true,
         doesReportHaveViolations,
         draftComment,
@@ -296,6 +300,7 @@ function getReportsToDisplayInLHN({
     reports,
     policies,
     isDefaultRoomsBetaEnabled,
+    isBillPayBetaEnabled = false,
     priorityMode,
     draftComments,
     transactionViolations,
@@ -313,6 +318,7 @@ function getReportsToDisplayInLHN({
     reports: OnyxCollection<Report>;
     policies: OnyxCollection<Policy>;
     isDefaultRoomsBetaEnabled: boolean;
+    isBillPayBetaEnabled?: boolean;
     priorityMode: OnyxEntry<PriorityMode>;
     draftComments: OnyxCollection<string>;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
@@ -347,6 +353,7 @@ function getReportsToDisplayInLHN({
             currentReportId,
             isInFocusMode,
             isDefaultRoomsBetaEnabled,
+            isBillPayBetaEnabled,
             transactionViolations,
             draftComment: reportDraftComment,
             transactions,
@@ -384,6 +391,8 @@ type UpdateReportsToDisplayInLHNProps = {
     currentReportId: string | undefined;
     isInFocusMode: boolean;
     isDefaultRoomsBetaEnabled: boolean;
+    /** Defaults to false, so bills stay hidden unless the caller has the newDotBillPay beta */
+    isBillPayBetaEnabled?: boolean;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
@@ -405,6 +414,7 @@ function updateReportsToDisplayInLHN({
     currentReportId,
     isInFocusMode,
     isDefaultRoomsBetaEnabled,
+    isBillPayBetaEnabled = false,
     transactionViolations,
     reportNameValuePairs,
     reportAttributes,
@@ -449,6 +459,7 @@ function updateReportsToDisplayInLHN({
             currentReportId,
             isInFocusMode,
             isDefaultRoomsBetaEnabled,
+            isBillPayBetaEnabled,
             transactionViolations,
             draftComment: reportDraftComment,
             transactions,

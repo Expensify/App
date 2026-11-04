@@ -215,6 +215,7 @@ import {
     isSortableColumnName,
     isThreadMemberProtectedByParentReport,
     isUnread,
+    isUnsupportedReportType,
     getUploadingAttachmentIDsRemovedFromDraft,
     isWorkspaceMemberLeavingWorkspaceRoom,
     parseMovedTransactionReportIDs,
@@ -237,6 +238,7 @@ import {
     shouldEnableNegative,
     shouldExcludeAncestorReportAction,
     shouldCreateNewMoneyRequestReport,
+    shouldHideBillReport,
     shouldHideSingleReportField,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
@@ -9634,6 +9636,58 @@ describe('ReportUtils', () => {
     describe('shouldReportBeInOptionList tests', () => {
         afterEach(() => Onyx.clear());
 
+        it.each([
+            {isBillPayBetaEnabled: false, expected: false},
+            {isBillPayBetaEnabled: true, expected: true},
+        ])('should include a bill only for users with the newDotBillPay beta (isBillPayBetaEnabled: $isBillPayBetaEnabled)', ({isBillPayBetaEnabled, expected}) => {
+            // Given a bill with a draft, so the draft alone would include it in the list
+            const report: Report = {...LHNTestUtils.getFakeReport(), type: CONST.REPORT.UNSUPPORTED_TYPE.BILL};
+
+            // When the list checks the bill for a user with or without the newDotBillPay beta
+            const result = shouldReportBeInOptionList({
+                report,
+                chatReport: mockedChatReport,
+                currentReportId: undefined,
+                isInFocusMode: false,
+                isDefaultRoomsBetaEnabled: true,
+                isBillPayBetaEnabled,
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                draftComment: 'Draft',
+                isReportArchived: undefined,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
+            });
+
+            // Then only users with the beta get the bill in the list
+            expect(result).toBe(expected);
+        });
+
+        it('should exclude a bill when the caller does not pass isBillPayBetaEnabled', () => {
+            // Given a bill with a draft and a caller that only the LHN beta flag would cover
+            const report: Report = {...LHNTestUtils.getFakeReport(), type: CONST.REPORT.UNSUPPORTED_TYPE.BILL};
+
+            // When another option list checks the bill without the flag
+            const result = shouldReportBeInOptionList({
+                report,
+                chatReport: mockedChatReport,
+                currentReportId: undefined,
+                isInFocusMode: false,
+                isDefaultRoomsBetaEnabled: true,
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                draftComment: 'Draft',
+                isReportArchived: undefined,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
+            });
+
+            // Then the bill stays out, so other lists keep hiding bills
+            expect(result).toBe(false);
+        });
+
         it('should return true when the report is current active report', () => {
             const report = LHNTestUtils.getFakeReport();
             const currentReportId = report.reportID;
@@ -11650,6 +11704,33 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${adminPolicy.id}`, adminPolicy);
 
             expect(canDeleteReportAction(reportAction, report.reportID, undefined, undefined, undefined, currentUserAccountID, undefined, undefined, undefined)).toBe(false);
+        });
+    });
+
+    describe('isUnsupportedReportType and shouldHideBillReport', () => {
+        it.each([
+            {reportType: CONST.REPORT.UNSUPPORTED_TYPE.BILL, isBillPayBetaEnabled: false, expected: true},
+            {reportType: CONST.REPORT.UNSUPPORTED_TYPE.BILL, isBillPayBetaEnabled: true, expected: false},
+            {reportType: CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK, isBillPayBetaEnabled: true, expected: true},
+            {reportType: CONST.REPORT.TYPE.EXPENSE, isBillPayBetaEnabled: false, expected: false},
+            {reportType: undefined, isBillPayBetaEnabled: false, expected: false},
+        ])('isUnsupportedReportType returns $expected for $reportType when isBillPayBetaEnabled is $isBillPayBetaEnabled', ({reportType, isBillPayBetaEnabled, expected}) => {
+            // Given a report type and the user's newDotBillPay beta state
+            // When we check whether NewDot supports the type for this user
+            // Then only bills depend on the beta, and other unsupported types stay unsupported
+            expect(isUnsupportedReportType(reportType, isBillPayBetaEnabled)).toBe(expected);
+        });
+
+        it.each([
+            {reportType: CONST.REPORT.UNSUPPORTED_TYPE.BILL, isBillPayBetaEnabled: false, expected: true},
+            {reportType: CONST.REPORT.UNSUPPORTED_TYPE.BILL, isBillPayBetaEnabled: true, expected: false},
+            {reportType: CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK, isBillPayBetaEnabled: false, expected: false},
+            {reportType: CONST.REPORT.TYPE.INVOICE, isBillPayBetaEnabled: false, expected: false},
+        ])('shouldHideBillReport returns $expected for $reportType when isBillPayBetaEnabled is $isBillPayBetaEnabled', ({reportType, isBillPayBetaEnabled, expected}) => {
+            // Given a report type and the user's newDotBillPay beta state
+            // When the report screen checks whether to hide the report
+            // Then only bills are hidden, and only from users without the beta
+            expect(shouldHideBillReport(reportType, isBillPayBetaEnabled)).toBe(expected);
         });
     });
 
