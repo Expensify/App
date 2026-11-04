@@ -25,7 +25,7 @@ export default function createRandomPolicy(index: number, type?: ValueOf<typeof 
         autoReportingOffset: 1,
         preventSelfApproval: randBoolean(),
         outputCurrency: randCurrencyCode(),
-        role: rand(Object.values(CONST.POLICY.ROLE).filter((role) => role !== CONST.POLICY.ROLE.APPROVE_ONLY)),
+        role: rand(Object.values(CONST.POLICY.ROLE).filter((role) => role !== CONST.POLICY.ROLE.APPROVE_ONLY && role !== CONST.POLICY.ROLE.TRAVEL_ADMIN)),
         owner: randEmail(),
         ownerAccountID: index,
         avatarURL: randAvatar(),

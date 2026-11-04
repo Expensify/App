@@ -112,7 +112,7 @@ function WorkspaceTravelPage({
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED}
-            policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.TRAVEL}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding

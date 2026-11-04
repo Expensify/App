@@ -5153,6 +5153,7 @@ const CONST = {
             PEOPLE_ADMIN: 'peopleAdmin',
             PAYMENTS_ADMIN: 'paymentsAdmin',
             APPROVE_ONLY: 'approveOnly',
+            TRAVEL_ADMIN: 'travelAdmin',
         },
         APPROVE_ONLY_BLOCKED_REASONS: {
             HAS_CARD_ON_POLICY: 'hasCardOnPolicy',
@@ -5190,6 +5191,7 @@ const CONST = {
             REPORT_FIELDS: 'reportFields',
             ACCOUNTING: 'accounting',
             MORE_FEATURES: 'moreFeatures',
+            TRAVEL: 'travel',
             CREATE_EXPENSES: 'createExpenses',
         },
         POLICY_FEATURE_ACCESS: {
