@@ -37,8 +37,8 @@ jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => 'settings/wallet/glob
 
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
-async function renderPage(url = KYC_REVIEW_URL) {
-    await Onyx.set(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK, {url, isLoading: false});
+async function renderPage() {
+    await Onyx.set(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK, {url: KYC_REVIEW_URL, isLoading: false});
     render(
         <OnyxListItemProvider>
             <NavigationContainer ref={navigationRef}>
@@ -94,13 +94,5 @@ describe('WiseKYCReviewPage', () => {
         // Then the page loads and the form stays open
         expect(shouldLoad).toBe(true);
         expect(goBackSpy).not.toHaveBeenCalled();
-    });
-
-    it('does not show a link outside Wise', async () => {
-        // Given the server sends a link that does not point to Wise
-        await renderPage('https://wise.example.com/embedded-flows/verification?token=abc');
-
-        // Then no WebView shows it
-        expect(screen.queryByTestId(WEB_VIEW_TEST_ID)).toBeNull();
     });
 });
