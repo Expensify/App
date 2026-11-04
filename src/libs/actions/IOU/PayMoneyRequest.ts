@@ -1,5 +1,4 @@
 import type {PaymentMethod} from '@components/KYCWall/types';
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
@@ -13,7 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getPersonalDetailsForAccountIDs} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getAllReportActions, getElsewherePaymentReportActionMessage, getReportActionHtml, getReportActionText, isCreatedAction} from '@libs/ReportActionsUtils';
+import {getAllReportActions, getElsewherePaymentReportActionMessageBG, getReportActionHtml, getReportActionText, isCreatedAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticCancelPaymentReportAction,
     buildOptimisticIOUReportAction,
@@ -993,7 +992,6 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
 }
 
 function markReportPaymentReceived(
-    translate: LocalizedTranslate,
     chatReport: OnyxEntry<OnyxTypes.Report>,
     iouReport: OnyxEntry<OnyxTypes.Report>,
     currentUserAccountID: number,
@@ -1027,7 +1025,7 @@ function markReportPaymentReceived(
     // the "received payment" copy here. Keeping the action's message in sync fixes the optimistic chat/report
     // preview, which derives lastMessageText/lastMessageHtml from this action.
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const receivedPaymentMessage = getElsewherePaymentReportActionMessage(translate, optimisticIOUReportAction.originalMessage);
+    const receivedPaymentMessage = getElsewherePaymentReportActionMessageBG(optimisticIOUReportAction.originalMessage);
     optimisticIOUReportAction.message = [{html: receivedPaymentMessage, text: receivedPaymentMessage, isEdited: false, type: CONST.REPORT.MESSAGE.TYPE.COMMENT}];
 
     const reportPreviewAction = getReportPreviewReportAction(chatReport.reportID, iouReport.reportID, chatReportActions);
