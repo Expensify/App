@@ -53,7 +53,7 @@ type SearchColumnMeasurementContext = {
 
 /** The policy a transaction belongs to, which is where its category and tag GL codes are defined. */
 function getTransactionPolicyID(item: TransactionListItemType): string | undefined {
-    return [item.policyID, item.report?.policyID, item.policy?.id].find((policyID): policyID is string => !!policyID);
+    return [item.report?.policyID, item.policy?.id].find((policyID): policyID is string => !!policyID);
 }
 
 /** A run of text rendered in a Search table cell, described well enough to measure how wide it renders. */
