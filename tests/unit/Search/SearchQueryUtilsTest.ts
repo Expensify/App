@@ -27,6 +27,7 @@ import {
     getMerchantFilterFormValues,
     getFooterSelectionFromQuery,
     getQueryWithFooterSelection,
+    getQueryWithoutGroupBy,
     queryHasViolationFilter,
     hasValuesIncludeViolationFilter,
     getDateFilterRange,
@@ -46,6 +47,7 @@ import {
     isSearchQuerySavable,
     getChangedDisplayOptionsCount,
     isFilterNegated,
+    normalizeDatePresetsInQuery,
     isDefaultExpenseReportsQuery,
     isDefaultExpensesQuery,
     isSearchBeforeViolationsSnapshotStarted,
@@ -78,6 +80,84 @@ import createRandomPolicy from '../../utils/collections/policies';
 import {formatPhoneNumber, localeCompare, translateLocal} from '../../utils/TestHelper';
 
 const mockGetRootState = jest.fn();
+
+describe('currency-qualified amount filters', () => {
+    it.each([CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT])('round-trips Any currency for %s using the legacy request format', (filterKey) => {
+        // Given an Any currency operand already expressed in legacy hundredths.
+        const form: Partial<SearchAdvancedFiltersForm> = {type: CONST.SEARCH.DATA_TYPES.EXPENSE, [`${filterKey}EqualTo`]: '10'};
+
+        // When the filter becomes a backend query and is reopened.
+        const query = buildFilterQueryWithSortDefaults(form, {}, {}) ?? '';
+        const queryJSON = buildSearchQueryJSON(getQueryWithUpdatedValues(query, true) ?? '');
+        if (!queryJSON) {
+            throw new Error('Expected the legacy amount query to parse');
+        }
+        const reopenedForm = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+        // Then the request has a bare operand and reopening does not add a currency or rescale it.
+        expect(query).toContain(`${filterKey}:10`);
+        expect(serializeQueryJSONForBackend(queryJSON)).toContain('"right":"10"');
+        expect(reopenedForm).toMatchObject({[`${filterKey}EqualTo`]: '10'});
+        expect(buildQueryStringFromFilterFormValues(reopenedForm)).toContain(`${filterKey}:10`);
+    });
+
+    it.each([CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT])('round-trips the selected currency for %s', (filterKey) => {
+        // Given a bare amount in the current query and a currency selected in its filter editor.
+        const currentQuery = buildSearchQueryJSON(`type:expense ${filterKey}:1199 total:1250`);
+        const form: Partial<SearchAdvancedFiltersForm> = {type: CONST.SEARCH.DATA_TYPES.EXPENSE, [`${filterKey}EqualTo`]: '11.99 GBP', totalEqualTo: '1250'};
+
+        // When the form becomes a backend query and is reopened from that query.
+        const query = buildFilterQueryWithSortDefaults(form, {}, currentQuery ?? {}) ?? '';
+        const updatedQuery = getQueryWithUpdatedValues(query, true);
+        const queryJSON = buildSearchQueryJSON(updatedQuery ?? '');
+        if (!queryJSON) {
+            throw new Error('Expected the currency-qualified query to parse');
+        }
+        const reopenedForm = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+        // Then the currency stays quoted, major units are not multiplied by 100, and legacy totals stay in hundredths.
+        expect(query).toContain(`${filterKey}:"11.99 GBP"`);
+        expect(serializeQueryJSONForBackend(queryJSON)).toContain('"right":"11.99 GBP"');
+        expect(reopenedForm).toMatchObject({[`${filterKey}EqualTo`]: '11.99 GBP', totalEqualTo: '1250'});
+        expect(buildQueryStringFromFilterFormValues(reopenedForm)).toContain(`${filterKey}:"11.99 GBP"`);
+    });
+
+    it('preserves currencies on both range bounds and on negated purchase amounts', () => {
+        // Given a range whose bounds have their own currencies, plus a negated purchase amount.
+        const form: Partial<SearchAdvancedFiltersForm> = {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            amountGreaterThan: '10.00 USD',
+            amountLessThan: '20.00 GBP',
+            purchaseAmountNot: '-3.00 EUR',
+        };
+
+        // When the query is serialized and parsed back into filter form values.
+        const query = buildQueryStringFromFilterFormValues(form);
+        const queryJSON = buildSearchQueryJSON(query);
+        if (!queryJSON) {
+            throw new Error('Expected the currency-qualified range to parse');
+        }
+        const reopenedForm = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+        // Then each operand retains its amount, currency, and operator.
+        expect(query).toContain('amount>"10.00 USD" amount<"20.00 GBP"');
+        expect(query).toContain('-purchaseAmount:"-3.00 EUR"');
+        expect(reopenedForm).toMatchObject(form);
+    });
+
+    it('converts bare user-entered amounts but leaves qualified amounts in major units', () => {
+        // Given a typed query mixing qualified and legacy amounts.
+        const query = 'amount:"11.99 GBP" purchase-amount:"-3.00 EUR" total:12.50';
+
+        // When the search input prepares its operands for the backend.
+        const updatedQuery = getQueryWithUpdatedValues(query);
+
+        // Then only the bare amount is converted to hundredths.
+        expect(updatedQuery).toContain('amount:"11.99 GBP"');
+        expect(updatedQuery).toContain('purchaseAmount:"-3.00 EUR"');
+        expect(updatedQuery).toContain('total:1250');
+    });
+});
 
 jest.mock('@expensify/react-native-hybrid-app', () => ({
     __esModule: true,
@@ -717,6 +797,18 @@ describe('SearchQueryUtils', () => {
             expect(result).toContain('footerTotal:reimbursable');
             // The currency is read back upper-cased. The query keeps whatever case was typed, which nothing depends on.
             expect(result).toContain('footerCurrency:eur');
+        });
+
+        test('maps a typed year to date preset to this year', () => {
+            // Given a typed query on the deprecated year to date preset
+            const userQuery = 'type:expense date:year-to-date';
+
+            // When the typed query is rebuilt before it's submitted
+            const result = getQueryWithUpdatedValues(userQuery);
+
+            // Then it uses this year, so the URL matches what the date picker shows and a saved search stores
+            expect(result).toContain(`date:${CONST.SEARCH.DATE_PRESETS.THIS_YEAR}`);
+            expect(result).not.toContain(CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE);
         });
 
         test('rebuilds a single value containing a comma as one value', () => {
@@ -1449,6 +1541,53 @@ describe('SearchQueryUtils', () => {
                 const result = buildQueryStringFromFilterFormValues(filterValues, {sortBy: 'date', sortOrder: 'desc'});
                 expect(result).not.toContain('limit');
             });
+        });
+
+        describe('Bank account filter (#99090)', () => {
+            test('keeps the bank account filter in the query for expense so the withdrawal section row reaches the backend', () => {
+                // Given an expense filter form (the type Bank Reconciliation uses) with a bank account picked
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    bankAccount: ['42'],
+                };
+
+                // When the query string is built
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                // Then the bank account filter is not stripped as unsupported
+                expect(result).toEqual('type:expense bankAccount:42');
+            });
+
+            test('keeps a negated bank account filter in the query for expense', () => {
+                // Given an expense filter form excluding a bank account
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    bankAccountNot: ['42'],
+                };
+
+                // When the query string is built
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                // Then the negated filter survives too
+                expect(result).toEqual('type:expense -bankAccount:42');
+            });
+
+            test.each([CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.DATA_TYPES.TRIP])(
+                'still drops the bank account filter for %s, which Search does not accept it for',
+                (type) => {
+                    // Given a filter form for another type carrying a bank account from a previous expense search
+                    const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                        type,
+                        bankAccount: ['42'],
+                    };
+
+                    // When the query string is built
+                    const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                    // Then the unsupported filter is stripped as before
+                    expect(result).toEqual(`type:${type}`);
+                },
+            );
         });
 
         describe('Spend footer selections', () => {
@@ -2279,7 +2418,7 @@ describe('SearchQueryUtils', () => {
             });
 
             test('merges date preset with inclusive range into a single range', () => {
-                const queryString = 'type:expense date:year-to-date date>=2026-04-01 date<=2026-04-30';
+                const queryString = 'type:expense date:last-30-days date>=2026-04-01 date<=2026-04-30';
                 const queryJSON = buildSearchQueryJSON(queryString);
 
                 if (!queryJSON) {
@@ -2309,7 +2448,7 @@ describe('SearchQueryUtils', () => {
             });
 
             test('merges all date-based filters, not only "date"', () => {
-                const queryString = 'type:expense approved:year-to-date approved>=2026-04-01 approved<=2026-04-30';
+                const queryString = 'type:expense approved:last-30-days approved>=2026-04-01 approved<=2026-04-30';
                 const queryJSON = buildSearchQueryJSON(queryString);
 
                 if (!queryJSON) {
@@ -2324,7 +2463,7 @@ describe('SearchQueryUtils', () => {
             });
 
             test('merges date preset and strict inequalities into a single range', () => {
-                const queryString = 'type:expense date:year-to-date date>2026-04-01 date<2026-04-30';
+                const queryString = 'type:expense date:last-30-days date>2026-04-01 date<2026-04-30';
                 const queryJSON = buildSearchQueryJSON(queryString);
 
                 if (!queryJSON) {
@@ -2349,6 +2488,21 @@ describe('SearchQueryUtils', () => {
                 const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
                 expect(result.dateOn).toBe('last-12-months');
                 expect(result.dateRange).toBeUndefined();
+            });
+
+            test('reads the deprecated year-to-date preset as this-year', () => {
+                // Given a saved search from before Year to date was replaced by This year
+                const queryJSON = buildSearchQueryJSON('type:expense date:year-to-date approved!=year-to-date');
+                if (!queryJSON) {
+                    throw new Error('Failed to parse query string');
+                }
+
+                // When the form values are built from the query
+                const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+                // Then both read as this-year, so the date picker checks the This year row it lists
+                expect(result.dateOn).toBe(CONST.SEARCH.DATE_PRESETS.THIS_YEAR);
+                expect(result.approvedNot).toBe(CONST.SEARCH.DATE_PRESETS.THIS_YEAR);
             });
 
             test('merges multiple ranges into one', () => {
@@ -3334,6 +3488,32 @@ describe('SearchQueryUtils', () => {
             expect(junk?.hash).toEqual(noSelection?.hash);
         });
 
+        it('drops a group-by and the group sort it brought, landing on the plain query', () => {
+            // Given a trip query saved with a group-by, which trip rooms can't use
+            const grouped = buildSearchQueryJSON('type:trip status:upcoming group-by:from');
+
+            // When the group-by is dropped
+            const stripped = grouped ? buildSearchQueryJSON(getQueryWithoutGroupBy(grouped)) : undefined;
+
+            // Then it's the plain trip query, sorted by date again instead of by the group
+            expect(stripped?.groupBy).toBeUndefined();
+            expect(stripped?.sortBy).toEqual(CONST.SEARCH.TABLE_COLUMNS.DATE);
+            expect(stripped?.hash).toEqual(buildSearchQueryJSON('type:trip status:upcoming')?.hash);
+        });
+
+        it('keeps a non-group sort when the group-by is dropped', () => {
+            // Given a grouped trip query sorted by trip name on purpose
+            const grouped = buildSearchQueryJSON('type:trip group-by:from sortBy:title sortOrder:asc');
+
+            // When the group-by is dropped
+            const stripped = grouped ? buildSearchQueryJSON(getQueryWithoutGroupBy(grouped)) : undefined;
+
+            // Then the chosen sort stays
+            expect(stripped?.groupBy).toBeUndefined();
+            expect(stripped?.sortBy).toEqual(CONST.SEARCH.TABLE_COLUMNS.TITLE);
+            expect(stripped?.sortOrder).toEqual(CONST.SEARCH.SORT_ORDER.ASC);
+        });
+
         it('reads the footer currency back in upper case, so the same currency in either case is one selection', () => {
             const lower = buildSearchQueryJSON('type:expense footerCurrency:eur');
             const upper = buildSearchQueryJSON('type:expense footerCurrency:EUR');
@@ -3520,6 +3700,109 @@ describe('SearchQueryUtils', () => {
 
             // Then the group currency doesn't count as a change
             expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON, onlyGroupCurrencyIgnored)).toBe(false);
+        });
+
+        it('returns false when a saved year to date search is applied again as this year', () => {
+            // Given a saved search on the deprecated year to date preset, which the date picker shows as this year
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense date:year-to-date');
+
+            // When the unchanged date filter is applied, which writes this year back into the query
+            const currentQueryJSON = buildSearchQueryJSON('type:expense date:this-year');
+
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // Then the saved search isn't treated as edited, so Reset and Save stay hidden
+            expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON)).toBe(false);
+        });
+
+        it('returns true when a saved year to date search is changed to another date preset', () => {
+            // Given a saved search on the deprecated year to date preset
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense date:year-to-date');
+
+            // When a different preset is applied
+            const currentQueryJSON = buildSearchQueryJSON('type:expense date:last-year');
+
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // Then the change still counts, so Reset and Save appear
+            expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON)).toBe(true);
+        });
+
+        it('returns false when a saved year to date report field date search is applied again as this year', () => {
+            // Given a saved search on a report field date using the deprecated year to date preset, which the date picker shows as this year
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense report-field-trip-date:year-to-date');
+
+            // When the unchanged report field filter is applied, which writes this year back into the query
+            const currentQueryJSON = buildSearchQueryJSON('type:expense report-field-trip-date:this-year');
+
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // Then the saved search isn't treated as edited, so Reset and Save stay hidden
+            expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON)).toBe(false);
+        });
+
+        it('returns true when a saved negated report field search on year to date is changed to this year', () => {
+            // Given a saved search excluding the year to date text from a report field, which the filter form keeps as text
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense -report-field-trip-date:year-to-date');
+
+            // When the excluded text is changed to this year
+            const currentQueryJSON = buildSearchQueryJSON('type:expense -report-field-trip-date:this-year');
+
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // Then the change still counts, so Reset and Save appear
+            expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON)).toBe(true);
+        });
+    });
+
+    describe('normalizeDatePresetsInQuery', () => {
+        const getFilterValues = (query: string, filterKey: string) =>
+            buildSearchQueryJSON(query)
+                ?.flatFilters.find((filter) => filter.key === filterKey)
+                ?.filters.map((queryFilter) => ({operator: queryFilter.operator, value: queryFilter.value}));
+
+        it('maps year to date to this year on a date filter', () => {
+            // Given a search saved with the deprecated year to date preset
+            const query = 'type:expense date:year-to-date';
+
+            // When the query is normalized before it's opened or saved
+            const normalizedQuery = normalizeDatePresetsInQuery(query);
+
+            // Then it uses this year, the preset the date picker lists in its place
+            expect(getFilterValues(normalizedQuery, CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE)).toEqual([
+                {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.SEARCH.DATE_PRESETS.THIS_YEAR},
+            ]);
+        });
+
+        it('maps year to date on a report field date but keeps a negated report field value', () => {
+            // Given a search with year to date on a report field date and as excluded text on another report field
+            const query = 'type:expense report-field-trip-date:year-to-date -report-field-notes:year-to-date';
+
+            // When the query is normalized
+            const normalizedQuery = normalizeDatePresetsInQuery(query);
+
+            // Then only the date value changes, because the filter form keeps negated report field values as text
+            expect(getFilterValues(normalizedQuery, 'reportField-trip-date')).toEqual([{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.SEARCH.DATE_PRESETS.THIS_YEAR}]);
+            expect(getFilterValues(normalizedQuery, 'reportField-notes')).toEqual([{operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE}]);
+        });
+
+        it('returns the query unchanged when it has no year to date preset', () => {
+            // Given a search on a current date preset
+            const query = 'type:expense date:last-year';
+
+            // When the query is normalized
+            const normalizedQuery = normalizeDatePresetsInQuery(query);
+
+            // Then the same query string comes back, so searches without the deprecated preset open exactly as saved
+            expect(normalizedQuery).toBe(query);
         });
     });
 

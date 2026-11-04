@@ -1,23 +1,29 @@
-import {render} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import Navigation from '@libs/Navigation/Navigation';
+
 import ReportActionItemThread from '@pages/inbox/report/ReportActionItemThread';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createRandomReportAction from '../utils/collections/reportActions';
+import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const AGENT_ACCOUNT_ID = 9001;
 const FIRST_COMMENTER_ACCOUNT_ID = 111;
 const SECOND_COMMENTER_ACCOUNT_ID = 222;
+const SUPPORT_TICKET_REPORT_ID = '3';
 
 // Captures the account IDs handed to the avatar stack, which is what decides whose avatars the thread row shows.
 let mockCapturedAccountIDs: number[] | undefined;
@@ -31,12 +37,33 @@ jest.mock('@components/Avatar/connected/MultiAccountAvatar', () => {
     };
 });
 
+jest.mock('@libs/Navigation/Navigation', () => ({
+    navigate: jest.fn(),
+    getActiveRoute: jest.fn(() => ''),
+}));
+
+jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn(() => false));
+
+const mockNavigate = jest.mocked(Navigation.navigate);
+
 function buildReportAction(childOldestFourAccountIDs: string | undefined): ReportAction {
     return {
         ...createRandomReportAction(1),
         childReportID: '2',
         childVisibleActionCount: 0,
         childOldestFourAccountIDs,
+    };
+}
+
+function buildSupportTicketAction(childReportID: string | undefined): ReportAction {
+    return {
+        ...createRandomReportAction(1),
+        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+        childType: CONST.REPORT.TYPE.SUPPORT_TICKET,
+        childReportID,
+        childVisibleActionCount: 2,
+        childCommenterCount: 1,
+        childOldestFourAccountIDs: `${FIRST_COMMENTER_ACCOUNT_ID}`,
     };
 }
 
@@ -93,5 +120,39 @@ describe('ReportActionItemThread', () => {
 
         // Then no account IDs are passed, so the avatar stack draws its own single placeholder
         expect(mockCapturedAccountIDs).toEqual([]);
+    });
+
+    describe('support ticket replies', () => {
+        beforeEach(async () => {
+            mockNavigate.mockClear();
+            await Onyx.clear();
+        });
+
+        it('should open the ticket without writing an optimistic chat over it when the ticket is not loaded yet', async () => {
+            // Given a support ticket preview with replies, whose ticket report is not loaded in Onyx yet
+            renderThread(buildSupportTicketAction(SUPPORT_TICKET_REPORT_ID));
+            await waitForBatchedUpdatesWithAct();
+
+            // When the replies row is pressed
+            fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the ticket opens, and its report is left as is instead of being turned into a plain chat
+            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(SUPPORT_TICKET_REPORT_ID));
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${SUPPORT_TICKET_REPORT_ID}`)).toBeUndefined();
+        });
+
+        it('should not navigate when the support ticket has no report ID', async () => {
+            // Given a support ticket preview with replies but no ticket report ID
+            renderThread(buildSupportTicketAction(undefined));
+            await waitForBatchedUpdatesWithAct();
+
+            // When the replies row is pressed
+            fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then nothing is opened, instead of a new chat thread being created
+            expect(mockNavigate).not.toHaveBeenCalled();
+        });
     });
 });

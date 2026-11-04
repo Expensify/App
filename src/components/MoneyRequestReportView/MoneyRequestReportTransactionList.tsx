@@ -12,6 +12,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {CAROUSEL_SOURCE} from '@libs/actions/TransactionThreadNavigation';
+import {getReportRowPolicy, getReportRowReport} from '@libs/MoneyRequestReportUtils';
 import {getMoneyRequestSpendBreakdown, getReportOfflinePendingActionAndErrors, isExpenseReport, isIOUReport} from '@libs/ReportUtils';
 import {getTransactionPendingAction} from '@libs/TransactionUtils';
 
@@ -26,7 +27,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {StableReport} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {ViewableItemsChanged} from '@src/types/utils/ReactNativeCompat';
 
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
@@ -210,7 +210,9 @@ function MoneyRequestReportTransactionList({
 }: MoneyRequestReportTransactionListProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Columns']);
+    // The icon map is a new object on every render, so only the icon is kept. Depending on the map would rebuild the list
+    // header, and with it every row of the list, on each render.
+    const {Columns: columnsIcon} = useMemoizedLazyExpensifyIcons(['Columns']);
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -218,9 +220,10 @@ function MoneyRequestReportTransactionList({
     const {isOffline} = useNetwork();
     const navigateToTransactionThread = useNavigateToTransactionThread();
 
-    const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [policyTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
+    const [rowReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`, {selector: getReportRowReport});
+    const [rowPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {selector: getReportRowPolicy});
 
     const reportID = report?.reportID;
     const showPendingExpensePlaceholder = useMoneyRequestReportPendingExpense(reportID, transactions);
@@ -371,9 +374,9 @@ function MoneyRequestReportTransactionList({
                         reportOwnerLogin={ownerLogin}
                         shouldBeHighlighted={isReportVisible && highlightedTransactionIDs.has(transaction.transactionID)}
                         columns={columnsToShow}
-                        report={report}
-                        policy={policy}
-                        policyCategories={policyCategories}
+                        policyID={report.policyID}
+                        report={rowReport}
+                        policy={rowPolicy}
                         policyTagLists={policyTagLists}
                         isSelectionModeEnabled={isMobileSelectionModeEnabled}
                         toggleTransaction={toggleRowTransaction}
@@ -385,7 +388,6 @@ function MoneyRequestReportTransactionList({
                         amountColumnSize={amountColumnSize}
                         taxAmountColumnSize={taxAmountColumnSize}
                         onArrowRightPress={handleArrowRightPress}
-                        nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards ?? getEmptyObject<OnyxTypes.CardList>()}
                         isLastItem={!showPendingExpensePlaceholder && transaction.transactionID === lastTransactionID}
                         shouldScrollHorizontally={shouldScrollHorizontally}
                         transactionThreadReportID={transactionThreadReportIDByTransactionID.get(transaction.transactionID)}
@@ -426,7 +428,7 @@ function MoneyRequestReportTransactionList({
                         onPress={openColumnsPage}
                     >
                         <LinkButton.Icon
-                            src={expensifyIcons.Columns}
+                            src={columnsIcon}
                             fill={theme.link}
                             hoverFill={theme.linkHover}
                         />
