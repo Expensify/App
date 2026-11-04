@@ -214,36 +214,21 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             // Then the transaction tax rate and amount should be updated based on the expense rules
-            await new Promise<void>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                    callback: (transaction) => {
-                        Onyx.disconnect(connection);
-                        expect(transaction?.taxCode).toBe(ruleTaxCode);
-                        expect(transaction?.taxAmount).toBe(5);
-                        resolve();
-                    },
-                });
-            });
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transaction?.taxCode).toBe(ruleTaxCode);
+            expect(transaction?.taxAmount).toBe(5);
 
             // But the original message should only contains the old and new category data
-            await new Promise<void>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-                    callback: (reportActions) => {
-                        Onyx.disconnect(connection);
-                        const reportAction = Object.values(reportActions ?? {}).at(0);
-                        if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE)) {
-                            const originalMessage = getOriginalMessage(reportAction);
-                            expect(originalMessage?.oldCategory).toBe('');
-                            expect(originalMessage?.category).toBe(category);
-                            expect(originalMessage?.oldTaxRate).toBeUndefined();
-                            expect(originalMessage?.oldTaxAmount).toBeUndefined();
-                            resolve();
-                        }
-                    },
-                });
-            });
+            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
+            const reportAction = Object.values(reportActions ?? {}).at(0);
+            if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE)) {
+                throw new Error('Expected a modified expense action');
+            }
+            const originalMessage = getOriginalMessage(reportAction);
+            expect(originalMessage?.oldCategory).toBe('');
+            expect(originalMessage?.category).toBe(category);
+            expect(originalMessage?.oldTaxRate).toBeUndefined();
+            expect(originalMessage?.oldTaxAmount).toBeUndefined();
         });
 
         describe('should not update the tax', () => {
@@ -303,17 +288,9 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 await waitForBatchedUpdates();
 
                 // Then the transaction tax rate and amount shouldn't be updated
-                await new Promise<void>((resolve) => {
-                    const connection = Onyx.connect({
-                        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                        callback: (transaction) => {
-                            Onyx.disconnect(connection);
-                            expect(transaction?.taxCode).toBe(taxCode);
-                            expect(transaction?.taxAmount).toBe(taxAmount);
-                            resolve();
-                        },
-                    });
-                });
+                const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+                expect(transaction?.taxCode).toBe(taxCode);
+                expect(transaction?.taxAmount).toBe(taxAmount);
             });
 
             it('if there are no tax expense rules', async () => {
@@ -358,17 +335,9 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 await waitForBatchedUpdates();
 
                 // Then the transaction tax rate and amount shouldn't be updated
-                await new Promise<void>((resolve) => {
-                    const connection = Onyx.connect({
-                        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                        callback: (transaction) => {
-                            Onyx.disconnect(connection);
-                            expect(transaction?.taxCode).toBeUndefined();
-                            expect(transaction?.taxAmount).toBeUndefined();
-                            resolve();
-                        },
-                    });
-                });
+                const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+                expect(transaction?.taxCode).toBeUndefined();
+                expect(transaction?.taxAmount).toBeUndefined();
             });
         });
 

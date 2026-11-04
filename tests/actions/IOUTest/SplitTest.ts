@@ -10556,17 +10556,9 @@ describe('setDraftSplitTransaction', () => {
         await waitForBatchedUpdates();
 
         // Then the transaction tax rate and amount should be updated based on the expense rules
-        await new Promise<void>((resolve) => {
-            const connection = Onyx.connect({
-                key: `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`,
-                callback: (transaction) => {
-                    Onyx.disconnect(connection);
-                    expect(transaction?.taxCode).toBe(ruleTaxCode);
-                    expect(transaction?.taxAmount).toBe(5);
-                    resolve();
-                },
-            });
-        });
+        const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+        expect(transaction?.taxCode).toBe(ruleTaxCode);
+        expect(transaction?.taxAmount).toBe(5);
     });
 
     describe('should not change the tax', () => {
@@ -10597,17 +10589,9 @@ describe('setDraftSplitTransaction', () => {
             await waitForBatchedUpdates();
 
             // Then the transaction tax rate and amount shouldn't be updated
-            await new Promise<void>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`,
-                    callback: (transaction) => {
-                        Onyx.disconnect(connection);
-                        expect(transaction?.taxCode).toBe(taxCode);
-                        expect(transaction?.taxAmount).toBe(taxAmount);
-                        resolve();
-                    },
-                });
-            });
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+            expect(transaction?.taxCode).toBe(taxCode);
+            expect(transaction?.taxAmount).toBe(taxAmount);
         });
 
         it('if we are not updating category', async () => {
@@ -10634,17 +10618,9 @@ describe('setDraftSplitTransaction', () => {
             await waitForBatchedUpdates();
 
             // Then the transaction tax rate and amount shouldn't be updated
-            await new Promise<void>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`,
-                    callback: (transaction) => {
-                        Onyx.disconnect(connection);
-                        expect(transaction?.taxCode).toBeUndefined();
-                        expect(transaction?.taxAmount).toBeUndefined();
-                        resolve();
-                    },
-                });
-            });
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+            expect(transaction?.taxCode).toBeUndefined();
+            expect(transaction?.taxAmount).toBeUndefined();
         });
     });
 });
