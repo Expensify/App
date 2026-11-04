@@ -43,7 +43,9 @@ function isFilterKeyValid(filterKey: string): filterKey is SearchFilter['key'] {
 
 const CONFIRM_BUTTON_HEIGHT = variables.componentSizeLarge;
 
-/** Drops the values the user just selected from the matching negated filter, so the query can't emit both key:value and -key:value for the same value. */
+/**
+ * Drops the values the user just selected from the matching negated filter, so the query can't emit both key:value and -key:value for the same value.
+ */
 function getRemainingNegatedValues<T extends string>(selectedValues: readonly T[], negatedValues: readonly T[] | undefined): T[] | undefined {
     const remainingNegatedValues = negatedValues?.filter((value) => !selectedValues.includes(value));
     return remainingNegatedValues?.length ? remainingNegatedValues : undefined;
