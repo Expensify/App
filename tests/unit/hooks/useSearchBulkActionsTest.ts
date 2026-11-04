@@ -1146,6 +1146,26 @@ describe('useSearchBulkActions - Hold, Unhold and Reject under Select all', () =
         await Onyx.clear();
     });
 
+    it('hides Hold, Unhold and Reject when a deselected group cannot be left out of the query', async () => {
+        // Given "Select all" on a grouped expenses search, with a collapsed group deselected that has no filter to exclude it
+        const excludedGroupKey = `${CONST.SEARCH.GROUP_PREFIX}123` as const;
+        mockSelectedTransactions = {tx1: makeSelectedTransaction({canHold: true, canUnhold: true, canReject: true})};
+        mockExcludedTransactions = {[excludedGroupKey]: makeSelectedTransaction()};
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        // Then none of them are offered, since the backend would act on the deselected group too
+        const values = result.current.headerButtonsOptions.map((option) => option.value);
+        expect(values).not.toContain(CONST.SEARCH.BULK_ACTION_TYPES.HOLD);
+        expect(values).not.toContain(CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD);
+        expect(values).not.toContain(CONST.SEARCH.BULK_ACTION_TYPES.REJECT);
+    });
+
     it('offers Hold when one loaded expense can be held, even if another cannot', async () => {
         // Given "Select all" with one holdable expense and one that is already held, which hides Hold for a normal selection
         mockSelectedTransactions = {tx1: makeSelectedTransaction({canHold: true}), tx2: makeSelectedTransaction({canHold: false, canUnhold: true})};

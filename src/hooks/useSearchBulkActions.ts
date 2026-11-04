@@ -3104,15 +3104,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             if (shouldShowPayOption) {
                 allMatchingOptions.push(payButtonOption);
             }
+            // A deselected group that can't be turned into a filter, like a date group, can't be left out of the query.
+            const canQueueExpenseAction = !isOffline && !!queryJSON && !!getAllMatchingExpenseActionQuery(queryJSON, excludedTransactions, currentSearchResults?.data);
             // The backend only rejects expenses on reports the user can reject, so one loaded item is enough to offer it.
-            if (isExpenseType && !isOffline && selectedTransactionsKeys.some((id) => selectedTransactions[id].canReject)) {
+            if (isExpenseType && canQueueExpenseAction && selectedTransactionsKeys.some((id) => selectedTransactions[id].canReject)) {
                 allMatchingOptions.push(rejectOption);
             }
             // The backend only acts on the matching expenses the user can hold or unhold, so one loaded item is enough to offer it.
-            if (!isOffline && (isExpenseType || isExpenseReportType) && selectedTransactionsKeys.some((id) => selectedTransactions[id].canHold)) {
+            if ((isExpenseType || isExpenseReportType) && canQueueExpenseAction && selectedTransactionsKeys.some((id) => selectedTransactions[id].canHold)) {
                 allMatchingOptions.push(holdOption);
             }
-            if (!isOffline && (isExpenseType || isExpenseReportType) && selectedTransactionsKeys.some((id) => selectedTransactions[id].canUnhold)) {
+            if ((isExpenseType || isExpenseReportType) && canQueueExpenseAction && selectedTransactionsKeys.some((id) => selectedTransactions[id].canUnhold)) {
                 allMatchingOptions.push(unholdOption);
             }
             allMatchingOptions.push(exportButtonOption);
