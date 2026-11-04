@@ -4,6 +4,7 @@
 import ConfirmationPage from '@components/ConfirmationPage';
 import FixedFooter from '@components/FixedFooter';
 
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -18,12 +19,12 @@ type ApprovedContentProps = {
 function ApprovedContent({onDone}: ApprovedContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['Fireworks']);
 
     return (
         <ConfirmationPage>
             <ConfirmationPage.Content style={styles.ph5}>
-                {/* The default illustration is the fireworks animation from the design */}
-                <ConfirmationPage.Illustration />
+                <ConfirmationPage.Illustration illustration={illustrations.Fireworks} />
                 <ConfirmationPage.Heading>{translate('walletPage.wiseOnboarding.approved.heading')}</ConfirmationPage.Heading>
                 <ConfirmationPage.Description style={styles.textSupporting}>{translate('walletPage.wiseOnboarding.approved.description')}</ConfirmationPage.Description>
             </ConfirmationPage.Content>
