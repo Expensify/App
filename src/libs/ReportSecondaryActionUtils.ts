@@ -817,8 +817,9 @@ function isReopenAction(report: Report, policy?: Policy): boolean {
         return false;
     }
 
-    // A bill arrives submitted from the vendor's invoice, so it can't go back to draft.
     const isExpenseReport = isExpenseReportUtils(report);
+
+    // A bill arrives submitted from the vendor's invoice, so it can't go back to draft.
     if (!isExpenseReport || isBillReport(report)) {
         return false;
     }
