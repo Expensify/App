@@ -159,6 +159,31 @@ describe('FlatNavigationBar', () => {
         expect(within(getRow('John Doe, My settings')).getByText('John Doe')).toBeOnTheScreen();
     });
 
+    it('shows the emoji status on the right of the Account row', async () => {
+        // Given a user with an emoji status
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ACCOUNT_ID]: {accountID: ACCOUNT_ID, displayName: 'John Doe', status: {emojiCode: '🥪', text: 'Lunch!'}}});
+
+        // When the bar renders
+        renderBar(NAVIGATION_TABS.HOME);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the emoji sits inside the Account row as its own chip, because a badge on the avatar crowds its ring and dot
+        expect(within(getRow('John Doe, My settings')).getByTestId('FlatNavAccountStatus')).toBeOnTheScreen();
+        expect(within(getRow('John Doe, My settings')).getByText('🥪')).toBeOnTheScreen();
+    });
+
+    it('shows no status chip when the user has no emoji status', async () => {
+        // Given a user without an emoji status
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ACCOUNT_ID]: {accountID: ACCOUNT_ID, displayName: 'John Doe'}});
+
+        // When the bar renders
+        renderBar(NAVIGATION_TABS.HOME);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the row keeps only the avatar and the name, so an empty chip never takes space next to the name
+        expect(screen.queryByTestId('FlatNavAccountStatus')).not.toBeOnTheScreen();
+    });
+
     it('flags Inbox and Workspaces when they need the user', async () => {
         // Given both Inbox and Workspaces have something that needs the user's review
         mockInboxIndicator = REVIEW_REQUIRED;

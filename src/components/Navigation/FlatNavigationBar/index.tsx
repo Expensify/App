@@ -33,6 +33,7 @@ import type {ValueOf} from 'type-fest';
 import React from 'react';
 import {View} from 'react-native';
 
+import FlatNavAccountStatus from './FlatNavAccountStatus';
 import FlatNavCreateMenuButtons from './FlatNavCreateMenuButtons';
 import FlatNavDivider from './FlatNavDivider';
 import FlatNavItem from './FlatNavItem';
@@ -138,8 +139,10 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                     <AccountNavigationAvatar
                                         isSelected={isAccountSelected}
                                         badgeBorderColor={backgroundColor}
+                                        shouldShowStatus={false}
                                     />
                                 )}
+                                rightElement={<FlatNavAccountStatus />}
                                 isSelected={isAccountSelected}
                                 isTall
                                 accessibilityLabel={getTabAccessibilityLabel(`${accountLabel}, ${translate('sidebarScreen.buttonMySettings')}`, !!accountStatus, translate)}

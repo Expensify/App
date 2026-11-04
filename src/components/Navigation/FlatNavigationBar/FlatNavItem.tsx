@@ -26,6 +26,9 @@ type FlatNavItemProps = {
     /** Draws what goes in place of the icon, e.g. the account avatar. Gets the row's current background, undefined when the row shows the bar's own. */
     renderLeftElement?: (rowState: {backgroundColor: ColorValue | undefined}) => React.ReactNode;
 
+    /** Drawn after the label, at the row's end */
+    rightElement?: React.ReactNode;
+
     isSelected: boolean;
 
     /** Draws the row taller than the destination rows, as the Account row is */
@@ -43,7 +46,7 @@ type FlatNavItemProps = {
 };
 
 /** Full-width row of the flat navigation bar: an icon or avatar, then the destination's label. */
-function FlatNavItem({label, icon, renderLeftElement, isSelected, isTall = false, statusIndicatorColor, accessibilityLabel, sentryLabel, onPress}: FlatNavItemProps) {
+function FlatNavItem({label, icon, renderLeftElement, rightElement, isSelected, isTall = false, statusIndicatorColor, accessibilityLabel, sentryLabel, onPress}: FlatNavItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -103,6 +106,7 @@ function FlatNavItem({label, icon, renderLeftElement, isSelected, isTall = false
                         >
                             {label}
                         </Text>
+                        {rightElement}
                     </>
                 );
             }}
