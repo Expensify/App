@@ -39,7 +39,6 @@ function RejectedContent({onDone}: RejectedContentProps) {
                 />
                 <ConfirmationPage.PrimaryButton
                     text={translate('common.buttonConfirm')}
-                    style={styles.mt2}
                     sentryLabel={CONST.SENTRY_LABEL.WISE_ONBOARDING_REJECTED.GOT_IT}
                     onPress={onDone}
                 />
