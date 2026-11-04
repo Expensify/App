@@ -4,8 +4,8 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 
-import {WRITE_COMMANDS} from '@libs/API/types';
 import initSplitExpense from '@libs/actions/SplitExpenses';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import {buildOptimisticIOUReportAction} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
