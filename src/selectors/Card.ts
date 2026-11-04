@@ -1,5 +1,15 @@
 import {getExpensifyCardFeedsForDisplay} from '@libs/CardFeedUtils';
-import {hasActiveExpensifyCard, hasAssignedCardMatching, isActiveCard, isCard, isCardHiddenFromSearch, isCSVFeedOrExpensifyCard, isExpensifyCard, isPersonalCard} from '@libs/CardUtils';
+import {
+    hasActiveExpensifyCard,
+    hasAssignedCardMatching,
+    isActiveCard,
+    isBrokenConnectionPastDismissThreshold,
+    isCard,
+    isCardHiddenFromSearch,
+    isCSVFeedOrExpensifyCard,
+    isExpensifyCard,
+    isPersonalCard,
+} from '@libs/CardUtils';
 import {filterObject} from '@libs/ObjectUtils';
 
 import CONST from '@src/CONST';
@@ -119,6 +129,15 @@ const companyCardCustomNamesSelector = (cardFeeds: OnyxEntry<CardFeeds>) => card
 const hasIssuedExpensifyCardSelector = (cardsList: OnyxEntry<WorkspaceCardsList>): boolean =>
     hasAssignedCardMatching(cardsList, (card) => card.bank === CONST.EXPENSIFY_CARD.BANK && isActiveCard(card));
 
+/**
+ * Reduces the card list to only the cards whose connection has been broken past the dismiss threshold.
+ *
+ * Consumers only ever ask whether a given card is past the threshold, so everything else is dropped: the result is
+ * normally empty, which keeps the subscription cheap in rows that render once per expense.
+ */
+const cardsWithBrokenConnectionPastDismissThresholdSelector = (cardList: OnyxEntry<CardList>): CardList =>
+    filterObject(cardList ?? {}, (_cardID, card) => isCard(card) && isBrokenConnectionPastDismissThreshold(card));
+
 /** Reduces the card list to a boolean so consumers don't re-render on unrelated card changes. */
 const hasActiveExpensifyCardSelector = (cardList: OnyxEntry<CardList>): boolean => hasActiveExpensifyCard(cardList ?? undefined);
 
@@ -128,6 +147,7 @@ export {
     defaultExpensifyCardSelector,
     expensifyCardFeedsForDisplaySelector,
     cardByIdSelector,
+    cardsWithBrokenConnectionPastDismissThresholdSelector,
     areAllExpensifyCardsShipped,
     buildFeedKeysWithAssignedCards,
     getBankLinkedPersonalCards,

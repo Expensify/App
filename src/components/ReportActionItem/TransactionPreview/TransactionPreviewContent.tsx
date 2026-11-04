@@ -50,7 +50,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {cardByIdSelector} from '@src/selectors/Card';
+import {cardByIdSelector, cardsWithBrokenConnectionPastDismissThresholdSelector} from '@src/selectors/Card';
 import {getStableReportSelector} from '@src/selectors/Report';
 
 import truncate from 'lodash/truncate';
@@ -96,11 +96,12 @@ function TransactionPreviewContent({
     const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, undefined, policy, isParentPolicyExpenseChat) ?? {};
     const {amount, comment: requestComment, merchant, category, currency: requestCurrency} = transactionDetails;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    // Narrowed to the cards past the dismiss threshold so this row doesn't re-render on every unrelated card change.
+    const [cardsPastDismissThreshold] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardsWithBrokenConnectionPastDismissThresholdSelector});
     // Dropped here rather than only suppressing its message, because the red dot beside the message is driven by the
     // violation list itself - leaving it in would render a dot with no text next to it.
     const visibleViolations = violations.filter(
-        (violation) => !isBrokenConnectionViolationPastDismissThreshold(violation, violation.data?.cardID ? cardList?.[violation.data.cardID] : undefined),
+        (violation) => !isBrokenConnectionViolationPastDismissThreshold(violation, violation.data?.cardID ? cardsPastDismissThreshold?.[violation.data.cardID] : undefined),
     );
     // Only when the expense is actually held: the hold is appended to the RBR message on its own, so it must not also be picked
     // as the violation to describe. Left alone otherwise, so duplicates and settled expenses keep their existing message.
@@ -147,7 +148,7 @@ function TransactionPreviewContent({
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
     const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL, buildDynamicRoute);
-    const isMarkAsCash = parentReport && currentUserLogin ? isMarkAsCashActionForTransaction(currentUserLogin, parentReport, visibleViolations, cardList, policy) : false;
+    const isMarkAsCash = parentReport && currentUserLogin ? isMarkAsCashActionForTransaction(currentUserLogin, parentReport, visibleViolations, cardsPastDismissThreshold, policy) : false;
 
     const violationMessage = firstViolation
         ? ViolationsUtils.getViolationTranslation({
