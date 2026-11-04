@@ -3918,8 +3918,6 @@ function getQuarterSections(
 /**
  * Chat search returns the actions of every report the user can access, including bills. Bills stay out of Search for
  * every user until Search supports paying bills, so this removes the actions on bills and the previews that link to a bill.
- * Expense, expense report and invoice searches need no filter, because the server leaves bills and their expenses out
- * of those results, including their counts, groups and the queries behind bulk actions.
  */
 function omitBillReportActionRows(rows: ReportActionListItemType[], data: OnyxTypes.SearchResults['data']): ReportActionListItemType[] {
     const billReportIDs = new Set<string>();

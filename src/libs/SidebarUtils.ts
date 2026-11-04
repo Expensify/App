@@ -391,6 +391,7 @@ type UpdateReportsToDisplayInLHNProps = {
     currentReportId: string | undefined;
     isInFocusMode: boolean;
     isDefaultRoomsBetaEnabled: boolean;
+
     /** Defaults to false, so bills stay hidden unless the caller has the newDotBillPay beta */
     isBillPayBetaEnabled?: boolean;
     transactionViolations: OnyxCollection<TransactionViolation[]>;

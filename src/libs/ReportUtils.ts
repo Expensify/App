@@ -11336,6 +11336,7 @@ type ShouldReportBeInOptionListParams = {
     currentReportId: string | undefined;
     isInFocusMode: boolean;
     isDefaultRoomsBetaEnabled: boolean;
+
     /** Only the LHN passes this, so bills stay hidden from every other option list */
     isBillPayBetaEnabled?: boolean;
     excludeEmptyChats: boolean;
