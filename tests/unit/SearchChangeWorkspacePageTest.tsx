@@ -4,11 +4,13 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import {queueBulkChangeReportPolicy} from '@libs/actions/Search';
+import findAllMatchingDynamicSuffixes from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 
 import SearchChangeWorkspacePage from '@pages/Search/SearchChangeWorkspacePage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -119,5 +121,16 @@ describe('SearchChangeWorkspacePage', () => {
         expect(queuedQuery).toContain('report1');
         expect(queuedQuery).toContain('report2');
         expect(queuedQuery).not.toContain('report3');
+    });
+});
+
+describe('SEARCH_CHANGE_WORKSPACE_RHP', () => {
+    it('opens the Search page instead of the report Change workspace page', () => {
+        // Given the report Change workspace page is a dynamic route that can open on top of Search
+        // When the Search Change workspace route is matched against the dynamic routes
+        const matches = findAllMatchingDynamicSuffixes(ROUTES.SEARCH_CHANGE_WORKSPACE_RHP);
+
+        // Then nothing matches, so the route isn't taken over by the report page
+        expect(matches).toEqual([]);
     });
 });
