@@ -47,7 +47,7 @@ describe('captureReceipt', () => {
             // Given the settings iOS prepares ahead of time, which it only reuses for an identical capture
             const preparedSettings = cameraPlatformConfigIOS.preparedPhotoSettings?.at(0);
 
-            // When a plain portrait scan is captured
+            // When a plain portrait scan is captured, since it's the most common scan and the one iOS prepares for
             captureReceiptIOS(camera, photoOutput, BASE_OPTIONS);
 
             // Then its settings match, so the most common scan takes the prepared, faster path
