@@ -1,5 +1,6 @@
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 import getAddressInputKeys from '@components/DynamicForm/utils/getAddressInputKeys';
+import getStateOptions from '@components/DynamicForm/utils/getStateOptions';
 import {getHiddenProvidedKeys} from '@components/DynamicForm/utils/hasProvidedAnswer';
 import isCountryCode from '@components/DynamicForm/utils/isCountryCode';
 import {getAllFields, getPages} from '@components/DynamicForm/utils/paginate';
@@ -35,13 +36,17 @@ const ALL_FIELDS = getAllFields(getPages(US));
 
 const READONLY_KEYS = new Set(ALL_FIELDS.filter((field) => field.readonly).map((field) => field.key));
 
-/** The state picker lists US states by code, so a US state that is not one is left out */
+/** The state picker lists states by code, so a state that is not one is left out. Only US state names are turned into codes. */
 function getStateCode(countryCode: string | undefined, state: string | undefined): string | undefined {
-    if (countryCode !== CONST.COUNTRY.US) {
+    if (countryCode === CONST.COUNTRY.US) {
+        const stateCode = resolveStateCode(state ?? '');
+        return stateCode in COMMON_CONST.STATES ? stateCode : undefined;
+    }
+    const stateOptions = countryCode === CONST.COUNTRY.CA ? COMMON_CONST.PROVINCES : getStateOptions(countryCode ?? '');
+    if (!stateOptions) {
         return state;
     }
-    const stateCode = resolveStateCode(state ?? '');
-    return stateCode in COMMON_CONST.STATES ? stateCode : undefined;
+    return state && state in stateOptions ? state : undefined;
 }
 
 /** The answers of every saved page, with each saved file as a draft entry the next save can tell apart from a new one. A key a later save dropped comes back as null and is left out. */

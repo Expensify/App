@@ -4,6 +4,7 @@ import getWiseBusinessOnboardingPrefill, {getMissingPrefill} from '@pages/settin
 import type {WiseBusinessAccountData} from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/getWiseBusinessOnboardingPrefill';
 
 import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 
 const ADDRESS_KEYS = getAddressInputKeys('address');
@@ -113,6 +114,23 @@ describe('getWiseBusinessOnboardingPrefill', () => {
         // Then the unknown state is not prefilled, so the user picks it instead of carrying a value the picker cannot show
         expect(prefill[ADDRESS_KEYS.state]).toBeUndefined();
         expect(prefill[ADDRESS_KEYS.country]).toBe(CONST.COUNTRY.US);
+    });
+
+    it('leaves out a Canadian, Australian or Brazilian state saved as a name, since the picker lists codes only', () => {
+        // Given addresses whose state was saved as a full name, and one saved as a code
+        const getStateFor = (state: string, country: Country) =>
+            getWiseBusinessOnboardingPrefill(BANK_ACCOUNT_ID, BUSINESS_ACCOUNT_DATA, {addresses: [{street: '1 Main St', city: 'City', state, zip: '1000', country}]})[ADDRESS_KEYS.state];
+
+        // When the onboarding builds its starting answers for each
+        const states = [
+            getStateFor('Ontario', CONST.COUNTRY.CA),
+            getStateFor('New South Wales', CONST.COUNTRY.AU),
+            getStateFor('Bahia', CONST.COUNTRY.BR),
+            getStateFor('NSW', CONST.COUNTRY.AU),
+        ];
+
+        // Then only the code is prefilled, so the user picks the others instead of sending Wise a name
+        expect(states).toEqual([undefined, undefined, undefined, 'NSW']);
     });
 
     it('leaves out what is not on file', () => {
