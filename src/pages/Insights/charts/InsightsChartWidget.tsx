@@ -1,3 +1,4 @@
+import {useReportChartCaptureLoading} from '@components/Charts/context/ChartCaptureContext';
 import {buildViewOnSpendQuery} from '@components/Search/chartDrillDown';
 import ChartEmptyState from '@components/Search/ChartEmptyState';
 import ChartErrorState from '@components/Search/ChartErrorState';
@@ -91,6 +92,7 @@ function InsightsChartWidget({
     const {data, state, comparison} = useInsightsChartData({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageTotal, isDashboardLoaded}, filters);
     const groupBy = chart.groupBy ?? getQueryGroupBy(filters);
     const isLoading = state === INSIGHTS_CHART_STATE.LOADING;
+    useReportChartCaptureLoading(isLoading);
     const view = comparison && chart.view === CONST.SEARCH.VIEW.PIE ? CONST.SEARCH.VIEW.BAR : chart.view;
     const shouldShowTable = view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.PIE;
 
@@ -179,6 +181,7 @@ function InsightsChartWidget({
                             view={view}
                             groupBy={groupBy}
                             data={data}
+                            metric={chart.metric}
                             isLoading={isLoading}
                             comparison={comparison}
                             shouldShowRunningTotal={shouldShowRunningTotal}
@@ -187,9 +190,10 @@ function InsightsChartWidget({
                             shouldShowGroupLabels={false}
                             renderDetails={
                                 shouldShowTable
-                                    ? ({rows}) => (
+                                    ? ({rows, formatValue}) => (
                                           <InsightsDataTable
                                               rows={rows}
+                                              formatValue={formatValue}
                                               isLoading={isLoading}
                                           />
                                       )
