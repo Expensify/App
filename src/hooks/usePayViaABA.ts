@@ -41,7 +41,7 @@ function usePayViaABA() {
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
-    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((resume) => resume?.());
+    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((resume?: () => void) => resume?.());
     const [isDownloadingABAFile, setIsDownloadingABAFile] = useState(false);
 
     const getDownloadFailedPrompt = (reportIDs: string[], error?: HttpsError) => {
