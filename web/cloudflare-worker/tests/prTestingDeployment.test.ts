@@ -1,4 +1,4 @@
-/** Exercise trusted preview packaging with the real branch Worker, exact-host routing and Static Assets in workerd. */
+/** Simulate isolated Worker Previews in workerd with trusted packaging, real branch code and Static Assets. */
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 import {cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
@@ -13,7 +13,7 @@ const WORKER_DIR = path.resolve(import.meta.dirname, '..');
 const EXTRACT_SCRIPT = path.resolve(WORKER_DIR, '../../scripts/extractPRTestingAssets.ts');
 const FIXTURE_HTML = '<html><script nonce="nonce-random-value">window.preview = true;</script></html>';
 
-describe('per-PR Worker deployment', () => {
+describe('Worker Preview runtime packaging', () => {
     const temp = mkdtempSync(path.join(tmpdir(), 'pr-preview-integration-'));
     const directories = new Map<string, string>();
     const identity = getIdentity('a'.repeat(40), '100', '1');
@@ -43,7 +43,7 @@ describe('per-PR Worker deployment', () => {
             );
             const archive = path.join(branch, 'webBuild.tar.gz');
             execFileSync('tar', ['-czf', archive, '-C', branch, 'dist'], {env: {...process.env, COPYFILE_DISABLE: '1'}});
-            const config = createConfig(getTarget(prNumber), runtime, 'b'.repeat(32));
+            const config = createConfig(runtime);
             // Run the same Bun-native extractor directly; this standalone package does not install the App CLI dependencies.
             const directory = await prepareDirectory(path.join(branch, 'bundle'), archive, config, identity, (archivePath: string, destination: string) => {
                 execFileSync('bun', [
@@ -54,17 +54,19 @@ describe('per-PR Worker deployment', () => {
                 ]);
             });
             directories.set(prNumber, directory);
-            const dryRun = execFileSync(
-                process.execPath,
-                [path.join(WORKER_DIR, 'node_modules/wrangler/bin/wrangler.js'), 'deploy', '--dry-run', '--config', path.join(directory, 'wrangler.json')],
-                {
-                    encoding: 'utf8',
-                    env: {...process.env, WRANGLER_SEND_METRICS: 'false'},
-                },
-            );
+            // workerd has no native Preview API, so each Preview uses a separate local Worker and test-only route.
+            const localConfigPath = path.join(directory, 'wrangler.local.json');
+            writeFileSync(localConfigPath, JSON.stringify({...config, name: `preview-${prNumber}`, vars: config.previews.vars, routes: [`${getTarget(prNumber).hostname}/*`]}));
+            const {rawConfig: deploymentConfig} = experimental_readRawConfig({config: path.join(directory, 'wrangler.json')});
+            assert.equal(deploymentConfig.name, 'pr-testing-expensify');
+            assert.equal(deploymentConfig.routes, undefined);
+            const dryRun = execFileSync(process.execPath, [path.join(WORKER_DIR, 'node_modules/wrangler/bin/wrangler.js'), 'deploy', '--dry-run', '--config', localConfigPath], {
+                encoding: 'utf8',
+                env: {...process.env, WRANGLER_SEND_METRICS: 'false'},
+            });
             assert.doesNotMatch(dryRun, /dist\/index\.html/, 'Static Assets must not also be uploaded as Worker modules');
         }
-        server = createTestHarness({workers: [...directories.values()].map((directory) => ({configPath: path.join(directory, 'wrangler.json')}))});
+        server = createTestHarness({workers: [...directories.values()].map((directory) => ({configPath: path.join(directory, 'wrangler.local.json')}))});
         await server.listen();
     });
 
@@ -108,7 +110,7 @@ describe('per-PR Worker deployment', () => {
         writeFileSync(path.join(directory, 'worker/__preview_entry.mjs'), createWrapper(nextIdentity));
         writeFileSync(path.join(directory, 'dist/preview-build.json'), JSON.stringify(nextIdentity));
         // When workerd loads the updated version
-        await server.update({workers: [...directories.values()].map((root) => ({configPath: path.join(root, 'wrangler.json')}))});
+        await server.update({workers: [...directories.values()].map((root) => ({configPath: path.join(root, 'wrangler.local.json')}))});
         // Then PR 123 serves the new code/assets while PR 456 remains unchanged
         assert.equal((await server.fetch('https://123.pr-testing.expensify.com/')).headers.get('X-Preview-Branch'), 'branch-123-v2');
         assert.deepEqual(await (await server.fetch('https://123.pr-testing.expensify.com/preview-build.json')).json(), nextIdentity);

@@ -13,7 +13,6 @@ import {
     convertApprovalWorkflowToPolicyEmployees,
     convertPolicyEmployeesToApprovalWorkflows,
     extractSubmitterEmails,
-    filterRulesForPolicy,
     getApprovalLimitDescription,
     getApproverPendingActionByMemberEmail,
     getOpenConnectedToPolicyBusinessBankAccounts,
@@ -2803,36 +2802,6 @@ describe('WorkflowUtils', () => {
         });
     });
 
-    describe('filterRulesForPolicy', () => {
-        const ruleForPolicy = (scopeID: string, extra: Partial<Omit<Rule, 'actions' | 'filters' | 'triggers'>> = {}): Rule => ({
-            scope: CONST.RULES.SCOPE.POLICY,
-            scopeID,
-            triggers: {'1': CONST.RULES.TRIGGERS.REPORT_SUBMIT},
-            filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: 'a@example.com'},
-            actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: 'b@example.com'}},
-            ...extra,
-        });
-
-        it('keeps only the rules scoped to the given policy, preserving the collection keys', () => {
-            const mine = ruleForPolicy('policy1');
-            const collection = {rules_1: mine, rules_2: ruleForPolicy('policy2')};
-
-            // The value is passed through by reference so callers still see the full rule.
-            expect(filterRulesForPolicy(collection, 'policy1')).toEqual({rules_1: mine});
-        });
-
-        it('keeps rules pending deletion, leaving that decision to the caller', () => {
-            const pendingDelete = ruleForPolicy('policy1', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
-
-            expect(filterRulesForPolicy({rules_1: pendingDelete}, 'policy1')).toEqual({rules_1: pendingDelete});
-        });
-
-        it('returns an empty collection when there is no policy or no rules', () => {
-            expect(filterRulesForPolicy({rules_1: ruleForPolicy('policy1')}, undefined)).toEqual({});
-            expect(filterRulesForPolicy(undefined, 'policy1')).toEqual({});
-        });
-    });
-
     describe('hasApprovalWorkflowRules', () => {
         const approvalWorkflowRule = (scopeID: string, extra: Partial<Omit<Rule, 'actions' | 'filters' | 'triggers'>> = {}): Rule => ({
             scope: CONST.RULES.SCOPE.POLICY,
@@ -3443,7 +3412,7 @@ describe('WorkflowUtils', () => {
                 (approvalMode) => {
                     expect(getApprovalWorkflowSource(buildPolicyWithConnectedATS(approvalMode), POLICY_ID)).toEqual({
                         providerName: 'Greenhouse',
-                        settingsRoute: ROUTES.WORKSPACE_CONNECTIONS_RECRUITING.getRoute(POLICY_ID),
+                        settingsRoute: ROUTES.WORKSPACE_CONNECTIONS.getRoute(POLICY_ID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.RECRUITING),
                     });
                 },
             );
@@ -3467,7 +3436,7 @@ describe('WorkflowUtils', () => {
 
                 expect(getApprovalWorkflowSource(policy, POLICY_ID)).toEqual({
                     providerName: 'Workday',
-                    settingsRoute: ROUTES.WORKSPACE_CONNECTIONS_HR.getRoute(POLICY_ID),
+                    settingsRoute: ROUTES.WORKSPACE_CONNECTIONS.getRoute(POLICY_ID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.PEOPLE),
                 });
             });
         });
