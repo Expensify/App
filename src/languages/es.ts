@@ -21,6 +21,12 @@ import type {CompanyCardBalanceParams} from './params';
 import type {AllConnectionName, PolicyConnectionSyncStage} from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        billCreated: ({sender}) => `creó esta factura en nombre de ${sender}`,
+        billSubmitted: ({receiver}) => `envió esta factura a ${receiver}`,
+        invoiceCreated: ({sender}) => `creó esta factura en nombre de ${sender}`,
+        invoiceSubmitted: ({receiver}) => `envió esta factura a ${receiver}`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 día`,
@@ -1225,6 +1231,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'Cumplimiento',
         runningTotal: 'Total acumulado',
+        explain: 'Explicar',
+        explainChartPrompt: (chartTitle: string) => `Explica los datos en ${chartTitle}.`,
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
@@ -3037,7 +3045,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: 'Verifica información adicional',
                 subtitle: 'Nuestro socio de pagos necesita más información directamente. Esto solo te llevará un par de minutos.',
             },
+            inReview: {
+                title: 'En revisión',
+                heading: 'Tenemos lo que necesitamos.\n¡Sabrás de nosotros!',
+                description: 'La mayoría de las revisiones tardan de uno a dos días. Te enviaremos un mensaje con una actualización.',
+                chatWithConcierge: 'Chatea con Concierge',
+            },
+            approved: {title: 'Cuenta aprobada', heading: 'Aprobada para pagar en todo el mundo', description: 'Paga a los miembros estén donde estén.'},
+            rejected: {title: 'Cuenta bancaria rechazada', heading: 'Nuestro socio rechazó tu cuenta bancaria', description: 'Chatea con Concierge para más información.'},
         },
+        wiseSetupInProgress: {message: 'Configuración de reembolsos globales en curso.', continue: 'Continuar.'},
         wiseGlobalReimbursementsIntro: {
             title: '¿Configurar reembolsos globales?',
             subtitle: 'Paga a miembros de todo el mundo en su moneda local.',
@@ -3554,6 +3571,7 @@ ${amount} para ${merchant} - ${date}`,
         appSection: {
             title: 'Preferencias de la aplicación',
         },
+        distanceSection: {title: 'Preferencias de distancia'},
         testSection: {
             title: 'Preferencias para tests',
             subtitle: 'Ajustes para ayudar a depurar y probar la aplicación en “staging”.',
@@ -7460,10 +7478,10 @@ ${amount} para ${merchant} - ${date}`,
             reimbursementAccount: 'cuenta de reembolso',
             delayedSubmission: 'presentación retrasada',
             welcomeNote: 'Por favor, comience a utilizar mi nuevo espacio de trabajo.',
-            merchantRules: 'Valores predeterminados de gastos',
+            merchantRules: 'Reglas de comerciante',
             merchantRulesCount: () => ({
-                one: '1 gasto predeterminado',
-                other: (count: number) => `${count} valores predeterminados de gastos`,
+                one: '1 regla de comerciante',
+                other: (count: number) => `${count} reglas de comerciante`,
             }),
             confirmTitle: ({newWorkspaceName, totalMembers}) =>
                 `Estás a punto de crear y compartir ${newWorkspaceName ?? ''} con ${totalMembers ?? 0} miembros del espacio de trabajo original.`,
@@ -9026,8 +9044,8 @@ ${reportName}`,
                 matchType: 'Tipo de coincidencia',
                 matchTypeContains: 'Contiene',
                 matchTypeExact: 'Coincide exactamente',
-                duplicateRuleTitle: 'Ya existe una regla similar',
-                duplicateRulePrompt: (conditionName: string) => `Tu regla existente para «${conditionName}» tendrá prioridad sobre esta. ¿Quieres guardar de todas formas?`,
+                duplicateRuleTitle: 'Ya existe una regla de comerciante similar',
+                duplicateRulePrompt: (merchantName: string) => `La regla existente para "${merchantName}" tendrá prioridad sobre esta. ¿Desea guardarla de todos modos?`,
                 saveAnyway: 'Guardar de todos modos',
                 applyToExistingUnsubmittedExpenses: 'Aplicar a gastos existentes no enviados',
                 expenseDefaultsTitle: 'Valores predeterminados de gastos',
@@ -9035,8 +9053,19 @@ ${reportName}`,
                 ifAnyExpenseMatches: 'Si algún gasto coincide con:',
                 thenApplyFollowingDefaults: 'Luego aplica las siguientes opciones predeterminadas:',
                 confirmErrorCategory: 'Selecciona una categoría',
-                confirmErrorCondition: 'Por favor, añade al menos una condición',
-                confirmErrorConditionAndDefault: 'Añade al menos una condición y aplica al menos un valor predeterminado',
+                confirmErrorCategoryTax: 'Selecciona una tasa de impuesto',
+                confirmErrorCondition: 'Por favor, introduce un comercio',
+                confirmErrorConditionAndDefault: 'Introduce un comercio y aplica al menos un valor predeterminado',
+                turnOnTaxesFirstTitle: 'Activa primero los impuestos',
+                turnOnTaxesFirstPrompt:
+                    'Las reglas de categoría establecen una tasa de impuesto predeterminada. Activa los impuestos en la configuración de tu espacio de trabajo para usarlos.',
+                categoryRulesApplyGoingForwardTitle: 'Las reglas de categoría se aplican de ahora en adelante',
+                categoryRulesApplyGoingForwardPrompt: 'Se aplica una tasa de impuesto predeterminada a los nuevos gastos de esta categoría. Los gastos que ya existen no cambiarán.',
+                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
+                    'El tipo impositivo seleccionado es ahora el predeterminado de tu espacio de trabajo, por lo que esta regla ya no es válida. Elige un tipo impositivo diferente.',
+                addTaxRateFirstTitle: 'Añade primero una tasa de impuesto',
+                addTaxRateFirstPrompt:
+                    'Las reglas de categoría establecen una tasa de impuestos predeterminada. Añade una tasa de impuestos distinta de la predeterminada de tu espacio de trabajo para poder usarlas.',
                 createRuleFromExpenseAction: 'Crear una norma',
                 createRuleFromExpensePrompt: 'para aplicar tus cambios a todos los gastos que coincidan con tus criterios.',
             },
@@ -9195,8 +9224,6 @@ ${reportName}`,
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `Permitido ${shownCount > 1 ? 'divisas' : 'moneda'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} más` : ''}`,
                 defaultRulesCannotBeDeleted: 'Las reglas predeterminadas no se pueden eliminar',
-                tags: 'Etiquetas',
-                multipleConditions: 'Varias condiciones',
             },
             agentRules: {
                 title: 'Reglas del agente',
@@ -9341,11 +9368,9 @@ ${reportName}`,
                 findRule: 'Buscar regla',
                 rename: 'Cambiar nombre',
                 update: 'Actualizar',
+                merchantIs: (merchant: string) => `El comercio es «${merchant}»`,
                 merchantTypeIs: (merchantType: string) => `El tipo de comercio es "${merchantType}"`,
                 categoryIs: (category: string) => `La categoría es «${category}»`,
-                tagIs: (tag: string) => `La etiqueta es «${tag}»`,
-                merchantContains: (merchant: string) => `El comercio contiene «${merchant}»`,
-                merchantExactlyMatches: (merchant: string) => `El comercio coincide exactamente con «${merchant}»`,
             },
             merchantTypeRule: {merchantType: 'Tipo de comercio', saveRule: 'Guardar regla', confirmErrorCategory: 'Por favor, selecciona una categoría.'},
             requireFieldsTable: {
@@ -9415,6 +9440,14 @@ ${reportName}`,
                 cta: 'Añadir regla de IA',
             },
             categoriesDisabledEmptyState: {title: 'Las categorías no están habilitadas', subtitle: 'Habilita las categorías para tener más control sobre tus gastos.'},
+            expenseDefaultType: {
+                title: 'Aplicar valores predeterminados de gastos',
+                subtitle: '¿Con qué debería coincidir esta regla?',
+                merchant: 'Comercio',
+                merchantDescription: 'Actualizar campos en gastos de un comerciante específico',
+                category: 'Categoría',
+                categoryDescription: 'Establece una tasa de impuesto predeterminada para una categoría específica',
+            },
             taxesDisabledEmptyState: {
                 title: 'Los impuestos no están habilitados',
                 subtitle: 'Habilita los impuestos para documentar y recuperar los impuestos que sean deducibles.',
@@ -12517,7 +12550,6 @@ ${reportName}`,
             isUnreadWithMention: 'No leído con mención',
             isWaitingForAssigneeToCompleteAction: 'Esperando a que el asignado complete la acción',
             hasChildReportAwaitingAction: 'Informe secundario pendiente de acción',
-            hasMissingInvoiceBankAccount: 'Falta la cuenta bancaria de la factura',
             hasUnresolvedCardFraudAlert: 'Tiene una alerta de fraude de tarjeta sin resolver',
             hasDEWApproveFailed: 'La aprobación DEW ha fallado',
         },
@@ -13117,5 +13149,28 @@ ${reportName}`,
         mobileClaimPrompt: 'Visita Expensify en tu navegador web para obtener tu descuento de renovación.',
     },
     bulkActionBar: {label: 'Acciones en bloque', clearSelection: 'Borrar selección', loadingSelection: 'Cargando selección'},
+    reportHistoryPage: {
+        title: 'Historial del informe',
+        created: 'creó el informe',
+        submitted: 'envió',
+        approved: 'aprobó',
+        paid: 'pagó',
+        toSubmit: 'enviar',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return 'enviar automáticamente';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `enviar automáticamente el día ${eta} de cada mes` : `enviar automáticamente ${eta}`;
+        },
+        toApprove: 'aprobar',
+        toPay: 'pagar',
+        minutesAgo: (count: number) => `hace ${count} min`,
+        hoursAgo: (count: number) => `hace ${count} h`,
+        daysAgo: () => ({
+            one: 'hace 1 d',
+            other: (count: number) => `hace ${count} d`,
+        }),
+        offlineMessage: 'Estás sin conexión. El historial de informes puede estar desactualizado.',
+    },
 };
 export default translations;

@@ -204,6 +204,7 @@ import type ReportMetadata from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
 import type LastSearchParams from './ReportNavigation';
 import type ReportPaginationState from './ReportPaginationState';
+import type ReportUpcomingSteps from './ReportUpcomingSteps';
 import type ReportUserIsTyping from './ReportUserIsTyping';
 import type ReportViolationName from './ReportViolationName';
 import type Request from './Request';
@@ -229,7 +230,7 @@ import type Session from './Session';
 import type ShareBankAccount from './ShareBankAccount';
 import type ShareTempFile from './ShareTempFile';
 import type SidePanel from './SidePanel';
-import type {SidePanelContext} from './SidePanel';
+import type {InsightsScope, SidePanelContext} from './SidePanel';
 import type StripeCustomerID from './StripeCustomerID';
 import type SuggestedAgent from './SuggestedAgent';
 import type SuggestedAgentRule from './SuggestedAgentRule';
@@ -405,6 +406,7 @@ export type {
     ReportLoadingState,
     ReportMetadata,
     ReportPaginationState,
+    ReportUpcomingSteps,
     ReportViolationName,
     ReportLayoutGroupBy,
     ReportLayoutOption,
@@ -517,6 +519,7 @@ export type {
     MembersNeedCategoryModal,
     SidePanel,
     SidePanelContext,
+    InsightsScope,
     LastPaymentMethodType,
     ReportAttributesDerivedValue,
     LastSearchParams,
