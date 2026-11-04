@@ -29,9 +29,9 @@ import type {
 import type {
     DecisionName,
     JoinWorkspaceResolution,
+    OriginalMessageBase,
     OriginalMessageChangeLog,
     OriginalMessageExportIntegration,
-    OriginalMessagePushNotification,
     OriginalMessageMarkedReimbursed,
     OriginalMessageReimbursed,
     PolicyBudgetFrequency,
@@ -1110,16 +1110,13 @@ function isWhisperActionTargetedToOthers(reportAction: OnyxInputOrEntry<ReportAc
     return !getWhisperedTo(reportAction).includes(effectiveCurrentUserAccountID);
 }
 
-/**
- * Whether the action asks to notify only its actionableForAccountIDs and the current user isn't one of them
- */
-function isPushNotificationOriginalMessage(msg: unknown): msg is OriginalMessagePushNotification {
+function isOriginalMessageBase(msg: unknown): msg is OriginalMessageBase {
     return typeof msg === 'object' && msg !== null;
 }
 
 function isPushScopedToOthers(reportAction: OnyxInputOrEntry<ReportAction>, currentUserAccountID: number): boolean {
     const originalMessage = reportAction ? getOriginalMessage(reportAction) : undefined;
-    if (!isPushNotificationOriginalMessage(originalMessage) || !originalMessage.shouldScopePushToActionableAccounts || !originalMessage.actionableForAccountIDs?.length) {
+    if (!isOriginalMessageBase(originalMessage) || !originalMessage.shouldScopePushToActionableAccounts || !originalMessage.actionableForAccountIDs?.length) {
         return false;
     }
     return !originalMessage.actionableForAccountIDs.some((accountID) => accountID === currentUserAccountID);
@@ -1130,7 +1127,7 @@ function isPushScopedToOthers(reportAction: OnyxInputOrEntry<ReportAction>, curr
  */
 function isImportantForCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>, currentUserAccountID: number): boolean {
     const originalMessage = reportAction ? getOriginalMessage(reportAction) : undefined;
-    if (!isPushNotificationOriginalMessage(originalMessage) || !originalMessage.importantForAccountIDs?.length) {
+    if (!isOriginalMessageBase(originalMessage) || !originalMessage.importantForAccountIDs?.length) {
         return false;
     }
     return originalMessage.importantForAccountIDs.some((accountID) => accountID === currentUserAccountID);

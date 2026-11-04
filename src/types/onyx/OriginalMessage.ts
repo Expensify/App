@@ -132,8 +132,8 @@ type OriginalMessageSmartScanFailed = {
     reasoning?: string;
 };
 
-/** Fields present on any action that restricts push notifications to a subset of account IDs */
-type OriginalMessagePushNotification = {
+/** Fields common to all report action original messages */
+type OriginalMessageBase = {
     /** Account IDs for whom this action is marked as important */
     importantForAccountIDs?: number[];
 
@@ -168,7 +168,7 @@ type OriginalMessageAddComment = {
 
     /** The AgentZero request ID that produced this comment, surfaced for internal tracing in non-production builds */
     agentZeroRequestID?: string;
-} & OriginalMessagePushNotification;
+};
 
 /** Model of `actionable mention whisper` report action */
 type OriginalMessageActionableMentionWhisper = {
@@ -1919,7 +1919,7 @@ export type {
     OriginalMessageMovedTransaction,
     PolicyBudgetFrequency,
     OriginalMessageMarkedReimbursed,
-    OriginalMessagePushNotification,
+    OriginalMessageBase,
     OriginalMessageReimbursed,
     OriginalMessageSettlementAccountLocked,
     ViolationsSnapshot,
