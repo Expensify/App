@@ -161,8 +161,8 @@ function ReportActionItemImage({
     const hasErrors = !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
     // While the receipt is regenerating its stored URL is stale, so draw the live route from `routes.coordinates`
     // (via `ConfirmedRoute`) instead of loading the now-404'd image.
-    // Offline `ConfirmedRoute` can only draw a placeholder, while the queued edit hasn't touched the stored map yet.
-    // Keep that map when the route is unchanged. A route edit nulls the distance or flags `waypoints`/`routes`/`selectedRouteKey`.
+    // Offline, `ConfirmedRoute` can only show a grey placeholder. The edit is still queued, so the stored map URL still works,
+    // and if the route hasn't changed (e.g. only the rate did) that map is still correct, so show it instead.
     const hasPendingRouteChange = isFetchingWaypointsFromServer(transaction) || !!transaction?.pendingFields?.routes || !!transaction?.pendingFields?.selectedRouteKey;
     const isRegeneratingReceipt = hasPendingDistanceReceiptRegeneration(transaction);
     const canUseCachedMapOffline =
@@ -283,7 +283,7 @@ function ReportActionItemImage({
             receiptImage
         );
 
-    // Full screen hides the stored map while it regenerates, so keep the cached map unclickable like the disabled Expand button.
+    // Full screen hides the stored map while it regenerates, so keep the cached map non-pressable like the disabled Expand button.
     if (enablePreviewModal && !canUseCachedMapOffline) {
         return (
             <PressableWithoutFocus
