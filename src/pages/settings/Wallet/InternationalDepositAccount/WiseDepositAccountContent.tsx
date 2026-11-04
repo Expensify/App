@@ -29,7 +29,7 @@ type WiseDepositAccountContentProps = {
     backTo?: Route;
 };
 
-const COUNTRIES = Object.keys(CONST.ALL_COUNTRIES).filter((countryISO) => !CONST.CORPAY_FIELDS.EXCLUDED_COUNTRIES.includes(countryISO));
+const COUNTRIES = Object.keys(CONST.ALL_COUNTRIES).filter((countryISO) => !CONST.WISE.EXCLUDED_BANK_ACCOUNT_COUNTRIES.includes(countryISO));
 
 type WiseBankAccountCreationState = {
     isSuccess?: boolean | null;
