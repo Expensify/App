@@ -881,8 +881,8 @@ function getFormattedDateRange(translate: LocalizedTranslate, dateFnsLocale: Dat
     if (isSameMonth(date1, date2)) {
         // Dates in the same month and year, differ by days
         const monthDayFormatter = memoizedCreateDateRangeDateFormatter(localeCode, false);
-        // Hermes, which runs the app on iOS and Android, may not implement `formatRange`, so join two localized dates there.
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- the type says `formatRange` always exists, but some engines leave it out
+        // Hermes, which runs the app on iOS and Android, may not implement `formatRange` even though the type says it
+        // always exists, so join two localized dates there.
         if (!monthDayFormatter.formatRange) {
             return `${monthDayFormatter.format(date1)} – ${monthDayFormatter.format(date2)}`;
         }
