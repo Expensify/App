@@ -80,6 +80,9 @@ type SearchResultsInfo = {
      * the same request is already running. */
     state?: ValueOf<typeof CONST.SEARCH.SNAPSHOT_STATE>;
 
+    /** Whether Search has successfully validated this query. Optimistic snapshots may already contain results. */
+    hasSuccessfulResponse?: boolean;
+
     /** jsonCode of the most recent failed search response for this snapshot. Cleared when a new request starts.
      *
      * The error view reads it to tell an invalid query, where retrying cannot help, apart from a retryable

@@ -1339,8 +1339,22 @@ function hasFiltersChangedFromDefault(currentQueryJSON: SearchQueryJSON, default
     return getQueryHashWithoutFilters(currentQueryJSON, ignoredFilterKeys) !== getQueryHashWithoutFilters(defaultQueryJSON, ignoredFilterKeys);
 }
 
-function isSearchQuerySavable(currentQueryJSON: SearchQueryJSON | undefined, defaultQueryJSON: SearchQueryJSON | undefined, search?: Pick<SearchResultsInfo, 'hash' | 'responseJsonCode'>) {
-    if (!currentQueryJSON || (search?.hash === currentQueryJSON.hash && search.responseJsonCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY) || getSearchQueryError(currentQueryJSON)) {
+function isSearchQuerySavable(
+    currentQueryJSON: SearchQueryJSON | undefined,
+    defaultQueryJSON: SearchQueryJSON | undefined,
+    search?: Pick<SearchResultsInfo, 'hash' | 'responseJsonCode' | 'hasSuccessfulResponse'>,
+    shouldRequireSuccessfulSearch = false,
+) {
+    if (!currentQueryJSON) {
+        return false;
+    }
+
+    const isCurrentSnapshot = search?.hash === currentQueryJSON.hash;
+    if (
+        (shouldRequireSuccessfulSearch && (!isCurrentSnapshot || !search.hasSuccessfulResponse)) ||
+        (isCurrentSnapshot && search.responseJsonCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY) ||
+        getSearchQueryError(currentQueryJSON)
+    ) {
         return false;
     }
 
