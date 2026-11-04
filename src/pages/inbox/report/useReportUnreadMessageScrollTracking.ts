@@ -134,6 +134,17 @@ export default function useReportUnreadMessageScrollTracking({
         }
 
         updatePillVisibility();
+
+        // Without a divider, reaching the newest messages must still finish a skipped read.
+        if (
+            event &&
+            ref.current.isFocused &&
+            unreadMarkerReportActionIndex === -1 &&
+            !hasNewerActions &&
+            currentVerticalScrollingOffsetRef.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD
+        ) {
+            ref.current.onUnreadActionVisible();
+        }
     };
 
     const onViewableItemsChanged = ({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
