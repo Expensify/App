@@ -13,6 +13,7 @@ import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,6 +39,7 @@ function SearchAdvancedFiltersBase() {
     const {currentDraftFilters, shouldShowResetFilters} = useContext(SearchAdvancedFiltersContext);
     const {applyFilters, resetFilters} = useContext(SearchAdvancedFiltersActionContext);
     const isInLandscapeMode = useIsInLandscapeMode();
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const StyleUtils = useStyleUtils();
     const {isBetaEnabled} = usePermissions();
     const canUseNLFilters = isBetaEnabled(CONST.BETAS.NL_FILTERS);
@@ -48,6 +50,28 @@ function SearchAdvancedFiltersBase() {
     const listedSearchValue = filterSearchValue.trim() ? debouncedFilterSearchValue : '';
     const filters = getMatchingFilters(allFilters, currentDraftFilters.type, listedSearchValue, translate);
     const isDescribeSearchListed = canUseNLFilters && isLabelMatchingSearchValue(translate('search.filters.describeSearch.title'), listedSearchValue);
+
+    const footer = (
+        <View style={[isInLandscapeMode ? [styles.flexRow, styles.gap2] : [styles.gap3], styles.ph5, styles.pb5]}>
+            {shouldShowResetFilters && (
+                <Button
+                    style={[isInLandscapeMode ? styles.flex1 : undefined]}
+                    size={CONST.BUTTON_SIZE.LARGE}
+                    onPress={resetFilters}
+                >
+                    <Button.Text>{translate('common.reset')}</Button.Text>
+                </Button>
+            )}
+            <Button
+                style={[isInLandscapeMode ? styles.flex1 : undefined]}
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.LARGE}
+                onPress={applyFilters}
+            >
+                <Button.Text>{translate('search.applyFilters')}</Button.Text>
+            </Button>
+        </View>
+    );
 
     return (
         <ScreenWrapper
@@ -99,26 +123,10 @@ function SearchAdvancedFiltersBase() {
                     )
                 }
                 onPress={(filterKey) => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS_CONTENT.getRoute(filterKey))}
-            />
-            <View style={[isInLandscapeMode ? [styles.flexRow, styles.gap2] : [styles.gap3], styles.ph5, styles.pb5]}>
-                {shouldShowResetFilters && (
-                    <Button
-                        style={[isInLandscapeMode ? styles.flex1 : undefined]}
-                        size={CONST.BUTTON_SIZE.LARGE}
-                        onPress={resetFilters}
-                    >
-                        <Button.Text>{translate('common.reset')}</Button.Text>
-                    </Button>
-                )}
-                <Button
-                    style={[isInLandscapeMode ? styles.flex1 : undefined]}
-                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    size={CONST.BUTTON_SIZE.LARGE}
-                    onPress={applyFilters}
-                >
-                    <Button.Text>{translate('search.applyFilters')}</Button.Text>
-                </Button>
-            </View>
+            >
+                {shouldFooterBeInsideList && footer}
+            </FilterList>
+            {!shouldFooterBeInsideList && footer}
         </ScreenWrapper>
     );
 }
