@@ -35,6 +35,12 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        billCreated: ({sender}) => `heeft deze factuur aangemaakt namens ${sender}`,
+        billSubmitted: ({receiver}) => `heeft deze factuur verzonden naar ${receiver}`,
+        invoiceCreated: ({sender}) => `heeft deze factuur aangemaakt namens ${sender}`,
+        invoiceSubmitted: ({receiver}) => `heeft deze factuur verzonden naar ${receiver}`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 dag`,
@@ -1232,6 +1238,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'Naleving',
         runningTotal: 'Doorlopend totaal',
+        explain: 'Uitleg',
+        explainChartPrompt: (chartTitle: string) => `Leg de gegevens in ${chartTitle} uit.`,
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -3126,7 +3134,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: 'Extra info verifiëren',
                 subtitle: 'Onze betalingspartner heeft rechtstreeks meer info nodig. Dit kost maar een paar minuten.',
             },
+            inReview: {
+                title: 'In behandeling',
+                heading: 'We hebben wat we nodig hebben.\nJe hoort van ons!',
+                description: 'De meeste controles duren één tot twee dagen. We sturen je een bericht met een update.',
+                chatWithConcierge: 'Chatten met Concierge',
+            },
+            approved: {title: 'Account goedgekeurd', heading: 'Goedgekeurd om wereldwijd te betalen', description: 'Betaal leden, waar ze ook zijn.'},
+            rejected: {title: 'Bankrekening afgewezen', heading: 'Onze partner heeft je bankrekening afgewezen', description: 'Chat met Concierge voor meer informatie.'},
         },
+        wiseSetupInProgress: {message: 'Instellen van wereldwijde terugbetalingen bezig.', continue: 'Doorgaan.'},
         wiseGlobalReimbursementsIntro: {
             title: 'Wereldwijde terugbetalingen instellen?',
             subtitle: 'Betaal leden wereldwijd in hun eigen lokale valuta.',
@@ -3655,6 +3672,7 @@ ${amount} voor ${merchant} - ${date}`,
         appSection: {
             title: 'App-voorkeuren',
         },
+        distanceSection: {title: 'Afstandsvoorkeuren'},
         testSection: {
             title: 'Testvoorkeuren',
             subtitle: 'Instellingen om de app te debuggen en testen op staging.',
@@ -7539,10 +7557,10 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             reimbursementAccount: 'vergoedingsrekening',
             welcomeNote: 'Begin alsjeblieft mijn nieuwe werkruimte te gebruiken',
             delayedSubmission: 'vertraagde indiening',
-            merchantRules: 'Standaardinstellingen voor uitgaven',
+            merchantRules: 'Handelaarsregels',
             merchantRulesCount: () => ({
-                one: '1 standaarduitgave',
-                other: (count: number) => `${count} onkostendefaults`,
+                one: '1 handelaarsregel',
+                other: (count: number) => `${count} handelaarsregels`,
             }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `Je staat op het punt ${newWorkspaceName ?? ''} te maken en te delen met ${totalMembers ?? 0} leden van de oorspronkelijke werkruimte.`,
@@ -8908,8 +8926,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 matchType: 'Overeenkomsttype',
                 matchTypeContains: 'Bevat',
                 matchTypeExact: 'Komt exact overeen',
-                duplicateRuleTitle: 'Vergelijkbare regel bestaat al',
-                duplicateRulePrompt: (conditionName: string) => `Je bestaande regel voor ‘${conditionName}’ krijgt voorrang op deze regel. Toch opslaan?`,
+                duplicateRuleTitle: 'Vergelijkbare handelaarregel bestaat al',
+                duplicateRulePrompt: (merchantName: string) => `Je bestaande regel voor ‘${merchantName}’ krijgt voorrang op deze regel. Toch opslaan?`,
                 saveAnyway: 'Toch opslaan',
                 applyToExistingUnsubmittedExpenses: 'Toepassen op bestaande niet-ingediende uitgaven',
                 findRule: 'Zoek handelsregel',
@@ -8919,8 +8937,17 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 thenApplyFollowingDefaults: 'Pas vervolgens de volgende standaardinstellingen toe:',
                 vendorUnavailable: 'Leverancier niet beschikbaar',
                 confirmErrorCategory: 'Selecteer een categorie',
-                confirmErrorCondition: 'Voeg minstens één voorwaarde toe',
-                confirmErrorConditionAndDefault: 'Voeg minstens één voorwaarde toe en stel minstens één standaardwaarde in',
+                confirmErrorCategoryTax: 'Selecteer een belastingtarief',
+                confirmErrorCondition: 'Voer een leverancier in',
+                confirmErrorConditionAndDefault: 'Voer een leverancier in en stel minstens één standaard in',
+                turnOnTaxesFirstTitle: 'Zet eerst belastingen aan',
+                turnOnTaxesFirstPrompt: 'Categorischregels stellen een standaardbelastingtarief in. Schakel belastingen in bij de instellingen van je workspace om ze te gebruiken.',
+                categoryRulesApplyGoingForwardTitle: 'Categoriegregels gelden vanaf nu',
+                categoryRulesApplyGoingForwardPrompt: 'Een standaardbelastingtarief is van toepassing op nieuwe uitgaven in deze categorie. Bestaande uitgaven veranderen niet.',
+                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
+                    'Het geselecteerde belastingtarief is nu de standaard voor je werkruimte, waardoor deze regel niet meer geldig is. Kies een ander belastingtarief.',
+                addTaxRateFirstTitle: 'Voeg eerst een belastingtarief toe',
+                addTaxRateFirstPrompt: 'Categorielimieten stellen een standaardbelastingtarief in. Voeg een ander belastingtarief toe dan de standaard van je werkruimte om ze te gebruiken.',
                 createRuleFromExpenseAction: 'Maak een regel',
                 createRuleFromExpensePrompt: 'om je wijzigingen toe te passen op alle onkosten die aan je criteria voldoen.',
             },
@@ -9105,8 +9132,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `Toegestaan ${shownCount > 1 ? 'valuta’s' : 'valuta'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} meer` : ''}`,
                 defaultRulesCannotBeDeleted: 'Standaardregels kunnen niet worden verwijderd',
-                tags: 'Tags',
-                multipleConditions: 'Meerdere voorwaarden',
             },
             agentRules: {
                 title: 'Agentregels',
@@ -9251,11 +9276,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 findRule: 'Regel zoeken',
                 rename: 'Naam wijzigen',
                 update: 'Bijwerken',
+                merchantIs: (merchant: string) => `Handelaar is "${merchant}"`,
                 merchantTypeIs: (merchantType: string) => `Type leverancier is "${merchantType}"`,
                 categoryIs: (category: string) => `Categorie is "${category}"`,
-                tagIs: (tag: string) => `Tag is "${tag}"`,
-                merchantContains: (merchant: string) => `Handelaar bevat "${merchant}"`,
-                merchantExactlyMatches: (merchant: string) => `Handelaar komt exact overeen met "${merchant}"`,
             },
             merchantTypeRule: {merchantType: 'Type handelaar', saveRule: 'Regel opslaan', confirmErrorCategory: 'Selecteer een categorie.'},
             requireFieldsTable: {
@@ -9321,6 +9344,14 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             },
             agentRulesEmptyState: {title: 'Geen agentregels toegevoegd', subtitle: 'Maak een regel om je werkruimtebeleid te automatiseren.', cta: 'AI-regel toevoegen'},
             categoriesDisabledEmptyState: {title: 'Categorieën zijn niet ingeschakeld', subtitle: 'Schakel categorieën in om meer controle te krijgen over je uitgaven.'},
+            expenseDefaultType: {
+                title: 'Standaardwaarden voor uitgaven toepassen',
+                subtitle: 'Waar moet deze regel op overeenkomen?',
+                merchant: 'Winkelier',
+                merchantDescription: 'Veldwaarden bij uitgaven van een specifieke verkoper bijwerken',
+                category: 'Categorie',
+                categoryDescription: 'Stel een standaardbelastingtarief in voor een specifieke categorie',
+            },
             taxesDisabledEmptyState: {
                 title: 'Belastingen zijn niet ingeschakeld',
                 subtitle: 'Activeer belastingen om in aanmerking komende belastingen vast te leggen en terug te vorderen.',
@@ -12235,7 +12266,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             isUnreadWithMention: 'Is ongelezen met vermelding',
             isWaitingForAssigneeToCompleteAction: 'Wacht totdat de verantwoordelijke de actie voltooit',
             hasChildReportAwaitingAction: 'Heeft onderliggend rapport dat op actie wacht',
-            hasMissingInvoiceBankAccount: 'Heeft ontbrekend bankrekeningnummer voor factuur',
             hasUnresolvedCardFraudAlert: 'Heeft onopgeloste kaartfraudewaarschuwing',
             hasDEWApproveFailed: 'DEW-goedkeuring mislukt',
         },
@@ -12758,5 +12788,28 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         mobileClaimPrompt: 'Bezoek Expensify in je webbrowser om je verlengingskorting te claimen.',
     },
     bulkActionBar: {label: 'Bulkacties', clearSelection: 'Selectie wissen', loadingSelection: 'Selectie laden'},
+    reportHistoryPage: {
+        title: 'Rapportgeschiedenis',
+        created: 'heeft rapport gemaakt',
+        submitted: 'heeft ingediend',
+        approved: 'heeft goedgekeurd',
+        paid: 'heeft betaald',
+        toSubmit: 'indienen',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return 'automatisch indienen';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `automatisch indienen op de ${eta} van elke maand` : `${eta} automatisch indienen`;
+        },
+        toApprove: 'goedkeuren',
+        toPay: 'betalen',
+        minutesAgo: (count: number) => `${count} min geleden`,
+        hoursAgo: (count: number) => `${count} u geleden`,
+        daysAgo: () => ({
+            one: '1 d geleden',
+            other: (count: number) => `${count} d geleden`,
+        }),
+        offlineMessage: 'Je bent offline. Rapportgeschiedenis is mogelijk verouderd.',
+    },
 };
 export default translations;

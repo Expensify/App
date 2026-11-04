@@ -174,6 +174,9 @@ jest.mock('@pages/inbox/report/ReportActionsListPaddingView', () => {
 });
 jest.mock('@pages/inbox/report/UserTypingEventListener', () => jest.fn(() => null));
 jest.mock('@pages/inbox/report/ReportActionItemCreated', () => jest.fn(() => null));
+jest.mock('@pages/inbox/report/ReportActionsListItemRenderer', () => jest.fn(() => null));
+jest.mock('@pages/inbox/report/CollapsedSystemMessages', () => jest.fn(() => null));
+jest.mock('@pages/inbox/report/ShowPreviousMessagesButton', () => jest.fn(() => null));
 
 type MockInvertedFlashListProps = {
     data?: OnyxTypes.ReportAction[];
@@ -189,42 +192,33 @@ const mockReportActionItemCreated: jest.Mock = jest.requireMock('@pages/inbox/re
 const getCapturedVisibleActions = (): OnyxTypes.ReportAction[] | undefined => mockInvertedFlashList.mock.calls.at(-1)?.at(0)?.data;
 const getCapturedListProps = (): MockInvertedFlashListProps | undefined => mockInvertedFlashList.mock.calls.at(-1)?.at(0);
 
+const findRenderedElement = <Props,>(node: React.ReactNode, type: React.ElementType): {props: Props} | undefined => {
+    if (!jest.isMockFunction(type)) {
+        throw new Error('Expected a mocked row component');
+    }
+    type.mockClear();
+    if (React.isValidElement(node)) {
+        render(node);
+    }
+    const lastCall: unknown = type.mock.lastCall;
+    const props = Array.isArray(lastCall) ? (lastCall.at(0) as Props | undefined) : undefined;
+    return props ? {props} : undefined;
+};
+
 const getRenderedReportActionsListItemProps = (
     reportAction: OnyxTypes.ReportAction,
     index = 0,
 ): {shouldDisableContextMenuForConciergeDraft?: boolean; isLatestConciergeFeedbackAction?: boolean; displayAsGroup?: boolean} => {
-    const renderedItem = getCapturedListProps()?.renderItem?.({item: reportAction, index});
+    const props = findRenderedElement<React.ComponentProps<typeof ReportActionsListItemRenderer>>(
+        getCapturedListProps()?.renderItem?.({item: reportAction, index}),
+        ReportActionsListItemRenderer,
+    )?.props;
 
-    if (!React.isValidElement<{children: React.ReactNode}>(renderedItem)) {
-        throw new Error('Expected renderItem to return a React element');
-    }
-
-    const child = React.Children.toArray(renderedItem.props.children).find(
-        (item): item is React.ReactElement<{shouldDisableContextMenuForConciergeDraft?: boolean}> =>
-            React.isValidElement<{shouldDisableContextMenuForConciergeDraft?: boolean}>(item) && 'shouldDisableContextMenuForConciergeDraft' in item.props,
-    );
-
-    if (!child) {
+    if (!props) {
         throw new Error('Expected renderItem to render ReportActionsListItemRenderer');
     }
 
-    return child.props;
-};
-
-const findRenderedElement = <Props,>(node: React.ReactNode, type: React.ElementType): React.ReactElement<Props> | undefined => {
-    if (React.isValidElement<Props>(node) && node.type === type) {
-        return node;
-    }
-    if (!React.isValidElement<{children?: React.ReactNode}>(node)) {
-        return undefined;
-    }
-    for (const child of React.Children.toArray(node.props.children)) {
-        const match = findRenderedElement<Props>(child, type);
-        if (match) {
-            return match;
-        }
-    }
-    return undefined;
+    return props;
 };
 
 const mockUseMarkAsRead: jest.Mock = jest.requireMock('@hooks/useMarkAsRead');
@@ -841,6 +835,30 @@ describe('ReportActionsList (body)', () => {
             await waitFor(() => {
                 expect(revealDraftFromReportAction).toHaveBeenCalledWith(persistedReportAction);
             });
+        });
+
+        it('clears a completed streamed reply when an unrelated survey is filtered out', () => {
+            // Given an unresolved ticket with a saved reply and an obsolete survey.
+            const supportReport = {...mockReport, type: CONST.REPORT.TYPE.SUPPORT_TICKET};
+            const savedReply = {...conciergeDraftReportAction, reportActionID: 'saved-reply'};
+            const survey = {...conciergeDraftReportAction, reportActionID: 'obsolete-survey', actionName: CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY};
+            const actions = [savedReply, survey, ...mockReportActions];
+            const clearDraft = jest.fn();
+            mockUseOnyx.mockImplementation((key, options) =>
+                key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}` ? [supportReport, {status: 'loaded'}] : getMockOnyxValue(key, options),
+            );
+            mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions: actions, sortedAllReportActions: actions});
+            mockUseConciergeDraft.mockReturnValue({draftReportAction: savedReply, hasActiveDraft: true, isDraftPendingCompletion: false});
+            mockUseConciergeDraftActions.mockReturnValue({clearDraft, dispatchLocalDraftEvent: jest.fn(), revealDraftFromReportAction: jest.fn()});
+
+            // When survey filtering changes the rendered array without inserting a temporary reply.
+            renderReportActionsList();
+
+            // Then only the saved reply remains, and no synthetic autoscroll or retained reply is needed.
+            expect(getCapturedVisibleActions()?.filter((action) => action.reportActionID === savedReply.reportActionID)).toHaveLength(1);
+            expect(getCapturedVisibleActions()).not.toContain(survey);
+            expect(mockUseReportActionsScroll.mock.calls.at(-1)?.at(0)?.draftAutoScrollKey).toBe('');
+            expect(clearDraft).toHaveBeenCalledTimes(1);
         });
 
         it('clears a completed draft when its saved action is outside the visible page', async () => {
