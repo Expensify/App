@@ -4,18 +4,17 @@ import {tmpdir} from 'node:os';
 import path from 'node:path';
 
 type BuildIdentity = {sha: string; runID: string; runAttempt: string};
-type PreviewTarget = {name: string; hostname: string; environment: string};
 type WorkerRuntime = {compatibility_date: string; compatibility_flags: string[]};
 type ExtractAssets = (archive: string, destination: string) => void | Promise<void>;
 
 const STATUS_PATH = '/__expensify_preview';
 const WORKER_NAME = 'pr-testing-expensify';
 
-function getTarget(prNumber: unknown): PreviewTarget {
+function getTarget(prNumber: unknown) {
     if ((typeof prNumber !== 'string' && typeof prNumber !== 'number') || !/^[1-9]\d*$/.test(String(prNumber)) || !Number.isSafeInteger(Number(prNumber))) {
         throw new Error('A positive numeric PR number is required');
     }
-    return {name: String(prNumber), hostname: `${prNumber}.pr-testing.expensify.com`, environment: `pr-testing-${prNumber}`};
+    return {name: String(prNumber), hostname: `${prNumber}.pr-testing.expensify.com`};
 }
 
 function getPreviewCommand(prNumber: unknown, configPath: string, environment: Record<string, string | undefined>) {
@@ -33,10 +32,6 @@ function getIdentity(sha: unknown, runID: unknown, runAttempt: unknown): BuildId
         throw new Error('An immutable SHA, run ID and run attempt are required');
     }
     return {sha, runID, runAttempt};
-}
-
-function isNewerRequest(candidate: BuildIdentity, current: BuildIdentity): boolean {
-    return BigInt(candidate.runID) > BigInt(current.runID) || (candidate.runID === current.runID && BigInt(candidate.runAttempt) > BigInt(current.runAttempt));
 }
 
 function isWorkerRuntime(runtime: unknown): runtime is WorkerRuntime {
@@ -124,5 +119,5 @@ async function prepareDirectory(bundleDirectory: string, assetsArchive: string, 
     return root;
 }
 
-export {createConfig, createWrapper, getIdentity, getPreviewCommand, getTarget, isNewerRequest, prepareDirectory, STATUS_PATH};
-export type {BuildIdentity, PreviewTarget};
+export {createConfig, createWrapper, getIdentity, getPreviewCommand, getTarget, prepareDirectory, STATUS_PATH};
+export type {BuildIdentity};

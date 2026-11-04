@@ -101,39 +101,12 @@ jobs:
       download-dsyms: true
     secrets: inherit
 
-  prepareWeb:
-    name: Register the PR preview build
-    if: ${{ fromJSON(inputs.BUILD_WEB) && inputs.APP_PR_NUMBER != '' }}
-    runs-on: blacksmith-2vcpu-ubuntu-2404
-    outputs:
-      PR_NUMBER: ${{ steps.register.outputs.PR_NUMBER }}
-      SHA: ${{ steps.register.outputs.SHA }}
-      DEPLOYMENT_ID: ${{ steps.register.outputs.DEPLOYMENT_ID }}
-      REQUEST_ATTEMPT: ${{ steps.register.outputs.REQUEST_ATTEMPT }}
-    steps:
-      - name: Checkout trusted preview tooling
-        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
-        with:
-          ref: ${{ github.workflow_sha }}
-          persist-credentials: false
-
-      - name: Setup Node
-        uses: ./.github/actions/composite/setupNode
-
-      - name: Resolve the build SHA and register preview intent
-        id: register
-        # Both callers resolve the PR number and immutable App SHA before invoking this workflow.
-        run: bun scripts/adhocCloudflareWorkerDeployer.ts register --pr-number ${{ inputs.APP_PR_NUMBER }} --ref ${{ inputs.APP_REF }}
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
   buildWeb:
     name: Build Web
-    needs: [prepareWeb]
     if: ${{ fromJSON(inputs.BUILD_WEB) && inputs.APP_PR_NUMBER != '' }}
     uses: ./.github/workflows/buildWeb.yml
     with:
-      ref: ${{ needs.prepareWeb.outputs.SHA }}
+      ref: ${{ inputs.APP_REF }}
       environment: adhoc
       pull-request-number: ${{ inputs.APP_PR_NUMBER }}
       build-preview-worker: true
@@ -141,8 +114,7 @@ jobs:
 
   deployWebAdHoc:
     name: Deploy the PR Worker Preview and web assets
-    needs: [prepareWeb, buildWeb]
-    if: ${{ needs.prepareWeb.outputs.DEPLOYMENT_ID != '' }}
+    needs: [buildWeb]
     runs-on: blacksmith-2vcpu-ubuntu-2404
     env:
       WRANGLER_SEND_METRICS: false
@@ -170,12 +142,10 @@ jobs:
 
       - name: Deploy and verify the PR Preview and assets together
         run: |
-          bun scripts/adhocCloudflareWorkerDeployer.ts deploy \
-            --pr-number ${{ needs.prepareWeb.outputs.PR_NUMBER }} --sha ${{ needs.prepareWeb.outputs.SHA }} \
-            --deployment-id ${{ needs.prepareWeb.outputs.DEPLOYMENT_ID }} --request-attempt ${{ needs.prepareWeb.outputs.REQUEST_ATTEMPT }} \
+          bun scripts/deployAdhocCloudflareWorker.ts \
+            --pr-number ${{ inputs.APP_PR_NUMBER }} --sha ${{ needs.buildWeb.outputs.BUILD_SHA }} \
             --artifact-directory "${{ runner.temp }}/pr-testing-artifacts"
         env:
-          GITHUB_TOKEN: ${{ github.token }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_WORKERS_DEPLOY_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: 3eb3df6f8c190fa13c3fc0a53c30af1a
 
@@ -183,7 +153,7 @@ jobs:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     if: ${{ always() && (inputs.APP_PR_NUMBER != '' || inputs.MOBILE_EXPENSIFY_PR != '') }}
     name: Post a GitHub comment with app download links for testing
-    needs: [prepareWeb, buildWeb, deployWebAdHoc, buildAndroid, buildIOS]
+    needs: [buildWeb, deployWebAdHoc, buildAndroid, buildIOS]
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
@@ -202,7 +172,7 @@ jobs:
           COMMENT_PREFIX: ':test_tube::test_tube: Use the links below to test this adhoc build'
           ANDROID: ${{ needs.buildAndroid.result }}
           IOS: ${{ needs.buildIOS.result }}
-          WEB: ${{ (needs.prepareWeb.result == 'failure' || needs.buildWeb.result == 'failure') && 'failure' || needs.deployWebAdHoc.result }}
+          WEB: ${{ needs.buildWeb.result == 'failure' && 'failure' || needs.deployWebAdHoc.result }}
           ANDROID_LINK: ${{ needs.buildAndroid.outputs.ROCK_ARTIFACT_URL }}
           IOS_LINK: ${{ needs.buildIOS.outputs.ROCK_ARTIFACT_URL }}
           WEB_LINK: https://${{ inputs.APP_PR_NUMBER }}.pr-testing.expensify.com
@@ -225,7 +195,7 @@ jobs:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     if: ${{ always() && (inputs.APP_PR_NUMBER != '' || needs.buildAndroid.outputs.ROCK_ARTIFACT_URL != '' || needs.buildIOS.outputs.ROCK_ARTIFACT_URL != '') }}
     name: Build Summary
-    needs: [prepareWeb, buildWeb, deployWebAdHoc, buildAndroid, buildIOS]
+    needs: [buildWeb, deployWebAdHoc, buildAndroid, buildIOS]
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
@@ -255,7 +225,7 @@ jobs:
             const iosLink = '${{ needs.buildIOS.outputs.ROCK_ARTIFACT_URL }}' || '';
             const mobileExpensifySHA = '${{ steps.getMobileExpensifySHA.outputs.SHA }}' || '';
 
-            const webFailed = '${{ needs.prepareWeb.result }}' === 'failure' || '${{ needs.buildWeb.result }}' === 'failure' || webResult === 'failure';
+            const webFailed = '${{ needs.buildWeb.result }}' === 'failure' || webResult === 'failure';
             const webStatus = webLink ? '✅ Success' : webFailed ? '❌ Failed' : '⏭️ Skipped';
             const androidStatus = androidLink ? '✅ Success' : '${{ needs.buildAndroid.result }}' === 'failure' ? '❌ Failed' : '⏭️ Skipped';
             const iosStatus = iosLink ? '✅ Success' : '${{ needs.buildIOS.result }}' === 'failure' ? '❌ Failed' : '⏭️ Skipped';

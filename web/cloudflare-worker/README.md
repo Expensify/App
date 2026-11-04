@@ -196,19 +196,18 @@ There are two different kinds of code here:
 
 ```text
 GitHub Actions (deployment tooling, not a Worker):
-  prepareWeb       -> adhocCloudflareWorkerDeployer.ts register -> pin SHA + record build request
-  buildWeb         -> compile that SHA's src/index.ts + build dist/
-  deployWebAdHoc   -> adhocCloudflareWorkerDeployer.ts deploy -> publish code/assets together and verify
+  buildWeb         -> build web assets and compile the branch Worker, output the checked-out SHA
+  deployWebAdHoc   -> deployAdhocCloudflareWorker.ts -> publish the Preview and verify code/assets identity
 
 Cloudflare (request handling):
   PR hostname -> named Worker Preview -> build-status wrapper -> compiled src/index.ts -> this PR's Static Assets
 ```
 
-**The runtime is shared with the main app Worker.** `buildWeb` bundles the existing `web/cloudflare-worker/src/index.ts` from the same App SHA as the web build. CSP, nonces, security headers, Brotli, caching and SPA routing are not reimplemented in the CI tooling. The preview wrapper answers the reserved build-status endpoint and delegates every application request unchanged. `scripts/adhocCloudflareWorkerDeployer.ts` runs only in CI.
+**The runtime is shared with the main app Worker.** `buildWeb` bundles the existing `web/cloudflare-worker/src/index.ts` from the same App SHA as the web build. CSP, nonces, security headers, Brotli, caching and SPA routing are not reimplemented in the CI tooling. The preview wrapper answers the reserved build-status endpoint and delegates every application request unchanged. `scripts/deployAdhocCloudflareWorker.ts` runs only in CI.
 
-The deployment CLI runs in Bun with TypeScript, uses the shared `expensify-common/CLI` parser for typed commands/options, and uses `GithubUtils.octokit` for GitHub authentication and REST calls. It uses `Bun.sleep`, `Bun.file` and `Bun.spawn` for local orchestration; Wrangler remains the trusted Node CLI. Pure typed packaging helpers in `web/cloudflare-worker/scripts/prTestingConfig.ts` are shared with the standalone workerd tests without pulling the App CLI/GitHub dependencies into that package.
+The deployment CLI runs in Bun with TypeScript and the shared `expensify-common/CLI` parser. It publishes and verifies the Preview without GitHub API calls. Pure typed packaging helpers in `web/cloudflare-worker/scripts/prTestingConfig.ts` are shared with the standalone workerd tests without pulling the App CLI dependencies into that package.
 
-The existing test-build authorization and reviewed-code confirmation still apply. `.github/workflows/buildAdHoc.yml` resolves one immutable App SHA before building and registers the request as a GitHub deployment in `pr-testing-<PR number>`. `buildWeb.yml` compiles the web app and bundles the Worker from that same SHA without Cloudflare credentials.
+The existing test-build authorization and reviewed-code confirmation still apply. Callers resolve the build ref, and `buildWeb.yml` outputs the actual checked-out commit SHA after compiling the web app and bundling the Worker without Cloudflare credentials. Publication stamps the code and assets with that SHA and the current workflow run/attempt.
 
 The `deployWebAdHoc` job runs tooling from the caller workflow's SHA, never from `APP_REF`. Authorized users can select a workflow branch for testing without merging it first. Downloaded artifacts cannot supply deployment targets, hooks or privileged bindings. Only compatibility date and flags are accepted from the branch's runtime manifest. `extractPRTestingAssets` copies validated regular files without following links or exposing source maps. Dependencies and build hooks run without Cloudflare credentials.
 
@@ -218,4 +217,4 @@ The generated `previews` configuration supplies staging variables, while Static 
 
 The trusted wrapper forwards application responses unchanged, including Brotli encoding and CSP nonces. Its reserved `/__expensify_preview` endpoint reports the SHA/run/attempt; `/preview-build.json` in Static Assets carries the same identity. Both must match before the build is reported as deployed. A failed new build never gets a success status just because an old version still serves that hostname.
 
-Manual ad-hoc builds cancel an earlier run for the same App/mobile target, using each repository's PR number or ref. Push-to-main builds use a separate concurrency group and queue every push without cancellation, preserving builds for regression bisection. Deployment identity checks also reject stale artifacts from retries.
+Manual ad-hoc builds cancel an earlier run for the same App/mobile target, using each repository's PR number or ref. Push-to-main builds use a separate concurrency group and queue every push without cancellation, preserving builds for regression bisection. Explicitly rerunning an older workflow republishes that run's build, not the latest PR head.

@@ -12,7 +12,7 @@ on:
       - '.github/workflows/cloudflareWorkerTests.yml'
       - '.github/workflows/buildWeb.yml'
       - '.github/workflows/buildAdHoc.yml'
-      - 'scripts/adhocCloudflareWorkerDeployer.ts'
+      - 'scripts/deployAdhocCloudflareWorker.ts'
       - 'scripts/extractPRTestingAssets.ts'
       - '.bun-version'
 
