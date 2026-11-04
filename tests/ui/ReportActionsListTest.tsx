@@ -1,14 +1,18 @@
 import {act, render, screen, waitFor} from '@testing-library/react-native';
 
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 import type * as InFlightRequests from '@hooks/useInFlightRequests';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useNetwork from '@hooks/useNetwork';
+import * as NetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
+import usePrevious from '@hooks/usePrevious';
 import type useReportActionsScroll from '@hooks/useReportActionsScroll';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -18,6 +22,7 @@ import type useUnreadMarker from '@hooks/useUnreadMarker';
 
 import DateUtils from '@libs/DateUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import Visibility from '@libs/Visibility';
 
 import {useActionListRef} from '@pages/inbox/ActionListContext';
 import type * as ActionListContextModule from '@pages/inbox/ActionListContext';
@@ -369,6 +374,50 @@ describe('ReportActionsList (body)', () => {
     });
 
     describe('Support survey unread markers', () => {
+        it('keeps the offline unread divider above the reply when a newer survey is hidden', () => {
+            // Given a reply received offline and a newer hidden survey
+            const supportReport = {...mockReport, type: CONST.REPORT.TYPE.SUPPORT_TICKET, lastReadTime: '2023-01-01 00:02:00.000'};
+            const readComment = {...mockReportActions[1], reportActionID: 'read-comment', created: '2023-01-01 00:01:00.000'};
+            const offlineReply = {...readComment, reportActionID: 'offline-reply', created: '2023-01-01 00:04:00.000'};
+            const survey = {...readComment, reportActionID: 'hidden-survey', actionName: CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY, created: '2023-01-01 00:05:00.000'};
+            const actions = [survey, offlineReply, readComment];
+            mockUseCurrentUserPersonalDetails.mockReturnValue({...mockUseCurrentUserPersonalDetails(), timezone: {selected: 'Africa/Abidjan', automatic: false}});
+            mockUseNetwork.mockReturnValue({isOffline: true});
+            const networkSpy = jest.spyOn(NetworkWithOfflineStatus, 'default').mockReturnValue({
+                isOffline: true,
+                lastOfflineAt: {current: new Date('2023-01-01T00:03:00.000Z')},
+                lastOnlineAt: {current: new Date('2023-01-01T00:02:00.000Z')},
+            });
+            mockUseOnyx.mockImplementation((key, options) => {
+                if (key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`) {
+                    return [options?.selector ? (options.selector as (report: OnyxTypes.Report) => OnyxTypes.Report | string | undefined)(supportReport) : supportReport, {status: 'loaded'}];
+                }
+                return getMockOnyxValue(key, options);
+            });
+            mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions: actions, sortedAllReportActions: actions});
+            mockUseUnreadMarker.mockImplementation(jest.requireActual<{default: typeof useUnreadMarker}>('@hooks/useUnreadMarker').default);
+            jest.mocked(usePrevious).mockImplementation(jest.requireActual<{default: typeof usePrevious}>('@hooks/usePrevious').default);
+            const focusSpy = jest.spyOn(Visibility, 'hasFocus').mockReturnValue(false);
+
+            try {
+                // When the real unread hook selects the offline boundary in the rendered list
+                render(
+                    <LocaleContextProvider>
+                        <ReportActionsList reportID={mockReport.reportID} />
+                    </LocaleContextProvider>,
+                );
+
+                // Then New belongs to the unread reply, not the older read comment
+                expect(getCapturedVisibleActions()).not.toContain(survey);
+                expect(mockUseReportActionsScroll.mock.lastCall?.[0].unreadMarkerReportActionID).toBe(offlineReply.reportActionID);
+                expect(mockUseReportActionsScroll.mock.lastCall?.[0].unreadMarkerReportActionIndex).toBe(0);
+            } finally {
+                focusSpy.mockRestore();
+                networkSpy.mockRestore();
+                jest.mocked(usePrevious).mockReset();
+            }
+        });
+
         it.each(['unresolved', 'replaced', 'resolved'] as const)('places the unread marker on a visible reply when the ticket is %s', (ticketState) => {
             // Given an unread survey from a previous resolution before an unread support reply
             const supportReport = {
