@@ -20,7 +20,7 @@ import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import type {Policy, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 
 import type React from 'react';
 
@@ -54,6 +54,22 @@ jest.mock('react-native-reanimated', () => {
         useAnimatedStyle: (updater: () => Record<string, unknown>) => {
             const [style] = useState<Record<string, unknown>>(() => ({}));
             return Object.assign(style, updater());
+        },
+    };
+});
+
+let mockIsWideLayout = false;
+
+// Jest's window is narrow. Force the wide layout to measure the desktop rows, which edit inline and show more cells.
+jest.mock('@hooks/useResponsiveLayout', () => {
+    const actual = jest.requireActual<{default: () => Record<string, unknown>}>('@hooks/useResponsiveLayout');
+    return {
+        __esModule: true,
+        default: () => {
+            const layout = actual.default();
+            return mockIsWideLayout
+                ? {...layout, shouldUseNarrowLayout: false, isSmallScreenWidth: false, isInNarrowPaneModal: false, isMediumScreenWidth: false, isLargeScreenWidth: true}
+                : layout;
         },
     };
 });
@@ -112,6 +128,18 @@ const signUpWithTestUser = () => {
     TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
 };
 
+const policy = {
+    id: POLICY_ID,
+    name: 'Perf workspace',
+    type: CONST.POLICY.TYPE.CORPORATE,
+    role: CONST.POLICY.ROLE.ADMIN,
+    owner: TEST_USER_LOGIN,
+    outputCurrency: CONST.CURRENCY.USD,
+    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+    isPolicyExpenseChatEnabled: true,
+    employeeList: {[TEST_USER_LOGIN]: {email: TEST_USER_LOGIN, role: CONST.POLICY.ROLE.ADMIN}},
+} as Policy;
+
 const sortedReportActions = ReportTestUtils.getMockedSortedReportActions(500);
 const reportActions: ReportActions = Object.fromEntries(sortedReportActions.map((action: ReportAction) => [action.reportActionID, action]));
 const report = {
@@ -144,6 +172,7 @@ beforeEach(async () => {
         signUpWithTestUser();
         await Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.DEFAULT);
 
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, reportActions);
         for (const transaction of transactions) {
@@ -207,43 +236,75 @@ async function measureWrites(write: (run: number, index: number) => Promise<unkn
     await measureRenders(<MoneyRequestReportActionsListWrapper />, {scenario});
 }
 
-test('[MoneyRequestReportTransactionRows] should re-render when one transaction amount changes', async () => {
-    // Given an expense report with 10 transactions, when the amount of one of them changes repeatedly
-    // Then reassure measures what a write to one transaction costs the rows
-    await measureWrites((run, index) => Onyx.merge(FIRST_TRANSACTION_KEY, {amount: 20000 + run * 100 + index}));
-});
-
-test('[MoneyRequestReportTransactionRows] should re-render when one transaction gets a violation', async () => {
-    // Given an expense report with 10 transactions, when the violations of one of them change repeatedly
-    // Then reassure measures what a violation on one transaction costs the rows
-    await measureWrites((run, index) =>
-        Onyx.set(
-            FIRST_TRANSACTION_VIOLATIONS_KEY,
-            (run * WRITES_PER_SCENARIO + index) % 2 === 0 ? [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}] : [],
-        ),
-    );
-});
-
-test('[MoneyRequestReportTransactionRows] should re-render when a comment arrives on the report', async () => {
-    // Given an expense report with 10 transactions, when new comments arrive on the report
-    // Then reassure measures what a report action write costs the transaction rows
-    await measureWrites((run, index) => {
-        const newAction = ReportTestUtils.getFakeReportAction(1000 + run * WRITES_PER_SCENARIO + index, {
-            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-            created: `2023-09-15 00:${String(run % 60).padStart(2, '0')}:${String(index).padStart(2, '0')}.000`,
-        });
-        return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[newAction.reportActionID]: newAction});
+describe.each(['narrow', 'wide'])('%s layout', (layout) => {
+    beforeAll(() => {
+        mockIsWideLayout = layout === 'wide';
     });
-});
 
-test('[MoneyRequestReportTransactionRows] should re-render when an unrelated personal detail changes', async () => {
-    // Given an expense report with 10 transactions, when a user outside the report is renamed
-    // Then reassure measures what an unrelated personal details write costs the rows
-    await measureWrites((run, index) => Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[UNRELATED_ACCOUNT_ID]: {accountID: UNRELATED_ACCOUNT_ID, displayName: `Unrelated ${run}-${index}`}}));
-});
+    test('[MoneyRequestReportTransactionRows] should re-render when one transaction amount changes', async () => {
+        // Given an expense report with 10 transactions, when the amount of one of them changes repeatedly
+        // Then reassure measures what a write to one transaction costs the rows
+        await measureWrites((run, index) => Onyx.merge(FIRST_TRANSACTION_KEY, {amount: 20000 + run * 100 + index}));
+    });
 
-test('[MoneyRequestReportTransactionRows] should re-render when the report total changes', async () => {
-    // Given an expense report with 10 transactions, when a report field every row receives changes
-    // Then reassure measures the cost of a write that legitimately re-renders all rows
-    await measureWrites((run, index) => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {total: 100000 + run * 100 + index}));
+    test('[MoneyRequestReportTransactionRows] should re-render when one transaction gets a violation', async () => {
+        // Given an expense report with 10 transactions, when the violations of one of them change repeatedly
+        // Then reassure measures what a violation on one transaction costs the rows
+        await measureWrites((run, index) =>
+            Onyx.set(
+                FIRST_TRANSACTION_VIOLATIONS_KEY,
+                (run * WRITES_PER_SCENARIO + index) % 2 === 0 ? [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}] : [],
+            ),
+        );
+    });
+
+    test('[MoneyRequestReportTransactionRows] should re-render when a comment arrives on the report', async () => {
+        // Given an expense report with 10 transactions, when new comments arrive on the report
+        // Then reassure measures what a report action write costs the transaction rows
+        await measureWrites((run, index) => {
+            const newAction = ReportTestUtils.getFakeReportAction(1000 + run * WRITES_PER_SCENARIO + index, {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: `2023-09-15 00:${String(run % 60).padStart(2, '0')}:${String(index).padStart(2, '0')}.000`,
+            });
+            return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[newAction.reportActionID]: newAction});
+        });
+    });
+
+    test('[MoneyRequestReportTransactionRows] should re-render when an unrelated personal detail changes', async () => {
+        // Given an expense report with 10 transactions, when a user outside the report is renamed
+        // Then reassure measures what an unrelated personal details write costs the rows
+        await measureWrites((run, index) =>
+            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[UNRELATED_ACCOUNT_ID]: {accountID: UNRELATED_ACCOUNT_ID, displayName: `Unrelated ${run}-${index}`}}),
+        );
+    });
+
+    test('[MoneyRequestReportTransactionRows] should re-render when the report total changes', async () => {
+        // Given an expense report with 10 transactions, when a report field every row receives changes
+        // Then reassure measures the cost of a write that legitimately re-renders all rows
+        await measureWrites((run, index) => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {total: 100000 + run * 100 + index}));
+    });
+
+    test('[MoneyRequestReportTransactionRows] should re-render when a member joins the policy', async () => {
+        // Given an expense report with 10 transactions, when members are added to the report's policy
+        // Then reassure measures what a policy write the rows don't show costs them
+        await measureWrites((run, index) => {
+            const login = `member-${run}-${index}@test.com`;
+            return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {employeeList: {[login]: {email: login, role: CONST.POLICY.ROLE.USER}}});
+        });
+    });
+
+    test('[MoneyRequestReportTransactionRows] should re-render when a policy category is added', async () => {
+        // Given an expense report with 10 uncategorized transactions, when categories are added to the report's policy
+        // Then reassure measures what a categories write no row uses costs the rows
+        await measureWrites((run, index) => {
+            const name = `Category ${run}-${index}`;
+            return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, {[name]: {name, enabled: true}});
+        });
+    });
+
+    test('[MoneyRequestReportTransactionRows] should re-render when the policy is renamed', async () => {
+        // Given an expense report with 10 transactions, when the report's policy is renamed
+        // Then reassure measures a policy write every row still receives
+        await measureWrites((run, index) => Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {name: `Workspace ${run}-${index}`}));
+    });
 });

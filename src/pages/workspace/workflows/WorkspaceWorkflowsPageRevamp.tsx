@@ -12,6 +12,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,7 +23,7 @@ import {openPolicyWorkflowsPage} from '@libs/actions/Policy/Policy';
 import Tab from '@libs/actions/Tab';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {canMemberRead, isGroupPolicy as isGroupPolicyUtil, isSubmitPolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
+import {canMemberRead, getApprovalWorkflow, isGroupPolicy as isGroupPolicyUtil, isSubmitPolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
 import {isApprovalWorkflowLockedByIntegration} from '@libs/WorkflowUtils';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -72,6 +73,8 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
+    const {isBetaEnabled} = usePermissions();
+    const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
 
     const isSubmitPolicyWorkspace = isSubmitPolicy(policy);
 
@@ -232,6 +235,7 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
         }
         downloadMembersCSV(
             policyID,
+            isMultipleApproversBetaEnabled,
             () => {
                 showConfirmModal({
                     title: translate('common.downloadFailedTitle'),
@@ -249,9 +253,12 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
     const shouldHideApprovalWorkflows = shouldHideDynamicExternalWorkflowPeople(policy);
     const shouldBlockApprovalWorkflowEditing = isApprovalWorkflowLockedByIntegration(policy) || shouldHideApprovalWorkflows;
 
+    // With multiple approvers, the spreadsheet sets up approval workflows, which don't route anything while approvals are off
+    const shouldHideImportWithoutApprovals = isMultipleApproversBetaEnabled && getApprovalWorkflow(policy) === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+
     const approvalSecondaryActions: Array<DropdownOption<ValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>> = [];
     // Importing modifies the workflows, so only offer it when editing is allowed.
-    if (!shouldBlockApprovalWorkflowEditing) {
+    if (!shouldBlockApprovalWorkflowEditing && !shouldHideImportWithoutApprovals) {
         approvalSecondaryActions.push({
             icon: expensifyIcons.Table,
             text: translate('spreadsheet.importWorkflows'),

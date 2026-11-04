@@ -1,9 +1,10 @@
 import Log from '@libs/Log';
-import {sanitizeUrlForLogging} from '@libs/sanitizeLogParams';
 
 import {Linking} from 'react-native';
 
 import type AsyncOpenURL from './types';
+
+import getURLForLogging from './getURLForLogging';
 
 const asyncOpenURL: AsyncOpenURL = (promise, url) => {
     if (!url) {
@@ -15,8 +16,7 @@ const asyncOpenURL: AsyncOpenURL = (promise, url) => {
             Linking.openURL(typeof url === 'string' ? url : url(params));
         })
         .catch(() => {
-            const safeUrl = typeof url === 'string' ? sanitizeUrlForLogging(url) : '[function]';
-            Log.warn('[asyncOpenURL] error occurred while opening URL', {url: safeUrl});
+            Log.warn('[asyncOpenURL] error occurred while opening URL', {url: getURLForLogging(url)});
         });
 };
 

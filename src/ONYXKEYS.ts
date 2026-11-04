@@ -56,6 +56,9 @@ const ONYXKEYS = {
     /** Whether the reimbursement countries needed by the collect deposit account flow are still loading */
     RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP: 'isLoadingDepositAccountSetup',
 
+    /** The Wise onboarding page saves still running, by save ID. RAM-only, since a page with an SSN skips the queue, so its save ends when the app closes and must not keep the flow saving after a reload. */
+    RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES: 'wiseOnboardingPendingSaves',
+
     /** Ordered reportIDs from the latest SearchForReports response, used to display server search results in the tier order Auth returned. */
     RAM_ONLY_SEARCH_RESULT_REPORT_IDS: 'searchResultReportIDs',
     /** Boolean flag set whenever we are searching for users in the server */
@@ -1951,6 +1954,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ONBOARDING_LAST_VISITED_PATH]: string;
     [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP]: boolean;
+    [ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES]: Record<string, boolean>;
     [ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS]: string[] | null;
     [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN]: boolean;
