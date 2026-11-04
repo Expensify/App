@@ -2,6 +2,7 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import {getWiseKYCReviewEmbeddedLink} from '@libs/actions/Wise';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -18,8 +19,12 @@ import React from 'react';
 import {View as MockView} from 'react-native';
 import Onyx from 'react-native-onyx';
 
+import * as TestHelper from '../../../../utils/TestHelper';
+import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../../../../utils/waitForBatchedUpdatesWithAct';
+import {mockKYCReviewLinkResponse} from '../../../../utils/WiseTestUtils';
 
+const BANK_ACCOUNT_ID = 9053192;
 const BACK_PATH = 'settings/wallet/global-reimbursements/9053192/more-info-needed';
 const KYC_REVIEW_URL = 'https://wise-sandbox.com/embedded-flows/verification?token=abc';
 const WEB_VIEW_TEST_ID = 'wise-kyc-web-view';
@@ -37,8 +42,14 @@ jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => 'settings/wallet/glob
 
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
+let mockFetch: ReturnType<typeof TestHelper.getGlobalFetchMock>;
+let originalFetch: typeof global.fetch;
+
+/** Opens the page with the link fetched from the mocked server, as "More info needed" does before it navigates here */
 async function renderPage() {
-    await Onyx.set(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK, {url: KYC_REVIEW_URL, isLoading: false});
+    mockKYCReviewLinkResponse(mockFetch, KYC_REVIEW_URL);
+    getWiseKYCReviewEmbeddedLink(BANK_ACCOUNT_ID);
+    await waitForBatchedUpdates();
     render(
         <OnyxListItemProvider>
             <NavigationContainer ref={navigationRef}>
@@ -46,7 +57,7 @@ async function renderPage() {
                     <Stack.Screen
                         name={SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_KYC_REVIEW}
                         component={WiseKYCReviewPage}
-                        initialParams={{bankAccountID: '9053192'}}
+                        initialParams={{bankAccountID: String(BANK_ACCOUNT_ID)}}
                     />
                 </Stack.Navigator>
             </NavigationContainer>
@@ -68,6 +79,13 @@ describe('WiseKYCReviewPage', () => {
     beforeEach(async () => {
         jest.restoreAllMocks();
         await Onyx.clear();
+        originalFetch = global.fetch;
+        mockFetch = TestHelper.getGlobalFetchMock();
+        global.fetch = mockFetch;
+    });
+
+    afterEach(() => {
+        global.fetch = originalFetch;
     });
 
     it('closes the form when Wise redirects to our redirect URL', async () => {
