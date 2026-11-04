@@ -1532,6 +1532,7 @@ const CONST = {
         RESIZABLE_RHP: 'resizableRHP',
         TRAVEL_APPROVAL: 'travelApproval',
         SCAN_FLASH_TORCH: 'scanFlashTorch',
+        NEW_DOT_BILL_PAY: 'newDotBillPay',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',

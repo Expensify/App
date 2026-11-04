@@ -3914,6 +3914,29 @@ function getQuarterSections(
     return [quarterSectionsValues, quarterSectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
+/** Bills stay out of Search for every user until Search supports paying bills. */
+function getBillReportIDs(data: OnyxTypes.SearchResults['data']): Set<string> {
+    const billReportIDs = new Set<string>();
+    for (const key of Object.keys(data)) {
+        if (!isReportEntry(key)) {
+            continue;
+        }
+        const report = data[key];
+        if (report?.reportID && report.type === CONST.REPORT.UNSUPPORTED_TYPE.BILL) {
+            billReportIDs.add(report.reportID);
+        }
+    }
+    return billReportIDs;
+}
+
+function omitBillRows<T extends {reportID?: string}>(rows: T[], data: OnyxTypes.SearchResults['data']): T[] {
+    const billReportIDs = getBillReportIDs(data);
+    if (billReportIDs.size === 0) {
+        return rows;
+    }
+    return rows.filter((row) => !row.reportID || !billReportIDs.has(row.reportID));
+}
+
 /**
  * Organizes data into appropriate list sections for display based on the type of search results.
  */
@@ -3947,8 +3970,11 @@ function getSections({
     reportAttributesDerivedValue,
     shouldReturnTripRooms = false,
 }: GetSectionsParams): GetSectionsResult {
+    // Bill rows are removed after counting, because paging compares the count with the server offset, which includes bills.
+    // The expense report view needs no filter, because it only lists IOU, expense, and invoice reports.
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
-        return [...getReportActionsSections(data, reportAttributesDerivedValue, visibleReportActionsData), false];
+        const [reportActionRows, reportActionCount] = getReportActionsSections(data, reportAttributesDerivedValue, visibleReportActionsData);
+        return [omitBillRows(reportActionRows, data), reportActionCount, false];
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
         return [...getTaskSections(data, formatPhoneNumber, translate, conciergeReportID, reportNameValuePairs, reportAttributesDerivedValue, queryJSON), false];
@@ -4008,7 +4034,7 @@ function getSections({
         }
     }
 
-    return getTransactionsSections({
+    const [transactionRows, transactionCount, hasDeletedTransaction] = getTransactionsSections({
         data,
         currentSearch,
         currentAccountID,
@@ -4025,6 +4051,7 @@ function getSections({
         cardList,
         onyxPersonalDetailsList,
     });
+    return [omitBillRows(transactionRows, data), transactionCount, hasDeletedTransaction];
 }
 
 type GroupBySortFunction = (
@@ -4597,17 +4624,27 @@ function isSearchResultsEmpty(searchResults: SearchResults, groupBy?: SearchGrou
         return !Object.keys(searchResults?.data).some((key) => isGroupEntry(key));
     }
 
+    // Bills don't count as results, because getSections leaves them out of Search.
+    const billReportIDs = getBillReportIDs(searchResults?.data);
+
     if (searchResults?.search?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        return !Object.keys(searchResults?.data).some(
-            (key) => isReportEntry(key) && (searchResults?.data[key as keyof typeof searchResults.data] as OnyxTypes.Report)?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        );
+        return !Object.keys(searchResults?.data).some((key) => {
+            if (!isReportEntry(key)) {
+                return false;
+            }
+            const report = searchResults?.data[key as keyof typeof searchResults.data] as OnyxTypes.Report;
+            return report?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !billReportIDs.has(report?.reportID);
+        });
     }
 
-    return !Object.keys(searchResults?.data).some(
-        (key) =>
-            key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) &&
-            (searchResults?.data[key as keyof typeof searchResults.data] as OnyxTypes.Transaction)?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-    );
+    return !Object.keys(searchResults?.data).some((key) => {
+        if (!key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
+            return false;
+        }
+        const transaction = searchResults?.data[key as keyof typeof searchResults.data] as OnyxTypes.Transaction;
+        const isBillExpense = !!transaction?.reportID && billReportIDs.has(transaction.reportID);
+        return transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isBillExpense;
+    });
 }
 
 /**

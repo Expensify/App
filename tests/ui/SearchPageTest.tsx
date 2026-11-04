@@ -748,6 +748,34 @@ describe('SearchPageNarrow', () => {
         expect(consumePageRequestedSearch(expenseQueryJSON?.hash ?? 0, false)).toBe(true);
     });
 
+    it('loads the next page when the current page holds a bill', async () => {
+        // Given a full first page where one of the expenses belongs to a bill, which Search leaves out
+        mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
+        const snapshotWithBill = getExpenseSnapshot(false);
+        snapshotWithBill.data = {
+            ...snapshotWithBill.data,
+            [`${ONYXKEYS.COLLECTION.REPORT}1`]: {...snapshotWithBill.data[`${ONYXKEYS.COLLECTION.REPORT}1`], type: CONST.REPORT.UNSUPPORTED_TYPE.BILL},
+        };
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, snapshotWithBill);
+        });
+        renderPage(EXPENSE_QUERY);
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        // When the list reaches its end
+        await act(async () => {
+            listProps.onEndReached?.();
+        });
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        // Then the next page still goes out, because the server offset counts the bill row too
+        expect(mockSearch.mock.calls.some(([params]) => params?.offset === CONST.SEARCH.RESULTS_PAGE_SIZE)).toBe(true);
+    });
+
     it('does not re-request the first page when a query with no claim finishes loading', async () => {
         // Given a query loading on screen with no claim for this mount to read
         mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
