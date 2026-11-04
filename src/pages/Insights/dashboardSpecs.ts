@@ -159,9 +159,20 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
     },
 };
 
-/** Returns the charts that at least one workspace in scope is eligible for. No selected workspaces means every workspace is in scope. */
-function getVisibleCharts(charts: InsightsChartSpec[], policies: OnyxCollection<Policy>, policyIDs: string[], login: string | undefined): InsightsChartSpec[] {
-    const policiesInScope = Object.values(policies ?? {}).filter((policy): policy is Policy => !!policy && (policyIDs.length === 0 || policyIDs.includes(policy.id)));
+/**
+ * Returns the charts that at least one workspace in scope is eligible for. No selected workspaces means every workspace is in scope.
+ * A dashboard's own eligibility narrows the scope too, so a chart only counts the workspaces the dashboard reports on.
+ */
+function getVisibleCharts(
+    charts: InsightsChartSpec[],
+    policies: OnyxCollection<Policy>,
+    policyIDs: string[],
+    login: string | undefined,
+    isDashboardPolicyEligible?: InsightsDashboardSpec['isPolicyEligible'],
+): InsightsChartSpec[] {
+    const policiesInScope = Object.values(policies ?? {}).filter(
+        (policy): policy is Policy => !!policy && (policyIDs.length === 0 || policyIDs.includes(policy.id)) && (!isDashboardPolicyEligible || isDashboardPolicyEligible(policy, login)),
+    );
     return charts.filter(({isPolicyEligible}) => !isPolicyEligible || policiesInScope.some((policy) => isPolicyEligible(policy, login)));
 }
 

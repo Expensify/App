@@ -244,8 +244,8 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     const {login} = useCurrentUserPersonalDetails();
     const [policies, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {filters, defaultFilters, isResolved, setFilters} = useInsightsFilters(dashboardID);
-    const {headlineChart: headlineSpec, supportingCharts: supportingSpecs} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
-    const eligibleCharts = getVisibleCharts(supportingSpecs, policies, filters.policyIDs, login);
+    const {headlineChart: headlineSpec, supportingCharts: supportingSpecs, isPolicyEligible: isDashboardPolicyEligible} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
+    const eligibleCharts = getVisibleCharts(supportingSpecs, policies, filters.policyIDs, login, isDashboardPolicyEligible);
     const eligibleGraphKeys = eligibleCharts.map(({graphKey}) => graphKey).join(',');
     const query = isResolved && !isLoadingOnyxValue(policiesMetadata) ? buildInsightsJsonQuery(dashboardID, filters, eligibleCharts) : undefined;
     const hash = query?.hash;
@@ -306,6 +306,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                 filters={filters}
                 defaultFilters={defaultFilters}
                 onChange={setFilters}
+                isPolicyAvailable={isDashboardPolicyEligible ? (policy) => isDashboardPolicyEligible(policy, login) : undefined}
             />
         ) : null;
 

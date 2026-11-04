@@ -6,6 +6,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 
+import type {Policy} from '@src/types/onyx';
+
 import React from 'react';
 import {View} from 'react-native';
 
@@ -22,9 +24,12 @@ type InsightsPageControlsProps = {
     defaultFilters: InsightsFilters;
 
     onChange: (update: Partial<InsightsFilters>) => void;
+
+    /** Limits the workspace control to the workspaces the dashboard reports on, or lists every workspace when absent */
+    isPolicyAvailable?: (policy: Policy) => boolean;
 };
 
-function InsightsPageControls({filters, defaultFilters, onChange}: InsightsPageControlsProps) {
+function InsightsPageControls({filters, defaultFilters, onChange, isPolicyAvailable}: InsightsPageControlsProps) {
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -42,6 +47,7 @@ function InsightsPageControls({filters, defaultFilters, onChange}: InsightsPageC
             <InsightsWorkspaceControl
                 value={filters.policyIDs}
                 onChange={(policyIDs) => onChange({policyIDs})}
+                isPolicyAvailable={isPolicyAvailable}
             />
             <InsightsGroupCurrencyControl
                 value={filters.groupCurrency}
