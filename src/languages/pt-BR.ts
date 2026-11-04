@@ -3143,6 +3143,7 @@ const translations: TranslationDeepObject<typeof en> = {
             approved: {title: 'Conta aprovada', heading: 'Aprovado para pagar no mundo todo', description: 'Pague membros onde quer que estejam.'},
             rejected: {title: 'Conta bancária rejeitada', heading: 'Nosso parceiro recusou sua conta bancária', description: 'Converse com o Concierge para mais informações.'},
         },
+        wiseSetupInProgress: {message: 'Configuração de reembolsos globais em andamento.', continue: 'Continuar.'},
         wiseGlobalReimbursementsIntro: {
             title: 'Configurar reembolsos globais?',
             subtitle: 'Pague membros no mundo todo na moeda local deles.',

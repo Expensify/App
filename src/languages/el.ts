@@ -3208,6 +3208,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 description: 'Συνομιλήστε με το Concierge για περισσότερες πληροφορίες.',
             },
         },
+        wiseSetupInProgress: {message: 'Η ρύθμιση των παγκόσμιων αποζημιώσεων βρίσκεται σε εξέλιξη.', continue: 'Συνέχεια.'},
         wiseGlobalReimbursementsIntro: {
             title: 'Να ρυθμιστούν οι παγκόσμιες αποζημιώσεις;',
             subtitle: 'Πληρώστε μέλη παγκοσμίως στο τοπικό τους νόμισμα.',

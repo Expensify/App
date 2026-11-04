@@ -3233,6 +3233,7 @@ const translations = {
                 description: 'Chat with Concierge for more information.',
             },
         },
+        wiseSetupInProgress: {message: 'Global reimbursements setup in progress.', continue: 'Continue.'},
         wiseGlobalReimbursementsIntro: {
             headerTitle: 'Global reimbursements',
             title: 'Set up global reimbursements?',
