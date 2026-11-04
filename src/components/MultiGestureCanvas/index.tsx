@@ -187,6 +187,9 @@ function MultiGestureCanvas({
         callback();
     };
 
+    // Both gestures must share touches with the pager so it cannot cancel a pinch at base scale.
+    const panGestureExternalGestures = [pagerGesture, externalGestureHandler].filter((gesture) => gesture !== undefined);
+
     // Pinch must be created before pan: on web, handlers end in creation order, and pan has to end last
     // to re-center the content using the offset that already includes the pinch translation.
     const pinchGesture = useCanvasPinchGesture({
@@ -202,10 +205,8 @@ function MultiGestureCanvas({
         onScaleChanged,
         isTransformGestureActive,
         shouldDisableTransformationGestures,
+        simultaneousWith: panGestureExternalGestures,
     });
-
-    // Gestures from outside of the canvas that the pan gesture has to work simultaneously with
-    const panGestureExternalGestures = [pagerGesture, externalGestureHandler].filter((gesture) => gesture !== undefined);
 
     const panGesture = useCanvasPanGesture({
         canvasSize,

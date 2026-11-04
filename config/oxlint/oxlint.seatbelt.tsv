@@ -248,7 +248,6 @@
 "../../src/components/MultifactorAuthentication/ValidateCodeResendButton.tsx"	"no-restricted-syntax"	1
 "../../src/components/MultiGestureCanvas/index.tsx"	"no-restricted-syntax"	1
 "../../src/components/MultiGestureCanvas/useCanvasPanGesture.ts"	"no-restricted-syntax"	1
-"../../src/components/MultiGestureCanvas/useCanvasPinchGesture.ts"	"react-hooks/set-state-in-effect"	1
 "../../src/components/MultiGestureCanvas/useCanvasTapGestures.ts"	"no-restricted-syntax"	1
 "../../src/components/Navigation/QuickCreationActionsBar/index.tsx"	"no-restricted-imports"	1
 "../../src/components/NumberWithSymbolForm.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
