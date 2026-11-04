@@ -69,7 +69,7 @@ import {
 } from '@libs/ReportUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
-import {buildSearchQueryJSON, buildSearchQueryString, getFooterSelectionFromQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildSearchQueryString, getFooterSelectionFromQuery, normalizeDatePresetsInQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import {getExpenseReportIDs, TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -104,7 +104,7 @@ import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {AnyOnyxUpdate, OnyxData} from '@src/types/onyx/Request';
 import type SearchFooterConversion from '@src/types/onyx/SearchFooterConversion';
-import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
+import type {SearchResultDataType, SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
 
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -149,7 +149,7 @@ function getChatReportForSearchPay(chatReport: OnyxEntry<Report>, snapshotReport
     const chatReportID = snapshotReport.chatReportID ?? snapshotReport.parentReportID;
     const snapshotChatReport = chatReportID ? searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
 
-    return chatReport ?? snapshotChatReport ?? (chatReportID ? getReportOrDraftReport(chatReportID) : undefined);
+    return chatReport ?? snapshotChatReport ?? (chatReportID ? getReportOrDraftReport({reportID: chatReportID}) : undefined);
 }
 
 /**
@@ -278,9 +278,6 @@ type HandleActionButtonPressParams = {
     /** Confirms any unacknowledged report violations before proceeding with the SUBMIT action. */
     confirmSubmitReportViolations: (onProceed: ConfirmSubmitReportViolationsOnProceed) => void;
     openReportSubmitToPopover?: (options?: ReportSubmitToPopoverOpenOptions) => void;
-    shouldDisableSearchSubmitPress?: boolean;
-    /** Consumes a one-shot flag set when the submit-to popover dismisses (prevents click-through on the row Submit button). */
-    consumeIgnoreNextSearchSubmitPress?: () => boolean;
     currentUserAccountID: number;
     currentUserLogin?: string;
     introSelected?: OnyxEntry<IntroSelected>;
@@ -302,6 +299,10 @@ type HandleActionButtonPressParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     bankAccountList: OnyxEntry<BankAccountList>;
 };
+
+function doesSearchActionUsePressTimeInputs(action: SearchTransactionAction | undefined) {
+    return action === CONST.SEARCH.ACTION_TYPES.PAY || action === CONST.SEARCH.ACTION_TYPES.APPROVE || action === CONST.SEARCH.ACTION_TYPES.SUBMIT;
+}
 
 function handleActionButtonPress({
     hash,
@@ -325,8 +326,6 @@ function handleActionButtonPress({
     confirmSubmitReportViolations,
     currentUserAccountID,
     openReportSubmitToPopover,
-    shouldDisableSearchSubmitPress,
-    consumeIgnoreNextSearchSubmitPress,
     currentUserLogin,
     introSelected,
     isASAPSubmitBetaEnabled,
@@ -429,12 +428,10 @@ function handleActionButtonPress({
                 allViolations,
                 rules,
                 getCurrencyDecimals,
+                personalDetailsByLogins,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
-            if (shouldDisableSearchSubmitPress || consumeIgnoreNextSearchSubmitPress?.()) {
-                return;
-            }
             if (snapshotReport.policyID && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
                 return;
@@ -760,6 +757,7 @@ type GetApproveActionCallbackParams = {
     allViolations: OnyxCollection<TransactionViolations>;
     rules: OnyxCollection<Rule>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 function getApproveActionCallback({
@@ -782,6 +780,7 @@ function getApproveActionCallback({
     allViolations,
     rules,
     getCurrencyDecimals,
+    personalDetailsByLogins,
 }: GetApproveActionCallbackParams) {
     if (!item.reportID) {
         return;
@@ -808,6 +807,7 @@ function getApproveActionCallback({
         additionalOnyxData: getSearchApproveOnyxData(hash, item.reportID, currentSearchKey),
         isTrackIntentUser,
         getCurrencyDecimals,
+        personalDetailsByLogins,
     });
 }
 
@@ -896,8 +896,10 @@ function getOnyxLoadingData(
 }
 
 function saveSearch({id, queryJSON, newName}: {id: string; queryJSON: Readonly<SearchQueryJSON>; newName?: string}) {
-    const saveSearchName = newName ?? queryJSON?.inputQuery ?? '';
-    const jsonQuery = JSON.stringify(queryJSON);
+    const normalizedQuery = normalizeDatePresetsInQuery(queryJSON.inputQuery);
+    const savedQueryJSON = normalizedQuery === queryJSON.inputQuery ? queryJSON : (buildSearchQueryJSON(normalizedQuery) ?? queryJSON);
+    const saveSearchName = newName ?? savedQueryJSON?.inputQuery ?? '';
+    const jsonQuery = JSON.stringify(savedQueryJSON);
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES>> = [
         {
@@ -907,7 +909,7 @@ function saveSearch({id, queryJSON, newName}: {id: string; queryJSON: Readonly<S
                 [id]: {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     name: saveSearchName,
-                    query: queryJSON.inputQuery,
+                    query: savedQueryJSON.inputQuery,
                 },
             },
         },
@@ -1714,6 +1716,12 @@ function submitMoneyRequestOnSearch({
                 : {stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED},
         });
     }
+    // Clear errors from a previous failed submit
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+        key: ONYXKEYS.COLLECTION.REPORT,
+        value: Object.fromEntries(reportList.map((report) => [`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`, {errors: null}])),
+    });
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
@@ -2301,6 +2309,24 @@ function queueBulkPayReports(jsonQuery: string) {
 }
 
 /**
+ * Queues a bulk approval for every report matching the given search query. The backend pages through all matches itself,
+ * so this covers reports beyond the currently loaded page(s) when "Select all" is checked in Search.
+ */
+function queueBulkApproveReports(jsonQuery: string) {
+    const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.APPROVE);
+    write(WRITE_COMMANDS.QUEUE_BULK_APPROVE_REPORTS, {jsonQuery, bulkActionID}, onyxData);
+}
+
+/**
+ * Queues a bulk submit for every report matching the given search query. The backend pages through all matches itself,
+ * so this covers reports beyond the currently loaded page(s) when "Select all" is checked in Search.
+ */
+function queueBulkSubmitReports(jsonQuery: string) {
+    const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT);
+    write(WRITE_COMMANDS.QUEUE_BULK_SUBMIT_REPORTS, {jsonQuery, bulkActionID}, onyxData);
+}
+
+/**
  * Queues a manual bulk "Mark as exported" for every report matching the given search query on the given connection.
  * The backend pages through all matches itself, so this covers reports beyond the currently loaded page(s) when
  * "Select all" is checked in Search. connectionName scopes the resolved reports to a single accounting connection,
@@ -2751,6 +2777,8 @@ export {
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
     queueBulkPayReports,
+    queueBulkApproveReports,
+    queueBulkSubmitReports,
     queueBulkMarkAsExported,
     updateAdvancedFilters,
     setSearchContext,
@@ -2760,6 +2788,7 @@ export {
     getChatReportWithFallback,
     getSearchApproveOnyxData,
     handleActionButtonPress,
+    doesSearchActionUsePressTimeInputs,
     submitMoneyRequestOnSearch,
     openSearchPage as openSearch,
     openBulkChangeApproverPage,

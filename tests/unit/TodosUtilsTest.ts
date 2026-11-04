@@ -1,9 +1,13 @@
+import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
+import {getSuggestedSearchesVisibility} from '@libs/SearchUIUtils';
 import createTodosReportsAndTransactions, {buildTransactionsByReportID, getTodoReportsForSearchKey} from '@libs/TodosUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {Connections} from '@src/types/onyx/Policy';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
@@ -658,5 +662,419 @@ describe('TodosUtils', () => {
 
             expect(result.reports).toEqual([]);
         });
+    });
+});
+
+describe('TodosUtils export bucket', () => {
+    const EXPORT_POLICY_ID = 'policy_export';
+    const EXPORT_REPORT_ID = 'report_export';
+    const OTHER_USER_EMAIL = 'other@mail.com';
+
+    // Every connection but NetSuite counts as verified only once it has a lastSync
+    const LAST_SYNC = {isConnected: true, isSuccessful: true, isAuthenticationError: false, source: 'DIRECT'} as const;
+
+    // Each integration keeps its exporter in a different place, so the rule has to read all of them.
+    const EXPORTER_BUILDERS: Array<[string, (exporter: string) => Policy['connections']]> = [
+        [CONST.POLICY.CONNECTIONS.NAME.QBO, (exporter) => createMock<Connections>({quickbooksOnline: {lastSync: LAST_SYNC, config: {export: {exporter}}}})],
+        [CONST.POLICY.CONNECTIONS.NAME.NETSUITE, (exporter) => createMock<Connections>({netsuite: {options: {config: {exporter}}}})],
+        [CONST.POLICY.CONNECTIONS.NAME.XERO, (exporter) => createMock<Connections>({xero: {lastSync: LAST_SYNC, config: {export: {exporter}}}})],
+        [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, (exporter) => createMock<Connections>({intacct: {lastSync: LAST_SYNC, config: {export: {exporter}}}})],
+        [CONST.POLICY.CONNECTIONS.NAME.QBD, (exporter) => createMock<Connections>({quickbooksDesktop: {lastSync: LAST_SYNC, config: {export: {exporter}}}})],
+        [CONST.POLICY.CONNECTIONS.NAME.RILLET, (exporter) => createMock<Connections>({rillet: {lastSync: LAST_SYNC, config: {export: {exporter}}}})],
+        [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY, (exporter) => createMock<Connections>({dualEntry: {lastSync: LAST_SYNC, config: {export: {exporter}}}})],
+        [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE, (exporter) => createMock<Connections>({campfire: {lastSync: LAST_SYNC, config: {export: {exporter}}}})],
+        [
+            CONST.POLICY.CONNECTIONS.NAME.CERTINIA,
+            (exporter) => createMock<Connections>({financialforce: {lastSync: LAST_SYNC, config: {credentials: {enterpriseUrl: 'https://example.my.salesforce.com'}, export: {exporter}}}}),
+        ],
+    ];
+
+    type ExportPolicyOptions = {
+        policyExporter?: string;
+        connectionExporter?: string;
+        isAutoSyncEnabled?: boolean;
+        role?: Policy['role'];
+    };
+
+    const createExportPolicy = ({
+        policyExporter = '',
+        connectionExporter = CURRENT_USER_EMAIL,
+        isAutoSyncEnabled = false,
+        role = CONST.POLICY.ROLE.ADMIN,
+    }: ExportPolicyOptions = {}): Policy =>
+        createMock<Policy>({
+            ...createMockPolicy(EXPORT_POLICY_ID, {role, exporter: policyExporter}),
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    lastSync: {isConnected: true, isSuccessful: true, isAuthenticationError: false, source: 'DIRECT'},
+                    config: {
+                        autoSync: {jobID: 'job123', enabled: isAutoSyncEnabled},
+                        export: {exporter: connectionExporter},
+                    },
+                },
+            },
+        });
+
+    const createApprovedReport = () =>
+        createMockReport(EXPORT_REPORT_ID, {
+            policyID: EXPORT_POLICY_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            ownerAccountID: OTHER_USER_ACCOUNT_ID,
+        });
+
+    const buildParams = (
+        policy: Policy,
+        report = createApprovedReport(),
+        allReportActions?: Record<string, Record<string, ReportAction>>,
+        allReportNameValuePairs?: Record<string, {private_isArchived?: string}>,
+    ) => ({
+        ...baseParams,
+        allReports: toReportsCollection([report]),
+        allTransactions: toTransactionsCollection([createMockTransaction(`trans_${report.reportID}`, report.reportID)]),
+        allPolicies: toPoliciesCollection([policy]),
+        allReportActions,
+        allReportNameValuePairs,
+    });
+
+    const getExportedReportIDs = (
+        policy: Policy,
+        report = createApprovedReport(),
+        allReportActions?: Record<string, Record<string, ReportAction>>,
+        allReportNameValuePairs?: Record<string, {private_isArchived?: string}>,
+    ) => createTodosReportsAndTransactions(buildParams(policy, report, allReportActions, allReportNameValuePairs)).reportsToExport.map((exportedReport) => exportedReport.reportID);
+
+    describe('exporter', () => {
+        it('includes the report when policy.exporter is the current user', () => {
+            // Given a policy that names the current user as its exporter
+            const policy = createExportPolicy({policyExporter: CURRENT_USER_EMAIL});
+
+            // When the export to-do is built
+            const exportedReportIDs = getExportedReportIDs(policy);
+
+            // Then the approved report is listed, because the exporter is the person expected to export it
+            expect(exportedReportIDs).toEqual([EXPORT_REPORT_ID]);
+        });
+
+        it('excludes the report when both the policy and connection exporters are someone else', () => {
+            // Given a policy where both the policy and the connection name another user as the exporter
+            const policy = createExportPolicy({policyExporter: OTHER_USER_EMAIL, connectionExporter: OTHER_USER_EMAIL});
+
+            // When the export to-do is built
+            const exportedReportIDs = getExportedReportIDs(policy);
+
+            // Then the report is not listed, because exporting it is someone else's job
+            expect(exportedReportIDs).toEqual([]);
+        });
+
+        it('includes the report when policy.exporter is empty and the connection exporter is the current user', () => {
+            // Given a policy with no policy.exporter, whose connection names the current user as its exporter
+            const policy = createExportPolicy({policyExporter: ''});
+
+            // When the export to-do is built
+            const exportedReportIDs = getExportedReportIDs(policy);
+
+            // Then the report is listed, because the server matches the to-do on the connection exporter
+            expect(exportedReportIDs).toEqual([EXPORT_REPORT_ID]);
+        });
+
+        it.each(EXPORTER_BUILDERS)('reads the connection exporter for %s while policy.exporter is empty', (_connectionName, buildConnections) => {
+            // Given a policy with no policy.exporter, whose connection stores the current user as exporter in that
+            // integration's own location
+            const policy = createMock<Policy>({
+                ...createMockPolicy(EXPORT_POLICY_ID, {role: CONST.POLICY.ROLE.ADMIN, exporter: ''}),
+                connections: buildConnections(CURRENT_USER_EMAIL),
+            });
+
+            // When the export to-do is built
+            const exportedReportIDs = getExportedReportIDs(policy);
+
+            // Then the report is listed, so no integration is missed because of where it keeps its exporter
+            expect(exportedReportIDs).toEqual([EXPORT_REPORT_ID]);
+        });
+
+        it('excludes the report for an admin who is not an exporter', () => {
+            // Given an admin on a policy whose connection names another user as exporter
+            const policy = createExportPolicy({connectionExporter: OTHER_USER_EMAIL, role: CONST.POLICY.ROLE.ADMIN});
+
+            // When the export to-do is built
+            const exportedReportIDs = getExportedReportIDs(policy);
+
+            // Then the report is not listed, because being an admin alone does not make the export the user's to-do
+            expect(exportedReportIDs).toEqual([]);
+        });
+
+        it('includes the report for a non-admin who is the exporter', () => {
+            // Given a regular member whom the connection names as exporter
+            const policy = createExportPolicy({role: CONST.POLICY.ROLE.USER});
+
+            // When the export to-do is built
+            const exportedReportIDs = getExportedReportIDs(policy);
+
+            // Then the report is listed, because the exporter role does not depend on being an admin
+            expect(exportedReportIDs).toEqual([EXPORT_REPORT_ID]);
+        });
+    });
+
+    describe('auto-sync', () => {
+        it('excludes the report when auto-sync is on, since auto-sync exports it', () => {
+            // Given the current user is the exporter on a connection with auto-sync on
+            const policy = createExportPolicy({isAutoSyncEnabled: true});
+
+            // When the export to-do is built
+            const exportedReportIDs = getExportedReportIDs(policy);
+
+            // Then the report is not listed, since auto-sync exports it without the user's help
+            expect(exportedReportIDs).toEqual([]);
+        });
+
+        it('includes the report when auto-sync is on but the export failed', () => {
+            // Given an approved report whose automatic export failed, on a connection with auto-sync on
+            const report = {...createApprovedReport(), hasExportError: true};
+
+            // When the export to-do is built
+            const exportedReportIDs = getExportedReportIDs(createExportPolicy({isAutoSyncEnabled: true}), report);
+
+            // Then the report is listed, because auto-sync gave up and the exporter has to export it by hand
+            expect(exportedReportIDs).toEqual([EXPORT_REPORT_ID]);
+        });
+
+        it('ignores a failure message that predates the last approval reset', () => {
+            // Given an approved report on an auto-sync connection that has an integration failure message, and a
+            // later version of it that was unapproved after that failure
+            const actionsFor = (actions: Record<string, ReportAction>) => ({[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${EXPORT_REPORT_ID}`]: actions});
+            const failureMessage = createMock<ReportAction>({
+                reportActionID: 'failureMessage',
+                actionName: CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
+                created: '2024-06-01 00:00:00.000',
+            });
+            const unapproved = createMock<ReportAction>({
+                reportActionID: 'unapproved',
+                actionName: CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
+                created: '2024-06-02 00:00:00.000',
+            });
+
+            // When the export to-do is built while the failure is the report's latest word on the export
+            // Then the report is listed, because the failure means the exporter has to export it by hand
+            expect(getExportedReportIDs(createExportPolicy({isAutoSyncEnabled: true}), createApprovedReport(), actionsFor({failureMessage}))).toEqual([EXPORT_REPORT_ID]);
+
+            // When the export to-do is built after the report was unapproved and approved again
+            // Then the report is not listed, because the reset moves it past that failure and auto-sync owns it once more
+            expect(getExportedReportIDs(createExportPolicy({isAutoSyncEnabled: true}), createApprovedReport(), actionsFor({failureMessage, unapproved}))).toEqual([]);
+        });
+
+        it('includes the report when auto-sync is off', () => {
+            // Given the current user is the exporter on a connection with auto-sync off
+            const policy = createExportPolicy({isAutoSyncEnabled: false});
+
+            // When the export to-do is built
+            const exportedReportIDs = getExportedReportIDs(policy);
+
+            // Then the report is listed, because nothing exports it unless the exporter does
+            expect(exportedReportIDs).toEqual([EXPORT_REPORT_ID]);
+        });
+    });
+
+    describe('report state', () => {
+        it('excludes a report that was already exported', () => {
+            // Given an approved report that was already exported to the integration
+            const report = {...createApprovedReport(), isExportedToIntegration: true};
+
+            // When the export to-do is built
+            const exportedReportIDs = getExportedReportIDs(createExportPolicy(), report);
+
+            // Then the report is not listed, so the exporter is not asked to export it twice
+            expect(exportedReportIDs).toEqual([]);
+        });
+
+        it('excludes a report whose export is already queued', () => {
+            // Given an approved report with an export already queued
+            const queuedAction = createMock<ReportAction>({
+                reportActionID: 'queued_action',
+                actionName: CONST.REPORT.ACTIONS.TYPE.QUEUED_FOR_EXPORT,
+                created: '2024-06-01 00:00:00.000',
+            });
+
+            // When the export to-do is built
+            const exportedReportIDs = getExportedReportIDs(createExportPolicy(), createApprovedReport(), {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${EXPORT_REPORT_ID}`]: {queuedAction}});
+
+            // Then the report is not listed, because the export is already on its way
+            expect(exportedReportIDs).toEqual([]);
+        });
+
+        it('excludes an archived report', () => {
+            // Given an approved report that is archived. The server reads the archive flag from the expense report
+            // itself, not from its chat
+            const archivedNVPs = {[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${EXPORT_REPORT_ID}`]: {private_isArchived: '2024-01-01 00:00:00'}};
+
+            // When the export to-do is built
+            const exportedReportIDs = getExportedReportIDs(createExportPolicy(), createApprovedReport(), undefined, archivedNVPs);
+
+            // Then the report is not listed, because an archived report can no longer be acted on
+            expect(exportedReportIDs).toEqual([]);
+        });
+
+        it('excludes a report waiting on a bank account', () => {
+            // Given an approved report that is waiting on a bank account
+            const waitingReport = {...createApprovedReport(), isWaitingOnBankAccount: true};
+
+            // When the export to-do is built
+            const exportedReportIDs = getExportedReportIDs(createExportPolicy(), waitingReport);
+
+            // Then the report is not listed, because it is not ready to export until the bank account is set up
+            expect(exportedReportIDs).toEqual([]);
+        });
+
+        it('excludes a report whose only connection is unverified', () => {
+            // Given a policy whose only connection is an unverified NetSuite connection that names the current user as
+            // exporter
+            const policy = createMock<Policy>({
+                ...createMockPolicy(EXPORT_POLICY_ID, {role: CONST.POLICY.ROLE.ADMIN, exporter: ''}),
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {verified: false, options: {config: {exporter: CURRENT_USER_EMAIL}}},
+                }),
+            });
+
+            // When the export to-do is built
+            const exportedReportIDs = getExportedReportIDs(policy);
+
+            // Then the report is not listed. App requires a verified connection while the backend does not, so this
+            // is a known and accepted difference
+            expect(exportedReportIDs).toEqual([]);
+        });
+
+        it('excludes an approved report on a cash-basis connection until it is paid', () => {
+            // Given the current user is the exporter on a cash-basis QBO connection
+            const policy = createExportPolicy();
+            const cashPolicy = createMock<Policy>({
+                ...policy,
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        ...policy.connections?.quickbooksOnline,
+                        config: {...policy.connections?.quickbooksOnline?.config, accountingMethod: COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH},
+                    },
+                },
+            });
+
+            // When the export to-do is built while the report is only approved
+            // Then the report is not listed, because cash-basis accounting records the report only once it is paid
+            expect(getExportedReportIDs(cashPolicy)).toEqual([]);
+
+            // When the export to-do is built after the report is paid
+            // Then the report is listed, since it is now ready to export
+            const paidReport = {...createApprovedReport(), statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED};
+            expect(getExportedReportIDs(cashPolicy, paidReport)).toEqual([EXPORT_REPORT_ID]);
+        });
+    });
+});
+
+describe('export rule across surfaces', () => {
+    const SURFACE_POLICY_ID = 'policy_surface';
+    const SURFACE_REPORT_ID = 'report_surface';
+
+    const createSurfacePolicy = (
+        isAutoSyncEnabled: boolean,
+        {connectionExporter = CURRENT_USER_EMAIL, role = CONST.POLICY.ROLE.ADMIN}: {connectionExporter?: string; role?: Policy['role']} = {},
+    ): Policy =>
+        createMock<Policy>({
+            ...createMockPolicy(SURFACE_POLICY_ID, {role, exporter: ''}),
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    lastSync: {isConnected: true, isSuccessful: true, isAuthenticationError: false, source: 'DIRECT'},
+                    config: {
+                        autoSync: {jobID: 'job123', enabled: isAutoSyncEnabled},
+                        export: {exporter: connectionExporter},
+                    },
+                },
+            },
+        });
+
+    const createSurfaceReport = () =>
+        createMockReport(SURFACE_REPORT_ID, {
+            policyID: SURFACE_POLICY_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            ownerAccountID: OTHER_USER_ACCOUNT_ID,
+        });
+
+    const getSurfaceResults = (policy: Policy) => {
+        const report = createSurfaceReport();
+        const transaction = createMockTransaction(`trans_${SURFACE_REPORT_ID}`, SURFACE_REPORT_ID);
+
+        const isInTodoBucket = createTodosReportsAndTransactions({
+            ...baseParams,
+            allReports: toReportsCollection([report]),
+            allTransactions: toTransactionsCollection([transaction]),
+            allPolicies: toPoliciesCollection([policy]),
+        }).reportsToExport.some((exportedReport) => exportedReport.reportID === SURFACE_REPORT_ID);
+
+        const isSidebarItemVisible = getSuggestedSearchesVisibility(CURRENT_USER_EMAIL, {}, toPoliciesCollection([policy]), undefined).visibility[CONST.SEARCH.SEARCH_KEYS.EXPORT];
+
+        const primaryAction = getReportPrimaryAction({
+            rules: undefined,
+            currentUserLogin: CURRENT_USER_EMAIL,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            report,
+            ownerLogin: '',
+            chatReport: createMockReport(`chat_${SURFACE_REPORT_ID}`, {type: CONST.REPORT.TYPE.CHAT}),
+            reportTransactions: [transaction],
+            violations: {},
+            bankAccountList: {},
+            policy,
+            isChatReportArchived: false,
+        });
+
+        return {isInTodoBucket, isSidebarItemVisible, isPrimaryExportAction: primaryAction === CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING};
+    };
+
+    it('keeps the report page action for an admin who is not the exporter, but not the to-do', () => {
+        // Given an admin on a policy whose connection names another user as exporter, with auto-sync off
+        const policy = createSurfacePolicy(false, {connectionExporter: 'someoneelse@mail.com'});
+
+        // When the to-do, the sidebar and the report page each decide whether to offer the export
+        const results = getSurfaceResults(policy);
+
+        // Then only the report page offers it, because the to-do and the sidebar belong to the exporter while the
+        // report page lets any admin export
+        expect(results.isInTodoBucket).toBe(false);
+        expect(results.isSidebarItemVisible).toBe(false);
+        expect(results.isPrimaryExportAction).toBe(true);
+    });
+
+    it('offers the report nowhere for a member who is neither the exporter nor an admin', () => {
+        // Given a regular member on a policy whose connection names another user as exporter
+        const policy = createSurfacePolicy(false, {connectionExporter: 'someoneelse@mail.com', role: CONST.POLICY.ROLE.USER});
+
+        // When the to-do, the sidebar and the report page each decide whether to offer the export
+        const results = getSurfaceResults(policy);
+
+        // Then none of them offer it, because the member has no right to export the report
+        expect(results).toEqual({isInTodoBucket: false, isSidebarItemVisible: false, isPrimaryExportAction: false});
+    });
+
+    it('shows the report in the to-do, the sidebar and the report page when it needs a manual export', () => {
+        // Given the current user is the exporter on a connection with auto-sync off
+        const policy = createSurfacePolicy(false);
+
+        // When the to-do, the sidebar and the report page each decide whether to offer the export
+        const results = getSurfaceResults(policy);
+
+        // Then all three offer it, so the surfaces agree on a report that only the user can export
+        expect(results).toEqual({isInTodoBucket: true, isSidebarItemVisible: true, isPrimaryExportAction: true});
+    });
+
+    it('drops the report from the to-do and the report page when auto-sync exports it', () => {
+        // Given the current user is the exporter on a connection with auto-sync on
+        const policy = createSurfacePolicy(true);
+
+        // When the to-do, the sidebar and the report page each decide whether to offer the export
+        const results = getSurfaceResults(policy);
+
+        // Then the to-do and the report page drop it, because auto-sync exports it without the user's help
+        expect(results.isInTodoBucket).toBe(false);
+        expect(results.isPrimaryExportAction).toBe(false);
+
+        // Then the sidebar item stays, since the user is still an exporter and can open an empty list
+        expect(results.isSidebarItemVisible).toBe(true);
     });
 });

@@ -99,6 +99,7 @@ describe('ChatTransactionPreview', () => {
         );
         await waitForBatchedUpdatesWithAct();
         fireEvent.press(screen.getByText('Transaction preview'));
+        await waitForBatchedUpdatesWithAct();
 
         // Then the thread is created with the marker, so OpenReport can skip the large policy collections
         expect(createTransactionThreadReport).toHaveBeenCalledWith(expect.objectContaining({fullPolicySnapshotLastModified: LIVE_FULL_POLICY_SNAPSHOT_LAST_MODIFIED}));
