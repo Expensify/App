@@ -24,6 +24,7 @@ import Onyx from 'react-native-onyx';
 import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport} from '../../utils/collections/reports';
 import createMock from '../../utils/createMock';
+import getOnyxValue from '../../utils/getOnyxValue';
 import {signInWithTestUser} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -365,6 +366,31 @@ describe('DynamicIOURequestStepParticipants', () => {
 
             // And the route shown after going back gets the new iouType
             expect(Navigation.setParams).toHaveBeenCalledWith({iouType: expectedIOUType}, undefined, STACK_KEY);
+        });
+
+        it('keeps the category when the unreported expense moves to the workspace its categories came from', async () => {
+            // Given an unreported expense whose category was picked from the user's only workspace, the one the confirmation reads categories from
+            const workspacePolicy = {
+                ...createRandomPolicy(Number(POLICY_ID), CONST.POLICY.TYPE.TEAM),
+                role: CONST.POLICY.ROLE.ADMIN,
+                pendingAction: undefined,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${workspacePolicy.id}`, workspacePolicy);
+            await renderFromConfirmation();
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {category: 'Travel'});
+            });
+            await waitForBatchedUpdates();
+
+            // When the user picks that workspace's chat
+            act(() => {
+                latestSelectorProps.onParticipantsAdded?.([{policyID: workspacePolicy.id, reportID: '3', isPolicyExpenseChat: true, selected: true}]);
+            });
+            await waitForBatchedUpdates();
+
+            // Then the category stays, because it belongs to the workspace the expense is going to
+            const transactionDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
+            expect(transactionDraft?.category).toBe('Travel');
         });
     });
 });

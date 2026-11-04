@@ -6,9 +6,10 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantSubmission from '@hooks/useParticipantSubmission';
+import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getIsWorkspacesOnlyForTransaction, getSelectedWorkspacePolicyID, isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils} from '@libs/IOUUtils';
+import {getIsWorkspacesOnlyForTransaction, isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
@@ -25,6 +26,7 @@ import {
 
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 
+import {getIOURequestPolicyID} from '@userActions/IOU/MoneyRequest';
 import {navigateToStartStepIfScanFileCannotBeRead} from '@userActions/IOU/Receipt';
 
 import CONST from '@src/CONST';
@@ -166,11 +168,20 @@ function DynamicIOURequestStepParticipants({route, navigation, transaction: init
 
     const confirmationIOUTypeRef = useRef<IOUType | undefined>(undefined);
     const hasReturnedToConfirmationRef = useRef(false);
+    // A pick is compared against the policy the confirmation shows, so unreported and self DM expenses read
+    // `policyForMovingExpenses` here too, instead of the route report's (often optimistic or `_FAKE_`) policyID.
+    const {policy: confirmationPolicy} = usePolicyForTransaction({
+        transaction: initialTransaction,
+        reportPolicyID: getIOURequestPolicyID(initialTransaction, getReportOrDraftReport({reportID})),
+        action,
+        iouType,
+        isPerDiemRequest: isPerDiem,
+    });
     const {handleParticipantsAdded: addParticipantToConfirmation} = useConfirmationParticipantSelection({
         transaction: initialTransaction,
         iouType,
         reportID,
-        policyID: getSelectedWorkspacePolicyID(initialTransaction, action) ?? getReportOrDraftReport({reportID})?.policyID,
+        policyID: confirmationPolicy?.id,
         isDistanceRequest: isDistanceRequest(initialTransaction),
         blockDistanceRequestIfNeeded,
         onIOUTypeChange: (nextIOUType) => {
