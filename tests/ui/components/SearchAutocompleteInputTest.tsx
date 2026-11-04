@@ -11,6 +11,9 @@ import {setSearchContext} from '@libs/actions/Search';
 
 import type {ThemeColors} from '@styles/theme/types';
 
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import type {ForwardedRef} from 'react';
 import type {View as NativeView, ViewProps} from 'react-native';
 import type * as Reanimated from 'react-native-reanimated';
@@ -23,6 +26,11 @@ import {DynamicColorIOS, PlatformColor, useAnimatedStyle} from 'react-native-rea
 
 import createMock from '../../utils/createMock';
 
+// The mocked hooks read these lists. They keep their identity between renders like the real hooks, and a test replaces one to simulate a data update.
+let mockCurrencyList: Record<string, {retired: boolean}> = {};
+let mockOnyxValues: Record<string, unknown> = {};
+let mockExportedToFilterOptions: string[] = [];
+
 jest.mock('@components/TextInput', () => {
     const react = jest.requireActual<typeof React>('react');
     const {View} = jest.requireActual<{View: typeof NativeView}>('react-native');
@@ -34,9 +42,21 @@ jest.mock('@hooks/useThemeStyles', () => () => ({searchRouterTextInputContainer:
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 jest.mock('@hooks/useNetwork', () => () => ({isOffline: false}));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({displayName: 'Current User'}));
-jest.mock('@hooks/useCurrencyList', () => ({useCurrencyListState: () => ({currencyList: {}})}));
-jest.mock('@hooks/useExportedToFilterOptions', () => () => ({exportedToFilterOptions: []}));
-jest.mock('@hooks/useOnyx', () => () => [undefined]);
+jest.mock('@hooks/useCurrencyList', () => ({useCurrencyListState: () => ({currencyList: mockCurrencyList})}));
+jest.mock('@hooks/useExportedToFilterOptions', () => () => ({exportedToFilterOptions: mockExportedToFilterOptions}));
+jest.mock('@hooks/useOnyx', () => {
+    // This runs the real selector on the raw value, and like the real hook it keeps the output's identity until the raw value changes.
+    const selections = new Map<string, {rawValue: unknown; selected: unknown}>();
+    return (key: string, options?: {selector: (rawValue: unknown) => unknown}) => {
+        const rawValue = mockOnyxValues[key];
+        let selection = selections.get(key);
+        if (!selection || selection.rawValue !== rawValue) {
+            selection = {rawValue, selected: options ? options.selector(rawValue) : rawValue};
+            selections.set(key, selection);
+        }
+        return [selection.selected];
+    };
+});
 jest.mock('@hooks/useFocusAfterNav', () => jest.fn(() => false));
 jest.mock('@libs/actions/Search', () => ({setSearchContext: jest.fn()}));
 
@@ -60,7 +80,14 @@ const input = jest.mocked(TextInput);
 const animatedStyle = jest.mocked(useAnimatedStyle);
 const focusAfterNav = jest.mocked(useFocusAfterNav);
 
-beforeEach(() => jest.clearAllMocks());
+const COWORKER_LOGIN = 'coworker@example.com';
+
+beforeEach(() => {
+    jest.clearAllMocks();
+    mockCurrencyList = {};
+    mockOnyxValues = {};
+    mockExportedToFilterOptions = [];
+});
 
 describe('SearchAutocompleteInput', () => {
     test.each([
@@ -225,5 +252,122 @@ describe('SearchAutocompleteInput', () => {
         }
         expect(changes.mock.invocationCallOrder.at(0)).toBeLessThan(contextCallOrder);
         expect(props?.autoFocus).toBe(true);
+    });
+
+    it('keeps the same markdown parser while the query changes', () => {
+        // Given the input rendered with a query and unchanged autocomplete data
+        const substitutionMap = {};
+        const {rerender} = render(
+            <SearchAutocompleteInput
+                value="from:"
+                onSearchQueryChange={jest.fn()}
+                substitutionMap={substitutionMap}
+            />,
+        );
+        const firstParser = input.mock.lastCall?.[0].parser;
+
+        // When the user types and the query changes
+        rerender(
+            <SearchAutocompleteInput
+                value="from:me"
+                onSearchQueryChange={jest.fn()}
+                substitutionMap={substitutionMap}
+            />,
+        );
+
+        // Then the input gets the same parser, so Live Markdown doesn't register a new one on every keystroke
+        expect(firstParser).toBeDefined();
+        expect(input.mock.lastCall?.[0].parser).toBe(firstParser);
+    });
+
+    test.each([
+        {
+            list: 'currencies',
+            query: 'currency:USD',
+            updateList: () => {
+                mockCurrencyList = {USD: {retired: false}};
+            },
+            expected: [{start: 9, type: 'mention-user', length: 3}],
+        },
+        {
+            list: 'categories',
+            query: 'category:Travel',
+            updateList: () => {
+                mockOnyxValues = {[ONYXKEYS.COLLECTION.POLICY_CATEGORIES]: {[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}1`]: {Travel: {name: 'Travel', enabled: true}}}};
+            },
+            expected: [{start: 9, type: 'mention-user', length: 6}],
+        },
+        {
+            list: 'tags',
+            query: 'tag:Urgent',
+            updateList: () => {
+                mockOnyxValues = {
+                    [ONYXKEYS.COLLECTION.POLICY_TAGS]: {[`${ONYXKEYS.COLLECTION.POLICY_TAGS}1`]: {Projects: {name: 'Projects', tags: {Urgent: {name: 'Urgent', enabled: true}}}}},
+                };
+            },
+            expected: [{start: 4, type: 'mention-user', length: 6}],
+        },
+        {
+            list: 'user logins',
+            query: `from:${COWORKER_LOGIN}`,
+            updateList: () => {
+                mockOnyxValues = {[ONYXKEYS.LOGINS]: {[COWORKER_LOGIN]: {partnerID: CONST.PARTNER_ID.EXPENSIFY, partnerUserID: COWORKER_LOGIN}}};
+            },
+            expected: [{start: 5, type: 'mention-here', length: COWORKER_LOGIN.length}],
+        },
+        {
+            list: 'exported-to options',
+            query: 'exported-to:Xero',
+            updateList: () => {
+                mockExportedToFilterOptions = ['Xero'];
+            },
+            expected: [{start: 12, type: 'mention-user', length: 4}],
+        },
+    ])('gives the input a new parser that highlights the new value when the $list change', ({query, updateList, expected}) => {
+        // Given the input rendered before the list has the queried value, so the parser doesn't highlight it
+        const substitutionMap = {};
+        const {rerender} = render(
+            <SearchAutocompleteInput
+                value={query}
+                onSearchQueryChange={jest.fn()}
+                substitutionMap={substitutionMap}
+            />,
+        );
+        const firstParser = input.mock.lastCall?.[0].parser;
+        expect(firstParser?.(query)).toEqual([]);
+
+        // When the list updates with the queried value
+        updateList();
+        rerender(
+            <SearchAutocompleteInput
+                value={query}
+                onSearchQueryChange={jest.fn()}
+                substitutionMap={substitutionMap}
+            />,
+        );
+
+        // Then the input gets a new parser that highlights it, because Live Markdown caches ranges by parser and text and the old parser would keep the old highlights
+        const nextParser = input.mock.lastCall?.[0].parser;
+        expect(nextParser).not.toBe(firstParser);
+        expect(nextParser?.(query)).toEqual(expected);
+    });
+
+    it('does not highlight a login that is not one of the expensify logins', () => {
+        // Given a login from another partner, which the logins selector filters out
+        const otherPartnerLogin = 'partner@example.com';
+        mockOnyxValues = {[ONYXKEYS.LOGINS]: {[otherPartnerLogin]: {partnerID: CONST.PARTNER_ID.IPHONE, partnerUserID: otherPartnerLogin}}};
+        const query = `from:${otherPartnerLogin}`;
+
+        // When the input renders and parses a query for that login
+        render(
+            <SearchAutocompleteInput
+                value={query}
+                onSearchQueryChange={jest.fn()}
+                substitutionMap={{}}
+            />,
+        );
+
+        // Then it isn't highlighted, because only the user's own expensify logins count as valid values
+        expect(input.mock.lastCall?.[0].parser?.(query)).toEqual([]);
     });
 });
