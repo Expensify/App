@@ -38,10 +38,9 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isBankAccountEligibleForGlobalReimbursements, isPersonalBankAccountMissingInfo, showUnlockAlreadyRequestedModal} from '@libs/BankAccountUtils';
+import {isBankAccountEligibleForGlobalReimbursements, isPersonalBankAccountMissingInfo, isWiseOnboardingSubmitted, showUnlockAlreadyRequestedModal} from '@libs/BankAccountUtils';
 import {hasDisplayableAssignedCards, isDirectFeed, maskCardNumber} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import {getWiseOnboardingNavigationRoute} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {getStreetLines} from '@libs/PersonalDetailsUtils';
@@ -533,11 +532,15 @@ function WalletPage() {
                               return;
                           }
                           if (isWiseGlobalReimbursementsEnabled) {
-                              closeModal(() =>
+                              closeModal(() => {
+                                  const introRoute = createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID));
+                                  // A submitted business sees where its onboarding stands, on the status page on top of the intro
                                   Navigation.navigate(
-                                      getWiseOnboardingNavigationRoute(paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethod.additionalData?.wise?.status),
-                                  ),
-                              );
+                                      isWiseOnboardingSubmitted(paymentMethod.selectedPaymentMethod)
+                                          ? createDynamicRoute(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path, introRoute)
+                                          : introRoute,
+                                  );
+                              });
                               return;
                           }
                           closeModal(() =>

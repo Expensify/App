@@ -170,7 +170,7 @@ describe('WiseAcceptTermsPage', () => {
         expect(screen.queryByText(ERROR)).not.toBeOnTheScreen();
     });
 
-    it('drops the onboarding answers and opens the more info needed page once Wise has the business', () => {
+    it('drops the onboarding answers and opens the status page once Wise has the business', () => {
         // Given a submission sent from the terms page
         const {rerender} = renderPage();
         tickEveryBox();
@@ -179,22 +179,22 @@ describe('WiseAcceptTermsPage', () => {
         // When the request succeeds
         answerSubmission(rerender, {isWiseBusinessOnboardingSubmitSuccessful: true});
 
-        // Then the draft, the SSN in memory and the unsaved pages go, since the server holds the business now, and the more info needed page replaces the terms
+        // Then the draft, the SSN in memory and the unsaved pages go, since the server holds the business now, and the status page replaces the terms
         expect(clearDraftValues).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
         expect(clearSensitiveAnswers).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
         expect(clearWiseOnboardingUnsavedPages).toHaveBeenCalled();
-        expect(Navigation.navigate).toHaveBeenCalledWith('settings/wallet/global-reimbursements/1/more-info-needed', {forceReplace: true});
+        expect(Navigation.navigate).toHaveBeenCalledWith('settings/wallet/global-reimbursements/1/status', {forceReplace: true});
     });
 
-    it('opens the more info needed page only once while the terms page is still mounted under it', () => {
-        // Given a submission that succeeded and opened the more info needed page
+    it('opens the status page only once while the terms page is still mounted under it', () => {
+        // Given a submission that succeeded and opened the status page
         const {rerender} = renderPage();
         tickEveryBox();
         pressConfirm();
         answerSubmission(rerender, {isWiseBusinessOnboardingSubmitSuccessful: true});
 
-        // When the terms page renders again with the more info needed page focused, as it does until the replace finishes
-        mockFocusedPath = `${INTRO_PATH}/more-info-needed`;
+        // When the terms page renders again with the status page focused, as it does until the replace finishes
+        mockFocusedPath = `${INTRO_PATH}/status`;
         rerender();
 
         // Then it does not navigate again, since the focused path is no longer the terms page and would point at a route that does not exist

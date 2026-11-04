@@ -148,8 +148,8 @@ function WiseAcceptTermsPage({route}: WiseAcceptTermsPageProps) {
             clearDraftValues(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
             clearSensitiveAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
             clearWiseOnboardingUnsavedPages();
-            // Wise's hosted form still has to collect the owners and directors, so a submitted business always needs more info at launch
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path, introPath), {forceReplace: true});
+            // Wise's hosted form still has to collect the owners and directors, which the status page asks for while Wise needs more info
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path, introPath), {forceReplace: true});
             return;
         }
         if (!pageToFix) {

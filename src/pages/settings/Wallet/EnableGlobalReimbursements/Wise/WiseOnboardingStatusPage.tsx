@@ -1,5 +1,5 @@
 /**
- * Shows where the business's Wise onboarding stands for one bank account: in review, approved, or rejected.
+ * Shows where the business's Wise onboarding stands for one bank account: more info needed, in review, approved, or rejected.
  * It opens over the intro and shows the status the bank account holds. Wise also sends the user here when its KYC form ends.
  */
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -34,6 +34,7 @@ import React, {useEffect} from 'react';
 
 import ApprovedContent from './WiseOnboardingStatus/ApprovedContent';
 import InReviewContent from './WiseOnboardingStatus/InReviewContent';
+import MoreInfoNeededContent from './WiseOnboardingStatus/MoreInfoNeededContent';
 import RejectedContent from './WiseOnboardingStatus/RejectedContent';
 
 type WiseOnboardingStatusPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ONBOARDING_STATUS>;
@@ -74,17 +75,11 @@ function WiseOnboardingStatusPage({route}: WiseOnboardingStatusPageProps) {
             return;
         }
         // Only an onboarding still waiting for Wise's form takes its outcome, so an old redirect does not overwrite a status the server sent since
-        const isWaitingForKYCReviewForm = onboardingStatus === CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED;
-        if (isWaitingForKYCReviewForm && kycReviewFormStatus !== CONST.WISE.KYC_REVIEW_REDIRECT_STATUS_SUCCESS) {
-            // The form was closed or failed, so the user goes back to the page that opens it again
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path, introPath), {forceReplace: true});
-            return;
-        }
-        if (isWaitingForKYCReviewForm) {
+        if (kycReviewFormStatus === CONST.WISE.KYC_REVIEW_REDIRECT_STATUS_SUCCESS && onboardingStatus === CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED) {
             markWiseKYCReviewSubmitted(bankAccountID);
         }
         Navigation.setParams({status: undefined});
-    }, [kycReviewFormStatus, hasBankAccount, onboardingStatus, bankAccountID, introPath]);
+    }, [kycReviewFormStatus, hasBankAccount, onboardingStatus, bankAccountID]);
 
     // On a cold direct link the account list can be empty until the payment-method fetch finishes, so wait for it before judging the account
     const isWaitingForBankAccount = !hasBankAccount && !!isLoadingPaymentMethods;
@@ -96,6 +91,15 @@ function WiseOnboardingStatusPage({route}: WiseOnboardingStatusPageProps) {
     let title: TranslationPaths;
     let content: ReactNode;
     switch (onboardingStatus) {
+        case CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED:
+            title = 'walletPage.wiseOnboarding.moreInfoNeeded.headerTitle';
+            content = (
+                <MoreInfoNeededContent
+                    bankAccountID={bankAccountID}
+                    statusPath={createDynamicRoute(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path, introPath)}
+                />
+            );
+            break;
         case CONST.WISE.ONBOARDING_STATUS.APPROVED:
             title = 'walletPage.wiseOnboarding.approved.title';
             content = <ApprovedContent onDone={goBackToEntryPoint} />;
@@ -105,7 +109,7 @@ function WiseOnboardingStatusPage({route}: WiseOnboardingStatusPageProps) {
             content = <RejectedContent onDone={goBackToEntryPoint} />;
             break;
         default:
-            // Any other status shows the review, since that is what follows the form right before the review status reaches the account
+            // A business without a status reaches this page only by a link, so it shows the review like right after the form
             title = 'walletPage.wiseOnboarding.inReview.title';
             content = <InReviewContent onDone={goBackToEntryPoint} />;
     }

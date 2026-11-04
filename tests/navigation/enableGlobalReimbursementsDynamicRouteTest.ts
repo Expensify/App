@@ -5,12 +5,10 @@ import isDynamicRouteSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/is
 import {
     getEnableGlobalReimbursementsBusinessNavigationRoute,
     getWiseGlobalReimbursementsIntroNavigationRoute,
-    getWiseOnboardingNavigationRoute,
     isWiseGlobalReimbursementsIntroOverPayReportScreen,
     shouldUseDynamicEnableGlobalReimbursementsBase,
 } from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
 
-import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 const BUSINESS_PATTERN = DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.path;
@@ -125,21 +123,6 @@ describe('Enable global reimbursements dynamic routes', () => {
 
             // Then the intro opens over the wallet because it has no static route
             expect(route).toBe('settings/wallet/global-reimbursements/456');
-        });
-    });
-
-    describe('getWiseOnboardingNavigationRoute', () => {
-        it.each([
-            ['the intro for a business not submitted yet', undefined, 'settings/wallet/global-reimbursements/456'],
-            ['more info needed while Wise asks for more', CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED, 'settings/wallet/global-reimbursements/456/more-info-needed'],
-            ['the status page for any other status', CONST.WISE.ONBOARDING_STATUS.IN_REVIEW, 'settings/wallet/global-reimbursements/456/status'],
-        ])('opens %s', (_label, status, expectedRoute) => {
-            // Given the business's Wise onboarding is in this state
-            // When the admin opens global reimbursements from the wallet
-            const route = getWiseOnboardingNavigationRoute(456, status);
-
-            // Then the page for that state opens over the intro, so leaving it lands on the wallet, and the status page reads the state itself
-            expect(route).toBe(expectedRoute);
         });
     });
 

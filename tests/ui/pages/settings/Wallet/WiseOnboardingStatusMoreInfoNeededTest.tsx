@@ -3,13 +3,13 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {READ_COMMANDS} from '@libs/API/types';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {setHasRadio} from '@libs/NetworkState';
 import openWiseKYCReview from '@libs/openWiseKYCReview';
 
-import WiseMoreInfoNeededPage from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseMoreInfoNeededPage';
+import WiseOnboardingStatusPage from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseOnboardingStatusPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,13 +35,17 @@ const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
 async function renderPage() {
     await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.WISE_REIMBURSEMENTS]);
+    await Onyx.set(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, false);
+    await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+        [BANK_ACCOUNT_ID]: {accountData: {bankAccountID: BANK_ACCOUNT_ID, additionalData: {wise: {status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED}}}},
+    });
     render(
         <OnyxListItemProvider>
             <NavigationContainer ref={navigationRef}>
-                <Stack.Navigator initialRouteName={SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_MORE_INFO_NEEDED}>
+                <Stack.Navigator initialRouteName={SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ONBOARDING_STATUS}>
                     <Stack.Screen
-                        name={SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_MORE_INFO_NEEDED}
-                        component={WiseMoreInfoNeededPage}
+                        name={SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ONBOARDING_STATUS}
+                        component={WiseOnboardingStatusPage}
                         initialParams={{bankAccountID: String(BANK_ACCOUNT_ID)}}
                     />
                 </Stack.Navigator>
@@ -72,7 +76,7 @@ async function resumeFetch() {
     await waitForBatchedUpdatesWithAct();
 }
 
-describe('WiseMoreInfoNeededPage', () => {
+describe('WiseOnboardingStatusPage while Wise needs more info', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -110,7 +114,7 @@ describe('WiseMoreInfoNeededPage', () => {
     });
 
     it("fetches the link for the bank account on Continue and redirects to Wise's form once it arrives", async () => {
-        // Given the page opened from the terms for a bank account, and a server that answers with a link
+        // Given the page opened for a bank account Wise needs more info about, and a server that answers with a link
         mockKYCReviewLinkResponse();
         mockFetch.pause();
         await renderPage();
@@ -194,18 +198,5 @@ describe('WiseMoreInfoNeededPage', () => {
             // Network state is module-level, so restore it even if an assertion fails
             setHasRadio(true);
         }
-    });
-
-    it('goes back to the screen the flow started from', async () => {
-        // Given the page replaced the terms over the intro opened from the wallet
-        const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
-        await renderPage();
-
-        // When the user presses the back button
-        fireEvent.press(screen.getByLabelText('common.back'));
-
-        // Then the user leaves the intro too rather than reopening the form, since our part of the flow is done
-        expect(goBackSpy).toHaveBeenCalledWith('settings/wallet');
-        goBackSpy.mockRestore();
     });
 });

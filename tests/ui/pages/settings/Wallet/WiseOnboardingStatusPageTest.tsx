@@ -69,6 +69,7 @@ describe('WiseOnboardingStatusPage', () => {
     });
 
     it.each([
+        [CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED, 'walletPage.wiseOnboarding.moreInfoNeeded.title'],
         [CONST.WISE.ONBOARDING_STATUS.IN_REVIEW, 'walletPage.wiseOnboarding.inReview.heading'],
         [CONST.WISE.ONBOARDING_STATUS.APPROVED, 'walletPage.wiseOnboarding.approved.heading'],
         [CONST.WISE.ONBOARDING_STATUS.NOT_APPROVED, 'walletPage.wiseOnboarding.rejected.heading'],
@@ -96,17 +97,18 @@ describe('WiseOnboardingStatusPage', () => {
         expect(screen.getByText('walletPage.wiseOnboarding.inReview.heading')).toBeOnTheScreen();
     });
 
-    it('goes back to "More info needed" when Wise returns after a closed form', async () => {
+    it('keeps asking for more info and drops the param when Wise returns after a closed form', async () => {
         // Given Wise asked for more info
-        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+        const setParamsSpy = jest.spyOn(Navigation, 'setParams').mockImplementation(() => {});
 
         // When Wise sends the user back here after the user closed the form
         await renderPage(CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED, 'closed');
 
-        // Then the page that opens the form replaces this one, so the user can try again, and the status stays as it was
-        expect(navigateSpy).toHaveBeenCalledWith('settings/wallet/global-reimbursements/9053192/more-info-needed', {forceReplace: true});
+        // Then the status stays, so the page still offers the form, and the param leaves the URL
         const bankAccountList = await getOnyxValue(ONYXKEYS.BANK_ACCOUNT_LIST);
         expect(bankAccountList?.[BANK_ACCOUNT_ID]?.accountData?.additionalData?.wise?.status).toBe(CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED);
+        expect(setParamsSpy).toHaveBeenCalledWith({status: undefined});
+        expect(screen.getByText('walletPage.wiseOnboarding.moreInfoNeeded.title')).toBeOnTheScreen();
     });
 
     it('keeps the status the server sent when Wise returns after the onboarding moved on', async () => {

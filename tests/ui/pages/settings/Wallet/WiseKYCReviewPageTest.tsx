@@ -20,7 +20,7 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../../../../utils/waitForBatchedUpdatesWithAct';
 
-const BACK_PATH = 'settings/wallet/global-reimbursements/9053192/more-info-needed';
+const BACK_PATH = 'settings/wallet/global-reimbursements/9053192/status';
 const KYC_REVIEW_URL = 'https://wise-sandbox.com/embedded-flows/verification?token=abc';
 const WEB_VIEW_TEST_ID = 'wise-kyc-web-view';
 
@@ -33,7 +33,7 @@ jest.mock('react-native-webview', () => ({
         />
     ),
 }));
-jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => 'settings/wallet/global-reimbursements/9053192/more-info-needed'));
+jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => 'settings/wallet/global-reimbursements/9053192/status'));
 
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
@@ -70,31 +70,17 @@ describe('WiseKYCReviewPage', () => {
         await Onyx.clear();
     });
 
-    it('opens the status page with the outcome when Wise redirects after a finished form', async () => {
-        // Given Wise's form is open
-        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
-        await renderPage();
-
-        // When the user finishes the form and Wise redirects away from its site with success
-        const shouldLoad = startLoading('https://www.expensify.com/wise-kyc?status=success');
-        await waitForBatchedUpdatesWithAct();
-
-        // Then the redirect page does not load, and the status page replaces the form with Wise's outcome, which it applies like after Wise's redirect on web
-        expect(shouldLoad).toBe(false);
-        expect(navigateSpy).toHaveBeenCalledWith('settings/wallet/global-reimbursements/9053192/status?status=success', {forceReplace: true});
-    });
-
-    it('goes back to "More info needed" when the user closes the form', async () => {
-        // Given Wise's form is open
+    it.each(['success', 'closed'])('goes back to the status page with the outcome when the form ends as %s', async (status) => {
+        // Given Wise's form is open over the status page
         const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
         await renderPage();
 
-        // When the user closes the form and Wise redirects away from its site
-        const shouldLoad = startLoading('https://www.expensify.com/wise-kyc?status=closed');
+        // When the form ends and Wise redirects away from its site
+        const shouldLoad = startLoading(`https://www.expensify.com/wise-kyc?status=${status}`);
 
-        // Then the redirect page does not load and the user is back on "More info needed" to try again
+        // Then the redirect page does not load, and the status page underneath gets the outcome to apply, like after Wise's redirect on web
         expect(shouldLoad).toBe(false);
-        expect(goBackSpy).toHaveBeenCalledWith(BACK_PATH);
+        expect(goBackSpy).toHaveBeenCalledWith(`${BACK_PATH}?status=${status}`, {compareParams: false});
     });
 
     it("keeps the form open while the user moves between the form's pages", async () => {

@@ -214,7 +214,6 @@ const SCREENS = {
             DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO: 'Dynamic_Settings_Wallet_Wise_Global_Reimbursements_Intro',
             DYNAMIC_WISE_BUSINESS_ONBOARDING: 'Dynamic_Settings_Wallet_Wise_Business_Onboarding',
             DYNAMIC_WISE_ACCEPT_TERMS: 'Dynamic_Settings_Wallet_Wise_Accept_Terms',
-            DYNAMIC_WISE_MORE_INFO_NEEDED: 'Dynamic_Settings_Wallet_Wise_More_Info_Needed',
             DYNAMIC_WISE_KYC_REVIEW: 'Dynamic_Settings_Wallet_Wise_KYC_Review',
             DYNAMIC_WISE_ONBOARDING_STATUS: 'Dynamic_Settings_Wallet_Wise_Onboarding_Status',
             DYNAMIC_BANK_ACCOUNT_LINK_PLAID: 'Dynamic_Settings_Wallet_BankAccount_LinkPlaid',

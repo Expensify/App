@@ -41,13 +41,9 @@ function WiseKYCReviewPage() {
         if (!status) {
             return true;
         }
-        if (status !== CONST.WISE.KYC_REVIEW_REDIRECT_STATUS_SUCCESS) {
-            goBack();
-            return false;
-        }
-        // The status page replaces the form, so back from it does not reopen the form, and applies Wise's outcome like after Wise's redirect on web
-        const introPath = stripDynamicRouteSuffixFromPath(backPath, DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path);
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.getRoute(status), introPath), {forceReplace: true});
+        // The status page underneath applies the outcome, the same way it does after Wise's redirect on web
+        const introPath = stripDynamicRouteSuffixFromPath(backPath, DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path);
+        Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.getRoute(status), introPath), {compareParams: false});
         return false;
     };
 
