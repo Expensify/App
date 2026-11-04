@@ -52,6 +52,12 @@ jest.mock('@hooks/useSidePanelState', () => jest.fn(() => ({sessionStartTime: nu
 jest.mock('@pages/inbox/report/ReportActionCompose/useAttachmentPicker', () => jest.fn());
 
 jest.mock('@pages/Share/getFileSize', () => jest.fn(() => Promise.resolve(100)));
+// The real module goes through React Native's Image.getSize, whose native ImageLoader mock in jest-expo still uses the
+// old callback signature and throws, so pasted images get their dimensions from this stub instead.
+jest.mock('react-native-image-size', () => ({
+    __esModule: true,
+    default: {getSize: jest.fn(() => Promise.resolve({width: 320, height: 240}))},
+}));
 
 // The composer ref rendered by the test renderer has no native `setSelection` implementation
 jest.mock('@pages/inbox/report/ReportActionCompose/ReportActionComposeUtils', () => ({
