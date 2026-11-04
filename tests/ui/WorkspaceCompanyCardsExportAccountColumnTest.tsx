@@ -419,6 +419,7 @@ describe('WorkspaceCompanyCardsTable row feedback', () => {
 
 describe('WorkspaceCompanyCardsTable Last updated column', () => {
     beforeEach(async () => {
+        jest.useFakeTimers().setSystemTime(new Date('2026-11-04T18:54:00Z'));
         mockCardFeedErrors = {};
         mockShouldUseNarrowLayout = false;
         mockIsMediumScreenWidth = false;
@@ -433,6 +434,7 @@ describe('WorkspaceCompanyCardsTable Last updated column', () => {
     afterEach(() => {
         mockShouldUseNarrowLayout = false;
         mockIsMediumScreenWidth = false;
+        jest.useRealTimers();
     });
 
     it('adds a non-sortable column measured from the timestamp in the selected timezone', async () => {
@@ -448,8 +450,49 @@ describe('WorkspaceCompanyCardsTable Last updated column', () => {
         const row = capturedData.at(0);
         expect(column?.label).toBe('Last updated');
         expect(column?.sortable).toBe(false);
-        expect(row?.lastSyncedText).toBe('2026-11-04 10:54:00');
-        expect(row && column?.dynamicSizing?.getContentToMeasure(row)).toEqual([{text: '2026-11-04 10:54:00', fontSize: fontScale.text}]);
+        expect(row?.lastSyncedText).toBe('Nov 4');
+        expect(row && column?.dynamicSizing?.getContentToMeasure(row)).toEqual([{text: 'Nov 4', fontSize: fontScale.text}]);
+    });
+
+    it.each([
+        {lastScrape: '2025-11-04T18:54:00Z', expected: 'Nov 4, 2025'},
+        {lastScrape: '2027-11-04T18:54:00Z', expected: 'Nov 4, 2027'},
+        {lastScrape: '2026-11-04T01:00:00Z', expected: 'Nov 3'},
+    ])('abbreviates $lastScrape using the selected timezone', async ({lastScrape, expected}) => {
+        // Given a sync in another year or near a UTC date boundary
+        const card = buildAssignedCard({lastScrape});
+
+        // When the list formats the sync date
+        renderTable(buildCompanyCards(card));
+        await waitForBatchedUpdates();
+
+        // Then it follows the expense date abbreviation without losing timezone conversion
+        expect(capturedData.at(0)?.lastSyncedText).toBe(expected);
+    });
+
+    it('compares years in the selected timezone at New Year', async () => {
+        // Given UTC is already in 2027 but Los Angeles is still in 2026
+        jest.setSystemTime(new Date('2027-01-01T01:00:00Z'));
+
+        // When a sync from the same local year is displayed
+        renderTable(buildCompanyCards(buildAssignedCard({lastScrape: '2026-11-04T18:54:00Z'})));
+        await waitForBatchedUpdates();
+
+        // Then the date does not gain an unnecessary year
+        expect(capturedData.at(0)?.lastSyncedText).toBe('Nov 4');
+    });
+
+    it('localizes the abbreviated month', async () => {
+        // Given a French locale and a successful sync
+        await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.FR);
+        await waitForBatchedUpdates();
+
+        // When the list formats the date
+        renderTable(buildCompanyCards(buildAssignedCard({lastScrape: '2026-11-04T18:54:00Z'})));
+        await waitForBatchedUpdates();
+
+        // Then the abbreviated month uses the selected locale
+        expect(capturedData.at(0)?.lastSyncedText).toBe('nov. 4');
     });
 
     it.each([
@@ -480,13 +523,13 @@ describe('WorkspaceCompanyCardsTable Last updated column', () => {
         await waitForBatchedUpdates();
 
         // Then attempt state does not replace the successful-sync time
-        expect(capturedData.at(0)?.lastSyncedText).toBe('2026-11-04 10:54:00');
+        expect(capturedData.at(0)?.lastSyncedText).toBe('Nov 4');
     });
 
     it.each([
-        {layout: 'wide', narrow: false, medium: false, expected: '2026-11-04 10:54:00'},
-        {layout: 'narrow', narrow: true, medium: false, expected: 'Last successful sync: 2026-11-04 10:54:00'},
-        {layout: 'medium', narrow: false, medium: true, expected: 'Last successful sync: 2026-11-04 10:54:00'},
+        {layout: 'wide', narrow: false, medium: false, expected: 'Nov 4'},
+        {layout: 'narrow', narrow: true, medium: false, expected: 'Last successful sync: Nov 4'},
+        {layout: 'medium', narrow: false, medium: true, expected: 'Last successful sync: Nov 4'},
     ])('renders the sync time in the $layout layout', async ({narrow, medium, expected}) => {
         // Given a successful sync in the requested responsive layout
         mockShouldUseNarrowLayout = narrow;
@@ -501,6 +544,6 @@ describe('WorkspaceCompanyCardsTable Last updated column', () => {
 
         // Then the timestamp is visible and its success meaning is accessible
         expect(screen.getByText(expected)).toBeTruthy();
-        expect(screen.getByLabelText(/Last successful sync: 2026-11-04 10:54:00/)).toBeTruthy();
+        expect(screen.getByLabelText(/Last successful sync: Nov 4/)).toBeTruthy();
     });
 });

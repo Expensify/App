@@ -103,7 +103,7 @@ function WorkspaceCompanyCardsTable({
 }: WorkspaceCompanyCardsTableProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {translate, localeCompare, formatPhoneNumber, getLocalDateFromDatetime} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber, getLocalDateFromDatetime, dateFnsLocale} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const tableRef = useRef<TableHandle<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey>>(null);
 
@@ -293,6 +293,7 @@ function WorkspaceCompanyCardsTable({
 
     const unavailableSyncText = translate('common.na');
     const neverSyncedText = translate('workspace.moreFeatures.companyCards.neverUpdated');
+    const currentYear = getLocalDateFromDatetime().getFullYear();
     const cardsData: WorkspaceCompanyCardTableItemData[] = isLoadingOnyxCardList
         ? []
         : (companyCardEntries ?? [])
@@ -318,7 +319,8 @@ function WorkspaceCompanyCardsTable({
                   if (isAssigned && !assignedCard?.lastScrape) {
                       lastSyncedText = neverSyncedText;
                   } else if (lastSyncedDate && isValid(lastSyncedDate)) {
-                      lastSyncedText = format(lastSyncedDate, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+                      const isPastYear = lastSyncedDate.getFullYear() !== currentYear;
+                      lastSyncedText = format(lastSyncedDate, isPastYear ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT, {locale: dateFnsLocale});
                   }
 
                   return {
