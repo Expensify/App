@@ -172,3 +172,4 @@ function ReportActionsListItemRenderer({
 }
 
 export default ReportActionsListItemRenderer;
+export type {ReportActionsListItemRendererProps};
