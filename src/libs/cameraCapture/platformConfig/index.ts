@@ -6,6 +6,7 @@ const cameraPlatformConfig: CameraPlatformConfig = {
     shouldHidePreviewUntilLive: false,
     // VisionCamera hard-codes 'phase-detection' on Android.
     reportsAutoFocusSystem: false,
+    canLightFlashWithTorch: true,
 };
 
 export default cameraPlatformConfig;

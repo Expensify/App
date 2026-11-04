@@ -42,7 +42,7 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type AddExistingExpensePageType = PlatformStackScreenProps<AddExistingExpensesParamList, typeof SCREENS.ADD_EXISTING_EXPENSES_ROOT>;
@@ -75,14 +75,25 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
     const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const styles = useThemeStyles();
 
+    // Onyx applies the optimistic isLoadingUnreportedTransactions asynchronously, so this ref blocks repeat onEndReached calls until the flag catches up.
+    const isFetchingMoreUnreportedTransactionsRef = useRef(false);
+
     const transactionsSelector = (allTransactions: OnyxCollection<Transaction>) =>
         getEligibleTransactionsToAdd({transactions: allTransactions, report, policy, cardList, currentUserAccountID, reportID, allOpenReports, openReportDrafts});
     const [transactions = getEmptyArray<Transaction>()] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: transactionsSelector});
 
-    const fetchMoreUnreportedTransactions = () => {
-        if (!hasMoreUnreportedTransactionsResults || isLoadingUnreportedTransactions) {
+    useEffect(() => {
+        if (isLoadingUnreportedTransactions) {
             return;
         }
+        isFetchingMoreUnreportedTransactionsRef.current = false;
+    }, [isLoadingUnreportedTransactions]);
+
+    const fetchMoreUnreportedTransactions = () => {
+        if (!hasMoreUnreportedTransactionsResults || isLoadingUnreportedTransactions || isFetchingMoreUnreportedTransactionsRef.current) {
+            return;
+        }
+        isFetchingMoreUnreportedTransactionsRef.current = true;
         fetchUnreportedExpenses(offset + CONST.UNREPORTED_EXPENSES_PAGE_SIZE);
         setOffset((prevOffset) => prevOffset + CONST.UNREPORTED_EXPENSES_PAGE_SIZE);
     };
