@@ -210,6 +210,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                                         size={CONST.BUTTON_SIZE.LARGE}
                                         onPress={confirmSelectedFeatures}
                                         isDisabled={!hasAcceptedTravelTerms}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DUPLICATE_SELECT_FEATURES_CONTINUE}
                                     >
                                         <Button.KeyboardShortcut enterKeyEventListenerPriority={1} />
                                         <Button.Text>{translate('common.continue')}</Button.Text>
