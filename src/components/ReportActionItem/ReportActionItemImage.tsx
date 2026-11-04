@@ -164,9 +164,15 @@ function ReportActionItemImage({
     // Offline `ConfirmedRoute` can only draw a placeholder, while the queued edit hasn't touched the stored map yet.
     // Keep that map when the route is unchanged. A route edit nulls the distance or flags `waypoints`/`routes`/`selectedRouteKey`.
     const hasPendingRouteChange = isFetchingWaypointsFromServer(transaction) || !!transaction?.pendingFields?.routes || !!transaction?.pendingFields?.selectedRouteKey;
+    const isRegeneratingReceipt = hasPendingDistanceReceiptRegeneration(transaction);
     const canUseCachedMapOffline =
-        shouldUseCachedMapWhenOffline && isOffline && typeof transaction?.receipt?.source === 'string' && hasLocallyKnownDistance(transaction) && !hasPendingRouteChange;
-    const showMapAsImage = isMapDistanceRequest && (hasErrors || hasPendingDistanceReceiptRegeneration(transaction)) && !canUseCachedMapOffline;
+        shouldUseCachedMapWhenOffline &&
+        isOffline &&
+        isRegeneratingReceipt &&
+        typeof transaction?.receipt?.source === 'string' &&
+        hasLocallyKnownDistance(transaction) &&
+        !hasPendingRouteChange;
+    const showMapAsImage = isMapDistanceRequest && (hasErrors || (isRegeneratingReceipt && !canUseCachedMapOffline));
     const navigateToReceipt = () => {
         deferReceiptNavigation(() => {
             Navigation.navigate(
@@ -277,7 +283,8 @@ function ReportActionItemImage({
             receiptImage
         );
 
-    if (enablePreviewModal) {
+    // Full screen hides the stored map while it regenerates, so keep the cached map unclickable like the disabled Expand button.
+    if (enablePreviewModal && !canUseCachedMapOffline) {
         return (
             <PressableWithoutFocus
                 style={[styles.w100, styles.h100, styles.noOutline as ViewStyle]}
