@@ -24,6 +24,14 @@ function createOutput(capturePhoto: () => Promise<Photo>): CameraPhotoOutput {
     return {capturePhoto} as unknown as CameraPhotoOutput;
 }
 
+let nowSpy: jest.SpyInstance<number, []> | undefined;
+
+// Restores only the clock, since jest.restoreAllMocks would also wipe the react-native-fs mock above.
+afterEach(() => {
+    nowSpy?.mockRestore();
+    nowSpy = undefined;
+});
+
 describe('captureSnapshotToPath', () => {
     it('rejects instead of throwing when the preview is not attached yet', async () => {
         // Given a camera whose takeSnapshot throws synchronously, as VisionCamera v5 does before the preview attaches
@@ -43,7 +51,7 @@ describe('captureSnapshotToPath', () => {
 
     it('reports the snapshot time and the file write time separately', async () => {
         // Given a clock where the snapshot returns 20ms after the call and the JPEG write takes 30ms more
-        const nowSpy = jest.spyOn(performance, 'now').mockReturnValueOnce(0).mockReturnValueOnce(20).mockReturnValueOnce(50);
+        nowSpy = jest.spyOn(performance, 'now').mockReturnValueOnce(0).mockReturnValueOnce(20).mockReturnValueOnce(50);
         const dispose = jest.fn();
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The mock only implements takeSnapshot, which is all captureSnapshotToPath calls
         const camera = {
@@ -57,7 +65,6 @@ describe('captureSnapshotToPath', () => {
         expect(result.captureDurationMs).toBe(20);
         expect(result.saveDurationMs).toBe(30);
         expect(dispose).toHaveBeenCalledTimes(1);
-        nowSpy.mockRestore();
     });
 });
 
@@ -92,18 +99,17 @@ describe('capturePhotoToPath', () => {
     });
 
     it('reports the camera time and the file write time separately', async () => {
-        // Given a clock where the camera returns the photo 60ms after the call and the write takes 15ms more,
-        // so the scan span can tell a slow camera from a slow disk
-        const nowSpy = jest.spyOn(performance, 'now').mockReturnValueOnce(100).mockReturnValueOnce(160).mockReturnValueOnce(175);
+        // Given a clock where the camera returns the photo 60.4ms after the call, creating the folder takes 5ms,
+        // and the write takes 15.2ms more, so the scan span can tell a slow camera from a slow disk
+        nowSpy = jest.spyOn(performance, 'now').mockReturnValueOnce(100).mockReturnValueOnce(160.4).mockReturnValueOnce(165.4).mockReturnValueOnce(180.6);
         const {photo} = createPhoto();
         const output = createOutput(() => Promise.resolve(photo));
 
         // When a photo is captured into the receipts folder
         const result = await capturePhotoToPath(output, {flashMode: 'off'}, 'file:///receipts/receipt.jpg');
 
-        // Then each phase is reported on its own
+        // Then each phase is reported on its own in whole milliseconds, and the folder creation counts toward neither
         expect(result.captureDurationMs).toBe(60);
         expect(result.saveDurationMs).toBe(15);
-        nowSpy.mockRestore();
     });
 });

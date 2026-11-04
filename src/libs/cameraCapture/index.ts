@@ -33,9 +33,14 @@ function callAsPromise<T>(start: () => Promise<T>): Promise<T> {
 function capturePhotoToPath(photoOutput: CameraPhotoOutput, settings: CapturePhotoSettings, filePath?: string, callbacks: CapturePhotoCallbacks = {}): Promise<CapturedPhoto> {
     const captureStartedAt = performance.now();
     return callAsPromise(() => photoOutput.capturePhoto(settings, callbacks)).then((photo) => {
-        const saveStartedAt = performance.now();
+        const capturedAt = performance.now();
+        let saveStartedAt = capturedAt;
+        // The save timer starts after the folder exists, so it measures only the file write, as on the snapshot path.
         const save = filePath
-            ? preparePath(filePath).then((path) => callAsPromise(() => photo.saveToFileAsync(path)).then(() => path))
+            ? preparePath(filePath).then((path) => {
+                  saveStartedAt = performance.now();
+                  return callAsPromise(() => photo.saveToFileAsync(path)).then(() => path);
+              })
             : callAsPromise(() => photo.saveToTemporaryFileAsync());
 
         return save
@@ -43,8 +48,8 @@ function capturePhotoToPath(photoOutput: CameraPhotoOutput, settings: CapturePho
                 path,
                 ...getDisplaySize(photo),
                 orientation: photo.orientation,
-                captureDurationMs: saveStartedAt - captureStartedAt,
-                saveDurationMs: performance.now() - saveStartedAt,
+                captureDurationMs: Math.round(capturedAt - captureStartedAt),
+                saveDurationMs: Math.round(performance.now() - saveStartedAt),
             }))
             .finally(() => {
                 photo.dispose();
@@ -63,8 +68,8 @@ function captureSnapshotToPath(camera: CameraRef, filePath: string): Promise<Cap
                 path,
                 width: image.width,
                 height: image.height,
-                captureDurationMs: saveStartedAt - captureStartedAt,
-                saveDurationMs: performance.now() - saveStartedAt,
+                captureDurationMs: Math.round(saveStartedAt - captureStartedAt),
+                saveDurationMs: Math.round(performance.now() - saveStartedAt),
             }))
             .finally(() => {
                 image.dispose();
