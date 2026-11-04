@@ -3715,6 +3715,14 @@ type ACHAccount = {
     sharees?: string[];
 };
 
+/** Withdrawal account the company reimburses from in one country */
+type ReimbursementCountryAccount = {
+    additionalData?: {
+        /** Whether the account is only used to pay with ABA files */
+        isForABA?: boolean;
+    };
+};
+
 /** Commuter exclusion configuration for a policy */
 type CommuterExclusions = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** How commuter mileage is excluded */
@@ -4098,7 +4106,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             enabled?: boolean;
 
             /** Countries (keyed by ISO code) where the company has a withdrawal account it can reimburse from */
-            countries?: Record<string, unknown>;
+            countries?: Record<string, ReimbursementCountryAccount>;
         };
 
         /** The set reimburser for the policy */

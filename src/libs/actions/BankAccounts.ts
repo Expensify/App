@@ -8,6 +8,8 @@ import type {
     BankAccountHandlePlaidErrorParams,
     ConnectBankAccountParams,
     CreateCollectOnlyDepositAccountParams,
+    CreateDepositABAAccountParams,
+    CreateWithdrawalABAAccountParams,
     DeletePaymentBankAccountParams,
     LinkPlaidToBankAccountParams,
     EnableGlobalReimbursementsForUSDBankAccountParams,
@@ -111,6 +113,83 @@ function createCollectOnlyDepositAccount(parameters: CreateCollectOnlyDepositAcc
     };
 
     API.write(WRITE_COMMANDS.CREATE_COLLECT_ONLY_DEPOSIT_ACCOUNT, parameters, onyxData);
+}
+
+/** Creates an ABA withdrawal account. */
+function createWithdrawalABAAccount(parameters: CreateWithdrawalABAAccountParams) {
+    const onyxData: OnyxData<typeof ONYXKEYS.FORMS.ABA_WITHDRAWAL_ACCOUNT_FORM | typeof ONYXKEYS.FORMS.ABA_WITHDRAWAL_ACCOUNT_FORM_DRAFT> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.ABA_WITHDRAWAL_ACCOUNT_FORM,
+                value: {isLoading: true, errors: null},
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.ABA_WITHDRAWAL_ACCOUNT_FORM,
+                value: {isLoading: false, isSuccess: true},
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.FORMS.ABA_WITHDRAWAL_ACCOUNT_FORM_DRAFT,
+                value: null,
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.ABA_WITHDRAWAL_ACCOUNT_FORM,
+                value: {isLoading: false, isSuccess: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+            },
+        ],
+    };
+
+    API.write(WRITE_COMMANDS.CREATE_WITHDRAWAL_ABA_ACCOUNT, parameters, onyxData);
+}
+
+/** Clears the result of the last attempt to create an ABA withdrawal account, so the form starts fresh. */
+function clearCreateWithdrawalABAAccount() {
+    Onyx.merge(ONYXKEYS.FORMS.ABA_WITHDRAWAL_ACCOUNT_FORM, {isSuccess: null, errors: null});
+}
+
+/** Creates an AU deposit account. */
+function createDepositABAAccount(parameters: CreateDepositABAAccountParams) {
+    const onyxData: OnyxData<typeof ONYXKEYS.FORMS.ABA_DEPOSIT_ACCOUNT_FORM | typeof ONYXKEYS.FORMS.ABA_DEPOSIT_ACCOUNT_FORM_DRAFT> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.ABA_DEPOSIT_ACCOUNT_FORM,
+                value: {isLoading: true, errors: null},
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.ABA_DEPOSIT_ACCOUNT_FORM,
+                value: {isLoading: false, isSuccess: true},
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.FORMS.ABA_DEPOSIT_ACCOUNT_FORM_DRAFT,
+                value: null,
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.ABA_DEPOSIT_ACCOUNT_FORM,
+                value: {isLoading: false, isSuccess: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+            },
+        ],
+    };
+
+    API.write(WRITE_COMMANDS.CREATE_DEPOSIT_ABA_ACCOUNT, parameters, onyxData);
+}
+
+function clearCreateDepositABAAccount() {
+    Onyx.merge(ONYXKEYS.FORMS.ABA_DEPOSIT_ACCOUNT_FORM, {isSuccess: null, errors: null});
 }
 
 export {
@@ -2108,6 +2187,8 @@ export {
     clearReimbursementAccountFinishCorpayBankAccountOnboarding,
     enableGlobalReimbursementsForUSDBankAccount,
     clearEnableGlobalReimbursementsForUSDBankAccount,
+    clearCreateWithdrawalABAAccount,
+    clearCreateDepositABAAccount,
     askForCorpaySignerInformation,
     clearEnterSignerInformationFormSave,
     sendReminderForCorpaySignerInformation,
@@ -2121,5 +2202,7 @@ export {
     pressLockedBankAccount,
     uploadUserKYBDocs,
     createCollectOnlyDepositAccount,
+    createWithdrawalABAAccount,
+    createDepositABAAccount,
     openDepositAccountSetup,
 };

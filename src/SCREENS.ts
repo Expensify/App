@@ -91,6 +91,7 @@ const SCREENS = {
         DYNAMIC_ADD_US_BANK_ACCOUNT_ENTRY_POINT: 'Dynamic_Settings_Add_US_Bank_Account_Entry_Point',
         UPDATE_PERSONAL_BANK_ACCOUNT: 'Settings_Update_Personal_Bank_Account',
         BANK_ACCOUNT_PURPOSE: 'Settings_Bank_Account_Purpose',
+        ADD_ABA_BANK_ACCOUNT: 'Settings_Add_ABA_Bank_Account',
         DEVICE_MANAGEMENT: 'Settings_Device_Management',
         CLOSE: 'Settings_Close',
         CLOSE_ACCOUNT_CONFIRM_VALIDATE_CODE: 'Settings_CloseAccount_ConfirmValidateCode',
