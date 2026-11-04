@@ -60,7 +60,7 @@ const webUpdater = (): PlatformSpecificUpdater => ({
 });
 
 export default function () {
-    // The worker has already handled this navigation. Later navigations should keep the normal offline timeout.
+    // The worker has already handled this navigation. Later navigations should open the saved app instead of waiting for the network.
     const url = new URL(window.location.href);
     if (url.searchParams.has(APP_UPDATE_QUERY_PARAM)) {
         url.searchParams.delete(APP_UPDATE_QUERY_PARAM);
