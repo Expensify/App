@@ -29,17 +29,16 @@ let mockIsSavedSearch = true;
 let mockIsFromSearchPage = true;
 let mockOnListItemPress: ((item: SearchQueryItem) => void) | undefined;
 const mockGetSearchKeyForQuery = jest.fn(() => undefined);
+const mockSavedSearchKey = savedSearchIDToSearchKey('saved-sort');
+const mockExpensesSearchKey = CONST.SEARCH.SEARCH_KEYS.EXPENSES;
 
 jest.mock('@components/Search/SearchContext', () => ({
     ...jest.requireActual<typeof SearchContext>('@components/Search/SearchContext'),
-    useSearchQueryContext: () => {
-        const mockCONST = jest.requireActual<typeof CONST>('@src/CONST').default;
-        return {
-            currentSearchQueryJSON: mockCurrentQuery,
-            currentSearchHash: mockCurrentQuery?.hash,
-            currentSearchKey: mockIsSavedSearch ? `${mockCONST.SEARCH.SAVED_SEARCH_PREFIX}saved-sort` : mockCONST.SEARCH.SEARCH_KEYS.EXPENSES,
-        };
-    },
+    useSearchQueryContext: () => ({
+        currentSearchQueryJSON: mockCurrentQuery,
+        currentSearchHash: mockCurrentQuery?.hash,
+        currentSearchKey: mockIsSavedSearch ? mockSavedSearchKey : mockExpensesSearchKey,
+    }),
     useSearchQueryActions: () => ({setShouldResetSearchQuery: jest.fn(), getSearchKeyForQuery: mockGetSearchKeyForQuery}),
 }));
 
