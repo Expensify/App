@@ -10986,6 +10986,7 @@ const CONST = {
                 CARD_SECTION_ADD_BUTTON: 'WorkspaceAccounting-CardSectionAddButton',
                 THREE_DOT_MENU: 'WorkspaceAccounting-ThreeDotMenu',
                 CREATE_NEW_CONNECTION: 'WorkspaceAccounting-CreateNewConnection',
+                COPY_EXISTING_CONNECTION: 'WorkspaceAccounting-CopyExistingConnection',
             },
             CONNECTIONS: {
                 CARD: 'WorkspaceConnections-Card',

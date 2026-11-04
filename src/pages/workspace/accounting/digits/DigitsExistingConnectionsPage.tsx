@@ -42,6 +42,7 @@ function DigitsExistingConnectionsPage({route}: DigitsExistingConnectionsPagePro
         shouldShowRightIcon: true,
         // Each Digits sign-in covers one company, so the company tells the admin which connection they're copying
         description: policy.connections?.digits?.data?.company?.name ?? translate('workspace.accounting.digits'),
+        sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.COPY_EXISTING_CONNECTION,
         onPress: () => {
             copyExistingPolicyConnection(policy.id, policyID, CONST.POLICY.CONNECTIONS.NAME.DIGITS);
             Navigation.dismissModal();
