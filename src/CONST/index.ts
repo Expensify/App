@@ -10227,6 +10227,9 @@ const CONST = {
     },
 
     SENTRY_LABEL: {
+        NUMBER_WITH_SYMBOL_FORM: {
+            INPUT: 'NumberWithSymbolForm-Input',
+        },
         TEST_TOOL_MENU: {
             SERVER: 'TestToolMenu-Server',
         },

@@ -551,6 +551,9 @@ function NumberWithSymbolForm({
         return (
             <TextInput
                 label={label}
+                // An empty label must stay above the currency button when Any currency hides the symbol.
+                forceActiveLabel={shouldShowCurrencyButton && !!currencyOrUnitButtonText}
+                sentryLabel={CONST.SENTRY_LABEL.NUMBER_WITH_SYMBOL_FORM.INPUT}
                 accessibilityLabel={label}
                 value={formattedNumber}
                 onChangeText={setFormattedNumber}

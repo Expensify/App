@@ -7,11 +7,14 @@ import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import {ACTIVE_LABEL_SCALE, ACTIVE_LABEL_TRANSLATE_Y, INACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
+import TextInputLabel from '@components/TextInput/TextInputLabel';
 
 import type * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import type ShouldIgnoreSelectionWhenUpdatedManually from '@libs/shouldIgnoreSelectionWhenUpdatedManually/types';
 
 import CONST from '@src/CONST';
+import el from '@src/languages/el';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type * as NativeNavigation from '@react-navigation/native';
@@ -488,6 +491,47 @@ describe('NumberWithSymbolForm', () => {
         });
 
         describe('currency button', () => {
+            it.each([el.search.filters.amount.greaterThan(), el.search.filters.amount.lessThan()])(
+                'keeps the empty %s label floated after selecting Any currency and blurring',
+                async (label) => {
+                    // Given an empty range bound with a Greek label and a currency symbol.
+                    if (typeof label !== 'string') {
+                        throw new Error('Expected a string range label');
+                    }
+                    const props: Partial<NumberWithSymbolFormProps> = {displayAsTextInput: true, value: '', label, shouldShowCurrencyButton: true, currency: 'USD'};
+                    const {rerender} = renderForm(props);
+                    await waitForBatchedUpdatesWithAct();
+                    fireEvent(getTextInput(), 'focus');
+
+                    // When Any currency removes the symbol and the empty input loses focus.
+                    const anyCurrencyLabel = el.common.any;
+                    rerender(wrapForm({...props, currency: '', hideSymbol: true, currencyButtonLabel: anyCurrencyLabel}));
+                    fireEvent(getTextInput(), 'blur');
+                    await waitForBatchedUpdatesWithAct();
+
+                    // Then the label stays small above the currency button instead of overlapping it.
+                    expect(screen.UNSAFE_getByType(TextInputLabel).props).toMatchObject({
+                        labelScale: {value: ACTIVE_LABEL_SCALE},
+                        labelTranslateY: {value: ACTIVE_LABEL_TRANSLATE_Y},
+                    });
+                    expect(screen.getByText(anyCurrencyLabel)).toBeOnTheScreen();
+                },
+            );
+
+            it('leaves the empty label inline when there is no currency button', async () => {
+                // Given an empty input without a symbol or currency button.
+                renderForm({displayAsTextInput: true, value: '', label: 'Amount', hideSymbol: true});
+                await waitForBatchedUpdatesWithAct();
+
+                // When the input gains and loses focus.
+                fireEvent(getTextInput(), 'focus');
+                fireEvent(getTextInput(), 'blur');
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the existing full-size empty label is preserved.
+                expect(screen.UNSAFE_getByType(TextInputLabel).props).toMatchObject({labelScale: {value: INACTIVE_LABEL_SCALE}});
+            });
+
             it('renders the currency button and calls onCurrencyButtonPress', async () => {
                 // Given a text input with a currency button
                 const onCurrencyButtonPress = jest.fn();
