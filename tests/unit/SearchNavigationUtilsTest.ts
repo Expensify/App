@@ -180,6 +180,21 @@ describe('SearchNavigationUtils', () => {
             // Then the stored query opens
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: lastQuery, name: 'Coffee', searchKey: SAVED_SEARCH_KEY}));
         });
+
+        it('should normalize legacy date presets in a saved search query before navigating', () => {
+            // Given a saved search containing a legacy year-to-date date filter
+            const legacySavedSearch = createSavedSearchItem({
+                query: 'type:expense date:year-to-date',
+            });
+
+            // When we navigate to it
+            navigateToFlatNavItem(legacySavedSearch, undefined, clearSelectedTransactions);
+
+            // Then the legacy preset is normalized to this-year before navigation
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense sortBy:date sortOrder:desc date:this-year', name: 'Coffee', searchKey: SAVED_SEARCH_KEY}),
+            );
+        });
     });
 
     describe('navigateToFlatNavSection', () => {

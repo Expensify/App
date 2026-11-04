@@ -11,7 +11,7 @@ import {setSearchContext} from './actions/Search';
 import FLAT_NAV from './Navigation/FlatNav/FLAT_NAV';
 import {getFlatNavSectionDefaultItem} from './Navigation/FlatNav/FlatNavUtils';
 import Navigation from './Navigation/Navigation';
-import {buildCannedSearchQuery, getValidLastQuery} from './SearchQueryUtils';
+import {buildCannedSearchQuery, getValidLastQuery, normalizeDatePresetsInQuery} from './SearchQueryUtils';
 import {getLastSearchQuery} from './SearchUIUtils';
 
 /** The Spend searches that have a tab of their own on narrow layouts. Every user has both. */
@@ -46,7 +46,7 @@ function navigateToFlatNavItem(item: FlatNavItem, searchFilters: OnyxEntry<Searc
     }
 
     clearSelectedTransactions();
-    navigateToSearch({query: getValidLastQuery(lastSearchQuery, item.query), name: item.name, searchKey: item.key});
+    navigateToSearch({query: normalizeDatePresetsInQuery(getValidLastQuery(lastSearchQuery, item.query)), name: item.name, searchKey: item.key});
 }
 
 /** Opens the item a section lands on. Does nothing when the section has no item that can be opened. */
