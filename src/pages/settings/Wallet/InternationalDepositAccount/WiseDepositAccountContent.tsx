@@ -1,6 +1,7 @@
 /** Renders the Wise-backed employee bank-account country picker and dynamic form flow. */
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import DynamicFormFlow from '@components/DynamicForm';
+import type {DynamicFormValues} from '@components/DynamicForm/types';
 import type {FormValue} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
@@ -36,8 +37,10 @@ function WiseDepositAccountContent({backTo}: WiseDepositAccountContentProps) {
     const styles = useThemeStyles();
     const [wiseBankAccountFields] = useOnyx(ONYXKEYS.WISE_BANK_ACCOUNT_FIELDS);
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT);
+    const [formState] = useOnyx(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
     const [country] = useOnyx(ONYXKEYS.COUNTRY);
-    const [selectedCountry, setSelectedCountry] = useState(wiseBankAccountFields?.country ?? country ?? '');
+    const storedCountry = wiseBankAccountFields?.country ?? country ?? '';
+    const [selectedCountry, setSelectedCountry] = useState(COUNTRIES.includes(storedCountry) ? storedCountry : '');
     const errorMessage = getLatestErrorMessage(wiseBankAccountFields);
     const payoutType = wiseBankAccountFields?.payoutType;
     const formCurrency = wiseBankAccountFields?.currency;
@@ -80,8 +83,8 @@ function WiseDepositAccountContent({backTo}: WiseDepositAccountContentProps) {
         getWiseBankAccountFields(selectedCountry, currency, answers);
     };
 
-    const submitForm = () => {
-        createWiseBankAccount(selectedCountry, wiseBankAccountFields?.currency, {...(draftValues ?? {})});
+    const submitForm = (answers: DynamicFormValues) => {
+        createWiseBankAccount(selectedCountry, wiseBankAccountFields?.currency, answers);
     };
 
     if (wiseBankAccountFields?.isLoading) {
@@ -105,6 +108,8 @@ function WiseDepositAccountContent({backTo}: WiseDepositAccountContentProps) {
                 currency={wiseBankAccountFields.currency}
                 onRefreshRequirements={refreshForm}
                 onSubmit={submitForm}
+                isSubmitting={!!formState?.isLoading}
+                submitError={getLatestErrorMessage(formState)}
                 onBack={clearWiseBankAccountFields}
             />
         );
