@@ -1237,6 +1237,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'Conformité',
         runningTotal: 'Total cumulé',
+        viewDetails: 'Afficher les détails',
+        viewAll: 'Tout afficher',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',

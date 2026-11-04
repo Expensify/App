@@ -1233,6 +1233,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'Conformità',
         runningTotal: 'Totale progressivo',
+        viewDetails: 'Vedi dettagli',
+        viewAll: 'Vedi tutto',
     },
     allSettingsScreen: {
         subscription: 'Abbonamento',

@@ -1232,6 +1232,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'Naleving',
         runningTotal: 'Doorlopend totaal',
+        viewDetails: 'Bekijk details',
+        viewAll: 'Alles bekijken',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',

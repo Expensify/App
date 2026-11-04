@@ -1256,6 +1256,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'Zgodność',
         runningTotal: 'Suma narastająco',
+        viewDetails: 'Zobacz szczegóły',
+        viewAll: 'Zobacz wszystko',
     },
     allSettingsScreen: {
         subscription: 'Subskrypcja',

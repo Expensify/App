@@ -1221,6 +1221,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'コンプライアンス',
         runningTotal: '累計合計',
+        viewDetails: '詳細を表示',
+        viewAll: 'すべて表示',
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
