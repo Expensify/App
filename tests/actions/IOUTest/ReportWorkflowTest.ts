@@ -5497,6 +5497,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             approveMoneyRequest({
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                personalDetailsByLogins: {},
                 expenseReport: reportWithAutoExport,
                 expenseReportPolicy: policy,
                 currentUserAccountIDParam: adminAccountID,
