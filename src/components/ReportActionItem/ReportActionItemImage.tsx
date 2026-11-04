@@ -24,6 +24,7 @@ import {
     isDistanceRequest,
     isFetchingWaypointsFromServer,
     isManualDistanceRequest,
+    isOdometerDistanceRequest,
     isPerDiemRequest,
 } from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
@@ -167,6 +168,7 @@ function ReportActionItemImage({
     const isRegeneratingReceipt = hasPendingDistanceReceiptRegeneration(transaction);
     const canUseCachedMapOffline =
         isMapDistanceRequest &&
+        !isOdometerDistanceRequest(transaction) &&
         shouldUseCachedMapWhenOffline &&
         isOffline &&
         isRegeneratingReceipt &&

@@ -130,6 +130,18 @@ describe('ReportActionItemImage', () => {
         expect(screen.getByText('confirmed-route')).toBeOnTheScreen();
     });
 
+    it('shows the placeholder offline for an odometer expense after a rate edit', () => {
+        // Given an offline user and an odometer expense, whose receipt is an uploaded photo rather than a map, with a queued rate edit
+        mockNetwork.isOffline = true;
+
+        // When the receipt renders
+        renderImage(buildTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER, pendingFields: RATE_EDIT_PENDING_FIELDS}));
+
+        // Then the route placeholder shows, as on main, instead of the photo
+        expect(screen.getByText('confirmed-route')).toBeOnTheScreen();
+        expect(screen.queryByText('receipt-image')).not.toBeOnTheScreen();
+    });
+
     it('shows the placeholder offline when the distance is unknown locally', () => {
         // Given an offline user whose waypoint edit cleared the distance and amount
         mockNetwork.isOffline = true;
