@@ -19,7 +19,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useState} from 'react';
 
@@ -27,7 +26,7 @@ type ImportedMultiLevelTagsPageProps = PlatformStackScreenProps<SettingsNavigato
 
 function ImportedMultiLevelTagsPage({route}: ImportedMultiLevelTagsPageProps) {
     const {translate} = useLocalize();
-    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
+    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [isImportingTags, setIsImportingTags] = useState(false);
     const policyID = route.params.policyID;
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
@@ -49,10 +48,6 @@ function ImportedMultiLevelTagsPage({route}: ImportedMultiLevelTagsPageProps) {
         }
         closeImportPageAndModal();
     };
-
-    if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
-        return;
-    }
 
     const spreadsheetColumns = spreadsheet?.data;
     if (!spreadsheetColumns) {
