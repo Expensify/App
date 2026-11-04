@@ -44,6 +44,7 @@ import type {ValueOf} from 'type-fest';
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 
+import GlobalReimbursementsEnabledIcon from './GlobalReimbursementsEnabledIcon';
 import PendingDigitalWalletApprovalRow from './PendingDigitalWalletApprovalRow';
 
 type ConnectionStatusDetails = {
@@ -90,6 +91,9 @@ type PaymentMethodItem = PaymentMethod & {
 
     /** Wallet the addition was requested from, used to name it in the "Review" CTA row */
     digitalWalletProvider?: ValueOf<typeof CONST.EXPENSIFY_CARD.WALLET_PROVIDER>;
+
+    /** Whether the bank account is set up for global reimbursements, which shows a globe next to its name */
+    isGlobalReimbursementsEnabled?: boolean;
 } & BankIcon;
 
 type PaymentMethodListItemProps = {
@@ -254,6 +258,9 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     const menuItemProps: React.ComponentProps<typeof MenuItem> = {
         onPress: handleRowPress,
         title: item.title,
+        titleAddon: item.isGlobalReimbursementsEnabled ? <GlobalReimbursementsEnabledIcon onPress={handleRowPress} /> : undefined,
+        // The globe sits inside the row's button, so screen readers only hear it through the row's label
+        accessibilityLabel: item.isGlobalReimbursementsEnabled ? [item.title, item.description, translate('walletPage.globalReimbursementsEnabled')].filter(Boolean).join(', ') : undefined,
         description: item.description,
         descriptionAddon,
         icon: item.icon,

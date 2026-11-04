@@ -1647,6 +1647,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: '请输入一个非零金额用于分摊',
             noParticipantSelected: '请选择参与者',
             other: '发生意外错误。请稍后重试。',
+            payFailedExpenseDeleted: '此付款失败，因为报销报告已被删除。',
             genericCreateFailureMessage: '提交此报销时发生意外错误。请稍后重试。',
             genericCreateInvoiceFailureMessage: '发送此发票时发生未知错误。请稍后重试。',
             genericHoldExpenseFailureMessage: '暂时无法搁置此报销。请稍后再试。',
@@ -3018,7 +3019,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `我同意 Wise 的<a href="${CONST.WISE.TERMS_URL}">条款和条件</a>以及<a href="${CONST.WISE.PRIVACY_URL}">隐私政策</a>。`,
                 wiseTermsAccessibilityLabel: '我同意 Wise 的条款和条件以及隐私政策。',
                 error: '请接受所有条款以继续。',
+                alreadySubmitted: '该企业已提交给 Wise 进行审核。',
             },
+            moreInfoNeeded: {headerTitle: '需要更多信息', title: '验证其他信息', subtitle: '我们的支付合作伙伴需要直接向你获取更多信息。这只需要几分钟时间。'},
         },
         wiseGlobalReimbursementsIntro: {
             title: '设置全球报销？',
@@ -3028,6 +3031,7 @@ const translations: TranslationDeepObject<typeof en> = {
             payingReportSubtitle: '公司账户和员工账户使用的货币不同。',
         },
         wiseGlobalReimbursementsBanner: {title: '向全球付款', subtitle: '在您的美元账户中启用全球报销。'},
+        globalReimbursementsEnabled: '已启用全球报销',
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `将卡添加到 ${walletName}`,
@@ -8823,8 +8827,8 @@ ${reportName}`,
                 describeRuleForConcierge: '描述你的规则，Concierge 会帮你创建',
                 gotIt: '知道了',
                 createRule: '创建规则',
-                fallbackBanner: '这不是一条标准规则，所以我们将其制定为代理规则。代理规则会在报销或报表发生变更后生效，例如暂扣该报销或驳回该报表。',
-                fallbackBannerWithExplanation: (explanation: string) => `这不是一条标准规则，因此我们将其起草为代理规则。${explanation}`,
+                fallbackBanner: '这不是一条标准规则，所以我们起草了一条代理规则。',
+                fallbackBannerWithExplanation: (explanation: string) => `这不是一条标准规则，所以我们起草了一条代理规则。${explanation}`,
             },
             tabs: {general: '常规', cardRestrictions: '卡片限制', expenseDefaults: '报销默认设置', requireFields: '字段要求', flagForReview: '标记以供审核', agents: '代理人'},
             bulkActions: {
@@ -10097,6 +10101,12 @@ ${reportName}`,
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `已将“防止将不可报销报表标记为已支付”更新为“${newValue === 'true' ? '已启用' : '已禁用'}”（之前为“${oldValue === 'true' ? '已启用' : '已禁用'}”）`,
         addedExpensifyCardFeed: (feedName: string) => `已添加“${feedName}”Expensify 卡交易明细馈送`,
+        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
+            if (!oldValue) {
+                return `将工作区时区设置为“${newValue}”`;
+            }
+            return `已将工作区时区更新为“${newValue}”（先前为“${oldValue}”）`;
+        },
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
@@ -10665,6 +10675,8 @@ ${reportName}`,
                     const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');
                     return `打开 Expensify 移动应用以查看你${amountAndMerchantText ? `的 ${amountAndMerchantText} ` : '的 '}交易`;
                 },
+                autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
+                    `${adminName} 已在以 ${lastFour} 结尾的 ${bankName ? `${bankName} ` : ''}账户上启用了全球报销。对于自动支付的跨境报销单，无法在付款前预览准确的汇率和费用。请查看<a href="${autoPaySettingsURL}">自动支付设置</a>以了解更多费率和费用信息。`,
             },
             error: {
                 invalidCredentials: '凭证无效，请检查您的连接配置。',

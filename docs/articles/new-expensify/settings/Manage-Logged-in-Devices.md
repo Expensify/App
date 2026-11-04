@@ -20,7 +20,7 @@ All Expensify members can view and revoke device access on web or mobile for the
 
 ## How to view and revoke logged-in devices in Device management
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Click **Security**.
 3. Click **Device management**.
 4. Review the list of devices that have access to your account. Each entry shows the device name, operating system, and when it was last active.
