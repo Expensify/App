@@ -51,8 +51,10 @@ jest.mock('@libs/actions/Delegate', () => ({
     disconnect: jest.fn(),
 }));
 
+const mockModalClose = jest.fn((onModalCloseCallback?: () => void) => onModalCloseCallback?.());
+
 jest.mock('@libs/actions/Modal', () => ({
-    close: (onModalCloseCallback?: () => void) => onModalCloseCallback?.(),
+    close: (onModalCloseCallback?: () => void) => mockModalClose(onModalCloseCallback),
 }));
 
 jest.mock('@libs/GPSDraftDetailsUtils', () => ({
@@ -218,11 +220,98 @@ describe('useSwitchToDelegator', () => {
         });
 
         // Then the trip keeps recording and no account switch happens
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         expect(mockStopGpsTrip).not.toHaveBeenCalled();
         expect(mockConnect).not.toHaveBeenCalled();
     });
 
-    it('stops the trip with the draft read on press', async () => {
+    it('closes the menu in the same tick as the press when a trip is recording', async () => {
+        // Given an active GPS trip, so the switch has to wait for the menu it was pressed in to close
+        await seedSwitchState({isTrackingGPS: true});
+        const {result} = renderHook(() => useSwitchToDelegator());
+        await waitForBatchedUpdates();
+
+        // When the user presses "Switch", without letting any promise settle
+        act(() => {
+            result.current(DELEGATOR_EMAIL);
+        });
+
+        // Then modalClose already ran, while the menu is still registered, so the trip warning waits for it to close instead of opening over it
+        expect(mockModalClose).toHaveBeenCalledTimes(1);
+        await act(async () => {
+            await waitForBatchedUpdates();
+        });
+    });
+
+    it('switches without waiting for the menu to finish closing when no warning is needed', async () => {
+        // Given the menu the switch was pressed in is still animating out
+        mockModalClose.mockImplementationOnce(() => {});
+        const {result} = renderHook(() => useSwitchToDelegator());
+
+        // When the user presses "Switch" with no trip recording
+        await act(async () => {
+            await result.current(DELEGATOR_EMAIL);
+        });
+
+        // Then the switch starts right away, as it did before the reads moved into the handler
+        expect(mockConnect).toHaveBeenCalledTimes(1);
+    });
+
+    it('waits for the menu to finish closing before showing the trip warning', async () => {
+        // Given a recording trip and a menu that is still animating out, where opening another modal freezes iOS
+        await seedSwitchState({isTrackingGPS: true});
+        let closeMenu: (() => void) | undefined;
+        mockModalClose.mockImplementationOnce((onModalCloseCallback) => {
+            closeMenu = onModalCloseCallback;
+        });
+        const {result} = renderHook(() => useSwitchToDelegator());
+
+        // When the user presses "Switch"
+        await act(async () => {
+            result.current(DELEGATOR_EMAIL);
+        });
+
+        // Then the trip warning stays closed while the menu is still closing
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+
+        // When the menu reports it has closed
+        await act(async () => {
+            closeMenu?.();
+            await waitForBatchedUpdates();
+        });
+
+        // Then the trip warning opens
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+    });
+
+    it('waits for the menu to finish closing before showing the no-access modal', async () => {
+        // Given the user already acts as a delegate and the menu is still animating out, where opening another modal freezes iOS
+        setActingAsDelegate();
+        let closeMenu: (() => void) | undefined;
+        mockModalClose.mockImplementationOnce((onModalCloseCallback) => {
+            closeMenu = onModalCloseCallback;
+        });
+        const {result} = renderHook(() => useSwitchToDelegator());
+
+        // When they press "Switch" on a second delegator
+        await act(async () => {
+            result.current(DELEGATOR_EMAIL);
+        });
+
+        // Then the "not so fast" modal stays closed while the menu is still closing
+        expect(mockShowDelegateNoAccessModal).not.toHaveBeenCalled();
+
+        // When the menu reports it has closed
+        await act(async () => {
+            closeMenu?.();
+            await waitForBatchedUpdates();
+        });
+
+        // Then the "not so fast" modal opens
+        expect(mockShowDelegateNoAccessModal).toHaveBeenCalledTimes(1);
+    });
+
+    it('stops the trip with the latest draft after the warning is confirmed', async () => {
         // Given the trip captures another segment after the press, while the warning is open
         await seedSwitchState({isTrackingGPS: true});
         mockShowConfirmModal.mockImplementation(async () => {
@@ -236,7 +325,7 @@ describe('useSwitchToDelegator', () => {
             await result.current(DELEGATOR_EMAIL);
         });
 
-        // Then the stop uses the draft read for the switch, matching the value the useOnyx subscription held at the press
-        expect(mockGetGpsPoints).toHaveBeenCalledWith(expect.objectContaining({gpsPoints: [[{lat: 1, long: 2}]]}));
+        // Then the stop uses the draft read after the confirmation, so the points recorded while the warning was open are kept
+        expect(mockGetGpsPoints).toHaveBeenCalledWith(expect.objectContaining({gpsPoints: [[{lat: 1, long: 2}], [{lat: 5, long: 6}]]}));
     });
 });
