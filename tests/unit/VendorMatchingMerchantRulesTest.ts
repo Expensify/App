@@ -1,4 +1,4 @@
-import {buildExpenseDefaultRule} from '@libs/ExpenseDefaultRuleUtils';
+import {buildMerchantRule} from '@libs/ExpenseDefaultRuleUtils';
 import {getMerchantRulesTableData} from '@libs/MerchantTypeRulesUtils';
 import {hasVendorFeature} from '@libs/PolicyUtils';
 import {toIndexMap} from '@libs/RuleUtils';
@@ -25,9 +25,8 @@ const buildForm = (overrides: Partial<MerchantRuleForm> = {}): MerchantRuleForm 
     merchant: '',
     category: '',
     categoriesToMatch: [],
-    amount: '',
+    ruleType: CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.MERCHANT,
     tag: '',
-    tagsToMatch: [],
     tax: '',
     vendorID: '',
     comment: '',
@@ -108,7 +107,7 @@ const buildQBOWithStaleXeroPolicy = (qboVendors: Array<{id: string; name: string
     });
 
 const buildVendorRule = (policy: Policy, vendorID: string): Rule => ({
-    ...buildExpenseDefaultRule({merchantToMatch: 'Coffee Shop', matchType: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, vendorID}, policy),
+    ...buildMerchantRule({merchantToMatch: 'Coffee Shop', matchType: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, vendorID}, policy),
     scope: CONST.RULES.SCOPE.POLICY,
     scopeID: policy.id,
     triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
@@ -119,14 +118,14 @@ const buildVendorRule = (policy: Policy, vendorID: string): Rule => ({
 const withVendorRule = (policy: Policy, vendorID: string) => ({[`${ONYXKEYS.COLLECTION.RULE}rule1`]: buildVendorRule(policy, vendorID)});
 
 describe('Vendor matching on merchant rules', () => {
-    describe('buildExpenseDefaultRule vendor action', () => {
+    describe('buildMerchantRule vendor action', () => {
         it('writes a Set action for a vendorID', () => {
-            const actions = Object.values(buildExpenseDefaultRule(buildForm({vendorID: 'v-1'}), undefined)?.actions ?? {});
+            const actions = Object.values(buildMerchantRule(buildForm({vendorID: 'v-1'}), undefined)?.actions ?? {});
             expect(actions).toContainEqual({name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.VENDOR_ID, value: 'v-1'});
         });
 
         it('writes no vendor action when the vendorID is unset, so the rule stops setting it', () => {
-            const actions = Object.values(buildExpenseDefaultRule(buildForm({vendorID: '', category: 'Coffee'}), undefined)?.actions ?? {});
+            const actions = Object.values(buildMerchantRule(buildForm({vendorID: '', category: 'Coffee'}), undefined)?.actions ?? {});
             expect(actions.some((action) => action.field === CONST.RULES.EXPENSE_DEFAULT.FIELD.VENDOR_ID)).toBe(false);
         });
     });
@@ -201,7 +200,7 @@ describe('Vendor matching on merchant rules', () => {
         });
     });
 
-    describe('vendor row gating (hasVendorFeature governs ExpenseDefaultRulePageBase row visibility)', () => {
+    describe('vendor row gating (hasVendorFeature governs MerchantRulePageBase row visibility)', () => {
         it('is visible when the beta is on and a vendor integration is connected', () => {
             expect(hasVendorFeature(buildQBOPolicy([{id: 'v-1', name: 'Acme Co', currency: 'USD'}]), true)).toBe(true);
         });
