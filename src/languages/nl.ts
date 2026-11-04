@@ -7102,6 +7102,10 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                         title: 'Synchroniseer codering met Expensify Travel',
                         subtitle: 'Push de categorieën, tags en rapportvelden van deze workspace naar Expensify Travel zodat reizigers ze bij het boeken invullen.',
                     },
+                    autoEnableNewMembers: {
+                        title: 'Reizen automatisch aanzetten voor nieuwe leden',
+                        subtitle: 'Iedereen die lid wordt van deze workspace kan meteen reizen boeken.',
+                    },
                 },
                 members: {
                     offDescription: 'Kan geen reizen boeken',
@@ -7110,6 +7114,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                     changeTravelAccess: 'Reistoegang wijzigen',
                     turnOnTravel: 'Reizen inschakelen',
                     turnOffTravel: 'Reizen uitschakelen',
+                    manageMembers: 'Leden beheren',
+                    membersWithTravelAccess: ({enabledCount, totalCount}: {enabledCount: number; totalCount: number}) => `Kunnen reizen boeken: ${enabledCount} van ${totalCount}`,
                 },
                 travelBilling: {
                     travelBookingSection: {

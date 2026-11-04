@@ -7127,6 +7127,10 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                         title: 'Synchronizuj kodowanie z Expensify Travel',
                         subtitle: 'Przekaż kategorie, tagi i pola raportu tego workspace’u do Expensify Travel, żeby podróżujący odpowiadali na nie podczas rezerwacji.',
                     },
+                    autoEnableNewMembers: {
+                        title: 'Automatycznie włączaj podróże dla nowych członków',
+                        subtitle: 'Każdy, kto dołączy do tego obszaru roboczego, może od razu rezerwować podróże.',
+                    },
                 },
                 members: {
                     offDescription: 'Nie może rezerwować podróży',
@@ -7135,6 +7139,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     changeTravelAccess: 'Zmień dostęp do podróży',
                     turnOnTravel: 'Włącz podróże',
                     turnOffTravel: 'Wyłącz podróże',
+                    manageMembers: 'Zarządzaj członkami',
+                    membersWithTravelAccess: ({enabledCount, totalCount}: {enabledCount: number; totalCount: number}) => `Mogą rezerwować podróże: ${enabledCount} z ${totalCount}`,
                 },
                 travelBilling: {
                     travelBookingSection: {

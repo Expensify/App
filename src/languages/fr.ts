@@ -7176,6 +7176,10 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                         subtitle:
                             'Envoyez les catégories, tags et champs de note de frais de cet espace de travail vers Expensify Travel pour que les voyageurs y répondent au moment de la réservation.',
                     },
+                    autoEnableNewMembers: {
+                        title: 'Activer automatiquement les voyages pour les nouveaux membres',
+                        subtitle: 'Toute personne qui rejoint cet espace de travail peut réserver des voyages immédiatement.',
+                    },
                 },
                 members: {
                     offDescription: 'Ne peut pas réserver de voyages',
@@ -7184,6 +7188,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     changeTravelAccess: "Modifier l'accès aux voyages",
                     turnOnTravel: 'Activer les voyages',
                     turnOffTravel: 'Désactiver les voyages',
+                    manageMembers: 'Gérer les membres',
+                    membersWithTravelAccess: ({enabledCount, totalCount}: {enabledCount: number; totalCount: number}) => `Peuvent réserver des voyages : ${enabledCount} sur ${totalCount}`,
                 },
                 travelBilling: {
                     travelBookingSection: {
