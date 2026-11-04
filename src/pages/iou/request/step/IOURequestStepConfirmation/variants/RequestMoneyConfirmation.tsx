@@ -11,8 +11,6 @@ import guardSubmission from '@pages/iou/request/step/confirmation/submission/uti
 import {SUBMISSION_PATH} from '@pages/iou/request/step/confirmation/submission/utils/resolveSubmissionPath';
 import SubmitExpenseOrchestrator from '@pages/iou/request/step/confirmation/SubmitExpenseOrchestrator';
 
-import CONST from '@src/CONST';
-
 import React from 'react';
 
 import type {ConfirmationVariantProps} from './types';
@@ -27,32 +25,9 @@ type RequestMoneyConfirmationProps = ConfirmationVariantProps & {
  * Both submissions stay mounted so switching "To" doesn't remount the orchestrator and the list.
  */
 function RequestMoneyConfirmation({submissionPath, submissionParams, orchestratorProps, listProps}: RequestMoneyConfirmationProps) {
-    const {
-        transaction,
-        policy,
-        iouType,
-        isDistanceRequest,
-        isManualDistanceRequest,
-        isOdometerDistanceRequest,
-        isPerDiemRequest,
-        isTimeRequest,
-        isUnreported,
-        isPolicyExpenseChat,
-        isSelfDMDestination,
-        submitLock,
-    } = submissionParams;
+    const {transaction, policy, iouType, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest, isPolicyExpenseChat, isSelfDMDestination, submitLock} = submissionParams;
 
-    const transactionTaxValues = getTransactionTaxValues({
-        transaction,
-        policy,
-        isPolicyExpenseChat,
-        isUnreported,
-        isTrackExpense: iouType === CONST.IOU.TYPE.TRACK,
-        isSelfDMDestination,
-        isDistanceRequest,
-        isPerDiemRequest,
-        isTimeRequest,
-    });
+    const transactionTaxValues = getTransactionTaxValues({transaction, policy, iouType, isPolicyExpenseChat, isSelfDMDestination});
 
     const submissionHookParams = {
         ...submissionParams,
