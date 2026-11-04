@@ -1,6 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import DateUtils from '@libs/DateUtils';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {translate as translateWithLocale} from '@libs/Localize';
 import {doesMoneyRequestDraftHaveUserInput, shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
 import hasDistanceRouteErrors from '@libs/TransactionUtils/hasDistanceRouteErrors';
@@ -1208,6 +1209,74 @@ describe('TransactionUtils', () => {
 
             expect(updatedTransaction.modifiedAmount).toBe(3);
             expect(updatedTransaction.modifiedMerchant).toBe('1.97 mi @ $0.015 / mi');
+        });
+
+        it('preserves a saved mile exclusion when changing to a kilometre rate in Self DM', () => {
+            // Given a map expense with a one-mile exclusion, after the workspace switches to kilometres
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                commuterExclusions: {
+                    method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    fixedDistance: 1,
+                    fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                },
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            old: {customUnitRateID: 'old', currency: CONST.CURRENCY.EUR, rate: 100, enabled: true},
+                            next: {customUnitRateID: 'next', currency: CONST.CURRENCY.EUR, rate: 200, enabled: true},
+                        },
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS},
+                    },
+                },
+            };
+            const transaction = generateTransaction({
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: 1102,
+                modifiedAmount: -1002,
+                currency: CONST.CURRENCY.EUR,
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'old',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        routeDistanceMeters: 17730.314,
+                        quantity: 11.02,
+                        commuterExclusion: 1,
+                        reimbursableDistance: 10.02,
+                        commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    },
+                },
+            });
+
+            // When the rate changes offline in Self DM, then the saved exclusion is read on moving back
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                shouldApplyCommuterExclusion: false,
+                policy,
+                transactionChanges: {customUnitRateID: 'next'},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+            const workspaceExclusion = DistanceRequestUtils.getTransactionCommuterExclusionData({
+                transaction: updatedTransaction,
+                policy,
+                storedCustomUnit: updatedTransaction.comment?.customUnit,
+            });
+
+            // Then Self DM keeps the full amount and the workspace receives the original physical deduction
+            expect(updatedTransaction.comment?.customUnit?.distanceUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+            expect(updatedTransaction.comment?.customUnit?.quantity).toBe(17.73);
+            expect(updatedTransaction.comment?.customUnit?.commuterExclusion).toBe(1.61);
+            expect(updatedTransaction.comment?.customUnit?.reimbursableDistance).toBe(16.12);
+            expect(updatedTransaction.amount).toBe(-3546);
+            expect(updatedTransaction.modifiedAmount).toBe(-3546);
+            expect(updatedTransaction.modifiedMerchant).toContain('17.73 km');
+            expect(workspaceExclusion?.modifiedAmount).toBe(3224);
         });
 
         it('preserves the full amount through offline workspace distance and rate edits', () => {

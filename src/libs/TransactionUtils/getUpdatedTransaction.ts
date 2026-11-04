@@ -347,11 +347,16 @@ function getUpdatedTransaction({
 
             const distanceInMeters = getDistanceInMeters(updatedTransaction, unit);
 
-            // The commuter exclusion is expressed in distance units, so it has to be re-derived against the new
-            // rate's unit and the converted quantity. The amount and merchant then describe the reimbursable
-            // distance, matching what the backend stores for modifiedAmount/modifiedMerchant.
+            // Self DM uses the full amount, but a saved exclusion must still follow a unit change so it retains
+            // the same physical distance when this expense moves back to a workspace.
+            const shouldConvertSavedExclusion =
+                !shouldApplyCommuterExclusion &&
+                hasCommuterExclusion &&
+                !!existingDistanceUnit &&
+                existingDistanceUnit !== updatedTransaction.comment?.customUnit?.distanceUnit &&
+                !isOdometerDistanceRequest(transaction);
             const commuterExclusionTransactionData =
-                shouldApplyCommuterExclusion && hasAppliedCommuterExclusion(updatedTransaction)
+                (shouldApplyCommuterExclusion || shouldConvertSavedExclusion) && hasAppliedCommuterExclusion(updatedTransaction)
                     ? DistanceRequestUtils.getTransactionCommuterExclusionData({
                           transaction: updatedTransaction,
                           policy,
@@ -364,7 +369,8 @@ function getUpdatedTransaction({
                 lodashSet(updatedTransaction, 'comment.customUnit', commuterExclusionTransactionData.customUnit);
             }
 
-            const amount = commuterExclusionTransactionData?.modifiedAmount ?? DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
+            const appliedCommuterExclusionData = shouldApplyCommuterExclusion ? commuterExclusionTransactionData : undefined;
+            const amount = appliedCommuterExclusionData?.modifiedAmount ?? DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
             const updatedAmount = isFromExpenseReport || isUnReportedExpense ? -amount : amount;
             const updatedCurrency = updatedMileageRate.currency ?? CONST.CURRENCY.USD;
             const updatedMerchant = getRecalculatedDistanceMerchant(
@@ -374,10 +380,10 @@ function getUpdatedTransaction({
                 rate,
                 updatedCurrency,
                 getCurrencySymbol,
-                DistanceRequestUtils.getCommuterExclusionDisplayData(commuterExclusionTransactionData?.customUnit, unit),
+                DistanceRequestUtils.getCommuterExclusionDisplayData(appliedCommuterExclusionData?.customUnit, unit),
             );
 
-            if (!commuterExclusionTransactionData) {
+            if (!appliedCommuterExclusionData) {
                 updatedTransaction.amount = updatedAmount;
             }
             updatedTransaction.modifiedAmount = updatedAmount;
