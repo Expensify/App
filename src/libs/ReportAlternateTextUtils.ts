@@ -452,10 +452,11 @@ function resolveLastActionContext(
  * another company, like the payer on an invoice, can have personal details with no name or login.
  */
 function getActorDetailsWithActionName(
-    actorDetails: Partial<PersonalDetails> | null,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
     reportAction: OnyxEntry<ReportAction>,
     actorAccountID: number | undefined,
 ): Partial<PersonalDetails> | null {
+    const actorDetails = actorAccountID ? (personalDetails?.[actorAccountID] ?? null) : null;
     const actionActorName = reportAction?.person?.at(0)?.text;
     if (!actionActorName || actorDetails?.displayName || actorDetails?.firstName || actorDetails?.login) {
         return actorDetails;
@@ -484,7 +485,7 @@ function getLastActorDisplayNameFromLastVisibleActions(
 
     if (lastReportAction) {
         const lastActorAccountID = getReportActionActorAccountID(lastReportAction, undefined, undefined) || report?.lastActorAccountID;
-        const actorDetails = getActorDetailsWithActionName(lastActorAccountID ? (personalDetails?.[lastActorAccountID] ?? null) : null, lastReportAction, lastActorAccountID);
+        const actorDetails = getActorDetailsWithActionName(personalDetails, lastReportAction, lastActorAccountID);
 
         if (actorDetails) {
             return getLastActorDisplayName(actorDetails, currentUserAccountIDParam, translate);
@@ -1328,7 +1329,7 @@ function getReportAlternateText({
     };
 
     const lastActorAccountID = getReportActionActorAccountID(lastAction, undefined, undefined) || report.lastActorAccountID;
-    const lastActorDetails = getActorDetailsWithActionName(lastActorAccountID ? (personalDetails?.[lastActorAccountID] ?? null) : null, lastAction, lastActorAccountID);
+    const lastActorDetails = getActorDetailsWithActionName(personalDetails, lastAction, lastActorAccountID);
 
     const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountID, translate);
     // An empty precomputed text means "not computed yet", so `||` (not `??`) keeps the recompute fallback meaningful.
