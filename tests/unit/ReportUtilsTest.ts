@@ -14588,6 +14588,56 @@ describe('ReportUtils', () => {
                 expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.ADD);
             });
 
+            it('should return the SUBMIT badge over the ADD badge when a newer report is ready to submit', async () => {
+                // Given an older empty report eligible for Add and a newer report with an expense that needs Submit in the same chat
+                const submitReportID = 'newer-report-to-submit';
+                const submitPreview: ReportAction = {
+                    ...previewAction,
+                    reportActionID: 'newer-submit-report-preview',
+                    childReportID: submitReportID,
+                    created: '2024-01-02 00:00:00',
+                    originalMessage: {linkedReportID: submitReportID},
+                };
+                const workspaceChat = await setUpEmptyReport(CONST.POLICY.ROLE.USER, {
+                    workspaceChatOverrides: {iouReportID: submitReportID},
+                    extraChatReportActions: {[submitPreview.reportActionID]: submitPreview},
+                });
+                const submitReport: Report = {
+                    ...createExpenseReport(42106),
+                    reportID: submitReportID,
+                    policyID,
+                    ownerAccountID: currentUserAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+                const submitExpense: Transaction = {
+                    transactionID: '42107',
+                    reportID: submitReportID,
+                    amount: -100,
+                    currency: CONST.CURRENCY.USD,
+                    merchant: 'Test merchant',
+                    created: '2024-01-02 00:00:00',
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${submitReportID}`, submitReport);
+                await waitForBatchedUpdates();
+
+                // When both previews compete for the row's badge, the older empty report must only be a fallback
+                const result = getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: workspaceChat,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID,
+                    transactionViolations: undefined,
+                    reportMetadata: undefined,
+                    isReportArchived: false,
+                    reportsTransactions: {[emptyReportID]: [], [submitReportID]: [submitExpense]},
+                });
+
+                // Then Submit wins and targets the newer preview so the user can act on the report that needs submission
+                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
+                expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.SUBMIT);
+                expect(result?.reportAction?.reportActionID).toBe(submitPreview.reportActionID);
+            });
+
             it('should return the Task badge over the ADD badge when the user has an incomplete task, even if the empty report is older', async () => {
                 // Given an empty report preview that is older than an incomplete task assigned to the current user in the same workspace chat
                 const taskAction: ReportAction = {
