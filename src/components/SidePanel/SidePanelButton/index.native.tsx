@@ -3,6 +3,7 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -36,6 +37,7 @@ function SidePanelButton({style}: SidePanelButtonProps) {
     const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
     const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
+    const delegateAccountID = useDelegateAccountID();
 
     if (shouldHideHelpButton) {
         return null;
@@ -61,6 +63,7 @@ function SidePanelButton({style}: SidePanelButtonProps) {
                         hasCompletedGuidedSetupFlow,
                         conciergePersonalDetails,
                         sourceReportID: sourceReportID && sourceReportID !== conciergeReportID ? sourceReportID : undefined,
+                        delegateAccountID,
                     });
                 }}
             >
