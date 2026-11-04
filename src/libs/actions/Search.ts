@@ -104,7 +104,7 @@ import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {AnyOnyxUpdate, OnyxData} from '@src/types/onyx/Request';
 import type SearchFooterConversion from '@src/types/onyx/SearchFooterConversion';
-import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
+import type {SearchResultDataType, SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
 
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -278,9 +278,6 @@ type HandleActionButtonPressParams = {
     /** Confirms any unacknowledged report violations before proceeding with the SUBMIT action. */
     confirmSubmitReportViolations: (onProceed: ConfirmSubmitReportViolationsOnProceed) => void;
     openReportSubmitToPopover?: (options?: ReportSubmitToPopoverOpenOptions) => void;
-    shouldDisableSearchSubmitPress?: boolean;
-    /** Consumes a one-shot flag set when the submit-to popover dismisses (prevents click-through on the row Submit button). */
-    consumeIgnoreNextSearchSubmitPress?: () => boolean;
     currentUserAccountID: number;
     currentUserLogin?: string;
     introSelected?: OnyxEntry<IntroSelected>;
@@ -302,6 +299,10 @@ type HandleActionButtonPressParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     bankAccountList: OnyxEntry<BankAccountList>;
 };
+
+function doesSearchActionUsePressTimeInputs(action: SearchTransactionAction | undefined) {
+    return action === CONST.SEARCH.ACTION_TYPES.PAY || action === CONST.SEARCH.ACTION_TYPES.APPROVE || action === CONST.SEARCH.ACTION_TYPES.SUBMIT;
+}
 
 function handleActionButtonPress({
     hash,
@@ -325,8 +326,6 @@ function handleActionButtonPress({
     confirmSubmitReportViolations,
     currentUserAccountID,
     openReportSubmitToPopover,
-    shouldDisableSearchSubmitPress,
-    consumeIgnoreNextSearchSubmitPress,
     currentUserLogin,
     introSelected,
     isASAPSubmitBetaEnabled,
@@ -433,9 +432,6 @@ function handleActionButtonPress({
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
-            if (shouldDisableSearchSubmitPress || consumeIgnoreNextSearchSubmitPress?.()) {
-                return;
-            }
             if (snapshotReport.policyID && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
                 return;
@@ -2313,6 +2309,24 @@ function queueBulkPayReports(jsonQuery: string) {
 }
 
 /**
+ * Queues a bulk approval for every report matching the given search query. The backend pages through all matches itself,
+ * so this covers reports beyond the currently loaded page(s) when "Select all" is checked in Search.
+ */
+function queueBulkApproveReports(jsonQuery: string) {
+    const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.APPROVE);
+    write(WRITE_COMMANDS.QUEUE_BULK_APPROVE_REPORTS, {jsonQuery, bulkActionID}, onyxData);
+}
+
+/**
+ * Queues a bulk submit for every report matching the given search query. The backend pages through all matches itself,
+ * so this covers reports beyond the currently loaded page(s) when "Select all" is checked in Search.
+ */
+function queueBulkSubmitReports(jsonQuery: string) {
+    const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT);
+    write(WRITE_COMMANDS.QUEUE_BULK_SUBMIT_REPORTS, {jsonQuery, bulkActionID}, onyxData);
+}
+
+/**
  * Queues a manual bulk "Mark as exported" for every report matching the given search query on the given connection.
  * The backend pages through all matches itself, so this covers reports beyond the currently loaded page(s) when
  * "Select all" is checked in Search. connectionName scopes the resolved reports to a single accounting connection,
@@ -2763,6 +2777,8 @@ export {
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
     queueBulkPayReports,
+    queueBulkApproveReports,
+    queueBulkSubmitReports,
     queueBulkMarkAsExported,
     updateAdvancedFilters,
     setSearchContext,
@@ -2772,6 +2788,7 @@ export {
     getChatReportWithFallback,
     getSearchApproveOnyxData,
     handleActionButtonPress,
+    doesSearchActionUsePressTimeInputs,
     submitMoneyRequestOnSearch,
     openSearchPage as openSearch,
     openBulkChangeApproverPage,

@@ -20,7 +20,7 @@ import {clearCreateChatError} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {isPersonalDetailOptimistic} from '@selectors/PersonalDetails';
 import React from 'react';
 import {View} from 'react-native';
@@ -44,7 +44,9 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
     const {accountID: currentUserAccountID} = currentUserPersonalDetail;
     const [conciergePersonalDetail] = usePersonalDetail(CONST.ACCOUNT_ID.CONCIERGE);
@@ -69,17 +71,18 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
             errors={report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat}
             errorRowStyles={[styles.ml10, styles.mb2]}
             onClose={() =>
-                clearCreateChatError(
+                clearCreateChatError({
                     report,
                     conciergeReportID,
                     introSelected,
                     currentUserAccountID,
                     isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow,
                     reportOwnerPersonalDetail,
                     currentUserPersonalDetail,
                     conciergePersonalDetail,
                     optimisticPersonalDetails,
-                )
+                })
             }
         >
             <View style={[styles.pRelative]}>
