@@ -2314,17 +2314,22 @@ function getDuplicateTransactionDetails(transactionID?: string) {
         transactionID,
     };
 
+    const loadingKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_DUPLICATE_TRANSACTION_DETAILS}${transactionID}` as const;
     // An offline read applies none of its Onyx data, so the flag would stay set until the timeout below.
-    if (getIsOffline()) {
-        API.read(READ_COMMANDS.GET_DUPLICATE_TRANSACTION_DETAILS, parameters);
+    const isOffline = getIsOffline();
+    API.read(
+        READ_COMMANDS.GET_DUPLICATE_TRANSACTION_DETAILS,
+        parameters,
+        isOffline
+            ? {}
+            : {
+                  optimisticData: [{onyxMethod: Onyx.METHOD.SET, key: loadingKey, value: true}],
+                  finallyData: [{onyxMethod: Onyx.METHOD.SET, key: loadingKey, value: false}],
+              },
+    );
+    if (isOffline) {
         return;
     }
-
-    const loadingKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_DUPLICATE_TRANSACTION_DETAILS}${transactionID}` as const;
-    API.read(READ_COMMANDS.GET_DUPLICATE_TRANSACTION_DETAILS, parameters, {
-        optimisticData: [{onyxMethod: Onyx.METHOD.SET, key: loadingKey, value: true}],
-        finallyData: [{onyxMethod: Onyx.METHOD.SET, key: loadingKey, value: false}],
-    });
 
     // A read that throws (5xx, 429, socket error) applies neither its success nor its finally data.
     setTimeout(() => {
