@@ -196,7 +196,7 @@ function isViolationName(name: string): name is OnyxTypes.ViolationName {
 }
 
 /**
- * Returns a parameter-free display label for a violation name.
+ * Returns the display label for a violation name.
  * Falls back to the raw identifier when no short-name translation exists.
  */
 function getViolationDisplayName(violationName: string, translate: LocalizedTranslate): string {
