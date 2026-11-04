@@ -788,6 +788,7 @@ function getSuggestedSearchesVisibility(
         const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
         const isAuditor = policy.role === CONST.POLICY.ROLE.AUDITOR;
         const isPaymentsAdmin = policy.role === CONST.POLICY.ROLE.PAYMENTS_ADMIN;
+        const isCardAdmin = policy.role === CONST.POLICY.ROLE.CARD_ADMIN;
         const isExporter = !!currentUserEmail && isPreferredExporter(policy, currentUserEmail);
 
         const isSubmittedTo =
@@ -807,8 +808,8 @@ function getSuggestedSearchesVisibility(
         const isEligibleForExportSuggestion = isExporter && !!getValidConnectedIntegration(policy);
         const isEligibleForStatementsSuggestion = isPaidPolicy && (hasCardFeed || !!defaultExpensifyCard);
         const isEligibleForUnapprovedCashSuggestion = isPaidPolicy && (isAdmin || isAuditor || isPaymentsAdmin) && isApprovalEnabled && isPaymentEnabled;
-        const isEligibleForUnapprovedCardSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isApprovalEnabled && (hasCardFeed || !!defaultExpensifyCard);
-        const isEligibleForExpensifyCardSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isECardEnabled;
+        const isEligibleForUnapprovedCardSuggestion = isPaidPolicy && (isAdmin || isAuditor || isCardAdmin) && isApprovalEnabled && (hasCardFeed || !!defaultExpensifyCard);
+        const isEligibleForExpensifyCardSuggestion = isPaidPolicy && (isAdmin || isAuditor || isCardAdmin) && isECardEnabled;
         const isEligibleForReimbursementsSuggestion = isPaidPolicy && (isAdmin || isAuditor || isPaymentsAdmin) && isPaymentEnabled && hasVBBA && hasReimburser;
         const memberCount = Object.keys(policy.employeeList ?? {}).length;
         const isEligibleForTopSpendersSuggestion = isPolicyEligibleForTopSpenders(policy, currentUserEmail);
@@ -2005,7 +2006,7 @@ function getTransactionsSections({
             const reportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
             const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, rules, actions);
             const transactionPendingAction = getTransactionPendingAction(transactionItem);
-            const reportOwnerAccountIDAsAttendee = getReportOwnerAccountIDAsAttendee(transactionItem, currentAccountID);
+            const reportOwnerAccountIDAsAttendee = getReportOwnerAccountIDAsAttendee(transactionItem, currentAccountID, report?.ownerAccountID);
             const reportOwnerAsAttendee = reportOwnerAccountIDAsAttendee ? getReportOwnerAsAttendee(personalDetailsMap.get(reportOwnerAccountIDAsAttendee.toString())) : undefined;
             const transactionAttendees = getAttendees(transactionItem, reportOwnerAsAttendee);
             const isUnreported = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -5531,7 +5532,8 @@ function collectViolationNamesForTransaction(violationNames: Set<string>, violat
     }
 
     for (const violation of transactionViolations) {
-        if (violation.name) {
+        // Search, Insights and the CSV export skip the cash expense notice that only Classic records, so this column skips it too.
+        if (violation.name && violation.name !== CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT) {
             violationNames.add(violation.name);
         }
     }

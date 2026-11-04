@@ -1,3 +1,4 @@
+import {useIsCapturingChart} from '@components/Charts/context/ChartCaptureContext';
 import {useTooltipData} from '@components/Charts/hooks';
 import type {ChartDataPoint, ChartSeries} from '@components/Charts/types';
 import formatTooltipComparison from '@components/Charts/utils/formatTooltipComparison';
@@ -71,6 +72,7 @@ function ChartTooltipLayer({
     onPress,
     footer,
 }: ChartTooltipLayerProps) {
+    const isCapturing = useIsCapturingChart();
     const [activeDataIndex, setActiveDataIndex] = useState(-1);
 
     // Set from the content's layout, since on native a value set during render can reach the UI thread before the new content is mounted
@@ -88,7 +90,7 @@ function ChartTooltipLayer({
     const tooltipData = useTooltipData(activeDataIndex, data, series, formatValue);
     const activeDataPoint = data.at(activeDataIndex);
 
-    if (!tooltipData || !activeDataPoint) {
+    if (isCapturing || !tooltipData || !activeDataPoint) {
         return null;
     }
 

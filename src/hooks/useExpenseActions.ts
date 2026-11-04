@@ -322,6 +322,11 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const addExpenseDropdownOptions = getAddExpenseDropdownOptions({
         translate,
         icons: useMemoizedLazyExpensifyIcons(['Plus', 'ReceiptPlus', 'Location', 'Feed', 'ArrowRight']),
+        sentryLabels: {
+            createExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE,
+            trackDistance: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE,
+            addExistingExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_EXISTING,
+        },
         iouReportID: moneyRequestReport?.reportID,
         policy,
         userBillingGracePeriodEnds,
