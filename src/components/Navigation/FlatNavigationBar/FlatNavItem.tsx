@@ -51,11 +51,11 @@ function FlatNavItem({label, icon, renderLeftElement, rightElement, isSelected, 
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
 
-    const getRowBackgroundColor = (isHovered: boolean): ColorValue | undefined => {
+    const getRowBackgroundStyle = (isHovered: boolean) => {
         if (isSelected) {
-            return styles.hoveredComponentBG.backgroundColor;
+            return styles.hoveredComponentBG;
         }
-        return isHovered ? styles.highlightBG.backgroundColor : undefined;
+        return isHovered ? styles.highlightBG : undefined;
     };
 
     return (
@@ -65,15 +65,10 @@ function FlatNavItem({label, icon, renderLeftElement, rightElement, isSelected, 
             accessibilityLabel={accessibilityLabel ?? label}
             accessibilityState={{selected: isSelected}}
             sentryLabel={sentryLabel}
-            style={({hovered}) => [
-                styles.flatNavigationBarItem,
-                isTall && styles.flatNavigationBarAccountItem,
-                isSelected && styles.hoveredComponentBG,
-                hovered && !isSelected && styles.highlightBG,
-            ]}
+            style={({hovered}) => [styles.flatNavigationBarItem, isTall && styles.flatNavigationBarAccountItem, getRowBackgroundStyle(hovered)]}
         >
             {({hovered}) => {
-                const rowBackgroundColor = getRowBackgroundColor(hovered);
+                const rowBackgroundColor = getRowBackgroundStyle(hovered)?.backgroundColor;
                 return (
                     <>
                         {!!icon && (

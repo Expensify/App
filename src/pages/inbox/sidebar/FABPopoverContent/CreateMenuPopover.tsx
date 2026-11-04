@@ -20,7 +20,6 @@ import TrackDistanceMenuItem from './menuItems/TrackDistanceMenuItem';
 import TravelMenuItem from './menuItems/TravelMenuItem';
 
 type CreateMenuPopoverProps = {
-    /** Whether the menu is open */
     isVisible: boolean;
 
     /** Closes the menu, both on dismiss and after an item is picked */
