@@ -14,6 +14,8 @@ import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import React from 'react';
 import {View} from 'react-native';
 
+import type IconSize from './Icon/types';
+
 import Hoverable from './Hoverable';
 import Icon from './Icon';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
@@ -31,14 +33,11 @@ type BannerProps = {
     /** The icon asset to display to the left of the text */
     icon?: IconAsset | null;
 
-    /** Width of the icon */
-    iconWidth?: number;
-
-    /** Height of the icon */
-    iconHeight?: number;
-
     /** Should this component render the left-aligned exclamation icon? */
     shouldShowIcon?: boolean;
+
+    /** Preset size of the left-aligned icon */
+    iconSize?: IconSize;
 
     shouldShowCloseButton?: boolean;
 
@@ -65,8 +64,7 @@ function Banner({
     text,
     content,
     icon,
-    iconWidth,
-    iconHeight,
+    iconSize,
     onClose,
     onPress,
     containerStyles,
@@ -106,8 +104,7 @@ function Banner({
                                 <View style={[styles.mr3]}>
                                     <Icon
                                         src={displayIcon}
-                                        width={iconWidth}
-                                        height={iconHeight}
+                                        size={iconSize}
                                         fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: shouldHighlight})})}
                                     />
                                 </View>

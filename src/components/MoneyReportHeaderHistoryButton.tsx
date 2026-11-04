@@ -8,8 +8,6 @@ import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
-import type {ValueOf} from 'type-fest';
-
 import React from 'react';
 
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
@@ -18,7 +16,7 @@ type MoneyReportHeaderHistoryButtonProps = ChildrenProps & {
     /** Plain text of the status shown inside the button, so screen readers still announce it */
     message: string;
 
-    sentryLabel: ValueOf<typeof CONST.SENTRY_LABEL.REPORT>;
+    sentryLabel: string;
 };
 
 /**

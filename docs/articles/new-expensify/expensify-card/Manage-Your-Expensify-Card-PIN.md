@@ -29,9 +29,10 @@ After your Workspace Admin issues you a physical GBP or EUR Expensify Card, you'
 
 If you need to view your PIN, you can reveal it from the card details page.
 
-1. In navigation tabs (on the left on web, on the bottom on mobile), **Account > Wallet**.
-2. Choose **Reveal PIN**.
-3. Verify your identity via biometrics or passkey.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Wallet**.
+3. Choose **Reveal PIN**.
+4. Verify your identity via biometrics or passkey.
 
 Your PIN will be displayed on the card details page until you navigate away.
 

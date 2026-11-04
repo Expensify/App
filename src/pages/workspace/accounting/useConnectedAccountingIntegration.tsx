@@ -33,7 +33,7 @@ import {
     hasAccountingConnections,
     hasSupportedOnlyOnOldDotIntegration,
     settingsPendingAction,
-    shouldShowQBOReimbursableExportDestinationAccountError,
+    shouldShowReimbursableExportDestinationAccountError,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
 
@@ -177,7 +177,9 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
     const shouldShowSynchronizationError = !!synchronizationError;
     const shouldShowReinstallConnectorMenuItem = shouldShowSynchronizationError && connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBD;
     const shouldShowCardReconciliationOption = Object.values(allCardSettings ?? {})?.some((cardSetting) => isExpensifyCardFullySetUp(policy, cardSetting));
-    const shouldShowReconnect = hasAuthError && connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.CERTINIA;
+    const isNetSuiteOAuthConnection =
+        connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.NETSUITE && policy?.connections?.netsuite?.config?.authType === CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.OAUTH2;
+    const shouldShowReconnect = hasAuthError && (connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.CERTINIA || isNetSuiteOAuthConnection);
     let credentialsMenuTextKey: Parameters<typeof translate>[0] = 'workspace.accounting.enterCredentials';
     if (shouldShowReconnect || isQBOTokenExpiringSoon) {
         credentialsMenuTextKey = 'workspace.accounting.reconnect';
@@ -511,7 +513,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
                       onPress: integrationData?.onExportPagePress,
                       brickRoadIndicator:
                           areSettingsInErrorFields(integrationData?.subscribedExportSettings, integrationData?.errorFields) ||
-                          shouldShowQBOReimbursableExportDestinationAccountError(policy) ||
+                          shouldShowReimbursableExportDestinationAccountError(policy) ||
                           integrationData?.externalSubscribedExportSettingsHasErrorFields
                               ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                               : undefined,

@@ -1,9 +1,13 @@
 import getCategoryContextualRules from '@libs/CategoryContextualRulesUtils';
+import {toIndexMap} from '@libs/RuleUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {Policy, PolicyCategory} from '@src/types/onyx';
+import type {Policy, PolicyCategory, Rule} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
 import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
@@ -27,7 +31,6 @@ describe('getCategoryContextualRules', () => {
         expect(
             getCategoryContextualRules({
                 policy,
-                policyCategories: undefined,
                 category,
                 categoryName: 'Travel',
                 translate: translateLocal,
@@ -48,7 +51,6 @@ describe('getCategoryContextualRules', () => {
 
         const rules = getCategoryContextualRules({
             policy,
-            policyCategories: undefined,
             category,
             categoryName: 'Travel',
             translate: translateLocal,
@@ -79,7 +81,6 @@ describe('getCategoryContextualRules', () => {
 
         const rules = getCategoryContextualRules({
             policy,
-            policyCategories: undefined,
             category,
             categoryName: 'Travel',
             translate: translateLocal,
@@ -112,7 +113,6 @@ describe('getCategoryContextualRules', () => {
         expect(
             getCategoryContextualRules({
                 policy,
-                policyCategories: undefined,
                 category,
                 categoryName: 'Travel',
                 translate: translateLocal,
@@ -135,14 +135,16 @@ describe('getCategoryContextualRules', () => {
                     TAX_VAT: {name: 'VAT', value: '20%'},
                 },
             },
-            rules: {
-                expenseRules: [
-                    {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention -- matches the backend's expense rule shape
-                        tax: {field_id_TAX: {externalID: 'TAX_VAT'}},
-                        applyWhen: [{condition: CONST.POLICY.RULE_CONDITIONS.MATCHES, field: CONST.POLICY.FIELDS.CATEGORY, value: 'Travel'}],
-                    },
-                ],
+        };
+        // A category's tax default is an ordinary rule matching that category alone and setting a tax.
+        const taxDefaultRules: OnyxCollection<Rule> = {
+            [`${ONYXKEYS.COLLECTION.RULE}rule1`]: {
+                scope: CONST.RULES.SCOPE.POLICY,
+                scopeID: policy.id,
+                triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
+                filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel']},
+                // eslint-disable-next-line @typescript-eslint/naming-convention -- matches the rules engine's tax value shape
+                actions: toIndexMap([{name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.TAX, value: {field_id_TAX: {externalID: 'TAX_VAT'}}}]),
             },
         };
         const category: PolicyCategory = {name: 'Travel', enabled: true};
@@ -152,7 +154,7 @@ describe('getCategoryContextualRules', () => {
             // When the category details RHP builds its rules
             const rules = getCategoryContextualRules({
                 policy: policyWithTaxRule,
-                policyCategories: undefined,
+                policyRules: taxDefaultRules,
                 category,
                 categoryName: 'Travel',
                 translate: translateLocal,
@@ -163,7 +165,7 @@ describe('getCategoryContextualRules', () => {
             // Then the tax default is listed and opens the category-scoped editor, so the RHP matches the Rules page
             expect(rules).toHaveLength(1);
             expect(rules.at(0)?.summary).toBe('Update tax to "VAT (20%)"');
-            expect(rules.at(0)?.dynamicRoutePath).toBe(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_EDIT.path);
+            expect(rules.at(0)?.dynamicRoutePath).toBe(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_EDIT.getRoute('rule1'));
         });
 
         it('does not list a tax default belonging to another category', () => {
@@ -171,7 +173,7 @@ describe('getCategoryContextualRules', () => {
             // When the rules are built for a different category
             const rules = getCategoryContextualRules({
                 policy: policyWithTaxRule,
-                policyCategories: undefined,
+                policyRules: taxDefaultRules,
                 category: {name: 'Meals', enabled: true},
                 categoryName: 'Meals',
                 translate: translateLocal,
@@ -181,6 +183,24 @@ describe('getCategoryContextualRules', () => {
 
             // Then nothing is listed, since the workspace default rate is not a rule of its own
             expect(rules).toEqual([]);
+        });
+
+        it('leaves the tax default listed while the category it matches on is being deleted', () => {
+            // Given the category is pending delete, which the server does not take the rule down with
+            const rules = getCategoryContextualRules({
+                policy: policyWithTaxRule,
+                policyRules: taxDefaultRules,
+                category: {...category, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                categoryName: 'Travel',
+                translate: translateLocal,
+                convertToDisplayString,
+                isOffline: true,
+            });
+
+            // Then the rule reads as it always does, because striking it through would promise a removal that never comes
+            expect(rules).toHaveLength(1);
+            expect(rules.at(0)?.pendingAction).toBeUndefined();
+            expect(rules.at(0)?.isDisabled).toBe(false);
         });
 
         it('shows the tax default as deleting offline while its rate is being deleted', () => {
@@ -201,7 +221,7 @@ describe('getCategoryContextualRules', () => {
             };
             const params = {
                 policy: policyWithDeletingRate,
-                policyCategories: undefined,
+                policyRules: taxDefaultRules,
                 category,
                 categoryName: 'Travel',
                 translate: translateLocal,
@@ -216,6 +236,231 @@ describe('getCategoryContextualRules', () => {
             expect(offlineRules.at(0)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
             expect(offlineRules.at(0)?.isDisabled).toBe(true);
             expect(onlineRules).toEqual([]);
+        });
+
+        it('lists a rule that sets no tax', () => {
+            // Given a rule saved from the category that sets an amount rather than a tax
+            const amountOnlyRules: OnyxCollection<Rule> = {
+                [`${ONYXKEYS.COLLECTION.RULE}rule1`]: {
+                    scope: CONST.RULES.SCOPE.POLICY,
+                    scopeID: policy.id,
+                    triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
+                    filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel']},
+                    actions: toIndexMap([{name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.AMOUNT, value: -1000}]),
+                },
+            };
+
+            // When the category details RHP builds its rules
+            const rules = getCategoryContextualRules({
+                policy: policyWithTaxRule,
+                policyRules: amountOnlyRules,
+                category,
+                categoryName: 'Travel',
+                translate: translateLocal,
+                convertToDisplayString,
+                isOffline: false,
+            });
+
+            // Then it is listed, because the row describes the rule rather than a tax the rule need not set
+            expect(rules).toHaveLength(1);
+            expect(rules.at(0)?.summary).toBe('Update amount to "$10.00"');
+        });
+
+        it('describes every field a rule sets, not just the tax', () => {
+            // Given a rule that sets a tax and an amount
+            const taxAndAmountRules: OnyxCollection<Rule> = {
+                [`${ONYXKEYS.COLLECTION.RULE}rule1`]: {
+                    scope: CONST.RULES.SCOPE.POLICY,
+                    scopeID: policy.id,
+                    triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
+                    filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel']},
+                    actions: toIndexMap([
+                        // eslint-disable-next-line @typescript-eslint/naming-convention -- matches the rules engine's tax value shape
+                        {name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.TAX, value: {field_id_TAX: {externalID: 'TAX_VAT'}}},
+                        {name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.AMOUNT, value: -1000},
+                    ]),
+                },
+            };
+
+            // When the category details RHP builds its rules
+            const rules = getCategoryContextualRules({
+                policy: policyWithTaxRule,
+                policyRules: taxAndAmountRules,
+                category,
+                categoryName: 'Travel',
+                translate: translateLocal,
+                convertToDisplayString,
+                isOffline: false,
+            });
+
+            // Then the amount is in the summary too, so the row is not a tax-only view of the rule
+            expect(rules.at(0)?.summary).toBe('Update tax to "VAT (20%)", update amount to "$10.00"');
+        });
+
+        it('shows what a rule matches on, so two rules with the same action can be told apart', () => {
+            // Given two rules setting the same description, one of which also matches on a merchant
+            const sameActionRules: OnyxCollection<Rule> = {
+                [`${ONYXKEYS.COLLECTION.RULE}rule1`]: {
+                    scope: CONST.RULES.SCOPE.POLICY,
+                    scopeID: policy.id,
+                    triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
+                    filters: {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                        left: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS, right: 'Starbucks'},
+                        right: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel']},
+                    },
+                    actions: toIndexMap([{name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.COMMENT, value: 'test desc'}]),
+                },
+                [`${ONYXKEYS.COLLECTION.RULE}rule2`]: {
+                    scope: CONST.RULES.SCOPE.POLICY,
+                    scopeID: policy.id,
+                    triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
+                    filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel']},
+                    actions: toIndexMap([{name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.COMMENT, value: 'test desc'}]),
+                },
+            };
+
+            // When the category details RHP builds its rules
+            const rules = getCategoryContextualRules({
+                policy: policyWithTaxRule,
+                policyRules: sameActionRules,
+                category,
+                categoryName: 'Travel',
+                translate: translateLocal,
+                convertToDisplayString,
+                isOffline: false,
+            });
+
+            // Then the merchant rule names its merchant, and the category-only rule has nothing left to name,
+            // so the two rows are no longer identical
+            const conditionSummaries = rules.map((rule) => rule.conditionSummary);
+            expect(conditionSummaries).toContain('Merchant contains "Starbucks"');
+            expect(conditionSummaries).toContain('');
+        });
+
+        it('leaves the category out of the condition line, since the page already names it', () => {
+            // Given a rule matching the category the admin is looking at together with a tag
+            const categoryAndTagRules: OnyxCollection<Rule> = {
+                [`${ONYXKEYS.COLLECTION.RULE}rule1`]: {
+                    scope: CONST.RULES.SCOPE.POLICY,
+                    scopeID: policy.id,
+                    triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
+                    filters: {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                        left: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel']},
+                        right: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.TAG, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Engineering']},
+                    },
+                    actions: toIndexMap([{name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.COMMENT, value: 'test desc'}]),
+                },
+            };
+
+            // When the category details RHP builds its rules
+            const rules = getCategoryContextualRules({
+                policy: policyWithTaxRule,
+                policyRules: categoryAndTagRules,
+                category,
+                categoryName: 'Travel',
+                translate: translateLocal,
+                convertToDisplayString,
+                isOffline: false,
+            });
+
+            // Then only the tag is named, because repeating the category the page is already about reads as noise
+            expect(rules.at(0)?.conditionSummary).toBe('Tag is "Engineering"');
+        });
+
+        it('lists a rule that also matches on a merchant', () => {
+            // Given the category's own rule and a second rule matching the category together with a merchant
+            const withMerchantRule: OnyxCollection<Rule> = {
+                ...taxDefaultRules,
+                [`${ONYXKEYS.COLLECTION.RULE}rule2`]: {
+                    scope: CONST.RULES.SCOPE.POLICY,
+                    scopeID: policy.id,
+                    triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
+                    filters: {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                        left: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel']},
+                        right: {left: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS, right: 'Starbucks'},
+                    },
+                    actions: toIndexMap([{name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.AMOUNT, value: -1000}]),
+                },
+            };
+
+            // When the category details RHP builds its rules
+            const rules = getCategoryContextualRules({
+                policy: policyWithTaxRule,
+                policyRules: withMerchantRule,
+                category,
+                categoryName: 'Travel',
+                translate: translateLocal,
+                convertToDisplayString,
+                isOffline: false,
+            });
+
+            // Then both are listed, because a rule matching the category applies to it whatever else it matches
+            // on. The Rules page still groups the merchant one with the merchants, so it is shown once there
+            expect(rules).toHaveLength(2);
+        });
+
+        it('keeps a rule deleted offline listed and struck through', () => {
+            // Given the category's rule, deleted while offline so the request has not gone through yet
+            const deletingRules: OnyxCollection<Rule> = {
+                [`${ONYXKEYS.COLLECTION.RULE}rule1`]: {
+                    scope: CONST.RULES.SCOPE.POLICY,
+                    scopeID: policy.id,
+                    triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
+                    filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel']},
+                    actions: toIndexMap([{name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.AMOUNT, value: -1000}]),
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            };
+            const params = {
+                policy: policyWithTaxRule,
+                policyRules: deletingRules,
+                category,
+                categoryName: 'Travel',
+                translate: translateLocal,
+                convertToDisplayString,
+            };
+
+            // When the rules are built offline and online
+            const offlineRules = getCategoryContextualRules({...params, isOffline: true});
+            const onlineRules = getCategoryContextualRules({...params, isOffline: false});
+
+            // Then offline keeps it listed but not openable, the way the Rules table does, and online drops it
+            expect(offlineRules).toHaveLength(1);
+            expect(offlineRules.at(0)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            expect(offlineRules.at(0)?.isDisabled).toBe(true);
+            expect(onlineRules).toEqual([]);
+        });
+
+        it('lists a row per rule the category decides on its own, each opening its own rule', () => {
+            // Given two rules that each match the category alone, which saving past the duplicate prompt allows
+            const twoOwnRules: OnyxCollection<Rule> = {
+                ...taxDefaultRules,
+                [`${ONYXKEYS.COLLECTION.RULE}rule2`]: {
+                    scope: CONST.RULES.SCOPE.POLICY,
+                    scopeID: policy.id,
+                    triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
+                    filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel']},
+                    actions: toIndexMap([{name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.COMMENT, value: 'Test'}]),
+                },
+            };
+
+            // When the category details RHP builds its rules
+            const rules = getCategoryContextualRules({
+                policy: policyWithTaxRule,
+                policyRules: twoOwnRules,
+                category,
+                categoryName: 'Travel',
+                translate: translateLocal,
+                convertToDisplayString,
+                isOffline: false,
+            });
+
+            // Then both are listed rather than the second being hidden, and each row carries the rule it opens
+            expect(rules).toHaveLength(2);
+            expect(rules.map((rule) => rule.dynamicRoutePath)).toEqual(['rules/tax/rule1', 'rules/tax/rule2']);
         });
     });
 });

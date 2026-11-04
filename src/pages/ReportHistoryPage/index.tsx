@@ -24,8 +24,7 @@ import {isGroupPolicyExpenseReport, isOpenExpenseReport} from '@libs/ReportUtils
 import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
 import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
 
-import variables from '@styles/variables';
-
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -90,8 +89,7 @@ function ReportHistoryPage({report}: ReportHistoryPageProps) {
                         <Banner
                             text={translate('reportHistoryPage.offlineMessage')}
                             icon={icons.OfflineCloud}
-                            iconWidth={variables.iconSizeSmall}
-                            iconHeight={variables.iconSizeSmall}
+                            iconSize={CONST.ICON_SIZE.SMALL}
                             shouldShowIcon
                             containerStyles={[styles.highlightBG, styles.mb3, styles.p4, styles.br3]}
                             textStyles={[styles.breakWord, styles.textLabelSupporting]}
