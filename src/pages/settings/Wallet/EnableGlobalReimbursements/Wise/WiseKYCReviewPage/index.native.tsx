@@ -6,6 +6,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useOnyx from '@hooks/useOnyx';
 
 import Log from '@libs/Log';
+import openExternalLink from '@libs/openExternalLink';
 
 import Navigation from '@navigation/Navigation';
 
@@ -13,7 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import type {ShouldStartLoadRequest} from 'react-native-webview/lib/WebViewTypes';
+import type {ShouldStartLoadRequest, WebViewOpenWindowEvent} from 'react-native-webview/lib/WebViewTypes';
 
 import React from 'react';
 
@@ -46,6 +47,9 @@ function WiseKYCReviewPage() {
         return false;
     };
 
+    // Without a handler, iOS loads a new window's link in place of the form and Android drops it, so links such as Wise's terms open in the browser instead
+    const openNewWindowInBrowser = ({nativeEvent}: WebViewOpenWindowEvent) => openExternalLink(nativeEvent.targetUrl);
+
     return (
         <ScreenWrapper
             testID="WiseKYCReviewPage"
@@ -60,6 +64,7 @@ function WiseKYCReviewPage() {
                 <FullScreenWebView
                     source={{uri: kycReviewURL ?? ''}}
                     onShouldStartLoadWithRequest={closeFormOnRedirect}
+                    onOpenWindow={openNewWindowInBrowser}
                     // The form holds identity documents, so its cookies and cache do not outlive the screen
                     incognito
                     // The form's ID document step films the user, so the camera preview has to play inline, and Wise's own host gets the camera without a second prompt
