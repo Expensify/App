@@ -35,6 +35,12 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        billCreated: ({sender}) => `hat diese Rechnung im Namen von ${sender} erstellt`,
+        billSubmitted: ({receiver}) => `hat diese Rechnung an ${receiver} gesendet`,
+        invoiceCreated: ({sender}) => `hat diese Rechnung im Namen von ${sender} erstellt`,
+        invoiceSubmitted: ({receiver}) => `hat diese Rechnung an ${receiver} gesendet`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 Tag`,
@@ -1233,6 +1239,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'Compliance',
         runningTotal: 'Laufende Summe',
+        explain: 'Erklären',
+        explainChartPrompt: (chartTitle: string) => `Erklären Sie die Daten in ${chartTitle}.`,
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -12334,7 +12342,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             isUnreadWithMention: 'Ist ungelesen mit Erwähnung',
             isWaitingForAssigneeToCompleteAction: 'Wartet darauf, dass die zuständige Person die Aktion ausführt',
             hasChildReportAwaitingAction: 'Hat untergeordneten Bericht mit ausstehender Aktion',
-            hasMissingInvoiceBankAccount: 'Hat fehlendes Rechnungskonto für Banküberweisung',
             hasUnresolvedCardFraudAlert: 'Hat eine nicht gelöste Kartenbetrugswarnung',
             hasDEWApproveFailed: 'DEW-Genehmigung fehlgeschlagen',
         },

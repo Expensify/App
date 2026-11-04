@@ -1,6 +1,6 @@
-import {search} from '@libs/actions/Search';
+import {getExpenseReportIDs, search} from '@libs/actions/Search';
 import {makeRequestWithSideEffects, waitForWrites} from '@libs/API';
-import {getExpenseReportIDs, getSuggestedSearches} from '@libs/SearchUIUtils';
+import {getSuggestedSearches} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

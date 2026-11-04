@@ -21,6 +21,12 @@ import type {CompanyCardBalanceParams} from './params';
 import type {AllConnectionName, PolicyConnectionSyncStage} from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        billCreated: ({sender}) => `creó esta factura en nombre de ${sender}`,
+        billSubmitted: ({receiver}) => `envió esta factura a ${receiver}`,
+        invoiceCreated: ({sender}) => `creó esta factura en nombre de ${sender}`,
+        invoiceSubmitted: ({receiver}) => `envió esta factura a ${receiver}`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 día`,
@@ -1225,6 +1231,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'Cumplimiento',
         runningTotal: 'Total acumulado',
+        explain: 'Explicar',
+        explainChartPrompt: (chartTitle: string) => `Explica los datos en ${chartTitle}.`,
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
@@ -12516,7 +12524,6 @@ ${reportName}`,
             isUnreadWithMention: 'No leído con mención',
             isWaitingForAssigneeToCompleteAction: 'Esperando a que el asignado complete la acción',
             hasChildReportAwaitingAction: 'Informe secundario pendiente de acción',
-            hasMissingInvoiceBankAccount: 'Falta la cuenta bancaria de la factura',
             hasUnresolvedCardFraudAlert: 'Tiene una alerta de fraude de tarjeta sin resolver',
             hasDEWApproveFailed: 'La aprobación DEW ha fallado',
         },

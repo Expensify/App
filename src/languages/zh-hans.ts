@@ -35,6 +35,12 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        billCreated: ({sender}) => `代表 ${sender} 创建了此账单`,
+        billSubmitted: ({receiver}) => `将此账单发送给 ${receiver}`,
+        invoiceCreated: ({sender}) => `代表 ${sender} 创建了此发票`,
+        invoiceSubmitted: ({receiver}) => `将此发票发送给 ${receiver}`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 天`,
@@ -1186,6 +1192,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: '合规',
         runningTotal: '累计总额',
+        explain: '解释',
+        explainChartPrompt: (chartTitle: string) => `解释「${chartTitle}」中的数据。`,
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -11789,7 +11797,6 @@ ${reportName}`,
             isUnreadWithMention: '未读且被提及',
             isWaitingForAssigneeToCompleteAction: '正在等待受托人完成操作',
             hasChildReportAwaitingAction: '有子报销单等待处理',
-            hasMissingInvoiceBankAccount: '缺少发票银行账户',
             hasUnresolvedCardFraudAlert: '存在未解决的银行卡欺诈警报',
             hasDEWApproveFailed: 'DEW 审批是否失败',
         },

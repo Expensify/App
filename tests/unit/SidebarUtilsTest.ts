@@ -54,6 +54,7 @@ jest.mock('@libs/PolicyUtils', () => ({
     // This factory runs while PolicyUtils is still loading inside an import cycle, so the barrel's `export *` helpers
     // aren't on it yet. Spread them from their own modules, which load fully.
     ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/members'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/expensifyTeam'),
     getConnectedIntegration: jest.fn(() => true),
     isPolicyAdmin: jest.fn(() => true),
 }));
