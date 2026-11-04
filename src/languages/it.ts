@@ -3652,6 +3652,7 @@ ${amount} per ${merchant} - ${date}`,
         appSection: {
             title: 'Preferenze app',
         },
+        distanceSection: {title: 'Preferenze distanza'},
         testSection: {
             title: 'Preferenze di test',
             subtitle: 'Impostazioni per aiutare a eseguire il debug e testare l’app in staging.',

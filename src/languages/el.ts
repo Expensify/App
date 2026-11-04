@@ -3710,6 +3710,7 @@ ${amount} για ${merchant} - ${date}`,
         appSection: {
             title: 'Προτιμήσεις εφαρμογής',
         },
+        distanceSection: {title: 'Προτιμήσεις απόστασης'},
         testSection: {
             title: 'Προτιμήσεις δοκιμών',
             subtitle: 'Ρυθμίσεις για βοήθεια στον εντοπισμό σφαλμάτων και τη δοκιμή της εφαρμογής σε staging.',

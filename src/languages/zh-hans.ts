@@ -3526,6 +3526,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         appSection: {
             title: '应用偏好设置',
         },
+        distanceSection: {title: '距离偏好'},
         testSection: {
             title: '测试偏好设置',
             subtitle: '用于在预发布环境中调试和测试应用的设置。',
