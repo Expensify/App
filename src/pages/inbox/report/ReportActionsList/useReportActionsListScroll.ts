@@ -230,6 +230,7 @@ function useReportActionsListScroll({
     const lastScrollMetricsRef = useRef<ReportActionsListScrollMetrics | undefined>(undefined);
     const endCorrectionFrameRef = useRef<number | undefined>(undefined);
     const userScrolledListIDRef = useRef<string | undefined>(undefined);
+    const userDraggedListIDRef = useRef<string | undefined>(undefined);
 
     const stopFollowingEnd = () => {
         userScrolledListIDRef.current = listID;
@@ -243,6 +244,7 @@ function useReportActionsListScroll({
     };
 
     const handleScrollBeginDrag = () => {
+        userDraggedListIDRef.current = listID;
         stopLinkedMessagePositioning();
         stopFollowingEnd();
     };
@@ -314,7 +316,11 @@ function useReportActionsListScroll({
         const previousMetrics = lastScrollMetricsRef.current;
         if (readyEndListIDRef.current === listID && !hasNewerActions) {
             if (distanceFromBottom < CONST.REPORT.ACTIONS.AUTOSCROLL_TO_TOP_THRESHOLD) {
-                shouldFollowEndOnResizeRef.current = true;
+                // A list opened at an unread or linked message can settle near the end. Following it from there would
+                // push that message out of view as rows resize, so wait until the list reaches the end or the user drags.
+                if (initialScrollIndex === undefined || distanceFromBottom <= 1 || userDraggedListIDRef.current === listID) {
+                    shouldFollowEndOnResizeRef.current = true;
+                }
             } else if (
                 (previousMetrics && contentOffset.y < previousMetrics.offset - 1) ||
                 (previousMetrics &&

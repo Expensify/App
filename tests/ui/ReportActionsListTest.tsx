@@ -781,6 +781,41 @@ describe('ReportActionsList (body)', () => {
         }
     });
 
+    it('keeps an unread marker in view when the list settles close to the end', async () => {
+        // Given the chat opens at an unread marker and the list settles 100 pixels above the newest action without the reader scrolling.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        const originalImplementation = mockUseReportActionsScroll.getMockImplementation();
+        const defaultScrollState = mockUseReportActionsScroll(createMock<Parameters<typeof useReportActionsScroll>[0]>({}));
+        mockUseReportActionsScroll.mockReturnValue({...defaultScrollState, initialScrollIndex: 1});
+        mockLegendGetState.mockReturnValue({...mockLegendGetState(), isAtEnd: false});
+        try {
+            renderReportActionsList();
+            act(() => {
+                getCapturedListProps()?.onScroll?.({
+                    nativeEvent: {
+                        contentOffset: {x: 0, y: 400},
+                        contentSize: {height: 1000, width: 300},
+                        layoutMeasurement: {height: 500, width: 300},
+                    },
+                });
+            });
+
+            // When rows below the marker are measured and make the content taller.
+            act(() => getCapturedListProps()?.onContentSizeChange?.(300, 1025));
+            await act(
+                async () =>
+                    new Promise<void>((resolve) => {
+                        setTimeout(resolve, 30);
+                    }),
+            );
+
+            // Then the list stays at the marker instead of scrolling it out of view.
+            expect(mockLegendScrollToEnd).not.toHaveBeenCalled();
+        } finally {
+            mockUseReportActionsScroll.mockImplementation(originalImplementation);
+        }
+    });
+
     it('cancels a queued end correction as soon as the reader starts dragging', async () => {
         // Given removing the latest message has queued a layout correction at the end.
         mockUseNetwork.mockReturnValue({isOffline: false});
