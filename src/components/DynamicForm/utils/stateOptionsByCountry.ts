@@ -48,8 +48,4 @@ const STATE_OPTIONS_BY_COUNTRY: Partial<Record<string, Record<string, string>>> 
     // cspell:enable
 };
 
-function getStateOptions(country: string): Record<string, string> | undefined {
-    return STATE_OPTIONS_BY_COUNTRY[country];
-}
-
-export default getStateOptions;
+export default STATE_OPTIONS_BY_COUNTRY;

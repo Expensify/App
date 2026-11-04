@@ -1,9 +1,9 @@
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 import getAddressInputKeys from '@components/DynamicForm/utils/getAddressInputKeys';
-import getStateOptions from '@components/DynamicForm/utils/getStateOptions';
 import {getHiddenProvidedKeys} from '@components/DynamicForm/utils/hasProvidedAnswer';
 import isCountryCode from '@components/DynamicForm/utils/isCountryCode';
 import {getAllFields, getPages} from '@components/DynamicForm/utils/paginate';
+import STATE_OPTIONS_BY_COUNTRY from '@components/DynamicForm/utils/stateOptionsByCountry';
 
 import {getCountryCode, resolveStateCode} from '@libs/CountryUtils';
 import {toSavedFile} from '@libs/getWiseOnboardingPageParams';
@@ -42,7 +42,7 @@ function getStateCode(countryCode: string | undefined, state: string | undefined
         const stateCode = resolveStateCode(state ?? '');
         return stateCode in COMMON_CONST.STATES ? stateCode : undefined;
     }
-    const stateOptions = countryCode === CONST.COUNTRY.CA ? COMMON_CONST.PROVINCES : getStateOptions(countryCode ?? '');
+    const stateOptions = countryCode === CONST.COUNTRY.CA ? COMMON_CONST.PROVINCES : STATE_OPTIONS_BY_COUNTRY[countryCode ?? ''];
     if (!stateOptions) {
         return state;
     }

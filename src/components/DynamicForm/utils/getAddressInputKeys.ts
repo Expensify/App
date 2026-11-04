@@ -7,8 +7,8 @@ import type {Country} from '@src/CONST';
 
 import type {ComponentProps} from 'react';
 
-import getStateOptions from './getStateOptions';
 import isCountryCode from './isCountryCode';
+import STATE_OPTIONS_BY_COUNTRY from './stateOptionsByCountry';
 
 type AddressInputKeys = ComponentProps<typeof AddressFormFields>['inputKeys'];
 
@@ -38,7 +38,7 @@ function getAddressCountry(fieldKey: string, values: DynamicFormValues): Country
 
 /** Wise needs a state code only in the US, Canada, Australia and Brazil. AddressFormFields assumes the US until a country is picked. */
 function isStateAsked(country: Country | ''): boolean {
-    return !country || country === CONST.COUNTRY.US || country === CONST.COUNTRY.CA || !!getStateOptions(country);
+    return !country || country === CONST.COUNTRY.US || country === CONST.COUNTRY.CA || !!STATE_OPTIONS_BY_COUNTRY[country];
 }
 
 export default getAddressInputKeys;
