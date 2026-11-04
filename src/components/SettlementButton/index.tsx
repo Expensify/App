@@ -46,7 +46,7 @@ import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
 import {clearPersonalBankAccount, pressLockedBankAccount} from '@userActions/BankAccounts';
-import {openPaymentMethods, openPaymentMethodsOnce} from '@userActions/PaymentMethods';
+import {openPaymentMethods} from '@userActions/PaymentMethods';
 import {navigateToConciergeChat} from '@userActions/Report';
 
 import CONST from '@src/CONST';
@@ -60,7 +60,7 @@ import type {TupleToUnion} from 'type-fest';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import truncate from 'lodash/truncate';
-import React, {useContext, useEffect} from 'react';
+import React, {useContext} from 'react';
 import {View} from 'react-native';
 
 import type SettlementButtonProps from './types';
@@ -564,17 +564,8 @@ function SettlementButton({
 
     const shouldLoadABAData = shouldLoadPayViaABAData(policy, isPayViaABABetaEnabled);
 
-    // Loads the Pay via ABA data as soon as the button shows, so the option is there when the menu first opens
-    useEffect(() => {
-        if (!shouldLoadABAData) {
-            return;
-        }
-        openPaymentMethodsOnce();
-    }, [shouldLoadABAData]);
-
     const handlePaymentOptionsShow = () => {
-        // Changes to reimbursement will come via pusher, so we only really need to load it if the data is missing, e.g. due to Onyx being cleared
-        if (shouldLoadABAData && !policy?.reimbursement) {
+        if (shouldLoadABAData) {
             openPaymentMethods();
         }
         onPaymentOptionsShow?.();

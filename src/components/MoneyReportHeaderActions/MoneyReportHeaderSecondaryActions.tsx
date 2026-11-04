@@ -70,7 +70,7 @@ import {
 import {isPending} from '@libs/TransactionUtils';
 
 import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
-import {openPaymentMethods, openPaymentMethodsOnce} from '@userActions/PaymentMethods';
+import {openPaymentMethods} from '@userActions/PaymentMethods';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -474,17 +474,8 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
 
     const shouldLoadABAData = secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.PAY) && shouldLoadPayViaABAData(policy, isPayViaABABetaEnabled);
 
-    // Loads the Pay via ABA data as soon as Pay is in the menu, so the option is there when the menu first opens
-    useEffect(() => {
-        if (!shouldLoadABAData) {
-            return;
-        }
-        openPaymentMethodsOnce();
-    }, [shouldLoadABAData]);
-
     const handleOptionsMenuShow = () => {
-        // Changes to reimbursement will come via pusher, so we only really need to load it if the data is missing, e.g. due to Onyx being cleared
-        if (!shouldLoadABAData || policy?.reimbursement) {
+        if (!shouldLoadABAData) {
             return;
         }
         openPaymentMethods();
