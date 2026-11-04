@@ -34,7 +34,7 @@ function isNavigationIntentOnlyQuery(query: string) {
 }
 
 function canQueryMatchNavigationSuggestions(query: string) {
-    return isNavigationIntentOnlyQuery(query) || !!stripNavigationIntentPrefix(query);
+    return !!query.trim();
 }
 
 function toMatchKey(value: string | undefined) {

@@ -402,7 +402,7 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
     const typeMenuSections = useSearchTypeMenuSectionsForNavigation(shouldWatchForApprovals);
     const {accountMenuItemsData, generalMenuItemsData} = useSettingsNavigationMenuData();
 
-    // The router opens with an empty query, which matches nothing. Building every workspace's menu items is the slowest part of opening it for accounts with many workspaces, so skip the builders until the query can match.
+    // A blank query matches nothing, so skip building the sources; workspace menu items are the costliest.
     if (!canQueryMatchNavigationSuggestions(query)) {
         return NO_NAVIGATION_SUGGESTIONS;
     }
