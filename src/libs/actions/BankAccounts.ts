@@ -1376,7 +1376,7 @@ function getWiseBankAccountFields(country: string, currency?: string, inputs?: R
     API.read(READ_COMMANDS.GET_WISE_BANK_ACCOUNT_FIELDS, parameters, onyxData);
 }
 
-function createWiseBankAccount(country: string, currency: string | undefined, inputs: Record<string, unknown>, confirmVerificationOfPayee: boolean) {
+function createWiseBankAccount(country: string, currency: string | undefined, inputs: Record<string, unknown>, confirmVerificationOfPayee = false) {
     const parameters: CreateWiseBankAccountParams = {country, currency, inputs: JSON.stringify(inputs)};
     if (confirmVerificationOfPayee) {
         parameters.confirmVerificationOfPayee = true;
@@ -1387,10 +1387,6 @@ function createWiseBankAccount(country: string, currency: string | undefined, in
         finallyData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, value: {isLoading: false}}],
     };
     API.write(WRITE_COMMANDS.CREATE_WISE_BANK_ACCOUNT, parameters, onyxData);
-}
-
-function clearWiseBankAccountCreation() {
-    Onyx.set(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, null);
 }
 
 function clearWiseBankAccountFields() {
@@ -2166,7 +2162,6 @@ export {
     clearReimbursementAccountSaveCorpayOnboardingDirectorInformation,
     clearCorpayBankAccountFields,
     clearWiseBankAccountFields,
-    clearWiseBankAccountCreation,
     createWiseBankAccount,
     finishCorpayBankAccountOnboarding,
     shareBankAccountAndSetPayer,

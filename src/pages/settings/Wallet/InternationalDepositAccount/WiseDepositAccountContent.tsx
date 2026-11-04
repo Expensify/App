@@ -15,7 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import CountrySelectionList from '@pages/settings/Wallet/CountrySelectionList';
 
-import {clearWiseBankAccountCreation, clearWiseBankAccountFields, createWiseBankAccount, getWiseBankAccountFields} from '@userActions/BankAccounts';
+import {clearWiseBankAccountFields, createWiseBankAccount, getWiseBankAccountFields} from '@userActions/BankAccounts';
 import {clearDraftValues, setDraftValues} from '@userActions/FormActions';
 
 import CONST from '@src/CONST';
@@ -31,29 +31,17 @@ type WiseDepositAccountContentProps = {
 
 const COUNTRIES = Object.keys(CONST.ALL_COUNTRIES).filter((countryISO) => !CONST.WISE.EXCLUDED_BANK_ACCOUNT_COUNTRIES.includes(countryISO));
 
-type WiseBankAccountCreationState = {
-    isSuccess?: boolean | null;
-    verificationOfPayee?: unknown;
-};
-
-function isWiseBankAccountCreationState(value: unknown): value is WiseBankAccountCreationState {
-    return typeof value === 'object' && value !== null && (!('isSuccess' in value) || value.isSuccess === null || typeof value.isSuccess === 'boolean');
-}
-
 function WiseDepositAccountContent({backTo}: WiseDepositAccountContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [wiseBankAccountFields] = useOnyx(ONYXKEYS.WISE_BANK_ACCOUNT_FIELDS);
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT);
-    const [formState] = useOnyx(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
     const [country] = useOnyx(ONYXKEYS.COUNTRY);
     const [selectedCountry, setSelectedCountry] = useState(wiseBankAccountFields?.country ?? country ?? '');
     const errorMessage = getLatestErrorMessage(wiseBankAccountFields);
     const payoutType = wiseBankAccountFields?.payoutType;
     const formCurrency = wiseBankAccountFields?.currency;
     const schema = wiseBankAccountFields?.schema;
-    const formStateValue: unknown = formState;
-    const creationState = isWiseBankAccountCreationState(formStateValue) ? formStateValue : undefined;
 
     useEffect(() => {
         if (!schema) {
@@ -92,21 +80,8 @@ function WiseDepositAccountContent({backTo}: WiseDepositAccountContentProps) {
         getWiseBankAccountFields(selectedCountry, currency, answers);
     };
 
-    // LOCAL TEST ONLY: close the flow once CreateWiseBankAccount succeeds
-    const isCreated = !!creationState?.isSuccess;
-    useEffect(() => {
-        if (!isCreated) {
-            return;
-        }
-        clearWiseBankAccountCreation();
-        leaveFlow();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isCreated]);
-
-    // LOCAL TEST ONLY: a second submit after a verification-of-payee prompt confirms it
     const submitForm = () => {
-        const hasVerificationOfPayee = !!creationState?.verificationOfPayee;
-        createWiseBankAccount(selectedCountry, wiseBankAccountFields?.currency, {...(draftValues ?? {})}, hasVerificationOfPayee);
+        createWiseBankAccount(selectedCountry, wiseBankAccountFields?.currency, {...(draftValues ?? {})});
     };
 
     if (wiseBankAccountFields?.isLoading) {

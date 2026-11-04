@@ -25,8 +25,6 @@ import {View} from 'react-native';
 import {useArgs} from 'storybook/preview-api';
 
 import {StoryRouterProvider} from '../../.storybook/mocks/storyRouter';
-import WISE_ACCOUNT_REQUIREMENTS, {getRefreshKey, WISE_ACCOUNT_REQUIREMENT_REFRESHES} from '../../tests/data/wise/accountRequirements';
-import toWiseBankAccountFields from '../../tests/data/wise/toWiseBankAccountFields';
 import wiseBankAccountFieldsGB from '../../tests/data/wise/wiseBankAccountFieldsGB';
 
 const defaultStyles = styles(defaultTheme);
@@ -612,58 +610,6 @@ const WiseBankAccountGB: StoryFn<WiseBankAccountStoryProps> = WiseBankAccountGBF
 WiseBankAccountGB.args = {layout: 'auto', confirmation: 'auto'};
 WiseBankAccountGB.argTypes = {layout: flowArgTypes.layout, confirmation: flowArgTypes.confirmation};
 
-type WiseCurrency = keyof typeof WISE_ACCOUNT_REQUIREMENTS;
-
-const WISE_CURRENCIES = Object.keys(WISE_ACCOUNT_REQUIREMENTS).filter((currency): currency is WiseCurrency => currency in WISE_ACCOUNT_REQUIREMENTS);
-
-type WiseFromRequirementsProps = Pick<FlowProps, 'layout' | 'confirmation'> & {
-    /** A currency whose account requirements were fetched from the Wise sandbox */
-    currency: WiseCurrency;
-
-    /** Whether the account sits in the currency's own country, which picks the domestic rail over SWIFT */
-    isDomestic: boolean;
-};
-
-/** The form the adapter builds from a real Wise account-requirements response, so each fetched currency can be looked at */
-function WiseFromRequirementsFlow({currency, isDomestic, layout, confirmation}: WiseFromRequirementsProps) {
-    const {translate} = useLocalize();
-    // A refresh answers like the server would: the reply Wise gave for that answer, when one was captured
-    const [refreshKey, setRefreshKey] = useState<string>();
-    const requirements = (refreshKey && WISE_ACCOUNT_REQUIREMENT_REFRESHES.get(refreshKey)) || WISE_ACCOUNT_REQUIREMENTS[currency];
-    const bankAccountFields = toWiseBankAccountFields(currency.slice(0, 2), currency, requirements, isDomestic);
-    if (!bankAccountFields) {
-        return <Text style={defaultStyles.textHeadlineLineHeightXXL}>Wise returned no payout type for {currency}</Text>;
-    }
-    return (
-        <>
-            <Text style={[defaultStyles.textSupporting, defaultStyles.ph5]}>
-                payoutType {bankAccountFields.payoutType}, answered by server: {JSON.stringify(bankAccountFields.answeredByServer)}
-                {refreshKey
-                    ? `, refreshed for ${refreshKey}`
-                    : `, refresh replies captured for: ${[...WISE_ACCOUNT_REQUIREMENT_REFRESHES.keys()].filter((key) => key.startsWith(`${currency}:`)).join(', ') || 'none'}`}
-            </Text>
-            <Flow
-                resetKey={`${currency}-${String(isDomestic)}`}
-                schema={bankAccountFields.schema}
-                draftValues={{currency, accountHolderName: WISE_GB_DRAFT.accountHolderName}}
-                confirmationTitle={translate('addPersonalBankAccount.confirmationStepHeader')}
-                layout={layout}
-                confirmation={confirmation}
-                onRefreshRequirements={(inputID, value) => setRefreshKey(getRefreshKey(currency, inputID, typeof value === 'string' ? value : ''))}
-            />
-        </>
-    );
-}
-
-const WiseFromAccountRequirements: StoryFn<WiseFromRequirementsProps> = WiseFromRequirementsFlow.bind({});
-WiseFromAccountRequirements.args = {currency: WISE_CURRENCIES.at(0), isDomestic: true, layout: 'auto', confirmation: 'auto'};
-WiseFromAccountRequirements.argTypes = {
-    currency: {options: WISE_CURRENCIES, control: {type: 'select'}},
-    isDomestic: {control: {type: 'boolean'}},
-    layout: flowArgTypes.layout,
-    confirmation: flowArgTypes.confirmation,
-};
-
 const FlowStory = presetFlowStory('originalBankAccount');
 FlowStory.storyName = 'Flow';
 
@@ -708,5 +654,4 @@ export {
     AmountWithCurrency,
     UnknownType,
     WiseBankAccountGB,
-    WiseFromAccountRequirements,
 };
