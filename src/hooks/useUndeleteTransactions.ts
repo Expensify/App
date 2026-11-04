@@ -40,6 +40,7 @@ function useUndeleteTransactions() {
             isASAPSubmitBetaEnabled,
             accountID: currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID,
             email: currentUserPersonalDetails.email ?? '',
+            currentUserPersonalDetails,
             policy,
             policyTagList,
             transactions,
