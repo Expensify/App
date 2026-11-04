@@ -457,23 +457,27 @@ describe('DateUtils', () => {
 
     describe('getFormattedQuarterForSearch', () => {
         it('covers each quarter with the right month boundaries', () => {
-            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, undefined)).toBe('Q1 2026 (Jan 1 - Mar 31)');
-            expect(DateUtils.getFormattedQuarterForSearch(2026, 2, undefined)).toBe('Q2 2026 (Apr 1 - Jun 30)');
-            expect(DateUtils.getFormattedQuarterForSearch(2026, 3, undefined)).toBe('Q3 2026 (Jul 1 - Sep 30)');
-            expect(DateUtils.getFormattedQuarterForSearch(2026, 4, undefined)).toBe('Q4 2026 (Oct 1 - Dec 31)');
+            // Given each quarter of 2026
+            // When its label is built in English
+            // Then the range inside the parentheses spans exactly that quarter's months, joined the way `Intl` writes a range
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, undefined)).toBe('Q1 2026 (Jan 1\u2009–\u2009Mar 31)');
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 2, undefined)).toBe('Q2 2026 (Apr 1\u2009–\u2009Jun 30)');
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 3, undefined)).toBe('Q3 2026 (Jul 1\u2009–\u2009Sep 30)');
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 4, undefined)).toBe('Q4 2026 (Oct 1\u2009–\u2009Dec 31)');
         });
 
         it('labels the quarter the way the locale does', () => {
-            // `QQQ` rather than a hardcoded `Q`. `Intl.DateTimeFormat` has no quarter option, so date-fns is the only
-            // source for these. The day range inside the parentheses is still the hand-written US-ordered `MMM d`,
-            // which is why French reads `janv. 1` rather than `1 janv.`. Localizing that ordering is a separate
-            // change.
-            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, fr)).toBe('1er trim. 2026 (janv. 1 - mars 31)');
-            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, pl)).toBe('I kw. 2026 (sty 1 - mar 31)');
-            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, nl)).toBe('K1 2026 (jan. 1 - mrt. 31)');
-            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, el)).toBe('Τ1 2026 (Ιαν 1 - Μαρ 31)');
+            // Given the first quarter of 2026 in several languages
+            // When its label is built
+            // Then the quarter name comes from `QQQ` rather than a hardcoded `Q`, because `Intl.DateTimeFormat` has no
+            // quarter option, and the day range in the parentheses is a localized `Intl` range, so French reads
+            // `1 janv.` rather than `janv. 1`.
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, fr)).toBe('1er trim. 2026 (1 janv.\u2009–\u200931 mars)');
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, pl)).toBe('I kw. 2026 (1 sty–31 mar)');
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, nl)).toBe('K1 2026 (1 jan\u2009–\u200931 mrt)');
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, el)).toBe('Τ1 2026 (1 Ιαν – 31 Μαρ)');
             // German and Japanese keep the English-looking `Q1`, so a dropped locale would not show up there.
-            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, de)).toBe('Q1 2026 (Jan. 1 - März 31)');
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, de)).toBe('Q1 2026 (1. Jan.\u2009–\u200931. März)');
         });
     });
 
