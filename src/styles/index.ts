@@ -2125,6 +2125,15 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'flex-start',
         },
 
+        onboardingStickyHeaderContainer: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1,
+            backgroundColor: theme.componentBG,
+        },
+
         createMenuContainer: {
             width: variables.sideBarWidth - 40,
             paddingVertical: variables.componentBorderRadiusLarge,
@@ -5804,6 +5813,25 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.componentSizeSmall,
         },
 
+        reportHistoryIconContainer: {
+            width: variables.iconSizeXLarge,
+            height: variables.iconSizeXLarge,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        reportHistoryLabel: {
+            marginLeft: variables.reportHistoryLabelGap,
+        },
+
+        reportHistoryConnector: {
+            width: variables.borderTopWidth,
+            height: variables.reportHistoryConnectorHeight,
+            marginVertical: variables.reportHistoryConnectorMarginVertical,
+            marginLeft: variables.iconSizeXLarge / 2,
+            backgroundColor: theme.border,
+        },
+
         // The layer BulkActionBar floats in. It covers its container so the bar can center itself over the table, and
         // passes touches through everywhere except the bar itself.
         bulkActionBarLayer: {
@@ -7137,8 +7165,12 @@ const staticStyles = (theme: ThemeColors) =>
         },
         pieChartLegendDot: {
             borderRadius: '50%',
-            width: 12,
-            height: 12,
+            width: 8,
+            height: 8,
+        },
+        pieChartLegendLabel: {
+            fontSize: variables.iconSizeExtraSmall,
+            lineHeight: variables.lineHeightChartLabel,
         },
         // `getPieChartLoadingHeight` sizes the loading chart from the responsive legend styles below, so update it with them.
         pieChartResponsiveRow: {
@@ -7152,7 +7184,8 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
         pieChartLegendSide: {
-            width: VictoryTheme.pie.legendMinWidth,
+            minWidth: VictoryTheme.pie.legendMinWidth,
+            flexShrink: 1,
             justifyContent: 'center',
             rowGap: VictoryTheme.pie.legendRowGap,
         },
@@ -7167,7 +7200,7 @@ const staticStyles = (theme: ThemeColors) =>
             columnGap: 8,
         },
         pieChartLegendDotColumn: {
-            height: variables.lineHeightXLarge,
+            height: variables.lineHeightChartLabel,
             justifyContent: 'center',
         },
         chartInlineTable: {
