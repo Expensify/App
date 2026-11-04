@@ -362,7 +362,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             onCloseError: () => clearPolicyErrorField(policyId, 'autoCategorizeNewExpenses'),
             switchTooltipText: autoCategorizeToggleDisabledTooltip,
             switchProps: {
-                isOn: policy?.autoCategorizeNewExpenses ?? true,
+                isOn: !isAutoCategorizeToggleDisabled && (policy?.autoCategorizeNewExpenses ?? true),
                 accessibilityLabel: translate('workspace.categories.autoCategorizeNewExpenses'),
                 onToggle: (value: boolean) => setPolicyAutoCategorizeNewExpenses(policyId, value),
                 disabled: isAutoCategorizeToggleDisabled,
