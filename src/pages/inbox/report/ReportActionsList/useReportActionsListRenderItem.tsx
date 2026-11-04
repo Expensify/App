@@ -39,8 +39,9 @@ import {getCustomAgentAccountIDs} from '@selectors/AgentZeroChat';
 import {accountIDSelector} from '@selectors/Session';
 import React from 'react';
 
-import ReportActionsListRow from './ReportActionsListRow';
 import type {UseReportActionsListRenderItemParams} from './types';
+
+import ReportActionsListRow from './ReportActionsListRow';
 
 /** Builds the report-actions row renderer and the `extraData` values that must re-render rows when they change. */
 function useReportActionsListRenderItem({
