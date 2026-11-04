@@ -6000,7 +6000,6 @@ type FilterView = {
     /** Label of the filter's chip in the filters bar, shared by the filter and its negation */
     filterSentryLabel: ValueOf<typeof CONST.SENTRY_LABEL.SEARCH.FILTER>;
 
-    /** Label of the filter's row in the advanced filters list */
     advancedFilterSentryLabel: ValueOf<typeof CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER>;
 
     /** Label of the apply button in the filter's popup. Only set for filters whose popup is picked by filter key, other popups use one label per popup type. */
