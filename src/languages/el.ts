@@ -3208,6 +3208,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 description: 'Συνομιλήστε με το Concierge για περισσότερες πληροφορίες.',
             },
         },
+        wiseSetupInProgress: {message: 'Η ρύθμιση των παγκόσμιων αποζημιώσεων βρίσκεται σε εξέλιξη.', continue: 'Συνέχεια.'},
         wiseGlobalReimbursementsIntro: {
             title: 'Να ρυθμιστούν οι παγκόσμιες αποζημιώσεις;',
             subtitle: 'Πληρώστε μέλη παγκοσμίως στο τοπικό τους νόμισμα.',
@@ -13097,5 +13098,28 @@ ${reportName}`,
         mobileClaimPrompt: 'Επισκεφθείτε το Expensify στον φυλλομετρητή σας για να διεκδικήσετε την έκπτωση ανανέωσης.',
     },
     bulkActionBar: {label: 'Μαζικές ενέργειες', clearSelection: 'Καθαρισμός επιλογής', loadingSelection: 'Φόρτωση επιλογής'},
+    reportHistoryPage: {
+        title: 'Ιστορικό αναφοράς',
+        created: 'δημιούργησε αναφορά',
+        submitted: 'υπέβαλε',
+        approved: 'ενέκρινε',
+        paid: 'πλήρωσε',
+        toSubmit: 'να υποβάλει',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return 'να υποβάλει αυτόματα';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `να υποβάλει αυτόματα στις ${eta} κάθε μήνα` : `να υποβάλει αυτόματα ${eta}`;
+        },
+        toApprove: 'να εγκρίνει',
+        toPay: 'να πληρώσει',
+        minutesAgo: (count: number) => `πριν από ${count} λεπ.`,
+        hoursAgo: (count: number) => `πριν από ${count} ώρ.`,
+        daysAgo: () => ({
+            one: 'πριν από 1 ημ.',
+            other: (count: number) => `πριν από ${count} ημ.`,
+        }),
+        offlineMessage: 'Είστε εκτός σύνδεσης. Το ιστορικό αναφορών μπορεί να είναι παρωχημένο.',
+    },
 };
 export default translations;

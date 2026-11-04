@@ -1051,6 +1051,46 @@ const CONST = {
         /** The query param Wise adds to the redirect URL when its hosted KYC form ends, saying how it ended */
         KYC_REVIEW_REDIRECT_STATUS_PARAM: 'status',
 
+        /** Countries missing from Wise's supported list, so the bank account picker leaves them out */
+        EXCLUDED_BANK_ACCOUNT_COUNTRIES: [
+            'AC',
+            'AF',
+            'AQ',
+            'BI',
+            'BL',
+            'BY',
+            'CD',
+            'CF',
+            'CG',
+            'CU',
+            'EH',
+            'ER',
+            'GS',
+            'IO',
+            'IQ',
+            'IR',
+            'KM',
+            'KP',
+            'LY',
+            'MF',
+            'MM',
+            'PN',
+            'PS',
+            'RU',
+            'SD',
+            'SO',
+            'SS',
+            'SY',
+            'TA',
+            'TD',
+            'TF',
+            'TK',
+            'TM',
+            'VE',
+            'YE',
+            'ZW',
+        ] as string[],
+
         /** Server-derived state of the Wise onboarding */
         ONBOARDING_STATUS: {
             IN_REVIEW: 'IN_REVIEW',
@@ -1481,7 +1521,6 @@ const CONST = {
         GLOBAL_REIMBURSEMENTS: 'globalReimbursements',
         WISE_REIMBURSEMENTS: 'wiseReimbursements',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
-        TRAVEL_CODING_SYNC: 'travelCodingSync',
         ARCHIVE_POLICIES: 'archivePolicies',
         MERGE_ATS: 'mergeATSConnections',
         REPORT_MERGE: 'reportMerge',
@@ -1967,6 +2006,11 @@ const CONST = {
         ROLE: {
             ADMIN: 'admin',
             MEMBER: 'member',
+        },
+        UPCOMING_STEP_ACTION: {
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
         },
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
@@ -10235,6 +10279,9 @@ const CONST = {
     },
 
     SENTRY_LABEL: {
+        NUMBER_WITH_SYMBOL_FORM: {
+            INPUT: 'NumberWithSymbolForm-Input',
+        },
         TEST_TOOL_MENU: {
             SERVER: 'TestToolMenu-Server',
         },
@@ -10524,10 +10571,13 @@ const CONST = {
             MODERATION_BUTTON: 'Report-ModerationButton',
             MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL: 'MoneyRequestReportActionsList-SelectAll',
             MONEY_REQUEST_REPORT_TRANSACTION_ITEM: 'MoneyRequestReportTransactionItem',
+            MONEY_REPORT_HEADER_NEXT_STEP: 'Report-MoneyReportHeaderNextStep',
+            MONEY_REPORT_HEADER_STATUS_BAR: 'Report-MoneyReportHeaderStatusBar',
             REPORT_FIELD_DELETE_BUTTON: 'Report-ReportFieldDeleteButton',
             REPORT_ACTION_AVATAR: 'Report-ReportActionAvatar',
             PARTICIPANTS_ROW: 'Report-ParticipantsRow',
             ROOM_MEMBERS_ROW: 'Report-RoomMembersRow',
+            SELECTION_MODE_MENU_ITEM: 'Report-SelectionModeMenuItem',
             EMPTY_STATE: {
                 ADD_EXPENSE: 'Report-EmptyStateAddExpense',
                 CREATE_EXPENSE: 'Report-EmptyStateAddExpenseMenu-CreateExpense',

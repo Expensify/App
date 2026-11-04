@@ -3233,6 +3233,7 @@ const translations = {
                 description: 'Chat with Concierge for more information.',
             },
         },
+        wiseSetupInProgress: {message: 'Global reimbursements setup in progress.', continue: 'Continue.'},
         wiseGlobalReimbursementsIntro: {
             headerTitle: 'Global reimbursements',
             title: 'Set up global reimbursements?',
@@ -3909,6 +3910,29 @@ const translations = {
         roomDescription: 'Room description',
         roomDescriptionOptional: 'Room description (optional)',
         explainerText: 'Set a custom description for the room.',
+    },
+    reportHistoryPage: {
+        title: 'Report history',
+        offlineMessage: "You're offline. Report history may be outdated.",
+        created: 'created report',
+        submitted: 'submitted',
+        approved: 'approved',
+        paid: 'paid',
+        toSubmit: 'to submit',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return 'to automatically submit';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `to automatically submit on the ${eta} of each month` : `to automatically submit ${eta}`;
+        },
+        toApprove: 'to approve',
+        toPay: 'to pay',
+        minutesAgo: (count: number) => `${count}m ago`,
+        hoursAgo: (count: number) => `${count}h ago`,
+        daysAgo: () => ({
+            one: '1d ago',
+            other: (count: number) => `${count}d ago`,
+        }),
     },
     groupChat: {
         lastMemberTitle: 'Heads up!',

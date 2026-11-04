@@ -3157,6 +3157,7 @@ const translations: TranslationDeepObject<typeof en> = {
             approved: {title: 'Compte approuvé', heading: 'Approuvé pour être payé dans le monde entier', description: "Payez les membres où qu'ils soient."},
             rejected: {title: 'Compte bancaire rejeté', heading: 'Notre partenaire a rejeté votre compte bancaire', description: "Discutez avec Concierge pour plus d'informations."},
         },
+        wiseSetupInProgress: {message: 'Configuration des remboursements globaux en cours.', continue: 'Continuer.'},
         wiseGlobalReimbursementsIntro: {
             title: 'Configurer les remboursements globaux ?',
             subtitle: 'Payez des membres partout dans le monde dans leur devise locale.',
@@ -12905,5 +12906,28 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         mobileClaimPrompt: 'Visitez Expensify dans votre navigateur web pour bénéficier de votre réduction de renouvellement.',
     },
     bulkActionBar: {label: 'Actions groupées', clearSelection: 'Effacer la sélection', loadingSelection: 'Chargement de la sélection'},
+    reportHistoryPage: {
+        title: 'Historique de la note de frais',
+        created: 'a créé la note de frais',
+        submitted: 'a soumis',
+        approved: 'a approuvé',
+        paid: 'a payé',
+        toSubmit: 'soumettre',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return 'soumettre automatiquement';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `soumettre automatiquement le ${eta} de chaque mois` : `soumettre automatiquement ${eta}`;
+        },
+        toApprove: 'approuver',
+        toPay: 'payer',
+        minutesAgo: (count: number) => `il y a ${count} min`,
+        hoursAgo: (count: number) => `il y a ${count} h`,
+        daysAgo: () => ({
+            one: 'il y a 1 j',
+            other: (count: number) => `il y a ${count} j`,
+        }),
+        offlineMessage: 'Vous êtes hors ligne. L’historique des notes de frais peut être obsolète.',
+    },
 };
 export default translations;
