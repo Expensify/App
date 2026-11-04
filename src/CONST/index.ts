@@ -1055,6 +1055,12 @@ const CONST = {
             APPROVED: 'APPROVED',
             NOT_APPROVED: 'NOT_APPROVED',
         },
+        /** The content the onboarding status page shows, read from its `status` query param */
+        ONBOARDING_STATUS_PAGE: {
+            REVIEW: 'review',
+            APPROVED: 'approved',
+            REJECTED: 'rejected',
+        },
         /** The steps UpdateWiseOnboardingAdditionalData accepts: our intake pages, and the EDD pages keyed by Wise's KYC requirement key. The server answers any other step with 400 Invalid step. */
         ONBOARDING_STEP: {
             BUSINESS: 'business',
@@ -1958,6 +1964,11 @@ const CONST = {
         ROLE: {
             ADMIN: 'admin',
             MEMBER: 'member',
+        },
+        UPCOMING_STEP_ACTION: {
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
         },
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
@@ -10260,6 +10271,17 @@ const CONST = {
         WISE_MORE_INFO_NEEDED: {
             CONTINUE: 'WiseMoreInfoNeeded-Continue',
         },
+        WISE_ONBOARDING_IN_REVIEW: {
+            CHAT_WITH_CONCIERGE: 'WiseOnboardingInReview-ChatWithConcierge',
+            DONE: 'WiseOnboardingInReview-Done',
+        },
+        WISE_ONBOARDING_REJECTED: {
+            CHAT_WITH_CONCIERGE: 'WiseOnboardingRejected-ChatWithConcierge',
+            GOT_IT: 'WiseOnboardingRejected-GotIt',
+        },
+        WISE_ONBOARDING_APPROVED: {
+            DONE: 'WiseOnboardingApproved-Done',
+        },
         PRODUCT_MARKETING_WINDOW: {
             CTA: 'ProductMarketingWindow-CTA',
             DISMISS: 'ProductMarketingWindow-Dismiss',
@@ -10504,10 +10526,13 @@ const CONST = {
             MODERATION_BUTTON: 'Report-ModerationButton',
             MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL: 'MoneyRequestReportActionsList-SelectAll',
             MONEY_REQUEST_REPORT_TRANSACTION_ITEM: 'MoneyRequestReportTransactionItem',
+            MONEY_REPORT_HEADER_NEXT_STEP: 'Report-MoneyReportHeaderNextStep',
+            MONEY_REPORT_HEADER_STATUS_BAR: 'Report-MoneyReportHeaderStatusBar',
             REPORT_FIELD_DELETE_BUTTON: 'Report-ReportFieldDeleteButton',
             REPORT_ACTION_AVATAR: 'Report-ReportActionAvatar',
             PARTICIPANTS_ROW: 'Report-ParticipantsRow',
             ROOM_MEMBERS_ROW: 'Report-RoomMembersRow',
+            SELECTION_MODE_MENU_ITEM: 'Report-SelectionModeMenuItem',
             EMPTY_STATE: {
                 ADD_EXPENSE: 'Report-EmptyStateAddExpense',
                 CREATE_EXPENSE: 'Report-EmptyStateAddExpenseMenu-CreateExpense',

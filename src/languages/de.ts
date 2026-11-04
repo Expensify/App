@@ -3143,7 +3143,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: 'Zusätzliche Informationen verifizieren',
                 subtitle: 'Unser Zahlungspartner benötigt direkt weitere Informationen. Das sollte nur ein paar Minuten dauern.',
             },
+            inReview: {
+                title: 'In Prüfung',
+                heading: 'Wir haben alles, was wir brauchen.\nSie hören von uns!',
+                description: 'Die meisten Prüfungen dauern ein bis zwei Tage. Wir senden Ihnen eine Nachricht mit einem Update.',
+                chatWithConcierge: 'Mit Concierge chatten',
+            },
+            approved: {title: 'Konto genehmigt', heading: 'Zur weltweiten Zahlung freigegeben', description: 'Bezahlen Sie Mitglieder, wo immer sie sind.'},
+            rejected: {title: 'Bankkonto abgelehnt', heading: 'Unser Partner hat Ihr Bankkonto abgelehnt', description: 'Chatten Sie mit Concierge, um weitere Informationen zu erhalten.'},
         },
+        wiseSetupInProgress: {message: 'Einrichtung der globalen Rückerstattungen läuft.', continue: 'Fortfahren.'},
         wiseGlobalReimbursementsIntro: {
             title: 'Globale Rückerstattungen einrichten?',
             subtitle: 'Zahlen Sie Mitglieder weltweit in ihrer lokalen Währung.',
@@ -12863,5 +12872,28 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         mobileClaimPrompt: 'Besuchen Sie Expensify in Ihrem Webbrowser, um Ihren Verlängerungsrabatt zu erhalten.',
     },
     bulkActionBar: {label: 'Sammelaktionen', clearSelection: 'Auswahl aufheben', loadingSelection: 'Auswahl wird geladen'},
+    reportHistoryPage: {
+        title: 'Verlauf des Berichts',
+        created: 'hat den Bericht erstellt',
+        submitted: 'hat eingereicht',
+        approved: 'hat genehmigt',
+        paid: 'hat bezahlt',
+        toSubmit: 'einreichen',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return 'automatisch einreichen';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `am ${eta} jedes Monats automatisch einreichen` : `${eta} automatisch einreichen`;
+        },
+        toApprove: 'genehmigen',
+        toPay: 'bezahlen',
+        minutesAgo: (count: number) => `vor ${count} Min.`,
+        hoursAgo: (count: number) => `vor ${count} Std.`,
+        daysAgo: () => ({
+            one: 'vor 1 Tag',
+            other: (count: number) => `vor ${count} Tagen`,
+        }),
+        offlineMessage: 'Sie sind offline. Der Berichtsverlauf ist möglicherweise veraltet.',
+    },
 };
 export default translations;
