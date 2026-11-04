@@ -43,6 +43,7 @@ function SearchActionsBarCreateButton() {
     const [createMenuPosition, setCreateMenuPosition] = useState<{horizontal: number; vertical: number}>({horizontal: 0, vertical: 0});
     const {calculatePopoverPosition} = usePopoverPosition();
 
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -101,24 +102,27 @@ function SearchActionsBarCreateButton() {
         {
             icon: getIconForAction(CONST.IOU.TYPE.CREATE, expensifyIcons),
             text: translate('iou.createExpense'),
+            sentryLabel: CONST.SENTRY_LABEL.SEARCH.CREATE_MENU.CREATE_EXPENSE,
             onSelected: () =>
                 interceptAnonymousUser(() => {
                     startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs);
-                }),
+                }, session),
         },
         {
             icon: expensifyIcons.Location,
             text: translate('iou.trackDistance'),
+            sentryLabel: CONST.SENTRY_LABEL.SEARCH.CREATE_MENU.TRACK_DISTANCE,
             onSelected: () =>
                 interceptAnonymousUser(() => {
                     startDistanceRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs);
-                }),
+                }, session),
         },
         ...(isCreateReportVisible
             ? [
                   {
                       icon: expensifyIcons.Document,
                       text: translate('report.newReport.createReport'),
+                      sentryLabel: CONST.SENTRY_LABEL.SEARCH.CREATE_MENU.CREATE_REPORT,
                       onSelected: createReport,
                   },
               ]
@@ -145,6 +149,7 @@ function SearchActionsBarCreateButton() {
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 size={CONST.BUTTON_SIZE.SMALL}
                 onPress={showCreateMenu}
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.CREATE_BUTTON}
             >
                 <Button.Icon src={expensifyIcons.Plus} />
                 <Button.Text>{translate('common.create')}</Button.Text>

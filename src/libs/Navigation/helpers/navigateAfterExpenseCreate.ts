@@ -14,6 +14,7 @@ import SCREENS from '@src/SCREENS';
 
 import {suppressFlowDiscardPrompt} from './discardPromptState';
 import dismissModalAndOpenReportInInboxTab from './dismissModalAndOpenReportInInboxTab';
+import getModalRouteOnTop from './getModalRouteOnTop';
 import isReportTopmostSplitNavigator from './isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';
 
@@ -122,6 +123,9 @@ function navigateAfterExpenseCreate({
     setPendingSubmitFollowUpAction(followUpAction);
 
     const queryString = buildCannedSearchQuery({type});
+
+    // Uses the same check as REPLACE_FULLSCREEN_UNDER_RHP, which reveals under any modal, not only the RHP.
+    const isModalOnTop = () => !!getModalRouteOnTop(navigationRef.getRootState());
     const navigateToSearch = () => {
         // On the fast path, onConfirm already cleared the flag and dismissed the modal,
         // so this branch is only reached on the slow path (user submitted before the
@@ -138,8 +142,10 @@ function navigateAfterExpenseCreate({
             } else {
                 Log.info('[IOU] navigateToSearch: already on matching Search root with RHP dismissed - no-op');
             }
-        } else {
+        } else if (isModalOnTop()) {
             Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: queryString, searchKey}));
+        } else {
+            Log.info('[IOU] navigateToSearch: no modal on top - no-op');
         }
     };
 

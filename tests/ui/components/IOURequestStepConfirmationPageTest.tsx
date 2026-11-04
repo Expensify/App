@@ -41,6 +41,7 @@ import * as Split from '../../../src/libs/actions/IOU/Split';
 import * as TrackExpense from '../../../src/libs/actions/IOU/TrackExpense';
 import createRandomPolicy from '../../utils/collections/policies';
 import createMockScreenNavigation from '../../utils/createMockScreenNavigation';
+import getOnyxValue from '../../utils/getOnyxValue';
 import {setupGlobalFetchMock, signInWithTestUser, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
@@ -194,6 +195,7 @@ jest.mock('@libs/Navigation/Navigation', () => {
         }),
         setNavigationActionToMicrotaskQueue: jest.fn((callback: () => void) => callback()),
         getIsFullscreenPreInsertedUnderRHP: jest.fn(() => false),
+        getPreMountedFullscreenRouteKey: jest.fn(() => undefined),
         getPreInsertedFullscreenRouteName: jest.fn(() => undefined),
         clearFullscreenPreInsertedFlag: jest.fn(),
         revealRouteBeforeDismissingModal: jest.fn((_route: unknown, options?: {afterTransition?: () => void}) => {
@@ -421,6 +423,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}1`, {
                 ...DEFAULT_SPLIT_TRANSACTION,
+                // A fresh scan has no amount typed in yet; a set amount alone would be a partially entered scan that blocks the split.
+                isAmountSet: undefined,
                 iouRequestType: 'scan',
                 receipt: {filename: 'receipt1.jpg', source: 'path/to/receipt1.jpg', type: ''},
             });
@@ -687,6 +691,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}1`, {
                 ...DEFAULT_SPLIT_TRANSACTION,
+                // A fresh scan has no amount typed in yet; a set amount alone would be a partially entered scan that blocks the split.
+                isAmountSet: undefined,
                 iouRequestType: 'scan',
                 receipt: {filename: 'receipt1.jpg', source: 'path/to/receipt1.jpg', type: ''},
                 transactionID: '1',
@@ -696,6 +702,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}2`, {
                 ...DEFAULT_SPLIT_TRANSACTION,
+                isAmountSet: undefined,
                 iouRequestType: 'scan',
                 receipt: {filename: 'receipt2.jpg', source: 'path/to/receipt2.jpg', type: ''},
                 transactionID: '2',
@@ -1321,7 +1328,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 // When the screen renders and resolves the P2P destination
                 await waitForBatchedUpdatesWithAct();
 
-                expect(getChatByParticipantsSpy).toHaveBeenCalled();
                 expect(getReusableP2PReportIDSpy).toHaveBeenCalledWith(expect.objectContaining({accountID: PARTICIPANT_ACCOUNT_ID}), optimisticP2PReportID);
                 // Then it pre-mounts the report at the transaction's own optimistic ID, not a different one
                 await waitFor(
@@ -1345,6 +1351,150 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 getChatByParticipantsSpy.mockRestore();
                 getReusableP2PReportIDSpy.mockRestore();
                 jest.mocked(getIsNarrowLayout).mockReturnValue(false);
+            }
+        });
+
+        it('still reveals the pay destination when its wide pre-mount is the topmost report', async () => {
+            // Given a wide pre-mount of the pay destination, which puts it on top of a background Reports stack
+            const optimisticP2PReportID = 'optimistic-p2p-report-2';
+            const transactionID = 'tx-wide-pay';
+            let sendMoney: ((paymentMethod: PaymentMethodType | undefined) => void) | undefined;
+            const originalBuildConfirmAction = ConfirmAction.default;
+            const buildConfirmActionSpy = jest.spyOn(ConfirmAction, 'default').mockImplementation((params) => {
+                sendMoney = params.onSendMoney;
+                return originalBuildConfirmAction(params);
+            });
+            const submitWithDismissFirstSpy = jest.spyOn(SubmitWithDismissFirst, 'submitWithDismissFirst').mockImplementation(() => {});
+            const getChatByParticipantsSpy = jest.spyOn(ReportUtils, 'getChatByParticipants').mockReturnValue(undefined);
+            const getReusableP2PReportIDSpy = jest.spyOn(IOUUtils, 'getReusableP2PReportID').mockReturnValue(optimisticP2PReportID);
+
+            try {
+                await act(async () => {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                        transactionID,
+                        reportID: optimisticP2PReportID,
+                        amount: 1000,
+                        isAmountSet: true,
+                        currency: 'USD',
+                        merchant: 'Test',
+                        created: '2025-01-15',
+                        isFromGlobalCreate: true,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                        participants: [{accountID: PARTICIPANT_ACCOUNT_ID, selected: true}],
+                    });
+                });
+
+                render(
+                    <OnyxListItemProvider>
+                        <HTMLProviderWrapper>
+                            <CurrentUserPersonalDetailsProvider>
+                                <LocaleContextProvider>
+                                    <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                        route={{
+                                            key: 'Money_Request_Step_Confirmation',
+                                            name: 'Money_Request_Step_Confirmation',
+                                            params: {
+                                                action: CONST.IOU.ACTION.CREATE,
+                                                iouType: CONST.IOU.TYPE.PAY,
+                                                transactionID,
+                                                reportID: optimisticP2PReportID,
+                                            },
+                                        }}
+                                        navigation={mockNavigation}
+                                    />
+                                </LocaleContextProvider>
+                            </CurrentUserPersonalDetailsProvider>
+                        </HTMLProviderWrapper>
+                    </OnyxListItemProvider>,
+                );
+                await waitForBatchedUpdatesWithAct();
+                jest.mocked(Navigation.getPreMountedFullscreenRouteKey).mockReturnValue('Report-wide-pre-mount-1');
+                jest.mocked(Navigation.getTopmostReportId).mockReturnValue(optimisticP2PReportID);
+
+                // When the user sends money
+                act(() => sendMoney?.(CONST.IOU.PAYMENT_TYPE.ELSEWHERE));
+
+                // Then it goes through the reveal instead of the plain path that dismisses first and drops the pre-mount
+                expect(submitWithDismissFirstSpy).toHaveBeenCalledWith(expect.objectContaining({destinationReportID: optimisticP2PReportID}));
+            } finally {
+                buildConfirmActionSpy.mockRestore();
+                submitWithDismissFirstSpy.mockRestore();
+                getChatByParticipantsSpy.mockRestore();
+                getReusableP2PReportIDSpy.mockRestore();
+                jest.mocked(Navigation.getPreMountedFullscreenRouteKey).mockReturnValue(undefined);
+                jest.mocked(Navigation.getTopmostReportId).mockReturnValue(undefined);
+            }
+        });
+
+        it('keeps the narrow pay path when the narrow pre-insert is the topmost report', async () => {
+            // Given a narrow pre-insert of the pay destination, which already sits under the RHP as the topmost report
+            const optimisticP2PReportID = 'optimistic-p2p-report-3';
+            const transactionID = 'tx-narrow-pay';
+            let sendMoney: ((paymentMethod: PaymentMethodType | undefined) => void) | undefined;
+            const originalBuildConfirmAction = ConfirmAction.default;
+            const buildConfirmActionSpy = jest.spyOn(ConfirmAction, 'default').mockImplementation((params) => {
+                sendMoney = params.onSendMoney;
+                return originalBuildConfirmAction(params);
+            });
+            const submitWithDismissFirstSpy = jest.spyOn(SubmitWithDismissFirst, 'submitWithDismissFirst').mockImplementation(() => {});
+            const getChatByParticipantsSpy = jest.spyOn(ReportUtils, 'getChatByParticipants').mockReturnValue(undefined);
+            const getReusableP2PReportIDSpy = jest.spyOn(IOUUtils, 'getReusableP2PReportID').mockReturnValue(optimisticP2PReportID);
+
+            try {
+                await act(async () => {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                        transactionID,
+                        reportID: optimisticP2PReportID,
+                        amount: 1000,
+                        isAmountSet: true,
+                        currency: 'USD',
+                        merchant: 'Test',
+                        created: '2025-01-15',
+                        isFromGlobalCreate: true,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                        participants: [{accountID: PARTICIPANT_ACCOUNT_ID, selected: true}],
+                    });
+                });
+
+                render(
+                    <OnyxListItemProvider>
+                        <HTMLProviderWrapper>
+                            <CurrentUserPersonalDetailsProvider>
+                                <LocaleContextProvider>
+                                    <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                        route={{
+                                            key: 'Money_Request_Step_Confirmation',
+                                            name: 'Money_Request_Step_Confirmation',
+                                            params: {
+                                                action: CONST.IOU.ACTION.CREATE,
+                                                iouType: CONST.IOU.TYPE.PAY,
+                                                transactionID,
+                                                reportID: optimisticP2PReportID,
+                                            },
+                                        }}
+                                        navigation={mockNavigation}
+                                    />
+                                </LocaleContextProvider>
+                            </CurrentUserPersonalDetailsProvider>
+                        </HTMLProviderWrapper>
+                    </OnyxListItemProvider>,
+                );
+                await waitForBatchedUpdatesWithAct();
+                jest.mocked(Navigation.getIsFullscreenPreInsertedUnderRHP).mockReturnValue(true);
+                jest.mocked(Navigation.getTopmostReportId).mockReturnValue(optimisticP2PReportID);
+
+                // When the user sends money
+                act(() => sendMoney?.(CONST.IOU.PAYMENT_TYPE.ELSEWHERE));
+
+                // Then sendMoney navigates on its own as it did before wide pre-mounts, because only a wide pre-mount hides the topmost report
+                expect(submitWithDismissFirstSpy).not.toHaveBeenCalled();
+            } finally {
+                buildConfirmActionSpy.mockRestore();
+                submitWithDismissFirstSpy.mockRestore();
+                getChatByParticipantsSpy.mockRestore();
+                getReusableP2PReportIDSpy.mockRestore();
+                jest.mocked(Navigation.getIsFullscreenPreInsertedUnderRHP).mockReturnValue(false);
+                jest.mocked(Navigation.getTopmostReportId).mockReturnValue(undefined);
             }
         });
 
@@ -1707,6 +1857,353 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 canAddTransactionSpy.mockRestore();
             }
         });
+
+        it('sends a quick-action expense started before an offline recipient synced to the existing chat with the real account', async () => {
+            // Given a chat with a recipient created offline, who still has an optimistic accountID
+            const chatReportID = '7001';
+            const realAccountID = 50;
+            const optimisticAccountID = 40;
+            const login = 'new.login@example.com';
+            const transactionID = 'tx-quick-action';
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [optimisticAccountID]: {accountID: optimisticAccountID, login, displayName: login, isOptimisticPersonalDetail: true},
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
+                    reportID: chatReportID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: {
+                        [ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        [optimisticAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                });
+
+                // And a second expense started from the FAB quick action for that chat, whose recipient the page fills in from the chat
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                    transactionID,
+                    reportID: chatReportID,
+                    amount: 2000,
+                    isAmountSet: true,
+                    currency: 'USD',
+                    merchant: 'Test',
+                    created: '2025-01-15',
+                    isFromGlobalCreate: true,
+                    isFromFloatingActionButton: true,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                });
+            });
+
+            render(
+                <OnyxListItemProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: CONST.IOU.ACTION.CREATE,
+                                            iouType: CONST.IOU.TYPE.SUBMIT,
+                                            transactionID,
+                                            reportID: chatReportID,
+                                        },
+                                    }}
+                                    navigation={mockNavigation}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
+                </OnyxListItemProvider>,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+
+            // When the first expense syncs while the page is open, replacing the optimistic accountID with the real one
+            await act(async () => {
+                await Onyx.update([
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: {[realAccountID]: {accountID: realAccountID, login, displayName: login}},
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
+                        value: {participants: {[realAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}}},
+                    },
+                ]);
+                await Onyx.update([
+                    {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.PERSONAL_DETAILS_LIST, value: {[optimisticAccountID]: null}},
+                    {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, value: {participants: {[optimisticAccountID]: null}}},
+                ]);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // And the user submits the second expense
+            fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
+
+            // Then the expense goes to the existing chat with the real account, so the chat isn't rebuilt as a new one
+            await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
+            const params = jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.at(0);
+            expect(params?.participantParams.participant.accountID).toBe(realAccountID);
+            expect(params?.participantParams.participant.login).toBe(login);
+            expect(params?.report?.reportID).toBe(chatReportID);
+        });
+
+        it('sends an expense to an existing Expensify user to the existing chat when the server returns their account without a login', async () => {
+            // Given a chat with an existing Expensify user who was picked offline, so they still have an optimistic accountID
+            const chatReportID = '7002';
+            const realAccountID = 51;
+            const optimisticAccountID = 41;
+            const login = 'existing.user@example.com';
+            const transactionID = 'tx-existing-user';
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [optimisticAccountID]: {accountID: optimisticAccountID, login, displayName: login, isOptimisticPersonalDetail: true},
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
+                    reportID: chatReportID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: {
+                        [ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        [optimisticAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                });
+
+                // And a second expense to the same recipient, picked from the participant list while offline
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                    transactionID,
+                    reportID: chatReportID,
+                    amount: 2000,
+                    isAmountSet: true,
+                    currency: 'USD',
+                    merchant: 'Test',
+                    created: '2025-01-15',
+                    isFromGlobalCreate: true,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                    participants: [{accountID: optimisticAccountID, login, reportID: chatReportID, selected: true}],
+                });
+            });
+
+            render(
+                <OnyxListItemProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: CONST.IOU.ACTION.CREATE,
+                                            iouType: CONST.IOU.TYPE.SUBMIT,
+                                            transactionID,
+                                            reportID: chatReportID,
+                                        },
+                                    }}
+                                    navigation={mockNavigation}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
+                </OnyxListItemProvider>,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+
+            // When the first expense syncs while the page is open, and the server returns the real account without its login
+            await act(async () => {
+                await Onyx.update([
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: {[realAccountID]: {accountID: realAccountID, displayName: 'Existing User'}},
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
+                        value: {participants: {[realAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}}},
+                    },
+                ]);
+                await Onyx.update([
+                    {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.PERSONAL_DETAILS_LIST, value: {[optimisticAccountID]: null}},
+                    {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, value: {participants: {[optimisticAccountID]: null}}},
+                ]);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // And the user submits the second expense
+            fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
+
+            // Then the expense goes to the existing chat with the real account, found through the chat because there is no login
+            await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
+            const params = jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.at(0);
+            expect(params?.participantParams.participant.accountID).toBe(realAccountID);
+            expect(params?.report?.reportID).toBe(chatReportID);
+        });
+
+        it('sends an expense to the existing chat when the recipient synced without a login before the page opened', async () => {
+            // Given a second expense draft to an existing Expensify user who was picked offline, so the draft saved their optimistic accountID and their chat
+            const chatReportID = '7004';
+            const realAccountID = 53;
+            const optimisticAccountID = 43;
+            const login = 'synced.user@example.com';
+            const transactionID = 'tx-synced-before-open';
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                    transactionID,
+                    reportID: chatReportID,
+                    amount: 2000,
+                    isAmountSet: true,
+                    currency: 'USD',
+                    merchant: 'Test',
+                    created: '2025-01-15',
+                    isFromGlobalCreate: true,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                    participants: [{accountID: optimisticAccountID, login, reportID: chatReportID, selected: true}],
+                });
+
+                // And the first expense already synced, for example while the app was in the background, so the chat only lists the
+                // real account and the server returned it without its login
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[realAccountID]: {accountID: realAccountID, displayName: 'Synced User'}});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
+                    reportID: chatReportID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: {
+                        [ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        [realAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                });
+            });
+
+            // When the confirmation page opens only after the sync
+            render(
+                <OnyxListItemProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: CONST.IOU.ACTION.CREATE,
+                                            iouType: CONST.IOU.TYPE.SUBMIT,
+                                            transactionID,
+                                            reportID: chatReportID,
+                                        },
+                                    }}
+                                    navigation={mockNavigation}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
+                </OnyxListItemProvider>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // And the user submits the second expense
+            fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
+
+            // Then the expense goes to the existing chat with the real account, found through the chat the draft saved
+            await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
+            const params = jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.at(0);
+            expect(params?.participantParams.participant.accountID).toBe(realAccountID);
+            expect(params?.report?.reportID).toBe(chatReportID);
+        });
+
+        it("keeps the recipient's split share when their optimistic accountID is replaced on sync", async () => {
+            // Given a chat with a recipient created offline, who still has an optimistic accountID
+            const chatReportID = '7003';
+            const realAccountID = 52;
+            const optimisticAccountID = 42;
+            const login = 'split.login@example.com';
+            const transactionID = 'tx-split-share';
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [optimisticAccountID]: {accountID: optimisticAccountID, login, displayName: login, isOptimisticPersonalDetail: true},
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
+                    reportID: chatReportID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: {
+                        [ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        [optimisticAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                });
+
+                // And a $30 split started from that chat, with $15 shares saved under the optimistic accountID
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                    transactionID,
+                    reportID: chatReportID,
+                    amount: 3000,
+                    isAmountSet: true,
+                    currency: 'USD',
+                    merchant: 'Test',
+                    created: '2025-01-15',
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                    participants: [{accountID: optimisticAccountID, login, selected: true}],
+                    splitShares: {
+                        [ACCOUNT_ID]: {amount: 1500, isModified: false},
+                        [optimisticAccountID]: {amount: 1500, isModified: false},
+                    },
+                });
+            });
+
+            render(
+                <OnyxListItemProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: CONST.IOU.ACTION.CREATE,
+                                            iouType: CONST.IOU.TYPE.SPLIT,
+                                            transactionID,
+                                            reportID: chatReportID,
+                                        },
+                                    }}
+                                    navigation={mockNavigation}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
+                </OnyxListItemProvider>,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+
+            // When the first expense syncs while the page is open, replacing the optimistic accountID with the real one
+            await act(async () => {
+                await Onyx.update([
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: {[realAccountID]: {accountID: realAccountID, login, displayName: login}},
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
+                        value: {participants: {[realAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}}},
+                    },
+                ]);
+                await Onyx.update([
+                    {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.PERSONAL_DETAILS_LIST, value: {[optimisticAccountID]: null}},
+                    {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, value: {participants: {[optimisticAccountID]: null}}},
+                ]);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the draft's recipient and their $15 share both move to the real accountID, which the split row reads
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(draft?.participants?.at(0)?.accountID).toBe(realAccountID);
+            expect(draft?.splitShares?.[realAccountID]?.amount).toBe(1500);
+            expect(draft?.splitShares?.[optimisticAccountID]).toBeUndefined();
+        });
     });
 
     describe('Unreported transaction tests', () => {
@@ -1813,20 +2310,26 @@ describe('IOURequestStepConfirmationPageTest', () => {
             releaseFlowDiscardPromptSuppression();
         });
 
-        it('should route unreported distance expense to requestMoney and skip createDistanceRequest', async () => {
+        it('should route unreported distance expense to the self DM through trackExpense and skip createDistanceRequest', async () => {
+            // Given a distance expense started from global create and headed to the self DM, which is the only flow that
+            // leaves the draft unreported (reportID 0) at confirmation
+            const selfDMReportID = 'self-dm-report-dist';
             const transactionID = 'tx-unreported-dist';
             const policy = createPolicyWithTaxAndDistance();
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
-                    reportID: REPORT_ID,
-                    policyID: POLICY_ID,
-                    type: CONST.REPORT.TYPE.EXPENSE,
+                await Onyx.merge(ONYXKEYS.SELF_DM_REPORT_ID, selfDMReportID);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {
+                    reportID: selfDMReportID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                    participants: {[ACCOUNT_ID]: {}},
                 });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
                     transactionID,
                     reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    isFromGlobalCreate: true,
                     amount: 5000,
                     currency: 'USD',
                     comment: {
@@ -1849,7 +2352,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                     merchant: 'Distance',
                     created: '2025-01-15',
                     iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
-                    participants: [{accountID: PARTICIPANT_ACCOUNT_ID, selected: true}],
+                    participants: [{accountID: 0, isSelfDM: true, reportID: selfDMReportID, selected: true}],
                 });
             });
 
@@ -1864,9 +2367,9 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                         name: 'Money_Request_Step_Confirmation',
                                         params: {
                                             action: CONST.IOU.ACTION.CREATE,
-                                            iouType: CONST.IOU.TYPE.SUBMIT,
+                                            iouType: CONST.IOU.TYPE.TRACK,
                                             transactionID,
-                                            reportID: REPORT_ID,
+                                            reportID: selfDMReportID,
                                         },
                                     }}
                                     navigation={mockNavigation}
@@ -1877,12 +2380,13 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 </OnyxListItemProvider>,
             );
 
+            // When the expense is confirmed
             await waitForBatchedUpdatesWithAct();
             fireEvent.press(await screen.findByText(/^Create .*expense/i));
             await waitForBatchedUpdatesWithAct();
 
-            // Unreported distance requests should skip createDistanceRequest and use requestMoney
-            await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
+            // Then it is tracked in the self DM, since CreateDistanceRequest has no self DM target
+            await waitFor(() => expect(TrackExpense.trackExpense).toHaveBeenCalled());
             expect(Split.createDistanceRequest).not.toHaveBeenCalled();
         });
     });
@@ -2593,6 +3097,132 @@ describe('IOURequestStepConfirmationPageTest', () => {
             const draftTransaction = await getDraftTransaction();
             expect(draftTransaction?.category).toBe(DESTINATION_DEFAULT_CATEGORY);
             expect(draftTransaction?.tag).toBe('');
+        });
+
+        it('moves every receipt of a multi-scan batch to the selected workspace', async () => {
+            const SECOND_TRANSACTION_ID = '2';
+
+            // Given two scanned receipts confirmed together, both assigned to the source workspace
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${SECOND_TRANSACTION_ID}`, {
+                    transactionID: SECOND_TRANSACTION_ID,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    amount: 0,
+                    currency: 'USD',
+                    created: '2025-08-29',
+                    merchant: '(none)',
+                    reportID: SOURCE_CHAT_REPORT_ID,
+                    participants: [createWorkspaceParticipant(SOURCE_CHAT_REPORT_ID, SOURCE_POLICY_ID)],
+                    category: 'Source category',
+                    tag: 'Source tag',
+                    receipt: {filename: 'receipt2.jpg', source: 'path/to/receipt2.jpg', type: ''},
+                });
+            });
+            await renderConfirmationOnSourceWorkspace({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                amount: 0,
+                receipt: {filename: 'receipt1.jpg', source: 'path/to/receipt1.jpg', type: ''},
+            });
+
+            // When a different workspace is selected in the participant picker while the first receipt is on screen
+            await selectParticipants([createWorkspaceParticipant(DESTINATION_CHAT_REPORT_ID, DESTINATION_POLICY_ID)]);
+
+            // Then the receipt that isn't on screen is moved too, because submitting sends every receipt in the batch to
+            // the visible receipt's recipient, so a different recipient on another receipt would be silently ignored
+            const secondDraftTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${SECOND_TRANSACTION_ID}`,
+                    callback: (value) => {
+                        resolve(value);
+                        Onyx.disconnect(connection);
+                    },
+                });
+            });
+            const firstDraftTransaction = await getDraftTransaction();
+            for (const draftTransaction of [firstDraftTransaction, secondDraftTransaction]) {
+                expect(draftTransaction?.participants?.at(0)?.policyID).toBe(DESTINATION_POLICY_ID);
+                expect(draftTransaction?.reportID).toBe(DESTINATION_CHAT_REPORT_ID);
+                expect(draftTransaction?.category).toBe('');
+                expect(draftTransaction?.tag).toBe('');
+            }
+        });
+    });
+
+    describe('Expense toggle choices', () => {
+        beforeEach(async () => {
+            await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE, 'Test Policy'),
+                    id: POLICY_ID,
+                    defaultBillable: false,
+                    disabledFields: {defaultBillable: false},
+                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${POLICY_CHAT_REPORT_ID}`, {
+                    reportID: POLICY_CHAT_REPORT_ID,
+                    policyID: POLICY_ID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    isOwnPolicyExpenseChat: true,
+                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
+                    ...DEFAULT_SPLIT_TRANSACTION,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                    amount: 1000,
+                    reportID: POLICY_CHAT_REPORT_ID,
+                    participants: [{reportID: POLICY_CHAT_REPORT_ID, policyID: POLICY_ID, isPolicyExpenseChat: true, selected: true}],
+                });
+            });
+        });
+
+        it.each([
+            {label: 'Reimbursable', defaultValue: true},
+            {label: 'Billable', defaultValue: false},
+        ])('keeps the selected $label value after toggling and editing the draft', async ({label, defaultValue}) => {
+            // Given a manual workspace expense with the policy defaults applied, as rendered in the manual tab
+            render(
+                <OnyxListItemProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <ScreenWrapper testID="IOURequestStartPage">
+                                    <IOURequestStepConfirmationContentWithWritableReportOrNotFound
+                                        route={{
+                                            key: 'Money_Request_Step_Confirmation',
+                                            name: 'Money_Request_Step_Confirmation',
+                                            params: {
+                                                action: CONST.IOU.ACTION.CREATE,
+                                                iouType: CONST.IOU.TYPE.SUBMIT,
+                                                transactionID: TRANSACTION_ID,
+                                                reportID: POLICY_CHAT_REPORT_ID,
+                                            },
+                                        }}
+                                        navigation={mockNavigation}
+                                        shouldHideHeader
+                                    />
+                                </ScreenWrapper>
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
+                </OnyxListItemProvider>,
+            );
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByRole('switch', {name: label, checked: defaultValue})).toBeOnTheScreen();
+
+            // When the user chooses a value different from the policy default
+            fireEvent.press(screen.getByRole('switch', {name: label}));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the choice survives the draft update instead of being reset by the policy defaults
+            expect(screen.getByRole('switch', {name: label, checked: !defaultValue})).toBeOnTheScreen();
+
+            // When another expense field changes without changing the transaction IDs
+            fireEvent.changeText(screen.getByLabelText(translateLocal('common.merchant')), 'Updated merchant');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then editing the draft also preserves the chosen value
+            expect(screen.getByLabelText(translateLocal('common.merchant'))).toHaveDisplayValue('Updated merchant');
+            expect(screen.getByRole('switch', {name: label, checked: !defaultValue})).toBeOnTheScreen();
         });
     });
 

@@ -61,6 +61,7 @@ function SearchMoneyRequestReportEmptyState({report, policy, onLayout}: {report:
                   {
                       value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
                       text: translate('iou.createExpense'),
+                      sentryLabel: CONST.SENTRY_LABEL.REPORT.EMPTY_STATE.CREATE_EXPENSE,
                       icon: expensifyIcons.Plus,
                       onSelected: () => {
                           if (!reportId) {
@@ -76,6 +77,7 @@ function SearchMoneyRequestReportEmptyState({report, policy, onLayout}: {report:
                   {
                       value: CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE,
                       text: translate('iou.trackDistance'),
+                      sentryLabel: CONST.SENTRY_LABEL.REPORT.EMPTY_STATE.TRACK_DISTANCE,
                       icon: expensifyIcons.Location,
                       onSelected: () => {
                           if (!reportId) {
@@ -95,6 +97,7 @@ function SearchMoneyRequestReportEmptyState({report, policy, onLayout}: {report:
         {
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_EXISTING_EXPENSE,
             text: translate('iou.addExistingExpense'),
+            sentryLabel: CONST.SENTRY_LABEL.REPORT.EMPTY_STATE.ADD_EXISTING_EXPENSE,
             icon: icons.ReceiptPlus,
             onSelected: () => {
                 if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
@@ -128,6 +131,7 @@ function SearchMoneyRequestReportEmptyState({report, policy, onLayout}: {report:
                         ? [
                               {
                                   buttonText: translate('iou.addExpense'),
+                                  sentryLabel: CONST.SENTRY_LABEL.REPORT.EMPTY_STATE.ADD_EXPENSE,
                                   buttonAction: () => {},
                                   buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                   isDisabled: false,
