@@ -5,4 +5,4 @@ type QuadPoint = {
 
 type DocumentQuad = QuadPoint[];
 
-export type {DocumentQuad};
+export default DocumentQuad;

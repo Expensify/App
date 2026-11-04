@@ -14,7 +14,7 @@ import {useSharedValue} from 'react-native-reanimated';
 import {useFrameOutput} from 'react-native-vision-camera';
 import {createSynchronizable, scheduleOnRN} from 'react-native-worklets';
 
-import type {DocumentQuad} from './types';
+import type DocumentQuad from './types';
 
 // A module-level value, not an import: under Worklets Bundle Mode a worklet resolves captured imports again on its own runtime.
 const documentDetector = getDocumentDetectorNitroModule();

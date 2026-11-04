@@ -8,7 +8,7 @@ import React from 'react';
 import {StyleSheet} from 'react-native';
 import {useDerivedValue, useFrameCallback, useSharedValue} from 'react-native-reanimated';
 
-import type {DocumentQuad} from './types';
+import type DocumentQuad from './types';
 
 const STROKE_WIDTH = 2;
 const FILL_OPACITY = 0.3;
