@@ -30,8 +30,9 @@ function FlatNavCreateMenuButtons() {
     const {isCreateMenuActive, isCreateMenuVisible, hideCreateMenu, toggleCreateMenu} = useCreateMenuVisibility();
     const fabRef = useRef<HTMLDivElement>(null);
 
+    // The receipt button keeps its 4px side padding, so a 4px gap leaves 8px between the edges of the two buttons.
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
             <CreateMenuPopover
                 isVisible={isCreateMenuVisible}
                 onClose={hideCreateMenu}
