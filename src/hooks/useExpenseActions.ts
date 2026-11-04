@@ -22,7 +22,6 @@ import {
     canEditFieldOfMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     generateReportID,
-    getPolicyExpenseChat,
     isDM,
     isSelfDM,
     navigateOnDeleteExpense,
@@ -55,6 +54,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {ValueOf} from 'type-fest';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {policyExpenseChatSelector} from '@selectors/Report';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import {useRef} from 'react';
 
@@ -140,6 +140,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
+    const [chatIOUReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReport?.chatReportID)}`);
 
     // Global collections
     const [personalDetails] = useAllPersonalDetails();
@@ -176,7 +177,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
     // Default expense policy / chat
     const defaultExpensePolicy = useDefaultExpensePolicy();
-    const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
+    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyExpenseChatSelector(accountID, defaultExpensePolicy?.id)});
 
     // Duplicate expense target: the viewed report when it can accept the copy, otherwise the default workspace chat
     const canDuplicateIntoSourceReport = canDuplicateExpenseIntoSourceReport({
@@ -321,6 +322,11 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const addExpenseDropdownOptions = getAddExpenseDropdownOptions({
         translate,
         icons: useMemoizedLazyExpensifyIcons(['Plus', 'ReceiptPlus', 'Location', 'Feed', 'ArrowRight']),
+        sentryLabels: {
+            createExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE,
+            trackDistance: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE,
+            addExistingExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_EXISTING,
+        },
         iouReportID: moneyRequestReport?.reportID,
         policy,
         userBillingGracePeriodEnds,
@@ -583,7 +589,9 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                             chatIOUReport,
                             isChatIOUReportArchived,
                             getCurrencyDecimals,
+                            accountID,
                             false,
+                            chatIOUReportActions,
                         );
                         const deleteNavigateBackUrl = goBackRoute ?? backTo ?? Navigation.getActiveRoute();
                         setDeleteTransactionNavigateBackUrl(deleteNavigateBackUrl);

@@ -44,11 +44,14 @@ import type {ValueOf} from 'type-fest';
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 
+import GlobalReimbursementsEnabledIcon from './GlobalReimbursementsEnabledIcon';
 import PendingDigitalWalletApprovalRow from './PendingDigitalWalletApprovalRow';
+import WiseSetupInProgressRow from './WiseSetupInProgressRow';
 
 type ConnectionStatusDetails = {
     statusText: string;
     statusTone?: 'default' | 'success' | 'danger';
+    statusBadgeTone?: 'default' | 'success' | 'danger';
     tooltipText?: string;
     message?: string;
     actionText?: string;
@@ -89,6 +92,17 @@ type PaymentMethodItem = PaymentMethod & {
 
     /** Wallet the addition was requested from, used to name it in the "Review" CTA row */
     digitalWalletProvider?: ValueOf<typeof CONST.EXPENSIFY_CARD.WALLET_PROVIDER>;
+
+    /** The bank account's Wise onboarding that is in progress, which shows the in-progress row */
+    wiseSetupInProgress?: {
+        bankAccountID: number;
+
+        /** Whether the admin has something to do, which shows Continue */
+        canContinue: boolean;
+    };
+
+    /** Whether the bank account is set up for global reimbursements, which shows a globe next to its name */
+    isGlobalReimbursementsEnabled?: boolean;
 } & BankIcon;
 
 type PaymentMethodListItemProps = {
@@ -220,7 +234,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
         descriptionAddon = (
             <ConnectionStatusBadge
                 text={item.connectionStatus.statusText}
-                tone={item.connectionStatus.statusTone}
+                tone={item.connectionStatus.statusBadgeTone ?? item.connectionStatus.statusTone}
                 tooltipText={item.connectionStatus.tooltipText}
             />
         );
@@ -253,6 +267,9 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     const menuItemProps: React.ComponentProps<typeof MenuItem> = {
         onPress: handleRowPress,
         title: item.title,
+        titleAddon: item.isGlobalReimbursementsEnabled ? <GlobalReimbursementsEnabledIcon onPress={handleRowPress} /> : undefined,
+        // The globe sits inside the row's button, so screen readers only hear it through the row's label
+        accessibilityLabel: item.isGlobalReimbursementsEnabled ? [item.title, item.description, translate('walletPage.globalReimbursementsEnabled')].filter(Boolean).join(', ') : undefined,
         description: item.description,
         descriptionAddon,
         icon: item.icon,
@@ -287,6 +304,8 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     };
     const menuItem = <MenuItem {...menuItemProps} />;
 
+    const actionAccessibilityLabel = connectionStatus?.actionText ? `${connectionStatus.actionText} ${item.title ?? ''}, ${item.description}` : undefined;
+
     return (
         <OfflineWithFeedback
             onClose={item.canDismissError ? () => dismissError(item) : undefined}
@@ -305,6 +324,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                                     <ConnectionStatusMessage
                                         message={connectionStatus.message}
                                         actionText={connectionStatus.actionText}
+                                        actionAccessibilityLabel={actionAccessibilityLabel}
                                         onActionPress={connectionStatus.onActionPress}
                                         isActionDisabled={connectionStatus.isActionDisabled}
                                         statusTone={connectionStatus.statusTone}
@@ -342,6 +362,13 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                     cardID={digitalWalletApprovalCardID}
                     walletProvider={item.digitalWalletProvider}
                     style={[styles.pv3, cardPaddingHorizontal]}
+                />
+            )}
+            {!!item.wiseSetupInProgress && (
+                <WiseSetupInProgressRow
+                    bankAccountID={item.wiseSetupInProgress.bankAccountID}
+                    canContinue={item.wiseSetupInProgress.canContinue}
+                    style={[styles.pt4, styles.pb3, cardPaddingHorizontal]}
                 />
             )}
             {isChaseAccountConnectedViaPlaid && (

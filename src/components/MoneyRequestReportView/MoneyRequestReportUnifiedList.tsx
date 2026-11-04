@@ -1,8 +1,8 @@
 import FlashList from '@components/FlashList';
-import type FlatListRefType from '@components/FlashList/types';
 
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
+import type ActionListRefType from '@pages/inbox/ActionListTypes';
 import useScrollToEditingReportAction from '@pages/inbox/report/useScrollToEditingReportAction';
 
 import variables from '@styles/variables';
@@ -48,14 +48,13 @@ function unifiedListItemType(item: UnifiedListItem) {
 }
 
 type MoneyRequestReportFlashListProps = FlashListProps<UnifiedListItem> & {
-    /** Ref to the underlying list, shared via the ActionList context. */
-    ref: FlatListRefType;
+    /** Ref to the underlying list, shared via the common ActionList imperative API. */
+    ref: ActionListRefType;
 };
 
 /**
- * Forwards the shared ActionList context ref to the underlying FlashList. Mirroring InvertedFlashList, the
- * ref is forwarded through @components/FlashList — which receives it as an untyped runtime prop — so no type assertion is
- * needed. The scroll manager relies on the FlashList registering into this slot.
+ * Forwards the shared ActionList ref through @components/FlashList to the underlying list.
+ * FlashList implements the common imperative API consumed by the report scroll manager.
  */
 function MoneyRequestReportFlashList(props: MoneyRequestReportFlashListProps) {
     return (
@@ -95,12 +94,15 @@ type MoneyRequestReportUnifiedListProps = {
     newTransactionID?: string;
 
     /** Ref to the underlying list, shared via the ActionList context. */
-    listRef: FlatListRefType;
+    listRef: ActionListRefType;
 
     accessibilityLabel: string;
 
     /** Called when the list lays out. */
     onLayout: (event: LayoutChangeEvent) => void;
+
+    /** Called after FlashList finishes measuring and committing its rows. */
+    onCommitLayoutEffect?: () => void;
 
     onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 
@@ -145,6 +147,7 @@ function MoneyRequestReportUnifiedList({
     listRef,
     accessibilityLabel,
     onLayout,
+    onCommitLayoutEffect,
     onScroll,
     onScrollBeginDrag,
     onContentSizeChange,
@@ -380,6 +383,7 @@ function MoneyRequestReportUnifiedList({
             maintainVisibleContentPosition={{autoscrollToBottomThreshold: undefined}}
             onViewableItemsChanged={onViewableItemsChangedAdjusted}
             onLayout={handleLayout}
+            onCommitLayoutEffect={onCommitLayoutEffect}
             onEndReached={onEndReached}
             onEndReachedThreshold={0.75}
             onStartReached={onStartReached}

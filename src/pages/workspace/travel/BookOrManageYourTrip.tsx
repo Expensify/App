@@ -64,7 +64,6 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
         setPolicyTravelSettings(policy, {autoAddTripName: enabled});
     };
 
-    const isCodingSyncBetaEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_CODING_SYNC);
     const isCodingSyncEnabled = policy?.travelSettings?.isCodingSyncEnabled ?? false;
 
     const toggleCodingSync = (enabled: boolean) => {
@@ -151,7 +150,7 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
                         wrapperStyle={styles.mt3}
                     />
                 )}
-                {canReadMoreFeatures && isCodingSyncBetaEnabled && (
+                {canReadMoreFeatures && (
                     <ToggleSettingOptionRow
                         title={translate('workspace.moreFeatures.travel.settings.codingSync.title')}
                         subtitle={translate('workspace.moreFeatures.travel.settings.codingSync.subtitle')}
