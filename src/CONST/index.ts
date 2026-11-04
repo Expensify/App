@@ -8087,7 +8087,7 @@ const CONST = {
         RESULTS_PAGE_SIZE: 50,
         // Keep in sync with FilterUtils::MAX_KEYWORD_TOKENS in Auth.
         MAX_KEYWORD_TOKENS: 50,
-        QUERY_ERROR: {
+        QUERY_ERROR_UUID: {
             TOO_MANY_KEYWORDS: '0e6765b2-f874-4750-b437-0a9b02ecf1d7',
             INVALID_QUERY: 'b50271de-03c9-415d-a69c-a84b8b3007c8',
             INVALID_REPORT_ID: '4a98efa5-a7f8-4413-9b52-8dbee6aaa651',

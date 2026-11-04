@@ -1063,8 +1063,8 @@ function openSearchPage(params?: OpenSearchPageParams, hashWithStaleError?: numb
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hashWithStaleError}`,
             value: {
                 errors: null,
-                // `state` marks the snapshot resolved on its own, so all three have to go or it still reads as loaded.
-                search: {state: null, responseJsonCode: null},
+                // Clear the terminal state with the failure so the snapshot can be requested again.
+                search: {state: null, responseJsonCode: null, errorTranslationKey: null},
             },
         },
     ];

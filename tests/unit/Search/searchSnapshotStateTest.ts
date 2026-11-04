@@ -200,10 +200,10 @@ describe('search snapshot terminal state', () => {
     });
 
     it.each([
-        [CONST.SEARCH.QUERY_ERROR.TOO_MANY_KEYWORDS, 'search.searchResults.tooManyKeywords'],
-        [CONST.SEARCH.QUERY_ERROR.INVALID_REPORT_ID, 'search.searchResults.invalidReportID'],
-        [CONST.SEARCH.QUERY_ERROR.UNSUPPORTED_FILTER, 'search.searchResults.unsupportedFilter'],
-        [CONST.SEARCH.QUERY_ERROR.INVALID_QUERY, 'errorPage.wrongTypeSubtitle'],
+        [CONST.SEARCH.QUERY_ERROR_UUID.TOO_MANY_KEYWORDS, 'search.searchResults.tooManyKeywords'],
+        [CONST.SEARCH.QUERY_ERROR_UUID.INVALID_REPORT_ID, 'search.searchResults.invalidReportID'],
+        [CONST.SEARCH.QUERY_ERROR_UUID.UNSUPPORTED_FILTER, 'search.searchResults.unsupportedFilter'],
+        [CONST.SEARCH.QUERY_ERROR_UUID.INVALID_QUERY, 'errorPage.wrongTypeSubtitle'],
     ] as const)('keeps the localized reason for rejected search %s', async (UUID, translationKey) => {
         // Given a query rejected by the server with a recognized validation error
         const queryJSON = getQueryJSON();
@@ -254,8 +254,9 @@ describe('search snapshot terminal state', () => {
     it.each([
         Array.from({length: CONST.SEARCH.MAX_KEYWORD_TOKENS}, (_, index) => `word${index}`).join(' '),
         'type:expense status:unreported',
-        'type:expense groupBy:category',
-        'type:chat is:unread',
+        'type:EXPENSE groupBy:category',
+        'type:expense groupBy:approver',
+        'type:CHAT is:unread',
     ])('sends supported query %s to the server', async (inputQuery) => {
         // Given a supported query, including the keyword boundary and suggested alternatives
         const queryJSON = buildSearchQueryJSON(inputQuery);

@@ -49,7 +49,7 @@ import type {
     SearchNegatableFilterKeys,
 } from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {SearchDataTypes, SearchResultDataType} from '@src/types/onyx/SearchResults';
+import type {SearchDataTypes, SearchResultDataType, SearchResultsInfo} from '@src/types/onyx/SearchResults';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
@@ -202,6 +202,11 @@ function isFooterTotal(value: string): value is SearchFooterTotal {
 }
 
 const VALID_GROUP_BYS = new Set<string>(Object.values(CONST.SEARCH.GROUP_BY));
+// Auth also accepts approver, which is not an option in the App grouping picker.
+const AUTH_GROUP_BYS = new Set([...VALID_GROUP_BYS, 'approver']);
+const SEARCH_TYPES_SUPPORTING_GROUP_BY = new Set<string>([CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.DATA_TYPES.TRIP]);
+const SEARCH_TYPES_REJECTING_UNREPORTED_REPORT_ID = new Set<string>([CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, CONST.SEARCH.DATA_TYPES.INVOICE]);
+
 // Create reverse lookup maps for O(1) performance
 const createKeyToUserFriendlyMap = () => {
     const map = new Map<string, string>();
@@ -1181,12 +1186,12 @@ function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQuerySt
 
 /** Checks query forms that Auth rejects, including queries typed directly into the search input. */
 function getSearchQueryError(queryJSON: Readonly<SearchQueryJSON>): TranslationPaths | undefined {
-    // Auth only allows grouping expense, invoice, and trip searches. Other types must be searched without grouping.
-    if (
-        queryJSON.groupBy &&
-        (!VALID_GROUP_BYS.has(queryJSON.groupBy.toLowerCase()) ||
-            ![CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.DATA_TYPES.TRIP].some((type) => type === queryJSON.type))
-    ) {
+    if (typeof queryJSON.type !== 'string') {
+        return 'errorPage.wrongTypeSubtitle';
+    }
+
+    const type = queryJSON.type.toLowerCase();
+    if (queryJSON.groupBy && (typeof queryJSON.groupBy !== 'string' || !AUTH_GROUP_BYS.has(queryJSON.groupBy.toLowerCase()) || !SEARCH_TYPES_SUPPORTING_GROUP_BY.has(type))) {
         return 'search.searchResults.unsupportedGrouping';
     }
 
@@ -1194,12 +1199,12 @@ function getSearchQueryError(queryJSON: Readonly<SearchQueryJSON>): TranslationP
         if (filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD && filter.filters.length > CONST.SEARCH.MAX_KEYWORD_TOKENS) {
             return 'search.searchResults.tooManyKeywords';
         }
-        if (filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS && !isFilterSupported(filter.key, queryJSON.type)) {
+        if (filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS && type !== CONST.SEARCH.DATA_TYPES.CHAT) {
             return 'search.searchResults.unsupportedFilter';
         }
         if (
             filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID &&
-            [CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, CONST.SEARCH.DATA_TYPES.INVOICE].some((type) => type === queryJSON.type) &&
+            SEARCH_TYPES_REJECTING_UNREPORTED_REPORT_ID.has(type) &&
             filter.filters.some(({value}) => String(value) === CONST.REPORT.UNREPORTED_REPORT_ID)
         ) {
             return 'search.searchResults.invalidReportID';
@@ -1285,8 +1290,8 @@ function hasFiltersChangedFromDefault(currentQueryJSON: SearchQueryJSON, default
     return getQueryHashWithoutFilters(currentQueryJSON, ignoredFilterKeys) !== getQueryHashWithoutFilters(defaultQueryJSON, ignoredFilterKeys);
 }
 
-function isSearchQuerySavable(currentQueryJSON: SearchQueryJSON | undefined, defaultQueryJSON: SearchQueryJSON | undefined) {
-    if (!currentQueryJSON) {
+function isSearchQuerySavable(currentQueryJSON: SearchQueryJSON | undefined, defaultQueryJSON: SearchQueryJSON | undefined, search?: Pick<SearchResultsInfo, 'hash' | 'responseJsonCode'>) {
+    if (!currentQueryJSON || (search?.hash === currentQueryJSON.hash && search.responseJsonCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY) || getSearchQueryError(currentQueryJSON)) {
         return false;
     }
 

@@ -244,7 +244,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
         hasErrors: Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline,
         shouldShowFiltersBarLoading: shouldShowFiltersBarLoading || isCategoryFilterLoading,
         canReset: hasDefaultQuery ? hasFiltersChangedFromDefault(currentSearchQueryJSON, currentDefaultSearchQueryJSON) : filters.length > 0,
-        canSave: isSearchQuerySavable(currentSearchQueryJSON, currentDefaultSearchQueryJSON),
+        canSave: isSearchQuerySavable(currentSearchQueryJSON, currentDefaultSearchQueryJSON, currentSearchResults?.search),
         resetFilters,
     };
 }
