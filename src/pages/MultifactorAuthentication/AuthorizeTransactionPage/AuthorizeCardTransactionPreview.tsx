@@ -56,9 +56,7 @@ function AuthorizeCardTransactionPreview({transactionID, amount, currency, merch
         );
     }
 
-    const formattedDate = created
-        ? DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT, dateFnsLocale)
-        : '';
+    const formattedDate = created ? DateUtils.formatToMonthDayWithOptionalYearInUTC(created, dateFnsLocale) : '';
     const headerText = [formattedDate, translate('common.card')].filter(Boolean).join(` ${CONST.DOT_SEPARATOR} `);
     let displayAmount = '';
     if (amount !== undefined) {

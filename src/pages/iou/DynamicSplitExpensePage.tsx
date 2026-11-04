@@ -491,11 +491,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
         const isSettled = isSettledReportUtils(currentItemReport?.reportID);
         const percentage = adjustedPercentages.at(index) ?? 0;
 
-        const date = DateUtils.formatWithUTCTimeZone(
-            item.created,
-            DateUtils.doesDateBelongToAPastYear(item.created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
-            dateFnsLocale,
-        );
+        const date = DateUtils.formatToMonthDayWithOptionalYearInUTC(item.created, dateFnsLocale);
         previewHeaderText.unshift({text: date}, dotSeparator);
 
         if (isApproved) {

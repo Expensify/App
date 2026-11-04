@@ -76,7 +76,7 @@ function ReuseRouteThumbnail({transactionID, receiptSource}: ReuseRouteThumbnail
 function ReuseRouteListItem<TItem extends ListItem>({item, isFocused, isFocusVisible, showTooltip, isDisabled, onSelectRow, onDismissError, onFocus, shouldSyncFocus}: ListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Receipt', 'DotIndicatorUnfilled', 'Location']);
 
     if (!isReuseRouteListItemData(item)) {
@@ -108,7 +108,7 @@ function ReuseRouteListItem<TItem extends ListItem>({item, isFocused, isFocusVis
                 </View>
             </View>
             <Badge
-                text={translate('distance.lastUsed', {date: formatLastUsed(item.route.inserted)})}
+                text={translate('distance.lastUsed', {date: formatLastUsed(item.route.inserted, dateFnsLocale)})}
                 badgeStyles={styles.reuseRouteLastUsedBadge}
                 textStyles={styles.reuseRouteLastUsedBadgeText}
             />

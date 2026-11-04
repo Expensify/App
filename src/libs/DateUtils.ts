@@ -208,7 +208,7 @@ function datetimeToCalendarTime(locale: Locale | undefined, datetime: string, cu
         return `${yesterdayAt} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}${tz}`;
     }
     if (date >= startOfCurrentWeek && date <= endOfCurrentWeek) {
-        return `${format(date, CONST.DATE.MONTH_DAY_ABBR_FORMAT, {locale: dateFnsLocale})} ${at} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}${tz}`;
+        return `${formatToMonthDay(date, dateFnsLocale)} ${at} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}${tz}`;
     }
     return `${format(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, {locale: dateFnsLocale})} ${at} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}${tz}`;
 }
@@ -1028,6 +1028,41 @@ function doesDateBelongToAPastYear(date: string): boolean {
 }
 
 /**
+ * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language and
+ * timezone.
+ */
+const memoizedCreateMonthDayFormatter = memoize((localeCode: string, timeZone: string | undefined) => new Intl.DateTimeFormat(localeCode, {month: 'short', day: 'numeric', timeZone}));
+
+/**
+ * Formats a date as an abbreviated month and day, e.g. `Jun 20`.
+ *
+ * date-fns has no localized token for a month and day without a year, and a hand-written `MMM d` fixes the US order,
+ * so German put the month before the day and Japanese lost the suffix it writes after the day (`6月20日`).
+ *
+ * @param timeZone pass 'UTC' when the date is a calendar value that must not shift with the device's timezone
+ */
+function formatToMonthDay(date: Date, dateFnsLocale: DateFnsLocale | undefined, timeZone?: string): string {
+    if (!isValid(date)) {
+        return '';
+    }
+    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
+    return memoizedCreateMonthDayFormatter(dateFnsLocale?.code ?? 'en-US', timeZone).format(date);
+}
+
+/**
+ * Formats a calendar date (such as a transaction date) as an abbreviated month and day, adding the year only when the
+ * date is not in the current year. The date is read as UTC so the displayed day never shifts with the device's timezone.
+ *
+ * @returns Jun 20, or Jun 20, 2025 for a past year
+ */
+function formatToMonthDayWithOptionalYearInUTC(datetime: string, dateFnsLocale: DateFnsLocale | undefined): string {
+    if (doesDateBelongToAPastYear(datetime)) {
+        return formatWithUTCTimeZone(datetime, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, dateFnsLocale);
+    }
+    return formatToMonthDay(toDate(datetime, {timeZone: 'UTC'}), dateFnsLocale, 'UTC');
+}
+
+/**
  * Returns a boolean value indicating whether the card has expired.
  * @param expiryMonth month when card expires (starts from 1 so can be any number between 1 and 12)
  * @param expiryYear year when card expires
@@ -1360,6 +1395,8 @@ const DateUtils = {
     getFormattedTransportDateAndHour,
     getFormattedCancellationDate,
     doesDateBelongToAPastYear,
+    formatToMonthDay,
+    formatToMonthDayWithOptionalYearInUTC,
     isCardExpired,
     getDifferenceInDaysFromNow,
     isValidDateString,
