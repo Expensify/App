@@ -473,6 +473,20 @@ describe('BankAccountUtils', () => {
             expect(shouldConfirmWiseQuoteBeforePaying({...crossCurrencyPayment, ...overrides})).toBe(false);
         });
 
+        it('asks for a quote when the payment uses the workspace account without choosing one', () => {
+            // Given a cross-currency payment with no chosen account, where the workspace pays from its Wise account
+            const payment = {
+                ...crossCurrencyPayment,
+                methodID: undefined,
+                policy: {achAccount: {bankAccountID: wiseBankAccountID, accountNumber: '', routingNumber: '', addressName: '', bankName: '', reimburser: ''}},
+            };
+
+            // When deciding whether to get and show the quote first
+            // Then both hold, because the backend pays from the workspace account
+            expect(shouldGetWiseQuote(payment)).toBe(true);
+            expect(shouldConfirmWiseQuoteBeforePaying(payment)).toBe(true);
+        });
+
         it('does not ask again once the admin confirmed a quote', () => {
             // Given a cross-currency payment that already carries the confirmed quote
             // When deciding whether to show the quote first
