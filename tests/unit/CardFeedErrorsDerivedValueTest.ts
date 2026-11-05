@@ -1,4 +1,5 @@
 import getShouldShowBrokenConnectionError from '@components/Tables/WorkspaceCompanyCardsTable/getShouldShowBrokenConnectionError';
+
 import type {DerivedValueContext} from '@libs/actions/OnyxDerived/types';
 import {getCardFeedWithDomainID, hasCardConnectionIssue} from '@libs/CardUtils';
 
