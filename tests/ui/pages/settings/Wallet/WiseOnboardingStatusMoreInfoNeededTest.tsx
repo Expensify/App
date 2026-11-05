@@ -190,6 +190,29 @@ describe('WiseOnboardingStatusPage while Wise needs more info', () => {
         }
     });
 
+    it("doesn't open the form again when the focused path changes after the form opened", async () => {
+        // Given the link arrived and Wise's form opened over the status page
+        mockKYCReviewLinkResponse(mockFetch, KYC_REVIEW_URL);
+        await renderPage();
+        await pressContinue();
+        expect(openWiseKYCReview).toHaveBeenCalledTimes(1);
+
+        try {
+            // When the form's screen is focused, so the path read from the focused screen ends in the form, and the page underneath renders again
+            jest.mocked(useDynamicBackPath).mockReturnValue(
+                createDynamicRoute(DYNAMIC_ROUTES.WISE_KYC_REVIEW.path, createDynamicRoute(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path, ROUTES.SETTINGS_WALLET)),
+            );
+            await act(() => Onyx.set(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, true));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the form isn't opened again over a path built from the form's own, which opens "not found"
+            expect(openWiseKYCReview).toHaveBeenCalledTimes(1);
+        } finally {
+            // The mock is module-level, so the other tests get the intro path back even if an assertion fails
+            jest.mocked(useDynamicBackPath).mockReturnValue(WALLET_INTRO_PATH);
+        }
+    });
+
     it('shows an error above Continue when the link cannot be fetched', async () => {
         // Given a server that rejects the request
         mockFetch.mockAPICommand(READ_COMMANDS.GET_WISE_KYC_REVIEW_EMBEDDED_LINK, () => ({jsonCode: CONST.JSON_CODE.EXP_ERROR}));
