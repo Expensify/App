@@ -1,6 +1,7 @@
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
+import FormAlertWrapper from '@components/FormAlertWrapper';
 import MenuItemAvatarNavigation from '@components/MenuItem/presets/MenuItemAvatarNavigation';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import RenderHTML from '@components/RenderHTML';
@@ -91,8 +92,20 @@ type SummaryLabelRow = {
     title: string;
 };
 
-/** One row of a group: an answer, an entry of a repeated group, or the name of a repeated group */
-type SummaryGroupRow = SummaryItem | SummaryAvatarRow | SummaryLabelRow;
+/** An error about a repeated group as a whole, such as too many entries, shown under its entries since their rows don't carry one */
+type SummaryErrorRow = {
+    /** Tells the row apart from an answer row */
+    kind: 'error';
+
+    /** Unique key of the row */
+    id: string;
+
+    /** The error message */
+    title: string;
+};
+
+/** One row of a group: an answer, an entry of a repeated group, the name of a repeated group, or an error about a repeated group */
+type SummaryGroupRow = SummaryItem | SummaryAvatarRow | SummaryLabelRow | SummaryErrorRow;
 
 /** Answers under one heading. Used instead of `summaryItems` when the confirmation is split by section. */
 type SummaryGroup = {
@@ -129,6 +142,12 @@ type ConfirmationStepProps = SubPageProps &
         /** The error message to display */
         error?: string;
 
+        /** Shows "Please fix the errors in the form before continuing" above Confirm, for rows whose answers need fixing before Confirm can send them */
+        isFixErrorsAlertVisible?: boolean;
+
+        /** Called when the "fix the errors" link in the alert is pressed */
+        onFixTheErrorsLinkPressed?: () => void;
+
         shouldApplySafeAreaPaddingBottom?: boolean;
 
         /** Whether screen readers treat the page title as a heading */
@@ -150,6 +169,8 @@ function ConfirmationStep({
     onfidoLinksTitle,
     isLoading,
     error,
+    isFixErrorsAlertVisible = false,
+    onFixTheErrorsLinkPressed,
     onNext,
     shouldApplySafeAreaPaddingBottom = true,
     shouldMarkTitleAsHeading = false,
@@ -188,6 +209,16 @@ function ConfirmationStep({
                 >
                     {row.title}
                 </Text>
+            );
+        }
+        if ('kind' in row && row.kind === 'error') {
+            return (
+                <DotIndicatorMessage
+                    key={row.id}
+                    style={[styles.ph5, styles.mt2]}
+                    type="error"
+                    messages={{error: row.title}}
+                />
             );
         }
         if ('kind' in row) {
@@ -274,16 +305,23 @@ function ConfirmationStep({
                         messages={{error}}
                     />
                 )}
-                <ButtonDisabledWhenOffline
-                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    size={CONST.BUTTON_SIZE.LARGE}
-                    isLoading={isLoading}
-                    accessibilityState={shouldAnnounceSubmitState ? {busy: !!isLoading} : undefined}
-                    style={[styles.w100]}
-                    onPress={onNext}
+                <FormAlertWrapper
+                    isAlertVisible={isFixErrorsAlertVisible}
+                    onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}
                 >
-                    <Button.Text>{translate('common.confirm')}</Button.Text>
-                </ButtonDisabledWhenOffline>
+                    {() => (
+                        <ButtonDisabledWhenOffline
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
+                            size={CONST.BUTTON_SIZE.LARGE}
+                            isLoading={isLoading}
+                            accessibilityState={shouldAnnounceSubmitState ? {busy: !!isLoading} : undefined}
+                            style={[styles.w100]}
+                            onPress={onNext}
+                        >
+                            <Button.Text>{translate('common.confirm')}</Button.Text>
+                        </ButtonDisabledWhenOffline>
+                    )}
+                </FormAlertWrapper>
             </View>
         </ScrollView>
     );

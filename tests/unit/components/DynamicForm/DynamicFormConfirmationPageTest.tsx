@@ -2,9 +2,13 @@ import {act, render, screen} from '@testing-library/react-native';
 
 import DynamicFormConfirmationPage from '@components/DynamicForm/components/DynamicFormConfirmationPage';
 import type {DynamicFormSubPageProps} from '@components/DynamicForm/types';
+import {getAllFields} from '@components/DynamicForm/utils/paginate';
+import type {SummaryGroup} from '@components/SubStepForms/ConfirmationStep';
 import Text from '@components/Text';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {DynamicFormPage} from '@src/types/onyx';
 
 import type {ReactNode} from 'react';
 
@@ -12,6 +16,9 @@ import React from 'react';
 
 type CapturedConfirmationStepProps = {
     isLoading?: boolean;
+    groups?: SummaryGroup[];
+    isFixErrorsAlertVisible?: boolean;
+    onFixTheErrorsLinkPressed?: () => void;
     pageSubtitle?: string;
     onNext: () => void;
     children?: ReactNode;
@@ -103,5 +110,43 @@ describe('DynamicFormConfirmationPage', () => {
 
         // Then the step shows it under the title
         expect(getConfirmationStepProps()?.pageSubtitle).toBe('Double check the details below');
+    });
+
+    describe('unanswered fields', () => {
+        const pages: DynamicFormPage[] = [
+            {key: 'bank', title: 'Bank', content: [{key: 'sortCode', type: 'text', required: true, label: 'Sort code'}]},
+            {key: 'holder', title: 'Holder', content: [{key: 'fullName', type: 'text', required: true, label: 'Full name'}]},
+        ];
+        const values = {fullName: 'Todd Clyde'};
+        const getSortCodeRow = () =>
+            getConfirmationStepProps()
+                ?.groups?.at(0)
+                ?.rows.find((row) => row.id === 'sortCode');
+
+        it('marks the empty rows and asks to fix them once Confirm was pressed', () => {
+            // Given the flow reports that Confirm was pressed while the sort code is empty, which happens when a new form from the server adds a required field
+            const onMove = jest.fn();
+            renderPage({pages, allFields: getAllFields(pages), values, onMove, shouldShowFieldErrors: true});
+
+            // When the user presses the "fix the errors" link
+            act(() => {
+                getConfirmationStepProps()?.onFixTheErrorsLinkPressed?.();
+            });
+
+            // Then the sort code row shows why Confirm did nothing, the footer asks to fix it, and the link opens the bank page where the sort code is asked
+            expect(getSortCodeRow()).toEqual(expect.objectContaining({brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, errorText: 'common.error.fieldRequired'}));
+            expect(getConfirmationStepProps()?.isFixErrorsAlertVisible).toBe(true);
+            expect(onMove).toHaveBeenCalledWith(0);
+        });
+
+        it('shows no errors before Confirm is pressed', () => {
+            // Given the same empty sort code, before the user pressed Confirm
+            // When the confirmation page renders
+            renderPage({pages, allFields: getAllFields(pages), values, shouldShowFieldErrors: false});
+
+            // Then nothing is red yet, so a page the user is still reading does not start with errors
+            expect(getSortCodeRow()).toEqual(expect.objectContaining({errorText: undefined}));
+            expect(getConfirmationStepProps()?.isFixErrorsAlertVisible).toBe(false);
+        });
     });
 });

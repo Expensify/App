@@ -1,11 +1,13 @@
 import type {DynamicFormSubPageProps} from '@components/DynamicForm/types';
 import getConfirmationItems from '@components/DynamicForm/utils/getConfirmationItems';
+import getShownPageErrors from '@components/DynamicForm/utils/getShownPageErrors';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 
 import CONST from '@src/CONST';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React from 'react';
 
@@ -24,10 +26,14 @@ function DynamicFormConfirmationPage({
     isRefreshingRequirements,
     submitError,
     onOpenListItemEditor,
+    shouldShowFieldErrors = false,
     children,
 }: DynamicFormSubPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const pageErrors = shouldShowFieldErrors ? getShownPageErrors(pages, values, translate, allFields) : [];
+    const firstPageWithErrorsIndex = pageErrors.findIndex((errors) => !isEmptyObject(errors));
+    const fieldErrors = Object.fromEntries(pageErrors.flatMap((errors) => Object.entries(errors)));
 
     return (
         <ConfirmationStep
@@ -37,10 +43,12 @@ function DynamicFormConfirmationPage({
             onMove={onMove}
             pageTitle={confirmationTitle}
             pageSubtitle={confirmationSubtitle}
-            groups={getConfirmationItems(pages, allFields, values, translate, onMove, onOpenListItemEditor, isOffline)}
+            groups={getConfirmationItems(pages, allFields, values, translate, onMove, onOpenListItemEditor, isOffline, fieldErrors)}
             showOnfidoLinks={false}
             isLoading={!!isSubmitting || !!isSavingPages || !!isRefreshingRequirements}
             error={submitError}
+            isFixErrorsAlertVisible={firstPageWithErrorsIndex !== -1}
+            onFixTheErrorsLinkPressed={() => onMove(firstPageWithErrorsIndex)}
             shouldMarkTitleAsHeading
             shouldAnnounceSubmitState
             forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}

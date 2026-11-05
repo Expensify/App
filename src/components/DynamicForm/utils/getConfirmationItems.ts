@@ -4,11 +4,13 @@ import type {SummaryGroup, SummaryGroupRow} from '@components/SubStepForms/Confi
 
 import {getLetterAvatarURLForName} from '@libs/UserAvatarUtils';
 
+import CONST from '@src/CONST';
 import type {DynamicFormField, DynamicFormListField, DynamicFormPage} from '@src/types/onyx';
 
 import noop from 'lodash/noop';
 
 import formatDynamicFieldValue from './formatDynamicFieldValue';
+import getAddressInputKeys from './getAddressInputKeys';
 import getContentFields from './getContentFields';
 import {getFieldLabel} from './getLocalizedText';
 import {getPageSectionName, isPageShown} from './getPageTitle';
@@ -68,6 +70,7 @@ function getOptedOutFieldByLink(pages: DynamicFormPage[], values: DynamicFormVal
 /**
  * One section per shown page holding its visible answers, with each list entry as an avatar row and an empty list as a plain row. Tapping a row opens the page or entry to edit. Readonly rows open nothing.
  * Offline, a row whose answer asks the server for a new form is disabled, as its input is on its page. An address stays open, since only its country does that and the rest can be edited offline.
+ * A row named in `fieldErrors` shows its error. An address has one row, so it shows the first error of any of its parts.
  */
 function getConfirmationItems(
     pages: DynamicFormPage[],
@@ -77,6 +80,7 @@ function getConfirmationItems(
     onEditPage: (pageIndex: number) => void,
     onEditListItem: (listKey: string, itemID: string) => void,
     isOffline = false,
+    fieldErrors: Record<string, string> = {},
 ): SummaryGroup[] {
     const optedOutFieldByLink = getOptedOutFieldByLink(pages, values, allFields);
 
@@ -106,7 +110,12 @@ function getConfirmationItems(
                     if (listItemRows.length > 0) {
                         // The section heading names a list that is alone in it, so the list's own label is shown only when nothing else names the entries or other answers sit beside them
                         const shouldNameList = !sectionName || fields.length > 1;
-                        return shouldNameList ? [{kind: 'label', id: `${field.key}-label`, title: getFieldLabel(field, translate)}, ...listItemRows] : listItemRows;
+                        const namedRows: SummaryGroupRow[] = shouldNameList
+                            ? [{kind: 'label', id: `${field.key}-label`, title: getFieldLabel(field, translate)}, ...listItemRows]
+                            : listItemRows;
+                        // An entry row has no room for an error, so an error about the whole list, such as too many entries, goes under them
+                        const listError = fieldErrors[field.key];
+                        return listError ? [...namedRows, {kind: 'error', id: `${field.key}-error`, title: listError}] : namedRows;
                     }
 
                     const typedAnswer = formatDynamicFieldValue(field, values, translate);
@@ -117,6 +126,8 @@ function getConfirmationItems(
                     const isMasked = isSensitiveField(field) && !!typedAnswer && !!getVisibleEnding(typedAnswer);
                     const shownAnswer = isSensitiveField(field) && typedAnswer ? maskSensitiveValue(typedAnswer) : answer;
                     const optedOutField = values[field.key] === true ? optedOutFieldByLink.get(field.key) : undefined;
+                    const errorKeys = field.type === 'address' ? [field.key, ...Object.values(getAddressInputKeys(field.key))] : [field.key];
+                    const errorText = errorKeys.map((key) => fieldErrors[key]).find((message) => !!message);
 
                     return [
                         {
@@ -129,6 +140,8 @@ function getConfirmationItems(
                             onPress: isEditable ? handleEdit : noop,
                             interactive: isEditable,
                             disabled: isOffline && !!field.refreshOnChange && field.type !== 'address',
+                            brickRoadIndicator: errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                            errorText,
                         },
                     ];
                 }),

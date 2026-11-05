@@ -128,6 +128,9 @@ type DynamicFormSubPageProps = SubPageProps &
         /** The last page submits the form, since no confirmation page follows */
         isLastPage: boolean;
 
+        /** Confirm was pressed while a field had no valid answer, so the confirmation page marks the rows to fix */
+        shouldShowFieldErrors?: boolean;
+
         /** Saves a list entry from its editor page. Without `itemID` it adds a new entry. */
         onListItemSave: (listKey: string, itemID: string | undefined, answers: DynamicFormValues) => void;
     };
