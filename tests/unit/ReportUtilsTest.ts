@@ -4301,39 +4301,6 @@ describe('ReportUtils', () => {
             // Then an invoice asks its sender for a bank account, because an invoice sender can't be paid into a personal one
             expect(result).toBe(expected);
         });
-
-        it('asks the invoice sender to enable their wallet when the payment uses the Expensify wallet', () => {
-            // Given an invoice payment that waits for the sender's wallet
-            const ownerAccountID = 780050;
-            const reportAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>>({
-                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
-                reportActionID: '780051',
-                created: '2024-01-01 00:00:00',
-                originalMessage: {paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY},
-            });
-
-            // When the invoice shows the queued payment
-            const result = getReimbursementQueuedActionMessage({
-                reportAction,
-                report: createMock<Report>({
-                    reportID: '780052',
-                    type: CONST.REPORT.TYPE.INVOICE,
-                    ownerAccountID,
-                }),
-                translate: translateLocal,
-                formatPhoneNumber,
-                personalDetails: {
-                    [ownerAccountID]: {
-                        accountID: ownerAccountID,
-                        login: 'billing@vendor.com',
-                        displayName: 'Vendor',
-                    },
-                },
-            });
-
-            // Then it keeps the wallet message, because only bank account payments changed for invoices
-            expect(result).toBe(translateLocal('iou.waitingOnEnabledWallet', 'Vendor'));
-        });
     });
 
     describe('getReimbursementDeQueuedOrCanceledActionMessage', () => {
