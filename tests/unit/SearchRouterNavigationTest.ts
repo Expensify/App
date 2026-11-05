@@ -2,6 +2,7 @@ import {renderHook} from '@testing-library/react-native';
 
 import {
     buildNavigationSuggestions,
+    canQueryMatchNavigationSuggestions,
     isNavigationIntentOnlyQuery,
     matchesNavigationQuery,
     MAX_NAVIGATION_SUGGESTIONS,
@@ -293,6 +294,22 @@ describe('Search Router navigation query helpers', () => {
 
     it.each(['go', 'go to', 'Go', 'Go To'])('recognizes "%s" as a navigation-only query', (query) => {
         expect(isNavigationIntentOnlyQuery(query)).toBe(true);
+    });
+
+    it.each([
+        ['', false],
+        ['   ', false],
+        ['go', true],
+        ['go to', true],
+        ['a', true],
+        ['go to inbox', true],
+    ])('reports whether "%s" can match navigation suggestions', (query, expectedCanMatch) => {
+        // Given a query typed into the Search Router
+        // When checking it before building navigation sources
+        const canMatch = canQueryMatchNavigationSuggestions(query);
+
+        // Then only blank queries are rejected, because bare intents list every destination and any other text may match one
+        expect(canMatch).toBe(expectedCanMatch);
     });
 
     it('matches case-insensitively and ignores accents', () => {
@@ -744,6 +761,29 @@ describe('Workspace Search Router navigation source', () => {
 
         overviewItem?.action?.();
         expect(navigateToWorkspaceSettingsRoute).toHaveBeenCalledWith(ROUTES.WORKSPACE_OVERVIEW.getRoute(policy.id), policy.id, false, SCREENS.WORKSPACE.PROFILE);
+    });
+
+    it.each(['', '   '])('does not build Workspace menu items for the blank query "%s"', (query) => {
+        // Given an account with a Workspace, whose menu items are the most expensive navigation source to build
+        const policy = createWorkspacePolicy('1', 'Spend Workspace');
+        mockUseOnyx.mockImplementation((key) => {
+            if (key === ONYXKEYS.COLLECTION.POLICY) {
+                return [{[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy}];
+            }
+            if (key === ONYXKEYS.SESSION) {
+                return [workspaceCurrentUserLogin];
+            }
+            return [undefined];
+        });
+        mockUseMemoizedLazyExpensifyIcons.mockReturnValue({...spendIcons, ...workspaceIcons});
+        mockUseSearchTypeMenuSections.mockReturnValue([]);
+
+        // When the Search Router opens, which always starts with a blank query
+        const {result} = renderHook(() => useNavigationSuggestions(query));
+
+        // Then nothing is suggested and the Workspace menu items are never built
+        expect(result.current).toEqual([]);
+        expect(getWorkspaceMenuItems).not.toHaveBeenCalled();
     });
 
     it('composes localized Workspace suggestions after top-level and Spend rows with hook-level filtering and beta flags', () => {
