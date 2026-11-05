@@ -1,15 +1,13 @@
+import MoneyRequestReportNavigationCounter from '@components/MoneyRequestReportView/MoneyRequestReportNavigationCounter';
 import PrevNextButtons from '@components/PrevNextButtons';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
-import Text from '@components/Text';
 
 import useFilterPendingDeleteReports from '@hooks/useFilterPendingDeleteReports';
-import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchSections from '@hooks/useSearchSections';
 import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getWidestNumberWithSameDigitCount} from '@libs/NumberUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 
 import Navigation from '@navigation/Navigation';
@@ -125,7 +123,6 @@ function MoneyRequestReportNavigationStandalone({onReportsChange}: MoneyRequestR
 
 function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersion, contextReports}: MoneyRequestReportNavigationContentProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
     const isFocused = useIsFocused();
 
     // Lightweight subscriptions only: the current search query and its loading flag. These never mount
@@ -259,21 +256,10 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
             {shouldDisplayNavigationArrows && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                     {!shouldDisplayNarrowVersion && (
-                        <View>
-                            {/* Invisible copy of the widest label this counter can show. It reserves a fixed width so the label doesn't
-                                shift sideways as the user pages, and the real label is drawn over it, right-aligned against the arrows. */}
-                            <Text
-                                style={[styles.mutedTextLabel, styles.opacity0]}
-                                aria-hidden
-                                importantForAccessibility="no-hide-descendants"
-                                accessibilityElementsHidden
-                            >
-                                {translate('common.currentOfTotal', {current: getWidestNumberWithSameDigitCount(allReportsCount), total: allReportsCount})}
-                            </Text>
-                            <Text style={[styles.mutedTextLabel, styles.textAlignRight, styles.pAbsolute, styles.t0, styles.r0]}>
-                                {translate('common.currentOfTotal', {current: currentIndex + 1, total: allReportsCount})}
-                            </Text>
-                        </View>
+                        <MoneyRequestReportNavigationCounter
+                            current={currentIndex + 1}
+                            total={allReportsCount}
+                        />
                     )}
                     <PrevNextButtons
                         isPrevButtonDisabled={hidePrevButton}
