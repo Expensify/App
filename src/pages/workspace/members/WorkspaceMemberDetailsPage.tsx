@@ -187,6 +187,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const hasDisplayNameSet = !!details.firstName || !!details.lastName;
     const canSetDisplayName = !hasDisplayNameSet && isPolicyAdmin(policy, currentUserLogin);
     const shouldShowLocalTime = shouldShowLocalTimeUtil({accountID, timezone: details.timezone, isCustomAgent, isValidated: !!details.validated});
+
     // Like ProfilePage, your own row only offers Message when your self DM already exists, so we never optimistically create one
     const shouldShowMessageButton = (!isSelectedMemberCurrentUser || !!hasSelfDMReport) && !isAnonymousUserSession();
     const messageAction = PromotedActions.message({
