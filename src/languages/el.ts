@@ -1286,6 +1286,8 @@ const translations: TranslationDeepObject<typeof en> = {
         runningTotal: 'Τρέχον σύνολο',
         explain: 'Επεξήγηση',
         explainChartPrompt: (chartTitle: string) => `Εξηγήστε τα δεδομένα στο ${chartTitle}.`,
+        viewDetails: 'Προβολή λεπτομερειών',
+        viewAll: 'Προβολή όλων',
     },
     allSettingsScreen: {
         subscription: 'Συνδρομή',

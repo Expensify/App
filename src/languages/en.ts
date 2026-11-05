@@ -1356,6 +1356,8 @@ const translations = {
         viewOnSpend: 'View on Spend',
         explain: 'Explain',
         explainChartPrompt: (chartTitle: string) => `Explain the data in ${chartTitle}.`,
+        viewDetails: 'View details',
+        viewAll: 'View all',
         compliance: 'Compliance',
         runningTotal: 'Running total',
         compare: {

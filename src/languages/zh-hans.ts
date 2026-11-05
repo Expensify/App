@@ -1195,6 +1195,8 @@ const translations: TranslationDeepObject<typeof en> = {
         runningTotal: '累计总额',
         explain: '解释',
         explainChartPrompt: (chartTitle: string) => `解释「${chartTitle}」中的数据。`,
+        viewDetails: '查看详情',
+        viewAll: '查看全部',
     },
     allSettingsScreen: {
         subscription: '订阅',

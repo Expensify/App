@@ -1230,6 +1230,8 @@ const translations: TranslationDeepObject<typeof en> = {
         runningTotal: '累計合計',
         explain: '説明',
         explainChartPrompt: (chartTitle: string) => `${chartTitle} のデータを説明します。`,
+        viewDetails: '詳細を表示',
+        viewAll: 'すべて表示',
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',

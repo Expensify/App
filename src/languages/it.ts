@@ -1242,6 +1242,8 @@ const translations: TranslationDeepObject<typeof en> = {
         runningTotal: 'Totale progressivo',
         explain: 'Spiega',
         explainChartPrompt: (chartTitle: string) => `Spiega i dati in ${chartTitle}.`,
+        viewDetails: 'Vedi dettagli',
+        viewAll: 'Vedi tutto',
     },
     allSettingsScreen: {
         subscription: 'Abbonamento',

@@ -2122,6 +2122,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SEARCH.COLUMNS_RHP]: ROUTES.SEARCH_COLUMNS,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.INSIGHTS_DETAILS]: {
+                    screens: {
+                        [SCREENS.INSIGHTS_DETAILS]: ROUTES.INSIGHTS_DETAILS.route,
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: ROUTES.SEARCH_REPORT.route,
                 [SCREENS.RIGHT_MODAL.SEARCH_REPORT_ACTIONS]: {
                     screens: {

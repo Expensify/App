@@ -2406,6 +2406,20 @@ const ROUTES = {
         route: 'insights/:dashboardID',
         getRoute: (dashboardID: ValueOf<typeof CONST.INSIGHTS.DASHBOARD>) => `insights/${dashboardID}` as const,
     },
+    INSIGHTS_DETAILS: {
+        route: 'insights/:dashboardID/details/:graphKey',
+        getRoute: ({
+            dashboardID,
+            graphKey,
+            itemKey,
+            periodEnd,
+        }: {
+            dashboardID: ValueOf<typeof CONST.INSIGHTS.DASHBOARD>;
+            graphKey: ValueOf<typeof CONST.INSIGHTS.GRAPH>;
+            itemKey: string;
+            periodEnd?: string;
+        }) => `insights/${dashboardID}/details/${graphKey}?item=${encodeURIComponent(itemKey)}${periodEnd ? `&end=${periodEnd}` : ''}` as const,
+    },
 
     EXPENSE_REPORT_RHP: {
         route: 'e/:reportID',

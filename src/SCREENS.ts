@@ -18,6 +18,7 @@ const PROTECTED_SCREENS = {
 const SCREENS = {
     ...PROTECTED_SCREENS,
     INSIGHTS: 'Insights',
+    INSIGHTS_DETAILS: 'Insights_Details',
     REPORT: 'Report',
     DYNAMIC_PROFILE_AVATAR: 'Dynamic_Profile_Avatar',
     DYNAMIC_CARD_AUTHENTICATION: 'Dynamic_Card_Authentication',
@@ -323,6 +324,7 @@ const SCREENS = {
         SEARCH_MONEY_REQUEST_REPORT: 'SearchMoneyRequestReport',
 
         SEARCH_COLUMNS: 'SearchColumns',
+        INSIGHTS_DETAILS: 'InsightsDetails',
         SEARCH_ADVANCED_FILTERS: 'SearchAdvancedFilters',
         RECRUITING_MERGE_IMPORT_SETTINGS: 'RecruitingMergeImportSettings',
         RECRUITING_MERGE_APPROVAL: 'Recruiting_Merge_Approval',

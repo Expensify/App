@@ -10424,6 +10424,9 @@ const CONST = {
             MUTE_BUTTON: 'VideoPlayer-MuteButton',
             VIDEO: 'VideoPlayer-Video',
         },
+        CHART_TOOLTIP: {
+            PRESS: 'ChartTooltip-Press',
+        },
         HTML_RENDERER: {
             IMAGE: 'HTMLRenderer-Image',
             PRE: 'HTMLRenderer-Pre',
@@ -10533,6 +10536,7 @@ const CONST = {
             CONTROL_COMPARE: 'Insights-ControlCompare',
             AI_EXPLAIN: 'Insights-AIExplain',
             DASHBOARD_TAB: 'Insights-DashboardTab',
+            TABLE_ROW: 'Insights-TableRow',
         },
         EXPENSE_RULES: {
             TABLE_ROW: 'ExpenseRules-TableRow',
