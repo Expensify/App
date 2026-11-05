@@ -1,4 +1,6 @@
 /** Shares a temporary PNG assembled from the page header, filters, and all mounted chart content. */
+import getPhotoSource from '@libs/fileDownload/getPhotoSource';
+
 import {Skia} from '@shopify/react-native-skia';
 import RNFS from 'react-native-fs';
 import Share from 'react-native-share';
@@ -62,8 +64,9 @@ const exportInsightsDashboard: ExportInsightsDashboard = async (options) => {
                 handleGLSurfaceViewOnAndroid: true,
             });
             uris.push(uri);
+            // ViewShot returns bare paths on iOS, but Skia requires file URLs.
             // eslint-disable-next-line no-await-in-loop -- Decode this section before allocating the next native capture.
-            const data = await Skia.Data.fromURI(uri);
+            const data = await Skia.Data.fromURI(getPhotoSource(uri));
             const image = Skia.Image.MakeImageFromEncoded(data);
             data.dispose();
             if (!image) {

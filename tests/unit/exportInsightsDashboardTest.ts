@@ -213,8 +213,13 @@ describe('exportInsightsDashboard on native', () => {
         jest.mocked(Share.open).mockResolvedValue({success: false, message: ''});
     });
 
-    it('shares a named temporary PNG and cleans up when the share sheet is dismissed', async () => {
-        // Given a page header and filter row above an inset dashboard taller than the viewport
+    it.each([
+        {platform: 'iOS', prefix: ''},
+        {platform: 'Android', prefix: 'file://'},
+    ])('shares a named temporary PNG and cleans up dismissed sharing on $platform', async ({prefix}) => {
+        // Given native capture paths and a dashboard taller than the viewport
+        const loadCapture = jest.spyOn(Skia.Data, 'fromURI');
+        jest.mocked(captureRef).mockReset().mockResolvedValueOnce(`${prefix}/header.png`).mockResolvedValueOnce(`${prefix}/controls.png`).mockResolvedValueOnce(`${prefix}/content.png`);
         const headerRef = makeRef(64, 0, 500);
         const controlsRef = makeRef(30, 100, 280);
         const contentRef = makeRef(1200, 20);
@@ -222,7 +227,10 @@ describe('exportInsightsDashboard on native', () => {
         // When the dashboard is exported and the user cancels sharing
         await exportInsightsDashboardNative({headerRef, controlsRef, contentRef, fileName, backgroundColor});
 
-        // Then capture uses 2x dimensions, sharing does not treat cancellation as failure, and temporary files are removed
+        // Then Skia reads file URLs while cleanup retains the original capture paths
+        expect(loadCapture).toHaveBeenNthCalledWith(1, 'file:///header.png');
+        expect(loadCapture).toHaveBeenNthCalledWith(2, 'file:///controls.png');
+        expect(loadCapture).toHaveBeenNthCalledWith(3, 'file:///content.png');
         expect(captureRef).toHaveBeenNthCalledWith(3, contentRef, expect.objectContaining({width: 800, height: 2400, handleGLSurfaceViewOnAndroid: true}));
         expect(Skia.Surface.MakeOffscreen).toHaveBeenCalledWith(1000, 2708);
         expect(mockClear).toHaveBeenCalledWith(backgroundColor);
@@ -232,6 +240,9 @@ describe('exportInsightsDashboard on native', () => {
         expect(Share.open).toHaveBeenCalledWith({url: `file:///cache/${fileName}`, type: 'image/png', failOnCancel: false});
         expect(RNFS.unlink).toHaveBeenCalledWith(`/cache/${fileName}`);
         expect(releaseCapture).toHaveBeenCalledTimes(3);
+        expect(releaseCapture).toHaveBeenNthCalledWith(1, `${prefix}/header.png`);
+        expect(releaseCapture).toHaveBeenNthCalledWith(2, `${prefix}/controls.png`);
+        expect(releaseCapture).toHaveBeenNthCalledWith(3, `${prefix}/content.png`);
         expect(mockSurfaceDispose).toHaveBeenCalledTimes(1);
     });
 
