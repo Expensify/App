@@ -166,6 +166,20 @@ describe('actions/User', () => {
                 },
             );
         });
+
+        it('removes only the failed signup when its error is dismissed', async () => {
+            // Given a failed signup next to a successful one for the same workspace
+            const joinedEntry = {connectionName: CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE, policyID: 'policy', created: '2026-11-01 10:00:00.000'};
+            const errorTimestamp = 1;
+            const failedEntry = {connectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING, policyID: 'policy', errors: {[errorTimestamp]: 'Signup failed'}};
+
+            // When the user dismisses the error
+            UserActions.clearAccountingIntegrationWaitlistError([joinedEntry, failedEntry], 'policy', CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING);
+            await waitForBatchedUpdates();
+
+            // Then the failed signup is gone so Join waitlist is offered again, and the other signup stays
+            expect(await getOnyxValue(ONYXKEYS.NVP_ACCOUNTING_INTEGRATION_WAITLIST)).toEqual([joinedEntry]);
+        });
     });
 
     describe('clearContactMethod', () => {
