@@ -1730,6 +1730,7 @@ function shouldReportActionBeVisible(
     reportID?: string,
     isSupportTicketReport = false,
     reportActions?: OnyxEntry<ReportActions>,
+    isInvoice?: boolean,
 ): boolean {
     if (!reportAction) {
         return false;
@@ -1807,7 +1808,8 @@ function shouldReportActionBeVisible(
     // ReimburseReport and MarkReimbursed add no IOU PAY action to an invoice, and neither does paying its linked bill, so the payment action stays visible on invoices.
     // Auth sets shouldShow to false on MARKED_REIMBURSED actions created from NewDot for the same reason, so invoices ignore it too.
     if (isPaymentRecordedByReimbursedAction(reportAction)) {
-        if (isPaymentActionHiddenOutsideInvoices(reportAction) && !isInvoiceReportID(reportAction.reportID ?? reportID)) {
+        // Search passes isInvoice because its invoice can exist only in the Search snapshot, not in Onyx.
+        if (isPaymentActionHiddenOutsideInvoices(reportAction) && !(isInvoice ?? isInvoiceReportID(reportAction.reportID ?? reportID))) {
             return false;
         }
 
@@ -1856,6 +1858,7 @@ function isReportActionVisible(
     // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number,
     reportActions?: OnyxEntry<ReportActions>,
+    isInvoice?: boolean,
 ): boolean {
     if (!reportAction?.reportActionID) {
         return false;
@@ -1867,18 +1870,45 @@ function isReportActionVisible(
     // from what's cached in visibleReportActions (which reflects persisted Onyx data).
     // We must recalculate visibility at runtime to ensure accuracy for these transient states.
     if (reportAction.pendingAction) {
-        return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID, isSupportTicketReport, reportActions);
+        return shouldReportActionBeVisible(
+            reportAction,
+            reportAction.reportActionID,
+            canUserPerformWriteAction,
+            currentUserAccountID,
+            reportID,
+            isSupportTicketReport,
+            reportActions,
+            isInvoice,
+        );
     }
 
     if (visibleReportActions && reportID) {
         const reportCache = visibleReportActions[reportID];
         if (!reportCache) {
-            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID, isSupportTicketReport, reportActions);
+            return shouldReportActionBeVisible(
+                reportAction,
+                reportAction.reportActionID,
+                canUserPerformWriteAction,
+                currentUserAccountID,
+                reportID,
+                isSupportTicketReport,
+                reportActions,
+                isInvoice,
+            );
         }
         const staticVisibility = reportCache[reportAction.reportActionID];
         // If action is not in derived value cache, fall back to runtime calculation
         if (staticVisibility === undefined) {
-            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID, isSupportTicketReport, reportActions);
+            return shouldReportActionBeVisible(
+                reportAction,
+                reportAction.reportActionID,
+                canUserPerformWriteAction,
+                currentUserAccountID,
+                reportID,
+                isSupportTicketReport,
+                reportActions,
+                isInvoice,
+            );
         }
         if (!staticVisibility) {
             return false;
@@ -1888,7 +1918,7 @@ function isReportActionVisible(
         }
         return true;
     }
-    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID, isSupportTicketReport, reportActions);
+    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID, isSupportTicketReport, reportActions, isInvoice);
 }
 
 /**
