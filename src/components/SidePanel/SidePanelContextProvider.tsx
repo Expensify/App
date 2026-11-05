@@ -1,15 +1,15 @@
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelDisplayStatus from '@hooks/useSidePanelDisplayStatus';
+import useSidePanelWidth from '@hooks/useSidePanelWidth';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import SidePanelActions from '@libs/actions/SidePanel';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
+import {writeSidePanelDockProgress} from '@libs/Navigation/helpers/sidePanelWidth';
 import {getServerAnchoredDBTime} from '@libs/NetworkState';
 import {canEditWorkspaceSettings, shouldShowPolicy} from '@libs/PolicyUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-
-import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,7 +18,7 @@ import type {SidePanel} from '@src/types/onyx';
 
 import type {PropsWithChildren, RefObject} from 'react';
 
-import React, {createContext, useEffect, useRef, useState} from 'react';
+import React, {createContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
 // Import Animated directly from 'react-native' as animations are used with navigation.
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
@@ -66,14 +66,17 @@ const SidePanelActionsContext = createContext<SidePanelActionsContextProps>({
 function SidePanelContextProvider({children}: PropsWithChildren) {
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
-    const sidePanelWidth = shouldUseNarrowLayout ? windowWidth : variables.sidePanelWidth;
+    const {width: dockedSidePanelWidth} = useSidePanelWidth();
+    const sidePanelWidth = shouldUseNarrowLayout ? windowWidth : dockedSidePanelWidth;
 
     const [isSidePanelTransitionEnded, setIsSidePanelTransitionEnded] = useState(true);
     const {shouldHideSidePanel, shouldHideSidePanelBackdrop, shouldHideHelpButton, isSidePanelHiddenOrLargeScreen, sidePanelNVP} = useSidePanelDisplayStatus();
     const shouldHideToolTip = isExtraLargeScreenWidth ? !isSidePanelTransitionEnded : !shouldHideSidePanel;
 
     const shouldApplySidePanelOffset = isExtraLargeScreenWidth && !shouldHideSidePanel;
-    const sidePanelOffset = useRef(new Animated.Value(shouldApplySidePanelOffset ? variables.sidePanelWidth : 0));
+    const sidePanelOffset = useRef(new Animated.Value(shouldApplySidePanelOffset ? dockedSidePanelWidth : 0));
+    const initialDockProgress = useRef(shouldApplySidePanelOffset ? 1 : 0);
+    const dockedSidePanelWidthRef = useRef(dockedSidePanelWidth);
     const sidePanelTranslateX = useRef(new Animated.Value(shouldHideSidePanel ? sidePanelWidth : 0));
     const sidePanelWidthRef = useRef(sidePanelWidth);
 
@@ -110,6 +113,29 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
         sidePanelWidthRef.current = sidePanelWidth;
     }, [sidePanelWidth]);
 
+    // CSS reads the offset as a fraction of the width, so a drag that only repaints the width moves the page beside a docked panel too.
+    useLayoutEffect(() => {
+        const offset = sidePanelOffset.current;
+        writeSidePanelDockProgress(initialDockProgress.current);
+        const listenerID = offset.addListener(({value}) => writeSidePanelDockProgress(value / dockedSidePanelWidthRef.current));
+
+        return () => offset.removeListener(listenerID);
+    }, []);
+
+    // A dragged, reset or re-clamped width moves the page beside a docked panel at once, without the open/close animation.
+    // Before paint, so the page and the panel's own width, whose live value the handle drops in the same commit, never disagree.
+    useLayoutEffect(() => {
+        if (dockedSidePanelWidthRef.current === dockedSidePanelWidth) {
+            return;
+        }
+        dockedSidePanelWidthRef.current = dockedSidePanelWidth;
+
+        if (!shouldApplySidePanelOffset) {
+            return;
+        }
+        sidePanelOffset.current.setValue(dockedSidePanelWidth);
+    }, [dockedSidePanelWidth, shouldApplySidePanelOffset]);
+
     // sidePanelWidth dependency in useEffect below caused the help panel content to slide in on window resize
     useEffect(() => {
         // We need to set transition state to false when animation starts, then back to true when it completes.
@@ -118,7 +144,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
         setIsSidePanelTransitionEnded(false);
         Animated.parallel([
             Animated.timing(sidePanelOffset.current, {
-                toValue: shouldApplySidePanelOffset ? variables.sidePanelWidth : 0,
+                toValue: shouldApplySidePanelOffset ? dockedSidePanelWidthRef.current : 0,
                 duration: CONST.SIDE_PANEL_ANIMATED_TRANSITION,
                 useNativeDriver: true,
             }),

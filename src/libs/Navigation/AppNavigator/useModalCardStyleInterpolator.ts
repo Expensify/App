@@ -1,10 +1,15 @@
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
+import useSidePanelWidth from '@hooks/useSidePanelWidth';
 import useSingleRHPWidth from '@hooks/useSingleRHPWidth';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isMobileChrome, isMobileSafari} from '@libs/Browser';
+import {getSidePanelInsetStyleValue} from '@libs/Navigation/helpers/sidePanelWidth';
+
+import CONST from '@src/CONST';
 
 import type {StackCardInterpolatedStyle, StackCardInterpolationProps} from '@react-navigation/stack';
 
@@ -28,6 +33,9 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
     const styles = useThemeStyles();
     const {sidePanelOffset, sidePanelNVP, isSidePanelTransitionEnded} = useSidePanelState();
     const {width: singleRHPWidth} = useSingleRHPWidth();
+    const {width: sidePanelWidth} = useSidePanelWidth();
+    const {isBetaEnabled} = usePermissions();
+    const isSidePanelResizable = isBetaEnabled(CONST.BETAS.RESIZABLE_SIDE_PANEL);
 
     // Narrow mobile browsers compositing the stacked, transparent modal cards can flicker mid-slide on low-end devices.
     // Hardening the animated card (opaque background + dedicated compositor layer) avoids that glitch while keeping the animation.
@@ -45,7 +53,8 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
         const cardStyle = StyleUtils.getCardStyles(screen.width);
 
         if (applySidePanelOffset) {
-            cardStyle.paddingRight = sidePanelOffset.current;
+            // A resizable panel's inset is left to CSS, so dragging its edge moves the page without rendering the cards.
+            cardStyle.paddingRight = isSidePanelResizable ? getSidePanelInsetStyleValue(sidePanelWidth) : sidePanelOffset.current;
         }
 
         // Suppress card entry animation while the side panel is mid-transition on narrow layout — keeps the

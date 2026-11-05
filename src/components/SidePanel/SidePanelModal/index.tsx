@@ -1,12 +1,15 @@
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import SidePanelOverlay from '@components/SidePanel/SidePanelOverlay';
+import SidePanelResizeHandle from '@components/SidePanel/SidePanelResizeHandle';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
+import useSidePanelWidth from '@hooks/useSidePanelWidth';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import ComposerFocusManager from '@libs/ComposerFocusManager';
@@ -30,6 +33,9 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
     const styles = useThemeStyles();
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {paddingTop, paddingBottom, paddingLeft, paddingRight} = useSafeAreaPaddings();
+    const {width: sidePanelWidth} = useSidePanelWidth();
+    const {isBetaEnabled} = usePermissions();
+    const isResizable = isBetaEnabled(CONST.BETAS.RESIZABLE_SIDE_PANEL) && !shouldUseNarrowLayout;
 
     const [isRHPVisible = false] = useOnyx(ONYXKEYS.MODAL, {selector: isRHPVisibleSelector});
     const uniqueModalId = ComposerFocusManager.getId();
@@ -96,12 +102,13 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
                         <Animated.View
                             style={[
                                 styles.sidePanelContent,
-                                styles.sidePanelContentWidth(shouldUseNarrowLayout),
+                                styles.sidePanelContentWidth(shouldUseNarrowLayout, sidePanelWidth),
                                 styles.sidePanelContentBorderWidth(isExtraLargeScreenWidth),
                                 {transform: [{translateX: sidePanelTranslateX.current}], paddingTop, paddingBottom, paddingLeft, paddingRight},
                             ]}
                         >
                             {children}
+                            {isResizable && <SidePanelResizeHandle />}
                         </Animated.View>
                     </ColorSchemeWrapper>
                 </View>

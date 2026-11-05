@@ -10,6 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import usePaneWidth from './usePaneWidth';
 import useResponsiveLayout from './useResponsiveLayout';
 import useSidePanelState from './useSidePanelState';
+import useSidePanelWidth from './useSidePanelWidth';
 import useWindowDimensions from './useWindowDimensions';
 
 type SingleRHPWidth = SingleRHPWidthBounds & {
@@ -20,9 +21,10 @@ function useSingleRHPWidth(): SingleRHPWidth {
     const {windowWidth} = useWindowDimensions();
     const {isExtraLargeScreenWidth} = useResponsiveLayout();
     const {shouldHideSidePanel} = useSidePanelState();
+    const {width: sidePanelWidth} = useSidePanelWidth();
 
     // Mirrors when SidePanelContextProvider shifts the RHP left by the panel's width.
-    const bounds = getSingleRHPWidthBounds(windowWidth, isExtraLargeScreenWidth && !shouldHideSidePanel ? variables.sidePanelWidth : 0);
+    const bounds = getSingleRHPWidthBounds(windowWidth, isExtraLargeScreenWidth && !shouldHideSidePanel ? sidePanelWidth : 0);
     const width = usePaneWidth(ONYXKEYS.SINGLE_RHP_WIDTH, CONST.BETAS.RESIZABLE_RHP, variables.rhpWidth, bounds);
 
     return {...bounds, width};

@@ -7,7 +7,7 @@ import lodashClamp from 'lodash/clamp';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 
-type PaneWidthOnyxKey = typeof ONYXKEYS.SINGLE_RHP_WIDTH;
+type PaneWidthOnyxKey = typeof ONYXKEYS.SINGLE_RHP_WIDTH | typeof ONYXKEYS.SIDE_PANEL_WIDTH;
 
 type PaneWidthBounds = {
     min: number;
