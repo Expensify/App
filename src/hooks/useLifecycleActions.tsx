@@ -6,6 +6,7 @@ import {useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnc
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 
+import {isBillReport} from '@libs/BillUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getValidConnectedIntegration, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
@@ -200,7 +201,10 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             showDelegateNoAccessModal();
             return;
         }
-        if (!skipAnimation && !isSubmitPolicy(policy)) {
+
+        // Bills don't show Pay, so nothing would end the approved animation on a bill.
+        const shouldAnimateApproval = !skipAnimation && !isBillReport(moneyRequestReport);
+        if (shouldAnimateApproval && !isSubmitPolicy(policy)) {
             startApprovedAnimation();
         }
         approveMoneyRequest({
@@ -218,7 +222,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             ownerLogin: submitterLogin,
             amountOwed,
             onApproved: () => {
-                if (skipAnimation) {
+                if (!shouldAnimateApproval) {
                     return;
                 }
                 startApprovedAnimation();

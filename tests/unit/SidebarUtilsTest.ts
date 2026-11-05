@@ -1372,7 +1372,7 @@ describe('SidebarUtils', () => {
             const billReport = {
                 ...createRandomReport(1, undefined),
                 reportName: 'Bill',
-                type: CONST.REPORT.UNSUPPORTED_TYPE.BILL,
+                type: CONST.REPORT.TYPE.BILL,
                 errorFields: undefined,
             } as Report;
 
@@ -5656,7 +5656,7 @@ describe('SidebarUtils', () => {
                     ...createRandomReport(1, undefined),
                     reportID: '1',
                     reportName: 'Bill',
-                    type: CONST.REPORT.UNSUPPORTED_TYPE.BILL,
+                    type: CONST.REPORT.TYPE.BILL,
                     errorFields: undefined,
                 };
                 const reports: OnyxCollection<Report> = {

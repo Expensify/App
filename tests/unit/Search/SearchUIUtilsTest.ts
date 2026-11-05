@@ -3104,7 +3104,7 @@ describe('SearchUIUtils', () => {
             it('should leave out comments on a bill and previews that link to a bill', () => {
                 // Given a chat search whose snapshot holds a comment on a bill and a preview of the bill in another chat
                 // When the chat sections are built
-                const [sections] = getChatSections(CONST.REPORT.UNSUPPORTED_TYPE.BILL);
+                const [sections] = getChatSections(CONST.REPORT.TYPE.BILL);
 
                 // Then neither action is listed, because bills stay out of Search until Search supports paying bills
                 const reportActionIDs = sections.filter(SearchUIUtils.isReportActionListItemType).map((item) => item.reportActionID);
@@ -3118,7 +3118,7 @@ describe('SearchUIUtils', () => {
                 const [, expenseReportCount] = getChatSections(CONST.REPORT.TYPE.EXPENSE);
 
                 // When the report is a bill instead
-                const [, billCount] = getChatSections(CONST.REPORT.UNSUPPORTED_TYPE.BILL);
+                const [, billCount] = getChatSections(CONST.REPORT.TYPE.BILL);
 
                 // Then the count stays the same, because paging compares it with the server offset, which counts every action
                 expect(billCount).toBe(expenseReportCount);

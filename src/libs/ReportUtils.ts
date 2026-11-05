@@ -1521,11 +1521,11 @@ function isReportIDApproved(reportID: string | undefined) {
 }
 
 /**
- * Checks if a report is an Expense report.
+ * Checks if a report is an Expense report. Bills count as expense reports, so the expense report view opens them.
  */
 function isExpenseReport(reportOrID: OnyxInputOrEntry<Report> | string): boolean {
     const report = typeof reportOrID === 'string' ? (getReport(reportOrID, deprecatedAllReports) ?? null) : reportOrID;
-    return report?.type === CONST.REPORT.TYPE.EXPENSE;
+    return report?.type === CONST.REPORT.TYPE.EXPENSE || isBillReport(report);
 }
 
 /**
@@ -3241,6 +3241,11 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, rules
         return false;
     }
 
+    // A bill must keep exactly the expenses of the vendor's invoice.
+    if (isBillReport(moneyRequestReport)) {
+        return false;
+    }
+
     // Adding or deleting transactions is not allowed on a closed report
     if (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && !isOpenReport(moneyRequestReport)) {
         return false;
@@ -3279,7 +3284,6 @@ function canAddTransaction(
     currentUserAccountID?: number,
 ): boolean {
     // A bill mirrors the vendor's invoice, so its expenses come only from that invoice.
-    // isMoneyRequestReport excludes bills today. This check keeps bills blocked once bills count as expense reports.
     if (isBillReport(moneyRequestReport) || !isMoneyRequestReport(moneyRequestReport)) {
         return false;
     }
@@ -3372,7 +3376,8 @@ function isMoneyRequestReportEligibleForMerge(
 ): boolean {
     const report = typeof reportOrReportID === 'string' ? getReportOrDraftReport({reportID: reportOrReportID}) : reportOrReportID;
 
-    if (!isMoneyRequestReport(report) || isIOUReport(report)) {
+    // Auth can't merge expenses on a bill, because the bill must keep the expenses of the vendor's invoice.
+    if (!isMoneyRequestReport(report) || isIOUReport(report) || isBillReport(report)) {
         return false;
     }
 
@@ -3486,6 +3491,62 @@ function canApproveIOU(
     return reportTransactions.length > 0 && isCurrentUserManager && !isReportOpen && !isApproved && !iouSettled && !isReportPayAtEnd && !isReportClosed;
 }
 
+/**
+ * Whether the report header shows Approve to the current user. The bill green dot uses it too, so the dot never shows
+ * without the button.
+ */
+function canApproveExpenseReport(
+    report: OnyxEntry<Report>,
+    reportTransactions: Transaction[],
+    currentUserAccountID: number,
+    reportMetadata: OnyxEntry<ReportMetadata>,
+    policy: OnyxEntry<Policy>,
+): boolean {
+    // Cheap report-level checks first so the transaction scans below only run for reports the user can approve
+    const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
+    const isCurrentUserManager = managerID === currentUserAccountID;
+    if (!report || !isCurrentUserManager || !isExpenseReport(report) || !isProcessingReport(report) || reportTransactions.length === 0) {
+        return false;
+    }
+
+    if (isArchivedOrPendingDeletePolicy(policy)) {
+        return false;
+    }
+
+    if (isSubmitterApproveBlockedOnSubmitWorkspace(policy, report.ownerAccountID, currentUserAccountID)) {
+        return false;
+    }
+
+    const isSubmitWorkspace = isSubmitPolicy(policy);
+    const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    if (!isApprovalEnabled && !isSubmitWorkspace) {
+        return false;
+    }
+
+    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+    if (hasPendingDEWApprove(reportMetadata, isDEWPolicy)) {
+        return false;
+    }
+
+    const isAnyReceiptBeingScanned = reportTransactions.some((transaction) => isScanning(transaction));
+    if (isAnyReceiptBeingScanned) {
+        return false;
+    }
+
+    return !reportTransactions.every((transaction) => isPending(transaction));
+}
+
+/** Whether the current user can approve the bill now. The header hides Approve when every expense is on hold. */
+function canApproveBill(
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    reportMetadata: OnyxEntry<ReportMetadata>,
+    currentUserAccountID: number,
+    reportTransactions: Transaction[],
+): boolean {
+    return isBillReport(report) && canApproveExpenseReport(report, reportTransactions, currentUserAccountID, reportMetadata, policy) && !hasOnlyHeldExpenses(reportTransactions);
+}
+
 function canIOUBePaid(
     iouReport: OnyxInputOrEntry<Report>,
     chatReport: OnyxInputOrEntry<Report>,
@@ -3500,7 +3561,8 @@ function canIOUBePaid(
 ) {
     const iouSettled = isSettled(iouReport);
 
-    if (isEmptyObject(iouReport) || iouReport.isWaitingForCancelledReimbursement) {
+    // Bills can't be paid in NewDot yet.
+    if (isEmptyObject(iouReport) || iouReport.isWaitingForCancelledReimbursement || isBillReport(iouReport)) {
         return false;
     }
 
@@ -3938,6 +4000,11 @@ function canDeleteMoneyRequestReport(
     cardList: OnyxEntry<CardList>,
     isReportLevelDelete = false,
 ): boolean {
+    // Auth can't delete a bill, and the bill must keep the expenses of the vendor's invoice.
+    if (isBillReport(report)) {
+        return false;
+    }
+
     const isReportPolicyAdmin = isPolicyAdmin(policy);
     const transaction = reportTransactions.at(0);
     const transactionID = transaction?.transactionID;
@@ -5386,28 +5453,44 @@ function getReasonAndReportActionThatRequiresAttention({
     const invoiceReceiverPolicy = invoiceReceiverPolicyID ? resolvePolicy(invoiceReceiverPolicyID) : undefined;
     const actionTypeForAssigneeToComplete = getActionTypeForAssigneeToComplete(optionOrReport, parentReportAction);
 
+    // A bill holds no report previews, so it skips the scan for them below.
+    const isBill = isBillReport(optionOrReport);
+
     // Compute IOU candidate upfront so we can compare timestamps with task candidate
-    const {reportAction: iouReportActionToApproveOrPay, actionBadge} = getIOUReportActionWithBadge({
-        chatReport: optionOrReport,
-        policy,
-        reportMetadata,
-        invoiceReceiverPolicy,
-        currentUserLogin,
-        currentUserAccountID,
-        chatReportActions: reportActions,
-        allViolations: transactionViolations,
-        // Always false here because of the early return above, but we still pass it so getIOUReportActionWithBadge doesn't read the archived state from the Onyx cache
-        isChatReportArchived: isReportArchived,
-        allReports: reports,
-        allReportActionsParam: allReportActionsParam ?? allReportActions,
-        reportsTransactions,
-    });
+    const {reportAction: iouReportActionToApproveOrPay, actionBadge} = isBill
+        ? {reportAction: undefined, actionBadge: undefined}
+        : getIOUReportActionWithBadge({
+              chatReport: optionOrReport,
+              policy,
+              reportMetadata,
+              invoiceReceiverPolicy,
+              currentUserLogin,
+              currentUserAccountID,
+              chatReportActions: reportActions,
+              allViolations: transactionViolations,
+              // Always false here because of the early return above, but we still pass it so getIOUReportActionWithBadge doesn't read the archived state from the Onyx cache
+              isChatReportArchived: isReportArchived,
+              allReports: reports,
+              allReportActionsParam: allReportActionsParam ?? allReportActions,
+              reportsTransactions,
+          });
     // Add only labels a green dot the chat would show anyway, so it must not change whether the dot shows. Run the checks
     // below as if no candidate was found, exactly like before Add existed.
     const dotCandidateAction = actionBadge === CONST.REPORT.ACTION_BADGE.ADD ? undefined : iouReportActionToApproveOrPay;
+
+    // A bill has no parent chat, so its own expenses decide whether its approver must act.
     // Fall back to the chat's outstanding child so the pending-only check still runs when no badge action was found.
-    const iouReportID = getIOUReportIDFromReportActionPreview(dotCandidateAction) ?? optionOrReport.iouReportID;
+    const iouReportID = isBill ? optionOrReport.reportID : (getIOUReportIDFromReportActionPreview(dotCandidateAction) ?? optionOrReport.iouReportID);
     const transactions = getReportTransactions(iouReportID, reportsTransactions);
+
+    // Bills have no parent chat to show a report preview badge, so the approver's green dot goes on the bill itself.
+    if (canApproveBill(optionOrReport, policy, reportMetadata, currentUserAccountID, transactions)) {
+        return {
+            reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
+            actionBadge: CONST.REPORT.ACTION_BADGE.APPROVE,
+        };
+    }
+
     const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isPending(t));
 
     const iouReport = reports ? reports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`] : getReportOrDraftReport({reportID: iouReportID});
@@ -6144,6 +6227,11 @@ function getNextApproverAccountID(report: OnyxEntry<Report>, rules: OnyxCollecti
 }
 
 function canEditReportPolicy(report: OnyxEntry<Report>, reportPolicy: OnyxEntry<Policy>): boolean {
+    // A bill stays on the policy that received the vendor's invoice.
+    if (isBillReport(report)) {
+        return false;
+    }
+
     const isAdmin = isPolicyAdminPolicyUtils(reportPolicy);
     const isManager = isReportManager(report);
     const isSubmitter = isReportOwner(report);
@@ -6418,6 +6506,11 @@ function canEditFieldOfMoneyRequest({
             return canUnreportedBeMoved(transaction, allPolicies);
         }
 
+        // A bill must keep the expenses of the vendor's invoice.
+        if (isBillReport(moneyRequestReport)) {
+            return false;
+        }
+
         const moneyRequestReportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${moneyRequestReport.reportID}`];
         if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, rules, moneyRequestReportNameValuePair)) {
             return false;
@@ -6605,7 +6698,8 @@ function canHoldUnholdReportAction(
     const canModifyUnholdStatus = !isTrackExpenseMoneyReport && (isAdmin || (isActionOwner && isHoldActionCreator) || isApprover);
 
     const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isClosed && !isDeletedParentAction(reportAction);
-    const canHoldRequest = canHoldOrUnholdRequest && !isOnHold && canModifyStatus && !isScanning(transaction) && !isReceiptBeingScanned(transaction);
+    // Approving part of a report moves its held expenses to a new expense report, which a bill can't do.
+    const canHoldRequest = canHoldOrUnholdRequest && !isOnHold && canModifyStatus && !isScanning(transaction) && !isReceiptBeingScanned(transaction) && !isBillReport(report);
 
     // Holding an actionless expense marks it on hold optimistically before the server returns the new action, and removing the hold needs that action's thread
     const canUnholdRequest = !isActionlessReportedExpense && !!(canHoldOrUnholdRequest && isOnHold && (isRequestIOU ? isHoldActionCreator : canModifyUnholdStatus));
@@ -10976,9 +11070,9 @@ function canAccessReport(report: OnyxEntry<Report>, isDefaultRoomsBetaEnabled: b
     return true;
 }
 
-/** NewDot can't show unsupported report types. Bills are the exception for users with the newDotBillPay beta. */
+/** NewDot can't show unsupported report types. Bills count as unsupported for users without the newDotBillPay beta. */
 function isUnsupportedReportType(reportType: string | undefined, isBillPayBetaEnabled: boolean): boolean {
-    if (reportType === CONST.REPORT.UNSUPPORTED_TYPE.BILL) {
+    if (reportType === CONST.REPORT.TYPE.BILL) {
         return shouldHideBillReport(reportType, isBillPayBetaEnabled);
     }
     return (Object.values(CONST.REPORT.UNSUPPORTED_TYPE) as string[]).includes(reportType ?? '');
@@ -11508,6 +11602,10 @@ function reasonForReportToBeInOptionList({
     derivedIsEmptyReport,
     hasGuidesEmails,
 }: ShouldReportBeInOptionListParams): ValueOf<typeof CONST.REPORT_IN_LHN_REASONS> | null {
+    if (report?.isHiddenForBillReceiver) {
+        return null;
+    }
+
     const isInDefaultMode = !isInFocusMode;
 
     // Include the currently viewed report. If we excluded the currently viewed report, then there
@@ -13278,7 +13376,8 @@ function canDuplicateExpenseIntoSourceReport({
     isASAPSubmitBetaEnabled,
     rules,
 }: CanDuplicateExpenseIntoSourceReportParams): boolean {
-    if (!isExpenseReport(sourceReport) || isSourceReportArchived || !chatReport || isChatReportArchived || !isPolicyAccessible(policy, currentUserLogin)) {
+    // A bill's expenses come only from the vendor's invoice.
+    if (!isExpenseReport(sourceReport) || isBillReport(sourceReport) || isSourceReportArchived || !chatReport || isChatReportArchived || !isPolicyAccessible(policy, currentUserLogin)) {
         return false;
     }
 
@@ -13468,7 +13567,6 @@ function isReportOutstanding(
         isEmptyObject(iouReport) ||
         !isExpenseReport(iouReport) ||
         // A bill's expenses come only from the vendor's invoice, so users can't add or move expenses to it.
-        // isExpenseReport excludes bills today. This check keeps bills blocked once bills count as expense reports.
         isBillReport(iouReport) ||
         iouReport?.stateNum === undefined ||
         iouReport?.statusNum === undefined ||
@@ -13480,6 +13578,7 @@ function isReportOutstanding(
     if (isArchivedReport(reportNameValuePair)) {
         return false;
     }
+
     const currentRoute = navigationRef.getCurrentRoute();
     const params = currentRoute?.params as MoneyRequestNavigatorParamList[typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION] | ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
     const activeReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${params?.reportID}`];
@@ -15018,6 +15117,11 @@ function canRejectReportAction(report: Report, currentUserAccountID: number | un
         return false; // Disable invoice
     }
 
+    // Auth's RejectExpenseReport doesn't support bills yet, so the approver sends a bill back with Unapprove instead.
+    if (isBillReport(report)) {
+        return false;
+    }
+
     if (isReportBeingProcessed) {
         return true; // non-IOU reports can be rejected while processing
     }
@@ -15836,6 +15940,8 @@ export {
     canDeleteTransaction,
     canBeAutoReimbursed,
     canApproveIOU,
+    canApproveBill,
+    canApproveExpenseReport,
     canIOUBePaid,
     canSubmitReport,
     canCreateRequest,

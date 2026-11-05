@@ -19,6 +19,7 @@ import type {
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {isBillReport} from './BillUtils';
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
 import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {
@@ -165,7 +166,8 @@ function isSplitAction(
         return true;
     }
 
-    if (!isExpenseReportUtils(report)) {
+    // A bill must keep the expenses of the vendor's invoice.
+    if (!isExpenseReportUtils(report) || isBillReport(report)) {
         return false;
     }
 
@@ -367,7 +369,8 @@ function isApproveAction(
         isDuplicate(transaction, currentUserLogin, currentUserAccountID, report, ownerLogin, policy, violations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID]),
     );
 
-    if (isExpenseReport && isProcessingReport && reportHasDuplicatedTransactions) {
+    // Bills can't resolve duplicates, so the primary action is still Approve for a bill with duplicates.
+    if (isExpenseReport && isProcessingReport && reportHasDuplicatedTransactions && !isBillReport(report)) {
         return true;
     }
 
@@ -468,7 +471,8 @@ function isCancelPaymentAction(
     const isExpenseReport = isExpenseReportUtils(report);
     const isIOUReport = isIOUReportUtils(report);
 
-    if (!isExpenseReport && !isIOUReport) {
+    // Bills can't be paid or have their payment canceled in NewDot yet, even when they were paid in Classic.
+    if ((!isExpenseReport && !isIOUReport) || isBillReport(report)) {
         return false;
     }
 
@@ -520,7 +524,8 @@ function isCancelPaymentAction(
 }
 
 function isReceivedPaymentAction(report: Report, reportTransactions: Transaction[] = [], reportActions: ReportAction[] = [], policy?: Policy): boolean {
-    if (!isExpenseReportUtils(report) || !isCurrentUserSubmitter(report)) {
+    // The bill's owner pays the vendor, so the owner never receives a payment on it.
+    if (!isExpenseReportUtils(report) || isBillReport(report) || !isCurrentUserSubmitter(report)) {
         return false;
     }
 
@@ -797,7 +802,8 @@ function isRetractAction(report: Report, policy?: Policy): boolean {
     // This should be removed after we change how instant submit works
     const isInstantSubmit = isInstantSubmitEnabled(policy);
 
-    if (!isExpenseReport || isInstantSubmit) {
+    // A bill arrives submitted from the vendor's invoice, so its owner can't take it back to draft.
+    if (!isExpenseReport || isInstantSubmit || isBillReport(report)) {
         return false;
     }
 
@@ -820,7 +826,9 @@ function isReopenAction(report: Report, policy?: Policy): boolean {
     }
 
     const isExpenseReport = isExpenseReportUtils(report);
-    if (!isExpenseReport) {
+
+    // A bill arrives submitted from the vendor's invoice, so it can't go back to draft.
+    if (!isExpenseReport || isBillReport(report)) {
         return false;
     }
 
@@ -976,7 +984,8 @@ function isDuplicateReportAction(report: Report): boolean {
         return false;
     }
 
-    if (!isExpenseReportUtils(report)) {
+    // Copying a bill would turn the vendor's expenses into the owner's own expenses.
+    if (!isExpenseReportUtils(report) || isBillReport(report)) {
         return false;
     }
 
@@ -986,6 +995,11 @@ function isDuplicateReportAction(report: Report): boolean {
 function isDuplicateAction(report: Report, reportTransactions: Transaction[]): boolean {
     // Only single transactions are supported for now
     if (reportTransactions.length !== 1) {
+        return false;
+    }
+
+    // Copying an expense from a bill would turn the vendor's expense into the owner's own expense.
+    if (isBillReport(report)) {
         return false;
     }
 

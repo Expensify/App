@@ -48,7 +48,7 @@ describe('useReportActionAvatars', () => {
             [CONST.REPORT.ACTIONS.TYPE.SUBMITTED, 0],
         ] as const)('credits bill action %s to processor %s or Concierge instead of the receiver', async (actionName, processor) => {
             // Given bill intake creates and submits the bill with the receiver's token.
-            const report: Report = {reportID: '9400', type: CONST.REPORT.UNSUPPORTED_TYPE.BILL, ownerAccountID: 123, managerID: 123};
+            const report: Report = {reportID: '9400', type: CONST.REPORT.TYPE.BILL, ownerAccountID: 123, managerID: 123};
             const action = createMock<ReportAction>({actionName, actorAccountID: 123});
             const createdAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CREATED>>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,

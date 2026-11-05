@@ -138,7 +138,7 @@ function ParentNavigationSubtitle({
             currentFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
 
     // Bills have no parent chat, so their subtitle shows only the policy name.
-    const shouldShowPolicyNameOnly = reportType === CONST.REPORT.UNSUPPORTED_TYPE.BILL && !reportName && !!workspaceName;
+    const shouldShowPolicyNameOnly = reportType === CONST.REPORT.TYPE.BILL && !reportName && !!workspaceName;
 
     // We should not display the parent navigation subtitle if the user does not have access to the parent chat (the reportName is empty in this case)
     if (!reportName && !shouldShowPolicyNameOnly) {

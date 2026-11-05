@@ -46,6 +46,7 @@ import {
 } from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
+import {isBillReport} from '@libs/BillUtils';
 import {canResolveTransactionCard} from '@libs/CardUtils';
 import {getConnectionCompanyID} from '@libs/CopyPolicySettingsUtils';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
@@ -570,7 +571,8 @@ function shouldShowBulkDuplicateOption({
 
         const reportID = selectedTransactions[id]?.reportID;
         const submitterReport = reportID ? getReportOrDraftReport({reportID, searchReports, report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]}) : undefined;
-        if (submitterReport && !isCurrentUserSubmitter(submitterReport)) {
+        // Copying an expense from a bill would turn the vendor's expense into the owner's own expense.
+        if (submitterReport && (isBillReport(submitterReport) || !isCurrentUserSubmitter(submitterReport))) {
             return false;
         }
 

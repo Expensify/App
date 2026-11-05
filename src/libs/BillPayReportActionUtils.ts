@@ -4,8 +4,10 @@ import type {Report, ReportAction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {isBillReport} from './BillUtils';
+
 function isBillPayReport(report: OnyxEntry<Report>, isInvoiceLinkedToBill: boolean): boolean {
-    return report?.type === CONST.REPORT.UNSUPPORTED_TYPE.BILL || (report?.type === CONST.REPORT.TYPE.INVOICE && isInvoiceLinkedToBill);
+    return isBillReport(report) || (report?.type === CONST.REPORT.TYPE.INVOICE && isInvoiceLinkedToBill);
 }
 
 function isBillPayHistoryAction(action: OnyxEntry<ReportAction>, report: OnyxEntry<Report>, isInvoiceLinkedToBill: boolean): boolean {
