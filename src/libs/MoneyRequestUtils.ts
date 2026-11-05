@@ -51,9 +51,6 @@ function addLeadingZero(amount: string, shouldAllowNegative = false): string {
     return amount.startsWith('.') ? `0${amount}` : amount;
 }
 
-/**
- * Check if amount is a decimal up to 3 digits
- */
 /** The backend amount for what was typed in an inline amount field, or null when the field is empty or holds only a sign. */
 function getBackendAmountFromInput(value: string): number | null {
     const isNegative = value.startsWith('-');
@@ -71,6 +68,9 @@ function getBackendAmountFromInput(value: string): number | null {
     return isNegative ? -absoluteBackendAmount : absoluteBackendAmount;
 }
 
+/**
+ * Check if amount is a decimal up to 3 digits
+ */
 function validateAmount(amount: string, decimals: number, amountMaxLength: number = CONST.IOU.AMOUNT_MAX_LENGTH, shouldAllowNegative = false): boolean {
     const regexString =
         decimals === 0
