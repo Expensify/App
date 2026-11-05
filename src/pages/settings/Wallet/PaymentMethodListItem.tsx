@@ -46,6 +46,7 @@ import {View} from 'react-native';
 
 import GlobalReimbursementsEnabledIcon from './GlobalReimbursementsEnabledIcon';
 import PendingDigitalWalletApprovalRow from './PendingDigitalWalletApprovalRow';
+import WiseSetupInProgressRow from './WiseSetupInProgressRow';
 
 type ConnectionStatusDetails = {
     statusText: string;
@@ -91,6 +92,14 @@ type PaymentMethodItem = PaymentMethod & {
 
     /** Wallet the addition was requested from, used to name it in the "Review" CTA row */
     digitalWalletProvider?: ValueOf<typeof CONST.EXPENSIFY_CARD.WALLET_PROVIDER>;
+
+    /** The bank account's Wise onboarding that is in progress, which shows the in-progress row */
+    wiseSetupInProgress?: {
+        bankAccountID: number;
+
+        /** Whether the admin has something to do, which shows Continue */
+        canContinue: boolean;
+    };
 
     /** Whether the bank account is set up for global reimbursements, which shows a globe next to its name */
     isGlobalReimbursementsEnabled?: boolean;
@@ -353,6 +362,13 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                     cardID={digitalWalletApprovalCardID}
                     walletProvider={item.digitalWalletProvider}
                     style={[styles.pv3, cardPaddingHorizontal]}
+                />
+            )}
+            {!!item.wiseSetupInProgress && (
+                <WiseSetupInProgressRow
+                    bankAccountID={item.wiseSetupInProgress.bankAccountID}
+                    canContinue={item.wiseSetupInProgress.canContinue}
+                    style={[styles.pt4, styles.pb3, cardPaddingHorizontal]}
                 />
             )}
             {isChaseAccountConnectedViaPlaid && (
