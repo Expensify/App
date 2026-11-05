@@ -180,4 +180,3 @@ function PaneResizeHandle({onyxKey, width, bounds: {min, max}, defaultWidth, liv
 }
 
 export default PaneResizeHandle;
-export type {PaneResizeHandleProps};
