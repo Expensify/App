@@ -96,8 +96,8 @@ function getUserLocationFromOnyx(): Promise<OnyxEntry<UserLocation>> {
         const connection = Onyx.connect({
             key: ONYXKEYS.USER_LOCATION,
             callback: (value) => {
-                Onyx.disconnect(connection);
                 resolve(value);
+                connection.unsubscribe();
             },
         });
     });
