@@ -55,6 +55,9 @@ function formatDynamicFieldValue(field: DynamicFormField, values: DynamicFormVal
             return `${answer}%`;
         case 'address':
             return formatAddress(field.key, values, translate);
+        case 'text':
+            // A row shows one line, so a multiline answer is joined into it, which also gives a cut answer its ellipsis
+            return field.multiline ? answer.replaceAll(/\s*\r?\n\s*/g, ' ').trim() : answer;
         default:
             return answer;
     }

@@ -1,7 +1,5 @@
 import type {PersonalDetails} from '@src/types/onyx';
 
-import {useMemo} from 'react';
-
 import {useAllPersonalDetails} from './usePersonalDetails';
 
 /**
@@ -11,18 +9,16 @@ import {useAllPersonalDetails} from './usePersonalDetails';
 function usePersonalDetailsByLogin(): Record<string, PersonalDetails> {
     const [personalDetails] = useAllPersonalDetails();
 
-    return useMemo(() => {
-        if (!personalDetails) {
-            return {};
-        }
+    if (!personalDetails) {
+        return {};
+    }
 
-        return Object.values(personalDetails).reduce((acc: Record<string, PersonalDetails>, detail) => {
-            if (detail?.login) {
-                acc[detail.login.toLowerCase()] = detail;
-            }
-            return acc;
-        }, {});
-    }, [personalDetails]);
+    return Object.values(personalDetails).reduce((acc: Record<string, PersonalDetails>, detail) => {
+        if (detail?.login) {
+            acc[detail.login.toLowerCase()] = detail;
+        }
+        return acc;
+    }, {});
 }
 
 export default usePersonalDetailsByLogin;

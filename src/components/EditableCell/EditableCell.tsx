@@ -5,7 +5,8 @@ import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {useIsDisplayedInWideRHP} from '@hooks/useResponsiveLayoutOnWideRHP';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -48,6 +49,13 @@ type EditableCellProps = {
 
     /** Which side should show the edit icon in display mode */
     editIconPosition?: EditIconPosition;
+
+    /**
+     * Whether display mode wraps children in the padded, bordered `editableCell` box.
+     * A composite cell whose display content is taller than one line owns its own layout,
+     * and the box would add height to it. Edit mode still draws the box around its input.
+     */
+    shouldRenderDisplayChrome?: boolean;
 };
 
 /**
@@ -61,13 +69,25 @@ type EditableCellProps = {
  *   4. canEdit=false              → styled container View, no pressable (transient: loading / no permission)
  *   5. default                    → passive cell body with hover/focus edit icon button
  */
-function EditableCell({children, editContent, popoverContent, isEditing, canEdit, onStartEditing, anchorRef, editIconPosition = 'right'}: EditableCellProps) {
+function EditableCell({
+    children,
+    editContent,
+    popoverContent,
+    isEditing,
+    canEdit,
+    onStartEditing,
+    anchorRef,
+    editIconPosition = 'right',
+    shouldRenderDisplayChrome = true,
+}: EditableCellProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
+    const responsiveLayout = useResponsiveLayout();
+    const {isLargeScreenWidth, shouldUseNarrowLayout} = responsiveLayout;
+    const isDisplayedInWideRHP = useIsDisplayedInWideRHP(responsiveLayout);
     const [isEditIconFocused, setIsEditIconFocused] = useState(false);
-    const isEditable = isLargeScreenWidth && !shouldUseNarrowLayout;
+    const isEditable = isLargeScreenWidth && (!shouldUseNarrowLayout || isDisplayedInWideRHP);
     const cellId = useId();
     const {setIsEditingCell, setFocusedCellId} = useEditingCellActions();
     const isInteractive = useDeferredValue(true, false);
@@ -133,7 +153,7 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
     // Tooltip / Hoverable / BoundsObserver subtree during the initial skeleton render,
     // unblocking the main thread so the network response can be processed sooner.
     if (!canEdit || !isInteractive) {
-        return <View style={[styles.editableCell]}>{children}</View>;
+        return shouldRenderDisplayChrome ? <View style={[styles.editableCell]}>{children}</View> : children;
     }
 
     return (
@@ -143,7 +163,7 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
 
                 return (
                     <View style={[styles.flex1, styles.w100, styles.justifyContentCenter]}>
-                        <View style={styles.editableCell}>{children}</View>
+                        {shouldRenderDisplayChrome ? <View style={styles.editableCell}>{children}</View> : children}
                         <View
                             pointerEvents={shouldShowEditIcon ? 'box-none' : 'none'}
                             style={[

@@ -48,7 +48,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type VerifiedBankAccountFlowEntryPointProps = {
@@ -124,7 +124,7 @@ function VerifiedBankAccountFlowEntryPoint({
     const shouldShowChangeBankAccount = shouldShowContinueSetupButton === true && isComingFromWorkflowsPayments;
     const handleChangeBankAccount = useChangeBankAccount(policyID, currency, reimbursementAccount?.achData?.bankAccountID);
 
-    const removeExistingBankAccountDetails = useCallback(() => {
+    const removeExistingBankAccountDetails = () => {
         // In a "change bank account" flow, start a completely fresh setup so the new account's steps aren't prefilled.
         if (isChangingBankAccount && currency) {
             prepareNewBankAccountSetup(currency, reimbursementAccount);
@@ -141,19 +141,16 @@ function VerifiedBankAccountFlowEntryPoint({
         };
         updateReimbursementAccountDraft(bankAccountData);
         updateReimbursementAccount({bankAccountID: 0});
-    }, [isChangingBankAccount, currency, reimbursementAccount]);
+    };
 
     /**
      * Prepares and redirects user to next step in the USD flow
      */
-    const prepareNextStep = useCallback(
-        (setupType: ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE>) => {
-            setBankAccountSubStep(setupType);
-            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: CONST.BANK_ACCOUNT.PAGE_NAMES.COUNTRY, backTo}));
-        },
-        [policyID, backTo],
-    );
+    const prepareNextStep = (setupType: ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE>) => {
+        setBankAccountSubStep(setupType);
+        goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: CONST.BANK_ACCOUNT.PAGE_NAMES.COUNTRY, backTo}));
+    };
 
     /**
      * optionPressed ref indicates what user selected before modal to validate account was displayed

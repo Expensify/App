@@ -3,6 +3,7 @@ import RenderHTML from '@components/RenderHTML';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 
 import {hasCardConnectionIssue} from '@libs/CardUtils';
 import {getCardConnectionBrokenMessage, getOriginalMessage} from '@libs/ReportActionsUtils';
@@ -11,7 +12,7 @@ import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBa
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
 
 import {cardByIdSelector} from '@selectors/Card';
@@ -24,6 +25,7 @@ type CardBrokenConnectionContentProps = {
 function CardBrokenConnectionContent({action}: CardBrokenConnectionContentProps) {
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
+    const buildDynamicRoute = useScreenBoundDynamicRoute();
 
     const message = getOriginalMessage(action);
     const cardID = message?.cardID;
@@ -32,7 +34,8 @@ function CardBrokenConnectionContent({action}: CardBrokenConnectionContentProps)
     const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardByIdSelector(String(cardID))});
 
     // Matches the wallet row, so a card the wallet offers a fix for is linked here too.
-    const connectionLink = cardID && !!card && hasCardConnectionIssue(card) ? `${environmentURL}/${ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(String(cardID))}` : undefined;
+    const connectionLink =
+        cardID && !!card && hasCardConnectionIssue(card) ? `${environmentURL}/${buildDynamicRoute(DYNAMIC_ROUTES.PERSONAL_CARD_DETAILS.getRoute(String(cardID)))}` : undefined;
 
     const is30DaysReminder = action.actionName === CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS;
     const brokenConnectionMessage = getCardConnectionBrokenMessage(card, cardName, translate, is30DaysReminder, connectionLink);

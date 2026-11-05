@@ -124,7 +124,7 @@ function getOnyxData<TKey extends OnyxKey>(options: ConnectOptions<TKey>) {
         const connectionID = Onyx.connect({
             ...options,
             callback: (...params: ConnectionCallbackParams<TKey>) => {
-                Onyx.disconnect(connectionID);
+                connectionID.unsubscribe();
                 options.callback?.(...params);
                 resolve();
             },
@@ -288,7 +288,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
                 // Return a Promise that resolves with the mocked response
                 return Promise.resolve(mockedResponse);
             });
-            Session.signIn(password, undefined, undefined, login, undefined);
+            Session.signIn(password, undefined, undefined, login, undefined, undefined, undefined);
             return waitForBatchedUpdates();
         })
         .then(() => {
@@ -427,7 +427,14 @@ function expectAPICommandToHaveBeenCalledWith<TCommand extends ApiCommand>(comma
     expect(call).toBeTruthy();
     const body = call?.[1]?.body;
     const params = body instanceof FormData ? Object.fromEntries(body) : {};
-    expect(params).toEqual(expect.objectContaining(expectedParams));
+
+    // FormData coerces every value to a string, so a number or boolean in the expectation could never match.
+    const expectedEntries = Object.entries((expectedParams ?? {}) as Record<string, unknown>).map(([key, value]) => [
+        key,
+        typeof value === 'number' || typeof value === 'boolean' ? String(value) : value,
+    ]);
+
+    expect(params).toEqual(expect.objectContaining(Object.fromEntries(expectedEntries)));
 }
 
 function setPersonalDetails(login: string, accountID: number) {

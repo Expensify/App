@@ -40,6 +40,8 @@ jest.mock('react-native-tab-view', () => ({
 
 jest.mock('react-native-vision-camera', () => ({
     useCameraDevice: jest.fn(),
+    useCameraDevices: jest.fn(() => []),
+    usePhotoOutput: jest.fn(() => ({capturePhoto: jest.fn()})),
 }));
 
 // Stands in for the module-level navigation-ready promise so each test can decide whether the NavigationContainer
@@ -76,7 +78,7 @@ function getOptimisticDraft() {
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
             callback: (value) => {
                 resolve(value);
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
             },
         });
     });

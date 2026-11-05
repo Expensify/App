@@ -1,11 +1,10 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-
 import {
     deletePolicyDistanceRates,
     enablePolicyDistanceRates,
     setEmployeeWorkArrangement,
     setPolicyDistanceRatesUnit,
     setWorkspaceDistanceAutoUpdate,
+    updateEmployeeOfficeLocation,
 } from '@libs/actions/Policy/DistanceRate';
 import * as API from '@libs/API';
 import {pause, resetQueue} from '@libs/Network/SequentialQueue';
@@ -13,9 +12,10 @@ import {isGovernmentRateUnmodified} from '@libs/PolicyDistanceRatesUtils';
 import {getEffectiveWorkArrangement} from '@libs/WorkArrangementUtils';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {GovernmentMileageRate, Policy, Report, ReportActions, Transaction, TransactionViolations} from '@src/types/onyx';
-import type {CustomUnit, Rate, Unit} from '@src/types/onyx/Policy';
+import type {CustomUnit, OfficeLocation, Rate, Unit} from '@src/types/onyx/Policy';
 
 import Onyx from 'react-native-onyx';
 
@@ -24,28 +24,41 @@ import createRandomTransaction from '../utils/collections/transaction';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-const translate: LocalizedTranslate = (phrase, ...parameters) => {
-    if (phrase === 'workspace.people.officeBased') {
-        return 'Office-based';
-    }
-    if (phrase === 'workspace.people.noRegularWorkspace') {
-        return 'Remote or mobile';
-    }
-    if (phrase === 'workspaceActions.updatedMemberWorkArrangement') {
-        const arrangement = parameters[0];
-        if (typeof arrangement === 'object' && arrangement !== null && 'displayName' in arrangement && 'newArrangement' in arrangement && 'oldArrangement' in arrangement) {
-            return `changed ${String(arrangement.displayName)}'s work arrangement to ${String(arrangement.newArrangement)} (previously ${String(arrangement.oldArrangement)})`;
-        }
-        return String(phrase);
-    }
-    return String(phrase);
-};
-
 describe('DistanceRate', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
         return waitForBatchedUpdates();
     });
+
+    function getPolicyFromOnyx(policyID: string): Promise<Policy> {
+        return new Promise<Policy>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const,
+                // eslint-disable-next-line rulesdir/prefer-early-return
+                callback: (value) => {
+                    if (value !== undefined) {
+                        connection.unsubscribe();
+                        resolve(value);
+                    }
+                },
+            });
+        });
+    }
+
+    function getReportActionsFromOnyx(reportID: string) {
+        return new Promise<ReportActions>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const,
+                // eslint-disable-next-line rulesdir/prefer-early-return
+                callback: (value) => {
+                    if (value !== undefined) {
+                        connection.unsubscribe();
+                        resolve(value);
+                    }
+                },
+            });
+        });
+    }
 
     describe('deletePolicyDistanceRates', () => {
         it('should set customUnitOutOfPolicy violation only for transactions that have the deleted custom unit rate', async () => {
@@ -246,29 +259,6 @@ describe('DistanceRate', () => {
             };
         }
 
-        function getDistanceCustomUnit(policy: Policy): CustomUnit {
-            const distanceCustomUnit = policy.customUnits?.[customUnitID];
-            if (!distanceCustomUnit) {
-                throw new Error('The test policy is missing its distance custom unit');
-            }
-            return distanceCustomUnit;
-        }
-
-        function getPolicyFromOnyx(policyID: string): Promise<Policy> {
-            return new Promise<Policy>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const,
-                    // eslint-disable-next-line rulesdir/prefer-early-return
-                    callback: (value) => {
-                        if (value !== undefined) {
-                            Onyx.disconnect(connection);
-                            resolve(value);
-                        }
-                    },
-                });
-            });
-        }
-
         afterEach(() => {
             resetQueue();
             return Onyx.clear();
@@ -279,7 +269,7 @@ describe('DistanceRate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             pause();
-            setWorkspaceDistanceAutoUpdate(policy.id, getDistanceCustomUnit(policy), true, usGovernmentRates, policy.outputCurrency);
+            setWorkspaceDistanceAutoUpdate(policy, true, usGovernmentRates);
             await waitForBatchedUpdates();
 
             const onyxPolicy = await getPolicyFromOnyx(policy.id);
@@ -329,7 +319,7 @@ describe('DistanceRate', () => {
             const canadianRate: GovernmentMileageRate = {sourceRateID: 'CA_2026-01-01', currency: 'CAD', name: '2026 Canada', rate: 73, startDate: '2026-01-01', enabled: true};
 
             pause();
-            setWorkspaceDistanceAutoUpdate(policy.id, getDistanceCustomUnit(policy), true, [...usGovernmentRates, canadianRate], policy.outputCurrency);
+            setWorkspaceDistanceAutoUpdate(policy, true, [...usGovernmentRates, canadianRate]);
             await waitForBatchedUpdates();
 
             const onyxPolicy = await getPolicyFromOnyx(policy.id);
@@ -348,7 +338,7 @@ describe('DistanceRate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             pause();
-            setWorkspaceDistanceAutoUpdate(policy.id, getDistanceCustomUnit(policy), true, [], policy.outputCurrency);
+            setWorkspaceDistanceAutoUpdate(policy, true, []);
             await waitForBatchedUpdates();
 
             const onyxPolicy = await getPolicyFromOnyx(policy.id);
@@ -361,7 +351,7 @@ describe('DistanceRate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             pause();
-            setWorkspaceDistanceAutoUpdate(policy.id, getDistanceCustomUnit(policy), true, [], policy.outputCurrency);
+            setWorkspaceDistanceAutoUpdate(policy, true, []);
             await waitForBatchedUpdates();
 
             const onyxPolicy = await getPolicyFromOnyx(policy.id);
@@ -383,7 +373,7 @@ describe('DistanceRate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             pause();
-            setWorkspaceDistanceAutoUpdate(policy.id, getDistanceCustomUnit(policy), false, usGovernmentRates, policy.outputCurrency);
+            setWorkspaceDistanceAutoUpdate(policy, false, usGovernmentRates);
             await waitForBatchedUpdates();
 
             const onyxPolicy = await getPolicyFromOnyx(policy.id);
@@ -403,7 +393,7 @@ describe('DistanceRate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             pause();
-            setWorkspaceDistanceAutoUpdate(policy.id, getDistanceCustomUnit(policy), true, [deRate, frRate, usRate], policy.outputCurrency, 'DE');
+            setWorkspaceDistanceAutoUpdate(policy, true, [deRate, frRate, usRate], 'DE');
             await waitForBatchedUpdates();
 
             const onyxPolicy = await getPolicyFromOnyx(policy.id);
@@ -419,7 +409,7 @@ describe('DistanceRate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             pause();
-            setWorkspaceDistanceAutoUpdate(policy.id, undefined, true, [deRate], policy.outputCurrency, 'DE');
+            setWorkspaceDistanceAutoUpdate({...policy, customUnits: undefined}, true, [deRate], 'DE');
             await waitForBatchedUpdates();
 
             const onyxPolicy = await getPolicyFromOnyx(policy.id);
@@ -441,7 +431,7 @@ describe('DistanceRate', () => {
             const originalFetch = global.fetch;
             global.fetch = mockFetch;
             mockFetch.fail();
-            setWorkspaceDistanceAutoUpdate(policy.id, getDistanceCustomUnit(policy), true, [deRate], policy.outputCurrency, 'FR', true, 'DE');
+            setWorkspaceDistanceAutoUpdate(policy, true, [deRate], 'FR');
             await waitForBatchedUpdates();
             global.fetch = originalFetch;
 
@@ -461,7 +451,7 @@ describe('DistanceRate', () => {
             const originalFetch = global.fetch;
             global.fetch = mockFetch;
             mockFetch.fail();
-            setWorkspaceDistanceAutoUpdate(policy.id, getDistanceCustomUnit(policy), true, [deRate], policy.outputCurrency, 'DE', false, 'DE');
+            setWorkspaceDistanceAutoUpdate(policy, true, [deRate], 'DE');
             await waitForBatchedUpdates();
             global.fetch = originalFetch;
 
@@ -481,7 +471,7 @@ describe('DistanceRate', () => {
             const originalFetch = global.fetch;
             global.fetch = mockFetch;
             mockFetch.fail();
-            setWorkspaceDistanceAutoUpdate(policy.id, getDistanceCustomUnit(policy), false, [], policy.outputCurrency, undefined, true, 'DE');
+            setWorkspaceDistanceAutoUpdate(policy, false, []);
             await waitForBatchedUpdates();
             global.fetch = originalFetch;
 
@@ -489,25 +479,229 @@ describe('DistanceRate', () => {
             expect(onyxPolicy.shouldAutoUpdateGovernmentDistanceRates).toBe(true);
             expect(onyxPolicy.autoUpdateGovernmentRateCountry).toBe('DE');
         });
+
+        describe('UK fuel-band rates', () => {
+            const ukStandardRate: GovernmentMileageRate = {sourceRateID: 'GB_2011-04-06', currency: 'GBP', name: 'United Kingdom', rate: 45, startDate: '2011-04-06', enabled: true};
+            const petrolBandJune: GovernmentMileageRate = {
+                sourceRateID: 'GB_PETROL_UP_TO_1400_2026-06-01',
+                currency: 'GBP',
+                name: 'Cars & Vans (Petrol/Hybrid) - Up to 1400cc',
+                rate: 45,
+                startDate: '2026-06-01',
+                endDate: '2026-08-31',
+                enabled: true,
+                taxClaimablePercentage: 12 / 45,
+            };
+            const petrolBandSeptember: GovernmentMileageRate = {
+                ...petrolBandJune,
+                sourceRateID: 'GB_PETROL_UP_TO_1400_2026-09-01',
+                startDate: '2026-09-01',
+                endDate: undefined,
+                taxClaimablePercentage: 13 / 45,
+            };
+            const dieselBand: GovernmentMileageRate = {
+                sourceRateID: 'GB_DIESEL_UP_TO_1600_2026-09-01',
+                currency: 'GBP',
+                name: 'Cars & Vans (Diesel) - Up to 1600cc',
+                rate: 45,
+                startDate: '2026-09-01',
+                enabled: true,
+                taxClaimablePercentage: 11 / 45,
+            };
+            const ukGovernmentRates = [ukStandardRate, petrolBandJune, petrolBandSeptember, dieselBand];
+
+            function buildUKPolicy(isTrackingTax: boolean, isDistanceTaxEnabled: boolean, rates: CustomUnit['rates'] = {}): Policy {
+                return buildPolicy({
+                    outputCurrency: 'GBP',
+                    tax: {trackingEnabled: isTrackingTax},
+                    customUnits: {
+                        [customUnitID]: {
+                            attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, taxEnabled: isDistanceTaxEnabled},
+                            customUnitID,
+                            enabled: true,
+                            name: 'Distance',
+                            rates,
+                        },
+                    },
+                });
+            }
+
+            async function enableAutoUpdate(policy: Policy, governmentMileageRates: GovernmentMileageRate[] = ukGovernmentRates): Promise<Rate[]> {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                pause();
+                setWorkspaceDistanceAutoUpdate(policy, true, governmentMileageRates);
+                await waitForBatchedUpdates();
+                const onyxPolicy = await getPolicyFromOnyx(policy.id);
+                return Object.values(onyxPolicy.customUnits?.[customUnitID].rates ?? {});
+            }
+
+            const getRateBySourceID = (rates: Rate[], sourceRateID: string) => rates.find((rate) => rate.attributes?.governmentRate?.sourceRateID === sourceRateID);
+
+            it('should copy only the fuel bands, with their reclaimable fraction, when the workspace tracks distance tax', async () => {
+                // Given a GBP workspace with tax tracking and distance tax on
+                const policy = buildUKPolicy(true, true);
+
+                // When auto-update is turned on
+                const rates = await enableAutoUpdate(policy);
+
+                // Then only the fuel bands are copied, since the server gives these workspaces the bands instead of the standard rate
+                expect(rates.map((rate) => rate.attributes?.governmentRate?.sourceRateID).sort()).toEqual([
+                    'GB_DIESEL_UP_TO_1600_2026-09-01',
+                    'GB_PETROL_UP_TO_1400_2026-06-01',
+                    'GB_PETROL_UP_TO_1400_2026-09-01',
+                ]);
+
+                // And each band keeps its reclaimable fraction on the rate and the snapshot, so it shows the lightning bolt
+                const dieselRate = getRateBySourceID(rates, dieselBand.sourceRateID);
+                expect(dieselRate?.attributes?.taxClaimablePercentage).toBe(11 / 45);
+                expect(dieselRate?.attributes?.governmentRate?.taxClaimablePercentage).toBe(11 / 45);
+                expect(dieselRate?.attributes?.taxRateExternalID).toBeUndefined();
+                expect(dieselRate && isGovernmentRateUnmodified(dieselRate, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).toBe(true);
+            });
+
+            it('should copy only the standard rate when the workspace does not track distance tax', async () => {
+                // Given GBP workspaces where tax tracking or distance tax is off
+                const distanceTaxOffPolicy = buildUKPolicy(true, false);
+                const taxTrackingOffPolicy = buildUKPolicy(false, true);
+
+                // When auto-update is turned on
+                const distanceTaxOffRates = await enableAutoUpdate(distanceTaxOffPolicy);
+                resetQueue();
+                await Onyx.clear();
+                const taxTrackingOffRates = await enableAutoUpdate(taxTrackingOffPolicy);
+
+                // Then only the standard rate is copied, with no reclaimable fraction
+                for (const rates of [distanceTaxOffRates, taxTrackingOffRates]) {
+                    expect(rates.map((rate) => rate.attributes?.governmentRate?.sourceRateID)).toEqual(['GB_2011-04-06']);
+                    expect(rates.at(0)?.attributes?.taxClaimablePercentage).toBeUndefined();
+                }
+            });
+
+            it('should copy the standard rate when the workspace tracks distance tax but no fuel bands are published', async () => {
+                // Given a GBP workspace with tax tracking and distance tax on, and reference rates with only the standard rate
+                const policy = buildUKPolicy(true, true);
+
+                // When auto-update is turned on
+                const rates = await enableAutoUpdate(policy, [ukStandardRate]);
+
+                // Then the standard rate is copied, since the server copies it to every workspace until it publishes fuel bands
+                expect(rates.map((rate) => rate.attributes?.governmentRate?.sourceRateID)).toEqual(['GB_2011-04-06']);
+                expect(rates.at(0)?.attributes?.taxClaimablePercentage).toBeUndefined();
+            });
+
+            it('should still copy the rates of other countries when the workspace tracks distance tax', async () => {
+                // Given a USD workspace with tax tracking and distance tax on
+                const usPolicy = {...buildUKPolicy(true, true), outputCurrency: 'USD'};
+
+                // When auto-update is turned on
+                const rates = await enableAutoUpdate(usPolicy, usGovernmentRates);
+
+                // Then the US rates are copied as before, because only the UK publishes fuel bands
+                expect(rates).toHaveLength(2);
+            });
+
+            it('should keep a disabled fuel band disabled for every later rate of its series in the same request', async () => {
+                // Given an eligible GBP workspace whose earlier petrol band an admin disabled, and whose earlier diesel band an
+                // admin edited to their own amount and disabled
+                const editedDieselRateID = '5A1D3C8E9F0B2';
+                const policy = buildUKPolicy(true, true, {
+                    [existingRateID]: {
+                        customUnitRateID: existingRateID,
+                        name: 'Cars & Vans (Petrol/Hybrid) - Up to 1400cc',
+                        rate: 45,
+                        currency: 'GBP',
+                        enabled: false,
+                        startDate: '2026-03-01',
+                        endDate: '2026-05-31',
+                        attributes: {
+                            taxClaimablePercentage: 12 / 45,
+                            governmentRate: {sourceRateID: 'GB_PETROL_UP_TO_1400_2026-03-01', rate: 45, startDate: '2026-03-01', endDate: '2026-05-31', taxClaimablePercentage: 12 / 45},
+                        },
+                    },
+                    [editedDieselRateID]: {
+                        customUnitRateID: editedDieselRateID,
+                        name: 'Cars & Vans (Diesel) - Up to 1600cc',
+                        rate: 50,
+                        currency: 'GBP',
+                        enabled: false,
+                        startDate: '2026-03-01',
+                        endDate: '2026-08-31',
+                        attributes: {
+                            taxClaimablePercentage: 11 / 45,
+                            governmentRate: {sourceRateID: 'GB_DIESEL_UP_TO_1600_2026-03-01', rate: 45, startDate: '2026-03-01', endDate: '2026-08-31', taxClaimablePercentage: 11 / 45},
+                        },
+                    },
+                });
+
+                // When auto-update copies two later petrol periods and a diesel band, listed out of date order
+                const rates = await enableAutoUpdate(policy, [dieselBand, petrolBandSeptember, petrolBandJune]);
+
+                // Then both petrol periods stay disabled, the later one inheriting from the earlier one copied in this request
+                expect(getRateBySourceID(rates, petrolBandJune.sourceRateID)?.enabled).toBe(false);
+                expect(getRateBySourceID(rates, petrolBandSeptember.sourceRateID)?.enabled).toBe(false);
+
+                // And the September diesel band is enabled, because the earlier diesel rate was edited and is the admin's own,
+                // so its disabled state doesn't opt the workspace out of the government rate
+                expect(getRateBySourceID(rates, dieselBand.sourceRateID)?.enabled).toBe(true);
+            });
+
+            it('should enable a copied fuel band when its latest previous rate was edited, even if an older one was disabled', async () => {
+                // Given an eligible GBP workspace whose March diesel band is unmodified and disabled, and whose June diesel band an
+                // admin edited to their own amount
+                const marchDieselRateID = '3B7E0A9C4D1F6';
+                const juneDieselRateID = '8C2F5E1A7B3D0';
+                const policy = buildUKPolicy(true, true, {
+                    [marchDieselRateID]: {
+                        customUnitRateID: marchDieselRateID,
+                        name: 'Cars & Vans (Diesel) - Up to 1600cc',
+                        rate: 45,
+                        currency: 'GBP',
+                        enabled: false,
+                        startDate: '2026-03-01',
+                        endDate: '2026-05-31',
+                        attributes: {
+                            taxClaimablePercentage: 11 / 45,
+                            governmentRate: {sourceRateID: 'GB_DIESEL_UP_TO_1600_2026-03-01', rate: 45, startDate: '2026-03-01', endDate: '2026-05-31', taxClaimablePercentage: 11 / 45},
+                        },
+                    },
+                    [juneDieselRateID]: {
+                        customUnitRateID: juneDieselRateID,
+                        name: 'Cars & Vans (Diesel) - Up to 1600cc',
+                        rate: 50,
+                        currency: 'GBP',
+                        enabled: true,
+                        startDate: '2026-06-01',
+                        endDate: '2026-08-31',
+                        attributes: {
+                            taxClaimablePercentage: 11 / 45,
+                            governmentRate: {sourceRateID: 'GB_DIESEL_UP_TO_1600_2026-06-01', rate: 45, startDate: '2026-06-01', endDate: '2026-08-31', taxClaimablePercentage: 11 / 45},
+                        },
+                    },
+                });
+
+                // When auto-update copies the September diesel band
+                const rates = await enableAutoUpdate(policy, [dieselBand]);
+
+                // Then the September band is enabled, because only the latest previous rate counts and the admin edited it, so the
+                // disabled March rate further back doesn't opt the workspace out
+                expect(getRateBySourceID(rates, dieselBand.sourceRateID)?.enabled).toBe(true);
+            });
+
+            it('should copy a reference rate listed twice only once', async () => {
+                // Given an eligible GBP workspace and a reference list that contains the same fuel band twice
+                const policy = buildUKPolicy(true, true);
+
+                // When auto-update is turned on
+                const rates = await enableAutoUpdate(policy, [dieselBand, dieselBand]);
+
+                // Then the band is copied once, since the server de-dupes by sourceRateID and would leave a second copy orphaned
+                expect(rates.filter((rate) => rate.attributes?.governmentRate?.sourceRateID === dieselBand.sourceRateID)).toHaveLength(1);
+            });
+        });
     });
 
     describe('setPolicyDistanceRatesUnit', () => {
         const customUnitID = '5A55C2B68DDCB';
-
-        function getPolicyFromOnyx(policyID: string): Promise<Policy> {
-            return new Promise<Policy>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const,
-                    callback: (value) => {
-                        if (!value) {
-                            return;
-                        }
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
-            });
-        }
 
         afterEach(() => {
             resetQueue();
@@ -682,44 +876,6 @@ describe('DistanceRate', () => {
             jest.restoreAllMocks();
         });
 
-        function getPolicyFromOnyx(policyID: string): Promise<Policy> {
-            return new Promise<Policy>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const,
-                    // eslint-disable-next-line rulesdir/prefer-early-return
-                    callback: (value) => {
-                        if (value !== undefined) {
-                            Onyx.disconnect(connection);
-                            resolve(value);
-                        }
-                    },
-                });
-            });
-        }
-
-        function getReportActionsFromOnyx(reportID: string) {
-            return new Promise<ReportActions>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const,
-                    // eslint-disable-next-line rulesdir/prefer-early-return
-                    callback: (value) => {
-                        if (value !== undefined) {
-                            Onyx.disconnect(connection);
-                            resolve(value);
-                        }
-                    },
-                });
-            });
-        }
-
-        function getSingleUpdateValue(value: unknown): unknown {
-            if (typeof value !== 'object' || value === null) {
-                return undefined;
-            }
-            const values = Object.values(value);
-            return values.length === 1 ? values.at(0) : undefined;
-        }
-
         async function seedWorkArrangementPolicy(policy: Policy) {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
@@ -728,7 +884,7 @@ describe('DistanceRate', () => {
             await waitForBatchedUpdates();
         }
 
-        it('should optimistically update the member and create one changelog action with pending ADD', async () => {
+        it('should optimistically update only the member that changes, without adding a change log', async () => {
             // Given two members in the policy and only one needs an arrangement change
             const policy: Policy = {
                 ...createRandomPolicy(20),
@@ -741,32 +897,17 @@ describe('DistanceRate', () => {
 
             pause();
             // When both members are assigned the office-based arrangement
-            setEmployeeWorkArrangement(policy, [member1AccountID, member2AccountID], true, personalDetails, translate);
+            setEmployeeWorkArrangement(policy, [member1AccountID, member2AccountID], true, personalDetails);
             await waitForBatchedUpdates();
 
-            // Then only the changed member and one pending changelog entry are updated
+            // Then only the changed member is updated
             const onyxPolicy = await getPolicyFromOnyx(policy.id);
             expect(onyxPolicy.employeeList?.[member1Email]).toEqual({email: member1Email, hasOfficeWorkArrangement: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE});
             // Member2 already matches, so it is skipped without any optimistic footprint
             expect(onyxPolicy.employeeList?.[member2Email]).toEqual({email: member2Email, hasOfficeWorkArrangement: true});
 
-            const reportActions = await getReportActionsFromOnyx('1');
-            const actions = Object.values(reportActions);
-            expect(actions).toHaveLength(1);
-            expect(actions.at(0)).toMatchObject({
-                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                message: [
-                    {
-                        text: translate('workspaceActions.updatedMemberWorkArrangement', {
-                            displayName: 'Member One',
-                            newArrangement: translate('workspace.people.officeBased'),
-                            oldArrangement: translate('workspace.people.noRegularWorkspace'),
-                        }),
-                    },
-                ],
-                originalMessage: {accountID: member1AccountID, email: member1Email, name: 'Member One', newValue: true, oldValue: false},
-            });
+            // And the admins room gets no optimistic change log, since the server can thread the real one
+            expect(await getReportActionsFromOnyx('1')).toEqual({});
 
             resetQueue();
         });
@@ -787,7 +928,7 @@ describe('DistanceRate', () => {
 
             pause();
             // When the member's arrangement is changed before the invite finishes syncing
-            setEmployeeWorkArrangement(policy, [member1AccountID], true, personalDetails, translate);
+            setEmployeeWorkArrangement(policy, [member1AccountID], true, personalDetails);
             await waitForBatchedUpdates();
 
             // Then the arrangement updates while the invite remains visibly pending
@@ -810,7 +951,7 @@ describe('DistanceRate', () => {
 
             pause();
             // When the matching member and an unknown account are passed
-            setEmployeeWorkArrangement(policy, [member1AccountID, 999999001], false, personalDetails, translate);
+            setEmployeeWorkArrangement(policy, [member1AccountID, 999999001], false, personalDetails);
             await waitForBatchedUpdates();
 
             // Then no member data or changelog entry is changed
@@ -838,22 +979,23 @@ describe('DistanceRate', () => {
                 ...personalDetails,
                 [temporaryAccountID]: {accountID: temporaryAccountID, login: member1Email, displayName: 'Member One'},
             };
-            setEmployeeWorkArrangement(policy, [temporaryAccountID], true, personalDetailsWithTemporaryAccountID, translate);
+            setEmployeeWorkArrangement(policy, [temporaryAccountID], true, personalDetailsWithTemporaryAccountID);
 
             // Then the request carries the stable login with the temporary accountID so it still applies after an offline invite syncs
             expect(writeSpy.mock.calls.at(0)?.[1]).toMatchObject({employeeAccountIDList: String(temporaryAccountID), employeeLoginList: member1Email});
 
-            // And success updates clear the pending state for both the member and changelog action
+            // And success updates clear the member's pending state
             const onyxData = writeSpy.mock.calls.at(0)?.[2];
-            expect(onyxData?.successData?.[0]).toEqual({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
-                value: {employeeList: {[member1Email]: {pendingAction: null}}},
-            });
-            expect(getSingleUpdateValue(onyxData?.successData?.[1]?.value)).toEqual({pendingAction: null});
+            expect(onyxData?.successData).toEqual([
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                    value: {employeeList: {[member1Email]: {pendingAction: null}}},
+                },
+            ]);
         });
 
-        it('should revert the member and drop the changelog entry on failure', async () => {
+        it('should revert the member on failure', async () => {
             // Given the member and admins room are in Onyx
             const policy: Policy = {
                 ...createRandomPolicy(23),
@@ -864,9 +1006,9 @@ describe('DistanceRate', () => {
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             // When the member's work arrangement is updated
-            setEmployeeWorkArrangement(policy, [member1AccountID], true, personalDetails, translate);
+            setEmployeeWorkArrangement(policy, [member1AccountID], true, personalDetails);
 
-            // Then failure data restores the member value, retains UPDATE so dismissing the error preserves the member, and removes the changelog action
+            // Then failure data restores the member value and retains UPDATE so dismissing the error preserves the member
             const onyxData = writeSpy.mock.calls.at(0)?.[2];
             expect(onyxData?.failureData?.[0]).toMatchObject({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -906,12 +1048,7 @@ describe('DistanceRate', () => {
             await waitForBatchedUpdates();
             expect((await getPolicyFromOnyx(policy.id)).employeeList?.[member1Email]?.hasOfficeWorkArrangement).toBeUndefined();
             expect(getEffectiveWorkArrangement((await getPolicyFromOnyx(policy.id)).employeeList?.[member1Email]?.hasOfficeWorkArrangement, false)).toBe(false);
-
-            expect(onyxData?.failureData?.[1]).toMatchObject({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`,
-            });
-            expect(getSingleUpdateValue(onyxData?.failureData?.[1]?.value)).toBeNull();
+            expect(onyxData?.failureData).toHaveLength(1);
         });
 
         it('should update members without changelog actions when there is no admins room', async () => {
@@ -929,7 +1066,7 @@ describe('DistanceRate', () => {
 
             pause();
             // When the member's work arrangement is updated
-            setEmployeeWorkArrangement(policy, [member1AccountID], true, personalDetails, translate);
+            setEmployeeWorkArrangement(policy, [member1AccountID], true, personalDetails);
             await waitForBatchedUpdates();
 
             // Then the member is updated without creating a changelog action
@@ -960,7 +1097,7 @@ describe('DistanceRate', () => {
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsWithGhost);
             await waitForBatchedUpdates();
             // When the member missing from the policy employee list is passed
-            setEmployeeWorkArrangement(policy, [missingMemberAccountID], true, personalDetailsWithGhost, translate);
+            setEmployeeWorkArrangement(policy, [missingMemberAccountID], true, personalDetailsWithGhost);
             await waitForBatchedUpdates();
 
             // Then no member data or changelog action is created
@@ -983,7 +1120,7 @@ describe('DistanceRate', () => {
 
             pause();
             // When the member is assigned an arrangement without a policy ID
-            setEmployeeWorkArrangement({...policy, id: ''}, [member1AccountID], true, personalDetails, translate);
+            setEmployeeWorkArrangement({...policy, id: ''}, [member1AccountID], true, personalDetails);
             await waitForBatchedUpdates();
 
             // Then neither the policy nor the admins room changelog is changed
@@ -994,6 +1131,166 @@ describe('DistanceRate', () => {
             expect(reportActions).toEqual({});
 
             resetQueue();
+        });
+    });
+
+    describe('updateEmployeeOfficeLocation', () => {
+        const member1AccountID = 31;
+        const member2AccountID = 32;
+        const member1Email = 'office1@test.com';
+        const member2Email = 'office2@test.com';
+        const personalDetails = {
+            [member1AccountID]: {accountID: member1AccountID, login: member1Email, displayName: 'Member One'},
+            [member2AccountID]: {accountID: member2AccountID, login: member2Email, displayName: 'Member Two'},
+        };
+        const officeLocations: Record<string, OfficeLocation> = {
+            OFFICE1: {name: 'Headquarters', address: {addressStreet: '88 Kearny St', city: 'San Francisco', state: 'CA', zipCode: '94108', country: 'US'}, isDefault: true},
+            OFFICE2: {name: 'New Jersey Office', address: {addressStreet: '900 Asbury Ave', city: 'Ocean City', state: 'NJ', zipCode: '08226', country: 'US'}},
+        };
+
+        beforeAll(() => IntlStore.load(CONST.LOCALES.DEFAULT));
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        async function seedOfficeLocationPolicy(policy: Policy) {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}2`, {reportID: '2', policyID: policy.id, chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS} as Report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`, {});
+            await waitForBatchedUpdates();
+        }
+
+        it('should optimistically assign only the member that changes, without adding a change log', async () => {
+            // Given one member following the primary office and one already assigned to the New Jersey office
+            const policy: Policy = {
+                ...createRandomPolicy(30),
+                officeLocations,
+                employeeList: {
+                    [member1Email]: {email: member1Email},
+                    [member2Email]: {email: member2Email, officeID: 'OFFICE2'},
+                },
+            };
+            await seedOfficeLocationPolicy(policy);
+
+            pause();
+            // When both members are assigned to the New Jersey office
+            updateEmployeeOfficeLocation(policy, [member1AccountID, member2AccountID], 'OFFICE2', personalDetails);
+            await waitForBatchedUpdates();
+
+            // Then only the member who changed is updated
+            const onyxPolicy = await getPolicyFromOnyx(policy.id);
+            expect(onyxPolicy.employeeList?.[member1Email]).toEqual({email: member1Email, officeID: 'OFFICE2', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE});
+            expect(onyxPolicy.employeeList?.[member2Email]).toEqual({email: member2Email, officeID: 'OFFICE2'});
+
+            // And the admins room gets no optimistic change log, since the server can thread the real one
+            expect(await getReportActionsFromOnyx('2')).toEqual({});
+
+            resetQueue();
+        });
+
+        it('should preserve a pending invite when changing its office offline', async () => {
+            // Given a newly invited member whose add action is still pending
+            const policy: Policy = {
+                ...createRandomPolicy(34),
+                officeLocations,
+                employeeList: {[member1Email]: {email: member1Email, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}},
+            };
+            await seedOfficeLocationPolicy(policy);
+
+            pause();
+            // When the member's office is changed before the invite finishes syncing
+            updateEmployeeOfficeLocation(policy, [member1AccountID], 'OFFICE2', personalDetails);
+            await waitForBatchedUpdates();
+
+            // Then the office updates while the invite remains visibly pending
+            const onyxPolicy = await getPolicyFromOnyx(policy.id);
+            expect(onyxPolicy.employeeList?.[member1Email]).toMatchObject({officeID: 'OFFICE2', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
+
+            resetQueue();
+        });
+
+        it('should send every member that changed in one request, by login', async () => {
+            // Given two members following the primary office
+            const policy: Policy = {
+                ...createRandomPolicy(31),
+                officeLocations,
+                employeeList: {[member1Email]: {email: member1Email}, [member2Email]: {email: member2Email}},
+            };
+            await seedOfficeLocationPolicy(policy);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- The API spy records the request, which the paused queue keeps from being sent.
+            const writeSpy = jest.spyOn(API, 'write');
+
+            pause();
+            // When both are assigned to the company address
+            updateEmployeeOfficeLocation(policy, [member1AccountID, member2AccountID], CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID, personalDetails);
+            await waitForBatchedUpdates();
+
+            // Then one request carries both members by login, which still matches them if an offline invite replaces their accountIDs
+            expect(writeSpy).toHaveBeenCalledTimes(1);
+            expect(writeSpy.mock.calls.at(0)?.[1]).toEqual({
+                policyID: policy.id,
+                employeeLoginList: `${member1Email},${member2Email}`,
+                officeID: CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID,
+            });
+
+            resetQueue();
+        });
+
+        it('should clear pending states on success', async () => {
+            // Given a member following the primary office
+            const policy: Policy = {
+                ...createRandomPolicy(32),
+                officeLocations,
+                employeeList: {[member1Email]: {email: member1Email}},
+            };
+            await seedOfficeLocationPolicy(policy);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- The API spy captures the action updates without sending a request.
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            // When the member is assigned to an office
+            updateEmployeeOfficeLocation(policy, [member1AccountID], 'OFFICE2', personalDetails);
+
+            // Then success clears the member's pending state
+            const onyxData = writeSpy.mock.calls.at(0)?.[2];
+            expect(onyxData?.successData).toEqual([
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                    value: {employeeList: {[member1Email]: {pendingAction: null}}},
+                },
+            ]);
+        });
+
+        it('should restore the previous office of each member on failure', async () => {
+            // Given one member assigned to the New Jersey office and one following the primary office
+            const policy: Policy = {
+                ...createRandomPolicy(33),
+                officeLocations,
+                employeeList: {[member1Email]: {email: member1Email, officeID: 'OFFICE2'}, [member2Email]: {email: member2Email}},
+            };
+            await seedOfficeLocationPolicy(policy);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- The API spy captures the action updates without sending a request.
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            // When both are assigned to the company address
+            updateEmployeeOfficeLocation(policy, [member1AccountID, member2AccountID], CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID, personalDetails);
+
+            // Then failure puts back the New Jersey office, removes the assignment the other member never had, and keeps
+            // UPDATE so dismissing the error keeps the members
+            const onyxData = writeSpy.mock.calls.at(0)?.[2];
+            expect(onyxData?.failureData?.[0]).toMatchObject({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                value: {
+                    employeeList: {
+                        [member1Email]: {officeID: 'OFFICE2', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                        [member2Email]: {officeID: null, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    },
+                },
+            });
+            expect(onyxData?.failureData).toHaveLength(1);
         });
     });
 });
