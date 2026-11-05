@@ -174,7 +174,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
     const {translate, localeCompare, dateFnsLocale} = useLocalize();
     const {isOffline} = useNetwork();
     const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
-    const {shouldShowFiltersBarLoading, currentSearchResults, shouldUseLiveData} = useSearchResultsContext();
+    const {shouldShowFiltersBarLoading, currentSearchResults} = useSearchResultsContext();
     const {currentSearchQueryJSON, currentSearchKey, currentDefaultSearchQueryJSON, currentDefaultSearchQueryFilterKeys} = useSearchQueryContext();
     const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
     const isSavedSearch = !!searchKeyToSavedSearchID(currentSearchKey);
@@ -255,7 +255,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
         hasErrors: Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline,
         shouldShowFiltersBarLoading: shouldShowFiltersBarLoading || isCategoryFilterLoading,
         canReset: hasDefaultQuery ? hasFiltersChangedFromDefault(currentSearchQueryJSON, currentDefaultSearchQueryJSON) : filters.length > 0,
-        canSave: isSearchQuerySavable(currentSearchQueryJSON, currentDefaultSearchQueryJSON, currentSearchResults?.search, !isOffline && !shouldUseLiveData),
+        canSave: isSearchQuerySavable(currentSearchQueryJSON, currentDefaultSearchQueryJSON, currentSearchResults?.search),
         resetFilters,
     };
 }
