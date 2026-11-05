@@ -38,6 +38,9 @@ type ConfirmationVariantProps = {
 
     /** List props. `onConfirm` and `isConfirming` come from the orchestrator, and `onSendMoney` only from the pay flow. */
     listProps: Omit<MoneyRequestConfirmationListProps, 'onConfirm' | 'isConfirming' | 'onSendMoney'>;
+
+    /** Suppresses the parent discard guard while a confirmed submission navigates away. */
+    suppressDiscardPrompt?: () => void;
 };
 
 export type {ConfirmationSubmissionParams, ConfirmationVariantProps};

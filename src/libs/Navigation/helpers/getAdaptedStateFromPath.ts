@@ -2,7 +2,7 @@ import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createS
 import TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/TAB_SCREENS';
 import {normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
 import type {NavigationRoute} from '@libs/Navigation/types';
-import {hasKey} from '@libs/ObjectUtils';
+import {hasKey, isRecord} from '@libs/ObjectUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -82,8 +82,41 @@ function getOnboardingAdaptedState(state: PartialState<NavigationState>): Partia
     return getRoutesWithIndex(routes);
 }
 
+function getTestToolsBackTo(state: PartialState<NavigationState>): string | undefined {
+    const testToolsModalRoute = state.routes.find((route) => route.name === NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR);
+    const testToolsRootRoute = testToolsModalRoute?.state?.routes.find((route) => route.name === SCREENS.TEST_TOOLS_MODAL.ROOT);
+
+    return isRecord(testToolsRootRoute?.params) && typeof testToolsRootRoute.params.backTo === 'string' ? testToolsRootRoute.params.backTo : undefined;
+}
+
+function stateContainsMoneyRequestCreateRoute(state: PartialState<NavigationState>): boolean {
+    return state.routes.some((route) => route.name === SCREENS.MONEY_REQUEST.CREATE || (route.state !== undefined && stateContainsMoneyRequestCreateRoute(route.state)));
+}
+
 function getAdaptedState(state: PartialState<NavigationState>): GetAdaptedStateReturnType {
     let currentState = state;
+    const testToolsBackTo = getTestToolsBackTo(currentState);
+
+    if (testToolsBackTo) {
+        try {
+            const stateForBackTo = getStateFromPath(testToolsBackTo);
+            // Dynamic paths are not complete until they pass through getAdaptedState(). In particular, the
+            // add-category URL does not expose Money_Request_Create in its raw linking state.
+            const isTestToolsBackTo = stateForBackTo.routes.some((route) => route.name === NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR);
+            const adaptedStateForBackTo = isTestToolsBackTo ? undefined : getAdaptedState(stateForBackTo);
+            if (adaptedStateForBackTo && stateContainsMoneyRequestCreateRoute(adaptedStateForBackTo)) {
+                const testToolsModalRoute = currentState.routes.find((route) => route.name === NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR);
+                if (testToolsModalRoute) {
+                    // Test Tools is an overlay. Keep a restored Money Request flow below it so closing the modal
+                    // returns to the live draft and its discard guard remains mounted.
+                    return getRoutesWithIndex([...adaptedStateForBackTo.routes, testToolsModalRoute]);
+                }
+            }
+        } catch {
+            // Fall back to the existing Test Tools state adaptation when a history entry has an invalid `backTo` URL.
+        }
+    }
+
     const fullScreenRoute = currentState.routes.find((route) => isFullScreenName(route.name));
 
     if (fullScreenRoute?.name === NAVIGATORS.TAB_NAVIGATOR) {

@@ -178,6 +178,7 @@ type AmountSlice = {
     participants: Transaction['participants'];
     splitShares: Transaction['splitShares'];
     amount: Transaction['amount'];
+    initialAmount: Transaction['initialAmount'];
     currency: Transaction['currency'];
     transactionID: Transaction['transactionID'];
     iouRequestType: Transaction['iouRequestType'];
@@ -200,6 +201,7 @@ const amountSliceSelector = (t: OnyxEntry<Transaction>): AmountSlice | undefined
         participants: t.participants,
         splitShares: t.splitShares,
         amount: t.amount,
+        initialAmount: t.initialAmount,
         currency: t.currency,
         transactionID: t.transactionID,
         iouRequestType: t.iouRequestType,

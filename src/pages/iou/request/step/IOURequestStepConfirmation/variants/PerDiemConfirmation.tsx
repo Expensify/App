@@ -11,7 +11,7 @@ import React from 'react';
 import type {ConfirmationVariantProps} from './types';
 
 /** Confirms a per diem expense, submitting through CreatePerDiemExpense (or the self-DM variant when tracking). */
-function PerDiemConfirmation({submissionParams, orchestratorProps, listProps}: ConfirmationVariantProps) {
+function PerDiemConfirmation({submissionParams, orchestratorProps, listProps, suppressDiscardPrompt}: ConfirmationVariantProps) {
     const {iouType, submitLock} = submissionParams;
 
     const perDiemSubmission = usePerDiemSubmission({
@@ -29,7 +29,10 @@ function PerDiemConfirmation({submissionParams, orchestratorProps, listProps}: C
             {({onConfirm, isConfirming}) => (
                 <PerDiemConfirmationList
                     {...listProps}
-                    onConfirm={onConfirm}
+                    onConfirm={() => {
+                        suppressDiscardPrompt?.();
+                        onConfirm();
+                    }}
                     isConfirming={isConfirming}
                 />
             )}

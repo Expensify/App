@@ -22,7 +22,7 @@ type PayConfirmationProps = Omit<ConfirmationVariantProps, 'orchestratorProps'> 
 };
 
 /** Confirms sending money, through SendMoney. */
-function PayConfirmation({submissionParams, listProps, destinationReportID, optimisticP2PDestinationReportID}: PayConfirmationProps) {
+function PayConfirmation({submissionParams, listProps, destinationReportID, optimisticP2PDestinationReportID, suppressDiscardPrompt}: PayConfirmationProps) {
     const {transaction, report, participants, currentUserPersonalDetails, submitLock} = submissionParams;
     const {isConfirmed, setIsConfirmed} = submitLock;
 
@@ -77,7 +77,10 @@ function PayConfirmation({submissionParams, listProps, destinationReportID, opti
     return (
         <ManualConfirmationList
             {...listProps}
-            onSendMoney={handleSendMoney}
+            onSendMoney={(paymentMethod) => {
+                suppressDiscardPrompt?.();
+                handleSendMoney(paymentMethod);
+            }}
             isConfirming={false}
         />
     );

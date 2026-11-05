@@ -1,3 +1,4 @@
+import type {RestoreFocus} from '@components/MoneyRequestConfirmationFields/context';
 import type {ReceiptOptions} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
 
 import type {OptionData} from '@libs/ReportUtils';
@@ -37,6 +38,15 @@ type MoneyRequestConfirmationListProps = {
 
     /** Payee of the expense with login. The participant rows fall back to the current user when absent. */
     payeePersonalDetails?: OnyxEntry<OnyxTypes.PersonalDetails> | null;
+
+    /** Reports whether the inline amount sign differs from its initial value. */
+    onSignDirtyChange?: (isSignDirty: boolean) => void;
+
+    /** Registers the inline field that should regain focus when the discard confirmation is cancelled. */
+    onInputFocus?: (restoreFocus: RestoreFocus) => void;
+
+    /** Clears the registered inline field when it blurs. */
+    onInputBlur?: () => void;
 
     /** Read-only list: no confirm button, no editable split amounts */
     isReadOnly?: boolean;

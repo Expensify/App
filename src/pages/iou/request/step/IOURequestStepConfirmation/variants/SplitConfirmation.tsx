@@ -10,7 +10,7 @@ import React from 'react';
 import type {ConfirmationVariantProps} from './types';
 
 /** Confirms a split, submitting through splitBill / startSplitBill / splitBillAndOpenReport. */
-function SplitConfirmation({submissionParams, orchestratorProps, listProps}: ConfirmationVariantProps) {
+function SplitConfirmation({submissionParams, orchestratorProps, listProps, suppressDiscardPrompt}: ConfirmationVariantProps) {
     const {transaction, policy, iouType, isPolicyExpenseChat, isSelfDMDestination, submitLock} = submissionParams;
 
     const transactionTaxValues = getTransactionTaxValues({transaction, policy, iouType, isPolicyExpenseChat, isSelfDMDestination});
@@ -32,7 +32,10 @@ function SplitConfirmation({submissionParams, orchestratorProps, listProps}: Con
             {({onConfirm, isConfirming}) => (
                 <MoneyRequestConfirmationList
                     {...listProps}
-                    onConfirm={onConfirm}
+                    onConfirm={() => {
+                        suppressDiscardPrompt?.();
+                        onConfirm();
+                    }}
                     isConfirming={isConfirming}
                 />
             )}

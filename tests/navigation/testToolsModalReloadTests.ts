@@ -7,6 +7,11 @@ import SCREENS from '@src/SCREENS';
 
 const SEARCH_PATH = '/search?q=type:expense';
 const SERVER_PATH_WITH_ORIGIN = `/${ROUTES.TEST_TOOLS_SERVER.getRoute(SEARCH_PATH)}`;
+const MONEY_REQUEST_ADD_CATEGORY_PATH = [
+    '/create/create/start/1/2447837621260601/manual/category/add-category',
+    '?action=create&iouType=create&transactionID=1&reportID=2447837621260601',
+].join('');
+const TEST_TOOLS_PATH_WITH_MONEY_REQUEST_ORIGIN = `/${ROUTES.TEST_TOOLS_MODAL.getRoute(MONEY_REQUEST_ADD_CATEGORY_PATH)}`;
 
 function getState(path: string) {
     const state = getAdaptedStateFromPath(path, undefined);
@@ -35,6 +40,12 @@ describe('reloading the test tools server page', () => {
 
     it('rebuilds that page underneath the modal rather than defaulting to Home', () => {
         expect(getState(SERVER_PATH_WITH_ORIGIN).screensUnderneath).toContain(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+    });
+
+    it('keeps a money request flow under the modal so its discard guard remains mounted', () => {
+        const state = getAdaptedStateFromPath(TEST_TOOLS_PATH_WITH_MONEY_REQUEST_ORIGIN, undefined);
+
+        expect(state.routes.map((route) => route.name)).toEqual([NAVIGATORS.TAB_NAVIGATOR, NAVIGATORS.RIGHT_MODAL_NAVIGATOR, NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR]);
     });
 
     it('round trips back to the same URL', () => {

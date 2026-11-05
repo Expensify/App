@@ -50,7 +50,7 @@ type DateFieldProps = {
 
 function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, transactionID, action, iouType, reportID, reportActionID}: DateFieldProps) {
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
-    const {isEditingSplitBill, canEnterScanFieldsManually, isPolicyExpenseChat} = useConfirmationFields();
+    const {isEditingSplitBill, canEnterScanFieldsManually, isPolicyExpenseChat, onInputFocus, onInputBlur} = useConfirmationFields();
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -140,6 +140,8 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
                     label={translate('common.date')}
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                     onInputChange={handleDateChange}
+                    onInputFocus={onInputFocus}
+                    onInputBlur={onInputBlur}
                     disabled={didConfirm}
                     errorText={inlineDateErrorText || dateErrorText}
                     shouldDeferShowUntilPositioned
@@ -150,6 +152,7 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
                     // The calendar icon and the hint share the right-hand side, so the field shows one or the other.
                     // The icon comes back once the user opens the picker, the same way the amount field's buttons do.
                     shouldHideCalendarIcon={shouldShowAutomaticHint}
+                    shouldAllowFocusInLandscapeMode
                     onPickerVisibilityChange={setIsDatePickerOpen}
                 />
             </View>
