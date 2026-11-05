@@ -125,6 +125,49 @@ describe('actions/User', () => {
         });
     });
 
+    describe('joinAccountingIntegrationWaitlist', () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('replaces a failed signup for the workspace and keeps the rest of the list', () => {
+            // Given a waitlist for another workspace and a failed signup for this one
+            const created = '2026-11-04 10:00:00.000';
+            const errorTimestamp = 1;
+            jest.spyOn(DateUtils, 'getDBTime').mockReturnValue(created);
+            jest.spyOn(DateUtils, 'getMicroseconds').mockReturnValue(errorTimestamp);
+            const otherWorkspaceEntry = {connectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING, policyID: 'otherPolicy', created: '2026-11-01 10:00:00.000'};
+            const failedEntry = {connectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING, policyID: 'policy', errors: {[errorTimestamp]: 'Signup failed'}};
+
+            // When the user joins the waitlist again for this workspace
+            UserActions.joinAccountingIntegrationWaitlist([otherWorkspaceEntry, failedEntry], 'policy', CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING);
+
+            // Then the whole list is written each time, since Onyx replaces arrays, and only this workspace's entry changes
+            const entry = {connectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING, policyID: 'policy', created};
+            expect(mockAPI.write).toHaveBeenCalledWith(
+                WRITE_COMMANDS.JOIN_ACCOUNTING_INTEGRATION_WAITLIST,
+                {policyID: 'policy', connectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING},
+                {
+                    optimisticData: [
+                        {
+                            onyxMethod: Onyx.METHOD.SET,
+                            key: ONYXKEYS.NVP_ACCOUNTING_INTEGRATION_WAITLIST,
+                            value: [otherWorkspaceEntry, {...entry, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}],
+                        },
+                    ],
+                    successData: [{onyxMethod: Onyx.METHOD.SET, key: ONYXKEYS.NVP_ACCOUNTING_INTEGRATION_WAITLIST, value: [otherWorkspaceEntry, entry]}],
+                    failureData: [
+                        {
+                            onyxMethod: Onyx.METHOD.SET,
+                            key: ONYXKEYS.NVP_ACCOUNTING_INTEGRATION_WAITLIST,
+                            value: [otherWorkspaceEntry, {...entry, errors: {[errorTimestamp]: anyString}}],
+                        },
+                    ],
+                },
+            );
+        });
+    });
+
     describe('clearContactMethod', () => {
         it('should return early when contactMethods array is empty', async () => {
             // Given an empty array
