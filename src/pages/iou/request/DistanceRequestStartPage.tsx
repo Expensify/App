@@ -3,7 +3,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 
-import useCreateFlowDiscardGuard from '@hooks/useCreateFlowDiscardGuard';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultParticipants from '@hooks/useDefaultParticipants';
 import useLocalize from '@hooks/useLocalize';
@@ -36,7 +35,6 @@ import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
 
-import CreateFlowTabSwitchGuard from './CreateFlowTabSwitchGuard';
 import DynamicIOURequestStepDistanceManual from './step/DynamicIOURequestStepDistanceManual';
 import IOURequestStepDistanceGPS from './step/IOURequestStepDistanceGPS';
 import IOURequestStepDistanceMap from './step/IOURequestStepDistanceMap';
@@ -66,7 +64,6 @@ function DistanceRequestStartPage({
     const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType});
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
-    const [savedOdometerDraft] = useOnyx(ONYXKEYS.ODOMETER_DRAFT);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {participants, isLoading: isLoadingDefaultParticipants} = useDefaultParticipants({sourceReport: report, transaction, iouType});
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
@@ -141,9 +138,6 @@ function DistanceRequestStartPage({
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
     }, []);
 
-    // This page is the first screen of the flow, so closing the RHP from any step asks first when a draft has user input
-    const {isFlowDirty} = useCreateFlowDiscardGuard({isEnabled: action === CONST.IOU.ACTION.CREATE, savedOdometerDraft});
-
     const navigateBack = () => {
         Navigation.closeRHPFlow();
     };
@@ -195,7 +189,6 @@ function DistanceRequestStartPage({
                         <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_MAP}>
                             {() => (
                                 <TabScreenWithFocusTrapWrapper>
-                                    <CreateFlowTabSwitchGuard hasUnsavedChanges={isFlowDirty} />
                                     <IOURequestStepDistanceMap
                                         route={route}
                                         navigation={navigation}
@@ -207,7 +200,6 @@ function DistanceRequestStartPage({
                             <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_MANUAL}>
                                 {() => (
                                     <TabScreenWithFocusTrapWrapper>
-                                        <CreateFlowTabSwitchGuard hasUnsavedChanges={isFlowDirty} />
                                         <DynamicIOURequestStepDistanceManual
                                             route={route}
                                             navigation={navigation}

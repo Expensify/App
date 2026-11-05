@@ -11,6 +11,7 @@ import PrevNextButtons from '@components/PrevNextButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
+import useCreateFlowDiscardGuard from '@hooks/useCreateFlowDiscardGuard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFetchRoute from '@hooks/useFetchRoute';
@@ -69,8 +70,6 @@ import useSubmissionOnboardingIntent from '@pages/iou/request/step/confirmation/
 import useSubmitLock from '@pages/iou/request/step/confirmation/submission/useSubmitLock';
 import {resolveSubmissionPath, SUBMISSION_PATH} from '@pages/iou/request/step/confirmation/submission/utils/resolveSubmissionPath';
 import TelemetrySpanManager from '@pages/iou/request/step/confirmation/TelemetrySpanManager';
-import CreateFlowRootDiscardGuard from '@pages/iou/request/step/CreateFlowRootDiscardGuard';
-import ScanConfirmationDiscardGuard from '@pages/iou/request/step/ScanConfirmationDiscardGuard';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 
@@ -515,12 +514,27 @@ function IOURequestStepConfirmationContent({
         };
     }, []);
 
+    // Leaving this page, or closing the RHP from a page opened from it, asks first when a draft has user input. When embedded,
+    // the start page asks instead. Per diem isn't covered yet, because https://github.com/Expensify/App/issues/105164 moves its
+    // steps into this page.
+    const {isFlowDirty} = useCreateFlowDiscardGuard({
+        isEnabled: !shouldHideHeader && action === CONST.IOU.ACTION.CREATE && !isPerDiemRequest,
+        // Runs only after the user picks Discard, so Cancel keeps the tracking and the destination opened early under the RHP
+        onBeforeClose: () => {
+            cancelTracking();
+            cleanupPreMount();
+        },
+    });
+
     const navigateBack = () => {
-        // User is explicitly abandoning the flow - cancel any active telemetry span.
-        // The orchestrator never calls navigateBack (it uses dismissModal), so this
-        // reliably distinguishes user-initiated back from programmatic dismiss.
-        cancelTracking();
-        cleanupPreMount();
+        // When the guard asks first, it cleans up only if the user picks Discard
+        if (!isFlowDirty) {
+            // User is explicitly abandoning the flow - cancel any active telemetry span.
+            // The orchestrator never calls navigateBack (it uses dismissModal), so this
+            // reliably distinguishes user-initiated back from programmatic dismiss.
+            cancelTracking();
+            cleanupPreMount();
+        }
 
         if (backTo) {
             Navigation.goBack(backTo);
@@ -728,15 +742,6 @@ function IOURequestStepConfirmationContent({
                 requestType={requestType}
                 hasReceipt={!!transaction?.receipt}
             />
-            {!shouldHideHeader && action === CONST.IOU.ACTION.CREATE && (
-                <CreateFlowRootDiscardGuard
-                    onBeforeClose={() => {
-                        cancelTracking();
-                        cleanupPreMount();
-                    }}
-                />
-            )}
-            {!shouldHideHeader && action === CONST.IOU.ACTION.CREATE && isScanRequest(transaction) && <ScanConfirmationDiscardGuard />}
             <DraftWorkspaceOpener
                 isCreatingTrackExpense={isCreatingTrackExpense}
                 policyID={policyID}

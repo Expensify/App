@@ -84,7 +84,10 @@ describe('IOURequestStartPage', () => {
         );
 
     it('leaves the pre-inserted tab alone until the user confirms abandoning a flow with edits', async () => {
-        // Given a create flow whose draft holds user input
+        // Given the Manual tab, which shows the confirmation, and a draft that holds user input
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`, CONST.TAB_REQUEST.MANUAL);
+        });
         jest.mocked(useCreateFlowDiscardGuard).mockReturnValue({isFlowDirty: true});
         const closeRHPFlowSpy = jest.spyOn(Navigation, 'closeRHPFlow').mockImplementation(() => {});
         const removePreInsertedSpy = jest.spyOn(Navigation, 'removePreInsertedFullscreenIfNeeded').mockImplementation(() => {});

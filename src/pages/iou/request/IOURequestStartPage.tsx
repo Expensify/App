@@ -222,15 +222,15 @@ function IOURequestStartPage({
     // mounts for PAY - the embedded confirmation carries the amount inline, so there is no separate step left to skip.
     const shouldEmbedConfirmation = shouldUseTab || iouType === CONST.IOU.TYPE.PAY;
 
-    // The Scan tab only shows the camera, not the draft, so closing the RHP from it doesn't ask. Instead, Confirmation asks when
-    // the user goes back from it, and multi-scan asks on its own while it shows the captured receipts.
-    const isOnScanCamera = () => transactionRequestType === CONST.IOU.REQUEST_TYPE.SCAN && navigation.isFocused();
+    // Only the Manual tab and PAY show the confirmation on this page. The Scan tab shows the camera, which doesn't show the draft,
+    // and the distance and time tabs show a step with its own guard. Their flows ask on the Confirmation page that comes next.
+    const isShowingConfirmation = () => transactionRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
 
-    // This page is the first screen of the flow, so closing the RHP from any step asks first when a draft has user input.
-    // INVOICE doesn't use it: its first screen is the embedded amount step, which has its own guard.
+    // Closing the RHP from the embedded confirmation, or from a page opened from it, asks first when a draft has user input.
+    // INVOICE doesn't use it: it starts on the amount step, which has its own guard.
     const {isFlowDirty} = useCreateFlowDiscardGuard({
         isEnabled: shouldEmbedConfirmation,
-        shouldPrompt: () => !isOnScanCamera(),
+        shouldPrompt: isShowingConfirmation,
         // Runs only after the user picks Discard, so Cancel leaves the tracking and the tab under the RHP as they were.
         // When a tab was removed, close the RHP a frame later, for the same reason as in navigateBack below.
         onBeforeClose: () => {
@@ -244,7 +244,7 @@ function IOURequestStartPage({
     });
 
     const navigateBack = () => {
-        if (isFlowDirty && !isOnScanCamera()) {
+        if (isFlowDirty && isShowingConfirmation()) {
             // The guard asks first, and cleans up only if the user picks Discard
             Navigation.closeRHPFlow();
             return;
@@ -395,7 +395,6 @@ function IOURequestStartPage({
                                             <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>
                                                 {() => (
                                                     <TabScreenWithFocusTrapWrapper>
-                                                        <CreateFlowTabSwitchGuard hasUnsavedChanges={isFlowDirty} />
                                                         <DynamicIOURequestStepDistance
                                                             route={route}
                                                             navigation={navigation}
@@ -408,7 +407,6 @@ function IOURequestStartPage({
                                             <TopTab.Screen name={CONST.TAB_REQUEST.PER_DIEM}>
                                                 {() => (
                                                     <TabScreenWithFocusTrapWrapper>
-                                                        <CreateFlowTabSwitchGuard hasUnsavedChanges={isFlowDirty} />
                                                         {shouldShowWorkspaceSelectForPerDiem ? (
                                                             <IOURequestStepPerDiemWorkspace
                                                                 route={route}
