@@ -10,11 +10,14 @@ import ScrollView from '@components/ScrollView';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 
+import {switchToOldDot} from '@libs/actions/ExitSurvey';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 
 import InitialSettingsPage from '@pages/settings/InitialSettingsPage';
+
+import {openOldDotLink} from '@userActions/Link';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -65,6 +68,16 @@ jest.mock('@userActions/App', () => ({
     setLocale: jest.fn(),
 }));
 
+jest.mock('@libs/actions/ExitSurvey', () => ({
+    resetExitSurveyForm: jest.fn(),
+    switchToOldDot: jest.fn(),
+}));
+
+jest.mock('@userActions/Link', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@userActions/Link'),
+    openOldDotLink: jest.fn(),
+}));
+
 jest.mock('@libs/Navigation/helpers/useIsSidebarRouteActive', () => jest.fn(() => false));
 
 jest.mock('@hooks/useHasTabBeenShown', () => jest.fn(() => true));
@@ -104,17 +117,19 @@ jest.mock('@components/MenuItem', () => {
         badgeText,
         isBadgeSuccess,
         isBadgeCondensed,
+        onPress,
     }: {
         title: string;
         brickRoadIndicator?: string;
         badgeText?: string;
         isBadgeSuccess?: boolean;
         isBadgeCondensed?: boolean;
+        onPress?: () => void;
     }) =>
         ReactMock.createElement(
             ReactMock.Fragment,
             null,
-            ReactMock.createElement(Text, {testID: `menu-item-${String(title)}`}, title),
+            ReactMock.createElement(Text, {testID: `menu-item-${String(title)}`, onPress}, title),
             brickRoadIndicator ? ReactMock.createElement(Text, {testID: `decoration-${String(title)}-rbr`}, brickRoadIndicator) : null,
             badgeText ? ReactMock.createElement(Text, {testID: `decoration-${String(title)}-badge`}, badgeText) : null,
             isBadgeSuccess ? ReactMock.createElement(Text, {testID: `decoration-${String(title)}-badge-success`}) : null,
@@ -419,5 +434,56 @@ describe('InitialSettingsPage - scrolling', () => {
 
         expect(emitSpy).toHaveBeenCalledWith(CONST.EVENTS.SCROLLING, true);
         emitSpy.mockRestore();
+    });
+});
+
+describe('InitialSettingsPage - Go to Expensify Classic', () => {
+    const accountID = 789;
+
+    beforeAll(async () => {
+        Onyx.init({keys: ONYXKEYS});
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'en' as const);
+        });
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    afterEach(async () => {
+        await Onyx.clear();
+        await waitForBatchedUpdatesWithAct();
+        jest.clearAllMocks();
+    });
+
+    it('updates tryNewDot and opens Classic when the exit survey was completed within the last month', async () => {
+        mockUseSubscriptionPlan.mockImplementation(() => null);
+        await TestHelper.signInWithTestUser(accountID, 'user@expensify.com');
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+            await Onyx.set(ONYXKEYS.NVP_TRY_NEW_DOT, {
+                classicRedirect: {
+                    dismissed: true,
+                    timestamp: subDays(new Date(), 1),
+                },
+                nudgeMigration: {
+                    timestamp: subDays(new Date(), 1),
+                },
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        const goToClassicTitle = TestHelper.translateLocal('exitSurvey.goToExpensifyClassic');
+        await waitFor(() => {
+            expect(screen.getByTestId(`menu-item-${goToClassicTitle}`)).toBeDefined();
+        });
+
+        fireEvent.press(screen.getByTestId(`menu-item-${goToClassicTitle}`));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(switchToOldDot).toHaveBeenCalledWith('');
+        expect(openOldDotLink).toHaveBeenCalledWith(CONST.OLDDOT_URLS.INBOX, true);
     });
 });

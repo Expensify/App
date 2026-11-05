@@ -10,7 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useSignOut from '@hooks/useSignOut';
 
-import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
+import {resetExitSurveyForm, switchToOldDot} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {hasAgentErrorsSelector} from '@libs/AgentUtils';
 import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
@@ -216,6 +216,7 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
                 : {
                       action() {
                           if (surveyCompletedWithinLastMonth) {
+                              switchToOldDot('');
                               openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
                               return;
                           }
