@@ -791,6 +791,31 @@ describe('Go back on the narrow layout', () => {
             };
         }
 
+        it.each([true, false])('Should keep the sidebar and More features in the card workspace with an underlying workspace tab=%s', (hasUnderlyingWorkspaceTab) => {
+            // Given Wallet in the Account tab with a modal open, while Workspaces still holds workspace B
+            const accountTabIndex = 3;
+            const accountState = buildStateWithModalOverTab(accountTabIndex, buildWorkspaceSplitRoute(policyB));
+            const initialState: InitialState = hasUnderlyingWorkspaceTab
+                ? {index: 2, routes: [...buildWorkspaceNavigationState(buildWorkspaceSplitRoute(policyB)).routes, ...accountState.routes]}
+                : accountState;
+            render(<TestNavigationContainer initialState={initialState} />);
+
+            // When a card belonging to workspace A redirects to its disabled feature
+            act(() => {
+                Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyA));
+            });
+
+            // Then both panes belong to A rather than showing A's settings beside B's sidebar
+            const rootState = navigationRef.getRootState();
+            expect(rootState.routes.at(rootState.index)?.name).toBe(NAVIGATORS.TAB_NAVIGATOR);
+            const tabState = rootState.routes.at(rootState.index)?.state;
+            expect(tabState?.routes.at(tabState.index ?? 0)?.name).toBe(NAVIGATORS.WORKSPACE_NAVIGATOR);
+            const workspaceState = getActiveWorkspaceState();
+            const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
+            expect(activeSplit?.state?.routes.at(0)).toMatchObject({name: SCREENS.WORKSPACE.INITIAL, params: {policyID: policyA}});
+            expect(activeSplit?.state?.routes.at(-1)).toMatchObject({name: SCREENS.WORKSPACE.MORE_FEATURES, params: {policyID: policyA}});
+        });
+
         it('Should close the modal and reach the matching workspace split', () => {
             render(<TestNavigationContainer initialState={buildStateWithModalOverWorkspaces(buildWorkspaceSplitRoute(policyA), buildWorkspaceSplitRoute(policyB))} />);
             const dispatchSpy = jest.spyOn(requireNavigationContainer(), 'dispatch');
