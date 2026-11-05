@@ -64,6 +64,7 @@ function getUpcoming(
         nextStep,
         isOpenReport,
         isDEWPolicy,
+        shouldDisplayMarkAsDone: false,
         reportMetadata,
     })
         .filter((step) => step.isUpcoming)
@@ -83,6 +84,7 @@ function getCompletedSteps(reportActions: ReportAction[]) {
         nextStep: undefined,
         isOpenReport: false,
         isDEWPolicy: false,
+        shouldDisplayMarkAsDone: false,
         reportMetadata: undefined,
     })
         .filter((step) => !step.isUpcoming)
@@ -90,6 +92,74 @@ function getCompletedSteps(reportActions: ReportAction[]) {
 }
 
 describe('getReportHistorySteps', () => {
+    it.each([
+        [CONST.REPORT.ACTIONS.TYPE.SUBMITTED, undefined],
+        [CONST.REPORT.ACTIONS.TYPE.SUBMITTED, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD],
+        [CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, undefined],
+        [CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD],
+        [CONST.REPORT.ACTIONS.TYPE.CLOSED, undefined],
+        [CONST.REPORT.ACTIONS.TYPE.CLOSED, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD],
+    ])('labels a Mark as done action %s with pending state %s correctly', (actionName, pendingAction) => {
+        // Given a track-intent user marking a report done in a workflow that submits to themselves
+        const action: ReportAction = {
+            ...buildAction('2', actionName, OWNER_ACCOUNT_ID, '2026-01-01 10:00:00.000', pendingAction),
+            message: {type: 'COMMENT', html: actionName, text: actionName, amount: 100, currency: CONST.CURRENCY.USD},
+        };
+
+        // When history is built before or after the server confirms the action
+        const steps = getReportHistorySteps({
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            currentUserEmail: undefined,
+            currentUserAccountID: OWNER_ACCOUNT_ID,
+            reportID: REPORT_ID,
+            reportOwnerAccountID: OWNER_ACCOUNT_ID,
+            reportActions: toReportActions([action]),
+            upcomingSteps: [],
+            nextStep: buildNextStep(CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION),
+            isOpenReport: false,
+            isDEWPolicy: false,
+            shouldDisplayMarkAsDone: true,
+            reportMetadata: undefined,
+        });
+
+        // Then history uses the same wording as the report conversation
+        expect(steps).toEqual([expect.objectContaining({label: translateLocal('iou.markedAsDone'), accountID: OWNER_ACCOUNT_ID, isUpcoming: false})]);
+    });
+
+    it.each([
+        [CONST.REPORT.ACTIONS.TYPE.SUBMITTED, false, false, false],
+        [CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, false, false, false],
+        [CONST.REPORT.ACTIONS.TYPE.SUBMITTED, true, true, false],
+        [CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, true, false, true],
+    ])('preserves submission wording for %s with Mark as done %s, DEW %s and harvesting %s', (actionName, shouldDisplayMarkAsDone, isDEWPolicy, harvesting) => {
+        // Given a normal submission, a DEW submission, or an automatic submission rather than a manual Mark as done
+        const action: ReportAction = {
+            ...buildAction('2', actionName, OWNER_ACCOUNT_ID, '2026-01-01 10:00:00.000'),
+            message: {type: 'COMMENT', html: actionName, text: actionName, amount: 100, currency: CONST.CURRENCY.USD, harvesting},
+        };
+
+        // When history is built with the workflow context
+        const steps = getReportHistorySteps({
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            currentUserEmail: undefined,
+            currentUserAccountID: OWNER_ACCOUNT_ID,
+            reportID: REPORT_ID,
+            reportOwnerAccountID: OWNER_ACCOUNT_ID,
+            reportActions: toReportActions([action]),
+            upcomingSteps: [],
+            nextStep: undefined,
+            isOpenReport: false,
+            isDEWPolicy,
+            shouldDisplayMarkAsDone,
+            reportMetadata: undefined,
+        });
+
+        // Then unrelated submission flows retain their existing label
+        expect(steps).toEqual([expect.objectContaining({label: translateLocal('reportHistoryPage.submitted')})]);
+    });
+
     it('shows the backend upcoming steps when they match the next step', () => {
         // Given a report waiting on the first approver, with the snapshot still current
         const nextStep = buildNextStep(CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE, FIRST_APPROVER_ACCOUNT_ID);
@@ -295,6 +365,7 @@ describe('getReportHistorySteps', () => {
             nextStep: undefined,
             isOpenReport: false,
             isDEWPolicy: false,
+            shouldDisplayMarkAsDone: false,
             reportMetadata: undefined,
         });
 
