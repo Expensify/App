@@ -2199,14 +2199,15 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `In attesa che <strong>tu</strong> approvi le spese.`;
+                        return isBill ? `In attesa che <strong>tu</strong> approvi la fattura.` : `In attesa che <strong>tu</strong> approvi le spese.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `In attesa che <strong>${actor}</strong> approvi le spese.`;
+                        return isBill ? `In attesa che <strong>${actor}</strong> approvi la fattura.` : `In attesa che <strong>${actor}</strong> approvi le spese.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `In attesa che un amministratore approvi le spese.`;
+                        return isBill ? `In attesa che un amministratore approvi la fattura.` : `In attesa che un amministratore approvi le spese.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (
@@ -2229,14 +2230,15 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `In attesa che <strong>tu</strong> rimborsi le spese.`;
+                        return isBill ? `In attesa che <strong>tu</strong> paghi questa fattura.` : `In attesa che <strong>tu</strong> rimborsi le spese.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `In attesa che <strong>${actor}</strong> rimborsi le spese.`;
+                        return isBill ? `In attesa che <strong>${actor}</strong> paghi questa fattura.` : `In attesa che <strong>${actor}</strong> rimborsi le spese.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `In attesa che un admin rimborsi le spese.`;
+                        return isBill ? `In attesa che un admin paghi questa fattura.` : `In attesa che un admin rimborsi le spese.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (

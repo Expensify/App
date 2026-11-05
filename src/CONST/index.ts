@@ -1518,7 +1518,6 @@ const CONST = {
         GLOBAL_REIMBURSEMENTS: 'globalReimbursements',
         WISE_REIMBURSEMENTS: 'wiseReimbursements',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
-        TRAVEL_CODING_SYNC: 'travelCodingSync',
         ARCHIVE_POLICIES: 'archivePolicies',
         MERGE_ATS: 'mergeATSConnections',
         REPORT_MERGE: 'reportMerge',
@@ -1876,7 +1875,7 @@ const CONST = {
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME: 'ExpensifyPackageForSageIntacct',
     SAGE_INTACCT_INSTRUCTIONS: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct',
     HOW_TO_CONNECT_TO_SAGE_INTACCT: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct#how-to-connect-to-sage-intacct',
-    BUSINESS_CENTRAL_HELP_URL: 'https://help.expensify.com/new-expensify/hubs/connections/',
+    BUSINESS_CENTRAL_HELP_URL: 'https://help.expensify.com/new-expensify/hubs/connections/business-central',
     PRICING: `https://www.expensify.com/pricing`,
     COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS:
         'https://help.expensify.com/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Commercial-Feed-for-Company-Cards#how-to-enable-a-mastercard-commercial-card-feed-cdf',

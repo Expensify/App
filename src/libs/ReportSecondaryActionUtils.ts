@@ -644,6 +644,7 @@ function isHoldAction(
     policy: OnyxEntry<Policy>,
     currentUserAccountID: number | undefined,
     rules: OnyxCollection<Rule>,
+    reportOwnerLogin: string | undefined,
     /** TODO: Should be a required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
     isOffline?: boolean,
 ): boolean {
@@ -656,7 +657,7 @@ function isHoldAction(
     }
 
     const action = !!reportActions && getIOUActionForTransactionID(reportActions, transaction.transactionID);
-    return !!action && isHoldActionForTransaction(report, transaction, action, policy, currentUserAccountID, rules);
+    return !!action && isHoldActionForTransaction(report, transaction, action, policy, currentUserAccountID, rules, reportOwnerLogin);
 }
 
 function isHoldActionForTransaction(
@@ -666,12 +667,13 @@ function isHoldActionForTransaction(
     policy: OnyxEntry<Policy>,
     currentUserAccountID: number | undefined,
     rules: OnyxCollection<Rule>,
+    reportOwnerLogin: string | undefined,
 ): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
     const isIOUReport = isIOUReportUtils(report);
     const iouOrExpenseReport = isExpenseReport || isIOUReport;
     const holdReportAction = getReportAction(reportAction?.childReportID, `${reportTransaction?.comment?.hold ?? ''}`);
-    const {canHoldRequest} = canHoldUnholdReportAction(report, reportAction, holdReportAction, reportTransaction, policy, currentUserAccountID, rules);
+    const {canHoldRequest} = canHoldUnholdReportAction(report, reportAction, holdReportAction, reportTransaction, policy, currentUserAccountID, rules, reportOwnerLogin);
     const isActionOwner = isActionCreator(reportAction);
 
     if (isOpenExpenseReport(report)) {
@@ -1151,7 +1153,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REOPEN);
     }
 
-    if (isHoldAction(report, chatReport, reportTransactions, reportActions, policy, currentUserAccountID, rules, isOffline)) {
+    if (isHoldAction(report, chatReport, reportTransactions, reportActions, policy, currentUserAccountID, rules, submitterLogin, isOffline)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.HOLD);
     }
 
@@ -1311,7 +1313,7 @@ function getSecondaryTransactionThreadActions({
 }): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
-    if (!!reportAction && isHoldActionForTransaction(parentReport, reportTransaction, reportAction, policy, currentUserAccountID, rules)) {
+    if (!!reportAction && isHoldActionForTransaction(parentReport, reportTransaction, reportAction, policy, currentUserAccountID, rules, parentReportOwnerLogin)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
     }
 
