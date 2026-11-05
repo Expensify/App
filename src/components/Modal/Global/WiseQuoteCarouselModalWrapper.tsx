@@ -19,16 +19,19 @@ import {ModalActions} from './ModalContext';
 type WiseQuoteCarouselModalWrapperProps = ModalProps & {
     reportIDs: string[];
 
-    /** Receives the confirmed quote of every report, keyed by reportID */
+    /** The reports Wise pays through a global provider, each waiting for its quote */
+    quotedReportIDs: string[];
+
+    /** Receives the confirmed quote of every quoted report, keyed by reportID */
     onConfirm: (wiseQuoteIDsByReportID: Record<string, string>) => void;
 };
 
-/** Pay all stays disabled until every report's quote is loaded, since Wise requires the admin to be able to see each one */
-function WiseQuoteCarouselModalWrapper({closeModal, resolveModal, reportIDs, onConfirm}: WiseQuoteCarouselModalWrapperProps) {
+/** Pay all stays disabled until every quoted report's quote is loaded, since Wise requires the admin to be able to see each one */
+function WiseQuoteCarouselModalWrapper({closeModal, resolveModal, reportIDs, quotedReportIDs, onConfirm}: WiseQuoteCarouselModalWrapperProps) {
     const {translate} = useLocalize();
     const selectQuoteStates = (reports: OnyxCollection<Report>) =>
         Object.fromEntries(
-            reportIDs.map((reportID) => {
+            quotedReportIDs.map((reportID) => {
                 const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                 return [reportID, {wiseQuoteID: report?.wiseQuote?.wiseQuoteID, hasError: !!report?.errorFields?.wiseQuote}];
             }),
@@ -38,8 +41,8 @@ function WiseQuoteCarouselModalWrapper({closeModal, resolveModal, reportIDs, onC
     });
     const quoteStates = Object.entries(quoteStatesByReportID);
     const confirmedQuoteIDs = quoteStates.flatMap(([reportID, {wiseQuoteID}]) => (wiseQuoteID ? [[reportID, wiseQuoteID] as const] : []));
-    const hasEveryQuote = confirmedQuoteIDs.length === reportIDs.length;
-    const isLoading = quoteStates.length < reportIDs.length || quoteStates.some(([, {wiseQuoteID, hasError}]) => !wiseQuoteID && !hasError);
+    const hasEveryQuote = confirmedQuoteIDs.length === quotedReportIDs.length;
+    const isLoading = quoteStates.length < quotedReportIDs.length || quoteStates.some(([, {wiseQuoteID, hasError}]) => !wiseQuoteID && !hasError);
 
     return (
         <ConfirmModalWrapper
@@ -54,6 +57,7 @@ function WiseQuoteCarouselModalWrapper({closeModal, resolveModal, reportIDs, onC
             prompt={
                 <WiseQuoteCarousel
                     reportIDs={reportIDs}
+                    quotedReportIDs={quotedReportIDs}
                     isLoading={isLoading}
                 />
             }

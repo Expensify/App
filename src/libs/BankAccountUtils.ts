@@ -246,24 +246,33 @@ function isGlobalReimbursementsEnabled(bankAccount: OnyxEntry<OnyxTypes.BankAcco
     return bankAccount?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && bankAccount?.accountData?.additionalData?.isGlobalReimbursementEnabled === true;
 }
 
-type ShouldConfirmWiseQuoteBeforePayingParams = {
+type WiseQuotePaymentParams = {
     paymentType: PaymentMethodType;
     methodID?: number;
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     isWiseReimbursementsBetaEnabled: boolean;
+    iouReport?: Pick<OnyxTypes.Report, 'currency' | 'requiresGlobalReimbursement'>;
     wiseQuoteID?: string;
 };
 
-/**
- * Whether the admin confirms a Wise quote before this payment. Every Wise payment asks, since the client can't tell a
- * cross-currency report from a same-currency one.
- */
-function shouldConfirmWiseQuoteBeforePaying({paymentType, methodID, bankAccountList, isWiseReimbursementsBetaEnabled, wiseQuoteID}: ShouldConfirmWiseQuoteBeforePayingParams): boolean {
-    if (!isWiseReimbursementsBetaEnabled || wiseQuoteID || paymentType !== CONST.IOU.PAYMENT_TYPE.VBBA || !methodID) {
+/** Whether Wise sends this report to the employee through a global provider, which it prices with a quote */
+function shouldGetWiseQuote({paymentType, methodID, bankAccountList, isWiseReimbursementsBetaEnabled, iouReport}: WiseQuotePaymentParams): boolean {
+    if (!isWiseReimbursementsBetaEnabled || paymentType !== CONST.IOU.PAYMENT_TYPE.VBBA || !methodID || !iouReport?.requiresGlobalReimbursement) {
         return false;
     }
     const bankAccount = bankAccountList?.[methodID];
     return isGlobalReimbursementsEnabled(bankAccount) && bankAccount?.accountData?.additionalData?.globalReimbursementProvider === CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE;
+}
+
+/** Whether the admin confirms the Wise quote before paying, which happens only when Wise converts the report into another currency */
+function shouldConfirmWiseQuoteBeforePaying(params: WiseQuotePaymentParams): boolean {
+    if (params.wiseQuoteID || !shouldGetWiseQuote(params)) {
+        return false;
+    }
+    const bankAccount = params.methodID ? params.bankAccountList?.[params.methodID] : undefined;
+    // `||` not `??`: bankCurrency can be an empty string, which falls through to additionalData
+    const bankCurrency = bankAccount?.bankCurrency || bankAccount?.accountData?.additionalData?.currency;
+    return params.iouReport?.currency !== bankCurrency;
 }
 
 /**
@@ -522,6 +531,7 @@ export {
     isFilterableBankAccount,
     isBankAccountEligibleForGlobalReimbursements,
     shouldConfirmWiseQuoteBeforePaying,
+    shouldGetWiseQuote,
     shouldSetUpGlobalReimbursementsBeforePaying,
     isGlobalReimbursementsEnabled,
     isWiseOnboardingSubmitted,

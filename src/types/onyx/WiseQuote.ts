@@ -1,4 +1,4 @@
-/** Wise's price for paying a cross-currency report, held for 30 minutes. Amounts are in cents */
+/** Wise's price for paying a report through a global provider, held for 30 minutes. Amounts are in cents */
 type WiseQuote = {
     /** Wise's quote UUID, sent back with Pay */
     wiseQuoteID: string;

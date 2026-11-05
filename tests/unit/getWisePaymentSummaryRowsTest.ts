@@ -1,5 +1,5 @@
 import type {WisePaymentAmounts} from '@components/WisePaymentSummary/types';
-import getWisePaymentSummaryRows, {getWisePaymentSummaryRowCount} from '@components/WisePaymentSummary/utils/getWisePaymentSummaryRows';
+import getWisePaymentSummaryRows, {getAmountsWithoutQuote, getWisePaymentSummaryRowCount} from '@components/WisePaymentSummary/utils/getWisePaymentSummaryRows';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -89,6 +89,45 @@ describe('getWisePaymentSummaryRows', () => {
         // Then the tax row appears after the fees only for the quote that has a tax, since most corridors have none
         expect(rowsWithTax.at(-2)).toEqual({label: 'Tax', value: '$0.25'});
         expect(rowsWithoutTax.map(({label}) => label)).not.toContain('Tax');
+    });
+
+    it('skips the FX rate when Wise pays in the same currency', () => {
+        // Given a quote where the employee receives the same currency the company is debited in
+        // When the rows are built
+        const rows = getRows({amounts: {...amounts, rate: 1, creditedAmount: 1000, paymentCurrency: CONST.CURRENCY.USD}});
+
+        // Then there is no FX rate row, since nothing is converted
+        expect(rows.map(({label}) => label)).not.toContain('FX rate');
+    });
+
+    describe('getAmountsWithoutQuote', () => {
+        it('pays the employee the reimbursable amount with no fees', () => {
+            // Given a report Wise pays without a quote, where only $1.00 of $6.60 is reimbursable
+            const report = {...fullyReimbursableReport, total: -660, reimbursableTotal: -100, nonReimbursableTotal: -560};
+
+            // When the rows are built from its amounts
+            const rows = getRows({report, amounts: getAmountsWithoutQuote({report, isPayingUnheldOnly: false})});
+
+            // Then the company is debited exactly what the employee receives, with zero fees and no conversion
+            expect(rows).toEqual([
+                {label: 'Report total', value: '$6.60'},
+                {label: 'Reimbursable', value: '$1.00'},
+                {label: 'Debit amount', value: '$1.00'},
+                {label: 'Employee will receive', value: '$1.00'},
+                {label: 'Total fees', value: '$0.00'},
+            ]);
+        });
+
+        it('pays only the unheld amount when the admin pays the expenses not on hold', () => {
+            // Given a report with $1.00 not on hold, where the admin pays only what is not on hold
+            const report = {...fullyReimbursableReport, total: -660, reimbursableTotal: -500, unheldReimbursableTotal: -100};
+
+            // When its amounts are built
+            const amountsWithoutQuote = getAmountsWithoutQuote({report, isPayingUnheldOnly: true});
+
+            // Then the debit and the employee amount are the unheld part, because that is what is paid
+            expect(amountsWithoutQuote).toMatchObject({fee: 0, debitedAmount: 100, creditedAmount: 100});
+        });
     });
 
     describe('getWisePaymentSummaryRowCount', () => {

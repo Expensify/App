@@ -28,12 +28,15 @@ const NEXT_CARD_PEEK = 32;
 type WiseQuoteCarouselProps = {
     reportIDs: string[];
 
+    /** The reports Wise pays through a global provider, which show a quote. The rest show their amounts with no fees */
+    quotedReportIDs: string[];
+
     /** True until every report's quote has loaded or failed, shown as one loader for the whole carousel */
     isLoading: boolean;
 };
 
 /** One Wise quote card per report, swiped or stepped through with the arrows */
-function WiseQuoteCarousel({reportIDs, isLoading}: WiseQuoteCarouselProps) {
+function WiseQuoteCarousel({reportIDs, quotedReportIDs, isLoading}: WiseQuoteCarouselProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -128,6 +131,7 @@ function WiseQuoteCarousel({reportIDs, isLoading}: WiseQuoteCarouselProps) {
                                 <WiseQuotePaymentSummary
                                     reportID={reportID}
                                     isPayingUnheldOnly={false}
+                                    isQuoteRequired={quotedReportIDs.includes(reportID)}
                                     shouldShowLoadingIndicator={false}
                                 />
                             </View>

@@ -247,6 +247,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         isWaitingOnBankAccount?: boolean;
 
+        /** Whether paying from the workspace reimbursement account sends this report through a global provider */
+        requiresGlobalReimbursement?: boolean;
+
         /** Whether Auth still allows the bank reimbursement to be cancelled, returned by OpenReport */
         canCancelReimbursement?: boolean;
 

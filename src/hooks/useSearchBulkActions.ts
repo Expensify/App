@@ -48,7 +48,7 @@ import {
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
 import {getWiseQuote} from '@libs/actions/Wise';
-import {shouldConfirmWiseQuoteBeforePaying} from '@libs/BankAccountUtils';
+import {shouldConfirmWiseQuoteBeforePaying, shouldGetWiseQuote} from '@libs/BankAccountUtils';
 import {canResolveTransactionCard} from '@libs/CardUtils';
 import {getConnectionCompanyID} from '@libs/CopyPolicySettingsUtils';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
@@ -1819,7 +1819,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                       });
 
             let paidReportCount = 0;
-            const wisePayments: PayMoneyRequestFunctionParams[] = [];
+            const expensePayments: PayMoneyRequestFunctionParams[] = [];
             for (const item of itemsToPay) {
                 if (!item.reportID) {
                     Log.info('[BulkPay] Skipping report: item has no reportID');
@@ -1958,27 +1958,38 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     rules,
                 };
 
-                if (shouldConfirmWiseQuoteBeforePaying(payMoneyRequestParams)) {
-                    wisePayments.push(payMoneyRequestParams);
-                    continue;
-                }
-                payMoneyRequest(payMoneyRequestParams);
-
-                // payMoneyRequest opens the global reimbursements onboarding instead of paying, so this report stays unpaid
-                if (
-                    getBankAccountToSetUpBeforePaying({
-                        paymentType: paymentItem.paymentType as PaymentMethodType,
-                        methodID,
-                        bankAccountList,
-                        isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
-                    })
-                ) {
-                    continue;
-                }
-                paidReportCount += 1;
+                expensePayments.push(payMoneyRequestParams);
             }
 
-            if (paidReportCount + wisePayments.length < itemsToPay.length) {
+            const payExpenseReports = (wiseQuoteIDsByReportID: Record<string, string> = {}) => {
+                let count = 0;
+                for (const params of expensePayments) {
+                    const reportID = params.iouReport?.reportID;
+                    payMoneyRequest({...params, wiseQuoteID: reportID ? wiseQuoteIDsByReportID[reportID] : undefined});
+
+                    // payMoneyRequest opens the global reimbursements onboarding instead of paying, so this report stays unpaid
+                    if (
+                        getBankAccountToSetUpBeforePaying({
+                            paymentType: params.paymentType,
+                            methodID: params.methodID,
+                            bankAccountList,
+                            isWiseReimbursementsBetaEnabled: params.isWiseReimbursementsBetaEnabled,
+                        })
+                    ) {
+                        continue;
+                    }
+                    count += 1;
+                }
+                return count;
+            };
+
+            // One report Wise converts into another currency is enough to show every report with its quote before paying
+            const shouldConfirmWiseQuotes = expensePayments.some((params) => shouldConfirmWiseQuoteBeforePaying(params));
+            if (!shouldConfirmWiseQuotes) {
+                paidReportCount += payExpenseReports();
+            }
+
+            if (paidReportCount + (shouldConfirmWiseQuotes ? expensePayments.length : 0) < itemsToPay.length) {
                 Log.info('[BulkPay] Bulk pay finished with skipped reports', false, {paidReportCount, selectedCount: itemsToPay.length});
             }
 
@@ -1987,20 +1998,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 clearSelectedTransactions();
             }
 
-            if (wisePayments.length > 0) {
-                const wiseReportIDs = wisePayments.map((params) => params.iouReport?.reportID).filter((reportID): reportID is string => !!reportID);
-                for (const reportID of wiseReportIDs) {
+            if (shouldConfirmWiseQuotes) {
+                const reportIDs = expensePayments.flatMap((params) => (params.iouReport?.reportID ? [params.iouReport.reportID] : []));
+                const quotedReportIDs = expensePayments.flatMap((params) => (params.iouReport?.reportID && shouldGetWiseQuote(params) ? [params.iouReport.reportID] : []));
+                for (const reportID of quotedReportIDs) {
                     getWiseQuote(reportID);
                 }
                 showWiseQuoteCarouselModal({
-                    reportIDs: wiseReportIDs,
+                    reportIDs,
+                    quotedReportIDs,
                     onConfirm: (wiseQuoteIDsByReportID) => {
-                        for (const params of wisePayments) {
-                            const reportID = params.iouReport?.reportID;
-                            if (!reportID) {
-                                continue;
-                            }
-                            payMoneyRequest({...params, wiseQuoteID: wiseQuoteIDsByReportID[reportID]});
+                        if (payExpenseReports(wiseQuoteIDsByReportID) === 0) {
+                            return;
                         }
                         playSound(SOUNDS.SUCCESS);
                         clearSelectedTransactions();

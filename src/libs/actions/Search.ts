@@ -710,7 +710,7 @@ function getPayActionCallback({
     const methodID = lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? paymentPolicy?.achAccount?.bankAccountID : undefined;
 
     // One-tap pay can't show the Wise quote, so the report opens and the admin pays from there
-    if (shouldConfirmWiseQuoteBeforePaying({paymentType: lastPolicyPaymentMethod, methodID, bankAccountList, isWiseReimbursementsBetaEnabled})) {
+    if (shouldConfirmWiseQuoteBeforePaying({paymentType: lastPolicyPaymentMethod, methodID, bankAccountList, isWiseReimbursementsBetaEnabled, iouReport: snapshotReport})) {
         goToItem();
         return;
     }

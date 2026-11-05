@@ -6,6 +6,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import {convertAmountToDisplayString, convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {getReimbursableTotal, getUnheldReimbursableTotal} from '@libs/ReportUtils';
 
+import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 
 type GetWisePaymentSummaryRowsParams = {
@@ -34,6 +35,13 @@ function getWisePaymentSummaryRowCount(params: PartialPaymentRowParams): number 
     return QUOTE_ROW_COUNT + (hasPartialPaymentRow(params) ? 1 : 0);
 }
 
+/** Amounts for a report Wise pays without a quote: the employee gets the amount being paid, with no fees or conversion */
+function getAmountsWithoutQuote({report, isPayingUnheldOnly}: PartialPaymentRowParams): WisePaymentAmounts {
+    const amount = Math.abs(isPayingUnheldOnly ? getUnheldReimbursableTotal(report) : getReimbursableTotal(report));
+    const currency = report.currency ?? CONST.CURRENCY.USD;
+    return {fee: 0, rate: 1, debitedAmount: amount, creditedAmount: amount, currency, paymentCurrency: currency};
+}
+
 function getWisePaymentSummaryRows({report, amounts, isPayingUnheldOnly, translate, convertToDisplayString}: GetWisePaymentSummaryRowsParams): WisePaymentSummaryRow[] {
     // Expense report totals are stored as negative numbers
     const reportTotal = Math.abs(report.total ?? 0);
@@ -60,12 +68,14 @@ function getWisePaymentSummaryRows({report, amounts, isPayingUnheldOnly, transla
         rows.push({label: translate('common.tax'), value: convertToDisplayString(amounts.tax, amounts.currency)});
     }
 
-    // The rate is a float, while convertAmountToDisplayString takes cents and keeps up to four decimals
-    const rate = convertAmountToDisplayString(amounts.rate * 100, amounts.paymentCurrency);
-    rows.push({label: translate('iou.wisePaymentSummary.fxRate'), value: `${convertToShortDisplayString(100, amounts.currency)} = ${rate}`});
+    if (amounts.currency !== amounts.paymentCurrency) {
+        // The rate is a float, while convertAmountToDisplayString takes cents and keeps up to four decimals
+        const rate = convertAmountToDisplayString(amounts.rate * 100, amounts.paymentCurrency);
+        rows.push({label: translate('iou.wisePaymentSummary.fxRate'), value: `${convertToShortDisplayString(100, amounts.currency)} = ${rate}`});
+    }
 
     return rows;
 }
 
 export default getWisePaymentSummaryRows;
-export {getWisePaymentSummaryRowCount};
+export {getAmountsWithoutQuote, getWisePaymentSummaryRowCount};

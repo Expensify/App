@@ -1,6 +1,7 @@
 import {
     isWiseOnboardingPendingSubmit,
     shouldConfirmWiseQuoteBeforePaying,
+    shouldGetWiseQuote,
     getBankAccountConnectionStatus,
     getBankAccountState,
     getCompletedStepsForBankAccount,
@@ -421,7 +422,7 @@ describe('BankAccountUtils', () => {
         });
     });
 
-    describe('shouldConfirmWiseQuoteBeforePaying', () => {
+    describe('Wise quotes', () => {
         const wiseBankAccountID = 1;
         const corpayBankAccountID = 2;
         const buildBankAccount = (globalReimbursementProvider: ValueOf<typeof CONST.GLOBAL_REIMBURSEMENT_PROVIDER>): BankAccount => ({
@@ -433,31 +434,50 @@ describe('BankAccountUtils', () => {
             [wiseBankAccountID]: buildBankAccount(CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE),
             [corpayBankAccountID]: buildBankAccount(CONST.GLOBAL_REIMBURSEMENT_PROVIDER.CORPAY),
         };
-        const wisePayment = {
+        const crossCurrencyPayment = {
             paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
             methodID: wiseBankAccountID,
             bankAccountList,
             isWiseReimbursementsBetaEnabled: true,
+            iouReport: {currency: CONST.CURRENCY.EUR, requiresGlobalReimbursement: true},
         };
+        const sameCurrencyPayment = {...crossCurrencyPayment, iouReport: {currency: CONST.CURRENCY.USD, requiresGlobalReimbursement: true}};
 
-        it('asks for a quote when paying from a Wise account', () => {
-            // Given a business bank account payment from an account set up through Wise
-            // When deciding whether to show the quote first
-            // Then it does, because Wise requires the admin to see its fees and rate before paying
-            expect(shouldConfirmWiseQuoteBeforePaying(wisePayment)).toBe(true);
+        it('asks for a quote when Wise converts the report into another currency', () => {
+            // Given a EUR report paid through a global provider from a USD Wise account
+            // When deciding whether to get and show the quote first
+            // Then both hold, because Wise requires the admin to see its fees and rate before paying
+            expect(shouldGetWiseQuote(crossCurrencyPayment)).toBe(true);
+            expect(shouldConfirmWiseQuoteBeforePaying(crossCurrencyPayment)).toBe(true);
+        });
+
+        it('gets a quote without asking when the report is in the bank account currency', () => {
+            // Given a USD report paid through a global provider from a USD Wise account
+            // When deciding whether to get and show the quote first
+            // Then it gets the quote for the fees, but pays without asking since nothing is converted
+            expect(shouldGetWiseQuote(sameCurrencyPayment)).toBe(true);
+            expect(shouldConfirmWiseQuoteBeforePaying(sameCurrencyPayment)).toBe(false);
         });
 
         it.each([
             ['the Wise beta is off', {isWiseReimbursementsBetaEnabled: false}],
-            ['the admin already confirmed a quote', {wiseQuoteID: 'quote'}],
             ['the payment is made elsewhere', {paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}],
             ['the account is set up through Corpay', {methodID: corpayBankAccountID}],
             ['the account is unknown', {methodID: 3}],
+            ['the report does not go through a global provider', {iouReport: {currency: CONST.CURRENCY.EUR, requiresGlobalReimbursement: false}}],
         ])('pays without a quote when %s', (_label, overrides) => {
             // Given a payment that Wise does not price
+            // When deciding whether to get and show the quote first
+            // Then neither holds and it pays straight away
+            expect(shouldGetWiseQuote({...crossCurrencyPayment, ...overrides})).toBe(false);
+            expect(shouldConfirmWiseQuoteBeforePaying({...crossCurrencyPayment, ...overrides})).toBe(false);
+        });
+
+        it('does not ask again once the admin confirmed a quote', () => {
+            // Given a cross-currency payment that already carries the confirmed quote
             // When deciding whether to show the quote first
-            // Then it pays straight away, as it does today
-            expect(shouldConfirmWiseQuoteBeforePaying({...wisePayment, ...overrides})).toBe(false);
+            // Then it pays with that quote instead of asking again
+            expect(shouldConfirmWiseQuoteBeforePaying({...crossCurrencyPayment, wiseQuoteID: 'quote'})).toBe(false);
         });
     });
 
