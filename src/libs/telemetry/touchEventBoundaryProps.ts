@@ -24,19 +24,18 @@ function oneOf(values: string[]): string {
 }
 
 /**
- * Prefixes and suffixes of labels we build at runtime. The rest of the label isn't checked, so only add one here when
- * the rest can't carry user data. Accessibility labels and test IDs in these formats get through too.
+ * Matches any string that is not a label from `CONST.SENTRY_LABEL` or a label built with `CONST.SENTRY_LABEL_PREFIX` /
+ * `CONST.SENTRY_LABEL_SUFFIX`. Keep it in sync with the `SentryLabel` type. Unlike the type, it also needs something
+ * after the prefix or before the suffix. Accessibility labels and test IDs in these formats get through too.
  */
-const DYNAMIC_LABEL_PREFIXES = ['Search-Filter-', 'Search-Advanced-Filter-', 'Search-FilterPopupApply-', `${CONST.SENTRY_LABEL.SOCIALS.LINK}-`];
-const DYNAMIC_LABEL_SUFFIXES = ['-ClearButton', '-SkippedEmployees'];
-
-/** Matches any string that is not a label from `CONST.SENTRY_LABEL` or a label built in one of the formats above. */
-const UNKNOWN_LABEL = new RegExp(`^(?!(?:${oneOf(collectSentryLabels(CONST.SENTRY_LABEL))}|${oneOf(DYNAMIC_LABEL_PREFIXES)}.+|.+${oneOf(DYNAMIC_LABEL_SUFFIXES)})$)`);
+const UNKNOWN_LABEL = new RegExp(
+    `^(?!(?:${oneOf(collectSentryLabels(CONST.SENTRY_LABEL))}|${oneOf(Object.values(CONST.SENTRY_LABEL_PREFIX))}.+|.+${oneOf(Object.values(CONST.SENTRY_LABEL_SUFFIX))})$)`,
+);
 
 /**
  * Sentry on mobile names each tap after a label found on the tapped element or its parents. By default it uses
  * accessibility labels, test IDs or text, which can contain user data like names, emails and amounts.
- * This config makes it use only labels from `CONST.SENTRY_LABEL` (or built in one of the formats above), same as on web.
+ * This config makes it use only labels from `CONST.SENTRY_LABEL` (or built with a known prefix or suffix), same as on web.
  */
 const touchEventBoundaryProps: TouchEventBoundaryProps = {
     // Use our `sentryLabel` prop as the label.

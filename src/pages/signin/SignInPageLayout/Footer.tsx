@@ -137,10 +137,12 @@ const columns = ({navigateFocus = () => {}}: Pick<FooterProps, 'navigateFocus'>)
             {
                 onPress: () => navigateFocus(),
                 translationPath: 'footer.createAccount',
+                sentryLabel: CONST.SENTRY_LABEL.SIGN_IN_FOOTER.CREATE_ACCOUNT,
             },
             {
                 onPress: () => navigateFocus(),
                 translationPath: 'footer.logIn',
+                sentryLabel: CONST.SENTRY_LABEL.SIGN_IN_FOOTER.LOG_IN,
             },
         ],
     },
@@ -195,6 +197,7 @@ function Footer({navigateFocus}: FooterProps) {
                                                     <FooterRow
                                                         onPress={row.onPress}
                                                         translationPath={row.translationPath}
+                                                        sentryLabel={row.sentryLabel}
                                                         text={translate(row.translationPath)}
                                                         style={getTextLinkStyle(hovered)}
                                                     />

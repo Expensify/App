@@ -46,7 +46,7 @@ function TextFilterPopup({baseFilterKey, values, label, updateFilterForm, closeO
         <BasePopup
             label={label}
             onApply={applyChanges}
-            applySentryLabel={`Search-FilterPopupApply-${baseFilterKey}`}
+            applySentryLabel={`${CONST.SENTRY_LABEL_PREFIX.SEARCH_FILTER_POPUP_APPLY}${baseFilterKey}`}
             shouldSubmitOnEnter
         >
             <NegatableFilter

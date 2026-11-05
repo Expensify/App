@@ -429,7 +429,6 @@ describe('PopoverMenu V2', () => {
                             <PressableWithFeedback
                                 onPress={() => {}}
                                 accessibilityLabel="Open menu"
-                                sentryLabel="TriggerTest"
                                 testID="trigger"
                             >
                                 <View testID="trigger-icon" />
@@ -458,7 +457,6 @@ describe('PopoverMenu V2', () => {
                             <PressableWithFeedback
                                 onPress={consumerOnPress}
                                 accessibilityLabel="Open menu"
-                                sentryLabel="TriggerTest"
                                 testID="trigger"
                             >
                                 <View testID="trigger-icon" />
@@ -485,7 +483,6 @@ describe('PopoverMenu V2', () => {
                             <PressableWithFeedback
                                 onPress={consumerOnPress}
                                 accessibilityLabel="Open menu"
-                                sentryLabel="TriggerTest"
                                 testID="trigger"
                             >
                                 <View testID="trigger-icon" />
@@ -516,7 +513,6 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.Trigger>
                             <PressableWithFeedback
                                 accessibilityLabel="X"
-                                sentryLabel="X"
                                 testID="trigger"
                             >
                                 <View />
@@ -540,7 +536,6 @@ describe('PopoverMenu V2', () => {
                                 ref={consumerRef}
                                 onPress={() => {}}
                                 accessibilityLabel="Open menu"
-                                sentryLabel="TriggerTest"
                                 testID="trigger"
                             >
                                 <View testID="trigger-icon" />
@@ -565,7 +560,6 @@ describe('PopoverMenu V2', () => {
                                 ref={refA}
                                 onPress={consumerOnPressA}
                                 accessibilityLabel="Open A"
-                                sentryLabel="A"
                                 testID="trigger-a"
                             >
                                 <View />
@@ -576,7 +570,6 @@ describe('PopoverMenu V2', () => {
                                 ref={refB}
                                 onPress={consumerOnPressB}
                                 accessibilityLabel="Open B"
-                                sentryLabel="B"
                                 testID="trigger-b"
                             >
                                 <View />
@@ -605,7 +598,6 @@ describe('PopoverMenu V2', () => {
                                 <PassthroughWrapper>
                                     <PressableWithFeedback
                                         accessibilityLabel="Open menu"
-                                        sentryLabel="TriggerTest"
                                         testID="trigger"
                                     >
                                         <View testID="trigger-icon" />
@@ -632,7 +624,6 @@ describe('PopoverMenu V2', () => {
                                 <View testID="trigger-sibling" />
                                 <PressableWithFeedback
                                     accessibilityLabel="Open menu"
-                                    sentryLabel="TriggerTest"
                                     testID="trigger"
                                 >
                                     <View />
@@ -2161,7 +2152,6 @@ describe('PopoverMenu V2', () => {
                         <PressableWithFeedback
                             onPress={() => {}}
                             accessibilityLabel="X"
-                            sentryLabel="X"
                         >
                             <View />
                         </PressableWithFeedback>

@@ -553,9 +553,9 @@ describe('Button', () => {
             // Note: in the test environment NativeGenericPressable is loaded (not WebGenericPressable),
             // so sentryLabel flows through {...rest} directly to the native Pressable as a prop,
             // rather than being merged into dataSet (which is the web-only path).
-            renderButton({sentryLabel: 'submit-button'});
+            renderButton({sentryLabel: CONST.SENTRY_LABEL.BANNER.CLOSE});
 
-            expect(getButton().props.sentryLabel).toBe('submit-button');
+            expect(getButton().props.sentryLabel).toBe(CONST.SENTRY_LABEL.BANNER.CLOSE);
         });
 
         it('forwards ref to the underlying pressable', () => {

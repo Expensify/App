@@ -1,3 +1,5 @@
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
+
 type FeatureTrainingStateValue = {
     /** Whether the "don't show me this again" option is currently unchecked (i.e. modal will show again) */
     willShowAgain: boolean;
@@ -9,7 +11,7 @@ type FeatureTrainingStateValue = {
     isCarousel: boolean;
 
     /** Sentry label for the confirm button */
-    confirmSentryLabel: string | undefined;
+    confirmSentryLabel: SentryLabel | undefined;
 
     /** Carousel-only: current 0-based page index (undefined in single-page mode) */
     currentPage: number | undefined;

@@ -75,7 +75,7 @@ function MerchantFilterPopup({baseFilterKey, values, label, updateFilterForm, cl
         <BasePopup
             label={label}
             onApply={applyChanges}
-            applySentryLabel={`Search-FilterPopupApply-${baseFilterKey}`}
+            applySentryLabel={`${CONST.SENTRY_LABEL_PREFIX.SEARCH_FILTER_POPUP_APPLY}${baseFilterKey}`}
             style={[{maxHeight}]}
             shouldSubmitOnEnter
         >

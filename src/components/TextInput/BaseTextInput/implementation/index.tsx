@@ -581,7 +581,7 @@ function BaseTextInput({
                                             }}
                                             iconSize={clearButtonIconSize}
                                             style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), clearButtonStyle]}
-                                            sentryLabel={sentryLabel ? `${sentryLabel}-ClearButton` : undefined}
+                                            sentryLabel={sentryLabel ? `${sentryLabel}${CONST.SENTRY_LABEL_SUFFIX.CLEAR_BUTTON}` : undefined}
                                         />
                                     </View>
                                 )}

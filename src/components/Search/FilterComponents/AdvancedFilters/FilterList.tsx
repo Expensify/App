@@ -18,6 +18,7 @@ import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 import type {ReactNode, Ref} from 'react';
@@ -99,7 +100,7 @@ function FilterItem({filterKey, isSelected, type, onPress, onHoverIn, onFocus}: 
             onHoverIn={() => onHoverIn?.(filterKey)}
             onFocus={() => onFocus?.(filterKey)}
             onPress={() => onPress?.(filterKey)}
-            sentryLabel={`Search-Advanced-Filter-${filterKey}`}
+            sentryLabel={`${CONST.SENTRY_LABEL_PREFIX.SEARCH_ADVANCED_FILTER}${filterKey}`}
         >
             {({pressed}) => (
                 <>

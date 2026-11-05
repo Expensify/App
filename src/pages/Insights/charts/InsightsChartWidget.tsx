@@ -147,7 +147,7 @@ function InsightsChartWidget({
             <WidgetHeaderMenu
                 size={CONST.BUTTON_SIZE.SMALL}
                 testID={`insightsChartMenu-${chart.graphKey}`}
-                sentryLabel="InsightsChartMenu"
+                sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CHART_MENU}
                 menuItems={[
                     {
                         text: translate('insightsPage.viewOnSpend'),
