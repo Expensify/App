@@ -64,6 +64,7 @@ function DatePicker({
     icon,
     shouldEnableMonthYearBackdropInNarrowPane = false,
     textInputContainerStyles,
+    shouldShowLabelTooltipWhenTruncated,
 }: DateInputWithPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
@@ -504,6 +505,7 @@ function DatePicker({
                     autoComplete={autoComplete}
                     disableKeyboard={!shouldAllowTyping}
                     rightHandSideComponent={rightHandSideComponent}
+                    shouldShowLabelTooltipWhenTruncated={shouldShowLabelTooltipWhenTruncated}
                 />
             </View>
 

@@ -4,10 +4,12 @@ import type {Rule} from 'eslint';
 
 import {Linter} from 'eslint';
 
+import type {LintMessage} from '../../scripts/lint/types';
+
 import checkReactCompilerWithOxc from '../../config/reactCompiler/checkWithOxc.mjs';
 import * as rule from '../../eslint-plugin-local-rules/no-manual-memoization';
-import {normalizeESLintResults} from '../../scripts/lint/eslint/ESLintLinter';
 import {filterReactCompilerMessages} from '../../scripts/lint/processors/ReactCompilerFilter';
+import {LINT_SEVERITY} from '../../scripts/lint/types';
 
 function isRuleModule(value: unknown): value is Rule.RuleModule {
     return typeof value === 'object' && value !== null && typeof Reflect.get(value, 'create') === 'function';
@@ -37,7 +39,14 @@ describe('no-manual-memoization', () => {
     ])('enforces the real compiler verdict: $shouldForbid', async ({source, shouldForbid}) => {
         // Given a hook that either compiles or violates the rules for refs.
         const filename = '/repo/src/useExample.ts';
-        const [{messages}] = normalizeESLintResults([{filePath: filename, messages: lint(source)}]);
+        const messages: LintMessage[] = lint(source).map((message) => ({
+            filePath: filename,
+            ruleID: message.ruleId,
+            severity: LINT_SEVERITY.ERROR,
+            message: message.message,
+            line: message.line,
+            column: message.column,
+        }));
         expect(messages).toHaveLength(1);
 
         // When the production compiler helper determines whether manual memoization is redundant.
