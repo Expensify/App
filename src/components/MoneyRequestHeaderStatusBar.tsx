@@ -30,7 +30,17 @@ function MoneyRequestHeaderStatusBar({icon, description, shouldStyleFlexGrow = t
     );
 
     return (
-        <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, shouldStyleFlexGrow && styles.flexGrow1, styles.overflowHidden, styles.headerStatusBarContainer]}>
+        <View
+            style={[
+                styles.dFlex,
+                styles.flexRow,
+                styles.alignItemsCenter,
+                shouldStyleFlexGrow && styles.flexGrow1,
+                shouldShowCaret && styles.w100,
+                styles.overflowHidden,
+                styles.headerStatusBarContainer,
+            ]}
+        >
             <View style={styles.mr2}>{icon}</View>
             {shouldShowCaret ? <CaretWrapper style={styles.flexShrink1}>{message}</CaretWrapper> : message}
         </View>
