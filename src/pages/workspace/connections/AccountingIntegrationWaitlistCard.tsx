@@ -27,7 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {AccountingIntegrationWaitlistConnectionName} from '@src/types/onyx/AccountingIntegrationWaitlist';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 type AccountingIntegrationWaitlistCardProps = {
@@ -52,21 +52,43 @@ function AccountingIntegrationWaitlistCard({connectionName, title, icon, policyI
     });
     const [request] = useOnyx(ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS, {selector: (requests) => requests?.[policyID]?.[connectionName]});
     const isOnWaitlist = !!isOnServerWaitlist && !request?.pendingAction;
+    const isJoiningWaitlist = useRef(false);
     const comingSoon = translate('workspace.accounting.integrationWaitlist.comingSoon');
     const accessibilityLabel = [title, comingSoon, isOnWaitlist && translate('workspace.accounting.integrationWaitlist.onWaitlist')].filter(Boolean).join(', ');
 
-    const joinWaitlist = () => {
-        if (!canWrite) {
-            showReadOnlyModal();
+    // Queued requests finish through Onyx, including retries after the press handler has returned, so the confirmation waits for the server to save the signup
+    useEffect(() => {
+        if (!isJoiningWaitlist.current || request?.pendingAction) {
             return;
         }
-        joinAccountingIntegrationWaitlist(policyID, connectionName);
+        if (request?.errors) {
+            isJoiningWaitlist.current = false;
+            return;
+        }
+        if (!isOnServerWaitlist) {
+            return;
+        }
+
+        isJoiningWaitlist.current = false;
         showConfirmModal({
             title: translate('workspace.accounting.integrationWaitlist.onTheList'),
             prompt: translate('workspace.accounting.integrationWaitlist.waitlistDescription'),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
         });
+    }, [isOnServerWaitlist, request?.errors, request?.pendingAction, showConfirmModal, translate]);
+
+    const joinWaitlist = () => {
+        if (isJoiningWaitlist.current || request?.pendingAction) {
+            return;
+        }
+        if (!canWrite) {
+            showReadOnlyModal();
+            return;
+        }
+        // Prevents repeated presses before the pending request reaches this component
+        isJoiningWaitlist.current = true;
+        joinAccountingIntegrationWaitlist(policyID, connectionName);
     };
 
     return (

@@ -66,7 +66,7 @@ describe('AccountingIntegrationWaitlistCard', () => {
         await waitForBatchedUpdates();
     });
 
-    it('joins the waitlist for the workspace and confirms it right away', async () => {
+    it('joins the waitlist for the workspace and confirms it once the server saves the signup', async () => {
         // Given a workspace that hasn't joined the Sage Accounting waitlist
         renderCard();
         await waitForBatchedUpdatesWithAct();
@@ -75,12 +75,35 @@ describe('AccountingIntegrationWaitlistCard', () => {
         // When the admin presses Join waitlist
         fireEvent.press(screen.getByRole('button', {name: 'Join waitlist'}));
 
-        // Then the workspace joins the waitlist and the confirmation explains that Concierge will follow up
+        // Then the workspace joins the waitlist, but the confirmation waits since the server may still reject the signup
         expect(joinAccountingIntegrationWaitlist).toHaveBeenCalledWith('policy', SAGE_ACCOUNTING);
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+
+        // When the server saves the signup
+        await act(() => Onyx.set(ONYXKEYS.NVP_ACCOUNTING_INTEGRATION_WAITLIST, [{connectionName: SAGE_ACCOUNTING, policyID: 'policy', created: '2026-11-04 11:00:00'}]));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the confirmation explains that Concierge will follow up
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         expect(getShowConfirmModalOption('title')).toBe('You’re on the list!');
         expect(getShowConfirmModalOption('prompt')).toBe('Concierge will send you a message to let you know when this integration is ready and how to connect.');
         expect(getShowConfirmModalOption('shouldShowCancelButton')).toBe(false);
+    });
+
+    it('does not confirm a signup the server rejected', async () => {
+        // Given the admin pressed Join waitlist
+        renderCard();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByRole('button', {name: 'Join waitlist'}));
+
+        // When the server rejects the signup
+        const errorTimestamp = 1;
+        await act(() => Onyx.set(ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS, {policy: {[SAGE_ACCOUNTING]: {errors: {[errorTimestamp]: 'Signup failed'}}}}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the error shows instead of the confirmation
+        expect(screen.getByText('Signup failed')).toBeTruthy();
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
     });
 
     it('disables Join waitlist while offline', async () => {
