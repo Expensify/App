@@ -1,7 +1,6 @@
 import SearchSidebar from '@components/Navigation/SearchSidebar';
 
 import usePreserveNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
-import useReportTabRootRevealing from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useReportTabRootRevealing';
 import addPushParamsRouterExtension from '@libs/Navigation/AppNavigator/routerExtensions/addPushParamsRouterExtension';
 import useNavigationResetOnLayoutChange from '@libs/Navigation/AppNavigator/useNavigationResetOnLayoutChange';
 
@@ -19,7 +18,6 @@ import getCustomState from './useCustomState';
 function SearchFullscreenNavigatorEffects(props: CustomEffectsHookProps) {
     useNavigationResetOnLayoutChange(props);
     usePreserveNavigatorState(props.state, props.parentRoute);
-    useReportTabRootRevealing(props.state, props.descriptors);
     // Returning null makes Babel skip memoization for this Effects slot; an empty fragment is required.
     // eslint-disable-next-line react/jsx-no-useless-fragment
     return <></>;

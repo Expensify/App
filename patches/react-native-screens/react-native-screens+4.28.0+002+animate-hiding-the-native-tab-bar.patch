@@ -1,85 +1,267 @@
 diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
 --- a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
 +++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
-@@ -51,6 +51,9 @@
+@@ -51,6 +51,23 @@
  
    RNSTabsNavigationStateUpdateRequest *_Nullable _navStateRequest;
  
 +  UIViewPropertyAnimator *_Nullable _tabBarFadeOutAnimator;
-+  BOOL _isRetryingTabBarVisibility;
++  id<UIViewControllerTransitionCoordinator> _Nullable _tabBarTransitionCoordinator;
++  UIView *_Nullable _tabBarStripView;
++  NSUInteger _tabBarStripTabIndex;
++  CGRect _tabBarStripRect;
++  NSUInteger _tabBarRetryToken;
++  NSUInteger _tabBarRetries;
++  CADisplayLink *_Nullable _tabBarStripLink;
++  UIView *_Nullable _tabBarClipView;
++  __weak UIView *_tabBarEdgeView;
++  __weak UIView *_tabBarRootView;
++  __weak UIView *_tabBarHiddenPlatter;
++  CGRect _tabBarStripFrame;
++  CGSize _tabBarContainerSize;
++  CGFloat _tabBarCornerRadius;
++  CAShapeLayer *_Nullable _tabBarClipMask;
 +
  #if RNS_TABS_BOTTOM_ACCESSORY_AVAILABLE
    UIView *_Nullable _bottomAccessoryWrapperView;
  #endif // RNS_TABS_BOTTOM_ACCESSORY_AVAILABLE
-@@ -121,6 +124,127 @@
+@@ -60,6 +77,12 @@
+ {
+   if (self = [super initWithFrame:frame]) {
+     [self initState];
++    if (@available(iOS 26.0, *)) {
++      [[NSNotificationCenter defaultCenter] addObserver:self
++                                               selector:@selector(stackWillShow:)
++                                                   name:@"RNSScreenStackWillShowViewController"
++                                                 object:nil];
++    }
+   }
+   return self;
+ }
+@@ -121,6 +144,279 @@
    });
  }
  
 +#pragma mark - Tab bar visibility
 +
-+/**
-+ * UIKit's hide animation on iOS 26 clears the tab items before it fades the glass, while its show animation brings both
-+ * in together. The bar fades out as a whole here instead and is hidden without animation once invisible. Showing it
-+ * again mid-fade reverses the fade, so the bar never ends up hidden while it should be shown.
-+ */
-+- (nullable UINavigationController *)findStackControllerIn:(UIViewController *)controller
++static UIView *_Nullable RNSDirectChildAncestor(UIView *_Nullable view, UIView *container)
 +{
-+  if ([controller isKindOfClass:UINavigationController.class]) {
-+    return (UINavigationController *)controller;
++  while (view != nil && view.superview != container) {
++    view = view.superview;
 +  }
-+  for (UIViewController *child in controller.childViewControllers) {
-+    UINavigationController *stackController = [self findStackControllerIn:child];
-+    if (stackController != nil) {
-+      return stackController;
++  return view;
++}
++
++// The glass the tab items sit on is a private view of the bar, found by its class name.
++static UIView *_Nullable RNSTabBarPlatter(UITabBar *tabBar)
++{
++  for (UIView *subview in tabBar.subviews) {
++    if ([NSStringFromClass([subview class]) hasSuffix:@"PlatterView"]) {
++      return subview;
 +    }
 +  }
 +  return nil;
 +}
 +
-+/**
-+ * A screen pushed in the selected tab's stack slides over the bar, so the bar travels with the screen it leaves, the way
-+ * a screen pushed above the whole tab navigator takes the bar along. The bar moves like the outgoing screen does and
-+ * fades out while the incoming screen covers it. Running in the stack's transition keeps it in step with the push, and
-+ * with an interactive swipe back, including when that is cancelled.
-+ */
-+- (BOOL)animateTabBarAlongsideStackTransition API_AVAILABLE(ios(26.0))
++- (BOOL)controller:(UIViewController *)controller isInside:(UIViewController *)ancestor
 +{
-+  UITabBar *tabBar = _controller.tabBar;
-+  UINavigationController *stackController = [self findStackControllerIn:_controller.selectedViewController];
-+  id<UIViewControllerTransitionCoordinator> coordinator = stackController.transitionCoordinator;
-+  if (coordinator == nil || tabBar.window == nil) {
-+    return NO;
++  for (UIViewController *current = controller; current != nil; current = current.parentViewController) {
++    if (current == ancestor) {
++      return YES;
++    }
 +  }
-+
-+  BOOL hiding = _tabBarHidden;
-+  CGAffineTransform awayTransform = CGAffineTransformMakeTranslation(-tabBar.bounds.size.width * 0.3, 0);
-+  if (!hiding) {
-+    [_controller setTabBarHidden:NO animated:NO];
-+    tabBar.transform = awayTransform;
-+    tabBar.alpha = 0;
-+  }
-+  tabBar.userInteractionEnabled = NO;
-+
-+  __weak auto weakSelf = self;
-+  [coordinator animateAlongsideTransition:^(id<UIViewControllerTransitionCoordinatorContext> _Nonnull context) {
-+    tabBar.transform = hiding ? awayTransform : CGAffineTransformIdentity;
-+    tabBar.alpha = hiding ? 0 : 1;
-+  }
-+      completion:^(id<UIViewControllerTransitionCoordinatorContext> _Nonnull context) {
-+        auto strongSelf = weakSelf;
-+        BOOL endsHidden = context.isCancelled ? !hiding : hiding;
-+        tabBar.transform = CGAffineTransformIdentity;
-+        tabBar.alpha = 1;
-+        tabBar.userInteractionEnabled = YES;
-+        if (strongSelf != nil) {
-+          [strongSelf->_controller setTabBarHidden:endsHidden animated:NO];
-+        }
-+      }];
-+  return YES;
++  return NO;
 +}
 +
++/**
++ * A screen pushed in the selected tab's stack slides over the bar, so the bar travels with the screen it leaves, the way
++ * a screen pushed above the whole tab navigator takes the bar along: it moves with that screen and the screen sliding
++ * in covers it, a little more with every step of an interactive swipe back. The real bar sits above every screen, so a
++ * picture of it goes between the two screens for the length of the transition. The host has to join the transition
++ * before it starts, which is why the stack notifies it, and the transition covers a cancelled swipe back as well.
++ */
++- (void)stackWillShow:(NSNotification *)notification API_AVAILABLE(ios(26.0))
++{
++  UINavigationController *stackController = notification.object;
++  UIViewController *target = notification.userInfo[@"viewController"];
++  UITabBar *tabBar = _controller.tabBar;
++  id<UIViewControllerTransitionCoordinator> coordinator = stackController.transitionCoordinator;
++  // The bar only travels with the screen when the screen hides it. Some screens above the root keep it.
++  if (!_tabBarHidden || _controller == nil || tabBar.window == nil || coordinator == nil || coordinator == _tabBarTransitionCoordinator ||
++      ![self controller:stackController isInside:_controller.selectedViewController]) {
++    return;
++  }
++
++  // The bar is shown only above the root of the stack, so only the transitions between the root and the next screen
++  // move it. The screen leaving a pop is no longer in the stack.
++  UIViewController *from = [coordinator viewControllerForKey:UITransitionContextFromViewControllerKey];
++  NSUInteger toIndex = [stackController.viewControllers indexOfObject:target];
++  NSUInteger fromIndex = [stackController.viewControllers indexOfObject:from];
++  BOOL hiding = toIndex == 1 && fromIndex == 0;
++  BOOL showing = toIndex == 0 && fromIndex == NSNotFound;
++  if (!hiding && !showing) {
++    return;
++  }
++  _tabBarTransitionCoordinator = coordinator;
++
++  // The real bar sits above every screen, so a picture of it is what travels between the two screens instead. The
++  // window is captured, because the glass of the bar is only there in a capture of the window and not of the bar alone.
++  // Popping back brings the picture taken when the bar left, as the bar is not on screen then.
++  UIWindow *window = tabBar.window;
++  if (hiding) {
++    // Only the floating bar is pictured, so everything around it stays the live screen underneath. The platter is the
++    // glass the items sit on, and the margin leaves room for its edge.
++    UIView *platter = RNSTabBarPlatter(tabBar);
++    CGRect barRect = [window convertRect:(platter ?: tabBar).bounds fromView:platter ?: tabBar];
++    CGRect stripRect = CGRectInset(barRect, -3, -3);
++    _tabBarStripView = [window resizableSnapshotViewFromRect:stripRect afterScreenUpdates:NO withCapInsets:UIEdgeInsetsZero];
++    _tabBarStripView.layer.cornerRadius = CGRectGetHeight(stripRect) / 2;
++    _tabBarStripView.layer.masksToBounds = YES;
++    _tabBarStripRect = stripRect;
++    _tabBarStripTabIndex = _controller.selectedIndex;
++  }
++  UIView *stripView = _tabBarStripTabIndex == _controller.selectedIndex ? _tabBarStripView : nil;
++  CGRect stripRect = _tabBarStripRect;
++  CGFloat travel = window.bounds.size.width * 0.3;
++
++  RNSTabBarController *tabController = _controller;
++  __weak auto weakSelf = self;
++  __block __weak UIView *hiddenPlatter = nil;
++  [coordinator animateAlongsideTransition:^(id<UIViewControllerTransitionCoordinatorContext> _Nonnull context) {
++    UIView *container = context.containerView;
++    // UIKit's own swipe back keeps the leaving screen inside a dimming view and the screen underneath inside a plain
++    // view, so what is laid out in the container is the ancestor that is its direct child.
++    UIView *outgoing = RNSDirectChildAncestor(
++        [context viewForKey:UITransitionContextFromViewKey] ?: [context viewControllerForKey:UITransitionContextFromViewControllerKey].view,
++        container);
++    UIView *incoming = RNSDirectChildAncestor(
++        [context viewForKey:UITransitionContextToViewKey] ?: [context viewControllerForKey:UITransitionContextToViewControllerKey].view,
++        container);
++    BOOL hasPicture = stripView != nil && outgoing != nil && incoming != nil;
++    auto strongSelf = weakSelf;
++    if (hasPicture && strongSelf != nil) {
++      [UIView performWithoutAnimation:^{
++        // The picture is clipped at the edge of the screen that slides over it and moves with the root screen, both read
++        // from where those screens are drawn on every frame, so it stays in step with the transition and with a swipe
++        // back at any speed. The screen that stays on top during the transition is the incoming one when pushing and the
++        // leaving one when popping, and the picture goes between the two.
++        CGRect rect = [container convertRect:stripRect fromView:window];
++        UIView *clipView = [[UIView alloc] initWithFrame:CGRectMake(0, rect.origin.y, container.bounds.size.width, rect.size.height)];
++        // The screen sliding over the picture has rounded corners like the display, so the picture shows where that
++        // screen is not, which is not a straight line down at the bottom.
++        CAShapeLayer *mask = [CAShapeLayer layer];
++        mask.fillRule = kCAFillRuleEvenOdd;
++        clipView.layer.mask = mask;
++        strongSelf->_tabBarClipMask = mask;
++        strongSelf->_tabBarContainerSize = container.bounds.size;
++        NSString *radiusKey = @"_displayCornerRadius";
++        strongSelf->_tabBarCornerRadius = [window.screen respondsToSelector:NSSelectorFromString(radiusKey)]
++            ? [[window.screen valueForKey:radiusKey] doubleValue]
++            : 0;
++        stripView.frame = CGRectMake(rect.origin.x, 0, rect.size.width, rect.size.height);
++        [clipView addSubview:stripView];
++        [container insertSubview:clipView aboveSubview:hiding ? outgoing : incoming];
++        // The content under the bar draws the scroll edge effect of iOS 26 only while the bar is visible, so the bar
++        // stays visible and only its glass is hidden while the picture stands in for it.
++        UIView *platter = RNSTabBarPlatter(tabBar);
++        if (platter != nil) {
++          if (!hiding) {
++            [tabController setTabBarHidden:NO animated:NO];
++          }
++          platter.alpha = 0;
++          tabBar.userInteractionEnabled = NO;
++          tabBar.accessibilityElementsHidden = YES;
++          hiddenPlatter = platter;
++        } else {
++          tabBar.alpha = 0;
++        }
++        strongSelf->_tabBarHiddenPlatter = platter;
++        strongSelf->_tabBarClipView = clipView;
++        strongSelf->_tabBarStripFrame = rect;
++        strongSelf->_tabBarEdgeView = hiding ? incoming : outgoing;
++        strongSelf->_tabBarRootView = hiding ? outgoing : incoming;
++        [strongSelf->_tabBarStripLink invalidate];
++        strongSelf->_tabBarStripLink = [CADisplayLink displayLinkWithTarget:strongSelf selector:@selector(stepTabBarStrip:)];
++        [strongSelf->_tabBarStripLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
++        [strongSelf stepTabBarStrip:nil];
++      }];
++    } else {
++      [UIView performWithoutAnimation:^{
++        if (!hiding) {
++          [tabController setTabBarHidden:NO animated:NO];
++        }
++        tabBar.transform = hiding ? CGAffineTransformIdentity : CGAffineTransformMakeTranslation(-travel, 0);
++        tabBar.alpha = hiding ? 1 : 0;
++      }];
++      tabBar.transform = hiding ? CGAffineTransformMakeTranslation(-travel, 0) : CGAffineTransformIdentity;
++      tabBar.alpha = hiding ? 0 : 1;
++    }
++  }
++      completion:^(id<UIViewControllerTransitionCoordinatorContext> _Nonnull context) {
++        [stripView removeFromSuperview];
++        tabBar.transform = CGAffineTransformIdentity;
++        tabBar.alpha = 1;
++        if (hiddenPlatter != nil) {
++          hiddenPlatter.alpha = 1;
++          tabBar.userInteractionEnabled = YES;
++          tabBar.accessibilityElementsHidden = NO;
++        }
++        auto strongSelf = weakSelf;
++        if (strongSelf != nil) {
++          strongSelf->_tabBarHiddenPlatter = nil;
++          [strongSelf->_tabBarStripLink invalidate];
++          strongSelf->_tabBarStripLink = nil;
++          [strongSelf->_tabBarClipView removeFromSuperview];
++          strongSelf->_tabBarClipView = nil;
++          strongSelf->_tabBarClipMask = nil;
++          strongSelf->_tabBarTransitionCoordinator = nil;
++          [strongSelf->_controller setTabBarHidden:context.isCancelled ? !hiding : hiding animated:NO];
++        }
++      }];
++}
++
++- (void)stepTabBarStrip:(CADisplayLink *_Nullable)link
++{
++  UIView *edgeView = _tabBarEdgeView;
++  UIView *rootView = _tabBarRootView;
++  UIView *clipView = _tabBarClipView;
++  if (edgeView == nil || rootView == nil || clipView == nil) {
++    return;
++  }
++  CGFloat edgeX = (edgeView.layer.presentationLayer ?: edgeView.layer).frame.origin.x;
++  CGFloat rootX = (rootView.layer.presentationLayer ?: rootView.layer).frame.origin.x;
++  CGFloat width = _tabBarContainerSize.width;
++  CGFloat maskedEdge = MAX(0, MIN(width, edgeX));
++  CGRect screenFrame = CGRectMake(maskedEdge, -clipView.frame.origin.y, width + _tabBarCornerRadius, _tabBarContainerSize.height);
++  UIBezierPath *path = [UIBezierPath bezierPathWithRect:clipView.bounds];
++  [path appendPath:[UIBezierPath bezierPathWithRoundedRect:screenFrame cornerRadius:_tabBarCornerRadius]];
++  [CATransaction begin];
++  [CATransaction setDisableActions:YES];
++  _tabBarClipMask.frame = clipView.bounds;
++  _tabBarClipMask.path = path.CGPath;
++  // UIKit lays the bar out again while it is shown and can bring its glass back.
++  _tabBarHiddenPlatter.alpha = 0;
++  [CATransaction commit];
++  clipView.subviews.firstObject.frame = CGRectMake(_tabBarStripFrame.origin.x + MIN(0, rootX), 0, _tabBarStripFrame.size.width, _tabBarStripFrame.size.height);
++}
++
++/**
++ * UIKit's hide animation on iOS 26 clears the tab items before it fades the glass, while its show animation brings both
++ * in together. When no stack transition moves the bar, it fades out as a whole instead and is hidden without animation
++ * once invisible. Showing it again mid-fade reverses the fade, so the bar never ends up hidden while it should be shown.
++ */
 +- (void)applyTabBarHiddenWithFade API_AVAILABLE(ios(26.0))
 +{
++  _tabBarRetryToken++;
++  _tabBarRetries = 0;
++  [self attemptTabBarHiddenWithToken:_tabBarRetryToken];
++}
++
++- (void)attemptTabBarHiddenWithToken:(NSUInteger)token API_AVAILABLE(ios(26.0))
++{
++  if (token != _tabBarRetryToken) {
++    return;
++  }
 +  if (_tabBarFadeOutAnimator != nil) {
 +    _tabBarFadeOutAnimator.reversed = !_tabBarHidden;
 +    return;
@@ -87,19 +269,16 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponen
 +
 +  UITabBar *tabBar = _controller.tabBar;
 +  if (tabBar.window != nil) {
-+    if ([self animateTabBarAlongsideStackTransition]) {
++    if (_tabBarTransitionCoordinator != nil) {
 +      return;
 +    }
-+    // The stack starts its push after the host receives the prop, so its transition is looked up again one turn later.
-+    if (!_isRetryingTabBarVisibility) {
-+      _isRetryingTabBarVisibility = YES;
++    // The stack starts its push some turns after the host receives the prop and takes over from there, so the bar is
++    // only hidden by itself when no transition shows up.
++    if (_tabBarRetries < 12) {
++      _tabBarRetries++;
 +      __weak auto weakSelf = self;
-+      dispatch_async(dispatch_get_main_queue(), ^{
-+        auto strongSelf = weakSelf;
-+        if (strongSelf != nil) {
-+          [strongSelf applyTabBarHiddenWithFade];
-+          strongSelf->_isRetryingTabBarVisibility = NO;
-+        }
++      dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 16 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
++        [weakSelf attemptTabBarHiddenWithToken:token];
 +      });
 +      return;
 +    }
@@ -139,7 +318,7 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponen
  #pragma mark - UIView methods
  
  - (void)didMoveToWindow
-@@ -242,9 +366,16 @@
+@@ -242,9 +538,16 @@
  
    if (newComponentProps.tabBarHidden != oldComponentProps.tabBarHidden) {
      _tabBarHidden = newComponentProps.tabBarHidden;

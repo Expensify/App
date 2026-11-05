@@ -15,7 +15,7 @@ import type {NativeTabName} from './NativeTabNavigator/NATIVE_TAB_GLYPHS';
 import type {NativeTabLayoutProps} from './NativeTabNavigator/NativeTabLayout';
 
 import NativeTabLayout from './NativeTabNavigator/NativeTabLayout';
-import SetTabRootRevealingContext from './NativeTabNavigator/SetTabRootRevealingContext';
+import TabRootRevealingContext from './NativeTabNavigator/TabRootRevealingContext';
 import tabScreenListeners from './NativeTabNavigator/tabScreenListeners';
 import useNativeTabBarOptions from './NativeTabNavigator/useNativeTabBarOptions';
 import useNativeTabNavigator from './NativeTabNavigator/useNativeTabNavigator';
@@ -36,7 +36,7 @@ const HIDDEN_TAB_OPTIONS = {tabBarItemHidden: true};
 const renderNativeTabLayout = (props: NativeTabLayoutProps) => <NativeTabLayout {...props} />;
 
 function TabNavigator() {
-    const {shouldShowNativeTabBar, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled, setIsTabRootRevealing} = useNativeTabNavigator();
+    const {shouldShowNativeTabBar, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled, tabRootRevealing} = useNativeTabNavigator();
     const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels});
     // A tab with no bar item draws no icon.
     const getScreenOptions = ({route}: {route: {name: NativeTabName}}) =>
@@ -49,7 +49,7 @@ function TabNavigator() {
               };
 
     return (
-        <SetTabRootRevealingContext.Provider value={setIsTabRootRevealing}>
+        <TabRootRevealingContext.Provider value={tabRootRevealing}>
             <Tab.Navigator
                 backBehavior="fullHistory"
                 layout={renderNativeTabLayout}
@@ -85,7 +85,7 @@ function TabNavigator() {
                     component={SettingsSplitNavigator}
                 />
             </Tab.Navigator>
-        </SetTabRootRevealingContext.Provider>
+        </TabRootRevealingContext.Provider>
     );
 }
 

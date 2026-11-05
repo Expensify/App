@@ -86,7 +86,7 @@ index 06c1957..bb2dcb0 100644
 diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
 --- a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
 +++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
-@@ -381,6 +381,10 @@
+@@ -553,6 +553,10 @@
      {
        _controller.tabBar.hidden = _tabBarHidden;
      }

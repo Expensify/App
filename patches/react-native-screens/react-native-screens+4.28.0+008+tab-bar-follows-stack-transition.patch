@@ -1,0 +1,15 @@
+diff --git a/node_modules/react-native-screens/ios/RNSScreenStack.mm b/node_modules/react-native-screens/ios/RNSScreenStack.mm
+--- a/node_modules/react-native-screens/ios/RNSScreenStack.mm
++++ b/node_modules/react-native-screens/ios/RNSScreenStack.mm
+@@ -252,6 +252,11 @@
+       willShowViewController:(UIViewController *)viewController
+                     animated:(BOOL)animated
+ {
++  // The tab bar host moves the bar along with a transition between the root and the next screen, and has to register
++  // with the transition before it starts.
++  [[NSNotificationCenter defaultCenter] postNotificationName:@"RNSScreenStackWillShowViewController"
++                                                      object:navigationController
++                                                    userInfo:@{@"viewController" : viewController}];
+   // The held push is running, stop waiting.
+   if (viewController == _pendingPushController) {
+     [self finishWaitingForPendingPush];
