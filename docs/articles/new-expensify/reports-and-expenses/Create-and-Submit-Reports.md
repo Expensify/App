@@ -27,7 +27,7 @@ Follow these steps to build an expense report manually.
 
 After submitting, the report status updates and a **”submitted”** entry appears in the activity at the bottom of the report. For details on what each report status means, see [Understanding Report Statuses](/articles/new-expensify/reports-and-expenses/Understanding-Report-Statuses-and-Actions).
 
-**Note:** If your workspace does not use an approval workflow, you’ll see **Mark as done** instead of **Submit**. 
+**Note:** If you chose **Track expenses for my business** or **Organize my personal spending** during onboarding and no one else approves your reports, you’ll see **Mark as done** instead of **Submit**, and a **”marked as done”** entry appears in the activity instead. 
 
 **Note:** If some expenses on the report are on hold when you submit, the held expenses move to a new report in the **Draft** state, while the unheld expenses stay on the submitted report.
 
@@ -52,7 +52,7 @@ You can select several reports on the **Reports** tab and submit them in one act
 4. Tap **Selected**.
 5. Tap **Submit**.
 
-**Note:** If your workspace does not use an approval workflow, you’ll see **Mark as done** instead of **Submit**.
+**Note:** If you chose **Track expenses for my business** or **Organize my personal spending** during onboarding and no one else approves your reports, you’ll see **Mark as done** instead of **Submit**.
 
 **Note:** Reports on a free [Submit workspace](/articles/new-expensify/getting-started/Submit-Workspace) must be submitted one at a time. If any report in your selection belongs to a Submit workspace, the **Submit** option does not appear. Submit those reports individually instead.
 
@@ -71,7 +71,7 @@ When you submit several reports at once and at least one of them can’t be subm
 
 If every report you selected is skipped, nothing is submitted and the **Submit reports** window lists all of them.
 
-**Note:** If your workspace does not use an approval workflow, the window is titled **Mark reports as done** and the message reads **These reports couldn’t be marked as done. Check that expenses aren’t held or pending, then try again.**
+**Note:** If you see **Mark as done** instead of **Submit**, the window is titled **Mark reports as done** and the message reads **These reports couldn’t be marked as done. Check that expenses aren’t held or pending, then try again.**
 
 <!-- SCREENSHOT:
 Suggestion: Show the Submit reports window listing one skipped report, with the Got it button visible.
@@ -227,7 +227,7 @@ Unsubmitted reports will remain in your Open reports section. You can go back an
 
 ## Why don’t I see the “Submit” button?
 
-The **Submit** button only appears once your report includes at least one valid expense. If the report has already been submitted, the button will no longer be visible. If your workspace has no approval workflow, the button will say **Mark as done** instead of **Submit**.
+The **Submit** button only appears once your report includes at least one valid expense. If the report has already been submitted, the button will no longer be visible. If you chose **Track expenses for my business** or **Organize my personal spending** during onboarding and no one else approves your reports, the button will say **Mark as done** instead of **Submit**.
 
 ## Why can’t I submit a report with pending card transactions?
 

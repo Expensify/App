@@ -1,7 +1,7 @@
 ---
 title: Track Personal Expenses
 description: Learn how to set up a New Expensify workspace and start tracking your personal or freelance expenses.
-keywords: [New Expensify, workspace setup, personal expenses, New Expensify, SmartScan, categories, free trial]
+keywords: [New Expensify, workspace setup, personal expenses, New Expensify, SmartScan, categories, free trial, mark as done, default workspace settings, distance rates]
 ---
 
 If you're a freelancer, sole proprietor, or just want to track personal expenses, this guide walks you through your workspace and how to start tracking expenses. Your workspace starts on a free trial, which begins once you start using it.
@@ -32,6 +32,19 @@ To rename it:
 3. Enter a new name and click **Save**.
 
 **Note:** If you already own a paid workspace, or your domain restricts who can create workspaces, no new workspace is created and you'll keep using the one you have.
+
+---
+
+# What's already set up in your workspace
+
+When Expensify creates your workspace, it's set up for tracking your own spend:
+
+- **Categories** is enabled, so you can code your expenses from day one.
+- **Distance rates** is enabled, so you can log mileage right away.
+- **Workflows** is disabled, because no one else needs to approve or pay your expenses. Expenses are still added to a report for you, and nothing is submitted until you choose to.
+- **Accounting** is disabled, so it doesn't appear in your workspace menu.
+
+To change any of these, select **Workspaces > [workspace name] > More features**.
 
 ---
 
@@ -86,17 +99,36 @@ View expenses in your Expense chat or the **Spend** page. [Export to CSV](https:
 
 ---
 
+# How to mark a report as done
+
+When you track your own expenses, no one else needs to review them. Instead of submitting a report for approval, you close it out yourself.
+
+1. Open a draft report that includes at least one expense.
+2. Select **Mark as done**.
+
+The report status changes to **Done** and the report is locked, so no further edits or deletions can be made. A "marked as done" entry appears in the report activity.
+
+**Note:** You'll only see **Mark as done** if you own the report and no one else is set up to approve it. If someone else approves your reports, you'll see **Submit** instead.
+
+If every expense on the report is on hold, or all of its transactions are still pending, you'll see **Unable to mark as done**. Remove the hold or wait for the transactions to post, then try again.
+
+To make changes to a report after it's marked as done, a workspace admin can reopen it by selecting **Retract** on the report.
+
+---
+
 # Connect Credit Cards and Bank Accounts
 
 Let Expensify automatically import and match card transactions to SmartScanned receipts.
 
 ## Connect a Bank Account
 
-1. Go to **Workspaces** in the navigation tabs (on the left on web, and at the bottom on mobile).
-2. Click **[Workspace Name] > More features > Enable Workflows**.
-3. From the left-hand menu, click **Workflows**.
+Your workspace starts with **Workflows** disabled, so enable it first.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > More features**.
+2. Under the **Manage** section, enable **Workflows**.
+3. In the navigation menu, select **Workflows**, then select the **Payments** tab.
 4. Enable **Payments**.
-5. Click **Connect bank account**.
+5. Select **Add bank account**.
 
 🏦 For more details on connecting a bank account, check out this guide: [Connect a Business Bank Account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Business-Bank-Account).
 
@@ -129,11 +161,12 @@ If you don't need to use categories, go to **More features** and toggle **Catego
 You can customize your workspace by enabling additional features. Once enabled, new menu items appear.
 
 Popular options:
-- [Distance rates](https://help.expensify.com/articles/new-expensify/workspaces/Set-distance-rates)
 - [Accounting integrations](https://help.expensify.com/new-expensify/hubs/connections/)
-- [Workflows](https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows)
+- [Workflows](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Workflows)
 - [Tags](https://help.expensify.com/articles/new-expensify/workspaces/Create-expense-tags)
 - [Taxes](https://help.expensify.com/articles/new-expensify/workspaces/Track-taxes)
+
+**Note:** [Distance rates](https://help.expensify.com/articles/new-expensify/workspaces/Set-distance-rates) is already enabled, so you don't need to enable it.
 
 To enable a feature:
 1. Go to **More features** in the left-hand menu.
