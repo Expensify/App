@@ -3,21 +3,15 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 
-import {
-    isFlowDiscardPromptSuppressed,
-    isReplayingDiscardedNavigation,
-    releaseFlowDiscardPromptSuppression,
-    runWhileReplayingDiscardedNavigation,
-} from '@libs/Navigation/helpers/discardPromptState';
+import {isReplayingDiscardedNavigation, runWhileReplayingDiscardedNavigation} from '@libs/Navigation/helpers/discardPromptState';
 import getNavigationActionForReplay from '@libs/Navigation/helpers/getNavigationActionForReplay';
-import isNavigationInsideFlow from '@libs/Navigation/helpers/isNavigationInsideFlow';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {useRegisterTabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext';
 
 import type {NavigationAction} from '@react-navigation/native';
 
-import {useFocusEffect, useIsFocused, useNavigation, usePreventRemove, useRoute} from '@react-navigation/native';
-import {useEffect, useRef} from 'react';
+import {useFocusEffect, usePreventRemove} from '@react-navigation/native';
+import {useRef} from 'react';
 import {BackHandler} from 'react-native';
 
 import type {DiscardChangesConfirmation} from './types';
@@ -25,6 +19,7 @@ import type UseDiscardChangesConfirmationOptions from './types';
 
 import getDiscardChangesModalConfig from './getDiscardChangesModalConfig';
 import runDiscardConfirmation from './runDiscardConfirmation';
+import useDiscardPromptGate from './useDiscardPromptGate';
 
 function useDiscardChangesConfirmation({
     getHasUnsavedChanges,
@@ -35,49 +30,22 @@ function useDiscardChangesConfirmation({
     shouldPromptWhenUnfocused = false,
     shouldPromptWhenGoingBackInFlow = true,
 }: UseDiscardChangesConfirmationOptions): DiscardChangesConfirmation {
-    const route = useRoute();
-    const navigation = useNavigation();
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const blockedNavigationAction = useRef<NavigationAction | undefined>(undefined);
     const isDiscardModalOpen = useRef(false);
     const isReplayingBlockedNavigation = useRef(false);
-
-    // Only the focused screen should prompt — a flow-leave reset fires `beforeRemove` for hidden siblings too.
-    // With `shouldPromptWhenUnfocused`, the screen also prompts while pages opened from it are on top of it.
-    const isFocused = useIsFocused();
-    const isSavingRef = useRef(false);
-    useFocusEffect(() => {
-        isSavingRef.current = false;
-        return () => {
-            // The screen stays open below the page it opens after it calls `suppressDiscardPrompt` and moves on.
-            // Turn its prompt back on, so closing the RHP from that page still asks.
-            if (!shouldPromptWhenUnfocused) {
-                return;
-            }
-            isSavingRef.current = false;
-        };
+    const {routeName, isFocused, hasUnsavedChanges, shouldPromptFor, suppressDiscardPrompt} = useDiscardPromptGate({
+        getHasUnsavedChanges,
+        shouldPromptWhenUnfocused,
+        shouldPromptWhenGoingBackInFlow,
     });
-    useEffect(() => {
-        if (!shouldPromptWhenUnfocused) {
-            return undefined;
-        }
-        // Turn the prompt back on when a flow opens or closes, so a submit that muted the previous flow can't mute this one.
-        releaseFlowDiscardPromptSuppression();
-        return () => releaseFlowDiscardPromptSuppression();
-    }, [shouldPromptWhenUnfocused]);
-    // A screen that prompts while covered still stays quiet when its whole flow is covered, such as by another RHP or a fullscreen
-    const isGuardActive = () => (shouldPromptWhenUnfocused ? (navigation.getParent()?.isFocused() ?? true) : isFocused);
-    const isMuted = () => isSavingRef.current || (shouldPromptWhenUnfocused && isFlowDiscardPromptSuppressed());
-    const hasUnsavedChanges = () => isGuardActive() && !isMuted() && getHasUnsavedChanges();
-    // Some navigations remove this screen but keep the user in the flow, so they don't prompt
-    const shouldPromptFor = (action: NavigationAction) => !shouldPromptWhenUnfocused || !isNavigationInsideFlow(action, route, navigation.getState(), !shouldPromptWhenGoingBackInFlow);
 
     // Callers derive dirtiness from current values and baselines, so this is safe to read during render.
     // The other checks (saving, muted, the flow being on screen) read refs and the navigation state, so the callback below runs them.
     const shouldPreventRemove = (shouldPromptWhenUnfocused || isFocused) && getHasUnsavedChanges();
 
-    useRegisterTabSwitchGuard(route.name, hasUnsavedChanges, onTabSwitchDiscard, onCancel);
+    useRegisterTabSwitchGuard(routeName, hasUnsavedChanges, onTabSwitchDiscard, onCancel);
 
     const showDiscardModal = (blockedAction?: NavigationAction) => {
         blockedNavigationAction.current = blockedAction;
@@ -144,10 +112,6 @@ function useDiscardChangesConfirmation({
         });
         return () => subscription.remove();
     });
-
-    const suppressDiscardPrompt = (shouldSuppress = true) => {
-        isSavingRef.current = shouldSuppress;
-    };
 
     return {suppressDiscardPrompt};
 }

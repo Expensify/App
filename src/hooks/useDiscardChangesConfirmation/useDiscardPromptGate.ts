@@ -1,0 +1,59 @@
+/**
+ * The checks that decide whether the "Discard changes?" prompt asks, shared by the web and native versions of the hook.
+ */
+import {isFlowDiscardPromptSuppressed, releaseFlowDiscardPromptSuppression} from '@libs/Navigation/helpers/discardPromptState';
+import isNavigationInsideFlow from '@libs/Navigation/helpers/isNavigationInsideFlow';
+
+import type {NavigationAction} from '@react-navigation/native';
+
+import {useFocusEffect, useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
+import {useEffect, useRef} from 'react';
+
+import type UseDiscardChangesConfirmationOptions from './types';
+
+type UseDiscardPromptGateParams = Pick<UseDiscardChangesConfirmationOptions, 'getHasUnsavedChanges' | 'shouldPromptWhenUnfocused' | 'shouldPromptWhenGoingBackInFlow'>;
+
+function useDiscardPromptGate({getHasUnsavedChanges, shouldPromptWhenUnfocused = false, shouldPromptWhenGoingBackInFlow = true}: UseDiscardPromptGateParams) {
+    const route = useRoute();
+    const navigation = useNavigation();
+
+    // Only the focused screen should prompt — a flow-leave reset fires `beforeRemove` for hidden siblings too.
+    // With `shouldPromptWhenUnfocused`, the screen also prompts while pages opened from it are on top of it.
+    const isFocused = useIsFocused();
+    const isSavingRef = useRef(false);
+    useFocusEffect(() => {
+        isSavingRef.current = false;
+        return () => {
+            // The screen stays open below the page it opens after it calls `suppressDiscardPrompt` and moves on.
+            // Turn its prompt back on, so closing the RHP from that page still asks.
+            if (!shouldPromptWhenUnfocused) {
+                return;
+            }
+            isSavingRef.current = false;
+        };
+    });
+    useEffect(() => {
+        if (!shouldPromptWhenUnfocused) {
+            return undefined;
+        }
+        // Turn the prompt back on when a flow opens or closes, so a submit that muted the previous flow can't mute this one.
+        releaseFlowDiscardPromptSuppression();
+        return () => releaseFlowDiscardPromptSuppression();
+    }, [shouldPromptWhenUnfocused]);
+
+    // A screen that prompts while covered still stays quiet when its whole flow is covered, such as by another RHP or a fullscreen
+    const isGuardActive = () => (shouldPromptWhenUnfocused ? (navigation.getParent()?.isFocused() ?? true) : isFocused);
+    const isMuted = () => isSavingRef.current || (shouldPromptWhenUnfocused && isFlowDiscardPromptSuppressed());
+    const hasUnsavedChanges = () => isGuardActive() && !isMuted() && getHasUnsavedChanges();
+
+    // Some navigations remove this screen but keep the user in the flow, so they don't prompt
+    const shouldPromptFor = (action: NavigationAction) => !shouldPromptWhenUnfocused || !isNavigationInsideFlow(action, route, navigation.getState(), !shouldPromptWhenGoingBackInFlow);
+
+    const suppressDiscardPrompt = (shouldSuppress = true) => {
+        isSavingRef.current = shouldSuppress;
+    };
+
+    return {routeName: route.name, isFocused, hasUnsavedChanges, shouldPromptFor, suppressDiscardPrompt};
+}
+
+export default useDiscardPromptGate;
