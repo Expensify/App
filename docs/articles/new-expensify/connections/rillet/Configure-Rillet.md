@@ -69,7 +69,7 @@ On the Rillet integration, choose **Advanced** to configure:
 - **Export method** – Choose when reports are exported automatically. This option is only available when auto-sync is enabled. 
   - **Accrual** exports reimbursable expenses after final approval.
   - **Cash** exports reimbursable expenses after they are paid.
-- **Sync reimbursed reports** – When a report is paid via ACH, Expensify creates a payment in Rillet on the report's vendor bill or reimbursement.
+- **Sync reimbursed reports** – Automatically create a payment in Rillet when a report is reimbursed in Expensify. The payment is recorded on the report's vendor bill or reimbursement.
   - **ACH payment account** – Select the Rillet account the payment is made from. Only active asset accounts appear.
 - **Sync Expensify Card settlements** – Automatically create settlement payments in Rillet for Expensify Card transactions.
 - **Sync Consolidated Travel Billing settlements** – Automatically create settlement payments in Rillet for Consolidated Travel Billing transactions.
