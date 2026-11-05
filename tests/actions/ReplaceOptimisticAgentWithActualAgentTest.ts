@@ -1,6 +1,6 @@
 import {beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
 
-import {resolveAgentAccountID} from '@libs/AgentAccountIDMapping';
+import {markAgentAccountIDMappingReceivedInThisTab, resolveAgentAccountID} from '@libs/AgentAccountIDMapping';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import findFocusedRouteWithOnyxTabGuard from '@libs/Navigation/helpers/findFocusedRouteWithOnyxTabGuard';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
@@ -31,13 +31,6 @@ const mockSetParams = jest.fn<ReturnType<Navigation['setParams']>, Parameters<Na
 const mockIsNavigationReady = jest.fn<Promise<void>, []>(() => Promise.resolve());
 const mockIsReady = jest.fn(() => false);
 const mockGetRootState = jest.fn<PartialState<NavigationState> | undefined, []>(() => undefined);
-const mockIsClientTheLeader = jest.fn(() => true);
-
-jest.mock('@libs/ActiveClientManager', () => ({
-    isClientTheLeader: () => mockIsClientTheLeader(),
-    isReady: () => Promise.resolve(),
-    init: jest.fn(),
-}));
 
 jest.mock('@libs/Navigation/Navigation', () => {
     const mockNavigation = {
@@ -74,6 +67,13 @@ function buildAgentEditNavigationState(accountID: number): PartialState<Navigati
     };
 }
 
+// The ReplaceOptimisticAgentAccountID middleware marks a mapping in the tab that applies CreateAgent's response, before the
+// mapping reaches Onyx. Only that tab clears the optimistic agent, so most tests act as that tab.
+function replaceAgentFromResponseInThisTab(optimisticAccountID: number, realAccountID: number) {
+    markAgentAccountIDMappingReceivedInThisTab(optimisticAccountID);
+    replaceOptimisticAgentWithActualAgent(optimisticAccountID, realAccountID);
+}
+
 describe('replaceOptimisticAgentWithActualAgent', () => {
     beforeAll(() => {
         Onyx.init({
@@ -92,7 +92,6 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         mockIsReady.mockReturnValue(false);
         mockGetRootState.mockReturnValue(undefined);
         mockSetParams.mockClear();
-        mockIsClientTheLeader.mockReturnValue(true);
     });
 
     it('remaps the DM participants from the optimistic accountID to the real one', async () => {
@@ -113,7 +112,7 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         await waitForBatchedUpdates();
 
         // When the optimistic agent is replaced with the real one
-        replaceOptimisticAgentWithActualAgent(optimisticAccountID, realAccountID);
+        replaceAgentFromResponseInThisTab(optimisticAccountID, realAccountID);
         await waitForBatchedUpdates();
 
         // Then the optimistic participant is copied onto the real accountID and the optimistic key is removed
@@ -140,7 +139,7 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, swappedReport);
         await waitForBatchedUpdates();
 
-        replaceOptimisticAgentWithActualAgent(optimisticAccountID, realAccountID);
+        replaceAgentFromResponseInThisTab(optimisticAccountID, realAccountID);
         await waitForBatchedUpdates();
 
         const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -166,8 +165,8 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         mockGetRootState.mockClear();
 
         // When both mappings arrive together, report repair should be batched rather than repeated per agent
-        replaceOptimisticAgentWithActualAgent(firstOptimisticID, firstRealID);
-        replaceOptimisticAgentWithActualAgent(secondOptimisticID, secondRealID);
+        replaceAgentFromResponseInThisTab(firstOptimisticID, firstRealID);
+        replaceAgentFromResponseInThisTab(secondOptimisticID, secondRealID);
         await waitForBatchedUpdates();
 
         // Then one navigation pass and one report update preserve the server-provided participant
@@ -198,14 +197,14 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`, {prompt: 'Book my flights'});
         await waitForBatchedUpdates();
 
-        replaceOptimisticAgentWithActualAgent(optimisticAccountID, realAccountID);
+        replaceAgentFromResponseInThisTab(optimisticAccountID, realAccountID);
         await waitForBatchedUpdates();
 
         const reportAfterFirstRun = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
         const personalDetailsAfterFirstRun = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
         const promptAfterFirstRun = await getOnyxValue(`${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`);
 
-        replaceOptimisticAgentWithActualAgent(optimisticAccountID, realAccountID);
+        replaceAgentFromResponseInThisTab(optimisticAccountID, realAccountID);
         await waitForBatchedUpdates();
 
         expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)).toStrictEqual(reportAfterFirstRun);
@@ -252,6 +251,7 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         await waitForBatchedUpdates();
 
         // When the mapping written by CreateAgent's success response is consumed
+        markAgentAccountIDMappingReceivedInThisTab(optimisticAccountID);
         await Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {[optimisticAccountID]: realAccountID});
         await waitForBatchedUpdates();
 
@@ -280,7 +280,7 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         });
         await waitForBatchedUpdates();
 
-        replaceOptimisticAgentWithActualAgent(optimisticAccountID, realAccountID);
+        replaceAgentFromResponseInThisTab(optimisticAccountID, realAccountID);
         await waitForBatchedUpdates();
 
         // Then nothing is written under the real accountID and the optimistic keys are cleared
@@ -364,6 +364,7 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         await waitForBatchedUpdates();
 
         // When the mapping is consumed before navigation is ready
+        markAgentAccountIDMappingReceivedInThisTab(optimisticAccountID);
         await Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {[optimisticAccountID]: realAccountID});
         await waitForBatchedUpdates();
 
@@ -413,6 +414,7 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
             [realAccountID]: {accountID: realAccountID, displayName: 'Created agent'},
         });
         await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`, {prompt: 'Test instructions'});
+        markAgentAccountIDMappingReceivedInThisTab(optimisticAccountID);
         await Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {[optimisticAccountID]: realAccountID});
         await waitForBatchedUpdates();
 
@@ -478,9 +480,9 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         expect(resolveAgentAccountID(negativeMappedAccountID)).toBe(negativeMappedAccountID);
     });
 
-    it('redirects its own screens but leaves the shared cleanup to the leader when the tab is not the leader', async () => {
-        // Given a second browser tab that created the agent but is not the leader, so the leader tab applied CreateAgent's
-        // response. This tab still holds the optimistic agent, its DM and an open EDIT screen for it.
+    it('redirects its own screens but clears no shared data in a tab that only received the mapping from another tab', async () => {
+        // Given a browser tab that created the agent while another tab applied CreateAgent's response, so this tab gets
+        // the mapping through Onyx's cross-tab sync. It still holds the optimistic agent, its DM and an open EDIT screen.
         const optimisticAccountID = 5172839406517283;
         const realAccountID = 3846152907384615;
         const ownerAccountID = 16180339;
@@ -493,7 +495,6 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
             [optimisticAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
         };
 
-        mockIsClientTheLeader.mockReturnValue(false);
         mockIsReady.mockReturnValue(true);
         mockGetRootState.mockReturnValue(buildAgentEditNavigationState(optimisticAccountID));
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[optimisticAccountID]: optimisticPersonalDetail, [realAccountID]: realPersonalDetail});

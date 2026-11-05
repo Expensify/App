@@ -1,5 +1,4 @@
-import {isClientTheLeader, isReady as isActiveClientReady} from '@libs/ActiveClientManager';
-import {isValidAgentAccountID, registerAgentAccountIDMapping} from '@libs/AgentAccountIDMapping';
+import {isValidAgentAccountID, registerAgentAccountIDMapping, wasAgentAccountIDMappingReceivedInThisTab} from '@libs/AgentAccountIDMapping';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getPersonalDetail, personalDetailsHydrationPromise} from '@libs/PersonalDetailsStore';
@@ -24,7 +23,8 @@ import Onyx from 'react-native-onyx';
  * Like replaceOptimisticReportWithActualReport, this module listens to that mapping. For each entry it redirects
  * any open agent settings screen to the real accountID, remaps the agent DM participants, clears the optimistic
  * data. The mapping stays in Onyx so other tabs and screens opened later can still resolve the optimistic ID.
- * Every tab redirects its own screens, but only the leader tab writes the shared cleanup (see below).
+ * Every tab redirects its own screens. Only the tab that applied CreateAgent's response writes the shared cleanup, or
+ * any tab for a mapping it loaded from storage on start (see canClearSharedData).
  * The cleanup lives here instead of createAgent()'s successData so it runs after this tab's redirect.
  *
  * Nothing is migrated onto the real keys: the mapping is only flushed to Onyx after the queue has drained, so any
@@ -43,6 +43,19 @@ const AGENT_SETTINGS_SCREENS = new Set<string>([
 const processedAccountIDs = new Map<number, number>();
 const pendingAccountIDs = new Map<number, number>();
 let isReplacementScheduled = false;
+
+// Mappings already in storage when this tab started. This tab has just read every key from storage, so its cache is
+// current, and this is how a session killed before its cleanup still gets cleaned up.
+const accountIDsLoadedOnStart = new Set<number>();
+let hasReceivedInitialMapping = false;
+
+// On web, Onyx saves the whole value of a key from the writing tab's own cache. A tab that only received the mapping
+// from another tab may not have the real agent from CreateAgent's response in its cache yet, so clearing the
+// optimistic agent there could erase the real agent's personal details or report data. That tab only redirects its
+// screens, and the result of the owning tab's cleanup reaches it through Onyx's cross-tab sync.
+function canClearSharedData(optimisticAccountID: number): boolean {
+    return wasAgentAccountIDMappingReceivedInThisTab(optimisticAccountID) || accountIDsLoadedOnStart.has(optimisticAccountID);
+}
 
 // Reports are only read inside the mapping callback, so connectWithoutView() is used. On app start the mapping can
 // arrive before this collection is hydrated, so consumers wait for this promise. Onyx always fires the callback at
@@ -162,7 +175,7 @@ function replaceOptimisticAgentWithActualAgent(optimisticAccountID: number, real
 
     // Wait for hydration before deciding which cleanup is still needed. Batch retained mappings so startup
     // walks the report collection and navigation tree once, rather than once per agent created in the past.
-    Promise.all([reportsHydrationPromise, personalDetailsHydrationPromise, agentsHydrationPromise, Navigation.isNavigationReady(), isActiveClientReady()]).then(() => {
+    Promise.all([reportsHydrationPromise, personalDetailsHydrationPromise, agentsHydrationPromise, Navigation.isNavigationReady()]).then(() => {
         TransitionTracker.runAfterTransitions({
             callback: () => {
                 const accountIDs = new Map(pendingAccountIDs);
@@ -174,15 +187,12 @@ function replaceOptimisticAgentWithActualAgent(optimisticAccountID: number, real
                     redirectAgentSettingsScreens(accountIDs);
                 }
 
-                // On web, Onyx writes the whole value of a key from the writing tab's own cache. Another tab's cache can
-                // still lack the real agent that CreateAgent's response added, so its cleanup could erase the real agent's
-                // personal details or report data. Only the leader tab applies the response, so only it cleans up. The
-                // other tabs receive the result through Onyx's cross-tab sync.
-                if (!isClientTheLeader()) {
+                const accountIDsToClear = new Map([...accountIDs].filter(([optimisticAccountID]) => canClearSharedData(optimisticAccountID)));
+                if (accountIDsToClear.size === 0) {
                     return;
                 }
-                remapReportParticipants(accountIDs);
-                clearOptimisticAgentData(accountIDs);
+                remapReportParticipants(accountIDsToClear);
+                clearOptimisticAgentData(accountIDsToClear);
             },
         });
     });
@@ -193,11 +203,16 @@ function replaceOptimisticAgentWithActualAgent(optimisticAccountID: number, real
 Onyx.connectWithoutView({
     key: ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING,
     callback: (mapping) => {
+        const isInitialMapping = !hasReceivedInitialMapping;
+        hasReceivedInitialMapping = true;
         if (!mapping) {
             return;
         }
 
         for (const [optimisticAccountID, mappedAccountID] of Object.entries(mapping)) {
+            if (isInitialMapping) {
+                accountIDsLoadedOnStart.add(Number(optimisticAccountID));
+            }
             // Removed invalid entries are skipped. Clearing them again would just fire this callback once more.
             const realAccountID: unknown = mappedAccountID;
             if (realAccountID === null || realAccountID === undefined) {

@@ -1,4 +1,4 @@
-import {resolveAgentAccountID} from '@libs/AgentAccountIDMapping';
+import {resolveAgentAccountID, wasAgentAccountIDMappingReceivedInThisTab} from '@libs/AgentAccountIDMapping';
 import replaceOptimisticAgentAccountID from '@libs/Middleware/ReplaceOptimisticAgentAccountID';
 
 import * as PersistedRequests from '@userActions/PersistedRequests';
@@ -213,6 +213,24 @@ describe('ReplaceOptimisticAgentAccountID middleware', () => {
         await replaceOptimisticAgentAccountID(Promise.resolve(buildMappingResponse({[shortOptimisticAccountID]: realAccountID})), buildCreateAgentRequest(shortOptimisticAccountID), true);
 
         expect(resolveAgentAccountID(shortOptimisticAccountID)).toBe(shortOptimisticAccountID);
+    });
+
+    it('marks the mapping as received in the tab that applies the CreateAgent response', async () => {
+        // Given a CreateAgent response processed by this tab. Other tabs only see the mapping later, through Onyx's
+        // cross-tab sync, and never run this middleware for it.
+        const ownedOptimisticAccountID = 4702938165470293;
+        const ownedRealAccountID = 9183746501928374;
+        expect(wasAgentAccountIDMappingReceivedInThisTab(ownedOptimisticAccountID)).toBe(false);
+
+        // When the response passes through the middleware
+        await replaceOptimisticAgentAccountID(
+            Promise.resolve(buildMappingResponse({[ownedOptimisticAccountID]: ownedRealAccountID})),
+            buildCreateAgentRequest(ownedOptimisticAccountID),
+            true,
+        );
+
+        // Then this tab is the one allowed to clear the optimistic agent's shared data
+        expect(wasAgentAccountIDMappingReceivedInThisTab(ownedOptimisticAccountID)).toBe(true);
     });
 
     it('only re-persists the requests that reference the optimistic accountID', async () => {
