@@ -1037,6 +1037,7 @@ function getSecondaryReportActions({
     isOffline,
     rules,
     cardList,
+    areStrictPolicyRulesEnabled = true,
 }: {
     currentUserLogin: string;
     currentUserAccountID: number;
@@ -1060,6 +1061,7 @@ function getSecondaryReportActions({
     isOffline?: boolean;
     rules: OnyxCollection<Rule>;
     cardList: OnyxEntry<CardList>;
+    areStrictPolicyRulesEnabled?: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
     const reportNameValuePairs = moveExpenseReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
@@ -1225,7 +1227,8 @@ function getSecondaryReportActions({
     }
 
     const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
-    if (isExpenseReportUtils(report) && isProcessingReportUtils(report) && isPolicyAdmin(policy) && isApprovalEnabled) {
+    const canReassignAsApprover = report.managerID === currentUserAccountID && !areStrictPolicyRulesEnabled;
+    if (isExpenseReportUtils(report) && isProcessingReportUtils(report) && (isPolicyAdmin(policy) || canReassignAsApprover) && isApprovalEnabled) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER);
     }
 

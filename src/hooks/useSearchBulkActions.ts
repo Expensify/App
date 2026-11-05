@@ -76,6 +76,8 @@ import {
     isIndividualInvoiceRoom,
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
+    isMoneyRequestReportPendingDeletion,
+    isProcessingReport,
     isSelfDM,
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
@@ -175,6 +177,7 @@ import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
 import useSelfDMReport from './useSelfDMReport';
 import useShouldReturnTripRooms from './useShouldReturnTripRooms';
 import useSplitEffectivePolicy from './useSplitEffectivePolicy';
+import useStrictPolicyRules from './useStrictPolicyRules';
 import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
 import useUndeleteTransactions from './useUndeleteTransactions';
@@ -626,6 +629,7 @@ function getChatReportForBulkPay(
 type ExportMenuItem = DropdownOption<SearchHeaderOptionValue> & Pick<PopoverMenuItem, 'accessibilityLabel' | 'shouldCallAfterModalHide'>;
 
 function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
+    const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
     const {translate, localeCompare, dateFnsLocale} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -2876,7 +2880,23 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             !isAnyTransactionOnHold &&
             areSelectedTransactionsIncludedInReports &&
             selectedReports.length &&
-            selectedReports.every((report) => report.canChangeApprover);
+            selectedReports.every((selectedReport) => {
+                if (selectedReport.canChangeApprover) {
+                    return true;
+                }
+                const report = getReportFromSearchSnapshot(selectedReport.reportID, currentSearchResults?.data, allReports);
+                if (
+                    areStrictPolicyRulesEnabled ||
+                    report?.managerID !== accountID ||
+                    !isExpenseReportUtil(report) ||
+                    !isProcessingReport(report) ||
+                    isMoneyRequestReportPendingDeletion(report)
+                ) {
+                    return false;
+                }
+                const policy = getPolicyFromSearchSnapshot(selectedReport.policyID, currentSearchResults?.data, policies);
+                return !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+            });
 
         if (shouldShowChangeApproverOption) {
             options.push({
@@ -3414,6 +3434,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         return buildResult(options);
     }, [
         selectedTransactionsKeys,
+        areStrictPolicyRulesEnabled,
         showOfflineModal,
         showDownloadErrorModal,
         cardList,
