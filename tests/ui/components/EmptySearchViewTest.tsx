@@ -34,7 +34,10 @@ jest.mock('@components/BookTravelButton', () => {
 // Wrapper component with OnyxListItemProvider
 function Wrapper({children, queryJSON, defaultQueryJSON}: {children: React.ReactNode; queryJSON?: SearchQueryJSON; defaultQueryJSON?: SearchQueryJSON}) {
     const searchContext = useContext(SearchQueryContext);
-    const queryContext = useMemo(() => ({...searchContext, currentSearchQueryJSON: queryJSON, currentDefaultSearchQueryJSON: defaultQueryJSON}), [searchContext, queryJSON, defaultQueryJSON]);
+    const queryContext = useMemo(
+        () => ({...searchContext, currentSearchQueryJSON: queryJSON, currentDefaultSearchQueryJSON: defaultQueryJSON}),
+        [searchContext, queryJSON, defaultQueryJSON],
+    );
     return (
         <OnyxListItemProvider>
             <LocaleContextProvider>
@@ -102,8 +105,16 @@ describe('EmptySearchView', () => {
 
             // When the menu-provided Nothing to show state is rendered
             render(
-                <Wrapper queryJSON={queryJSON} defaultQueryJSON={defaultQueryJSON}>
-                    <EmptySearchView similarSearchHash={queryJSON?.similarSearchHash ?? -1} type={CONST.SEARCH.DATA_TYPES.EXPENSE} hasResults queryJSON={queryJSON} />
+                <Wrapper
+                    queryJSON={queryJSON}
+                    defaultQueryJSON={defaultQueryJSON}
+                >
+                    <EmptySearchView
+                        similarSearchHash={queryJSON?.similarSearchHash ?? -1}
+                        type={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                        hasResults
+                        queryJSON={queryJSON}
+                    />
                 </Wrapper>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -127,8 +138,16 @@ describe('EmptySearchView', () => {
 
                 // When the filtered search has no matching results
                 render(
-                    <Wrapper queryJSON={queryJSON} defaultQueryJSON={defaultQueryJSON}>
-                        <EmptySearchView similarSearchHash={-1} type={type} hasResults queryJSON={queryJSON} />
+                    <Wrapper
+                        queryJSON={queryJSON}
+                        defaultQueryJSON={defaultQueryJSON}
+                    >
+                        <EmptySearchView
+                            similarSearchHash={-1}
+                            type={type}
+                            hasResults
+                            queryJSON={queryJSON}
+                        />
                     </Wrapper>,
                 );
                 await waitForBatchedUpdatesWithAct();
@@ -147,8 +166,16 @@ describe('EmptySearchView', () => {
 
             // When that view is empty
             render(
-                <Wrapper queryJSON={queryJSON} defaultQueryJSON={queryJSON}>
-                    <EmptySearchView similarSearchHash={-1} type={CONST.SEARCH.DATA_TYPES.CHAT} hasResults={false} queryJSON={queryJSON} />
+                <Wrapper
+                    queryJSON={queryJSON}
+                    defaultQueryJSON={queryJSON}
+                >
+                    <EmptySearchView
+                        similarSearchHash={-1}
+                        type={CONST.SEARCH.DATA_TYPES.CHAT}
+                        hasResults={false}
+                        queryJSON={queryJSON}
+                    />
                 </Wrapper>,
             );
             await waitForBatchedUpdatesWithAct();
@@ -165,8 +192,16 @@ describe('EmptySearchView', () => {
 
             // When the onboarding empty state is rendered
             render(
-                <Wrapper queryJSON={queryJSON} defaultQueryJSON={defaultQueryJSON}>
-                    <EmptySearchView similarSearchHash={-1} type={CONST.SEARCH.DATA_TYPES.EXPENSE} hasResults={false} queryJSON={queryJSON} />
+                <Wrapper
+                    queryJSON={queryJSON}
+                    defaultQueryJSON={defaultQueryJSON}
+                >
+                    <EmptySearchView
+                        similarSearchHash={-1}
+                        type={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                        hasResults={false}
+                        queryJSON={queryJSON}
+                    />
                 </Wrapper>,
             );
             await waitForBatchedUpdatesWithAct();
