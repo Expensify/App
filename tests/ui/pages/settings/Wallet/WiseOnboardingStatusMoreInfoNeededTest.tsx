@@ -22,6 +22,7 @@ import Onyx from 'react-native-onyx';
 import getOnyxValue from '../../../../utils/getOnyxValue';
 import * as TestHelper from '../../../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../../../utils/waitForBatchedUpdatesWithAct';
+import {mockKYCReviewLinkResponse} from '../../../../utils/WiseTestUtils';
 
 const BANK_ACCOUNT_ID = 9053192;
 const CONTINUE_BUTTON_TEST_ID = 'confirmation-primary-button';
@@ -57,12 +58,6 @@ async function renderPage() {
 
 let mockFetch: ReturnType<typeof TestHelper.getGlobalFetchMock>;
 let originalFetch: typeof global.fetch;
-
-function mockKYCReviewLinkResponse() {
-    mockFetch.mockAPICommand(READ_COMMANDS.GET_WISE_KYC_REVIEW_EMBEDDED_LINK, () => ({
-        onyxData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK, value: {url: KYC_REVIEW_URL}}],
-    }));
-}
 
 async function pressContinue() {
     fireEvent.press(screen.getByTestId(CONTINUE_BUTTON_TEST_ID));
@@ -115,7 +110,7 @@ describe('WiseOnboardingStatusPage while Wise needs more info', () => {
 
     it("fetches the link for the bank account on Continue and redirects to Wise's form once it arrives", async () => {
         // Given the page opened for a bank account Wise needs more info about, and a server that answers with a link
-        mockKYCReviewLinkResponse();
+        mockKYCReviewLinkResponse(mockFetch, KYC_REVIEW_URL);
         mockFetch.pause();
         await renderPage();
 
@@ -178,7 +173,7 @@ describe('WiseOnboardingStatusPage while Wise needs more info', () => {
 
     it("keeps the link of an open form when the connection comes back, so the form doesn't lose it", async () => {
         // Given the link arrived and Wise's form is open on top of the page
-        mockKYCReviewLinkResponse();
+        mockKYCReviewLinkResponse(mockFetch, KYC_REVIEW_URL);
         await renderPage();
         await pressContinue();
         act(() => {

@@ -8,6 +8,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import stripDynamicRouteSuffixFromPath from '@libs/Navigation/helpers/dynamicRoutesUtils/stripDynamicRouteSuffixFromPath';
+import openExternalLink from '@libs/openExternalLink';
 
 import Navigation from '@navigation/Navigation';
 
@@ -15,7 +16,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import type {ShouldStartLoadRequest} from 'react-native-webview/lib/WebViewTypes';
+import type {ShouldStartLoadRequest, WebViewOpenWindowEvent} from 'react-native-webview/lib/WebViewTypes';
 
 import React from 'react';
 
@@ -38,8 +39,9 @@ function WiseKYCReviewPage() {
     const goBack = () => Navigation.goBack(backPath);
 
     // Wise ends the form by redirecting to our redirect URL with the outcome in a query param, so the WebView stops there instead of loading that page
-    const closeFormOnRedirect = ({url}: ShouldStartLoadRequest) => {
-        const status = getRedirectStatus(url, environmentURL);
+    const closeFormOnRedirect = ({url, isTopFrame}: ShouldStartLoadRequest) => {
+        // iOS also asks about iframe loads, which must not close the form. Android leaves isTopFrame out, so only an explicit false is an iframe
+        const status = isTopFrame !== false ? getRedirectStatus(url, environmentURL) : null;
         if (!status) {
             return true;
         }
@@ -48,6 +50,9 @@ function WiseKYCReviewPage() {
         Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.getRoute(status), introPath), {compareParams: false});
         return false;
     };
+
+    // Without a handler, iOS loads a new window's link in place of the form and Android drops it, so links such as Wise's terms open in the browser instead
+    const openNewWindowInBrowser = ({nativeEvent}: WebViewOpenWindowEvent) => openExternalLink(nativeEvent.targetUrl);
 
     return (
         <ScreenWrapper
@@ -63,6 +68,7 @@ function WiseKYCReviewPage() {
                 <FullScreenWebView
                     source={{uri: kycReviewURL ?? ''}}
                     onShouldStartLoadWithRequest={closeFormOnRedirect}
+                    onOpenWindow={openNewWindowInBrowser}
                     // The form holds identity documents, so its cookies and cache do not outlive the screen
                     incognito
                     // The form's ID document step films the user, so the camera preview has to play inline, and Wise's own host gets the camera without a second prompt

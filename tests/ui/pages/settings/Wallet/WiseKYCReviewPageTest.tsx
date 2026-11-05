@@ -5,6 +5,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import openExternalLink from '@libs/openExternalLink';
 
 import WiseKYCReviewPage from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseKYCReviewPage';
 
@@ -24,16 +25,18 @@ import waitForBatchedUpdatesWithAct from '../../../../utils/waitForBatchedUpdate
 const BACK_PATH = 'settings/wallet/global-reimbursements/9053192/status';
 const KYC_REVIEW_URL = 'https://wise-sandbox.com/embedded-flows/verification?token=abc';
 const WEB_VIEW_TEST_ID = 'wise-kyc-web-view';
+const TERMS_URL = 'https://wise.com/legal/terms';
 
-// The mock passes the navigation check on, so a test can fire it like the native WebView does
+// The mock passes the navigation check and the new window event on, so a test can fire them like the native WebView does
 jest.mock('react-native-webview', () => ({
-    WebView: ({onShouldStartLoadWithRequest}: WebViewProps) => (
+    WebView: ({onShouldStartLoadWithRequest, onOpenWindow}: WebViewProps) => (
         <MockView
             testID="wise-kyc-web-view"
-            {...{onShouldStartLoadWithRequest}}
+            {...{onShouldStartLoadWithRequest, onOpenWindow}}
         />
     ),
 }));
+jest.mock('@libs/openExternalLink', () => jest.fn());
 jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => 'settings/wallet/global-reimbursements/9053192/status'));
 
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
@@ -57,8 +60,8 @@ async function renderPage() {
 }
 
 /** Asks the WebView whether it may load the URL, the way the native WebView does before each navigation */
-function startLoading(url: string): unknown {
-    return fireEvent(screen.getByTestId(WEB_VIEW_TEST_ID), 'shouldStartLoadWithRequest', {url});
+function startLoading(url: string, isTopFrame?: boolean): unknown {
+    return fireEvent(screen.getByTestId(WEB_VIEW_TEST_ID), 'shouldStartLoadWithRequest', {url, isTopFrame});
 }
 
 describe('WiseKYCReviewPage', () => {
@@ -97,6 +100,32 @@ describe('WiseKYCReviewPage', () => {
 
         // Then the page loads and the form stays open
         expect(shouldLoad).toBe(true);
+        expect(goBackSpy).not.toHaveBeenCalled();
+    });
+
+    it('keeps the form open when an iframe in the form loads our redirect URL with a status param', async () => {
+        // Given Wise's form is open
+        const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
+        await renderPage();
+
+        // When an iframe on Wise's page loads a URL on our site with a status param, which iOS reports with isTopFrame false
+        const shouldLoad = startLoading(`${CONST.NEW_EXPENSIFY_URL}/${BACK_PATH}?status=success`, false);
+
+        // Then the iframe loads and the form stays open, since only the top page's redirect ends the form
+        expect(shouldLoad).toBe(true);
+        expect(goBackSpy).not.toHaveBeenCalled();
+    });
+
+    it('opens a link that asks for a new window in the browser and keeps the form open', async () => {
+        // Given Wise's form is open
+        const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
+        await renderPage();
+
+        // When the user taps a link in the form that opens a new window, such as Wise's terms
+        fireEvent(screen.getByTestId(WEB_VIEW_TEST_ID), 'openWindow', {nativeEvent: {targetUrl: TERMS_URL}});
+
+        // Then the link opens in the browser, since the screen has no way back from a page that replaces the form, and the form stays open
+        expect(openExternalLink).toHaveBeenCalledWith(TERMS_URL);
         expect(goBackSpy).not.toHaveBeenCalled();
     });
 });
