@@ -35,6 +35,12 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        billCreated: ({sender}) => `heeft deze factuur aangemaakt namens ${sender}`,
+        billSubmitted: ({receiver}) => `heeft deze factuur verzonden naar ${receiver}`,
+        invoiceCreated: ({sender}) => `heeft deze factuur aangemaakt namens ${sender}`,
+        invoiceSubmitted: ({receiver}) => `heeft deze factuur verzonden naar ${receiver}`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 dag`,
@@ -116,6 +122,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pay: 'Betalen',
             fix: 'Oplossen',
             task: 'Taak',
+            add: 'Toevoegen',
         },
         success: 'Gelukt',
         group: 'Groep',
@@ -1232,6 +1239,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'Naleving',
         runningTotal: 'Doorlopend totaal',
+        explain: 'Uitleg',
+        explainChartPrompt: (chartTitle: string) => `Leg de gegevens in ${chartTitle} uit.`,
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -2189,14 +2198,15 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Wacht tot <strong>jij</strong> de onkosten goedkeurt.`;
+                        return isBill ? `Wacht tot <strong>jij</strong> de factuur goedkeurt.` : `Wacht tot <strong>jij</strong> de onkosten goedkeurt.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Wachten tot <strong>${actor}</strong> de uitgaven goedkeurt.`;
+                        return isBill ? `Wachten tot <strong>${actor}</strong> de factuur goedkeurt.` : `Wachten tot <strong>${actor}</strong> de uitgaven goedkeurt.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Wachten op goedkeuring van uitgaven door een beheerder.`;
+                        return isBill ? `Wachten op goedkeuring van de factuur door een beheerder.` : `Wachten op goedkeuring van uitgaven door een beheerder.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (
@@ -2219,14 +2229,15 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Wacht tot <strong>jij</strong> onkosten betaalt.`;
+                        return isBill ? `Wacht tot <strong>jij</strong> deze factuur betaalt.` : `Wacht tot <strong>jij</strong> onkosten betaalt.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Wachten tot <strong>${actor}</strong> de declaraties betaalt.`;
+                        return isBill ? `Wachten tot <strong>${actor}</strong> deze factuur betaalt.` : `Wachten tot <strong>${actor}</strong> de declaraties betaalt.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Wachten tot een beheerder de onkosten betaalt.`;
+                        return isBill ? `Wachten tot een beheerder deze factuur betaalt.` : `Wachten tot een beheerder de onkosten betaalt.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
@@ -3126,7 +3137,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: 'Extra info verifiëren',
                 subtitle: 'Onze betalingspartner heeft rechtstreeks meer info nodig. Dit kost maar een paar minuten.',
             },
+            inReview: {
+                title: 'In behandeling',
+                heading: 'We hebben wat we nodig hebben.\nJe hoort van ons!',
+                description: 'De meeste controles duren één tot twee dagen. We sturen je een bericht met een update.',
+                chatWithConcierge: 'Chatten met Concierge',
+            },
+            approved: {title: 'Account goedgekeurd', heading: 'Goedgekeurd om wereldwijd te betalen', description: 'Betaal leden, waar ze ook zijn.'},
+            rejected: {title: 'Bankrekening afgewezen', heading: 'Onze partner heeft je bankrekening afgewezen', description: 'Chat met Concierge voor meer informatie.'},
         },
+        wiseSetupInProgress: {message: 'Instellen van wereldwijde terugbetalingen bezig.', continue: 'Doorgaan.'},
         wiseGlobalReimbursementsIntro: {
             title: 'Wereldwijde terugbetalingen instellen?',
             subtitle: 'Betaal leden wereldwijd in hun eigen lokale valuta.',
@@ -9155,8 +9175,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 describeRuleForConcierge: 'Beschrijf je regel en Concierge bouwt hem voor je',
                 gotIt: 'Begrepen',
                 createRule: 'Regel maken',
-                fallbackBanner: 'Dit is geen standaardregel, dus hebben we een agentregel opgesteld.',
-                fallbackBannerWithExplanation: (explanation: string) => `Dit is geen standaardregel, dus hebben we een agentregel opgesteld. ${explanation}`,
+                fallbackBanner:
+                    'Dit is geen standaardregel, dus hebben we een agentregel opgesteld. Agentregels worden uitgevoerd wanneer een declaratie of rapport wordt aangemaakt of bijgewerkt.',
+                fallbackBannerWithExplanation: (explanation: string) =>
+                    `Dit is geen standaardregel, dus hebben we een agentregel opgesteld. Agentregels worden uitgevoerd wanneer een declaratie of rapport wordt aangemaakt of bijgewerkt. ${explanation}`,
             },
             tabs: {
                 general: 'Algemeen',
@@ -12249,7 +12271,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             isUnreadWithMention: 'Is ongelezen met vermelding',
             isWaitingForAssigneeToCompleteAction: 'Wacht totdat de verantwoordelijke de actie voltooit',
             hasChildReportAwaitingAction: 'Heeft onderliggend rapport dat op actie wacht',
-            hasMissingInvoiceBankAccount: 'Heeft ontbrekend bankrekeningnummer voor factuur',
             hasUnresolvedCardFraudAlert: 'Heeft onopgeloste kaartfraudewaarschuwing',
             hasDEWApproveFailed: 'DEW-goedkeuring mislukt',
         },
@@ -12772,5 +12793,28 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         mobileClaimPrompt: 'Bezoek Expensify in je webbrowser om je verlengingskorting te claimen.',
     },
     bulkActionBar: {label: 'Bulkacties', clearSelection: 'Selectie wissen', loadingSelection: 'Selectie laden'},
+    reportHistoryPage: {
+        title: 'Rapportgeschiedenis',
+        created: 'heeft rapport gemaakt',
+        submitted: 'heeft ingediend',
+        approved: 'heeft goedgekeurd',
+        paid: 'heeft betaald',
+        toSubmit: 'indienen',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return 'automatisch indienen';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `automatisch indienen op de ${eta} van elke maand` : `${eta} automatisch indienen`;
+        },
+        toApprove: 'goedkeuren',
+        toPay: 'betalen',
+        minutesAgo: (count: number) => `${count} min geleden`,
+        hoursAgo: (count: number) => `${count} u geleden`,
+        daysAgo: () => ({
+            one: '1 d geleden',
+            other: (count: number) => `${count} d geleden`,
+        }),
+        offlineMessage: 'Je bent offline. Rapportgeschiedenis is mogelijk verouderd.',
+    },
 };
 export default translations;

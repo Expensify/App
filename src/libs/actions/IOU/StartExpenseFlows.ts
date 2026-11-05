@@ -55,6 +55,12 @@ function navigateToRestrictedActionIfNeeded(
     return true;
 }
 
+type AddExpenseDropdownSentryLabels = {
+    createExpense: SentryLabel;
+    trackDistance: SentryLabel;
+    addExistingExpense: SentryLabel;
+};
+
 /**
  * Returns the dropdown options for the add expense button
  * @param iouReport - The IOU report to add an expense to
@@ -63,12 +69,6 @@ function navigateToRestrictedActionIfNeeded(
  * @param sentryLabels - The Sentry labels of the options, which differ per menu that shows them
  * @returns The dropdown options for the add expense button
  */
-type AddExpenseDropdownSentryLabels = {
-    createExpense: SentryLabel;
-    trackDistance: SentryLabel;
-    addExistingExpense: SentryLabel;
-};
-
 type GetAddExpenseDropdownOptionsParams = {
     translate: LocalizedTranslate;
     icons: Record<'Location' | 'ReceiptPlus' | 'Plus', IconAsset>;

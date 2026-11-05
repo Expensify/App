@@ -9,7 +9,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
-import useAgentAccountID from '@hooks/useAgentAccountID';
 import useAvatarCrop from '@hooks/useAvatarCrop';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -228,8 +227,8 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
 
 EditAgentAvatarContent.displayName = 'EditAgentAvatarContent';
 
-function DynamicEditAgentAvatarPage({route, navigation}: DynamicEditAgentAvatarPageProps) {
-    const [accountID] = useAgentAccountID(route.params.accountID, navigation);
+function DynamicEditAgentAvatarPage({route}: DynamicEditAgentAvatarPageProps) {
+    const {accountID} = route.params;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.AGENT_EDIT_AVATAR.path);
     return (
         <EditAgentAvatarContent

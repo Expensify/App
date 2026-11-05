@@ -35,6 +35,12 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        billCreated: ({sender}) => `ha creato questa fattura per conto di ${sender}`,
+        billSubmitted: ({receiver}) => `ha inviato questa fattura a ${receiver}`,
+        invoiceCreated: ({sender}) => `ha creato questa fattura per conto di ${sender}`,
+        invoiceSubmitted: ({receiver}) => `ha inviato questa fattura a ${receiver}`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 giorno`,
@@ -116,6 +122,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pay: 'Paga',
             fix: 'Correggi',
             task: 'Attività',
+            add: 'Aggiungi',
         },
         success: 'Operazione riuscita',
         group: 'Gruppo',
@@ -1233,6 +1240,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'Conformità',
         runningTotal: 'Totale progressivo',
+        explain: 'Spiega',
+        explainChartPrompt: (chartTitle: string) => `Spiega i dati in ${chartTitle}.`,
     },
     allSettingsScreen: {
         subscription: 'Abbonamento',
@@ -2191,14 +2200,15 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `In attesa che <strong>tu</strong> approvi le spese.`;
+                        return isBill ? `In attesa che <strong>tu</strong> approvi la fattura.` : `In attesa che <strong>tu</strong> approvi le spese.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `In attesa che <strong>${actor}</strong> approvi le spese.`;
+                        return isBill ? `In attesa che <strong>${actor}</strong> approvi la fattura.` : `In attesa che <strong>${actor}</strong> approvi le spese.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `In attesa che un amministratore approvi le spese.`;
+                        return isBill ? `In attesa che un amministratore approvi la fattura.` : `In attesa che un amministratore approvi le spese.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (
@@ -2221,14 +2231,15 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `In attesa che <strong>tu</strong> rimborsi le spese.`;
+                        return isBill ? `In attesa che <strong>tu</strong> paghi questa fattura.` : `In attesa che <strong>tu</strong> rimborsi le spese.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `In attesa che <strong>${actor}</strong> rimborsi le spese.`;
+                        return isBill ? `In attesa che <strong>${actor}</strong> paghi questa fattura.` : `In attesa che <strong>${actor}</strong> rimborsi le spese.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `In attesa che un admin rimborsi le spese.`;
+                        return isBill ? `In attesa che un admin paghi questa fattura.` : `In attesa che un admin rimborsi le spese.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
@@ -3123,7 +3134,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: 'Verifica informazioni aggiuntive',
                 subtitle: 'Il nostro partner per i pagamenti ha bisogno di altre informazioni direttamente da te. Ci vorranno solo un paio di minuti.',
             },
+            inReview: {
+                title: 'In revisione',
+                heading: 'Abbiamo ciò che ci serve.\nTi faremo sapere!',
+                description: 'La maggior parte delle revisioni richiede da uno a due giorni. Ti invieremo un messaggio con un aggiornamento.',
+                chatWithConcierge: 'Chatta con Concierge',
+            },
+            approved: {title: 'Account approvato', heading: 'Approvato per pagare in tutto il mondo', description: 'Paga i membri ovunque si trovino.'},
+            rejected: {title: 'Conto bancario rifiutato', heading: 'Il nostro partner ha rifiutato il tuo conto bancario', description: 'Chatta con Concierge per maggiori informazioni.'},
         },
+        wiseSetupInProgress: {message: 'Configurazione dei rimborsi globali in corso.', continue: 'Continua.'},
         wiseGlobalReimbursementsIntro: {
             title: 'Configurare i rimborsi globali?',
             subtitle: 'Paga i membri in tutto il mondo nella loro valuta locale.',
@@ -9179,8 +9199,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 describeRuleForConcierge: 'Descrivi la tua regola e Concierge la creerà',
                 gotIt: 'Capito',
                 createRule: 'Crea regola',
-                fallbackBanner: 'Questa non è una regola standard, quindi abbiamo creato una regola agente.',
-                fallbackBannerWithExplanation: (explanation: string) => `Questa non è una regola standard, quindi abbiamo creato una regola agente. ${explanation}`,
+                fallbackBanner:
+                    'Questa non è una regola standard, quindi abbiamo creato una regola agente. Le regole agente vengono eseguite quando una spesa o un report viene creato o aggiornato.',
+                fallbackBannerWithExplanation: (explanation: string) =>
+                    `Questa non è una regola standard, quindi abbiamo creato una regola agente. Le regole agente vengono eseguite quando una spesa o un report viene creato o aggiornato. ${explanation}`,
             },
             tabs: {
                 general: 'Generale',
@@ -12279,7 +12301,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             isUnreadWithMention: 'È non letta con menzione',
             isWaitingForAssigneeToCompleteAction: 'In attesa che l’assegnatario completi l’azione',
             hasChildReportAwaitingAction: 'Ha un report figlio in attesa di azione',
-            hasMissingInvoiceBankAccount: 'Ha il conto bancario della fattura mancante',
             hasUnresolvedCardFraudAlert: 'Ha un avviso di frode sulla carta non risolto',
             hasDEWApproveFailed: 'Approvazione DEW non riuscita',
         },
@@ -12803,5 +12824,28 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         mobileClaimPrompt: 'Visita Expensify nel tuo browser web per richiedere lo sconto di rinnovo.',
     },
     bulkActionBar: {label: 'Azioni collettive', clearSelection: 'Cancella selezione', loadingSelection: 'Caricamento selezione'},
+    reportHistoryPage: {
+        title: 'Cronologia report',
+        created: 'ha creato il report',
+        submitted: 'ha inviato',
+        approved: 'ha approvato',
+        paid: 'ha pagato',
+        toSubmit: 'inviare',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return 'inviare automaticamente';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `inviare automaticamente il ${eta} di ogni mese` : `inviare automaticamente ${eta}`;
+        },
+        toApprove: 'approvare',
+        toPay: 'pagare',
+        minutesAgo: (count: number) => `${count} min fa`,
+        hoursAgo: (count: number) => `${count} h fa`,
+        daysAgo: () => ({
+            one: '1 g fa',
+            other: (count: number) => `${count} g fa`,
+        }),
+        offlineMessage: 'Sei offline. La cronologia dei report potrebbe non essere aggiornata.',
+    },
 };
 export default translations;

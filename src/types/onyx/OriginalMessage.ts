@@ -269,6 +269,9 @@ type OriginalMessageSubmitted = {
 
     expenseReportID?: string;
 
+    /** Account that received this submission, even if the report's current manager later changes. */
+    submittedTo?: number;
+
     /** Was the report submitted via harvesting (delayed submit) */
     harvesting?: boolean;
 
@@ -301,6 +304,9 @@ type OriginalMessageAddExpenseOnSubmitted = {
 type OriginalMessageCreated = {
     /** The account id of the user the report is submitted to */
     submittedTo?: number;
+
+    /** Account of the person who created the bill or processed the invoice for its owner. Bill intake omits this for emailed invoices. */
+    processor?: number;
 };
 
 /** Model of `created report for unapproved transactions` report action */
