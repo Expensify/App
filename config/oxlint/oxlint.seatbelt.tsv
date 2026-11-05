@@ -258,7 +258,6 @@
 "../../src/components/OptionRow.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/components/OptionRow.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/ParentNavigationSubtitle.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/ParticipantPicker/BaseParticipantPicker.tsx"	"no-restricted-imports"	1
 "../../src/components/PDFView/index.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/PDFView/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/PDFView/index.tsx"	"react-hooks/set-state-in-effect"	1

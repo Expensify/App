@@ -829,8 +829,6 @@ const CONST = {
         MONTH_DAY_YEAR_FORMAT: 'MMMM d, yyyy',
         FNS_TIMEZONE_FORMAT_STRING: "yyyy-MM-dd'T'HH:mm:ssXXX",
         FNS_DB_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss.SSS',
-        LONG_DATE_FORMAT_WITH_WEEKDAY: 'eeee, MMMM d, yyyy',
-        LONG_DATE_FORMAT_WITH_WEEKDAY_WITHOUT_YEAR: 'eeee, MMMM d',
         ORDINAL_DAY_OF_MONTH: 'do',
         MONTH_DAY_YEAR_ORDINAL_FORMAT: 'MMMM do, yyyy',
         SECONDS_PER_DAY: 24 * 60 * 60,
@@ -1047,6 +1045,9 @@ const CONST = {
         /** Wise's legal pages, linked from the terms page of the onboarding */
         TERMS_URL: 'https://wise.com/terms-and-conditions',
         PRIVACY_URL: 'https://wise.com/privacy-policy',
+
+        /** The query param Wise adds to the redirect URL when its hosted KYC form ends, saying how it ended */
+        KYC_REVIEW_REDIRECT_STATUS_PARAM: 'status',
 
         /** Countries missing from Wise's supported list, so the bank account picker leaves them out */
         EXCLUDED_BANK_ACCOUNT_COUNTRIES: [
@@ -2124,6 +2125,7 @@ const CONST = {
             PAY: 'pay',
             FIX: 'fix',
             TASK: 'task',
+            ADD: 'add',
         },
         ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE: {
             EXPENSE: 'expense',
@@ -4593,7 +4595,9 @@ const CONST = {
     // Zoho Books accounts have one account_type. These are the lowercase values the API returns.
     ZOHO_BOOKS_ACCOUNT_TYPE: {
         BANK: 'bank',
+        CASH: 'cash',
         CREDIT_CARD: 'credit_card',
+        OTHER_CURRENT_LIABILITY: 'other_current_liability',
         EXPENSE: 'expense',
         COST_OF_GOODS_SOLD: 'cost_of_goods_sold',
         OTHER_EXPENSE: 'other_expense',
@@ -9825,6 +9829,7 @@ const CONST = {
         HAS_PENDING_CARD_INFO: 'hasPendingCardInfo',
         HAS_UBER_CREDENTIALS_ERROR: 'hasUberCredentialsError',
         HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO: 'hasPartiallySetupBankAccountInfo',
+        HAS_WISE_MORE_INFO_NEEDED_INFO: 'hasWiseMoreInfoNeededInfo',
         HAS_EMPLOYEE_CARD_FEED_ERRORS: 'hasEmployeeCardFeedErrors',
         HAS_POLICY_ADMIN_CARD_FEED_ERRORS: 'hasPolicyAdminCardFeedErrors',
         HAS_DOMAIN_ERRORS: 'hasDomainErrors',
@@ -10455,6 +10460,9 @@ const CONST = {
             MUTE_BUTTON: 'VideoPlayer-MuteButton',
             VIDEO: 'VideoPlayer-Video',
         },
+        CHART_TOOLTIP: {
+            PRESS: 'ChartTooltip-Press',
+        },
         HTML_RENDERER: {
             IMAGE: 'HTMLRenderer-Image',
             PRE: 'HTMLRenderer-Pre',
@@ -10525,6 +10533,7 @@ const CONST = {
             SAVED_SEARCH_MENU_ITEM: 'Search-SavedSearchMenuItem',
             SAVE_VIEW_BUTTON: 'Search-SaveViewButton',
             RESET_FILTERS_BUTTON: 'Search-ResetFiltersButton',
+            RESET_DISPLAY_BUTTON: 'Search-ResetDisplayButton',
             SAVE_FILTERS_BUTTON: 'Search-SaveFiltersButton',
             ACTION_CELL_VIEW: 'Search-ActionCellView',
             ACTION_CELL_ACTION: {
@@ -10569,6 +10578,7 @@ const CONST = {
             AI_EXPLAIN: 'Insights-AIExplain',
             DASHBOARD_TAB: 'Insights-DashboardTab',
             CHART_MENU: 'Insights-ChartMenu',
+            TABLE_ROW: 'Insights-TableRow',
         },
         EXPENSE_RULES: {
             TABLE_ROW: 'ExpenseRules-TableRow',
@@ -11325,6 +11335,9 @@ const CONST = {
             IMPORT_TRANSACTIONS: 'SettingsWallet-ImportTransactions',
             TRANSFER_BALANCE: 'SettingsWallet-TransferBalance',
             ENABLE_WALLET: 'SettingsWallet-EnableWallet',
+            WISE_MORE_INFO_NEEDED_REVIEW: 'SettingsWallet-WiseMoreInfoNeededReview',
+            DIGITAL_WALLET_APPROVAL_REVIEW: 'SettingsWallet-DigitalWalletApprovalReview',
+            MISSING_PERSONAL_DETAILS_ADD: 'SettingsWallet-MissingPersonalDetailsAdd',
         },
         SETTINGS_RULES: {
             NEW_RULE: 'SettingsRules-NewRule',
