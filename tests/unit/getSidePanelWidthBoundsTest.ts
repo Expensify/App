@@ -1,3 +1,4 @@
+import RHP_FLOATING_CARD_INSET from '@libs/Navigation/helpers/rhpFloatingCardInset';
 import getSidePanelWidthBounds from '@libs/Navigation/helpers/sidePanelWidth/getSidePanelWidthBounds';
 import getSingleRHPWidthBounds from '@libs/Navigation/helpers/singleRHPWidth/getSingleRHPWidthBounds';
 
@@ -21,6 +22,17 @@ describe('getSidePanelWidthBounds', () => {
         expect(min).toBe(variables.sidePanelWidth);
         expect(max).toBe(getSingleRHPWidthBounds(windowWidth, 0).max);
         expect(max).toBeGreaterThan(min);
+    });
+
+    it.each([variables.sidePanelResponsiveWidthBreakpoint + 1, 1440, 1920, 2560])('keeps a single RHP beside the widest docked panel on screen in a %ipx window', (windowWidth) => {
+        // Given a window wide enough to dock the panel, which shifts the RHP left by the panel's width
+        const {max: sidePanelMaxWidth} = getSidePanelWidthBounds(windowWidth);
+
+        // When the single RHP's bounds are read beside the widest panel
+        const {max: singleRHPMaxWidth} = getSingleRHPWidthBounds(windowWidth, sidePanelMaxWidth);
+
+        // Then even the widest RHP card still fits left of the panel, so the panel never pushes it off screen
+        expect(sidePanelMaxWidth + RHP_FLOATING_CARD_INSET + singleRHPMaxWidth).toBeLessThanOrEqual(windowWidth);
     });
 
     it('never lets the maximum fall below the minimum in a narrow window', () => {
