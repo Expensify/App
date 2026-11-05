@@ -25,12 +25,24 @@ jest.mock('@libs/actions/CompanyCards', () => ({
 const POLICY_ID = 'POLICY1';
 const FEED = 'cdf' as CompanyCardFeedWithNumber;
 const FULL_NUMBER = '4111111111111111';
-
-const SEARCH_KEY = `${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARD_NUMBER_SEARCH}${POLICY_ID}` as const;
-
-const seedResults = (query: string, cards: CompanyCardNumberSearchResult[]) => Onyx.set(SEARCH_KEY, {isLoading: false, query, cards});
+const PREFIX = ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARD_NUMBER_SEARCH;
 
 const DOMAIN_ACCOUNT_ID = 1;
+
+const getConsumerIDFromLastSearchCall = (): string => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const calls: unknown[][] = mockSearchCompanyCardByNumber.mock.calls;
+    const consumerID = calls.at(-1)?.[1];
+    if (typeof consumerID !== 'string') {
+        throw new Error('Expected searchCompanyCardByNumber to have been called with a consumerID string');
+    }
+    return consumerID;
+};
+
+const seedResultsForConsumer = (consumerID: string, query: string, cards: CompanyCardNumberSearchResult[]) =>
+    act(async () => {
+        await Onyx.set(`${PREFIX}${POLICY_ID}_${consumerID}`, {isLoading: false, query, cards});
+    });
 
 const renderSearch = async (feed: CompanyCardFeedWithNumber | undefined = FEED, domainAccountID: number | undefined = DOMAIN_ACCOUNT_ID) => {
     const hook = renderHook(() => useCompanyCardNumberSearch(POLICY_ID, feed, domainAccountID));
@@ -69,18 +81,21 @@ describe('useCompanyCardNumberSearch', () => {
         expect(mockSearchCompanyCardByNumber).not.toHaveBeenCalled();
 
         await typeNumber(hook, '4111-1111 1111-1111');
-        expect(mockSearchCompanyCardByNumber).toHaveBeenCalledWith(POLICY_ID, FULL_NUMBER, FEED, DOMAIN_ACCOUNT_ID);
+        expect(mockSearchCompanyCardByNumber).toHaveBeenCalledWith(POLICY_ID, expect.any(String), FULL_NUMBER, FEED, DOMAIN_ACCOUNT_ID);
     });
 
     it('derives matched cardIDs and encrypted numbers for the current query, scoped to the feed', async () => {
-        await seedResults(FULL_NUMBER, [
+        const hook = await renderSearch();
+        await typeNumber(hook, FULL_NUMBER);
+        const consumerID = getConsumerIDFromLastSearchCall();
+        await seedResultsForConsumer(consumerID, FULL_NUMBER, [
             {feed: 'cdf', domainAccountID: 1, status: 'assigned', matchType: 'full', cardName: '411111XXXXXX1111', cardID: 42},
             {feed: 'cdf', domainAccountID: 1, status: 'unassigned', matchType: 'full', cardName: '411111XXXXXX1111', encryptedCardNumber: 'ENC_1111'},
             {feed: 'vcf', domainAccountID: 1, status: 'unassigned', matchType: 'full', cardName: '411111XXXXXX1111', encryptedCardNumber: 'ENC_OTHER_FEED'},
         ]);
-
-        const hook = await renderSearch();
-        await typeNumber(hook, FULL_NUMBER);
+        await act(async () => {
+            await waitForBatchedUpdates();
+        });
 
         expect(hook.result.current.resultsQuery).toBe(FULL_NUMBER);
         expect([...hook.result.current.matchedCardIDs]).toEqual([42]);
@@ -88,10 +103,15 @@ describe('useCompanyCardNumberSearch', () => {
     });
 
     it('ignores results that belong to a different query', async () => {
-        await seedResults('4000000000000000', [{feed: 'cdf', domainAccountID: 1, status: 'unassigned', matchType: 'full', cardName: 'x', encryptedCardNumber: 'ENC_STALE'}]);
-
         const hook = await renderSearch();
         await typeNumber(hook, FULL_NUMBER);
+        const consumerID = getConsumerIDFromLastSearchCall();
+        await seedResultsForConsumer(consumerID, '4000000000000000', [
+            {feed: 'cdf', domainAccountID: 1, status: 'unassigned', matchType: 'full', cardName: 'x', encryptedCardNumber: 'ENC_STALE'},
+        ]);
+        await act(async () => {
+            await waitForBatchedUpdates();
+        });
 
         expect(hook.result.current.resultsQuery).toBeUndefined();
         expect(hook.result.current.matchedEncryptedNumbers.size).toBe(0);
@@ -100,6 +120,29 @@ describe('useCompanyCardNumberSearch', () => {
     it('clears the results on unmount', async () => {
         const hook = await renderSearch();
         hook.unmount();
-        expect(mockClearCompanyCardNumberSearch).toHaveBeenCalledWith(POLICY_ID);
+        expect(mockClearCompanyCardNumberSearch).toHaveBeenCalledWith(POLICY_ID, expect.any(String));
+    });
+
+    it('scopes results so one consumer cannot erase another consumer on the same policy', async () => {
+        // Given two independent consumers (table + assignment pane) mounted on the same policy
+        const tableHook = await renderSearch();
+        const paneHook = await renderSearch();
+
+        // When the pane consumer runs a search and completes
+        await typeNumber(paneHook, FULL_NUMBER);
+        const paneConsumerID = getConsumerIDFromLastSearchCall();
+        await seedResultsForConsumer(paneConsumerID, FULL_NUMBER, [{feed: 'cdf', domainAccountID: 1, status: 'assigned', matchType: 'full', cardName: '411111XXXXXX1111', cardID: 42}]);
+        await act(async () => {
+            await waitForBatchedUpdates();
+        });
+        expect(paneHook.result.current.resultsQuery).toBe(FULL_NUMBER);
+
+        // When the table consumer's input is empty and then the table unmounts
+        tableHook.unmount();
+
+        // Then the pane consumer's completed results are untouched (its entry was not the one cleared)
+        const paneEntry = await Onyx.get(`${PREFIX}${POLICY_ID}_${paneConsumerID}`);
+        expect(paneEntry?.query).toBe(FULL_NUMBER);
+        expect(paneEntry?.cards).toHaveLength(1);
     });
 });

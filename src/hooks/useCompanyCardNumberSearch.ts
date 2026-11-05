@@ -3,7 +3,7 @@ import {clearCompanyCardNumberSearch, searchCompanyCardByNumber} from '@libs/act
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
-import {useEffect} from 'react';
+import {useEffect, useId} from 'react';
 
 import useDebouncedState from './useDebouncedState';
 import useOnyx from './useOnyx';
@@ -45,7 +45,8 @@ type UseCompanyCardNumberSearch = {
  */
 function useCompanyCardNumberSearch(policyID: string | undefined, feed: CompanyCardFeedWithNumber | undefined, domainAccountID: number | undefined): UseCompanyCardNumberSearch {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const [searchResult] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARD_NUMBER_SEARCH}${policyID}`);
+    const consumerID = useId().replaceAll(':', '');
+    const [searchResult] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARD_NUMBER_SEARCH}${policyID}_${consumerID}`);
 
     const immediateNormalized = normalizeCardNumber(searchValue);
     const debouncedNormalized = normalizeCardNumber(debouncedSearchValue);
@@ -60,23 +61,23 @@ function useCompanyCardNumberSearch(policyID: string | undefined, feed: CompanyC
         }
         // Clearing the input drops any stale results so a later re-type does not briefly show the old match.
         if (!searchValue) {
-            clearCompanyCardNumberSearch(policyID);
+            clearCompanyCardNumberSearch(policyID, consumerID);
             return;
         }
         if (!isFullNumberQuery || !feed || !domainAccountID) {
             return;
         }
-        searchCompanyCardByNumber(policyID, debouncedNormalized, feed, domainAccountID);
-    }, [policyID, feed, domainAccountID, isFullNumberQuery, debouncedNormalized, searchValue]);
+        searchCompanyCardByNumber(policyID, consumerID, debouncedNormalized, feed, domainAccountID);
+    }, [policyID, consumerID, feed, domainAccountID, isFullNumberQuery, debouncedNormalized, searchValue]);
 
     useEffect(
         () => () => {
             if (!policyID) {
                 return;
             }
-            clearCompanyCardNumberSearch(policyID);
+            clearCompanyCardNumberSearch(policyID, consumerID);
         },
-        [policyID],
+        [policyID, consumerID],
     );
 
     // Results count only when they belong to the number currently typed. Compare against the immediate
