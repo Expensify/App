@@ -789,8 +789,10 @@ describe('getExportMenuItem - Zoho Books', () => {
                 },
                 data: {
                     bankAccounts: [
-                        {id: 'zb-1', name: 'Amex Card'},
-                        {id: 'zb-2', name: 'Operating Checking'},
+                        {id: 'zb-1', name: 'Amex Card', accountType: CONST.ZOHO_BOOKS_ACCOUNT_TYPE.CREDIT_CARD, isActive: true},
+                        {id: 'zb-2', name: 'Operating Checking', accountType: CONST.ZOHO_BOOKS_ACCOUNT_TYPE.BANK, isActive: true},
+                        {id: 'zb-3', name: 'Closed Checking', accountType: CONST.ZOHO_BOOKS_ACCOUNT_TYPE.BANK, isActive: false},
+                        {id: 'zb-4', name: 'Petty Cash', accountType: CONST.ZOHO_BOOKS_ACCOUNT_TYPE.CASH, isActive: true},
                     ],
                 },
             },
@@ -823,17 +825,30 @@ describe('getExportMenuItem - Zoho Books', () => {
         expect(result?.title).toBe(`${exportsTo} Operating Checking (${defaultSuffix})`);
     });
 
-    it('offers every synced bank account and drops the default marker for a card with its own account', () => {
-        // Given a card that exports to its own account
+    it('offers only active bank and credit card accounts and drops the default marker for a card with its own account', () => {
+        // Given a card that exports to its own account, in a workspace that also has an inactive bank account and a cash account
         const policy = createZohoBooksPolicy();
         const card = createCardWithExportNVP(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_ZOHO_BOOKS_EXPORT_ACCOUNT, 'zb-2');
 
         // When the card's export menu item is resolved
         const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS, MOCK_POLICY_ID, translate, themeStyles, policy, card);
 
-        // Then the title has no default marker, and every account the backend synced for the picker is offered
+        // Then the title has no default marker, and only the active bank and credit card accounts are offered, because saving rejects the others
         expect(result?.title).toBe(`${exportsTo} Operating Checking`);
         expect(result?.data?.map((item) => item.keyForList)).toEqual(['zb-1', 'zb-2']);
+    });
+
+    it('still titles a card with its saved account after that account becomes inactive', () => {
+        // Given a card whose own account was deactivated in Zoho Books
+        const policy = createZohoBooksPolicy();
+        const card = createCardWithExportNVP(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_ZOHO_BOOKS_EXPORT_ACCOUNT, 'zb-3');
+
+        // When the card's export menu item is resolved
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS, MOCK_POLICY_ID, translate, themeStyles, policy, card);
+
+        // Then the title still names the saved account so the admin can see what's set, while the picker leaves it out
+        expect(result?.title).toBe(`${exportsTo} Closed Checking`);
+        expect(result?.data?.map((item) => item.keyForList)).not.toContain('zb-3');
     });
 
     it('hides the menu item when the workspace does not export to multiple accounts', () => {

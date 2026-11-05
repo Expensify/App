@@ -6273,7 +6273,7 @@ const CONST = {
             /**
              * Name of Card NVP for Zoho Books custom export accounts
              */
-            NVP_ZOHO_BOOKS_EXPORT_ACCOUNT: 'zoho_books_export_account',
+            NVP_ZOHO_BOOKS_EXPORT_ACCOUNT: 'zohobooks_export_account',
 
             /**
              * Name of Card NVP for Business Central custom vendors
@@ -6350,7 +6350,7 @@ const CONST = {
             /**
              * Name of Card NVP for Zoho Books custom export accounts
              */
-            NVP_ZOHO_BOOKS_EXPORT_ACCOUNT_POLICY_ID: 'zoho_books_export_account_policy_id',
+            NVP_ZOHO_BOOKS_EXPORT_ACCOUNT_POLICY_ID: 'zohobooks_export_account_policy_id',
 
             /**
              * Name of Card NVP for Business Central custom vendors

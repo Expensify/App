@@ -67,14 +67,18 @@ function ZohoBooksCardProgramAccountSelectorPage({
     const title = getCustomOrFormattedFeedName(translate, feedKey, cardFeed?.customFeedName, false);
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_CARD_PROGRAM_ACCOUNT.getRoute(policyID) : undefined;
 
-    // The backend syncs only the active bank and credit card accounts a card can export to, so no filtering is needed
     const data: AccountListItem[] =
-        zohoBooksData?.bankAccounts?.map((accountItem) => ({
-            value: accountItem.id,
-            text: `${creditCardAccountID === accountItem.id ? `${translate('common.default')} - ` : ''}${accountItem.name}`,
-            keyForList: accountItem.id,
-            isSelected: cardProgramAccountID === accountItem.id,
-        })) ?? [];
+        zohoBooksData?.bankAccounts
+            ?.filter(
+                (accountItem) =>
+                    accountItem.isActive && (accountItem.accountType === CONST.ZOHO_BOOKS_ACCOUNT_TYPE.BANK || accountItem.accountType === CONST.ZOHO_BOOKS_ACCOUNT_TYPE.CREDIT_CARD),
+            )
+            .map((accountItem) => ({
+                value: accountItem.id,
+                text: `${creditCardAccountID === accountItem.id ? `${translate('common.default')} - ` : ''}${accountItem.name}`,
+                keyForList: accountItem.id,
+                isSelected: cardProgramAccountID === accountItem.id,
+            })) ?? [];
     // Sort the default account to the top first, then let useSelectionListSearch pin the selected account above it,
     // so the currently selected account stays at the very top.
     const sortedData = sortDefaultToTop(data, (accountItem) => creditCardAccountID === accountItem.keyForList, styles);

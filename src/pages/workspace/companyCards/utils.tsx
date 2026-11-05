@@ -577,13 +577,12 @@ function getPolicyCardExportSettings(
                 accountSelection: {
                     type: CONST.COMPANY_CARDS.EXPORT_RESOLVER.PROGRAM_ACCOUNT,
                     nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_ZOHO_BOOKS_EXPORT_ACCOUNT,
-                    // The backend syncs only the active bank and credit card accounts a card can export to, so all of them are selectable
                     accounts: (zohoBooksData?.bankAccounts ?? []).map((account) => ({
                         id: account.id,
                         label: account.name,
                         keyForList: account.id,
                         configKey: account.id,
-                        isSelectable: true,
+                        isSelectable: account.isActive && (account.accountType === CONST.ZOHO_BOOKS_ACCOUNT_TYPE.BANK || account.accountType === CONST.ZOHO_BOOKS_ACCOUNT_TYPE.CREDIT_CARD),
                     })),
                     workspaceProgramAccountKey: zohoBooksConfig?.export?.creditCardAccountID,
                     programAccountKeysByFeed: zohoBooksConfig?.export?.cardProgramAccounts,
