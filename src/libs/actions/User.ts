@@ -180,7 +180,7 @@ function clearRevokeError(loginKey: string) {
  */
 function closeAccount(reason: string, validateCode: string) {
     // Note: successData does not need to set isLoading to false because if the CloseAccount
-    // command succeeds, its response clears all Onyx data.
+    // command succeeds, a Pusher response will clear all Onyx data.
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>> = [
         {
@@ -202,6 +202,12 @@ function closeAccount(reason: string, validateCode: string) {
     API.write(WRITE_COMMANDS.CLOSE_ACCOUNT, parameters, {
         optimisticData,
         failureData,
+    }).then((response) => {
+        // The account stays open when the validateCode is rejected, so OldDot must stay signed in to keep the state of both apps in sync
+        if (!CONFIG.IS_HYBRID_APP || response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+            return;
+        }
+        HybridAppModule.signOutFromOldDot();
     });
 }
 
@@ -759,7 +765,7 @@ const isChannelMuted = (reportId: string, currentUserAccountID: number) =>
         const connection = Onyx.connectWithoutView({
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportId}`,
             callback: (report) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 const notificationPreference = report?.participants?.[currentUserAccountID]?.notificationPreference;
 
                 resolve(!notificationPreference || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE || ReportUtils.isHiddenForCurrentUser(notificationPreference));

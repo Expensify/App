@@ -28,6 +28,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -234,6 +235,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                                 updateDraftRule({createReport: isEnabled});
                             }}
                             switchAccessibilityLabel={translate('expenseRulesPage.addRule.createReport')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.CREATE_REPORT_SWITCH}
                             title={translate('expenseRulesPage.addRule.createReport')}
                             titleStyle={styles.pv2}
                             wrapperStyle={styles.flex1}
@@ -255,6 +257,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                             isActive={shouldUpdateMatchingTransactions}
                             onToggle={setShouldUpdateMatchingTransactions}
                             switchAccessibilityLabel={translate('expenseRulesPage.addRule.applyToExistingExpenses')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.APPLY_TO_EXISTING_EXPENSES_SWITCH}
                             title={translate('expenseRulesPage.addRule.applyToExistingExpenses')}
                             wrapperStyle={styles.mb4}
                         />

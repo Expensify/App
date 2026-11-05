@@ -17,6 +17,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 
 import {clearSetPrimaryContactError, clearToggleConsolidatedDomainBillingErrors, toggleConsolidatedDomainBilling} from '@userActions/Domain';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -57,6 +58,7 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
             <ToggleSettingOptionRow
                 wrapperStyle={[styles.mv3, styles.ph5]}
                 switchAccessibilityLabel={translate('domain.admins.consolidatedDomainBilling')}
+                switchSentryLabel={CONST.SENTRY_LABEL.DOMAIN.ADMINS.CONSOLIDATED_DOMAIN_BILLING_SWITCH}
                 isActive={!!technicalContactSettings?.technicalContactEmail && !!technicalContactSettings?.useTechnicalContactBillingCard}
                 disabled={!technicalContactSettings?.technicalContactEmail}
                 onToggle={(value) => {

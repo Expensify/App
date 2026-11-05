@@ -21,6 +21,12 @@ import type {CompanyCardBalanceParams} from './params';
 import type {AllConnectionName, PolicyConnectionSyncStage} from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        billCreated: ({sender}) => `creó esta factura en nombre de ${sender}`,
+        billSubmitted: ({receiver}) => `envió esta factura a ${receiver}`,
+        invoiceCreated: ({sender}) => `creó esta factura en nombre de ${sender}`,
+        invoiceSubmitted: ({receiver}) => `envió esta factura a ${receiver}`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 día`,
@@ -108,6 +114,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pay: 'Pagar',
             fix: 'Corregir',
             task: 'Tarea',
+            add: 'Añadir',
         },
         home: 'Inicio',
         group: 'Grupo',
@@ -171,6 +178,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dob: 'Fecha de nacimiento',
         currentYear: 'Año actual',
         currentMonth: 'Mes actual',
+        todayDateLabel: (date: string) => `${date}, hoy`,
         ssnLast4: 'Últimos 4 dígitos de tu SSN',
         ssnFull9: 'Los 9 dígitos del SSN',
         addressLine: (lineNumber) => `Dirección línea ${lineNumber}`,
@@ -326,6 +334,8 @@ const translations: TranslationDeepObject<typeof en> = {
         pm: 'PM',
         tbd: 'Por determinar',
         selectCurrency: 'Selecciona una moneda',
+        any: 'Cualquiera',
+        anyCurrency: 'Cualquier moneda',
         selectSymbolOrCurrency: 'Selecciona un símbolo o moneda',
         card: 'Tarjeta',
         mcc: 'MCC',
@@ -1050,6 +1060,10 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             emailDeliveryFailure: {title: 'No podemos enviarte notificaciones por correo electrónico', subtitle: 'Cuenta'},
             upgradeNetSuiteConnection: {title: 'Mejora tu conexión con NetSuite'},
+            verifyWiseBankAccount: {
+                title: 'Verificar cuenta bancaria',
+                subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Cuenta bancaria terminada en ${bankAccountLastFour}`,
+            },
         },
         freeTrialSection: {
             title: ({count}: {count: number}) => ({
@@ -1223,6 +1237,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'Cumplimiento',
         runningTotal: 'Total acumulado',
+        explain: 'Explicar',
+        explainChartPrompt: (chartTitle: string) => `Explica los datos en ${chartTitle}.`,
+        viewDetails: 'Ver detalles',
+        viewAll: 'Ver todo',
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
@@ -1255,6 +1273,14 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName) => `¡Vaya! Has mapeado un solo campo ("${fieldName}") a varias columnas. Por favor, revisa e inténtalo de nuevo.`,
         emptyMappedField: (fieldName) => `¡Vaya! El campo ("${fieldName}") contiene uno o más valores vacíos. Por favor, revísalo e inténtalo de nuevo.`,
         invalidApprovalLimit: 'Los límites de aprobación deben ser importes válidos en la moneda del espacio de trabajo.',
+        approverColumn: (position: number) => `Aprobador ${position}`,
+        approverLimitColumn: (position: number) => `Límite del aprobador ${position}`,
+        approverOverLimitApproverColumn: (position: number) => `Aprobador ${position} por encima del límite de aprobación`,
+        approversOutOfOrder: (rowNumber: number) =>
+            `¡Ups! Falta un aprobador en la fila ${rowNumber}. Por favor, indica los aprobadores en orden, empezando por Aprobador 1, e inténtalo de nuevo.`,
+        approverRepeated: (rowNumber: number) => `¡Ups! La fila ${rowNumber} indica al mismo aprobador más de una vez. Por favor, revísala e inténtalo de nuevo.`,
+        approvalLimitIncomplete: (rowNumber: number) =>
+            `¡Ups! La fila ${rowNumber} tiene un límite de aprobación sin un aprobador para excesos de límite, o un aprobador para excesos de límite sin un límite de aprobación. Por favor, revisa y vuelve a intentarlo.`,
         fieldValueTooLong: (fieldName, limit) => `¡Vaya! El campo ("${fieldName}") contiene uno o más valores de más de ${limit} caracteres. Por favor, revísalo e inténtalo de nuevo.`,
         importFailedTitle: 'Fallo en la importación',
         importFailedDescription: 'Por favor, asegúrate de que todos los campos estén llenos correctamente e inténtalo de nuevo. Si el problema persiste, por favor contacta a Concierge.',
@@ -1520,10 +1546,10 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: 'Si no tiene un sitio web, puede proporcionar el perfil de LinkedIn o de las redes sociales de su empresa.',
         invalidDomainError: 'Ha introducido un dominio no válido. Para continuar, introduzca un dominio válido.',
         publicDomainError: 'Ha introducido un dominio público. Para continuar, introduzca un dominio privado.',
-        expenseCount: () => {
+        expenseCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
             return {
-                one: '1 gasto',
-                other: (count: number) => `${count} gastos`,
+                one: (count: number) => `gasto de ${formattedCount ?? count}`,
+                other: (count: number) => `${formattedCount ?? count} gastos`,
             };
         },
         deleteExpense: () => ({
@@ -1708,6 +1734,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Error inesperado. Por favor, inténtalo más tarde.',
             genericHoldExpenseFailureMessage: 'Error inesperado al retener el gasto. Por favor, inténtalo de nuevo más tarde.',
             genericUnholdExpenseFailureMessage: 'Error inesperado al desbloquear el gasto. Por favor, inténtalo de nuevo más tarde.',
+            payFailedExpenseDeleted: 'El pago falló porque el informe de gastos fue eliminado.',
             genericCreateFailureMessage: 'Error inesperado al enviar este gasto. Por favor, inténtalo más tarde.',
             genericCreateInvoiceFailureMessage: 'Error inesperado al enviar la factura. Por favor, inténtalo de nuevo más tarde.',
             receiptDeleteFailureError: 'Error inesperado al borrar este recibo. Por favor, vuelve a intentarlo más tarde.',
@@ -2086,6 +2113,13 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_actor, _actorType, _eta, _etaType) => `¡No se requiere ninguna acción adicional!`,
             [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (_actor, _actorType, _eta, _etaType) => `Cambia el espacio de trabajo del informe para realizar más acciones.`,
+
+            [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `Solo puedes aprobar en este espacio de trabajo. Mueve este informe a otro para enviarlo.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (actor, actorType, _eta, _etaType, requiredDepositCurrency?: string) => {
                 const account = requiredDepositCurrency ? `cuenta bancaria en ${requiredDepositCurrency}` : 'cuenta bancaria';
                 switch (actorType) {
@@ -2121,14 +2155,14 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Esperando a que un administrador solucione ellos problemas.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: (actor, actorType, _eta, _etaType) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: (actor, actorType, _eta, _etaType, isBill = false) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Esperando a que <strong>tú</strong> apruebes los gastos.`;
+                        return isBill ? `Esperando a que <strong>tú</strong> apruebes la factura.` : `Esperando a que <strong>tú</strong> apruebes los gastos.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Esperando a que <strong>${actor}</strong> apruebe los gastos.`;
+                        return isBill ? `Esperando a que <strong>${actor}</strong> apruebe la factura.` : `Esperando a que <strong>${actor}</strong> apruebe los gastos.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Esperando a que un administrador apruebe los gastos.`;
+                        return isBill ? `Esperando a que un administrador apruebe la factura.` : `Esperando a que un administrador apruebe los gastos.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (actor, actorType, _eta, _etaType) => {
@@ -2141,14 +2175,14 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Esperando a que un administrador exporte este informe.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: (actor, actorType, _eta, _etaType) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: (actor, actorType, _eta, _etaType, isBill = false) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Esperando a que <strong>tú</strong> pagues los gastos.`;
+                        return isBill ? `Esperando a que <strong>tú</strong> pagues esta factura.` : `Esperando a que <strong>tú</strong> pagues los gastos.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Esperando a que <strong>${actor}</strong> pague los gastos.`;
+                        return isBill ? `Esperando a que <strong>${actor}</strong> pague esta factura.` : `Esperando a que <strong>${actor}</strong> pague los gastos.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Esperando a que un administrador pague los gastos.`;
+                        return isBill ? `Esperando a que un administrador pague esta factura.` : `Esperando a que un administrador pague los gastos.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (_actor, _actorType, eta, etaType) => {
@@ -3019,8 +3053,23 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `Acepto los <a href="${CONST.WISE.TERMS_URL}">términos y condiciones</a> y la <a href="${CONST.WISE.PRIVACY_URL}">política de privacidad</a> de Wise.`,
                 wiseTermsAccessibilityLabel: 'Acepto los términos y condiciones y la política de privacidad de Wise.',
                 error: 'Acepta todos los términos para continuar.',
+                alreadySubmitted: 'Esta empresa ya se envió a Wise para su revisión.',
             },
+            moreInfoNeeded: {
+                headerTitle: 'Se necesita más información',
+                title: 'Verifica información adicional',
+                subtitle: 'Nuestro socio de pagos necesita más información directamente. Esto solo te llevará un par de minutos.',
+            },
+            inReview: {
+                title: 'En revisión',
+                heading: 'Tenemos lo que necesitamos.\n¡Sabrás de nosotros!',
+                description: 'La mayoría de las revisiones tardan de uno a dos días. Te enviaremos un mensaje con una actualización.',
+                chatWithConcierge: 'Chatea con Concierge',
+            },
+            approved: {title: 'Cuenta aprobada', heading: 'Aprobada para pagar en todo el mundo', description: 'Paga a los miembros estén donde estén.'},
+            rejected: {title: 'Cuenta bancaria rechazada', heading: 'Nuestro socio rechazó tu cuenta bancaria', description: 'Chatea con Concierge para más información.'},
         },
+        wiseSetupInProgress: {message: 'Configuración de reembolsos globales en curso.', continue: 'Continuar.'},
         wiseGlobalReimbursementsIntro: {
             title: '¿Configurar reembolsos globales?',
             subtitle: 'Paga a miembros de todo el mundo en su moneda local.',
@@ -3029,6 +3078,8 @@ const translations: TranslationDeepObject<typeof en> = {
             payingReportSubtitle: 'Las cuentas bancarias de la empresa y del empleado usan monedas diferentes.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Paga a personas de todo el mundo', subtitle: 'Habilita los reembolsos globales en tu cuenta en USD.'},
+        wiseMoreInfoNeeded: 'Se necesita más información para habilitar los reembolsos globales',
+        globalReimbursementsEnabled: 'Reembolsos globales habilitados',
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Añadir tarjeta a ${walletName}`,
@@ -3178,8 +3229,10 @@ ${amount} para ${merchant} - ${date}`,
         manager: 'Responsable',
         makeOrTrackPaymentsTitle: 'Realizar o seguir pagos',
         makeOrTrackPaymentsDescription: 'Añade un pagador autorizado para los pagos realizados en Expensify o realiza un seguimiento de los pagos realizados en otro lugar.',
-        collectEmployeeBankDetails: 'Recopilar los datos bancarios de los empleados',
-        collectEmployeeBankDetailsDescription: 'Recopila los datos bancarios de los empleados para poder reembolsarles fuera de Expensify.',
+        collectEmployeeBankDetails: 'Recopilar datos bancarios',
+        collectEmployeeBankDetailsDescription: 'Recopila los datos bancarios de los miembros del espacio de trabajo para poder reembolsarles fuera de Expensify.',
+        disablePaymentsTitle: '¿Desactivar pagos?',
+        disablePaymentsPrompt: 'Esto eliminará toda tu configuración de pagos.',
         businessBankAccountCountries: 'Países con cuenta bancaria de empresa',
         businessBankAccountCountriesDescription:
             'Los empleados de estos países proporcionan datos de transferencia local. Todos los demás proporcionan datos de transferencia bancaria internacional.',
@@ -3536,6 +3589,7 @@ ${amount} para ${merchant} - ${date}`,
         appSection: {
             title: 'Preferencias de la aplicación',
         },
+        distanceSection: {title: 'Preferencias de distancia'},
         testSection: {
             title: 'Preferencias para tests',
             subtitle: 'Ajustes para ayudar a depurar y probar la aplicación en “staging”.',
@@ -4345,6 +4399,7 @@ ${amount} para ${merchant} - ${date}`,
         maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} que termina en ${ending}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
         questionsChanged: 'Las preguntas de esta página han cambiado',
+        onFile: 'En archivo',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'El SWIFT/BIC debe tener 8 u 11 caracteres, con 6 letras seguidas de 2 o 5 letras o números.',
@@ -5092,6 +5147,13 @@ ${amount} para ${merchant} - ${date}`,
             message:
                 'Eres miembro de un espacio de trabajo con viajes habilitados, pero no es tu espacio de trabajo predeterminado. Para reservar, habilita los viajes en tu espacio de trabajo predeterminado o cambia tu espacio de trabajo predeterminado a uno que tenga los viajes habilitados.',
         },
+        approval: {
+            status: {outstanding: 'Pendiente', approved: 'Aprobado', rejected: 'Rechazado', canceled: 'Cancelado'},
+            deadline: {
+                softApproval: (time: string) => `Se aprueba automáticamente en ${time}. Cancelación gratuita hasta entonces.`,
+                hardApproval: (time: string) => `Se cancela automáticamente en ${time} si no se aprueba.`,
+            },
+        },
     },
     proactiveAppReview: {
         title: '¿Te gusta New Expensify?',
@@ -5803,9 +5865,6 @@ ${amount} para ${merchant} - ${date}`,
                     ? `Establece un proveedor predeterminado que se aplicará a los gastos reembolsables que no tengan un proveedor coincidente en Sage Intacct.`
                     : `Los gastos que no se puedan conciliar con tus proveedores de Sage Intacct se asignarán por defecto a este proveedor.`,
             exportDescription: 'Configure cómo se exportan los datos de Expensify a Sage Intacct.',
-            exportPreferredExporterNote:
-                'El exportador preferido puede ser cualquier administrador del área de trabajo, pero también debe ser un administrador del dominio si establece diferentes cuentas de exportación para tarjetas de empresa individuales en Configuración del dominio.',
-            exportPreferredExporterSubNote: 'Una vez configurado, el exportador preferido verá los informes para exportar en su cuenta.',
             noAccountsFound: 'No se ha encontrado ninguna cuenta',
             noAccountsFoundDescription: 'Añade la cuenta en Sage Intacct y sincroniza de nuevo la conexión',
             autoSync: 'Sincronización automática',
@@ -6345,9 +6404,17 @@ ${amount} para ${merchant} - ${date}`,
             noAccountsFound: 'No se encontraron cuentas',
             noAccountsFoundDescription: 'Por favor, añade cuentas en Rillet y sincroniza la conexión de nuevo',
             exportDescription: 'Configura cómo se exportan los datos de Expensify a Rillet.',
-            exportReimbursable: {label: 'Exportar gastos reembolsables como', values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: 'Facturas de proveedor'}}},
+            exportReimbursable: {
+                label: 'Exportar gastos reembolsables como',
+                values: {
+                    REIMBURSEMENT: {label: 'Reembolsos desglosados'},
+                    VENDOR_BILL: {label: 'Facturas de proveedor desglosadas'},
+                },
+                description:
+                    'Crearemos una factura de proveedor o un reembolso detallado para cada informe de Expensify. Si el período está cerrado, lo registraremos en el siguiente período abierto.',
+            },
             exportDate: {
-                label: 'Fecha de factura del proveedor',
+                label: 'Fecha de impacto en el libro mayor',
                 description: 'Usa esta fecha al exportar informes a Rillet.',
                 values: {
                     [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
@@ -6389,8 +6456,7 @@ ${amount} para ${merchant} - ${date}`,
                 },
             },
             syncReimbursedReports: 'Sincronizar informes reembolsados',
-            syncReimbursedReportsDescription: 'Cuando se pague un informe mediante ACH, se generará un pago de factura en esta cuenta.',
-            billPaymentAccount: {label: 'Cuenta de pago de facturas', description: 'Elige desde dónde pagar las facturas y crearemos el pago en Rillet.'},
+            syncReimbursedReportsDescription: 'Cuando un informe se pague mediante ACH, se generará un pago en esta cuenta.',
             syncExpensifyCardSettlements: 'Sincronizar liquidaciones de la Tarjeta Expensify',
             settlementAccount: {label: 'Cuenta de liquidación de la Tarjeta Expensify', description: 'Elige tu cuenta de liquidación y crearemos el pago en Rillet.'},
             syncTravelBillingSettlements: 'Sincronizar liquidaciones de facturación de viajes consolidadas',
@@ -6432,6 +6498,12 @@ ${amount} para ${merchant} - ${date}`,
                 description:
                     'Cuando tu empresa cubra el coste de conversión de divisa en un pago realizado en el extranjero, registraremos ese coste en esta cuenta en Rillet como un asiento contable.',
             },
+            reimbursementAccount: {
+                label: 'Cuenta de reembolso',
+                description: 'Elige dónde exportar los gastos reembolsables.',
+                accountRequiredError: 'Selecciona una cuenta de reembolso de Rillet.',
+            },
+            achPaymentAccount: {label: 'Cuenta de pago ACH', description: 'Elige desde dónde pagar los informes y crearemos el pago en Rillet.'},
         },
         dualEntry: {
             dualEntrySetup: 'Configuración de DualEntry',
@@ -6878,6 +6950,7 @@ ${amount} para ${merchant} - ${date}`,
             updateFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
             createFailureMessage: 'Se ha producido un error al intentar crear la categoría. Por favor, inténtalo más tarde.',
             addCategory: 'Añadir categoría',
+            createCategoryFromSearch: (categoryName: string) => `Crear categoría «${categoryName}»`,
             editCategory: 'Editar categoría',
             editCategories: 'Editar categorías',
             findCategory: 'Encontrar categoría',
@@ -7922,8 +7995,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 },
             },
             preferredExporter: 'Exportador preferido',
-            exportPreferredExporterNote:
-                'Puede ser cualquier administrador del espacio de trabajo, pero debe ser un administrador de dominio si configura diferentes cuentas de exportación para tarjetas de empresa individuales en la configuración del dominio.',
+            exportPreferredExporterNote: 'El exportador preferido puede ser cualquier administrador del espacio de trabajo.',
             exportPreferredExporterSubNote: 'Una vez configurado, el exportador preferido verá los informes para exportar en tu cuenta.',
             exportAs: 'Exportar cómo',
             exportOutOfPocket: ' Exportar gastos por cuenta propia como',
@@ -9200,9 +9272,9 @@ ${reportName}`,
                 describeRuleForConcierge: 'Describe tu regla y Concierge la creará',
                 gotIt: 'Entendido',
                 createRule: 'Crear regla',
-                fallbackBanner:
-                    'Esta no es una regla estándar, así que la redactamos como una regla de agente. Las reglas de agente actúan después de que un gasto o informe cambia, por ejemplo reteniendo el gasto o rechazando el informe.',
-                fallbackBannerWithExplanation: (explanation: string) => `Esta no es una regla estándar, así que la redactamos como una regla de agente. ${explanation}`,
+                fallbackBanner: 'Esta no es una regla estándar, así que redactamos una regla de agente. Las reglas de agente se ejecutan cuando se crea o actualiza un gasto o un informe.',
+                fallbackBannerWithExplanation: (explanation: string) =>
+                    `Esta no es una regla estándar, así que redactamos una regla de agente. Las reglas de agente se ejecutan cuando se crea o actualiza un gasto o un informe. ${explanation}`,
             },
             tabs: {
                 general: 'General',
@@ -9516,6 +9588,33 @@ ${reportName}`,
             noVendorsFoundDescription: 'Por favor, añade proveedores en Zoho Books y sincroniza la conexión de nuevo',
             noAccountsFound: 'No se encontraron cuentas',
             noAccountsFoundDescription: 'Añade cuentas en Zoho Books y sincroniza la conexión de nuevo',
+            autoSyncDescription: 'Sincroniza Zoho Books y Expensify automáticamente todos los días. Los informes se sincronizan en tiempo real.',
+            accountingMethods: {
+                label: 'Método de exportación',
+                description: 'Elige cuándo exportar los gastos.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Devengo',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Efectivo',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Los gastos por cuenta propia se exportarán cuando se aprueben de forma definitiva',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Los gastos por cuenta propia se exportarán cuando se paguen',
+                },
+            },
+            syncReimbursedReports: 'Sincronizar informes reembolsados',
+            syncReimbursedReportsDescription: 'Cuando un informe se pague mediante ACH, se generará un pago de factura en esta cuenta.',
+            billPaymentAccount: {
+                label: 'Cuenta de pago de facturas',
+                description: 'Elige la cuenta de compensación a la que Zoho Books abona cuando Expensify marca una factura como pagada.',
+            },
+            syncExpensifyCardSettlements: 'Sincronizar liquidaciones de la Tarjeta Expensify',
+            settlementAccount: {label: 'Cuenta de liquidación de la Tarjeta Expensify', description: 'Elige tu cuenta de liquidación y crearemos el pago en Zoho Books.'},
+            syncTravelBillingSettlements: 'Sincronizar liquidaciones de facturación de viajes consolidadas',
+            travelBillingSettlementAccount: {
+                label: 'Cuenta de liquidación de facturación de viajes consolidada',
+                description: 'Elige tu cuenta de liquidación y crearemos el pago en Zoho Books.',
+            },
+            travelBillingPayableAccount: {label: 'Cuenta por pagar de facturación de viajes consolidada'},
         },
         businessCentral: {
             businessCentralSetup: 'Configuración de Dynamics 365 Business Central',
@@ -10381,6 +10480,12 @@ ${reportName}`,
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `actualizó "Impedir marcar los informes no reembolsables como pagados" a "${newValue === 'true' ? 'Habilitado' : 'Deshabilitado'}" (previamente "${oldValue === 'true' ? 'Habilitado' : 'Deshabilitado'}")`,
         addedExpensifyCardFeed: (feedName: string) => `añadió el feed de Tarjeta Expensify "${feedName}"`,
+        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
+            if (!oldValue) {
+                return `establece la zona horaria del espacio de trabajo en «${newValue}»`;
+            }
+            return `actualizó la zona horaria del espacio de trabajo a «${newValue}» (previamente «${oldValue}»)`;
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Miembro no encontrado.',
@@ -10469,6 +10574,8 @@ ${reportName}`,
                 upcoming: 'Próximo',
                 done: 'Finalizado',
                 canceled: 'Cancelado',
+                outstanding: 'Pendiente',
+                rejected: 'Rechazado',
             },
         },
         tabs: {
@@ -10557,6 +10664,7 @@ ${reportName}`,
         expenseColumns: 'Columnas de gastos',
         display: {
             label: 'Mostrar',
+            labelWithCount: ({count}: {count: number}) => (count > 0 ? `Mostrar (${count})` : 'Mostrar'),
             sortBy: 'Ordenar por',
             sortOrder: 'Orden de clasificación',
             groupBy: 'Agrupar por',
@@ -10974,6 +11082,8 @@ ${reportName}`,
                 leftTheChatWithName: (nameOrEmail) => `${nameOrEmail ? `${nameOrEmail}: ` : ''}salió del chat`,
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `La cuenta bancaria comercial ${maskedBankAccountNumber} ha sido bloqueada automáticamente debido a un problema con el reembolso o la liquidación de la Tarjeta Expensify. Por favor, soluciona el problema en la <a href='${linkURL}'>configuración del espacio de trabajo</a>.`,
+                autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
+                    `Los reembolsos globales fueron habilitados por ${adminName} en la cuenta ${bankName ? `de ${bankName} ` : ''}que termina en ${lastFour}. Las tasas de cambio exactas y las comisiones no se pueden previsualizar antes del pago cuando los informes transfronterizos se pagan automáticamente. Revisa tu <a href="${autoPaySettingsURL}">configuración de pago automático</a> para obtener más información sobre tasas y comisiones.`,
             },
             error: {
                 invalidCredentials: 'Credenciales no válidas, por favor verifica la configuración de tu conexión.',
@@ -11910,6 +12020,7 @@ ${reportName}`,
         keepThisOne: 'Mantener éste',
         confirmDetails: 'Confirma los detalles que conservas',
         confirmDuplicatesInfo: 'Los duplicados que no conserves se mantendrán para que el remitente los elimine.',
+        confirmDuplicatesRemovedInfo: 'Los duplicados que no conserves se eliminarán.',
         hold: 'Este gasto está retenido',
         resolvedDuplicates: 'resolvió el duplicado',
         companyCardRequired: 'Se requieren compras con la tarjeta de la empresa.',
@@ -12004,6 +12115,7 @@ ${reportName}`,
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName) => `${fieldName} es obligatorio`,
         reportContainsExpensesWithViolations: 'El informe contiene gastos con violaciones.',
+        reportHasErrors: 'El informe tiene errores.',
     },
     violationDismissal: {
         rter: {
@@ -12477,7 +12589,6 @@ ${reportName}`,
             isUnreadWithMention: 'No leído con mención',
             isWaitingForAssigneeToCompleteAction: 'Esperando a que el asignado complete la acción',
             hasChildReportAwaitingAction: 'Informe secundario pendiente de acción',
-            hasMissingInvoiceBankAccount: 'Falta la cuenta bancaria de la factura',
             hasUnresolvedCardFraudAlert: 'Tiene una alerta de fraude de tarjeta sin resolver',
             hasDEWApproveFailed: 'La aprobación DEW ha fallado',
         },
@@ -12491,7 +12602,7 @@ ${reportName}`,
             theresAReportWithErrors: 'Hay un informe con errores',
             theresAWorkspaceWithCustomUnitsErrors: 'Hay un espacio de trabajo con errores en las unidades personalizadas',
             theresAProblemWithAWorkspaceMember: 'Hay un problema con un miembro del espacio de trabajo',
-            theresAProblemWithAWorkspaceQBOExport: 'Hubo un problema con la configuración de exportación de la conexión del espacio de trabajo.',
+            theresAProblemWithAWorkspaceReimbursementExport: 'Hubo un problema con la configuración de exportación de la conexión del espacio de trabajo.',
             theresAProblemWithAContactMethod: 'Hay un problema con un método de contacto',
             aContactMethodRequiresVerification: 'Un método de contacto requiere verificación',
             theresAProblemWithAPaymentMethod: 'Hay un problema con un método de pago',
@@ -13077,5 +13188,29 @@ ${reportName}`,
         mobileClaimPrompt: 'Visita Expensify en tu navegador web para obtener tu descuento de renovación.',
     },
     bulkActionBar: {label: 'Acciones en bloque', clearSelection: 'Borrar selección', loadingSelection: 'Cargando selección'},
+    reportHistoryPage: {
+        title: 'Historial del informe',
+        created: 'creó el informe',
+        submitted: 'envió',
+        approved: 'aprobó',
+        paid: 'pagó',
+        toSubmit: 'enviar',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return 'enviar automáticamente';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `enviar automáticamente el día ${eta} de cada mes` : `enviar automáticamente ${eta}`;
+        },
+        toMarkAsDone: 'marcar como listo',
+        toApprove: 'aprobar',
+        toPay: 'pagar',
+        minutesAgo: (count: number) => `hace ${count} min`,
+        hoursAgo: (count: number) => `hace ${count} h`,
+        daysAgo: () => ({
+            one: 'hace 1 d',
+            other: (count: number) => `hace ${count} d`,
+        }),
+        offlineMessage: 'Estás sin conexión. El historial de informes puede estar desactualizado.',
+    },
 };
 export default translations;

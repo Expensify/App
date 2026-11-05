@@ -43,7 +43,7 @@ On web:
 
 1. Go to the navigation tabs on the left and select **Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
+3. Select **Connections**, then select **Configure** next to NetSuite.
 4. Click **Advanced**.
 5. Locate **Sync Reimbursed Reports**.
 6. Select an **Accounts Payable** account from the dropdown.
@@ -53,7 +53,7 @@ On mobile:
 
 1. Tap the navigation tabs on the bottom and select **Workspaces**.
 2. Select your Workspace.
-3. Tap **Accounting**.
+3. Select **Connections**, then select **Configure** next to NetSuite.
 4. Tap **Advanced**.
 5. Locate **Sync Reimbursed Reports**.
 6. Select an **Accounts Payable** account.
@@ -71,13 +71,13 @@ If no Accounts Payable accounts appear in the dropdown:
 
 Then return to the Workspace:
 
-1. Go to **Workspaces > Accounting**.
-2. Click the three-dot menu next to the NetSuite connection.
-3. Click **Sync Now**.
+1. Select **Workspaces > [workspace name] > Connections**, then select **Configure** next to NetSuite.
+2. Select **More (⋮)**.
+3. Select **Sync now**.
 
 After the sync completes:
 
-1. Go back to **Accounting > Advanced**.
+1. Select **Workspaces > [workspace name] > Connections**, select **Configure** next to NetSuite, then select **Advanced**.
 2. Select the newly available **Accounts Payable** account.
 3. Click **Save**.
 
@@ -85,9 +85,10 @@ After the sync completes:
 
 ## Retry the Payment Sync
 
-1. Return to **Accounting**.
-2. Click **Sync Now**.
-3. Confirm the reimbursed report is marked as paid in NetSuite.
+1. Select **Workspaces > [workspace name] > Connections**, then select **Configure** next to NetSuite.
+2. Select **More (⋮)**.
+3. Select **Sync now**.
+4. Confirm the reimbursed report is marked as paid in NetSuite.
 
 If a valid A/P account is selected, the sync should complete successfully.
 
