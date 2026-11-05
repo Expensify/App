@@ -11532,6 +11532,7 @@ const CONST = {
             IMPORT_TRANSACTIONS_FLIP_AMOUNT_SIGN_SWITCH: 'SettingsWallet-ImportTransactionsFlipAmountSignSwitch',
             PERSONAL_CARD_REIMBURSABLE_SWITCH: 'SettingsWallet-PersonalCardReimbursableSwitch',
             WISE_MORE_INFO_NEEDED_REVIEW: 'SettingsWallet-WiseMoreInfoNeededReview',
+            WISE_BANK_ACCOUNT_ADDED_CONTINUE: 'SettingsWallet-WiseBankAccountAddedContinue',
             DIGITAL_WALLET_APPROVAL_REVIEW: 'SettingsWallet-DigitalWalletApprovalReview',
             MISSING_PERSONAL_DETAILS_ADD: 'SettingsWallet-MissingPersonalDetailsAdd',
         },

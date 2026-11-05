@@ -8,6 +8,8 @@ import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 
 type WiseBankAccountAddedProps = {
@@ -40,6 +42,7 @@ function WiseBankAccountAdded({onContinue}: WiseBankAccountAddedProps) {
                     description={translate('addPersonalBankAccountPage.bankAccountAddedMessage')}
                     buttonText={translate('common.continue')}
                     onButtonPress={onContinue}
+                    buttonSentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.WISE_BANK_ACCOUNT_ADDED_CONTINUE}
                 />
             </ScrollView>
         </ScreenWrapper>
