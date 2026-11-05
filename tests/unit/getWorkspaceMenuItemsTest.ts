@@ -137,6 +137,25 @@ describe('getWorkspaceMenuItems', () => {
         expect(items.find((item) => item.translationKey === 'workspace.common.members')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
     });
 
+    it('badges the Members row with "New roles" only while the new roles are promoted', () => {
+        // Given an admin on a Control workspace
+        const policy = buildPolicy(CONST.POLICY.ROLE.ADMIN);
+        const buildItems = (shouldShowNewRolesBadge: boolean) =>
+            getWorkspaceMenuItems({policy, policyID: policy.id, currentUserLogin, icons, shouldShowNewRolesBadge, convertToDisplayString: () => ''});
+
+        // When the promotion is shown
+        const promotedMembersItem = buildItems(true).find((item) => item.screenName === SCREENS.WORKSPACE.MEMBERS);
+        // Then Members carries the green badge, so admins learn the roles exist where they assign them
+        expect(promotedMembersItem?.badgeTranslationKey).toBe('workspace.common.newRoles');
+        expect(promotedMembersItem?.isBadgeSuccess).toBe(true);
+
+        // When the promotion is over or dismissed
+        const membersItem = buildItems(false).find((item) => item.screenName === SCREENS.WORKSPACE.MEMBERS);
+        // Then Members has no badge at all
+        expect(membersItem?.badgeTranslationKey).toBeUndefined();
+        expect(membersItem?.isBadgeSuccess).toBe(false);
+    });
+
     it('shows an error indicator when general Workspace settings have errors', () => {
         const policy = createMock<Policy>({...buildPolicy(CONST.POLICY.ROLE.ADMIN), errorFields: {name: {error: 'Whoops'}}});
 

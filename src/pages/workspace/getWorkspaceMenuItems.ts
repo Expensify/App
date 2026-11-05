@@ -81,6 +81,8 @@ type WorkspaceMenuItem = WithSentryLabel & {
     screenName: WorkspaceTopLevelScreens;
     badgeTranslationKey?: TranslationPaths;
     badgeText?: string;
+    isBadgeSuccess?: boolean;
+    isBadgeCondensed?: boolean;
     highlighted?: boolean;
 
     /** Other names the Search router also matches this item by */
@@ -120,6 +122,8 @@ type GetWorkspaceMenuItemsParams = {
     hasApprovalWorkflowWithNonMemberApprover?: boolean;
     /** Whether the vendor matching beta is enabled. */
     isVendorMatchingBetaEnabled?: boolean;
+    /** Whether the Members row promotes the Approve-only and Guest roles with a badge. */
+    shouldShowNewRolesBadge?: boolean;
     /** Formats the invoice account balance for its menu badge. */
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
@@ -139,6 +143,7 @@ function getWorkspaceMenuItems({
     shouldShowRBR = false,
     hasApprovalWorkflowWithNonMemberApprover = false,
     isVendorMatchingBetaEnabled = false,
+    shouldShowNewRolesBadge = false,
     convertToDisplayString,
 }: GetWorkspaceMenuItemsParams): WorkspaceMenuItem[] {
     const isAgentAccount = currentUserPersonalDetails?.isCustomAgent;
@@ -214,6 +219,9 @@ function getWorkspaceMenuItems({
             brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             screenName: SCREENS.WORKSPACE.MEMBERS,
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.MEMBERS,
+            badgeTranslationKey: shouldShowNewRolesBadge ? 'workspace.common.newRoles' : undefined,
+            isBadgeSuccess: shouldShowNewRolesBadge,
+            isBadgeCondensed: shouldShowNewRolesBadge,
         },
         {
             translationKey: 'workspace.common.rooms',

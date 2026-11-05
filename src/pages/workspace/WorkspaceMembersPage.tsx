@@ -112,6 +112,7 @@ import {View} from 'react-native';
 
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 
+import WorkspaceNewRolesBanner from './members/WorkspaceNewRolesBanner';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 
@@ -537,36 +538,39 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         isOffline && data?.some((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
     const getHeaderContent = () => (
-        <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
-            <View style={[styles.pl5, styles.mb5, styles.mt3, styles.flexRow, styles.alignItemsCenter]}>
-                <Text style={[styles.textSupporting, styles.flexShrink1, isPendingAddOrDelete && styles.offlineFeedbackPending]}>
-                    {translate('workspace.people.workspaceMembersCount', memberCount)}
-                    {shouldShowHRSyncLink && '. '}
-                    {shouldShowHRSyncLink && (
-                        <TextLink
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.PEOPLE))}
-                        >
-                            {translate('workspace.people.configureHRSync', connectedHRProvider?.displayName ?? '')}
-                        </TextLink>
+        <>
+            <WorkspaceNewRolesBanner policy={policy} />
+            <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
+                <View style={[styles.pl5, styles.mb5, styles.mt3, styles.flexRow, styles.alignItemsCenter]}>
+                    <Text style={[styles.textSupporting, styles.flexShrink1, isPendingAddOrDelete && styles.offlineFeedbackPending]}>
+                        {translate('workspace.people.workspaceMembersCount', memberCount)}
+                        {shouldShowHRSyncLink && '. '}
+                        {shouldShowHRSyncLink && (
+                            <TextLink
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.PEOPLE))}
+                            >
+                                {translate('workspace.people.configureHRSync', connectedHRProvider?.displayName ?? '')}
+                            </TextLink>
+                        )}
+                    </Text>
+                    {shouldShowHRSyncLink && isHRSyncInProgress && (
+                        <ActivityIndicator
+                            size="small"
+                            style={styles.ml2}
+                        />
                     )}
-                </Text>
-                {shouldShowHRSyncLink && isHRSyncInProgress && (
-                    <ActivityIndicator
-                        size="small"
-                        style={styles.ml2}
+                </View>
+                {!isEmptyObject(invitedPrimaryToSecondaryLogins) && (
+                    <MessagesRow
+                        type="success"
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        messages={{0: translate('workspace.people.addedWithPrimary')}}
+                        containerStyles={[styles.pb5, styles.ph5]}
+                        onDismiss={() => dismissAddedWithPrimaryLoginMessages(policyID)}
                     />
                 )}
             </View>
-            {!isEmptyObject(invitedPrimaryToSecondaryLogins) && (
-                <MessagesRow
-                    type="success"
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    messages={{0: translate('workspace.people.addedWithPrimary')}}
-                    containerStyles={[styles.pb5, styles.ph5]}
-                    onDismiss={() => dismissAddedWithPrimaryLoginMessages(policyID)}
-                />
-            )}
-        </View>
+        </>
     );
 
     useSearchBackPress({

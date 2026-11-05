@@ -16,12 +16,17 @@ import React from 'react';
 import {View} from 'react-native';
 
 import type {LocalizedTranslate} from './LocaleContextProvider';
+import type {Section} from './SelectionList/SelectionListWithSections/types';
 import type {ConfirmButtonOptions, ListItem} from './SelectionList/types';
 
+import Badge from './Badge';
+import Button from './Button';
 import FormHelpMessage from './FormHelpMessage';
 import HeaderWithBackButton from './HeaderWithBackButton';
-import SelectionList from './SelectionList';
+import RenderHTML from './RenderHTML';
 import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
+import SelectionListWithSections from './SelectionList/SelectionListWithSections';
+import Text from './Text';
 
 type ListItemType = ListItem<ValueOf<typeof CONST.POLICY.ROLE>> & {
     value: ValueOf<typeof CONST.POLICY.ROLE>;
@@ -50,6 +55,11 @@ type WorkspaceMemberRoleListProps = {
     errorAnnouncementKey?: number;
 };
 
+const ADMIN_ROLES = new Set<ValueOf<typeof CONST.POLICY.ROLE>>([CONST.POLICY.ROLE.CARD_ADMIN, CONST.POLICY.ROLE.PAYMENTS_ADMIN, CONST.POLICY.ROLE.PEOPLE_ADMIN, CONST.POLICY.ROLE.ADMIN]);
+
+/** Roles we announce to admins as new. They carry a "New" badge until the announcement ends. */
+const NEW_ROLES = new Set<ValueOf<typeof CONST.POLICY.ROLE>>([CONST.POLICY.ROLE.APPROVE_ONLY, CONST.POLICY.ROLE.GUEST]);
+
 /**
  * Roles a member can be assigned, in the same order as the role-selection page.
  * Filters by what the current user may assign and any extra restriction (for example an Authorized Payer).
@@ -61,13 +71,49 @@ function getAssignableWorkspaceMemberRoleItems(
     currentUserLogin: string,
     allowedRoles?: Array<ValueOf<typeof CONST.POLICY.ROLE>>,
 ): ListItemType[] {
+    const newRoleBadge = (
+        <Badge
+            success
+            isStrong
+            isCondensed
+            text={translate('common.new')}
+        />
+    );
     const workspaceRoles: ListItemType[] = [
+        {
+            value: CONST.POLICY.ROLE.CARD_ADMIN,
+            text: translate('workspace.common.roleName', CONST.POLICY.ROLE.CARD_ADMIN),
+            alternateText: translate('workspace.common.cardAdminAlternateText'),
+            isSelected: currentRole === CONST.POLICY.ROLE.CARD_ADMIN,
+            keyForList: CONST.POLICY.ROLE.CARD_ADMIN,
+        },
+        {
+            value: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+            text: translate('workspace.common.roleName', CONST.POLICY.ROLE.PAYMENTS_ADMIN),
+            alternateText: translate('workspace.common.paymentsAdminAlternateText'),
+            isSelected: currentRole === CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+            keyForList: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+        },
+        {
+            value: CONST.POLICY.ROLE.PEOPLE_ADMIN,
+            text: translate('workspace.common.roleName', CONST.POLICY.ROLE.PEOPLE_ADMIN),
+            alternateText: translate('workspace.common.peopleAdminAlternateText'),
+            isSelected: currentRole === CONST.POLICY.ROLE.PEOPLE_ADMIN,
+            keyForList: CONST.POLICY.ROLE.PEOPLE_ADMIN,
+        },
         {
             value: CONST.POLICY.ROLE.ADMIN,
             text: translate('workspace.common.roleName', CONST.POLICY.ROLE.ADMIN),
             alternateText: translate('workspace.common.adminAlternateText'),
             isSelected: currentRole === CONST.POLICY.ROLE.ADMIN,
             keyForList: CONST.POLICY.ROLE.ADMIN,
+        },
+        {
+            value: CONST.POLICY.ROLE.APPROVE_ONLY,
+            text: translate('workspace.common.roleName', CONST.POLICY.ROLE.APPROVE_ONLY),
+            alternateText: translate('workspace.common.approveOnlyAlternateText'),
+            isSelected: currentRole === CONST.POLICY.ROLE.APPROVE_ONLY,
+            keyForList: CONST.POLICY.ROLE.APPROVE_ONLY,
         },
         {
             value: CONST.POLICY.ROLE.AUDITOR,
@@ -84,45 +130,18 @@ function getAssignableWorkspaceMemberRoleItems(
             keyForList: CONST.POLICY.ROLE.GUEST,
         },
         {
-            value: CONST.POLICY.ROLE.CARD_ADMIN,
-            text: translate('workspace.common.roleName', CONST.POLICY.ROLE.CARD_ADMIN),
-            alternateText: translate('workspace.common.cardAdminAlternateText'),
-            isSelected: currentRole === CONST.POLICY.ROLE.CARD_ADMIN,
-            keyForList: CONST.POLICY.ROLE.CARD_ADMIN,
-        },
-        {
-            value: CONST.POLICY.ROLE.PEOPLE_ADMIN,
-            text: translate('workspace.common.roleName', CONST.POLICY.ROLE.PEOPLE_ADMIN),
-            alternateText: translate('workspace.common.peopleAdminAlternateText'),
-            isSelected: currentRole === CONST.POLICY.ROLE.PEOPLE_ADMIN,
-            keyForList: CONST.POLICY.ROLE.PEOPLE_ADMIN,
-        },
-        {
-            value: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
-            text: translate('workspace.common.roleName', CONST.POLICY.ROLE.PAYMENTS_ADMIN),
-            alternateText: translate('workspace.common.paymentsAdminAlternateText'),
-            isSelected: currentRole === CONST.POLICY.ROLE.PAYMENTS_ADMIN,
-            keyForList: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
-        },
-        {
             value: CONST.POLICY.ROLE.USER,
             text: translate('common.member'),
             alternateText: translate('workspace.common.memberAlternateText'),
             isSelected: currentRole === CONST.POLICY.ROLE.USER,
             keyForList: CONST.POLICY.ROLE.USER,
         },
-        {
-            value: CONST.POLICY.ROLE.APPROVE_ONLY,
-            text: translate('workspace.common.roleName', CONST.POLICY.ROLE.APPROVE_ONLY),
-            alternateText: translate('workspace.common.approveOnlyAlternateText'),
-            isSelected: currentRole === CONST.POLICY.ROLE.APPROVE_ONLY,
-            keyForList: CONST.POLICY.ROLE.APPROVE_ONLY,
-        },
     ];
+    const roleItems = workspaceRoles.map((item) => (NEW_ROLES.has(item.value) ? {...item, rightElement: newRoleBadge} : item));
 
     const selectableRoles = getSelectableRoles(policy, currentUserLogin, allowedRoles);
 
-    return workspaceRoles.filter((item) => selectableRoles.includes(item.value));
+    return roleItems.filter((item) => selectableRoles.includes(item.value));
 }
 
 function WorkspaceMemberRoleList({
@@ -141,6 +160,59 @@ function WorkspaceMemberRoleList({
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
 
     const availableRoleItems = getAssignableWorkspaceMemberRoleItems(translate, role, policy, currentUserLogin, allowedRoles);
+    const roleGroups = [
+        {
+            title: translate('workspace.common.adminRoles'),
+            data: availableRoleItems.filter((item) => ADMIN_ROLES.has(item.value)),
+        },
+        {
+            title: translate('workspace.common.otherRoles'),
+            data: availableRoleItems.filter((item) => !ADMIN_ROLES.has(item.value)),
+        },
+    ].filter((group) => group.data.length > 0);
+    const sections: Array<Section<ListItemType>> = roleGroups.map((group, index) => ({
+        data: group.data,
+        sectionIndex: index,
+        customHeader: (
+            <>
+                {index > 0 && <View style={styles.dividerLine} />}
+                <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
+                    <Text style={[styles.ph5, styles.textLabelSupporting]}>{group.title}</Text>
+                </View>
+            </>
+        ),
+    }));
+
+    const footerContent = (
+        <>
+            <View style={[styles.renderHTML, styles.mb4]}>
+                <RenderHTML html={translate('workspace.common.roleSelectorFeedback')} />
+            </View>
+            {!!errorMessage && (
+                // Remounting is what makes the alert speak again. The list is not inside a `Form`, so `FormHelpMessage`
+                // has no submit count of its own to re-announce from.
+                <FormHelpMessage
+                    key={errorAnnouncementKey}
+                    style={[styles.ph1, styles.mb2]}
+                    isError
+                    message={errorMessage}
+                />
+            )}
+            {!!confirmButtonOptions?.showButton && (
+                <Button
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
+                    style={styles.w100}
+                    onPress={confirmButtonOptions.onConfirm}
+                    isDisabled={confirmButtonOptions.isDisabled}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.ROLE_SAVE_BUTTON}
+                >
+                    <Button.KeyboardShortcut enterKeyEventListenerPriority={1} />
+                    {!!confirmButtonOptions.text && <Button.Text>{confirmButtonOptions.text}</Button.Text>}
+                </Button>
+            )}
+        </>
+    );
 
     return (
         <>
@@ -150,27 +222,21 @@ function WorkspaceMemberRoleList({
             />
             {!isLoading && (
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
-                    <SelectionList
-                        data={availableRoleItems}
+                    <SelectionListWithSections
+                        sections={sections}
                         ListItem={SingleSelectListItem}
                         onSelectRow={onSelectRole}
                         confirmButtonOptions={confirmButtonOptions}
+                        footerContent={footerContent}
+                        customListHeaderContent={
+                            <View style={[styles.renderHTML, styles.ph5, styles.pb2]}>
+                                <RenderHTML html={translate('workspace.common.roleSelectorDescription')} />
+                            </View>
+                        }
                         shouldSingleExecuteRowSelect={!confirmButtonOptions?.showButton}
                         initiallyFocusedItemKey={availableRoleItems.find((item) => item.isSelected)?.keyForList}
                         addBottomSafeAreaPadding
-                    >
-                        {!!errorMessage && (
-                            <View style={[styles.ph3, styles.mb3]}>
-                                {/* Remounting is what makes the alert speak again. The list is not inside a `Form`,
-                                    so `FormHelpMessage` has no submit count of its own to re-announce from. */}
-                                <FormHelpMessage
-                                    key={errorAnnouncementKey}
-                                    isError
-                                    message={errorMessage}
-                                />
-                            </View>
-                        )}
-                    </SelectionList>
+                    />
                 </View>
             )}
         </>
