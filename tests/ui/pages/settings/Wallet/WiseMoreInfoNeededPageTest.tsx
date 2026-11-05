@@ -7,7 +7,7 @@ import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {setHasRadio} from '@libs/NetworkState';
-import openExternalLink from '@libs/openExternalLink';
+import openWiseKYCReview from '@libs/openWiseKYCReview';
 
 import WiseMoreInfoNeededPage from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseMoreInfoNeededPage';
 
@@ -22,12 +22,13 @@ import Onyx from 'react-native-onyx';
 import getOnyxValue from '../../../../utils/getOnyxValue';
 import * as TestHelper from '../../../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../../../utils/waitForBatchedUpdatesWithAct';
+import {mockKYCReviewLinkResponse} from '../../../../utils/WiseTestUtils';
 
 const BANK_ACCOUNT_ID = 9053192;
 const CONTINUE_BUTTON_TEST_ID = 'confirmation-primary-button';
 const KYC_REVIEW_URL = 'https://sandbox.transferwise.tech/embedded-flows/kyc-review?token=abc';
 
-jest.mock('@libs/openExternalLink', () => jest.fn());
+jest.mock('@libs/openWiseKYCReview', () => jest.fn());
 jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => 'settings/wallet/global-reimbursements/9053192'));
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
 
@@ -53,12 +54,6 @@ async function renderPage() {
 
 let mockFetch: ReturnType<typeof TestHelper.getGlobalFetchMock>;
 let originalFetch: typeof global.fetch;
-
-function mockKYCReviewLinkResponse() {
-    mockFetch.mockAPICommand(READ_COMMANDS.GET_WISE_KYC_REVIEW_EMBEDDED_LINK, () => ({
-        onyxData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK, value: {url: KYC_REVIEW_URL}}],
-    }));
-}
 
 async function pressContinue() {
     fireEvent.press(screen.getByTestId(CONTINUE_BUTTON_TEST_ID));
@@ -106,12 +101,12 @@ describe('WiseMoreInfoNeededPage', () => {
         await pressContinue();
 
         // Then nothing redirects, so the user never lands on the old link
-        expect(openExternalLink).not.toHaveBeenCalled();
+        expect(openWiseKYCReview).not.toHaveBeenCalled();
     });
 
     it("fetches the link for the bank account on Continue and redirects to Wise's form once it arrives", async () => {
         // Given the page opened from the terms for a bank account, and a server that answers with a link
-        mockKYCReviewLinkResponse();
+        mockKYCReviewLinkResponse(mockFetch, KYC_REVIEW_URL);
         mockFetch.pause();
         await renderPage();
 
@@ -121,13 +116,13 @@ describe('WiseMoreInfoNeededPage', () => {
         // Then the link is fetched for the bank account from the route, since Wise's form is tied to it, and Continue spins until it arrives
         TestHelper.expectAPICommandToHaveBeenCalledWith(READ_COMMANDS.GET_WISE_KYC_REVIEW_EMBEDDED_LINK, 0, {bankAccountID: BANK_ACCOUNT_ID});
         expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK)).toEqual({isLoading: true});
-        expect(openExternalLink).not.toHaveBeenCalled();
+        expect(openWiseKYCReview).not.toHaveBeenCalled();
 
         // When the server answers
         await resumeFetch();
 
-        // Then the user leaves for Wise's form in the same tab
-        expect(openExternalLink).toHaveBeenCalledWith(KYC_REVIEW_URL, undefined, true);
+        // Then Wise's form opens with the link
+        expect(openWiseKYCReview).toHaveBeenCalledWith(KYC_REVIEW_URL);
     });
 
     it('shows an error above Continue when the link cannot be fetched', async () => {
@@ -141,7 +136,7 @@ describe('WiseMoreInfoNeededPage', () => {
         // Then the error shows, Continue stops spinning so the user can retry, and nothing redirects
         expect(screen.getByText(TestHelper.translateLocal('common.genericErrorMessage'))).toBeOnTheScreen();
         expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK)).toEqual(expect.objectContaining({isLoading: false}));
-        expect(openExternalLink).not.toHaveBeenCalled();
+        expect(openWiseKYCReview).not.toHaveBeenCalled();
     });
 
     it('clears the stuck loading state when the connection comes back', async () => {
@@ -163,6 +158,30 @@ describe('WiseMoreInfoNeededPage', () => {
 
             // Then the link state is cleared, so Continue stops spinning and can be pressed again
             expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK)).toBeUndefined();
+        } finally {
+            // Network state is module-level, so restore it even if an assertion fails
+            setHasRadio(true);
+        }
+    });
+
+    it("keeps the link of an open form when the connection comes back, so the form doesn't lose it", async () => {
+        // Given the link arrived and Wise's form is open on top of the page
+        mockKYCReviewLinkResponse(mockFetch, KYC_REVIEW_URL);
+        await renderPage();
+        await pressContinue();
+        act(() => {
+            setHasRadio(false);
+        });
+
+        try {
+            // When the connection comes back
+            act(() => {
+                setHasRadio(true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the link stays, since the open form reads it
+            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK)).toEqual(expect.objectContaining({url: KYC_REVIEW_URL}));
         } finally {
             // Network state is module-level, so restore it even if an assertion fails
             setHasRadio(true);

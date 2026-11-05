@@ -126,6 +126,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pay: 'Zapłać',
             fix: 'Napraw',
             task: 'Zadanie',
+            add: 'Dodaj',
         },
         success: 'Sukces',
         group: 'Grupa',
@@ -1078,6 +1079,10 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             emailDeliveryFailure: {title: 'Nie możemy wysyłać ci powiadomień e-mail', subtitle: 'Konto'},
             upgradeNetSuiteConnection: {title: 'Zaktualizuj swoje połączenie z NetSuite'},
+            verifyWiseBankAccount: {
+                title: 'Zweryfikuj konto bankowe',
+                subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Konto bankowe kończące się na ${bankAccountLastFour}`,
+            },
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -1264,6 +1269,8 @@ const translations: TranslationDeepObject<typeof en> = {
         runningTotal: 'Suma narastająco',
         explain: 'Wyjaśnij',
         explainChartPrompt: (chartTitle: string) => `Wyjaśnij dane w ${chartTitle}.`,
+        viewDetails: 'Zobacz szczegóły',
+        viewAll: 'Zobacz wszystko',
     },
     allSettingsScreen: {
         subscription: 'Subskrypcja',
@@ -2236,14 +2243,15 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Czekamy, aż <strong>ty</strong> zatwierdzisz wydatki.`;
+                        return isBill ? `Czekamy, aż <strong>ty</strong> zatwierdzisz rachunek.` : `Czekamy, aż <strong>ty</strong> zatwierdzisz wydatki.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Oczekiwanie, aż <strong>${actor}</strong> zatwierdzi wydatki.`;
+                        return isBill ? `Oczekiwanie, aż <strong>${actor}</strong> zatwierdzi rachunek.` : `Oczekiwanie, aż <strong>${actor}</strong> zatwierdzi wydatki.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Oczekiwanie na zatwierdzenie wydatków przez administratora.`;
+                        return isBill ? `Oczekiwanie na zatwierdzenie rachunku przez administratora.` : `Oczekiwanie na zatwierdzenie wydatków przez administratora.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (
@@ -2266,14 +2274,15 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Czekamy, aż <strong>ty</strong> zapłacisz wydatki.`;
+                        return isBill ? `Czekamy, aż <strong>ty</strong> zapłacisz ten rachunek.` : `Czekamy, aż <strong>ty</strong> zapłacisz wydatki.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Oczekiwanie, aż <strong>${actor}</strong> zapłaci wydatki.`;
+                        return isBill ? `Oczekiwanie, aż <strong>${actor}</strong> zapłaci ten rachunek.` : `Oczekiwanie, aż <strong>${actor}</strong> zapłaci wydatki.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Oczekiwanie na opłacenie wydatków przez administratora.`;
+                        return isBill ? `Oczekiwanie na opłacenie tego rachunku przez administratora.` : `Oczekiwanie na opłacenie wydatków przez administratora.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
@@ -3171,7 +3180,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: 'Zweryfikuj dodatkowe informacje',
                 subtitle: 'Nasz partner płatniczy potrzebuje bezpośrednio więcej informacji. To zajmie tylko kilka minut.',
             },
+            inReview: {
+                title: 'W trakcie przeglądu',
+                heading: 'Mamy wszystko, czego potrzebujemy.\nWkrótce się odezwiemy!',
+                description: 'Większość weryfikacji zajmuje od jednego do dwóch dni. Damy ci znać, gdy będziemy mieć aktualizację.',
+                chatWithConcierge: 'Czat z Concierge',
+            },
+            approved: {title: 'Konto zatwierdzone', heading: 'Zatwierdzone do płatności na całym świecie', description: 'Wypłacaj członkom wynagrodzenie, gdziekolwiek są.'},
+            rejected: {title: 'Odrzucono konto bankowe', heading: 'Nasz partner odrzucił twoje konto bankowe', description: 'Porozmawiaj z Concierge, żeby dowiedzieć się więcej.'},
         },
+        wiseSetupInProgress: {message: 'Konfiguracja globalnych zwrotów kosztów w toku.', continue: 'Kontynuuj.'},
         wiseGlobalReimbursementsIntro: {
             title: 'Skonfigurować globalne zwroty kosztów?',
             subtitle: 'Płać członkom na całym świecie w ich lokalnej walucie.',
@@ -3180,6 +3198,7 @@ const translations: TranslationDeepObject<typeof en> = {
             payingReportSubtitle: 'Konta bankowe firmy i pracownika są w różnych walutach.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Płać ludziom na całym świecie', subtitle: 'Włącz globalne zwroty wydatków na swoim koncie w USD.'},
+        wiseMoreInfoNeeded: 'Potrzeba więcej informacji, aby włączyć globalne zwroty kosztów',
         globalReimbursementsEnabled: 'Włączono globalne zwroty',
     },
     addCardToDigitalWallet: {
@@ -9195,8 +9214,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 describeRuleForConcierge: 'Opisz swoją regułę, a Concierge ją utworzy',
                 gotIt: 'Jasne',
                 createRule: 'Utwórz regułę',
-                fallbackBanner: 'To nie jest standardowa reguła, więc przygotowaliśmy regułę agenta.',
-                fallbackBannerWithExplanation: (explanation: string) => `To nie jest standardowa reguła, więc przygotowaliśmy regułę agenta. ${explanation}`,
+                fallbackBanner:
+                    'To nie jest standardowa reguła, więc przygotowaliśmy regułę agenta. Reguły agenta są uruchamiane, gdy wydatek lub raport zostanie utworzony albo zaktualizowany.',
+                fallbackBannerWithExplanation: (explanation: string) =>
+                    `To nie jest standardowa reguła, więc przygotowaliśmy regułę agenta. Reguły agenta są uruchamiane, gdy wydatek lub raport zostanie utworzony albo zaktualizowany. ${explanation}`,
             },
             tabs: {
                 general: 'Ogólne',
@@ -9681,6 +9702,30 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             noVendorsFoundDescription: 'Dodaj proszę dostawców w Zoho Books i zsynchronizuj połączenie ponownie',
             noAccountsFound: 'Nie znaleziono kont',
             noAccountsFoundDescription: 'Dodaj proszę konta w Zoho Books i zsynchronizuj połączenie ponownie',
+            autoSyncDescription: 'Synchronizuj Zoho Books i Expensify automatycznie, każdego dnia. Raporty synchronizują się w czasie rzeczywistym.',
+            accountingMethods: {
+                label: 'Metoda eksportu',
+                description: 'Wybierz, kiedy eksportować wydatki.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Memoria',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Gotówka',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Wydatki z własnej kieszeni zostaną wyeksportowane po ostatecznym zatwierdzeniu',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Wydatki z własnej kieszeni zostaną wyeksportowane po opłaceniu',
+                },
+            },
+            syncReimbursedReports: 'Synchronizuj rozliczone raporty',
+            syncReimbursedReportsDescription: 'Gdy raport zostanie opłacony przez ACH, w tym koncie zostanie wygenerowana płatność rachunku.',
+            billPaymentAccount: {label: 'Konto do opłacania rachunków', description: 'Wybierz konto rozliczeniowe, które Zoho Books uznaje, gdy Expensify oznacza rachunek jako opłacony.'},
+            syncExpensifyCardSettlements: 'Synchronizuj rozliczenia Karty Expensify',
+            settlementAccount: {label: 'Konto rozliczeniowe Karty Expensify', description: 'Wybierz swoje konto rozliczeniowe, a my utworzymy płatność w Zoho Books.'},
+            syncTravelBillingSettlements: 'Synchronizuj rozliczenia Consolidated Travel Billing',
+            travelBillingSettlementAccount: {
+                label: 'Konto rozliczeniowe zbiorczego rozliczania podróży',
+                description: 'Wybierz swoje konto rozliczeniowe, a my utworzymy płatność w Zoho Books.',
+            },
+            travelBillingPayableAccount: {label: 'Konto zobowiązań skonsolidowanego rozliczania podróży'},
         },
         businessCentral: {
             businessCentralSetup: 'Konfiguracja Dynamics 365 Business Central',
@@ -10875,6 +10920,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         },
         display: {
             label: 'Wyświetl',
+            labelWithCount: ({count}: {count: number}) => (count > 0 ? `Wyświetl (${count})` : 'Wyświetl'),
             sortBy: 'Sortuj według',
             sortOrder: 'Kolejność sortowania',
             groupBy: 'Grupuj według',
@@ -12817,5 +12863,28 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         mobileClaimPrompt: 'Odwiedź Expensify w swojej przeglądarce internetowej, aby odebrać zniżkę na odnowienie.',
     },
     bulkActionBar: {label: 'Akcje zbiorcze', clearSelection: 'Wyczyść wybór', loadingSelection: 'Wczytywanie zaznaczenia'},
+    reportHistoryPage: {
+        title: 'Historia raportu',
+        created: 'utworzył raport',
+        submitted: 'wysłał',
+        approved: 'zatwierdził',
+        paid: 'opłacił',
+        toSubmit: 'przesłać',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return 'automatycznie przesłać';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `automatycznie przesłać ${eta} dnia każdego miesiąca` : `automatycznie przesłać ${eta}`;
+        },
+        toApprove: 'zatwierdzić',
+        toPay: 'zapłacić',
+        minutesAgo: (count: number) => `${count} min temu`,
+        hoursAgo: (count: number) => `${count} godz. temu`,
+        daysAgo: () => ({
+            one: '1 dzień temu',
+            other: (count: number) => `${count} dni temu`,
+        }),
+        offlineMessage: 'Jesteś offline. Historia raportów może być nieaktualna.',
+    },
 };
 export default translations;

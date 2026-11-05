@@ -739,9 +739,18 @@ function getAccountingIntegrationData(
                     CONST.ZOHO_BOOKS_CONFIG.DEFAULT_VENDORID,
                     CONST.ZOHO_BOOKS_CONFIG.CREDIT_CARD_ACCOUNT_ID,
                 ],
-                // Advanced screens are added in later releases.
-                onAdvancedPagePress: () => null,
-                subscribedAdvancedSettings: [],
+                onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_ADVANCED.getRoute(policyID)),
+                subscribedAdvancedSettings: [
+                    CONST.ZOHO_BOOKS_CONFIG.AUTO_SYNC,
+                    CONST.ZOHO_BOOKS_CONFIG.ACCOUNTING_METHOD,
+                    CONST.ZOHO_BOOKS_CONFIG.SYNC_REIMBURSED_REPORTS,
+                    CONST.ZOHO_BOOKS_CONFIG.BILL_PAYMENT_ACCOUNT_ID,
+                    CONST.ZOHO_BOOKS_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS,
+                    CONST.ZOHO_BOOKS_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID,
+                    CONST.ZOHO_BOOKS_CONFIG.SYNC_TRAVEL_BILLING_SETTLEMENTS,
+                    CONST.ZOHO_BOOKS_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID,
+                    CONST.ZOHO_BOOKS_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT_ID,
+                ],
                 pendingFields: policy?.connections?.zohoBooks?.config?.pendingFields,
                 errorFields: policy?.connections?.zohoBooks?.config?.errorFields,
             };

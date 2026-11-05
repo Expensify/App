@@ -94,7 +94,7 @@ describe('AttachmentStorage', () => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.ATTACHMENT,
                 callback: (value) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(value);
                 },
             });
@@ -184,7 +184,7 @@ describe('AttachmentStorage', () => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.ATTACHMENT,
                 callback: (value) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(value);
                 },
             });

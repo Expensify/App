@@ -182,6 +182,7 @@ const translations = {
             pay: 'Pay',
             fix: 'Fix',
             task: 'Task',
+            add: 'Add',
         },
         // @context Used in confirmation or result messages indicating that an action completed successfully, not the abstract noun “success.”
         success: 'Success',
@@ -1206,6 +1207,10 @@ const translations = {
                 title: 'Signer info needed',
                 subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bank account ${bankAccountLastFour}`,
             },
+            verifyWiseBankAccount: {
+                title: 'Verify bank account',
+                subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bank account ending ${bankAccountLastFour}`,
+            },
             upgradeNetSuiteConnection: {
                 title: 'Upgrade your NetSuite connection',
             },
@@ -1355,6 +1360,8 @@ const translations = {
         viewOnSpend: 'View on Spend',
         explain: 'Explain',
         explainChartPrompt: (chartTitle: string) => `Explain the data in ${chartTitle}.`,
+        viewDetails: 'View details',
+        viewAll: 'View all',
         compliance: 'Compliance',
         runningTotal: 'Running total',
         compare: {
@@ -2349,16 +2356,17 @@ const translations = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Waiting for <strong>you</strong> to approve expenses.`;
+                        return isBill ? `Waiting for <strong>you</strong> to approve the bill.` : `Waiting for <strong>you</strong> to approve expenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Waiting for <strong>${actor}</strong> to approve expenses.`;
+                        return isBill ? `Waiting for <strong>${actor}</strong> to approve the bill.` : `Waiting for <strong>${actor}</strong> to approve expenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Waiting for an admin to approve expenses.`;
+                        return isBill ? `Waiting for an admin to approve the bill.` : `Waiting for an admin to approve expenses.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (
@@ -2383,16 +2391,17 @@ const translations = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Waiting for <strong>you</strong> to pay expenses.`;
+                        return isBill ? `Waiting for <strong>you</strong> to pay this bill.` : `Waiting for <strong>you</strong> to pay expenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Waiting for <strong>${actor}</strong> to pay expenses.`;
+                        return isBill ? `Waiting for <strong>${actor}</strong> to pay this bill.` : `Waiting for <strong>${actor}</strong> to pay expenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Waiting for an admin to pay expenses.`;
+                        return isBill ? `Waiting for an admin to pay this bill.` : `Waiting for an admin to pay expenses.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
@@ -3002,6 +3011,7 @@ const translations = {
     },
     walletPage: {
         balance: 'Balance',
+        wiseMoreInfoNeeded: 'More information needed to enable global reimbursements',
         paymentMethodsTitle: 'Payment methods',
         setDefaultConfirmation: 'Make default payment method',
         setDefaultSuccess: 'Default payment method set!',
@@ -3216,7 +3226,24 @@ const translations = {
                 title: 'Verify additional info',
                 subtitle: 'Our payments partner needs more info directly. This should only take a couple of minutes.',
             },
+            inReview: {
+                title: 'In review',
+                heading: "We got what we need.\nYou'll hear from us!",
+                description: "Most reviews take one to two days. We'll message you with an update.",
+                chatWithConcierge: 'Chat with Concierge',
+            },
+            approved: {
+                title: 'Account approved',
+                heading: 'Approved to pay worldwide',
+                description: 'Pay members wherever they are.',
+            },
+            rejected: {
+                title: 'Bank account rejected',
+                heading: 'Our partner rejected your bank account',
+                description: 'Chat with Concierge for more information.',
+            },
         },
+        wiseSetupInProgress: {message: 'Global reimbursements setup in progress.', continue: 'Continue.'},
         wiseGlobalReimbursementsIntro: {
             headerTitle: 'Global reimbursements',
             title: 'Set up global reimbursements?',
@@ -3893,6 +3920,29 @@ const translations = {
         roomDescription: 'Room description',
         roomDescriptionOptional: 'Room description (optional)',
         explainerText: 'Set a custom description for the room.',
+    },
+    reportHistoryPage: {
+        title: 'Report history',
+        offlineMessage: "You're offline. Report history may be outdated.",
+        created: 'created report',
+        submitted: 'submitted',
+        approved: 'approved',
+        paid: 'paid',
+        toSubmit: 'to submit',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return 'to automatically submit';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `to automatically submit on the ${eta} of each month` : `to automatically submit ${eta}`;
+        },
+        toApprove: 'to approve',
+        toPay: 'to pay',
+        minutesAgo: (count: number) => `${count}m ago`,
+        hoursAgo: (count: number) => `${count}h ago`,
+        daysAgo: () => ({
+            one: '1d ago',
+            other: (count: number) => `${count}d ago`,
+        }),
     },
     groupChat: {
         lastMemberTitle: 'Heads up!',
@@ -7093,6 +7143,38 @@ const translations = {
             noVendorsFoundDescription: 'Please add vendors in Zoho Books and sync the connection again',
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Please add accounts in Zoho Books and sync the connection again',
+            autoSyncDescription: 'Sync Zoho Books and Expensify automatically, every day. Reports sync in realtime.',
+            accountingMethods: {
+                label: 'Export method',
+                description: 'Choose when to export expenses.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Cash',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Out-of-pocket expenses will export when final approved',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Out-of-pocket expenses will export when paid',
+                },
+            },
+            syncReimbursedReports: 'Sync reimbursed reports',
+            syncReimbursedReportsDescription: 'When a report is paid via ACH, a bill payment will be generated in this account.',
+            billPaymentAccount: {
+                label: 'Bill payment account',
+                description: 'Choose the clearing account Zoho Books credits when Expensify marks a bill paid.',
+            },
+            syncExpensifyCardSettlements: 'Sync Expensify Card settlements',
+            settlementAccount: {
+                label: 'Expensify Card settlement account',
+                description: "Choose your settlement account and we'll create the payment in Zoho Books.",
+            },
+            syncTravelBillingSettlements: 'Sync Consolidated Travel Billing settlements',
+            travelBillingSettlementAccount: {
+                label: 'Consolidated Travel Billing settlement account',
+                description: "Choose your settlement account and we'll create the payment in Zoho Books.",
+            },
+            travelBillingPayableAccount: {
+                label: 'Consolidated Travel Billing payable account',
+            },
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central setup',
@@ -10064,8 +10146,9 @@ const translations = {
                 describeRuleForConcierge: 'Describe your rule and Concierge will build it',
                 disclaimer: 'AI agents can make mistakes.',
                 createRule: 'Create rule',
-                fallbackBanner: "This isn't a standard rule, so we drafted an agent rule.",
-                fallbackBannerWithExplanation: (explanation: string) => `This isn't a standard rule, so we drafted an agent rule. ${explanation}`,
+                fallbackBanner: "This isn't a standard rule, so we drafted an agent rule. Agent rules run when an expense or report is created or updated.",
+                fallbackBannerWithExplanation: (explanation: string) =>
+                    `This isn't a standard rule, so we drafted an agent rule. Agent rules run when an expense or report is created or updated. ${explanation}`,
                 agentCreatedTitle: 'RuleBot has been added to your workspace!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>To enforce your agent rules, we’ve created an agent for you and added it as an admin to your workspace.<br><br>Edit your agent’s details in <a href="${agentsRoute}">Account &gt; Agents</a>.</muted-text>`,
@@ -11241,6 +11324,7 @@ const translations = {
         },
         display: {
             label: 'Display',
+            labelWithCount: ({count}: {count: number}) => (count > 0 ? `Display (${count})` : 'Display'),
             sortBy: 'Sort by',
             sortOrder: 'Sort order',
             groupBy: 'Group by',
