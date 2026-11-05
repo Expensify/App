@@ -188,8 +188,8 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
 //    Only add a key here once you're sure it holds no personal data.
 // ============================================================
 const safeOnyxKeys = new Set<string>([
-    ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID,
     ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS,
+    ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID,
     ONYXKEYS.ACTIVE_CLIENTS,
     ONYXKEYS.ACTIVE_SERVER,
     ONYXKEYS.AGENT_RULE_SUGGESTIONS,
