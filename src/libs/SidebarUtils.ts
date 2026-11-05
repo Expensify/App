@@ -55,6 +55,7 @@ import {
     getParticipantsAccountIDsForDisplay,
     getPendingDeleteMemberAccountIDs,
     getReceiptUploadErrorReason,
+    getReportLastVisibleActionCreated,
     getReportMetadata,
     getReportNotificationPreference,
     getReportParticipantsTitle,
@@ -83,6 +84,7 @@ import {
     isTripRoom,
     isUnread,
     isUnreadWithMention,
+    isUnsupportedReportType,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
 } from './ReportUtils';
@@ -147,6 +149,7 @@ type ShouldDisplayReportInLHNParams = {
     currentReportId: string | undefined;
     isInFocusMode: boolean;
     isDefaultRoomsBetaEnabled: boolean;
+    isBillPayBetaEnabled?: boolean;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
     draftComment: OnyxEntry<string>;
     transactions: OnyxCollection<Transaction>;
@@ -167,6 +170,7 @@ function shouldDisplayReportInLHN({
     currentReportId,
     isInFocusMode,
     isDefaultRoomsBetaEnabled,
+    isBillPayBetaEnabled = false,
     transactionViolations,
     draftComment,
     transactions,
@@ -183,7 +187,7 @@ function shouldDisplayReportInLHN({
         return {shouldDisplay: false};
     }
 
-    if ((Object.values(CONST.REPORT.UNSUPPORTED_TYPE) as string[]).includes(report?.type ?? '')) {
+    if (isUnsupportedReportType(report.type, isBillPayBetaEnabled)) {
         return {shouldDisplay: false};
     }
 
@@ -240,6 +244,7 @@ function shouldDisplayReportInLHN({
         currentReportId,
         isInFocusMode,
         isDefaultRoomsBetaEnabled,
+        isBillPayBetaEnabled,
         excludeEmptyChats: true,
         doesReportHaveViolations,
         draftComment,
@@ -295,6 +300,7 @@ function getReportsToDisplayInLHN({
     reports,
     policies,
     isDefaultRoomsBetaEnabled,
+    isBillPayBetaEnabled = false,
     priorityMode,
     draftComments,
     transactionViolations,
@@ -312,6 +318,7 @@ function getReportsToDisplayInLHN({
     reports: OnyxCollection<Report>;
     policies: OnyxCollection<Policy>;
     isDefaultRoomsBetaEnabled: boolean;
+    isBillPayBetaEnabled?: boolean;
     priorityMode: OnyxEntry<PriorityMode>;
     draftComments: OnyxCollection<string>;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
@@ -346,6 +353,7 @@ function getReportsToDisplayInLHN({
             currentReportId,
             isInFocusMode,
             isDefaultRoomsBetaEnabled,
+            isBillPayBetaEnabled,
             transactionViolations,
             draftComment: reportDraftComment,
             transactions,
@@ -361,9 +369,13 @@ function getReportsToDisplayInLHN({
 
         if (shouldDisplay) {
             const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention ?? false;
-            const isUnreadReport = getIsUnreadReportForInboxTab(report, isReportArchived, reportAttributes?.[report?.reportID]?.isEmpty);
+            const oneTransactionThreadReport = getOneTransactionThreadReportForLHN(report, reports, reportAttributes);
+            const isUnreadReport = getIsUnreadReportForInboxTab(report, oneTransactionThreadReport, isReportArchived, reportAttributes?.[report?.reportID]?.isEmpty);
+            const lastVisibleActionCreatedForInboxTab = getReportLastVisibleActionCreated(report, oneTransactionThreadReport);
             reportsToDisplay[reportID] =
-                requiresAttention || hasErrorsOtherThanFailedReceipt || isUnreadReport ? {...report, requiresAttention, hasErrorsOtherThanFailedReceipt, isUnreadReport} : report;
+                requiresAttention || hasErrorsOtherThanFailedReceipt || isUnreadReport
+                    ? {...report, requiresAttention, hasErrorsOtherThanFailedReceipt, isUnreadReport, lastVisibleActionCreatedForInboxTab}
+                    : report;
         }
     }
 
@@ -379,6 +391,9 @@ type UpdateReportsToDisplayInLHNProps = {
     currentReportId: string | undefined;
     isInFocusMode: boolean;
     isDefaultRoomsBetaEnabled: boolean;
+
+    /** Defaults to false, so bills stay hidden unless the caller has the newDotBillPay beta */
+    isBillPayBetaEnabled?: boolean;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
@@ -400,6 +415,7 @@ function updateReportsToDisplayInLHN({
     currentReportId,
     isInFocusMode,
     isDefaultRoomsBetaEnabled,
+    isBillPayBetaEnabled = false,
     transactionViolations,
     reportNameValuePairs,
     reportAttributes,
@@ -444,6 +460,7 @@ function updateReportsToDisplayInLHN({
             currentReportId,
             isInFocusMode,
             isDefaultRoomsBetaEnabled,
+            isBillPayBetaEnabled,
             transactionViolations,
             draftComment: reportDraftComment,
             transactions,
@@ -459,7 +476,9 @@ function updateReportsToDisplayInLHN({
 
         if (shouldDisplay) {
             const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention ?? false;
-            const isUnreadReport = getIsUnreadReportForInboxTab(report, isReportArchived, reportAttributes?.[report?.reportID]?.isEmpty);
+            const oneTransactionThreadReport = getOneTransactionThreadReportForLHN(report, reports, reportAttributes);
+            const isUnreadReport = getIsUnreadReportForInboxTab(report, oneTransactionThreadReport, isReportArchived, reportAttributes?.[report?.reportID]?.isEmpty);
+            const lastVisibleActionCreatedForInboxTab = getReportLastVisibleActionCreated(report, oneTransactionThreadReport);
             const hasFlags = requiresAttention || hasErrorsOtherThanFailedReceipt || isUnreadReport;
             const existingEntry = displayedReports[reportID];
 
@@ -470,7 +489,7 @@ function updateReportsToDisplayInLHN({
                     existingEntry?.hasErrorsOtherThanFailedReceipt !== hasErrorsOtherThanFailedReceipt ||
                     existingEntry?.isUnreadReport !== isUnreadReport
                 ) {
-                    getMutableCopy()[reportID] = {...report, requiresAttention, hasErrorsOtherThanFailedReceipt, isUnreadReport};
+                    getMutableCopy()[reportID] = {...report, requiresAttention, hasErrorsOtherThanFailedReceipt, isUnreadReport, lastVisibleActionCreatedForInboxTab};
                 }
             } else if (existingEntry !== report) {
                 getMutableCopy()[reportID] = report;
@@ -1057,9 +1076,19 @@ function getOptionData({
  * Whether a report should appear in the "Unread" Inbox tab: it has unread messages and is not muted.
  * Computed once while building the LHN report set (which is cached/incremental) so the tab filter only reads a flag.
  */
-function getIsUnreadReportForInboxTab(report: Report, isReportArchived: boolean, derivedIsEmptyReport: boolean | undefined): boolean {
+function getIsUnreadReportForInboxTab(report: Report, oneTransactionThreadReport: OnyxEntry<Report>, isReportArchived: boolean, derivedIsEmptyReport: boolean | undefined): boolean {
     // isUnread() gates on isEmptyReport, so a chat whose only visible message was deleted never reaches this tab.
-    return isUnread(report, undefined, isReportArchived, derivedIsEmptyReport) && getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
+    // Comments on a single-expense report land on its hidden transaction thread, so the thread decides if the report is unread too.
+    return isUnread(report, oneTransactionThreadReport, isReportArchived, derivedIsEmptyReport) && getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
+}
+
+/** Gets the transaction thread of a single-expense report, which the LHN hides in favor of the report itself. */
+function getOneTransactionThreadReportForLHN(report: Report, reports: OnyxCollection<Report>, reportAttributes: ReportAttributesDerivedValue['reports'] | undefined): OnyxEntry<Report> {
+    const oneTransactionThreadReportID = reportAttributes?.[report.reportID]?.oneTransactionThreadReportID;
+    if (!oneTransactionThreadReportID) {
+        return undefined;
+    }
+    return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
 }
 
 /** Whether a report belongs in the "To-do" Inbox tab: it has an outstanding GBR (requiresAttention) or RBR (errors). */
@@ -1117,7 +1146,7 @@ function getInboxTabSummary(
         }
         if (report.isUnreadReport) {
             unreadCount++;
-            hasStaleUnreadReport = hasStaleUnreadReport || (report.lastVisibleActionCreated ?? '') < staleUnreadTime;
+            hasStaleUnreadReport = hasStaleUnreadReport || (report.lastVisibleActionCreatedForInboxTab ?? report.lastVisibleActionCreated ?? '') < staleUnreadTime;
         }
     }
 
