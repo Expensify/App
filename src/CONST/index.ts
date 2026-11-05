@@ -10796,6 +10796,9 @@ const CONST = {
         TAX_PICKER_MODAL: {
             BACK_BUTTON: 'TaxPickerModal-BackButton',
         },
+        VALUE_FIELD_DROPDOWN: {
+            BACK_BUTTON: 'ValueFieldDropdown-BackButton',
+        },
         REPORT_PICKER_MODAL: {
             BACK_BUTTON: 'ReportPickerModal-BackButton',
         },

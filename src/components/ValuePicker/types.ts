@@ -99,4 +99,4 @@ type ValuePickerProps = ForwardedFSClassProps & {
     alternateNumberOfSupportedLines?: number;
 };
 
-export type {ValuePickerItem, ValueSelectorModalProps, ValuePickerProps, ValueSelectionListProps};
+export type {ValuePickerItem, ValuePickerListItem, ValueSelectorModalProps, ValuePickerProps, ValueSelectionListProps};

@@ -105,15 +105,15 @@ describe('useResetIOUType tab selection', () => {
         expect(hydrateOdometerDraftIntoTransaction).not.toHaveBeenCalled();
     });
 
-    it('retains the per-diem keyboard exception without skipping initialization', () => {
-        // Given the page opts into keeping the keyboard behavior for per-diem selection.
-        const {result} = renderTabReset({skipKeyboardDismissForPerDiem: true});
+    it('dismisses the keyboard when switching to per diem, which no longer opens on a search input', () => {
+        // Given the per diem tab now opens on the expense form rather than the destination search.
+        const {result} = renderTabReset();
 
         // When the selected tab becomes per diem.
         act(() => result.current(CONST.IOU.REQUEST_TYPE.PER_DIEM));
 
-        // Then only keyboard dismissal is excluded, with the reset still observable.
-        expect(Keyboard.dismiss).not.toHaveBeenCalled();
+        // Then the keyboard is dismissed like on every other tab, and the draft is still rebuilt as per diem.
+        expect(Keyboard.dismiss).toHaveBeenCalledTimes(1);
         expect(initMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({newIouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM}));
         expect(setTransactionReport).toHaveBeenCalledTimes(1);
         expect(hydrateOdometerDraftIntoTransaction).not.toHaveBeenCalled();

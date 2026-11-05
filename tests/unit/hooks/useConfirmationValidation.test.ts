@@ -196,17 +196,32 @@ describe('useConfirmationValidation', () => {
             useConfirmationValidation({
                 ...baseParams,
                 isPerDiemRequest: true,
-                transaction: createTransactionBase({amount: 100, comment: {customUnit: {subRates: []}}}),
+                transaction: createTransactionBase({amount: 100, comment: {customUnit: {customUnitRateID: 'destination1', subRates: []}}}),
             }),
         );
         expect(result.current.validate()).toEqual({errorKey: 'iou.error.invalidSubrateLength'});
+    });
+
+    it('returns fieldRequired for per-diem with no destination', () => {
+        // Given a per diem expense submitted from the form before a destination was picked
+        const {result} = renderHook(() =>
+            useConfirmationValidation({
+                ...baseParams,
+                isPerDiemRequest: true,
+                transaction: createTransactionBase({amount: 100, comment: {customUnit: {subRates: []}}}),
+            }),
+        );
+
+        // When the form is validated
+        // Then it is blocked with the error the destination row shows inline, ahead of the missing subrate
+        expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
     });
 
     describe('per diem move guard — moving a tracked per diem expense into a workspace', () => {
         const PER_DIEM_TRANSACTION_OVERRIDES: Partial<OnyxTypes.Transaction> = {
             amount: 5000,
             iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
-            comment: {customUnit: {subRates: [{id: 'rate1', name: 'Breakfast', quantity: 1, rate: 5000}]}},
+            comment: {customUnit: {customUnitRateID: 'destination1', subRates: [{id: 'rate1', name: 'Breakfast', quantity: 1, rate: 5000}]}},
         };
 
         function createPolicyWithPerDiemEnabled(): OnyxTypes.Policy {
@@ -348,7 +363,7 @@ describe('useConfirmationValidation', () => {
                 transaction: createTransactionBase({
                     amount: 5000,
                     iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
-                    comment: {customUnit: {subRates: [{id: 'rate1', name: 'Breakfast', quantity: 1, rate: 5000}]}},
+                    comment: {customUnit: {customUnitRateID: 'destination1', subRates: [{id: 'rate1', name: 'Breakfast', quantity: 1, rate: 5000}]}},
                 }),
             }),
         );
@@ -614,7 +629,7 @@ describe('useConfirmationValidation', () => {
                         amount: 5000,
                         iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
                         participants: [POLICY_EXPENSE_CHAT_PARTICIPANT],
-                        comment: {customUnit: {subRates: [{id: 'rate1', name: 'Breakfast', quantity: 1, rate: 5000}]}},
+                        comment: {customUnit: {customUnitRateID: 'destination1', subRates: [{id: 'rate1', name: 'Breakfast', quantity: 1, rate: 5000}]}},
                     }),
                     selectedParticipants: [POLICY_EXPENSE_CHAT_PARTICIPANT],
                 }),
@@ -685,6 +700,7 @@ describe('useConfirmationValidation', () => {
                         participants: [POLICY_EXPENSE_CHAT_PARTICIPANT],
                         comment: {
                             customUnit: {
+                                customUnitRateID: 'destination1',
                                 subRates: [{id: 'rate1', name: 'Breakfast', quantity: 100000, rate: 12345678}],
                             },
                         },

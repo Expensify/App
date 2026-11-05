@@ -30,6 +30,7 @@ import type TextPicker from '@components/TextPicker';
 import type TimeModalPicker from '@components/TimeModalPicker';
 import type UploadFile from '@components/UploadFile';
 import type ValuePicker from '@components/ValuePicker';
+import type ValueFieldDropdown from '@components/ValuePicker/ValueFieldDropdown';
 
 import type {AccessibilityFocusTarget} from '@libs/Accessibility/moveAccessibilityFocus/types';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
@@ -80,6 +81,7 @@ type ValidInputs =
     | typeof StateSelector
     | typeof RoomNameInput
     | typeof ValuePicker
+    | typeof ValueFieldDropdown
     | typeof DatePicker
     | typeof RadioButtons
     | typeof TaxValuePicker

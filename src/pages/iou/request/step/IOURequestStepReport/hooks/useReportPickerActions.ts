@@ -29,7 +29,7 @@ import type {IOURequestEditReportCommonProps} from '@pages/iou/request/step/IOUR
 import navigateAwayFromReportPicker from '@pages/iou/request/step/IOURequestStepReport/navigateAwayFromReportPicker';
 
 import CONST from '@src/CONST';
-import type {IOUAction, IOUType} from '@src/CONST';
+import type {IOUAction} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
@@ -56,8 +56,6 @@ type UseReportPickerActionsParams = {
     transactionID: string;
 
     action: IOUAction;
-
-    iouType: IOUType;
 
     /** The report the flow was opened from: the chat the expense is being created in, or the report it already sits on */
     reportIDFromRoute: string;
@@ -114,7 +112,6 @@ function useReportPickerActions({
     transaction,
     transactionID,
     action,
-    iouType,
     reportIDFromRoute,
     goBack,
     onNavigateAway,
@@ -185,10 +182,6 @@ function useReportPickerActions({
         isEditing,
         isASAPSubmitBetaEnabled,
         session,
-        transactionID,
-        iouType,
-        action,
-        reportIDFromRoute,
         personalPolicyID,
         handleGoBack: goBack,
         shouldWriteAfterTransition,
