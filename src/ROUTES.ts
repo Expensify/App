@@ -246,6 +246,10 @@ const DYNAMIC_ROUTES = {
         path: 'more-info-needed',
         entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO],
     },
+    WISE_KYC_REVIEW: {
+        path: 'kyc-review',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_MORE_INFO_NEEDED],
+    },
     WISE_ONBOARDING_STATUS: {
         path: 'status',
         entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO],

@@ -1046,6 +1046,9 @@ const CONST = {
         TERMS_URL: 'https://wise.com/terms-and-conditions',
         PRIVACY_URL: 'https://wise.com/privacy-policy',
 
+        /** The query param Wise adds to the redirect URL when its hosted KYC form ends, saying how it ended */
+        KYC_REVIEW_REDIRECT_STATUS_PARAM: 'status',
+
         /** Countries missing from Wise's supported list, so the bank account picker leaves them out */
         EXCLUDED_BANK_ACCOUNT_COUNTRIES: [
             'AC',
