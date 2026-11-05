@@ -383,7 +383,7 @@ function buildAccountNavigationItems({sections, rightElement, getItemText, getDe
     );
 }
 
-// Built in a separate hook so React Compiler caches the sources without depending on the query. Built inside useNavigationSuggestions, they would be passed to buildNavigationSuggestions together with the query, and the compiler would then rebuild every Workspace's menu items on every keystroke.
+// Own hook so React Compiler caches the sources independently of the query.
 function useNavigationSuggestionSources(shouldBuildSources: boolean, shouldWatchForApprovals: boolean): NavigationSuggestionSourceItem[][] {
     const {translate} = useLocalize();
     const styles = useThemeStyles();

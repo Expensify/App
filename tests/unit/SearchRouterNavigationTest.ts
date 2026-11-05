@@ -56,7 +56,7 @@ const mockUseNetwork = jest.fn<{isOffline: boolean}, []>(() => ({isOffline: fals
 const mockIsBetaEnabled = jest.fn<boolean, [beta: string]>(() => false);
 const mockIsBetaEnabledOrUnknown = jest.fn<boolean | undefined, [beta: string]>(() => false);
 const currentUserAccountID = 1;
-// Hooks return the same references on every render, as they do in the app, so React Compiler caches built from them survive re-renders.
+// Same references on every render, like the real hooks, so React Compiler caches survive re-renders.
 const mockCurrencyListActions = {convertToDisplayString: () => '$0.00'};
 const mockCurrentUserPersonalDetails = {accountID: 1};
 const mockTranslations = new Map([
@@ -795,7 +795,7 @@ describe('Workspace Search Router navigation source', () => {
     });
 
     it('builds Workspace menu items once while the query is typed', () => {
-        // Given an account with a Workspace, whose menu items are the most expensive navigation source to build
+        // Given an account with a Workspace
         const policy = createWorkspacePolicy('1', 'Spend Workspace');
         const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy};
         mockUseOnyx.mockImplementation((key) => {
@@ -816,7 +816,7 @@ describe('Workspace Search Router navigation source', () => {
             rerender({query});
         }
 
-        // Then the menu items are built for the first character only, while the suggestions still follow the query
+        // Then the menu items are built once and the suggestions still follow the query
         expect(getWorkspaceMenuItems).toHaveBeenCalledTimes(1);
         expect(result.current.length).toBeGreaterThan(0);
     });
