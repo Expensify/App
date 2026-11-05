@@ -11,7 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getTransactionsMatchingCodingRule} from '@libs/actions/Policy/Rules';
+import {getTransactionsMatchingRule} from '@libs/actions/Policy/Rules';
 import {buildExpenseDefaultFilters} from '@libs/ExpenseDefaultRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -63,7 +63,7 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
             return;
         }
 
-        getTransactionsMatchingCodingRule(policyID, filters);
+        getTransactionsMatchingRule(policyID, filters);
     }, [filters, policyID, isOffline]);
 
     const matchingTransactionsArray = Object.values(matchingTransactions ?? {}).filter((transaction): transaction is Transaction => !!transaction);

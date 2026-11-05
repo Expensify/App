@@ -273,7 +273,15 @@ async function importMerchantRulesSpreadsheet(policyID: string, rules: Record<st
     }
 }
 
-function getTransactionsMatchingCodingRule(policyID: string, filters: RuleFilterNode) {
+/**
+ * Asks which of a policy's expenses a rule would apply to.
+ *
+ * The previous answer is cleared first. The collection is keyed by transaction, so without the clear a preview
+ * that matches fewer expenses than the last one keeps showing the ones it no longer matches.
+ */
+function getTransactionsMatchingRule(policyID: string, filters: RuleFilterNode) {
+    Onyx.setCollection(ONYXKEYS.COLLECTION.CODING_RULE_MATCHING_TRANSACTION, {});
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -296,7 +304,11 @@ function getTransactionsMatchingCodingRule(policyID: string, filters: RuleFilter
         },
     ];
 
-    return API.read(READ_COMMANDS.GET_TRANSACTIONS_MATCHING_CODING_RULE, {policyID, filters: JSON.stringify(filters)}, {optimisticData, successData, failureData});
+    return API.read(
+        READ_COMMANDS.GET_TRANSACTIONS_MATCHING_RULE,
+        {scope: CONST.RULES.SCOPE.POLICY, scopeID: policyID, filters: JSON.stringify(filters)},
+        {optimisticData, successData, failureData},
+    );
 }
 
 /**
@@ -677,7 +689,7 @@ export {
     setRule,
     importMerchantRulesSpreadsheet,
     deleteRule,
-    getTransactionsMatchingCodingRule,
+    getTransactionsMatchingRule,
     addPolicyAgentRule,
     generateRule,
     setNewRulePromptEmptyError,

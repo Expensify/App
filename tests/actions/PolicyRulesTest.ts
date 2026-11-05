@@ -6,10 +6,12 @@ import {
     deleteRule,
     deletePolicyAgentRule,
     getRules as fetchRules,
+    getTransactionsMatchingRule,
     setRule,
     updatePolicyAgentRule,
 } from '@libs/actions/Policy/Rules';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import * as API from '@libs/API';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {buildExpenseDefaultRule} from '@libs/ExpenseDefaultRuleUtils';
 import {flush as flushSequentialQueue} from '@libs/Network/SequentialQueue';
 import {toIndexMap} from '@libs/RuleUtils';
@@ -656,6 +658,49 @@ describe('actions/PolicyRules', () => {
             expect(Object.keys((await getRules()) ?? {})).toHaveLength(0);
         });
     });
+    describe('getTransactionsMatchingRule', () => {
+        const PREVIEW_POLICY_ID = 'policy1';
+        const CATEGORY_FILTERS = {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Advertising'};
+
+        /** The preview is a read, so there is no persisted request to inspect and the call itself is the assertion. */
+        let readSpy: jest.SpyInstance;
+
+        beforeEach(() => {
+            readSpy = jest.spyOn(API, 'read').mockImplementation(() => {});
+        });
+
+        afterEach(() => {
+            readSpy.mockRestore();
+        });
+
+        it('asks the rules engine with the whole filter tree, not just a merchant', async () => {
+            // Given a preview of a rule that matches on a category
+            // When the preview is requested
+            getTransactionsMatchingRule(PREVIEW_POLICY_ID, CATEGORY_FILTERS);
+            await waitForBatchedUpdates();
+
+            // Then it goes to the command that reads a rule's own filters, scoped to the policy
+            expect(readSpy).toHaveBeenCalledWith(
+                READ_COMMANDS.GET_TRANSACTIONS_MATCHING_RULE,
+                {scope: CONST.RULES.SCOPE.POLICY, scopeID: PREVIEW_POLICY_ID, filters: JSON.stringify(CATEGORY_FILTERS)},
+                expect.anything(),
+            );
+        });
+
+        it('drops the previous preview before asking again', async () => {
+            // Given a previous preview that matched an expense
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.CODING_RULE_MATCHING_TRANSACTION}1`, {transactionID: '1'});
+            await waitForBatchedUpdates();
+
+            // When a different rule is previewed
+            getTransactionsMatchingRule(PREVIEW_POLICY_ID, CATEGORY_FILTERS);
+            await waitForBatchedUpdates();
+
+            // Then the old match is gone, so an expense the new rule does not match is not still listed
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.CODING_RULE_MATCHING_TRANSACTION}1`)).toBeUndefined();
+        });
+    });
+
     describe('getRules', () => {
         it('records the attempt as made when the read never settles', async () => {
             // Given a `GetRules` read that applies neither its success nor its failure data, which is what a read
