@@ -40,7 +40,7 @@ function AddressStep({onNext, isEditing, shouldSaveDraft = false, shouldHideCoun
     const [bankAccountPersonalDetails] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
     const [homeAddressFormDraft] = useOnyx(ONYXKEYS.FORMS.HOME_ADDRESS_FORM_DRAFT);
 
-    const normalizedAddress = normalizeCountryCode(getCurrentAddress(privatePersonalDetails)) as Address;
+    const normalizedAddress = normalizeCountryCode(getCurrentAddress(privatePersonalDetails));
     const address = {
         street: bankAccountPersonalDetails?.addressStreet ? `${bankAccountPersonalDetails?.addressStreet}\n${bankAccountPersonalDetails?.addressStreet2}` : (normalizedAddress?.street ?? ''),
         city: bankAccountPersonalDetails?.addressCity ?? normalizedAddress?.city ?? '',
