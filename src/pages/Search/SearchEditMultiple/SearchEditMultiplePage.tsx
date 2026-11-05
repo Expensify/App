@@ -48,6 +48,7 @@ import {
 import {isInvalidMerchantValue, isValidDate, isValidInputLength} from '@libs/ValidationUtils';
 
 import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import variables from '@styles/variables';
 
@@ -267,6 +268,15 @@ function SearchEditMultiplePage() {
         updateBulkEditDraftTransaction({currency: newCurrency});
     };
 
+    // The toggles start off, as nothing is pending. Switching one on, or back off, records that value for every expense.
+    const saveDraftReimbursable = (isOn: boolean) => {
+        updateBulkEditDraftTransaction({reimbursable: isOn});
+    };
+
+    const saveDraftBillable = (isOn: boolean) => {
+        updateBulkEditDraftTransaction({billable: isOn});
+    };
+
     const saveDraftMerchant = (newMerchant: string) => {
         setMerchantInput(newMerchant);
         updateBulkEditDraftTransaction({merchant: newMerchant});
@@ -391,13 +401,6 @@ function SearchEditMultiplePage() {
     const tagsArray = getTagArrayFromName(draftTransaction?.tag ?? '');
     const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTags);
     const shouldShowTagList = hasDependentTags ? getDependentTagVisibility(policyTagLists, draftTransaction?.tag) : [];
-    const getBooleanTitle = (value?: boolean) => {
-        if (value === undefined) {
-            return '';
-        }
-        return value ? translate('common.yes') : translate('common.no');
-    };
-
     const isAmountDisabled = hasCustomUnitTransaction || hasPartiallyEditableTransaction || hasSplitTransaction;
     const isTaxDisabled = hasPartiallyEditableTaxRateTransaction || hasSplitTransaction;
     const isBillableDisabled = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.BILLABLE);
@@ -573,23 +576,29 @@ function SearchEditMultiplePage() {
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.TAX_RATE_FIELD}
                         />
                     )}
-                    {areSelectedTransactionsBillable && (
-                        <ExpenseFieldRow
-                            name={translate('common.billable')}
-                            value={getBooleanTitle(draftTransaction?.billable)}
-                            onPress={() => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_BILLABLE_RHP)}
-                            isInteractive={!isBillableDisabled}
-                            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.BILLABLE_FIELD}
-                        />
-                    )}
                     {areSelectedTransactionsReimbursable && (
-                        <ExpenseFieldRow
-                            name={translate('common.reimbursable')}
-                            value={getBooleanTitle(draftTransaction?.reimbursable)}
-                            onPress={() => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_REIMBURSABLE_RHP)}
-                            isInteractive={!hasPartiallyEditableReimbursableTransaction}
-                            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.REIMBURSABLE_FIELD}
-                        />
+                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}>
+                            <ToggleSettingOptionRow
+                                switchAccessibilityLabel={translate('common.reimbursable')}
+                                title={translate('common.reimbursable')}
+                                onToggle={saveDraftReimbursable}
+                                isActive={draftTransaction?.reimbursable ?? false}
+                                disabled={hasPartiallyEditableReimbursableTransaction}
+                                wrapperStyle={styles.flex1}
+                            />
+                        </View>
+                    )}
+                    {areSelectedTransactionsBillable && (
+                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}>
+                            <ToggleSettingOptionRow
+                                switchAccessibilityLabel={translate('common.billable')}
+                                title={translate('common.billable')}
+                                onToggle={saveDraftBillable}
+                                isActive={draftTransaction?.billable ?? false}
+                                disabled={isBillableDisabled}
+                                wrapperStyle={styles.flex1}
+                            />
+                        </View>
                     )}
                     {areAttendeesEnabled && (
                         <ExpenseFieldDropdown

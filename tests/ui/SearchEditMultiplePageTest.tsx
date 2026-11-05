@@ -23,7 +23,6 @@ import {openPolicyTagsPage} from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {OriginalMessageIOU, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportAction';
 
@@ -204,34 +203,34 @@ describe('SearchEditMultiplePage', () => {
 
     it('keeps Reimbursable editable when every selected expense is still editable', async () => {
         // Given a selection whose every expense can still be edited
-        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
         await selectTransactions([OPEN_TRANSACTION_ID]);
 
-        // When the page renders and the Reimbursable row is pressed
+        // When the page renders and the Reimbursable toggle is switched on, then the changes are saved
         renderPage();
         await waitForBatchedUpdatesWithAct();
-        // The row only runs its handler for a press that carries an event, as a real press does
-        fireEvent.press(screen.getByLabelText(/^Reimbursable/), {});
+        fireEvent.press(screen.getByRole('switch', {name: 'Reimbursable'}));
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('Save'));
         await waitForBatchedUpdatesWithAct();
 
-        // Then the row opens its selector
-        expect(navigateSpy).toHaveBeenCalledWith(ROUTES.SEARCH_EDIT_MULTIPLE_REIMBURSABLE_RHP);
+        // Then every selected expense is marked reimbursable
+        expect(updateMultipleMoneyRequests).toHaveBeenCalledWith(expect.objectContaining({changes: {reimbursable: true}}));
     });
 
     it('locks Reimbursable when the selection contains a marked-as-done expense', async () => {
         // Given a selection with an expense whose report is closed, which locks Reimbursable
-        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
         await selectTransactions([OPEN_TRANSACTION_ID, DONE_TRANSACTION_ID]);
 
-        // When the page renders and the Reimbursable row is pressed
+        // When the page renders and the locked Reimbursable toggle is pressed, then the changes are saved
         renderPage();
         await waitForBatchedUpdatesWithAct();
-        // The row only runs its handler for a press that carries an event, as a real press does
-        fireEvent.press(screen.getByLabelText(/^Reimbursable/), {});
+        fireEvent.press(screen.getByRole('switch', {name: 'Reimbursable, Locked'}));
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('Save'));
         await waitForBatchedUpdatesWithAct();
 
-        // Then the row is a locked field that opens nothing
-        expect(navigateSpy).not.toHaveBeenCalled();
+        // Then the toggle records nothing, so there is no change to apply
+        expect(updateMultipleMoneyRequests).not.toHaveBeenCalled();
     });
 
     it('shows the spinner before applying the changes on save, then applies them and dismisses the RHP', async () => {
