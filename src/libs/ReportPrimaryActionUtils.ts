@@ -36,7 +36,6 @@ import {
     isMoneyRequestAction,
 } from './ReportActionsUtils';
 import {
-    canAddTransaction as canAddTransactionUtil,
     canHoldUnholdReportAction,
     getMoneyRequestSpendBreakdown,
     getParentReport,
@@ -120,17 +119,6 @@ type IsExportActionOptions = {
     /** Needed for the cash-basis carve-out on card-only reports. Search snapshot rows aren't reliably in Onyx. */
     reportTransactions?: Transaction[];
 };
-
-function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isChatReportArchived: boolean, rules: OnyxCollection<Rule>) {
-    if (isChatReportArchived) {
-        return false;
-    }
-
-    const isExpenseReport = isExpenseReportUtils(report);
-    const canAddTransaction = canAddTransactionUtil(report, rules);
-
-    return isExpenseReport && canAddTransaction && reportTransactions.length === 0;
-}
 
 function isSubmitAction(
     report: Report,
@@ -684,7 +672,6 @@ function getTransactionThreadPrimaryAction(
 export {
     getReportPrimaryAction,
     getTransactionThreadPrimaryAction,
-    isAddExpenseAction,
     isPrimaryPayAction,
     isExportAction,
     isApproveAction,
