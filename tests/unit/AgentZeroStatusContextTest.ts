@@ -820,6 +820,54 @@ describe('AgentZeroStatusContext', () => {
     });
 
     describe('final response handling', () => {
+        it('keeps a new turn visible through an older reply and an empty snapshot, then clears on silent completion', async () => {
+            // Given a new message is pending while a previous Concierge reply is still newest locally.
+            const previousReportActionID = 'old-reply';
+            AgentZeroOptimisticStore.increment(reportID, CONST.ACCOUNT_ID.CONCIERGE, previousReportActionID, 'new-question');
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [previousReportActionID]: {
+                    reportActionID: previousReportActionID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                    created: '2026-10-27 10:57:24.000',
+                    message: [
+                        {
+                            type: 'COMMENT',
+                            html: 'An earlier answer',
+                            text: 'An earlier answer',
+                        },
+                    ],
+                },
+            });
+            const {result} = renderHook(
+                () => ({
+                    ...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE),
+                    ...useAgentZeroStatus(),
+                }),
+                {wrapper},
+            );
+            await waitForBatchedUpdates();
+
+            // Then the previous reply does not hide the new pending turn.
+            expect(result.current.isProcessing).toBe(true);
+            expect(result.current.candidateAgentIDs).toContain(CONST.ACCOUNT_ID.CONCIERGE);
+
+            // When OpenReport returns an empty processing snapshot before the run finishes.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {agentZeroProcessingRequestIndicator: null});
+            await waitForBatchedUpdates();
+
+            // Then the local indicator survives that ordinary snapshot.
+            expect(result.current.isProcessing).toBe(true);
+
+            // When the server completes the exact turn without adding a reply.
+            act(() => AgentZeroOptimisticStore.complete(reportID, CONST.ACCOUNT_ID.CONCIERGE, 'new-question'));
+            await waitForBatchedUpdates();
+
+            // Then the indicator ends immediately rather than waiting for its safety timeout.
+            expect(result.current.isProcessing).toBe(false);
+            expect(result.current.candidateAgentIDs).not.toContain(CONST.ACCOUNT_ID.CONCIERGE);
+        });
+
         it('should clear reasoning history when processing indicator is cleared', async () => {
             // Given a Concierge chat with active reasoning
             const serverLabel = 'Concierge is looking up categories...';
