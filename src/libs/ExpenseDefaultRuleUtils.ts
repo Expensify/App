@@ -259,16 +259,34 @@ function buildExpenseDefaultFilters(formValues: Partial<ExpenseDefaultFormValues
     return rest.reduce<RuleFilterNode>((left, right) => ({operator: AND, left, right}), firstComparison);
 }
 
+/** Everything a rule can set apart from the tax, which is what tells a category tax default apart from any other rule. */
+const EXPENSE_DEFAULTS_BESIDES_TAX = ['merchant', 'category', 'tag', 'amount', 'vendorID', 'comment', 'reimbursable', 'billable'] as const satisfies ReadonlyArray<
+    keyof ExpenseDefaultFormValues
+>;
+
+/**
+ * A category tax default, which is what the category settings page creates.
+ *
+ * This is the one rule that has always matched on a category alone, and the client reads it itself when an expense
+ * is categorized rather than waiting for the engine, so it applies whatever the engine matches on.
+ */
+function isCategoryTaxDefault(formValues: Partial<ExpenseDefaultFormValues>): boolean {
+    if (getNonEmptyValues(formValues.categoriesToMatch).length === 0 || !formValues.tax) {
+        return false;
+    }
+
+    return EXPENSE_DEFAULTS_BESIDES_TAX.every((field) => formValues[field] === undefined || formValues[field] === '');
+}
+
 /**
  * Whether the form matches on anything. A rule with no conditions would apply to every expense, and the API rejects it.
  *
- * Off the beta, a merchant is the only thing a rule may match on, so a category or tag alone does not count. The
- * engine does not apply those rules yet, and letting one be saved leaves an admin with a rule that silently never
- * fires.
+ * Off the beta a rule may match on a merchant, or on a category when all it sets is a tax. Anything else the engine
+ * does not apply yet, and letting one be saved leaves an admin with a rule that silently never fires.
  */
 function hasExpenseDefaultConditions(formValues: Partial<ExpenseDefaultFormValues>, isExpenseDefaultConditionsBetaEnabled: boolean): boolean {
     if (!isExpenseDefaultConditionsBetaEnabled) {
-        return !!formValues.merchantToMatch?.trim();
+        return !!formValues.merchantToMatch?.trim() || isCategoryTaxDefault(formValues);
     }
 
     return !!buildExpenseDefaultFilters(formValues);

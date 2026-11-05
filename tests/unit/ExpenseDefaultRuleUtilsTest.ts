@@ -817,6 +817,25 @@ describe('ExpenseDefaultRuleUtils', () => {
             expect(hasExpenseDefaultConditions(formValues, false)).toBe(false);
         });
 
+        it('counts a category whose only default is a tax off the beta', () => {
+            // Given the rule the category settings page creates, which has matched on a category alone since before
+            // expense defaults could match on anything but a merchant
+            const formValues: Partial<ExpenseDefaultFormValues> = {categoriesToMatch: ['Advertising'], tax: 'id_TAX_RATE_1'};
+
+            // When the form is checked with the beta off
+            // Then it counts, because the client applies a category tax default itself when an expense is categorized
+            expect(hasExpenseDefaultConditions(formValues, false)).toBe(true);
+        });
+
+        it('does not count a category that sets more than a tax off the beta', () => {
+            // Given a category rule that also renames the merchant, which is not a category tax default
+            const formValues: Partial<ExpenseDefaultFormValues> = {categoriesToMatch: ['Advertising'], tax: 'id_TAX_RATE_1', merchant: 'Uber'};
+
+            // When the form is checked with the beta off
+            // Then it does not count, because the engine does not apply the rename to a category matched rule yet
+            expect(hasExpenseDefaultConditions(formValues, false)).toBe(false);
+        });
+
         it('does not count a tag on its own off the beta', () => {
             // Given a form matching only on a tag
             const formValues: Partial<ExpenseDefaultFormValues> = {tagsToMatch: ['Engineering']};
