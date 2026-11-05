@@ -168,10 +168,7 @@
 "../../src/components/HighlightableMenuItem.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/components/HighlightableMenuItemWithTopDescription.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/components/Hoverable/ActiveHoverable.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/Hoverable/ActiveHoverable.tsx"	"react-hooks/refs"	3
 "../../src/components/Hoverable/ActiveHoverable.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/components/Hoverable/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/Hoverable/index.tsx"	"react-hooks/refs"	1
 "../../src/components/HTMLEngineProvider/BaseHTMLEngineProvider.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../src/components/HTMLEngineProvider/HTMLRenderers/AccountManagerLinkRenderer.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/HTMLEngineProvider/HTMLRenderers/AnchorRenderer.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -261,7 +258,6 @@
 "../../src/components/OptionRow.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/components/OptionRow.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/ParentNavigationSubtitle.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/ParticipantPicker/BaseParticipantPicker.tsx"	"no-restricted-imports"	1
 "../../src/components/PDFView/index.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/PDFView/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/PDFView/index.tsx"	"react-hooks/set-state-in-effect"	1
@@ -279,7 +275,6 @@
 "../../src/components/PopoverProvider/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Pressable/GenericPressable/implementation/BaseGenericPressable.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	2
 "../../src/components/Pressable/GenericPressable/implementation/BaseGenericPressable.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/components/Pressable/GenericPressable/implementation/BaseGenericPressable.tsx"	"react-hooks/refs"	1
 "../../src/components/Pressable/GenericPressable/implementation/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/Pressable/PressableWithDelayToggle.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Pressable/PressResponder/useResponderRef.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
@@ -1155,7 +1150,6 @@
 "../../src/pages/inbox/report/ReactionList/HeaderReactionList.tsx"	"no-restricted-syntax"	1
 "../../src/pages/inbox/report/ReportActionCompose/AttachmentPickerWithMenuItems.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/inbox/report/ReportActionCompose/ComposerWithSuggestions.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/pages/inbox/report/ReportActionCompose/ComposerWithSuggestions.tsx"	"react-hooks/refs"	7
 "../../src/pages/inbox/report/ReportActionCompose/SilentCommentUpdater/index.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/inbox/report/ReportActionCompose/SuggestionEmoji.tsx"	"react-hooks/refs"	1
 "../../src/pages/inbox/report/ReportActionCompose/SuggestionMention.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -2175,7 +2169,6 @@
 "../../tests/actions/IOU/SplitReportTotalsTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/IOUTest/GetUpdateMoneyRequestParamsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	4
 "../../tests/actions/IOUTest/HoldTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
-"../../tests/actions/IOUTest/HoldTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/IOUTest/PayMoneyRequestTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/actions/IOUTest/PayMoneyRequestTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/IOUTest/ReceiptTest.ts"	"no-restricted-imports"	1

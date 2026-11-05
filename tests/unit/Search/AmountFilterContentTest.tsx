@@ -5,9 +5,12 @@ import AmountFilterContent from '@components/Search/FilterComponents/AdvancedFil
 import AmountFilterInput from '@components/Search/FilterComponents/AmountFilterInput';
 import AmountPopup from '@components/Search/FilterDropdowns/AmountPopup';
 import BasePopup from '@components/Search/FilterDropdowns/BasePopup';
+import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 
 import useAmountFilterCurrency from '@hooks/useAmountFilterCurrency';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+
+import type * as CurrencyUtils from '@libs/CurrencyUtils';
 
 import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
 
@@ -26,11 +29,18 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => () => ({didScreenTran
 jest.mock('@hooks/useShouldFooterBeInsideList', () => () => false);
 jest.mock('@hooks/useDefaultExpensePolicy', () => jest.fn(() => undefined));
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key, preferredLocale: 'en'}));
-jest.mock('@hooks/useCurrencyList', () => ({
-    useCurrencyListActions: () => ({
-        getCurrencyDecimals: (currency: string) => (currency === 'JPY' || currency === 'VND' ? 0 : 2),
-    }),
-}));
+jest.mock('@hooks/useResponsiveLayout', () => () => ({shouldUseNarrowLayout: false}));
+jest.mock('@hooks/useCurrencyList', () => {
+    const {convertToDisplayStringWithoutCurrencyForLocale} = jest.requireActual<typeof CurrencyUtils>('@libs/CurrencyUtils');
+    const getCurrencyDecimals = (currency?: string) => (currency === 'JPY' || currency === 'VND' ? 0 : 2);
+
+    return {
+        useCurrencyListActions: () => ({
+            getCurrencyDecimals,
+            convertToDisplayStringWithoutCurrency: (amount: number, currency?: string) => convertToDisplayStringWithoutCurrencyForLocale('en', amount, currency, getCurrencyDecimals),
+        }),
+    };
+});
 
 beforeEach(() => {
     jest.clearAllMocks();
@@ -38,6 +48,26 @@ beforeEach(() => {
 });
 
 describe('AmountFilterContent currency selection', () => {
+    it('stacks Between inputs vertically on desktop', () => {
+        // Given a saved range rendered with desktop layout and real theme styles.
+        render(
+            <ThemeStylesProvider>
+                <AmountFilterContent
+                    baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}
+                    value={{EqualTo: undefined, GreaterThan: '10.00 USD', LessThan: '20.00 GBP'}}
+                    onChange={jest.fn()}
+                />
+            </ThemeStylesProvider>,
+        );
+
+        // When both range inputs are displayed.
+        const [lowerBound, upperBound] = screen.UNSAFE_getAllByType(AmountFilterInput);
+
+        // Then they share a vertical container rather than splitting its width.
+        expect(lowerBound?.parent).toBe(upperBound?.parent);
+        expect(lowerBound?.parent).toHaveStyle({flexDirection: 'column'});
+    });
+
     it.each([
         {currency: 'JPY', decimals: 0},
         {currency: 'VND', decimals: 0},

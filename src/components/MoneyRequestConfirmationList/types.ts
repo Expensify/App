@@ -20,9 +20,6 @@ type MoneyRequestConfirmationListProps = {
     /** Opens the participant picker owned by the page. */
     onOpenParticipantPicker: () => void;
 
-    /** Whether the page participant picker is open. */
-    isParticipantPickerVisible?: boolean;
-
     /** The payment method the SettlementButton chose. */
     onSendMoney?: (paymentMethod: PaymentMethodType | undefined) => void;
 

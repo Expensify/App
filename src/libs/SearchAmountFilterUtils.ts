@@ -37,13 +37,13 @@ function formatAmountFilterValue(amount: string, currency?: string): string {
 }
 
 /** The localized formatter expects hundredths, so both "1250" and "12.50 USD" pass 1250 before adding any currency suffix. */
-function getAmountFilterDisplayValue(value: string | undefined, formatAmount: (amount: number) => string): string {
+function getAmountFilterDisplayValue(value: string | undefined, formatAmount: (amount: number, currency?: string) => string): string {
     if (!value) {
         return '';
     }
 
     const parsed = parseAmountFilterValue(value);
-    const formattedAmount = formatAmount(parsed.currency ? convertToBackendAmount(Number(parsed.amount)) : Number(parsed.amount));
+    const formattedAmount = formatAmount(parsed.currency ? convertToBackendAmount(Number(parsed.amount)) : Number(parsed.amount), parsed.currency);
     return parsed.currency ? `${formattedAmount} ${parsed.currency}` : formattedAmount;
 }
 
