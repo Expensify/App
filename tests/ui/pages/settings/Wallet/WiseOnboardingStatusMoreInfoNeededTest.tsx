@@ -39,7 +39,7 @@ jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) =
 
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
-async function renderPage() {
+async function renderPage(statusPath?: string) {
     await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.WISE_REIMBURSEMENTS]);
     await Onyx.set(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, false);
     await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
@@ -47,7 +47,12 @@ async function renderPage() {
     });
     render(
         <OnyxListItemProvider>
-            <NavigationContainer ref={navigationRef}>
+            <NavigationContainer
+                ref={navigationRef}
+                initialState={
+                    statusPath ? {routes: [{name: SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ONBOARDING_STATUS, params: {bankAccountID: String(BANK_ACCOUNT_ID)}, path: statusPath}]} : undefined
+                }
+            >
                 <Stack.Navigator initialRouteName={SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ONBOARDING_STATUS}>
                     <Stack.Screen
                         name={SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ONBOARDING_STATUS}
@@ -157,6 +162,28 @@ describe('WiseOnboardingStatusPage while Wise needs more info', () => {
             });
         } finally {
             // The mock is module-level, so the other tests get the Wallet path back even if an assertion fails
+            jest.mocked(useDynamicBackPath).mockReturnValue(WALLET_INTRO_PATH);
+        }
+    });
+
+    it("sends Wise the route's own path when the page opened without the intro underneath", async () => {
+        // Given the page opened straight from the Wallet, so the intro is not on the stack and only the route's path names the bank account
+        jest.mocked(useDynamicBackPath).mockReturnValue(ROUTES.SETTINGS_WALLET);
+        mockFetch.pause();
+
+        try {
+            await renderPage(`/${createDynamicRoute(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path, WALLET_INTRO_PATH)}`);
+
+            // When the user presses Continue
+            await pressContinue();
+
+            // Then the return URL is the one the browser shows, since a URL without the bank account cannot load the status page
+            TestHelper.expectAPICommandToHaveBeenCalledWith(READ_COMMANDS.GET_WISE_KYC_REVIEW_EMBEDDED_LINK, 0, {
+                bankAccountID: BANK_ACCOUNT_ID,
+                redirectURL: `https://new.expensify.com/settings/wallet/global-reimbursements/${BANK_ACCOUNT_ID}/status`,
+            });
+        } finally {
+            // The mock is module-level, so the other tests get the intro path back even if an assertion fails
             jest.mocked(useDynamicBackPath).mockReturnValue(WALLET_INTRO_PATH);
         }
     });

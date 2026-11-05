@@ -81,7 +81,7 @@ function MoreInfoNeededContent({bankAccountID, statusPath}: MoreInfoNeededConten
                         // Wise gets only the path, because the entry screen's query (for example a Search query) can hold personal data, and that screen falls back to its defaults without it
                         const [statusPathWithoutQuery = statusPath] = splitPathAndQuery(statusPath);
                         // On web the app reloads at the status page when Wise's form ends
-                        getWiseKYCReviewEmbeddedLink(bankAccountID, `${addTrailingForwardSlash(environmentURL)}${statusPathWithoutQuery}`);
+                        getWiseKYCReviewEmbeddedLink(bankAccountID, `${addTrailingForwardSlash(environmentURL)}${statusPathWithoutQuery.replaceAll(/^\/+/g, '')}`);
                     }}
                 />
             </FixedFooter>

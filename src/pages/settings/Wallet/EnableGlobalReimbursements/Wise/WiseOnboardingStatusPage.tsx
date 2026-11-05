@@ -97,7 +97,8 @@ function WiseOnboardingStatusPage({route, navigation}: WiseOnboardingStatusPageP
             content = (
                 <MoreInfoNeededContent
                     bankAccountID={bankAccountID}
-                    statusPath={createDynamicRoute(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path, introPath)}
+                    // Wallet and Home open this page without the intro on the stack, so only the route's own path keeps the bank account in it
+                    statusPath={route.path ?? createDynamicRoute(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path, introPath)}
                 />
             );
             break;
