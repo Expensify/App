@@ -25,6 +25,8 @@ import type {
     VerifyIdentityForBankAccountParams,
 } from '@libs/API/parameters';
 import type AskForCorpaySignerInformationParams from '@libs/API/parameters/AskForCorpaySignerInformationParams';
+import type CreateWiseBankAccountParams from '@libs/API/parameters/CreateWiseBankAccountParams';
+import type GetWiseBankAccountFieldsParams from '@libs/API/parameters/GetWiseBankAccountFieldsParams';
 import type {SaveCorpayOnboardingCompanyDetails} from '@libs/API/parameters/SaveCorpayOnboardingCompanyDetailsParams';
 import type SaveCorpayOnboardingDirectorInformationParams from '@libs/API/parameters/SaveCorpayOnboardingDirectorInformationParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -47,7 +49,7 @@ import type {BankAccountList, InitiatingBankAccountUnlock, LastPaymentMethod, La
 import type {BankAccountAdditionalData} from '@src/types/onyx/BankAccount';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, ReimbursementAccountStep, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
-import type {OnyxData} from '@src/types/onyx/Request';
+import type {AnyOnyxData, OnyxData} from '@src/types/onyx/Request';
 
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
@@ -1336,6 +1338,61 @@ function clearCorpayBankAccountFields() {
     Onyx.set(ONYXKEYS.CORPAY_FIELDS, null);
 }
 
+function getWiseBankAccountFields(country: string, currency?: string, inputs?: Record<string, unknown>) {
+    const parameters: GetWiseBankAccountFieldsParams = {country, currency};
+    if (inputs) {
+        parameters.inputs = JSON.stringify(inputs);
+    }
+    const onyxData: OnyxData<typeof ONYXKEYS.WISE_BANK_ACCOUNT_FIELDS> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.WISE_BANK_ACCOUNT_FIELDS,
+                value: {
+                    isLoading: true,
+                    errors: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.WISE_BANK_ACCOUNT_FIELDS,
+                value: {
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        ],
+        finallyData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.WISE_BANK_ACCOUNT_FIELDS,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+    };
+    API.read(READ_COMMANDS.GET_WISE_BANK_ACCOUNT_FIELDS, parameters, onyxData);
+}
+
+function createWiseBankAccount(country: string, currency: string | undefined, inputs: Record<string, unknown>, confirmVerificationOfPayee = false) {
+    const parameters: CreateWiseBankAccountParams = {country, currency, inputs: JSON.stringify(inputs)};
+    if (confirmVerificationOfPayee) {
+        parameters.confirmVerificationOfPayee = true;
+    }
+    const onyxData: AnyOnyxData = {
+        optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, value: {isLoading: true, isSuccess: null, errors: null, errorFields: null}}],
+        successData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, value: {isSuccess: true}}],
+        finallyData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, value: {isLoading: false}}],
+    };
+    API.write(WRITE_COMMANDS.CREATE_WISE_BANK_ACCOUNT, parameters, onyxData);
+}
+
+function clearWiseBankAccountFields() {
+    Onyx.set(ONYXKEYS.WISE_BANK_ACCOUNT_FIELDS, null);
+}
+
 function clearReimbursementAccountBankCreation() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isCreateCorpayBankAccount: null, isSuccess: null, isLoading: null});
 }
@@ -2086,6 +2143,7 @@ export {
     clearPersonalBankAccountSetupType,
     validatePlaidSelection,
     fetchCorpayFields,
+    getWiseBankAccountFields,
     shareBankAccount,
     setShareBankAccountAdmins,
     clearShareBankAccount,
@@ -2103,6 +2161,8 @@ export {
     clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners,
     clearReimbursementAccountSaveCorpayOnboardingDirectorInformation,
     clearCorpayBankAccountFields,
+    clearWiseBankAccountFields,
+    createWiseBankAccount,
     finishCorpayBankAccountOnboarding,
     shareBankAccountAndSetPayer,
     clearReimbursementAccountFinishCorpayBankAccountOnboarding,
