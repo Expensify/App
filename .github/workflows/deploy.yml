@@ -1015,11 +1015,20 @@ jobs:
       - name: Verify victory-chart-renderer artifact is present
         run: test -f ./victory-chart-renderer-linux-x64-artifact/victory-chart-renderer-linux-x64
 
+      - name: Setup git for OSBotify
+        id: setupGitForOSBotify
+        uses: Expensify/GitHub-Actions/setupGitForOSBotify@main
+        with:
+          OP_VAULT: ${{ vars.OP_VAULT }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
+          OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
+
       - name: Get last production release
         id: get_last_prod_version
         run: echo "LAST_PROD_VERSION=$(gh release list --repo ${{ github.repository }} --exclude-drafts --exclude-pre-releases --limit 1 --json tagName --jq '.[0].tagName')" >> "$GITHUB_OUTPUT"
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
 
       - name: 🚀 Create release 🚀
         run: |
@@ -1069,7 +1078,7 @@ jobs:
             done
           fi
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
 
       - name: Rename web sourcemaps artifacts before assets upload in order to have unique ReleaseAsset.name
         continue-on-error: true
@@ -1101,14 +1110,14 @@ jobs:
             fi
           '
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
 
       - name: Upload victory-chart-renderer to GitHub Release
         run: |
           gh release upload "${{ needs.prep.outputs.TAG }}" --repo "${{ github.repository }}" --clobber \
             "./victory-chart-renderer-linux-x64-artifact/victory-chart-renderer-linux-x64#victory-chart-renderer-linux-x64"
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
 
       - name: Warn deployers if deploy failed
         if: ${{ failure() }}
