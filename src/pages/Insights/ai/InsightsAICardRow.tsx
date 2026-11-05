@@ -34,13 +34,16 @@ function InsightsAICardRow({insights, insightsScope, isLoading}: InsightsAICardR
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {pageGutter, pageGutterEdgeToEdge} = useLayoutSpacing();
 
-    if (!isLoading && !insights?.length) {
+    // Responses cached before the backend added chips have only text, which the card can't show
+    const displayableInsights = insights?.filter((insight) => !!insight.chip);
+
+    if (!isLoading && !displayableInsights?.length) {
         return null;
     }
 
     const renderWithDivider = (content: ReactNode, index: number) => (
         <Fragment key={index}>
-            {index > 0 && <View style={[styles.borderLeft, shouldUseNarrowLayout ? styles.mh8 : styles.mh5]} />}
+            {index > 0 && <View style={[styles.borderLeft, shouldUseNarrowLayout ? styles.mh8 : [styles.ml6, styles.mr6]]} />}
             {content}
         </Fragment>
     );
@@ -54,7 +57,7 @@ function InsightsAICardRow({insights, insightsScope, isLoading}: InsightsAICardR
         >
             {isLoading
                 ? Array.from({length: SKELETON_CARD_COUNT}, (item, index) => renderWithDivider(<InsightsAICardSkeleton />, index))
-                : insights?.map((insight, index) =>
+                : displayableInsights?.map((insight, index) =>
                       renderWithDivider(
                           <InsightsAICard
                               insight={insight}

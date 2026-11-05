@@ -28,10 +28,44 @@ type InsightsGraph = {
     average?: number;
 };
 
+/** Kind of signal an AI insight was detected from */
+type AIInsightSignal = ValueOf<typeof CONST.INSIGHTS.AI_INSIGHT.SIGNAL>;
+
+/** Unit of a chip's value. Currency amounts are in the Group currency's cents. */
+type AIInsightChipUnit = ValueOf<typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT>;
+
+/** Chip showing how much an item changed, colored by whether the change is good or bad */
+type AIInsightChangeChip = {
+    type: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_TYPE.CHANGE;
+    direction: ValueOf<typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_DIRECTION>;
+    unit: AIInsightChipUnit;
+
+    /** Size of the change, without its sign */
+    value: number;
+};
+
+/** Chip showing a share or amount for signals that have no direction */
+type AIInsightNeutralChip = {
+    type: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_TYPE.NEUTRAL;
+    unit: AIInsightChipUnit;
+    value: number;
+};
+
+/** Stat shown at the top of an AI insight card */
+type AIInsightChip = AIInsightChangeChip | AIInsightNeutralChip;
+
 /** AI-written insight about the dashboard's data */
 type AIInsight = {
-    /** Narration shown on the card */
-    text: string;
+    id: string;
+    signal: AIInsightSignal;
+
+    /** Item that changed, like a merchant, member, or "Total spend" */
+    title: string;
+
+    chip: AIInsightChip;
+
+    /** One short line under the title */
+    summary: string;
 
     /** Message sent to Concierge when the user asks it to explain the card */
     explainPrompt: string;
@@ -57,5 +91,5 @@ type InsightsDashboard = {
     responseJsonCode?: number;
 };
 
-export type {AIInsight, InsightsDashboardID, InsightsGraphKey, InsightsSearchKey};
+export type {AIInsight, AIInsightChip, InsightsDashboardID, InsightsGraphKey, InsightsSearchKey};
 export default InsightsDashboard;

@@ -11460,6 +11460,27 @@ const CONST = {
             TOP_CATEGORIES: 'topCategories',
             TOP_SPENDERS: 'topSpenders',
         },
+        AI_INSIGHT: {
+            SIGNAL: {
+                SPIKE: 'spike',
+                TREND: 'trend',
+                RECORD: 'record',
+                THRESHOLD: 'threshold',
+                CONCENTRATION: 'concentration',
+            },
+            CHIP_TYPE: {
+                CHANGE: 'change',
+                NEUTRAL: 'neutral',
+            },
+            CHIP_DIRECTION: {
+                INCREASE: 'increase',
+                DECREASE: 'decrease',
+            },
+            CHIP_UNIT: {
+                PERCENT: 'percent',
+                CURRENCY: 'currency',
+            },
+        },
     },
 
     SECTION_LIST_ITEM_TYPE: {

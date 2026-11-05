@@ -8032,9 +8032,9 @@ const plainStyles = (theme: ThemeColors) =>
                 gap: shouldUseNarrowLayout ? layoutSpacing.cardGap.narrow : layoutSpacing.cardGap.wide,
             }) satisfies ViewStyle,
 
-        insightsAICardText: {
-            width: variables.insightsAICardTextWidth,
-        } satisfies TextStyle,
+        insightsAICard: {
+            width: variables.insightsAICardWidth,
+        } satisfies ViewStyle,
 
         insightsEmptyStateIllustration: {
             width: variables.insightsEmptyStateIllustrationSize,
