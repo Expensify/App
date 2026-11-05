@@ -3,11 +3,10 @@
  * actually has a custom (advanced) approval workflow, so callers don't trust the stale `policy.approvalMode` flag.
  */
 import {isControlPolicy} from '@libs/PolicyUtils';
+import {filterRulesForPolicy, getApprovalWorkflowRulesForPolicy} from '@libs/RuleUtils';
 import {
     convertApprovalWorkflowRulesToWorkflows,
     convertPolicyEmployeesToApprovalWorkflows,
-    filterRulesForPolicy,
-    getApprovalWorkflowRulesForPolicy,
     getApproverPendingActionByMemberEmail,
     getEnforcedApprovalWorkflows,
     getEnforcedApprovalWorkflowsForMembers,

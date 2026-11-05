@@ -115,6 +115,8 @@ function buildTransaction(index: number): Transaction {
 const transactions = Array.from({length: TRANSACTIONS_COUNT}, (unused, index) => buildTransaction(index));
 
 beforeEach(async () => {
+    // The list marks the report as read, which sends an API request. A real request finishes at a random time and adds renders to some runs only.
+    global.fetch = TestHelper.getGlobalFetchMock();
     setHasRadio(true);
     wrapOnyxWithWaitForBatchedUpdates(Onyx);
     await act(async () => {

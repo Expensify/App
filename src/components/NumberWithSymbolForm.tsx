@@ -551,6 +551,7 @@ function NumberWithSymbolForm({
         return (
             <TextInput
                 label={label}
+                sentryLabel={CONST.SENTRY_LABEL.NUMBER_WITH_SYMBOL_FORM.INPUT}
                 accessibilityLabel={label}
                 value={formattedNumber}
                 onChangeText={setFormattedNumber}

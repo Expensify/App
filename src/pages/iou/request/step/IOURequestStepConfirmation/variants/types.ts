@@ -1,68 +1,30 @@
 import type {MoneyRequestConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
 
+import type useDistanceSubmission from '@pages/iou/request/step/confirmation/submission/useDistanceSubmission';
+import type useInvoiceSubmission from '@pages/iou/request/step/confirmation/submission/useInvoiceSubmission';
+import type usePerDiemSubmission from '@pages/iou/request/step/confirmation/submission/usePerDiemSubmission';
+import type useRequestMoneySubmission from '@pages/iou/request/step/confirmation/submission/useRequestMoneySubmission';
+import type useSendMoneySubmission from '@pages/iou/request/step/confirmation/submission/useSendMoneySubmission';
+import type useSplitSubmission from '@pages/iou/request/step/confirmation/submission/useSplitSubmission';
 import type {SubmitLock} from '@pages/iou/request/step/confirmation/submission/useSubmitLock';
+import type useTrackExpenseSubmission from '@pages/iou/request/step/confirmation/submission/useTrackExpenseSubmission';
+import type {TransactionTaxValues} from '@pages/iou/request/step/confirmation/submission/utils/getTransactionTaxValues';
 import type {SubmitExpenseOrchestratorProps} from '@pages/iou/request/step/confirmation/SubmitExpenseOrchestrator';
 
-import type CONST from '@src/CONST';
-import type {PersonalDetailsList, PolicyCategories, Report} from '@src/types/onyx';
-import type {Participant} from '@src/types/onyx/IOU';
-import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
-import type Policy from '@src/types/onyx/Policy';
-import type {Receipt} from '@src/types/onyx/Transaction';
-import type Transaction from '@src/types/onyx/Transaction';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
+type SubmissionHookParams = Parameters<typeof useRequestMoneySubmission>[0] &
+    Parameters<typeof useTrackExpenseSubmission>[0] &
+    Parameters<typeof useDistanceSubmission>[0] &
+    Parameters<typeof useSplitSubmission>[0] &
+    Parameters<typeof usePerDiemSubmission>[0] &
+    Parameters<typeof useInvoiceSubmission>[0] &
+    Parameters<typeof useSendMoneySubmission>[0];
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+/** Hook params the variants compute themselves. Pick fails to compile if a hook no longer declares one. */
+type VariantComputedParams = keyof Pick<SubmissionHookParams, keyof TransactionTaxValues | 'isGPSDistanceRequest' | 'isTrackExpense' | 'policyID' | 'releaseSubmitLock' | 'setIsConfirmed'>;
 
-/** The page state the submission hooks read. Each variant picks only what its own hook needs. */
-type ConfirmationSubmissionParams = {
-    // Transaction data
-    transaction: OnyxEntry<Transaction>;
-    transactions: Transaction[];
-    receiptFiles: Record<string, Receipt>;
-    canEnterScanFieldsManually: boolean;
-
-    // Report data
-    report: OnyxEntry<Report>;
-    reportID: string;
-    reportDrafts: OnyxCollection<Report>;
-
-    // Policy data
-    policy: OnyxEntry<Policy>;
-    policyCategories: OnyxEntry<PolicyCategories>;
-    isDraftPolicy: boolean;
-
-    // User data
-    currentUserPersonalDetails: CurrentUserPersonalDetails;
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-    participants: Participant[];
-    selectedParticipants: Participant[];
-
-    // Request type flags
-    iouType: DeepValueOf<typeof CONST.IOU.TYPE>;
-    action: DeepValueOf<typeof CONST.IOU.ACTION>;
-    isDistanceRequest: boolean;
-    isManualDistanceRequest: boolean;
-    isOdometerDistanceRequest: boolean;
-    isPerDiemRequest: boolean;
-    isTimeRequest: boolean;
-    isMovingTransactionFromTrackExpense: boolean;
-    isCategorizingTrackExpense: boolean;
-    isSharingTrackExpense: boolean;
-    isUnreported: boolean;
-    isPolicyExpenseChat: boolean;
-    isSelfDMDestination: boolean;
-    isSubmittingExpenseToDraftWorkspace: boolean;
-
-    // Onyx values
-    draftTransactionIDs: string[] | undefined;
-    privateIsArchivedMap: Record<string, boolean | undefined>;
-
-    // Navigation
-    backToReport?: string;
-
-    // Submission
-    onExpenseWriteWillStart?: () => void;
+/** The page state the submission hooks read. Derived from the hooks' params so the page can't pass a stale field. */
+type ConfirmationSubmissionParams = Omit<SubmissionHookParams, VariantComputedParams> & {
+    /** Prevents double submission */
     submitLock: SubmitLock;
 };
 
