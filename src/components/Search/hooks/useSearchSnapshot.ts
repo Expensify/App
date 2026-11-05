@@ -192,6 +192,7 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
     } = useOptimisticSearchTracking({
         searchResults,
         queryJSON,
+        currentUserAccountID: accountID,
         transactions,
         reportActions,
     });
