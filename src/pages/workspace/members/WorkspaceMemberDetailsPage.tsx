@@ -29,6 +29,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePrevious from '@hooks/usePrevious';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
@@ -154,6 +155,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const isCurrentUserOwner = policy?.owner === currentUserLogin;
     const shouldShowOfficeLocation = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) && hasOfficeLocations(policy);
     const canWriteMembers = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MEMBERS);
+    const {canWrite: canWriteCategories} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
     const canChangeOfficeLocation = shouldShowOfficeLocation && canWriteMembers;
     const canManageSelectedMemberRole = canMemberAssignRole(policy, currentUserLogin, member?.role);
     const canRemoveSelectedMember = canWriteMembers && !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canMemberManageMemberWithRole(policy, currentUserLogin, member?.role);
@@ -181,7 +183,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                 ? translate('workspace.people.allCategories')
                 : translate('workspace.people.categoriesCount', {count: visibleCategoriesCount});
     }
-    const canEditCategoryVisibility = canWriteMembers && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.CATEGORIES) && !!memberPersonalDetails?.accountID;
+    const canEditCategoryVisibility = canWriteMembers && canWriteCategories && !!memberPersonalDetails?.accountID;
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
 
@@ -512,6 +514,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                         onPress={canEditCategoryVisibility ? navigateToCategoryVisibility : undefined}
                                         testID="member-category-visibility-menu-item"
                                         value={categoryVisibilityTitle}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.CATEGORY_VISIBILITY}
                                     />
                                 </OfflineWithFeedback>
                             )}

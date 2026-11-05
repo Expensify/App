@@ -10992,6 +10992,7 @@ const CONST = {
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceMembers-BulkActionsDropdown',
                 MORE_DROPDOWN: 'WorkspaceMembers-MoreDropdown',
                 LIST_ROW: 'WorkspaceMembers-ListRow',
+                CATEGORY_VISIBILITY: 'WorkspaceMemberDetails-CategoryVisibility',
             },
             CATEGORIES: {
                 ROW: 'WorkspaceCategories-Row',

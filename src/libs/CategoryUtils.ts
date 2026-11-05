@@ -129,17 +129,35 @@ function getMemberVisibleCategoryNames(policyCategories: PolicyCategories | unde
  */
 function getMembersWithoutVisibleCategories(policyCategories: PolicyCategories | undefined, categoryNamesToDisable: string[], memberAccountIDs: number[]): number[] {
     const categoriesToDisable = new Set(categoryNamesToDisable);
-    const remainingCategories: PolicyCategories = {};
-    for (const [categoryName, category] of Object.entries(policyCategories ?? {})) {
-        if (!categoriesToDisable.has(categoryName)) {
-            remainingCategories[categoryName] = category;
+    // Members who can use a category that stays enabled, and members who can use one being disabled. A category open
+    // to everyone covers every member, so it's tracked as a flag rather than by adding every member to a set.
+    const membersKeepingACategory = new Set<string>();
+    const membersLosingACategory = new Set<string>();
+    let isEveryoneLosingACategory = false;
+
+    for (const category of Object.values(policyCategories ?? {})) {
+        if (!category.enabled) {
+            continue;
+        }
+        const isBeingDisabled = categoriesToDisable.has(category.name);
+        if (!category.visibleTo) {
+            if (!isBeingDisabled) {
+                return [];
+            }
+            isEveryoneLosingACategory = true;
+            continue;
+        }
+        const members = isBeingDisabled ? membersLosingACategory : membersKeepingACategory;
+        for (const [accountID, isVisible] of Object.entries(category.visibleTo)) {
+            if (isVisible) {
+                members.add(accountID);
+            }
         }
     }
 
     return memberAccountIDs.filter((accountID) => {
-        // A member who can't use any of these categories loses nothing when they're disabled.
-        const losesACategory = getMemberVisibleCategoryNames(policyCategories, accountID).some((categoryName) => categoriesToDisable.has(categoryName));
-        return losesACategory && getMemberVisibleCategoryNames(remainingCategories, accountID).length === 0;
+        const key = String(accountID);
+        return !membersKeepingACategory.has(key) && (isEveryoneLosingACategory || membersLosingACategory.has(key));
     });
 }
 

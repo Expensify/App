@@ -13,7 +13,6 @@ import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectL
 import type {ListItem} from '@components/SelectionList/types';
 
 import useConfirmModal from '@hooks/useConfirmModal';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLoadPolicyCategories from '@hooks/useLoadPolicyCategories';
@@ -21,6 +20,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicyCategoryPickerCategories from '@hooks/usePolicyCategoryPickerCategories';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -30,7 +30,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canMemberWrite, getMemberAccountIDsForWorkspace, isControlPolicy} from '@libs/PolicyUtils';
+import {getMemberAccountIDsForWorkspace, isControlPolicy} from '@libs/PolicyUtils';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -62,8 +62,7 @@ function WorkspaceMemberCategoryVisibilityPage({policy, route}: WorkspaceMemberC
     const {translate, localeCompare} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const {isBetaEnabled} = usePermissions();
-    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const canWriteCategories = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
+    const {canWrite: canWriteCategories} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
     const {showConfirmModal} = useConfirmModal();
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
 
@@ -109,7 +108,10 @@ function WorkspaceMemberCategoryVisibilityPage({policy, route}: WorkspaceMemberC
     const [inputValue, setInputValue, filteredCategoryItems] = useSearchResults(sortedCategoryItems, filterCategory);
 
     const toggleCategory = (item: CategoryListItem) => {
-        setSelectionOverride(selectedCategories.includes(item.value) ? selectedCategories.filter((categoryName) => categoryName !== item.value) : [...selectedCategories, item.value]);
+        setSelectionOverride((previous) => {
+            const selection = previous ?? memberVisibleCategories;
+            return selection.includes(item.value) ? selection.filter((categoryName) => categoryName !== item.value) : [...selection, item.value];
+        });
     };
 
     const toggleSelectAll = () => {
@@ -118,11 +120,11 @@ function WorkspaceMemberCategoryVisibilityPage({policy, route}: WorkspaceMemberC
 
         if (allVisibleSelected) {
             const visibleSet = new Set(visibleValues);
-            setSelectionOverride(selectedCategories.filter((value) => !visibleSet.has(value)));
+            setSelectionOverride((previous) => (previous ?? memberVisibleCategories).filter((value) => !visibleSet.has(value)));
             return;
         }
 
-        setSelectionOverride(Array.from(new Set([...selectedCategories, ...visibleValues])));
+        setSelectionOverride((previous) => Array.from(new Set([...(previous ?? memberVisibleCategories), ...visibleValues])));
     };
 
     const handleSave = () => {
