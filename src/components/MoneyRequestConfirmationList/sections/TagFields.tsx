@@ -3,7 +3,6 @@ import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/
 import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
 
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -69,7 +68,6 @@ function TagFields({
 }: TagFieldsProps) {
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const {isEditingSplitBill} = useConfirmationFields();
-    const {isBetaEnabled} = usePermissions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const shouldDisplayTagError = formError === 'violations.tagOutOfPolicy';
@@ -84,7 +82,7 @@ function TagFields({
     const canSaveFromThisForm = action !== CONST.IOU.ACTION.EDIT || isEditingSplitBill;
     const isCreatingExpense = action === CONST.IOU.ACTION.CREATE;
     const canShowTags = isCreatingExpense || getCountOfEnabledTagsOfList(policyTagList.tags) > 0;
-    const shouldOpenInDropdown = isBetaEnabled(CONST.BETAS.ANCHORED_FIELD_DROPDOWNS) && !!transactionID && !!policy && canSaveFromThisForm && !hasDependentTags && canShowTags;
+    const shouldOpenInDropdown = !!transactionID && !!policy && canSaveFromThisForm && !hasDependentTags && canShowTags;
 
     const openTagPage = () => {
         if (!transactionID) {
