@@ -76,7 +76,7 @@ describe('AccountingIntegrationWaitlistCard', () => {
         fireEvent.press(screen.getByRole('button', {name: 'Join waitlist'}));
 
         // Then the workspace joins the waitlist and the confirmation explains that Concierge will follow up
-        expect(joinAccountingIntegrationWaitlist).toHaveBeenCalledWith(undefined, 'policy', SAGE_ACCOUNTING);
+        expect(joinAccountingIntegrationWaitlist).toHaveBeenCalledWith('policy', SAGE_ACCOUNTING);
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         expect(getShowConfirmModalOption('title')).toBe('You’re on the list!');
         expect(getShowConfirmModalOption('prompt')).toBe('Concierge will send you a message to let you know when this integration is ready and how to connect.');
@@ -126,8 +126,7 @@ describe('AccountingIntegrationWaitlistCard', () => {
     it('offers Join waitlist again after a failed signup and clears the error when dismissed', async () => {
         // Given a signup for this workspace that the server rejected
         const errorTimestamp = 1;
-        const waitlist = [{connectionName: SAGE_ACCOUNTING, policyID: 'policy', errors: {[errorTimestamp]: 'Signup failed'}}];
-        await Onyx.set(ONYXKEYS.NVP_ACCOUNTING_INTEGRATION_WAITLIST, waitlist);
+        await Onyx.set(ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS, {policy: {[SAGE_ACCOUNTING]: {errors: {[errorTimestamp]: 'Signup failed'}}}});
         renderCard();
         await waitForBatchedUpdatesWithAct();
 
@@ -139,7 +138,7 @@ describe('AccountingIntegrationWaitlistCard', () => {
         fireEvent.press(screen.getByLabelText('Dismiss'));
 
         // Then the failed signup is cleared for this workspace
-        expect(clearAccountingIntegrationWaitlistError).toHaveBeenCalledWith(waitlist, 'policy', SAGE_ACCOUNTING);
+        expect(clearAccountingIntegrationWaitlistError).toHaveBeenCalledWith('policy', SAGE_ACCOUNTING);
     });
 
     it('shows the read-only explanation without joining when accounting write access is denied', async () => {
@@ -173,7 +172,7 @@ describe('AccountingIntegrationWaitlistCard', () => {
 
         // Then the waitlist card shows and joins for that workspace
         fireEvent.press(screen.getByRole('button', {name: 'Join waitlist'}));
-        expect(joinAccountingIntegrationWaitlist).toHaveBeenCalledWith(undefined, 'policy', SAGE_ACCOUNTING);
+        expect(joinAccountingIntegrationWaitlist).toHaveBeenCalledWith('policy', SAGE_ACCOUNTING);
 
         // When the grid has no workspace, since a waitlist signup belongs to one
         rerender(<ConnectionsGrid listings={[listing]} />);

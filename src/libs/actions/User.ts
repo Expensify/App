@@ -46,7 +46,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ExpenseRuleForm, FlagForReviewRuleForm, MerchantRuleForm, MerchantTypeRuleForm, RequireFieldsRuleForm, SpendRuleForm} from '@src/types/form';
-import type {AccountingIntegrationWaitlist, AppReview, Beta, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, NewLogin, ReportAttributesDerivedValue, Session} from '@src/types/onyx';
+import type {AppReview, Beta, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, NewLogin, ReportAttributesDerivedValue, Session} from '@src/types/onyx';
 import type {AccountingIntegrationWaitlistConnectionName} from '@src/types/onyx/AccountingIntegrationWaitlist';
 import type Login from '@src/types/onyx/Login';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -1382,33 +1382,29 @@ function clearExactOnlineWaitlistError() {
 }
 
 /**
- * Signs the workspace up to hear when an accounting integration becomes available. Onyx replaces arrays instead of
- * merging them, so every update writes the whole waitlist.
+ * Signs the workspace up to hear when an accounting integration becomes available. The server sends back the whole
+ * waitlist, so this only tracks the request itself.
  */
-function joinAccountingIntegrationWaitlist(waitlist: OnyxEntry<AccountingIntegrationWaitlist>, policyID: string, connectionName: AccountingIntegrationWaitlistConnectionName) {
-    const otherEntries = (waitlist ?? []).filter((entry) => entry.connectionName !== connectionName || entry.policyID !== policyID);
-    const entry = {connectionName, policyID, created: DateUtils.getDBTime()};
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_ACCOUNTING_INTEGRATION_WAITLIST>> = [
+function joinAccountingIntegrationWaitlist(policyID: string, connectionName: AccountingIntegrationWaitlistConnectionName) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS>> = [
         {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.NVP_ACCOUNTING_INTEGRATION_WAITLIST,
-            value: [...otherEntries, {...entry, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}],
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS,
+            value: {[policyID]: {[connectionName]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, errors: null}}},
         },
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_ACCOUNTING_INTEGRATION_WAITLIST>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS>> = [
         {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.NVP_ACCOUNTING_INTEGRATION_WAITLIST,
-            value: [...otherEntries, entry],
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS,
+            value: {[policyID]: {[connectionName]: null}},
         },
     ];
-
-    // The failed entry stays so the row can show the error until the user retries or dismisses it
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_ACCOUNTING_INTEGRATION_WAITLIST>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS>> = [
         {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.NVP_ACCOUNTING_INTEGRATION_WAITLIST,
-            value: [...otherEntries, {...entry, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')}],
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS,
+            value: {[policyID]: {[connectionName]: {pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')}}},
         },
     ];
 
@@ -1416,11 +1412,8 @@ function joinAccountingIntegrationWaitlist(waitlist: OnyxEntry<AccountingIntegra
 }
 
 /** Removes the workspace's failed attempt to join an accounting integration waitlist, so the user can try again */
-function clearAccountingIntegrationWaitlistError(waitlist: OnyxEntry<AccountingIntegrationWaitlist>, policyID: string, connectionName: AccountingIntegrationWaitlistConnectionName) {
-    Onyx.set(
-        ONYXKEYS.NVP_ACCOUNTING_INTEGRATION_WAITLIST,
-        (waitlist ?? []).filter((entry) => !entry.errors || entry.connectionName !== connectionName || entry.policyID !== policyID),
-    );
+function clearAccountingIntegrationWaitlistError(policyID: string, connectionName: AccountingIntegrationWaitlistConnectionName) {
+    Onyx.merge(ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS, {[policyID]: {[connectionName]: null}});
 }
 
 function dismissMarketingWindow(updateKey: string) {

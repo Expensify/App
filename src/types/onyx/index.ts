@@ -5,6 +5,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import type Account from './Account';
 import type AccountData from './AccountData';
 import type AccountingIntegrationWaitlist from './AccountingIntegrationWaitlist';
+import type AccountingIntegrationWaitlistRequests from './AccountingIntegrationWaitlistRequests';
 import type Agent from './Agent';
 import type AgentNewAvatarDraft from './AgentNewAvatarDraft';
 import type AppReview from './AppReview';
@@ -276,6 +277,7 @@ export type {
     Account,
     AccountData,
     AccountingIntegrationWaitlist,
+    AccountingIntegrationWaitlistRequests,
     AssignCard,
     TransactionPending3DSReview,
     TransactionsPending3DSReview,

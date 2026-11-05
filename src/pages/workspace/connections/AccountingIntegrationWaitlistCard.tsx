@@ -47,9 +47,11 @@ function AccountingIntegrationWaitlistCard({connectionName, title, icon, policyI
     const {showConfirmModal} = useConfirmModal();
     const policy = usePolicy(policyID);
     const {canWrite, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.ACCOUNTING);
-    const [waitlist] = useOnyx(ONYXKEYS.NVP_ACCOUNTING_INTEGRATION_WAITLIST);
-    const waitlistEntry = waitlist?.find((entry) => entry.connectionName === connectionName && entry.policyID === policyID);
-    const isOnWaitlist = !!waitlistEntry && !waitlistEntry.pendingAction && !waitlistEntry.errors;
+    const [isOnServerWaitlist] = useOnyx(ONYXKEYS.NVP_ACCOUNTING_INTEGRATION_WAITLIST, {
+        selector: (waitlist) => !!waitlist?.some((entry) => entry.connectionName === connectionName && entry.policyID === policyID),
+    });
+    const [request] = useOnyx(ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS, {selector: (requests) => requests?.[policyID]?.[connectionName]});
+    const isOnWaitlist = !!isOnServerWaitlist && !request?.pendingAction;
     const comingSoon = translate('workspace.accounting.integrationWaitlist.comingSoon');
     const accessibilityLabel = [title, comingSoon, isOnWaitlist && translate('workspace.accounting.integrationWaitlist.onWaitlist')].filter(Boolean).join(', ');
 
@@ -58,7 +60,7 @@ function AccountingIntegrationWaitlistCard({connectionName, title, icon, policyI
             showReadOnlyModal();
             return;
         }
-        joinAccountingIntegrationWaitlist(waitlist, policyID, connectionName);
+        joinAccountingIntegrationWaitlist(policyID, connectionName);
         showConfirmModal({
             title: translate('workspace.accounting.integrationWaitlist.onTheList'),
             prompt: translate('workspace.accounting.integrationWaitlist.waitlistDescription'),
@@ -78,9 +80,9 @@ function AccountingIntegrationWaitlistCard({connectionName, title, icon, policyI
             ]}
         >
             <OfflineWithFeedback
-                errors={waitlistEntry?.errors}
-                pendingAction={waitlistEntry?.pendingAction}
-                onClose={() => clearAccountingIntegrationWaitlistError(waitlist, policyID, connectionName)}
+                errors={request?.errors}
+                pendingAction={request?.pendingAction}
+                onClose={() => clearAccountingIntegrationWaitlistError(policyID, connectionName)}
                 errorRowStyles={[styles.ph4, styles.pb3]}
             >
                 <MenuItem.Root
@@ -114,7 +116,7 @@ function AccountingIntegrationWaitlistCard({connectionName, title, icon, policyI
                             ) : (
                                 <ButtonDisabledWhenOffline
                                     onPress={joinWaitlist}
-                                    isLoading={!!waitlistEntry?.pendingAction}
+                                    isLoading={!!request?.pendingAction}
                                     style={styles.justifyContentCenter}
                                     innerStyles={!canWrite ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
                                     hoverStyles={!canWrite ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}

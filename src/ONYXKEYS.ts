@@ -197,6 +197,9 @@ const ONYXKEYS = {
     /** Agent templates for the add-agent Suggestions */
     AGENT_TEMPLATES: 'agentTemplates',
 
+    /** Accounting integration waitlist requests that are still pending or that failed */
+    ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS: 'accountingIntegrationWaitlistRequests',
+
     /** Whether the user is a member of a policy other than their personal */
     HAS_NON_PERSONAL_POLICY: 'hasNonPersonalPolicy',
 
@@ -1842,6 +1845,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: string;
     [ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST]: string;
     [ONYXKEYS.NVP_ACCOUNTING_INTEGRATION_WAITLIST]: OnyxTypes.AccountingIntegrationWaitlist;
+    [ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS]: OnyxTypes.AccountingIntegrationWaitlistRequests;
     [ONYXKEYS.NVP_RECENT_ATTENDEES]: Attendee[];
     [ONYXKEYS.NVP_TRY_FOCUS_MODE]: boolean;
     [ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION]: boolean;
