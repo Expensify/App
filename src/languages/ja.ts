@@ -10835,6 +10835,7 @@ ${reportName}`,
         tabs: {
             expenseReports: '経費精算書',
             reports: 'レポート',
+            myReports: '自分のレポート',
             expenses: '経費',
             submit: '下書き',
             approve: '承認が必要',

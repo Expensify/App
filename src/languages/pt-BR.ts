@@ -11000,6 +11000,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         tabs: {
             expenseReports: 'Relatórios de despesas',
             reports: 'Relatórios',
+            myReports: 'Meus relatórios',
             expenses: 'Despesas',
             submit: 'Rascunhos',
             approve: 'Precisa de aprovação',

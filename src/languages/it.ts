@@ -11024,6 +11024,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         tabs: {
             expenseReports: 'Note spese',
             reports: 'Report',
+            myReports: 'I miei report',
             expenses: 'Spese',
             submit: 'Bozze',
             approve: 'Richiede approvazione',
