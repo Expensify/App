@@ -246,6 +246,12 @@ const DYNAMIC_ROUTES = {
         path: 'more-info-needed',
         entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO],
     },
+    WISE_ONBOARDING_STATUS: {
+        path: 'status',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO],
+        getRoute: (status: ValueOf<typeof CONST.WISE.ONBOARDING_STATUS_PAGE>) => getUrlWithParams('status', {status}),
+        queryParams: ['status'],
+    },
     BANK_ACCOUNT_LINK_PLAID: {
         path: ':bankAccountID/link-plaid',
         entryScreens: [SCREENS.SETTINGS.WALLET.ROOT],
@@ -1840,6 +1846,10 @@ const DYNAMIC_ROUTES = {
     },
     REPORT_CHANGE_APPROVER: {
         path: 'change-approver',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+    },
+    REPORT_HISTORY: {
+        path: 'history',
         entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
     },
     TASK_TITLE: {

@@ -2349,16 +2349,17 @@ const translations = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Waiting for <strong>you</strong> to approve expenses.`;
+                        return isBill ? `Waiting for <strong>you</strong> to approve the bill.` : `Waiting for <strong>you</strong> to approve expenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Waiting for <strong>${actor}</strong> to approve expenses.`;
+                        return isBill ? `Waiting for <strong>${actor}</strong> to approve the bill.` : `Waiting for <strong>${actor}</strong> to approve expenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Waiting for an admin to approve expenses.`;
+                        return isBill ? `Waiting for an admin to approve the bill.` : `Waiting for an admin to approve expenses.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (
@@ -2383,16 +2384,17 @@ const translations = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Waiting for <strong>you</strong> to pay expenses.`;
+                        return isBill ? `Waiting for <strong>you</strong> to pay this bill.` : `Waiting for <strong>you</strong> to pay expenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Waiting for <strong>${actor}</strong> to pay expenses.`;
+                        return isBill ? `Waiting for <strong>${actor}</strong> to pay this bill.` : `Waiting for <strong>${actor}</strong> to pay expenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Waiting for an admin to pay expenses.`;
+                        return isBill ? `Waiting for an admin to pay this bill.` : `Waiting for an admin to pay expenses.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
@@ -3216,7 +3218,24 @@ const translations = {
                 title: 'Verify additional info',
                 subtitle: 'Our payments partner needs more info directly. This should only take a couple of minutes.',
             },
+            inReview: {
+                title: 'In review',
+                heading: "We got what we need.\nYou'll hear from us!",
+                description: "Most reviews take one to two days. We'll message you with an update.",
+                chatWithConcierge: 'Chat with Concierge',
+            },
+            approved: {
+                title: 'Account approved',
+                heading: 'Approved to pay worldwide',
+                description: 'Pay members wherever they are.',
+            },
+            rejected: {
+                title: 'Bank account rejected',
+                heading: 'Our partner rejected your bank account',
+                description: 'Chat with Concierge for more information.',
+            },
         },
+        wiseSetupInProgress: {message: 'Global reimbursements setup in progress.', continue: 'Continue.'},
         wiseGlobalReimbursementsIntro: {
             headerTitle: 'Global reimbursements',
             title: 'Set up global reimbursements?',
@@ -3893,6 +3912,29 @@ const translations = {
         roomDescription: 'Room description',
         roomDescriptionOptional: 'Room description (optional)',
         explainerText: 'Set a custom description for the room.',
+    },
+    reportHistoryPage: {
+        title: 'Report history',
+        offlineMessage: "You're offline. Report history may be outdated.",
+        created: 'created report',
+        submitted: 'submitted',
+        approved: 'approved',
+        paid: 'paid',
+        toSubmit: 'to submit',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return 'to automatically submit';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `to automatically submit on the ${eta} of each month` : `to automatically submit ${eta}`;
+        },
+        toApprove: 'to approve',
+        toPay: 'to pay',
+        minutesAgo: (count: number) => `${count}m ago`,
+        hoursAgo: (count: number) => `${count}h ago`,
+        daysAgo: () => ({
+            one: '1d ago',
+            other: (count: number) => `${count}d ago`,
+        }),
     },
     groupChat: {
         lastMemberTitle: 'Heads up!',

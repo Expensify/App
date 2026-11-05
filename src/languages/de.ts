@@ -2207,14 +2207,19 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Es wird darauf gewartet, dass <strong>Sie</strong> Spesen genehmigen.`;
+                        return isBill
+                            ? `Es wird darauf gewartet, dass <strong>Sie</strong> die Rechnung genehmigen.`
+                            : `Es wird darauf gewartet, dass <strong>Sie</strong> Spesen genehmigen.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Warten auf die Genehmigung der Ausgaben durch <strong>${actor}</strong>.`;
+                        return isBill
+                            ? `Warten auf die Genehmigung der Rechnung durch <strong>${actor}</strong>.`
+                            : `Warten auf die Genehmigung der Ausgaben durch <strong>${actor}</strong>.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Warten auf Genehmigung der Ausgaben durch eine Adminperson.`;
+                        return isBill ? `Warten auf Genehmigung der Rechnung durch eine Adminperson.` : `Warten auf Genehmigung der Ausgaben durch eine Adminperson.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (
@@ -2237,14 +2242,15 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Wartet darauf, dass <strong>Sie</strong> Spesen bezahlen.`;
+                        return isBill ? `Wartet darauf, dass <strong>Sie</strong> diese Rechnung bezahlen.` : `Wartet darauf, dass <strong>Sie</strong> Spesen bezahlen.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Warten auf <strong>${actor}</strong>, um Auslagen zu bezahlen.`;
+                        return isBill ? `Warten auf <strong>${actor}</strong>, um diese Rechnung zu bezahlen.` : `Warten auf <strong>${actor}</strong>, um Auslagen zu bezahlen.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Warten darauf, dass eine Adminperson Spesen bezahlt.`;
+                        return isBill ? `Warten darauf, dass eine Adminperson diese Rechnung bezahlt.` : `Warten darauf, dass eine Adminperson Spesen bezahlt.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
@@ -3143,7 +3149,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: 'Zusätzliche Informationen verifizieren',
                 subtitle: 'Unser Zahlungspartner benötigt direkt weitere Informationen. Das sollte nur ein paar Minuten dauern.',
             },
+            inReview: {
+                title: 'In Prüfung',
+                heading: 'Wir haben alles, was wir brauchen.\nSie hören von uns!',
+                description: 'Die meisten Prüfungen dauern ein bis zwei Tage. Wir senden Ihnen eine Nachricht mit einem Update.',
+                chatWithConcierge: 'Mit Concierge chatten',
+            },
+            approved: {title: 'Konto genehmigt', heading: 'Zur weltweiten Zahlung freigegeben', description: 'Bezahlen Sie Mitglieder, wo immer sie sind.'},
+            rejected: {title: 'Bankkonto abgelehnt', heading: 'Unser Partner hat Ihr Bankkonto abgelehnt', description: 'Chatten Sie mit Concierge, um weitere Informationen zu erhalten.'},
         },
+        wiseSetupInProgress: {message: 'Einrichtung der globalen Rückerstattungen läuft.', continue: 'Fortfahren.'},
         wiseGlobalReimbursementsIntro: {
             title: 'Globale Rückerstattungen einrichten?',
             subtitle: 'Zahlen Sie Mitglieder weltweit in ihrer lokalen Währung.',
@@ -12863,5 +12878,28 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         mobileClaimPrompt: 'Besuchen Sie Expensify in Ihrem Webbrowser, um Ihren Verlängerungsrabatt zu erhalten.',
     },
     bulkActionBar: {label: 'Sammelaktionen', clearSelection: 'Auswahl aufheben', loadingSelection: 'Auswahl wird geladen'},
+    reportHistoryPage: {
+        title: 'Verlauf des Berichts',
+        created: 'hat den Bericht erstellt',
+        submitted: 'hat eingereicht',
+        approved: 'hat genehmigt',
+        paid: 'hat bezahlt',
+        toSubmit: 'einreichen',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return 'automatisch einreichen';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `am ${eta} jedes Monats automatisch einreichen` : `${eta} automatisch einreichen`;
+        },
+        toApprove: 'genehmigen',
+        toPay: 'bezahlen',
+        minutesAgo: (count: number) => `vor ${count} Min.`,
+        hoursAgo: (count: number) => `vor ${count} Std.`,
+        daysAgo: () => ({
+            one: 'vor 1 Tag',
+            other: (count: number) => `vor ${count} Tagen`,
+        }),
+        offlineMessage: 'Sie sind offline. Der Berichtsverlauf ist möglicherweise veraltet.',
+    },
 };
 export default translations;
