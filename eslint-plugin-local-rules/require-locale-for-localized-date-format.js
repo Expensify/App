@@ -112,7 +112,7 @@ function findLocalizedTokens(pattern) {
 }
 
 /**
- * Resolves a format argument to a literal pattern, following `CONST.DATE.*` references and ternaries.
+ * Resolves a format argument to a literal pattern, following `CONST.DATE.*` references, ternaries and template literals.
  * Returns null when the pattern cannot be determined statically.
  *
  * @param {import('estree').Node} node
@@ -141,6 +141,15 @@ function resolvePattern(node) {
             return null;
         }
         return `${consequent ?? ''} ${alternate ?? ''}`;
+    }
+    // `${CONST.DATE.SHORT_DATE_FORMAT} ${CONST.DATE.LOCAL_TIME_FORMAT}` — check the literal text and every interpolated
+    // format. An interpolated value that cannot be resolved adds nothing, so only what is known is checked.
+    if (node.type === 'TemplateLiteral') {
+        const expressions = node.expressions.map(resolvePattern);
+        if (expressions.includes(UNKNOWN_LOCALIZED)) {
+            return UNKNOWN_LOCALIZED;
+        }
+        return node.quasis.map((quasi, index) => `${quasi.value.cooked ?? ''}${expressions.at(index) ?? ''}`).join('');
     }
     return null;
 }
