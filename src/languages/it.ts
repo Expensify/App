@@ -7058,11 +7058,11 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 description: `Almeno una categoria deve rimanere abilitata perché il tuo spazio di lavoro richiede le categorie.`,
             },
             cannotDisableCategoryForMembers: {
-                title: ({categoryName}: {categoryName: string}) => `Impossibile disattivare ${categoryName}`,
+                title: ({categoryName}: {categoryName: string}) => `Impossibile disabilitare ${categoryName}`,
                 bulkTitle: 'Impossibile disattivare queste categorie',
                 description: ({count}: {count: number}) => ({
-                    one: '1 membro resterebbe senza categorie tra cui scegliere. Aggiorna la sua visibilità delle categorie, poi riprova:',
-                    other: `${count} membri resterebbero senza categorie tra cui scegliere. Aggiorna la loro visibilità delle categorie, poi riprova:`,
+                    one: '1 membro resterebbe senza categorie tra cui scegliere. Aggiorna la visibilità delle sue categorie, quindi riprova:',
+                    other: `A ${count} membri non rimarrebbe alcuna categoria tra cui scegliere. Aggiorna la visibilità delle loro categorie, poi riprova:`,
                 }),
                 andMore: ({count}: {count: number}) => `e altri ${count}`,
             },

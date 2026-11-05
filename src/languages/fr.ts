@@ -7127,8 +7127,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 title: ({categoryName}: {categoryName: string}) => `Impossible de désactiver ${categoryName}`,
                 bulkTitle: 'Impossible de désactiver ces catégories',
                 description: ({count}: {count: number}) => ({
-                    one: '1 membre n’aurait plus aucune catégorie à choisir. Mettez à jour sa visibilité des catégories, puis réessayez :',
-                    other: `${count} membres n’auraient plus aucune catégorie à choisir. Mettez à jour leur visibilité des catégories, puis réessayez :`,
+                    one: '1 membre n’aurait plus aucune catégorie à sélectionner. Mettez à jour la visibilité de ses catégories, puis réessayez :',
+                    other: `${count} membres se retrouveraient sans aucune catégorie à choisir. Mettez à jour la visibilité de leurs catégories, puis réessayez :`,
                 }),
                 andMore: ({count}: {count: number}) => `et ${count} de plus`,
             },

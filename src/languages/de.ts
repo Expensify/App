@@ -7115,8 +7115,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 title: ({categoryName}: {categoryName: string}) => `${categoryName} kann nicht deaktiviert werden`,
                 bulkTitle: 'Diese Kategorien können nicht deaktiviert werden',
                 description: ({count}: {count: number}) => ({
-                    one: '1 Mitglied hätte keine Kategorien mehr zur Auswahl. Aktualisiere die Kategorie-Sichtbarkeit und versuche es dann erneut:',
-                    other: `${count} Mitglieder hätten keine Kategorien mehr zur Auswahl. Aktualisiere ihre Kategorie-Sichtbarkeit und versuche es dann erneut:`,
+                    one: '1 Mitglied hätte keine Kategorien mehr zur Auswahl. Aktualisieren Sie die Kategorien-Sichtbarkeit dieser Person und versuchen Sie es dann erneut:',
+                    other: `${count} Mitgliedern blieben keine Kategorien zur Auswahl. Aktualisieren Sie deren Kategoriesichtbarkeit und versuchen Sie es dann erneut:`,
                 }),
                 andMore: ({count}: {count: number}) => `und ${count} weitere`,
             },

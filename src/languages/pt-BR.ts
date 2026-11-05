@@ -7063,8 +7063,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 title: ({categoryName}: {categoryName: string}) => `Não é possível desativar ${categoryName}`,
                 bulkTitle: 'Não é possível desativar estas categorias',
                 description: ({count}: {count: number}) => ({
-                    one: '1 membro ficaria sem categorias para escolher. Atualize a visibilidade de categorias e tente novamente:',
-                    other: `${count} membros ficariam sem categorias para escolher. Atualize a visibilidade de categorias e tente novamente:`,
+                    one: '1 membro ficaria sem categorias para escolher. Atualize a visibilidade das categorias dele e tente novamente:',
+                    other: `${count} membros ficariam sem categorias para escolher. Atualize a visibilidade das categorias para eles e tente novamente:`,
                 }),
                 andMore: ({count}: {count: number}) => `e mais ${count}`,
             },

@@ -6961,10 +6961,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             },
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `${categoryName}を無効にできません`,
-                bulkTitle: 'これらのカテゴリーを無効にできません',
+                bulkTitle: 'これらのカテゴリーは無効にできません',
                 description: ({count}: {count: number}) => ({
-                    one: '1人のメンバーが選択できるカテゴリーがなくなります。カテゴリーの表示設定を更新してから、もう一度お試しください：',
-                    other: `${count}人のメンバーが選択できるカテゴリーがなくなります。カテゴリーの表示設定を更新してから、もう一度お試しください：`,
+                    one: '1人のメンバーが選択できるカテゴリがなくなってしまいます。該当メンバーのカテゴリの表示設定を更新してから、もう一度お試しください。',
+                    other: `${count} 人のメンバーが選択できるカテゴリがなくなります。これらのメンバーのカテゴリの表示設定を更新してから、もう一度お試しください。`,
                 }),
                 andMore: ({count}: {count: number}) => `ほか ${count} 件`,
             },
@@ -7675,13 +7675,10 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             categoryVisibility: 'カテゴリの表示',
             allCategories: 'すべてのカテゴリ',
             categoriesCount: ({count}: {count: number}) => ({
-                one: '1件のカテゴリー',
-                other: `${count} 個のカテゴリ`,
+                one: '1 件のカテゴリ',
+                other: `${count} 件のカテゴリ`,
             }),
-            categoryVisibilityRequiredModal: {
-                title: 'メンバーは少なくとも1つのカテゴリを持っている必要があります',
-                description: 'このメンバーが使用できるカテゴリを少なくとも1つ選択してください。',
-            },
+            categoryVisibilityRequiredModal: {title: 'メンバーには少なくとも 1 つのカテゴリーが必要です', description: 'このメンバーが使用できるカテゴリを少なくとも 1 つ選択してください。'},
             changeOfficeLocation: 'オフィスの所在地を変更',
             changeWorkArrangement: '勤務形態を変更',
             changeRole: 'ロールを変更',
