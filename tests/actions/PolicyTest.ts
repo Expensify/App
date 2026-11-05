@@ -4983,7 +4983,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
                     callback: (policyID) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(policyID);
                     },
                 });
