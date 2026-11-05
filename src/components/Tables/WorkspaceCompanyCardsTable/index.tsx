@@ -1,3 +1,4 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
@@ -18,6 +19,7 @@ import useOnyx from '@hooks/useOnyx';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearCompanyCardErrorField, resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
@@ -102,6 +104,7 @@ function WorkspaceCompanyCardsTable({
     onReloadFeed,
 }: WorkspaceCompanyCardsTableProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {isOffline} = useNetwork();
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -616,9 +619,17 @@ function WorkspaceCompanyCardsTable({
                     {!!shouldShowGBDisclaimer && <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.companyCards.ukRegulation')}</Text>}
                 </Table.EmptyState>
             )}
-            {/* While a full-number search is in flight, the no-results slot shows a spinner instead of
-            "No results" so the empty state does not flash before the server matches arrive. */}
-            {showCards && !shouldShowPendingUnassignmentLoading && <Table.NoResultsState shouldShowLoadingIndicator={companyCardNumberSearch.isSearching} />}
+            {/* While a full-number search is in flight, render a spinner instead of the "No results" slot
+            so the empty state does not flash before the server matches arrive. */}
+            {showCards && !shouldShowPendingUnassignmentLoading && companyCardNumberSearch.isSearching && (
+                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    <ActivityIndicator
+                        color={theme.spinner}
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                    />
+                </View>
+            )}
+            {showCards && !shouldShowPendingUnassignmentLoading && !companyCardNumberSearch.isSearching && <Table.NoResultsState />}
             {showCards && <Table.Header />}
             {showCards && <Table.Body />}
         </Table>

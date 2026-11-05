@@ -41,7 +41,7 @@ import type {UnassignedCard} from '@src/types/onyx/Card';
 import type {CardFeedWithNumber, CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
 import {Str} from 'expensify-common';
-import React, {useEffect, useState} from 'react';
+import {useState} from 'react';
 import {View} from 'react-native';
 
 type CardSelectionStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION>;
@@ -142,12 +142,6 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
         });
     };
 
-    // Feed the typed text into the server search; a 13-19 digit number is matched on the backend.
-    const {setSearchValue: setCompanyCardNumberSearchValue} = companyCardNumberSearch;
-    useEffect(() => {
-        setCompanyCardNumberSearchValue(searchText);
-    }, [searchText, setCompanyCardNumberSearchValue]);
-
     // For a full-number query the server is authoritative: the masked card name shares digit suffixes with
     // unrelated cards, so a tokenized match would surface a card whose hidden digits differ from what the
     // admin typed. Partial (last-four) matches are flagged so the admin can tell they aren't verified.
@@ -167,11 +161,16 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
 
     const safeAreaPaddingBottomStyle = useBottomSafeSafeAreaPaddingStyle();
 
+    // Feed the typed text into the search hook from the input's own change handler rather than mirroring it
+    // through an effect; the search state only ever transitions in response to this user event.
     const textInputOptions = {
         headerMessage: searchedListOptions.length || companyCardNumberSearch.isSearching ? undefined : translate('common.noResultsFound'),
         label: cardListOptions.length > CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD ? translate('common.search') : undefined,
         value: searchText,
-        onChangeText: setSearchText,
+        onChangeText: (text: string) => {
+            setSearchText(text);
+            companyCardNumberSearch.setSearchValue(text);
+        },
         shouldBeInsideList: true,
     };
 
