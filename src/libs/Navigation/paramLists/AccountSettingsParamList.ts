@@ -201,6 +201,13 @@ type AccountSettingsParamList = {
     [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_MORE_INFO_NEEDED]: {
         bankAccountID: string;
     };
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_KYC_REVIEW]: {
+        bankAccountID: string;
+    };
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ONBOARDING_STATUS]: {
+        bankAccountID: string;
+        status?: ValueOf<typeof CONST.WISE.ONBOARDING_STATUS_PAGE>;
+    };
     [SCREENS.SETTINGS.WALLET.EDIT_BANK_ACCOUNT_NICKNAME]: {
         bankAccountID: string;
     };
@@ -244,16 +251,16 @@ type AccountSettingsParamList = {
     };
     [SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD_AVATAR]: undefined;
     [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT]: {
-        accountID: number | string;
+        accountID: number;
     };
     [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_NAME]: {
-        accountID: number | string;
+        accountID: number;
     };
     [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_PROMPT]: {
-        accountID: number | string;
+        accountID: number;
     };
     [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_AVATAR]: {
-        accountID: number | string;
+        accountID: number;
     };
     [SCREENS.SETTINGS.RULES.ADD]: undefined;
     [SCREENS.SETTINGS.RULES.ADD_MERCHANT]: undefined;

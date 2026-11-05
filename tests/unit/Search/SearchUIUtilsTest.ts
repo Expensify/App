@@ -34,7 +34,7 @@ import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
 import {getCardDescriptionForSearchTable} from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
 import getTransactionFromTransactionListItem, {SEARCH_TRANSACTION_ROW_ONLY_FIELD_NAMES} from '@src/libs/getTransactionFromTransactionListItem';
-import {savedSearchIDToSearchKey} from '@src/libs/SearchKeyUtils';
+import {savedSearchIDToSearchKey, TODO_SEARCH_KEYS} from '@src/libs/SearchKeyUtils';
 import {buildSearchQueryJSON, getDateRangeForPreset, getQueryHashes, getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
 import * as SearchQueryUtils from '@src/libs/SearchQueryUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
@@ -3057,6 +3057,72 @@ describe('SearchUIUtils', () => {
                     reportAttributesDerivedValue: {},
                 })[0],
             ).toEqual(transactionsListItems);
+        });
+
+        describe('bill actions in a chat search', () => {
+            const billComment = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: 'billCommentActionID',
+                reportID: reportID3,
+                created: '2025-01-01 00:00:00',
+                actorAccountID: adminAccountID,
+                message: [{type: 'COMMENT', html: 'Bill comment', text: 'Bill comment'}],
+                originalMessage: {html: 'Bill comment'},
+            } as OnyxTypes.ReportAction;
+            const billPreview = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                reportActionID: 'billPreviewActionID',
+                reportID: reportID2,
+                created: '2025-01-01 00:00:01',
+                actorAccountID: adminAccountID,
+                message: [{type: 'COMMENT', html: 'Bill preview', text: 'Bill preview'}],
+                originalMessage: {linkedReportID: reportID3},
+                childReportID: reportID3,
+            } as OnyxTypes.ReportAction;
+
+            const getChatSections = (reportType: string) =>
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.CHAT,
+                    data: {
+                        ...searchResults.data,
+                        [`${ONYXKEYS.COLLECTION.REPORT}${reportID3}`]: {...searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${reportID3}`], type: reportType},
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID3}`]: {[billComment.reportActionID]: billComment},
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID2}`]: {[billPreview.reportActionID]: billPreview},
+                    },
+                    currentAccountID: adminAccountID,
+                    currentUserEmail: adminEmail,
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                });
+
+            it('should leave out comments on a bill and previews that link to a bill', () => {
+                // Given a chat search whose snapshot holds a comment on a bill and a preview of the bill in another chat
+                // When the chat sections are built
+                const [sections] = getChatSections(CONST.REPORT.UNSUPPORTED_TYPE.BILL);
+
+                // Then neither action is listed, because bills stay out of Search until Search supports paying bills
+                const reportActionIDs = sections.filter(SearchUIUtils.isReportActionListItemType).map((item) => item.reportActionID);
+                expect(reportActionIDs).not.toContain(billComment.reportActionID);
+                expect(reportActionIDs).not.toContain(billPreview.reportActionID);
+                expect(reportActionIDs.length).toBeGreaterThan(0);
+            });
+
+            it('should still count the bill actions for paging', () => {
+                // Given the same actions on an expense report, which Search lists
+                const [, expenseReportCount] = getChatSections(CONST.REPORT.TYPE.EXPENSE);
+
+                // When the report is a bill instead
+                const [, billCount] = getChatSections(CONST.REPORT.UNSUPPORTED_TYPE.BILL);
+
+                // Then the count stays the same, because paging compares it with the server offset, which counts every action
+                expect(billCount).toBe(expenseReportCount);
+            });
         });
 
         it('should include iouRequestType property for distance transactions', () => {
@@ -10137,7 +10203,7 @@ describe('SearchUIUtils', () => {
                 isTrackIntentUser: false,
             });
 
-            const todoSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.TODO_SEARCH_KEYS.has(item.key)));
+            const todoSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => TODO_SEARCH_KEYS.has(item.key)));
             expect(todoSectionMenuItems.length).toBeGreaterThan(0);
 
             const menuItemKeys = todoSectionMenuItems.map((item) => item.key);
@@ -10528,7 +10594,7 @@ describe('SearchUIUtils', () => {
                 isTrackIntentUser: false,
             });
 
-            const todoSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.TODO_SEARCH_KEYS.has(item.key)));
+            const todoSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => TODO_SEARCH_KEYS.has(item.key)));
             expect(todoSectionMenuItems.length).toBe(0);
         });
 
@@ -11466,7 +11532,7 @@ describe('SearchUIUtils', () => {
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
-            const todoSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.TODO_SEARCH_KEYS.has(item.key)));
+            const todoSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => TODO_SEARCH_KEYS.has(item.key)));
 
             const submitItem = todoSectionMenuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT);
             const approveItem = todoSectionMenuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.APPROVE);

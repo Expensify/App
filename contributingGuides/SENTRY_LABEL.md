@@ -25,6 +25,18 @@ For labels with exactly three parts, the [`attachInpCategory`](https://github.co
 
 Keep the `<Area>-<Action>` prefix the same for all variants of one interaction, so they land in the same category.
 
+## Labels on wrappers that are not pressable
+
+On web, Sentry builds the selector from the nearest element with a `data-sentry-label`. When that element is the pressable that handled the interaction, the selector is the label alone, e.g. `[data-sentry-label="SaveButton"]`. When the label is on a wrapper that is not a pressable, such as a `View` around a composer, Sentry keeps the CSS path to the inner element that was hit, so clicks on the same wrapper end up under different selectors.
+
+To report such a wrapper with its label alone, set `sentryLabelExact: true` next to the label in its `dataSet`, which renders `data-sentry-label-exact="true"`:
+
+```tsx
+<View dataSet={{sentryLabel: CONST.SENTRY_LABEL.CONCIERGE_PROMPT_BOX.INPUT, sentryLabelExact: true}}>
+```
+
+The flag is read by our patch of `@sentry/browser-utils`, see [patches/sentry-browser-utils/details.md](../patches/sentry-browser-utils/details.md).
+
 ## No IDs or user data
 
 Labels must be built only from constants, never from runtime values. Never build a label from IDs (report, transaction, policy, account), names, emails, amounts or any other user data. Labels are sent to Sentry and FullStory, and dynamic values would both leak user data and split one interaction into a separate series per value.

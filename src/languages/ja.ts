@@ -35,6 +35,12 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        billCreated: ({sender}) => `${sender} に代わってこの請求書を作成しました`,
+        billSubmitted: ({receiver}) => `この請求書を ${receiver} に送信しました`,
+        invoiceCreated: ({sender}) => `${sender} に代わってこの請求書を作成しました`,
+        invoiceSubmitted: ({receiver}) => `この請求書を ${receiver} に送信しました`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 日`,
@@ -116,6 +122,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pay: '支払う',
             fix: '修正',
             task: 'タスク',
+            add: '追加',
         },
         success: '成功しました',
         group: 'グループ',
@@ -1051,6 +1058,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             emailDeliveryFailure: {title: 'メール通知をお送りできません', subtitle: 'アカウント'},
             upgradeNetSuiteConnection: {title: 'NetSuite 接続をアップグレードする'},
+            verifyWiseBankAccount: {title: '銀行口座を確認', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `末尾が ${bankAccountLastFour} の銀行口座`},
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -1223,6 +1231,8 @@ const translations: TranslationDeepObject<typeof en> = {
         runningTotal: '累計合計',
         explain: '説明',
         explainChartPrompt: (chartTitle: string) => `${chartTitle} のデータを説明します。`,
+        viewDetails: '詳細を表示',
+        viewAll: 'すべて表示',
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -2175,14 +2185,15 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `経費の承認を<strong>あなた</strong>が行うのを待っています。`;
+                        return isBill ? `請求書の承認を<strong>あなた</strong>が行うのを待っています。` : `経費の承認を<strong>あなた</strong>が行うのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `<strong>${actor}</strong>による経費の承認を待っています。`;
+                        return isBill ? `<strong>${actor}</strong>による請求書の承認を待っています。` : `<strong>${actor}</strong>による経費の承認を待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `管理者が経費を承認するのを待っています。`;
+                        return isBill ? `管理者が請求書を承認するのを待っています。` : `管理者が経費を承認するのを待っています。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (
@@ -2205,14 +2216,15 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `精算の支払いを<strong>あなた</strong>が行うのを待っています。`;
+                        return isBill ? `この請求書の支払いを<strong>あなた</strong>が行うのを待っています。` : `精算の支払いを<strong>あなた</strong>が行うのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `<strong>${actor}</strong> が経費を支払うのを待っています。`;
+                        return isBill ? `<strong>${actor}</strong> がこの請求書を支払うのを待っています。` : `<strong>${actor}</strong> が経費を支払うのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `管理者が経費を支払うのを待っています。`;
+                        return isBill ? `管理者がこの請求書を支払うのを待っています。` : `管理者が経費を支払うのを待っています。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
@@ -3100,7 +3112,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 alreadySubmitted: 'このビジネスはすでに審査のためにWiseに送信されています。',
             },
             moreInfoNeeded: {headerTitle: '詳細情報が必要です', title: '追加情報を確認', subtitle: '決済パートナーが直接、追加情報を必要としています。数分で完了します。'},
+            inReview: {
+                title: 'レビュー中',
+                heading: '必要な情報はすべて揃いました。\n後ほどご連絡いたします！',
+                description: '審査のほとんどは1～2日かかります。更新があり次第メッセージでお知らせします。',
+                chatWithConcierge: 'Concierge とチャットする',
+            },
+            approved: {title: 'アカウントが承認されました', heading: '世界中で支払い承認済み', description: 'メンバーがどこにいても支払いましょう。'},
+            rejected: {title: '銀行口座が拒否されました', heading: 'パートナーがあなたの銀行口座を拒否しました', description: '詳しくは Concierge にチャットでお問い合わせください。'},
         },
+        wiseSetupInProgress: {message: 'グローバル払い戻しの設定が進行中です。', continue: '続行。'},
         wiseGlobalReimbursementsIntro: {
             title: 'グローバル払い戻しを設定しますか？',
             subtitle: '世界中のメンバーに現地通貨で支払えます。',
@@ -3109,6 +3130,7 @@ const translations: TranslationDeepObject<typeof en> = {
             payingReportSubtitle: '会社と従業員の銀行口座は異なる通貨を使用しています。',
         },
         wiseGlobalReimbursementsBanner: {title: '世界中の人に支払いましょう', subtitle: 'USD アカウントでグローバル払い戻しを有効にします。'},
+        wiseMoreInfoNeeded: 'グローバル払い戻しを有効にするには、さらに情報が必要です',
         globalReimbursementsEnabled: 'グローバル精算が有効になりました',
     },
     addCardToDigitalWallet: {
@@ -9050,8 +9072,9 @@ ${reportName}`,
                 describeRuleForConcierge: 'ルールの内容を入力すると、Concierge が自動作成します',
                 gotIt: '了解しました',
                 createRule: 'ルールを作成',
-                fallbackBanner: 'これは標準ルールではないため、エージェントルールを作成しました。',
-                fallbackBannerWithExplanation: (explanation: string) => `これは標準ルールではないため、エージェントルールを作成しました。${explanation}`,
+                fallbackBanner: 'これは標準ルールではないため、エージェントルールを作成しました。エージェントルールは、経費またはレポートが作成または更新されたときに実行されます。',
+                fallbackBannerWithExplanation: (explanation: string) =>
+                    `これは標準ルールではないため、エージェントルールを作成しました。エージェントルールは、経費またはレポートが作成または更新されたときに実行されます。${explanation}`,
             },
             tabs: {
                 general: '一般',
@@ -9520,6 +9543,27 @@ ${reportName}`,
             noVendorsFoundDescription: 'Zoho Books にベンダーを追加して、もう一度接続を同期してください',
             noAccountsFound: 'アカウントが見つかりません',
             noAccountsFoundDescription: 'Zoho Books に口座を追加して、もう一度同期してください',
+            autoSyncDescription: 'Zoho Books と Expensify を毎日自動で同期します。レポートはリアルタイムで同期されます。',
+            accountingMethods: {
+                label: 'エクスポート方法',
+                description: '経費をいつエクスポートするかを選択します。',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '発生主義',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '現金',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '自己負担経費は、最終承認されるとエクスポートされます',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '立替経費は支払われたときにエクスポートされます',
+                },
+            },
+            syncReimbursedReports: '精算済みレポートを同期',
+            syncReimbursedReportsDescription: 'レポートがACHで支払われると、この口座で支払伝票が作成されます。',
+            billPaymentAccount: {label: '請求支払口座', description: 'Expensify が請求書を支払済みにするときに、Zoho Books が貸方記入するクリアリング勘定を選択します。'},
+            syncExpensifyCardSettlements: 'Expensify カードの決済を同期する',
+            settlementAccount: {label: 'Expensify カード精算口座', description: '清算用の口座を選択すると、Zoho Books に支払いを作成します。'},
+            syncTravelBillingSettlements: '統合トラベル請求の決済を同期',
+            travelBillingSettlementAccount: {label: '統合トラベル請求の決済口座', description: '清算用の口座を選択すると、Zoho Books に支払いを作成します。'},
+            travelBillingPayableAccount: {label: '統合トラベル請求買掛金勘定'},
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central のセットアップ',
@@ -10696,6 +10740,7 @@ ${reportName}`,
         },
         display: {
             label: '表示',
+            labelWithCount: ({count}: {count: number}) => (count > 0 ? `表示 (${count})` : '表示'),
             sortBy: '並べ替え',
             sortOrder: '並べ替え順',
             groupBy: 'グループ化基準',
@@ -12087,7 +12132,6 @@ ${reportName}`,
             isUnreadWithMention: '未読（メンションあり）',
             isWaitingForAssigneeToCompleteAction: '担当者のアクション完了を待機中',
             hasChildReportAwaitingAction: '対応が必要な子レポートがあります',
-            hasMissingInvoiceBankAccount: '請求書の銀行口座が未設定',
             hasUnresolvedCardFraudAlert: '未解決のカード不正利用アラートがあります',
             hasDEWApproveFailed: 'DEW の承認が失敗しました',
         },
@@ -12606,5 +12650,28 @@ ${reportName}`,
         mobileClaimPrompt: '更新割引を受け取るには、Web ブラウザで Expensify にアクセスしてください。',
     },
     bulkActionBar: {label: '一括操作', clearSelection: '選択をクリア', loadingSelection: '選択内容を読み込み中'},
+    reportHistoryPage: {
+        title: 'レポート履歴',
+        created: 'レポートを作成しました',
+        submitted: '送信済み',
+        approved: '承認済み',
+        paid: '支払い済み',
+        toSubmit: '送信する',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return '自動送信する';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `毎月${eta}に自動で送信する` : `${eta}自動送信する`;
+        },
+        toApprove: '承認する',
+        toPay: '支払う',
+        minutesAgo: (count: number) => `${count}分前`,
+        hoursAgo: (count: number) => `${count}時間前`,
+        daysAgo: () => ({
+            one: '1日前',
+            other: (count: number) => `${count}日前`,
+        }),
+        offlineMessage: 'オフラインです。レポート履歴が最新ではない可能性があります。',
+    },
 };
 export default translations;

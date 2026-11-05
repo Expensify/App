@@ -829,8 +829,6 @@ const CONST = {
         MONTH_DAY_YEAR_FORMAT: 'MMMM d, yyyy',
         FNS_TIMEZONE_FORMAT_STRING: "yyyy-MM-dd'T'HH:mm:ssXXX",
         FNS_DB_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss.SSS',
-        LONG_DATE_FORMAT_WITH_WEEKDAY: 'eeee, MMMM d, yyyy',
-        LONG_DATE_FORMAT_WITH_WEEKDAY_WITHOUT_YEAR: 'eeee, MMMM d',
         ORDINAL_DAY_OF_MONTH: 'do',
         MONTH_DAY_YEAR_ORDINAL_FORMAT: 'MMMM do, yyyy',
         SECONDS_PER_DAY: 24 * 60 * 60,
@@ -1048,12 +1046,61 @@ const CONST = {
         TERMS_URL: 'https://wise.com/terms-and-conditions',
         PRIVACY_URL: 'https://wise.com/privacy-policy',
 
+        /** The query param Wise adds to the redirect URL when its hosted KYC form ends, saying how it ended */
+        KYC_REVIEW_REDIRECT_STATUS_PARAM: 'status',
+
+        /** Countries missing from Wise's supported list, so the bank account picker leaves them out */
+        EXCLUDED_BANK_ACCOUNT_COUNTRIES: [
+            'AC',
+            'AF',
+            'AQ',
+            'BI',
+            'BL',
+            'BY',
+            'CD',
+            'CF',
+            'CG',
+            'CU',
+            'EH',
+            'ER',
+            'GS',
+            'IO',
+            'IQ',
+            'IR',
+            'KM',
+            'KP',
+            'LY',
+            'MF',
+            'MM',
+            'PN',
+            'PS',
+            'RU',
+            'SD',
+            'SO',
+            'SS',
+            'SY',
+            'TA',
+            'TD',
+            'TF',
+            'TK',
+            'TM',
+            'VE',
+            'YE',
+            'ZW',
+        ] as string[],
+
         /** Server-derived state of the Wise onboarding */
         ONBOARDING_STATUS: {
             IN_REVIEW: 'IN_REVIEW',
             ACTION_REQUIRED: 'ACTION_REQUIRED',
             APPROVED: 'APPROVED',
             NOT_APPROVED: 'NOT_APPROVED',
+        },
+        /** The content the onboarding status page shows, read from its `status` query param */
+        ONBOARDING_STATUS_PAGE: {
+            REVIEW: 'review',
+            APPROVED: 'approved',
+            REJECTED: 'rejected',
         },
         /** The steps UpdateWiseOnboardingAdditionalData accepts: our intake pages, and the EDD pages keyed by Wise's KYC requirement key. The server answers any other step with 400 Invalid step. */
         ONBOARDING_STEP: {
@@ -1472,7 +1519,6 @@ const CONST = {
         GLOBAL_REIMBURSEMENTS: 'globalReimbursements',
         WISE_REIMBURSEMENTS: 'wiseReimbursements',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
-        TRAVEL_CODING_SYNC: 'travelCodingSync',
         ARCHIVE_POLICIES: 'archivePolicies',
         MERGE_ATS: 'mergeATSConnections',
         REPORT_MERGE: 'reportMerge',
@@ -1486,6 +1532,7 @@ const CONST = {
         RESIZABLE_RHP: 'resizableRHP',
         TRAVEL_APPROVAL: 'travelApproval',
         SCAN_FLASH_TORCH: 'scanFlashTorch',
+        NEW_DOT_BILL_PAY: 'newDotBillPay',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1830,7 +1877,7 @@ const CONST = {
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME: 'ExpensifyPackageForSageIntacct',
     SAGE_INTACCT_INSTRUCTIONS: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct',
     HOW_TO_CONNECT_TO_SAGE_INTACCT: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct#how-to-connect-to-sage-intacct',
-    BUSINESS_CENTRAL_HELP_URL: 'https://help.expensify.com/new-expensify/hubs/connections/',
+    BUSINESS_CENTRAL_HELP_URL: 'https://help.expensify.com/new-expensify/hubs/connections/business-central',
     PRICING: `https://www.expensify.com/pricing`,
     COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS:
         'https://help.expensify.com/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Commercial-Feed-for-Company-Cards#how-to-enable-a-mastercard-commercial-card-feed-cdf',
@@ -1959,6 +2006,11 @@ const CONST = {
             ADMIN: 'admin',
             MEMBER: 'member',
         },
+        UPCOMING_STEP_ACTION: {
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
+        },
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
         // The backend rejects moving an expense into a report that already holds this many transactions, so the App
@@ -2073,6 +2125,7 @@ const CONST = {
             PAY: 'pay',
             FIX: 'fix',
             TASK: 'task',
+            ADD: 'add',
         },
         ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE: {
             EXPENSE: 'expense',
@@ -4542,7 +4595,9 @@ const CONST = {
     // Zoho Books accounts have one account_type. These are the lowercase values the API returns.
     ZOHO_BOOKS_ACCOUNT_TYPE: {
         BANK: 'bank',
+        CASH: 'cash',
         CREDIT_CARD: 'credit_card',
+        OTHER_CURRENT_LIABILITY: 'other_current_liability',
         EXPENSE: 'expense',
         COST_OF_GOODS_SOLD: 'cost_of_goods_sold',
         OTHER_EXPENSE: 'other_expense',
@@ -9774,6 +9829,7 @@ const CONST = {
         HAS_PENDING_CARD_INFO: 'hasPendingCardInfo',
         HAS_UBER_CREDENTIALS_ERROR: 'hasUberCredentialsError',
         HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO: 'hasPartiallySetupBankAccountInfo',
+        HAS_WISE_MORE_INFO_NEEDED_INFO: 'hasWiseMoreInfoNeededInfo',
         HAS_EMPLOYEE_CARD_FEED_ERRORS: 'hasEmployeeCardFeedErrors',
         HAS_POLICY_ADMIN_CARD_FEED_ERRORS: 'hasPolicyAdminCardFeedErrors',
         HAS_DOMAIN_ERRORS: 'hasDomainErrors',
@@ -9818,7 +9874,6 @@ const CONST = {
         IS_UNREAD_WITH_MENTION: 'isUnreadWithMention',
         IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION: 'isWaitingForAssigneeToCompleteAction',
         HAS_CHILD_REPORT_AWAITING_ACTION: 'hasChildReportAwaitingAction',
-        HAS_MISSING_INVOICE_BANK_ACCOUNT: 'hasMissingInvoiceBankAccount',
         HAS_UNRESOLVED_CARD_FRAUD_ALERT: 'hasUnresolvedCardFraudAlert',
         HAS_DEW_APPROVE_FAILED: 'hasDEWApproveFailed',
     },
@@ -10233,6 +10288,9 @@ const CONST = {
         DATE_PICKER: {
             CLEAR_BUTTON: 'DatePicker-ClearButton',
         },
+        NUMBER_WITH_SYMBOL_FORM: {
+            INPUT: 'NumberWithSymbolForm-Input',
+        },
         TEST_TOOL_MENU: {
             SERVER: 'TestToolMenu-Server',
         },
@@ -10266,6 +10324,17 @@ const CONST = {
         },
         WISE_MORE_INFO_NEEDED: {
             CONTINUE: 'WiseMoreInfoNeeded-Continue',
+        },
+        WISE_ONBOARDING_IN_REVIEW: {
+            CHAT_WITH_CONCIERGE: 'WiseOnboardingInReview-ChatWithConcierge',
+            DONE: 'WiseOnboardingInReview-Done',
+        },
+        WISE_ONBOARDING_REJECTED: {
+            CHAT_WITH_CONCIERGE: 'WiseOnboardingRejected-ChatWithConcierge',
+            GOT_IT: 'WiseOnboardingRejected-GotIt',
+        },
+        WISE_ONBOARDING_APPROVED: {
+            DONE: 'WiseOnboardingApproved-Done',
         },
         PRODUCT_MARKETING_WINDOW: {
             CTA: 'ProductMarketingWindow-CTA',
@@ -10364,6 +10433,9 @@ const CONST = {
             THUMBNAIL: 'VideoPlayer-Thumbnail',
             MUTE_BUTTON: 'VideoPlayer-MuteButton',
             VIDEO: 'VideoPlayer-Video',
+        },
+        CHART_TOOLTIP: {
+            PRESS: 'ChartTooltip-Press',
         },
         HTML_RENDERER: {
             IMAGE: 'HTMLRenderer-Image',
@@ -10592,6 +10664,7 @@ const CONST = {
             SAVED_SEARCH_MENU_ITEM: 'Search-SavedSearchMenuItem',
             SAVE_VIEW_BUTTON: 'Search-SaveViewButton',
             RESET_FILTERS_BUTTON: 'Search-ResetFiltersButton',
+            RESET_DISPLAY_BUTTON: 'Search-ResetDisplayButton',
             SAVE_FILTERS_BUTTON: 'Search-SaveFiltersButton',
             ACTION_CELL_VIEW: 'Search-ActionCellView',
             ACTION_CELL_ACTION: {
@@ -10630,6 +10703,7 @@ const CONST = {
             CONTROL_COMPARE: 'Insights-ControlCompare',
             AI_EXPLAIN: 'Insights-AIExplain',
             DASHBOARD_TAB: 'Insights-DashboardTab',
+            TABLE_ROW: 'Insights-TableRow',
         },
         EXPENSE_RULES: {
             TABLE_ROW: 'ExpenseRules-TableRow',
@@ -10668,10 +10742,13 @@ const CONST = {
             MODERATION_BUTTON: 'Report-ModerationButton',
             MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL: 'MoneyRequestReportActionsList-SelectAll',
             MONEY_REQUEST_REPORT_TRANSACTION_ITEM: 'MoneyRequestReportTransactionItem',
+            MONEY_REPORT_HEADER_NEXT_STEP: 'Report-MoneyReportHeaderNextStep',
+            MONEY_REPORT_HEADER_STATUS_BAR: 'Report-MoneyReportHeaderStatusBar',
             REPORT_FIELD_DELETE_BUTTON: 'Report-ReportFieldDeleteButton',
             REPORT_ACTION_AVATAR: 'Report-ReportActionAvatar',
             PARTICIPANTS_ROW: 'Report-ParticipantsRow',
             ROOM_MEMBERS_ROW: 'Report-RoomMembersRow',
+            SELECTION_MODE_MENU_ITEM: 'Report-SelectionModeMenuItem',
             EMPTY_STATE: {
                 ADD_EXPENSE: 'Report-EmptyStateAddExpense',
                 CREATE_EXPENSE: 'Report-EmptyStateAddExpenseMenu-CreateExpense',
@@ -10916,6 +10993,7 @@ const CONST = {
         },
         SHARE_DETAIL: {
             DISMISS_KEYBOARD_BUTTON: 'ShareDetail-DismissKeyboardButton',
+            SHARE_BUTTON: 'ShareDetail-ShareButton',
         },
         MAP_VIEW: {
             COMPASS: 'compass',
@@ -11408,6 +11486,9 @@ const CONST = {
             IMPORT_TRANSACTIONS: 'SettingsWallet-ImportTransactions',
             TRANSFER_BALANCE: 'SettingsWallet-TransferBalance',
             ENABLE_WALLET: 'SettingsWallet-EnableWallet',
+            WISE_MORE_INFO_NEEDED_REVIEW: 'SettingsWallet-WiseMoreInfoNeededReview',
+            DIGITAL_WALLET_APPROVAL_REVIEW: 'SettingsWallet-DigitalWalletApprovalReview',
+            MISSING_PERSONAL_DETAILS_ADD: 'SettingsWallet-MissingPersonalDetailsAdd',
         },
         SETTINGS_RULES: {
             NEW_RULE: 'SettingsRules-NewRule',
