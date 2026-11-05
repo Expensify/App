@@ -7,8 +7,54 @@ import {Keyboard} from 'react-native';
 
 import type {DismissKeyboardOptions} from './types';
 
+type ViewportHeightSample = {
+    /** Tallest viewport height seen at the width. */
+    height: number;
+
+    /** Whether the keyboard was open at that height, i.e. the height without the keyboard isn't known yet. */
+    isKeyboardOpen: boolean;
+};
+
 let isVisible = false;
+
+// Kept per window width, which the keyboard doesn't change. Comparing a landscape height against the portrait one would
+// read the shorter landscape viewport as an open keyboard, and dismiss() would then wait forever for it to close. Keying
+// by the width rather than by orientation also keeps rotations apart in split or resized windows, where both widths are
+// closer to the same side of the screen.
+const viewportHeightSamples = new Map<number, ViewportHeightSample>();
+
+/** Also records the height. Under 152px of difference can be a smart banner or offline indicator, not the keyboard. */
+function isKeyboardVisibleAt(viewportHeight: number): boolean {
+    const width = window.innerWidth;
+    const sample = viewportHeightSamples.get(width);
+
+    // The keyboard stays open through a rotation, so the first height at a new width can be reduced by it
+    if (!sample) {
+        viewportHeightSamples.set(width, {height: viewportHeight, isKeyboardOpen: isVisible});
+        return isVisible;
+    }
+
+    // Grown by more than a banner, so the sampled height was taken with the keyboard open and this one is without it
+    if (viewportHeight - sample.height > CONST.SMART_BANNER_HEIGHT) {
+        viewportHeightSamples.set(width, {height: viewportHeight, isKeyboardOpen: false});
+        return false;
+    }
+
+    // The keyboard opened, so it was closed at the sampled height after all
+    if (sample.height - viewportHeight > CONST.SMART_BANNER_HEIGHT) {
+        sample.isKeyboardOpen = false;
+        return true;
+    }
+
+    sample.height = Math.max(sample.height, viewportHeight);
+    return sample.isKeyboardOpen;
+}
+
+// The app loads with the keyboard closed, so the load-time height is the baseline for its width.
 const initialViewportHeight = window?.visualViewport?.height;
+if (initialViewportHeight) {
+    isKeyboardVisibleAt(initialViewportHeight);
+}
 
 const keyboardVisibilityChangeListenersSet = new Set<(isVisible: boolean) => void>();
 
@@ -23,14 +69,11 @@ const subscribeKeyboardVisibilityChange = (cb: (isVisible: boolean) => void) => 
 const handleResize = () => {
     const viewportHeight = window?.visualViewport?.height;
 
-    if (!viewportHeight || !initialViewportHeight) {
+    if (!viewportHeight) {
         return;
     }
 
-    // Determine if the keyboard is visible by checking if the height difference exceeds 152px.
-    // The 152px threshold accounts for UI elements such as smart banners on iOS Retina (max ~152px)
-    // and smaller overlays like offline indicators on Android. Height differences > 152px reliably indicate keyboard visibility.
-    isVisible = initialViewportHeight - viewportHeight > CONST.SMART_BANNER_HEIGHT;
+    isVisible = isKeyboardVisibleAt(viewportHeight);
 
     for (const cb of keyboardVisibilityChangeListenersSet) {
         cb(isVisible);
@@ -55,12 +98,11 @@ const dismiss = (options?: DismissKeyboardOptions): Promise<void> => {
         const handleDismissResize = () => {
             const viewportHeight = window?.visualViewport?.height;
 
-            if (!viewportHeight || !initialViewportHeight) {
+            if (!viewportHeight) {
                 return;
             }
 
-            const isKeyboardVisible = initialViewportHeight - viewportHeight > CONST.SMART_BANNER_HEIGHT;
-            if (isKeyboardVisible) {
+            if (isKeyboardVisibleAt(viewportHeight)) {
                 return;
             }
 

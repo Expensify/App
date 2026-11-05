@@ -11,6 +11,9 @@ type UseLiveColumnWidthsParams = {
 
     /** Active drag. Live widths survive it so a width stored elsewhere can't yank the column. */
     dragRef: RefObject<unknown>;
+
+    /** Arrow-key width not stored yet. Live widths survive it like a drag, so a render mid-hold can't pull the edge back. */
+    keyboardResizeRef: RefObject<unknown>;
 };
 
 type LiveColumnWidths = {
@@ -29,7 +32,7 @@ type LiveColumnWidths = {
 };
 
 /** Widths written mid-gesture as CSS custom properties. None at rest, so they never need syncing with resolved widths. */
-function useLiveColumnWidths({resolvedColumnWidths, dragRef}: UseLiveColumnWidthsParams): LiveColumnWidths {
+function useLiveColumnWidths({resolvedColumnWidths, dragRef, keyboardResizeRef}: UseLiveColumnWidthsParams): LiveColumnWidths {
     const scopeElementRef = useRef<HTMLElement | null>(null);
     const liveWidthsRef = useRef<Record<string, number>>({});
 
@@ -57,13 +60,13 @@ function useLiveColumnWidths({resolvedColumnWidths, dragRef}: UseLiveColumnWidth
 
     // React now renders the committed width as the fallback, so drop live widths before paint.
     useLayoutEffect(() => {
-        // The drag's own commit clears later.
-        if (dragRef.current) {
+        // The drag's or the arrow keys' own commit clears later.
+        if (dragRef.current || keyboardResizeRef.current) {
             return;
         }
 
         clearLiveWidths();
-    }, [resolvedColumnWidths, dragRef]);
+    }, [resolvedColumnWidths, dragRef, keyboardResizeRef]);
 
     return {scopeElementRef, setScopeElement, writeColumnWidth, readColumnWidth, clearLiveWidths};
 }
