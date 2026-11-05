@@ -374,8 +374,9 @@ const CONST = {
         INPUT: 'INPUT',
         TEXTAREA: 'TEXTAREA',
     },
+    /** Where the account switcher menu opens before its button is measured. Horizontal counts from the navigation bar's right edge. */
     POPOVER_ACCOUNT_SWITCHER_POSITION: {
-        horizontal: 12 + CONST_RUNTIME.STYLE_VARIABLES.navigationTabBarSize,
+        horizontal: 12,
         vertical: 72,
     },
     POPOVER_DROPDOWN_WIDTH: 334,
@@ -1531,6 +1532,7 @@ const CONST = {
         COLLECT_DEPOSIT_ACCOUNTS: 'collectDepositAccounts',
         RESIZABLE_RHP: 'resizableRHP',
         TRAVEL_APPROVAL: 'travelApproval',
+        FLAT_NAV: 'flatNav',
         SCAN_FLASH_TORCH: 'scanFlashTorch',
         NEW_DOT_BILL_PAY: 'newDotBillPay',
         HYBRID_WEB: 'hybridWeb',
