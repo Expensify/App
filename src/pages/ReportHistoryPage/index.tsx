@@ -18,8 +18,8 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportHistoryNavigatorParamList} from '@libs/Navigation/types';
-import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
-import {isGroupPolicyExpenseReport, isOpenExpenseReport, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {getReimbursementChoice, getReimburserAccountID, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
+import {getMoneyRequestSpendBreakdown, isGroupPolicyExpenseReport, isOpenExpenseReport, isReportApproved, isSettled, shouldShowMarkAsDone} from '@libs/ReportUtils';
 
 import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
 import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
@@ -60,6 +60,13 @@ function ReportHistoryPage({report}: ReportHistoryPageProps) {
         openReportStatusPage(report.reportID);
     }, [report.reportID]);
 
+    // The report can still be marked as paid, even though its next step says no further action
+    const isWaitingForManualPayment =
+        isReportApproved({report}) &&
+        !isSettled(report) &&
+        getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL &&
+        getMoneyRequestSpendBreakdown(report).reimbursableSpend !== 0;
+
     const steps = getReportHistorySteps({
         translate,
         dateFnsLocale,
@@ -74,6 +81,7 @@ function ReportHistoryPage({report}: ReportHistoryPageProps) {
         isDEWPolicy: hasDynamicExternalWorkflow(policy),
         shouldDisplayMarkAsDone: shouldShowMarkAsDone({isTrackIntentUser, report, policy, rules}),
         reportMetadata,
+        manualPayerAccountID: isWaitingForManualPayment ? getReimburserAccountID(policy) : undefined,
     });
 
     const shouldShowSkeleton = !!isLoadingReportStatus && !reportUpcomingSteps && !isOffline;

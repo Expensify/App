@@ -52,6 +52,9 @@ type GetReportHistoryStepsParams = {
     isDEWPolicy: boolean;
     shouldDisplayMarkAsDone: boolean;
     reportMetadata: OnyxEntry<ReportMetadata>;
+
+    /** The payer of an approved, unpaid report on a workspace that reimburses outside Expensify, whose next step says no further action */
+    manualPayerAccountID: number | undefined;
 };
 
 function getCompletedStep(
@@ -159,9 +162,14 @@ function getCurrentUpcomingSteps(
     nextStep: ReportNextStep | undefined,
     isOpenReport: boolean,
     queuedDEWAction: ReportAction | undefined,
+    manualPayerAccountID: number | undefined,
 ): ReportUpcomingStep[] {
     if (nextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION) {
-        return [];
+        if (manualPayerAccountID === undefined) {
+            return [];
+        }
+        const payStep = upcomingSteps.find((step) => step.action === CONST.REPORT.UPCOMING_STEP_ACTION.PAY);
+        return [payStep ?? {action: CONST.REPORT.UPCOMING_STEP_ACTION.PAY, actorAccountID: manualPayerAccountID}];
     }
 
     let steps = upcomingSteps;
@@ -200,6 +208,7 @@ function getReportHistorySteps({
     isDEWPolicy,
     shouldDisplayMarkAsDone,
     reportMetadata,
+    manualPayerAccountID,
 }: GetReportHistoryStepsParams): ReportHistoryStep[] {
     const completedSteps: ReportHistoryStep[] = [];
     let lastStepAction: ReportAction | undefined;
@@ -224,7 +233,7 @@ function getReportHistorySteps({
         ((hasPendingDEWSubmit(reportMetadata, isDEWPolicy) && isSubmittedAction(lastStepAction)) ||
             (hasPendingDEWApprove(reportMetadata, isDEWPolicy) && (isApprovedAction(lastStepAction) || isForwardedAction(lastStepAction))));
 
-    const currentUpcomingSteps = getCurrentUpcomingSteps(upcomingSteps, nextStep, isOpenReport, isLastStepQueuedForDEW ? lastStepAction : undefined)
+    const currentUpcomingSteps = getCurrentUpcomingSteps(upcomingSteps, nextStep, isOpenReport, isLastStepQueuedForDEW ? lastStepAction : undefined, manualPayerAccountID)
         .map((upcomingStep, index) => getUpcomingStep(translate, dateFnsLocale, upcomingStep, index, nextStep))
         .filter((step): step is ReportHistoryStep => !!step);
 
