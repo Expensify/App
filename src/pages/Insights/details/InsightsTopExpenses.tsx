@@ -132,7 +132,7 @@ function InsightsTopExpenses({expenses, state, onRetry, viewAllQuery}: InsightsT
                 >
                     {translate('insightsPage.topExpenses')}
                 </Text>
-                {(state === TOP_EXPENSES_STATE.LOADING || expenses.length > 0) && (
+                {expenses.length > 0 && (
                     <PressableWithoutFeedback
                         onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: viewAllQuery}))}
                         accessibilityRole={CONST.ROLE.LINK}
