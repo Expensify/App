@@ -25,6 +25,11 @@ const mockTranslate = TestHelper.translateLocal;
 
 const mockOnyxValues: Record<string, unknown> = {};
 
+const INTRO_PATH = 'settings/wallet/global-reimbursements/1';
+
+// The real hook reads the focused route, so the path changes once the page navigates away
+let mockFocusedPath = INTRO_PATH;
+
 // The real useFocusEffect throws outside a navigator
 jest.mock('@react-navigation/native', () => ({...jest.requireActual<Record<string, unknown>>('@react-navigation/native'), useFocusEffect: jest.fn()}));
 jest.mock('@navigation/Navigation', () => ({dismissModal: jest.fn(), navigate: jest.fn(), goBack: jest.fn()}));
@@ -40,7 +45,7 @@ jest.mock('@hooks/useOnyx', () => (key: string, options?: {selector?: (value: un
     const value = mockOnyxValues[key];
     return [options?.selector ? options.selector(value) : value, {status: 'loaded'}];
 });
-jest.mock('@hooks/useDynamicBackPath', () => () => 'settings/wallet/global-reimbursements/1');
+jest.mock('@hooks/useDynamicBackPath', () => () => mockFocusedPath);
 jest.mock('@hooks/usePermissions', () => () => ({isBetaEnabledOrUnknown: () => true}));
 jest.mock('@hooks/useLocalize', () => () => ({translate: mockTranslate, preferredLocale: 'en'}));
 jest.mock('@hooks/useThemeStyles', () => () => new Proxy({}, {get: () => ({})}));
@@ -123,6 +128,7 @@ function answerSubmission(rerender: () => void, answer: Record<string, unknown>)
 describe('WiseAcceptTermsPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockFocusedPath = INTRO_PATH;
         for (const key of Object.keys(mockOnyxValues)) {
             delete mockOnyxValues[key];
         }
@@ -178,6 +184,37 @@ describe('WiseAcceptTermsPage', () => {
         expect(clearSensitiveAnswers).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
         expect(clearWiseOnboardingUnsavedPages).toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenCalledWith('settings/wallet/global-reimbursements/1/more-info-needed', {forceReplace: true});
+    });
+
+    it('opens the more info needed page only once while the terms page is still mounted under it', () => {
+        // Given a submission that succeeded and opened the more info needed page
+        const {rerender} = renderPage();
+        tickEveryBox();
+        pressConfirm();
+        answerSubmission(rerender, {isWiseBusinessOnboardingSubmitSuccessful: true});
+
+        // When the terms page renders again with the more info needed page focused, as it does until the replace finishes
+        mockFocusedPath = `${INTRO_PATH}/more-info-needed`;
+        rerender();
+
+        // Then it does not navigate again, since the focused path is no longer the terms page and would point at a route that does not exist
+        expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+    });
+
+    it('opens the page with a rejected answer only once while the terms page is still mounted under it', () => {
+        // Given a submission whose rejected answer opened the business page
+        const {rerender} = renderPage();
+        tickEveryBox();
+        pressConfirm();
+        mockOnyxValues[ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM] = {errorFields: {description: {[ERROR_TIMESTAMP]: 'Too vague'}}};
+        answerSubmission(rerender, {isWiseBusinessOnboardingSubmitSuccessful: false, errors: {[ERROR_TIMESTAMP]: 'Validation failed'}});
+
+        // When the terms page renders again with the business page focused
+        mockFocusedPath = `${INTRO_PATH}/business-onboarding/business`;
+        rerender();
+
+        // Then it does not navigate again, since the focused path is no longer the terms page
+        expect(Navigation.navigate).toHaveBeenCalledTimes(1);
     });
 
     it('keeps the user on the terms page with the error when the submission fails', () => {
