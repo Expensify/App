@@ -572,6 +572,7 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'Exports vers',
         shareReport: 'Partager la note de frais',
         reportShared: 'Note de frais partagée',
+        amount: 'Montant',
     },
     socials: {
         podcast: 'Suivez-nous sur Podcast',
@@ -7643,10 +7644,10 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             reimbursementAccount: 'compte de remboursement',
             welcomeNote: 'Veuillez commencer à utiliser mon nouvel espace de travail',
             delayedSubmission: 'soumission retardée',
-            merchantRules: 'Valeurs par défaut des dépenses',
+            merchantRules: 'Paramètres par défaut des dépenses',
             merchantRulesCount: () => ({
                 one: '1 dépense par défaut',
-                other: (count: number) => `${count} paramètres par défaut de dépenses`,
+                other: (count: number) => `${count} paramètres de dépenses par défaut`,
             }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `Vous êtes sur le point de créer et de partager ${newWorkspaceName ?? ''} avec ${totalMembers ?? 0} membres de l’espace de travail d’origine.`,
@@ -9032,7 +9033,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 matchTypeContains: 'Contient',
                 matchTypeExact: 'Correspond exactement',
                 duplicateRuleTitle: 'Une règle similaire existe déjà',
-                duplicateRulePrompt: (conditionName: string) => `Votre règle existante pour « ${conditionName} » aura la priorité sur celle-ci. Enregistrer quand même ?`,
+                duplicateRulePrompt: (conditionName: string) => `Votre règle existante « ${conditionName} » aura la priorité sur celle-ci. Enregistrer quand même ?`,
                 saveAnyway: 'Enregistrer quand même',
                 applyToExistingUnsubmittedExpenses: 'Appliquer aux dépenses non soumises existantes',
                 findRule: 'Règle de recherche de commerçant',

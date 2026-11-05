@@ -572,6 +572,7 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'Exporteert naar',
         shareReport: 'Rapport delen',
         reportShared: 'Rapport gedeeld',
+        amount: 'Bedrag',
     },
     socials: {
         podcast: 'Volg ons op Podcast',
@@ -7563,7 +7564,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             merchantRules: 'Standaardinstellingen voor uitgaven',
             merchantRulesCount: () => ({
                 one: '1 standaarduitgave',
-                other: (count: number) => `${count} onkostendefaults`,
+                other: (count: number) => `${count} standaardinstellingen voor uitgaven`,
             }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `Je staat op het punt ${newWorkspaceName ?? ''} te maken en te delen met ${totalMembers ?? 0} leden van de oorspronkelijke werkruimte.`,
@@ -8930,7 +8931,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 matchTypeContains: 'Bevat',
                 matchTypeExact: 'Komt exact overeen',
                 duplicateRuleTitle: 'Vergelijkbare regel bestaat al',
-                duplicateRulePrompt: (conditionName: string) => `Je bestaande regel voor ‘${conditionName}’ krijgt voorrang op deze regel. Toch opslaan?`,
+                duplicateRulePrompt: (conditionName: string) => `Je bestaande regel voor '${conditionName}' krijgt voorrang op deze regel. Toch opslaan?`,
                 saveAnyway: 'Toch opslaan',
                 applyToExistingUnsubmittedExpenses: 'Toepassen op bestaande niet-ingediende uitgaven',
                 findRule: 'Zoek handelsregel',
@@ -8941,7 +8942,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 vendorUnavailable: 'Leverancier niet beschikbaar',
                 confirmErrorCategory: 'Selecteer een categorie',
                 confirmErrorCondition: 'Voeg minstens één voorwaarde toe',
-                confirmErrorConditionAndDefault: 'Voeg minstens één voorwaarde toe en stel minstens één standaardwaarde in',
+                confirmErrorConditionAndDefault: 'Voeg minstens één voorwaarde toe en pas minstens één standaardinstelling toe',
                 createRuleFromExpenseAction: 'Maak een regel',
                 createRuleFromExpensePrompt: 'om je wijzigingen toe te passen op alle onkosten die aan je criteria voldoen.',
             },

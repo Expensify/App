@@ -572,6 +572,7 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'Esporta in',
         shareReport: 'Condividi report',
         reportShared: 'Report condiviso',
+        amount: 'Importo',
     },
     socials: {
         podcast: 'Seguici su Podcast',
@@ -7573,10 +7574,10 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             reimbursementAccount: 'conto di rimborso',
             welcomeNote: 'Inizia a usare il mio nuovo workspace',
             delayedSubmission: 'invio posticipato',
-            merchantRules: 'Impostazioni spese',
+            merchantRules: 'Impostazioni predefinite spese',
             merchantRulesCount: () => ({
-                one: '1 rimborso predefinito',
-                other: (count: number) => `${count} impostazioni predefinite spesa`,
+                one: '1 spesa predefinita',
+                other: (count: number) => `${count} predefiniti di spesa`,
             }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `Stai per creare e condividere ${newWorkspaceName ?? ''} con ${totalMembers ?? 0} membri dello spazio di lavoro originale.`,
@@ -8952,7 +8953,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 matchTypeContains: 'Contiene',
                 matchTypeExact: 'Corrisponde esattamente',
                 duplicateRuleTitle: 'Esiste già una regola simile',
-                duplicateRulePrompt: (conditionName: string) => `La regola esistente per "${conditionName}" avrà la precedenza su questa. Salvare comunque?`,
+                duplicateRulePrompt: (conditionName: string) => `La regola esistente per "${conditionName}" avrà la priorità su questa. Salvare comunque?`,
                 saveAnyway: 'Salva comunque',
                 applyToExistingUnsubmittedExpenses: 'Applica alle spese esistenti non inviate',
                 findRule: 'Trova regola esercente',

@@ -573,6 +573,7 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'Exportiert nach',
         shareReport: 'Bericht teilen',
         reportShared: 'Bericht geteilt',
+        amount: 'Betrag',
     },
     socials: {
         podcast: 'Folgen Sie uns auf Podcast',
@@ -7620,10 +7621,10 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             reimbursementAccount: 'Erstattungskonto',
             welcomeNote: 'Bitte verwende meinen neuen Arbeitsbereich',
             delayedSubmission: 'verspätete Einreichung',
-            merchantRules: 'Standardausgaben',
+            merchantRules: 'Standardaufgaben',
             merchantRulesCount: () => ({
-                one: '1 Standard-Ausgabe',
-                other: (count: number) => `${count} Ausgabenvorgaben`,
+                one: '1 Standardausgabe',
+                other: (count: number) => `${count} Standardwerte für Ausgaben`,
             }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `Sie sind dabei, ${newWorkspaceName ?? ''} mit ${totalMembers ?? 0} Mitgliedern aus dem ursprünglichen Workspace zu erstellen und zu teilen.`,
@@ -9007,7 +9008,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 matchTypeContains: 'Enthält',
                 matchTypeExact: 'Exakte Übereinstimmung',
                 duplicateRuleTitle: 'Ähnliche Regel existiert bereits',
-                duplicateRulePrompt: (conditionName: string) => `Ihre vorhandene Regel für „${conditionName}“ hat Vorrang vor dieser. Trotzdem speichern?`,
+                duplicateRulePrompt: (conditionName: string) => `Ihre bestehende Regel für „${conditionName}“ hat Vorrang vor dieser. Trotzdem speichern?`,
                 saveAnyway: 'Trotzdem speichern',
                 applyToExistingUnsubmittedExpenses: 'Auf bestehende nicht eingereichte Ausgaben anwenden',
                 findRule: 'Händlerregel finden',

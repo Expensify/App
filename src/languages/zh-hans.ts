@@ -567,6 +567,7 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: '导出到',
         shareReport: '分享报表',
         reportShared: '报表已分享',
+        amount: '金额',
     },
     socials: {
         podcast: '在播客上关注我们',
@@ -7291,8 +7292,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             delayedSubmission: '延迟提交',
             merchantRules: '报销默认设置',
             merchantRulesCount: () => ({
-                one: '1 笔费用默认值',
-                other: (count: number) => `${count} 个报销默认值`,
+                one: '1 条报销默认值',
+                other: (count: number) => `${count} 个报销默认设置`,
             }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `您即将创建并共享 ${newWorkspaceName ?? ''}，其中包含来自原始工作区的 ${totalMembers ?? 0} 位成员。`,
@@ -8617,7 +8618,7 @@ ${reportName}`,
                 matchTypeContains: '包含',
                 matchTypeExact: '完全匹配',
                 duplicateRuleTitle: '已存在类似规则',
-                duplicateRulePrompt: (conditionName: string) => `您现有的规则“${conditionName}”将优先于此规则。仍要保存吗？`,
+                duplicateRulePrompt: (conditionName: string) => `您现有的规则“${conditionName}”将优先于此规则。仍然要保存吗？`,
                 saveAnyway: '仍然保存',
                 applyToExistingUnsubmittedExpenses: '应用到现有未提交的报销费用',
                 findRule: '查找商户规则',
