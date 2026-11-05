@@ -13,7 +13,15 @@ import {addMonths, format, isPast, parseISO, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
 
 import DateUtils from './DateUtils';
-import {canCreateExpensesOnPolicy, getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimbursementChoice, getReimburserAccountID, isArchivedPolicy} from './PolicyUtils';
+import {
+    canCreateExpensesOnPolicy,
+    canSubmitOwnReportOnPolicy,
+    getApprovalWorkflow,
+    getCorrectedAutoReportingFrequency,
+    getReimbursementChoice,
+    getReimburserAccountID,
+    isArchivedPolicy,
+} from './PolicyUtils';
 import {getOriginalMessage} from './ReportActionMessageUtils';
 import {isDynamicExternalWorkflowApproveFailedAction} from './ReportActionTypeGuards';
 import {
@@ -421,6 +429,13 @@ function buildChangeWorkspaceNextStep(): ReportNextStep {
     };
 }
 
+function buildApproveOnlySubmitBlockedNextStep(): ReportNextStep {
+    return {
+        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED,
+        icon: CONST.NEXT_STEP.ICONS.BOX,
+    };
+}
+
 function getReportNextStep({
     moneyRequestReport,
     moneyRequestReportOwnerLogin,
@@ -442,6 +457,11 @@ function getReportNextStep({
             messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
             icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
         };
+    }
+
+    // The member can never submit their own report on this workspace, so the report has to be moved elsewhere to submit.
+    if (isOpenExpenseReport(moneyRequestReport) && moneyRequestReport?.ownerAccountID === currentUserAccountID && !canSubmitOwnReportOnPolicy(policy, currentUserEmail)) {
+        return buildApproveOnlySubmitBlockedNextStep();
     }
 
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(moneyRequestReport);
@@ -497,6 +517,7 @@ const UPCOMING_STEP_ACTION_BY_MESSAGE_KEY: Record<ValueOf<typeof CONST.NEXT_STEP
     [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: undefined,
     [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: undefined,
     [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: undefined,
+    [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: undefined,
 };
 
 function getUpcomingStepActionForNextStep(nextStep: ReportNextStep | undefined, isOpenReport: boolean): ReportUpcomingStepAction | undefined {
