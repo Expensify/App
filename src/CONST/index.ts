@@ -11523,9 +11523,9 @@ const CONST = {
             IMPORT_TRANSACTIONS_REIMBURSABLE_SWITCH: 'SettingsWallet-ImportTransactionsReimbursableSwitch',
             IMPORT_TRANSACTIONS_FLIP_AMOUNT_SIGN_SWITCH: 'SettingsWallet-ImportTransactionsFlipAmountSignSwitch',
             PERSONAL_CARD_REIMBURSABLE_SWITCH: 'SettingsWallet-PersonalCardReimbursableSwitch',
-            WISE_MORE_INFO_NEEDED_REVIEW: 'SettingsWallet-WiseMoreInfoNeeded-Review',
-            DIGITAL_WALLET_APPROVAL_REVIEW: 'SettingsWallet-DigitalWalletApproval-Review',
-            MISSING_PERSONAL_DETAILS_ADD: 'SettingsWallet-MissingPersonalDetails-Add',
+            WISE_MORE_INFO_NEEDED_REVIEW: 'SettingsWallet-WiseMoreInfoNeededReview',
+            DIGITAL_WALLET_APPROVAL_REVIEW: 'SettingsWallet-DigitalWalletApprovalReview',
+            MISSING_PERSONAL_DETAILS_ADD: 'SettingsWallet-MissingPersonalDetailsAdd',
         },
         SETTINGS_RULES: {
             NEW_RULE: 'SettingsRules-NewRule',
