@@ -1530,6 +1530,7 @@ const CONST = {
         TRAVEL_APPROVAL: 'travelApproval',
         SCAN_FLASH_TORCH: 'scanFlashTorch',
         NEW_DOT_BILL_PAY: 'newDotBillPay',
+        HYBRID_WEB: 'hybridWeb',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
