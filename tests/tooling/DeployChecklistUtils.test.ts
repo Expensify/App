@@ -198,6 +198,33 @@ describe('DeployChecklistUtils', () => {
             return getDeployChecklist().then((data) => expect(data).toStrictEqual(expectedResponseWithDeployBlockers));
         });
 
+        test('Test parsing checkboxes that use an uppercase X', () => {
+            // Given a checklist where some boxes were checked with "[X]", which GitHub renders the same as "[x]"
+            const repo = process.env.GITHUB_REPOSITORY;
+            const uppercaseIssue = createMock<OctokitIssueItem>({
+                ...baseIssue,
+                body:
+                    `**Release Version:** \`1.0.1-47\`\r\n**Compare Changes:** https://github.com/${repo}/compare/production...staging\r\n\r\n` +
+                    `**This release contains changes from the following pull requests:**\r\n- [X] https://github.com/${repo}/pull/21\r\n- [x] https://github.com/${repo}/pull/22\r\n- [ ] https://github.com/${repo}/pull/23\r\n\r\n` +
+                    `**Mobile-Expensify PRs:**\r\n- [X] https://github.com/Expensify/Mobile-Expensify/pull/31\r\n\r\n` +
+                    `**Internal QA:**\r\n- [X] https://github.com/${repo}/pull/41 - @someone\r\n\r\n` +
+                    `**Deploy Blockers:**\r\n- [X] https://github.com/${repo}/issues/2\r\n\r\n` +
+                    `**Deployer verifications:**\r\n- [X] I checked [Sentry](https://sentry.io) for this release\r\n- [X] I checked [GitHub Status](https://www.githubstatus.com/)\r\n`,
+            });
+            listForRepoSpy.mockResolvedValue(createListForRepoResponse([uppercaseIssue]));
+
+            // When the checklist is parsed
+            return getDeployChecklist().then((data) => {
+                // Then every "[X]" item is read and marked as checked, so the next checklist can exclude PRs that already shipped
+                expect(data.PRList).toStrictEqual(baseExpectedResponse.PRList.map((pr) => ({...pr, isChecked: pr.number !== 23})));
+                expect(data.PRListMobileExpensify).toStrictEqual([{url: 'https://github.com/Expensify/Mobile-Expensify/pull/31', number: 31, isChecked: true}]);
+                expect(data.internalQAPRList).toStrictEqual([{url: `https://github.com/${repo}/pull/41`, number: 41, isChecked: true}]);
+                expect(data.deployBlockers).toStrictEqual([{url: `https://github.com/${repo}/issues/2`, number: 2, isChecked: true}]);
+                expect(data.isSentryChecked).toBe(true);
+                expect(data.isGHStatusChecked).toBe(true);
+            });
+        });
+
         test('Test finding an open issue without a body', () => {
             const noBodyIssue = {...baseIssue, body: ''};
 
