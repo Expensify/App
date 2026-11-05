@@ -19,7 +19,6 @@ import {
     isSubmitterApproveBlockedOnSubmitWorkspace,
 } from './PolicyUtils';
 import {hasPendingDEWApprove} from './ReportActionsUtils';
-import {isAddExpenseAction} from './ReportPrimaryActionUtils';
 import {
     getMoneyRequestSpendBreakdown,
     getParentReport,
@@ -38,6 +37,7 @@ import {
     isProcessingReport,
     isReportApproved,
     isSettled,
+    shouldShowAddExpenseAction,
 } from './ReportUtils';
 import {hasOnlyPendingCardTransactions, hasSmartScanFailedWithMissingFields, hasSubmissionBlockingViolations, isPending, isScanning} from './TransactionUtils';
 
@@ -279,7 +279,7 @@ function getReportPreviewAction({
     if (isSubmittingAnimationRunning) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
-    if (isAddExpenseAction(report, transactions ?? [], isReportArchived, rules)) {
+    if (shouldShowAddExpenseAction({report, reportTransactions: transactions ?? [], isChatReportArchived: isReportArchived, rules, policy, currentUserAccountID})) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE;
     }
 

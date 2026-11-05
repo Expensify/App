@@ -1203,6 +1203,39 @@ describe('libs/NextStepUtils', () => {
     });
 
     describe('buildNextStepMessage', () => {
+        describe.each([
+            {reportType: CONST.REPORT.UNSUPPORTED_TYPE.BILL, approveTarget: 'approve the bill', payTarget: 'pay this bill'},
+            {reportType: CONST.REPORT.TYPE.EXPENSE, approveTarget: 'approve expenses', payTarget: 'pay expenses'},
+            {reportType: undefined, approveTarget: 'approve expenses', payTarget: 'pay expenses'},
+        ])('approve and pay wording for report type $reportType', ({reportType, approveTarget, payTarget}) => {
+            it.each([
+                {messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE, actorAccountID: 780072, expectedActor: '<strong>you</strong>'},
+                {messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE, actorAccountID: 780073, expectedActor: '<strong>Approver</strong>'},
+                {messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE, actorAccountID: -1, expectedActor: 'an admin'},
+                {messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY, actorAccountID: 780072, expectedActor: '<strong>you</strong>'},
+                {messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY, actorAccountID: 780073, expectedActor: '<strong>Approver</strong>'},
+                {messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY, actorAccountID: -1, expectedActor: 'an admin'},
+            ])('names the target of $messageKey for actor $actorAccountID', async ({messageKey, actorAccountID, expectedActor}) => {
+                // Given bills and expense reports share the same approve and pay next steps from Auth.
+                const otherActorAccountID = 780073;
+                await IntlStore.load(CONST.LOCALES.EN);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[otherActorAccountID]: {accountID: otherActorAccountID, displayName: 'Approver'}});
+                await waitForBatchedUpdates();
+                const nextStep: ReportNextStep = {
+                    messageKey,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    actorAccountID,
+                };
+
+                // When the header renders that next step for this report type.
+                const message = buildNextStepMessage(nextStep, translateLocal, undefined, 780072, formatPhoneNumber, reportType);
+
+                // Then the message names the bill only for bills and keeps the actor's identity.
+                const target = messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE ? approveTarget : payTarget;
+                expect(message).toBe(`<next-step>Waiting for ${expectedActor} to ${target}.</next-step>`);
+            });
+        });
+
         it('resolves the actor name through the provided translate function', async () => {
             const hiddenActorAccountID = 780070;
             // The actor has no displayName/login, so its name resolves to the hidden label provided by translate.

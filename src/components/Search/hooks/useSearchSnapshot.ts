@@ -192,6 +192,7 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
     } = useOptimisticSearchTracking({
         searchResults,
         queryJSON,
+        currentUserAccountID: accountID,
         transactions,
         reportActions,
     });
@@ -314,6 +315,7 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
         sortOrder,
         validGroupBy,
         {
+            shouldReturnTripRooms,
             policyCategories,
             policyTags,
             fallbackPolicyID: policyForMovingExpensesID,
