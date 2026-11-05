@@ -7585,8 +7585,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             integrationWaitlist: {
                 comingSoon: '即将推出',
                 joinWaitlist: '加入候补名单',
-                onWaitlist: '您在候补名单中',
-                onTheList: '您已加入名单！',
+                onWaitlist: '您已在候补名单中',
+                onTheList: '你已在名单上！',
                 waitlistDescription: '当此集成准备就绪并可连接时，Concierge 会向你发送消息通知你并说明如何连接。',
             },
             setup: '连接',
