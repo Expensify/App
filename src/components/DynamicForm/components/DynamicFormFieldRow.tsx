@@ -16,6 +16,7 @@ import CONST from '@src/CONST';
 import type {DynamicFormField, DynamicFormFieldType} from '@src/types/onyx';
 
 import React from 'react';
+import {View} from 'react-native';
 
 import type {DynamicFormFieldsProps} from './DynamicFormFields';
 
@@ -60,16 +61,15 @@ function DynamicFormFieldRow({
                       .map((item, index) => summarizeListItem(item, field.itemFields, translate, getListItemFallbackTitle(field, index, translate)).title)
                       .join(', ')
                 : formatDynamicFieldValue(field, values, translate);
+        // Only the value is masked, so the field name stays readable in session recordings
         return (
-            <FSClassView
-                style={[styles.mhn5, styles.pv1]}
-                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-            >
+            <View style={[styles.mhn5, styles.pv1]}>
                 <MenuItemField
                     name={label}
                     value={readonlyValue}
+                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                 />
-            </FSClassView>
+            </View>
         );
     }
 
@@ -96,12 +96,8 @@ function DynamicFormFieldRow({
     );
     const description = showsDescription ? undefined : getLocalizedText(translate, field.descriptionKey, field.description);
 
-    // Some inputs, such as CountryPicker, do not pass the FullStory class on, so the whole row is masked
     return (
-        <FSClassView
-            style={isMenuRow ? [styles.mhn5, styles.pv1] : styles.pv2}
-            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-        >
+        <View style={isMenuRow ? [styles.mhn5, styles.pv1] : styles.pv2}>
             {!!labelAbove && !shouldHideLabel && (
                 <Text
                     style={[labelAbove === 'prompt' ? [styles.mt3, !isMenuRow && styles.mb3] : [styles.textStrong, styles.mb3], isMenuRow && styles.ph5]}
@@ -112,8 +108,8 @@ function DynamicFormFieldRow({
                 </Text>
             )}
             {!!description && <Text style={[styles.textSupporting, styles.mb3, isMenuRow && styles.ph5]}>{description}</Text>}
-            {input}
-        </FSClassView>
+            <FSClassView forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}>{input}</FSClassView>
+        </View>
     );
 }
 
