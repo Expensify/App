@@ -389,7 +389,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
     // "route to Spend > Expenses" behaviour to the self-DM case (matches the confirmation step).
     const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserAccountID);
     const draftTransactionIDsList = Object.keys(transactionDrafts ?? {});
-    const isSelfTourViewed = hasSeenTourSelector(onboarding) ?? false;
+    const isSelfTourViewed = hasSeenTourSelector(onboarding);
     const executeExpenseWrite = (overrides: WriteOverrides) => {
         if (isTrackExpenseSubmit) {
             trackExpense({
