@@ -107,6 +107,7 @@ type PrepareToCleanUpMoneyRequestParams = {
     transactionIDsPendingDeletion?: string[];
     selectedTransactionIDs?: string[];
     policy?: OnyxEntry<OnyxTypes.Policy>;
+    currentUserAccountID: number;
     chatReportActions?: OnyxEntry<OnyxTypes.ReportActions>;
 };
 
@@ -124,6 +125,7 @@ function prepareToCleanUpMoneyRequest({
     transactionIDsPendingDeletion,
     selectedTransactionIDs,
     policy,
+    currentUserAccountID,
     chatReportActions,
 }: PrepareToCleanUpMoneyRequestParams): PrepareToCleanUpMoneyRequestResult {
     const allTransactions = getAllTransactions();
@@ -279,7 +281,7 @@ function prepareToCleanUpMoneyRequest({
     }
 
     if (updatedIOUReport) {
-        const lastVisibleAction = getLastVisibleAction(iouReport?.reportID, canUserPerformWriteAction, updatedReportAction);
+        const lastVisibleAction = getLastVisibleAction(iouReport?.reportID, canUserPerformWriteAction, updatedReportAction, undefined, undefined, currentUserAccountID);
         const iouReportLastMessageText = getLastVisibleMessage(iouReport?.reportID, canUserPerformWriteAction, updatedReportAction).lastMessageText;
         updatedIOUReport.lastMessageText = iouReportLastMessageText;
         updatedIOUReport.lastVisibleActionCreated = lastVisibleAction?.created;
@@ -358,6 +360,7 @@ function getNavigationUrlOnMoneyRequestDelete(
     chatReport: OnyxEntry<OnyxTypes.Report>,
     isChatReportArchived: boolean | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    currentUserAccountID: number,
     isSingleTransactionView = false,
     chatReportActions?: OnyxEntry<OnyxTypes.ReportActions>,
 ): Route | undefined {
@@ -372,6 +375,7 @@ function getNavigationUrlOnMoneyRequestDelete(
         chatReport,
         isChatReportArchived,
         getCurrencyDecimals,
+        currentUserAccountID,
         chatReportActions,
     });
 
@@ -449,6 +453,7 @@ function cleanUpMoneyRequest({
             getCurrencyDecimals,
             shouldRemoveIOUTransactionID: false,
             policy,
+            currentUserAccountID,
             chatReportActions,
         });
 
@@ -460,6 +465,7 @@ function cleanUpMoneyRequest({
         chatReport,
         isChatIOUReportArchived,
         getCurrencyDecimals,
+        currentUserAccountID,
         isSingleTransactionView,
         chatReportActions,
     );
@@ -872,6 +878,7 @@ function deleteMoneyRequest({
         transactionIDsPendingDeletion,
         selectedTransactionIDs,
         policy,
+        currentUserAccountID,
         chatReportActions,
     });
 
@@ -883,6 +890,7 @@ function deleteMoneyRequest({
         chatReport,
         isChatIOUReportArchived,
         getCurrencyDecimals,
+        currentUserAccountID,
         isSingleTransactionView,
         chatReportActions,
     );

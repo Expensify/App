@@ -6,7 +6,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import toggleSelectionFormat from '@libs/FormatSelectionUtils';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import {parseExpensiMarkWithShortMentions} from '@libs/ParsingUtils';
-import scheduleOnLiveMarkdownRuntime from '@libs/scheduleOnLiveMarkdownRuntime';
 
 import CONST from '@src/CONST';
 
@@ -16,7 +15,7 @@ import type {ForwardedRef} from 'react';
 import {MarkdownTextInput} from '@expensify/react-native-live-markdown';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import Animated, {useSharedValue} from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 // Convert the underlying TextInput into an Animated component so that we can take an animated ref and pass it to a worklet
 const AnimatedMarkdownTextInput = Animated.createAnimatedComponent(MarkdownTextInput);
@@ -35,7 +34,6 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ref, forwardedFSClass = 
     const styles = useThemeStyles();
 
     const {availableLoginsList, currentUserMentions} = useShortMentionsList();
-    const mentionsSharedVal = useSharedValue<string[]>(availableLoginsList);
     const inputRef = useRef<AnimatedMarkdownTextInputRef>(null);
 
     // Expose the ref to the parent component
@@ -58,24 +56,12 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ref, forwardedFSClass = 
         }
     }, [props.value, isCursorAtEnd]);
 
-    // If `parser` prop was passed down we use it directly, otherwise we default to parsing with ExpensiMark
-    const parserWorklet = (text: string) => {
+    // The parser runs on the locked Live Markdown runtime, so reading a SharedValue here can deadlock the app.
+    const defaultParser = (text: string) => {
         'worklet';
 
-        if (parser) {
-            return parser(text);
-        }
-
-        return parseExpensiMarkWithShortMentions(text, mentionsSharedVal.get(), currentUserMentions);
+        return parseExpensiMarkWithShortMentions(text, availableLoginsList, currentUserMentions);
     };
-
-    useEffect(() => {
-        scheduleOnLiveMarkdownRuntime(() => {
-            'worklet';
-
-            mentionsSharedVal.set(availableLoginsList);
-        });
-    }, [availableLoginsList, mentionsSharedVal]);
 
     return (
         // We need this wrapper view in order to apply Fullstory masking since the Markdown input
@@ -89,7 +75,7 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ref, forwardedFSClass = 
                 allowFontScaling={false}
                 textBreakStrategy="simple"
                 keyboardAppearance={theme.colorScheme}
-                parser={parserWorklet}
+                parser={parser ?? defaultParser}
                 ref={inputRef}
                 formatSelection={toggleSelectionFormat}
                 // eslint-disable-next-line react/forbid-component-props

@@ -68,7 +68,7 @@ function EmptyStateComponent({
                         {children}
                         {!isEmpty(buttons) && (
                             <View style={[styles.gap2, styles.mt6, styles.flexRow, styles.flexWrap, styles.justifyContentCenter]}>
-                                {buttons?.map(({buttonText, buttonAction, buttonVariant, icon, isDisabled, style, innerStyles, hoverStyles, dropDownOptions}) =>
+                                {buttons?.map(({buttonText, buttonAction, buttonVariant, icon, isDisabled, style, innerStyles, hoverStyles, dropDownOptions, sentryLabel}) =>
                                     dropDownOptions ? (
                                         <ButtonWithDropdownMenu
                                             variant={CONST.BUTTON_VARIANT.SUCCESS}
@@ -79,6 +79,7 @@ function EmptyStateComponent({
                                             options={dropDownOptions}
                                             isSplitButton={false}
                                             style={style}
+                                            sentryLabel={sentryLabel}
                                         />
                                     ) : (
                                         <Button
@@ -89,6 +90,7 @@ function EmptyStateComponent({
                                             style={style}
                                             innerStyles={innerStyles}
                                             hoverStyles={hoverStyles}
+                                            sentryLabel={sentryLabel}
                                         >
                                             {!!icon && <Button.Icon src={icon} />}
                                             {!!buttonText && <Button.Text>{buttonText}</Button.Text>}
