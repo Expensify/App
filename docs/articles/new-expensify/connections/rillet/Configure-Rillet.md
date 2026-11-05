@@ -2,7 +2,7 @@
 title: Configure Rillet
 description: Learn how to configure Rillet import, export, and advanced sync settings in Expensify.
 keywords: [New Expensify, Rillet configuration, Rillet import, Rillet export, Rillet advanced sync, Rillet vendor bills, Rillet reimbursements, Rillet reimbursement account]
-internalScope: Audience is Workspace Admins configuring an existing Rillet connection. Covers import, export, advanced sync and settlement, and multiple card account export settings. Does not cover the initial connection or API-key setup.
+internalScope: Audience is Workspace Admins configuring an existing Rillet connection. Covers import, export, exporting reimbursable expenses as reimbursements, advanced sync and settlement, and multiple card account export settings. Does not cover the initial connection or API-key setup.
 ---
 
 # Configure Rillet
@@ -69,7 +69,8 @@ On the Rillet integration, choose **Advanced** to configure:
 - **Export method** – Choose when reports are exported automatically. This option is only available when auto-sync is enabled. 
   - **Accrual** exports reimbursable expenses after final approval.
   - **Cash** exports reimbursable expenses after they are paid.
-- **Sync reimbursed reports** – Automatically create a payment in Rillet when a report is reimbursed in Expensify. The payment is recorded on the report's vendor bill or reimbursement.
+- **Sync reimbursed reports** – When a report is paid via ACH, Expensify creates a payment in Rillet on the report's vendor bill or reimbursement.
+  - **ACH payment account** – Select the Rillet account the payment is made from. Only active asset accounts appear.
 - **Sync Expensify Card settlements** – Automatically create settlement payments in Rillet for Expensify Card transactions.
 - **Sync Consolidated Travel Billing settlements** – Automatically create settlement payments in Rillet for Consolidated Travel Billing transactions.
 
@@ -77,7 +78,7 @@ On the Rillet integration, choose **Advanced** to configure:
 
 ## How to export reimbursable expenses to Rillet as reimbursements
 
-By default, reimbursable expenses export to Rillet as vendor bills, which post to Accounts Payable. To keep employee expenses separate from vendor spend, export them as reimbursements to an account you choose.
+By default, reimbursable expenses export to Rillet as vendor bills. To keep employee expenses separate from vendor spend, export them as reimbursements to an account you choose.
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Accounting**.
 2. On the Rillet connection, select **Export**.
@@ -86,7 +87,7 @@ By default, reimbursable expenses export to Rillet as vendor bills, which post t
 
 The **Reimbursement account** list shows active liability accounts from Rillet. It doesn't include credit card, accounts payable, or other long-term liability accounts.
 
-Until you select a reimbursement account, the **Reimbursement account** row shows an error and reports can't export as reimbursements.
+Until you select a reimbursement account, the **Reimbursement account** row shows an error.
 
 ---
 
@@ -115,6 +116,6 @@ Vendor bills and reimbursements both use the Rillet vendor that matches the repo
 
 If reimbursable expenses export as **Itemized reimbursements**, the export also fails when no **Reimbursement account** is selected.
 
-## Do I need an ACH payment account or settlements account?
+## Do I need an ACH payment account or settlement account?
 
-An **ACH payment account** is required only when **Sync reimbursed reports** is enabled, and a settlements account is required only when **Sync Expensify Card settlements** or **Sync Consolidated Travel Billing settlements** is enabled.
+An **ACH payment account** is required only when **Sync reimbursed reports** is enabled. A settlement account is required only when **Sync Expensify Card settlements** or **Sync Consolidated Travel Billing settlements** is enabled.
