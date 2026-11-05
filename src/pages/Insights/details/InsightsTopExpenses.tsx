@@ -1,28 +1,37 @@
 import Icon from '@components/Icon';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ChartOfflineState from '@components/Search/ChartOfflineState';
-import useOpenSearchTransaction from '@components/Search/hooks/useOpenSearchTransaction';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchQueryString} from '@components/Search/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
+import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {CAROUSEL_SOURCE, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import Navigation from '@libs/Navigation/Navigation';
+import type {TransactionThreadNavigationDescriptor} from '@libs/TransactionThreadNavigationUtils';
+import {getReportIDToOpenForExpense} from '@libs/TransactionThreadNavigationUtils';
 
 import {TOP_EXPENSES_LIMIT} from '@pages/Insights/insightsQueries';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@selectors/Policy';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -45,8 +54,43 @@ function InsightsTopExpenses({expenses, isLoading, isOffline, viewAllQuery}: Ins
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowUpRight']);
-    const openTransaction = useOpenSearchTransaction();
+    const {markReportRHPWidth} = useWideRHPActions();
+    const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT, {selector: fullPolicySnapshotLastModifiedByPolicyIDSelector});
     const isEmpty = !isLoading && expenses.length === 0;
+
+    const toDescriptor = (expense: TransactionListItemType): TransactionThreadNavigationDescriptor => ({
+        reportID: expense.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
+        transaction: expense,
+        reportAction: expense.reportAction,
+        report: expense.report,
+    });
+
+    const openExpense = (expense: TransactionListItemType) => {
+        const reportID = getReportIDToOpenForExpense(toDescriptor(expense), {
+            introSelected,
+            conciergeChat,
+            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+            currentUserEmail,
+            currentUserAccountID,
+            personalDetails,
+            fullPolicySnapshotLastModifiedByPolicyID,
+        });
+        const descriptors = Object.fromEntries(expenses.map((sibling) => [sibling.transactionID, toDescriptor(sibling)]));
+        setActiveTransactionIDs(
+            expenses.map((sibling) => sibling.transactionID),
+            {source: CAROUSEL_SOURCE.insightsTopExpenses, descriptors},
+        ).then(() => {
+            markReportRHPWidth(reportID, 'wide');
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo: Navigation.getActiveRoute(), anchorTransactionID: expense.transactionID}));
+        });
+    };
 
     return (
         <View style={[styles.highlightBG, styles.borderRadiusComponentLarge, styles.overflowHidden]}>
@@ -99,7 +143,7 @@ function InsightsTopExpenses({expenses, isLoading, isOffline, viewAllQuery}: Ins
             {expenses.map((item, index) => (
                 <PressableWithFeedback
                     key={item.keyForList}
-                    onPress={() => openTransaction(item)}
+                    onPress={() => openExpense(item)}
                     accessibilityRole={CONST.ROLE.BUTTON}
                     accessibilityLabel={item.formattedMerchant ?? item.merchant}
                     sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.DETAILS_TOP_EXPENSE}

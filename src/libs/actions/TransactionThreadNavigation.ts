@@ -46,6 +46,9 @@ const CAROUSEL_SOURCE = {
     /** The Home "Review X expenses" row */
     homeReviewFlagged: 'home:reviewFlagged',
 
+    /** The Top expenses list in the Insights Details panel */
+    insightsTopExpenses: 'insights:topExpenses',
+
     /** A transaction row pressed inside a report preview in a chat */
     reportPreview: (reportID: string | undefined) => `reportPreview:${reportID}`,
 
