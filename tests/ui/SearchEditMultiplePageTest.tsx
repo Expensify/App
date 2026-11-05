@@ -4,6 +4,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import type ExpenseFieldDropdown from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import ThemeProvider from '@components/ThemeProvider';
@@ -22,9 +23,11 @@ import {openPolicyTagsPage} from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {OriginalMessageIOU, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportAction';
 
+import type {ComponentProps} from 'react';
 import type {ValueOf} from 'type-fest';
 
 import {PortalProvider} from '@gorhom/portal';
@@ -55,6 +58,20 @@ jest.mock('@userActions/Policy/Tag', () => ({
     ...jest.requireActual<Record<string, unknown>>('@userActions/Policy/Tag'),
     openPolicyTagsPage: jest.fn(),
 }));
+
+let mockIsAnchoredDropdownsBetaEnabled = false;
+jest.mock('@hooks/usePermissions', () => () => ({
+    isBetaEnabled: (beta: string) => mockIsAnchoredDropdownsBetaEnabled && beta === jest.requireActual<{default: typeof CONST}>('@src/CONST').default.BETAS.ANCHORED_BULK_EDIT_DROPDOWNS,
+    isBetaEnabledOrUnknown: () => false,
+}));
+
+// Records what each selectable row decided, so a test can read it without pressing the row and measuring a layout.
+const mockShouldOpenInDropdownByRow: Record<string, boolean> = {};
+type ExpenseFieldDropdownMockProps = Pick<ComponentProps<typeof ExpenseFieldDropdown>, 'name' | 'shouldOpenInDropdown'>;
+jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown', () => ({name, shouldOpenInDropdown}: ExpenseFieldDropdownMockProps) => {
+    mockShouldOpenInDropdownByRow[name] = shouldOpenInDropdown;
+    return null;
+});
 
 const CURRENT_USER_ACCOUNT_ID = 5;
 const CURRENT_USER_EMAIL = 'bjorn@vikings.net';
@@ -162,6 +179,10 @@ describe('SearchEditMultiplePage', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockIsAnchoredDropdownsBetaEnabled = false;
+        for (const rowName of Object.keys(mockShouldOpenInDropdownByRow)) {
+            delete mockShouldOpenInDropdownByRow[rowName];
+        }
         await Onyx.set(ONYXKEYS.SESSION, {email: CURRENT_USER_EMAIL, accountID: CURRENT_USER_ACCOUNT_ID});
         await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, login: CURRENT_USER_EMAIL}});
         await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, POLICY_ID);
@@ -184,21 +205,35 @@ describe('SearchEditMultiplePage', () => {
     });
 
     it('keeps Reimbursable editable when every selected expense is still editable', async () => {
+        // Given a selection whose every expense can still be edited
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
         await selectTransactions([OPEN_TRANSACTION_ID]);
 
+        // When the page renders and the Reimbursable row is pressed
         renderPage();
         await waitForBatchedUpdatesWithAct();
+        // The row only runs its handler for a press that carries an event, as a real press does
+        fireEvent.press(screen.getByLabelText(/^Reimbursable/), {});
+        await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByLabelText(/^Reimbursable/).props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
+        // Then the row opens its selector
+        expect(navigateSpy).toHaveBeenCalledWith(ROUTES.SEARCH_EDIT_MULTIPLE_REIMBURSABLE_RHP);
     });
 
-    it('disables Reimbursable when the selection contains a marked-as-done expense', async () => {
+    it('locks Reimbursable when the selection contains a marked-as-done expense', async () => {
+        // Given a selection with an expense whose report is closed, which locks Reimbursable
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
         await selectTransactions([OPEN_TRANSACTION_ID, DONE_TRANSACTION_ID]);
 
+        // When the page renders and the Reimbursable row is pressed
         renderPage();
         await waitForBatchedUpdatesWithAct();
+        // The row only runs its handler for a press that carries an event, as a real press does
+        fireEvent.press(screen.getByLabelText(/^Reimbursable/), {});
+        await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByLabelText(/^Reimbursable/).props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
+        // Then the row is a locked field that opens nothing
+        expect(navigateSpy).not.toHaveBeenCalled();
     });
 
     it('shows the spinner before applying the changes on save, then applies them and dismisses the RHP', async () => {
@@ -282,7 +317,93 @@ describe('SearchEditMultiplePage', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        // Then Merchant stays editable, because the report's submitter stands in for the missing action's requester
-        expect(screen.getByLabelText(/^Merchant/).props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
+        // Then Merchant stays an editable input, because the report's submitter stands in for the missing action's requester
+        fireEvent.changeText(screen.getByLabelText('Merchant'), 'Starbucks');
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('Save'));
+        await waitForBatchedUpdatesWithAct();
+        expect(updateMultipleMoneyRequests).toHaveBeenCalledWith(expect.objectContaining({changes: {merchant: 'Starbucks'}}));
+    });
+
+    it('locks Merchant when a selected expense is a distance expense', async () => {
+        // Given a selection with a distance expense, whose merchant is computed from the route
+        const distanceTransactionID = 'distanceTransaction';
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${distanceTransactionID}`, {
+            ...buildTransaction(distanceTransactionID, OPEN_REPORT_ID),
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+            comment: {type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT, customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE}},
+        });
+        await selectTransactions([OPEN_TRANSACTION_ID, distanceTransactionID]);
+
+        // When the Edit multiple page is opened for the selection
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Merchant is a locked field rather than an input
+        expect(screen.getByLabelText(/^Merchant/).props.onChangeText).toBeUndefined();
+    });
+
+    it('does not save while the merchant typed is not a valid merchant', async () => {
+        // Given the merchant input holds the placeholder merchant, which the form flags inline
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.changeText(screen.getByLabelText('Merchant'), CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
+        await waitForBatchedUpdatesWithAct();
+
+        // When Save is pressed
+        fireEvent.press(screen.getByText('Save'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the error stays on the field and nothing is applied
+        expect(screen.getByText('Please enter a valid merchant')).toBeTruthy();
+        expect(updateMultipleMoneyRequests).not.toHaveBeenCalled();
+    });
+
+    it('opens the category list in place for a user on the bulk edit dropdowns beta', async () => {
+        // Given a workspace with categories, for a user on the beta
+        mockIsAnchoredDropdownsBetaEnabled = true;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {areCategoriesEnabled: true});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, {Food: {name: 'Food', enabled: true}});
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When the Edit multiple page renders the category row
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the row opens its list in a container anchored to it rather than on its own page
+        expect(mockShouldOpenInDropdownByRow.Category).toBe(true);
+    });
+
+    it('keeps the full-page category selector for a user off the beta', async () => {
+        // Given the same workspace, for a user without the beta
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {areCategoriesEnabled: true});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, {Food: {name: 'Food', enabled: true}});
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When the Edit multiple page renders the category row
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the row opens the full-page selector as before
+        expect(mockShouldOpenInDropdownByRow.Category).toBe(false);
+    });
+
+    it('keeps the full-page tag selector for dependent tags, which need the levels above', async () => {
+        // Given a workspace with dependent tag lists, for a user on the beta
+        mockIsAnchoredDropdownsBetaEnabled = true;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {areTagsEnabled: true, hasMultipleTagLists: true});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${POLICY_ID}`, {
+            Region: {name: 'Region', required: false, orderWeight: 0, tags: {EMEA: {name: 'EMEA', enabled: true, rules: {parentTagsFilter: ''}}}},
+            Country: {name: 'Country', required: false, orderWeight: 1, tags: {Spain: {name: 'Spain', enabled: true, rules: {parentTagsFilter: 'EMEA'}}}},
+        });
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When the Edit multiple page renders the first tag row
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the row keeps the full-page selector, which walks the levels in order
+        expect(mockShouldOpenInDropdownByRow.Region).toBe(false);
     });
 });

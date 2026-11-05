@@ -1,6 +1,7 @@
 import {isValidPerDiemExpenseAmount} from '@libs/actions/IOU/PerDiem';
 import {
     getAmountHasUnsavedChanges,
+    getBackendAmountFromInput,
     getStringFieldHasUnsavedChanges,
     getWaypointsHasUnsavedChanges,
     handleNegativeAmountFlipping,
@@ -569,5 +570,24 @@ describe('isConfirmationDateMissing', () => {
 
     it('does not flag a read-only confirmation, where the date is populated server-side', () => {
         expect(isConfirmationDateMissing(transactionWithoutDate, true, true)).toBe(false);
+    });
+});
+
+describe('getBackendAmountFromInput', () => {
+    it('converts what was typed to a backend amount, keeping a leading minus', () => {
+        // Given an amount typed in an inline amount field, with and without a minus sign
+        // When it is converted for the draft
+        // Then it is in the smallest currency unit, signed as typed
+        expect(getBackendAmountFromInput('12.5')).toBe(1250);
+        expect(getBackendAmountFromInput('-12.5')).toBe(-1250);
+    });
+
+    it('returns null for an empty field or a lone sign, which has no amount to record', () => {
+        // Given the field was cleared, holds only whitespace, or holds only a minus sign
+        // When it is converted for the draft
+        // Then there is no amount to record
+        expect(getBackendAmountFromInput('')).toBeNull();
+        expect(getBackendAmountFromInput(' ')).toBeNull();
+        expect(getBackendAmountFromInput('-')).toBeNull();
     });
 });

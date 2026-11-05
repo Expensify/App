@@ -1526,6 +1526,7 @@ const CONST = {
         NL_FILTERS: 'nlFilters',
         SUPPORT_TICKET: 'supportTicket',
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
+        ANCHORED_BULK_EDIT_DROPDOWNS: 'anchoredBulkEditDropdowns',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
         COLLECT_DEPOSIT_ACCOUNTS: 'collectDepositAccounts',
         RESIZABLE_RHP: 'resizableRHP',
@@ -10801,6 +10802,17 @@ const CONST = {
         },
         ATTENDEE_PICKER_MODAL: {
             BACK_BUTTON: 'AttendeePickerModal-BackButton',
+        },
+        SEARCH_EDIT_MULTIPLE: {
+            AMOUNT_FIELD: 'SearchEditMultiple-AmountField',
+            MERCHANT_FIELD: 'SearchEditMultiple-MerchantField',
+            DATE_FIELD: 'SearchEditMultiple-DateField',
+            CATEGORY_FIELD: 'SearchEditMultiple-CategoryField',
+            TAG_FIELD: 'SearchEditMultiple-TagField',
+            TAX_RATE_FIELD: 'SearchEditMultiple-TaxRateField',
+            BILLABLE_FIELD: 'SearchEditMultiple-BillableField',
+            REIMBURSABLE_FIELD: 'SearchEditMultiple-ReimbursableField',
+            ATTENDEES_FIELD: 'SearchEditMultiple-AttendeesField',
         },
         CALENDAR_PICKER: {
             YEAR_PICKER: 'CalendarPicker-YearPicker',

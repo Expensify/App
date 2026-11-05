@@ -6,8 +6,11 @@ import type {Policy, Report, ReportAction, SearchResults, Transaction} from '@sr
 
 import {
     areAllTransactionsExpenseCompatible,
+    getBulkEditCategoryChange,
+    getBulkEditTaxCodeChange,
     getTransactionEditContext,
     hasCustomUnitMerchantInSelection,
+    isBulkEditNegativeAmountAllowed,
     isBulkEditTaxTrackingEnabled,
     withSnapshotReports,
     withSnapshotTransactions,
@@ -309,6 +312,62 @@ describe('SearchEditMultipleUtils', () => {
 
         it('returns null when the transaction is not found', () => {
             expect(getTransactionEditContext('missing', {}, {}, {}, undefined)).toBeNull();
+        });
+    });
+
+    describe('getBulkEditCategoryChange', () => {
+        it('records a newly picked category', () => {
+            // Given no category picked yet
+            // When Food is picked
+            // Then the draft records it
+            expect(getBulkEditCategoryChange('Food', '')).toEqual({category: 'Food'});
+        });
+
+        it('drops the pending change when the picked category is picked again, or nothing is picked', () => {
+            // Given Food is already picked
+            // When Food is picked again, or the list hands back an empty pick
+            // Then the pending change is cleared rather than re-recorded
+            expect(getBulkEditCategoryChange('Food', 'Food')).toEqual({category: null});
+            expect(getBulkEditCategoryChange('', 'Food')).toEqual({category: null});
+        });
+    });
+
+    describe('getBulkEditTaxCodeChange', () => {
+        it('records a newly picked rate and drops the pending change when it is picked again', () => {
+            // Given no rate picked yet, then one picked
+            // When a rate is picked, then picked again
+            // Then the first pick is recorded and the second clears it
+            expect(getBulkEditTaxCodeChange('id_TAX_1', '')).toEqual({taxCode: 'id_TAX_1'});
+            expect(getBulkEditTaxCodeChange('id_TAX_1', 'id_TAX_1')).toEqual({taxCode: null});
+        });
+    });
+
+    describe('isBulkEditNegativeAmountAllowed', () => {
+        const unreportedTransaction = makeTransaction(TRANSACTION_ID_1, CONST.REPORT.UNREPORTED_REPORT_ID);
+        const reportedTransaction = makeTransaction(TRANSACTION_ID_2, REPORT_ID);
+        const expenseReport = makeReport(REPORT_ID, POLICY_A);
+        const policy = createMock<Policy>({id: POLICY_A, type: CONST.POLICY.TYPE.TEAM});
+
+        it('allows a negative amount for unreported expenses', () => {
+            // Given only unreported expenses, which can always go negative
+            // When the selection is checked
+            // Then the amount field may flip negative
+            expect(isBulkEditNegativeAmountAllowed([{transaction: unreportedTransaction, report: undefined, transactionPolicy: undefined}])).toBe(true);
+        });
+
+        it('follows the report and workspace of a reported expense', () => {
+            // Given a reported expense on a workspace that allows negative expense amounts
+            // When the selection is checked
+            // Then the amount field follows that workspace, and a missing report rules it out
+            expect(isBulkEditNegativeAmountAllowed([{transaction: reportedTransaction, report: expenseReport, transactionPolicy: policy}])).toBe(true);
+            expect(isBulkEditNegativeAmountAllowed([{transaction: reportedTransaction, report: undefined, transactionPolicy: policy}])).toBe(false);
+        });
+
+        it('rules out a negative amount for an empty selection', () => {
+            // Given nothing selected
+            // When the selection is checked
+            // Then there is nothing to flip
+            expect(isBulkEditNegativeAmountAllowed([])).toBe(false);
         });
     });
 });

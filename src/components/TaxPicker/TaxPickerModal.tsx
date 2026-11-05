@@ -37,13 +37,16 @@ type TaxPickerModalProps = {
 
     /** Called when the user confirms a tax rate. `shouldClearTax` asks to clear the tax instead, for a rate the workspace no longer has */
     onSelected?: (tax: TaxRatesOption, shouldClearTax?: boolean) => void;
+
+    /** Whether tapping the rate already picked hands it to `onSelected` again, for a caller that clears it that way, rather than only closing the list */
+    allowDeselect?: boolean;
 } & Omit<AnchoredSelectionListPopoverProps, 'optionCount' | 'isSearchable' | 'title' | 'backButtonSentryLabel' | 'headerActions' | 'children'>;
 
 /**
  * The tax rate list in a container anchored to a row: a pop-over on a wide layout, a bottom sheet on a narrow one.
  * Picking a rate hands it to `onSelected` and closes the container, as the category and tag lists do.
  */
-function TaxPickerModal({policyID, transactionID, selectedTaxRate, action, iouType, onSelected, onClose, ...popoverProps}: TaxPickerModalProps) {
+function TaxPickerModal({policyID, transactionID, selectedTaxRate, action, iouType, onSelected, allowDeselect = false, onClose, ...popoverProps}: TaxPickerModalProps) {
     const {translate} = useLocalize();
 
     const [taxRatesSummary] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: taxRatesSummarySelector});
@@ -73,8 +76,9 @@ function TaxPickerModal({policyID, transactionID, selectedTaxRate, action, iouTy
                 action={action}
                 iouType={iouType}
                 onSubmit={handleTaxRateSelected}
-                // Tapping the rate the expense already has leaves it alone, as the full-page selector does, and only closes the list.
+                // Unless the caller asks otherwise, tapping the rate the expense already has leaves it alone, as the full-page selector does, and only closes the list.
                 onDismiss={onClose}
+                allowDeselect={allowDeselect}
                 shouldAutoFocusSearchInput
             />
         </AnchoredSelectionListPopover>

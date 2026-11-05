@@ -18,6 +18,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import React from 'react';
 import {View} from 'react-native';
 
+import {getBulkEditTaxCodeChange} from './SearchEditMultipleUtils';
+
 function SearchEditMultipleTaxPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -30,21 +32,7 @@ function SearchEditMultipleTaxPage() {
     const selectedTaxRate = draftTransaction?.taxCode ? (Object.values(transformedTaxRates(policy)).find((rate) => rate.code === draftTransaction.taxCode)?.modifiedName ?? '') : '';
 
     const onSubmit = (taxes: TaxRatesOption) => {
-        const nextTaxCode = taxes.code ?? '';
-        const currentTaxCode = draftTransaction?.taxCode ?? '';
-
-        // If the selected tax rate is the same as the current one, clear it
-        if (nextTaxCode === currentTaxCode) {
-            updateBulkEditDraftTransaction({
-                taxCode: null,
-            });
-            Navigation.goBack();
-            return;
-        }
-
-        updateBulkEditDraftTransaction({
-            taxCode: nextTaxCode,
-        });
+        updateBulkEditDraftTransaction(getBulkEditTaxCodeChange(taxes.code ?? '', draftTransaction?.taxCode ?? ''));
         Navigation.goBack();
     };
 

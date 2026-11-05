@@ -1,12 +1,16 @@
 import Button from '@components/Button';
+import DatePicker from '@components/DatePicker';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+import ExpenseFieldDropdown from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
+import ExpenseFieldRow from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldRow';
+import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
+import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
 import Text from '@components/Text';
+import TextInput from '@components/TextInput';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -22,10 +26,11 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import type {StartWithLoading} from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {clearBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
+import {clearBulkEditDraftTransaction, updateBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
+import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
+import {getBackendAmountFromInput} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import Parser from '@libs/Parser';
 import {getCleanedTagName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils} from '@libs/PolicyUtils';
 import {canEditFieldOfMoneyRequest, isInvoiceReport, isIOUReport, isReportApproved, isSettled} from '@libs/ReportUtils';
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
@@ -40,6 +45,9 @@ import {
     isPerDiemRequest,
     isTimeRequest,
 } from '@libs/TransactionUtils';
+import {isInvalidMerchantValue, isValidDate, isValidInputLength} from '@libs/ValidationUtils';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -52,20 +60,28 @@ import type {ValueOf} from 'type-fest';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
+import SearchEditMultipleAttendeesDropdown from './SearchEditMultipleAttendeesDropdown';
+import SearchEditMultipleCategoryDropdown from './SearchEditMultipleCategoryDropdown';
+import SearchEditMultipleTagDropdown from './SearchEditMultipleTagDropdown';
+import SearchEditMultipleTaxDropdown from './SearchEditMultipleTaxDropdown';
 import {
     areAllTransactionsExpenseCompatible,
     getTransactionEditContext,
     hasCustomUnitMerchantInSelection,
     isBulkEditAttendeeTrackingEnabled,
+    isBulkEditNegativeAmountAllowed,
     isBulkEditTaxTrackingEnabled,
     withSnapshotReportActions,
     withSnapshotReports,
     withSnapshotTransactions,
 } from './SearchEditMultipleUtils';
 
+/** The date input has no form around it, so this only names the input to the picker */
+const DATE_INPUT_ID = 'created';
+
 function SearchEditMultiplePage() {
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
-    const {isBetaEnabledOrUnknown} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {convertToDisplayStringWithoutCurrency, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const styles = useThemeStyles();
@@ -187,6 +203,65 @@ function SearchEditMultiplePage() {
 
     const [isSaving, setIsSaving] = useState(false);
 
+    const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
+    const decimals = getCurrencyDecimals(currency);
+    const draftAmount = draftTransaction?.amount;
+    const draftMerchant = draftTransaction?.merchant ?? '';
+    const description = draftTransaction?.comment?.comment ?? '';
+    const draftDate = draftTransaction?.created ?? '';
+    const draftAttendees = draftTransaction?.comment?.attendees ?? [];
+
+    // Mirror the draft merchant in local state so the input updates synchronously as the user types; feeding the async
+    // Onyx value straight to `value` snaps the caret to the end on every keystroke. The draft only changes from this
+    // input, so it is synced back only while the input is not being edited.
+    const [isMerchantInputFocused, setIsMerchantInputFocused] = useState(false);
+    const [merchantInput, setMerchantInput] = useState(draftMerchant);
+    const [prevDraftMerchant, setPrevDraftMerchant] = useState(draftMerchant);
+    if (draftMerchant !== prevDraftMerchant) {
+        setPrevDraftMerchant(draftMerchant);
+        if (!isMerchantInputFocused) {
+            setMerchantInput(draftMerchant);
+        }
+    }
+
+    // A P2P expense can't be set to zero, as its own amount page rules.
+    const hasP2PTransaction = selectedTransactionContexts.some(({report}) => isIOUReport(report));
+    const allowNegative = isBulkEditNegativeAmountAllowed(selectedTransactionContexts);
+    const amountErrorText = hasP2PTransaction && draftAmount === 0 ? translate('common.error.invalidAmount') : '';
+
+    const merchantErrorText = (() => {
+        const trimmedMerchant = merchantInput.trim();
+        if (trimmedMerchant && isInvalidMerchantValue(trimmedMerchant)) {
+            return translate('iou.error.invalidMerchant');
+        }
+        const {isValid, byteLength} = isValidInputLength(merchantInput, CONST.MERCHANT_NAME_MAX_BYTES);
+        return isValid ? '' : translate('common.error.characterLimitExceedCounter', byteLength, CONST.MERCHANT_NAME_MAX_BYTES);
+    })();
+
+    const descriptionErrorText = description.length > CONST.DESCRIPTION_LIMIT ? translate('common.error.characterLimitExceedCounter', description.length, CONST.DESCRIPTION_LIMIT) : '';
+
+    const dateErrorText = draftDate && !isValidDate(draftDate) ? translate('common.error.dateInvalid') : '';
+
+    const hasFieldError = !!amountErrorText || !!merchantErrorText || !!descriptionErrorText || !!dateErrorText;
+
+    // An emptied field drops the pending change rather than recording an empty value.
+    const saveDraftAmount = (newAmount: string) => {
+        updateBulkEditDraftTransaction({amount: getBackendAmountFromInput(newAmount)});
+    };
+
+    const saveDraftMerchant = (newMerchant: string) => {
+        setMerchantInput(newMerchant);
+        updateBulkEditDraftTransaction({merchant: newMerchant});
+    };
+
+    const saveDraftDescription = (newDescription: string) => {
+        updateBulkEditDraftTransaction({comment: {comment: newDescription}});
+    };
+
+    const saveDraftDate = (newDate: string) => {
+        updateBulkEditDraftTransaction({created: newDate || null});
+    };
+
     const commit = (changes: TransactionChanges, startWithLoading?: StartWithLoading) => {
         setIsSaving(true);
 
@@ -231,19 +306,21 @@ function SearchEditMultiplePage() {
     };
 
     const save = (event?: GestureResponderEvent | KeyboardEvent, startWithLoading?: StartWithLoading) => {
-        if (!draftTransaction || isSaving) {
+        if (!draftTransaction || isSaving || hasFieldError) {
             return;
         }
 
         const changes: TransactionChanges = {};
+        const trimmedMerchant = draftTransaction.merchant?.trim();
+        const trimmedDescription = draftTransaction.comment?.comment?.trim();
         if (draftTransaction.amount !== undefined) {
             changes.amount = draftTransaction.amount;
         }
-        if (draftTransaction.merchant) {
-            changes.merchant = draftTransaction.merchant;
+        if (trimmedMerchant) {
+            changes.merchant = trimmedMerchant;
         }
-        if (draftTransaction.comment?.comment) {
-            changes.comment = draftTransaction.comment.comment;
+        if (trimmedDescription) {
+            changes.comment = trimmedDescription;
         }
         if (draftTransaction.created) {
             changes.created = draftTransaction.created;
@@ -290,8 +367,6 @@ function SearchEditMultiplePage() {
         commit(changes, startWithLoading);
     };
 
-    const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
-
     // TODO: Currency editing and currency symbol should be handled in a separate PR
     const tagsArray = getTagArrayFromName(draftTransaction?.tag ?? '');
     const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTags);
@@ -307,7 +382,12 @@ function SearchEditMultiplePage() {
     const isTaxDisabled = hasPartiallyEditableTaxRateTransaction || hasSplitTransaction;
     const isBillableDisabled = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.BILLABLE);
     const isAttendeesDisabled = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.ATTENDEES);
-    const description = draftTransaction?.comment?.comment;
+
+    // The selectable rows open their list in a container anchored to the row for users on the beta, and on their own
+    // page for everyone else. A dependent tag level needs the levels above it, which only the full page walks through.
+    const canOpenListInDropdown = isBetaEnabled(CONST.BETAS.ANCHORED_BULK_EDIT_DROPDOWNS) && !!policyID;
+    const selectedTaxRate = draftTransaction?.taxCode ? (getTaxName(policy, draftTransaction) ?? '') : '';
+    const taxRateName = policy?.taxRates?.name ?? translate('common.tax');
 
     return (
         <ScreenWrapper
@@ -320,35 +400,101 @@ function SearchEditMultiplePage() {
             />
             <View style={[styles.flex1]}>
                 <ScrollView contentContainerStyle={styles.flexGrow1}>
-                    <Text style={[styles.ph5, styles.mb5, styles.textSupporting]}>{translate('search.bulkActions.editMultipleDescription')}</Text>
-                    <MenuItemField
-                        name={translate('iou.amount')}
-                        value={draftTransaction?.amount !== undefined ? convertToDisplayStringWithoutCurrency(draftTransaction.amount, currency) : ''}
-                        onPress={isAmountDisabled ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_AMOUNT_RHP)}
-                        isDisabled={isAmountDisabled}
-                    />
-                    <MenuItemFieldHTML
-                        name={translate('common.description')}
-                        value={description ? Parser.replace(description) : undefined}
-                        onPress={() => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_DESCRIPTION_RHP)}
-                    />
-                    <MenuItemField
-                        name={translate('common.merchant')}
-                        value={draftTransaction?.merchant}
-                        onPress={hasPartiallyEditableMerchantTransaction ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_MERCHANT_RHP)}
-                        isDisabled={hasPartiallyEditableMerchantTransaction}
-                    />
-                    <MenuItemField
-                        name={translate('common.date')}
-                        value={draftTransaction?.created}
-                        onPress={hasPartiallyEditableDateTransaction ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_DATE_RHP)}
-                        isDisabled={hasPartiallyEditableDateTransaction}
-                    />
+                    <Text style={[styles.ph5, styles.mb3, styles.textSupporting]}>{translate('search.bulkActions.editMultipleDescription')}</Text>
+                    {isAmountDisabled ? (
+                        <ExpenseFieldRow
+                            name={translate('iou.amount')}
+                            value={draftAmount !== undefined ? convertToDisplayStringWithoutCurrency(draftAmount, currency) : ''}
+                            isInteractive={false}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.AMOUNT_FIELD}
+                        />
+                    ) : (
+                        <View style={[styles.mh4, styles.mv2]}>
+                            <NumberWithSymbolForm
+                                displayAsTextInput
+                                autoFocus={false}
+                                value={draftAmount === undefined ? '' : convertToFrontendAmountAsString(draftAmount, decimals)}
+                                decimals={decimals}
+                                currency={currency}
+                                symbol=""
+                                label={translate('iou.amount')}
+                                errorText={amountErrorText}
+                                onInputChange={saveDraftAmount}
+                                allowNegativeInput={allowNegative}
+                                shouldShowFlipButton={allowNegative}
+                                shouldShowBigNumberPad={false}
+                                shouldUseBorderlessButtons
+                            />
+                        </View>
+                    )}
+                    <View style={[styles.mh4, styles.mv2]}>
+                        <TextInput
+                            value={description}
+                            onChangeText={saveDraftDescription}
+                            label={translate('common.description')}
+                            accessibilityLabel={translate('common.description')}
+                            errorText={descriptionErrorText}
+                            autoGrowHeight
+                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                            type="markdown"
+                        />
+                    </View>
+                    {hasPartiallyEditableMerchantTransaction ? (
+                        <ExpenseFieldRow
+                            name={translate('common.merchant')}
+                            value={draftMerchant}
+                            numberOfLinesValue={2}
+                            isInteractive={false}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.MERCHANT_FIELD}
+                        />
+                    ) : (
+                        <View style={[styles.mh4, styles.mv2]}>
+                            <TextInput
+                                value={merchantInput}
+                                onChangeText={saveDraftMerchant}
+                                onFocus={() => setIsMerchantInputFocused(true)}
+                                onBlur={() => setIsMerchantInputFocused(false)}
+                                label={translate('common.merchant')}
+                                accessibilityLabel={translate('common.merchant')}
+                                errorText={merchantErrorText}
+                            />
+                        </View>
+                    )}
+                    {hasPartiallyEditableDateTransaction ? (
+                        <ExpenseFieldRow
+                            name={translate('common.date')}
+                            value={draftDate}
+                            isInteractive={false}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.DATE_FIELD}
+                        />
+                    ) : (
+                        <View style={styles.mh4}>
+                            <DatePicker
+                                inputID={DATE_INPUT_ID}
+                                value={draftDate}
+                                label={translate('common.date')}
+                                maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                                onInputChange={saveDraftDate}
+                                errorText={dateErrorText}
+                                shouldDeferShowUntilPositioned
+                            />
+                        </View>
+                    )}
                     {areCategoriesEnabled && (
-                        <MenuItemField
+                        <ExpenseFieldDropdown
                             name={translate('common.category')}
-                            value={draftTransaction?.category}
+                            value={draftTransaction?.category ?? ''}
+                            numberOfLinesValue={2}
                             onPress={() => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_CATEGORY_RHP)}
+                            shouldOpenInDropdown={canOpenListInDropdown}
+                            renderDropdown={(dropdownProps) => (
+                                <SearchEditMultipleCategoryDropdown
+                                    {...dropdownProps}
+                                    policyID={policyID}
+                                    selectedCategory={draftTransaction?.category ?? ''}
+                                />
+                            )}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.CATEGORY_FIELD}
                         />
                     )}
                     {areTagsEnabled &&
@@ -358,44 +504,78 @@ function SearchEditMultiplePage() {
                             }
                             const tagName = tagsArray.at(tagListIndex) ?? '';
                             return (
-                                <MenuItemField
+                                <ExpenseFieldDropdown
                                     key={tagList.name}
                                     name={tagList.name || translate('common.tag')}
                                     value={tagName ? getCleanedTagName(tagName) : ''}
+                                    numberOfLinesValue={2}
                                     onPress={() => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_TAG_RHP.getRoute(tagListIndex))}
+                                    shouldOpenInDropdown={canOpenListInDropdown && !hasDependentTags}
+                                    listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
+                                    renderDropdown={(dropdownProps) => (
+                                        <SearchEditMultipleTagDropdown
+                                            {...dropdownProps}
+                                            policyID={policyID}
+                                            tagListIndex={tagListIndex}
+                                        />
+                                    )}
+                                    sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.TAG_FIELD}
                                 />
                             );
                         })}
                     {isTaxTrackingEnabled && (
-                        <MenuItemField
-                            name={policy?.taxRates?.name ?? translate('common.tax')}
-                            value={draftTransaction?.taxCode ? getTaxName(policy, draftTransaction) : ''}
-                            onPress={isTaxDisabled ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_TAX_RHP)}
-                            isDisabled={isTaxDisabled}
+                        <ExpenseFieldDropdown
+                            name={taxRateName}
+                            value={selectedTaxRate}
+                            onPress={() => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_TAX_RHP)}
+                            shouldOpenInDropdown={canOpenListInDropdown && !isTaxDisabled}
+                            listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
+                            renderDropdown={(dropdownProps) => (
+                                <SearchEditMultipleTaxDropdown
+                                    {...dropdownProps}
+                                    policyID={policyID}
+                                    currentTaxCode={draftTransaction?.taxCode ?? ''}
+                                    selectedTaxRate={selectedTaxRate}
+                                />
+                            )}
+                            isInteractive={!isTaxDisabled}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.TAX_RATE_FIELD}
                         />
                     )}
                     {areSelectedTransactionsBillable && (
-                        <MenuItemField
+                        <ExpenseFieldRow
                             name={translate('common.billable')}
                             value={getBooleanTitle(draftTransaction?.billable)}
-                            onPress={isBillableDisabled ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_BILLABLE_RHP)}
-                            isDisabled={isBillableDisabled}
+                            onPress={() => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_BILLABLE_RHP)}
+                            isInteractive={!isBillableDisabled}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.BILLABLE_FIELD}
                         />
                     )}
                     {areSelectedTransactionsReimbursable && (
-                        <MenuItemField
+                        <ExpenseFieldRow
                             name={translate('common.reimbursable')}
                             value={getBooleanTitle(draftTransaction?.reimbursable)}
-                            onPress={hasPartiallyEditableReimbursableTransaction ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_REIMBURSABLE_RHP)}
-                            isDisabled={hasPartiallyEditableReimbursableTransaction}
+                            onPress={() => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_REIMBURSABLE_RHP)}
+                            isInteractive={!hasPartiallyEditableReimbursableTransaction}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.REIMBURSABLE_FIELD}
                         />
                     )}
                     {areAttendeesEnabled && (
-                        <MenuItemField
+                        <ExpenseFieldDropdown
                             name={translate('iou.attendees')}
-                            value={draftTransaction?.comment?.attendees?.length ? getAttendeesListDisplayString(draftTransaction.comment.attendees, formatPhoneNumber, localeCompare) : ''}
-                            onPress={isAttendeesDisabled ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_ATTENDEES_RHP)}
-                            isDisabled={isAttendeesDisabled}
+                            value={draftAttendees.length ? getAttendeesListDisplayString(draftAttendees, formatPhoneNumber, localeCompare) : ''}
+                            numberOfLinesValue={2}
+                            onPress={() => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_ATTENDEES_RHP)}
+                            shouldOpenInDropdown={canOpenListInDropdown && !isAttendeesDisabled}
+                            listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
+                            renderDropdown={(dropdownProps) => (
+                                <SearchEditMultipleAttendeesDropdown
+                                    {...dropdownProps}
+                                    draftAttendees={draftAttendees}
+                                />
+                            )}
+                            isInteractive={!isAttendeesDisabled}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.ATTENDEES_FIELD}
                         />
                     )}
                 </ScrollView>

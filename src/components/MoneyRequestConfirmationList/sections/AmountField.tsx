@@ -20,7 +20,7 @@ import {
 import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {calculateAmount, isMovingTransactionFromTrackExpense, isP2PRecipient, isParticipantP2P} from '@libs/IOUUtils';
-import {isConfirmationAmountMissing} from '@libs/MoneyRequestUtils';
+import {getBackendAmountFromInput, isConfirmationAmountMissing} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldEnableNegative} from '@libs/ReportUtils';
 import {calculateTaxAmount, getTaxCode, getTaxValue, hasAnyManuallyEnteredScanField} from '@libs/TransactionUtils';
@@ -175,23 +175,6 @@ function AmountField({
 
     const hideCurrencyPicker = () => {
         setIsCurrencyPickerVisible(false);
-    };
-
-    const getBackendAmountFromInput = (value: string) => {
-        const isNegative = value.startsWith('-');
-        const cleanAmount = value.replace('-', '');
-
-        if (!cleanAmount || cleanAmount.trim() === '') {
-            return null;
-        }
-
-        const numericAmount = Number.parseFloat(cleanAmount);
-        if (Number.isNaN(numericAmount)) {
-            return null;
-        }
-
-        const absoluteBackendAmount = convertToBackendAmount(numericAmount);
-        return isNegative ? -absoluteBackendAmount : absoluteBackendAmount;
     };
 
     /**

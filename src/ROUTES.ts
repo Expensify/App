@@ -2440,10 +2440,6 @@ const ROUTES = {
     },
     SEARCH_REJECT_REASON_RHP: 'search/reject',
     SEARCH_EDIT_MULTIPLE_TRANSACTIONS_RHP: 'search/edit-multiple-transactions',
-    SEARCH_EDIT_MULTIPLE_AMOUNT_RHP: 'search/edit-multiple/amount',
-    SEARCH_EDIT_MULTIPLE_DESCRIPTION_RHP: 'search/edit-multiple/description',
-    SEARCH_EDIT_MULTIPLE_MERCHANT_RHP: 'search/edit-multiple/merchant',
-    SEARCH_EDIT_MULTIPLE_DATE_RHP: 'search/edit-multiple/date',
     SEARCH_EDIT_MULTIPLE_CATEGORY_RHP: 'search/edit-multiple/category',
     SEARCH_EDIT_MULTIPLE_TAG_RHP: {
         route: 'search/edit-multiple/tag/:tagListIndex',
