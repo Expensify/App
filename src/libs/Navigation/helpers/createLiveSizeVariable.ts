@@ -7,23 +7,31 @@ type LiveSizeVariable = {
 
     clear: () => void;
 
+    /** A CSS reference to the live size mid-drag and to the committed `size` otherwise, for composing into a larger CSS expression. */
+    getReference: (size: number) => string;
+
     /** The live size mid-drag, the committed `size` otherwise, plus `offset`. */
     getStyleValue: (size: number, offset?: number) => DimensionValue;
 };
 
+/** Hands a CSS expression to a style. */
+function toDimensionValue(cssValue: string): DimensionValue {
+    // DimensionValue has no member for CSS functions, which react-native-web still renders as written.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    return cssValue as DimensionValue;
+}
+
 function createLiveSizeVariable(name: `--${string}`): LiveSizeVariable {
+    const getReference = (size: number) => `var(${name}, ${size}px)`;
+
     return {
         write: (size) => document.documentElement.style.setProperty(name, `${size}px`),
         clear: () => document.documentElement.style.removeProperty(name),
-        getStyleValue: (size, offset = 0) => {
-            const value = offset === 0 ? `var(${name}, ${size}px)` : `calc(var(${name}, ${size}px) + ${offset}px)`;
-
-            // DimensionValue has no member for CSS functions, which react-native-web still renders as written.
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            return value as DimensionValue;
-        },
+        getReference,
+        getStyleValue: (size, offset = 0) => toDimensionValue(offset === 0 ? getReference(size) : `calc(${getReference(size)} + ${offset}px)`),
     };
 }
 
 export default createLiveSizeVariable;
+export {toDimensionValue};
 export type {LiveSizeVariable};

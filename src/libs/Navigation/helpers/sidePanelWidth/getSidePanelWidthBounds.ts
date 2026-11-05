@@ -3,13 +3,10 @@ import getSingleRHPWidthBounds from '@libs/Navigation/helpers/singleRHPWidth/get
 
 import variables from '@styles/variables';
 
-type SidePanelWidthBounds = {
-    min: number;
-    max: number;
-};
+import type PaneWidthBounds from '@src/types/utils/PaneWidthBounds';
 
 /** Never narrower than the default, and never wider than a single RHP can be dragged in the same window, so the two panes resize alike. */
-function getSidePanelWidthBounds(windowWidth: number): SidePanelWidthBounds {
+function getSidePanelWidthBounds(windowWidth: number): PaneWidthBounds {
     const min = variables.sidePanelWidth;
     const {max: singleRHPMaxWidth} = getSingleRHPWidthBounds(windowWidth, 0);
 
@@ -17,4 +14,3 @@ function getSidePanelWidthBounds(windowWidth: number): SidePanelWidthBounds {
 }
 
 export default getSidePanelWidthBounds;
-export type {SidePanelWidthBounds};

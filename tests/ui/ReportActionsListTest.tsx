@@ -128,6 +128,8 @@ const defaultSidePanelState: ReturnType<typeof useSidePanelState> = {
     shouldHideToolTip: false,
     sidePanelOffset: {current: null} as React.RefObject<never>,
     sidePanelTranslateX: {current: null} as React.RefObject<never>,
+    sidePanelWidth: 375,
+    isSidePanelResizable: false,
 };
 
 jest.mock('@hooks/useCopySelectionHelper', () => jest.fn());

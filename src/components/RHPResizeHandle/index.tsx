@@ -3,10 +3,11 @@ import PaneResizeHandle from '@components/ResizeHandle/PaneResizeHandle';
 import useSingleRHPWidth from '@hooks/useSingleRHPWidth';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {resetSingleRHPWidth, setSingleRHPWidth} from '@libs/actions/SingleRHPWidth';
-import {clearLiveSingleRHPWidth, writeLiveSingleRHPWidth} from '@libs/Navigation/helpers/singleRHPWidth';
+import {singleRHPWidthVariable} from '@libs/Navigation/helpers/singleRHPWidth';
 
 import variables from '@styles/variables';
+
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
 
@@ -16,18 +17,15 @@ import React from 'react';
  */
 function RHPResizeHandle() {
     const styles = useThemeStyles();
-    const {width, min, max} = useSingleRHPWidth();
+    const {width, bounds} = useSingleRHPWidth();
 
     return (
         <PaneResizeHandle
+            onyxKey={ONYXKEYS.SINGLE_RHP_WIDTH}
             width={width}
-            min={min}
-            max={max}
+            bounds={bounds}
             defaultWidth={variables.rhpWidth}
-            writeLiveWidth={writeLiveSingleRHPWidth}
-            clearLiveWidth={clearLiveSingleRHPWidth}
-            onCommit={setSingleRHPWidth}
-            onReset={resetSingleRHPWidth}
+            liveWidth={singleRHPWidthVariable}
             style={styles.rhpResizeHandle(width)}
         />
     );

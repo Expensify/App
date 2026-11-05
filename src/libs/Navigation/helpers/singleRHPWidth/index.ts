@@ -3,11 +3,7 @@ import createLiveSizeVariable from '@libs/Navigation/helpers/createLiveSizeVaria
 
 const singleRHPWidthVariable = createLiveSizeVariable('--rhp-width');
 
-const writeLiveSingleRHPWidth = singleRHPWidthVariable.write;
-
-const clearLiveSingleRHPWidth = singleRHPWidthVariable.clear;
-
 /** The live width mid-drag, the committed `width` otherwise. */
 const getSingleRHPWidthStyleValue = singleRHPWidthVariable.getStyleValue;
 
-export {clearLiveSingleRHPWidth, getSingleRHPWidthStyleValue, writeLiveSingleRHPWidth};
+export {getSingleRHPWidthStyleValue, singleRHPWidthVariable};

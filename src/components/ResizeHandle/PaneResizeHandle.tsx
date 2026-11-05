@@ -1,7 +1,12 @@
 /** The draggable edge of a right-docked pane (the RHP, the side panel) on web, which relies on DOM pointer capture. */
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {resetPaneWidth, setPaneWidth} from '@libs/actions/PaneWidth';
+import type {PaneWidthOnyxKey} from '@libs/actions/PaneWidth';
+import type {LiveSizeVariable} from '@libs/Navigation/helpers/createLiveSizeVariable';
+
 import CONST from '@src/CONST';
+import type PaneWidthBounds from '@src/types/utils/PaneWidthBounds';
 
 import type {RefObject} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -25,32 +30,26 @@ type Drag = {
 };
 
 type PaneResizeHandleProps = {
-    /** The committed width, already clamped to `min` and `max`. */
+    /** Where the dragged width is saved, and dropped on a reset. */
+    onyxKey: PaneWidthOnyxKey;
+
+    /** The committed width, already clamped to `bounds`. */
     width: number;
 
-    min: number;
-
-    max: number;
+    bounds: PaneWidthBounds;
 
     /** The width a drag snaps onto and a click resets to. */
     defaultWidth: number;
 
-    /** Paints a width mid-drag without rendering. Several handles over one pane must share the same function, which keys their shared drag. */
-    writeLiveWidth: (width: number) => void;
-
-    /** Drops the painted width, so styles fall back to the committed one. */
-    clearLiveWidth: () => void;
-
-    onCommit: (width: number) => void;
-
-    onReset: () => void;
+    /** Paints the width mid-drag without rendering. Handles over one pane share it, which keys their shared drag. */
+    liveWidth: LiveSizeVariable;
 
     /** Positions the strip that picks up a drag over the pane's left edge. */
     style: StyleProp<ViewStyle>;
 };
 
 /** A pane and a modal stacked on it can each mount a handle over one live width, so an idle handle must not clear it while another drags. */
-const lastDragRefByLiveWidth = new Map<PaneResizeHandleProps['writeLiveWidth'], RefObject<Drag | null>>();
+const lastDragRefByLiveWidth = new Map<LiveSizeVariable, RefObject<Drag | null>>();
 
 // DOM `div` styles, which the React Native style system can't type.
 const HANDLE_STYLE: React.CSSProperties = {
@@ -70,7 +69,7 @@ const LINE_STYLE: React.CSSProperties = {
 };
 
 /** Pressing and dragging left widens the pane, a click resets it, and coming near the default snaps onto it. */
-function PaneResizeHandle({width, min, max, defaultWidth, writeLiveWidth, clearLiveWidth, onCommit, onReset, style}: PaneResizeHandleProps) {
+function PaneResizeHandle({onyxKey, width, bounds: {min, max}, defaultWidth, liveWidth, style}: PaneResizeHandleProps) {
     const styles = useThemeStyles();
     const [isHovered, setIsHovered] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
@@ -78,6 +77,7 @@ function PaneResizeHandle({width, min, max, defaultWidth, writeLiveWidth, clearL
     const dragRef = useRef<Drag | null>(null);
     const lineRef = useRef<HTMLDivElement>(null);
     const snap = {to: defaultWidth, threshold: CONST.RESIZE_HANDLE.PANE_SNAP_THRESHOLD};
+    const reset = () => resetPaneWidth(onyxKey);
 
     /** Thickens the line while a drag is held on the default width. Set on the DOM, so a drag stays free of React renders. */
     const setLineSnapped = (isSnapped: boolean) => {
@@ -98,53 +98,54 @@ function PaneResizeHandle({width, min, max, defaultWidth, writeLiveWidth, clearL
                 drag.hasMovedPointer = true;
             }
 
-            const liveWidth = getDraggedSize(drag.startWidth, drag.startClientX - clientX, {min, max, snap});
+            const draggedWidth = getDraggedSize(drag.startWidth, drag.startClientX - clientX, {min, max, snap});
 
             // Pressing an edge already on the default and moving within the threshold changes nothing, so the snapped line waits for a real snap.
-            if (liveWidth === (drag.liveWidth ?? drag.startWidth)) {
+            if (draggedWidth === (drag.liveWidth ?? drag.startWidth)) {
                 return;
             }
 
-            writeLiveWidth(liveWidth);
-            setLineSnapped(liveWidth === snap.to);
+            liveWidth.write(draggedWidth);
+            setLineSnapped(draggedWidth === snap.to);
             // eslint-disable-next-line no-param-reassign -- the drag is the ref's own object, read back when the drag ends
-            drag.liveWidth = liveWidth;
+            drag.liveWidth = draggedWidth;
         },
-        onEnd: ({hasMovedPointer, liveWidth}, event, isRelease) => {
+        onEnd: ({hasMovedPointer, liveWidth: draggedWidth}, event, isRelease) => {
             setIsDragging(false);
 
             // A cancelled press or reclaimed capture isn't a click, so only a release resets.
             if (!hasMovedPointer && isRelease) {
-                onReset();
+                reset();
                 return;
             }
 
             // Nothing gets saved, so no render follows to clear the live width.
-            if (liveWidth === undefined || liveWidth === width) {
-                clearLiveWidth();
+            if (draggedWidth === undefined || draggedWidth === width) {
+                liveWidth.clear();
                 return;
             }
 
-            if (liveWidth === snap.to) {
-                onReset();
+            // Dropping the saved width rather than saving the default keeps the pane on the default if the default changes.
+            if (draggedWidth === snap.to) {
+                reset();
                 return;
             }
 
-            onCommit(liveWidth);
+            setPaneWidth(onyxKey, draggedWidth);
         },
     });
 
     // React now renders the saved width as the fallback, so drop the live one before paint. A window resize mid-drag leaves it to the drag.
     useLayoutEffect(() => {
-        if (lastDragRefByLiveWidth.get(writeLiveWidth)?.current) {
+        if (lastDragRefByLiveWidth.get(liveWidth)?.current) {
             return;
         }
 
-        clearLiveWidth();
-    }, [width, writeLiveWidth, clearLiveWidth]);
+        liveWidth.clear();
+    }, [width, liveWidth]);
 
     // The document outlives the handle, so unmounting before the save renders would otherwise pin the pane at the live width.
-    useEffect(() => clearLiveWidth, [clearLiveWidth]);
+    useEffect(() => liveWidth.clear, [liveWidth.clear]);
 
     return (
         <View style={style}>
@@ -157,7 +158,7 @@ function PaneResizeHandle({width, min, max, defaultWidth, writeLiveWidth, clearL
                     if (!pointerDrag.startDrag(event, () => ({startClientX: event.clientX, startWidth: width, hasMovedPointer: false}))) {
                         return;
                     }
-                    lastDragRefByLiveWidth.set(writeLiveWidth, dragRef);
+                    lastDragRefByLiveWidth.set(liveWidth, dragRef);
                     setIsDragging(true);
                 }}
                 {...pointerDrag.handlers}

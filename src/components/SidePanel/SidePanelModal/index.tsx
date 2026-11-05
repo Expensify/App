@@ -6,10 +6,9 @@ import {useWideRHPState} from '@components/WideRHPContextProvider';
 
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
-import useSidePanelWidth from '@hooks/useSidePanelWidth';
+import useSidePanelState from '@hooks/useSidePanelState';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import ComposerFocusManager from '@libs/ComposerFocusManager';
@@ -33,9 +32,7 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
     const styles = useThemeStyles();
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {paddingTop, paddingBottom, paddingLeft, paddingRight} = useSafeAreaPaddings();
-    const {width: sidePanelWidth} = useSidePanelWidth();
-    const {isBetaEnabled} = usePermissions();
-    const isResizable = isBetaEnabled(CONST.BETAS.RESIZABLE_SIDE_PANEL) && !shouldUseNarrowLayout;
+    const {sidePanelWidth} = useSidePanelState();
 
     const [isRHPVisible = false] = useOnyx(ONYXKEYS.MODAL, {selector: isRHPVisibleSelector});
     const uniqueModalId = ComposerFocusManager.getId();
@@ -108,7 +105,7 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
                             ]}
                         >
                             {children}
-                            {isResizable && <SidePanelResizeHandle />}
+                            <SidePanelResizeHandle />
                         </Animated.View>
                     </ColorSchemeWrapper>
                 </View>

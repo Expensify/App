@@ -1,15 +1,11 @@
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
-import useSidePanelWidth from '@hooks/useSidePanelWidth';
 import useSingleRHPWidth from '@hooks/useSingleRHPWidth';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isMobileChrome, isMobileSafari} from '@libs/Browser';
 import {getSidePanelInsetStyleValue} from '@libs/Navigation/helpers/sidePanelWidth';
-
-import CONST from '@src/CONST';
 
 import type {StackCardInterpolatedStyle, StackCardInterpolationProps} from '@react-navigation/stack';
 
@@ -31,11 +27,8 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
-    const {sidePanelOffset, sidePanelNVP, isSidePanelTransitionEnded} = useSidePanelState();
+    const {sidePanelOffset, sidePanelNVP, isSidePanelTransitionEnded, sidePanelWidth, isSidePanelResizable} = useSidePanelState();
     const {width: singleRHPWidth} = useSingleRHPWidth();
-    const {width: sidePanelWidth} = useSidePanelWidth();
-    const {isBetaEnabled} = usePermissions();
-    const isSidePanelResizable = isBetaEnabled(CONST.BETAS.RESIZABLE_SIDE_PANEL);
 
     // Narrow mobile browsers compositing the stacked, transparent modal cards can flicker mid-slide on low-end devices.
     // Hardening the animated card (opaque background + dedicated compositor layer) avoids that glitch while keeping the animation.

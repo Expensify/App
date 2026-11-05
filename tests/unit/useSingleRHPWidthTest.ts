@@ -2,7 +2,7 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import useSingleRHPWidth from '@hooks/useSingleRHPWidth';
 
-import {setSingleRHPWidth} from '@libs/actions/SingleRHPWidth';
+import {setPaneWidth} from '@libs/actions/PaneWidth';
 import getSingleRHPWidthBounds from '@libs/Navigation/helpers/singleRHPWidth/getSingleRHPWidthBounds';
 
 import variables from '@styles/variables';
@@ -25,7 +25,7 @@ const NARROW_WINDOW_WIDTH = 1100;
 let mockWindowWidth = WIDE_WINDOW_WIDTH;
 jest.mock('@hooks/useWindowDimensions', () => () => ({windowWidth: mockWindowWidth}));
 jest.mock('@hooks/useResponsiveLayout', () => () => ({isExtraLargeScreenWidth: false}));
-jest.mock('@hooks/useSidePanelState', () => () => ({shouldHideSidePanel: true}));
+jest.mock('@hooks/useSidePanelState', () => () => ({shouldHideSidePanel: true, sidePanelWidth: 375}));
 
 let mockIsResizableRHPEnabled = true;
 jest.mock('@hooks/usePermissions', () => () => ({isBetaEnabled: () => mockIsResizableRHPEnabled}));
@@ -59,7 +59,7 @@ describe('useSingleRHPWidth', () => {
         expect(narrowMax).toBeLessThan(savedWidth);
         const {result, rerender} = renderHook(() => useSingleRHPWidth());
         await act(async () => {
-            setSingleRHPWidth(savedWidth);
+            setPaneWidth(ONYXKEYS.SINGLE_RHP_WIDTH, savedWidth);
             await waitForBatchedUpdates();
         });
 
@@ -86,7 +86,7 @@ describe('useSingleRHPWidth', () => {
 
         // When the width is read
         await act(async () => {
-            setSingleRHPWidth(savedWidth);
+            setPaneWidth(ONYXKEYS.SINGLE_RHP_WIDTH, savedWidth);
             await waitForBatchedUpdates();
         });
 

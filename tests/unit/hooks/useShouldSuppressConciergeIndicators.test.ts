@@ -40,6 +40,8 @@ const sidePanelState: ReturnType<typeof useSidePanelState> = {
     shouldHideToolTip: false,
     sidePanelOffset: {current: new Animated.Value(0)},
     sidePanelTranslateX: {current: new Animated.Value(0)},
+    sidePanelWidth: 375,
+    isSidePanelResizable: false,
 };
 
 function buildAction(overrides: Partial<ReportAction>): ReportAction {
