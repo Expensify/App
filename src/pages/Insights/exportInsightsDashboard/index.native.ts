@@ -26,7 +26,9 @@ function measure(ref: InsightsCaptureRef): Promise<{x: number; width: number; he
     });
 }
 
-const exportInsightsDashboard: ExportInsightsDashboard = async ({headerRef, controlsRef, contentRef, backgroundColor, fileName}) => {
+const exportInsightsDashboard: ExportInsightsDashboard = async (options) => {
+    // Hermes drops awaited values when async arrows destructure their parameters.
+    const {headerRef, controlsRef, contentRef, backgroundColor, fileName} = options;
     const refs = [headerRef, controlsRef, contentRef];
     const bounds = await Promise.all(refs.map(measure));
     const [headerBounds, controlsBounds, contentBounds] = bounds;
