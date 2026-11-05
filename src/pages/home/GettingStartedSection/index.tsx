@@ -31,7 +31,7 @@ function GettingStartedSection() {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
     const [guideDetails] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountGuideDetailsSelector});
-    const hasGuide = !!guideDetails?.email;
+    const hasGuide = !!guideDetails?.email && guideDetails.email.toLowerCase() !== CONST.EMAIL.CONCIERGE;
     const {shouldShowSection, items} = useGettingStartedItems();
 
     const openAdminsRoom = () => {
