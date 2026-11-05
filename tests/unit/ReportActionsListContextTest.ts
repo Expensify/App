@@ -76,6 +76,24 @@ describe('computeReportActionsSkeletonState', () => {
         expect(state.shouldShowLoadingSkeleton).toBe(true);
     });
 
+    it('shows the loading skeleton for actions without a loaded page before OpenReport is queued', () => {
+        // Given a read chat with unpaged cached actions whose screen has not queued OpenReport yet
+        const signals = createReadinessSignals({
+            report: readReport,
+            isMissingReportActions: false,
+            reportActionsLength: 3,
+            hasReportActionPages: false,
+            isReportLoadPending: false,
+            isLoadingInitialReportActions: undefined,
+        });
+
+        // When the skeleton state is computed on that first render
+        const state = computeReportActionsSkeletonState(signals);
+
+        // Then the skeleton already shows, so the list does not mount, mark the chat as read and remount without its unread marker
+        expect(state.shouldShowLoadingSkeleton).toBe(true);
+    });
+
     it('shows cached actions without a loaded page for an optimistic report', () => {
         // Given an optimistic chat that only has local actions and no page yet
         const signals = createReadinessSignals({

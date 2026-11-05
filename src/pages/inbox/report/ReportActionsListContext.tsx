@@ -105,7 +105,9 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
 
     // Actions cached without a loaded page, such as the few that OpenApp returns after a cache clear, are scattered
     // across the history. Showing them would open the chat at old messages that jump away once OpenReport loads the newest page.
-    const shouldShowSkeletonForUnpagedActions = isReportLoadPending && !hasOnceLoadedReportActions && !hasReportActionPages && !report?.pendingFields?.createReport && !isOffline;
+    // Gate from the first render, before OpenReport is queued: a list that mounts early marks the chat as read and loses its unread marker on remount.
+    const shouldShowSkeletonForUnpagedActions =
+        shouldKeepInitialReportLoadGated && !hasOnceLoadedReportActions && !hasReportActionPages && !report?.pendingFields?.createReport && !isOffline;
 
     const shouldShowInitialSkeleton =
         shouldShowSkeletonForConciergePanel ||
