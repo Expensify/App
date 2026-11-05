@@ -8902,6 +8902,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                     `Automatisch betalen is alleen beschikbaar met het Control-abonnement. [Upgrade](${upgradeLink}) om deze functie te ontgrendelen.`,
                 autoPayReportsUnderTitle: 'Automatisch rapporten betalen onder',
                 autoPayReportsUnderDescription: 'Volledig conforme onkostendeclaraties onder dit bedrag worden automatisch betaald.',
+                autoPayCrossBorderFeesDisclosure:
+                    'Internationale betalingen gebruiken de middenkoers op het moment van betaling. Op alle internationale betalingen geldt een variabele vergoeding van 1%, behalve voor de volgende valuta: CRC (1,32%), KES (1,01%), MAD (1,60%), NPR (1,05%), UGX (1,47%), UYU (1,12%).\n\nExacte koersen en kosten kunnen niet vooraf worden bekeken wanneer een rapport automatisch wordt betaald. Een volledig gespecificeerd overzicht (inclusief de exacte wisselkoers, kosten en het uiteindelijke bedrag) is direct na betaling beschikbaar in het rapport.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Voeg ${featureName} toe om deze functie te ontgrendelen.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Ga naar [meer functies](${moreFeaturesLink}) en schakel ${featureName} in om deze functie te ontgrendelen.`,

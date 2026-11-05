@@ -8931,8 +8931,10 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 autoPayApprovedReportsLockedSubtitle: 'Przejdź do „Więcej funkcji” i włącz Workflows, a następnie dodaj płatności, aby odblokować tę funkcję.',
                 autoPayApprovedReportsControlPlanSubtitle: (upgradeLink: string) =>
                     `Automatyczna płatność jest dostępna tylko w planie Control. [Uaktualnij](${upgradeLink}), aby odblokować tę funkcję.`,
-                autoPayReportsUnderTitle: 'Automatycznie opłacaj raporty w ramach',
+                autoPayReportsUnderTitle: 'Automatycznie opłacaj raporty poniżej',
                 autoPayReportsUnderDescription: 'W pełni zgodne raporty wydatków poniżej tej kwoty zostaną opłacone automatycznie.',
+                autoPayCrossBorderFeesDisclosure:
+                    'Płatności zagraniczne korzystają ze średniego kursu rynkowego z chwili płatności. Do wszystkich płatności zagranicznych naliczana jest zmienna opłata w wysokości 1%, z wyjątkiem następujących walut: CRC (1,32%), KES (1,01%), MAD (1,60%), NPR (1,05%), UGX (1,47%), UYU (1,12%).\n\nDokładnych kursów i opłat nie można sprawdzić przed płatnością, gdy raport jest opłacany automatycznie. Pełne, szczegółowe zestawienie (w tym dokładny kurs wymiany, opłaty i kwota końcowa) jest dostępne w raporcie zaraz po płatności.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Dodaj ${featureName}, aby odblokować tę funkcję.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Przejdź do [więcej funkcji](${moreFeaturesLink}) i włącz ${featureName}, aby odblokować tę funkcję.`,

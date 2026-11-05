@@ -9002,6 +9002,8 @@ ${reportName}`,
                     `El pago automático solo está disponible en el plan Controlar. [Mejora el plan](${upgradeLink}) para desbloquear esta función.`,
                 autoPayReportsUnderTitle: 'Pagar automáticamente informes por debajo de',
                 autoPayReportsUnderDescription: 'Los informes de gastos totalmente conformes por debajo de este importe se pagarán automáticamente.',
+                autoPayCrossBorderFeesDisclosure:
+                    'Los pagos internacionales usan el tipo de cambio medio del mercado en el momento del pago. Se aplica una comisión variable del 1% a todos los pagos internacionales, excepto en las siguientes monedas: CRC (1,32%), KES (1,01%), MAD (1,60%), NPR (1,05%), UGX (1,47%), UYU (1,12%).\n\nLos tipos de cambio y las comisiones exactos no se pueden consultar antes del pago cuando un informe se paga automáticamente. Un desglose detallado completo (incluidos el tipo de cambio exacto, las comisiones y el importe final) está disponible en el informe inmediatamente después del pago.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName) => `Añade ${featureName} para desbloquear esta función.`,
                 enableFeatureSubtitle: (featureName, moreFeaturesLink) => `Ir a [más características](${moreFeaturesLink}) y habilita ${featureName} para desbloquear esta función.`,
                 preventPayoutNonReimbursableReportsTitle: 'Evitar marcar como pagados los informes no reembolsables',

@@ -8797,6 +8797,8 @@ ${reportName}`,
                     `自動支払いはControlプランでのみご利用いただけます。この機能を有効にするには[アップグレード](${upgradeLink})してください。`,
                 autoPayReportsUnderTitle: '自動支払いレポートの対象:',
                 autoPayReportsUnderDescription: 'この金額以下で完全準拠の経費精算書は、自動的に支払われます。',
+                autoPayCrossBorderFeesDisclosure:
+                    '海外送金には、支払い時点の仲値為替レートが適用されます。すべての海外送金に1%の変動手数料がかかります。ただし、次の通貨を除きます：CRC（1.32%）、KES（1.01%）、MAD（1.60%）、NPR（1.05%）、UGX（1.47%）、UYU（1.12%）。\n\nレポートが自動支払いされる場合、正確なレートと手数料を支払い前に確認することはできません。正確な為替レート、手数料、最終金額を含む詳細な内訳は、支払い直後にレポートで確認できます。',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `この機能を利用するには、${featureName} を追加してください。`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `[その他の機能](${moreFeaturesLink})に移動し、${featureName} を有効にしてこの機能を利用できるようにしてください。`,
