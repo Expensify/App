@@ -754,10 +754,8 @@ const isFutureDay = (inputDate: Date): boolean => {
  * Whether a transaction's date is further ahead than the backend tolerates.
  *
  * Mirrors the backend rule `DATETIME(COALESCE(modifiedCreated, created)) <= DATETIME('NOW', '+14 hours')`. A
- * transaction date has no offset, so the backend cannot know the sender's local date and allows up to the furthest
- * timezone (UTC+14) before flagging it. A date without a time counts as midnight. SmartScan saves the time printed on
- * the receipt, and that time is compared too, so a misread date that is today but with a time that hasn't happened
- * yet anywhere is flagged.
+ * transaction date is a plain calendar date with no time or offset, so the backend cannot know the sender's local
+ * date and allows up to the furthest timezone (UTC+14) before flagging it.
  */
 const isTransactionDateFuture = (transactionDate: string): boolean => {
     if (!transactionDate) {
