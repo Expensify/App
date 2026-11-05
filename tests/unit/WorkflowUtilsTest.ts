@@ -35,6 +35,7 @@ import {
     reconcileApprovalWorkflowRulesForEdit,
     reconcileApprovalWorkflowRulesForMembersChange,
     reconcileApprovalWorkflowRulesForRemove,
+    shouldUseApprovalWorkflowRules,
     updateWorkflowDataOnApproverRemoval,
 } from '@src/libs/WorkflowUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -2846,6 +2847,54 @@ describe('WorkflowUtils', () => {
         });
     });
 
+    describe('shouldUseApprovalWorkflowRules', () => {
+        const policyWithEmployees = (employeeList: PolicyEmployeeList): Policy => ({...createRandomPolicy(1), employeeList});
+
+        it('keeps every policy on employeeList without the multiple approvers beta', () => {
+            // Given a policy whose reports approval workflow rules already route
+            const policy = policyWithEmployees({'1@example.com': {email: '1@example.com', submitsTo: '2@example.com'}});
+
+            // When the multiple approvers beta is off
+            const shouldUseRules = shouldUseApprovalWorkflowRules(policy, true, false);
+
+            // Then its workflows are still read from and saved to employeeList, like everywhere else without the beta
+            expect(shouldUseRules).toBe(false);
+        });
+
+        it('moves a policy without over-limit approvers onto rules', () => {
+            // Given a policy without rules whose approvers send every report on to the same next approver
+            const policy = policyWithEmployees({
+                '1@example.com': {email: '1@example.com', submitsTo: '2@example.com'},
+                '2@example.com': {email: '2@example.com', forwardsTo: '3@example.com'},
+            });
+
+            // When the multiple approvers beta is on
+            const shouldUseRules = shouldUseApprovalWorkflowRules(policy, false, true);
+
+            // Then saving a workflow writes rules, since they route those reports exactly like employeeList does
+            expect(shouldUseRules).toBe(true);
+        });
+
+        it('keeps a policy without rules on employeeList while a member has an over-limit approver', () => {
+            // Given a policy whose approver 2 sends reports over their limit on to 4, next to a null employeeList entry,
+            // which the type rules out but happens at runtime
+            const employeeList: PolicyEmployeeList = {};
+            Reflect.set(employeeList, 'stale@example.com', null);
+            employeeList['1@example.com'] = {email: '1@example.com', submitsTo: '2@example.com'};
+            employeeList['2@example.com'] = {email: '2@example.com', forwardsTo: '3@example.com', approvalLimit: 10000, overLimitForwardsTo: '4@example.com'};
+            const policy = policyWithEmployees(employeeList);
+
+            // When the multiple approvers beta is on, before and after the policy has rules
+            const shouldUseRulesWithoutRules = shouldUseApprovalWorkflowRules(policy, false, true);
+            const shouldUseRulesWithRules = shouldUseApprovalWorkflowRules(policy, true, true);
+
+            // Then the policy stays on employeeList until it has rules, since writing rules would change where reports
+            // over the limit go, and a policy the rules already route keeps using them
+            expect(shouldUseRulesWithoutRules).toBe(false);
+            expect(shouldUseRulesWithRules).toBe(true);
+        });
+    });
+
     describe('isApprovalWorkflowRule', () => {
         // `Rule` types triggers as one kind or the other, so a rule mixing them can only arrive from the
         // server. Building the collection untyped and asserting once is the only way to model that payload.
@@ -3231,6 +3280,25 @@ describe('WorkflowUtils', () => {
             // Then only the removed default approver is flagged, since basic mode runs only the default workflow
             expect(hasApprovalWorkflowWithNonMemberApprover({policy: basicPolicy, currentUserLogin: ownerEmail, isMultipleApproversBetaEnabled: false})).toBe(false);
             expect(hasApprovalWorkflowWithNonMemberApprover({policy: basicPolicyWithRemovedDefaultApprover, currentUserLogin: ownerEmail, isMultipleApproversBetaEnabled: false})).toBe(true);
+        });
+
+        it('reads a workspace without rules from employeeList under the multiple approvers beta while a member has an over-limit approver', () => {
+            // Given a basic workspace without rules where member 1 still submits to someone no longer on it, once as is
+            // and once with the owner sending reports over their limit to member 1
+            const policy = buildPolicy({approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC});
+            const overLimitPolicy = buildPolicy({
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail, approvalLimit: 10000, overLimitForwardsTo: '1@example.com'},
+                    '1@example.com': {email: '1@example.com', role: CONST.POLICY.ROLE.USER, submitsTo: removedEmail},
+                },
+            });
+
+            // When the owner checks whether a workflow needs fixing under the multiple approvers beta
+            // Then member 1's workflow is flagged on the workspace the rules take over, which runs every workflow. The
+            // over-limit one stays on employeeList, where basic mode only runs the default workflow
+            expect(hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin: ownerEmail, rules: {}, isMultipleApproversBetaEnabled: true})).toBe(true);
+            expect(hasApprovalWorkflowWithNonMemberApprover({policy: overLimitPolicy, currentUserLogin: ownerEmail, rules: {}, isMultipleApproversBetaEnabled: true})).toBe(false);
         });
 
         it('routes from the rules under the multiple approvers beta', () => {
