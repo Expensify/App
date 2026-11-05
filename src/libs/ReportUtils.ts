@@ -10861,6 +10861,19 @@ function canAccessReport(report: OnyxEntry<Report>, isDefaultRoomsBetaEnabled: b
     return true;
 }
 
+/** Bills stay hidden from users without the newDotBillPay beta. */
+function shouldHideBillReport(reportType: string | undefined, isBillPayBetaEnabled: boolean): boolean {
+    return reportType === CONST.REPORT.UNSUPPORTED_TYPE.BILL && !isBillPayBetaEnabled;
+}
+
+/** NewDot can't show unsupported report types. Bills are the exception for users with the newDotBillPay beta. */
+function isUnsupportedReportType(reportType: string | undefined, isBillPayBetaEnabled: boolean): boolean {
+    if (reportType === CONST.REPORT.UNSUPPORTED_TYPE.BILL) {
+        return shouldHideBillReport(reportType, isBillPayBetaEnabled);
+    }
+    return (Object.values(CONST.REPORT.UNSUPPORTED_TYPE) as string[]).includes(reportType ?? '');
+}
+
 function isReportNotFound(report: OnyxEntry<Report>): boolean {
     return !!report?.errorFields?.notFound;
 }
@@ -11341,6 +11354,9 @@ type ShouldReportBeInOptionListParams = {
     currentReportId: string | undefined;
     isInFocusMode: boolean;
     isDefaultRoomsBetaEnabled: boolean;
+
+    /** Only the LHN passes this, so bills stay hidden from every other option list */
+    isBillPayBetaEnabled?: boolean;
     excludeEmptyChats: boolean;
     doesReportHaveViolations: boolean;
     includeSelfDM?: boolean;
@@ -11366,6 +11382,7 @@ function reasonForReportToBeInOptionList({
     currentReportId,
     isInFocusMode,
     isDefaultRoomsBetaEnabled,
+    isBillPayBetaEnabled = false,
     excludeEmptyChats,
     doesReportHaveViolations,
     draftComment,
@@ -11436,7 +11453,7 @@ function reasonForReportToBeInOptionList({
         return null;
     }
 
-    if ((Object.values(CONST.REPORT.UNSUPPORTED_TYPE) as string[]).includes(report?.type ?? '')) {
+    if (isUnsupportedReportType(report?.type, isBillPayBetaEnabled)) {
         return null;
     }
 
@@ -15919,6 +15936,7 @@ export {
     isTrackExpenseReport,
     isUnread,
     isUnreadWithMention,
+    isUnsupportedReportType,
     isUserCreatedPolicyRoom,
     isValidReport,
     isValidReportIDFromPath,
@@ -16052,6 +16070,7 @@ export {
     isWorkspaceChat,
     isOneTransactionReport,
     isTrackExpenseReportNew,
+    shouldHideBillReport,
     shouldHideSingleReportField,
     getBillableAndTaxTotal,
     getReportForHeader,
