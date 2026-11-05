@@ -13182,6 +13182,7 @@ ${reportName}`,
             }
             return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `enviar automáticamente el día ${eta} de cada mes` : `enviar automáticamente ${eta}`;
         },
+        toMarkAsDone: 'marcar como listo',
         toApprove: 'aprobar',
         toPay: 'pagar',
         minutesAgo: (count: number) => `hace ${count} min`,

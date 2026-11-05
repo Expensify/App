@@ -12961,6 +12961,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             }
             return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `soumettre automatiquement le ${eta} de chaque mois` : `soumettre automatiquement ${eta}`;
         },
+        toMarkAsDone: 'marquer comme terminé',
         toApprove: 'approuver',
         toPay: 'payer',
         minutesAgo: (count: number) => `il y a ${count} min`,

@@ -12353,6 +12353,7 @@ ${reportName}`,
             }
             return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `在每月的 ${eta} 自动提交` : `${eta}自动提交`;
         },
+        toMarkAsDone: '标记为完成',
         toApprove: '批准',
         toPay: '支付',
         minutesAgo: (count: number) => `${count} 分钟前`,

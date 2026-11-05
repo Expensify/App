@@ -12923,6 +12923,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             }
             return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `am ${eta} jedes Monats automatisch einreichen` : `${eta} automatisch einreichen`;
         },
+        toMarkAsDone: 'als erledigt markieren',
         toApprove: 'genehmigen',
         toPay: 'bezahlen',
         minutesAgo: (count: number) => `vor ${count} Min.`,
