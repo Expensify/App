@@ -150,7 +150,8 @@ describe('FloatingMessageCounter', () => {
     });
 
     it('points the action badge pill up when the target is above the viewport', () => {
-        // Given an action badge whose target is above the viewport
+        // Given an action badge whose target is above the viewport, so the below flag keeps its default
+        // When the pill renders
         render(
             <FloatingMessageCounter
                 hasNewMessages={false}
