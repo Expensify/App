@@ -1300,7 +1300,11 @@ type GetReportOrDraftReportParams = {
     /** Returned when nothing else resolves */
     fallbackReport?: Report;
 
-    /** The report's REPORT_DRAFT entry. Pass an empty object to mean "checked, this report has no draft" */
+    /**
+     * The report's REPORT_DRAFT entry. Pass an empty object to mean "checked, this report has no draft".
+     * Only the chats of a workspace that is still being created and the optimistic chats of the share flow are ever
+     * written to REPORT_DRAFT, so an expense report, an IOU report or a transaction thread always passes an empty object.
+     */
     // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66414
     reportDraft?: OnyxEntry<Report> | EmptyObject;
 
@@ -3848,7 +3852,7 @@ function hasOutstandingChildRequest(
         const iouReport =
             typeof iouReportOrIDorArray !== 'string' && !Array.isArray(iouReportOrIDorArray) && iouReportOrIDorArray?.reportID === iouReportID
                 ? iouReportOrIDorArray
-                : getReportOrDraftReport({reportID: iouReportID});
+                : getReportOrDraftReport({reportID: iouReportID, reportDraft: {}});
         const transactions = getReportTransactions(iouReportID);
         const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`];
         const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
@@ -5405,7 +5409,7 @@ function getReasonAndReportActionThatRequiresAttention({
     const transactions = getReportTransactions(iouReportID, reportsTransactions);
     const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isPending(t));
 
-    const iouReport = reports ? reports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`] : getReportOrDraftReport({reportID: iouReportID});
+    const iouReport = reports ? reports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`] : getReportOrDraftReport({reportID: iouReportID, reportDraft: {}});
     const iouReportActions = allReportActionsParam?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`] ?? getAllReportActions(iouReportID);
     // This only has to run on the fallback path: when a candidate was found, getBadgeFromIOUReport has already applied
     // the same exclusion while picking it, so the chat is known to have an actionable child even when a sibling of that
@@ -5936,7 +5940,7 @@ function getTransactionDetails(
         return;
     }
 
-    const report = getReportOrDraftReport({reportID: transaction?.reportID, fallbackReport: 'report' in transaction ? transaction.report : undefined});
+    const report = getReportOrDraftReport({reportID: transaction?.reportID, fallbackReport: 'report' in transaction ? transaction.report : undefined, reportDraft: {}});
     const isFromExpenseReport = isTransactionFromExpenseReport(report, policy);
 
     return {
@@ -6040,7 +6044,7 @@ function canEditMoneyRequest(
         return actionType === CONST.IOU.REPORT_ACTION_TYPE.TRACK && isActionRequestor;
     }
 
-    const moneyRequestReport = report ?? getReportOrDraftReport({reportID: String(moneyRequestReportID)});
+    const moneyRequestReport = report ?? getReportOrDraftReport({reportID: String(moneyRequestReportID), reportDraft: {}});
     // Without an IOU action, the submitter of an expense report stands in for the requester, because only they can add expenses to it.
     // This function has no current-user parameter, so it passes the same module-level account ID that isActionRequestor uses.
     const isRequestor = isActionlessReportedExpense ? isExpenseReport(moneyRequestReport) && isCurrentUserSubmitter(moneyRequestReport, deprecatedCurrentUserAccountID) : isActionRequestor;
@@ -6516,7 +6520,7 @@ function canEditReportAction(
         // Temporary until the backend reliably sends reportID on IOU actions. See https://github.com/Expensify/App/issues/93882. See https://github.com/Expensify/App/issues/93882.
         const moneyRequestReportID = reportAction?.reportID ?? getOriginalMessage(reportAction)?.IOUReportID;
         if (moneyRequestReportID) {
-            const moneyRequestReport = getReportOrDraftReport({reportID: String(moneyRequestReportID)});
+            const moneyRequestReport = getReportOrDraftReport({reportID: String(moneyRequestReportID), reportDraft: {}});
             if (isSettled(moneyRequestReport?.reportID) || isReportApproved({report: moneyRequestReport}) || isClosedReport(moneyRequestReport)) {
                 return false;
             }
@@ -8767,7 +8771,7 @@ function getIOUReportActionMessage(
     bankAccountID?: number | undefined,
     payAsBusiness = false,
 ): Message[] {
-    const report = getReportOrDraftReport({reportID: iouReportID});
+    const report = getReportOrDraftReport({reportID: iouReportID, reportDraft: {}});
     const isInvoice = isInvoiceReport(report);
     // Formatted with the `en` locale because this message is stored on the report action and must be
     // in English regardless of the viewer's locale.
@@ -10659,7 +10663,7 @@ function buildTransactionThread(
     optimisticTransactionThreadReportID?: string,
 ): OptimisticChatReport {
     const participantAccountIDs = [...new Set([currentUserAccountID, Number(reportAction?.actorAccountID)])].filter(Boolean);
-    const existingTransactionThreadReport = getReportOrDraftReport({reportID: existingTransactionThreadReportID});
+    const existingTransactionThreadReport = getReportOrDraftReport({reportID: existingTransactionThreadReportID, reportDraft: {}});
 
     if (existingTransactionThreadReportID && existingTransactionThreadReport) {
         return {
@@ -12672,7 +12676,7 @@ function getIOUReportActionDisplayMessage(
     const originalMessage = getOriginalMessage(reportAction);
     const {automaticAction, payAsBusiness} = originalMessage ?? {};
     const IOUReportID = reportAction?.reportID;
-    const iouReport = getReportOrDraftReport({reportID: IOUReportID});
+    const iouReport = getReportOrDraftReport({reportID: IOUReportID, reportDraft: {}});
     const isInvoice = isInvoiceReport(iouReport);
 
     let translationKey: TranslationPaths;

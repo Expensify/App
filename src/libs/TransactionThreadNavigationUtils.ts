@@ -99,7 +99,8 @@ function getReportIDToOpenForExpense(expense: TransactionThreadNavigationDescrip
     // transaction and parents the new thread to the self-DM.
     // An unreported expense has no parent expense report to build the thread from; report "0" is a
     // placeholder, not a row in the collection.
-    const iouReport = isUnreported ? undefined : (getReportOrDraftReport({reportID}) ?? expense.report);
+    // reportID is the expense's own report, so it is never a draft.
+    const iouReport = isUnreported ? undefined : (getReportOrDraftReport({reportID, reportDraft: {}}) ?? expense.report);
     const transactionThreadReport = createTransactionThreadReport({
         introSelected: context.introSelected,
         conciergeChat: context.conciergeChat,
