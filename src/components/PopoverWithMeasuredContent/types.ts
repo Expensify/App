@@ -18,6 +18,9 @@ type PopoverWithMeasuredContentProps = Omit<PopoverProps, 'anchorPosition'> & {
 
     /** Whether to skip re-measurement when becoming visible (for components with static dimensions) */
     shouldSkipRemeasurement?: boolean;
+
+    /** Gap (in px) to keep from the window edges when the popover is clamped inside the window */
+    windowMargin?: number;
 };
 
 export default PopoverWithMeasuredContentProps;

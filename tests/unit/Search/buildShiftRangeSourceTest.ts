@@ -1,4 +1,5 @@
-import {buildShiftRangeSource, getGroupCheckboxState, isGroupSelected, mapEmptyReportToSelectedEntry} from '@components/Search/selectionBuilders';
+import type {TripListItemType} from '@components/Search/SearchList/ListItem/types';
+import {buildShiftRangeSource, getGroupCheckboxState, getSelectableRows, isGroupSelected, mapEmptyReportToSelectedEntry} from '@components/Search/selectionBuilders';
 import type {SearchData, SelectedTransactions} from '@components/Search/types';
 
 import CONST from '@src/CONST';
@@ -204,5 +205,33 @@ describe('buildShiftRangeSource: who owns each row', () => {
         // Then there is nothing to own: the report row is itself what a click selects
         expect(childrenByGroupKey.size).toBe(0);
         expect(groupKeyByChildKey.size).toBe(0);
+    });
+});
+
+describe('getSelectableRows: the rows selection can act on', () => {
+    it('keeps the same array for rows that can be selected', () => {
+        // Given an expense list, where every row can be selected
+        const rows: SearchData = [makeChild(1, 't1'), makeChild(2, 't2')];
+
+        // When the selectable rows are read
+        // Then the same array comes back, so a list that can be selected costs no copy per render
+        expect(getSelectableRows(rows)).toBe(rows);
+    });
+
+    it('has no rows for a trip list', () => {
+        // Given a trip list, whose rows can't be selected
+        const trip: TripListItemType = {
+            reportID: '1',
+            keyForList: '1',
+            chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM,
+            travelerAccountID: 1,
+            tripName: 'Trip',
+            traveler: {accountID: 1},
+            formattedTraveler: 'Traveler',
+        };
+
+        // When the selectable rows are read
+        // Then there are none, so trip rows never join a shift-click range
+        expect(getSelectableRows([trip])).toHaveLength(0);
     });
 });

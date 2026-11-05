@@ -25,7 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/IKnowTeacherForm';
 
 import {Str} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 function KnowATeacherPage() {
@@ -53,36 +53,33 @@ function KnowATeacherPage() {
     /**
      * @returns - An object containing the errors for each inputID
      */
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM>) => {
-            const errors = getFieldRequiredErrors(values, [INPUT_IDS.FIRST_NAME, INPUT_IDS.LAST_NAME], translate);
-            const phoneLogin = getPhoneLogin(values.partnerUserID, countryCode);
-            const validateIfNumber = validateNumber(phoneLogin);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM>) => {
+        const errors = getFieldRequiredErrors(values, [INPUT_IDS.FIRST_NAME, INPUT_IDS.LAST_NAME], translate);
+        const phoneLogin = getPhoneLogin(values.partnerUserID, countryCode);
+        const validateIfNumber = validateNumber(phoneLogin);
 
-            if (!isValidDisplayName(values.firstName)) {
-                addErrorMessage(errors, 'firstName', translate('personalDetails.error.hasInvalidCharacter'));
-            } else if (values.firstName.length > CONST.NAME.MAX_LENGTH) {
-                addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', values.firstName.length, CONST.NAME.MAX_LENGTH));
-            }
-            if (!isValidDisplayName(values.lastName)) {
-                addErrorMessage(errors, 'lastName', translate('personalDetails.error.hasInvalidCharacter'));
-            } else if (values.lastName.length > CONST.NAME.MAX_LENGTH) {
-                addErrorMessage(errors, 'lastName', translate('common.error.characterLimitExceedCounter', values.lastName.length, CONST.NAME.MAX_LENGTH));
-            }
-            if (!values.partnerUserID) {
-                addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.enterPhoneEmail'));
-            }
-            if (values.partnerUserID && loginList?.[validateIfNumber || values.partnerUserID.toLowerCase()]) {
-                addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.tryDifferentEmail'));
-            }
-            if (values.partnerUserID && !(validateIfNumber || Str.isValidEmail(values.partnerUserID))) {
-                addErrorMessage(errors, 'partnerUserID', translate('contacts.genericFailureMessages.invalidContactMethod'));
-            }
+        if (!isValidDisplayName(values.firstName)) {
+            addErrorMessage(errors, 'firstName', translate('personalDetails.error.hasInvalidCharacter'));
+        } else if (values.firstName.length > CONST.NAME.MAX_LENGTH) {
+            addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', values.firstName.length, CONST.NAME.MAX_LENGTH));
+        }
+        if (!isValidDisplayName(values.lastName)) {
+            addErrorMessage(errors, 'lastName', translate('personalDetails.error.hasInvalidCharacter'));
+        } else if (values.lastName.length > CONST.NAME.MAX_LENGTH) {
+            addErrorMessage(errors, 'lastName', translate('common.error.characterLimitExceedCounter', values.lastName.length, CONST.NAME.MAX_LENGTH));
+        }
+        if (!values.partnerUserID) {
+            addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.enterPhoneEmail'));
+        }
+        if (values.partnerUserID && loginList?.[validateIfNumber || values.partnerUserID.toLowerCase()]) {
+            addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.tryDifferentEmail'));
+        }
+        if (values.partnerUserID && !(validateIfNumber || Str.isValidEmail(values.partnerUserID))) {
+            addErrorMessage(errors, 'partnerUserID', translate('contacts.genericFailureMessages.invalidContactMethod'));
+        }
 
-            return errors;
-        },
-        [countryCode, loginList, translate],
-    );
+        return errors;
+    };
 
     return (
         <ScreenWrapper

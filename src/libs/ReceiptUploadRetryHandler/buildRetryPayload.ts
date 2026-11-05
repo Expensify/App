@@ -13,7 +13,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
-import type {Receipt} from '@src/types/onyx/Transaction';
+import type {Receipt, ReceiptError} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -57,12 +57,48 @@ function resolveParticipant(iouReport: OnyxEntry<Report>, currentUserAccountID: 
     const login = getAllPersonalDetails()[participant.accountID]?.login;
     return login ? {...participant, login} : undefined;
 }
+function parseRetryParams(retryParams: ReceiptError['retryParams']): unknown {
+    if (typeof retryParams !== 'string') {
+        return retryParams;
+    }
+    try {
+        return JSON.parse(retryParams);
+    } catch {
+        return undefined;
+    }
+}
 
 function getMerchantForRetry(merchant: string | undefined): string {
     if (!merchant || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) {
         return '';
     }
     return merchant;
+}
+
+function buildRetryTransactionParams(context: ReceiptRetryContext, receiptFile: FileObject) {
+    const {transaction} = context;
+    const details = getTransactionDetails(transaction);
+    if (!transaction || !details) {
+        return undefined;
+    }
+    const receipt: Receipt = {...receiptFile, source: context.receiptError.source, state: CONST.IOU.RECEIPT_STATE.SCAN_READY};
+
+    return {
+        amount: details.amount,
+        currency: details.currency,
+        created: details.created,
+        merchant: getMerchantForRetry(details.merchant),
+        comment: details.comment,
+        category: details.category,
+        tag: details.tag,
+        taxCode: details.taxCode,
+        taxAmount: details.taxAmount,
+        billable: details.billable,
+        reimbursable: details.reimbursable,
+        attendees: transaction.comment?.attendees,
+        isFromGlobalCreate: getIsFromGlobalCreate(transaction),
+        receipt,
+    };
 }
 
 /** Checks the action here too, not only in `retryReceiptUpload`, so the button is hidden instead of doing nothing. */
@@ -98,11 +134,10 @@ function buildRetryPayload(context: ReceiptRetryContext, receiptFile: FileObject
         return undefined;
     }
 
-    const details = getTransactionDetails(transaction);
-    if (!details) {
+    const transactionParams = buildRetryTransactionParams(context, receiptFile);
+    if (!transactionParams) {
         return undefined;
     }
-    const receipt: Receipt = {...receiptFile, source: context.receiptError.source, state: CONST.IOU.RECEIPT_STATE.SCAN_READY};
 
     return {
         report: iouReport,
@@ -112,23 +147,7 @@ function buildRetryPayload(context: ReceiptRetryContext, receiptFile: FileObject
             participant,
         },
         policyParams,
-        transactionParams: {
-            amount: details.amount,
-            currency: details.currency,
-            created: details.created,
-            merchant: getMerchantForRetry(details.merchant),
-            comment: details.comment,
-            category: details.category,
-            tag: details.tag,
-            taxCode: details.taxCode,
-            taxAmount: details.taxAmount,
-            billable: details.billable,
-            reimbursable: details.reimbursable,
-            // Read from the transaction because `details` widens this to `string | Attendee[]`.
-            attendees: transaction.comment?.attendees,
-            isFromGlobalCreate: getIsFromGlobalCreate(transaction),
-            receipt,
-        },
+        transactionParams,
         // Same ID, so if the first attempt reached Auth the retry gets `Transaction already created.` instead of a second expense.
         optimisticTransactionID: transaction.transactionID,
         optimisticIOUReportID: iouReport.reportID,
@@ -162,4 +181,4 @@ function buildRetryPayload(context: ReceiptRetryContext, receiptFile: FileObject
 }
 
 export default buildRetryPayload;
-export {canBuildRetryPayload};
+export {buildRetryTransactionParams, canBuildRetryPayload, isRetryableFlow, parseRetryParams, resolveParticipant};

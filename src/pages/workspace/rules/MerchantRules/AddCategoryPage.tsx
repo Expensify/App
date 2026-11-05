@@ -13,7 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 import useMerchantRuleRoute from './useMerchantRuleRoute';
 
@@ -28,14 +28,12 @@ function AddCategoryPage({route}: AddCategoryPageProps) {
 
     const selectedCategoryItem = form?.category ? {name: getDecodedCategoryName(form.category), value: form.category} : undefined;
 
-    const categoryItems = useMemo(() => {
-        return Object.values(policyCategories ?? {})
-            .filter((category) => category.enabled && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-            .map((category) => {
-                const decodedCategoryName = getDecodedCategoryName(category.name);
-                return {name: decodedCategoryName, value: category.name};
-            });
-    }, [policyCategories]);
+    const categoryItems = Object.values(policyCategories ?? {})
+        .filter((category) => category.enabled && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+        .map((category) => {
+            const decodedCategoryName = getDecodedCategoryName(category.name);
+            return {name: decodedCategoryName, value: category.name};
+        });
 
     const onSave = (value?: string) => {
         updateDraftMerchantRule({category: value});

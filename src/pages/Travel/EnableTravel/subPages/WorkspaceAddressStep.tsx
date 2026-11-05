@@ -14,7 +14,7 @@ import {updateAddress} from '@userActions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/HomeAddressForm';
 
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 /** Coerces an unknown form field value to a string. */
@@ -32,38 +32,35 @@ function WorkspaceAddressStep({policy, policyID, onNext}: EnableTravelSubPagePro
     const [city, setCity] = useState<string>(address?.city ?? '');
     const [zipcode, setZipcode] = useState<string>(address?.zipCode ?? '');
 
-    const handleAddressChange = useCallback(
-        (value: unknown, key: unknown) => {
-            const addressPartKey = String(key);
+    const handleAddressChange = (value: unknown, key: unknown) => {
+        const addressPartKey = String(key);
 
-            if (addressPartKey !== INPUT_IDS.COUNTRY && addressPartKey !== INPUT_IDS.STATE && addressPartKey !== INPUT_IDS.CITY && addressPartKey !== INPUT_IDS.ZIP_POST_CODE) {
-                return;
-            }
+        if (addressPartKey !== INPUT_IDS.COUNTRY && addressPartKey !== INPUT_IDS.STATE && addressPartKey !== INPUT_IDS.CITY && addressPartKey !== INPUT_IDS.ZIP_POST_CODE) {
+            return;
+        }
 
-            const addressPart = toStringValue(value);
+        const addressPart = toStringValue(value);
 
-            if (addressPartKey === INPUT_IDS.COUNTRY && addressPart !== currentCountry) {
-                setCurrentCountry(addressPart);
-                setState('');
-                setCity('');
-                setZipcode('');
-                return;
-            }
-            if (addressPartKey === INPUT_IDS.STATE) {
-                setState(addressPart);
-                setCity('');
-                setZipcode('');
-                return;
-            }
-            if (addressPartKey === INPUT_IDS.CITY) {
-                setCity(addressPart);
-                setZipcode('');
-                return;
-            }
-            setZipcode(addressPart);
-        },
-        [currentCountry],
-    );
+        if (addressPartKey === INPUT_IDS.COUNTRY && addressPart !== currentCountry) {
+            setCurrentCountry(addressPart);
+            setState('');
+            setCity('');
+            setZipcode('');
+            return;
+        }
+        if (addressPartKey === INPUT_IDS.STATE) {
+            setState(addressPart);
+            setCity('');
+            setZipcode('');
+            return;
+        }
+        if (addressPartKey === INPUT_IDS.CITY) {
+            setCity(addressPart);
+            setZipcode('');
+            return;
+        }
+        setZipcode(addressPart);
+    };
 
     const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => {
         updateAddress(policyID, {

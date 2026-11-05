@@ -94,7 +94,7 @@ describe('AttachmentStorage', () => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.ATTACHMENT,
                 callback: (value) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(value);
                 },
             });
@@ -184,7 +184,7 @@ describe('AttachmentStorage', () => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.ATTACHMENT,
                 callback: (value) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(value);
                 },
             });
@@ -323,7 +323,18 @@ describe('AttachmentStorage', () => {
         }
 
         // Delete attachment
-        deleteReportComment({reportID}, attachmentAction, undefined, undefined, [], false, false, 'test@user.com', false);
+        deleteReportComment({
+            report: {reportID},
+            reportAction: attachmentAction,
+            originalReportActions: undefined,
+            reportActions: undefined,
+            ancestors: [],
+            isReportArchived: false,
+            isOriginalReportArchived: false,
+            currentEmail: 'test@user.com',
+            isOffline: false,
+            currentUserAccountID: 1,
+        });
         await waitForBatchedUpdates();
 
         // Then the attachment should be removed
@@ -386,7 +397,18 @@ describe('AttachmentStorage', () => {
         }
 
         // Delete attachment
-        deleteReportComment({reportID}, attachmentAction, undefined, undefined, [], false, false, 'test@user.com', false);
+        deleteReportComment({
+            report: {reportID},
+            reportAction: attachmentAction,
+            originalReportActions: undefined,
+            reportActions: undefined,
+            ancestors: [],
+            isReportArchived: false,
+            isOriginalReportArchived: false,
+            currentEmail: 'test@user.com',
+            isOffline: false,
+            currentUserAccountID: 1,
+        });
         await waitForBatchedUpdates();
 
         const removedAttachment = attachments?.[`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`];

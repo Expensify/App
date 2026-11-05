@@ -1,16 +1,22 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScrollView from '@components/ScrollView';
 import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
 import type {SearchFooterCount, SearchFooterTotal} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getFooterTotalItems} from '@libs/SearchUIUtils';
+import {getFooterCountItems, getFooterTotalItems} from '@libs/SearchUIUtils';
+
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useState} from 'react';
 
 import CurrencyPopup from './CurrencyPopup';
@@ -80,48 +86,53 @@ function SearchFooterPopup({
     onCurrencyChange,
 }: SearchFooterPopupProps) {
     const {translate} = useLocalize();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const [selectedFooterFilter, setSelectedFooterFilter] = useState<SelectedFooterFilter>(null);
 
-    const countItems: Array<SingleSelectItem<SearchFooterCount>> = [
-        {text: translate('common.expenses'), value: CONST.SEARCH.FOOTER_COUNT.EXPENSES},
-        {text: translate('common.reports'), value: CONST.SEARCH.FOOTER_COUNT.REPORTS},
-    ];
+    const countItems: Array<SingleSelectItem<SearchFooterCount>> = getFooterCountItems(translate);
     const totalItems = getFooterTotalItems(translate);
 
     if (!selectedFooterFilter) {
         return (
             <ScrollView contentContainerStyle={[styles.pv4]}>
                 {!!countType && (
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon
-                        description={translate('common.count')}
-                        title={countItems.find((item) => item.value === countType)?.text}
+                    <MenuItemField
+                        name={translate('common.count')}
+                        value={countItems.find((item) => item.value === countType)?.text}
                         onPress={() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT)}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_COUNT}
                     />
                 )}
                 {shouldShowTotalSelector && !!totalType && (
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon
-                        // Both rows re-run the search, so they are inert until the one in flight lands. The count row
-                        // stays interactive, since switching it needs no request.
-                        interactive={!isTotalLoading}
-                        description={translate('common.total')}
-                        title={totalItems.find((item) => item.value === totalType)?.text}
-                        onPress={() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL)}
+                    <MenuItem.Root
+                        onPress={!isTotalLoading ? callFunctionIfActionIsAllowed(() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL), false, session) : undefined}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_TOTAL}
-                    />
+                    >
+                        <MenuItemField.Row
+                            name={translate('common.total')}
+                            value={totalItems.find((item) => item.value === totalType)?.text}
+                        >
+                            {!isTotalLoading && <MenuItem.Chevron />}
+                        </MenuItemField.Row>
+                    </MenuItem.Root>
                 )}
-                <MenuItemWithTopDescription
-                    shouldShowRightIcon
-                    interactive={!isTotalLoading && !isOffline}
-                    description={translate('common.currency')}
-                    title={currency ?? defaultCurrency}
-                    onPress={() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY)}
+                <MenuItem.Root
+                    onPress={
+                        !isTotalLoading && !isOffline
+                            ? callFunctionIfActionIsAllowed(() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY), false, session)
+                            : undefined
+                    }
                     sentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_CURRENCY}
-                />
+                >
+                    <MenuItemField.Row
+                        name={translate('common.currency')}
+                        value={currency ?? defaultCurrency}
+                    >
+                        {!isTotalLoading && !isOffline && <MenuItem.Chevron />}
+                    </MenuItemField.Row>
+                </MenuItem.Root>
             </ScrollView>
         );
     }

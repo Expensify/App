@@ -5,7 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
-import EditNamePage from '@pages/settings/Agents/Fields/EditNamePage';
+import EditNamePage from '@pages/settings/Agents/Fields/DynamicEditNamePage';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -88,8 +88,8 @@ const mockUseOnyx = jest.mocked(useOnyx);
 
 const TEST_ACCOUNT_ID = 12345;
 
-type EditNamePageRoute = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT_NAME>['route'];
-type EditNamePageNavigation = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT_NAME>['navigation'];
+type EditNamePageRoute = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_NAME>['route'];
+type EditNamePageNavigation = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_NAME>['navigation'];
 
 const mockRoute = createMock<EditNamePageRoute>({params: {accountID: TEST_ACCOUNT_ID}});
 const mockNavigation = createMock<EditNamePageNavigation>({});

@@ -1,19 +1,16 @@
+import Navigation from '@libs/Navigation/Navigation';
 import {canEditReportAction} from '@libs/ReportUtils';
 
 import type * as ContextMenuActionsModule from '@pages/inbox/report/ContextMenu/ContextMenuActions';
 
 import CONST from '@src/CONST';
-import type {ReportAction, ReportActions} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
 
 import createMock from '../utils/createMock';
 
-jest.mock(
-    'expo-web-browser',
-    () => ({
-        openAuthSessionAsync: jest.fn(),
-    }),
-    {virtual: true},
-);
+jest.mock('expo-web-browser', () => ({
+    openAuthSessionAsync: jest.fn(),
+}));
 jest.mock('@components/Reactions/MiniQuickEmojiReactions', () => 'MiniQuickEmojiReactions');
 jest.mock('@components/Reactions/QuickEmojiReactions', () => 'QuickEmojiReactions');
 const {default: ContextMenuActions} = jest.requireActual<typeof ContextMenuActionsModule>('@pages/inbox/report/ContextMenu/ContextMenuActions');
@@ -23,6 +20,10 @@ if (!editAction?.shouldShow) {
 }
 const shouldShowEditAction = editAction.shouldShow;
 type ShouldShowArgs = Parameters<typeof shouldShowEditAction>[0];
+if (!('onPress' in editAction)) {
+    throw new Error('Edit comment context menu action has no onPress');
+}
+const pressEditAction = editAction.onPress;
 describe('ContextMenuActions editAction', () => {
     afterEach(() => {
         jest.restoreAllMocks();
@@ -79,6 +80,25 @@ describe('ContextMenuActions editAction', () => {
         );
         // Then the edit option is hidden because both edit-permission checks rejected it
         expect(result).toBe(false);
+    });
+    it("sends the report policy's full policy snapshot marker when opening the expense to edit it", () => {
+        // Given a money request action in a workspace expense report whose full policy snapshot is already cached
+        const openReportSpy = jest.spyOn(require('@userActions/Report'), 'openReport').mockImplementation(() => {});
+        jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+        const reportAction = createMock<ReportAction>({reportActionID: 'iouAction1', actionName: CONST.REPORT.ACTIONS.TYPE.IOU, reportID: 'iou1', childReportID: 'thread1'});
+
+        // When Edit expense is pressed from the context menu
+        pressEditAction(
+            false,
+            createMock<ContextMenuActionsModule.ContextMenuActionPayload>({
+                reportAction,
+                report: createMock<Report>({reportID: 'iou1', policyID: 'policy1'}),
+                fullPolicySnapshotLastModified: 123,
+            }),
+        );
+
+        // Then the transaction thread is fetched with the marker, since the thread shares the expense report's policy
+        expect(openReportSpy).toHaveBeenCalledWith(expect.objectContaining({reportID: 'thread1', fullPolicySnapshot: {policyID: 'policy1', lastModified: 123}}));
     });
     it('hides the edit option in archived rooms and Chronos reports even when the action is editable', () => {
         // Given an action that is editable on its own

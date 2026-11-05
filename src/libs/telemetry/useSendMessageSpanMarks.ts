@@ -2,8 +2,7 @@
 
 import {useLayoutEffect} from 'react';
 
-import {endSpan} from './activeSpans';
-import {endSendMessagePhases, getSendMessageVisibleSpanID, markSendMessageCommitted} from './sendMessageSpans';
+import {endSendMessageVisibleSpan, markSendMessageCommitted} from './sendMessageSpans';
 
 function useSendMessageSpanMarks(reportActionID: string | undefined) {
     useLayoutEffect(() => {
@@ -17,8 +16,7 @@ function useSendMessageSpanMarks(reportActionID: string | undefined) {
         if (!reportActionID) {
             return;
         }
-        endSendMessagePhases(reportActionID);
-        endSpan(getSendMessageVisibleSpanID(reportActionID));
+        endSendMessageVisibleSpan(reportActionID);
     };
 }
 

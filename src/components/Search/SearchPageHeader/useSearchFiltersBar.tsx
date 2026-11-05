@@ -2,6 +2,7 @@ import {ListFilterHeightContextProvider} from '@components/Search/FilterComponen
 import AmountPopup from '@components/Search/FilterDropdowns/AmountPopup';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import ListPopup from '@components/Search/FilterDropdowns/ListPopup';
+import MerchantFilterPopup from '@components/Search/FilterDropdowns/MerchantFilterPopup';
 import ReportFieldPopup from '@components/Search/FilterDropdowns/ReportFieldPopup';
 import TextFilterPopup from '@components/Search/FilterDropdowns/TextFilterPopup';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
@@ -13,13 +14,23 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {shouldShowInitialCategoryFilterLoading} from '@hooks/useSearchFilterSync';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 
 import {close} from '@libs/actions/Modal';
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
 import {buildQueryStringWithResetFilters, hasFiltersChangedFromDefault, isSearchQuerySavable, removeNegation} from '@libs/SearchQueryUtils';
-import {getFilterViewLabelKey, isAmountFilterKey, isDateFilterKey, isReportFieldKey, isTextFilterKey, mapFiltersFormToLabelValueList, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
+import {
+    getFiltersFormWithTripRoomStatuses,
+    getFilterViewLabelKey,
+    isAmountFilterKey,
+    isDateFilterKey,
+    isReportFieldKey,
+    isTextFilterKey,
+    mapFiltersFormToLabelValueList,
+    SKIPPED_SEARCH_FILTERS,
+} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -119,6 +130,18 @@ function FilterPopup({baseFilterKey, isDefault, searchAdvancedFiltersForm, close
         );
     }
 
+    if (baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT) {
+        return (
+            <MerchantFilterPopup
+                baseFilterKey={baseFilterKey}
+                values={searchAdvancedFiltersForm}
+                closeOverlay={closeOverlay}
+                label={label}
+                updateFilterForm={closeModalAndUpdateFilterForm}
+            />
+        );
+    }
+
     if (isTextFilterKey(baseFilterKey)) {
         return (
             <TextFilterPopup
@@ -155,8 +178,9 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
     const {currentSearchQueryJSON, currentSearchKey, currentDefaultSearchQueryJSON, currentDefaultSearchQueryFilterKeys} = useSearchQueryContext();
     const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
     const isSavedSearch = !!searchKeyToSavedSearchID(currentSearchKey);
+    const shouldReturnTripRooms = useShouldReturnTripRooms(queryJSON.type);
     const filters = mapFiltersFormToLabelValueList(
-        searchAdvancedFiltersForm,
+        shouldReturnTripRooms ? getFiltersFormWithTripRoomStatuses(searchAdvancedFiltersForm) : searchAdvancedFiltersForm,
         currentDefaultSearchQueryFilterKeys,
         SKIPPED_SEARCH_FILTERS,
         translate,

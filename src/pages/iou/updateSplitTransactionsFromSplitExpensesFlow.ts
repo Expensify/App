@@ -1,3 +1,4 @@
+import {createTransitionBarrier} from '@libs/API';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import popReportsSplitNavigatorToReport from '@libs/Navigation/helpers/popReportsSplitNavigatorToReport';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -6,8 +7,8 @@ import {isTracking, setPendingSubmitFollowUpAction} from '@libs/telemetry/submit
 import {getChildTransactions} from '@libs/TransactionUtils';
 
 import signalExpenseAddedGrowl from '@userActions/IOU/signalExpenseAddedGrowl';
-import type {UpdateSplitTransactionsParams} from '@userActions/IOU/SplitTransactionUpdate';
-import {hasEditableSplitExpenseLeft, updateSplitTransactions} from '@userActions/IOU/SplitTransactionUpdate';
+import type {UpdateSplitTransactionsData} from '@userActions/IOU/SplitTransactionUpdate';
+import {hasEditableSplitExpenseLeft, updateSplitTransactions, willSplitUpdateEmptyExpenseReport} from '@userActions/IOU/SplitTransactionUpdate';
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 
 import CONST from '@src/CONST';
@@ -20,7 +21,11 @@ import SCREENS from '@src/SCREENS';
  * Saves the split-expenses flow: writes the splits through updateSplitTransactions and moves the user off screens the save
  * invalidates. Which screens those are depends on where the save was started from, which only the view layer knows.
  */
-function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransactionsParams) {
+function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransactionsData) {
+    // Saving navigates, so every branch below holds its write until that transition ends. The factory registers
+    // nothing until writeWhenReady invokes it, so one barrier serves whichever branch runs.
+    const splitWriteParams = {...params, isFromSplitExpensesFlow: true, writeBarrier: createTransitionBarrier('navigation')};
+
     // Detect if this will be a reverse split that deletes the expense report.
     // When splits are reduced to 1, updateSplitTransactions performs a reverse split which
     // optimistically deletes the expense report if it's the last transaction. We need to
@@ -32,7 +37,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     const hasEditableSplitExpensesLeft = hasEditableSplitExpenseLeft(splitExpenses, params.allTransactionsList, params.allReportsList, currentSnapshotDataForSplits);
 
     // Unfiltered, so a pure selfDM 2-split still collapses via REVERT_SPLIT_TRANSACTION. The mixed
-    // workspace/selfDM case is guarded below via reverseSplitKeepsOriginalInExpenseReport instead.
+    // workspace/selfDM case is guarded below by willSplitUpdateEmptyExpenseReport instead.
     const isReverseSplitOperation = splitExpenses.length === 1 && allChildTransactions.length > 0 && hasEditableSplitExpensesLeft;
 
     // Newly created split transaction IDs, excluding ones already present in allChildTransactions.
@@ -48,14 +53,10 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     // splits belonging to the current expense report, or the only remaining split moved to selfDM.
     // In any of these cases we must navigate away from the soon-to-be-empty report so the user
     // isn't stranded on a "Not Found" page.
-    const expenseReportTransactions = expenseReportID ? Object.values(params.allTransactionsList ?? {}).filter((itemTransaction) => itemTransaction?.reportID === expenseReportID) : [];
-    const areAllExpenseReportTransactionsSplitChildren =
-        expenseReportTransactions.length > 0 && expenseReportTransactions.every((itemTransaction) => itemTransaction?.comment?.originalTransactionID === originalTransactionID);
-    const anyRemainingSplitStaysInExpenseReport = splitExpenses.some((expense) => expense.reportID === expenseReportID);
-    const reverseSplitKeepsOriginalInExpenseReport = isReverseSplitOperation && splitExpenses.at(0)?.reportID === expenseReportID;
-    const willExpenseReportBecomeEmpty =
-        !!expenseReportID && areAllExpenseReportTransactionsSplitChildren && !anyRemainingSplitStaysInExpenseReport && !reverseSplitKeepsOriginalInExpenseReport;
-    const isLastTransactionInReport = willExpenseReportBecomeEmpty || (isReverseSplitOperation && !reverseSplitKeepsOriginalInExpenseReport && expenseReportTransactions.length === 1);
+    // Same check updateSplitTransactions uses to delete the report, so we never navigate back into a report it removes. It covers
+    // the reverse split too and skips transactions already pending deletion, so both sides agree on when the report is emptied.
+    // Creating splits never removes the report, so it's skipped here just like in updateSplitTransactions.
+    const isLastTransactionInReport = allChildTransactions.length > 0 && willSplitUpdateEmptyExpenseReport(expenseReportID, originalTransactionID, splitExpenses, params.allTransactionsList);
     const fallbackReportID = params.expenseReport?.chatReportID ?? params.expenseReport?.parentReportID;
 
     if (isLastTransactionInReport && fallbackReportID) {
@@ -81,7 +82,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
         Navigation.dismissModal();
         requestAnimationFrame(() => {
             // Navigates to selfDM, not the expense report - nothing mounts to consume the highlight rail.
-            updateSplitTransactions({...params, isFromSplitExpensesFlow: true, shouldSkipReportHighlightRail: true});
+            updateSplitTransactions({...splitWriteParams, shouldSkipReportHighlightRail: true});
         });
         params?.searchContext?.clearSelectedTransactions?.(true);
         return;
@@ -105,7 +106,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     if (isSearchPageTopmostFullScreenRoute || !params.transactionReport?.parentReportID) {
         // Returns to Search, not the expense report, so rail flags would sit unconsumed and highlight stale rows the
         // next time that report is opened from the Inbox.
-        updateSplitTransactions({...params, isFromSplitExpensesFlow: true, shouldSkipReportHighlightRail: true});
+        updateSplitTransactions({...splitWriteParams, shouldSkipReportHighlightRail: true});
         if (isSearchPageTopmostFullScreenRoute && !isReverseSplitOperation) {
             signalExpenseAddedGrowl(getNewSplitTransactionIDs().at(-1), CONST.SEARCH.DATA_TYPES.EXPENSE);
         }
@@ -132,7 +133,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     // stale screens from the stack instead of leaving them behind.
     if (isLastTransactionInReport && fallbackReportID) {
         // Navigates to the fallback report, not the expense report - nothing mounts to consume the highlight rail.
-        updateSplitTransactions({...params, isFromSplitExpensesFlow: true, shouldSkipReportHighlightRail: true});
+        updateSplitTransactions({...splitWriteParams, shouldSkipReportHighlightRail: true});
 
         const backRoute = ROUTES.REPORT_WITH_ID.getRoute(fallbackReportID);
         navigateBackOnDeleteTransaction(backRoute);
@@ -160,7 +161,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     popReportsSplitNavigatorToReport(targetReportID);
     Navigation.dismissModalWithReport({reportID: targetReportID}, navigationRef, {forceReplace: shouldReplaceTransactionThread});
     requestAnimationFrame(() => {
-        updateSplitTransactions({...params, isFromSplitExpensesFlow: true});
+        updateSplitTransactions(splitWriteParams);
         if (shouldReplaceTransactionThread || !transactionThreadReportScreen?.key) {
             return;
         }

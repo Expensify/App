@@ -19,6 +19,10 @@ import type RegisterPrefetchOnAppStart from './types';
 const NITRO_FETCH_TARGET = 'fetch';
 const CONTENT_TYPE_HEADER = 'Content-Type';
 
+type PrefetchFormData = {
+    getParts: () => Array<{fieldName: string; string: string}>;
+};
+
 function buildAuthenticateBody(credentials: Credentials): string {
     // NitroFetch token refresh runs outside the JS request pipeline, so we must serialize the
     // Authenticate body here instead of going through Request.post() and enhanceParameters().
@@ -45,6 +49,29 @@ function buildAuthenticateBody(credentials: Credentials): string {
     body.append('isFromDevEnv', String(isFromDevEnv));
 
     return body.toString();
+}
+
+function isPrefetchFormData(body: unknown): body is PrefetchFormData {
+    return typeof body === 'object' && body !== null && 'getParts' in body && typeof body.getParts === 'function';
+}
+
+/**
+ * The saved body can be replayed natively on the next app start, which may already be running a newer version after an update.
+ * Sending the old `appversion` there would get a 426 and show the Update Required screen, so it is omitted.
+ */
+function removeAppVersionFromPrefetchBody(body: RequestInit['body']): RequestInit['body'] {
+    if (!isPrefetchFormData(body)) {
+        return body;
+    }
+
+    const prefetchBody = new FormData();
+    for (const part of body.getParts()) {
+        if (part.fieldName === 'appversion') {
+            continue;
+        }
+        prefetchBody.append(part.fieldName, part.string);
+    }
+    return prefetchBody;
 }
 
 function registerPrefetchTokenRefresh(): void {
@@ -80,7 +107,7 @@ const registerPrefetchOnAppStart: RegisterPrefetchOnAppStart = ({prefetchKey, fe
     }
 
     registerPrefetchTokenRefresh();
-    prefetchOnAppStart(url, fetchParams).catch((error) => {
+    prefetchOnAppStart(url, {...fetchParams, body: removeAppVersionFromPrefetchBody(fetchParams.body)}).catch((error) => {
         Log.warn(`[NitroFetch] prefetchOnAppStart failed for ${command}`, {error, fetchParams, url});
     });
 };

@@ -36,7 +36,6 @@ function InviteMemberListItem<TItem extends ListItem>({
 
     const firstItemIconID = Number(item?.icons?.at(0)?.id);
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const accountID = !item.reportID ? item.accountID || firstItemIconID : undefined;
 
     const shouldShowSelectionButton = !item.shouldHideSelectionButton && !(item.isDisabled && !item.isSelected);
@@ -65,6 +64,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                             <ListItemComposed.UserAvatar
                                 accountID={accountID}
                                 fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
+                                accountEmail={item.login ?? undefined}
                             />
                         ) : (
                             <ListItemComposed.ReportAvatar

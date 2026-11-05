@@ -1,6 +1,7 @@
 import Log from '@libs/Log';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {startFrameDropMonitor} from '@libs/telemetry/frameDrops/frameDropMonitor';
+import {setNativeAppStartTime} from '@libs/telemetry/nativeAppStartTime';
 
 import CONST from '@src/CONST';
 
@@ -104,6 +105,7 @@ export default function (): void {
         Log.warn('[Telemetry] Failed to read native app start time from NitroModule', {error});
         nativeAppStartTimeMs = undefined;
     }
+    setNativeAppStartTime(nativeAppStartTimeMs);
 
     const startupSpan = startSpan(CONST.TELEMETRY.SPAN_APP_STARTUP, {
         name: CONST.TELEMETRY.SPAN_APP_STARTUP,
@@ -122,7 +124,7 @@ export default function (): void {
     });
 
     requestAnimationFrame(() => {
-        // Use typeof guard — bare identifier throws ReferenceError if moduleInitPolyfill didn't run
+        // Re.Pack native builds don't inject these globals yet, so use a typeof guard: a bare identifier throws ReferenceError
         const initTimes = typeof __moduleInitTimes !== 'undefined' ? (__moduleInitTimes as Record<string, number>) : undefined;
         const moduleNames = typeof __moduleNames !== 'undefined' ? (__moduleNames as Record<string, string>) : undefined;
         reportModuleInitTimes(initTimes, moduleNames, 100);

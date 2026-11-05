@@ -166,13 +166,6 @@ jest.mock('react-native-keyboard-controller', () => require<typeof RNKeyboardCon
 
 jest.mock('react-native-app-logs', () => require<typeof RNAppLogs>('react-native-app-logs/jest'));
 
-jest.mock('@libs/scheduleOnLiveMarkdownRuntime', () => {
-    const scheduleOnLiveMarkdownRuntime = <Args extends unknown[], ReturnValue>(worklet: (...args: Args) => ReturnValue, ...args: Args): void => {
-        worklet(...args);
-    };
-    return scheduleOnLiveMarkdownRuntime;
-});
-
 jest.mock('@src/setup/telemetry', () => ({
     __esModule: true,
     default: jest.fn(),
@@ -350,6 +343,9 @@ jest.mock('@shopify/react-native-skia', () => ({
     listFontFamilies: jest.fn(() => []),
 }));
 
+// The native tab bar icons are drawn with Skia's imperative API, which the mock above leaves out, so the tabs get no icons.
+jest.mock('@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer', () => jest.fn(() => undefined));
+
 jest.mock('@sbaiahmed1/react-native-biometrics', () => ({
     isSensorAvailable: jest.fn(() => Promise.resolve({available: false})),
     createKeys: jest.fn(() => Promise.resolve({publicKey: ''})),
@@ -365,6 +361,8 @@ jest.mock('victory-native', () => ({
     CartesianChart: jest.fn(
         ({children}: {children?: (args: Record<string, unknown>) => ReactNode}) => children?.({points: {y: []}, chartBounds: {left: 0, right: 0, top: 0, bottom: 0}}) ?? null,
     ),
+    Pie: {Chart: jest.fn(() => null)},
+    PolarChart: jest.fn(() => null),
 }));
 
 // Provide a default global fetch mock for tests that do not explicitly set it up

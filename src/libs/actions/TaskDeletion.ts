@@ -107,7 +107,12 @@ function deleteTask(
     };
     const optimisticReportActions = parentReportAction?.reportActionID ? {[parentReportAction?.reportActionID]: optimisticReportAction} : {};
 
-    const optimisticLastReportData = optimisticReportLastData(parentReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), optimisticReportActions, canUserPerformWriteAction);
+    const optimisticLastReportData = optimisticReportLastData(
+        parentReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+        currentUserAccountID,
+        optimisticReportActions,
+        canUserPerformWriteAction,
+    );
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -215,6 +220,7 @@ function clearTaskErrors(
     currentUserAccountID: number,
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
     isSelfTourViewed: boolean | undefined,
+    hasCompletedGuidedSetupFlow: boolean | undefined,
     reportOwnerPersonalDetail: OnyxEntry<PersonalDetails>,
     currentUserPersonalDetail: OnyxEntry<PersonalDetails>,
     conciergePersonalDetail: OnyxEntry<PersonalDetails>,
@@ -234,6 +240,7 @@ function clearTaskErrors(
             currentUserAccountID,
             introSelected,
             isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
             reportOwnerPersonalDetail,
             currentUserPersonalDetail,
             conciergePersonalDetail,

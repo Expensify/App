@@ -22,7 +22,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type MenuListItem = ListItem & {
@@ -44,28 +44,22 @@ function DynamicNetSuiteDateSelectPage({policy}: WithPolicyConnectionsProps) {
         isSelected: selectedValue === dateType,
     }));
 
-    const headerContent = useMemo(
-        () => (
-            <View>
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.netsuite.exportDate.description')}</Text>
-            </View>
-        ),
-        [translate, styles.pb5, styles.ph5],
+    const headerContent = (
+        <View>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.netsuite.exportDate.description')}</Text>
+        </View>
     );
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
-    const selectExportDate = useCallback(
-        (row: MenuListItem) => {
-            if (row.value !== config?.exportDate && policyID) {
-                updateNetSuiteExportDate(policyID, row.value, config?.exportDate);
-            }
-            goBack();
-        },
-        [config?.exportDate, policyID, goBack],
-    );
+    const selectExportDate = (row: MenuListItem) => {
+        if (row.value !== config?.exportDate && policyID) {
+            updateNetSuiteExportDate(policyID, row.value, config?.exportDate);
+        }
+        goBack();
+    };
 
     return (
         <SelectionScreen

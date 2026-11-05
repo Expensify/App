@@ -4,9 +4,10 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type Account from './Account';
 import type AccountData from './AccountData';
+import type Agent from './Agent';
 import type AgentNewAvatarDraft from './AgentNewAvatarDraft';
-import type AgentPrompt from './AgentPrompt';
 import type AppReview from './AppReview';
+import type {AppReviewLastPrompt} from './AppReview';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
 import type {AssignCard, AssignCardData} from './AssignCard';
 import type Attachment from './Attachment';
@@ -23,6 +24,8 @@ import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
 import type BillingReceiptDetails from './BillingReceiptDetails';
 import type BillingStatus from './BillingStatus';
 import type BlockedFromConcierge from './BlockedFromConcierge';
+import type BlockedRoleChange from './BlockedRoleChange';
+import type BulkAction from './BulkAction';
 import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
 import type {CardList, IssueNewCard, ProvisioningCardData, WorkspaceCardsList} from './Card';
@@ -52,12 +55,12 @@ import type CopyPolicySettings from './CopyPolicySettings';
 import type CopyPolicySettingsNVP from './CopyPolicySettingsNVP';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
 import type {CorpayOnboardingFields} from './CorpayOnboardingFields';
-import type CorpayPayModal from './CorpayPayModal';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
 import type DatabaseSizeMeasurement from './DatabaseSizeMeasurement';
+import type DeferredAttachmentEdits from './DeferredAttachmentEdits';
 import type {
     CardFeedErrorsDerivedValue,
     GuideAccountIDsDerivedValue,
@@ -91,6 +94,8 @@ import type {
     DynamicFormFieldOption,
     DynamicFormFieldType,
     DynamicFormHeading,
+    DynamicFormListField,
+    DynamicFormListItem,
     DynamicFormMultiChoiceField,
     DynamicFormNumberField,
     DynamicFormPage,
@@ -100,6 +105,7 @@ import type {
     DynamicFormTextField,
 } from './DynamicFormField';
 import type EarlyRenewalOfferEligibility from './EarlyRenewalOfferEligibility';
+import type EnableGlobalReimbursementsModal from './EnableGlobalReimbursementsModal';
 import type ExpenseRule from './ExpenseRule';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardLoadingState from './ExpensifyCardLoadingState';
@@ -109,6 +115,7 @@ import type ExpensifyCardStatement from './ExpensifyCardStatement';
 import type ExportDownload from './ExportDownload';
 import type ExportTemplate from './ExportTemplate';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
+import type FullPolicySnapshot from './FullPolicySnapshot';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
 import type GeneratedRule from './GeneratedRule';
@@ -119,7 +126,7 @@ import type ImportedSpreadsheet from './ImportedSpreadsheet';
 import type ImportedSpreadsheetMemberData from './ImportedSpreadsheetMemberData';
 import type InitiatingBankAccountUnlock from './InitiatingBankAccountUnlock';
 import type InsightsDashboard from './InsightsDashboard';
-import type {InsightsDashboardID, InsightsGraphKey, InsightsSearchKey} from './InsightsDashboard';
+import type {AIInsight, InsightsDashboardID, InsightsGraphKey, InsightsSearchKey} from './InsightsDashboard';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type JoinablePolicies from './JoinablePolicies';
@@ -165,10 +172,12 @@ import type PolicyDataLoadingState from './PolicyDataLoadingState';
 import type {PolicyEmployeeList} from './PolicyEmployee';
 import type PolicyEmployee from './PolicyEmployee';
 import type PolicyJoinMember from './PolicyJoinMember';
+import type PolicyMemberBankAccounts from './PolicyMemberBankAccounts';
 import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
 import type PolicyRoomsMetadata from './PolicyRoomsMetadata';
 import type {ParticipantsPolicyTags, PolicyTag, PolicyTagLists, PolicyTags, SearchTagFilterItem} from './PolicyTag';
 import type PolicyVendors from './PolicyVendor';
+import type {PolicyVendor} from './PolicyVendor';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type PrivatePromoDiscount from './PrivatePromoDiscount';
 import type PrivateSubscription from './PrivateSubscription';
@@ -194,6 +203,7 @@ import type ReportMetadata from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
 import type LastSearchParams from './ReportNavigation';
 import type ReportPaginationState from './ReportPaginationState';
+import type ReportUpcomingSteps from './ReportUpcomingSteps';
 import type ReportUserIsTyping from './ReportUserIsTyping';
 import type ReportViolationName from './ReportViolationName';
 import type Request from './Request';
@@ -219,7 +229,7 @@ import type Session from './Session';
 import type ShareBankAccount from './ShareBankAccount';
 import type ShareTempFile from './ShareTempFile';
 import type SidePanel from './SidePanel';
-import type {SidePanelContext} from './SidePanel';
+import type {InsightsScope, SidePanelContext} from './SidePanel';
 import type StripeCustomerID from './StripeCustomerID';
 import type SuggestedAgent from './SuggestedAgent';
 import type SuggestedAgentRule from './SuggestedAgentRule';
@@ -250,6 +260,10 @@ import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
+import type WiseBankAccountFields from './WiseBankAccountFields';
+import type {WiseKYCReviewEmbeddedLink} from './WiseKYCReview';
+import type WorkspaceMembersSelectedForBulkEdit from './WorkspaceMembersSelectedForBulkEdit';
+import type WorkspaceMembersSelectedForRoleChange from './WorkspaceMembersSelectedForRoleChange';
 
 export type {
     FileObject,
@@ -270,6 +284,7 @@ export type {
     BetaConfiguration,
     BetaOverrides,
     BlockedFromConcierge,
+    BlockedRoleChange,
     Card,
     CardList,
     CardOnWaitlist,
@@ -286,6 +301,7 @@ export type {
     Domain,
     Download,
     ExportDownload,
+    BulkAction,
     GeneratedRule,
     DuplicateWorkspace,
     CopyPolicySettingsNVP,
@@ -298,11 +314,13 @@ export type {
     ExpensifyCardBankAccountMetadata,
     ExpensifyCardLoadingState,
     FrequentlyUsedEmoji,
+    FullPolicySnapshot,
     Fund,
     FundID,
     FundList,
     GovernmentMileageRate,
     GpsDraftDetails,
+    AIInsight,
     InsightsDashboard,
     InsightsDashboardID,
     InsightsGraphKey,
@@ -351,9 +369,11 @@ export type {
     PolicyCategories,
     PolicyCategory,
     PolicyDataLoadingState,
+    PolicyVendor,
     PolicyVendors,
     PolicyEmployee,
     PolicyEmployeeList,
+    PolicyMemberBankAccounts,
     PolicyConnectionName,
     PolicyConnectionSyncProgress,
     PolicyOwnershipChangeChecks,
@@ -381,10 +401,12 @@ export type {
     ReportActions,
     ReportActionsDraft,
     ReportActionsDrafts,
+    DeferredAttachmentEdits,
     ReportLastVisitTimes,
     ReportLoadingState,
     ReportMetadata,
     ReportPaginationState,
+    ReportUpcomingSteps,
     ReportViolationName,
     ReportLayoutGroupBy,
     ReportLayoutOption,
@@ -410,6 +432,7 @@ export type {
     TransactionViolations,
     TravelSettings,
     WorkspaceTravelSettings,
+    WorkspaceMembersSelectedForBulkEdit,
     UserLocation,
     UserMetadata,
     UserWallet,
@@ -422,6 +445,7 @@ export type {
     WalletStatement,
     WalletTerms,
     WalletTransfer,
+    WorkspaceMembersSelectedForRoleChange,
     SupportalPermissionDenied,
     PurchaseList,
     Purchases,
@@ -469,6 +493,8 @@ export type {
     VerifyValidateCodeAction,
     ShareTempFile,
     CorpayFields,
+    WiseBankAccountFields,
+    WiseKYCReviewEmbeddedLink,
     CorpayFormField,
     DynamicFormAddressField,
     DynamicFormChoiceField,
@@ -478,6 +504,8 @@ export type {
     DynamicFormFieldOption,
     DynamicFormFieldType,
     DynamicFormHeading,
+    DynamicFormListField,
+    DynamicFormListItem,
     DynamicFormMultiChoiceField,
     DynamicFormNumberField,
     DynamicFormPage,
@@ -488,9 +516,10 @@ export type {
     JoinablePolicies,
     DismissedProductTraining,
     TravelProvisioning,
-    CorpayPayModal,
+    EnableGlobalReimbursementsModal,
     SidePanel,
     SidePanelContext,
+    InsightsScope,
     LastPaymentMethodType,
     ReportAttributesDerivedValue,
     LastSearchParams,
@@ -513,6 +542,7 @@ export type {
     ExportTemplate,
     HybridApp,
     AppReview,
+    AppReviewLastPrompt,
     SamlMetadata,
     DomainErrors,
     DomainHighlightItems,
@@ -526,7 +556,7 @@ export type {
     LocallyProcessed3DSChallengeReviews,
     InitiatingBankAccountUnlock,
     AgentNewAvatarDraft,
-    AgentPrompt,
+    Agent,
     SuggestedAgentRule,
     SuggestedAgent,
 };

@@ -6,7 +6,14 @@ import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@comp
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 
 import {markAsManuallyExported} from '@libs/actions/Report';
-import {exportSearchItemsToCSV, exportToIntegrationOnSearch, getExportTemplates, queueBulkMarkAsExported, queueExportSearchWithTemplate} from '@libs/actions/Search';
+import {
+    exportSearchItemsToCSV,
+    exportToIntegrationOnSearch,
+    getExportTemplates,
+    queueBulkMarkAsExported,
+    queueExportSearchItemsToCSV,
+    queueExportSearchWithTemplate,
+} from '@libs/actions/Search';
 import type * as ReportSecondaryActionUtilsModule from '@libs/ReportSecondaryActionUtils';
 import {getSelectedGroupFilterEntry} from '@libs/SearchUIUtils';
 import type * as SearchUIUtilsModule from '@libs/SearchUIUtils';
@@ -149,6 +156,12 @@ let mockIsOffline = false;
 jest.mock('@hooks/useNetwork', () => ({
     __esModule: true,
     default: () => ({isOffline: mockIsOffline}),
+}));
+
+const mockShowDecisionModal = jest.fn();
+jest.mock('@hooks/useDecisionModal', () => ({
+    __esModule: true,
+    default: () => ({showDecisionModal: mockShowDecisionModal}),
 }));
 
 jest.mock('@hooks/useEnvironment', () => ({
@@ -1379,10 +1392,32 @@ describe('useSearchBulkActions - export options', () => {
 
         // Then: the offline modal opens and nothing is queued, matching bulk pay's offline behavior.
         await waitFor(() => {
-            expect(result.current.isOfflineModalVisible).toBe(true);
+            expect(mockShowDecisionModal).toHaveBeenCalledWith(expect.objectContaining({title: 'common.youAppearToBeOffline', prompt: 'common.offlinePrompt'}));
         });
         expect(queueBulkMarkAsExported).not.toHaveBeenCalled();
         expect(mockClearSelectedTransactions).not.toHaveBeenCalled();
+    });
+
+    it('shows the empty-report download error with the empty report count when every selected report has no expenses', async () => {
+        // Given a selected report that the search snapshot says has no expenses, so there is nothing to export
+        mockCurrentSearchResults = makeSearchResults([{...makeSnapshotReport(), transactionCount: 0}]);
+        mockSelectedReports = [makeSelectedReport()];
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')).toBeDefined();
+        });
+
+        // When the user runs the Current view CSV export
+        getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')?.onSelected?.();
+
+        // Then the download error explains the reports are empty, because the prompt is passed when the modal is shown rather than read from shared state
+        await waitFor(() => {
+            expect(mockShowDecisionModal).toHaveBeenCalledWith(expect.objectContaining({title: 'common.downloadFailedTitle', prompt: 'common.downloadFailedEmptyReportDescription'}));
+        });
+        expect(exportSearchItemsToCSV).not.toHaveBeenCalled();
     });
 
     it('marks the specific selected report IDs, not the search query, for a limited (non-select-all) selection', async () => {
@@ -1521,7 +1556,7 @@ describe('useSearchBulkActions - export options', () => {
         });
     });
 
-    it('keeps only Current view for a group selection on a time-based grouping', async () => {
+    it('keeps only current-view exports for a group selection on a time-based grouping', async () => {
         // Given a group selected on a search grouped by month, which has no filter a selected group can be turned into
         mockSelectedTransactions = {
             [`${CONST.SEARCH.GROUP_PREFIX}2026-10`]: makeSelectedTransaction(),
@@ -1537,7 +1572,7 @@ describe('useSearchBulkActions - export options', () => {
 
         // Then no template is offered, because the template export could not scope the group and would only show the download error
         await waitFor(() => {
-            expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView']);
+            expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView', 'export.currentViewGroupsOnly']);
         });
     });
 
@@ -1600,6 +1635,7 @@ describe('useSearchBulkActions - export options', () => {
             await waitFor(() => {
                 expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual([
                     'export.currentView',
+                    'export.currentViewGroupsOnly',
                     'Custom template',
                     'export.expenseLevelExport',
                     'export.reconciliationAllExpenses',
@@ -1621,6 +1657,7 @@ describe('useSearchBulkActions - export options', () => {
             await waitFor(() => {
                 expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual([
                     'export.currentView',
+                    'export.currentViewGroupsOnly',
                     'Custom template',
                     'export.expenseLevelExport',
                     'export.reconciliationAllExpenses',
@@ -1639,7 +1676,13 @@ describe('useSearchBulkActions - export options', () => {
 
             // Then Reconciliation is not offered, because a card group selection only shows the templates the user was already entitled to and must never hand out one they were not
             await waitFor(() => {
-                expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView', 'Custom template', 'export.expenseLevelExport', 'export.reportLevelExport']);
+                expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual([
+                    'export.currentView',
+                    'export.currentViewGroupsOnly',
+                    'Custom template',
+                    'export.expenseLevelExport',
+                    'export.reportLevelExport',
+                ]);
             });
             expect(getExportOptionTexts(result.current.headerButtonsOptions)).not.toContain('export.reconciliationAllExpenses');
         });
@@ -1794,7 +1837,7 @@ describe('useSearchBulkActions - export options', () => {
 
             // Then nothing is exported, because dropping groupBy without a cardID filter would export every card in the search
             await waitFor(() => {
-                expect(result.current.isDownloadErrorModalVisible).toBe(true);
+                expect(mockShowDecisionModal).toHaveBeenCalledWith(expect.objectContaining({title: 'common.downloadFailedTitle', prompt: 'common.downloadFailedDescription'}));
             });
             expect(queueExportSearchWithTemplate).not.toHaveBeenCalled();
         });
@@ -1840,7 +1883,8 @@ describe('useSearchBulkActions - export options', () => {
         });
     });
 
-    it('offers Current view as the only plain-CSV export on a grouped search', async () => {
+    it('offers both current-view CSV options on a grouped search', async () => {
+        // Given a selected expense in a grouped search.
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
@@ -1849,14 +1893,59 @@ describe('useSearchBulkActions - export options', () => {
             expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')).toBeDefined();
         });
 
+        // When the groups-only option is selected.
+        getExportOptionByText(result.current.headerButtonsOptions, 'export.currentViewGroupsOnly')?.onSelected?.();
+
+        // Then it exports group summaries using the current-view metadata.
+        await waitFor(() => {
+            expect(exportSearchItemsToCSV).toHaveBeenCalled();
+        });
+        expect(getLastCSVExportParameters()).toEqual(expect.objectContaining({isGroupsOnly: true, isBasicExport: false, exportName: 'export.currentViewGroupsOnly'}));
         expect(getExportOptionTexts(result.current.headerButtonsOptions)).not.toContain('export.basicExport');
+
+        // When the existing current-view option is selected.
+        getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')?.onSelected?.();
+
+        // Then the full export remains the default.
+        expect(getLastCSVExportParameters().isGroupsOnly).toBe(false);
     });
 
-    it('keeps the Export entry as a submenu even when only one export option is available', async () => {
-        // Regression test for https://github.com/Expensify/App/issues/98779: a deleted selection on a grouped search
-        // offers a single export option ('export.currentView'). While other bulk actions sit alongside it (Undelete
-        // here), the Export entry must still open the Export submenu (keeping its generic label and subMenuItems)
-        // rather than collapsing straight into that single option.
+    it('does not offer a groups-only export on an ungrouped search', async () => {
+        // Given a selected expense in an ungrouped search.
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: ungroupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        // When the export menu becomes available.
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')).toBeDefined();
+        });
+
+        // Then only grouped searches offer the summary-only mode.
+        expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.currentViewGroupsOnly')).toBeUndefined();
+    });
+
+    it('queues a groups-only export for all matching items', async () => {
+        // Given all matching expenses selected in a grouped search.
+        mockAreAllMatchingItemsSelected = true;
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.currentViewGroupsOnly')).toBeDefined();
+        });
+
+        // When the groups-only option is selected.
+        getExportOptionByText(result.current.headerButtonsOptions, 'export.currentViewGroupsOnly')?.onSelected?.();
+
+        // Then the queued export retains the summary-only flag and grouping.
+        await waitFor(() => {
+            expect(queueExportSearchItemsToCSV).toHaveBeenCalledWith(expect.objectContaining({isGroupsOnly: true, isBasicExport: false}));
+        });
+        const parameters = jest.mocked(queueExportSearchItemsToCSV).mock.calls.at(-1)?.at(0);
+        expect(JSON.parse(parameters?.jsonQuery ?? '{}')).toHaveProperty('groupBy', CONST.SEARCH.GROUP_BY.CATEGORY);
+    });
+
+    it('keeps the Export entry as a submenu for grouped exports alongside other actions', async () => {
+        // Given deleted expenses in a grouped search, where Undelete sits alongside Export.
         mockSelectedTransactions = {
             tx1: makeSelectedTransaction({reportID: CONST.REPORT.TRASH_REPORT_ID}),
         };
@@ -1864,20 +1953,20 @@ describe('useSearchBulkActions - export options', () => {
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
-            expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView']);
+            expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView', 'export.currentViewGroupsOnly']);
         });
 
         const exportOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
-        expect(exportOption?.subMenuItems).toHaveLength(1);
+        expect(exportOption?.subMenuItems).toHaveLength(2);
         expect(exportOption?.text).toBe('common.export');
         // The Export row itself labels the submenu here, so the dropdown must not also carry an "Export" header.
         expect(result.current.bulkActionsMenuHeaderText).toBeUndefined();
     });
 
-    it('opens directly onto the single export option when Export is the only bulk action', async () => {
+    it('opens directly onto grouped export options when Export is the only bulk action', async () => {
         // Export is the only bulk action offered under select all, so the dropdown has no main menu to go back to.
-        // The one export option is surfaced directly instead of behind an "Export" row whose submenu would render a
-        // back arrow leading nowhere, with "Export" kept as a plain dropdown header so the option still has context.
+        // The export options are surfaced directly instead of behind an "Export" row whose submenu would render a
+        // back arrow leading nowhere, with "Export" kept as a plain dropdown header so the options still have context.
         // This only applies to the dropdown: the bar renders each action as its own button, so `headerButtonsOptions`
         // keeps the nested shape regardless.
         mockAreAllMatchingItemsSelected = true;
@@ -1888,7 +1977,7 @@ describe('useSearchBulkActions - export options', () => {
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
-            expect(result.current.dropdownButtonsOptions.map((option) => option.text)).toEqual(['export.currentView']);
+            expect(result.current.dropdownButtonsOptions.map((option) => option.text)).toEqual(['export.currentView', 'export.currentViewGroupsOnly']);
         });
 
         const soleOption = result.current.dropdownButtonsOptions.at(0);
