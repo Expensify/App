@@ -1873,6 +1873,42 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).not.toContainEqual(restrictedCategoryViolation);
         });
 
+        it.each([
+            [false, ''],
+            [false, undefined],
+            [false, CONST.SEARCH.CATEGORY_DEFAULT_VALUE],
+            [false, CONST.SEARCH.CATEGORY_EMPTY_VALUE],
+            [true, ''],
+            [true, undefined],
+            [true, CONST.SEARCH.CATEGORY_DEFAULT_VALUE],
+            [true, CONST.SEARCH.CATEGORY_EMPTY_VALUE],
+        ])('should clear categoryNotAllowed when requiresCategory is %s and category is %s', (requiresCategory, category) => {
+            // Given an expense with a restricted category warning and no owner account ID available
+            policy.requiresCategory = requiresCategory;
+            transaction.category = category;
+
+            // When the category is cleared, its restriction no longer applies
+            const result = ViolationsUtils.getViolationsOnyxData({
+                isVendorMatchingBetaEnabled: false,
+                ownerLogin: undefined,
+                updatedTransaction: transaction,
+                transactionViolations: [restrictedCategoryViolation],
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+
+            // Then only the required category warning depends on the policy setting
+            expect(result.value).not.toContainEqual(restrictedCategoryViolation);
+            if (requiresCategory) {
+                expect(result.value).toContainEqual(missingCategoryViolation);
+            } else {
+                expect(result.value).not.toContainEqual(missingCategoryViolation);
+            }
+        });
+
         it('should keep the categoryNotAllowed violation when the owner still cannot use the category', () => {
             // Given an expense with categoryNotAllowed, coded to a category only another member can see
             const ownerAccountID = 1;

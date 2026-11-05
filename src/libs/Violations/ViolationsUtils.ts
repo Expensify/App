@@ -801,6 +801,11 @@ const ViolationsUtils = {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.SMARTSCAN_FAILED});
         }
 
+        // A cleared category cannot be restricted, even when the policy does not require categories.
+        if (isCategoryMissing(updatedTransaction.category)) {
+            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED});
+        }
+
         // Calculate client-side category violations. Also run when the transaction has a category (not just
         // when the policy requires one) so disabling that category flags it optimistically. Mirrors tags below.
         const policyRequiresCategories = (!!policy.requiresCategory || !!updatedTransaction.category) && !isSelfDM;
@@ -823,7 +828,7 @@ const ViolationsUtils = {
                 newTransactionViolations = reject(newTransactionViolations, {name: 'categoryOutOfPolicy'});
             }
 
-            // Remove 'categoryNotAllowed' violation if the owner can see the category
+            // Category restrictions belong to the expense owner, not the user editing the expense.
             const ownerAccountID = iouReport?.ownerAccountID;
             const hasRestrictedCategoryViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED);
             if (hasRestrictedCategoryViolation && ownerAccountID && isCategoryVisibleToMember(categoryData, ownerAccountID)) {
