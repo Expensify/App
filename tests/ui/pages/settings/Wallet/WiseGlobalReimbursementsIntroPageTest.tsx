@@ -89,6 +89,13 @@ describe('WiseGlobalReimbursementsIntroPage', () => {
             'common.continue',
             '/status',
         ],
+        [
+            'continues to the status page while Wise reviews the business',
+            CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE,
+            {status: CONST.WISE.ONBOARDING_STATUS.IN_REVIEW},
+            'common.continue',
+            '/status',
+        ],
     ])('%s', async (_label, globalReimbursementProvider, wise, buttonText, pageSuffix) => {
         // Given the intro for a bank account at some point of its Wise onboarding
         await renderPage(createBusinessBankAccount(globalReimbursementProvider, wise));

@@ -3,7 +3,7 @@ import BaseWidgetItem from '@components/BaseWidgetItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 
-import navigateToWiseMoreInfoNeeded from '@libs/Navigation/helpers/navigateToWiseMoreInfoNeeded';
+import navigateToWiseOnboardingStatus from '@libs/Navigation/helpers/navigateToWiseOnboardingStatus';
 
 import CONST from '@src/CONST';
 
@@ -31,7 +31,7 @@ function VerifyWiseBankAccount({bankAccountID, bankAccountLastFour}: VerifyWiseB
             title={translate('homePage.timeSensitiveSection.verifyWiseBankAccount.title')}
             subtitle={bankAccountLastFour ? translate('homePage.timeSensitiveSection.verifyWiseBankAccount.subtitle', {bankAccountLastFour}) : undefined}
             ctaText={translate('homePage.forYouSection.begin')}
-            onCtaPress={() => navigateToWiseMoreInfoNeeded(bankAccountID)}
+            onCtaPress={() => navigateToWiseOnboardingStatus(bankAccountID)}
             buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
         />
     );

@@ -2,7 +2,7 @@ import ConnectionStatusMessage from '@components/ConnectionStatusMessage';
 
 import useLocalize from '@hooks/useLocalize';
 
-import navigateToWiseMoreInfoNeeded from '@libs/Navigation/helpers/navigateToWiseMoreInfoNeeded';
+import navigateToWiseOnboardingStatus from '@libs/Navigation/helpers/navigateToWiseOnboardingStatus';
 
 import CONST from '@src/CONST';
 
@@ -27,7 +27,7 @@ function WiseMoreInfoNeededRow({bankAccountID}: WiseMoreInfoNeededRowProps) {
             message={translate('walletPage.wiseMoreInfoNeeded')}
             statusTone="success"
             actionText={translate('common.review')}
-            onActionPress={() => navigateToWiseMoreInfoNeeded(bankAccountID)}
+            onActionPress={() => navigateToWiseOnboardingStatus(bankAccountID)}
             actionSentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.WISE_MORE_INFO_NEEDED_REVIEW}
         />
     );
