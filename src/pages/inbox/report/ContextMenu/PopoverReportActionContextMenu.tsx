@@ -106,6 +106,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     // UI-thread timer driving the delayed hide. https://github.com/Expensify/App/issues/89069
     const hideDelayProgress = useSharedValue(0);
     const [isDeleteCommentConfirmModalVisible, setIsDeleteCommentConfirmModalVisible] = useState(false);
+    // On Android onModalHide fires from the exit-animation snapshot and closes over that render's visibility
+    const isDeleteCommentConfirmModalVisibleRef = useRef(false);
     const [shouldSetModalVisibilityForDeleteConfirmation, setShouldSetModalVisibilityForDeleteConfirmation] = useState(true);
     const [deleteModalTarget, setDeleteModalTarget] = useState<{reportID: string; reportAction: ReportAction | null} | null>(null);
 
@@ -352,7 +354,10 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         callbackWhenDeleteModalHide.current = runAndResetCallback(onConfirmDeleteModal.current);
     };
 
-    const closeDeleteModal = () => setIsDeleteCommentConfirmModalVisible(false);
+    const closeDeleteModal = () => {
+        isDeleteCommentConfirmModalVisibleRef.current = false;
+        setIsDeleteCommentConfirmModalVisible(false);
+    };
 
     const deleteCommentAfterModalHide = (deleteComment: () => void) => {
         callbackWhenDeleteModalHide.current = deleteComment;
@@ -362,7 +367,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         clearActiveReportAction();
         callbackWhenDeleteModalHide.current();
         // A new delete was requested while the previous confirmation was still hiding, so keep it mounted
-        if (isDeleteCommentConfirmModalVisible) {
+        if (isDeleteCommentConfirmModalVisibleRef.current) {
             return;
         }
         setDeleteModalTarget(null);
@@ -370,6 +375,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
 
     const hideDeleteModal = () => {
         callbackWhenDeleteModalHide.current = () => (onCancelDeleteModal.current = runAndResetCallback(onCancelDeleteModal.current));
+        isDeleteCommentConfirmModalVisibleRef.current = false;
         setIsDeleteCommentConfirmModalVisible(false);
         setShouldSetModalVisibilityForDeleteConfirmation(true);
     };
@@ -384,6 +390,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
 
         setDeleteModalTarget({reportID, reportAction: reportAction ?? null});
         setShouldSetModalVisibilityForDeleteConfirmation(shouldSetModalVisibility);
+        isDeleteCommentConfirmModalVisibleRef.current = true;
         setIsDeleteCommentConfirmModalVisible(true);
     };
 
