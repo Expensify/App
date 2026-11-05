@@ -56,7 +56,6 @@ import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
 
@@ -705,7 +704,6 @@ function createExpenseByType({
     recentWaypoints,
     isTrackIntentUser,
     formatPhoneNumber,
-    dateFnsLocale,
     participantsPolicyTags,
     policyTags,
     rules,
@@ -723,7 +721,6 @@ function createExpenseByType({
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     isTrackIntentUser: boolean | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
-    dateFnsLocale: DateFnsLocale | undefined;
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     policyTags: OnyxTypes.PolicyTagLists;
     rules: OnyxCollection<OnyxTypes.Rule>;
@@ -776,7 +773,6 @@ function createExpenseByType({
         case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM: {
             const perDiemParams: PerDiemExpenseInformation = {
                 ...params,
-                dateFnsLocale,
                 transactionParams: {
                     ...(params.transactionParams ?? {}),
                     comment: transactionDetails?.comment ?? '',
@@ -799,7 +795,6 @@ function createExpenseByType({
 }
 
 type DuplicateExpenseTransactionParams = {
-    dateFnsLocale: DateFnsLocale | undefined;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     optimisticChatReportID: string;
     optimisticIOUReportID: string;
@@ -834,7 +829,6 @@ type DuplicateExpenseTransactionParams = {
 };
 
 function duplicateExpenseTransaction({
-    dateFnsLocale,
     transaction,
     optimisticChatReportID,
     optimisticIOUReportID,
@@ -977,7 +971,6 @@ function duplicateExpenseTransaction({
     };
 
     return createExpenseByType({
-        dateFnsLocale,
         transactionType: getTransactionType(transaction),
         params,
         transaction,
@@ -998,7 +991,6 @@ function duplicateExpenseTransaction({
 }
 
 type DuplicateReportParams = {
-    dateFnsLocale: DateFnsLocale | undefined;
     sourceReport: OnyxEntry<OnyxTypes.Report>;
     sourceReportTransactions: OnyxTypes.Transaction[];
     sourceReportName: string;
@@ -1085,7 +1077,6 @@ function buildDuplicateReportCurrencyAmounts(eligibleTransactions: OnyxTypes.Tra
 }
 
 function duplicateReport({
-    dateFnsLocale,
     sourceReport,
     sourceReportTransactions,
     sourceReportName,
@@ -1251,7 +1242,6 @@ function duplicateReport({
         };
 
         const result = createExpenseByType({
-            dateFnsLocale,
             transactionType: getTransactionType(transaction),
             params,
             transaction,
@@ -1281,7 +1271,6 @@ function duplicateReport({
 }
 
 type BulkDuplicateExpensesParams = {
-    dateFnsLocale: DateFnsLocale | undefined;
     transactionIDs: string[];
     allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>>;
     sourcePolicyIDMap: Record<string, string | undefined>;
@@ -1311,7 +1300,6 @@ type BulkDuplicateExpensesParams = {
 };
 
 function bulkDuplicateExpenses({
-    dateFnsLocale,
     transactionIDs,
     allTransactions,
     sourcePolicyIDMap,
@@ -1414,7 +1402,6 @@ function bulkDuplicateExpenses({
 
         const result = duplicateExpenseTransaction({
             isVendorMatchingBetaEnabled,
-            dateFnsLocale,
             transaction: item,
             optimisticChatReportID,
             optimisticIOUReportID: currentOptimisticIOUReportID,
@@ -1466,7 +1453,6 @@ function bulkDuplicateExpenses({
 }
 
 type BulkDuplicateReportsParams = {
-    dateFnsLocale: DateFnsLocale | undefined;
     selectedReports: SelectedReports[];
     allReports: NonNullable<OnyxCollection<OnyxTypes.Report>>;
     allTransactions: OnyxCollection<OnyxTypes.Transaction>;
@@ -1497,7 +1483,6 @@ type BulkDuplicateReportsParams = {
 };
 
 async function bulkDuplicateReports({
-    dateFnsLocale,
     selectedReports: selectedReportsParam,
     allReports,
     allTransactions,
@@ -1600,7 +1585,6 @@ async function bulkDuplicateReports({
 
         duplicateReport({
             isVendorMatchingBetaEnabled,
-            dateFnsLocale,
             sourceReport: report,
             sourceReportTransactions: reportTransactions,
             sourceReportName: report.reportName ?? '',

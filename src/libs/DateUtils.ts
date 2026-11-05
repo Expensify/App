@@ -1060,13 +1060,14 @@ function isValidDateString(dateString: string) {
 }
 
 /**
- * Formats the date range that goes into a per-diem expense's merchant, e.g. Jan 22, 2026 - Jan 23, 2026.
+ * Formats the date range that goes into a per-diem expense's merchant, e.g. January 22, 2026 to January 23, 2026.
  *
- * The merchant is saved with the expense and read back by receipt parsers that expect this exact order and punctuation,
- * so this stays a fixed pattern rather than following the language's date order. Only the month name is translated.
+ * The server builds the saved merchant itself, in English and in this exact form, whatever the user's language. The app
+ * shows this one until the server's arrives, so it matches it rather than following the user's language; otherwise the
+ * merchant would visibly change once the expense is saved.
  */
-function getFormattedDateRangeForPerDiem(date1: Date, date2: Date, dateFnsLocale: DateFnsLocale | undefined): string {
-    return `${format(date1, 'MMM d, yyyy', {locale: dateFnsLocale})} - ${format(date2, 'MMM d, yyyy', {locale: dateFnsLocale})}`;
+function getFormattedDateRangeForPerDiem(date1: Date, date2: Date): string {
+    return `${format(date1, 'MMMM dd, yyyy', {locale: enUS})} to ${format(date2, 'MMMM dd, yyyy', {locale: enUS})}`;
 }
 
 /**

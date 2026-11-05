@@ -50,7 +50,6 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
@@ -187,7 +186,7 @@ function computePerDiemExpenseAmount(customUnit: TransactionCustomUnit) {
     return subRates.reduce((total, subRate) => total + subRate.quantity * subRate.rate, 0);
 }
 
-function computePerDiemExpenseMerchant(customUnit: TransactionCustomUnit, policy: OnyxEntry<OnyxTypes.Policy>, dateFnsLocale: DateFnsLocale | undefined) {
+function computePerDiemExpenseMerchant(customUnit: TransactionCustomUnit, policy: OnyxEntry<OnyxTypes.Policy>) {
     if (!customUnit.customUnitRateID) {
         return '';
     }
@@ -199,7 +198,7 @@ function computePerDiemExpenseMerchant(customUnit: TransactionCustomUnit, policy
     if (!startDate || !endDate) {
         return locationName;
     }
-    const formattedTime = DateUtils.getFormattedDateRangeForPerDiem(new Date(startDate), new Date(endDate), dateFnsLocale);
+    const formattedTime = DateUtils.getFormattedDateRangeForPerDiem(new Date(startDate), new Date(endDate));
     return `${locationName}, ${formattedTime}`;
 }
 
@@ -245,7 +244,6 @@ type RecentlyUsedParams = {
 };
 
 type PerDiemExpenseInformation = {
-    dateFnsLocale: DateFnsLocale | undefined;
     report: OnyxEntry<OnyxTypes.Report>;
     participantParams: RequestMoneyParticipantParams;
     policyParams?: BasePolicyParams;
@@ -283,7 +281,6 @@ type PerDiemExpenseInformation = {
 };
 
 type PerDiemExpenseInformationParams = {
-    dateFnsLocale: DateFnsLocale | undefined;
     parentChatReport: OnyxEntry<OnyxTypes.Report>;
     transactionParams: PerDiemExpenseTransactionParams;
     participantParams: RequestMoneyParticipantParams;
@@ -316,7 +313,6 @@ type PerDiemExpenseInformationParams = {
 };
 
 type PerDiemExpenseInformationForSelfDM = {
-    dateFnsLocale: DateFnsLocale | undefined;
     selfDMReport: OnyxTypes.Report | undefined;
     policy: OnyxEntry<OnyxTypes.Policy>;
     transactionParams: PerDiemExpenseTransactionParams;
@@ -405,7 +401,6 @@ function getPerDiemExpensePolicyID({
  */
 function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseInformationParams): MoneyRequestInformation {
     const {
-        dateFnsLocale,
         parentChatReport,
         transactionParams,
         participantParams,
@@ -441,7 +436,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     const {comment = '', currency, created, category, tag, customUnit, billable, attendees, reimbursable} = transactionParams;
 
     const amount = computePerDiemExpenseAmount(customUnit);
-    const merchant = computePerDiemExpenseMerchant(customUnit, policy, dateFnsLocale);
+    const merchant = computePerDiemExpenseMerchant(customUnit, policy);
     const defaultComment = computeDefaultPerDiemExpenseComment(customUnit, currency);
     const finalComment = comment || defaultComment;
 
@@ -748,22 +743,12 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
  * Gathers all the data needed to submit a per diem expense from self DM.
  */
 function getPerDiemExpenseInformationForSelfDM(perDiemExpenseInformation: PerDiemExpenseInformationForSelfDM): PerDiemExpenseInformationForSelfDMResult {
-    const {
-        dateFnsLocale,
-        selfDMReport,
-        transactionParams,
-        policy,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
-        quickAction,
-        optimisticChatReportID,
-        delegateAccountID,
-        getCurrencyDecimals,
-    } = perDiemExpenseInformation;
+    const {selfDMReport, transactionParams, policy, currentUserAccountIDParam, currentUserEmailParam, quickAction, optimisticChatReportID, delegateAccountID, getCurrencyDecimals} =
+        perDiemExpenseInformation;
     const {comment = '', currency, created, category, tag, customUnit, billable, attendees, reimbursable} = transactionParams;
 
     const amount = computePerDiemExpenseAmount(customUnit);
-    const merchant = computePerDiemExpenseMerchant(customUnit, policy, dateFnsLocale);
+    const merchant = computePerDiemExpenseMerchant(customUnit, policy);
     const defaultComment = computeDefaultPerDiemExpenseComment(customUnit, currency);
     const finalComment = comment || defaultComment;
 
@@ -1097,7 +1082,6 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         formatPhoneNumber,
         delegateAccountID,
         isTrackIntentUser,
-        dateFnsLocale,
         getCurrencyDecimals,
         writeBarrier,
         rules,
@@ -1129,7 +1113,6 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         reimbursable,
     } = getPerDiemExpenseInformation({
         isVendorMatchingBetaEnabled,
-        dateFnsLocale,
         parentChatReport: currentChatReport,
         participantParams,
         policyParams,
@@ -1219,7 +1202,6 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
  */
 function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemExpenseInformationForSelfDM) {
     const {
-        dateFnsLocale,
         selfDMReport,
         policy,
         transactionParams,
@@ -1239,7 +1221,6 @@ function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemE
     }
 
     const {chatReport, transaction, iouAction, transactionThreadReportID, createdReportActionIDForThread, onyxData} = getPerDiemExpenseInformationForSelfDM({
-        dateFnsLocale,
         getCurrencyDecimals,
         selfDMReport,
         policy,

@@ -58,8 +58,8 @@ describe('Per diem merchant dates', () => {
     });
 
     it('keeps persisted per-diem merchant dates readable after changing language', async () => {
-        // Given merchant text persisted with comma-separated date parts, including a comma in its destination
-        const dates = 'Jan. 22, 2026 - Jan. 23, 2026';
+        // Given a merchant in the form the server saves, with comma-separated date parts and a comma in its destination
+        const dates = 'January 22, 2026 to January 23, 2026';
         await act(async () => {
             await Onyx.set(
                 `${ONYXKEYS.COLLECTION.TRANSACTION}100`,

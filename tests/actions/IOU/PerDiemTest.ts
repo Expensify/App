@@ -23,7 +23,6 @@ import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import {de} from 'date-fns/locale/de';
 import Onyx from 'react-native-onyx';
 
 import createPersonalDetails from '../../utils/collections/personalDetails';
@@ -376,10 +375,12 @@ describe('PerDiem', () => {
     });
 
     describe('getPerDiemExpenseInformation', () => {
-        it('preserves the merchant date punctuation required by persisted per-diem receipts', () => {
-            // Given a destination with a comma and the explicit German locale used when creating an expense
+        it.each([
+            {name: 'a trip over two days', start: '2026-01-22T12:00:00Z', end: '2026-01-23T12:00:00Z', expected: 'Berlin, Germany, January 22, 2026 to January 23, 2026'},
+            {name: 'a trip within one day', start: '2026-01-05T00:00:00Z', end: '2026-01-05T12:00:00Z', expected: 'Berlin, Germany, January 05, 2026 to January 05, 2026'},
+        ])('builds the same merchant the server saves for $name', ({start, end, expected}) => {
+            // Given a per-diem expense to a destination whose name has a comma
             const params = createMock<Parameters<typeof getPerDiemExpenseInformation>[0]>({
-                dateFnsLocale: de,
                 parentChatReport: {},
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: {
@@ -390,7 +391,7 @@ describe('PerDiem', () => {
                         customUnitID: 'per-diem',
                         customUnitRateID: 'berlin',
                         name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
-                        attributes: {dates: {start: '2026-01-22T12:00:00Z', end: '2026-01-23T12:00:00Z'}},
+                        attributes: {dates: {start, end}},
                         subRates: [{id: 'day', name: 'Day', quantity: 1, rate: 1000}],
                         quantity: 1,
                     },
@@ -414,11 +415,13 @@ describe('PerDiem', () => {
                 formatPhoneNumber,
             });
 
-            // When the actual action builder prepares the optimistic transaction that is persisted and sent to the API
+            // When the action builder prepares the optimistic transaction shown until the server responds
             const result = getPerDiemExpenseInformation(params);
 
-            // Then its merchant retains the date-part separators expected by existing receipt parsers
-            expect(result.transaction.merchant).toBe('Berlin, Germany, Jan. 22, 2026 - Jan. 23, 2026');
+            // Then its merchant matches the one the server builds and saves, in English and with the full month name, for
+            // every user. The request does not send a merchant, so any other form would visibly change once the expense
+            // is saved.
+            expect(result.transaction.merchant).toBe(expected);
             expect(result.transaction.created).toBe('2026-01-22');
         });
 
@@ -473,7 +476,6 @@ describe('PerDiem', () => {
 
             const result = getPerDiemExpenseInformation({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
@@ -580,7 +582,6 @@ describe('PerDiem', () => {
 
             const result = getPerDiemExpenseInformation({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
@@ -687,7 +688,6 @@ describe('PerDiem', () => {
 
             const result = getPerDiemExpenseInformation({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 parentChatReport: undefined,
                 transactionParams: mockTransactionParams,
@@ -807,7 +807,6 @@ describe('PerDiem', () => {
 
             const result = getPerDiemExpenseInformation({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
@@ -914,7 +913,6 @@ describe('PerDiem', () => {
 
             const result = getPerDiemExpenseInformation({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
@@ -983,7 +981,6 @@ describe('PerDiem', () => {
 
             function getPerDiemInformation(parentChatReport: Report) {
                 return getPerDiemExpenseInformation({
-                    dateFnsLocale: undefined,
                     parentChatReport,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactionParams: createMock<PerDiemExpenseTransactionParams>({
@@ -1152,7 +1149,6 @@ describe('PerDiem', () => {
 
             submitPerDiemExpense({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
@@ -1242,7 +1238,6 @@ describe('PerDiem', () => {
 
             submitPerDiemExpense({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
@@ -1347,7 +1342,6 @@ describe('PerDiem', () => {
 
             const result = getPerDiemExpenseInformation({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
@@ -1419,7 +1413,6 @@ describe('PerDiem', () => {
 
             submitPerDiemExpense({
                 isVendorMatchingBetaEnabled: false,
-                dateFnsLocale: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
@@ -1480,7 +1473,6 @@ describe('PerDiem', () => {
 
         const submitToSelfDM = (isFromGlobalCreate: boolean) =>
             submitPerDiemExpenseForSelfDM({
-                dateFnsLocale: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 selfDMReport: undefined,
                 policy: {...createRandomPolicy(1)},
