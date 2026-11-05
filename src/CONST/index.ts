@@ -1531,6 +1531,7 @@ const CONST = {
         RESIZABLE_RHP: 'resizableRHP',
         TRAVEL_APPROVAL: 'travelApproval',
         SCAN_FLASH_TORCH: 'scanFlashTorch',
+        NEW_DOT_BILL_PAY: 'newDotBillPay',
         EXPENSE_DEFAULT_CONDITIONS: 'expenseDefaultConditions',
     },
     BUTTON_STATES: {
@@ -2124,6 +2125,7 @@ const CONST = {
             PAY: 'pay',
             FIX: 'fix',
             TASK: 'task',
+            ADD: 'add',
         },
         ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE: {
             EXPENSE: 'expense',
@@ -10818,6 +10820,7 @@ const CONST = {
         },
         SHARE_DETAIL: {
             DISMISS_KEYBOARD_BUTTON: 'ShareDetail-DismissKeyboardButton',
+            SHARE_BUTTON: 'ShareDetail-ShareButton',
         },
         MAP_VIEW: {
             COMPASS: 'compass',

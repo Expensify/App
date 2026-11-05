@@ -9,6 +9,7 @@ import {
     getChangedApproverActionMessage,
     getDelegateSubmitMessage,
     getOriginalMessage,
+    getReportActionActorAccountID,
     getSortedReportActions,
     hasPendingDEWApprove,
     hasPendingDEWSubmit,
@@ -60,7 +61,7 @@ function getCompletedStep(
     reportOwnerAccountID: number | undefined,
     shouldDisplayMarkAsDone: boolean,
 ): ReportHistoryStep | undefined {
-    const step = {key: reportAction.reportActionID, accountID: reportAction.actorAccountID, created: reportAction.created, isUpcoming: false};
+    const step = {key: reportAction.reportActionID, accountID: getReportActionActorAccountID(reportAction, undefined, undefined), created: reportAction.created, isUpcoming: false};
 
     if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATED)) {
         return {...step, accountID: reportAction.actorAccountID ?? reportOwnerAccountID, icon: 'Receipt', label: translate('reportHistoryPage.created')};

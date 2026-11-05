@@ -71,6 +71,26 @@ function getUpcoming(
         .map((step) => [step.label, step.accountID]);
 }
 
+function getCompletedSteps(reportActions: ReportAction[]) {
+    return getReportHistorySteps({
+        translate: translateLocal,
+        dateFnsLocale: undefined,
+        currentUserEmail: undefined,
+        currentUserAccountID: FIRST_APPROVER_ACCOUNT_ID,
+        reportID: REPORT_ID,
+        reportOwnerAccountID: OWNER_ACCOUNT_ID,
+        reportActions: toReportActions(reportActions),
+        upcomingSteps: [],
+        nextStep: undefined,
+        isOpenReport: false,
+        isDEWPolicy: false,
+        shouldDisplayMarkAsDone: false,
+        reportMetadata: undefined,
+    })
+        .filter((step) => !step.isUpcoming)
+        .map((step) => [step.label, step.accountID]);
+}
+
 describe('getReportHistorySteps', () => {
     it.each([
         [CONST.REPORT.ACTIONS.TYPE.SUBMITTED, undefined],
@@ -351,5 +371,33 @@ describe('getReportHistorySteps', () => {
 
         // Then they fall back to the report action ID order, like the report itself
         expect(steps.map((step) => step.key)).toEqual(['10', '20']);
+    });
+
+    it('shows the admin as the submitter when an admin submits for the report owner', () => {
+        // Given a submit action written under the owner's account by an admin, like the backend does
+        const submittedAction: ReportAction = {
+            ...buildAction('2', CONST.REPORT.ACTIONS.TYPE.SUBMITTED, OWNER_ACCOUNT_ID, '2026-01-01 10:00:00.000'),
+            adminAccountID: FIRST_APPROVER_ACCOUNT_ID,
+        };
+
+        // When the steps are built
+        const steps = getCompletedSteps([submittedAction]);
+
+        // Then the history credits the admin, like the report conversation does
+        expect(steps).toEqual([[translateLocal('reportHistoryPage.submitted'), FIRST_APPROVER_ACCOUNT_ID]]);
+    });
+
+    it('shows Concierge as the submitter of a delayed submission', () => {
+        // Given a submit action the delayed submission job made for the owner
+        const submittedAction: ReportAction = {
+            ...buildAction('2', CONST.REPORT.ACTIONS.TYPE.SUBMITTED, OWNER_ACCOUNT_ID, '2026-01-01 10:00:00.000'),
+            message: {type: 'COMMENT', html: 'submitted', text: 'submitted', amount: 100, currency: CONST.CURRENCY.USD, harvesting: true},
+        };
+
+        // When the steps are built
+        const steps = getCompletedSteps([submittedAction]);
+
+        // Then the history credits Concierge, like the report conversation does
+        expect(steps).toEqual([[translateLocal('reportHistoryPage.submitted'), CONST.ACCOUNT_ID.CONCIERGE]]);
     });
 });
