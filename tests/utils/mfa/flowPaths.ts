@@ -14,6 +14,7 @@ import {getShortestPaths, TestModel} from 'xstate/graph';
 import createInitEvent, {
     MFA_TEST_AUTH_METHOD,
     MFA_TEST_AUTHORIZATION_ORDINARY_ERROR,
+    MFA_TEST_CANCEL_ERROR,
     MFA_TEST_CREDENTIAL_CREATION_ERROR,
     MFA_TEST_CREDENTIAL_REGISTRATION_ERROR,
     MFA_TEST_FATAL_REGISTRATION_CHALLENGE_ERROR,
@@ -197,6 +198,19 @@ const DRIVING_JOURNEYS: DrivingJourney[] = [
         ],
         endState: `${MFA_STATE.OPEN}.${MFA_STATE.FLOW}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`,
     },
+    {
+        description: 'the confirm journey runs the scenario cancel and lands on the failure outcome',
+        events: [
+            createInitEvent(),
+            createActorDoneEvent('validateDevice', {success: true}),
+            createActorDoneEvent('loadRegistrationState', {hasServerCredentials: false, hasLocalCredentials: true, hasEverAcceptedSoftPrompt: true}),
+            {type: 'REQUEST_CANCEL'},
+            {type: 'CONFIRM_CANCEL'},
+            createActorDoneEvent('cancelScenario', MFA_TEST_CANCEL_ERROR),
+            createActorDoneEvent('finalizeOutcome', MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN),
+        ],
+        endState: `${MFA_STATE.OPEN}.${MFA_STATE.FLOW}.${MFA_STATE.OUTCOME}.${MFA_STATE.FAILURE}`,
+    },
     // The scenario action finishes behind the open dialog, and reaching the outcome hides the question.
     {
         description: 'the auto-hide journey drops the cancel confirmation once the flow reaches the outcome',
@@ -214,6 +228,23 @@ const DRIVING_JOURNEYS: DrivingJourney[] = [
                 [MFA_STATE.CANCEL_CONFIRM]: MFA_STATE.CANCEL_CONFIRM_HIDDEN,
             },
         },
+    },
+    // A confirm during the scenario action keeps the request running: the cancel has nothing to send, so
+    // the request's own result decides the outcome.
+    {
+        description: 'the confirm journey during the scenario action waits for the request and lands on its outcome',
+        events: [
+            createInitEvent(),
+            createActorDoneEvent('validateDevice', {success: true}),
+            createActorDoneEvent('loadRegistrationState', {hasServerCredentials: false, hasLocalCredentials: true, hasEverAcceptedSoftPrompt: true}),
+            createActorDoneEvent('authorize', {success: true, signedChallenge: MFA_TEST_SIGNED_CHALLENGE, authenticationMethod: MFA_TEST_AUTH_METHOD}),
+            {type: 'REQUEST_CANCEL'},
+            {type: 'CONFIRM_CANCEL'},
+            createActorDoneEvent('cancelScenario', MFA_TEST_CANCEL_ERROR),
+            createActorDoneEvent('executeScenarioAction', {success: true, scenarioResponse: MFA_TEST_SCENARIO_RESPONSE}),
+            createActorDoneEvent('finalizeOutcome', MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN),
+        ],
+        endState: `${MFA_STATE.OPEN}.${MFA_STATE.FLOW}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`,
     },
     {
         description: 'the outcome back journey closes the modal without asking',
@@ -302,6 +333,7 @@ const MFA_ACTOR_EVENT_FIXTURES = {
     // SKIP_OUTCOME_SCREEN routes to `closing` instead of an outcome screen, so both variants need a
     // graph branch for the walk to reach both endpoints.
     finalizeOutcome: createActorEvents('finalizeOutcome', MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN, {callbackResponse: CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN}),
+    cancelScenario: createActorEvents('cancelScenario', MFA_TEST_CANCEL_ERROR),
 } satisfies MfaActorEventFixtures;
 
 /** Every concrete event the traversal can offer, in the order its fixtures declare them. */

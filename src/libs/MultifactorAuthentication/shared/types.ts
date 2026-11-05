@@ -68,11 +68,14 @@ type MultifactorAuthenticationCallbackInput = {
     /** The HTTP status code of the API response, if applicable */
     httpStatusCode: number | undefined;
 
-    /** The HTTP status message or a pre-defined reason if the error occurred on the front-end */
-    message?: string;
+    /** The reason the flow ended with, from the scenario response or the error */
+    reason?: MultifactorAuthenticationReason;
 
     /** Object containing the data that is relevant to the Scenario (e.g., {pin: number} for PIN scenarios) */
     body?: Record<string, unknown>;
+
+    /** Whether the user confirmed a cancel, in which case the scenario's `onCancel` already ran */
+    isCancelConfirmed: boolean;
 };
 
 /**

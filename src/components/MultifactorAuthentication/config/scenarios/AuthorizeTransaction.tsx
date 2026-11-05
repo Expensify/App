@@ -110,10 +110,11 @@ export default {
     allowedAuthenticationMethods: [CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS_HSM, CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS],
     action: authorizeTransaction,
 
-    // AuthorizeTransaction's callback navigates to the outcome screen, but if it knows the user is going to see an error outcome, we explicitly deny the transaction to make sure the user can't re-approve it on another device
-    callback: async (isSuccessful, _callbackInput, payload) => {
+    // AuthorizeTransaction's callback navigates to the outcome screen, but if it knows the user is going to see an error outcome, we explicitly deny the transaction to make sure the user can't re-approve it on another device.
+    // A confirmed cancel already sent its deny from `onCancel`, so no second one goes out then.
+    callback: async (isSuccessful, callbackInput, payload) => {
         // isAuthorizeTransactionPayload is a type guard - we know that payload here will always be an AuthorizeTransaction Payload, but the type guard lets Typescript guarantee it
-        if (!isSuccessful && isAuthorizeTransactionPayload(payload)) {
+        if (!isSuccessful && !callbackInput.isCancelConfirmed && isAuthorizeTransactionPayload(payload)) {
             fireAndForgetDenyTransaction({transactionID: payload.transactionID});
         }
 

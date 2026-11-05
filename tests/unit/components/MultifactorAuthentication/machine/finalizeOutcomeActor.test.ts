@@ -46,6 +46,7 @@ function buildInput(overrides: Partial<FinalizeOutcomeInput> = {}): FinalizeOutc
         isRegistrationComplete: false,
         softPromptApproved: false,
         registrationStateAtStart: START_STATE,
+        isCancelConfirmed: false,
         ...overrides,
     };
 }
@@ -69,18 +70,21 @@ describe('finalizeOutcome actor', () => {
         const callback = jest.fn().mockResolvedValue(CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN);
         const input = buildInput({
             callback,
-            scenarioResponse: {httpStatusCode: 200, reason: REASON.FLOW_OUTCOMES.TRANSACTION_DENIED, message: 'ignored by the callback input', body: {pin: '1234'}},
+            scenarioResponse: {httpStatusCode: 200, reason: REASON.FLOW_OUTCOMES.TRANSACTION_DENIED, message: 'not part of the callback input', body: {pin: '1234'}},
             payload: {transactionID: 'txn-1'},
         });
 
         const snapshot = await runFinalizeOutcomeActor(input);
 
-        // `message` carries the reason, not the message - deliberate parity with the legacy callback input.
-        expect(callback).toHaveBeenCalledWith(true, {httpStatusCode: 200, message: REASON.FLOW_OUTCOMES.TRANSACTION_DENIED, body: {pin: '1234'}}, {transactionID: 'txn-1'});
+        expect(callback).toHaveBeenCalledWith(
+            true,
+            {httpStatusCode: 200, reason: REASON.FLOW_OUTCOMES.TRANSACTION_DENIED, body: {pin: '1234'}, isCancelConfirmed: false},
+            {transactionID: 'txn-1'},
+        );
         expect(snapshot.output).toEqual({callbackResponse: CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN});
     });
 
-    it("carries the error's reason into callbackInput.message but never its httpStatusCode, matching legacy", async () => {
+    it("carries the error's reason into the callback input but never its httpStatusCode, matching legacy", async () => {
         const callback = jest.fn().mockResolvedValue(CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN);
         const failureError = createMFAErrorFromApiResponse(404, REASON.LOCAL_ERRORS.HSM.CANCELED, 'Finalize actor spec failure');
         const input = buildInput({callback, scenarioResponse: undefined, error: failureError});
@@ -89,7 +93,17 @@ describe('finalizeOutcome actor', () => {
 
         // `httpStatusCode` is undefined here (not `failureError.httpStatusCode`) - odd but deliberate
         // parity with legacy, which never fell back to the error's HTTP status for this field.
-        expect(callback).toHaveBeenCalledWith(false, {httpStatusCode: undefined, message: failureError.reason, body: undefined}, undefined);
+        expect(callback).toHaveBeenCalledWith(false, {httpStatusCode: undefined, reason: failureError.reason, body: undefined, isCancelConfirmed: false}, undefined);
+    });
+
+    it('tells the callback when the flow ended through a confirmed cancel', async () => {
+        const callback = jest.fn().mockResolvedValue(CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN);
+        const cancelError = createLocalMFAError(REASON.LOCAL_ERRORS.CANCELED, 'Finalize actor spec cancel');
+        const input = buildInput({callback, scenarioResponse: undefined, error: cancelError, isCancelConfirmed: true});
+
+        await runFinalizeOutcomeActor(input);
+
+        expect(callback).toHaveBeenCalledWith(false, expect.objectContaining({reason: REASON.LOCAL_ERRORS.CANCELED, isCancelConfirmed: true}), undefined);
     });
 
     it('returns SKIP_OUTCOME_SCREEN when the callback returns it', async () => {

@@ -30,7 +30,7 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {requestCancel, approveSoftPrompt, state} = useMultifactorAuthenticationInternal();
-    const {isCancelConfirmVisible, isProcessingPrompt, isAuthorizing, softPromptApproved, registrationChallenge} = state;
+    const {isCancelConfirmVisible, isCancelConfirmed, isProcessingPrompt, isAuthorizing, softPromptApproved, registrationChallenge} = state;
 
     const {illustration, title: defaultTitle, subtitle: defaultSubtitle} = MULTIFACTOR_AUTHENTICATION_PROMPT_UI[route.params.promptType];
     const interceptFocusTrapEscape = useMFACancelOnEscape();
@@ -80,7 +80,7 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
                     subtitle={subtitle}
                 />
                 <FixedFooter style={[styles.flexColumn, styles.gap3]}>
-                    {isProcessingPrompt ? (
+                    {isProcessingPrompt || isCancelConfirmed ? (
                         <View style={[styles.w100, styles.justifyContentCenter, {height: variables.componentSizeLarge}]}>
                             <LoadingIndicator iconSize={28} />
                         </View>

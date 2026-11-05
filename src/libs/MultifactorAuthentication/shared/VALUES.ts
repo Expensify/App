@@ -240,6 +240,7 @@ const MFA_STATE = {
     CANCEL_CONFIRM: 'cancelConfirm',
     CANCEL_CONFIRM_HIDDEN: 'hidden',
     CANCEL_CONFIRM_VISIBLE: 'visible',
+    CANCELLING: 'cancelling',
     PREPARING: 'preparing',
     VALIDATING_DEVICE: 'validatingDevice',
     DECIDING_REGISTRATION: 'decidingRegistration',
@@ -256,6 +257,8 @@ const MFA_STATE = {
     AUTHORIZING: 'authorizing',
     SIGNING_CHALLENGE: 'signingChallenge',
     EXECUTING_SCENARIO_ACTION: 'executingScenarioAction',
+    AWAITING_RESULT: 'awaitingResult',
+    CANCELLING_IN_FLIGHT: 'cancellingInFlight',
     OUTCOME: 'outcome',
     FINALIZING_OUTCOME: 'finalizingOutcome',
     SUCCESS: 'success',
@@ -349,6 +352,9 @@ const SHARED_VALUES = {
 
     /** All states the MFA state machine can be in. See {@link MFA_STATE}. */
     MFA_STATE,
+
+    /** How long a confirmed cancel waits for its requests before the flow fails on its own. */
+    CANCEL_TIMEOUT_MS: 60 * 1000,
 
     /** Stable testIDs shared between MFA views and tests. */
     TEST_ID: {

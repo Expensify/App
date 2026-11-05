@@ -101,6 +101,7 @@ describe('MFA outcome finalization', () => {
                 isRegistrationComplete: true,
                 softPromptApproved: true,
                 registrationStateAtStart: MFA_TEST_REGISTRATION_STATE_AT_START,
+                isCancelConfirmed: false,
             });
 
             actor.stop();
