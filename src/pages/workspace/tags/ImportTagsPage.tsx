@@ -18,6 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React from 'react';
 
@@ -31,7 +32,7 @@ function ImportTagsPage({route}: ImportTagsPageProps) {
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_IMPORT;
     const backTo = isQuickSettingsFlow && 'backTo' in route.params ? route.params.backTo : undefined;
-    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
+    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const {isBetaEnabled} = usePermissions();
     const isAppendingToExistingLists =
         !isQuickSettingsFlow &&
@@ -43,6 +44,9 @@ function ImportTagsPage({route}: ImportTagsPageProps) {
     const workspaceTagsListBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_TAGS_IMPORT.path);
     const workspaceGoToImportedPath = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAGS_IMPORTED.path, ROUTES.WORKSPACE_TAGS.getRoute(policyID));
 
+    if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
+        return;
+    }
     if (hasAccountingConnections && !isAppendingToExistingLists) {
         return <NotFoundPage />;
     }
