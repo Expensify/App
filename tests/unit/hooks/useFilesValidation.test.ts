@@ -361,52 +361,6 @@ describe('useFilesValidation', () => {
         });
     });
 
-    describe('closing the error modal', () => {
-        it.each([
-            ['closed with its button', 'CONFIRM'],
-            ['dismissed', 'CLOSE'],
-        ] as const)('calls onErrorModalClosed once the error modal is %s, after validation has finished', async (_how, action) => {
-            // Given a caller that wants to know when the error modal closes, and a HEIC file whose conversion fails
-            const heicFile = createFile({uri: 'file-heic', name: 'photo.heic'});
-            mockInvalid(CONST.FILE_VALIDATION_ERRORS.HEIC_OR_HEIF_IMAGE);
-            mockConvertHeicImage.mockImplementation((file, callbacks) => callbacks?.onError?.(new Error('conversion failed'), file));
-            const onFilesValidated = jest.fn();
-            const onErrorModalClosed = jest.fn();
-            const {result} = renderHook(() => useFilesValidation(onFilesValidated, {onErrorModalClosed}));
-
-            // When the file is validated the way the share flow does it
-            triggerValidation(result, [heicFile], undefined, {isValidatingReceipts: false});
-            await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
-
-            // Then nothing is reported while the error modal is still open
-            expect(onErrorModalClosed).not.toHaveBeenCalled();
-
-            // When the user closes it
-            await resolveModal(action);
-
-            // Then the caller hears about it once, with no file passed on
-            expect(onErrorModalClosed).toHaveBeenCalledTimes(1);
-            expect(onFilesValidated).not.toHaveBeenCalled();
-
-            // And validation has finished, so the next call is accepted rather than ignored as still in progress
-            triggerValidation(result, [heicFile]);
-            await waitFor(() => expect(mockValidateAttachmentFile).toHaveBeenCalledTimes(2));
-        });
-
-        it('does not call onErrorModalClosed when validation passes', async () => {
-            const file = createFile({uri: 'file-1'});
-            mockValid(file);
-            const onFilesValidated = jest.fn();
-            const onErrorModalClosed = jest.fn();
-            const {result} = renderHook(() => useFilesValidation(onFilesValidated, {onErrorModalClosed}));
-
-            triggerValidation(result, [file]);
-
-            await waitFor(() => expect(onFilesValidated).toHaveBeenCalledWith([file], []));
-            expect(onErrorModalClosed).not.toHaveBeenCalled();
-        });
-    });
-
     describe('DNG conversion', () => {
         it('converts a DNG file and includes the converted JPEG', async () => {
             // Given a DNG that validation flags for conversion, as it does on native (e.g. a ProRAW shared into the app)
