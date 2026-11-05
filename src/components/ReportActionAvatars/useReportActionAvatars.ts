@@ -407,16 +407,22 @@ function useReportActionAvatars({
         }
     }
 
+    // A deleted preview shows the chat's actor, so read its details from there too. Otherwise the row pairs one
+    // person's name with another's status and hint.
+    const displayedAccountID = isADeletedReportPreview ? Number(avatars.at(0)?.id) || accountID : accountID;
+    const displayedPersonalDetails = personalDetails?.[displayedAccountID];
+    const displayedActorHint = isADeletedReportPreview ? (displayedPersonalDetails?.login ?? avatars.at(0)?.name ?? '') : login || defaultDisplayName || fallbackDisplayName;
+
     return {
         avatars,
         avatarType,
         details: {
-            ...(personalDetails?.[accountID] ?? {}),
+            ...(displayedPersonalDetails ?? {}),
             shouldDisplayAllActors: displayAllActors,
             isWorkspaceActor,
             shouldUseConciergeAvatar,
-            actorHint: String(shouldUsePrimaryAvatarID ? primaryAvatar.id : login || defaultDisplayName || fallbackDisplayName).replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
-            accountID,
+            actorHint: String(shouldUsePrimaryAvatarID ? primaryAvatar.id : displayedActorHint).replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
+            accountID: displayedAccountID,
             delegateAccountID: !isWorkspaceActor && !!delegateAccountID ? actorAccountID : undefined,
             humanAgentAccountID,
         },
