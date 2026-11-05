@@ -5,6 +5,8 @@ import type {SubPageProps, UseSubPageProps} from '@hooks/useSubPage/types';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {DynamicFormField, DynamicFormFieldType, DynamicFormPage, DynamicFormSchema} from '@src/types/onyx';
 
+import type {ReactNode} from 'react';
+
 import type {DynamicFormFieldsProps} from './components/DynamicFormFields';
 
 /** Current answers keyed by draft key. Address parts sit under `<fieldKey>.<part>`. */
@@ -28,6 +30,12 @@ type DynamicFormFlowProps = Pick<DynamicFormFieldsProps, 'currency' | 'maxFileSi
 
     /** Title of the confirmation page */
     confirmationTitle: string;
+
+    /** Text under the confirmation page's title */
+    confirmationSubtitle?: string;
+
+    /** Drawn on the confirmation page between the answers and Confirm, such as a terms checkbox. Confirm calls `onSubmit`, where the screen can check it before it sends anything. */
+    children?: ReactNode;
 
     /** testID of the screen wrapper */
     testID: string;
@@ -94,6 +102,8 @@ type DynamicFormSubPageProps = SubPageProps &
         | 'maxFileSize'
         | 'onRefreshRequirements'
         | 'confirmationTitle'
+        | 'confirmationSubtitle'
+        | 'children'
         | 'isSubmitting'
         | 'submitError'
         | 'isSavingPages'

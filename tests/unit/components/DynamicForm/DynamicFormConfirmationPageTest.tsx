@@ -1,15 +1,26 @@
-import {render} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 
 import DynamicFormConfirmationPage from '@components/DynamicForm/components/DynamicFormConfirmationPage';
 import type {DynamicFormSubPageProps} from '@components/DynamicForm/types';
+import Text from '@components/Text';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {ReactNode} from 'react';
+
 import React from 'react';
 
-const mockConfirmationStep = jest.fn<null, [{isLoading?: boolean}]>(() => null);
+type CapturedConfirmationStepProps = {
+    isLoading?: boolean;
+    pageSubtitle?: string;
+    onNext: () => void;
+    children?: ReactNode;
+};
 
-jest.mock('@components/SubStepForms/ConfirmationStep', () => (props: {isLoading?: boolean}) => mockConfirmationStep(props));
+// The real step's children are drawn so the flow's own content can be found, while the rest of the step stays out of these tests
+const mockConfirmationStep = jest.fn((props: CapturedConfirmationStepProps) => props.children ?? null);
+
+jest.mock('@components/SubStepForms/ConfirmationStep', () => (props: CapturedConfirmationStepProps) => mockConfirmationStep(props));
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
 
 function renderPage(props: Partial<DynamicFormSubPageProps>) {
@@ -28,6 +39,16 @@ function renderPage(props: Partial<DynamicFormSubPageProps>) {
     } as unknown as DynamicFormSubPageProps;
     render(<DynamicFormConfirmationPage {...pageProps} />);
     return mockConfirmationStep.mock.lastCall?.[0].isLoading;
+}
+
+function getConfirmationStepProps(): CapturedConfirmationStepProps | undefined {
+    return mockConfirmationStep.mock.lastCall?.[0];
+}
+
+function pressConfirm() {
+    act(() => {
+        getConfirmationStepProps()?.onNext();
+    });
 }
 
 describe('DynamicFormConfirmationPage', () => {
@@ -60,5 +81,27 @@ describe('DynamicFormConfirmationPage', () => {
 
         // Then Confirm shows that the answers are on their way
         expect(isLoading).toBe(true);
+    });
+
+    it("draws the flow's own content and confirms straight away", () => {
+        // Given a flow that puts a checkbox on its confirmation page, and checks it itself when the answers arrive
+        const onNext = jest.fn();
+        renderPage({onNext, children: <Text>Terms checkbox</Text>});
+
+        // When the user presses Confirm
+        pressConfirm();
+
+        // Then the content shows above Confirm, and the answers go to the flow with nothing in their place, since the flow treats an argument as answers
+        expect(screen.getByText('Terms checkbox')).toBeOnTheScreen();
+        expect(onNext).toHaveBeenCalledWith();
+    });
+
+    it('shows the subtitle the flow passes', () => {
+        // Given a flow with a subtitle for its confirmation page
+        // When the page renders
+        renderPage({confirmationSubtitle: 'Double check the details below'});
+
+        // Then the step shows it under the title
+        expect(getConfirmationStepProps()?.pageSubtitle).toBe('Double check the details below');
     });
 });

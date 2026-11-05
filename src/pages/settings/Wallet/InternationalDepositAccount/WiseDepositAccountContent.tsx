@@ -1,4 +1,5 @@
 /** Lets an employee pick the country of their bank account, then fills in the bank account form Wise defines for it. */
+import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import DynamicFormFlow from '@components/DynamicForm';
 import type {DynamicFormValues} from '@components/DynamicForm/types';
@@ -7,6 +8,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import ScreenWrapper from '@components/ScreenWrapper';
+import TermsOfServiceLabel from '@components/TermsOfServiceLabel';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -74,6 +76,9 @@ function WiseDepositAccountContent({backTo, subPage}: WiseDepositAccountContentP
     const kycWallRef = useContext(KYCWallContext);
     const storedCountry = wiseBankAccountFields?.country ?? country ?? '';
     const [selectedCountry, setSelectedCountry] = useState(COUNTRIES.includes(storedCountry) ? storedCountry : '');
+    // The terms tick is kept on this screen only, not in the draft, so a new visit to the flow asks for it again
+    const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
+    const [shouldShowTermsError, setShouldShowTermsError] = useState(false);
     const errorMessage = getLatestErrorMessage(wiseBankAccountFields);
     const payoutType = wiseBankAccountFields?.payoutType;
     const formCurrency = wiseBankAccountFields?.currency;
@@ -166,8 +171,18 @@ function WiseDepositAccountContent({backTo, subPage}: WiseDepositAccountContentP
         getWiseBankAccountFields(selectedCountry, getAnswerCurrency(answers), answers);
     };
 
+    // The flow keeps the answers when nothing is sent, so the user can tick the terms and confirm again. The tick itself is not sent, as in the Corpay flow.
     const submitForm = (answers: DynamicFormValues) => {
+        if (!hasAcceptedTerms) {
+            setShouldShowTermsError(true);
+            return;
+        }
         createWiseBankAccount(selectedCountry, getAnswerCurrency(answers), answers);
+    };
+
+    const toggleTerms = (isChecked?: boolean) => {
+        setHasAcceptedTerms(!!isChecked);
+        setShouldShowTermsError(false);
     };
 
     // Only the first form takes the whole screen. A refresh keeps the form mounted, so the page keeps what the user typed and shows its progress in place.
@@ -192,6 +207,7 @@ function WiseDepositAccountContent({backTo, subPage}: WiseDepositAccountContentP
                 formID={ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM}
                 headerTitle={translate('bankAccount.addBankAccount')}
                 confirmationTitle={translate('addPersonalBankAccount.confirmationStepHeader')}
+                confirmationSubtitle={translate('addPersonalBankAccount.confirmationStepSubHeader')}
                 testID="WiseDepositAccountContent"
                 buildRoute={(pageName, action) => ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(backTo, pageName, action)}
                 currency={wiseBankAccountFields.currency}
@@ -202,7 +218,15 @@ function WiseDepositAccountContent({backTo, subPage}: WiseDepositAccountContentP
                 isRefreshingRequirements={!!wiseBankAccountFields.isLoading}
                 refreshError={errorMessage}
                 onBack={returnToCountryList}
-            />
+            >
+                <CheckboxWithLabel
+                    value={hasAcceptedTerms}
+                    onInputChange={toggleTerms}
+                    accessibilityLabel={`${translate('common.iAcceptThe')}${translate('common.addCardTermsOfService')}`}
+                    LabelComponent={TermsOfServiceLabel}
+                    errorText={shouldShowTermsError ? translate('common.error.acceptTerms') : undefined}
+                />
+            </DynamicFormFlow>
         );
     }
 

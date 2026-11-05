@@ -1,9 +1,11 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import getAddressInputKeys from '@components/DynamicForm/utils/getAddressInputKeys';
 import {getPages} from '@components/DynamicForm/utils/paginate';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
-import {READ_COMMANDS} from '@libs/API/types';
+import * as API from '@libs/API';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -28,6 +30,8 @@ import * as TestHelper from '../../../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
+// The terms label is HTML, whose renderer needs an engine this screen stack does not provide
+jest.mock('@components/RenderHTML', () => () => null);
 
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
@@ -340,5 +344,44 @@ describe('WiseDepositAccountContent', () => {
         // Then they land on the wallet, as the Corpay flow does, since the purpose page was only a step on the way in
         expect(goBackSpy).toHaveBeenCalledWith(ROUTES.SETTINGS_WALLET);
         goBackSpy.mockRestore();
+    });
+
+    it('asks for the Terms of Service before it sends the bank account', async () => {
+        // Given the confirmation page of the GBP form with every answer filled, since the flow sends only a complete form
+        const writeSpy = jest.spyOn(API, 'write');
+        const addressKeys = getAddressInputKeys('address');
+        await Onyx.set(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS, wiseBankAccountFieldsGB);
+        await Onyx.merge(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT, {
+            currency: 'GBP',
+            accountNumber: '12345678',
+            sortCode: '403020',
+            accountHolderName: 'Todd Clyde',
+            [addressKeys.street]: '1 High Street',
+            [addressKeys.city]: 'London',
+            [addressKeys.zipCode]: 'SW1A 1AA',
+            [addressKeys.country]: 'GB',
+        });
+        await renderScreen(CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY);
+
+        // Then the subtitle points the user at the terms box under the answers
+        expect(screen.getByText('addPersonalBankAccount.confirmationStepSubHeader')).toBeOnTheScreen();
+
+        // When the user presses Confirm without ticking the terms
+        fireEvent.press(screen.getByRole('button', {name: 'common.confirm'}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then nothing is sent, since the user has not accepted the terms yet
+        expect(writeSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_WISE_BANK_ACCOUNT, expect.anything(), expect.anything());
+        expect(screen.getByText('common.error.acceptTerms')).toBeOnTheScreen();
+
+        // When the user ticks the terms, which drops the error, and presses Confirm again
+        fireEvent.press(screen.getByRole('checkbox'));
+        expect(screen.queryByText('common.error.acceptTerms')).toBeNull();
+        fireEvent.press(screen.getByRole('button', {name: 'common.confirm'}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the bank account is sent
+        expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_WISE_BANK_ACCOUNT, expect.anything(), expect.anything());
+        writeSpy.mockRestore();
     });
 });

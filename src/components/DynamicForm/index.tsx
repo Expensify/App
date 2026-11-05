@@ -51,6 +51,7 @@ function DynamicFormFlow({
     formID,
     headerTitle,
     confirmationTitle,
+    confirmationSubtitle,
     testID,
     buildRoute,
     shouldReplaceRoute,
@@ -69,6 +70,7 @@ function DynamicFormFlow({
     layout = 'auto',
     hasConfirmation = true,
     shouldDisableNextWhenOffline,
+    children,
 }: DynamicFormFlowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -372,13 +374,16 @@ function DynamicFormFlow({
                     onListItemSave={saveListItem}
                     onListItemsChange={changeListItems}
                     confirmationTitle={confirmationTitle}
+                    confirmationSubtitle={confirmationSubtitle}
                     isSubmitting={isSubmitting}
                     submitError={submitError}
                     isSavingPages={isSavingPages}
                     isRefreshingRequirements={isRefreshingRequirements}
                     refreshError={refreshError}
                     shouldDisableNextWhenOffline={shouldDisableNextWhenOffline}
-                />
+                >
+                    {children}
+                </CurrentPage>
             )}
         </DynamicFormShell>
     );

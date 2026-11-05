@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
-/** The last page of a dynamic form flow: every answer as a row the user can tap to edit, and a Confirm button */
+/** The last page of a dynamic form flow: every answer as a row the user can tap to edit, the flow's own content such as a terms checkbox, and a Confirm button */
 function DynamicFormConfirmationPage({
     isEditing,
     onNext,
@@ -18,11 +18,13 @@ function DynamicFormConfirmationPage({
     allFields,
     values,
     confirmationTitle,
+    confirmationSubtitle,
     isSubmitting,
     isSavingPages,
     isRefreshingRequirements,
     submitError,
     onOpenListItemEditor,
+    children,
 }: DynamicFormSubPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -34,6 +36,7 @@ function DynamicFormConfirmationPage({
             onNext={() => onNext()}
             onMove={onMove}
             pageTitle={confirmationTitle}
+            pageSubtitle={confirmationSubtitle}
             groups={getConfirmationItems(pages, allFields, values, translate, onMove, onOpenListItemEditor, isOffline)}
             showOnfidoLinks={false}
             isLoading={!!isSubmitting || !!isSavingPages || !!isRefreshingRequirements}
@@ -41,7 +44,9 @@ function DynamicFormConfirmationPage({
             shouldMarkTitleAsHeading
             shouldAnnounceSubmitState
             forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-        />
+        >
+            {children}
+        </ConfirmationStep>
     );
 }
 
