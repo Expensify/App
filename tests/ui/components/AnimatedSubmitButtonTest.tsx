@@ -29,8 +29,6 @@ jest.mock('react-native-reanimated', () => {
             ...actual.default,
             View: jest.fn((props: React.ComponentProps<typeof WebView>) => <WebView {...props} />),
         },
-        // Jest does not compile app worklets. Keep the real web hook with explicit dependencies.
-        useAnimatedStyle: (updater: Parameters<typeof actual.useAnimatedStyle>[0]) => actual.useAnimatedStyle(updater, [updater]),
         useReducedMotion: jest.fn(() => false),
     };
 });
@@ -46,6 +44,7 @@ jest.mock('react-native-reanimated/src/createAnimatedComponent/AnimatedComponent
 );
 jest.mock('@hooks/useOnyx', () => jest.fn(() => [mockPendingExpenseAction]));
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => ({justifyContentCenter: {justifyContent: 'center'}})));
+jest.mock('@hooks/useStyleUtils', () => jest.fn(() => ({getHeight: (height: number) => ({height})})));
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: () => ({Send: () => null}),

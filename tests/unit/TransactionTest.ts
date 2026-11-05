@@ -26,6 +26,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardList, TransactionViolation} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {ReportCollectionDataSet, ReportNextStep} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -43,6 +44,7 @@ import type {PersonalDetails, Policy, PolicyTagLists, RecentWaypoint, Report, Re
 import type {ReportMergeUpdate} from '../utils/typeGuards';
 
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
+import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import {createExpenseReport, createRandomReport} from '../utils/collections/reports';
@@ -71,13 +73,7 @@ function isCapturedOnyxData(value: unknown): value is CapturedOnyxData {
 }
 
 function isChangeTransactionsReportParams(value: unknown): value is ChangeTransactionsReportParams {
-    return (
-        isRecord(value) &&
-        typeof value.reportID === 'string' &&
-        typeof value.transactionList === 'string' &&
-        typeof value.transactionIDToReportActionAndThreadData === 'string' &&
-        (value.transactionIDToUpdatedCustomUnitRateID === undefined || typeof value.transactionIDToUpdatedCustomUnitRateID === 'string')
-    );
+    return isRecord(value) && typeof value.reportID === 'string' && typeof value.transactionList === 'string' && typeof value.transactionIDToReportActionAndThreadData === 'string';
 }
 
 // Wrapper mirroring the pre-refactor signature so existing test call sites compile unchanged.
@@ -167,11 +163,19 @@ const getReportFromUseOnyx = async (reportID: string) => {
 };
 
 describe('Transaction', () => {
+    const currentUserPersonalDetails: CurrentUserPersonalDetails = {
+        ...createPersonalDetails(CURRENT_USER_ID),
+        login: 'test@example.com',
+        email: 'test@example.com',
+        displayName: 'Current User',
+        avatar: 'https://example.com/avatar.jpg',
+    };
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: CURRENT_USER_ID},
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[CURRENT_USER_ID]: currentUserPersonalDetails},
                 ...reportCollectionDataSet,
             },
         });
@@ -242,6 +246,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: report,
                 policy: undefined,
                 allTransactions,
@@ -256,7 +261,7 @@ describe('Transaction', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_NEW_REPORT_ID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -284,6 +289,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: report,
                 policy: undefined,
                 allTransactions,
@@ -298,7 +304,7 @@ describe('Transaction', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_NEW_REPORT_ID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -336,6 +342,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: report,
                 policy: undefined,
                 allTransactions,
@@ -395,6 +402,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: report,
                 policy: undefined,
                 allTransactions,
@@ -457,6 +465,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 policy: undefined,
                 allTransactions: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
@@ -536,6 +545,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 policy: undefined,
                 allTransactions: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransaction.transactionID}`]: firstTransaction,
@@ -588,6 +598,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: report,
                 policy: undefined,
                 allTransactions,
@@ -647,6 +658,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: report,
                 policy: undefined,
                 allTransactions,
@@ -703,6 +715,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: true,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: report,
                 policy: undefined,
                 allTransactions,
@@ -750,6 +763,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: customAccountID,
                 email: customEmail,
+                currentUserPersonalDetails: {accountID: customAccountID, email: customEmail},
                 newReport: report,
                 policy: undefined,
                 allTransactions,
@@ -793,6 +807,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 policy: undefined,
                 allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction},
                 policyTagList: undefined,
@@ -837,6 +852,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: expenseReport,
                 policy: undefined,
                 allTransactions,
@@ -851,7 +867,7 @@ describe('Transaction', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -890,6 +906,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: expenseReport,
                 policy: undefined,
                 allTransactions,
@@ -904,7 +921,7 @@ describe('Transaction', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -950,6 +967,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: newExpenseReport,
                 policy: undefined,
                 allTransactions,
@@ -964,7 +982,7 @@ describe('Transaction', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${newExpenseReport.reportID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -1010,6 +1028,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: newExpenseReport,
                 policy: undefined,
                 allTransactions,
@@ -1024,7 +1043,7 @@ describe('Transaction', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${newExpenseReport.reportID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -1065,6 +1084,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: fakeReport,
                 policy: undefined,
                 allTransactions,
@@ -1080,7 +1100,7 @@ describe('Transaction', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${oldExpenseReport.reportID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -1122,6 +1142,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: fakeReport,
                 policy: undefined,
                 allTransactions,
@@ -1137,7 +1158,7 @@ describe('Transaction', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${oldExpenseReport.reportID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -1193,6 +1214,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: fakeReport,
                 policy: undefined,
                 allTransactions,
@@ -1207,7 +1229,7 @@ describe('Transaction', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${oldExpenseReport.reportID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -1291,6 +1313,7 @@ describe('Transaction', () => {
                     isASAPSubmitBetaEnabled: false,
                     accountID: CURRENT_USER_ID,
                     email: 'test@example.com',
+                    currentUserPersonalDetails,
                     newReport: destinationExpenseReport,
                     policy: undefined,
                     allTransactions,
@@ -1359,6 +1382,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@gmail.com',
+                currentUserPersonalDetails: {accountID: CURRENT_USER_ID, email: 'test@gmail.com'},
                 newReport: newOpenReport,
                 policy,
                 policyCategories,
@@ -1415,6 +1439,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@gmail.com',
+                currentUserPersonalDetails: {accountID: CURRENT_USER_ID, email: 'test@gmail.com'},
                 newReport: destinationReport,
                 policy: undefined,
                 policyCategories: undefined,
@@ -1476,6 +1501,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: expenseReport,
                 policy: undefined,
                 allTransactions,
@@ -1491,7 +1517,7 @@ describe('Transaction', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -1520,6 +1546,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: report,
                 policy: undefined,
                 allTransactions,
@@ -1559,6 +1586,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: undefined,
                 policy: undefined,
                 allTransactions,
@@ -1599,11 +1627,15 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
+            // When the caller passes details that differ from PERSONAL_DETAILS_LIST, the snapshot should use the passed ones
+            const passedCurrentUserPersonalDetails: CurrentUserPersonalDetails = {...currentUserPersonalDetails, displayName: 'Passed User'};
+
             changeTransactionsReport({
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails: passedCurrentUserPersonalDetails,
                 newReport: undefined,
                 policy: undefined,
                 allTransactions: {
@@ -1633,7 +1665,7 @@ describe('Transaction', () => {
                 const value = update.value as {data?: Record<string, unknown>} | undefined;
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                 const personalDetails = value?.data?.[ONYXKEYS.PERSONAL_DETAILS_LIST] as Record<string, {displayName?: string}> | undefined;
-                return personalDetails?.[CURRENT_USER_ID]?.displayName === 'Current User';
+                return personalDetails?.[CURRENT_USER_ID]?.displayName === passedCurrentUserPersonalDetails.displayName;
             });
             expect(hasPersonalDetails).toBe(true);
 
@@ -1697,6 +1729,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: newExpenseReport,
                 policy: undefined,
                 allTransactions,
@@ -1712,7 +1745,7 @@ describe('Transaction', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -1761,6 +1794,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: newExpenseReport,
                 policy,
                 allTransactions,
@@ -1811,6 +1845,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: newExpenseReport,
                 policy,
                 allTransactions,
@@ -1877,6 +1912,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: newExpenseReport,
                 policy,
                 allTransactions,
@@ -1929,6 +1965,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: newExpenseReport,
                 policy,
                 allTransactions,
@@ -1944,6 +1981,9 @@ describe('Transaction', () => {
         });
 
         it('should auto-select a valid distance rate when moving a distance expense with an invalid P2P rate to a workspace', async () => {
+            // Given a distance expense with a P2P rate, which no workspace has, and a workspace with one valid rate
+            // The spy calls through so the optimistic data still lands in Onyx
+            const mockAPIWrite = jest.spyOn(API, 'write');
             const policyID = '100';
             const validRateID = 'valid_rate_1';
             const transaction = generateTransaction({
@@ -2002,12 +2042,14 @@ describe('Transaction', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
             };
 
+            // When the expense moves to a report on that workspace
             changeTransactionsReport({
                 isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: newExpenseReport,
                 policy,
                 allTransactions,
@@ -2019,9 +2061,16 @@ describe('Transaction', () => {
             });
             await waitForBatchedUpdates();
 
+            // Then the optimistic transaction uses the workspace rate, so the UI shows the right amount right away
             const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
             expect(updatedTransaction?.comment?.customUnit?.customUnitRateID).toBe(validRateID);
             expect(updatedTransaction?.comment?.customUnit?.defaultP2PRate).toBeUndefined();
+
+            // And the request does not send the locally picked rate, because the backend selects the rate itself
+            const [, parameters] = TestHelper.getRequiredWriteCall(mockAPIWrite.mock.calls, 0);
+            expect(parameters).not.toHaveProperty('transactionIDToUpdatedCustomUnitRateID');
+
+            mockAPIWrite.mockRestore();
         });
 
         it('should auto-select a valid distance rate when the current rate is disabled on the destination workspace', async () => {
@@ -2097,6 +2146,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: newExpenseReport,
                 policy,
                 allTransactions,
@@ -2177,6 +2227,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: newExpenseReport,
                 policy,
                 allTransactions,
@@ -2258,6 +2309,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: newExpenseReport,
                 policy,
                 allTransactions,
@@ -2294,6 +2346,7 @@ describe('Transaction', () => {
                     isASAPSubmitBetaEnabled: false,
                     accountID: CURRENT_USER_ID,
                     email: 'test@example.com',
+                    currentUserPersonalDetails,
                     newReport: report,
                     policy: undefined,
                     allTransactions,
@@ -2343,6 +2396,7 @@ describe('Transaction', () => {
                     isASAPSubmitBetaEnabled: false,
                     accountID: CURRENT_USER_ID,
                     email: 'test@example.com',
+                    currentUserPersonalDetails,
                     newReport: undefined,
                     policy: undefined,
                     allTransactions,
@@ -2390,6 +2444,7 @@ describe('Transaction', () => {
                         isASAPSubmitBetaEnabled: false,
                         accountID: CURRENT_USER_ID,
                         email: 'test@example.com',
+                        currentUserPersonalDetails,
                         newReport: destinationReport,
                         policy: undefined,
                         allTransactions: {},
@@ -2432,6 +2487,7 @@ describe('Transaction', () => {
                         isASAPSubmitBetaEnabled: false,
                         accountID: CURRENT_USER_ID,
                         email: 'test@example.com',
+                        currentUserPersonalDetails,
                         newReport: report,
                         policy: undefined,
                         allTransactions,
@@ -2469,6 +2525,7 @@ describe('Transaction', () => {
                     isASAPSubmitBetaEnabled: false,
                     accountID: CURRENT_USER_ID,
                     email: 'test@example.com',
+                    currentUserPersonalDetails,
                     newReport: report,
                     policy: undefined,
                     allTransactions,
@@ -2527,6 +2584,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: report,
                 policy: undefined,
                 allTransactions,
@@ -2582,6 +2640,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
+                currentUserPersonalDetails,
                 newReport: report,
                 policy: undefined,
                 allTransactions,

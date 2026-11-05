@@ -11,10 +11,18 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getBankAccountConnectionStatus, getBankAccountState, isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
+import {
+    canLinkPlaid,
+    getBankAccountConnectionStatus,
+    getBankAccountState,
+    isGlobalReimbursementsEnabled,
+    isPersonalBankAccountMissingInfo,
+    isWiseOnboardingAwaitingDecision,
+} from '@libs/BankAccountUtils';
 import type {BankAccountConnectionStatus} from '@libs/BankAccountUtils';
 import {getAssignedCardFeedAccess, getPolicyIDsNamedByCardFeeds} from '@libs/CardFeedUtils';
 import {
@@ -40,6 +48,7 @@ import {
     maskCardNumber,
 } from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import getWiseOnboardingPageToContinue from '@libs/Navigation/helpers/getWiseOnboardingPageToContinue';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {areAddressAndPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
@@ -66,6 +75,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {isActingAsDelegateSelector, isUserValidatedSelector} from '@selectors/Account';
+import cardOnWaitlistPolicyIDsSelector from '@selectors/CardOnWaitlist';
 import {createPoliciesForAssignedCardsSelector} from '@selectors/Policy';
 import {FlashList} from '@shopify/flash-list';
 import lodashSortBy from 'lodash/sortBy';
@@ -109,6 +119,9 @@ type PaymentMethodListProps = {
 
     /** Whether connection statuses and sync details should be shown */
     shouldShowConnectionStatus?: boolean;
+
+    /** Whether bank accounts with a Wise onboarding in progress show the in-progress row */
+    shouldShowWiseSetupInProgress?: boolean;
 
     /** Whether the right icon should be shown in PaymentMethodItem */
     shouldShowRightIcon?: boolean;
@@ -159,6 +172,16 @@ function isPaymentMethodActive(actionPaymentMethodType: string, activePaymentMet
     return paymentMethod.accountType === actionPaymentMethodType && paymentMethod.methodID === activePaymentMethodID;
 }
 
+function getWiseSetupInProgress(paymentMethod: PaymentMethod): PaymentMethodItem['wiseSetupInProgress'] {
+    if (paymentMethod.accountType !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
+        return undefined;
+    }
+    const bankAccount = paymentMethod as BankAccount;
+    const bankAccountID = bankAccount.accountData?.bankAccountID;
+    const canContinue = !!getWiseOnboardingPageToContinue(bankAccount);
+    return bankAccountID && (canContinue || isWiseOnboardingAwaitingDecision(bankAccount)) ? {bankAccountID, canContinue} : undefined;
+}
+
 function keyExtractor(item: PaymentMethod | string) {
     if (typeof item === 'string') {
         return item;
@@ -175,6 +198,7 @@ function PaymentMethodList({
     addBankAccountItemStyle,
     shouldShowAssignedCards = false,
     shouldShowConnectionStatus = false,
+    shouldShowWiseSetupInProgress = false,
     shouldSkipDefaultAccountValidation = false,
     onListContentSizeChange = () => {},
     style = {},
@@ -196,6 +220,8 @@ function PaymentMethodList({
     const {translate, datetimeToRelative} = useLocalize();
     const {environmentURL} = useEnvironment();
     const {isOffline} = useNetwork();
+    const {isBetaEnabled} = usePermissions();
+    const isWiseGlobalReimbursementsEnabled = isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'ThreeDots', 'LuggageWithLines']);
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
@@ -219,6 +245,7 @@ function PaymentMethodList({
     const [policiesForAssignedCards] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: (policies: OnyxCollection<Policy>) => policiesForAssignedCardsSelectorFactory(policies),
     });
+    const [cardOnWaitlistPolicyIDs] = useOnyx(ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST, {selector: cardOnWaitlistPolicyIDsSelector});
     // Temporarily disabled because P2P debit cards are disabled.
     // const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);
 
@@ -232,9 +259,11 @@ function PaymentMethodList({
         onActionPress: (e: GestureResponderEvent | KeyboardEvent | undefined) => void,
         onUnlockPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void,
         isPendingDelete = false,
+        onPlaidPress?: () => void,
     ): PaymentMethodItem['connectionStatus'] => ({
         statusText: translate(status.labelKey),
         statusTone: status.tone,
+        statusBadgeTone: status.badgeTone,
         tooltipText: status.tooltipKey ? translate(status.tooltipKey) : undefined,
         message: status.messageKey ? translate(status.messageKey) : undefined,
         actionText: status.actionKey ? translate(status.actionKey) : undefined,
@@ -243,6 +272,10 @@ function PaymentMethodList({
         onActionPress: () => {
             if (status.requiresUnlockHandler) {
                 (onUnlockPress ?? onActionPress)(undefined);
+                return;
+            }
+            if (onPlaidPress) {
+                onPlaidPress();
                 return;
             }
             onActionPress(undefined);
@@ -606,10 +639,11 @@ function PaymentMethodList({
             };
             const existingBrickRoadIndicator = (paymentMethod as Partial<PaymentMethodItem>).brickRoadIndicator;
             const isMissingPersonalInfo = isPersonalBankAccountMissingInfo(paymentMethod.accountData);
+            const canBankAccountLinkPlaid = canLinkPlaid(paymentMethod, cardOnWaitlistPolicyIDs);
             // `||` not `??`: bankCurrency can be an empty string, which should fall through to additionalData.
             const bankAccountCurrency = ('bankCurrency' in paymentMethod ? paymentMethod.bankCurrency : undefined) || paymentMethod.accountData?.additionalData?.currency;
             const bankConnectionStatus =
-                shouldShowConnectionStatus && !isMissingPersonalInfo ? getBankAccountConnectionStatus(getBankAccountState(paymentMethod.accountData), bankAccountCurrency) : undefined;
+                shouldShowConnectionStatus && !isMissingPersonalInfo ? getBankAccountConnectionStatus(paymentMethod.accountData, bankAccountCurrency, canBankAccountLinkPlaid) : undefined;
             const paymentMethodPress = (e: GestureResponderEvent | KeyboardEvent | undefined) =>
                 pressHandler({
                     event: e,
@@ -622,6 +656,11 @@ function PaymentMethodList({
                         event: e,
                         ...paymentMethodData,
                     }));
+            const methodID = paymentMethod.methodID;
+            const onPlaidPress =
+                bankConnectionStatus?.requiresPlaidHandler && methodID !== undefined
+                    ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.BANK_ACCOUNT_LINK_PLAID.getRoute(methodID.toString())))
+                    : undefined;
 
             return {
                 ...paymentMethod,
@@ -634,6 +673,9 @@ function PaymentMethodList({
                 shouldShowRightIcon,
                 canDismissError: true,
                 isMissingPersonalInfo,
+                wiseSetupInProgress: shouldShowWiseSetupInProgress ? getWiseSetupInProgress(paymentMethod) : undefined,
+                isGlobalReimbursementsEnabled:
+                    isWiseGlobalReimbursementsEnabled && paymentMethod.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && isGlobalReimbursementsEnabled(paymentMethod),
                 brickRoadIndicator: shouldShowConnectionStatus ? (bankConnectionStatus?.brickRoadIndicator ?? existingBrickRoadIndicator) : existingBrickRoadIndicator,
                 connectionStatus: bankConnectionStatus
                     ? mapBankStatusToRowStatus(
@@ -641,6 +683,7 @@ function PaymentMethodList({
                           paymentMethodPress,
                           paymentMethodThreeDotsPress,
                           paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                          onPlaidPress,
                       )
                     : undefined,
             };
