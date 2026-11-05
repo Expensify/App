@@ -335,6 +335,12 @@ type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether we are saving agreements accepted by user via the API (non USD flow Step 6) */
     isFinishingCorpayBankAccountOnboarding?: boolean;
 
+    /** Whether the Wise business onboarding is being submitted from the terms page */
+    isSubmittingWiseBusinessOnboarding?: boolean;
+
+    /** Whether the last Wise business onboarding submission succeeded. Kept apart from `isSuccess`, which the other bank account flows read. */
+    isWiseBusinessOnboardingSubmitSuccessful?: boolean;
+
     /** Whether we are sending a reminder about filling signer information via the API */
     isSendingReminderForCorpaySignerInformation?: boolean;
 
