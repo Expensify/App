@@ -3,7 +3,6 @@ import membersNeedCategoryError from '@libs/Middleware/MembersNeedCategoryError'
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type MembersNeedCategoryModal from '@src/types/onyx/MembersNeedCategoryModal';
 import type Request from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 
@@ -39,15 +38,7 @@ function buildResponse(overrides: Partial<Response<OnyxKey>> = {}): Response<Ony
 
 async function getModalSignal() {
     await waitForBatchedUpdates();
-    return new Promise<MembersNeedCategoryModal | undefined>((resolve) => {
-        const connection = Onyx.connectWithoutView({
-            key: ONYXKEYS.RAM_ONLY_MEMBERS_NEED_CATEGORY_MODAL,
-            callback: (value) => {
-                Onyx.disconnect(connection);
-                resolve(value ?? undefined);
-            },
-        });
-    });
+    return Onyx.get(ONYXKEYS.RAM_ONLY_MEMBERS_NEED_CATEGORY_MODAL);
 }
 
 describe('MembersNeedCategoryError', () => {
