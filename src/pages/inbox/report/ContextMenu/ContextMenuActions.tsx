@@ -406,6 +406,7 @@ type ContextMenuActionPayload = {
     memberChangeLogRoomReportName: string | undefined;
     rules: OnyxCollection<Rule>;
     reportIDToName: Record<string, string>;
+    accountIDToName: Record<string, string>;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string) => void;
@@ -688,6 +689,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 isOffline,
                 personalDetails,
                 reportIDToName,
+                accountIDToName,
                 report,
                 fullPolicySnapshotLastModified,
             },
@@ -712,7 +714,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     originalReportID ?? reportID,
                     reportAction,
                     originalReportActions ?? reportActions,
-                    Parser.htmlToMarkdown(getActionHtml(reportAction), {reportIDToName}),
+                    Parser.htmlToMarkdown(getActionHtml(reportAction), {reportIDToName, accountIDToName}),
                     isOffline,
                 );
             };
@@ -1099,6 +1101,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 currentUserAccountID,
                 rules,
                 reportIDToName,
+                accountIDToName,
             },
         ) => {
             const isReportPreviewAction = isReportPreviewActionReportActionsUtils(reportAction);
@@ -1139,7 +1142,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         movedFromReportName: undefined,
                     });
                     // Convert HTML to markdown for clipboard copy to preserve links and formatting
-                    const modifyExpenseMessage = Parser.htmlToMarkdown(modifyExpenseMessageWithHTML);
+                    const modifyExpenseMessage = Parser.htmlToMarkdown(modifyExpenseMessageWithHTML, {accountIDToName});
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (isReimbursementDeQueuedOrCanceledAction(reportAction)) {
                     const displayMessage = getReimbursementDeQueuedOrCanceledActionMessage(translate, formatPhoneNumber, reportAction, report?.ownerAccountID, convertToDisplayString);
@@ -1154,7 +1157,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         bankAccountList,
                         getPolicyReimburserAccountID(policy, personalDetails),
                     );
-                    if (displayMessage === Parser.htmlToText(displayMessage)) {
+                    if (displayMessage === Parser.htmlToText(displayMessage, {accountIDToName})) {
                         Clipboard.setString(displayMessage);
                     } else {
                         setClipboardMessage(displayMessage);
@@ -1292,7 +1295,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED) {
                     Clipboard.setString(getPolicyChangeLogDefaultTitleEnforcedMessage(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP) {
-                    setClipboardMessage(Parser.htmlToText(getUpdatedOwnershipMessage(translate, reportAction, policy) ?? ''));
+                    setClipboardMessage(Parser.htmlToText(getUpdatedOwnershipMessage(translate, reportAction, policy) ?? '', {accountIDToName}));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
                     const {fromReportID} = parseMovedTransactionReportIDs(reportAction);
                     setClipboardMessage(
@@ -1375,7 +1378,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = translate('workspaceActions.upgradedWorkspace');
                     Clipboard.setString(displayMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE) {
-                    const displayMessage = Parser.htmlToText(translate('workspaceActions.forcedCorporateUpgrade'));
+                    const displayMessage = Parser.htmlToText(translate('workspaceActions.forcedCorporateUpgrade'), {accountIDToName});
                     Clipboard.setString(displayMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
                     Clipboard.setString(translate('workspaceActions.downgradedWorkspace'));

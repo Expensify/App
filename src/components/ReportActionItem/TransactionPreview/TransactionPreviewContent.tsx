@@ -7,6 +7,7 @@ import UserInfoCellsWithArrow from '@components/Search/SearchList/ListItem/UserI
 import Text from '@components/Text';
 import TransactionPreviewSkeletonView from '@components/TransactionPreviewSkeletonView';
 
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -89,6 +90,7 @@ function TransactionPreviewContent({
     const isParentPolicyExpenseChat = isPolicyExpenseChat(chatReport);
     const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, undefined, policy, isParentPolicyExpenseChat) ?? {};
     const {amount, comment: requestComment, merchant, category, currency: requestCurrency} = transactionDetails;
+    const accountIDToName = useMentionedAccountIDToNameMap(requestComment);
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
     // Only when the expense is actually held: the hold is appended to the RBR message on its own, so it must not also be picked
     // as the violation to describe. Left alone otherwise, so duplicates and settled expenses keep their existing message.
@@ -175,7 +177,7 @@ function TransactionPreviewContent({
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const shouldShowMerchantOrDescription = shouldShowDescription || shouldShowMerchant;
 
-    const description = truncate(StringUtils.lineBreaksToSpaces(Parser.htmlToText(requestComment ?? '')), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
+    const description = truncate(StringUtils.lineBreaksToSpaces(Parser.htmlToText(requestComment ?? '', {accountIDToName})), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const isApproved = isReportApproved({report});
     const pendingAction = action?.pendingAction;

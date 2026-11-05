@@ -43,5 +43,24 @@ function useMentionedAccountIDToNameMap(htmlString: string | undefined): Account
     return buildAccountIDToNameMap(personalDetailsList, getMentionedAccountIDs(htmlString));
 }
 
+/** Scopes an accountID-to-name map to only the accountIDs mentioned in the given HTML, keeping Onyx storage small. */
+function getAccountIDToNameMapForMentionsInHTML(accountIDToName: AccountIDToNameMap | undefined, html: string): AccountIDToNameMap | undefined {
+    if (!accountIDToName) {
+        return undefined;
+    }
+    const mentionedIDs = getMentionedAccountIDs(html);
+    if (mentionedIDs.length === 0) {
+        return undefined;
+    }
+    const map: AccountIDToNameMap = {};
+    for (const id of mentionedIDs) {
+        const name = accountIDToName[id];
+        if (name) {
+            map[id] = name;
+        }
+    }
+    return Object.keys(map).length > 0 ? map : undefined;
+}
+
 export default useAccountIDToNameMap;
-export {buildAccountIDToNameMap, useMentionedAccountIDToNameMap};
+export {buildAccountIDToNameMap, useMentionedAccountIDToNameMap, getAccountIDToNameMapForMentionsInHTML};
