@@ -3560,23 +3560,36 @@ function canSubmitReport(
     );
 }
 
-function getBadgeFromIOUReport(
-    iouReport: OnyxEntry<Report>,
-    chatReport: OnyxEntry<Report>,
-    policy: OnyxEntry<Policy>,
-    reportMetadata: OnyxEntry<ReportMetadata>,
-    invoiceReceiverPolicy: OnyxEntry<Policy>,
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    iouReportActions: OnyxEntry<ReportActions>,
-    isChatReportArchived: boolean,
-    allViolations: OnyxCollection<TransactionViolations> | undefined,
-): ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined {
-    // TODO: https://github.com/Expensify/App/issues/66512
+function getBadgeFromIOUReport({
+    iouReport,
+    chatReport,
+    policy,
+    reportMetadata,
+    invoiceReceiverPolicy,
+    currentUserLogin,
+    currentUserAccountID,
+    iouReportActions,
+    isChatReportArchived,
+    allViolations,
+    reportTransactions,
+}: {
+    iouReport: OnyxEntry<Report>;
+    chatReport: OnyxEntry<Report>;
+    policy: OnyxEntry<Policy>;
+    reportMetadata: OnyxEntry<ReportMetadata>;
+    invoiceReceiverPolicy: OnyxEntry<Policy>;
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    iouReportActions: OnyxEntry<ReportActions>;
+    isChatReportArchived: boolean;
+    allViolations: OnyxCollection<TransactionViolations> | undefined;
+    reportTransactions?: Transaction[];
+}): ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined {
+    // Callers that do not pass transactions still read the transaction cache.
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportTransactions = getReportTransactions(iouReport?.reportID);
+    const resolvedReportTransactions = reportTransactions ?? getReportTransactions(iouReport?.reportID);
 
-    if (isReportExcludedForHeldExpenses(iouReport, reportTransactions, iouReportActions, currentUserAccountID)) {
+    if (isReportExcludedForHeldExpenses(iouReport, resolvedReportTransactions, iouReportActions, currentUserAccountID)) {
         return undefined;
     }
 
@@ -3597,14 +3610,14 @@ function getBadgeFromIOUReport(
     if (canBePaidElsewhere) {
         return isPayOptional(iouReport) ? undefined : CONST.REPORT.ACTION_BADGE.PAY;
     }
-    if (canApproveIOU(iouReport, policy, reportMetadata, currentUserAccountID, reportTransactions)) {
+    if (canApproveIOU(iouReport, policy, reportMetadata, currentUserAccountID, resolvedReportTransactions)) {
         return CONST.REPORT.ACTION_BADGE.APPROVE;
     }
     const isWaitingSubmitFromCurrentUser = canSubmitAndIsAwaitingForCurrentUser(
         iouReport,
         chatReport,
         policy,
-        reportTransactions,
+        resolvedReportTransactions,
         allViolations,
         currentUserLogin,
         currentUserAccountID,
@@ -3644,6 +3657,7 @@ function getIOUReportActionWithBadge({
     isChatReportArchived,
     allReports,
     allReportActionsParam,
+    reportsTransactions,
 }: {
     chatReport: OnyxEntry<Report>;
     policy: OnyxEntry<Policy>;
@@ -3656,6 +3670,7 @@ function getIOUReportActionWithBadge({
     isChatReportArchived: boolean;
     allReports?: OnyxCollection<Report>;
     allReportActionsParam?: OnyxCollection<ReportActions>;
+    reportsTransactions?: Record<string, Transaction[]>;
 }): {
     reportAction: OnyxEntry<ReportAction>;
     actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
@@ -3697,10 +3712,18 @@ function getIOUReportActionWithBadge({
         }
 
         const iouReportActions = allReportActionsParam?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`];
+        let childTransactions: Transaction[];
+        if (reportsTransactions) {
+            childTransactions = reportsTransactions[iouReport.reportID] ?? [];
+        } else {
+            // Callers that do not pass a transaction snapshot still resolve holds from the transaction cache.
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            childTransactions = getReportTransactions(iouReport.reportID);
+        }
 
         // An all-held report yields no badge, so it can't win the "oldest action" race and hide a sibling report that
         // still needs action from the current user.
-        const badge = getBadgeFromIOUReport(
+        const badge = getBadgeFromIOUReport({
             iouReport,
             chatReport,
             policy,
@@ -3711,13 +3734,21 @@ function getIOUReportActionWithBadge({
             iouReportActions,
             isChatReportArchived,
             allViolations,
-        );
+            reportTransactions: childTransactions,
+        });
         if (!badge) {
             // A missing badge is not enough: an empty open draft also has none. Only a held-excluded child counts.
-            // TODO: https://github.com/Expensify/App/issues/66512
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const heldReportTransactions = getReportTransactions(iouReport.reportID);
-            hasHeldReport ||= isReportExcludedForHeldExpenses(iouReport, heldReportTransactions, iouReportActions, currentUserAccountID);
+            if (isReportExcludedForHeldExpenses(iouReport, childTransactions, iouReportActions, currentUserAccountID)) {
+                hasHeldReport = true;
+            } else if (
+                childTransactions.length === 0 &&
+                iouReport.statusNum !== CONST.REPORT.STATUS_NUM.OPEN &&
+                iouReport.statusNum !== CONST.REPORT.STATUS_NUM.REIMBURSED &&
+                iouReport.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED
+            ) {
+                // A submitted or approved child with no transactions yet cannot be told apart from a held one.
+                hasUnresolvedOutstandingReport = true;
+            }
             continue;
         }
 
@@ -5227,6 +5258,7 @@ type GetReasonAndReportActionThatRequiresAttentionParams = {
     policies?: OnyxCollection<Policy>;
     reportMetadata: OnyxEntry<ReportMetadata>;
     cardList?: OnyxEntry<CardList>;
+    reportsTransactions?: Record<string, Transaction[]>;
 };
 
 function getReasonAndReportActionThatRequiresAttention({
@@ -5241,6 +5273,7 @@ function getReasonAndReportActionThatRequiresAttention({
     policies: policiesParam,
     reportMetadata: reportMetadataParam,
     cardList,
+    reportsTransactions,
 }: GetReasonAndReportActionThatRequiresAttentionParams): ReasonAndReportActionThatRequiresAttention | null {
     if (!optionOrReport) {
         return null;
@@ -5315,10 +5348,18 @@ function getReasonAndReportActionThatRequiresAttention({
         isChatReportArchived: isReportArchived,
         allReports: reports,
         allReportActionsParam: allReportActionsParam ?? allReportActions,
+        reportsTransactions,
     });
     // Fall back to the chat's outstanding child so the pending-only check still runs when no badge action was found.
     const iouReportID = getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay) ?? optionOrReport.iouReportID;
-    const transactions = getReportTransactions(iouReportID);
+    let transactions: Transaction[];
+    if (!reportsTransactions) {
+        transactions = getReportTransactions(iouReportID);
+    } else if (!iouReportID) {
+        transactions = [];
+    } else {
+        transactions = reportsTransactions[iouReportID] ?? [];
+    }
     const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isPending(t));
 
     const iouReport = reports ? reports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`] : getReportOrDraftReport({reportID: iouReportID});
@@ -5343,18 +5384,20 @@ function getReasonAndReportActionThatRequiresAttention({
     if (actionTypeForAssigneeToComplete) {
         const isAssigneeExpenseAction = actionTypeForAssigneeToComplete === CONST.REPORT.ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE.EXPENSE;
         if (isAssigneeExpenseAction) {
-            const assigneeBadge = getBadgeFromIOUReport(
-                optionOrReport,
-                undefined,
+            const assigneeBadge = getBadgeFromIOUReport({
+                iouReport: optionOrReport,
+                chatReport: undefined,
                 policy,
                 reportMetadata,
                 invoiceReceiverPolicy,
                 currentUserLogin,
                 currentUserAccountID,
-                reportActions,
-                false,
-                transactionViolations,
-            );
+                iouReportActions: reportActions,
+                isChatReportArchived: false,
+                allViolations: transactionViolations,
+                // A missing snapshot entry means the transactions have not arrived. Falling through to the cache would use stale data.
+                reportTransactions: reportsTransactions ? (reportsTransactions[optionOrReport.reportID] ?? []) : undefined,
+            });
             return {
                 reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
                 ...(assigneeBadge ? {actionBadge: assigneeBadge} : {}),
@@ -14796,6 +14839,7 @@ function generateReportAttributes({
     cardList,
     currentUserLogin,
     currentUserAccountID,
+    reportsTransactions,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
@@ -14811,6 +14855,7 @@ function generateReportAttributes({
     policies: OnyxCollection<Policy>;
     reportMetadata?: OnyxEntry<ReportMetadata>;
     cardList?: OnyxEntry<CardList>;
+    reportsTransactions?: Record<string, Transaction[]>;
 }) {
     const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`];
     const parentReportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`];
@@ -14841,6 +14886,7 @@ function generateReportAttributes({
             policies,
             reportMetadata,
             cardList,
+            reportsTransactions,
         }) ?? {};
 
     return {
