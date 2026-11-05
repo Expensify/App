@@ -122,6 +122,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pay: 'Bezahlen',
             fix: 'Beheben',
             task: 'Aufgabe',
+            add: 'Hinzufügen',
         },
         success: 'Erfolgreich',
         group: 'Gruppe',
@@ -1069,6 +1070,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             emailDeliveryFailure: {title: 'Wir können Ihnen keine E-Mail-Benachrichtigungen senden', subtitle: 'Konto'},
             upgradeNetSuiteConnection: {title: 'Aktualisieren Sie Ihre NetSuite-Verbindung'},
+            verifyWiseBankAccount: {title: 'Bankkonto verifizieren', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bankkonto endet auf ${bankAccountLastFour}`},
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -1241,6 +1243,8 @@ const translations: TranslationDeepObject<typeof en> = {
         runningTotal: 'Laufende Summe',
         explain: 'Erklären',
         explainChartPrompt: (chartTitle: string) => `Erklären Sie die Daten in ${chartTitle}.`,
+        viewDetails: 'Details anzeigen',
+        viewAll: 'Alle anzeigen',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -3167,6 +3171,7 @@ const translations: TranslationDeepObject<typeof en> = {
             payingReportSubtitle: 'Die Bankkonten des Unternehmens und der Mitarbeitenden verwenden unterschiedliche Währungen.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Weltweit bezahlen', subtitle: 'Aktivieren Sie globale Erstattungen auf Ihrem USD-Konto.'},
+        wiseMoreInfoNeeded: 'Weitere Informationen erforderlich, um globale Rückerstattungen zu aktivieren',
         globalReimbursementsEnabled: 'Globale Rückerstattungen aktiviert',
     },
     addCardToDigitalWallet: {
@@ -9750,6 +9755,30 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             noVendorsFoundDescription: 'Bitte fügen Sie Lieferanten in Zoho Books hinzu und synchronisieren Sie die Verbindung erneut',
             noAccountsFound: 'Keine Konten gefunden',
             noAccountsFoundDescription: 'Bitte fügen Sie Konten in Zoho Books hinzu und synchronisieren Sie die Verbindung erneut',
+            autoSyncDescription: 'Zoho Books und Expensify automatisch jeden Tag synchronisieren. Berichte werden in Echtzeit synchronisiert.',
+            accountingMethods: {
+                label: 'Exportmethode',
+                description: 'Wählen Sie, wann Ausgaben exportiert werden sollen.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Periodenabgrenzung',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Bargeld',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Auslagen werden nach endgültiger Genehmigung exportiert',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Auslagen aus eigener Tasche werden beim Bezahlen exportiert',
+                },
+            },
+            syncReimbursedReports: 'Erstattete Berichte synchronisieren',
+            syncReimbursedReportsDescription: 'Wenn ein Bericht per ACH bezahlt wird, wird in diesem Konto eine Rechnungsauszahlung erzeugt.',
+            billPaymentAccount: {label: 'Rechnungskonto', description: 'Wählen Sie das Verrechnungskonto, das Zoho Books gutschreibt, wenn Expensify eine Rechnung als bezahlt markiert.'},
+            syncExpensifyCardSettlements: 'Abgleiche Expensify Karte-Abrechnungen',
+            settlementAccount: {label: 'Expensify Karte-Verrechnungskonto', description: 'Wählen Sie Ihr Verrechnungskonto, und wir erstellen die Zahlung in Zoho Books.'},
+            syncTravelBillingSettlements: 'Konsolidierte Travel-Billing-Abrechnungen synchronisieren',
+            travelBillingSettlementAccount: {
+                label: 'Konsolidiertes Abrechnungs­konto für Reiseabrechnungen',
+                description: 'Wählen Sie Ihr Verrechnungskonto, und wir erstellen die Zahlung in Zoho Books.',
+            },
+            travelBillingPayableAccount: {label: 'Konsolidiertes Reisekosten-Abrechnungskreditorenkonto'},
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central-Einrichtung',
@@ -10939,6 +10968,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         display: {
             label: 'Anzeige',
+            labelWithCount: ({count}: {count: number}) => (count > 0 ? `Anzeige (${count})` : 'Anzeige'),
             sortBy: 'Sortieren nach',
             sortOrder: 'Sortierreihenfolge',
             groupBy: 'Gruppieren nach',

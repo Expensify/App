@@ -126,6 +126,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pay: 'Zapłać',
             fix: 'Napraw',
             task: 'Zadanie',
+            add: 'Dodaj',
         },
         success: 'Sukces',
         group: 'Grupa',
@@ -1078,6 +1079,10 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             emailDeliveryFailure: {title: 'Nie możemy wysyłać ci powiadomień e-mail', subtitle: 'Konto'},
             upgradeNetSuiteConnection: {title: 'Zaktualizuj swoje połączenie z NetSuite'},
+            verifyWiseBankAccount: {
+                title: 'Zweryfikuj konto bankowe',
+                subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Konto bankowe kończące się na ${bankAccountLastFour}`,
+            },
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -1264,6 +1269,8 @@ const translations: TranslationDeepObject<typeof en> = {
         runningTotal: 'Suma narastająco',
         explain: 'Wyjaśnij',
         explainChartPrompt: (chartTitle: string) => `Wyjaśnij dane w ${chartTitle}.`,
+        viewDetails: 'Zobacz szczegóły',
+        viewAll: 'Zobacz wszystko',
     },
     allSettingsScreen: {
         subscription: 'Subskrypcja',
@@ -3191,6 +3198,7 @@ const translations: TranslationDeepObject<typeof en> = {
             payingReportSubtitle: 'Konta bankowe firmy i pracownika są w różnych walutach.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Płać ludziom na całym świecie', subtitle: 'Włącz globalne zwroty wydatków na swoim koncie w USD.'},
+        wiseMoreInfoNeeded: 'Potrzeba więcej informacji, aby włączyć globalne zwroty kosztów',
         globalReimbursementsEnabled: 'Włączono globalne zwroty',
     },
     addCardToDigitalWallet: {
@@ -9684,6 +9692,30 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             noVendorsFoundDescription: 'Dodaj proszę dostawców w Zoho Books i zsynchronizuj połączenie ponownie',
             noAccountsFound: 'Nie znaleziono kont',
             noAccountsFoundDescription: 'Dodaj proszę konta w Zoho Books i zsynchronizuj połączenie ponownie',
+            autoSyncDescription: 'Synchronizuj Zoho Books i Expensify automatycznie, każdego dnia. Raporty synchronizują się w czasie rzeczywistym.',
+            accountingMethods: {
+                label: 'Metoda eksportu',
+                description: 'Wybierz, kiedy eksportować wydatki.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Memoria',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Gotówka',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Wydatki z własnej kieszeni zostaną wyeksportowane po ostatecznym zatwierdzeniu',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Wydatki z własnej kieszeni zostaną wyeksportowane po opłaceniu',
+                },
+            },
+            syncReimbursedReports: 'Synchronizuj rozliczone raporty',
+            syncReimbursedReportsDescription: 'Gdy raport zostanie opłacony przez ACH, w tym koncie zostanie wygenerowana płatność rachunku.',
+            billPaymentAccount: {label: 'Konto do opłacania rachunków', description: 'Wybierz konto rozliczeniowe, które Zoho Books uznaje, gdy Expensify oznacza rachunek jako opłacony.'},
+            syncExpensifyCardSettlements: 'Synchronizuj rozliczenia Karty Expensify',
+            settlementAccount: {label: 'Konto rozliczeniowe Karty Expensify', description: 'Wybierz swoje konto rozliczeniowe, a my utworzymy płatność w Zoho Books.'},
+            syncTravelBillingSettlements: 'Synchronizuj rozliczenia Consolidated Travel Billing',
+            travelBillingSettlementAccount: {
+                label: 'Konto rozliczeniowe zbiorczego rozliczania podróży',
+                description: 'Wybierz swoje konto rozliczeniowe, a my utworzymy płatność w Zoho Books.',
+            },
+            travelBillingPayableAccount: {label: 'Konto zobowiązań skonsolidowanego rozliczania podróży'},
         },
         businessCentral: {
             businessCentralSetup: 'Konfiguracja Dynamics 365 Business Central',
@@ -10878,6 +10910,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         },
         display: {
             label: 'Wyświetl',
+            labelWithCount: ({count}: {count: number}) => (count > 0 ? `Wyświetl (${count})` : 'Wyświetl'),
             sortBy: 'Sortuj według',
             sortOrder: 'Kolejność sortowania',
             groupBy: 'Grupuj według',

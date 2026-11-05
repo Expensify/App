@@ -12,6 +12,7 @@ import type {ValueOf} from 'type-fest';
 import {addMonths, format, isPast, parseISO, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
 
+import DateUtils from './DateUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimbursementChoice, getReimburserAccountID, isArchivedPolicy} from './PolicyUtils';
 import {getOriginalMessage} from './ReportActionMessageUtils';
 import {isDynamicExternalWorkflowApproveFailedAction} from './ReportActionTypeGuards';
@@ -134,11 +135,15 @@ function getNextStepETA(
         return {eta: translate(`nextStep.eta.${nextStep.eta.etaKey}`), etaType: CONST.NEXT_STEP.ETA_TYPE.KEY};
     }
     if (nextStep.eta?.dateTime) {
-        const formatString = nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT ? CONST.DATE.ORDINAL_DAY_OF_MONTH : CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY;
         // `eta.dateTime` is a date-only string (yyyy-MM-dd). Native `new Date(...)` parses it as UTC midnight,
         // which shifts the day back by one when formatted in a UTC-negative timezone. `parseISO` parses it as
         // local midnight so the rendered day matches the day set in the workspace settings.
-        return {eta: format(parseISO(nextStep.eta.dateTime), formatString, {locale: dateFnsLocale}), etaType: CONST.NEXT_STEP.ETA_TYPE.DATE_TIME};
+        const etaDate = parseISO(nextStep.eta.dateTime);
+        const eta =
+            nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT
+                ? format(etaDate, CONST.DATE.ORDINAL_DAY_OF_MONTH, {locale: dateFnsLocale})
+                : DateUtils.formatToLongDateWithWeekday(etaDate, dateFnsLocale);
+        return {eta, etaType: CONST.NEXT_STEP.ETA_TYPE.DATE_TIME};
     }
     return {};
 }

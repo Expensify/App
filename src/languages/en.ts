@@ -182,6 +182,7 @@ const translations = {
             pay: 'Pay',
             fix: 'Fix',
             task: 'Task',
+            add: 'Add',
         },
         // @context Used in confirmation or result messages indicating that an action completed successfully, not the abstract noun “success.”
         success: 'Success',
@@ -1206,6 +1207,10 @@ const translations = {
                 title: 'Signer info needed',
                 subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bank account ${bankAccountLastFour}`,
             },
+            verifyWiseBankAccount: {
+                title: 'Verify bank account',
+                subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bank account ending ${bankAccountLastFour}`,
+            },
             upgradeNetSuiteConnection: {
                 title: 'Upgrade your NetSuite connection',
             },
@@ -1355,6 +1360,8 @@ const translations = {
         viewOnSpend: 'View on Spend',
         explain: 'Explain',
         explainChartPrompt: (chartTitle: string) => `Explain the data in ${chartTitle}.`,
+        viewDetails: 'View details',
+        viewAll: 'View all',
         compliance: 'Compliance',
         runningTotal: 'Running total',
         compare: {
@@ -3004,6 +3011,7 @@ const translations = {
     },
     walletPage: {
         balance: 'Balance',
+        wiseMoreInfoNeeded: 'More information needed to enable global reimbursements',
         paymentMethodsTitle: 'Payment methods',
         setDefaultConfirmation: 'Make default payment method',
         setDefaultSuccess: 'Default payment method set!',
@@ -7131,6 +7139,38 @@ const translations = {
             noVendorsFoundDescription: 'Please add vendors in Zoho Books and sync the connection again',
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Please add accounts in Zoho Books and sync the connection again',
+            autoSyncDescription: 'Sync Zoho Books and Expensify automatically, every day. Reports sync in realtime.',
+            accountingMethods: {
+                label: 'Export method',
+                description: 'Choose when to export expenses.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Cash',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Out-of-pocket expenses will export when final approved',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Out-of-pocket expenses will export when paid',
+                },
+            },
+            syncReimbursedReports: 'Sync reimbursed reports',
+            syncReimbursedReportsDescription: 'When a report is paid via ACH, a bill payment will be generated in this account.',
+            billPaymentAccount: {
+                label: 'Bill payment account',
+                description: 'Choose the clearing account Zoho Books credits when Expensify marks a bill paid.',
+            },
+            syncExpensifyCardSettlements: 'Sync Expensify Card settlements',
+            settlementAccount: {
+                label: 'Expensify Card settlement account',
+                description: "Choose your settlement account and we'll create the payment in Zoho Books.",
+            },
+            syncTravelBillingSettlements: 'Sync Consolidated Travel Billing settlements',
+            travelBillingSettlementAccount: {
+                label: 'Consolidated Travel Billing settlement account',
+                description: "Choose your settlement account and we'll create the payment in Zoho Books.",
+            },
+            travelBillingPayableAccount: {
+                label: 'Consolidated Travel Billing payable account',
+            },
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central setup',
@@ -11274,6 +11314,7 @@ const translations = {
         },
         display: {
             label: 'Display',
+            labelWithCount: ({count}: {count: number}) => (count > 0 ? `Display (${count})` : 'Display'),
             sortBy: 'Sort by',
             sortOrder: 'Sort order',
             groupBy: 'Group by',
