@@ -40,6 +40,7 @@ function DynamicWorkspaceOwnerChangeSuccessPage({route}: DynamicWorkspaceOwnerCh
 
     const policy = usePolicy(policyID);
     const shouldShowRef = useRef(!policy?.errorFields?.changeOwner && policy?.isChangeOwnerSuccessful);
+    const changeOwnerPolicyCount = policy?.changeOwnerPolicyCount;
 
     // The server has already moved the payer. Refetch so the local policy stops reporting the former owner as payer.
     useEffect(() => {
@@ -61,7 +62,11 @@ function DynamicWorkspaceOwnerChangeSuccessPage({route}: DynamicWorkspaceOwnerCh
                 <ConfirmationPageDefault
                     illustration={LottieAnimations.Fireworks}
                     heading={translate('workspace.changeOwner.successTitle')}
-                    description={translate('workspace.changeOwner.successDescription')}
+                    description={
+                        changeOwnerPolicyCount
+                            ? translate('workspace.changeOwner.successAllWorkspacesDescription', {count: changeOwnerPolicyCount})
+                            : translate('workspace.changeOwner.successDescription')
+                    }
                     descriptionStyle={styles.textSupporting}
                     buttonText={translate('common.buttonConfirm')}
                     onButtonPress={closePage}

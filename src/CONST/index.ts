@@ -10991,6 +10991,10 @@ const CONST = {
                 MORE_DROPDOWN: 'WorkspaceMembers-MoreDropdown',
                 LIST_ROW: 'WorkspaceMembers-ListRow',
             },
+            OWNER_CHANGE: {
+                TAKE_OVER_ALL_WORKSPACES: 'WorkspaceOwnerChange-TakeOverAllWorkspaces',
+                TAKE_OVER_THIS_WORKSPACE: 'WorkspaceOwnerChange-TakeOverThisWorkspace',
+            },
             CATEGORIES: {
                 ROW: 'WorkspaceCategories-Row',
                 ADD_BUTTON: 'WorkspaceCategories-AddButton',
