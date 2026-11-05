@@ -33,8 +33,7 @@ import type {TextInputKeyPressEvent} from 'react-native';
 
 import {useRef, useState} from 'react';
 
-const FIRST_SEGMENT_NAME = DATE_SEGMENT_NAMES[0];
-const LAST_SEGMENT_NAME = DATE_SEGMENT_NAMES[DATE_SEGMENT_NAMES.length - 1];
+const [FIRST_SEGMENT_NAME, , LAST_SEGMENT_NAME] = DATE_SEGMENT_NAMES;
 
 const SELECT_ALL_KEY = 'a';
 const COPY_KEY = 'c';

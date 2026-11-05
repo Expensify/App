@@ -35,6 +35,11 @@ import DatePickerModal from './DatePickerModal';
 
 const PADDING_MODAL_DATE_PICKER = 8;
 
+// The years these fall in are themselves fixed when the app loads, so reading the clock once here keeps the bounds
+// agreeing with them rather than drifting a day apart over a long session.
+const DEFAULT_MIN_DATE = setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR);
+const DEFAULT_MAX_DATE = setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR);
+
 function DatePicker({
     defaultValue,
     disabled,
@@ -104,8 +109,8 @@ function DatePicker({
     const dateMask = translate('common.dateFormat');
 
     // The calendar falls back to these bounds when it is given none, so validation follows the range it offers
-    const rangeMinDate = minDate ?? setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR);
-    const rangeMaxDate = maxDate ?? setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR);
+    const rangeMinDate = minDate ?? DEFAULT_MIN_DATE;
+    const rangeMaxDate = maxDate ?? DEFAULT_MAX_DATE;
 
     // A date the calendar could never have offered is one nothing downstream expects, and typing is what makes those
     // reachable. Returns an empty string when the date is fine, which is how the form reads "no error".
