@@ -4,6 +4,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import {queueBulkChangeReportPolicy} from '@libs/actions/Search';
+import type * as SearchActions from '@libs/actions/Search';
 import findAllMatchingDynamicSuffixes from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -35,9 +36,20 @@ let mockAreAllMatchingItemsSelected = false;
 let mockSelectedReports = [{reportID: 'report1'}, {reportID: 'report2'}];
 let mockSelectRow: ((option: {policyID: string}) => void) | undefined;
 let mockConfirm: (() => void) | undefined;
+let mockListData: Array<{policyID?: string}> = [];
+let mockSearchData: Record<string, unknown> = {};
 
 jest.mock('@components/SelectionList', () => {
-    function MockSelectionList({onSelectRow, confirmButtonOptions}: {onSelectRow: (option: {policyID: string}) => void; confirmButtonOptions: {onConfirm: () => void}}) {
+    function MockSelectionList({
+        data,
+        onSelectRow,
+        confirmButtonOptions,
+    }: {
+        data: Array<{policyID?: string}>;
+        onSelectRow: (option: {policyID: string}) => void;
+        confirmButtonOptions: {onConfirm: () => void};
+    }) {
+        mockListData = data;
         mockSelectRow = onSelectRow;
         mockConfirm = confirmButtonOptions.onConfirm;
         return null;
@@ -52,6 +64,7 @@ jest.mock(
 );
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchQueryContext: () => ({currentSearchQueryJSON: mockQueryJSON}),
+    useSearchResultsContext: () => ({currentSearchResults: {data: mockSearchData}}),
     useSearchSelectionActions: () => ({clearSelectedTransactions: mockClearSelectedTransactions}),
     useSearchSelectionContext: () => ({
         selectedReports: mockSelectedReports,
@@ -60,6 +73,7 @@ jest.mock('@components/Search/SearchContext', () => ({
     }),
 }));
 jest.mock('@libs/actions/Search', () => ({
+    getReportFromSearchSnapshot: jest.requireActual<typeof SearchActions>('@libs/actions/Search').getReportFromSearchSnapshot,
     queueBulkChangeReportPolicy: jest.fn(),
 }));
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -71,6 +85,10 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRoute: jest.fn(() => ''),
     isNavigationReady: jest.fn(() => Promise.resolve()),
 }));
+
+function makeReport(reportID: string, statusNum: number) {
+    return {reportID, policyID: 'policy1', type: CONST.REPORT.TYPE.EXPENSE, ownerAccountID: 1, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum};
+}
 
 async function changeWorkspace(areAllMatchingItemsSelected: boolean) {
     mockAreAllMatchingItemsSelected = areAllMatchingItemsSelected;
@@ -99,8 +117,34 @@ describe('SearchChangeWorkspacePage', () => {
         mockSelectRow = undefined;
         mockConfirm = undefined;
         mockSelectedReports = [{reportID: 'report1'}, {reportID: 'report2'}];
+        mockListData = [];
+        mockSearchData = {
+            [`${ONYXKEYS.COLLECTION.REPORT}report1`]: makeReport('report1', CONST.REPORT.STATUS_NUM.OPEN),
+            [`${ONYXKEYS.COLLECTION.REPORT}report2`]: makeReport('report2', CONST.REPORT.STATUS_NUM.OPEN),
+        };
         await Onyx.clear();
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {1: {accountID: 1, login: 'submitter@example.com'}});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy2`, {id: 'policy2', name: 'Workspace 2', type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.USER});
+    });
+
+    it('only lists workspaces the user administers when the reports are paid', async () => {
+        // Given two paid reports, which the single report page only moves to a workspace the user administers
+        mockSearchData = {
+            [`${ONYXKEYS.COLLECTION.REPORT}report1`]: makeReport('report1', CONST.REPORT.STATUS_NUM.REIMBURSED),
+            [`${ONYXKEYS.COLLECTION.REPORT}report2`]: makeReport('report2', CONST.REPORT.STATUS_NUM.REIMBURSED),
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy3`, {id: 'policy3', name: 'Workspace 3', type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.ADMIN});
+
+        // When the page lists the workspaces
+        render(
+            <OnyxListItemProvider>
+                <SearchChangeWorkspacePage />
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then only the workspace the user administers is offered
+        expect(mockListData.map((item) => item.policyID)).toEqual(['policy3']);
     });
 
     it('moves every matching report except the deselected ones when Select all is checked', async () => {

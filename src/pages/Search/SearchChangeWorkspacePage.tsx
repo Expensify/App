@@ -2,7 +2,7 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionList';
 import type {WorkspaceListItemType} from '@components/SelectionList/ListItem/types';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
@@ -11,18 +11,24 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useWorkspaceList from '@hooks/useWorkspaceList';
 
-import {queueBulkChangeReportPolicy} from '@libs/actions/Search';
+import {getReportFromSearchSnapshot, queueBulkChangeReportPolicy} from '@libs/actions/Search';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {isSettled, isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import {buildSearchQueryJSON, getAllMatchingReportQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Policy} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useLayoutEffect, useRef, useState} from 'react';
 
@@ -40,6 +46,18 @@ function SearchChangeWorkspacePage() {
     const {currentSearchQueryJSON} = useSearchQueryContext();
     const {selectedReports, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
+    const {currentSearchResults} = useSearchResultsContext();
+    const [personalDetails] = useAllPersonalDetails();
+
+    const loadedReports = selectedReports.map((selectedReport) => getReportFromSearchSnapshot(selectedReport.reportID, currentSearchResults?.data, undefined)).filter((report) => !!report);
+
+    // The backend skips the reports that can't move to a workspace, so it's offered when one loaded report can.
+    const canMoveAReportTo = (policy: OnyxEntry<Policy>) =>
+        loadedReports.some(
+            (report) =>
+                isWorkspaceEligibleForReportChange(getLoginByAccountID(report.ownerAccountID, personalDetails), policy, report) &&
+                (!isSettled(report) || isPolicyAdmin(policy, session?.email)),
+        );
 
     const {data, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
         policies,
@@ -48,7 +66,7 @@ function SearchChangeWorkspacePage() {
         selectedPolicyIDs: policyID ? [policyID] : undefined,
         searchTerm: debouncedSearchTerm,
         localeCompare,
-        additionalFilter: (policy) => isWorkspaceEligibleForReportChange(session?.email, policy),
+        additionalFilter: canMoveAReportTo,
     });
 
     const getJSONQuery = () => {
