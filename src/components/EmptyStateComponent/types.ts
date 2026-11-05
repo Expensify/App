@@ -20,6 +20,7 @@ type EmptyStateButton = {
     innerStyles?: StyleProp<ViewStyle>;
     hoverStyles?: StyleProp<ViewStyle>;
     dropDownOptions?: Array<DropdownOption<ValueOf<typeof CONST.REPORT.ADD_EXPENSE_OPTIONS>>>;
+    sentryLabel?: string;
 };
 
 type EmptyStateComponentProps = {

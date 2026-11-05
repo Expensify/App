@@ -27,6 +27,7 @@ import {
     getMerchantFilterFormValues,
     getFooterSelectionFromQuery,
     getQueryWithFooterSelection,
+    getQueryWithoutGroupBy,
     queryHasViolationFilter,
     hasValuesIncludeViolationFilter,
     getDateFilterRange,
@@ -35,6 +36,7 @@ import {
     getLastRouteByName,
     getParamsState,
     buildQueryStringWithResetFilters,
+    buildQueryStringWithResetDisplay,
     getQueryHashWithoutFilters,
     getQueryWithUpdatedValues,
     getRangeBoundariesFromFormValue,
@@ -43,6 +45,7 @@ import {
     getValidLastQuery,
     hasFiltersChangedFromDefault,
     isSearchQuerySavable,
+    getChangedDisplayOptionsCount,
     isFilterNegated,
     normalizeDatePresetsInQuery,
     isDefaultExpenseReportsQuery,
@@ -77,6 +80,84 @@ import createRandomPolicy from '../../utils/collections/policies';
 import {formatPhoneNumber, localeCompare, translateLocal} from '../../utils/TestHelper';
 
 const mockGetRootState = jest.fn();
+
+describe('currency-qualified amount filters', () => {
+    it.each([CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT])('round-trips Any currency for %s using the legacy request format', (filterKey) => {
+        // Given an Any currency operand already expressed in legacy hundredths.
+        const form: Partial<SearchAdvancedFiltersForm> = {type: CONST.SEARCH.DATA_TYPES.EXPENSE, [`${filterKey}EqualTo`]: '10'};
+
+        // When the filter becomes a backend query and is reopened.
+        const query = buildFilterQueryWithSortDefaults(form, {}, {}) ?? '';
+        const queryJSON = buildSearchQueryJSON(getQueryWithUpdatedValues(query, true) ?? '');
+        if (!queryJSON) {
+            throw new Error('Expected the legacy amount query to parse');
+        }
+        const reopenedForm = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+        // Then the request has a bare operand and reopening does not add a currency or rescale it.
+        expect(query).toContain(`${filterKey}:10`);
+        expect(serializeQueryJSONForBackend(queryJSON)).toContain('"right":"10"');
+        expect(reopenedForm).toMatchObject({[`${filterKey}EqualTo`]: '10'});
+        expect(buildQueryStringFromFilterFormValues(reopenedForm)).toContain(`${filterKey}:10`);
+    });
+
+    it.each([CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT])('round-trips the selected currency for %s', (filterKey) => {
+        // Given a bare amount in the current query and a currency selected in its filter editor.
+        const currentQuery = buildSearchQueryJSON(`type:expense ${filterKey}:1199 total:1250`);
+        const form: Partial<SearchAdvancedFiltersForm> = {type: CONST.SEARCH.DATA_TYPES.EXPENSE, [`${filterKey}EqualTo`]: '11.99 GBP', totalEqualTo: '1250'};
+
+        // When the form becomes a backend query and is reopened from that query.
+        const query = buildFilterQueryWithSortDefaults(form, {}, currentQuery ?? {}) ?? '';
+        const updatedQuery = getQueryWithUpdatedValues(query, true);
+        const queryJSON = buildSearchQueryJSON(updatedQuery ?? '');
+        if (!queryJSON) {
+            throw new Error('Expected the currency-qualified query to parse');
+        }
+        const reopenedForm = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+        // Then the currency stays quoted, major units are not multiplied by 100, and legacy totals stay in hundredths.
+        expect(query).toContain(`${filterKey}:"11.99 GBP"`);
+        expect(serializeQueryJSONForBackend(queryJSON)).toContain('"right":"11.99 GBP"');
+        expect(reopenedForm).toMatchObject({[`${filterKey}EqualTo`]: '11.99 GBP', totalEqualTo: '1250'});
+        expect(buildQueryStringFromFilterFormValues(reopenedForm)).toContain(`${filterKey}:"11.99 GBP"`);
+    });
+
+    it('preserves currencies on both range bounds and on negated purchase amounts', () => {
+        // Given a range whose bounds have their own currencies, plus a negated purchase amount.
+        const form: Partial<SearchAdvancedFiltersForm> = {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            amountGreaterThan: '10.00 USD',
+            amountLessThan: '20.00 GBP',
+            purchaseAmountNot: '-3.00 EUR',
+        };
+
+        // When the query is serialized and parsed back into filter form values.
+        const query = buildQueryStringFromFilterFormValues(form);
+        const queryJSON = buildSearchQueryJSON(query);
+        if (!queryJSON) {
+            throw new Error('Expected the currency-qualified range to parse');
+        }
+        const reopenedForm = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+        // Then each operand retains its amount, currency, and operator.
+        expect(query).toContain('amount>"10.00 USD" amount<"20.00 GBP"');
+        expect(query).toContain('-purchaseAmount:"-3.00 EUR"');
+        expect(reopenedForm).toMatchObject(form);
+    });
+
+    it('converts bare user-entered amounts but leaves qualified amounts in major units', () => {
+        // Given a typed query mixing qualified and legacy amounts.
+        const query = 'amount:"11.99 GBP" purchase-amount:"-3.00 EUR" total:12.50';
+
+        // When the search input prepares its operands for the backend.
+        const updatedQuery = getQueryWithUpdatedValues(query);
+
+        // Then only the bare amount is converted to hundredths.
+        expect(updatedQuery).toContain('amount:"11.99 GBP"');
+        expect(updatedQuery).toContain('purchaseAmount:"-3.00 EUR"');
+        expect(updatedQuery).toContain('total:1250');
+    });
+});
 
 jest.mock('@expensify/react-native-hybrid-app', () => ({
     __esModule: true,
@@ -3407,6 +3488,32 @@ describe('SearchQueryUtils', () => {
             expect(junk?.hash).toEqual(noSelection?.hash);
         });
 
+        it('drops a group-by and the group sort it brought, landing on the plain query', () => {
+            // Given a trip query saved with a group-by, which trip rooms can't use
+            const grouped = buildSearchQueryJSON('type:trip status:upcoming group-by:from');
+
+            // When the group-by is dropped
+            const stripped = grouped ? buildSearchQueryJSON(getQueryWithoutGroupBy(grouped)) : undefined;
+
+            // Then it's the plain trip query, sorted by date again instead of by the group
+            expect(stripped?.groupBy).toBeUndefined();
+            expect(stripped?.sortBy).toEqual(CONST.SEARCH.TABLE_COLUMNS.DATE);
+            expect(stripped?.hash).toEqual(buildSearchQueryJSON('type:trip status:upcoming')?.hash);
+        });
+
+        it('keeps a non-group sort when the group-by is dropped', () => {
+            // Given a grouped trip query sorted by trip name on purpose
+            const grouped = buildSearchQueryJSON('type:trip group-by:from sortBy:title sortOrder:asc');
+
+            // When the group-by is dropped
+            const stripped = grouped ? buildSearchQueryJSON(getQueryWithoutGroupBy(grouped)) : undefined;
+
+            // Then the chosen sort stays
+            expect(stripped?.groupBy).toBeUndefined();
+            expect(stripped?.sortBy).toEqual(CONST.SEARCH.TABLE_COLUMNS.TITLE);
+            expect(stripped?.sortOrder).toEqual(CONST.SEARCH.SORT_ORDER.ASC);
+        });
+
         it('reads the footer currency back in upper case, so the same currency in either case is one selection', () => {
             const lower = buildSearchQueryJSON('type:expense footerCurrency:eur');
             const upper = buildSearchQueryJSON('type:expense footerCurrency:EUR');
@@ -3758,6 +3865,95 @@ describe('SearchQueryUtils', () => {
             // When checking whether it can be saved
             // Then the keyword makes it a new search worth saving
             expect(isSearchQuerySavable(currentQueryJSON, defaultQueryJSON)).toBe(true);
+        });
+
+        it('returns true when only a display option differs from the default query', () => {
+            // Given a query that only groups the default expenses by category, without any filter or keyword
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense groupBy:category');
+
+            // When checking whether it can be saved
+            // Then the grouping alone is a view worth saving
+            expect(isSearchQuerySavable(currentQueryJSON, defaultQueryJSON)).toBe(true);
+        });
+    });
+
+    describe('getChangedDisplayOptionsCount', () => {
+        it('returns nothing when the display options match the default query', () => {
+            // Given a query that only adds a filter to its default
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+
+            // When counting the changed display options
+            // Then filters don't count, because they aren't part of the Display popover
+            expect(getChangedDisplayOptionsCount(currentQueryJSON, defaultQueryJSON)).toBe(0);
+        });
+
+        it("returns 0 without a default query when the query uses its type's defaults", () => {
+            // Given a task query that isn't bound to any suggested or saved search and keeps the task defaults
+            const currentQueryJSON = buildSearchQueryJSON('type:task');
+
+            // When counting the changed display options without a default query
+            // Then nothing differs, because the task type's own defaults are the baseline
+            expect(getChangedDisplayOptionsCount(currentQueryJSON, undefined)).toBe(0);
+        });
+
+        it("counts options that differ from the type's defaults without a default query", () => {
+            // Given a task query that isn't bound to any suggested or saved search and sorts by title
+            const currentQueryJSON = buildSearchQueryJSON('type:task sortBy:title sortOrder:asc');
+
+            // When counting the changed display options without a default query
+            // Then the sort counts, since it differs from the task type's default sort
+            expect(getChangedDisplayOptionsCount(currentQueryJSON, undefined)).toBe(1);
+        });
+
+        it('counts each changed display option once', () => {
+            // Given a query that changes the sort, the limit, and the columns of its default
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense sortBy:amount sortOrder:asc limit:10 columns:merchant,category');
+
+            // When counting the changed display options
+            // Then sort by and sort order count once, since the popover edits them as one option
+            expect(getChangedDisplayOptionsCount(currentQueryJSON, defaultQueryJSON)).toBe(3);
+        });
+
+        it('counts a sort the user picked on top of a new grouping', () => {
+            // Given a query that groups by category and then sorts the groups by total
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense groupBy:category sortBy:groupTotal sortOrder:desc');
+
+            // When counting the changed display options
+            // Then both the grouping and the sort count
+            expect(getChangedDisplayOptionsCount(currentQueryJSON, defaultQueryJSON)).toBe(2);
+        });
+
+        it('counts the group currency and the view of a grouped query', () => {
+            // Given a grouped default and a query that changes its currency and shows it as a bar chart
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense groupBy:category');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense groupBy:category group-currency:EUR view:bar');
+
+            // When counting the changed display options
+            // Then the currency and the view each count once
+            expect(getChangedDisplayOptionsCount(currentQueryJSON, defaultQueryJSON)).toBe(2);
+        });
+    });
+
+    describe('buildQueryStringWithResetDisplay', () => {
+        it('restores the default display options and keeps the filters', () => {
+            // Given a default query and a query that adds filters, a keyword, and several display options to it
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:travel coffee groupBy:category group-currency:EUR view:bar limit:10');
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When resetting the display options
+            const resetQueryJSON = buildSearchQueryJSON(buildQueryStringWithResetDisplay(currentQueryJSON, defaultQueryJSON));
+
+            // Then none of the display options differ from the default anymore, while the filters and the keyword stay
+            expect(getChangedDisplayOptionsCount(resetQueryJSON, defaultQueryJSON)).toBe(0);
+            expect(resetQueryJSON?.flatFilters).toEqual(expect.arrayContaining([expect.objectContaining({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY})]));
+            expect(resetQueryJSON?.flatFilters).toEqual(expect.arrayContaining([expect.objectContaining({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD})]));
         });
     });
 

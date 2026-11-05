@@ -109,7 +109,7 @@ import {deepEqual} from 'fast-equals';
 
 import type {TransactionPreviewData} from './actions/Search';
 import type {CardFeedForDisplay} from './CardFeedUtils';
-import type {SearchKey} from './SearchKeyUtils';
+import type {ReportKey, SearchKey} from './SearchKeyUtils';
 import type {SearchTypeMenuItem} from './SearchSuggestionUtils';
 
 import {startMoneyRequest} from './actions/IOU/MoneyRequest';
@@ -152,6 +152,7 @@ import {
 } from './PolicyUtils';
 import {
     getIOUActionForReportID,
+    getIOUReportIDFromReportActionPreview,
     getOriginalMessage,
     isCreatedAction,
     isDeletedAction,
@@ -207,6 +208,8 @@ import {
     isSettled,
     shouldReportShowSubscript,
 } from './ReportUtils';
+import {getAmountFilterDisplayValue} from './SearchAmountFilterUtils';
+import {isReportEntry, TODO_SEARCH_KEYS} from './SearchKeyUtils';
 import {
     buildSearchQueryJSON,
     buildSearchQueryString,
@@ -583,6 +586,33 @@ function getTripStatusOptions(translate: LocalizedTranslate): Array<MultiSelectI
     ];
 }
 
+function getTripRoomStatusOptions(translate: LocalizedTranslate): Array<MultiSelectItem<SingularSearchStatus>> {
+    return Object.values(CONST.SEARCH.TRIP_STATUS).map((status) => ({text: translate(`search.trip.status.${status}`), value: status}));
+}
+
+const legacyTripStatusToTripRoomStatus: Record<string, string> = {
+    [CONST.SEARCH.STATUS.TRIP.CURRENT]: CONST.SEARCH.TRIP_STATUS.UPCOMING,
+    [CONST.SEARCH.STATUS.TRIP.PAST]: CONST.SEARCH.TRIP_STATUS.DONE,
+};
+
+/**
+ * Maps the statuses trip searches used before trip rooms (current and past) to the ones trip rooms use (upcoming and done),
+ * so saved searches keep their status selected.
+ */
+function normalizeTripStatuses(statuses: string[]): string[] {
+    return [...new Set(statuses.map((status) => legacyTripStatusToTripRoomStatus[status] ?? status))];
+}
+
+/** Normalizes a trip rooms filters form's statuses, so the status chip of a saved status:current reads Upcoming */
+function getFiltersFormWithTripRoomStatuses(form: Partial<SearchAdvancedFiltersForm>): Partial<SearchAdvancedFiltersForm> {
+    const {[FILTER_KEYS.STATUS]: status, [FILTER_KEYS.STATUS_NOT]: statusNot} = form;
+    return {
+        ...form,
+        ...(status && {[FILTER_KEYS.STATUS]: normalizeTripStatuses(status)}),
+        ...(statusNot && {[FILTER_KEYS.STATUS_NOT]: normalizeTripStatuses(statusNot)}),
+    };
+}
+
 function getTaskStatusOptions(translate: LocalizedTranslate): Array<MultiSelectItem<SingularSearchStatus>> {
     return [
         {text: translate('common.outstanding'), value: CONST.SEARCH.STATUS.TASK.OUTSTANDING},
@@ -596,8 +626,6 @@ const emptyPersonalDetails = {
     displayName: undefined,
     login: undefined,
 };
-
-type ReportKey = `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`;
 
 type TransactionKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
 
@@ -710,7 +738,6 @@ function doesSearchItemMatchSort(key: SearchKey, itemSortBy: string | undefined,
     return GENERIC_SEARCH_KEYS.has(key) || (itemSortBy === currentSortBy && itemSortOrder === currentSortOrder);
 }
 
-const TODO_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.SUBMIT, CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.PAY, CONST.SEARCH.SEARCH_KEYS.EXPORT]);
 const MONTHLY_ACCRUAL_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]);
 const RECONCILIATION_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.STATEMENTS, CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]);
 
@@ -787,6 +814,7 @@ function getSuggestedSearchesVisibility(
         const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
         const isAuditor = policy.role === CONST.POLICY.ROLE.AUDITOR;
         const isPaymentsAdmin = policy.role === CONST.POLICY.ROLE.PAYMENTS_ADMIN;
+        const isCardAdmin = policy.role === CONST.POLICY.ROLE.CARD_ADMIN;
         const isExporter = !!currentUserEmail && isPreferredExporter(policy, currentUserEmail);
 
         const isSubmittedTo =
@@ -806,8 +834,8 @@ function getSuggestedSearchesVisibility(
         const isEligibleForExportSuggestion = isExporter && !!getValidConnectedIntegration(policy);
         const isEligibleForStatementsSuggestion = isPaidPolicy && (hasCardFeed || !!defaultExpensifyCard);
         const isEligibleForUnapprovedCashSuggestion = isPaidPolicy && (isAdmin || isAuditor || isPaymentsAdmin) && isApprovalEnabled && isPaymentEnabled;
-        const isEligibleForUnapprovedCardSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isApprovalEnabled && (hasCardFeed || !!defaultExpensifyCard);
-        const isEligibleForExpensifyCardSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isECardEnabled;
+        const isEligibleForUnapprovedCardSuggestion = isPaidPolicy && (isAdmin || isAuditor || isCardAdmin) && isApprovalEnabled && (hasCardFeed || !!defaultExpensifyCard);
+        const isEligibleForExpensifyCardSuggestion = isPaidPolicy && (isAdmin || isAuditor || isCardAdmin) && isECardEnabled;
         const isEligibleForReimbursementsSuggestion = isPaidPolicy && (isAdmin || isAuditor || isPaymentsAdmin) && isPaymentEnabled && hasVBBA && hasReimburser;
         const memberCount = Object.keys(policy.employeeList ?? {}).length;
         const isEligibleForTopSpendersSuggestion = isPolicyEligibleForTopSpenders(policy, currentUserEmail);
@@ -905,21 +933,6 @@ function getTransactionItemCommonFormattedProperties(
         formattedTotal,
         formattedMerchant,
     };
-}
-
-function isReportEntry(key: string): key is ReportKey {
-    return key.startsWith(ONYXKEYS.COLLECTION.REPORT);
-}
-
-/** The IDs of the expense reports in search data */
-function getExpenseReportIDs(data: OnyxTypes.SearchResults['data']): Record<string, boolean> {
-    const reportIDs: Record<string, boolean> = {};
-    for (const key of Object.keys(data)) {
-        if (isReportEntry(key) && isExpenseReportUtil(data[key])) {
-            reportIDs[key.replace(ONYXKEYS.COLLECTION.REPORT, '')] = true;
-        }
-    }
-    return reportIDs;
 }
 
 /**
@@ -2004,7 +2017,7 @@ function getTransactionsSections({
             const reportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
             const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, rules, actions);
             const transactionPendingAction = getTransactionPendingAction(transactionItem);
-            const reportOwnerAccountIDAsAttendee = getReportOwnerAccountIDAsAttendee(transactionItem, currentAccountID);
+            const reportOwnerAccountIDAsAttendee = getReportOwnerAccountIDAsAttendee(transactionItem, currentAccountID, report?.ownerAccountID);
             const reportOwnerAsAttendee = reportOwnerAccountIDAsAttendee ? getReportOwnerAsAttendee(personalDetailsMap.get(reportOwnerAccountIDAsAttendee.toString())) : undefined;
             const transactionAttendees = getAttendees(transactionItem, reportOwnerAsAttendee);
             const isUnreported = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -3903,6 +3916,23 @@ function getQuarterSections(
 }
 
 /**
+ * Chat search returns the actions of every report the user can access, including bills. Bills stay out of Search for
+ * every user until Search supports paying bills, so this removes the actions on bills and the previews that link to a bill.
+ */
+function omitBillReportActionRows(rows: ReportActionListItemType[], data: OnyxTypes.SearchResults['data']): ReportActionListItemType[] {
+    const isBill = (reportID: string | undefined) => {
+        if (!reportID) {
+            return false;
+        }
+
+        const report = data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+        return report?.reportID === reportID && report.type === CONST.REPORT.UNSUPPORTED_TYPE.BILL;
+    };
+
+    return rows.filter((row) => !isBill(row.reportID) && !isBill(getIOUReportIDFromReportActionPreview(row)));
+}
+
+/**
  * Organizes data into appropriate list sections for display based on the type of search results.
  */
 function getSections({
@@ -3936,7 +3966,9 @@ function getSections({
     shouldReturnTripRooms = false,
 }: GetSectionsParams): GetSectionsResult {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
-        return [...getReportActionsSections(data, reportAttributesDerivedValue, visibleReportActionsData), false];
+        // The count keeps the bill actions, because paging compares it with the server offset, which counts them.
+        const [reportActionRows, reportActionCount] = getReportActionsSections(data, reportAttributesDerivedValue, visibleReportActionsData);
+        return [omitBillReportActionRows(reportActionRows, data), reportActionCount, false];
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
         return [...getTaskSections(data, formatPhoneNumber, translate, conciergeReportID, reportNameValuePairs, reportAttributesDerivedValue, queryJSON), false];
@@ -5398,12 +5430,12 @@ function getValidGroupBy(groupBy: string | undefined): ValueOf<typeof CONST.SEAR
     return groupBy && Object.values(CONST.SEARCH.GROUP_BY).includes(groupBy as ValueOf<typeof CONST.SEARCH.GROUP_BY>) ? (groupBy as ValueOf<typeof CONST.SEARCH.GROUP_BY>) : undefined;
 }
 
-function getStatusOptions(translate: LocalizedTranslate, type: SearchDataTypes) {
+function getStatusOptions(translate: LocalizedTranslate, type: SearchDataTypes, shouldReturnTripRooms = false) {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.INVOICE:
             return getInvoiceStatusOptions(translate);
         case CONST.SEARCH.DATA_TYPES.TRIP:
-            return getTripStatusOptions(translate);
+            return shouldReturnTripRooms ? getTripRoomStatusOptions(translate) : getTripStatusOptions(translate);
         case CONST.SEARCH.DATA_TYPES.TASK:
             return getTaskStatusOptions(translate);
         case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
@@ -5530,7 +5562,8 @@ function collectViolationNamesForTransaction(violationNames: Set<string>, violat
     }
 
     for (const violation of transactionViolations) {
-        if (violation.name) {
+        // Search, Insights and the CSV export skip the cash expense notice that only Classic records, so this column skips it too.
+        if (violation.name && violation.name !== CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT) {
             violationNames.add(violation.name);
         }
     }
@@ -6231,7 +6264,7 @@ function getAmountDisplayValue(
     const greaterThan = form[`${syntaxKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`];
     const equalTo = form[`${syntaxKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`];
 
-    const formatAmount = (val: string) => convertToDisplayStringWithoutCurrency(Number(val));
+    const formatAmount = (val: string) => getAmountFilterDisplayValue(val, convertToDisplayStringWithoutCurrency);
 
     if (equalTo) {
         return translate('search.filters.amount.equalTo', formatAmount(equalTo));
@@ -6370,7 +6403,8 @@ function getDisplayValue(
         if (!status?.length) {
             return;
         }
-        const statusOptions = getStatusOptions(translate, type);
+        // Trip rooms statuses only come from beta queries and current/past from the rest, so both sets are labelled
+        const statusOptions = type === CONST.SEARCH.DATA_TYPES.TRIP ? [...getTripRoomStatusOptions(translate), ...getTripStatusOptions(translate)] : getStatusOptions(translate, type);
         return statusOptions
             .filter((option) => status.includes(option.value))
             .map((option) => option.text)
@@ -6703,6 +6737,7 @@ function getMultiSelectFilterOptions(
     translate: LocalizedTranslate,
     policies?: OnyxCollection<OnyxTypes.Policy>,
     policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>,
+    shouldReturnTripRooms = false,
 ) {
     if (filterKey === FILTER_KEYS.HAS) {
         return getHasOptions(translate, type, {policies, policyCategories});
@@ -6727,7 +6762,7 @@ function getMultiSelectFilterOptions(
     }
 
     if (filterKey === FILTER_KEYS.STATUS) {
-        return type ? getStatusOptions(translate, type) : [];
+        return type ? getStatusOptions(translate, type, shouldReturnTripRooms) : [];
     }
 
     if (filterKey === FILTER_KEYS.WITHDRAWAL_STATUS) {
@@ -7467,7 +7502,7 @@ function getSearchTableRowInsetWidth(columnCount: number): number {
  */
 function getSearchTableRowChromeWidths(columnCount: number): RowChromeWidths {
     return {
-        selectionColumnWidth: variables.searchTableRowCheckboxWidth + SEARCH_TABLE_ROW_ARROW_WIDTH,
+        selectionColumnWidth: variables.tableCheckboxColumnWidth + SEARCH_TABLE_ROW_ARROW_WIDTH,
         totalGapWidth: (columnCount + 1) * variables.searchTableColumnGap,
         rowMarginWidth: variables.searchTableRowChromeWidth,
         rowPaddingWidth: 0,
@@ -7497,7 +7532,7 @@ function getTableMinWidth(
     // table scrolls at all. Only a caller that also passes real column widths has the rest of the arithmetic right;
     // adding it on top of the estimates below, which already run several columns over, makes a table reserve room twice
     // and scroll while it still has space.
-    let minWidth = shouldIncludeRowChrome ? getSearchTableRowInsetWidth(columns.length) : variables.searchTableRowCheckboxWidth;
+    let minWidth = shouldIncludeRowChrome ? getSearchTableRowInsetWidth(columns.length) : variables.tableCheckboxColumnWidth;
 
     for (const column of columns) {
         // A caller that knows a column's real minimum passes it in, so use that over the estimate below. The estimates
@@ -7925,8 +7960,6 @@ export {
     isTransactionApproverGroupListItemType,
     isGroupedItemArray,
     isGroupEntry,
-    isReportEntry,
-    getExpenseReportIDs,
     isTransactionEntry,
     isSearchResultsEmpty,
     isTransactionListItemType,
@@ -7938,6 +7971,8 @@ export {
     isReportActionEntry,
     isTaskListItemType,
     isTripListItemType,
+    normalizeTripStatuses,
+    getFiltersFormWithTripRoomStatuses,
     getActions,
     getPrimaryAction,
     createTypeMenuSections,
@@ -8012,7 +8047,6 @@ export {
     isReportFieldKey,
     getSingleSelectFilterOptions,
     getMultiSelectFilterOptions,
-    TODO_SEARCH_KEYS,
     MONTHLY_ACCRUAL_SEARCH_KEYS,
     RECONCILIATION_SEARCH_KEYS,
     FILTER_VIEW_MAP,
