@@ -5,7 +5,6 @@
  * - `Header.BackButton` (optional)
  * - `Header.Icon` (optional) — mutually exclusive with `Header.AvatarWithDisplayName`
  * - `Header.Title` or `Header.AvatarWithDisplayName` — pick one, not both
- * - `Header.CustomActions` for custom children and/or `Header.DownloadButton`
  * - `Header.ThreeDotsMenu` (or a single `Header.IconButton` for a one-off action)
  * - `Header.CloseButton`
  *

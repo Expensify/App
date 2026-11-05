@@ -79,10 +79,8 @@ function ConnectionsMergeProviderCard({card, policy, handleConnect, onDisconnect
                     subtitle={!card.completeSetupRoute && card.isConnected ? connectionDescription : undefined}
                     titleStyles={[styles.textNormal, styles.lineHeightLarge]}
                 />
-                <Header.Right>
-                    {card.isSyncInProgress && <ActivityIndicator style={styles.popoverMenuIcon} />}
-                    {card.isConnected && canWriteMoreFeatures && !card.isSyncInProgress && <Header.ThreeDotsMenu items={overflowMenu} />}
-                </Header.Right>
+                {card.isSyncInProgress && <ActivityIndicator style={styles.popoverMenuIcon} />}
+                {card.isConnected && canWriteMoreFeatures && !card.isSyncInProgress && <Header.ThreeDotsMenu items={overflowMenu} />}
             </Header>
             <ScrollView
                 contentContainerStyle={styles.pt3}

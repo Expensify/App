@@ -82,16 +82,14 @@ function ValidateCodeActionContent({
             <Header>
                 {!shouldShowCloseButton && <Header.BackButton onPress={hide} />}
                 <Header.Title title={title} />
-                <Header.Right>
-                    {threeDotsMenuItems.length > 0 && (
-                        <Header.ThreeDotsMenu
-                            items={threeDotsMenuItems}
-                            onIconPress={onThreeDotsButtonPress}
-                            shouldOverlay
-                        />
-                    )}
-                    {shouldShowCloseButton && <Header.CloseButton onPress={hide} />}
-                </Header.Right>
+                {threeDotsMenuItems.length > 0 && (
+                    <Header.ThreeDotsMenu
+                        items={threeDotsMenuItems}
+                        onIconPress={onThreeDotsButtonPress}
+                        shouldOverlay
+                    />
+                )}
+                {shouldShowCloseButton && <Header.CloseButton onPress={hide} />}
             </Header>
 
             <ScrollView
