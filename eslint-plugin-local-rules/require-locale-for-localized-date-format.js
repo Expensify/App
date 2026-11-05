@@ -53,6 +53,12 @@ const LOCALIZED_TOKENS = [
     {token: 'ppp', label: 'ppp (localized long time)'},
     {token: 'pp', label: 'pp (localized medium time)'},
     {token: 'p', label: 'p (localized short time)'},
+    // Timezone names. They come from `Intl` in the locale's language, so New York reads `EDT` in English, `GMT-4` in
+    // German and `UTC−4` in French. The `O` offset tokens are left out because they read `GMT-4` in every language.
+    {token: 'zzzz', label: 'zzzz (long timezone name)'},
+    {token: 'zzz', label: 'zzz (timezone name)'},
+    {token: 'zz', label: 'zz (timezone name)'},
+    {token: 'z', label: 'z (timezone name)'},
     {token: 'aaaa', label: 'aaaa (AM/PM)'},
     {token: 'aaa', label: 'aaa (AM/PM)'},
     {token: 'aa', label: 'aa (AM/PM)'},
