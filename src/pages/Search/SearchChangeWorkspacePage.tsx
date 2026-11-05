@@ -18,19 +18,20 @@ import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceList from '@hooks/useWorkspaceList';
 
-import {getReportFromSearchSnapshot, queueBulkChangeReportPolicy} from '@libs/actions/Search';
+import {getReportActionsFromSearchSnapshot, getReportFromSearchSnapshot, queueBulkChangeReportPolicy} from '@libs/actions/Search';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isPolicyAdmin, isPolicyMember} from '@libs/PolicyUtils';
-import {isSettled, isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
+import {isChangeWorkspaceAction} from '@libs/ReportSecondaryActionUtils';
+import {isExpenseReport, isSettled, isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import {buildSearchQueryJSON, getAllMatchingReportQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -57,13 +58,23 @@ function SearchChangeWorkspacePage() {
     const {currentSearchResults} = useSearchResultsContext();
     const [personalDetails] = useAllPersonalDetails();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
 
-    const loadedReports = selectedReports.map((selectedReport) => getReportFromSearchSnapshot(selectedReport.reportID, currentSearchResults?.data, allReports)).filter((report) => !!report);
+    // The reports the Change workspace option counted, so an exported one doesn't add workspaces.
+    const movableReports = selectedReports
+        .map((selectedReport) => getReportFromSearchSnapshot(selectedReport.reportID, currentSearchResults?.data, allReports))
+        .filter((report): report is Report => {
+            if (!report || !isExpenseReport(report)) {
+                return false;
+            }
+            const reportActions = Object.values(getReportActionsFromSearchSnapshot(report.reportID, currentSearchResults?.data, allReportActions) ?? {});
+            return isChangeWorkspaceAction(report, policies, session?.email ?? '', getLoginByAccountID(report.ownerAccountID, personalDetails), reportActions);
+        });
 
     // The backend skips the reports that can't move to a workspace, so it's offered when one loaded report can.
     // Unlike a single report, it doesn't invite the submitter, so they must already be a member.
     const canMoveAReportTo = (policy: OnyxEntry<Policy>) =>
-        loadedReports.some((report) => {
+        movableReports.some((report) => {
             const submitterLogin = getLoginByAccountID(report.ownerAccountID, personalDetails);
             return (
                 isPolicyMember(policy, submitterLogin) && isWorkspaceEligibleForReportChange(submitterLogin, policy, report) && (!isSettled(report) || isPolicyAdmin(policy, session?.email))

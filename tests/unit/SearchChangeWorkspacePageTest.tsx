@@ -81,6 +81,7 @@ jest.mock('@components/Search/SearchContext', () => ({
 }));
 jest.mock('@libs/actions/Search', () => ({
     getReportFromSearchSnapshot: jest.requireActual<typeof SearchActions>('@libs/actions/Search').getReportFromSearchSnapshot,
+    getReportActionsFromSearchSnapshot: jest.requireActual<typeof SearchActions>('@libs/actions/Search').getReportActionsFromSearchSnapshot,
     queueBulkChangeReportPolicy: jest.fn(),
 }));
 jest.mock('@hooks/useInFlightRequests', () => ({
@@ -233,6 +234,26 @@ describe('SearchChangeWorkspacePage', () => {
 
         // Then it isn't offered, since a bulk move doesn't invite the submitter like a single report does
         expect(mockListData.map((item) => item.policyID)).toEqual(['policy2']);
+    });
+
+    it('only lists workspaces for the reports Change workspace was offered for', async () => {
+        // Given an exported draft, which can't change workspace, and a paid report that can move to an admin workspace
+        mockSearchData = {
+            [`${ONYXKEYS.COLLECTION.REPORT}report1`]: {...makeReport('report1', CONST.REPORT.STATUS_NUM.OPEN), isExportedToIntegration: true},
+            [`${ONYXKEYS.COLLECTION.REPORT}report2`]: makeReport('report2', CONST.REPORT.STATUS_NUM.REIMBURSED),
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy3`, makePolicy('policy3', 'Workspace 3', CONST.POLICY.ROLE.ADMIN));
+
+        // When the page lists the workspaces
+        render(
+            <OnyxListItemProvider>
+                <SearchChangeWorkspacePage />
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the exported draft doesn't add Workspace 2, which only it could have moved to
+        expect(mockListData.map((item) => item.policyID)).toEqual(['policy3']);
     });
 
     it('uses the rules of a selected report that is only in Onyx', async () => {
