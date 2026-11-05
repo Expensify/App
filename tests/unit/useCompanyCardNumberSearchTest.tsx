@@ -227,9 +227,7 @@ describe('useCompanyCardNumberSearch', () => {
         const consumerID = getConsumerIDFromLastSearchCall();
 
         // When the server returns a partial match identified by its card name
-        await seedResultsForConsumer(consumerID, FULL_NUMBER, [
-            {feed: FEED, domainAccountID: DOMAIN_ACCOUNT_ID, status: 'unassigned', matchType: 'lastFour', cardName: 'Direct card 1111'},
-        ]);
+        await seedResultsForConsumer(consumerID, FULL_NUMBER, [{feed: FEED, domainAccountID: DOMAIN_ACCOUNT_ID, status: 'unassigned', matchType: 'lastFour', cardName: 'Direct card 1111'}]);
 
         // Then both consumers can match the local identifier and display the partial-match warning
         expect(hook.result.current.matchedEncryptedNumbers.has('Direct card 1111')).toBe(true);
