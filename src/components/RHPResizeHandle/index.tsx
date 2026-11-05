@@ -20,6 +20,8 @@ import type {RefObject} from 'react';
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import type RHPResizeHandleProps from './types';
+
 type Drag = {
     startClientX: number;
 
@@ -67,7 +69,7 @@ const LINE_STYLE: React.CSSProperties = {
  * Drags the single RHP card's left edge. A sibling of the card rather than a child, because the card clips its overflow,
  * and rendered after the overlay so it wins hit-testing over the scrim that closes the RHP.
  */
-function RHPResizeHandle() {
+function RHPResizeHandle({ref}: RHPResizeHandleProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {width, min, max} = useSingleRHPWidth();
@@ -172,6 +174,7 @@ function RHPResizeHandle() {
             {/* A plain `div` because it relies on DOM pointer capture. */}
             {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions -- the separator role comes from getKeyboardHandleProps */}
             <div
+                ref={ref}
                 {...getKeyboardHandleProps(null, {size: width, min, max})}
                 aria-label={translate('common.resizePanel')}
                 style={{...HANDLE_STYLE, ...styles.cursorColResize}}
