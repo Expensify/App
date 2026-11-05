@@ -8792,6 +8792,10 @@ const CONST = {
             OUTSTANDING: 'outstanding',
             REJECTED: 'rejected',
         },
+        get TRIP_FILTER_STATUSES() {
+            // Approval statuses only show as badges, so the Status filter keeps to where the trip is in time
+            return [this.TRIP_STATUS.UPCOMING, this.TRIP_STATUS.DONE, this.TRIP_STATUS.CANCELED] as const;
+        },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
             DATE: 'date',
