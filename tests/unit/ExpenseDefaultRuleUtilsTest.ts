@@ -250,11 +250,22 @@ describe('ExpenseDefaultRuleUtils', () => {
             expect(getExpenseDefaultFormValues(buildExpenseDefaultRule(formValues, policy))).toEqual(formValues);
         });
 
-        it('leaves out an amount of zero, which is not a default', () => {
-            // Given a rule whose amount was cleared
-            // When it is built
-            // Then nothing is set, so the rule has no default and is not built
-            expect(buildExpenseDefaultRule({merchantToMatch: 'Starbucks', amount: '0'}, policy)).toBeUndefined();
+        it('stores an amount of zero, which is a default like any other', () => {
+            // Given a rule setting the amount to nothing at all, which is how an admin zeroes an expense out
+            const rule = buildExpenseDefaultRule({merchantToMatch: 'Starbucks', amount: '0'}, policy);
+
+            // When the action is read
+            // Then zero is stored rather than dropped, and it is not negated into -0
+            expect(Object.values(rule?.actions ?? {})).toEqual([{name: ACTION.SET, field: FIELD.AMOUNT, value: 0}]);
+        });
+
+        it('round trips an amount of zero', () => {
+            // Given a rule setting the amount to zero
+            const formValues: ExpenseDefaultFormValues = {merchantToMatch: 'Starbucks', matchType: CONTAINS, amount: '0'};
+
+            // When it is read back
+            // Then the editor still opens it and shows the zero, rather than treating it as a rule it cannot represent
+            expect(getExpenseDefaultFormValues(buildExpenseDefaultRule(formValues, policy))).toEqual(formValues);
         });
 
         it('is read-only for a rule that sets a credit', () => {
