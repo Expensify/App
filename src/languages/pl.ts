@@ -12838,6 +12838,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             other: (count: number) => `${count} dni temu`,
         }),
         offlineMessage: 'Jesteś offline. Historia raportów może być nieaktualna.',
+        toMarkAsDone: 'oznacz jako wykonane',
     },
 };
 export default translations;

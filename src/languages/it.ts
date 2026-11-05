@@ -12841,6 +12841,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             other: (count: number) => `${count} g fa`,
         }),
         offlineMessage: 'Sei offline. La cronologia dei report potrebbe non essere aggiornata.',
+        toMarkAsDone: 'segnare come completato',
     },
 };
 export default translations;

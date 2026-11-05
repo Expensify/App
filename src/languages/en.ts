@@ -3925,6 +3925,7 @@ const translations = {
             }
             return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `to automatically submit on the ${eta} of each month` : `to automatically submit ${eta}`;
         },
+        toMarkAsDone: 'to mark as done',
         toApprove: 'to approve',
         toPay: 'to pay',
         minutesAgo: (count: number) => `${count}m ago`,

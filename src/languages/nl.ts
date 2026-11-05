@@ -12810,6 +12810,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             other: (count: number) => `${count} d geleden`,
         }),
         offlineMessage: 'Je bent offline. Rapportgeschiedenis is mogelijk verouderd.',
+        toMarkAsDone: 'markeren als voltooid',
     },
 };
 export default translations;
