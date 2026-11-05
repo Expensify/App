@@ -55,8 +55,9 @@ const children: TransactionListItemType[] = [buildTransactionRow(1, '1'), buildT
 /** A selection entry per key. Only `isSelected` is read here, so any real entry shape will do. */
 const select = (...keys: string[]): SelectedTransactions => Object.fromEntries(keys.map((key) => [key, mapEmptyReportToSelectedEntry(buildCategoryGroup(key))[1]]));
 
-const buildHeaderItem = (rows: TransactionListItemType[]): GroupHeaderItemType => ({
+const buildHeaderItem = (rows: TransactionListItemType[], count = rows.length): GroupHeaderItemType => ({
     ...buildCategoryGroup(GROUP_KEY, rows),
+    count,
     listItemType: GROUP_ITEM_TYPES.GROUP_HEADER,
     keyForList: `header_${GROUP_KEY}`,
     groupKeyForList: GROUP_KEY,
@@ -109,7 +110,7 @@ const baseActions = {
 /** Wide enough that the sub-header's column widths never exceed it, so no horizontal scroller is involved here. */
 const WINDOW_WIDTH = 1500;
 
-function renderGroupHeader(rows: TransactionListItemType[], selection: SelectedTransactions, onCheckboxPress = jest.fn()) {
+function renderGroupHeader(rows: TransactionListItemType[], selection: SelectedTransactions, onCheckboxPress = jest.fn(), count = rows.length) {
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
             <ScreenWrapperStatusContext value={{didScreenTransitionEnd: true, isSafeAreaTopPaddingApplied: false, isSafeAreaBottomPaddingApplied: false}}>
@@ -118,7 +119,7 @@ function renderGroupHeader(rows: TransactionListItemType[], selection: SelectedT
                     actions={baseActions}
                 >
                     <GroupHeader
-                        item={buildHeaderItem(rows)}
+                        item={buildHeaderItem(rows, count)}
                         groupBy={CONST.SEARCH.GROUP_BY.CATEGORY}
                         searchType={CONST.SEARCH.DATA_TYPES.EXPENSE}
                         canSelectMultiple
@@ -181,6 +182,24 @@ describe('GroupHeader', () => {
 
     it('answers from its own key while it carries no rows, since there is nothing else to ask', () => {
         renderGroupHeader([], select(GROUP_KEY));
+        expect(checkboxState()).toEqual({isSelectAllChecked: true, isIndeterminate: false});
+    });
+
+    it('reads indeterminate when every row it carries is ticked by hand but the group has rows left to load', () => {
+        // Given a group of five carrying three rows, all three ticked one by one
+        // When the header renders
+        renderGroupHeader(children, select('1', '2', '3'), jest.fn(), 5);
+
+        // Then it reads indeterminate, since the two rows that have not loaded are not selected
+        expect(checkboxState()).toEqual({isSelectAllChecked: false, isIndeterminate: true});
+    });
+
+    it('reads checked while the group is held under its own key, even with rows left to load', () => {
+        // Given a group of five carrying three rows, ticked from its header and so held under its own key
+        // When the header renders
+        renderGroupHeader(children, select(GROUP_KEY), jest.fn(), 5);
+
+        // Then it reads checked, since the selection covers every row of the group
         expect(checkboxState()).toEqual({isSelectAllChecked: true, isIndeterminate: false});
     });
 

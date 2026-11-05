@@ -113,6 +113,40 @@ describe('useGroupChildren', () => {
         expect({checked: result.current.isSelectAllChecked, indeterminate: result.current.isIndeterminate}).toEqual({checked: true, indeterminate: false});
     });
 
+    it('reads indeterminate when every loaded row is ticked by hand but the group has rows left to load', () => {
+        // Given a group of five whose two loaded rows were both ticked one by one
+        mockSelectedTransactions.current = {...selectEntry(FIRST_CHILD_KEY), ...selectEntry('2')};
+
+        // When the checkbox state is read
+        const {result} = renderGroupChildren({groupCount: 5});
+
+        // Then it reads indeterminate, since the three rows that have not loaded are not selected
+        expect({checked: result.current.isSelectAllChecked, indeterminate: result.current.isIndeterminate}).toEqual({checked: false, indeterminate: true});
+    });
+
+    it('reads checked, with every loaded row checked, while the group is held under its own key', () => {
+        // Given a group of five ticked from its header before all of its rows loaded, which holds it under its own key
+        mockSelectedTransactions.current = selectEntry(GROUP_KEY);
+
+        // When the checkbox state and the rows are read
+        const {result} = renderGroupChildren({groupCount: 5});
+
+        // Then the group reads checked and its loaded rows read checked through it, since the selection covers the whole group
+        expect({checked: result.current.isSelectAllChecked, indeterminate: result.current.isIndeterminate}).toEqual({checked: true, indeterminate: false});
+        expect(result.current.transactions.every((transaction) => transaction.isSelected)).toBe(true);
+    });
+
+    it('reads checked when every row of a fully loaded group is ticked', () => {
+        // Given a group whose two rows are all it has, both ticked
+        mockSelectedTransactions.current = {...selectEntry(FIRST_CHILD_KEY), ...selectEntry('2')};
+
+        // When the checkbox state is read
+        const {result} = renderGroupChildren({groupCount: rows.length});
+
+        // Then it reads checked, since the ticked rows are the whole group
+        expect({checked: result.current.isSelectAllChecked, indeterminate: result.current.isIndeterminate}).toEqual({checked: true, indeterminate: false});
+    });
+
     it('leaves a row being deleted out of the count, so the checkbox cannot read checked and indeterminate at once', () => {
         const deletedRow = {...buildTransactionRow(3, '3'), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
         mockSelectedTransactions.current = selectEntry(FIRST_CHILD_KEY);

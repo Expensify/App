@@ -117,6 +117,7 @@ jest.mock('@hooks/usePolicyForMovingExpenses', () => ({
 // ---- helpers ----
 
 const GROUP_KEY = `${CONST.SEARCH.GROUP_PREFIX}category`;
+const OTHER_GROUP_KEY = `${CONST.SEARCH.GROUP_PREFIX}otherCategory`;
 
 const groupedQueryJSON: SearchQueryJSON = {
     inputQuery: 'type:expense groupBy:category',
@@ -132,7 +133,7 @@ const groupedQueryJSON: SearchQueryJSON = {
     filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: 'type', right: 'expense'},
 };
 
-// Unreported expenses skip the per-report permission checks in canEditMultipleTransactions, so these tests only exercise the group rule.
+// Unreported expenses skip the per-report permission checks in canEditMultipleTransactions, so these tests only exercise the group rules.
 function makeTransaction(transactionID: string): Transaction {
     return {
         transactionID,
@@ -166,15 +167,32 @@ function makeSelectedTransaction(transactionID: string, overrides: Partial<Selec
     };
 }
 
+/**
+ * A selected expense with a scanned receipt. Most bulk actions need every selected entry to allow them, and a group
+ * entry allows none, so a group entry alone already hides them. Download receipts is the exception: it skips group
+ * entries and acts on any loaded expense with a receipt. Expenses with receipts are what prove the group still limits
+ * the selection to Export.
+ */
+function makeSelectedTransactionWithReceipt(transactionID: string, overrides: Partial<SelectedTransactions[string]> = {}): SelectedTransactions[string] {
+    return makeSelectedTransaction(transactionID, {
+        transaction: {...makeTransaction(transactionID), receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_READY, source: 'https://www.expensify.com/receipt.jpg'}},
+        ...overrides,
+    });
+}
+
 function getEditMultipleOption(options: Array<DropdownOption<SearchHeaderOptionValue>>): DropdownOption<SearchHeaderOptionValue> | undefined {
     return options.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EDIT);
+}
+
+function getOptionValues(options: Array<DropdownOption<SearchHeaderOptionValue>>): SearchHeaderOptionValue[] {
+    return options.map((option) => option.value);
 }
 
 // ---- tests ----
 
 const renderHookWithProvider: typeof renderHook = (callback, options) => renderHook(callback, {...options, wrapper: OnyxListItemProvider});
 
-describe('useSearchBulkActions - Edit multiple in grouped views', () => {
+describe('useSearchBulkActions - group selections in grouped views', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -195,6 +213,71 @@ describe('useSearchBulkActions - Edit multiple in grouped views', () => {
         await Onyx.clear();
     });
 
+    it('offers only Export while a group with expenses left to load is selected', async () => {
+        // Given a group ticked before all of its expenses loaded, so the selection holds its group entry alone
+        mockSelectedTransactions = {
+            [GROUP_KEY]: makeSelectedTransaction(GROUP_KEY, {transaction: undefined}),
+        };
+
+        // When the bulk actions are built
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: groupedQueryJSON}));
+
+        // Then Export is the only action, because it is the only one that reaches the expenses that have not loaded
+        await waitFor(() => {
+            expect(getOptionValues(result.current.headerButtonsOptions)).toEqual([CONST.SEARCH.BULK_ACTION_TYPES.EXPORT]);
+        });
+    });
+
+    it('offers only Export when a group with expenses left to load is selected alongside individual expenses', async () => {
+        // Given a group held under its entry, plus two expenses with receipts ticked individually
+        mockSelectedTransactions = {
+            [GROUP_KEY]: makeSelectedTransaction(GROUP_KEY, {transaction: undefined}),
+            tx1: makeSelectedTransactionWithReceipt('tx1'),
+            tx2: makeSelectedTransactionWithReceipt('tx2'),
+        };
+
+        // When the bulk actions are built
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: groupedQueryJSON}));
+
+        // Then Export is the only action, since any other would silently skip the group's unloaded expenses
+        await waitFor(() => {
+            expect(getOptionValues(result.current.headerButtonsOptions)).toEqual([CONST.SEARCH.BULK_ACTION_TYPES.EXPORT]);
+        });
+    });
+
+    it('offers only Export when a group with expenses left to load is selected alongside a fully loaded group', async () => {
+        // Given one group held under its entry, and the expenses, with receipts, of another group that loaded completely
+        mockSelectedTransactions = {
+            [GROUP_KEY]: makeSelectedTransaction(GROUP_KEY, {transaction: undefined}),
+            tx1: makeSelectedTransactionWithReceipt('tx1', {groupKey: OTHER_GROUP_KEY, isEntireGroupSelected: true}),
+            tx2: makeSelectedTransactionWithReceipt('tx2', {groupKey: OTHER_GROUP_KEY, isEntireGroupSelected: true}),
+        };
+
+        // When the bulk actions are built
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: groupedQueryJSON}));
+
+        // Then Export is the only action, because the partly loaded group still decides what the selection can do
+        await waitFor(() => {
+            expect(getOptionValues(result.current.headerButtonsOptions)).toEqual([CONST.SEARCH.BULK_ACTION_TYPES.EXPORT]);
+        });
+    });
+
+    it('shows Edit multiple for a group whose expenses have all loaded', async () => {
+        // Given a group ticked from its header once every expense loaded, so the selection holds those expenses and no group entry
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction('tx1', {groupKey: GROUP_KEY, isEntireGroupSelected: true}),
+            tx2: makeSelectedTransaction('tx2', {groupKey: GROUP_KEY, isEntireGroupSelected: true}),
+        };
+
+        // When the bulk actions are built
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: groupedQueryJSON}));
+
+        // Then Edit multiple is offered, because the loaded expenses are the whole group
+        await waitFor(() => {
+            expect(getEditMultipleOption(result.current.headerButtonsOptions)).toBeDefined();
+        });
+    });
+
     it('shows Edit multiple when only individual expenses are selected', async () => {
         // Given two expenses ticked one by one inside an expanded group
         mockSelectedTransactions = {
@@ -211,52 +294,17 @@ describe('useSearchBulkActions - Edit multiple in grouped views', () => {
         });
     });
 
-    it('hides Edit multiple when a group checkbox selected the loaded expenses', async () => {
-        // Given a group checkbox that selected its loaded expenses, which may not be all of the group's expenses
+    it('shows Edit multiple once an expense is unchecked from a group, which spells the group out into its loaded expenses', async () => {
+        // Given a group whose entry was replaced by its loaded expenses when one of them was unchecked
         mockSelectedTransactions = {
-            tx1: makeSelectedTransaction('tx1', {groupKey: GROUP_KEY, isSelectedViaGroup: true}),
-            tx2: makeSelectedTransaction('tx2', {groupKey: GROUP_KEY, isSelectedViaGroup: true}),
+            tx2: makeSelectedTransaction('tx2', {groupKey: GROUP_KEY, isEntireGroupSelected: false}),
+            tx3: makeSelectedTransaction('tx3', {groupKey: GROUP_KEY, isEntireGroupSelected: false}),
         };
 
         // When the bulk actions are built
         const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: groupedQueryJSON}));
 
-        // Then Edit multiple is hidden, so it never edits only part of a group the user selected as a whole
-        await waitFor(() => {
-            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
-        });
-        expect(getEditMultipleOption(result.current.headerButtonsOptions)).toBeUndefined();
-    });
-
-    it('hides Edit multiple when a group with no loaded expenses is selected alongside individual expenses', async () => {
-        // Given a collapsed group selected under its own key, plus two expenses ticked individually
-        mockSelectedTransactions = {
-            [GROUP_KEY]: makeSelectedTransaction(GROUP_KEY, {transaction: undefined}),
-            tx1: makeSelectedTransaction('tx1'),
-            tx2: makeSelectedTransaction('tx2'),
-        };
-
-        // When the bulk actions are built
-        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: groupedQueryJSON}));
-
-        // Then Edit multiple is hidden, because the edit would silently skip every expense in the selected group
-        await waitFor(() => {
-            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
-        });
-        expect(getEditMultipleOption(result.current.headerButtonsOptions)).toBeUndefined();
-    });
-
-    it('shows Edit multiple again once an expense is deselected from a group selection', async () => {
-        // Given a group selection where one expense was deselected, which turns the rest into individual selections
-        mockSelectedTransactions = {
-            tx1: makeSelectedTransaction('tx1', {groupKey: GROUP_KEY, isSelectedViaGroup: false}),
-            tx2: makeSelectedTransaction('tx2', {groupKey: GROUP_KEY, isSelectedViaGroup: false}),
-        };
-
-        // When the bulk actions are built
-        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: groupedQueryJSON}));
-
-        // Then Edit multiple is offered, because only the loaded expenses the user can see are selected
+        // Then Edit multiple is offered, because only the expenses the user can see are selected
         await waitFor(() => {
             expect(getEditMultipleOption(result.current.headerButtonsOptions)).toBeDefined();
         });

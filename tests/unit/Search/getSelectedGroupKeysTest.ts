@@ -1,6 +1,6 @@
 import type {SelectedTransactions} from '@components/Search/types';
 
-import {getFullyDeletedGroupKeysByTransactionID, getGroupKeysSelectedViaGroup, getSelectedGroupKeys} from '@hooks/useSearchBulkActions';
+import {getFullyDeletedGroupKeysByTransactionID, getUnloadedGroupSelectionKeys, getSelectedGroupKeys} from '@hooks/useSearchBulkActions';
 
 import type {SearchGroupKey} from '@libs/SearchUIUtils';
 
@@ -40,20 +40,20 @@ describe('getSelectedGroupKeys', () => {
     it('skips a group left only partially selected', () => {
         const keys = getSelectedGroupKeys(
             buildSelection({
-                txn1: {isEntireGroupSelected: false, isSelectedViaGroup: false, groupKey},
-                txn2: {isEntireGroupSelected: false, isSelectedViaGroup: false, groupKey},
+                txn1: {isEntireGroupSelected: false, groupKey},
+                txn2: {isEntireGroupSelected: false, groupKey},
             }),
         );
 
         expect(keys).toEqual([]);
     });
 
-    it('skips a group selected via the group row when the snapshot count is missing and the group is not fully covered', () => {
+    it('skips a group whose selected rows do not cover it when the snapshot count is missing', () => {
         expect(
             getSelectedGroupKeys(
                 buildSelection({
-                    txn1: {isSelectedViaGroup: true, isEntireGroupSelected: false, groupKey},
-                    txn2: {isSelectedViaGroup: true, isEntireGroupSelected: false, groupKey},
+                    txn1: {isEntireGroupSelected: false, groupKey},
+                    txn2: {isEntireGroupSelected: false, groupKey},
                 }),
             ),
         ).toEqual([]);
@@ -63,7 +63,7 @@ describe('getSelectedGroupKeys', () => {
         expect(getSelectedGroupKeys(buildSelection({txn1: {}, txn2: {}}))).toEqual([]);
     });
 
-    it('returns a group when every transaction is selected even without isSelectedViaGroup', () => {
+    it('returns a group when every transaction is selected, however the rows were picked', () => {
         const keys = getSelectedGroupKeys(
             buildSelection({
                 txn1: {groupKey},
@@ -80,8 +80,8 @@ describe('getSelectedGroupKeys', () => {
     it('skips a group whose loaded selection is smaller than the group count', () => {
         const keys = getSelectedGroupKeys(
             buildSelection({
-                txn1: {isSelectedViaGroup: true, groupKey},
-                txn2: {isSelectedViaGroup: true, groupKey},
+                txn1: {groupKey},
+                txn2: {groupKey},
             }),
             buildGroupSearchData({
                 [groupKey]: {count: 5, total: 0, currency: 'USD'},
@@ -92,31 +92,44 @@ describe('getSelectedGroupKeys', () => {
     });
 });
 
-describe('getGroupKeysSelectedViaGroup', () => {
-    it('returns a group selected through the group header even when the loaded set is smaller than the group count', () => {
-        expect(
-            getGroupKeysSelectedViaGroup(
-                buildSelection({
-                    txn1: {isSelectedViaGroup: true, isEntireGroupSelected: false, groupKey},
-                    txn2: {isSelectedViaGroup: true, isEntireGroupSelected: false, groupKey},
-                }),
-            ),
-        ).toEqual([groupKey]);
+describe('getUnloadedGroupSelectionKeys', () => {
+    it('returns a group selected under its own key, which is how a group with expenses left to load stays selected', () => {
+        // Given a group held under its own key because not all of its expenses have loaded
+        const selection = buildSelection({[groupKey]: {}});
+
+        // When the groups to export as a filter are read
+        const keys = getUnloadedGroupSelectionKeys(selection);
+
+        // Then the group is returned, so the export reaches the expenses that never loaded
+        expect(keys).toEqual([groupKey]);
     });
 
-    it('skips children selected individually rather than through the group header', () => {
-        expect(
-            getGroupKeysSelectedViaGroup(
-                buildSelection({
-                    txn1: {isEntireGroupSelected: true, groupKey},
-                    txn2: {isEntireGroupSelected: true, groupKey},
-                }),
-            ),
-        ).toEqual([]);
+    it('skips the rows of a fully loaded group, which are exported by their own IDs', () => {
+        // Given a fully loaded group whose rows carry the selection, with no entry under the group key
+        const selection = buildSelection({
+            txn1: {isEntireGroupSelected: true, groupKey},
+            txn2: {isEntireGroupSelected: true, groupKey},
+        });
+
+        // When the groups to export as a filter are read
+        const keys = getUnloadedGroupSelectionKeys(selection);
+
+        // Then no group is returned, since the rows themselves are every expense in the group
+        expect(keys).toEqual([]);
     });
 
-    it('returns an empty group row selected under its own group key', () => {
-        expect(getGroupKeysSelectedViaGroup(buildSelection({[groupKey]: {}}))).toEqual([groupKey]);
+    it('returns only the groups held under their own key when rows of another group are selected alongside', () => {
+        // Given one group held under its own key and the rows of another group selected individually
+        const selection = buildSelection({
+            [groupKey]: {},
+            txn1: {groupKey: otherGroupKey},
+        });
+
+        // When the groups to export as a filter are read
+        const keys = getUnloadedGroupSelectionKeys(selection);
+
+        // Then only the group held under its own key is returned, and the other group's rows go by their IDs
+        expect(keys).toEqual([groupKey]);
     });
 });
 
@@ -141,8 +154,8 @@ describe('getFullyDeletedGroupKeysByTransactionID', () => {
         expect(
             getFullyDeletedGroupKeysByTransactionID(
                 buildSelection({
-                    txn1: {isSelectedViaGroup: true, isEntireGroupSelected: false, groupKey},
-                    txn2: {isSelectedViaGroup: true, isEntireGroupSelected: false, groupKey},
+                    txn1: {isEntireGroupSelected: false, groupKey},
+                    txn2: {isEntireGroupSelected: false, groupKey},
                     txn3: {isEntireGroupSelected: true, groupKey: otherGroupKey},
                 }),
             ),
@@ -155,8 +168,8 @@ describe('getFullyDeletedGroupKeysByTransactionID', () => {
         expect(
             getFullyDeletedGroupKeysByTransactionID(
                 buildSelection({
-                    txn1: {isSelectedViaGroup: true, groupKey},
-                    txn2: {isSelectedViaGroup: true, groupKey},
+                    txn1: {groupKey},
+                    txn2: {groupKey},
                 }),
                 buildGroupSearchData({
                     [groupKey]: {count: 5, total: 0, currency: 'USD'},

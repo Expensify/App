@@ -1295,11 +1295,10 @@ describe('SearchSelectionFooter', () => {
 
         it('keeps both selectors on the Reports tab, where a selected report row is the search unit', async () => {
             setSearchQuery('type:expense-report');
-            // Selecting a report stores its expenses, flagged as selected via the row, which is the same flag a grouped
-            // search uses for a group. On a Reports search those expenses are exactly what the footer should describe.
+            // Selecting a report stores its expenses under the report's key. On a Reports search those expenses are exactly what the footer should describe.
             mockSelectedTransactions.current = {
-                transaction1: {...buildFlaggedTransaction(100, {reimbursable: true}), groupKey: 'report1', isSelectedViaGroup: true},
-                transaction2: {...buildFlaggedTransaction(300, {reimbursable: false}), groupKey: 'report1', isSelectedViaGroup: true},
+                transaction1: {...buildFlaggedTransaction(100, {reimbursable: true}), groupKey: 'report1'},
+                transaction2: {...buildFlaggedTransaction(300, {reimbursable: false}), groupKey: 'report1'},
             };
 
             render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, 87)} />);
@@ -1344,31 +1343,57 @@ describe('SearchSelectionFooter', () => {
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: undefined, shouldShowTotalSelector: false}));
         });
 
-        it('offers neither selector while a group row is selected through its header, which stores its expenses', async () => {
+        it('offers neither selector while a group with expenses left to load is selected through its header', async () => {
+            // Given a group ticked from its header while some of its expenses have not loaded, so the selection holds its group entry
             setSearchQuery('type:expense groupBy:category');
-            // Ticking a group whose expenses are loaded stores them individually, each flagged as selected via the group.
-            mockSelectedTransactions.current = {
-                transaction1: {...buildFlaggedTransaction(100, {reimbursable: true}), groupKey: `${CONST.SEARCH.GROUP_PREFIX}category1`, isSelectedViaGroup: true},
-                transaction2: {...buildFlaggedTransaction(300, {reimbursable: false}), groupKey: `${CONST.SEARCH.GROUP_PREFIX}category1`, isSelectedViaGroup: true},
-            };
+            mockSelectedTransactions.current = {[`${CONST.SEARCH.GROUP_PREFIX}category1`]: buildSelectedTransaction(CONST.CURRENCY.USD, CONST.CURRENCY.USD, -100)};
 
+            // When the footer renders
             render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)} />);
             await waitForBatchedUpdates();
 
+            // Then neither selector is offered, since a whole group has no breakdown of its own yet
             expect(mockCapturedFooterProps.current?.countType).toBeUndefined();
             expect(mockCapturedFooterProps.current?.totalType).toBeUndefined();
         });
 
-        it('brings both selectors back once a group is part-deselected, which clears the group flag', async () => {
+        it('brings both selectors back once the selection holds a group’s expenses rather than its entry', async () => {
+            // Given a group whose expenses are held one by one, as after its last page loaded or one of them was unchecked
             setSearchQuery('type:expense groupBy:category');
             mockSelectedTransactions.current = {
-                transaction1: {...buildFlaggedTransaction(100, {reimbursable: true}), groupKey: `${CONST.SEARCH.GROUP_PREFIX}category1`, isSelectedViaGroup: false},
+                transaction1: {...buildFlaggedTransaction(100, {reimbursable: true}), groupKey: `${CONST.SEARCH.GROUP_PREFIX}category1`},
+                transaction2: {...buildFlaggedTransaction(300, {reimbursable: false}), groupKey: `${CONST.SEARCH.GROUP_PREFIX}category1`},
             };
 
+            // When the footer renders
             render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)} />);
             await waitForBatchedUpdates();
 
+            // Then both selectors come back, because the footer can count and sum those expenses itself
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.EXPENSES, totalType: CONST.SEARCH.FOOTER_TOTAL.TOTAL}));
+        });
+
+        it('counts every expense of a group held under its entry, even while its loaded rows are in the data', async () => {
+            // Given a group of five whose first two expenses have loaded, ticked from its header, so only its group entry is selected
+            setSearchQuery('type:expense groupBy:category');
+            const groupKey = `${CONST.SEARCH.GROUP_PREFIX}category1` as const;
+            const searchResults = buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87);
+            mockCurrentSearchResults.current = {
+                ...searchResults,
+                data: {
+                    [groupKey]: makeSettlementGroup({count: 5, total: 50000}),
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: createRandomTransaction(1),
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}2` as const]: createRandomTransaction(2),
+                },
+            };
+            mockSelectedTransactions.current = {[groupKey]: buildSelectedTransaction(CONST.CURRENCY.USD, CONST.CURRENCY.USD, -50000)};
+
+            // When the footer renders
+            render(<SearchSelectionFooter searchResults={searchResults} />);
+            await waitForBatchedUpdates();
+
+            // Then it counts all five, because the group entry stands for the expenses that have not loaded as well as the two that have
+            expect(mockCapturedFooterProps.current?.count).toBe(5);
         });
 
         it('keeps the server report count on a select-all with exclusions, which the selection cannot recount', async () => {
