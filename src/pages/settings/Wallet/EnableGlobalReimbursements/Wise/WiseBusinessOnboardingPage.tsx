@@ -223,7 +223,7 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
                 if (isSaving || saveError) {
                     return;
                 }
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_ACCEPT_TERMS.path));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_ACCEPT_TERMS.path, introPath), {forceReplace: true});
             }}
         />
     );

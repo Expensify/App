@@ -3,10 +3,10 @@ import AmountFilterInput from '@components/Search/FilterComponents/AmountFilterI
 import type {SearchAmountFilterKeys, SearchAmountValues} from '@components/Search/types';
 
 import useAmountFilterCurrency from '@hooks/useAmountFilterCurrency';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import {formatAmountFilterValue, getAmountFilterDisplayValue, getAmountFilterInputValue} from '@libs/SearchAmountFilterUtils';
 
 import CONST from '@src/CONST';
@@ -66,6 +66,7 @@ function AmountInput({title, value, name, baseFilterKey, onSave, onBackButtonPre
 
 function AmountPopup({baseFilterKey, label, value, closeOverlay, updateFilterForm}: AmountPopupProps) {
     const {translate} = useLocalize();
+    const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const [selectedModifier, setSelectedModifier] = useState<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS> | null>(null);
     const [amountValues, setAmountValues] = useState(value);
 
@@ -78,7 +79,7 @@ function AmountPopup({baseFilterKey, label, value, closeOverlay, updateFilterFor
     const modifierConfig = [CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO, CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN, CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN];
 
     const formatAmount = (amount: string | undefined) => {
-        return getAmountFilterDisplayValue(amount, (backendAmount) => convertToFrontendAmountAsString(backendAmount, CONST.DEFAULT_CURRENCY_DECIMALS));
+        return getAmountFilterDisplayValue(amount, convertToDisplayStringWithoutCurrency);
     };
 
     if (selectedModifier) {

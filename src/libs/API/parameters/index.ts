@@ -210,6 +210,7 @@ export type {default as OpenPublicProfilePageParams} from './OpenPublicProfilePa
 export type {default as OpenReimbursementAccountPageParams} from './OpenReimbursementAccountPageParams';
 export type {default as OpenReportParams} from './OpenReportParams';
 export type {default as OpenRoomMembersPageParams} from './OpenRoomMembersPageParams';
+export type {default as OpenReportStatusPageParams} from './OpenReportStatusPageParams';
 export type {default as OpenPlaidCompanyCardLoginParams} from './OpenPlaidCompanyCardLoginParams';
 export type {default as OpenPolicyReceiptPartnersPageParams} from './OpenPolicyReceiptPartnersPageParams';
 export type {default as OpenPolicyHRPageParams} from './OpenPolicyHRPageParams';
@@ -632,6 +633,8 @@ export type {default as TogglePolicyPerDiemParams} from './TogglePolicyPerDiemPa
 export type {default as OpenPolicyPerDiemRatesPageParams} from './OpenPolicyPerDiemRatesPageParams';
 export type {default as TogglePlatformMuteParams} from './TogglePlatformMuteParams';
 export type {default as GetCorpayBankAccountFieldsParams} from './GetCorpayBankAccountFieldsParams';
+export type {default as GetWiseBankAccountFieldsParams} from './GetWiseBankAccountFieldsParams';
+export type {default as CreateWiseBankAccountParams} from './CreateWiseBankAccountParams';
 export type {default as BankAccountCreateCorpayParams} from './BankAccountCreateCorpayParams';
 export type {default as JoinAccessiblePolicyParams} from './JoinAccessiblePolicyParams';
 export type {default as AskToJoinPolicyParams} from './AskToJoinPolicyParams';
@@ -652,10 +655,12 @@ export type {default as ResetSMSDeliveryFailureStatusParams} from './ResetSMSDel
 export type {default as CreatePerDiemRequestParams} from './CreatePerDiemRequestParams';
 export type {default as QueueExpensifyCardForBillingParams} from './QueueExpensifyCardForBillingParams';
 export type {default as GetCorpayOnboardingFieldsParams} from './GetCorpayOnboardingFieldsParams';
+export type {default as GetWiseKYCReviewEmbeddedLinkParams} from './GetWiseKYCReviewEmbeddedLinkParams';
 export type {SaveCorpayOnboardingCompanyDetailsParams} from './SaveCorpayOnboardingCompanyDetailsParams';
 export type {default as AcceptSpotnanaTermsParams} from './AcceptSpotnanaTermsParams';
 export type {default as SaveCorpayOnboardingBeneficialOwnerParams} from './SaveCorpayOnboardingBeneficialOwnerParams';
 export type {default as UpdateWiseOnboardingAdditionalDataParams} from './UpdateWiseOnboardingAdditionalDataParams';
+export type {default as SubmitWiseBusinessOnboardingParams} from './SubmitWiseBusinessOnboardingParams';
 export type {default as DeleteAppReportParams} from './DeleteAppReportParams';
 export type {default as MergeReportsParams} from './MergeReportsParams';
 export type {default as SaveCorpayOnboardingDirectorInformationParams} from './SaveCorpayOnboardingDirectorInformationParams';

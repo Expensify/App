@@ -1,8 +1,8 @@
 ---
 title: Workspace Rules
 description: Configure and manage rules for your workspace to enforce expense policies and automate compliance.
-keywords: [New Expensify, workspace rules, rules tabs, general rules, card restrictions, expense defaults, field requirements, flag for review, agent rules, expense rules, receipt requirements, category rules, prohibited expenses, disable Smartscan, automate expenses, non-reimbursable, cash expenses, billable expenses, control expenses, compliance, itemized receipt, merchant rules, spend rules, Expensify Card spend rules, block transactions, public receipt visibility]
-internalScope: Audience is workspace admins on the Collect and Control plans. Covers enabling Rules and configuring each tab of the Rules page, including basic rules, Expensify Card restrictions, expense defaults, field requirements, flag for review, and agent rules. Does not cover personal expense rules, Workspace Merchant Rules setup details, report-level rules in Workflows, or troubleshooting specific rule outcomes.
+keywords: [New Expensify, workspace rules, rules tabs, general rules, card restrictions, expense defaults, field requirements, flag for review, agent rules, expense rules, receipt requirements, category rules, prohibited expenses, disable Smartscan, automate expenses, non-reimbursable, cash expenses, billable expenses, control expenses, compliance, itemized receipt, merchant rules, spend rules, Expensify Card spend rules, block transactions, public receipt visibility, describe your rule, build a rule with Concierge, AI rules builder]
+internalScope: Audience is workspace admins on the Collect and Control plans. Covers enabling Rules and configuring each tab of the Rules page, including basic rules, Expensify Card restrictions, expense defaults, field requirements, flag for review, and agent rules, plus having Concierge build a rule from a plain-English description. Does not cover personal expense rules, Workspace Merchant Rules setup details, report-level rules in Workflows, or troubleshooting specific rule outcomes.
 ---
 
 # Workspace Rules
@@ -130,7 +130,7 @@ The **Agents** tab holds agent rules, which are written in plain language and ru
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **Rules**.
 3. Select **Agents**.
-4. Select **Add AI rule**.
+4. Select **Add AI rule**, or **Add agent rule** if the workspace already has agent rules.
 
 [Learn how to create agent rules](/articles/new-expensify/ai-agents/Automate-Workflows-with-Agent-Rules).
 
@@ -138,10 +138,29 @@ The **Agents** tab holds agent rules, which are written in plain language and ru
 
 ## How to add a rule from any tab
 
-**Add rule** stays in the top-right corner of the **Rules** page on every tab. It opens the **New rule** page, where you choose what the rule should do:
+**Add rule** stays in the top-right corner of the **Rules** page on every tab. It opens the **New rule** page. Under **Start with a template**, choose what the rule should do:
 
 - **Restrict card spend** – Block or limit spend at the point of sale.
 - **Flag for review** – Notify when your conditions are met.
+- **Require fields** – Receipts, categories, etc.
+- **Apply expense defaults** – Update fields automatically.
+
+You can also describe the rule in plain English under **Or just describe it below**, and Concierge builds it for you.
+
+---
+
+## How to have Concierge build a rule
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
+2. Select **Rules**.
+3. Select **Add rule**.
+4. Under **Or just describe it below**, describe the rule in plain English. For example, "Block all spend above $2,000."
+5. Select **Next**.
+6. Review the rule that Concierge fills in and select **Save rule**.
+
+If Concierge can't build your description as one of the template rules, it drafts an agent rule instead. Review the draft and select **Create rule**. Nothing is saved until you do.
+
+You can also select **Describe** next to **Save rule** in any rule you're creating from a template. Describe the rule and select **Next**, and Concierge fills in that form.
 - **Set field requirements** – Receipts, categories, etc.
 - **Apply expense defaults** – Update fields automatically.
 - **Describe agent rule** – Create flexible rules that run when you need.
