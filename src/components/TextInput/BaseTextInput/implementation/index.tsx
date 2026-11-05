@@ -259,13 +259,17 @@ function BaseTextInput({
             isFocused ||
             // If the text has been supplied by Chrome autofill, the value state is not synced with the value
             // as Chrome doesn't trigger a change event. When there is autofill text, keep the label activated.
-            isInputAutoFilled(input.current)
+            isInputAutoFilled(input.current) ||
+            // If a prefix or suffix (e.g. currency symbol) is present, the label must stay activated
+            // to avoid overlapping with the prefix/suffix text when the field is empty and unfocused.
+            !!prefixCharacter ||
+            !!suffixCharacter
         ) {
             activateLabel();
         } else {
             deactivateLabel();
         }
-    }, [activateLabel, deactivateLabel, hasValue, isFocused]);
+    }, [activateLabel, deactivateLabel, hasValue, isFocused, prefixCharacter, suffixCharacter]);
 
     // When the value prop gets cleared externally, we need to keep the ref in sync:
     useEffect(() => {
