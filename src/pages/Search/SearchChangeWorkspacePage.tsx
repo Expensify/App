@@ -1,3 +1,4 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {useSession} from '@components/OnyxListItemProvider';
@@ -9,9 +10,12 @@ import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceList from '@hooks/useWorkspaceList';
 
 import {getReportFromSearchSnapshot, queueBulkChangeReportPolicy} from '@libs/actions/Search';
@@ -31,10 +35,14 @@ import type {Policy} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useLayoutEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 /** Lets the user pick the workspace to move the reports selected on Search to. */
 function SearchChangeWorkspacePage() {
     const {translate, localeCompare} = useLocalize();
+    const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
+    const isAppLoadPending = useIsAppLoadPending();
     const session = useSession();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -124,26 +132,32 @@ function SearchChangeWorkspacePage() {
                 onBackButtonPress={Navigation.goBack}
             />
             <FullPageOfflineBlockingView>
-                <SelectionList<WorkspaceListItemType>
-                    ListItem={UserListItem}
-                    data={data}
-                    onSelectRow={(option) => setPolicyID(option.policyID)}
-                    textInputOptions={{
-                        label: shouldShowSearchInput ? translate('common.search') : undefined,
-                        value: searchTerm,
-                        onChangeText: setSearchTerm,
-                        headerMessage: shouldShowNoResultsFoundMessage ? translate('common.noResultsFound') : '',
-                    }}
-                    confirmButtonOptions={{
-                        showButton: true,
-                        text: translate('common.save'),
-                        onConfirm: changeWorkspace,
-                        isDisabled: !policyID || (!areAllMatchingItemsSelected && selectedReports.every((report) => report.policyID === policyID)),
-                    }}
-                    initiallyFocusedItemKey={policyID}
-                    shouldUpdateFocusedIndex
-                    addBottomSafeAreaPadding
-                />
+                {isAppLoadPending && !isOffline ? (
+                    <View style={[styles.flex1, styles.fullScreenLoading]}>
+                        <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                    </View>
+                ) : (
+                    <SelectionList<WorkspaceListItemType>
+                        ListItem={UserListItem}
+                        data={data}
+                        onSelectRow={(option) => setPolicyID(option.policyID)}
+                        textInputOptions={{
+                            label: shouldShowSearchInput ? translate('common.search') : undefined,
+                            value: searchTerm,
+                            onChangeText: setSearchTerm,
+                            headerMessage: shouldShowNoResultsFoundMessage ? translate('common.noResultsFound') : '',
+                        }}
+                        confirmButtonOptions={{
+                            showButton: true,
+                            text: translate('common.save'),
+                            onConfirm: changeWorkspace,
+                            isDisabled: !policyID || (!areAllMatchingItemsSelected && selectedReports.every((report) => report.policyID === policyID)),
+                        }}
+                        initiallyFocusedItemKey={policyID}
+                        shouldUpdateFocusedIndex
+                        addBottomSafeAreaPadding
+                    />
+                )}
             </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );

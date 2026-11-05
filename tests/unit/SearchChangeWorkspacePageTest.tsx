@@ -38,6 +38,7 @@ let mockSelectRow: ((option: {policyID: string}) => void) | undefined;
 let mockConfirm: (() => void) | undefined;
 let mockListData: Array<{policyID?: string}> = [];
 let mockIsSaveDisabled: boolean | undefined;
+let mockIsAppLoadPending = false;
 let mockSearchData: Record<string, unknown> = {};
 
 jest.mock('@components/SelectionList', () => {
@@ -77,6 +78,9 @@ jest.mock('@components/Search/SearchContext', () => ({
 jest.mock('@libs/actions/Search', () => ({
     getReportFromSearchSnapshot: jest.requireActual<typeof SearchActions>('@libs/actions/Search').getReportFromSearchSnapshot,
     queueBulkChangeReportPolicy: jest.fn(),
+}));
+jest.mock('@hooks/useInFlightRequests', () => ({
+    useIsAppLoadPending: () => mockIsAppLoadPending,
 }));
 jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
@@ -120,6 +124,7 @@ describe('SearchChangeWorkspacePage', () => {
         mockConfirm = undefined;
         mockSelectedReports = [{reportID: 'report1'}, {reportID: 'report2'}];
         mockListData = [];
+        mockIsAppLoadPending = false;
         mockSearchData = {
             [`${ONYXKEYS.COLLECTION.REPORT}report1`]: makeReport('report1', CONST.REPORT.STATUS_NUM.OPEN),
             [`${ONYXKEYS.COLLECTION.REPORT}report2`]: makeReport('report2', CONST.REPORT.STATUS_NUM.OPEN),
@@ -149,6 +154,22 @@ describe('SearchChangeWorkspacePage', () => {
 
         // Then Save stays disabled, the same as picking a report's own workspace on its page
         expect(mockIsSaveDisabled).toBe(true);
+    });
+
+    it('shows a loading indicator instead of the workspaces while the app is still loading', async () => {
+        // Given the app hasn't finished loading the workspaces yet
+        mockIsAppLoadPending = true;
+
+        // When the page renders
+        render(
+            <OnyxListItemProvider>
+                <SearchChangeWorkspacePage />
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the workspace list isn't shown, so it can't flash "No results found"
+        expect(mockSelectRow).toBeUndefined();
     });
 
     it('keeps the workspaces in place when one is picked', async () => {
