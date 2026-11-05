@@ -645,8 +645,9 @@ const DYNAMIC_ROUTES = {
             reportID: string | undefined;
             isWorkspacesOnly?: boolean;
             shouldExcludeWorkspaces?: boolean;
+            isFromConfirmation?: boolean;
         }) => {
-            const {action, iouType, transactionID, reportID, isWorkspacesOnly, shouldExcludeWorkspaces} = params;
+            const {action, iouType, transactionID, reportID, isWorkspacesOnly, shouldExcludeWorkspaces, isFromConfirmation} = params;
             // `getUrlWithParams` drops falsy values, so the flag is only sent when it is on.
             return getUrlWithParams('expense-participants', {
                 action,
@@ -655,9 +656,10 @@ const DYNAMIC_ROUTES = {
                 reportID,
                 isWorkspacesOnly: isWorkspacesOnly ? 'true' : undefined,
                 shouldExcludeWorkspaces: shouldExcludeWorkspaces ? 'true' : undefined,
+                isFromConfirmation: isFromConfirmation ? 'true' : undefined,
             });
         },
-        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'isWorkspacesOnly', 'shouldExcludeWorkspaces'],
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'isWorkspacesOnly', 'shouldExcludeWorkspaces', 'isFromConfirmation'],
     },
     MONEY_REQUEST_STEP_SCAN: {
         path: 'expense-scan',
