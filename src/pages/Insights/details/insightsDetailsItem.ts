@@ -6,7 +6,7 @@ import type {GroupedItem, SearchGroupBy, SearchQueryJSON} from '@components/Sear
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import DateUtils from '@libs/DateUtils';
 import {adjustTimeRangeToDateFilters} from '@libs/SearchUIUtils';
-import {isInvalidMerchantValue} from '@libs/ValidationUtils';
+import {isInvalidMerchantValue, isValidDate} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
@@ -85,8 +85,13 @@ function getPeriodTitle(groupBy: SearchGroupBy, range: {start: string; end: stri
 /** Resolves the key in the Details panel's URL to the item's title and the filter narrowing the chart's query to it. */
 function resolveInsightsDetailsItem({groupBy, itemKey, periodEnd, member, dateFnsLocale, translate}: ResolveInsightsDetailsItemParams): InsightsDetailsItem | undefined {
     switch (groupBy) {
-        case CONST.SEARCH.GROUP_BY.FROM:
-            return {title: member?.displayName ?? member?.login ?? '', filterQuery: `from:${itemKey}`};
+        case CONST.SEARCH.GROUP_BY.FROM: {
+            const name = member?.displayName ?? member?.login;
+            if (!name) {
+                return undefined;
+            }
+            return {title: name, filterQuery: `from:${itemKey}`};
+        }
         case CONST.SEARCH.GROUP_BY.MERCHANT: {
             const isEmptyMerchant = !itemKey || itemKey === CONST.SEARCH.MERCHANT_EMPTY_VALUE || itemKey === CONST.TRANSACTION.UNKNOWN_MERCHANT || isInvalidMerchantValue(itemKey);
             return {title: isEmptyMerchant ? translate('search.noMerchant') : itemKey, filterQuery: `merchant="${itemKey}"`};
@@ -97,7 +102,7 @@ function resolveInsightsDetailsItem({groupBy, itemKey, periodEnd, member, dateFn
                 filterQuery: `category:"${itemKey}"`,
             };
         default: {
-            if (!periodEnd) {
+            if (!periodEnd || !isValidDate(itemKey) || !isValidDate(periodEnd)) {
                 return undefined;
             }
             const range = {start: itemKey, end: periodEnd};
