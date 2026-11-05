@@ -105,6 +105,13 @@ function pressKeys(label: string, keys: string[]) {
     }
 }
 
+// Tabbing out of the last segment is what tells the field the keyboard has carried focus away, and the blur that
+// follows is focus landing outside every segment.
+function leaveFieldByTabbing() {
+    fireEvent(screen.getByLabelText(SEGMENT_LABELS.day), 'keyPress', {preventDefault: jest.fn(), nativeEvent: {key: CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey}});
+    fireEvent(screen.getByLabelText(SEGMENT_LABELS.year), 'blur', {nativeEvent: {relatedTarget: undefined}});
+}
+
 async function renderDatePicker(props: Partial<DateInputWithPickerProps> = {}) {
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
@@ -219,6 +226,26 @@ describe('DatePicker typing', () => {
 
         // And it never hands the date over, since a field that saves on every change would already have stored it
         expect(onInputChange).not.toHaveBeenCalledWith('2030-05-09');
+    });
+
+    it('keeps a date the calendar would never have offered on screen once the field is left', async () => {
+        // Given a field bounded to a range, holding a date the consumer has not been told to change
+        await renderDatePicker({
+            value: '2024-06-15',
+            minDate: new Date('2024-01-01'),
+            maxDate: new Date('2024-12-31'),
+        });
+
+        // When a date outside those bounds is typed and focus then leaves the field
+        focusSegment(SEGMENT_LABELS.year);
+        pressKeys(SEGMENT_LABELS.year, ['1', '8', '0', '0']);
+        pressKeys(SEGMENT_LABELS.month, ['0', '1']);
+        pressKeys(SEGMENT_LABELS.day, ['0', '1']);
+        leaveFieldByTabbing();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the date stays where the user can correct it, rather than being replaced by the one it never became
+        expect(screen.getByLabelText(SEGMENT_LABELS.year).props.value).toBe('1800');
     });
 
     it('restores a year taken apart by hand when the calendar is asked for the same year back', async () => {

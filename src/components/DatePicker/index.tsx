@@ -196,6 +196,8 @@ function DatePicker({
         blur: () => textInputRef.current?.blur(),
     });
 
+    const hasRangeError = !!getRangeError(selectedDate);
+
     useEffect(() => {
         if (shouldSaveDraft && formID) {
             setDraftValues(formID, {[inputID]: selectedDate});
@@ -212,8 +214,14 @@ function DatePicker({
             return;
         }
 
+        // A date held back for being outside the range is one the value prop can never catch up to, so putting the
+        // value back would take the entry off screen before the user has had the chance to correct it.
+        if (hasRangeError) {
+            return;
+        }
+
         setSelectedDate(value);
-    }, [formID, inputID, selectedDate, shouldSaveDraft, value, segmentInput.isEditing]);
+    }, [formID, inputID, selectedDate, shouldSaveDraft, value, segmentInput.isEditing, hasRangeError]);
 
     const calculatePopoverPosition = useCallback(
         (onMeasured?: () => void) => {
