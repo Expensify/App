@@ -7,10 +7,10 @@ import type Locale from '@src/types/onyx/Locale';
 
 import type {NonEmptyTuple} from 'type-fest';
 
-import getTooltipNote from './getTooltipNote';
+import type {TooltipValue} from './formatTooltipValue';
 
 /** One compared series' value at the active point */
-type TooltipRow = {
+type TooltipRow = TooltipValue & {
     key: string;
 
     /** The series' color, shown as a dot before the row */
@@ -21,11 +21,6 @@ type TooltipRow = {
 
     /** Names the series, like "Average", or the dates the point covers in its period */
     label?: string;
-
-    value: string;
-
-    /** Shown in parentheses after the value */
-    note?: string;
 };
 
 /** How the primary series changed against the one it is compared with */
@@ -89,13 +84,15 @@ function formatTooltipComparison(
         if (value === undefined) {
             return [];
         }
+        const percentOfTotal = dataPoint.seriesPercentOfTotal?.[key];
         return {
             key,
             color: dataPoint.seriesColors?.[key] ?? color,
             isAverage,
             label: dataPoint.seriesLabels?.[key] ?? label,
             value: formatAmount(value),
-            note: getTooltipNote(value, dataPoint.seriesPercentOfTotal?.[key], dataPoint.seriesTotals?.[key], locale),
+            percentage: percentOfTotal === undefined ? undefined : formatPercentOfTotal(percentOfTotal, value, locale),
+            secondaryValue: dataPoint.seriesTotals?.[key],
         };
     });
 

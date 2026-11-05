@@ -60,5 +60,5 @@ type InsightsDashboard = {
     responseJsonCode?: number;
 };
 
-export type {AIInsight, InsightsDashboardID, InsightsGraph, InsightsGraphKey, InsightsSearchKey};
+export type {AIInsight, InsightsDashboardID, InsightsGraphKey, InsightsSearchKey};
 export default InsightsDashboard;

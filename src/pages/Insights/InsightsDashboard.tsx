@@ -52,7 +52,7 @@ import INSIGHTS_DASHBOARD_SPECS, {getVisibleCharts} from './dashboardSpecs';
 import {getQueryGroupBy} from './insightsGroupByUtils';
 import buildInsightsJsonQuery from './insightsQueries';
 import InsightsTabSelector from './InsightsTabSelector';
-import {getDashboardState, getGraphAverage, hasDashboardResponse, INSIGHTS_DASHBOARD_STATE} from './resolveDashboardState';
+import {getDashboardState, hasDashboardResponse, INSIGHTS_DASHBOARD_STATE} from './resolveDashboardState';
 import InsightsEmptyState from './states/InsightsEmptyState';
 import InsightsNoExpensesState from './states/InsightsNoExpensesState';
 import useInsightsExport from './useInsightsExport';
@@ -334,13 +334,16 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
             [queryJSON, previousPeriodQueryJSON].flatMap((chartQueryJSON) => (chartQueryJSON ? [String(chartQueryJSON.hash)] : [])),
         ),
     );
-    const charts: InsightsDashboardChart[] = visibleChartQueries.map((chartQuery) => ({
-        ...chartQuery,
-        snapshot: chartQuery.queryJSON ? snapshots[chartQuery.queryJSON.hash] : undefined,
-        previousPeriodSnapshot: chartQuery.previousPeriodQueryJSON ? snapshots[chartQuery.previousPeriodQueryJSON.hash] : undefined,
-        average: getGraphAverage(dashboard?.graphs?.[chartQuery.chart.graphKey], chartQuery.chart.metric),
-        isDashboardLoaded: hasDashboardResponse(dashboard),
-    }));
+    const charts = visibleChartQueries.map((chartQuery): InsightsDashboardChart => {
+        const graph = dashboard?.graphs?.[chartQuery.chart.graphKey];
+        return {
+            ...chartQuery,
+            snapshot: chartQuery.queryJSON ? snapshots[chartQuery.queryJSON.hash] : undefined,
+            previousPeriodSnapshot: chartQuery.previousPeriodQueryJSON ? snapshots[chartQuery.previousPeriodQueryJSON.hash] : undefined,
+            average: {[CONST.SEARCH.CHART_METRIC.AMOUNT]: graph?.averageAmount, [CONST.SEARCH.CHART_METRIC.COUNT]: graph?.averageCount},
+            isDashboardLoaded: hasDashboardResponse(dashboard),
+        };
+    });
     const [headlineChart, ...supportingCharts] = charts;
     const state = getDashboardState(dashboard, isOffline, charts, hasLoadedBefore);
 

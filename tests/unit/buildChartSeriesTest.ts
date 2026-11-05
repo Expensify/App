@@ -432,7 +432,7 @@ describe('buildChartSeries', () => {
         // When the series is built for a bar chart compared against the average
         const {series, rows} = buildChartSeries({
             data,
-            comparison: {value: 43000},
+            comparison: {amount: 43000},
             groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
             translate: translateLocal,
             dateFnsLocale: undefined,
@@ -768,7 +768,7 @@ describe('buildChartSeries with the count metric', () => {
             dateFnsLocale: undefined,
             colorScheme: CONST.COLOR_SCHEME.LIGHT,
             data,
-            comparison: {value: 26.5, total: 335000},
+            comparison: {count: 26.5, amount: 335000},
             metric: CONST.SEARCH.CHART_METRIC.COUNT,
             view: CONST.SEARCH.VIEW.BAR,
             getLabel,
@@ -849,11 +849,11 @@ describe('buildChartSeries with the count metric', () => {
         expect(rows.every((row) => row.point.seriesTotals === undefined)).toBe(true);
     });
 
-    it('leaves the share off every point, since the only share the search reports is of total spend', () => {
-        // Given merchant groups the search reported shares of total spend for
-        const data = [merchantGroup('Person', 480000, 12, 71.6), merchantGroup('Target', 190000, 41, 28.4)];
+    it('keeps the share the search reports on every point of a count chart', () => {
+        // Given groups the search reported shares of the expense count for, like Compliance's share of submitted expenses with violations
+        const data = [merchantGroup('Person', 480000, 1, 10), merchantGroup('Target', 190000, 3, 30)];
 
-        // When the series is built for a pie chart plotting counts
+        // When the series is built for a chart plotting counts
         const {rows} = buildChartSeries({
             groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
             translate: translateLocal,
@@ -861,14 +861,13 @@ describe('buildChartSeries with the count metric', () => {
             colorScheme: CONST.COLOR_SCHEME.LIGHT,
             data,
             metric: CONST.SEARCH.CHART_METRIC.COUNT,
-            view: CONST.SEARCH.VIEW.PIE,
+            view: CONST.SEARCH.VIEW.BAR,
             getLabel,
             getCurrencyDecimals,
         });
 
-        // Then no point carries a share, because quoting a spend share beside a count would read as the count's
-        // share, and the donut would size its slices by count while dropping the ones that spent too little to draw
-        expect(rows.every((row) => row.point.percentOfTotal === undefined)).toBe(true);
+        // Then each point carries the share, for the tooltip to quote beside the count
+        expect(rows.map((row) => row.point.percentOfTotal)).toEqual([10, 30]);
     });
 });
 
