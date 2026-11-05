@@ -26,4 +26,4 @@ type AccountingIntegrationWaitlistEntry = OnyxValueWithOfflineFeedback<{
 type AccountingIntegrationWaitlist = AccountingIntegrationWaitlistEntry[];
 
 export default AccountingIntegrationWaitlist;
-export type {AccountingIntegrationWaitlistConnectionName, AccountingIntegrationWaitlistEntry};
+export type {AccountingIntegrationWaitlistConnectionName};
