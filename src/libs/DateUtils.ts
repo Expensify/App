@@ -278,6 +278,18 @@ const memoizedCreateLongDateWithWeekdayFormatter = memoize(
 );
 
 /**
+ * Formats a full date with a weekday, with or without the year, for the two public helpers below.
+ */
+function formatLongDateWithWeekday(datetime: string | Date, dateFnsLocale: DateFnsLocale | undefined, shouldIncludeYear: boolean): string {
+    const date = new Date(datetime);
+    if (!isValid(date)) {
+        return '';
+    }
+    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
+    return memoizedCreateLongDateWithWeekdayFormatter(dateFnsLocale?.code ?? 'en-US', shouldIncludeYear).format(toUTCWallClockDate(date));
+}
+
+/**
  * Format date to a long date format with weekday
  *
  * A hand-written date-fns pattern fixes the US component order, so every language rendered its own month name in an
@@ -288,12 +300,7 @@ const memoizedCreateLongDateWithWeekdayFormatter = memoize(
  * @returns Sunday, July 9, 2023
  */
 function formatToLongDateWithWeekday(datetime: string | Date, dateFnsLocale: DateFnsLocale | undefined): string {
-    const date = new Date(datetime);
-    if (!isValid(date)) {
-        return '';
-    }
-    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
-    return memoizedCreateLongDateWithWeekdayFormatter(dateFnsLocale?.code ?? 'en-US', true).format(toUTCWallClockDate(date));
+    return formatLongDateWithWeekday(datetime, dateFnsLocale, true);
 }
 
 /**
@@ -302,11 +309,7 @@ function formatToLongDateWithWeekday(datetime: string | Date, dateFnsLocale: Dat
  * @returns Sunday, July 9
  */
 function formatToLongDateWithWeekdayWithoutYear(datetime: string | Date, dateFnsLocale: DateFnsLocale | undefined): string {
-    const date = new Date(datetime);
-    if (!isValid(date)) {
-        return '';
-    }
-    return memoizedCreateLongDateWithWeekdayFormatter(dateFnsLocale?.code ?? 'en-US', false).format(toUTCWallClockDate(date));
+    return formatLongDateWithWeekday(datetime, dateFnsLocale, false);
 }
 
 /**
