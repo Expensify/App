@@ -92,9 +92,10 @@ Members activate their own physical Expensify Cards after receiving them.
 
 To activate a physical Expensify Card: 
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account > Wallet**.
-2. Select the physical Expensify Card.
-3. Follow the prompts to activate the card.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Wallet**.
+3. Select the physical Expensify Card.
+4. Follow the prompts to activate the card.
 
 After activation, the card is ready to use.
 
