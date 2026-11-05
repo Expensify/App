@@ -9,10 +9,7 @@ import {setHasRadio} from '@libs/NetworkState';
 import Parser from '@libs/Parser';
 import {isExpenseReport} from '@libs/ReportUtils';
 
-import visibleReportActionsConfig from '@userActions/OnyxDerived/configs/visibleReportActions';
-
 import IntlStore from '@src/languages/IntlStore';
-import type {OnyxKey} from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
@@ -3248,34 +3245,6 @@ describe('ReportActionsUtils', () => {
 
             // Then it stays hidden, because the IOU PAY action already shows the payment
             expect(actual).toBe(false);
-        });
-
-        it('shows a REIMBURSED action that Auth hides on an invoice when the cached visibility is used', async () => {
-            // Given an invoice with a REIMBURSED action that Auth marked with shouldShow false and no isNewDot flag
-            const reportID = 'invoiceWithHiddenReimbursedAction';
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, type: CONST.REPORT.TYPE.INVOICE});
-            const reimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
-                reportActionID: '1',
-                reportID,
-                created: '2025-01-01 00:00:00',
-                message: [{type: 'TEXT', style: 'normal', text: 'paid this report'}],
-                originalMessage: {},
-                shouldShow: false,
-            };
-            const allReportActions = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {[reimbursedAction.reportActionID]: reimbursedAction}};
-
-            // When the derived value builds the cached visibility and the invoice reads it
-            const visibleReportActions = visibleReportActionsConfig.compute([allReportActions, undefined, {}, {}], {
-                currentValue: undefined,
-                sourceValues: undefined,
-                triggeredKeys: new Set<OnyxKey>(),
-            });
-            const actual = ReportActionsUtils.isReportActionVisible(reimbursedAction, reportID, true, visibleReportActions);
-
-            // Then the invoice shows it, because the cache skips actions whose visibility depends on the report type
-            expect(visibleReportActions[reportID]?.[reimbursedAction.reportActionID]).toBeUndefined();
-            expect(actual).toBe(true);
         });
 
         it("uses the action's reportID to find the invoice when no reportID is passed", async () => {

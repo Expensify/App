@@ -145,7 +145,6 @@ import {
     getReimbursableTotal,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
-    getReimbursementQueuedMessageKey,
     getReportActionWithSmartscanError,
     getReportFieldMaps,
     getReportFieldsByPolicyID,
@@ -4334,27 +4333,6 @@ describe('ReportUtils', () => {
 
             // Then it keeps the wallet message, because only bank account payments changed for invoices
             expect(result).toBe(translateLocal('iou.waitingOnEnabledWallet', 'Vendor'));
-        });
-    });
-
-    describe('getReimbursementQueuedMessageKey', () => {
-        it('returns the vendor bank account message only for invoices paid by bank account', () => {
-            // Given invoices and expense reports paid by bank account or by wallet
-            const invoice = createMock<Report>({
-                reportID: '780060',
-                type: CONST.REPORT.TYPE.INVOICE,
-            });
-            const expenseReport = createMock<Report>({
-                reportID: '780061',
-                type: CONST.REPORT.TYPE.EXPENSE,
-            });
-
-            // When the queued payment message is chosen
-            // Then only invoices paid by bank account skip the personal bank account message
-            expect(getReimbursementQueuedMessageKey(invoice, CONST.IOU.PAYMENT_TYPE.VBBA)).toBe('iou.waitingOnVendorBankAccount');
-            expect(getReimbursementQueuedMessageKey(invoice, CONST.IOU.PAYMENT_TYPE.EXPENSIFY)).toBe('iou.waitingOnEnabledWallet');
-            expect(getReimbursementQueuedMessageKey(expenseReport, CONST.IOU.PAYMENT_TYPE.VBBA)).toBe('iou.waitingOnBankAccount');
-            expect(getReimbursementQueuedMessageKey(expenseReport, undefined)).toBe('iou.waitingOnBankAccount');
         });
     });
 

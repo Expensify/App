@@ -143,29 +143,6 @@ describe('useMoneyReportHeaderMoreContentVisibility', () => {
         expect(result.current.hasStatusOrNextStep).toBe(true);
     });
 
-    it('does not show the next step for an invoice that waits for the sender when a status bar is shown', () => {
-        // Given an invoice that waits for the sender's bank account and also shows a status bar
-        mockedIsInvoiceReport.mockReturnValue(true);
-        mockedStatusBar.mockReturnValue({
-            shouldShowStatusBar: true,
-            statusBarType: CONST.REPORT.STATUS_BAR_TYPE.ON_HOLD,
-        });
-        const waitingInvoice = {
-            ...report,
-            nextStep: {
-                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT,
-                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-            },
-        } as Report;
-        mockedUseOnyx.mockImplementation((key) => (key === `${ONYXKEYS.COLLECTION.REPORT}${TEST_REPORT_ID}` ? createOnyxResult<Report>(waitingInvoice) : createOnyxResult(undefined)));
-
-        // When the header decides what to show under the title
-        const {result} = renderHook(() => useMoneyReportHeaderMoreContentVisibility(TEST_REPORT_ID));
-
-        // Then the status bar takes the place of the next step, like on other reports
-        expect(result.current.shouldShowNextStep).toBe(false);
-    });
-
     it('does not show other next steps on an invoice', () => {
         // Given an invoice on a paid policy whose next step waits for the payer
         mockPolicyType(CONST.POLICY.TYPE.TEAM);

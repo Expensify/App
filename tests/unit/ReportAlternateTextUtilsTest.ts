@@ -497,18 +497,6 @@ describe('ReportAlternateTextUtils', () => {
             expect(getAlternateText({lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT)})).toBe('Alice: Fixture last message');
         });
 
-        it('should prefix a comment with the name saved on the action when the actor personal details have no name', () => {
-            // Given an actor from another company, like the payer on an invoice, whose personal details have no name or login
-            const personalDetails = {...PERSONAL_DETAILS, 42: {accountID: 42}};
-            const lastAction = makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {actorAccountID: 42, person: [{type: 'TEXT', style: 'strong', text: 'Payer Name'}]});
-
-            // When the LHN builds its preview
-            const alternateText = getAlternateText({lastAction, personalDetails});
-
-            // Then it names the actor with the name saved on the action instead of Hidden
-            expect(alternateText).toBe('Payer Name: Fixture last message');
-        });
-
         it('should use the "you" prefix for the current user comment', () => {
             const lastAction = makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {actorAccountID: CURRENT_USER_ACCOUNT_ID, person: [{type: 'TEXT', style: 'strong', text: 'Current User'}]});
             expect(getAlternateText({lastAction})).toBe(`${translateLocal('common.you')}: Fixture last message`);

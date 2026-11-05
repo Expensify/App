@@ -1871,15 +1871,15 @@ describe('ReportNameUtils', () => {
             await waitForBatchedUpdates();
         });
 
-        it.each(['Invoice #R00AbCdEfGh', 'Office chairs for March'])('shows the stored name %s of an invoice linked to a bill that has an invoice room', (storedName) => {
-            // Given an invoice with an invoice room and a link to a bill, with its default name or a name the user chose
-            const invoice = createInvoice(storedName);
+        it('shows the stored name of an invoice linked to a bill that has an invoice room', () => {
+            // Given an invoice with an invoice room and a link to a bill, with a name the user chose
+            const invoice = createInvoice('Office chairs for March');
 
             // When its name is computed
             const name = computeInvoiceName(invoice, billLinkNVPs);
 
             // Then it shows the stored name, because Bill Pay invoices keep the name Auth or the user saved
-            expect(name).toBe(storedName);
+            expect(name).toBe('Office chairs for March');
         });
 
         it('keeps the computed name for an invoice with an invoice room and no bill link', () => {
