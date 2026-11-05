@@ -30,6 +30,7 @@ function ValuePicker({
     addBottomSafeAreaPadding = true,
     disableKeyboardShortcuts = false,
     alternateNumberOfSupportedLines,
+    disabled = false,
 }: ValuePickerProps) {
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
@@ -61,6 +62,7 @@ function ValuePicker({
                         title={selectedItem?.label || placeholder || ''}
                         description={label}
                         onPress={showPickerModal}
+                        disabled={disabled}
                         furtherDetails={furtherDetails}
                         brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         errorText={errorText}

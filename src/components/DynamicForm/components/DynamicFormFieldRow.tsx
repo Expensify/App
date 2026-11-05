@@ -9,6 +9,7 @@ import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
@@ -50,6 +51,7 @@ function DynamicFormFieldRow({
 }: DynamicFormFieldRowProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
     const label = getFieldLabel(field, translate);
 
     if (field.readonly) {
@@ -92,6 +94,7 @@ function DynamicFormFieldRow({
             forwardedFSClass: CONST.FULLSTORY.CLASS.MASK,
             onValueChange: shouldRefreshOnChange ? (value, key) => onRefreshRequirements?.(key, value) : undefined,
             onBlur: shouldRefreshOnBlur ? refreshRequirements : undefined,
+            disabled: isOffline && !!field.refreshOnChange,
         },
     );
     const description = showsDescription ? undefined : getLocalizedText(translate, field.descriptionKey, field.description);

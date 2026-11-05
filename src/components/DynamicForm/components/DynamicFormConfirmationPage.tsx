@@ -3,6 +3,7 @@ import getConfirmationItems from '@components/DynamicForm/utils/getConfirmationI
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 
 import CONST from '@src/CONST';
 
@@ -24,6 +25,7 @@ function DynamicFormConfirmationPage({
     onOpenListItemEditor,
 }: DynamicFormSubPageProps) {
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
 
     return (
         <ConfirmationStep
@@ -32,7 +34,7 @@ function DynamicFormConfirmationPage({
             onNext={() => onNext()}
             onMove={onMove}
             pageTitle={confirmationTitle}
-            groups={getConfirmationItems(pages, allFields, values, translate, onMove, onOpenListItemEditor)}
+            groups={getConfirmationItems(pages, allFields, values, translate, onMove, onOpenListItemEditor, isOffline)}
             showOnfidoLinks={false}
             isLoading={!!isSubmitting || !!isSavingPages || !!isRefreshingRequirements}
             error={submitError}

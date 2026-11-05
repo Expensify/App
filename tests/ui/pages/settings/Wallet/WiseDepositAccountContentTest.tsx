@@ -266,6 +266,30 @@ describe('WiseDepositAccountContent', () => {
         expect(screen.getByLabelText('Sort code', {exact: false}).props.value).toBe('403020');
     });
 
+    it('locks the currency offline while the bank details stay editable', async () => {
+        // Given the first page of the GBP form
+        await Onyx.set(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS, wiseBankAccountFieldsGB);
+        await renderScreen(FIRST_PAGE_NAME);
+
+        // When the connection drops
+        await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the currency cannot change, since a new currency asks the server for a new form that would only wait in the queue
+        expect(screen.getByRole('button', {name: /common\.currency/})).toBeDisabled();
+
+        // And the user can still type the sort code and go on, since only Confirm sends the answers
+        expect(screen.getByLabelText('Sort code', {exact: false})).not.toBeDisabled();
+        expect(screen.getByRole('button', {name: 'common.next'})).not.toBeDisabled();
+
+        // When the connection comes back
+        await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: false});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the currency can be changed again
+        expect(screen.getByRole('button', {name: /common\.currency/})).not.toBeDisabled();
+    });
+
     it('shows a failed refresh on the form page and hides it on the next attempt', async () => {
         // Given the first page of the GBP form
         await Onyx.set(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS, wiseBankAccountFieldsGB);

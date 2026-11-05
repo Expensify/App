@@ -40,6 +40,9 @@ type SummaryItem = {
     /** False for a row that opens nothing, so it is not announced as a button. Defaults to true. */
     interactive?: boolean;
 
+    /** The row shows its answer but cannot be opened for now, such as offline */
+    disabled?: boolean;
+
     /** The brick road indicator shown on the row */
     brickRoadIndicator?: BrickRoad;
 
@@ -199,7 +202,7 @@ function ConfirmationStep({
                 </View>
             );
         }
-        const {id, description, title, shouldShowRightIcon, onPress, interactive, brickRoadIndicator, errorText, testID, accessibilityLabel} = row;
+        const {id, description, title, shouldShowRightIcon, onPress, interactive, disabled, brickRoadIndicator, errorText, testID, accessibilityLabel} = row;
         return (
             <MenuItemWithTopDescription
                 key={id}
@@ -209,6 +212,7 @@ function ConfirmationStep({
                 shouldShowRightIcon={shouldShowRightIcon}
                 onPress={onPress}
                 interactive={interactive}
+                disabled={disabled}
                 brickRoadIndicator={brickRoadIndicator}
                 errorText={errorText}
                 accessibilityLabel={accessibilityLabel}

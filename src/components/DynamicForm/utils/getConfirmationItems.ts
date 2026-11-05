@@ -65,7 +65,10 @@ function getOptedOutFieldByLink(pages: DynamicFormPage[], values: DynamicFormVal
     return optedOutFieldByLink;
 }
 
-/** One section per shown page holding its visible answers, with each list entry as an avatar row and an empty list as a plain row. Tapping a row opens the page or entry to edit. Readonly rows open nothing. */
+/**
+ * One section per shown page holding its visible answers, with each list entry as an avatar row and an empty list as a plain row. Tapping a row opens the page or entry to edit. Readonly rows open nothing.
+ * Offline, a row whose answer asks the server for a new form is disabled, as its input is on its page. An address stays open, since only its country does that and the rest can be edited offline.
+ */
 function getConfirmationItems(
     pages: DynamicFormPage[],
     allFields: DynamicFormField[],
@@ -73,6 +76,7 @@ function getConfirmationItems(
     translate: LocalizedTranslate,
     onEditPage: (pageIndex: number) => void,
     onEditListItem: (listKey: string, itemID: string) => void,
+    isOffline = false,
 ): SummaryGroup[] {
     const optedOutFieldByLink = getOptedOutFieldByLink(pages, values, allFields);
 
@@ -124,6 +128,7 @@ function getConfirmationItems(
                             shouldShowRightIcon: isEditable,
                             onPress: isEditable ? handleEdit : noop,
                             interactive: isEditable,
+                            disabled: isOffline && !!field.refreshOnChange && field.type !== 'address',
                         },
                     ];
                 }),

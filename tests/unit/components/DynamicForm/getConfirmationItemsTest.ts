@@ -42,6 +42,44 @@ describe('getConfirmationItems', () => {
         expect(onEditPage).toHaveBeenCalledWith(0);
     });
 
+    describe('offline', () => {
+        const bankPages: DynamicFormPage[] = [
+            {
+                key: 'bank',
+                title: 'Bank',
+                content: [
+                    {key: 'currency', type: 'currency', required: true, label: 'Currency', refreshOnChange: true},
+                    {key: 'sortCode', type: 'text', required: true, label: 'Sort code'},
+                    {key: 'homeAddress', type: 'address', required: true, label: 'Address', refreshOnChange: true},
+                ],
+            },
+        ];
+        const values = {currency: 'GBP', sortCode: '403020', homeAddress: '1 Main St'};
+
+        it('disables only the rows whose change asks the server for a new form', () => {
+            // Given a currency that changes the requirements, next to a sort code that does not
+            // When the confirmation page is built offline
+            const [group] = getConfirmationItems(bankPages, getAllFields(bankPages), values, translateLocal, jest.fn(), jest.fn(), true);
+            const getRow = (id: string) => group.rows.find((row) => row.id === id);
+
+            // Then the currency row cannot be opened, since a new pick would only queue a refresh, while the sort code can still be corrected
+            expect(getRow('currency')).toEqual(expect.objectContaining({disabled: true}));
+            expect(getRow('sortCode')).not.toEqual(expect.objectContaining({disabled: true}));
+
+            // And the address row stays open, since only its country refreshes and that picker is locked on the page itself
+            expect(getRow('homeAddress')).not.toEqual(expect.objectContaining({disabled: true}));
+        });
+
+        it('keeps every row enabled online', () => {
+            // Given the same answers
+            // When the confirmation page is built online
+            const [group] = getConfirmationItems(bankPages, getAllFields(bankPages), values, translateLocal, jest.fn(), jest.fn(), false);
+
+            // Then the currency row opens its page, since a new form can be fetched
+            expect(group.rows.find((row) => row.id === 'currency')).not.toEqual(expect.objectContaining({disabled: true}));
+        });
+    });
+
     it('groups a masked SSN starting with zeros like any other SSN', () => {
         // Given an SSN starting with zeros, which the SSN validator rejects but the form accepts
         // When the confirmation sections are built
