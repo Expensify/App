@@ -196,6 +196,8 @@ function DescribeRuleForm({
             // The form shows this answer until the next description, so the answer stays in Onyx
             pendingGenerationRef.current = undefined;
             stopNewRulePromptLoading();
+            // The answer and its buttons show below the input, where the keyboard on iOS and Android covers them
+            formRef.current?.scrollToEnd();
             return;
         }
         if (generatedRuleState !== CONST.GENERATED_RULE.STATE.RULE) {
