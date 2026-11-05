@@ -1094,6 +1094,7 @@ describe('useSelectedTransactionsActions', () => {
             undefined,
             CURRENT_USER_ACCOUNT_ID,
             expect.anything(),
+            undefined,
         );
     });
 
