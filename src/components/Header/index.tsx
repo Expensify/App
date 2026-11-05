@@ -17,10 +17,8 @@
  *   <Header.BackButton onPress={goBack} />
  *   <Header.Icon src={icon} />
  *   <Header.Title title={title} />
- *   <Header.CustomActions>
- *     <ResetLink />
- *     <Header.DownloadButton onPress={onDownload} />
- *   </Header.CustomActions>
+ *   <ResetLink />
+ *   <Header.DownloadButton onPress={onDownload} />
  *   <Header.ThreeDotsMenu items={menuItems} />
  *   <Header.CloseButton onPress={onClose} />
  * </Header>
@@ -37,7 +35,6 @@
  * ```
  */
 import HeaderComponent from './Header';
-import HeaderCustomActions from './layout/HeaderCustomActions';
 import HeaderAvatarWithDisplayName from './primitives/HeaderAvatarWithDisplayName';
 import HeaderBackButton from './primitives/HeaderBackButton';
 import HeaderCloseButton from './primitives/HeaderCloseButton';
@@ -52,7 +49,6 @@ function HeaderBase(props: React.ComponentProps<typeof HeaderComponent>) {
 }
 
 const Header = Object.assign(HeaderBase, {
-    CustomActions: HeaderCustomActions,
     AvatarWithDisplayName: HeaderAvatarWithDisplayName,
     BackButton: HeaderBackButton,
     CloseButton: HeaderCloseButton,

@@ -5,7 +5,6 @@
  * and the Side Panel (help) button. Some account settings pages also use `shouldDisplaySearchRouter`.
  */
 import Header from '@components/Header/Header';
-import HeaderCustomActions from '@components/Header/layout/HeaderCustomActions';
 import HeaderBackButton from '@components/Header/primitives/HeaderBackButton';
 import HeaderTitle from '@components/Header/primitives/HeaderTitle';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
@@ -38,7 +37,7 @@ function HeaderCentralPane({title, onBackButtonPress, isHeadline = true, shouldD
                 title={title}
                 titleStyles={isHeadline && styles.textHeadlineH2}
             />
-            <HeaderCustomActions>{children}</HeaderCustomActions>
+            {children}
             {shouldDisplaySearchRouter && <SearchButton />}
             <SidePanelButton />
         </Header>
