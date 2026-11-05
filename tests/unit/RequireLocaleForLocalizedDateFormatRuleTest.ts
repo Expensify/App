@@ -36,16 +36,18 @@ const tsRuleTester = new RuleTester({
 const IMPORT_FORMAT_IN_TIME_ZONE = "import {formatInTimeZone} from 'date-fns-tz';";
 
 describe('require-locale-for-localized-date-format timezone tokens', () => {
-    // Given date-fns-tz calls that format a timezone name or a GMT offset
+    // Given calls that format a timezone name or a GMT offset, through date-fns-tz and through plain date-fns
     // When the rule checks each call
-    // Then a timezone name needs a locale, because `Intl` names the zone in the user's language, while a GMT offset,
-    // which reads the same in every language, does not
+    // Then a date-fns-tz timezone name needs a locale, because `Intl` names the zone in the user's language, while a GMT
+    // offset, or a `z` token in plain date-fns, which writes a GMT offset for it, reads the same in every language
     tsRuleTester.run(ruleModule.name, ruleModule, {
         valid: [
             `${IMPORT_FORMAT_IN_TIME_ZONE} formatInTimeZone(date, timeZone, 'zzz', {locale: dateFnsLocale});`,
             `${IMPORT_FORMAT_IN_TIME_ZONE} formatInTimeZone(date, timeZone, 'O');`,
             `${IMPORT_FORMAT_IN_TIME_ZONE} formatInTimeZone(date, timeZone, 'OOOO');`,
             `${IMPORT_FORMAT_IN_TIME_ZONE} formatInTimeZone(date, timeZone, "yyyy-MM-dd'T'HH:mm:ssXXX");`,
+            "import {format} from 'date-fns'; format(date, 'zzz');",
+            "import {format} from 'date-fns'; format(date, 'HH:mm zzzz');",
         ],
         invalid: [
             {
@@ -54,6 +56,14 @@ describe('require-locale-for-localized-date-format timezone tokens', () => {
             },
             {
                 code: `${IMPORT_FORMAT_IN_TIME_ZONE} formatInTimeZone(date, timeZone, 'HH:mm zzzz');`,
+                errors: [{messageId: 'missingLocale'}],
+            },
+            {
+                code: "import {format as tzFormat} from 'date-fns-tz'; tzFormat(date, 'zzz', {timeZone});",
+                errors: [{messageId: 'missingLocale'}],
+            },
+            {
+                code: "DateUtils.formatInTimeZoneWithFallback(date, timeZone, 'zzz');",
                 errors: [{messageId: 'missingLocale'}],
             },
         ],
