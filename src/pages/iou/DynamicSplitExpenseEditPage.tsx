@@ -124,7 +124,6 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     const [splitExpenseDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
     const [originalTransactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitExpenseDraftTransaction?.comment?.originalTransactionID}`);
 
-    const splitExpenseDraftTransactionDetails: Partial<TransactionDetails> = getTransactionDetails(splitExpenseDraftTransaction) ?? {};
     const allTransactions = useAllTransactions();
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -197,7 +196,6 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     const requiresExactSum = isManagedCardTransaction(transaction) || isPerDiemRequest(transaction);
     const otherSplitExpenses = splitExpensesList?.filter((item) => item.transactionID !== splitExpenseTransactionID) ?? [];
     const canRemoveSplit = !requiresExactSum || otherSplitExpenses.some((item) => !frozenSplitTransactionIDs.has(item.transactionID));
-    const currentDescription = getParsedComment(Parser.htmlToMarkdown(splitExpenseDraftTransactionDetails?.comment ?? ''));
 
     const draftTransactionReport = getReportOrDraftReport({reportID: splitExpenseDraftTransaction?.reportID});
     const isSelfDMSplit = isSelfDM(draftTransactionReport);
@@ -206,34 +204,16 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
         selector: policyTypeSelector,
     });
     const isPolicyExpenseChat = isGroupPolicyByType(draftTransactionPolicyType);
+    const derivedCurrentReportName = useDerivedReportNameByReportID(currentReport?.reportID);
 
     const originalTransactionCategory = transaction?.category ?? '';
     const originalTransactionTag = transaction?.tag ?? '';
 
-    const transactionCategory = splitExpenseDraftTransactionDetails?.category ?? '';
-    const categoryForDisplay = isCategoryMissing(transactionCategory) ? '' : transactionCategory;
-    const hasOriginalCategory = !!originalTransactionCategory && !isCategoryMissing(originalTransactionCategory);
-    const shouldShowCategory =
-        hasOriginalCategory ||
-        (isPolicyExpenseChat && (!!categoryForDisplay || hasEnabledOptions(policyCategories ?? {}))) ||
-        (isExpenseUnreported && (!effectivePolicy || hasEnabledOptions(policyCategories ?? {})));
-
     const transactionTag = getTag(splitExpenseDraftTransaction);
     const policyTagLists = getTagLists(policyTags);
 
-    const isSplitAvailable =
-        report &&
-        transaction &&
-        isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, rules, currentReportOwnerLogin, effectivePolicy, parentReport);
-
-    const isCategoryRequired = !!effectivePolicy?.requiresCategory && !isSelfDMSplit;
-    const categoryValue = getDecodedLeafCategoryName(splitExpenseDraftTransactionDetails?.category ?? '');
-    const derivedCurrentReportName = useDerivedReportNameByReportID(currentReport?.reportID);
-    const reportName = getReportName(currentReport, derivedCurrentReportName) || parentReport?.reportName;
-    const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, arePolicyRulesEnabled(effectivePolicy, policyCategories));
-
     // Mirror MoneyRequestView's `shouldShowTag`, plus always surface the row when the original
-    // (parent) transaction carried a tag — same rationale as `shouldShowCategory` above: workspace
+    // (parent) transaction carried a tag, for the same reason as `shouldShowCategory` below: workspace
     // deletion leaves the gate flags false, but the preserved tag should still be re-selectable.
     const shouldShowTags = !!originalTransactionTag || ((isPolicyExpenseChat || isExpenseUnreported) && !!(transactionTag || hasEnabledTags(policyTagLists)));
     const tagVisibility = getTagVisibility({
@@ -243,7 +223,28 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
         transaction: splitExpenseDraftTransaction,
     });
 
-    const previousTagsVisibility = usePrevious(tagVisibility.map((v) => v.shouldShow)) ?? [];
+    const previousTagVisibility = usePrevious(tagVisibility);
+
+    const splitExpenseDraftTransactionDetails: Partial<TransactionDetails> = getTransactionDetails(splitExpenseDraftTransaction) ?? {};
+    const currentDescription = getParsedComment(Parser.htmlToMarkdown(splitExpenseDraftTransactionDetails?.comment ?? ''));
+
+    const transactionCategory = splitExpenseDraftTransactionDetails?.category ?? '';
+    const categoryForDisplay = isCategoryMissing(transactionCategory) ? '' : transactionCategory;
+    const hasOriginalCategory = !!originalTransactionCategory && !isCategoryMissing(originalTransactionCategory);
+    const shouldShowCategory =
+        hasOriginalCategory ||
+        (isPolicyExpenseChat && (!!categoryForDisplay || hasEnabledOptions(policyCategories ?? {}))) ||
+        (isExpenseUnreported && (!effectivePolicy || hasEnabledOptions(policyCategories ?? {})));
+
+    const isSplitAvailable =
+        report &&
+        transaction &&
+        isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, rules, currentReportOwnerLogin, effectivePolicy, parentReport);
+
+    const isCategoryRequired = !!effectivePolicy?.requiresCategory && !isSelfDMSplit;
+    const categoryValue = getDecodedLeafCategoryName(splitExpenseDraftTransactionDetails?.category ?? '');
+    const reportName = getReportName(currentReport, derivedCurrentReportName) || parentReport?.reportName;
+    const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, arePolicyRulesEnabled(effectivePolicy, policyCategories));
 
     const isSplitPerDiemRequest = isPerDiemRequest(transaction);
     const isSplitTimeRequest = isTimeRequest(transaction);
@@ -512,7 +513,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                 const tagVisibilityItem = tagVisibility.at(index);
                                 const shouldShow = tagVisibilityItem?.shouldShow ?? false;
                                 const isTagRequired = tagVisibilityItem?.isTagRequired ?? false;
-                                const prevShouldShow = previousTagsVisibility.at(index) ?? false;
+                                const prevShouldShow = previousTagVisibility.at(index)?.shouldShow ?? false;
 
                                 if (!shouldShow) {
                                     return null;

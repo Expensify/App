@@ -39,7 +39,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {fullPolicySnapshotLastModifiedSelector} from '@src/selectors/Policy';
 import {hasOnceLoadedReportActionsSelector, isLoadingInitialReportActionsSelector, pendingNewTransactionIDsSelector} from '@src/selectors/ReportMetaData';
-import type {ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 
 import type {ListRenderItem} from '@shopify/flash-list';
 import type {LayoutChangeEvent} from 'react-native';
@@ -47,6 +47,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/core';
 import React, {useEffect, useRef, useState} from 'react';
+import Onyx from 'react-native-onyx';
 
 import type {MoneyRequestReportPreviewProps} from './types';
 
@@ -83,8 +84,6 @@ function MoneyRequestReportPreview({
     const personalDetailsList = usePersonalDetails();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(invoiceReceiverPolicyID)}`);
     const invoiceReceiverPersonalDetail = chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? personalDetailsList?.[chatReport.invoiceReceiver.accountID] : null;
@@ -102,7 +101,7 @@ function MoneyRequestReportPreview({
     const [hasIOUReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReportID)}`, {
         selector: hasReportActionsSelector,
     });
-    const pendingExpenseTransactionRef = useRef<{transaction: Transaction; originRoute: string} | null>(null);
+    const pendingExpenseTransactionRef = useRef<{transaction: Transaction; originRoute: string; conciergeChat: OnyxEntry<Report>} | null>(null);
     // Subscribing to the whole action list re-rendered every card on each write, and a split writes a burst of
     // them. Narrow it to the one action a deferred press is waiting for, so nothing pending means nothing changes.
     const pendingPressActionCountSelector = (reportActions: OnyxEntry<ReportActions>) => {
@@ -223,7 +222,7 @@ function MoneyRequestReportPreview({
 
     const transactionPreviewContainerStyles = [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle];
 
-    const resolveChildReportID = (transaction: Transaction) => {
+    const resolveChildReportID = (transaction: Transaction, conciergeChat: OnyxEntry<Report>) => {
         let transactionIOUAction = getIOUActionForReportID(transaction.reportID, transaction.transactionID);
         if (transactionIOUAction && !isLiveIOUAction(transactionIOUAction)) {
             const liveIOUAction = getIOUActionForTransactionID(Object.values(getAllReportActions(transaction.reportID) ?? {}).filter(isLiveIOUAction), transaction.transactionID);
@@ -329,7 +328,7 @@ function MoneyRequestReportPreview({
         });
     };
 
-    const openTransactionFromPreview = (transaction: Transaction) => {
+    const openTransactionFromPreview = async (transaction: Transaction) => {
         if (contextMenuRef.current?.isContextMenuOpening) {
             return;
         }
@@ -353,8 +352,11 @@ function MoneyRequestReportPreview({
             return;
         }
 
+        // Read once per press and carry it to the deferred continuation below, which runs in an effect and must not read Onyx itself
+        const conciergeReportID = await Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID);
+        const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
         const isIOUActionLoaded = !!getIOUActionForReportID(transaction.reportID, transaction.transactionID);
-        const childReportID = resolveChildReportID(transaction);
+        const childReportID = resolveChildReportID(transaction, conciergeChat);
         const fullPolicySnapshot = policyID && fullPolicySnapshotLastModified ? {policyID, lastModified: fullPolicySnapshotLastModified} : undefined;
         if (childReportID) {
             if (!isIOUActionLoaded && iouReportID) {
@@ -369,7 +371,7 @@ function MoneyRequestReportPreview({
         }
 
         if (!isIOUActionLoaded && iouReportID && !isOffline) {
-            pendingExpenseTransactionRef.current = {transaction, originRoute: routeAtPress};
+            pendingExpenseTransactionRef.current = {transaction, originRoute: routeAtPress, conciergeChat};
             openReport({reportID: iouReportID, introSelected, conciergeChat, currentUserAccountID, hasReportActions: !!hasIOUReportActions, fullPolicySnapshot});
             return;
         }
@@ -387,7 +389,7 @@ function MoneyRequestReportPreview({
             return;
         }
         const pendingTransaction = pendingPress.transaction;
-        const childReportID = resolveChildReportID(pendingTransaction);
+        const childReportID = resolveChildReportID(pendingTransaction, pendingPress.conciergeChat);
         if (childReportID) {
             pendingExpenseTransactionRef.current = null;
             navigateToExpense(childReportID, pendingPress.originRoute);
@@ -426,7 +428,9 @@ function MoneyRequestReportPreview({
                 transactionPreviewWidth={reportPreviewStyles.transactionPreviewCarouselStyle.width}
                 transactionID={item.transactionID}
                 reportPreviewAction={action}
-                onPreviewPressed={() => openTransactionFromPreview(item)}
+                onPreviewPressed={() => {
+                    openTransactionFromPreview(item);
+                }}
                 shouldShowPayerAndReceiver={shouldShowPayerAndReceiver}
                 shouldHighlight={!!newTransactionIDs?.has(item.transactionID)}
             />
