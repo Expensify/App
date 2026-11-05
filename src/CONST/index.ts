@@ -2585,6 +2585,7 @@ const CONST = {
             SUBMITTING_TO_SELF: 'submittingToSelf',
             REJECTED_REPORT: 'rejectedReport',
             CHANGE_WORKSPACE: 'changeWorkspace',
+            APPROVE_ONLY_SUBMIT_BLOCKED: 'approveOnlySubmitBlocked',
         },
         ICONS: {
             HOURGLASS: 'hourglass',
