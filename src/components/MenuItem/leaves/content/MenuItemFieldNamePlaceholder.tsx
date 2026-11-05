@@ -2,6 +2,8 @@ import useStyleUtils from '@hooks/useStyleUtils';
 
 import {fontScale, lineHeightScale} from '@styles/typography';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 
 import type {MenuItemSupportingTextProps} from './base/types';
@@ -17,6 +19,7 @@ function MenuItemFieldNamePlaceholder(props: MenuItemSupportingTextProps) {
             {...props}
             slot="top"
             style={[StyleUtils.getFontSizeStyle(fontScale.text), StyleUtils.getLineHeightStyle(lineHeightScale.text)]}
+            forwardedFSClass={props.forwardedFSClass ?? CONST.FULLSTORY.CLASS.UNMASK}
         />
     );
 }
