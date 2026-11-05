@@ -246,6 +246,10 @@ const DYNAMIC_ROUTES = {
         path: 'more-info-needed',
         entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO],
     },
+    WISE_KYC_REVIEW: {
+        path: 'kyc-review',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_MORE_INFO_NEEDED],
+    },
     WISE_ONBOARDING_STATUS: {
         path: 'status',
         entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO],
@@ -2405,6 +2409,20 @@ const ROUTES = {
     INSIGHTS: {
         route: 'insights/:dashboardID',
         getRoute: (dashboardID: ValueOf<typeof CONST.INSIGHTS.DASHBOARD>) => `insights/${dashboardID}` as const,
+    },
+    INSIGHTS_DETAILS: {
+        route: 'insights/:dashboardID/details/:graphKey',
+        getRoute: ({
+            dashboardID,
+            graphKey,
+            itemKey,
+            periodEnd,
+        }: {
+            dashboardID: ValueOf<typeof CONST.INSIGHTS.DASHBOARD>;
+            graphKey: ValueOf<typeof CONST.INSIGHTS.GRAPH>;
+            itemKey: string;
+            periodEnd?: string;
+        }) => `insights/${dashboardID}/details/${graphKey}?item=${encodeURIComponent(itemKey)}${periodEnd ? `&end=${periodEnd}` : ''}` as const,
     },
 
     EXPENSE_REPORT_RHP: {
@@ -4748,6 +4766,30 @@ const ROUTES = {
     POLICY_ACCOUNTING_ZOHO_BOOKS_OAUTH: {
         route: 'workspaces/:policyID/accounting/zoho-books/oauth',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/oauth` as const,
+    },
+    POLICY_ACCOUNTING_ZOHO_BOOKS_ADVANCED: {
+        route: 'workspaces/:policyID/accounting/zoho-books/advanced',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/advanced` as const,
+    },
+    POLICY_ACCOUNTING_ZOHO_BOOKS_EXPORT_METHOD: {
+        route: 'workspaces/:policyID/accounting/zoho-books/advanced/export-method',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/advanced/export-method` as const,
+    },
+    POLICY_ACCOUNTING_ZOHO_BOOKS_BILL_PAYMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/zoho-books/advanced/bill-payment-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/advanced/bill-payment-account` as const,
+    },
+    POLICY_ACCOUNTING_ZOHO_BOOKS_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/zoho-books/advanced/expensify-card-settlement-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/advanced/expensify-card-settlement-account` as const,
+    },
+    POLICY_ACCOUNTING_ZOHO_BOOKS_TRAVEL_BILLING_SETTLEMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/zoho-books/advanced/travel-billing-settlement-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/advanced/travel-billing-settlement-account` as const,
+    },
+    POLICY_ACCOUNTING_ZOHO_BOOKS_TRAVEL_BILLING_PAYABLE_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/zoho-books/advanced/travel-billing-payable-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/advanced/travel-billing-payable-account` as const,
     },
     POLICY_ACCOUNTING_ZOHO_BOOKS_IMPORT: {
         route: 'workspaces/:policyID/accounting/zoho-books/import',

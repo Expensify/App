@@ -1366,6 +1366,82 @@ describe('SidebarUtils', () => {
             expect(result).toStrictEqual({shouldDisplay: false});
         });
 
+        describe('bill reports', () => {
+            const billReport = {
+                ...createRandomReport(1, undefined),
+                reportName: 'Bill',
+                type: CONST.REPORT.UNSUPPORTED_TYPE.BILL,
+                errorFields: undefined,
+            } as Report;
+
+            const getBillDisplayResult = (isBillPayBetaEnabled: boolean) =>
+                SidebarUtils.shouldDisplayReportInLHN({
+                    policy: undefined,
+                    report: billReport,
+                    reports: {[`${ONYXKEYS.COLLECTION.REPORT}${billReport.reportID}`]: billReport},
+                    currentReportId: undefined,
+                    isInFocusMode: false,
+                    isDefaultRoomsBetaEnabled: false,
+                    isBillPayBetaEnabled,
+                    transactionViolations: {},
+                    // A draft makes the report show in any mode, so only the bill check can hide it.
+                    draftComment: 'Draft',
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    hasGuidesEmails: false,
+                    conciergeReportID: undefined,
+                    session: undefined,
+                });
+
+            it('hides a bill from users without the newDotBillPay beta', () => {
+                // Given a bill with a draft and a user without the newDotBillPay beta
+                // When the LHN decides whether to show the bill
+                const result = getBillDisplayResult(false);
+
+                // Then the bill stays hidden, because NewDot only shows bills behind the beta
+                expect(result).toStrictEqual({shouldDisplay: false});
+            });
+
+            it('shows a bill to users with the newDotBillPay beta', () => {
+                // Given a bill with a draft and a user with the newDotBillPay beta
+                // When the LHN decides whether to show the bill
+                const result = getBillDisplayResult(true);
+
+                // Then the bill shows like any other report with a draft
+                expect(result).toStrictEqual({shouldDisplay: true});
+            });
+
+            it('still hides a paycheck from users with the newDotBillPay beta', () => {
+                // Given a paycheck and a user with the newDotBillPay beta
+                const paycheckReport = {...billReport, type: CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK} as Report;
+
+                // When the LHN decides whether to show the paycheck
+                const result = SidebarUtils.shouldDisplayReportInLHN({
+                    policy: undefined,
+                    report: paycheckReport,
+                    reports: {[`${ONYXKEYS.COLLECTION.REPORT}${paycheckReport.reportID}`]: paycheckReport},
+                    currentReportId: undefined,
+                    isInFocusMode: false,
+                    isDefaultRoomsBetaEnabled: false,
+                    isBillPayBetaEnabled: true,
+                    transactionViolations: {},
+                    draftComment: 'Draft',
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    hasGuidesEmails: false,
+                    conciergeReportID: undefined,
+                    session: undefined,
+                });
+
+                // Then the paycheck stays hidden, because the beta only covers bills
+                expect(result).toStrictEqual({shouldDisplay: false});
+            });
+        });
+
         it('accepts isOffline=true without error', () => {
             const report = {
                 ...createRandomReport(1, undefined),
@@ -5511,6 +5587,47 @@ describe('SidebarUtils', () => {
                 });
 
                 expect(result[`${ONYXKEYS.COLLECTION.REPORT}1`]).toBeUndefined();
+            });
+
+            it.each([
+                {isBillPayBetaEnabled: false, shouldShowBill: false},
+                {isBillPayBetaEnabled: true, shouldShowBill: true},
+            ])('shows a bill only when isBillPayBetaEnabled is true (isBillPayBetaEnabled: $isBillPayBetaEnabled)', ({isBillPayBetaEnabled, shouldShowBill}) => {
+                // Given a bill with a draft, so the draft alone would make it show
+                const report = {
+                    ...createRandomReport(1, undefined),
+                    reportID: '1',
+                    reportName: 'Bill',
+                    type: CONST.REPORT.UNSUPPORTED_TYPE.BILL,
+                    errorFields: undefined,
+                };
+                const reports: OnyxCollection<Report> = {
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: report,
+                };
+
+                // When the LHN builds its list for a user with or without the newDotBillPay beta
+                const result = SidebarUtils.getReportsToDisplayInLHN({
+                    currentReportId: undefined,
+                    policies: {},
+                    reports,
+                    isDefaultRoomsBetaEnabled: false,
+                    isBillPayBetaEnabled,
+                    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                    draftComments: {[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}1`]: 'Draft'},
+                    transactionViolations: {},
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                    guideAccountIDs: [],
+                    conciergeReportID: undefined,
+                    session: undefined,
+                });
+
+                // Then only users with the beta see the bill
+                expect(!!result[`${ONYXKEYS.COLLECTION.REPORT}1`]).toBe(shouldShowBill);
             });
 
             it('should use the correct draft comment per report', () => {

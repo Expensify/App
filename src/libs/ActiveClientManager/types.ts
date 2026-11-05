@@ -7,4 +7,8 @@ type IsReady = () => Promise<void>;
 /** Returns a function that removes the callback */
 type OnBecomeLeader = (callback: () => void) => () => void;
 
-export type {Init, IsClientTheLeader, IsReady, OnBecomeLeader};
+type LogTab = {clientID: string; isLeader: boolean};
+
+type GetLogTab = () => LogTab | undefined;
+
+export type {GetLogTab, Init, IsClientTheLeader, IsReady, OnBecomeLeader};
