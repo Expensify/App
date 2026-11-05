@@ -1,5 +1,5 @@
 import type {WisePaymentAmounts} from '@components/WisePaymentSummary/types';
-import getWisePaymentSummaryRows from '@components/WisePaymentSummary/utils/getWisePaymentSummaryRows';
+import getWisePaymentSummaryRows, {getWisePaymentSummaryRowCount} from '@components/WisePaymentSummary/utils/getWisePaymentSummaryRows';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -89,5 +89,31 @@ describe('getWisePaymentSummaryRows', () => {
         // Then the tax row appears after the fees only for the quote that has a tax, since most corridors have none
         expect(rowsWithTax.at(-2)).toEqual({label: 'Tax', value: '$0.25'});
         expect(rowsWithoutTax.map(({label}) => label)).not.toContain('Tax');
+    });
+
+    describe('getWisePaymentSummaryRowCount', () => {
+        it('reserves a tax row even when the quote has no tax', () => {
+            // Given a fully reimbursable report whose quote has no tax
+            const rows = getRows({});
+
+            // When the card reserves its rows before the quote loads
+            const reservedRowCount = getWisePaymentSummaryRowCount({report: fullyReimbursableReport, isPayingUnheldOnly: false});
+
+            // Then it keeps one row more than the quote fills, so the card doesn't grow if Wise charges a tax
+            expect(reservedRowCount).toBe(rows.length + 1);
+            expect(reservedRowCount).toBe(getRows({amounts: {...amounts, tax: 25}}).length);
+        });
+
+        it.each([
+            ['part of the report is not reimbursable', {...fullyReimbursableReport, total: -660, reimbursableTotal: -100, nonReimbursableTotal: -560}, false],
+            ['the admin pays only the expenses not on hold', fullyReimbursableReport, true],
+        ])('reserves the partial payment row when %s', (_label, report, isPayingUnheldOnly) => {
+            // Given a report whose card shows a row for the paid part
+            // When the card reserves its rows before the quote loads
+            const reservedRowCount = getWisePaymentSummaryRowCount({report, isPayingUnheldOnly});
+
+            // Then the reserved space matches the loaded card with a tax, so it never jumps when the quote arrives
+            expect(reservedRowCount).toBe(getRows({report, isPayingUnheldOnly, amounts: {...amounts, tax: 25}}).length);
+        });
     });
 });

@@ -1,4 +1,4 @@
-import Text from '@components/Text';
+import DotIndicatorMessage from '@components/DotIndicatorMessage';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -8,23 +8,37 @@ import {View} from 'react-native';
 import type {WisePaymentSummaryProps} from './types';
 
 import WisePaymentSummaryHeader from './components/WisePaymentSummaryHeader';
+import WisePaymentSummaryRow from './components/WisePaymentSummaryRow';
 
 /** The report and the amounts of a Wise payment, shown before Pay and in the payment details afterwards */
-function WisePaymentSummary({reportID, rows}: WisePaymentSummaryProps) {
+function WisePaymentSummary({reportID, rows, placeholderRowCount = 0, errors}: WisePaymentSummaryProps) {
     const styles = useThemeStyles();
 
     return (
         <View style={[styles.borderedContentCard, styles.p4, styles.gap3]}>
             <WisePaymentSummaryHeader reportID={reportID} />
             {rows.map(({label, value}) => (
-                <View
+                <WisePaymentSummaryRow
                     key={label}
-                    style={[styles.flexRow, styles.justifyContentBetween, styles.gap3]}
-                >
-                    <Text style={styles.flexShrink1}>{label}</Text>
-                    <Text variant="textStrong">{value}</Text>
-                </View>
+                    label={label}
+                    value={value}
+                />
             ))}
+            {Array.from({length: placeholderRowCount}, (_, index) => (
+                <WisePaymentSummaryRow
+                    // Placeholders have no identity, they only hold space
+                    // eslint-disable-next-line react/no-array-index-key
+                    key={`placeholder-${index}`}
+                    label=" "
+                    value=" "
+                />
+            ))}
+            {!!errors && (
+                <DotIndicatorMessage
+                    messages={errors}
+                    type="error"
+                />
+            )}
         </View>
     );
 }

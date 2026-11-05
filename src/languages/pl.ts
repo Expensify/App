@@ -1859,6 +1859,13 @@ const translations: TranslationDeepObject<typeof en> = {
             employeeWillReceive: 'Pracownik otrzyma',
             totalFees: 'Łączne opłaty',
             fxRate: 'Kurs wymiany',
+            payAll: 'Zapłać wszystko',
+            reportCount: ({count}: {count: number}) => ({
+                one: '1 raport',
+                few: `${count} raporty`,
+                many: `${count} raportów`,
+                other: `${count} raportu`,
+            }),
         },
         confirmPayAmount: 'Zapłać to, co nie jest wstrzymane, lub zapłać cały raport.',
         confirmPayAllHoldAmount: () => ({

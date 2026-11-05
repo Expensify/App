@@ -1821,6 +1821,11 @@ const translations: TranslationDeepObject<typeof en> = {
             employeeWillReceive: 'Werknemer ontvangt',
             totalFees: 'Totale kosten',
             fxRate: 'Wisselkoers',
+            payAll: 'Alles betalen',
+            reportCount: ({count}: {count: number}) => ({
+                one: '1 rapport',
+                other: `${count} rapporten`,
+            }),
         },
         confirmPayAmount: 'Betaal wat niet in de wacht staat, of betaal het volledige rapport.',
         confirmPayAllHoldAmount: () => ({

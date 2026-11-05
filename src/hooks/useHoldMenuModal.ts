@@ -1,5 +1,5 @@
 import type {HoldMenuModalWrapperProps} from '@components/Modal/Global/HoldMenuModalWrapper';
-import HoldMenuModalWrapper from '@components/Modal/Global/HoldMenuModalWrapper';
+import HoldMenuModalWrapper, {HOLD_MENU_MODAL_ID} from '@components/Modal/Global/HoldMenuModalWrapper';
 import type {ModalProps} from '@components/Modal/Global/ModalContext';
 import {useModal} from '@components/Modal/Global/ModalContext';
 
@@ -11,6 +11,7 @@ const useHoldMenuModal = () => {
     const showHoldMenu = (options: HoldMenuOptions) => {
         return context.showModal({
             component: HoldMenuModalWrapper,
+            id: HOLD_MENU_MODAL_ID,
             props: options,
         });
     };

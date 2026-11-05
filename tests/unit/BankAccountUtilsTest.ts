@@ -1,5 +1,6 @@
 import {
     isWiseOnboardingPendingSubmit,
+    shouldConfirmWiseQuoteBeforePaying,
     getBankAccountConnectionStatus,
     getBankAccountState,
     getCompletedStepsForBankAccount,
@@ -417,6 +418,46 @@ describe('BankAccountUtils', () => {
             expect(isWiseOnboardingPendingSubmit(bankAccount)).toBe(false);
             expect(isWiseOnboardingAwaitingDecision(bankAccount)).toBe(false);
             expect(isWiseOnboardingMoreInfoNeeded(bankAccount)).toBe(false);
+        });
+    });
+
+    describe('shouldConfirmWiseQuoteBeforePaying', () => {
+        const wiseBankAccountID = 1;
+        const corpayBankAccountID = 2;
+        const buildBankAccount = (globalReimbursementProvider: ValueOf<typeof CONST.GLOBAL_REIMBURSEMENT_PROVIDER>): BankAccount => ({
+            bankCurrency: CONST.CURRENCY.USD,
+            bankCountry: CONST.COUNTRY.US,
+            accountData: {additionalData: {isGlobalReimbursementEnabled: true, globalReimbursementProvider}},
+        });
+        const bankAccountList: BankAccountList = {
+            [wiseBankAccountID]: buildBankAccount(CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE),
+            [corpayBankAccountID]: buildBankAccount(CONST.GLOBAL_REIMBURSEMENT_PROVIDER.CORPAY),
+        };
+        const wisePayment = {
+            paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            methodID: wiseBankAccountID,
+            bankAccountList,
+            isWiseReimbursementsBetaEnabled: true,
+        };
+
+        it('asks for a quote when paying from a Wise account', () => {
+            // Given a business bank account payment from an account set up through Wise
+            // When deciding whether to show the quote first
+            // Then it does, because Wise requires the admin to see its fees and rate before paying
+            expect(shouldConfirmWiseQuoteBeforePaying(wisePayment)).toBe(true);
+        });
+
+        it.each([
+            ['the Wise beta is off', {isWiseReimbursementsBetaEnabled: false}],
+            ['the admin already confirmed a quote', {wiseQuoteID: 'quote'}],
+            ['the payment is made elsewhere', {paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}],
+            ['the account is set up through Corpay', {methodID: corpayBankAccountID}],
+            ['the account is unknown', {methodID: 3}],
+        ])('pays without a quote when %s', (_label, overrides) => {
+            // Given a payment that Wise does not price
+            // When deciding whether to show the quote first
+            // Then it pays straight away, as it does today
+            expect(shouldConfirmWiseQuoteBeforePaying({...wisePayment, ...overrides})).toBe(false);
         });
     });
 

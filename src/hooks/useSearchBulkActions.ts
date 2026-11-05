@@ -14,6 +14,7 @@ import {getExpensifyCardStatementPDF} from '@libs/actions/CompanyCards';
 import {exportReceiptsToZip, exportReportsToPDF} from '@libs/actions/Export';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {getBankAccountToSetUpBeforePaying, payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
+import type {PayMoneyRequestFunctionParams} from '@libs/actions/IOU/PayMoneyRequest';
 import {approveMoneyRequest} from '@libs/actions/IOU/ReportWorkflow';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {deleteAppReport, exportReportToPDF, markAsManuallyExported, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
@@ -46,6 +47,8 @@ import {
 } from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
+import {getWiseQuote} from '@libs/actions/Wise';
+import {shouldConfirmWiseQuoteBeforePaying} from '@libs/BankAccountUtils';
 import {canResolveTransactionCard} from '@libs/CardUtils';
 import {getConnectionCompanyID} from '@libs/CopyPolicySettingsUtils';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
@@ -181,6 +184,7 @@ import useSplitEffectivePolicy from './useSplitEffectivePolicy';
 import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
 import useUndeleteTransactions from './useUndeleteTransactions';
+import useWiseQuoteConfirmModal from './useWiseQuoteConfirmModal';
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
@@ -683,6 +687,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResultsRef.current;
 
     const {showConfirmModal} = useConfirmModal();
+    const {showWiseQuoteCarouselModal} = useWiseQuoteConfirmModal();
     const {showDecisionModal} = useDecisionModal();
 
     const showOfflineModal = useCallback(() => {
@@ -1814,6 +1819,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                       });
 
             let paidReportCount = 0;
+            const wisePayments: PayMoneyRequestFunctionParams[] = [];
             for (const item of itemsToPay) {
                 if (!item.reportID) {
                     Log.info('[BulkPay] Skipping report: item has no reportID');
@@ -1921,7 +1927,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                 const methodID =
                     paymentItem.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? (paymentItem.bankAccountID ?? workspaceMethodID ?? reportPolicy?.achAccount?.bankAccountID) : undefined;
-                payMoneyRequest({
+                const payMoneyRequestParams: PayMoneyRequestFunctionParams = {
                     bankAccountList,
                     isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                     getCurrencyDecimals,
@@ -1950,7 +1956,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     conciergeChat,
                     isFallbackChatReport,
                     rules,
-                });
+                };
+
+                if (shouldConfirmWiseQuoteBeforePaying(payMoneyRequestParams)) {
+                    wisePayments.push(payMoneyRequestParams);
+                    continue;
+                }
+                payMoneyRequest(payMoneyRequestParams);
 
                 // payMoneyRequest opens the global reimbursements onboarding instead of paying, so this report stays unpaid
                 if (
@@ -1966,7 +1978,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 paidReportCount += 1;
             }
 
-            if (paidReportCount < itemsToPay.length) {
+            if (paidReportCount + wisePayments.length < itemsToPay.length) {
                 Log.info('[BulkPay] Bulk pay finished with skipped reports', false, {paidReportCount, selectedCount: itemsToPay.length});
             }
 
@@ -1974,9 +1986,31 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 playSound(SOUNDS.SUCCESS);
                 clearSelectedTransactions();
             }
+
+            if (wisePayments.length > 0) {
+                const wiseReportIDs = wisePayments.map((params) => params.iouReport?.reportID).filter((reportID): reportID is string => !!reportID);
+                for (const reportID of wiseReportIDs) {
+                    getWiseQuote(reportID);
+                }
+                showWiseQuoteCarouselModal({
+                    reportIDs: wiseReportIDs,
+                    onConfirm: (wiseQuoteIDsByReportID) => {
+                        for (const params of wisePayments) {
+                            const reportID = params.iouReport?.reportID;
+                            if (!reportID) {
+                                continue;
+                            }
+                            payMoneyRequest({...params, wiseQuoteID: wiseQuoteIDsByReportID[reportID]});
+                        }
+                        playSound(SOUNDS.SUCCESS);
+                        clearSelectedTransactions();
+                    },
+                });
+            }
         },
         [
             hash,
+            showWiseQuoteCarouselModal,
             showOfflineModal,
             areAllMatchingItemsSelected,
             queryJSON,

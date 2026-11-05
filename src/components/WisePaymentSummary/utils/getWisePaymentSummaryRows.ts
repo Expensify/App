@@ -19,6 +19,21 @@ type GetWisePaymentSummaryRowsParams = {
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
+/** Rows every quote card shows, counting tax as if Wise always charged one: report total, debit amount, employee amount, fees, tax and FX rate */
+const QUOTE_ROW_COUNT = 6;
+
+type PartialPaymentRowParams = Pick<GetWisePaymentSummaryRowsParams, 'report' | 'isPayingUnheldOnly'>;
+
+/** Whether the card adds a row for the part of the report being paid, which differs from the report total */
+function hasPartialPaymentRow({report, isPayingUnheldOnly}: PartialPaymentRowParams): boolean {
+    return isPayingUnheldOnly || Math.abs(getReimbursableTotal(report)) !== Math.abs(report.total ?? 0);
+}
+
+/** The most rows the card can show for this report, known before the quote loads */
+function getWisePaymentSummaryRowCount(params: PartialPaymentRowParams): number {
+    return QUOTE_ROW_COUNT + (hasPartialPaymentRow(params) ? 1 : 0);
+}
+
 function getWisePaymentSummaryRows({report, amounts, isPayingUnheldOnly, translate, convertToDisplayString}: GetWisePaymentSummaryRowsParams): WisePaymentSummaryRow[] {
     // Expense report totals are stored as negative numbers
     const reportTotal = Math.abs(report.total ?? 0);
@@ -31,7 +46,7 @@ function getWisePaymentSummaryRows({report, amounts, isPayingUnheldOnly, transla
             label: translate('iou.wisePaymentSummary.unheldAmountBeingPaid'),
             value: convertToDisplayString(Math.abs(getUnheldReimbursableTotal(report)), report.currency),
         });
-    } else if (reimbursableTotal !== reportTotal) {
+    } else if (hasPartialPaymentRow({report, isPayingUnheldOnly})) {
         rows.push({label: translate('common.reimbursable'), value: convertToDisplayString(reimbursableTotal, report.currency)});
     }
 
@@ -53,3 +68,4 @@ function getWisePaymentSummaryRows({report, amounts, isPayingUnheldOnly, transla
 }
 
 export default getWisePaymentSummaryRows;
+export {getWisePaymentSummaryRowCount};

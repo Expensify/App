@@ -1971,6 +1971,11 @@ const translations = {
             employeeWillReceive: 'Employee will receive',
             totalFees: 'Total fees',
             fxRate: 'FX rate',
+            payAll: 'Pay all',
+            reportCount: ({count}: {count: number}) => ({
+                one: '1 report',
+                other: `${count} reports`,
+            }),
         },
         confirmPayAmount: "Pay what's not on hold, or pay the entire report.",
         confirmPayAllHoldAmount: () => ({

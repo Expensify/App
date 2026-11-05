@@ -1825,6 +1825,11 @@ const translations: TranslationDeepObject<typeof en> = {
             employeeWillReceive: 'Il dipendente riceverà',
             totalFees: 'Commissioni totali',
             fxRate: 'Tasso di cambio',
+            payAll: 'Paga tutto',
+            reportCount: ({count}: {count: number}) => ({
+                one: '1 resoconto',
+                other: `${count} resoconti`,
+            }),
         },
         confirmPayAmount: 'Paga le voci non in sospeso oppure paga l’intero resoconto.',
         confirmPayAllHoldAmount: () => ({

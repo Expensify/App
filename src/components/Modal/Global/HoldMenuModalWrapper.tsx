@@ -13,6 +13,10 @@ import React, {useState} from 'react';
 
 import type {ModalProps} from './ModalContext';
 
+import {useModal} from './ModalContext';
+
+const HOLD_MENU_MODAL_ID = 'holdMenu';
+
 type HoldMenuModalWrapperProps = ModalProps & {
     reportID: string | undefined;
     chatReportID: string | undefined;
@@ -29,7 +33,6 @@ type HoldMenuModalWrapperProps = ModalProps & {
 };
 
 function HoldMenuModalWrapper({
-    closeModal,
     reportID,
     chatReportID,
     requestType,
@@ -42,6 +45,7 @@ function HoldMenuModalWrapper({
     onConfirm,
 }: HoldMenuModalWrapperProps) {
     const [isVisible, setIsVisible] = useState(true);
+    const modalContext = useModal();
     const {translate} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -84,11 +88,13 @@ function HoldMenuModalWrapper({
                 if (isVisible) {
                     return;
                 }
-                closeModal({action: 'CLOSE'});
+                // Paying can open the Wise quote modal on top of this one, so this closes itself rather than the top modal
+                modalContext.closeModalByID(HOLD_MENU_MODAL_ID);
             }}
         />
     );
 }
 
 export default HoldMenuModalWrapper;
+export {HOLD_MENU_MODAL_ID};
 export type {HoldMenuModalWrapperProps};

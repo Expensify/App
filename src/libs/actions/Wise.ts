@@ -36,9 +36,32 @@ function getWiseKYCReviewEmbeddedLink(bankAccountID: number) {
     read(READ_COMMANDS.GET_WISE_KYC_REVIEW_EMBEDDED_LINK, {bankAccountID}, onyxData);
 }
 
+/** Asks Wise for a fresh price for paying the report. The server merges it into `report.wiseQuote`, so the old quote is dropped first */
+function getWiseQuote(reportID: string) {
+    const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: reportKey,
+                value: {wiseQuote: null, errorFields: {wiseQuote: null}},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: reportKey,
+                value: {errorFields: {wiseQuote: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')}},
+            },
+        ],
+    };
+
+    read(READ_COMMANDS.GET_WISE_QUOTE, {reportID}, onyxData);
+}
+
 /** Drops the link, which carries a token */
 function clearWiseKYCReviewEmbeddedLink() {
     Onyx.set(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK, null);
 }
 
-export {clearWiseKYCReviewEmbeddedLink, getWiseKYCReviewEmbeddedLink};
+export {clearWiseKYCReviewEmbeddedLink, getWiseKYCReviewEmbeddedLink, getWiseQuote};

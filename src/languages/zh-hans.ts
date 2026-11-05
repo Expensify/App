@@ -1759,6 +1759,11 @@ const translations: TranslationDeepObject<typeof en> = {
             employeeWillReceive: '员工将收到',
             totalFees: '总费用',
             fxRate: '汇率',
+            payAll: '全部支付',
+            reportCount: ({count}: {count: number}) => ({
+                one: '1 份报告',
+                other: `${count} 份报告`,
+            }),
         },
         confirmPayAmount: '支付未冻结的部分，或支付整份报告。',
         confirmPayAllHoldAmount: () => ({

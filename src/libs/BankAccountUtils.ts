@@ -7,6 +7,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type AccountData from '@src/types/onyx/AccountData';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {ACHData} from '@src/types/onyx/ReimbursementAccount';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -243,6 +244,26 @@ function shouldSetUpGlobalReimbursementsBeforePaying(bankAccount: OnyxEntry<Onyx
  */
 function isGlobalReimbursementsEnabled(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
     return bankAccount?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && bankAccount?.accountData?.additionalData?.isGlobalReimbursementEnabled === true;
+}
+
+type ShouldConfirmWiseQuoteBeforePayingParams = {
+    paymentType: PaymentMethodType;
+    methodID?: number;
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
+    isWiseReimbursementsBetaEnabled: boolean;
+    wiseQuoteID?: string;
+};
+
+/**
+ * Whether the admin confirms a Wise quote before this payment. Every Wise payment asks, since the client can't tell a
+ * cross-currency report from a same-currency one.
+ */
+function shouldConfirmWiseQuoteBeforePaying({paymentType, methodID, bankAccountList, isWiseReimbursementsBetaEnabled, wiseQuoteID}: ShouldConfirmWiseQuoteBeforePayingParams): boolean {
+    if (!isWiseReimbursementsBetaEnabled || wiseQuoteID || paymentType !== CONST.IOU.PAYMENT_TYPE.VBBA || !methodID) {
+        return false;
+    }
+    const bankAccount = bankAccountList?.[methodID];
+    return isGlobalReimbursementsEnabled(bankAccount) && bankAccount?.accountData?.additionalData?.globalReimbursementProvider === CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE;
 }
 
 /**
@@ -500,6 +521,7 @@ export {
     getBankAccountSearchLabel,
     isFilterableBankAccount,
     isBankAccountEligibleForGlobalReimbursements,
+    shouldConfirmWiseQuoteBeforePaying,
     shouldSetUpGlobalReimbursementsBeforePaying,
     isGlobalReimbursementsEnabled,
     isWiseOnboardingSubmitted,

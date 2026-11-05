@@ -1883,6 +1883,11 @@ const translations: TranslationDeepObject<typeof en> = {
             employeeWillReceive: 'Ο υπάλληλος θα λάβει',
             totalFees: 'Συνολικές χρεώσεις',
             fxRate: 'Συναλλαγματική ισοτιμία',
+            payAll: 'Πληρωμή όλων',
+            reportCount: ({count}: {count: number}) => ({
+                one: '1 αναφορά',
+                other: `${count} αναφορές`,
+            }),
         },
         confirmPayAmount: 'Πληρώστε ό,τι δεν είναι σε αναμονή ή πληρώστε ολόκληρη την αναφορά.',
         confirmPayAllHoldAmount: () => ({
