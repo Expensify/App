@@ -10310,6 +10310,38 @@ const CONST = {
         HIGH_CONTRAST_MODE_SWITCHER: {
             TOGGLE: 'HighContrastModeSwitcher-Toggle',
         },
+        TEST_TOOLS_MODAL_NAVIGATOR: {
+            DISMISS: 'TestToolsModalNavigator-Dismiss',
+        },
+        TEST_TOOLS_MODAL_PAGE: {
+            RELEASE_OPTIONS: 'TestToolsModalPage-ReleaseOptions',
+        },
+        BANNER: {
+            CLOSE: 'Banner-Close',
+        },
+        RADIO_BUTTON_WITH_LABEL: {
+            LABEL: 'RadioButtonWithLabel-Label',
+        },
+        FEED_SELECTOR: {
+            BUTTON: 'FeedSelector-Button',
+        },
+        GROWL_NOTIFICATION: {
+            DISMISS: 'GrowlNotification-Dismiss',
+            ACTION: 'GrowlNotification-Action',
+        },
+        CENTERED_MODAL_LAYOUT: {
+            BACKDROP: 'CenteredModalLayout-Backdrop',
+        },
+        POPOVER_MENU: {
+            DISMISS_BUTTON: 'PopoverMenu-DismissButton',
+        },
+        DISTANCE_REQUEST_FOOTER: {
+            ADD_STOP: 'DistanceRequestFooter-AddStop',
+            REUSE_ROUTE: 'DistanceRequestFooter-ReuseRoute',
+        },
+        CONCIERGE_THINKING_MESSAGE: {
+            TOGGLE_REASONING: 'ConciergeThinkingMessage-ToggleReasoning',
+        },
         AGENTS_RULES_BANNER: {
             CTA: 'AgentsRulesBanner-CTA',
             DISMISS: 'AgentsRulesBanner-Dismiss',
@@ -10537,8 +10569,13 @@ const CONST = {
             GROUP_EXPAND_TOGGLE: 'Search-GroupExpandToggle',
             GROUP_SELECT_ALL_CHECKBOX: 'Search-GroupSelectAllCheckbox',
             SORTABLE_HEADER: 'Search-SortableHeader',
-            UNREPORTED_EXPENSE_LIST_ITEM: 'UnreportedExpenseListItem',
+            UNREPORTED_EXPENSE_LIST_ITEM: 'Search-UnreportedExpenseListItem',
             WORKSPACE_SELECTOR_SELECT_ALL: 'Search-WorkspaceSelectorSelectAll',
+            STATIC_LIST_ITEM: 'Search-StaticListItem',
+            STATIC_LIST_WIDE_ITEM: 'Search-StaticListWideItem',
+            ADVANCED_FILTERS_POPUP_DESCRIBE_SEARCH: 'Search-AdvancedFiltersPopupDescribeSearch',
+            ADVANCED_FILTERS_BASE_DESCRIBE_SEARCH: 'Search-AdvancedFiltersBaseDescribeSearch',
+            DATE_SELECT_POPUP_BACK: 'Search-DateSelectPopupBack',
         },
         INSIGHTS: {
             CONTROL_DATE: 'Insights-ControlDate',
@@ -10549,6 +10586,7 @@ const CONST = {
             CONTROL_COMPARE: 'Insights-ControlCompare',
             AI_EXPLAIN: 'Insights-AIExplain',
             DASHBOARD_TAB: 'Insights-DashboardTab',
+            CHART_MENU: 'Insights-ChartMenu',
             TABLE_ROW: 'Insights-TableRow',
         },
         EXPENSE_RULES: {
@@ -10587,7 +10625,7 @@ const CONST = {
             COLLAPSED_SYSTEM_MESSAGES: 'Report-CollapsedSystemMessages',
             MODERATION_BUTTON: 'Report-ModerationButton',
             MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL: 'MoneyRequestReportActionsList-SelectAll',
-            MONEY_REQUEST_REPORT_TRANSACTION_ITEM: 'MoneyRequestReportTransactionItem',
+            MONEY_REQUEST_REPORT_TRANSACTION_ITEM: 'Report-MoneyRequestReportTransactionItem',
             MONEY_REPORT_HEADER_NEXT_STEP: 'Report-MoneyReportHeaderNextStep',
             MONEY_REPORT_HEADER_STATUS_BAR: 'Report-MoneyReportHeaderStatusBar',
             REPORT_FIELD_DELETE_BUTTON: 'Report-ReportFieldDeleteButton',
@@ -10793,6 +10831,13 @@ const CONST = {
             SUBSCRIPTION: 'Account-Subscription',
         },
         HOME_PAGE: {
+            SECTION_EXPAND_TOGGLE_TIME_SENSITIVE: 'HomePage-SectionExpandToggle-TimeSensitive',
+            SECTION_EXPAND_TOGGLE_TO_DOS: 'HomePage-SectionExpandToggle-ToDos',
+            SECTION_EXPAND_TOGGLE_YOUR_SPEND: 'HomePage-SectionExpandToggle-YourSpend',
+            INSIGHTS_OVERFLOW_MENU: 'HomePage-InsightsOverflowMenu',
+            INSIGHT_TITLE_DROPDOWN: 'HomePage-InsightTitleDropdown',
+            RECENTLY_ADDED_ROW: 'HomePage-RecentlyAddedRow',
+            RECENTLY_ADDED_OVERFLOW_MENU: 'HomePage-RecentlyAddedOverflowMenu',
             WIDGET_ITEM: 'HomePage-WidgetItem',
             GETTING_STARTED_ROW: 'HomePage-GettingStartedRow',
             GETTING_STARTED_FOOTER_HELP: 'HomePage-GettingStartedFooterHelp',
@@ -10844,7 +10889,8 @@ const CONST = {
             SHARE_BUTTON: 'ShareDetail-ShareButton',
         },
         MAP_VIEW: {
-            COMPASS: 'compass',
+            COMPASS: 'MapView-Compass',
+            TOGGLE_DISTANCE_UNIT: 'MapView-ToggleDistanceUnit',
         },
         NEW_CHAT: {
             IMPORT_CONTACTS_ITEM: 'NewChat-ImportContacts',
@@ -10942,7 +10988,6 @@ const CONST = {
         },
         WORKSPACE_EXPENSIFY_CARD: {
             BULK_ACTIONS_DROPDOWN: 'WorkspaceExpensifyCard-BulkActionsDropdown',
-            CARD_LIST_ROW: 'WorkspaceExpensifyCard-CardListRow',
         },
         WORKSPACE: {
             APPROVAL_WORKFLOW_SECTION: 'Workspace-ApprovalWorkflowSection',
@@ -10954,13 +10999,15 @@ const CONST = {
             INVITE_MESSAGE_PRIVACY_LINK: 'WorkspaceInviteMessage-PrivacyLink',
             IMPORTED_MEMBERS_CONFIRMATION_PRIVACY_LINK: 'ImportedMembersConfirmation-PrivacyLink',
             COMPANY_CARDS: {
-                TABLE_ITEM: 'Workspace-CompanyCards-TableItem',
+                TABLE_ITEM: 'WorkspaceCompanyCards-TableItem',
                 SETTINGS_BUTTON: 'WorkspaceCompanyCards-SettingsButton',
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceCompanyCards-BulkActionsDropdown',
                 CARD_NAME: 'WorkspaceCompanyCards-CardName',
                 CARD_EXPORT: 'WorkspaceCompanyCards-CardExport',
                 UNASSIGN_CARD: 'WorkspaceCompanyCards-UnassignCard',
                 TRANSACTION_START_DATE: 'WorkspaceCompanyCards-TransactionStartDate',
+                IMPORT_FROM_FILE_TEMPLATE_LINK: 'WorkspaceCompanyCards-ImportFromFileTemplateLink',
+                IMPORT_FROM_FILE_HELP_GUIDE_LINK: 'WorkspaceCompanyCards-ImportFromFileHelpGuideLink',
                 PERSONAL_LIABILITY_SWITCH: 'WorkspaceCompanyCards-PersonalLiabilitySwitch',
             },
             LIST: {
@@ -10975,10 +11022,6 @@ const CONST = {
                 AGENTS: 'WorkspaceInitial-Agents',
                 ROOMS: 'WorkspaceInitial-Rooms',
                 REPORTS: 'WorkspaceInitial-Reports',
-                ACCOUNTING: 'WorkspaceInitial-Accounting',
-                HR: 'WorkspaceInitial-HR',
-                RECRUITING: 'WorkspaceInitial-Recruiting',
-                RECEIPT_PARTNERS: 'WorkspaceInitial-ReceiptPartners',
                 CONNECTIONS: 'WorkspaceInitial-Connections',
                 CATEGORIES: 'WorkspaceInitial-Categories',
                 TAGS: 'WorkspaceInitial-Tags',
@@ -10994,7 +11037,6 @@ const CONST = {
                 INVOICES: 'WorkspaceInitial-Invoices',
                 MORE_FEATURES: 'WorkspaceInitial-MoreFeatures',
                 VENDORS: 'WorkspaceInitial-Vendors',
-                MCP: 'WorkspaceInitial-MCP',
             },
             OVERVIEW: {
                 AVATAR: 'WorkspaceOverview-Avatar',
@@ -11098,10 +11140,8 @@ const CONST = {
                 SUBMISSION_FREQUENCY_SWITCH: 'WorkspaceWorkflows-SubmissionFrequencySwitch',
             },
             ACCOUNTING: {
-                SETUP_BUTTON: 'WorkspaceAccounting-SetupButton',
                 EXACT_ONLINE_WAITLIST_BUTTON: 'WorkspaceAccounting-ExactOnlineWaitlistButton',
                 CARD_SECTION_ADD_BUTTON: 'WorkspaceAccounting-CardSectionAddButton',
-                THREE_DOT_MENU: 'WorkspaceAccounting-ThreeDotMenu',
                 TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_SWITCH: 'WorkspaceAccounting-TravelBillingContinuousReconciliationSwitch',
                 CONTINUOUS_RECONCILIATION_SWITCH: 'WorkspaceAccounting-ContinuousReconciliationSwitch',
                 QBO: {
@@ -11246,7 +11286,6 @@ const CONST = {
                 UBER_AUTO_REMOVE_SWITCH: 'WorkspaceConnections-UberAutoRemoveSwitch',
             },
             RULES: {
-                ADD_SPEND_RULE: 'WorkspaceRules-AddSpendRule',
                 INDIVIDUAL_EXPENSES_MENU_ITEM: 'WorkspaceRules-IndividualExpensesMenuItem',
                 SPEND_RULE_ITEM: 'WorkspaceRules-SpendRuleItem',
                 MERCHANT_RULE_ITEM: 'WorkspaceRules-MerchantRuleItem',
@@ -11265,13 +11304,12 @@ const CONST = {
                 FLAG_FOR_REVIEW_RULE_DELETE: 'WorkspaceRules-FlagForReviewRuleDelete',
                 FLAG_FOR_REVIEW_RULE_CATEGORY: 'WorkspaceRules-FlagForReviewRuleCategory',
                 FLAG_FOR_REVIEW_RULE_AMOUNT: 'WorkspaceRules-FlagForReviewRuleAmount',
-                FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE: 'WorkspaceRules-FlagForReviewRuleExpenseLimitType',
                 CATEGORY_TAX_RULE_ITEM: 'WorkspaceRules-CategoryTaxRuleItem',
                 MERCHANT_TYPE_RULE_ITEM: 'WorkspaceRules-MerchantTypeRuleItem',
                 MERCHANT_TYPE_RULE_SAVE: 'WorkspaceRules-MerchantTypeRuleSave',
                 MERCHANT_TYPE_RULE_CATEGORY: 'WorkspaceRules-MerchantTypeRuleCategory',
-                ADD_MERCHANT_RULE: 'WorkspaceRules-AddMerchantRule',
                 IMPORT_MERCHANT_RULES: 'WorkspaceRules-ImportMerchantRules',
+                NEW_RULE_BUTTON: 'WorkspaceRules-NewRuleButton',
                 MERCHANT_RULE_SECTION_ITEM: 'WorkspaceRules-MerchantRuleSectionItem',
                 MERCHANT_RULE_SAVE: 'WorkspaceRules-MerchantRuleSave',
                 MERCHANT_RULE_DESCRIBE: 'WorkspaceRules-MerchantRuleDescribe',
@@ -11290,7 +11328,6 @@ const CONST = {
                 SUGGESTED_AGENT_RULE: 'WorkspaceRules-SuggestedAgentRule',
                 SUGGESTED_AGENT_RULE_CATEGORY: 'WorkspaceRules-SuggestedAgentRuleCategory',
                 AGENT_RULE_DELETE: 'WorkspaceRules-AgentRuleDelete',
-                NEW_RULE_MENU_ITEM: 'WorkspaceRules-NewRuleMenuItem',
                 NEW_RULE_MENU_ITEM_RESTRICT_CARD_SPEND: 'WorkspaceRules-NewRuleMenuItem-RestrictCardSpend',
                 NEW_RULE_MENU_ITEM_FLAG_FOR_REVIEW: 'WorkspaceRules-NewRuleMenuItem-FlagForReview',
                 NEW_RULE_MENU_ITEM_REQUIRE_FIELDS: 'WorkspaceRules-NewRuleMenuItem-RequireFields',
@@ -11387,6 +11424,7 @@ const CONST = {
             CONTINUE: 'Onboarding-Continue',
             SKIP: 'Onboarding-Skip',
             JOIN_WORKSPACE: 'Onboarding-JoinWorkspace',
+            HEADER_BACK: 'Onboarding-HeaderBack',
         },
         BASE_ANCHOR_FOR_ATTACHMENTS_ONLY: {
             DOWNLOAD_BUTTON: 'BaseAnchorForAttachmentsOnly-DownloadButton',
@@ -11399,6 +11437,7 @@ const CONST = {
             SWITCH_BETWEEN_METHODS: 'TwoFactorAuth-SwitchBetweenMethods',
             COPY: 'TwoFactorAuth-Copy',
             COPY_CODES: 'TwoFactorAuth-CopyCodes',
+            SECRET_COPY: 'TwoFactorAuth-SecretCopy',
         },
         VALIDATE_CODE: {
             RESEND_CODE: 'ValidateCode-ResendCode',
@@ -11409,7 +11448,11 @@ const CONST = {
             STEP_BUTTON: 'InteractiveStepSubHeader-StepButton',
         },
         SOCIALS: {
-            LINK: 'Socials',
+            PODCAST: 'Socials-Link-Podcast',
+            TWITTER: 'Socials-Link-Twitter',
+            INSTAGRAM: 'Socials-Link-Instagram',
+            FACEBOOK: 'Socials-Link-Facebook',
+            LINKEDIN: 'Socials-Link-LinkedIn',
         },
         CONFIRM_CONTENT: {
             DISMISS_BUTTON: 'ConfirmContent-DismissButton',
@@ -11480,6 +11523,7 @@ const CONST = {
         },
         EDIT_AGENT_PAGE: {
             AVATAR: 'EditAgentPage-Avatar',
+            BOT_AVATAR_SELECTOR: 'EditAgentPage-BotAvatarSelector',
         },
         SETTINGS_PROFILE: {
             AVATAR: 'SettingsProfile-Avatar',
