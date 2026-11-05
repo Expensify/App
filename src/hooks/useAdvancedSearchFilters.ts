@@ -11,6 +11,7 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {filterCardsHiddenFromSearch} from '@selectors/Card';
+import {hasAnyCategoryRulesSelector} from '@selectors/PolicyCategories';
 import {emailSelector} from '@selectors/Session';
 
 import useLocalize from './useLocalize';
@@ -326,8 +327,8 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined) {
     const isVendorFilterAvailableSelector = (allPolicies: OnyxCollection<Policy>) => hasVendorFeatureOnAnyPolicy(allPolicies, isVendorMatchingBetaEnabled);
     const [isVendorFilterAvailable = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: isVendorFilterAvailableSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
-    const shouldDisplayViolationFilter = hasRulesEnabledPolicy(policies, allPolicyCategories);
+    const [hasCategoryRules = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: hasAnyCategoryRulesSelector});
+    const shouldDisplayViolationFilter = hasRulesEnabledPolicy(policies, hasCategoryRules);
 
     const {workspaces} = useAdvancedSearchFiltersWorkspaces(policies);
 

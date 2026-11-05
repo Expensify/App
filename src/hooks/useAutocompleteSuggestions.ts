@@ -33,6 +33,7 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {hasAnyCategoryRulesSelector} from '@selectors/PolicyCategories';
 
 import type {FeedKeysWithAssignedCards} from './useFeedKeysWithAssignedCards';
 
@@ -456,7 +457,7 @@ function useAutocompleteSuggestions({
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION: {
-            if (!hasRulesEnabledPolicy(policies, allPolicyCategories)) {
+            if (!hasRulesEnabledPolicy(policies, hasAnyCategoryRulesSelector(allPolicyCategories))) {
                 return getEmptyArray<AutocompleteItemData>();
             }
 
@@ -648,7 +649,7 @@ function useAutocompleteSuggestions({
             // Use {} while policies load so every has: option does not flash before the collection arrives.
             const hasAutocompleteList = getHasOptions(translate, currentType, {
                 policies: policies ?? {},
-                policyCategories: allPolicyCategories,
+                hasCategoryRules: hasAnyCategoryRulesSelector(allPolicyCategories),
             });
             const filteredHasValues = hasAutocompleteList.filter((hasValue) => {
                 return hasValue.value.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(hasValue.value.toLowerCase());

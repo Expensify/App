@@ -19,6 +19,7 @@ import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
+import {hasAnyCategoryRulesSelector} from '@selectors/PolicyCategories';
 import React from 'react';
 
 import BankAccountSelector from './BankAccountSelector';
@@ -114,13 +115,13 @@ function SingleSelectListFilterContent({baseFilterKey, value, selectionListStyle
 function HasMultiSelectListFilterContent({value = [], type = CONST.SEARCH.DATA_TYPES.EXPENSE, selectionListStyle, footer, onChange}: HasMultiSelectListFilterContentProps) {
     const {translate} = useLocalize();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [hasCategoryRules = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: hasAnyCategoryRulesSelector});
     const selectedValues = value as string[];
     // Include already-selected values even when the matching workspace feature is off, otherwise
     // toggling another option would call onChange without them and clear the saved/query selection.
     const items = getHasOptions(translate, type, {
         policies: policies ?? {},
-        policyCategories,
+        hasCategoryRules,
         selectedValues,
     });
     const multiSelectValues = items.filter((item) => selectedValues.includes(item.value));
