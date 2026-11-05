@@ -111,6 +111,30 @@ describe('useConfirmationAmount', () => {
         expect(result.current.formattedAmountPerAttendee).toBe('');
     });
 
+    it('formattedAmount is receipt status title when transaction is scanning', () => {
+        // Given a transaction whose receipt is actively being scanned
+        const transaction = createMock<OnyxTypes.Transaction>({
+            transactionID: 'txn1',
+            amount: 0,
+            receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING, source: 'receipt.png'},
+            comment: {},
+        });
+
+        // When the confirmation amount is computed
+        const {result} = renderHook(
+            () =>
+                useConfirmationAmount({
+                    ...baseParams,
+                    iouAmount: 0,
+                    transaction,
+                }),
+            {wrapper: Wrapper},
+        );
+
+        // Then the formatted amount shows the scanning status placeholder
+        expect(result.current.formattedAmount).toBe('Scanning…');
+    });
+
     it('formattedAmount is empty string for a failed-scan amount placeholder', () => {
         const {result} = renderHook(
             () =>
