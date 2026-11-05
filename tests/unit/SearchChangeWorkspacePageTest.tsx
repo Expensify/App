@@ -31,6 +31,8 @@ const mockQueryJSON: SearchQueryJSON = {
     view: CONST.SEARCH.VIEW.TABLE,
     filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: 'type', right: 'expense-report'},
 };
+const SUBMITTER_ACCOUNT_ID = 1;
+const SUBMITTER_EMAIL = 'submitter@example.com';
 const mockClearSelectedTransactions = jest.fn();
 let mockAreAllMatchingItemsSelected = false;
 let mockSelectedReports: Array<{reportID: string; policyID?: string}> = [{reportID: 'report1'}, {reportID: 'report2'}];
@@ -93,7 +95,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 function makeReport(reportID: string, statusNum: number) {
-    return {reportID, policyID: 'policy1', type: CONST.REPORT.TYPE.EXPENSE, ownerAccountID: 1, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum};
+    return {reportID, policyID: 'policy1', type: CONST.REPORT.TYPE.EXPENSE, ownerAccountID: SUBMITTER_ACCOUNT_ID, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum};
 }
 
 async function changeWorkspace(areAllMatchingItemsSelected: boolean) {
@@ -130,7 +132,7 @@ describe('SearchChangeWorkspacePage', () => {
             [`${ONYXKEYS.COLLECTION.REPORT}report2`]: makeReport('report2', CONST.REPORT.STATUS_NUM.OPEN),
         };
         await Onyx.clear();
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {1: {accountID: 1, login: 'submitter@example.com'}});
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[SUBMITTER_ACCOUNT_ID]: {accountID: SUBMITTER_ACCOUNT_ID, login: SUBMITTER_EMAIL}});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy2`, {id: 'policy2', name: 'Workspace 2', type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.USER});
     });
 
