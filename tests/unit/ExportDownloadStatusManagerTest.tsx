@@ -53,6 +53,7 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
 }));
 jest.mock('@libs/ActiveClientManager', () => ({
     init: jest.fn(),
+    getLogTab: jest.fn(),
     isReady: jest.fn(() => Promise.resolve()),
     isClientTheLeader: jest.fn(() => true),
 }));

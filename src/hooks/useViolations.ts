@@ -78,6 +78,9 @@ type ViolationsMap = Map<ViolationField, TransactionViolation[]>;
  * @param shouldShowOnlyViolations – Whether we should only show violations of type 'violation'
  */
 function useViolations(violations: TransactionViolation[], shouldShowOnlyViolations: boolean) {
+    // React Compiler skips hooks that call no other hooks, so opt in to keep getViolationsForField stable across renders.
+    'use memo';
+
     const filteredViolations = violations.filter((violation) => {
         if (shouldShowOnlyViolations) {
             return isHardViolationOrRateDateWarning(violation);
