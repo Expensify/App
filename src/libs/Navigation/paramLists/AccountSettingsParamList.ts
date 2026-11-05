@@ -201,6 +201,9 @@ type AccountSettingsParamList = {
     [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_MORE_INFO_NEEDED]: {
         bankAccountID: string;
     };
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_KYC_REVIEW]: {
+        bankAccountID: string;
+    };
     [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ONBOARDING_STATUS]: {
         bankAccountID: string;
         status?: ValueOf<typeof CONST.WISE.ONBOARDING_STATUS_PAGE>;

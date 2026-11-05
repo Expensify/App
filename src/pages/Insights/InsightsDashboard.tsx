@@ -62,6 +62,7 @@ import useInsightsExport from './useInsightsExport';
 import useInsightsFilters from './useInsightsFilters';
 
 type InsightsDashboardContentProps = {
+    dashboardID: InsightsDashboardID;
     state: InsightsDashboardState;
     aiInsights: AIInsight[] | undefined;
     insightsScope: InsightsScope;
@@ -89,6 +90,7 @@ type InsightsDashboardContentProps = {
 };
 
 function InsightsDashboardContent({
+    dashboardID,
     state,
     aiInsights,
     insightsScope,
@@ -234,6 +236,7 @@ function InsightsDashboardContent({
                         />
                     )}
                     <InsightsChartWidget
+                        dashboardID={dashboardID}
                         chart={headlineChart.chart}
                         queryJSON={headlineChart.queryJSON}
                         snapshot={headlineChart.snapshot}
@@ -257,6 +260,7 @@ function InsightsDashboardContent({
                                     ({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot, averageTotal, isDashboardLoaded}) => (
                                         <InsightsChartWidget
                                             key={chart.graphKey}
+                                            dashboardID={dashboardID}
                                             chart={chart}
                                             queryJSON={queryJSON}
                                             snapshot={snapshot}
@@ -430,6 +434,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                         style={StyleSheet.absoluteFill}
                     >
                         <InsightsDashboardContent
+                            dashboardID={dashboardID}
                             state={state}
                             aiInsights={dashboard?.aiInsights}
                             insightsScope={{

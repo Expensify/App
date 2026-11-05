@@ -15,7 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import stripDynamicRouteSuffixFromPath from '@libs/Navigation/helpers/dynamicRoutesUtils/stripDynamicRouteSuffixFromPath';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import openExternalLink from '@libs/openExternalLink';
+import openWiseKYCReview from '@libs/openWiseKYCReview';
 
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -39,8 +39,15 @@ function WiseMoreInfoNeededPage({route}: WiseMoreInfoNeededPageProps) {
     const [embeddedLink] = useOnyx(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK);
 
     const {translate} = useLocalize();
-    // A read lost to a dropped connection applies no failureData, so reconnecting clears the stuck loading state
-    const {isOffline} = useNetwork({onReconnect: clearWiseKYCReviewEmbeddedLink});
+    // A read lost to a dropped connection applies no failureData, so reconnecting clears the stuck loading state, but keeps a link the open form still shows
+    const {isOffline} = useNetwork({
+        onReconnect: () => {
+            if (!embeddedLink?.isLoading) {
+                return;
+            }
+            clearWiseKYCReviewEmbeddedLink();
+        },
+    });
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isWiseReimbursementsBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.WISE_REIMBURSEMENTS);
     const styles = useThemeStyles();
@@ -69,7 +76,7 @@ function WiseMoreInfoNeededPage({route}: WiseMoreInfoNeededPageProps) {
         if (!hasRequestedLink || !kycReviewURL) {
             return;
         }
-        openExternalLink(kycReviewURL, undefined, true);
+        openWiseKYCReview(kycReviewURL);
     }, [hasRequestedLink, kycReviewURL]);
 
     // The link carries a token and a fetch can land after an earlier visit closed, so the page drops it on open and on close

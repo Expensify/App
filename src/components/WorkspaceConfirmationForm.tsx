@@ -296,6 +296,7 @@ function WorkspaceConfirmationForm({
                                             </View>
                                             <Switch
                                                 accessibilityLabel={translate('workspace.common.keepMeAsAdmin')}
+                                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONFIRMATION_FORM_KEEP_ME_AS_ADMIN_SWITCH}
                                                 isOn={makeMeAdmin}
                                                 onToggle={setMakeMeAdmin}
                                             />
