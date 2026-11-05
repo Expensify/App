@@ -87,7 +87,7 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponen
 index 44567be..2b5b857 100644
 --- a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
 +++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
-@@ -595,6 +595,10 @@ - (void)updateProps:(const facebook::react::Props::Shared &)props
+@@ -596,6 +596,10 @@ - (void)updateProps:(const facebook::react::Props::Shared &)props
      }
    }
  

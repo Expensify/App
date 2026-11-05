@@ -148,10 +148,12 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponen
    }
    return self;
  }
-@@ -121,6 +247,216 @@
+@@ -119,8 +245,219 @@
+       strongSelf->_controller = nil;
+     }
    });
- }
- 
++}
++
 +#pragma mark - Tab bar visibility
 +
 +static UIView *_Nullable RNSDirectChildAncestor(UIView *_Nullable view, UIView *container)
@@ -196,8 +198,7 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponen
 +  UIViewController *target = notification.userInfo[@"viewController"];
 +  UITabBar *tabBar = _controller.tabBar;
 +  id<UIViewControllerTransitionCoordinator> coordinator = stackController.transitionCoordinator;
-+  // The bar only travels with the screen when the screen hides it. Some screens above the root keep it.
-+  if (!_tabBarHidden || _controller == nil || tabBar.window == nil || coordinator == nil || coordinator == _tabBarTransitionCoordinator ||
++  if (_controller == nil || tabBar.window == nil || coordinator == nil || coordinator == _tabBarTransitionCoordinator ||
 +      !RNSControllerIsInside(stackController, _controller.selectedViewController)) {
 +    return;
 +  }
@@ -209,7 +210,9 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponen
 +  NSUInteger fromIndex = [stackController.viewControllers indexOfObject:from];
 +  BOOL hiding = toIndex == 1 && fromIndex == 0;
 +  BOOL showing = toIndex == 0 && fromIndex == NSNotFound;
-+  if (!hiding && !showing) {
++  // The bar only travels with the screen when the screen hides it, as some screens above the root keep it. A pop started
++  // from JS, like the header back button, updates the prop before the stack pops, so a pop goes by the bar itself.
++  if (!(hiding && _tabBarHidden) && !(showing && _controller.isTabBarHidden)) {
 +    return;
 +  }
 +  _tabBarTransitionCoordinator = coordinator;
@@ -292,8 +295,8 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponen
 +          [strongSelf->_controller setTabBarHidden:context.isCancelled ? !hiding : hiding animated:NO];
 +        }
 +      }];
-+}
-+
+ }
+ 
 +/**
 + * UIKit's hide animation on iOS 26 clears the tab items before it fades the glass, while its show animation brings both
 + * in together. When no stack transition moves the bar, it fades out as a whole instead and is hidden without animation
@@ -365,7 +368,7 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponen
  #pragma mark - UIView methods
  
  - (void)didMoveToWindow
-@@ -242,9 +578,16 @@
+@@ -242,9 +579,16 @@
  
    if (newComponentProps.tabBarHidden != oldComponentProps.tabBarHidden) {
      _tabBarHidden = newComponentProps.tabBarHidden;
