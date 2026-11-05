@@ -23,6 +23,9 @@ type DevelopmentOrigins = {
  */
 const DEVELOPMENT_OLDDOT_ORIGIN = 'https://www.expensify.com.dev';
 
+/** PNG exports fetch uploaded avatars directly from the local S3 mock. */
+const DEVELOPMENT_S3_ORIGIN = 'https://expensify.com.dev:7070';
+
 /** Inline scripts allowed without a nonce. Tests check that every such script in `web/index.html` is listed. */
 const INLINE_SCRIPT_HASHES = [
     'sha256-hK550RmP3t+9myNCpVty39wCs9CDUTXjWUP30rrXvD0=',
@@ -194,7 +197,7 @@ function getCSP(environment: Env['ENVIRONMENT'] | DevelopmentEnv['ENVIRONMENT'],
             fontSrcHosts: ["'self'"],
             frameSrcHosts: backendOrigins,
             scriptSrcHashes: INLINE_SCRIPT_HASHES,
-            connectSrcHosts: [...backendOrigins, ...(developmentOrigins ? [developmentOrigins.hmrOrigin] : [])],
+            connectSrcHosts: [...backendOrigins, DEVELOPMENT_S3_ORIGIN, ...(developmentOrigins ? [developmentOrigins.hmrOrigin] : [])],
             // 'self' covers attachments the Rsbuild proxy serves from the app origin.
             mediaSrcHosts: ["'self'", ...backendOrigins],
         });

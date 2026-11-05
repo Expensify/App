@@ -32,11 +32,12 @@ for (const environment of ['staging', 'production'] as const) {
                 ?.split(' ')
                 .slice(1);
 
-            // Then exports can fetch uploaded avatars without allowing unrelated CloudFront hosts or scripts
+            // Then exports can fetch uploaded avatars without allowing unrelated CloudFront hosts, local mocks or scripts
             assert.ok(connectSources);
             assert.ok(connectSources.includes('https://d1wpcgnaa73g0y.cloudfront.net'));
             assert.ok(!connectSources.includes('https://*.cloudfront.net'));
             assert.ok(!connectSources.includes('*'));
+            assert.ok(!connectSources.includes('https://expensify.com.dev:7070'));
             assert.ok(scriptSources);
             assert.ok(!scriptSources.includes('https://d1wpcgnaa73g0y.cloudfront.net'));
         });
