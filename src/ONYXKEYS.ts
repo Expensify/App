@@ -831,7 +831,7 @@ const ONYXKEYS = {
     CORPAY_FIELDS: 'corpayFields',
 
     /** The employee bank-account form for one country and currency, as Wise defines it */
-    WISE_BANK_ACCOUNT_FIELDS: 'wiseBankAccountFields',
+    RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS: 'wiseBankAccountFields',
 
     /** A fresh link to Wise's embedded KYC page */
     RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK: 'wiseKYCReviewEmbeddedLink',
@@ -2033,7 +2033,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHARE_TEMP_FILE]: OnyxTypes.ShareTempFile;
     [ONYXKEYS.VALIDATED_FILE_OBJECT]: OnyxTypes.FileObject | undefined;
     [ONYXKEYS.CORPAY_FIELDS]: OnyxTypes.CorpayFields;
-    [ONYXKEYS.WISE_BANK_ACCOUNT_FIELDS]: OnyxTypes.WiseBankAccountFields;
+    [ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS]: OnyxTypes.WiseBankAccountFields;
     [ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK]: OnyxTypes.WiseKYCReviewEmbeddedLink;
     [ONYXKEYS.PRESERVED_USER_SESSION]: OnyxTypes.Session;
     [ONYXKEYS.PRESERVED_ACCOUNT]: OnyxTypes.Account;

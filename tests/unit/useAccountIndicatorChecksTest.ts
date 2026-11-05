@@ -1,5 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import useAccountIndicatorChecks from '@hooks/useAccountIndicatorChecks';
 
 import CONST from '@src/CONST';
@@ -676,6 +678,71 @@ describe('useAccountIndicatorChecks', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(result.current.infoStatus).toBe(CONST.INDICATOR_STATUS.HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO);
+        });
+
+        it('returns HAS_WISE_MORE_INFO_NEEDED_INFO when Wise needs more info on a bank account', async () => {
+            // Given a bank account Wise asked for more info on, for a user on the global reimbursements beta
+            await act(async () => {
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.BETAS]: [CONST.BETAS.WISE_REIMBURSEMENTS],
+                        [ONYXKEYS.BANK_ACCOUNT_LIST]: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention -- bank account list keys are numeric bank account IDs
+                            12345: {
+                                methodID: 12345,
+                                bankCurrency: CONST.CURRENCY.USD,
+                                accountData: {
+                                    bankAccountID: 12345,
+                                    type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                                    state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                                    additionalData: {currency: CONST.CURRENCY.USD, wise: {status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED}},
+                                },
+                            },
+                        },
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // When the Account tab checks what to flag
+            const {result} = renderHook(() => useAccountIndicatorChecks(), {wrapper: OnyxListItemProvider});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it shows the green dot, so the admin finds the Wallet prompt and sends Wise the info
+            expect(result.current.infoStatus).toBe(CONST.INDICATOR_STATUS.HAS_WISE_MORE_INFO_NEEDED_INFO);
+        });
+
+        it('does not flag a bank account Wise needs more info on without the global reimbursements beta', async () => {
+            // Given a bank account Wise asked for more info on, for a user without the beta
+            await act(async () => {
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.BANK_ACCOUNT_LIST]: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention -- bank account list keys are numeric bank account IDs
+                            12345: {
+                                methodID: 12345,
+                                bankCurrency: CONST.CURRENCY.USD,
+                                accountData: {
+                                    bankAccountID: 12345,
+                                    type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                                    state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                                    additionalData: {currency: CONST.CURRENCY.USD, wise: {status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED}},
+                                },
+                            },
+                        },
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // When the Account tab checks what to flag
+            const {result} = renderHook(() => useAccountIndicatorChecks(), {wrapper: OnyxListItemProvider});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then nothing is flagged, since the Wallet doesn't show the Wise prompt to users outside the beta
+            expect(result.current.infoStatus).toBeUndefined();
         });
     });
 

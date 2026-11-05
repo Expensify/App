@@ -7,10 +7,11 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {shouldHideBillReport} from '@libs/BillUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {isReportTransactionThread, isValidReportIDFromPath, shouldHideBillReport} from '@libs/ReportUtils';
+import {isReportTransactionThread, isValidReportIDFromPath} from '@libs/ReportUtils';
 import {getParentReportActionDeletionStatus} from '@libs/TransactionNavigationUtils';
 
 import CONST from '@src/CONST';

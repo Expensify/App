@@ -114,6 +114,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pay: 'Pagar',
             fix: 'Corregir',
             task: 'Tarea',
+            add: 'Añadir',
         },
         home: 'Inicio',
         group: 'Grupo',
@@ -1058,6 +1059,10 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             emailDeliveryFailure: {title: 'No podemos enviarte notificaciones por correo electrónico', subtitle: 'Cuenta'},
             upgradeNetSuiteConnection: {title: 'Mejora tu conexión con NetSuite'},
+            verifyWiseBankAccount: {
+                title: 'Verificar cuenta bancaria',
+                subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Cuenta bancaria terminada en ${bankAccountLastFour}`,
+            },
         },
         freeTrialSection: {
             title: ({count}: {count: number}) => ({
@@ -1233,6 +1238,8 @@ const translations: TranslationDeepObject<typeof en> = {
         runningTotal: 'Total acumulado',
         explain: 'Explicar',
         explainChartPrompt: (chartTitle: string) => `Explica los datos en ${chartTitle}.`,
+        viewDetails: 'Ver detalles',
+        viewAll: 'Ver todo',
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
@@ -2105,6 +2112,13 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_actor, _actorType, _eta, _etaType) => `¡No se requiere ninguna acción adicional!`,
             [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (_actor, _actorType, _eta, _etaType) => `Cambia el espacio de trabajo del informe para realizar más acciones.`,
+
+            [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `Solo puedes aprobar en este espacio de trabajo. Mueve este informe a otro para enviarlo.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (actor, actorType, _eta, _etaType, requiredDepositCurrency?: string) => {
                 const account = requiredDepositCurrency ? `cuenta bancaria en ${requiredDepositCurrency}` : 'cuenta bancaria';
                 switch (actorType) {
@@ -3063,6 +3077,7 @@ const translations: TranslationDeepObject<typeof en> = {
             payingReportSubtitle: 'Las cuentas bancarias de la empresa y del empleado usan monedas diferentes.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Paga a personas de todo el mundo', subtitle: 'Habilita los reembolsos globales en tu cuenta en USD.'},
+        wiseMoreInfoNeeded: 'Se necesita más información para habilitar los reembolsos globales',
         globalReimbursementsEnabled: 'Reembolsos globales habilitados',
     },
     addCardToDigitalWallet: {
@@ -3213,8 +3228,10 @@ ${amount} para ${merchant} - ${date}`,
         manager: 'Responsable',
         makeOrTrackPaymentsTitle: 'Realizar o seguir pagos',
         makeOrTrackPaymentsDescription: 'Añade un pagador autorizado para los pagos realizados en Expensify o realiza un seguimiento de los pagos realizados en otro lugar.',
-        collectEmployeeBankDetails: 'Recopilar los datos bancarios de los empleados',
-        collectEmployeeBankDetailsDescription: 'Recopila los datos bancarios de los empleados para poder reembolsarles fuera de Expensify.',
+        collectEmployeeBankDetails: 'Recopilar datos bancarios',
+        collectEmployeeBankDetailsDescription: 'Recopila los datos bancarios de los miembros del espacio de trabajo para poder reembolsarles fuera de Expensify.',
+        disablePaymentsTitle: '¿Desactivar pagos?',
+        disablePaymentsPrompt: 'Esto eliminará toda tu configuración de pagos.',
         businessBankAccountCountries: 'Países con cuenta bancaria de empresa',
         businessBankAccountCountriesDescription:
             'Los empleados de estos países proporcionan datos de transferencia local. Todos los demás proporcionan datos de transferencia bancaria internacional.',
@@ -9579,6 +9596,33 @@ ${reportName}`,
             noVendorsFoundDescription: 'Por favor, añade proveedores en Zoho Books y sincroniza la conexión de nuevo',
             noAccountsFound: 'No se encontraron cuentas',
             noAccountsFoundDescription: 'Añade cuentas en Zoho Books y sincroniza la conexión de nuevo',
+            autoSyncDescription: 'Sincroniza Zoho Books y Expensify automáticamente todos los días. Los informes se sincronizan en tiempo real.',
+            accountingMethods: {
+                label: 'Método de exportación',
+                description: 'Elige cuándo exportar los gastos.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Devengo',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Efectivo',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Los gastos por cuenta propia se exportarán cuando se aprueben de forma definitiva',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Los gastos por cuenta propia se exportarán cuando se paguen',
+                },
+            },
+            syncReimbursedReports: 'Sincronizar informes reembolsados',
+            syncReimbursedReportsDescription: 'Cuando un informe se pague mediante ACH, se generará un pago de factura en esta cuenta.',
+            billPaymentAccount: {
+                label: 'Cuenta de pago de facturas',
+                description: 'Elige la cuenta de compensación a la que Zoho Books abona cuando Expensify marca una factura como pagada.',
+            },
+            syncExpensifyCardSettlements: 'Sincronizar liquidaciones de la Tarjeta Expensify',
+            settlementAccount: {label: 'Cuenta de liquidación de la Tarjeta Expensify', description: 'Elige tu cuenta de liquidación y crearemos el pago en Zoho Books.'},
+            syncTravelBillingSettlements: 'Sincronizar liquidaciones de facturación de viajes consolidadas',
+            travelBillingSettlementAccount: {
+                label: 'Cuenta de liquidación de facturación de viajes consolidada',
+                description: 'Elige tu cuenta de liquidación y crearemos el pago en Zoho Books.',
+            },
+            travelBillingPayableAccount: {label: 'Cuenta por pagar de facturación de viajes consolidada'},
         },
         businessCentral: {
             businessCentralSetup: 'Configuración de Dynamics 365 Business Central',
@@ -10626,6 +10670,7 @@ ${reportName}`,
         expenseColumns: 'Columnas de gastos',
         display: {
             label: 'Mostrar',
+            labelWithCount: ({count}: {count: number}) => (count > 0 ? `Mostrar (${count})` : 'Mostrar'),
             sortBy: 'Ordenar por',
             sortOrder: 'Orden de clasificación',
             groupBy: 'Agrupar por',
