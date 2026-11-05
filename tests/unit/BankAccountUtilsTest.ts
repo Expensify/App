@@ -487,6 +487,24 @@ describe('BankAccountUtils', () => {
             expect(shouldConfirmWiseQuoteBeforePaying(payment)).toBe(true);
         });
 
+        it('asks for a quote when an expense is in another currency than the bank account', () => {
+            // Given a USD report with a EUR expense, paid through a global provider from a USD Wise account
+            const payment = {...sameCurrencyPayment, iouReportTransactions: [{currency: CONST.CURRENCY.USD}, {currency: CONST.CURRENCY.EUR}]};
+
+            // When deciding whether to show the quote first
+            // Then it does, because the report total in USD comes from converting that expense
+            expect(shouldConfirmWiseQuoteBeforePaying(payment)).toBe(true);
+        });
+
+        it('pays without asking when every expense is in the bank account currency', () => {
+            // Given a USD report whose expenses are all in USD, paid from a USD Wise account
+            const payment = {...sameCurrencyPayment, iouReportTransactions: [{currency: CONST.CURRENCY.USD}, {currency: CONST.CURRENCY.EUR, modifiedCurrency: CONST.CURRENCY.USD}]};
+
+            // When deciding whether to show the quote first
+            // Then it pays without asking, counting the edited currency of an expense
+            expect(shouldConfirmWiseQuoteBeforePaying(payment)).toBe(false);
+        });
+
         it('does not ask again once the admin confirmed a quote', () => {
             // Given a cross-currency payment that already carries the confirmed quote
             // When deciding whether to show the quote first

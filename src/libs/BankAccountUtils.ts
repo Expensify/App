@@ -15,6 +15,8 @@ import type {ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
 
+import {getCurrency} from './TransactionUtils/fields';
+
 /** Responses of the additional KYB verification checks, hinting at which documents the user still needs to upload */
 type KYBVerificationResponses = NonNullable<ACHData['verifications']>['externalApiResponses'];
 
@@ -252,6 +254,7 @@ type WiseQuotePaymentParams = {
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     isWiseReimbursementsBetaEnabled: boolean;
     iouReport?: Pick<OnyxTypes.Report, 'currency' | 'requiresGlobalReimbursement'>;
+    iouReportTransactions?: Array<Pick<OnyxTypes.Transaction, 'currency' | 'modifiedCurrency'>>;
     policy?: Pick<OnyxTypes.Policy, 'achAccount'>;
     wiseQuoteID?: string;
 };
@@ -272,7 +275,7 @@ function shouldGetWiseQuote(params: WiseQuotePaymentParams): boolean {
     return !!params.iouReport?.requiresGlobalReimbursement && !!getWiseBankAccountForPayment(params);
 }
 
-/** Whether the admin confirms the Wise quote before paying, which happens only when Wise converts the report into another currency */
+/** Whether the admin confirms the Wise quote before paying, which happens when an expense is in another currency than the bank account */
 function shouldConfirmWiseQuoteBeforePaying(params: WiseQuotePaymentParams): boolean {
     const bankAccount = getWiseBankAccountForPayment(params);
     if (params.wiseQuoteID || !params.iouReport?.requiresGlobalReimbursement || !bankAccount) {
@@ -280,7 +283,8 @@ function shouldConfirmWiseQuoteBeforePaying(params: WiseQuotePaymentParams): boo
     }
     // `||` not `??`: bankCurrency can be an empty string, which falls through to additionalData
     const bankCurrency = bankAccount.bankCurrency || bankAccount.accountData?.additionalData?.currency;
-    return params.iouReport.currency !== bankCurrency;
+    const expenseCurrencies = params.iouReportTransactions?.length ? params.iouReportTransactions.map((transaction) => getCurrency(transaction)) : [params.iouReport.currency];
+    return expenseCurrencies.some((currency) => currency !== bankCurrency);
 }
 
 /**

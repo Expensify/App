@@ -5,7 +5,7 @@ import {shouldConfirmWiseQuoteBeforePaying} from '@libs/BankAccountUtils';
 
 import useWiseQuoteConfirmModal from './useWiseQuoteConfirmModal';
 
-/** Pays a report, first showing the Wise quote for the admin to confirm when Wise converts it into another currency */
+/** Pays a report, first showing the Wise quote for the admin to confirm when an expense is in another currency than the bank account */
 function usePayWithWiseQuote() {
     const {showWiseQuoteConfirmModal} = useWiseQuoteConfirmModal();
 

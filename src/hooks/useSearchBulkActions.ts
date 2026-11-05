@@ -1983,7 +1983,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return count;
             };
 
-            // One report Wise converts into another currency is enough to show every report with its quote before paying
+            // One report with an expense in another currency than the bank account is enough to show every report with its quote before paying
             const shouldConfirmWiseQuotes = expensePayments.some((params) => shouldConfirmWiseQuoteBeforePaying(params));
             if (!shouldConfirmWiseQuotes) {
                 paidReportCount += payExpenseReports();
