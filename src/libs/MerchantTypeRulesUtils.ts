@@ -1,6 +1,8 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {ExpenseDefaultTableItem} from '@components/Tables/WorkspaceExpenseDefaultsTable';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
@@ -18,7 +20,6 @@ import {setWorkspaceDefaultSpendCategory} from './actions/Policy/Policy';
 import {clearMerchantRuleErrors} from './actions/Policy/Rules';
 import {getTaxRateDisplayName} from './CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
-import {convertAmountToDisplayString} from './CurrencyUtils';
 import {
     getExpenseDefaultConditionSummary,
     getExpenseDefaultRuleSummaryFields,
@@ -37,7 +38,12 @@ const MERCHANT_TYPE_RULE_KEY_PREFIX = 'mcc-group:';
  * Shared by the Expense defaults table and the Category rules section of category settings, so a rule reads the
  * same wherever it is listed.
  */
-function getExpenseDefaultRuleDescription(summaryFields: ExpenseDefaultRuleSummaryField[], policy: OnyxEntry<Policy>, translate: LocaleContextProps['translate']): string {
+function getExpenseDefaultRuleDescription(
+    summaryFields: ExpenseDefaultRuleSummaryField[],
+    policy: OnyxEntry<Policy>,
+    translate: LocaleContextProps['translate'],
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+): string {
     const fieldLabels = {
         category: translate('common.category').toLowerCase(),
         tag: translate('common.tag').toLowerCase(),
@@ -67,9 +73,7 @@ function getExpenseDefaultRuleDescription(summaryFields: ExpenseDefaultRuleSumma
             );
         } else if (field === FIELD.AMOUNT && typeof value === 'number') {
             // The rule stores the amount negated, the way an expense carries it.
-            actions.push(
-                translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.amount, convertAmountToDisplayString(Math.abs(value), policy?.outputCurrency)),
-            );
+            actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.amount, convertToDisplayString(Math.abs(value), policy?.outputCurrency)));
         } else if (field === FIELD.VENDOR_ID && typeof value === 'string') {
             const unavailableLabel = translate('workspace.rules.merchantRules.vendorUnavailable');
             actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.vendor, getVendorRuleDisplayValue(policy, value, unavailableLabel)));
@@ -166,6 +170,7 @@ function getMerchantRulesTableData({
     rules,
     policyTags,
     translate,
+    convertToDisplayString,
     isOffline,
     onNavigate,
 }: {
@@ -174,6 +179,7 @@ function getMerchantRulesTableData({
     rules: OnyxCollection<Rule> | undefined;
     policyTags?: OnyxEntry<PolicyTagLists>;
     translate: LocaleContextProps['translate'];
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     isOffline: boolean;
     onNavigate: (route: Route) => void;
 }): ExpenseDefaultTableItem[] {
@@ -212,7 +218,7 @@ function getMerchantRulesTableData({
                 const hasOnlyMerchantRename = summaryFields.length === 1 && summaryFields.at(0)?.field === FIELD.MERCHANT;
                 const typeLabel = hasOnlyMerchantRename ? translate('workspace.rules.expenseDefaultsTable.rename') : translate('workspace.rules.expenseDefaultsTable.update');
 
-                const ruleDescription = getExpenseDefaultRuleDescription(summaryFields, policy, translate);
+                const ruleDescription = getExpenseDefaultRuleDescription(summaryFields, policy, translate, convertToDisplayString);
                 const pendingAction = rule.pendingAction;
 
                 // A rule the editor can't represent would lose whatever the form can't show if it were saved back,
@@ -307,6 +313,7 @@ function getExpenseDefaultsTableData({
     rules,
     policyTags,
     translate,
+    convertToDisplayString,
     isOffline,
     onNavigate,
 }: {
@@ -316,10 +323,11 @@ function getExpenseDefaultsTableData({
     /** Read to hide a deleted tag from a merchant rule's summary. */
     policyTags: OnyxEntry<PolicyTagLists>;
     translate: LocaleContextProps['translate'];
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     isOffline: boolean;
     onNavigate: (route: Route) => void;
 }): ExpenseDefaultTableItem[] {
-    const merchantRules = getMerchantRulesTableData({policy, policyID, rules, policyTags, translate, isOffline, onNavigate});
+    const merchantRules = getMerchantRulesTableData({policy, policyID, rules, policyTags, translate, convertToDisplayString, isOffline, onNavigate});
     const merchantTypeRules = getMerchantTypeRulesTableData({policy, translate, onNavigate});
 
     return [...merchantRules, ...merchantTypeRules];
