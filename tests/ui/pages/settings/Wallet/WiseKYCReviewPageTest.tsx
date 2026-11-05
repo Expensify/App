@@ -2,6 +2,9 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -11,6 +14,7 @@ import WiseKYCReviewPage from '@pages/settings/Wallet/EnableGlobalReimbursements
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import type {WebViewProps} from 'react-native-webview';
@@ -22,7 +26,10 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../../../../utils/waitForBatchedUpdatesWithAct';
 
-const BACK_PATH = 'settings/wallet/global-reimbursements/9053192/status';
+const BACK_PATH = createDynamicRoute(
+    DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path,
+    createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(9053192), ROUTES.SETTINGS_WALLET),
+);
 const KYC_REVIEW_URL = 'https://wise-sandbox.com/embedded-flows/verification?token=abc';
 const WEB_VIEW_TEST_ID = 'wise-kyc-web-view';
 const TERMS_URL = 'https://wise.com/legal/terms';
@@ -41,11 +48,14 @@ jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => 'settings/wallet/glob
 
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
-async function renderPage() {
+async function renderPage(kycReviewPath?: string) {
     await Onyx.set(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK, {url: KYC_REVIEW_URL, isLoading: false});
     render(
         <OnyxListItemProvider>
-            <NavigationContainer ref={navigationRef}>
+            <NavigationContainer
+                ref={navigationRef}
+                initialState={kycReviewPath ? {routes: [{name: SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_KYC_REVIEW, params: {bankAccountID: '9053192'}, path: kycReviewPath}]} : undefined}
+            >
                 <Stack.Navigator initialRouteName={SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_KYC_REVIEW}>
                     <Stack.Screen
                         name={SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_KYC_REVIEW}
@@ -85,6 +95,25 @@ describe('WiseKYCReviewPage', () => {
         // Then the redirect page does not load, and the status page underneath gets the outcome to apply, like after Wise's redirect on web
         expect(shouldLoad).toBe(false);
         expect(goBackSpy).toHaveBeenCalledWith(`${BACK_PATH}?status=${status}`, {compareParams: false});
+    });
+
+    it("goes back to the status page from the route's own path when the status page opened without the intro underneath", async () => {
+        // Given the form opened over a status page that the Wallet opened, so the path rebuilt from the stack has no bank account
+        const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
+        jest.mocked(useDynamicBackPath).mockReturnValue(ROUTES.SETTINGS_WALLET);
+
+        try {
+            await renderPage(`/${BACK_PATH}/kyc-review`);
+
+            // When the form ends and Wise redirects to the status page on our site
+            startLoading(`${CONST.NEW_EXPENSIFY_URL}/${BACK_PATH}?status=success`);
+
+            // Then the status page gets the outcome at its full path, since a path without the bank account opens "not found"
+            expect(goBackSpy).toHaveBeenCalledWith(`${BACK_PATH}?status=success`, {compareParams: false});
+        } finally {
+            // The mock is module-level, so the other tests get the status path back even if an assertion fails
+            jest.mocked(useDynamicBackPath).mockReturnValue(BACK_PATH);
+        }
     });
 
     it.each([

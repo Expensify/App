@@ -138,8 +138,8 @@ describe('WiseOnboardingStatusPage while Wise needs more info', () => {
         // When the server answers
         await resumeFetch();
 
-        // Then Wise's form opens with the link
-        expect(openWiseKYCReview).toHaveBeenCalledWith(KYC_REVIEW_URL);
+        // Then Wise's form opens with the link, over the status page
+        expect(openWiseKYCReview).toHaveBeenCalledWith(KYC_REVIEW_URL, 'settings/wallet/global-reimbursements/9053192/status');
     });
 
     it("sends Wise the status page's path without the entry screen's query, which can hold personal data", async () => {
@@ -166,9 +166,10 @@ describe('WiseOnboardingStatusPage while Wise needs more info', () => {
         }
     });
 
-    it("sends Wise the route's own path when the page opened without the intro underneath", async () => {
+    it("sends Wise and the form's screen the route's own path when the page opened without the intro underneath", async () => {
         // Given the page opened straight from the Wallet, so the intro is not on the stack and only the route's path names the bank account
         jest.mocked(useDynamicBackPath).mockReturnValue(ROUTES.SETTINGS_WALLET);
+        mockKYCReviewLinkResponse(mockFetch, KYC_REVIEW_URL);
         mockFetch.pause();
 
         try {
@@ -182,6 +183,12 @@ describe('WiseOnboardingStatusPage while Wise needs more info', () => {
                 bankAccountID: BANK_ACCOUNT_ID,
                 redirectURL: `https://new.expensify.com/settings/wallet/global-reimbursements/${BANK_ACCOUNT_ID}/status`,
             });
+
+            // When the server answers
+            await resumeFetch();
+
+            // Then the form opens over the same path, since on mobile a path without the bank account opens "not found"
+            expect(openWiseKYCReview).toHaveBeenCalledWith(KYC_REVIEW_URL, `settings/wallet/global-reimbursements/${BANK_ACCOUNT_ID}/status`);
         } finally {
             // The mock is module-level, so the other tests get the intro path back even if an assertion fails
             jest.mocked(useDynamicBackPath).mockReturnValue(WALLET_INTRO_PATH);

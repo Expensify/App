@@ -25,7 +25,7 @@ import React, {useEffect, useState} from 'react';
 type MoreInfoNeededContentProps = {
     bankAccountID: number;
 
-    /** The status page's own path, where Wise sends the user when its form ends */
+    /** The status page's own path, where Wise sends the user when its form ends and which the form's mobile screen opens over */
     statusPath: string;
 };
 
@@ -46,6 +46,9 @@ function MoreInfoNeededContent({bankAccountID, statusPath}: MoreInfoNeededConten
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['UserShield']);
 
+    // Wise gets no query, because the entry screen's query (for example a Search query) can hold personal data and the entry screen falls back to its defaults without it, and the form's mobile screen opens over the same path
+    const [statusPathWithoutQuery = statusPath] = splitPathAndQuery(statusPath.replaceAll(/^\/+/g, ''));
+
     // Only a link asked for on this visit redirects, so a fetch that returns after an earlier visit closed does not
     const [hasRequestedLink, setHasRequestedLink] = useState(false);
     const kycReviewURL = embeddedLink?.url;
@@ -53,8 +56,8 @@ function MoreInfoNeededContent({bankAccountID, statusPath}: MoreInfoNeededConten
         if (!hasRequestedLink || !kycReviewURL) {
             return;
         }
-        openWiseKYCReview(kycReviewURL);
-    }, [hasRequestedLink, kycReviewURL]);
+        openWiseKYCReview(kycReviewURL, statusPathWithoutQuery);
+    }, [hasRequestedLink, kycReviewURL, statusPathWithoutQuery]);
 
     // The link carries a token and a fetch can land after an earlier visit closed, so the content drops it on open and on close
     useEffect(() => {
@@ -78,10 +81,8 @@ function MoreInfoNeededContent({bankAccountID, statusPath}: MoreInfoNeededConten
                     sentryLabel={CONST.SENTRY_LABEL.WISE_MORE_INFO_NEEDED.CONTINUE}
                     onPress={() => {
                         setHasRequestedLink(true);
-                        // Wise gets only the path, because the entry screen's query (for example a Search query) can hold personal data, and that screen falls back to its defaults without it
-                        const [statusPathWithoutQuery = statusPath] = splitPathAndQuery(statusPath);
                         // On web the app reloads at the status page when Wise's form ends
-                        getWiseKYCReviewEmbeddedLink(bankAccountID, `${addTrailingForwardSlash(environmentURL)}${statusPathWithoutQuery.replaceAll(/^\/+/g, '')}`);
+                        getWiseKYCReviewEmbeddedLink(bankAccountID, `${addTrailingForwardSlash(environmentURL)}${statusPathWithoutQuery}`);
                     }}
                 />
             </FixedFooter>
