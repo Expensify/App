@@ -66,6 +66,8 @@ exports[`getOptionData alternateText parity snapshots special-action chain branc
 
 exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) COMPANYCARDCONNECTIONBROKEN 1`] = `"The  connection is broken. To restore card imports, log into your bank."`;
 
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) COMPANYCARDCONSENTEXPIRING 1`] = `"Your company card connection will need renewed consent soon. Transactions are still syncing now, but may stop importing if the connection isn't renewed. Reconnect the card connection before consent expires."`;
+
 exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) DELEGATESUBMIT 1`] = `"Alice: Fixture last message"`;
 
 exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) INTEGRATIONSYNCFAILED 1`] = `"there was a problem syncing with . Please fix the issue in workspace settings."`;

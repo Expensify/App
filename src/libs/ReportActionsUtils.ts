@@ -362,6 +362,7 @@ const SYSTEM_MESSAGE_ACTION_TYPES = new Set<ReportActionName>([
     CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
     CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
     CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN,
+    CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING,
     CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN,
     CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
@@ -394,6 +395,7 @@ const NON_COLLAPSIBLE_SYSTEM_MESSAGE_ACTION_TYPES = new Set<ReportActionName>([
     CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
     CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
     CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN,
+    CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING,
     CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN,
     CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
@@ -6043,6 +6045,17 @@ function getCompanyCardConnectionBroken30DaysMessage(translate: LocalizedTransla
     });
 }
 
+function getCompanyCardConsentExpiringMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>): string {
+    const originalMessage = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING) ? getOriginalMessage(action) : undefined;
+    const {feedName = 'company', policyID = '', warningDaysBeforeExpiry = 0} = originalMessage ?? {};
+    const workspaceCompanyCardRoute = policyID ? `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)}` : '';
+    return translate('report.actions.type.companyCardConsentExpiring', {
+        feedName,
+        warningDaysBeforeExpiry,
+        workspaceCompanyCardRoute,
+    });
+}
+
 function getPlaidBalanceFailureMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>): string {
     const {maskedAccountNumber} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE>) ?? {maskedAccountNumber: ''};
     const walletRoute = `${environmentURL}/${ROUTES.SETTINGS_WALLET}`;
@@ -6404,6 +6417,7 @@ export {
     getCommuterExclusionMessage,
     getCompanyCardConnectionBrokenMessage,
     getCompanyCardConnectionBroken30DaysMessage,
+    getCompanyCardConsentExpiringMessage,
     getPlaidBalanceFailureMessage,
     getPolicyChangeLogDefaultReimbursableMessage,
     getManagerOnVacation,
