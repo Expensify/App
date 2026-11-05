@@ -12856,6 +12856,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             other: (count: number) => `${count}d atrás`,
         }),
         offlineMessage: 'Você está offline. O histórico de relatórios pode estar desatualizado.',
+        toMarkAsDone: 'marcar como concluída',
     },
 };
 export default translations;

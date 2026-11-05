@@ -12372,6 +12372,7 @@ ${reportName}`,
             other: (count: number) => `${count} 天前`,
         }),
         offlineMessage: '您已离线。报表历史可能不是最新的。',
+        toMarkAsDone: '标记为已完成',
     },
 };
 export default translations;

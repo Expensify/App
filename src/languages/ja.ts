@@ -12682,6 +12682,7 @@ ${reportName}`,
             other: (count: number) => `${count}日前`,
         }),
         offlineMessage: 'オフラインです。レポート履歴が最新ではない可能性があります。',
+        toMarkAsDone: '完了としてマークする',
     },
 };
 export default translations;
