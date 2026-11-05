@@ -54,6 +54,7 @@ import type {PersonalDetails, Transaction} from '@src/types/onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useRef, useState} from 'react';
+import Onyx from 'react-native-onyx';
 
 type DynamicIOURequestStepUpgradeProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_UPGRADE>;
 
@@ -103,15 +104,11 @@ function DynamicIOURequestStepUpgrade({
     const {currentSearchQueryJSON} = useSearchQueryContext();
     const selectedTransactionsKeys = Object.keys(selectedTransactions);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
     // Search-selected transactions are not in COLLECTION.TRANSACTION — extract from `selectedTransactions` directly.
@@ -140,12 +137,18 @@ function DynamicIOURequestStepUpgrade({
         }
     };
 
-    const afterUpgradeAcknowledged = () => {
+    const afterUpgradeAcknowledged = async () => {
         const expenseReportID = policyDataRef.current?.expenseChatReportID ?? reportID;
         const policyID = policyDataRef.current?.policyID;
 
         // Bulk move expenses
         if (upgradePath === CONST.UPGRADE_PATHS.REPORTS && policyID && selectedTransactionsKeys.includes(transactionID)) {
+            const [allPolicyCategories, allPolicyTags, rules, cardList] = await Onyx.multiGet([
+                ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
+                ONYXKEYS.COLLECTION.POLICY_TAGS,
+                ONYXKEYS.COLLECTION.RULE,
+                ONYXKEYS.CARD_LIST,
+            ]);
             const newPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
             const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, newPolicy, isTrackIntentUser, getCurrencyDecimals, rules);
@@ -371,7 +374,9 @@ function DynamicIOURequestStepUpgrade({
                 <ScrollView contentContainerStyle={styles.flexGrow1}>
                     {!!isUpgraded && (
                         <UpgradeConfirmation
-                            afterUpgradeAcknowledged={afterUpgradeAcknowledged}
+                            afterUpgradeAcknowledged={() => {
+                                afterUpgradeAcknowledged();
+                            }}
                             confirmSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.EXPENSE_CONFIRMATION_GOT_IT}
                             policyName={createdPolicyName}
                             isCategorizing={isCategorizing}

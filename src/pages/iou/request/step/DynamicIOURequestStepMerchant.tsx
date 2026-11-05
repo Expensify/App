@@ -43,6 +43,7 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
 import React, {useState} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -70,7 +71,6 @@ function DynamicIOURequestStepMerchant({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -117,7 +117,7 @@ function DynamicIOURequestStepMerchant({
 
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
 
-    const updateMerchant = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
+    const updateMerchant = async (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
         const newMerchant = value.moneyRequestMerchant?.trim();
 
         if (isEditingSplitBill) {
@@ -142,6 +142,7 @@ function DynamicIOURequestStepMerchant({
         // also calling setMoneyRequestMerchant would trigger a redundant Onyx commit and
         // re-render every subscriber of that key for nothing.
         if (isEditing) {
+            const rules = await Onyx.get(ONYXKEYS.COLLECTION.RULE);
             updateMoneyRequestMerchant({
                 isVendorMatchingBetaEnabled,
                 transactionID,
@@ -197,7 +198,9 @@ function DynamicIOURequestStepMerchant({
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM}
-                onSubmit={updateMerchant}
+                onSubmit={(value) => {
+                    updateMerchant(value);
+                }}
                 validate={validate}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
