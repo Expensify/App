@@ -10912,6 +10912,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         },
         display: {
             label: 'Visualizza',
+            labelWithCount: ({count}: {count: number}) => (count > 0 ? `Visualizza (${count})` : 'Visualizza'),
             sortBy: 'Ordina per',
             sortOrder: 'Ordine di visualizzazione',
             groupBy: 'Raggruppa per',
