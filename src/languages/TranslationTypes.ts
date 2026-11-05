@@ -61,6 +61,7 @@ type PolicyRulesModifiedFields = {
     tag?: string;
     comment?: string;
     description?: string;
+    amount?: string;
     billable?: boolean;
     reimbursable?: boolean;
     tax?: {
