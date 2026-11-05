@@ -11,6 +11,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import splitPathAndQuery from '@libs/Navigation/helpers/dynamicRoutesUtils/splitPathAndQuery';
 import openWiseKYCReview from '@libs/openWiseKYCReview';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 
@@ -77,8 +78,10 @@ function MoreInfoNeededContent({bankAccountID, statusPath}: MoreInfoNeededConten
                     sentryLabel={CONST.SENTRY_LABEL.WISE_MORE_INFO_NEEDED.CONTINUE}
                     onPress={() => {
                         setHasRequestedLink(true);
+                        // Wise gets only the path, because the entry screen's query (for example a Search query) can hold personal data, and that screen falls back to its defaults without it
+                        const [statusPathWithoutQuery = statusPath] = splitPathAndQuery(statusPath);
                         // On web the app reloads at the status page when Wise's form ends
-                        getWiseKYCReviewEmbeddedLink(bankAccountID, `${addTrailingForwardSlash(environmentURL)}${statusPath}`);
+                        getWiseKYCReviewEmbeddedLink(bankAccountID, `${addTrailingForwardSlash(environmentURL)}${statusPathWithoutQuery}`);
                     }}
                 />
             </FixedFooter>

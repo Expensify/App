@@ -2,7 +2,10 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
+
 import {READ_COMMANDS} from '@libs/API/types';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -13,6 +16,7 @@ import WiseOnboardingStatusPage from '@pages/settings/Wallet/EnableGlobalReimbur
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import {NavigationContainer} from '@react-navigation/native';
@@ -27,6 +31,7 @@ import {mockKYCReviewLinkResponse} from '../../../../utils/WiseTestUtils';
 const BANK_ACCOUNT_ID = 9053192;
 const CONTINUE_BUTTON_TEST_ID = 'confirmation-primary-button';
 const KYC_REVIEW_URL = 'https://sandbox.transferwise.tech/embedded-flows/kyc-review?token=abc';
+const WALLET_INTRO_PATH = createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(BANK_ACCOUNT_ID), ROUTES.SETTINGS_WALLET);
 
 jest.mock('@libs/openWiseKYCReview', () => jest.fn());
 jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => 'settings/wallet/global-reimbursements/9053192'));
@@ -130,6 +135,30 @@ describe('WiseOnboardingStatusPage while Wise needs more info', () => {
 
         // Then Wise's form opens with the link
         expect(openWiseKYCReview).toHaveBeenCalledWith(KYC_REVIEW_URL);
+    });
+
+    it("sends Wise the status page's path without the entry screen's query, which can hold personal data", async () => {
+        // Given the flow opened over a Search whose query names a person
+        jest.mocked(useDynamicBackPath).mockReturnValue(
+            createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(BANK_ACCOUNT_ID), ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense from:jane@example.com'})),
+        );
+        mockFetch.pause();
+
+        try {
+            await renderPage();
+
+            // When the user presses Continue
+            await pressContinue();
+
+            // Then the return URL keeps the Search page but drops the query, since Search falls back to its default query without it
+            TestHelper.expectAPICommandToHaveBeenCalledWith(READ_COMMANDS.GET_WISE_KYC_REVIEW_EMBEDDED_LINK, 0, {
+                bankAccountID: BANK_ACCOUNT_ID,
+                redirectURL: `https://new.expensify.com/search/global-reimbursements/${BANK_ACCOUNT_ID}/status`,
+            });
+        } finally {
+            // The mock is module-level, so the other tests get the Wallet path back even if an assertion fails
+            jest.mocked(useDynamicBackPath).mockReturnValue(WALLET_INTRO_PATH);
+        }
     });
 
     it('shows an error above Continue when the link cannot be fetched', async () => {
