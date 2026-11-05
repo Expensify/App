@@ -6,8 +6,8 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
 import useOnyx from '@hooks/useOnyx';
 
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import stripDynamicRouteSuffixFromPath from '@libs/Navigation/helpers/dynamicRoutesUtils/stripDynamicRouteSuffixFromPath';
+import getWiseOnboardingStatusRoute from '@libs/Navigation/helpers/getWiseOnboardingStatusRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import openExternalLink from '@libs/openExternalLink';
 
@@ -38,12 +38,16 @@ function getRedirectStatus(url: string, environmentURL: string): string | null {
 /** Shows Wise's hosted KYC form in a WebView, as Wise's mobile guides describe, and closes it when the form ends */
 function WiseKYCReviewPage({route}: WiseKYCReviewPageProps) {
     const [kycReviewURL] = useOnyx(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK, {selector: (embeddedLink) => embeddedLink?.url});
-    const stackBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WISE_KYC_REVIEW.path);
-    // Wallet and Home open the status page without the intro on the stack, so only the route's own path keeps the bank account in it
-    const backPath = route.path ? stripDynamicRouteSuffixFromPath(route.path, DYNAMIC_ROUTES.WISE_KYC_REVIEW.path) : stackBackPath;
+    const bankAccountID = Number(route.params.bankAccountID);
+    const statusPathOnStack = useDynamicBackPath(DYNAMIC_ROUTES.WISE_KYC_REVIEW.path);
+    // Wallet and Home open the status page without the intro on the stack, so only the entry screen is read from the stack and the rest of the path is built
+    const entryPath = stripDynamicRouteSuffixFromPath(
+        stripDynamicRouteSuffixFromPath(statusPathOnStack, DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path),
+        DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.path,
+    );
     const {environmentURL} = useEnvironment();
 
-    const goBack = () => Navigation.goBack(backPath);
+    const goBack = () => Navigation.goBack(getWiseOnboardingStatusRoute(bankAccountID, entryPath));
 
     // Wise ends the form by redirecting to our redirect URL with the outcome in a query param, so the WebView stops there instead of loading that page
     const closeFormOnRedirect = ({url, isTopFrame}: ShouldStartLoadRequest) => {
@@ -53,8 +57,7 @@ function WiseKYCReviewPage({route}: WiseKYCReviewPageProps) {
             return true;
         }
         // The status page underneath applies the outcome, the same way it does after Wise's redirect on web
-        const introPath = stripDynamicRouteSuffixFromPath(backPath, DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path);
-        Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.getRoute(status), introPath), {compareParams: false});
+        Navigation.goBack(getWiseOnboardingStatusRoute(bankAccountID, entryPath, status), {compareParams: false});
         return false;
     };
 

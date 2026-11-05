@@ -48,14 +48,11 @@ jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => 'settings/wallet/glob
 
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
-async function renderPage(kycReviewPath?: string) {
+async function renderPage() {
     await Onyx.set(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK, {url: KYC_REVIEW_URL, isLoading: false});
     render(
         <OnyxListItemProvider>
-            <NavigationContainer
-                ref={navigationRef}
-                initialState={kycReviewPath ? {routes: [{name: SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_KYC_REVIEW, params: {bankAccountID: '9053192'}, path: kycReviewPath}]} : undefined}
-            >
+            <NavigationContainer ref={navigationRef}>
                 <Stack.Navigator initialRouteName={SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_KYC_REVIEW}>
                     <Stack.Screen
                         name={SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_KYC_REVIEW}
@@ -97,18 +94,18 @@ describe('WiseKYCReviewPage', () => {
         expect(goBackSpy).toHaveBeenCalledWith(`${BACK_PATH}?status=${status}`, {compareParams: false});
     });
 
-    it("goes back to the status page from the route's own path when the status page opened without the intro underneath", async () => {
+    it('goes back to the full status path when the status page opened without the intro underneath', async () => {
         // Given the form opened over a status page that the Wallet opened, so the path rebuilt from the stack has no bank account
         const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
-        jest.mocked(useDynamicBackPath).mockReturnValue(ROUTES.SETTINGS_WALLET);
+        jest.mocked(useDynamicBackPath).mockReturnValue(createDynamicRoute(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path, ROUTES.SETTINGS_WALLET));
 
         try {
-            await renderPage(`/${BACK_PATH}/kyc-review`);
+            await renderPage();
 
             // When the form ends and Wise redirects to the status page on our site
             startLoading(`${CONST.NEW_EXPENSIFY_URL}/${BACK_PATH}?status=success`);
 
-            // Then the status page gets the outcome at its full path, since a path without the bank account opens "not found"
+            // Then the status page gets the outcome at a path built over the Wallet, since a path without the bank account opens "not found"
             expect(goBackSpy).toHaveBeenCalledWith(`${BACK_PATH}?status=success`, {compareParams: false});
         } finally {
             // The mock is module-level, so the other tests get the status path back even if an assertion fails
