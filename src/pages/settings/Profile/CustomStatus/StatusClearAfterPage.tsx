@@ -50,28 +50,19 @@ function StatusExpiryField({name, value, error, onPress, sentryLabel}: StatusExp
             sentryLabel={sentryLabel}
             accessibilityLabel={[name, value].filter(Boolean).join(', ')}
         >
-            <MenuItem.Row>
-                <MenuItem.Content>
-                    {value ? (
-                        <>
-                            <MenuItem.FieldName>{name}</MenuItem.FieldName>
-                            <MenuItem.FieldValue>{value}</MenuItem.FieldValue>
-                        </>
-                    ) : (
-                        <MenuItem.FieldNamePlaceholder>{name}</MenuItem.FieldNamePlaceholder>
-                    )}
-                    {!!error && (
-                        <MenuItem.HelpText
-                            isError
-                            message={error}
-                        />
-                    )}
-                </MenuItem.Content>
-                <MenuItem.Trailing>
-                    {!!error && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
-                    <MenuItem.Chevron />
-                </MenuItem.Trailing>
-            </MenuItem.Row>
+            <MenuItemField.Row
+                name={name}
+                value={value}
+            >
+                {!!error && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                <MenuItem.Chevron />
+            </MenuItemField.Row>
+            {!!error && (
+                <MenuItem.HelpText
+                    isError
+                    message={error}
+                />
+            )}
         </MenuItem.Root>
     );
 }
