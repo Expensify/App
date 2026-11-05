@@ -1,6 +1,10 @@
 import getAddressInputKeys from '@components/DynamicForm/utils/getAddressInputKeys';
 
+import Log from '@libs/Log';
+
 import getCurrentSchemaAnswers from '@pages/settings/Wallet/InternationalDepositAccount/getCurrentSchemaAnswers';
+
+import type {DynamicFormSchema} from '@src/types/onyx';
 
 import wiseBankAccountFieldsGB from '../data/wise/wiseBankAccountFieldsGB';
 
@@ -33,6 +37,26 @@ describe('getCurrentSchemaAnswers', () => {
 
         // Then the address parts stay, while the dotted key that only shares the address prefix is dropped
         expect(answers).toEqual({address: '123 Buckingham Palace Road', [ADDRESS_KEYS.city]: 'London', [ADDRESS_KEYS.zipCode]: 'SW1W 0DH', [ADDRESS_KEYS.country]: 'GB'});
+    });
+
+    it('keeps answers to fields of a type this App version does not know, without logging them', () => {
+        // Given a schema with a field of a type the App cannot render, whose answer is in the draft
+        const logSpy = jest.spyOn(Log, 'warn');
+        const schema: DynamicFormSchema = {
+            fields: [
+                {key: 'sortCode', type: 'text', label: 'Sort code', required: true},
+                {key: 'futureField', type: 'futureType', label: 'Future field', required: true},
+            ],
+        };
+        const draftValues = {sortCode: '403020', futureField: 'value', iban: 'DE89370400440532013000'};
+
+        // When the answers for a refresh are picked
+        const answers = getCurrentSchemaAnswers(schema, draftValues);
+
+        // Then the unknown field's answer still reaches the server, and the schema problem is not logged again on every refresh
+        expect(answers).toEqual({sortCode: '403020', futureField: 'value'});
+        expect(logSpy).not.toHaveBeenCalled();
+        logSpy.mockRestore();
     });
 
     it('returns no answers before a schema arrives', () => {
