@@ -9,9 +9,8 @@ import {
     releaseFlowDiscardPromptSuppression,
     runWhileReplayingDiscardedNavigation,
 } from '@libs/Navigation/helpers/discardPromptState';
-import getIsFlowRootGuardActive, {getFlowRootStackKey} from '@libs/Navigation/helpers/getIsFlowRootGuardActive';
 import getNavigationActionForReplay from '@libs/Navigation/helpers/getNavigationActionForReplay';
-import isInFlowNavigationForRoot from '@libs/Navigation/helpers/isInFlowNavigationForRoot';
+import isNavigationInsideFlow from '@libs/Navigation/helpers/isNavigationInsideFlow';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {useRegisterTabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext';
 
@@ -34,6 +33,7 @@ function useDiscardChangesConfirmation({
     onConfirm,
     onTabSwitchDiscard,
     shouldPromptWhenUnfocused = false,
+    shouldPromptWhenGoingBackInFlow = true,
 }: UseDiscardChangesConfirmationOptions): DiscardChangesConfirmation {
     const route = useRoute();
     const navigation = useNavigation();
@@ -44,15 +44,14 @@ function useDiscardChangesConfirmation({
     const isReplayingBlockedNavigation = useRef(false);
 
     // Only the focused screen should prompt — a flow-leave reset fires `beforeRemove` for hidden siblings too.
-    // The first screen of a flow (`shouldPromptWhenUnfocused`) is the exception: it keeps prompting while the flow's
-    // other steps are open on top of it.
+    // With `shouldPromptWhenUnfocused`, the screen also prompts while pages opened from it are on top of it.
     const isFocused = useIsFocused();
     const isSavingRef = useRef(false);
     useFocusEffect(() => {
         isSavingRef.current = false;
         return () => {
-            // The first screen of a flow stays open below the next step after it calls `suppressDiscardPrompt` and moves on.
-            // Turn its prompt back on, so closing the RHP from the next step still asks.
+            // The screen stays open below the page it opens after it calls `suppressDiscardPrompt` and moves on.
+            // Turn its prompt back on, so closing the RHP from that page still asks.
             if (!shouldPromptWhenUnfocused) {
                 return;
             }
@@ -67,11 +66,12 @@ function useDiscardChangesConfirmation({
         releaseFlowDiscardPromptSuppression();
         return () => releaseFlowDiscardPromptSuppression();
     }, [shouldPromptWhenUnfocused]);
-    const isGuardActive = () => (shouldPromptWhenUnfocused ? getIsFlowRootGuardActive(navigation, route.key) : isFocused);
+    // A screen that prompts while covered still stays quiet when its whole flow is covered, such as by another RHP or a fullscreen
+    const isGuardActive = () => (shouldPromptWhenUnfocused ? (navigation.getParent()?.isFocused() ?? true) : isFocused);
     const isMuted = () => isSavingRef.current || (shouldPromptWhenUnfocused && isFlowDiscardPromptSuppressed());
     const hasUnsavedChanges = () => isGuardActive() && !isMuted() && getHasUnsavedChanges();
-    // Some navigations remove the flow's first screen but keep the user in the flow, so they don't prompt
-    const shouldPromptFor = (action: NavigationAction) => !shouldPromptWhenUnfocused || !isInFlowNavigationForRoot(action, route, getFlowRootStackKey(navigation));
+    // Some navigations remove this screen but keep the user in the flow, so they don't prompt
+    const shouldPromptFor = (action: NavigationAction) => !shouldPromptWhenUnfocused || !isNavigationInsideFlow(action, route, navigation.getState(), !shouldPromptWhenGoingBackInFlow);
 
     // Callers derive dirtiness from current values and baselines, so this is safe to read during render.
     // The other checks (saving, muted, the flow being on screen) read refs and the navigation state, so the callback below runs them.
@@ -134,7 +134,9 @@ function useDiscardChangesConfirmation({
             if (isDiscardModalOpen.current) {
                 return true;
             }
-            if (!hasUnsavedChanges()) {
+            // When going back inside the flow shouldn't ask, let react-navigation go back. The `usePreventRemove` callback then
+            // lets a back inside the flow through, and still asks when the back closes the RHP.
+            if (!hasUnsavedChanges() || !shouldPromptWhenGoingBackInFlow) {
                 return false;
             }
             showDiscardModal();

@@ -514,11 +514,17 @@ function IOURequestStepConfirmationContent({
         };
     }, []);
 
+    // The distance and time steps, and the Scan step while it shows the receipts captured with multi-scan, show the same data and
+    // have their own guard. Going back to them loses nothing, so it doesn't ask. Other steps, such as the Scan camera or choosing
+    // a recipient, don't show the draft, so going back to them asks.
+    const shouldPromptWhenGoingBack = !isDistanceRequest && !isTimeRequest && !hasMultipleTransactions;
+
     // Leaving this page, or closing the RHP from a page opened from it, asks first when a draft has user input. When embedded,
     // the start page asks instead. Per diem isn't covered yet, because https://github.com/Expensify/App/issues/105164 moves its
     // steps into this page.
     const {isFlowDirty} = useCreateFlowDiscardGuard({
         isEnabled: !shouldHideHeader && action === CONST.IOU.ACTION.CREATE && !isPerDiemRequest,
+        shouldPromptWhenGoingBackInFlow: shouldPromptWhenGoingBack,
         // Runs only after the user picks Discard, so Cancel keeps the tracking and the destination opened early under the RHP
         onBeforeClose: () => {
             cancelTracking();
@@ -528,7 +534,7 @@ function IOURequestStepConfirmationContent({
 
     const navigateBack = () => {
         // When the guard asks first, it cleans up only if the user picks Discard
-        if (!isFlowDirty) {
+        if (!isFlowDirty || !shouldPromptWhenGoingBack) {
             // User is explicitly abandoning the flow - cancel any active telemetry span.
             // The orchestrator never calls navigateBack (it uses dismissModal), so this
             // reliably distinguishes user-initiated back from programmatic dismiss.

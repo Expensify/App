@@ -13,6 +13,12 @@ type UseDiscardChangesConfirmationOptions = {
      * `suppressFlowDiscardPrompt` first.
      */
     shouldPromptWhenUnfocused?: boolean;
+
+    /**
+     * Whether going back to an earlier screen of the flow, with the RHP still open, asks. Turn it off when that screen shows the same
+     * data and has its own guard, so going back loses nothing. Closing the RHP still asks. Only used with `shouldPromptWhenUnfocused`.
+     */
+    shouldPromptWhenGoingBackInFlow?: boolean;
 };
 
 type DiscardChangesConfirmation = {

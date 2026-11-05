@@ -5,10 +5,8 @@ import {
     runWhileReplayingDiscardedNavigation,
     suppressFlowDiscardPrompt,
 } from '@libs/Navigation/helpers/discardPromptState';
-import getIsFlowRootGuardActive, {getFlowRootStackKey} from '@libs/Navigation/helpers/getIsFlowRootGuardActive';
-import type {FlowRootGuardNavigation} from '@libs/Navigation/helpers/getIsFlowRootGuardActive';
 import getNavigationActionForReplay from '@libs/Navigation/helpers/getNavigationActionForReplay';
-import isInFlowNavigationForRoot from '@libs/Navigation/helpers/isInFlowNavigationForRoot';
+import isNavigationInsideFlow from '@libs/Navigation/helpers/isNavigationInsideFlow';
 
 import CONST from '@src/CONST';
 
@@ -20,14 +18,6 @@ jest.mock('@libs/Navigation/navigationRef', () => ({
         getRootState: () => ({key: 'root', routes: [{key: 'tab-navigator'}, {key: 'rhp-route'}]}),
     },
 }));
-
-type MockNavigatorState = ReturnType<FlowRootGuardNavigation['getState']>;
-
-const createNavigation = ({state, parent, isFocused = true}: {state?: MockNavigatorState; parent?: FlowRootGuardNavigation; isFocused?: boolean}): FlowRootGuardNavigation => ({
-    getState: () => state,
-    getParent: () => parent,
-    isFocused: () => isFocused,
-});
 
 describe('discardPromptState', () => {
     beforeEach(() => {
@@ -130,80 +120,56 @@ describe('getNavigationActionForReplay', () => {
     });
 });
 
-describe('isInFlowNavigationForRoot', () => {
-    const flowRoot = {name: 'Money_Request_Create', params: {transactionID: '1'}};
+describe('isNavigationInsideFlow', () => {
+    const confirmation = {name: 'Money_Request_Step_Confirmation', params: {transactionID: '1'}};
+    const stack = {key: 'flow-stack', index: 1, routes: [{key: 'start'}, {key: 'confirmation'}]};
+    const restoreState = (routes: unknown[]) => ({
+        type: 'RESET',
+        payload: {routes: [{name: 'RightModalNavigator', state: {routes: [{name: 'MoneyRequest', params: {params: {transactionID: '1'}}, state: {routes}}]}}]},
+    });
 
-    it('keeps a browser back in the flow when the restored state still holds the flow root', () => {
-        // Given a RESET restoring a state that nests the same flow root under the RHP
-        const action = {
-            type: 'RESET',
-            payload: {routes: [{name: 'RightModalNavigator', state: {routes: [{name: 'MoneyRequest', params: {params: {transactionID: '1'}}, state: {routes: [flowRoot]}}]}}]},
-        };
+    it('keeps a browser back in the flow when the restored state still holds the guarded screen', () => {
+        // Given a RESET after a refresh that restores Confirmation, nested under the RHP
+        const action = restoreState([confirmation]);
 
         // When checking whether it leaves the flow
         // Then it stays in the flow
-        expect(isInFlowNavigationForRoot(action, flowRoot, 'flow-stack')).toBe(true);
+        expect(isNavigationInsideFlow(action, confirmation, stack, false)).toBe(true);
     });
 
-    it('treats a browser back that drops the flow root, or holds another draft, as leaving the flow', () => {
-        // Given RESETs restoring a state without the flow root, and one with the root of another draft
+    it('treats a browser back that drops the guarded screen, or holds another draft, as leaving the flow', () => {
+        // Given RESETs restoring a state without Confirmation, and one with the Confirmation of another draft
         const closingReset = {type: 'RESET', payload: {routes: [{name: 'Home'}]}};
-        const resetToOtherDraft = {type: 'RESET', payload: {routes: [{name: 'Money_Request_Create', params: {transactionID: '2'}}]}};
+        const resetToOtherDraft = {type: 'RESET', payload: {routes: [{name: confirmation.name, params: {transactionID: '2'}}]}};
 
         // When checking whether they leave the flow
         // Then both leave it
-        expect(isInFlowNavigationForRoot(closingReset, flowRoot, 'flow-stack')).toBe(false);
-        expect(isInFlowNavigationForRoot(resetToOtherDraft, flowRoot, 'flow-stack')).toBe(false);
+        expect(isNavigationInsideFlow(closingReset, confirmation, stack, false)).toBe(false);
+        expect(isNavigationInsideFlow(resetToOtherDraft, confirmation, stack, false)).toBe(false);
     });
 
-    it('keeps a replace inside the flow stack in the flow', () => {
-        // Given replaces aimed at the flow's own stack and at another navigator
-        // When checking whether they leave the flow
-        // Then only the one inside the flow stack stays in the flow
-        expect(isInFlowNavigationForRoot({type: 'REPLACE', target: 'flow-stack'}, flowRoot, 'flow-stack')).toBe(true);
-        expect(isInFlowNavigationForRoot({type: 'REPLACE', target: 'root'}, flowRoot, 'flow-stack')).toBe(false);
+    it.each([
+        ['the header back', {type: 'POP_TO', target: 'flow-stack'}],
+        ['Android back', {type: 'GO_BACK'}],
+        ['an iOS swipe', {type: 'POP', source: 'confirmation', target: 'flow-stack'}],
+        ['a browser back', restoreState([{name: 'Money_Request_Create', params: {transactionID: '1'}}])],
+    ])('treats %s to an earlier step as leaving the screen unless going back is allowed', (_, action) => {
+        // Given a back from Confirmation to an earlier step of the same expense
+        // When checking whether it leaves the flow
+        // Then it leaves Confirmation by default, and stays in the flow when going back is allowed
+        expect(isNavigationInsideFlow(action, confirmation, stack, false)).toBe(false);
+        expect(isNavigationInsideFlow(action, confirmation, stack, true)).toBe(true);
     });
 
-    it('treats closing actions as leaving the flow', () => {
-        // Given the actions that close the RHP
+    it('treats closing the RHP as leaving the flow even when going back is allowed', () => {
+        // Given the actions that close the RHP, and a back from a screen with nothing below it in its stack
+        const firstScreenStack = {key: 'flow-stack', index: 0, routes: [{key: 'confirmation'}]};
+
         // When checking whether they leave the flow
         // Then they do
-        expect(isInFlowNavigationForRoot({type: 'DISMISS_MODAL'}, flowRoot, 'flow-stack')).toBe(false);
-        expect(isInFlowNavigationForRoot({type: 'GO_BACK', source: 'rhp-route'}, flowRoot, 'flow-stack')).toBe(false);
-    });
-});
-
-describe('getIsFlowRootGuardActive', () => {
-    const visibleFlow = createNavigation({isFocused: true});
-
-    it('reacts while later steps cover the root, as long as the flow is visible', () => {
-        // Given a flow root at the bottom of its stack, with a later step on top
-        const navigation = createNavigation({state: {type: 'stack', key: 'flow-stack', index: 1, routes: [{key: 'root'}, {key: 'step'}]}, parent: visibleFlow, isFocused: false});
-
-        // When checking whether its guard is active
-        // Then it is, and the flow stack hosts it
-        expect(getIsFlowRootGuardActive(navigation, 'root')).toBe(true);
-        expect(getFlowRootStackKey(navigation)).toBe('flow-stack');
-    });
-
-    it('stays inactive while the flow itself is covered', () => {
-        // Given a flow root whose flow is covered by another RHP or a fullscreen
-        const navigation = createNavigation({state: {type: 'stack', key: 'flow-stack', index: 0, routes: [{key: 'root'}]}, parent: createNavigation({isFocused: false})});
-
-        // When checking whether its guard is active
-        // Then it isn't
-        expect(getIsFlowRootGuardActive(navigation, 'root')).toBe(false);
-    });
-
-    it('only reacts in the active tab of a tabbed flow root', () => {
-        // Given two tabs of a flow root hosted by the flow stack
-        const host = createNavigation({state: {type: 'stack', key: 'flow-stack', index: 0, routes: [{key: 'create'}]}, parent: visibleFlow});
-        const navigation = createNavigation({state: {type: 'tab', key: 'tabs', index: 1, routes: [{key: 'manual'}, {key: 'scan'}]}, parent: host});
-
-        // When checking whether each tab's guard is active
-        // Then only the active tab reacts, and the flow stack above the tabs hosts them
-        expect(getIsFlowRootGuardActive(navigation, 'scan')).toBe(true);
-        expect(getIsFlowRootGuardActive(navigation, 'manual')).toBe(false);
-        expect(getFlowRootStackKey(navigation)).toBe('flow-stack');
+        expect(isNavigationInsideFlow({type: 'DISMISS_MODAL'}, confirmation, stack, true)).toBe(false);
+        expect(isNavigationInsideFlow({type: 'GO_BACK', source: 'rhp-route'}, confirmation, stack, true)).toBe(false);
+        expect(isNavigationInsideFlow({type: 'POP', target: 'rhp-navigator'}, confirmation, stack, true)).toBe(false);
+        expect(isNavigationInsideFlow({type: 'GO_BACK'}, confirmation, firstScreenStack, true)).toBe(false);
     });
 });
