@@ -74,7 +74,12 @@ describe('EmptySearchView', () => {
     });
 
     describe('reset filters', () => {
-        it('offers reset for an Insights empty state matched by similar search hash', async () => {
+        it.each([
+            {shouldShowResetFilters: true, title: 'search.searchResults.emptyResults.title'},
+            {shouldShowResetFilters: true, title: 'search.searchResults.emptyExpenseResults.title'},
+            {shouldShowResetFilters: false, title: 'search.searchResults.emptyResults.title'},
+            {shouldShowResetFilters: undefined, title: 'search.searchResults.emptyResults.title'},
+        ] as const)('uses shouldShowResetFilters=$shouldShowResetFilters independently of title=$title', async ({shouldShowResetFilters, title}) => {
             // Given an Insights view whose changed feed does not change its similar search hash
             const defaultQueryJSON = buildSearchQueryJSON('type:expense group-by:merchant');
             const queryJSON = buildSearchQueryJSON('type:expense group-by:merchant feed:123');
@@ -95,15 +100,16 @@ describe('EmptySearchView', () => {
                             recentSearchHash: defaultQueryJSON?.recentSearchHash ?? -1,
                             similarSearchHash: queryJSON?.similarSearchHash ?? -1,
                             emptyState: {
-                                title: 'search.searchResults.emptyResults.title',
+                                title,
                                 subtitle: 'search.searchResults.emptyResults.subtitle',
+                                shouldShowResetFilters,
                             },
                         },
                     ],
                 },
             ]);
 
-            // When the menu-provided Nothing to show state is rendered
+            // When the menu-provided empty state is rendered
             render(
                 <Wrapper
                     queryJSON={queryJSON}
@@ -119,9 +125,13 @@ describe('EmptySearchView', () => {
             );
             await waitForBatchedUpdatesWithAct();
 
-            // Then it also exposes reset rather than missing the fallback-only implementation
-            expect(screen.getByText(translateLocal('search.searchResults.emptyResults.title'))).toBeVisible();
-            expect(screen.getByText(translateLocal('search.resetFilters'))).toBeVisible();
+            // Then only the explicit flag controls reset eligibility, regardless of the title
+            expect(screen.getByText(translateLocal(title))).toBeVisible();
+            if (shouldShowResetFilters) {
+                expect(screen.getByText(translateLocal('search.resetFilters'))).toBeVisible();
+            } else {
+                expect(screen.queryByText(translateLocal('search.resetFilters'))).not.toBeOnTheScreen();
+            }
             menuSections.mockRestore();
         });
 

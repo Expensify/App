@@ -248,7 +248,7 @@ function EmptySearchViewContent({
                         ...button,
                         buttonText: translate(button.buttonText),
                     })),
-                    children: menuItem.emptyState.title === 'search.searchResults.emptyResults.title' ? <SearchResetFiltersButton /> : undefined,
+                    children: menuItem.emptyState.shouldShowResetFilters ? <SearchResetFiltersButton /> : undefined,
                 };
                 break;
             }
