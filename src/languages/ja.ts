@@ -35,6 +35,12 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        billCreated: ({sender}) => `${sender} に代わってこの請求書を作成しました`,
+        billSubmitted: ({receiver}) => `この請求書を ${receiver} に送信しました`,
+        invoiceCreated: ({sender}) => `${sender} に代わってこの請求書を作成しました`,
+        invoiceSubmitted: ({receiver}) => `この請求書を ${receiver} に送信しました`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 日`,
@@ -1221,6 +1227,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'コンプライアンス',
         runningTotal: '累計合計',
+        explain: '説明',
+        explainChartPrompt: (chartTitle: string) => `${chartTitle} のデータを説明します。`,
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -1525,10 +1533,10 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: 'ウェブサイトがない場合は、代わりに自社のLinkedInまたはソーシャルメディアのプロフィールを入力できます。',
         invalidDomainError: '無効なドメインが入力されています。続行するには、有効なドメインを入力してください。',
         publicDomainError: '公開ドメインが入力されています。続行するには、プライベートドメインを入力してください。',
-        expenseCount: () => {
+        expenseCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
             return {
-                one: '1件の経費',
-                other: (count: number) => `${count}件の経費`,
+                one: (count: number) => `${formattedCount ?? count} 件の経費`,
+                other: (count: number) => `${formattedCount ?? count} 件の経費`,
             };
         },
         deleteExpense: () => ({
@@ -1691,6 +1699,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidSplitYourself: '分割する金額は 0 以外の数値を入力してください',
             noParticipantSelected: '参加者を選択してください',
             other: '予期しないエラーが発生しました。しばらくしてからもう一度お試しください。',
+            payFailedExpenseDeleted: 'この支払いは、経費精算書が削除されたため失敗しました。',
             genericCreateFailureMessage: 'この経費の送信中に予期しないエラーが発生しました。後でもう一度お試しください。',
             genericCreateInvoiceFailureMessage: 'この請求書の送信中に予期しないエラーが発生しました。後でもう一度お試しください。',
             genericHoldExpenseFailureMessage: 'この経費を保留中に予期しないエラーが発生しました。後でもう一度お試しください。',
@@ -2172,14 +2181,15 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `経費の承認を<strong>あなた</strong>が行うのを待っています。`;
+                        return isBill ? `請求書の承認を<strong>あなた</strong>が行うのを待っています。` : `経費の承認を<strong>あなた</strong>が行うのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `<strong>${actor}</strong>による経費の承認を待っています。`;
+                        return isBill ? `<strong>${actor}</strong>による請求書の承認を待っています。` : `<strong>${actor}</strong>による経費の承認を待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `管理者が経費を承認するのを待っています。`;
+                        return isBill ? `管理者が請求書を承認するのを待っています。` : `管理者が経費を承認するのを待っています。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (
@@ -2202,14 +2212,15 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `精算の支払いを<strong>あなた</strong>が行うのを待っています。`;
+                        return isBill ? `この請求書の支払いを<strong>あなた</strong>が行うのを待っています。` : `精算の支払いを<strong>あなた</strong>が行うのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `<strong>${actor}</strong> が経費を支払うのを待っています。`;
+                        return isBill ? `<strong>${actor}</strong> がこの請求書を支払うのを待っています。` : `<strong>${actor}</strong> が経費を支払うのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `管理者が経費を支払うのを待っています。`;
+                        return isBill ? `管理者がこの請求書を支払うのを待っています。` : `管理者が経費を支払うのを待っています。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
@@ -3094,8 +3105,19 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `Wiseの<a href="${CONST.WISE.TERMS_URL}">利用規約</a>および<a href="${CONST.WISE.PRIVACY_URL}">プライバシーポリシー</a>に同意します。`,
                 wiseTermsAccessibilityLabel: 'Wiseの利用規約およびプライバシーポリシーに同意します。',
                 error: '続行するにはすべての規約に同意してください。',
+                alreadySubmitted: 'このビジネスはすでに審査のためにWiseに送信されています。',
             },
+            moreInfoNeeded: {headerTitle: '詳細情報が必要です', title: '追加情報を確認', subtitle: '決済パートナーが直接、追加情報を必要としています。数分で完了します。'},
+            inReview: {
+                title: 'レビュー中',
+                heading: '必要な情報はすべて揃いました。\n後ほどご連絡いたします！',
+                description: '審査のほとんどは1～2日かかります。更新があり次第メッセージでお知らせします。',
+                chatWithConcierge: 'Concierge とチャットする',
+            },
+            approved: {title: 'アカウントが承認されました', heading: '世界中で支払い承認済み', description: 'メンバーがどこにいても支払いましょう。'},
+            rejected: {title: '銀行口座が拒否されました', heading: 'パートナーがあなたの銀行口座を拒否しました', description: '詳しくは Concierge にチャットでお問い合わせください。'},
         },
+        wiseSetupInProgress: {message: 'グローバル払い戻しの設定が進行中です。', continue: '続行。'},
         wiseGlobalReimbursementsIntro: {
             title: 'グローバル払い戻しを設定しますか？',
             subtitle: '世界中のメンバーに現地通貨で支払えます。',
@@ -3104,6 +3126,7 @@ const translations: TranslationDeepObject<typeof en> = {
             payingReportSubtitle: '会社と従業員の銀行口座は異なる通貨を使用しています。',
         },
         wiseGlobalReimbursementsBanner: {title: '世界中の人に支払いましょう', subtitle: 'USD アカウントでグローバル払い戻しを有効にします。'},
+        globalReimbursementsEnabled: 'グローバル精算が有効になりました',
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `${walletName} にカードを追加`,
@@ -3608,6 +3631,7 @@ ${date} の ${merchant} への ${amount}`,
         appSection: {
             title: 'アプリの設定',
         },
+        distanceSection: {title: '距離の設定'},
         testSection: {
             title: 'テスト設定',
             subtitle: 'ステージング環境でアプリのデバッグとテストを行うための設定です。',
@@ -6911,6 +6935,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             updateFailureMessage: 'カテゴリの更新中にエラーが発生しました。もう一度お試しください。',
             createFailureMessage: 'カテゴリの作成中にエラーが発生しました。もう一度お試しください。',
             addCategory: 'カテゴリを追加',
+            createCategoryFromSearch: (categoryName: string) => `カテゴリ「${categoryName}」を作成`,
             editCategory: 'カテゴリーを編集',
             editCategories: 'カテゴリを編集',
             findCategory: 'カテゴリを検索',
@@ -9049,9 +9074,9 @@ ${reportName}`,
                 describeRuleForConcierge: 'ルールの内容を入力すると、Concierge が自動作成します',
                 gotIt: '了解しました',
                 createRule: 'ルールを作成',
-                fallbackBanner:
-                    'これは標準ルールではないため、エージェントルールとして作成しました。エージェントルールは、経費やレポートに変更があった後に動作し、例えば経費を保留にしたり、レポートを却下したりします。',
-                fallbackBannerWithExplanation: (explanation: string) => `これは標準ルールではないため、エージェントルールとして作成しました。${explanation}`,
+                fallbackBanner: 'これは標準ルールではないため、エージェントルールを作成しました。エージェントルールは、経費またはレポートが作成または更新されたときに実行されます。',
+                fallbackBannerWithExplanation: (explanation: string) =>
+                    `これは標準ルールではないため、エージェントルールを作成しました。エージェントルールは、経費またはレポートが作成または更新されたときに実行されます。${explanation}`,
             },
             tabs: {
                 general: '一般',
@@ -10376,6 +10401,12 @@ ${reportName}`,
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `「精算不要レポートを支払済みにしない」を「${newValue === 'true' ? '有効' : '無効'}」（以前は「${oldValue === 'true' ? '有効' : '無効'}」）に更新しました`,
         addedExpensifyCardFeed: (feedName: string) => `「${feedName}」Expensify カードフィードを追加しました`,
+        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
+            if (!oldValue) {
+                return `ワークスペースのタイムゾーンを「${newValue}」に設定します`;
+            }
+            return `ワークスペースのタイムゾーンを「${newValue}」（以前は「${oldValue}」）に更新しました`;
+        },
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
@@ -10967,6 +10998,8 @@ ${reportName}`,
                     const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');
                     return `Expensify モバイルアプリを開いて、${amountAndMerchantText && `${amountAndMerchantText} `}の取引を確認してください`;
                 },
+                autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
+                    `グローバル払い戻しは、${adminName} さんにより、末尾が ${lastFour} の ${bankName ? `${bankName} ` : ''}アカウントで有効化されました。国境を越えるレポートが自動支払いされる場合、正確な為替レートおよび手数料は支払い前にプレビューできません。レートと手数料の詳細については、<a href="${autoPaySettingsURL}">自動支払い設定</a>をご確認ください。`,
             },
             error: {
                 invalidCredentials: '認証情報が無効です。接続の設定を確認してください。',
@@ -12081,7 +12114,6 @@ ${reportName}`,
             isUnreadWithMention: '未読（メンションあり）',
             isWaitingForAssigneeToCompleteAction: '担当者のアクション完了を待機中',
             hasChildReportAwaitingAction: '対応が必要な子レポートがあります',
-            hasMissingInvoiceBankAccount: '請求書の銀行口座が未設定',
             hasUnresolvedCardFraudAlert: '未解決のカード不正利用アラートがあります',
             hasDEWApproveFailed: 'DEW の承認が失敗しました',
         },
@@ -12600,5 +12632,28 @@ ${reportName}`,
         mobileClaimPrompt: '更新割引を受け取るには、Web ブラウザで Expensify にアクセスしてください。',
     },
     bulkActionBar: {label: '一括操作', clearSelection: '選択をクリア', loadingSelection: '選択内容を読み込み中'},
+    reportHistoryPage: {
+        title: 'レポート履歴',
+        created: 'レポートを作成しました',
+        submitted: '送信済み',
+        approved: '承認済み',
+        paid: '支払い済み',
+        toSubmit: '送信する',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return '自動送信する';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `毎月${eta}に自動で送信する` : `${eta}自動送信する`;
+        },
+        toApprove: '承認する',
+        toPay: '支払う',
+        minutesAgo: (count: number) => `${count}分前`,
+        hoursAgo: (count: number) => `${count}時間前`,
+        daysAgo: () => ({
+            one: '1日前',
+            other: (count: number) => `${count}日前`,
+        }),
+        offlineMessage: 'オフラインです。レポート履歴が最新ではない可能性があります。',
+    },
 };
 export default translations;
