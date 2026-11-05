@@ -5134,6 +5134,11 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             inputLabel: '法人納税者番号',
             error: {required: '法的事業体の納税者番号を入力してください。'},
         },
+        travelMembers: {
+            headline: '出張を予約できるのは誰ですか？',
+            subtitle: 'このワークスペースで出張を予約できるメンバーを選択してください。メンバーページからいつでも変更できます。',
+            everyone: 'このワークスペースの全員',
+        },
         nudge: {
             airfareManual:
                 'Expensify で直接フライトを予約しても、マイレージプログラムでマイルを獲得できることをご存じでしたか？ 次回からは経費を手動で作成する手間を省き、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください ✈️',
@@ -5155,6 +5160,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 'Expensify では、このようなグループ旅行の予約と管理を直接行えることをご存じでしたか？次回は面倒を省くために、ぜひ <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> ツールをお試しください。',
             hotelBlockCard:
                 'Expensify では、このようなグループ旅行の予約と管理を直接行えることをご存じでしたか？次回は面倒を省くために、ぜひ <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> ツールをお試しください。',
+        },
+        memberAccessDisabledModal: {
+            title: 'まだ出張機能が有効になっていません',
+            message: 'ワークスペース管理者があなたのExpensify Travelをまだ有効にしていません。アクセスするには管理者にお問い合わせください。',
         },
         defaultWorkspaceTravelDisabled: {
             title: 'まだ旅行を予約できません',
@@ -6998,6 +7007,11 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                         title: 'コーディングを Expensify Travel と同期する',
                         subtitle: 'このワークスペースのカテゴリ、タグ、レポートフィールドを Expensify Travel にプッシュして、出張者が予約時にそれらに回答できるようにします。',
                     },
+                },
+                members: {
+                    offDescription: '出張を予約できません',
+                    onDescription: '出張を予約できます',
+                    travelAccess: '出張へのアクセス',
                 },
                 travelBilling: {
                     travelBookingSection: {

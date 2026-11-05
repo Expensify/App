@@ -1,4 +1,5 @@
-import {setPolicyTravelSettings} from '@libs/actions/Policy/Travel';
+import {setPolicyTravelMemberAccess, setPolicyTravelSettings} from '@libs/actions/Policy/Travel';
+import {WRITE_COMMANDS} from '@libs/API/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -130,6 +131,29 @@ describe('actions/Policy/Travel', () => {
             expect(failedPolicy?.errorFields?.isCodingSyncEnabled).toBeTruthy();
             expect(failedPolicy?.errorFields?.autoAddTripName).toBeFalsy();
             expect(failedPolicy?.travelSettings?.autoAddTripName).toBe(true);
+        });
+    });
+
+    describe('setPolicyTravelMemberAccess', () => {
+        it('restores travel access and shows the error when turning travel on fails', async () => {
+            // Given a member with travel off
+            const memberEmail = 'member@example.com';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                employeeList: {[memberEmail]: {email: memberEmail, role: CONST.POLICY.ROLE.USER, canUseTravel: false}},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // When travel is turned on for them and the request fails
+            mockFetch.mockAPICommand(WRITE_COMMANDS.SET_POLICY_TRAVEL_MEMBER_ACCESS, () => ({jsonCode: 400}));
+            setPolicyTravelMemberAccess(fakePolicy, [{email: memberEmail, accountID: 2}], true);
+            await waitForBatchedUpdates();
+
+            // Then the member keeps travel off with the error, marked as a failed update so dismissing it keeps them in the list
+            const employee = (await getPolicy(fakePolicy.id))?.employeeList?.[memberEmail];
+            expect(employee?.canUseTravel).toBe(false);
+            expect(employee?.errors).toBeTruthy();
+            expect(employee?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
         });
     });
 });

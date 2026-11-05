@@ -5377,6 +5377,11 @@ const translations = {
                 required: 'Please enter your legal entity tax ID.',
             },
         },
+        travelMembers: {
+            headline: 'Who can book travel?',
+            subtitle: 'Choose who on this workspace can book travel. You can change this anytime from the Members page.',
+            everyone: 'Everyone on this workspace',
+        },
         domainPermissionInfo: {
             title: 'Domain',
             restriction: (domain: string) =>
@@ -5390,6 +5395,10 @@ const translations = {
         blockedFeatureModal: {
             title: 'Expensify Travel has been disabled',
             message: `Your admin has turned off Expensify Travel. Please follow your company's booking policy for travel arrangements.`,
+        },
+        memberAccessDisabledModal: {
+            title: "Travel isn't turned on for you yet",
+            message: "Your workspace admin hasn't turned on Expensify Travel for you. Reach out to your admin to get access.",
         },
         defaultWorkspaceTravelDisabled: {
             title: "You can't book travel yet",
@@ -7702,6 +7711,11 @@ const translations = {
                         title: 'Sync coding to Expensify Travel',
                         subtitle: "Push this workspace's categories, tags, and report fields to Expensify Travel so travelers answer them at booking time.",
                     },
+                },
+                members: {
+                    offDescription: "Can't book travel",
+                    onDescription: 'Can book travel',
+                    travelAccess: 'Travel access',
                 },
                 travelBilling: {
                     travelBookingSection: {

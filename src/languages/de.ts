@@ -5218,6 +5218,11 @@ ${amount} für ${merchant} – ${date}`,
             inputLabel: 'Steuer-ID der juristischen Person',
             error: {required: 'Bitte geben Sie die Steuernummer Ihrer juristischen Person ein.'},
         },
+        travelMembers: {
+            headline: 'Wer kann Reisen buchen?',
+            subtitle: 'Wähle aus, wer in diesem Workspace Reisen buchen kann. Du kannst das jederzeit auf der Seite „Mitglieder“ ändern.',
+            everyone: 'Alle in diesem Workspace',
+        },
         nudge: {
             airfareManual:
                 'Wussten Sie, dass Sie Flüge direkt in Expensify buchen und trotzdem Meilen mit Ihren Vielfliegerprogrammen sammeln können? Sparen Sie sich beim nächsten Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
@@ -5239,6 +5244,10 @@ ${amount} für ${merchant} – ${date}`,
                 'Wussten Sie, dass Sie Gruppenreisen wie diese direkt in Expensify buchen und verwalten können? Sparen Sie sich beim nächsten Mal den Aufwand und probieren Sie unser Tool <a href="https://help.expensify.com/travel/hubs/event-management/">Reise-Events</a> aus.',
             hotelBlockCard:
                 'Wussten Sie, dass Sie Gruppenreisen wie diese direkt in Expensify buchen und verwalten können? Sparen Sie sich beim nächsten Mal den Aufwand und probieren Sie unser Tool <a href="https://help.expensify.com/travel/hubs/event-management/">Reise-Events</a> aus.',
+        },
+        memberAccessDisabledModal: {
+            title: 'Reisen ist für Sie noch nicht aktiviert',
+            message: 'Ihre Workspace-Administration hat Expensify Travel für Sie noch nicht aktiviert. Bitte wenden Sie sich an Ihre Administration, um Zugriff zu erhalten.',
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Sie können noch keine Reisen buchen',
@@ -7150,6 +7159,11 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                         title: 'Codierung mit Expensify Travel synchronisieren',
                         subtitle: 'Kategorien, Tags und Berichtsfelder dieses Arbeitsbereichs an Expensify Travel übertragen, damit Reisende sie beim Buchen beantworten.',
                     },
+                },
+                members: {
+                    offDescription: 'Kann keine Reisen buchen',
+                    onDescription: 'Kann Reisen buchen',
+                    travelAccess: 'Reisezugriff',
                 },
                 travelBilling: {
                     travelBookingSection: {

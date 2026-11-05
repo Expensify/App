@@ -27,7 +27,7 @@ function useWorkspaceMembers(policy: OnyxEntry<Policy>) {
     const [personalDetails] = usePersonalDetailsByIDs(policyMemberAccountIDs);
     const {isOffline} = useNetwork();
 
-    const result: Array<{email: string; policyEmployee: PolicyEmployee; accountID: number; details: PersonalDetails}> = [];
+    const result: Array<{email: string; policyEmployee: PolicyEmployee; accountID: number; details: PersonalDetails; isAccountIDGenerated: boolean}> = [];
     for (const [email, policyEmployee] of Object.entries(policy?.employeeList ?? {})) {
         // Inviting a secondary login leaves an empty employeeList entry: the backend nulls that key, then
         // successData merges {pendingAction: null} back onto it. Skip it so it doesn't render as a second
@@ -40,7 +40,8 @@ function useWorkspaceMembers(policy: OnyxEntry<Policy>) {
         // haven't loaded (e.g. the backend under-returns them), that join is empty, so we fall back to a
         // generated accountID. This keeps the rendered count in sync with employeeList and matches OldDot,
         // which shows every member rather than silently dropping the ones without loaded details.
-        const accountID = policyMemberEmailsToAccountIDs[email] ? Number(policyMemberEmailsToAccountIDs[email]) : generateAccountID(email);
+        const isAccountIDGenerated = !policyMemberEmailsToAccountIDs[email];
+        const accountID = isAccountIDGenerated ? generateAccountID(email) : Number(policyMemberEmailsToAccountIDs[email]);
 
         // Render a fallback identity (email as display name) when personal details are missing so the member
         // is still shown instead of being dropped from the list.
@@ -54,7 +55,7 @@ function useWorkspaceMembers(policy: OnyxEntry<Policy>) {
             continue;
         }
 
-        result.push({email, policyEmployee, accountID, details});
+        result.push({email, policyEmployee, accountID, details, isAccountIDGenerated});
     }
 
     return result;

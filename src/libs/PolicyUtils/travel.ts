@@ -30,6 +30,19 @@ function hasAcceptedTravelTerms(policy: OnyxEntry<Policy>, accountTravelSettings
     return !!(policy?.travelSettings?.hasAcceptedTerms ?? (accountTravelSettings?.hasAcceptedTerms && isPolicyProvisionedForTravel(policy)));
 }
 
+/** Whether a member has travel turned on for a workspace, meaning they can book trips with it. */
+function canMemberUseTravel(policy: OnyxEntry<Policy>, login: string | undefined): boolean {
+    return !!login && policy?.employeeList?.[login]?.canUseTravel === true;
+}
+
+/**
+ * Whether an admin turned travel off for a member of a workspace. A member whose access isn't known yet isn't blocked
+ * here, since the server decides when they try to book.
+ */
+function isMemberTravelAccessTurnedOff(policy: OnyxEntry<Policy>, login: string | undefined): boolean {
+    return !!login && policy?.employeeList?.[login]?.canUseTravel === false;
+}
+
 function isNonUSDPolicy(policy: OnyxEntry<Policy>): boolean {
     return !!policy?.outputCurrency && policy.outputCurrency !== CONST.CURRENCY.USD;
 }
@@ -60,4 +73,4 @@ function getTravelStep(
     return CONST.TRAVEL.STEPS.GET_STARTED_TRAVEL;
 }
 
-export {isWorkspaceProvisionedForTravel, isPolicyProvisionedForTravel, hasAcceptedTravelTerms, isNonUSDPolicy, getTravelStep};
+export {isWorkspaceProvisionedForTravel, isPolicyProvisionedForTravel, hasAcceptedTravelTerms, canMemberUseTravel, isMemberTravelAccessTurnedOff, isNonUSDPolicy, getTravelStep};

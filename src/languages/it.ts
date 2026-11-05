@@ -5181,6 +5181,11 @@ ${amount} per ${merchant} - ${date}`,
             inputLabel: 'Partita IVA dell’entità legale',
             error: {required: 'Inserisci il codice fiscale/partita IVA della tua entità legale.'},
         },
+        travelMembers: {
+            headline: 'Chi può prenotare viaggi?',
+            subtitle: 'Scegli chi in questo spazio di lavoro può prenotare viaggi. Puoi cambiarlo in qualsiasi momento dalla pagina Membri.',
+            everyone: 'Tutti in questo spazio di lavoro',
+        },
         nudge: {
             airfareManual:
                 'Sapevi che puoi prenotare i voli direttamente in Expensify e continuare ad accumulare miglia con i tuoi programmi frequent flyer? La prossima volta evita la seccatura di creare la spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
@@ -5202,6 +5207,10 @@ ${amount} per ${merchant} - ${date}`,
                 'Sapevi che puoi prenotare e gestire viaggi di gruppo come questo direttamente in Expensify? Evita lo stress la prossima volta e prova il nostro strumento <a href="https://help.expensify.com/travel/hubs/event-management/">Eventi di viaggio</a>.',
             hotelBlockCard:
                 'Sapevi che puoi prenotare e gestire viaggi di gruppo come questo direttamente in Expensify? Evita lo stress la prossima volta e prova il nostro strumento <a href="https://help.expensify.com/travel/hubs/event-management/">Eventi di viaggio</a>.',
+        },
+        memberAccessDisabledModal: {
+            title: 'I viaggi non sono ancora attivi per te',
+            message: 'L’amministratore del tuo spazio di lavoro non ha ancora attivato Expensify Travel per te. Contatta il tuo amministratore per ottenere l’accesso.',
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Non puoi ancora prenotare viaggi',
@@ -7102,6 +7111,11 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                         subtitle:
                             'Invia le categorie, i tag e i campi di rendiconto di questo spazio di lavoro a Expensify Travel così che chi viaggia li compili al momento della prenotazione.',
                     },
+                },
+                members: {
+                    offDescription: 'Non può prenotare viaggi',
+                    onDescription: 'Può prenotare viaggi',
+                    travelAccess: 'Accesso ai viaggi',
                 },
                 travelBilling: {
                     travelBookingSection: {

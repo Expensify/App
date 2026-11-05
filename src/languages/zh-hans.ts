@@ -5023,6 +5023,11 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             inputLabel: '法人税号',
             error: {required: '请输入您的法人税号。'},
         },
+        travelMembers: {
+            headline: '谁可以预订差旅？',
+            subtitle: '选择此工作区中可以预订差旅的人员。你可以随时在“成员”页面更改。',
+            everyone: '此工作区中的所有人',
+        },
         nudge: {
             airfareManual:
                 '你知道吗？你可以直接在 Expensify 预订机票，同时照常累积常旅客计划的里程！下次无需手动创建报销，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 ✈️',
@@ -5042,6 +5047,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 '你知道吗？你可以直接在 Expensify 中预订和管理像这样的团队行程。下次就不用再费心了，试试我们的 <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> 工具吧。',
             hotelBlockCard:
                 '你知道吗？你可以直接在 Expensify 中预订和管理像这样的团队行程。下次就不用再费心了，试试我们的 <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> 工具吧。',
+        },
+        memberAccessDisabledModal: {
+            title: '尚未为您开启差旅',
+            message: '您的工作区管理员尚未为您开启 Expensify Travel。请联系管理员以获取访问权限。',
         },
         defaultWorkspaceTravelDisabled: {
             title: '你目前还不能预订行程',
@@ -6841,6 +6850,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 settings: {
                     autoAddTripName: {title: '将行程名称添加到报销单', subtitle: '为在 Expensify 中预订的行程，自动将行程名称添加到报销事由描述中。'},
                     codingSync: {title: '将编码同步到 Expensify Travel', subtitle: '将此工作区的类别、标签和报表字段推送到 Expensify Travel，以便出行人能在预订时填写。'},
+                },
+                members: {
+                    offDescription: '无法预订差旅',
+                    onDescription: '可以预订差旅',
+                    travelAccess: '差旅权限',
                 },
                 travelBilling: {
                     travelBookingSection: {

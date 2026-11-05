@@ -5183,6 +5183,11 @@ ${amount} para ${merchant} - ${date}`,
             inputLabel: 'CNPJ da pessoa jurídica',
             error: {required: 'Insira o CNPJ da sua entidade legal.'},
         },
+        travelMembers: {
+            headline: 'Quem pode reservar viagens?',
+            subtitle: 'Escolha quem neste espaço de trabalho pode reservar viagens. Você pode alterar isso a qualquer momento na página Membros.',
+            everyone: 'Todos neste espaço de trabalho',
+        },
         nudge: {
             airfareManual:
                 'Você sabia que pode reservar voos diretamente no Expensify e ainda acumular milhas nos seus programas de passageiro frequente? Da próxima vez, evite o trabalho de criar sua despesa manualmente e simplesmente reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
@@ -5204,6 +5209,10 @@ ${amount} para ${merchant} - ${date}`,
                 'Você sabia que pode reservar e gerenciar viagens em grupo como esta direto no Expensify? Poupe-se do transtorno da próxima vez e experimente nossa ferramenta de <a href="https://help.expensify.com/travel/hubs/event-management/">Eventos de Viagem</a>.',
             hotelBlockCard:
                 'Você sabia que pode reservar e gerenciar viagens em grupo como esta direto no Expensify? Poupe-se do transtorno da próxima vez e experimente nossa ferramenta de <a href="https://help.expensify.com/travel/hubs/event-management/">Eventos de Viagem</a>.',
+        },
+        memberAccessDisabledModal: {
+            title: 'As viagens ainda não estão ativadas para você',
+            message: 'O administrador do seu workspace ainda não ativou o Expensify Travel para você. Entre em contato com o administrador para obter acesso.',
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Você ainda não pode reservar viagens',
@@ -7102,6 +7111,11 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                         title: 'Sincronizar codificação com o Expensify Travel',
                         subtitle: 'Envie as categorias, tags e campos de relatório deste workspace para o Expensify Travel para que os viajantes os respondam no momento da reserva.',
                     },
+                },
+                members: {
+                    offDescription: 'Não pode reservar viagens',
+                    onDescription: 'Pode reservar viagens',
+                    travelAccess: 'Acesso a viagens',
                 },
                 travelBilling: {
                     travelBookingSection: {

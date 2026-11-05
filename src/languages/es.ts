@@ -5054,6 +5054,11 @@ ${amount} para ${merchant} - ${date}`,
             inputLabel: 'ID fiscal de la entidad jurídica',
             error: {required: 'Introduce el NIF fiscal de tu entidad legal.'},
         },
+        travelMembers: {
+            headline: '¿Quién puede reservar viajes?',
+            subtitle: 'Elige quién de este espacio de trabajo puede reservar viajes. Puedes cambiarlo en cualquier momento desde la página de Miembros.',
+            everyone: 'Todos en este espacio de trabajo',
+        },
         domainPermissionInfo: {
             title: 'Dominio',
             restriction: (domain) =>
@@ -5124,6 +5129,10 @@ ${amount} para ${merchant} - ${date}`,
                 '¿Sabías que puedes reservar y gestionar viajes en grupo como este directamente en Expensify? Evita complicaciones la próxima vez y prueba nuestra herramienta de <a href="https://help.expensify.com/travel/hubs/event-management/">Eventos de viaje</a>.',
             hotelBlockCard:
                 '¿Sabías que puedes reservar y gestionar viajes en grupo como este directamente en Expensify? Evita complicaciones la próxima vez y prueba nuestra herramienta de <a href="https://help.expensify.com/travel/hubs/event-management/">Eventos de viaje</a>.',
+        },
+        memberAccessDisabledModal: {
+            title: 'Los viajes aún no están activados para ti',
+            message: 'El administrador de tu espacio de trabajo aún no ha activado Expensify Travel para ti. Contacta con tu administrador para obtener acceso.',
         },
         defaultWorkspaceTravelDisabled: {
             title: 'Aún no puedes reservar viajes',
@@ -7003,6 +7012,11 @@ ${amount} para ${merchant} - ${date}`,
                         subtitle:
                             'Envía las categorías, etiquetas y campos de informe de este espacio de trabajo a Expensify Travel para que los viajeros los completen en el momento de la reserva.',
                     },
+                },
+                members: {
+                    offDescription: 'No puede reservar viajes',
+                    onDescription: 'Puede reservar viajes',
+                    travelAccess: 'Acceso a viajes',
                 },
                 travelBilling: {
                     travelBookingSection: {

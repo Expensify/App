@@ -451,6 +451,10 @@ type WorkspaceSettingsParamList = {
         policyID: string;
         accountID: string;
     };
+    [SCREENS.WORKSPACE.MEMBER_TRAVEL_ACCESS]: {
+        policyID: string;
+        accountID: string;
+    };
     [SCREENS.WORKSPACE.MEMBER_OFFICE_LOCATION]: {
         policyID: string;
         accountID: string;

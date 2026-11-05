@@ -61,6 +61,7 @@ function renderTable(members: WorkspaceMemberRowData[], tableRef: React.RefObjec
                             shouldUseOrdinalApproverLabel={false}
                             shouldShowOfficeLocationColumn={false}
                             shouldShowBankAccountColumn
+                            shouldShowTravelColumn={false}
                             onRowSelectionChange={jest.fn()}
                         />
                     </ScreenWrapperStatusContext.Provider>
