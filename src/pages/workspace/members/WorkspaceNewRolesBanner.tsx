@@ -34,7 +34,7 @@ function WorkspaceNewRolesBanner({policy}: WorkspaceNewRolesBannerProps) {
     }
 
     return (
-        <View style={[styles.ph5, styles.mt3]}>
+        <View style={[styles.ph5, styles.mt3, styles.mb2]}>
             <BillingBanner
                 icon={illustrations.Members}
                 title={translate('workspace.people.newRolesBanner.title')}

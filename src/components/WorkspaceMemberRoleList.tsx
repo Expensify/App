@@ -74,7 +74,6 @@ function getAssignableWorkspaceMemberRoleItems(
     const newRoleBadge = (
         <Badge
             success
-            isStrong
             isCondensed
             text={translate('common.new')}
         />

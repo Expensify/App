@@ -5618,7 +5618,7 @@ const translations = {
             adminRoles: 'Admin roles',
             otherRoles: 'Other roles',
             roleSelectorDescription: `Assign a role to manage a member's workspace permissions. <a href="${CONST.HELP_DOC_LINKS.MANAGING_WORKSPACE_MEMBERS}">Compare workspace roles</a>.`,
-            roleSelectorFeedback: '<centered-text>Not seeing the role you need? <concierge-link>Let us know</concierge-link>.</centered-text>',
+            roleSelectorFeedback: '<centered-text><label-text>Not seeing the role you need? <concierge-link>Let us know</concierge-link>.</label-text></centered-text>',
             reimbursementChoice: {
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES]: 'Direct',
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO]: 'None',
@@ -8313,7 +8313,7 @@ const translations = {
             workspaceMembersCount: (count: number) => `Total workspace members: ${count}`,
             newRolesBanner: {
                 title: 'New roles available',
-                subtitle: 'Give members just the access they need with new <strong>Approve-only</strong> and <strong>Guest</strong> roles.',
+                subtitle: '<label-text>Give members just the access they need with new <strong>Approve-only</strong> and <strong>Guest</strong> roles.</label-text>',
             },
             configureHRSync: (providerName: string) => `Configure ${providerName} sync.`,
             syncWithHR: (providerName: string) => `Sync with ${providerName}`,
