@@ -197,10 +197,12 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
                 onFieldBlur={savePendingDate}
                 onPickerVisibilityChange={(isPickerVisible) => {
                     // Picking a day is the user saying they are done, so it does not wait for the field to be left.
+                    // The calendar hands the day over a frame after it closes, so the save waits for it to arrive.
+                    // On a touch screen there are no segments to leave, which makes this the only chance to save.
                     if (isPickerVisible) {
                         return;
                     }
-                    savePendingDate();
+                    requestAnimationFrame(savePendingDate);
                 }}
                 // The grid puts its own gap between the fields, so the default vertical margin would push a date
                 // input below the plain text inputs sharing its row.
