@@ -579,8 +579,7 @@ function ComposerWithSuggestions({
         if (webEvent.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && selection.start <= 0 && isEmptyComment && !includeChronos) {
             webEvent.preventDefault();
             if (lastReportAction) {
-                // Report names were served by a module-level Onyx.connect in Parser until the hook migration, and this handler never runs inside a Search scope
-                // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces a module-level Onyx.connect used only by handlers, never read inside a Search scope
+                // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- Parser used to read these names from a module-level Onyx.connect; the composer never renders inside a Search scope, so this reads the same live reports that connect did
                 Onyx.get(ONYXKEYS.COLLECTION.REPORT).then((reports) => {
                     const reportIDToName = buildReportIDToNameMap(reports, getMentionedReportIDs(lastReportActionHtml));
                     saveReportActionDraft(reportID, lastReportAction, reportActions, Parser.htmlToMarkdown(lastReportActionHtml, {reportIDToName, accountIDToName}), isOffline);

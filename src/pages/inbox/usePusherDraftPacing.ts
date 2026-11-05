@@ -242,7 +242,7 @@ function publishVisibleEvent(
         sequence: visibleSequenceRef.current,
         status: visibleStatus,
     };
-    // Names are only needed to render this one event, so a one-shot read from the non-React store replaces a subscription
+    // Names are only needed when a draft event is applied, never in render, so they come from PersonalDetailsStore instead of a useAllPersonalDetails subscription that would re-render this hook on every personal details write. Direct use of ONYXKEYS.PERSONAL_DETAILS_LIST is lint-banned
     const personalDetailsList = getAllPersonalDetails();
     setDraft((currentDraft) => {
         const next = applyConciergeDraftEvent(currentDraft, visibleEvent, reportID, isGroupPolicyReport, personalDetailsList);
@@ -936,7 +936,7 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
             visibleSourceMarkdownRef,
             visibleSourceOffsetRef,
         });
-        // Names are only needed to render this one event, so a one-shot read from the non-React store replaces a subscription
+        // Names are only needed when a draft event is applied, never in render, so they come from PersonalDetailsStore instead of a useAllPersonalDetails subscription that would re-render this hook on every personal details write. Direct use of ONYXKEYS.PERSONAL_DETAILS_LIST is lint-banned
         const personalDetailsList = getAllPersonalDetails();
         setDraft((currentDraft) => {
             const next = applyConciergeDraftEvent(currentDraft, event, reportID, isGroupPolicyReport, personalDetailsList);
