@@ -1675,7 +1675,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 Log.info('[BulkPay] Dropping bulk pay: no search hash');
                 return;
             }
-            if (isOffline) {
+            // Mark as paid can be queued offline. Other methods may need KYC or bank setup, and select-all is resolved server-side.
+            if (isOffline && (paymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE || areAllMatchingItemsSelected)) {
                 // On iOS, presenting the offline modal while the payment popover is still dismissing freezes the app,
                 // so defer it until the popover transition completes (matching the delegate/locked-account guards).
                 deferModalPresentationAfterPopoverDismiss(() => showOfflineModal());

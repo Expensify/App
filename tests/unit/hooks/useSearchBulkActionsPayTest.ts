@@ -339,7 +339,7 @@ describe('useSearchBulkActions - Pay option', () => {
             await payOption?.onSelected?.();
         });
 
-        // Then the offline modal should open and no payment should be triggered because payments must not be queued while offline
+        // Then the offline modal should open and no payment should be triggered because bank payments can't be completed offline
         expect(mockShowDecisionModal).toHaveBeenCalledWith(expect.objectContaining({title: 'common.youAppearToBeOffline', prompt: 'common.offlinePrompt'}));
         expect(payMoneyRequest).not.toHaveBeenCalled();
     });
@@ -654,5 +654,96 @@ describe('useSearchBulkActions - bulk pay chat report fallback', () => {
             expect.objectContaining({reportID: '1', isItemInvoice: false}),
         );
         expect(mockLogInfo).toHaveBeenCalledWith('[BulkPay] Bulk pay finished with skipped reports', false, {paidReportCount: 0, selectedCount: 1});
+    });
+});
+
+describe('useSearchBulkActions - offline bulk pay', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        mockIsOffline = true;
+        mockShouldEnableBulkPayOption = true;
+        mockBulkPayButtonOptions = [
+            {text: 'Mark as paid', key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE},
+            {text: 'Pay with business bank account', key: CONST.IOU.PAYMENT_TYPE.VBBA},
+        ];
+        mockAreAllMatchingItemsSelected = false;
+        mockExcludedTransactions = {};
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockSelectedReports = [makeSelectedReport({chatReportID: '2'})];
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {id: 'policy1', role: CONST.POLICY.ROLE.ADMIN});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, chatReportID: '2', policyID: 'policy1'});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}2`, {reportID: '2', type: CONST.REPORT.TYPE.CHAT, policyID: 'policy1'});
+    });
+
+    afterEach(async () => {
+        await Onyx.clear();
+    });
+
+    async function renderBulkActions() {
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+        await waitFor(() => {
+            expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
+        });
+        return result;
+    }
+
+    it('marks the selected report as paid while offline instead of showing the offline modal', async () => {
+        // Given an approved report selected in Spend > Ready to pay while the user is offline (set up in beforeEach)
+        const result = await renderBulkActions();
+
+        // When the user picks "Mark as paid" from the bulk Pay submenu
+        await act(async () => {
+            result.current.confirmPayment(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
+        });
+
+        // Then the report is paid optimistically, because marking as paid only records a payment made outside
+        // Expensify, so the write can be queued and sent on reconnect like the single-report "Mark as paid"
+        expect(mockShowDecisionModal).not.toHaveBeenCalled();
+        expect(payMoneyRequest).toHaveBeenCalledTimes(1);
+        expect(payMoneyRequest).toHaveBeenCalledWith(
+            expect.objectContaining({
+                paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                iouReport: expect.objectContaining({reportID: '1'}),
+            }),
+        );
+        expect(mockClearSelectedTransactions).toHaveBeenCalled();
+    });
+
+    it('still shows the offline modal when paying with a business bank account offline', async () => {
+        // Given an approved report selected while the user is offline (set up in beforeEach)
+        const result = await renderBulkActions();
+
+        // When the user picks the business bank account option from the bulk Pay submenu
+        await act(async () => {
+            result.current.confirmPayment(CONST.IOU.PAYMENT_TYPE.VBBA);
+        });
+
+        // Then the offline modal is shown and nothing is paid, because a bank payment can need KYC, account
+        // validation or bank account setup, and those flows can't be completed offline
+        expect(mockShowDecisionModal).toHaveBeenCalledWith(expect.objectContaining({title: 'common.youAppearToBeOffline', prompt: 'common.offlinePrompt'}));
+        expect(payMoneyRequest).not.toHaveBeenCalled();
+    });
+
+    it('still shows the offline modal when marking all matching reports as paid offline', async () => {
+        // Given "Select all" is checked while the user is offline
+        mockAreAllMatchingItemsSelected = true;
+        const result = await renderBulkActions();
+
+        // When the user picks "Mark as paid" from the bulk Pay submenu
+        await act(async () => {
+            result.current.confirmPayment(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
+        });
+
+        // Then the offline modal is shown and nothing is queued, because the reports to pay are resolved
+        // server-side from the search query, which can't happen offline
+        expect(mockShowDecisionModal).toHaveBeenCalledWith(expect.objectContaining({title: 'common.youAppearToBeOffline', prompt: 'common.offlinePrompt'}));
+        expect(queueBulkPayReports).not.toHaveBeenCalled();
+        expect(payMoneyRequest).not.toHaveBeenCalled();
     });
 });
