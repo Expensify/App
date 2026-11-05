@@ -4,7 +4,7 @@ import useReportRecipientLocalTime from '@hooks/useReportRecipientLocalTime';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
+import type {PersonalDetailsList, Report} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -72,7 +72,7 @@ describe('useReportRecipientLocalTime', () => {
 
         // When the parent expense action arrives, as it does when a thread is opened from Search
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT_ID}`, {
-            [PARENT_REPORT_ACTION_ID]: {reportActionID: PARENT_REPORT_ACTION_ID, actionName: CONST.REPORT.ACTIONS.TYPE.IOU, originalMessage: {type}} as ReportAction,
+            [PARENT_REPORT_ACTION_ID]: {reportActionID: PARENT_REPORT_ACTION_ID, actionName: CONST.REPORT.ACTIONS.TYPE.IOU, message: {type}},
         });
 
         // Then the row goes away, because an expense thread is about the expense and not a conversation with that person
@@ -85,7 +85,7 @@ describe('useReportRecipientLocalTime', () => {
         // Given a thread with one other participant, whose parent action is a comment
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, RECIPIENT_PERSONAL_DETAILS);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT_ID}`, {
-            [PARENT_REPORT_ACTION_ID]: {reportActionID: PARENT_REPORT_ACTION_ID, actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT} as ReportAction,
+            [PARENT_REPORT_ACTION_ID]: {reportActionID: PARENT_REPORT_ACTION_ID, actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT},
         });
 
         // When reading whether to show the local time
