@@ -501,6 +501,7 @@ const UPCOMING_STEP_ACTION_BY_MESSAGE_KEY: Record<ValueOf<typeof CONST.NEXT_STEP
     [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: undefined,
     [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: undefined,
     [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: undefined,
+    [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: undefined,
 };
 
 function getUpcomingStepActionForNextStep(nextStep: ReportNextStep | undefined, isOpenReport: boolean): ReportUpcomingStepAction | undefined {
