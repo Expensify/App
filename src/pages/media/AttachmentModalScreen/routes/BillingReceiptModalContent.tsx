@@ -3,19 +3,16 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 
 import type {PlatformStackNavigationProp, PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import {getReceiptFileName, getReceiptSource, isInvoiceBilling} from '@libs/PaymentHistoryUtils';
 
-import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 
 import {openPaymentDetailsPage} from '@userActions/Subscription';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
@@ -27,7 +24,6 @@ import useDownloadAttachment from './hooks/useDownloadAttachment';
 function BillingReceiptModalContent() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isBetaEnabled} = usePermissions();
     const route = useRoute<PlatformStackRouteProp<RootNavigatorParamList, typeof SCREENS.BILLING_RECEIPT>>();
     const navigation = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList, typeof SCREENS.BILLING_RECEIPT>>();
     const [purchases] = useOnyx(ONYXKEYS.PURCHASES);
@@ -45,10 +41,6 @@ function BillingReceiptModalContent() {
 
     const source = getReceiptSource(purchases, numericPurchaseID) ?? '';
     const onDownloadAttachment = useDownloadAttachment({isAuthTokenRequired: true});
-
-    if (!isBetaEnabled(CONST.BETAS.PAYMENT_HISTORY)) {
-        return <NotFoundPage />;
-    }
 
     if (!purchase?.isLoaded) {
         return <FullScreenLoadingIndicator shouldUseGoBackButton />;

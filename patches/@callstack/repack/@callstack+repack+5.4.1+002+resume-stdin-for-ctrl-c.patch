@@ -1,0 +1,12 @@
+diff --git a/node_modules/@callstack/repack/dist/commands/common/setupInteractions.js b/node_modules/@callstack/repack/dist/commands/common/setupInteractions.js
+index 1d42528..0827b11 100644
+--- a/node_modules/@callstack/repack/dist/commands/common/setupInteractions.js
++++ b/node_modules/@callstack/repack/dist/commands/common/setupInteractions.js
+@@ -18,6 +18,7 @@ function setupInteractions(handlers, options) {
+   }
+   readline.emitKeypressEvents(process.stdin);
+   process.stdin.setRawMode(true);
++  process.stdin.resume();
+ 
+   // graceful shutdown
+   process.on('SIGINT', () => {

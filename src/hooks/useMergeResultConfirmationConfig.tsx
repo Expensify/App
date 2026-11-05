@@ -51,7 +51,7 @@ function DescriptionHTML({html}: {html: string}) {
     const styles = useThemeStyles();
 
     return (
-        <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
+        <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter, styles.w100]}>
             <RenderHTML html={html} />
         </View>
     );

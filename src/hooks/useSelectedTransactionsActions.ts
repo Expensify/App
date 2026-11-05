@@ -23,7 +23,6 @@ import {
     canHoldUnholdReportAction,
     canRejectReportAction,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    getPolicyExpenseChat,
     getReportOrDraftReport,
     isInvoiceReport,
     isMoneyRequestReport as isMoneyRequestReportUtils,
@@ -40,6 +39,7 @@ import type {Route} from '@src/ROUTES';
 import type {ExportTemplate, Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {policyExpenseChatSelector} from '@selectors/Report';
 import {useCallback, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 
@@ -165,7 +165,7 @@ function useSelectedTransactionsActions({
             continue;
         }
 
-        const parentReport = getReportOrDraftReport(reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
+        const parentReport = getReportOrDraftReport({reportID, report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]});
         const ownerAccountID = parentReport?.ownerAccountID;
 
         if (typeof ownerAccountID === 'number') {
@@ -180,17 +180,20 @@ function useSelectedTransactionsActions({
     // The `reportActions` prop is the paginated chain, so it can miss IOU actions that are already in Onyx. Also search the full collection.
     // Build each report's combined list once per render, because this is called inside several loops over the selected transactions.
     const combinedReportActionsByReportID = new Map<string | undefined, ReportAction[]>();
+    const getCombinedReportActions = (reportID: string | undefined) => {
+        let combinedReportActions = combinedReportActionsByReportID.get(reportID);
+        if (!combinedReportActions) {
+            const onyxReportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {});
+            // Search both sources together, so a live action in either one wins over a deleted action in the collection
+            combinedReportActions = [...onyxReportActions, ...reportActions];
+            combinedReportActionsByReportID.set(reportID, combinedReportActions);
+        }
+        return combinedReportActions;
+    };
     const getTransactionIOUAction = (transaction: Transaction | undefined, transactionID: string) => {
         // Unreported expenses keep their IOU action under the self-DM report rather than under `transaction.reportID`
         const transactionReportID = !transaction?.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? selfDMReportID : transaction.reportID;
-        let combinedReportActions = combinedReportActionsByReportID.get(transactionReportID);
-        if (!combinedReportActions) {
-            const transactionReportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionReportID}`] ?? {});
-            // Search both sources together, so a live action in either one wins over a deleted action in the collection
-            combinedReportActions = [...transactionReportActions, ...reportActions];
-            combinedReportActionsByReportID.set(transactionReportID, combinedReportActions);
-        }
-        return getIOUActionForTransactionID(combinedReportActions, transactionID, true);
+        return getIOUActionForTransactionID(getCombinedReportActions(transactionReportID), transactionID, true);
     };
 
     const {translate, localeCompare} = useLocalize();
@@ -206,7 +209,8 @@ function useSelectedTransactionsActions({
         return map;
     }, [selectedTransactionIDs, allTransactions]);
 
-    const activePolicyExpenseChat = useMemo(() => getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id), [currentUserAccountID, defaultExpensePolicy?.id]);
+    const activePolicyExpenseChatSelector = useMemo(() => policyExpenseChatSelector(currentUserAccountID, defaultExpensePolicy?.id), [currentUserAccountID, defaultExpensePolicy?.id]);
+    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: activePolicyExpenseChatSelector});
 
     const isDuplicateOptionVisible = useMemo(
         () =>
@@ -340,7 +344,16 @@ function useSelectedTransactionsActions({
             }
             const iouReportAction = getTransactionIOUAction(selectedTransaction, selectedTransaction.transactionID);
             const holdReportAction = getReportAction(iouReportAction?.childReportID, `${selectedTransaction?.comment?.hold ?? ''}`);
-            const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(report, iouReportAction, holdReportAction, selectedTransaction, policy, currentUserAccountID, rules);
+            const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(
+                report,
+                iouReportAction,
+                holdReportAction,
+                selectedTransaction,
+                policy,
+                currentUserAccountID,
+                rules,
+                getLoginByAccountID(report?.ownerAccountID, personalDetails),
+            );
 
             canHoldTransactions = canHoldTransactions && canHoldRequest;
             canUnholdTransactions = canUnholdTransactions && canUnholdRequest;
@@ -387,6 +400,8 @@ function useSelectedTransactionsActions({
                             transactionID,
                             transaction,
                             reportID: action.childReportID,
+                            transactionReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`],
+                            report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action.childReportID}`],
                             policy,
                             isOffline,
                             currentUserLogin: login ?? '',
@@ -619,12 +634,23 @@ function useSelectedTransactionsActions({
             const action = getTransactionIOUAction(transaction, transaction.transactionID);
 
             // Some reported expenses have no IOU action, and the API still deletes them by transactionID, so the report-level delete rules decide.
-            // Passing no report actions is safe: they only decide ownership on unreported and IOU reports, which then fail closed, while expense reports check the submitter.
+            // The paginated `reportActions` prop can miss the latest workflow actions, so the check gets the report's combined history instead:
+            // ownership still fails closed on unreported and IOU reports while expense reports check the submitter, and a forward since the
+            // last submit is not missed.
             if (!action) {
                 return (
                     !!report &&
                     typeof session?.accountID === 'number' &&
-                    canDeleteMoneyRequestReport(report, [transaction], [], session.accountID, rules, getLoginByAccountID(report?.ownerAccountID, personalDetails), policy, cardList)
+                    canDeleteMoneyRequestReport(
+                        report,
+                        [transaction],
+                        getCombinedReportActions(report.reportID),
+                        session.accountID,
+                        rules,
+                        getLoginByAccountID(report?.ownerAccountID, personalDetails),
+                        policy,
+                        cardList,
+                    )
                 );
             }
 
