@@ -428,8 +428,12 @@ function WorkspaceCompanyCardsTable({
             ((item.assignedCard?.cardID !== undefined && companyCardNumberSearch.matchedCardIDs.has(item.assignedCard.cardID)) ||
                 (!!item.encryptedCardNumber && companyCardNumberSearch.matchedEncryptedNumbers.has(item.encryptedCardNumber)));
 
+        if (companyCardNumberSearch.isFullNumberQuery) {
+            return isServerCardMatch;
+        }
+
         const matchingItems = tokenizedSearch([item], searchString, () => searchTokens);
-        return matchingItems.length > 0 || isAssignedCardMatch || isUnassignedCardMatch || isServerCardMatch;
+        return matchingItems.length > 0 || isAssignedCardMatch || isUnassignedCardMatch;
     };
 
     const isItemInFilter: IsItemInFilterCallback<WorkspaceCompanyCardTableItemData> = (item, filterValues) => {

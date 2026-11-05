@@ -35,6 +35,11 @@ type UseCompanyCardNumberSearch = {
 
     /** Whether a full-number search is in flight (used to avoid a flash of "No results") */
     isSearching: boolean;
+
+    /** Whether the current typed value is a 13-19 digit number, i.e. a full-number query that the server
+     * must authoritatively match; callers use this to suppress local tokenized matches against masked card
+     * names, which can otherwise collide on shared digit suffixes. */
+    isFullNumberQuery: boolean;
 };
 
 /**
@@ -120,6 +125,7 @@ function useCompanyCardNumberSearch(policyID: string | undefined, feed: CompanyC
         lastFourEncryptedNumbers,
         resultsQuery: resultsMatchQuery ? immediateNormalized : undefined,
         isSearching: isEligibleQuery && !resultsReadyForCurrentInput,
+        isFullNumberQuery: isEligibleQuery,
     };
 }
 

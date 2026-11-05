@@ -148,15 +148,22 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
         setCompanyCardNumberSearchValue(searchText);
     }, [searchText, setCompanyCardNumberSearchValue]);
 
-    const tokenizedOptions = tokenizedSearch(cardListOptions, searchText, (option) => [option.text]);
-    // A full card number can't match the masked name, so OR in the cards the server matched by their
-    // encryptedCardNumber (the option value here), but only while the typed number matches the results.
-    const {resultsQuery, matchedEncryptedNumbers} = companyCardNumberSearch;
-    const serverMatchedOptions =
-        resultsQuery && normalizeCardNumber(searchText) === resultsQuery
-            ? cardListOptions.filter((option) => matchedEncryptedNumbers.has(option.value) && !new Set(tokenizedOptions.map((o) => o.keyForList)).has(option.keyForList))
+    // For a full-number query the server is authoritative: the masked card name shares digit suffixes with
+    // unrelated cards, so a tokenized match would surface a card whose hidden digits differ from what the
+    // admin typed. Partial (last-four) matches are flagged so the admin can tell they aren't verified.
+    const {resultsQuery, matchedEncryptedNumbers, lastFourEncryptedNumbers, isFullNumberQuery} = companyCardNumberSearch;
+    const hasCurrentResults = !!resultsQuery && normalizeCardNumber(searchText) === resultsQuery;
+    const lastFourWarning = translate('workspace.moreFeatures.companyCards.matchesLastFourDigitsOnly');
+    let searchedListOptions;
+    if (isFullNumberQuery) {
+        searchedListOptions = hasCurrentResults
+            ? cardListOptions
+                  .filter((option) => matchedEncryptedNumbers.has(option.value))
+                  .map((option) => (lastFourEncryptedNumbers.has(option.value) ? {...option, alternateText: lastFourWarning} : option))
             : [];
-    const searchedListOptions = serverMatchedOptions.length ? [...tokenizedOptions, ...serverMatchedOptions] : tokenizedOptions;
+    } else {
+        searchedListOptions = tokenizedSearch(cardListOptions, searchText, (option) => [option.text]);
+    }
 
     const safeAreaPaddingBottomStyle = useBottomSafeSafeAreaPaddingStyle();
 

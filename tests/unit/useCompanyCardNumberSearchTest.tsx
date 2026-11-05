@@ -123,6 +123,39 @@ describe('useCompanyCardNumberSearch', () => {
         expect(mockClearCompanyCardNumberSearch).toHaveBeenCalledWith(POLICY_ID, expect.any(String));
     });
 
+    it('reports isFullNumberQuery only for 13-19 digit inputs, so callers can suppress local matches on formatted-number inputs', async () => {
+        // Given a hook mounted on a policy
+        const hook = await renderSearch();
+
+        // When a non-digit query is typed
+        await typeNumber(hook, 'Johns');
+        // Then isFullNumberQuery is false (local tokenized search still applies)
+        expect(hook.result.current.isFullNumberQuery).toBe(false);
+
+        // When a formatted 16-digit number is typed
+        await typeNumber(hook, '4111 1111 1111 1111');
+        // Then isFullNumberQuery is true (callers must hide local matches that only collide on digit suffixes)
+        expect(hook.result.current.isFullNumberQuery).toBe(true);
+    });
+
+    it('surfaces lastFourEncryptedNumbers so callers can annotate partial matches during assignment', async () => {
+        // Given a hook mounted and a full-number query that the server resolves as a last-four-only match
+        const hook = await renderSearch();
+        await typeNumber(hook, FULL_NUMBER);
+        const consumerID = getConsumerIDFromLastSearchCall();
+        await seedResultsForConsumer(consumerID, FULL_NUMBER, [
+            {feed: 'cdf', domainAccountID: 1, status: 'unassigned', matchType: 'lastFour', cardName: '555555XXXXXX1111', encryptedCardNumber: 'ENC_PARTIAL'},
+        ]);
+        await act(async () => {
+            await waitForBatchedUpdates();
+        });
+
+        // Then the encryptedCardNumber appears in both matchedEncryptedNumbers and lastFourEncryptedNumbers so
+        // callers can present the match and annotate it as "Matches last 4 digits only"
+        expect([...hook.result.current.matchedEncryptedNumbers]).toEqual(['ENC_PARTIAL']);
+        expect([...hook.result.current.lastFourEncryptedNumbers]).toEqual(['ENC_PARTIAL']);
+    });
+
     it('scopes results so one consumer cannot erase another consumer on the same policy', async () => {
         // Given two independent consumers (table + assignment pane) mounted on the same policy
         const tableHook = await renderSearch();
