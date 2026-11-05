@@ -2138,11 +2138,11 @@ const translations: TranslationDeepObject<typeof en> = {
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Αναμένουμε από <strong>εσάς</strong> να προσθέσετε έξοδα.`;
+                        return `Περιμένουμε από <strong>εσάς</strong> να προσθέσετε δαπάνες.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Αναμονή για να προσθέσει ο/η <strong>${actor}</strong> δαπάνες.`;
+                        return `Αναμονή για τον/την <strong>${actor}</strong> να προσθέσει έξοδα.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Αναμένεται διαχειριστής για να προσθέσει έξοδα.`;
+                        return `Αναμονή για να προσθέσει διαχειριστής έξοδα.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: (
@@ -2155,9 +2155,9 @@ const translations: TranslationDeepObject<typeof en> = {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Αναμένουμε από <strong>εσάς</strong> να υποβάλετε δαπάνες.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Αναμονή για να υποβάλει ο/η <strong>${actor}</strong> τις δαπάνες.`;
+                        return `Αναμονή για την/τον <strong>${actor}</strong> να υποβάλει έξοδα.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Αναμονή για υποβολή εξόδων από διαχειριστή.`;
+                        return `Αναμονή για διαχειριστή ώστε να υποβάλει δαπάνες.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (
@@ -2168,11 +2168,11 @@ const translations: TranslationDeepObject<typeof en> = {
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Αναμένουμε από <strong>εσάς</strong> να το σημειώσετε ως ολοκληρωμένο.`;
+                        return `Περιμένουμε να το σημειώσετε ως ολοκληρωμένο, <strong>εσείς</strong>.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Αναμένεται από τον/την <strong>${actor}</strong> να το επισημάνει ως ολοκληρωμένο.`;
+                        return `Αναμονή για τον/την <strong>${actor}</strong> να το σημειώσει ως ολοκληρωμένο.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Αναμένεται διαχειριστής για να το επισημάνει ως ολοκληρωμένο.`;
+                        return `Αναμονή για έναν διαχειριστή να το σημειώσει ως ολοκληρωμένο.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (
@@ -2187,12 +2187,13 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `Αλλάξτε τον χώρο εργασίας της αναφοράς για περαιτέρω ενέργειες.`,
+
             [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => `Μπορείτε μόνο να εγκρίνετε σε αυτόν τον χώρο εργασίας. Μετακινήστε αυτήν την αναφορά σε κάποιον άλλον για να την υποβάλετε.`,
+            ) => `Μπορείτε να εγκρίνετε μόνο σε αυτόν τον χώρο εργασίας. Μετακινήστε αυτή την αναφορά σε κάποιον άλλον για να την υποβάλετε.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2200,14 +2201,14 @@ const translations: TranslationDeepObject<typeof en> = {
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
                 requiredDepositCurrency?: string,
             ) => {
-                const account = requiredDepositCurrency ? `τραπεζικός λογαριασμός σε ${requiredDepositCurrency}` : 'τραπεζικός λογαριασμός';
+                const account = requiredDepositCurrency ? `τραπεζικό λογαριασμό σε ${requiredDepositCurrency}` : 'τραπεζικό λογαριασμό';
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Αναμονή για <strong>εσάς</strong> να προσθέσετε έναν/μία ${account}.`;
+                        return `Αναμένουμε από <strong>εσάς</strong> να προσθέσετε έναν ${account}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Αναμένεται από τον/την <strong>${actor}</strong> να προσθέσει έναν/μια ${account}.`;
+                        return `Αναμονή για να προσθέσει ο/η <strong>${actor}</strong> έναν ${account}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Αναμονή για έναν διαχειριστή ώστε να προσθέσει έναν ${account}.`;
+                        return `Αναμονή για να προσθέσει ένας διαχειριστής έναν ${account}.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: (
@@ -2222,11 +2223,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Αναμονή για την αυτόματη υποβολή των δαπανών σας${formattedETA}.`;
+                        return `Αναμένεται η αυτόματη υποβολή των εξόδων σας${formattedETA}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Αναμονή για την αυτόματη υποβολή των εξόδων του/της <strong>${actor}</strong>${formattedETA}.`;
+                        return `Αναμονή για τις δαπάνες του/της <strong>${actor}</strong> ώστε να υποβληθούν αυτόματα${formattedETA}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Αναμονή για αυτόματη υποβολή των δαπανών διαχειριστή${formattedETA}.`;
+                        return `Αναμονή για την αυτόματη υποβολή των εξόδων ενός διαχειριστή${formattedETA}.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: (
@@ -2237,9 +2238,9 @@ const translations: TranslationDeepObject<typeof en> = {
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Αναμένουμε από <strong>εσάς</strong> να διορθώσετε τα προβλήματα.`;
+                        return `Περιμένουμε <strong>εσάς</strong> να διορθώσετε τα προβλήματα.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Αναμονή για τον/την <strong>${actor}</strong> να διορθώσει τα προβλήματα.`;
+                        return `Αναμένεται από τον/την <strong>${actor}</strong> να διορθώσει τα προβλήματα.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `Αναμονή για διαχειριστή ώστε να διορθώσει τα προβλήματα.`;
                 }
@@ -2252,11 +2253,11 @@ const translations: TranslationDeepObject<typeof en> = {
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Αναμένουμε από <strong>εσάς</strong> να εγκρίνετε δαπάνες.`;
+                        return `Αναμένονται από <strong>εσάς</strong> εγκρίσεις εξόδων.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Αναμονή για την έγκριση εξόδων από τον/την <strong>${actor}</strong>.`;
+                        return `Αναμονή για την έγκριση των εξόδων από τον/την <strong>${actor}</strong>.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Αναμονή έγκρισης εξόδων από διαχειριστή.`;
+                        return `Αναμονή για έγκριση εξόδων από διαχειριστή.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (
@@ -2269,9 +2270,9 @@ const translations: TranslationDeepObject<typeof en> = {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Αναμένουμε από <strong>εσάς</strong> να εξαγάγετε αυτήν την αναφορά.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Αναμονή για τον/την <strong>${actor}</strong> να εξαγάγει αυτήν την αναφορά.`;
+                        return `Αναμονή για τον/την <strong>${actor}</strong> να εξάγει αυτήν την αναφορά.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Αναμονή για διαχειριστή ώστε να εξαγάγει αυτήν την αναφορά.`;
+                        return `Αναμονή για διαχειριστή για εξαγωγή αυτής της αναφοράς.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: (
@@ -2282,11 +2283,11 @@ const translations: TranslationDeepObject<typeof en> = {
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Αναμονή να αποπληρώσετε <strong>εσείς</strong> τα έξοδα.`;
+                        return `Σε αναμονή να αποπληρώσετε <strong>εσείς</strong> τα έξοδα.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Αναμονή για τον/την <strong>${actor}</strong> να πληρώσει τα έξοδα.`;
+                        return `Αναμονή για να πληρώσει ο/η <strong>${actor}</strong> τα έξοδα.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Αναμένεται διαχειριστής για την πληρωμή των εξόδων.`;
+                        return `Αναμονή διαχειριστή για την πληρωμή εξόδων.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
@@ -2309,9 +2310,9 @@ const translations: TranslationDeepObject<typeof en> = {
             ) => {
                 let formattedETA = '';
                 if (eta) {
-                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `έως ${eta}` : ` ${eta}`;
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` έως ${eta}` : ` ${eta}`;
                 }
-                return `Αναμονή για να ολοκληρωθεί η επεξεργασία της ακυρωμένης πληρωμής${formattedETA}.`;
+                return `Αναμονή για την ολοκλήρωση της επεξεργασίας της ακυρωμένης πληρωμής${formattedETA}.`;
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
                 _actor: string,
@@ -2319,7 +2320,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) =>
-                `Ουπς! Φαίνεται ότι το υποβάλλετε σε <strong>εσάς τον/την ίδιο/ίδια</strong>. Η έγκριση των δικών σας αναφορών είναι <strong>απαγορευμένη</strong> από τον χώρο εργασίας σας. Υποβάλετε αυτήν την αναφορά σε κάποιο άλλο άτομο ή επικοινωνήστε με τον διαχειριστή σας για να αλλάξετε το άτομο στο οποίο υποβάλλετε.`,
+                `Ωχ! Φαίνεται ότι υποβάλλετε σε <strong>εσάς τον/την ίδιο/ίδια</strong>. Η έγκριση των δικών σας αναφορών είναι <strong>απαγορευμένη</strong> από τον χώρο εργασίας σας. Υποβάλετε αυτήν την αναφορά σε κάποιον άλλον ή επικοινωνήστε με τον/την διαχειριστή σας για να αλλάξετε το άτομο στο οποίο υποβάλλετε.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2328,11 +2329,11 @@ const translations: TranslationDeepObject<typeof en> = {
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Αυτή η αναφορά απορρίφθηκε. Περιμένουμε από <strong>εσάς</strong> να διορθώσετε τα προβλήματα και να την υποβάλετε ξανά χειροκίνητα.`;
+                        return `Αυτή η αναφορά απορρίφθηκε. Περιμένουμε από <strong>εσάς</strong> να διορθώσετε τα ζητήματα και να την υποβάλετε ξανά χειροκίνητα.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `Αυτή η αναφορά απορρίφθηκε. Αναμένεται από τον/την <strong>${actor}</strong> να διορθώσει τα προβλήματα και να την υποβάλει ξανά χειροκίνητα.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Αυτή η αναφορά απορρίφθηκε. Αναμένεται διαχειριστής για να διορθώσει τα ζητήματα και να την υποβάλει ξανά χειροκίνητα.`;
+                        return `Αυτή η αναφορά απορρίφθηκε. Αναμένεται διαχειριστής για να διορθώσει τα προβλήματα και να την υποβάλει ξανά χειροκίνητα.`;
                 }
             },
         },
