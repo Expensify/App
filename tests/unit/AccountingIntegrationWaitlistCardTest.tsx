@@ -5,6 +5,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import AccountingIntegrationWaitlistCard from '@pages/workspace/connections/AccountingIntegrationWaitlistCard';
+import ConnectionsGrid from '@pages/workspace/connections/ConnectionsGrid';
 
 import {clearAccountingIntegrationWaitlistError, joinAccountingIntegrationWaitlist} from '@userActions/User';
 
@@ -154,5 +155,31 @@ describe('AccountingIntegrationWaitlistCard', () => {
         expect(mockShowReadOnlyModal).toHaveBeenCalledTimes(1);
         expect(joinAccountingIntegrationWaitlist).not.toHaveBeenCalled();
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
+    });
+
+    it('shows the waitlist card in the Connections grid only when there is a workspace to join for', async () => {
+        // Given a Sage Accounting listing that offers its waitlist instead of connecting
+        const listing = {key: SAGE_ACCOUNTING, category: CONST.TAB.CONNECTIONS.ACCOUNTING, title: 'Sage Accounting', waitlistConnectionName: SAGE_ACCOUNTING};
+
+        // When the grid renders it for a workspace
+        const {rerender} = render(
+            <ConnectionsGrid
+                listings={[listing]}
+                policyID="policy"
+            />,
+            {wrapper: TestWrapper},
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the waitlist card shows and joins for that workspace
+        fireEvent.press(screen.getByRole('button', {name: 'Join waitlist'}));
+        expect(joinAccountingIntegrationWaitlist).toHaveBeenCalledWith(undefined, 'policy', SAGE_ACCOUNTING);
+
+        // When the grid has no workspace, since a waitlist signup belongs to one
+        rerender(<ConnectionsGrid listings={[listing]} />);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the card is left out
+        expect(screen.queryByText('Sage Accounting')).toBeNull();
     });
 });
