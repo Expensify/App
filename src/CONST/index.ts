@@ -10820,6 +10820,7 @@ const CONST = {
         },
         SHARE_DETAIL: {
             DISMISS_KEYBOARD_BUTTON: 'ShareDetail-DismissKeyboardButton',
+            SHARE_BUTTON: 'ShareDetail-ShareButton',
         },
         MAP_VIEW: {
             COMPASS: 'compass',
