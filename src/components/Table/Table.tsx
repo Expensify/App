@@ -241,10 +241,7 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
     });
     const sortedData = sortMiddleware(searchedData);
 
-    const {
-        methods: selectionMethods,
-        middleware: selectionMiddleware,
-    } = useSelection<DataType>({
+    const {methods: selectionMethods, middleware: selectionMiddleware} = useSelection<DataType>({
         data: sortedData,
         originalSelectableCount,
         currentFilters,

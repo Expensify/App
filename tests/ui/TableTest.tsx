@@ -16,8 +16,8 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
-import {acquireBackgroundInputFocusSuppression} from '@libs/ModalFocusManager';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {acquireBackgroundInputFocusSuppression} from '@libs/ModalFocusManager';
 import type Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
@@ -735,12 +735,7 @@ describe('Table', () => {
             expect(onRowSelectionChange).not.toHaveBeenCalled();
         });
 
-        it.each([
-            {disabled: true},
-            {isSelectionDisabled: true},
-            {interactive: false},
-            {selectionEnabled: false},
-        ])('does not open a menu for an ineligible row: %j', (options) => {
+        it.each([{disabled: true}, {isSelectionDisabled: true}, {interactive: false}, {selectionEnabled: false}])('does not open a menu for an ineligible row: %j', (options) => {
             // Given a row that must not enter selection mode.
             renderSelectionTable(options);
 

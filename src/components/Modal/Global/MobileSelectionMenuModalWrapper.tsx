@@ -18,12 +18,13 @@ import type {ModalProps} from './ModalContext';
 import Modal from '..';
 import {ModalActions} from './ModalContext';
 
-type MobileSelectionMenuModalWrapperProps = ModalProps & WithSentryLabel & {
-    testID?: string;
+type MobileSelectionMenuModalWrapperProps = ModalProps &
+    WithSentryLabel & {
+        testID?: string;
 
-    /** Prevent the background input from regaining focus on iOS when entering selection mode. */
-    shouldSkipFocusRestoreOnSelect?: boolean;
-};
+        /** Prevent the background input from regaining focus on iOS when entering selection mode. */
+        shouldSkipFocusRestoreOnSelect?: boolean;
+    };
 
 // Renders the bottom-docked "Select" menu a row long press opens on narrow layouts, and resolves the caller's promise with CONFIRM when the user picks
 // "Select" or CLOSE otherwise. What selecting does is up to the caller, which chains it off that promise.
