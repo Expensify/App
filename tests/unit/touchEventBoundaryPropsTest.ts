@@ -97,7 +97,7 @@ describe('touchEventBoundaryProps', () => {
         'Search-Filter-merchant',
         'Search-Filter-reportField-project-code',
         'Search-Advanced-Filter-category',
-        'Search-FilterPopupApply-tag',
+        'Search-FilterPopupApply-reportField-project-code',
         'DynamicHRSyncResultsPage-SkippedEmployees',
         'Socials-Twitter',
         'footer.terms',

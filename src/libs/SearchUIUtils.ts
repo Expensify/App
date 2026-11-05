@@ -6005,8 +6005,8 @@ type FilterView = {
 
     advancedFilterSentryLabel: ValueOf<typeof CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER>;
 
-    /** Label of the apply button in the filter's popup. Only set for filters whose popup is picked by filter key, other popups use one label per popup type. */
-    applySentryLabel?: ValueOf<typeof CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY>;
+    /** Label of the apply button that applies the filter from its popup in the filters bar */
+    applySentryLabel: ValueOf<typeof CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY>;
 };
 
 const FILTER_VIEW_MAP = {
@@ -6302,84 +6302,98 @@ const FILTER_VIEW_MAP = {
         icon: 'Coins',
         filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.AMOUNT,
         advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.AMOUNT,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.AMOUNT,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT]: {
         labelKey: 'common.purchaseAmount',
         icon: 'Coins',
         filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.PURCHASE_AMOUNT,
         advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.PURCHASE_AMOUNT,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.PURCHASE_AMOUNT,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED]: {
         labelKey: 'common.amountDebited',
         icon: 'Coins',
         filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.AMOUNT_DEBITED,
         advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.AMOUNT_DEBITED,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.AMOUNT_DEBITED,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED]: {
         labelKey: 'common.amountReimbursed',
         icon: 'Coins',
         filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.AMOUNT_REIMBURSED,
         advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.AMOUNT_REIMBURSED,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.AMOUNT_REIMBURSED,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL]: {
         labelKey: 'common.total',
         icon: 'Coins',
         filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.TOTAL,
         advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.TOTAL,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.TOTAL,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE]: {
         labelKey: 'common.date',
         icon: 'CalendarSolid',
         filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.DATE,
         advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.DATE,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.DATE,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED]: {
         labelKey: 'search.filters.approved',
         icon: 'ThumbsUp',
         filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.APPROVED,
         advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.APPROVED,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.APPROVED,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL]: {
         labelKey: 'search.filters.anyApproval',
         icon: 'ThumbsUp',
         filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.ANY_APPROVAL,
         advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.ANY_APPROVAL,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.ANY_APPROVAL,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED]: {
         labelKey: 'search.filters.submitted',
         icon: 'Send',
         filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.SUBMITTED,
         advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.SUBMITTED,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.SUBMITTED,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID]: {
         labelKey: 'search.filters.paid',
         icon: 'MoneyBag',
         filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.PAID,
         advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.PAID,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.PAID,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED]: {
         labelKey: 'search.filters.exported',
         icon: 'Export',
         filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.EXPORTED,
         advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.EXPORTED,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.EXPORTED,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED]: {
         labelKey: 'search.filters.posted',
         icon: 'Paycheck',
         filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.POSTED,
         advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.POSTED,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.POSTED,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN]: {
         labelKey: 'search.filters.withdrawn',
         icon: 'CalendarSolid',
         filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.WITHDRAWN,
         advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.WITHDRAWN,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.WITHDRAWN,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD]: {
         labelKey: 'workspace.common.reportField',
         icon: 'Tag',
         filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.REPORT_FIELD,
         advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.REPORT_FIELD,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.REPORT_FIELD,
     },
 } satisfies Partial<Record<SyntaxFilterKey, FilterView>>;
 
