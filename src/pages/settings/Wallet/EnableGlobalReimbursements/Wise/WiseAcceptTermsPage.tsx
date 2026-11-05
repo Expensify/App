@@ -1,6 +1,5 @@
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
 import RenderHTML from '@components/RenderHTML';
@@ -140,11 +139,13 @@ function WiseAcceptTermsPage({route}: WiseAcceptTermsPageProps) {
     const hasSubmitFinished = hasSubmitStarted && !isSubmitting;
     const isSubmitSuccessful = hasSubmitFinished && !!submission?.isSuccess;
     const pageToFix = hasSubmitFinished && !isSubmitSuccessful ? getPageWithServerError(serverErrorFields) : undefined;
-    const submitError = hasSubmitFinished && !isSubmitSuccessful && !isAlreadySubmitted ? submission?.error : undefined;
+    const submitError = hasSubmitFinished && !isSubmitSuccessful ? submission?.error : undefined;
+    // Once this submission or an earlier one sent the business to Wise, these pages have nothing left to submit
+    const hasWiseBusiness = isSubmitSuccessful || isAlreadySubmitted;
 
     // The back path follows the focused route, so once this page is replaced it no longer ends in the terms and must not navigate again
-    const leaveTermsAfterSubmission = useEffectEvent(() => {
-        if (isSubmitSuccessful) {
+    const leaveTerms = useEffectEvent(() => {
+        if (hasWiseBusiness) {
             clearDraftValues(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
             clearSensitiveAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
             clearWiseOnboardingUnsavedPages();
@@ -160,16 +161,10 @@ function WiseAcceptTermsPage({route}: WiseAcceptTermsPageProps) {
     });
 
     useEffect(() => {
-        leaveTermsAfterSubmission();
-    }, [isSubmitSuccessful, pageToFix]);
+        leaveTerms();
+    }, [hasWiseBusiness, pageToFix]);
 
     const confirm = () => {
-        if (isAlreadySubmitted) {
-            clearDraftValues(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
-            clearSensitiveAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
-            Navigation.dismissModal();
-            return;
-        }
         if (!TERM_KEYS.every((key) => accepted[key])) {
             setShouldShowError(true);
             return;
@@ -212,14 +207,6 @@ function WiseAcceptTermsPage({route}: WiseAcceptTermsPageProps) {
                 ))}
                 <View style={styles.flexGrow1} />
                 <View style={styles.mt5}>
-                    {isAlreadySubmitted && (
-                        <FormHelpMessage
-                            style={styles.mb3}
-                            isError={false}
-                            isInfo
-                            message={translate('walletPage.wiseOnboarding.terms.alreadySubmitted')}
-                        />
-                    )}
                     <FormAlertWithSubmitButton
                         buttonText={translate('common.confirm')}
                         onSubmit={confirm}

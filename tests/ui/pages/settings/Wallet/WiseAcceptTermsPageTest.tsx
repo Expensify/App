@@ -32,7 +32,7 @@ let mockFocusedPath = INTRO_PATH;
 
 // The real useFocusEffect throws outside a navigator
 jest.mock('@react-navigation/native', () => ({...jest.requireActual<Record<string, unknown>>('@react-navigation/native'), useFocusEffect: jest.fn()}));
-jest.mock('@navigation/Navigation', () => ({dismissModal: jest.fn(), navigate: jest.fn(), goBack: jest.fn()}));
+jest.mock('@navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn()}));
 jest.mock('@userActions/DynamicForm', () => ({clearSensitiveAnswers: jest.fn()}));
 jest.mock('@userActions/FormActions', () => ({clearDraftValues: jest.fn(), clearErrorFields: jest.fn()}));
 jest.mock('@userActions/BankAccounts', () => ({hideBankAccountErrors: jest.fn()}));
@@ -77,7 +77,6 @@ jest.mock('@components/CheckboxWithLabel', () => {
 const BANK_ACCOUNT_ID = 1;
 const ERROR_TIMESTAMP = '1793657199501652';
 const ERROR = mockTranslate('walletPage.wiseOnboarding.terms.error');
-const ALREADY_SUBMITTED = mockTranslate('walletPage.wiseOnboarding.terms.alreadySubmitted');
 const CONFIRM = mockTranslate('common.confirm');
 const TERM_LABELS = [
     mockTranslate('walletPage.wiseOnboarding.terms.certify'),
@@ -260,19 +259,32 @@ describe('WiseAcceptTermsPage', () => {
         expect(screen.getByText('Validation failed')).toBeOnTheScreen();
     });
 
-    it('tells the user the business is already submitted, as information, and Confirm closes the flow', () => {
-        // Given a bank account whose business Wise is already reviewing
+    it('opens the status page instead of the terms once the business is submitted', () => {
+        // Given a bank account whose business is already submitted to Wise
         mockOnyxValues[ONYXKEYS.BANK_ACCOUNT_LIST] = {[BANK_ACCOUNT_ID]: {accountData: {additionalData: {wise: {status: CONST.WISE.ONBOARDING_STATUS.IN_REVIEW}}}}};
+
+        // When the terms page opens for it
         renderPage();
 
-        // Then the page says so as information
-        expect(screen.getByText(ALREADY_SUBMITTED)).toBeOnTheScreen();
-
-        // When the user presses Confirm
-        pressConfirm();
-
-        // Then nothing is sent again and the flow closes
+        // Then nothing is sent again, the answers left on the device go and the status page replaces the terms
         expect(submitWiseBusinessOnboarding).not.toHaveBeenCalled();
-        expect(Navigation.dismissModal).toHaveBeenCalledTimes(1);
+        expect(clearDraftValues).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
+        expect(Navigation.navigate).toHaveBeenCalledWith('settings/wallet/global-reimbursements/1/status', {forceReplace: true});
+    });
+
+    it('opens the status page only once when the server sends the submitted business after the submission succeeded', () => {
+        // Given a submission that succeeded and opened the status page
+        const {rerender} = renderPage();
+        tickEveryBox();
+        pressConfirm();
+        answerSubmission(rerender, {isWiseBusinessOnboardingSubmitSuccessful: true});
+
+        // When the bank account with Wise's status arrives while the terms page is still mounted
+        mockOnyxValues[ONYXKEYS.BANK_ACCOUNT_LIST] = {[BANK_ACCOUNT_ID]: {accountData: {additionalData: {wise: {status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED}}}}};
+        mockFocusedPath = `${INTRO_PATH}/status`;
+        rerender();
+
+        // Then it does not navigate again, since the status page is already open
+        expect(Navigation.navigate).toHaveBeenCalledTimes(1);
     });
 });

@@ -404,6 +404,25 @@ describe('WiseBusinessOnboardingPage', () => {
         expect(screen.queryByTestId(FLOW_TEST_ID)).not.toBeOnTheScreen();
     });
 
+    it('opens the status page instead of the form once the business is submitted', async () => {
+        // Given a bank account whose business is already submitted to Wise
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+        const submittedBankAccount: BankAccount = {
+            ...ELIGIBLE_BANK_ACCOUNT,
+            accountData: {...ELIGIBLE_BANK_ACCOUNT.accountData, additionalData: {wise: {status: CONST.WISE.ONBOARDING_STATUS.IN_REVIEW}}},
+        };
+
+        // When one of the form's pages opens for it
+        await renderPage({bankAccount: submittedBankAccount, subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY});
+
+        // Then the status page replaces it, since there is nothing left to submit, and the form never shows nor reads or prefills its answers
+        expect(navigateSpy).toHaveBeenCalledTimes(1);
+        expect(openReimbursementAccountPage).not.toHaveBeenCalled();
+        expect(saveDraftAnswers).not.toHaveBeenCalled();
+        expect(navigateSpy).toHaveBeenCalledWith('settings/wallet/global-reimbursements/1/status', {forceReplace: true});
+        expect(screen.queryByTestId(FLOW_TEST_ID)).not.toBeOnTheScreen();
+    });
+
     it('puts the saved file keys in the draft once a page save returns them', async () => {
         // Given an open flow whose draft holds an ID document picked on this device and sent with a page save
         await renderPage();
