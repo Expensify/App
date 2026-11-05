@@ -33,6 +33,33 @@ type DynamicFormHeading = {
 
     /** Hides the title only. The fields after it still show, since a heading marks a place rather than containing fields. */
     showWhen?: DynamicFormCondition;
+
+    /** Only a link has a URL, which is what tells a link apart from a heading */
+    url?: never;
+};
+
+/**
+ * A link between the fields of a page, such as one to a help article. It has no `type`, so an App version that does not know links reads it as a
+ * heading with no text and leaves it out.
+ */
+type DynamicFormLink = {
+    /** Can match a field's key, since links and fields are told apart by `type` */
+    key: string;
+
+    /** Address the link opens. Only https links to expensify.com or its subdomains are shown, since the link leaves the form. */
+    url: string;
+
+    /** The schema author's wording, shown when there is no textKey */
+    text?: string;
+
+    /** Translation of `text`, used instead of it when set */
+    textKey?: TranslationPaths;
+
+    /** Hides the link while the condition is not met */
+    showWhen?: DynamicFormCondition;
+
+    /** Only a field has a type, which is what tells a link apart from a field */
+    type?: never;
 };
 
 /** One allowed value of a select or radio field */
@@ -257,8 +284,8 @@ type DynamicFormListItem = {
 /** A field as the schema sends it, which can be of a type this App version does not know */
 type DynamicFormSchemaField = DynamicFormField | (DynamicFormFieldBase & {type: string});
 
-/** A heading or a field of a page */
-type DynamicFormContentItem = DynamicFormHeading | DynamicFormSchemaField;
+/** A heading, a link or a field of a page */
+type DynamicFormContentItem = DynamicFormHeading | DynamicFormLink | DynamicFormSchemaField;
 
 /** A page of a multi-page form. It is a heading with its own content, so it can carry a title, a description and a `showWhen`. */
 type DynamicFormPage = DynamicFormHeading & {
@@ -290,6 +317,7 @@ export type {
     DynamicFormFieldOption,
     DynamicFormFieldType,
     DynamicFormHeading,
+    DynamicFormLink,
     DynamicFormListField,
     DynamicFormListItem,
     DynamicFormMultiChoiceField,

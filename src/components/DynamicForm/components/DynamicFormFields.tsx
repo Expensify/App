@@ -2,6 +2,7 @@ import type {DynamicFormValues} from '@components/DynamicForm/types';
 import getContentFields from '@components/DynamicForm/utils/getContentFields';
 import {getLoneField, getVisibleContent} from '@components/DynamicForm/utils/getVisibleFields';
 import isHeading from '@components/DynamicForm/utils/isHeading';
+import isLink from '@components/DynamicForm/utils/isLink';
 import type {FormValue} from '@components/Form/types';
 
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
@@ -14,9 +15,10 @@ import React, {useState} from 'react';
 
 import DynamicFormFieldRow from './DynamicFormFieldRow';
 import DynamicFormHeadingRow from './DynamicFormHeadingRow';
+import DynamicFormLinkRow from './DynamicFormLinkRow';
 
 type DynamicFormFieldsProps = {
-    /** Headings and fields to render, in order. Fields of a type this App version does not know are left out. */
+    /** Headings, links and fields to render, in order. Fields of a type this App version does not know are left out. */
     content: DynamicFormContentItem[];
 
     /** Current answers, from FormProvider's render-prop `inputValues`, so showWhen and dependsOn follow the user's typing */
@@ -90,14 +92,25 @@ function DynamicFormFields({
         />
     );
 
-    return visibleContent.map((item, index) =>
-        isHeading(item) ? (
-            <DynamicFormHeadingRow
-                key={`heading-${item.key}`}
-                heading={item}
-                isFirst={index === 0}
-            />
-        ) : (
+    return visibleContent.map((item, index) => {
+        if (isLink(item)) {
+            return (
+                <DynamicFormLinkRow
+                    key={`link-${item.key}`}
+                    link={item}
+                />
+            );
+        }
+        if (isHeading(item)) {
+            return (
+                <DynamicFormHeadingRow
+                    key={`heading-${item.key}`}
+                    heading={item}
+                    isFirst={index === 0}
+                />
+            );
+        }
+        return (
             <DynamicFormFieldRow
                 key={item.key}
                 field={item}
@@ -112,8 +125,8 @@ function DynamicFormFields({
                 isSensitive={isSensitive}
                 renderFields={renderFields}
             />
-        ),
-    );
+        );
+    });
 }
 
 export default DynamicFormFields;
