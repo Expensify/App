@@ -111,7 +111,6 @@ async function renderAndSubmit(useSubmission: () => SubmissionHandle, shouldHand
 
 export {
     CURRENT_USER_ACCOUNT_ID,
-    OTHER_USER_ACCOUNT_ID,
     REPORT_ID,
     TRANSACTION_ID,
     DRAFT_ID,

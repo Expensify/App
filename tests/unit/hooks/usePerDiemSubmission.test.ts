@@ -9,7 +9,7 @@ import {hasCompletePerDiemCustomUnit, submitPerDiemExpense, submitPerDiemExpense
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -65,8 +65,8 @@ describe('usePerDiemSubmission', () => {
     });
 
     describe('expense report destination', () => {
-        // submitPerDiemExpense resolves the destination chat from the expense report. When that chat only exists
-        // in REPORT_DRAFT, the draft has to arrive through the reportDrafts param.
+        // The hook resolves the destination chat from the expense report before calling submitPerDiemExpense. When that
+        // chat only exists in REPORT_DRAFT, the draft has to arrive through the reportDrafts param.
         let getTopmostReportIdSpy: jest.SpyInstance;
 
         beforeEach(() => {
@@ -87,7 +87,7 @@ describe('usePerDiemSubmission', () => {
 
         it('resolves the destination chat from the supplied reportDrafts when it has no real report', async () => {
             // Given an expense report whose chat only exists as a draft that is passed in
-            const draftChat = {reportID: 'draft-chat-1', chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT} as Report;
+            const draftChat = {reportID: 'draft-chat-1', chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT};
 
             // When the per diem expense is submitted
             await submit(buildExpenseReportParams({[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}draft-chat-1`]: draftChat}), true);
@@ -130,9 +130,12 @@ describe('usePerDiemSubmission', () => {
             // When it is submitted and the hook owns the navigation
             await submit(buildParams({isTrackExpense: true}), true);
 
-            // Then the draft is removed once the transition ends and the self DM is opened
+            // Then the draft is removed once the transition ends and the self DM the expense was written to is opened
+            const selfDMReportID = mockSubmitPerDiemExpenseForSelfDMAction.mock.calls.at(0)?.at(0)?.optimisticChatReportID;
             expect(mockCleanupAfterExpenseCreate).toHaveBeenCalledWith({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});
+            expect(selfDMReportID).toBeTruthy();
             expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledTimes(1);
+            expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledWith(selfDMReportID, false, false);
         });
 
         it('removes the draft without dismissing when shouldHandleNavigation=false, because the orchestrator already navigated', async () => {
@@ -151,15 +154,18 @@ describe('usePerDiemSubmission', () => {
             mockHasCompletePerDiemCustomUnit.mockReturnValue(false);
             const logAlertSpy = jest.spyOn(Log, 'alert').mockImplementation(() => {});
 
-            // When it is submitted
-            await submit(buildParams({isTrackExpense: true}), true);
+            try {
+                // When it is submitted
+                await submit(buildParams({isTrackExpense: true}), true);
 
-            // Then nothing is written, the draft survives, and the skip is logged
-            expect(mockSubmitPerDiemExpenseForSelfDMAction).not.toHaveBeenCalled();
-            expect(mockCleanupAfterExpenseCreate).not.toHaveBeenCalled();
-            expect(mockDismissModalAndOpenReportInInboxTab).not.toHaveBeenCalled();
-            expect(logAlertSpy).toHaveBeenCalledTimes(1);
-            logAlertSpy.mockRestore();
+                // Then nothing is written, the draft survives, and the skip is logged
+                expect(mockSubmitPerDiemExpenseForSelfDMAction).not.toHaveBeenCalled();
+                expect(mockCleanupAfterExpenseCreate).not.toHaveBeenCalled();
+                expect(mockDismissModalAndOpenReportInInboxTab).not.toHaveBeenCalled();
+                expect(logAlertSpy).toHaveBeenCalledTimes(1);
+            } finally {
+                logAlertSpy.mockRestore();
+            }
         });
     });
 });

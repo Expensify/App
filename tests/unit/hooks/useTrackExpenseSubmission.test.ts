@@ -81,7 +81,7 @@ describe('useTrackExpenseSubmission', () => {
     });
 
     it('only cleans up when shouldHandleNavigation=false, because the orchestrator already navigated', async () => {
-        // Given a tracked expense
+        // Given a tracked expense whose confirmation already navigated away before the write, as dismiss-first submits do
 
         // When it is submitted after the orchestrator navigated away
         await submit(buildParams(), false);
@@ -94,7 +94,7 @@ describe('useTrackExpenseSubmission', () => {
     });
 
     it('cleans up and navigates when shouldHandleNavigation=true', async () => {
-        // Given a tracked expense
+        // Given a tracked expense whose confirmation is still on screen, so the hook has to take the user to the result
 
         // When it is submitted and the hook owns the navigation
         await submit(buildParams(), true);
@@ -106,14 +106,15 @@ describe('useTrackExpenseSubmission', () => {
     });
 
     it('forwards the per-iteration draft as existingTransaction so getTrackExpenseInformation finds it', async () => {
-        // Given a tracked expense
-        const params = buildParams();
+        // Given a draft being submitted that differs from the page-level transaction, as in a multi-scan batch
+        const draft = buildTransaction({transactionID: 'draft-transaction'});
+        const params = buildParams({transaction: buildTransaction({transactionID: 'page-level-transaction'}), transactions: [draft]});
 
         // When it is submitted
         await submit(params, true);
 
-        // Then the action receives the draft being submitted, not the page-level transaction
-        expect(mockTrackExpenseAction).toHaveBeenCalledWith(expect.objectContaining({existingTransaction: params.transactions.at(0)}));
+        // Then the action receives the draft, since getTrackExpenseInformation looks up the transaction being written, not the page-level one
+        expect(mockTrackExpenseAction).toHaveBeenCalledWith(expect.objectContaining({existingTransaction: draft}));
     });
 
     it('sends the overridden distance and keeps the waypoints when tracking a map distance expense', async () => {

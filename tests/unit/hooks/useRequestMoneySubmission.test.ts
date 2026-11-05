@@ -1,8 +1,5 @@
-import * as IOUUtils from '@libs/IOUUtils';
 import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
-// eslint-disable-next-line no-restricted-imports -- Namespace import is required to spy on getChatByParticipants without replacing the production module.
-import * as ReportUtils from '@libs/ReportUtils';
 
 import useRequestMoneySubmission from '@pages/iou/request/step/confirmation/submission/useRequestMoneySubmission';
 import {resolveChatTargetForSubmitCleanup} from '@pages/iou/request/step/resolveChatTarget';
@@ -25,7 +22,6 @@ import {
     CURRENT_USER_PERSONAL_DETAILS,
     DRAFT_ID,
     NO_TAX_VALUES,
-    OTHER_USER_ACCOUNT_ID,
     OTHER_USER_PARTICIPANT,
     renderAndSubmit,
     TRANSACTION_ID,
@@ -89,24 +85,15 @@ describe('useRequestMoneySubmission', () => {
     });
 
     it('uses the transaction report ID for a brand-new P2P recipient optimistic chat', async () => {
-        // Given a new P2P recipient whose transaction already reserved a report ID
+        // Given a new P2P recipient with no chat yet, whose transaction already reserved a report ID
         const optimisticP2PReportID = 'reused-p2p-report-1';
         const transaction = buildTransaction({reportID: optimisticP2PReportID});
-        const getChatByParticipantsSpy = jest.spyOn(ReportUtils, 'getChatByParticipants').mockReturnValue(undefined);
-        const getReusableP2PReportIDSpy = jest.spyOn(IOUUtils, 'getReusableP2PReportID').mockReturnValue(optimisticP2PReportID);
 
-        try {
-            // When the request is created before a persisted chat can be resolved
-            await submit(buildParams({transaction, transactions: [transaction], report: undefined}), false);
+        // When the request is created before a persisted chat can be resolved
+        await submit(buildParams({transaction, transactions: [transaction], report: undefined}), false);
 
-            // Then the reserved ID is forwarded, so the optimistic transaction and chat data line up with the chat the screen subscribes to
-            expect(getChatByParticipantsSpy).toHaveBeenCalled();
-            expect(getReusableP2PReportIDSpy).toHaveBeenCalledWith(expect.objectContaining({accountID: OTHER_USER_ACCOUNT_ID}), optimisticP2PReportID);
-            expect(mockRequestMoneyAction).toHaveBeenCalledWith(expect.objectContaining({optimisticChatReportID: optimisticP2PReportID}));
-        } finally {
-            getChatByParticipantsSpy.mockRestore();
-            getReusableP2PReportIDSpy.mockRestore();
-        }
+        // Then the reserved ID is forwarded, so the optimistic transaction and chat data line up with the chat the screen subscribes to
+        expect(mockRequestMoneyAction).toHaveBeenCalledWith(expect.objectContaining({optimisticChatReportID: optimisticP2PReportID}));
     });
 
     describe('receipt state on a Scan the user filled in', () => {
@@ -166,14 +153,12 @@ describe('useRequestMoneySubmission', () => {
         });
 
         it('sends no override on surfaces that do not expose the scan fields, leaving the validated receipt state alone', async () => {
-            // Given a manual expense with an attached receipt, which the validator already marked `open`
-            const transaction = buildTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL});
-            const params = buildParams({
-                transaction,
-                transactions: [transaction],
+            // Given a scan on a surface that never showed the scan fields (a moved tracked expense or a test receipt), which still
+            // carries all three "entered" flags, and whose receipt the validator already marked `open`
+            const params = {
+                ...buildScanParams({isAmountSet: true, isMerchantSet: true, isCreatedSet: true}, CONST.IOU.RECEIPT_STATE.OPEN),
                 canEnterScanFieldsManually: false,
-                receiptFiles: {[TRANSACTION_ID]: createMock<Receipt>({state: CONST.IOU.RECEIPT_STATE.OPEN})},
-            });
+            };
 
             // When the expense is submitted
             await submit(params, false);

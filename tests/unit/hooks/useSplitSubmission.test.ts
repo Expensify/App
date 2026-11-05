@@ -159,9 +159,10 @@ describe('useSplitSubmission', () => {
             // When it is submitted
             await submit(buildSplitParams(), false);
 
-            // Then Search is told a write is coming, so the write is deferred for it
+            // Then Search is told a write is coming before the write is built, since the write barrier reads the signal at that point
             expect(mockMarkPendingSearchWrite).toHaveBeenCalledTimes(1);
             expect(mockSplitBillAction).toHaveBeenCalledTimes(1);
+            expect(mockMarkPendingSearchWrite.mock.invocationCallOrder.at(0)).toBeLessThan(mockSplitBillAction.mock.invocationCallOrder.at(0) ?? 0);
         });
 
         it('raises the pending Search signal before splitBillAndOpenReport when the split lands back on Search', async () => {
@@ -171,9 +172,10 @@ describe('useSplitSubmission', () => {
             // When it is submitted
             await submit(buildSplitParams({isFromGlobalCreate: true}), false);
 
-            // Then Search is told a write is coming, so the write is deferred for it
+            // Then Search is told a write is coming before the write is built, since the write barrier reads the signal at that point
             expect(mockMarkPendingSearchWrite).toHaveBeenCalledTimes(1);
             expect(mockSplitBillAndOpenReportAction).toHaveBeenCalledTimes(1);
+            expect(mockMarkPendingSearchWrite.mock.invocationCallOrder.at(0)).toBeLessThan(mockSplitBillAndOpenReportAction.mock.invocationCallOrder.at(0) ?? 0);
         });
 
         it('does not raise the pending Search signal when the split is not landing on Search', async () => {
@@ -221,7 +223,7 @@ describe('useSplitSubmission', () => {
         });
 
         it('starts the scan split without dismissing when shouldHandleNavigation=false, because the orchestrator already navigated', async () => {
-            // Given a split with one receipt
+            // Given a split with one receipt whose destination the orchestrator already revealed, as dismiss-first submits do
             const params = buildScanSplitParams([buildTransaction()], {[TRANSACTION_ID]: {source: 'file://receipt.jpg'}});
 
             // When it is submitted after the orchestrator navigated away

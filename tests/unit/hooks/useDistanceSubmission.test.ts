@@ -109,8 +109,8 @@ describe('useDistanceSubmission', () => {
         expect(mockCreateDistanceRequestAction).toHaveBeenCalledWith(expect.objectContaining({optimisticChatReportID: optimisticP2PReportID}));
     });
 
-    it('sends the overridden distance when submitting a map distance expense to a workspace', async () => {
-        // Given a map distance draft whose quantity the user replaced on the Manual tab, headed for a workspace
+    it('sends the overridden distance when submitting a map distance expense through CreateDistanceRequest', async () => {
+        // Given a map distance draft whose quantity the user replaced on the Manual tab, sent to another person through CreateDistanceRequest
         const mapDistance = buildOverriddenMapDistanceTransaction();
 
         // When the expense is submitted

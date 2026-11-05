@@ -28,12 +28,15 @@ const mockCleanupAndNavigateAfterExpenseCreate = jest.mocked(cleanupAndNavigateA
 
 type UseInvoiceSubmissionParams = Parameters<typeof useInvoiceSubmission>[0];
 
+// Differs from the chat's own ID, so the tests can tell which one the hook navigated to
+const ROUTE_REPORT_ID = 'route-report';
+
 function buildParams(): UseInvoiceSubmissionParams {
     return {
         transaction: buildTransaction(),
         receiptFiles: {},
         report: buildChatReport(),
-        reportID: REPORT_ID,
+        reportID: ROUTE_REPORT_ID,
         policy: createMock<Policy>({id: 'policy-1'}),
         policyCategories: {},
         currentUserPersonalDetails: CURRENT_USER_PERSONAL_DETAILS,
@@ -53,7 +56,7 @@ describe('useInvoiceSubmission', () => {
     });
 
     it('cleans up and navigates to the invoice chat when shouldHandleNavigation=true', async () => {
-        // Given an invoice sent from an existing invoice chat
+        // Given an invoice sent from a chat that already exists, while the route still carries a different report ID
 
         // When it is submitted and the hook owns the navigation
         await renderAndSubmit(() => useInvoiceSubmission(buildParams()), true);
@@ -70,7 +73,7 @@ describe('useInvoiceSubmission', () => {
     });
 
     it('only cleans up when shouldHandleNavigation=false, because the orchestrator already navigated', async () => {
-        // Given an invoice sent from an existing invoice chat
+        // Given an invoice sent from a chat that already exists, whose destination the orchestrator already revealed
 
         // When it is submitted after the orchestrator navigated away
         await renderAndSubmit(() => useInvoiceSubmission(buildParams()), false);
