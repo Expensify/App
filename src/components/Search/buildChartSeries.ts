@@ -168,8 +168,10 @@ function buildChartSeries({
     const averageCurrency = data.at(0)?.currency;
     const averageOfMetric = average?.[metric];
     const averageAmount = average?.[CONST.SEARCH.CHART_METRIC.AMOUNT];
+    // Like getValue, a count is plotted as-is and an amount is converted to frontend units like the rows
     const averageValue =
         isCountMetric || averageOfMetric === undefined ? averageOfMetric : convertToFrontendAmountAsInteger(averageOfMetric, getCurrencyDecimals(averageCurrency ?? CONST.CURRENCY.USD));
+    // A count chart names the spend behind its average in the tooltip, like each group's total
     const averageTotal = isCountMetric && averageAmount !== undefined ? formatTotal?.(averageAmount, averageCurrency) : undefined;
 
     /** Builds the compared group a search leaves out for having no expenses, so its value, share and spend all read as zero */
