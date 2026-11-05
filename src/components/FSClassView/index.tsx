@@ -30,6 +30,10 @@ function FSClassView({forwardedFSClass, children, ...props}: FSClassViewProps) {
             <View
                 {...props}
                 fsClass={forwardedFSClass}
+                // On native, React Native flattens a View that only lays out its children, which drops its FullStory class. The FullStory
+                // babel plugin prevents that by adding a `nativeID` to `<View fsClass>`, and this keeps the view mounted even where the plugin
+                // doesn't run, so the masking doesn't depend on the build setup.
+                collapsable={false}
             >
                 {children}
             </View>
