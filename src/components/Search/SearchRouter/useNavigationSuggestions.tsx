@@ -494,7 +494,7 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
     const {localeCompare} = useLocalize();
     const canQueryMatch = canQueryMatchNavigationSuggestions(query);
     const sources = useNavigationSuggestionSources(canQueryMatch, shouldWatchForApprovals);
-    const createItems = useCreateNavigationSuggestions(query);
+    const createItems = useCreateNavigationSuggestions(query, canQueryMatch);
 
     if (!canQueryMatch) {
         return NO_NAVIGATION_SUGGESTIONS;
