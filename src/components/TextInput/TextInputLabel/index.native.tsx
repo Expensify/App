@@ -24,7 +24,6 @@ function TextInputLabel({label, labelScale, labelTranslateY, isMultiline, should
                 ellipsizeMode={shouldClipToSingleLine ? 'tail' : undefined}
                 allowFontScaling={false}
                 style={[styles.textInputLabel, animatedStyleForText]}
-                // eslint-disable-next-line react/forbid-component-props
                 fsClass={CONST.FULLSTORY.CLASS.UNMASK}
             >
                 {label}

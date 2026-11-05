@@ -65,7 +65,6 @@ function TextInputLabel({for: inputId = '', label, labelTranslateY, labelScale, 
                 importantForAccessibility="no"
                 aria-hidden
                 style={[styles.textInputLabelContainer, styles.textInputLabel, animatedStyle, styles.pointerEventsNone]}
-                // eslint-disable-next-line react/forbid-component-props
                 fsClass={CONST.FULLSTORY.CLASS.UNMASK}
             >
                 {label}
