@@ -115,8 +115,8 @@ function WiseDepositAccountContent({backTo, subPage}: WiseDepositAccountContentP
         getWiseBankAccountFields(selectedCountry);
     };
 
-    // A refresh that failed leaves the server's currency behind the user's pick, so the user's answer wins over what the server last sent
-    const getAnswerCurrency = (answers: Record<string, unknown>) => (typeof answers.currency === 'string' ? answers.currency : wiseBankAccountFields?.currency);
+    // A refresh that failed leaves the server's currency behind the user's pick, so the user's answer wins over what the server last sent. An empty answer means no pick yet
+    const getAnswerCurrency = (answers: Record<string, unknown>) => (typeof answers.currency === 'string' && answers.currency !== '' ? answers.currency : wiseBankAccountFields?.currency);
 
     const refreshForm = (inputID: string, value: FormValue) => {
         const answers = getCurrentSchemaAnswers(schema, draftValues);
