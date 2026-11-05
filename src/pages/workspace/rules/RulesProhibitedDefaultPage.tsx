@@ -136,6 +136,7 @@ function RulesProhibitedDefaultPage({
                                 <Switch
                                     isOn={draftProhibitedExpenses[prohibitedExpense]}
                                     accessibilityLabel={translate(`workspace.rules.individualExpenseRules.${prohibitedExpense}`)}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.PROHIBITED_EXPENSE_SWITCH}
                                     onToggle={() => handleToggle(prohibitedExpense)}
                                 />
                             </View>
