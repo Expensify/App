@@ -1402,6 +1402,7 @@ function joinAccountingIntegrationWaitlist(waitlist: OnyxEntry<AccountingIntegra
             value: [...otherEntries, entry],
         },
     ];
+
     // The failed entry stays so the row can show the error until the user retries or dismisses it
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_ACCOUNTING_INTEGRATION_WAITLIST>> = [
         {
