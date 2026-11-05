@@ -20,6 +20,12 @@ type UseChartLabelFormatsProps = {
     fontManager?: SkTypefaceFontProvider | null;
 };
 
+/** Totals with up to this many integer digits (under 1m) keep their decimals. */
+const MAX_DIGITS_FOR_TOTAL_WITH_DECIMALS = 6;
+
+/** Totals with up to this many integer digits (under 10m) show the whole amount, larger ones the compact form. */
+const MAX_DIGITS_FOR_WHOLE_TOTAL = 7;
+
 export default function useChartLabelFormats({
     data,
     unit,
@@ -49,6 +55,25 @@ export default function useChartLabelFormats({
     const formatValue = (value: number) => formatValueOverride?.(value) ?? withUnit(numberFormat(value));
     const formatCompactValue = (value: number) => formatValueOverride?.(value, {shouldUseCompactNotation: true}) ?? withUnit(numberFormat(value, {notation: 'compact'}).replace('K', 'k'));
 
+    /** Formats the full amount with exactly the given number of decimals. */
+    const formatExactValue = (value: number, decimals?: number) =>
+        formatValueOverride?.(value) ?? withUnit(numberFormat(value, {minimumFractionDigits: decimals, maximumFractionDigits: decimals}));
+
+    /** Formats a total with decimals under 1m, without them under 10m, and in compact form from 10m up. */
+    const formatTotalValue = (value: number, decimals?: number) => {
+        if (formatValueOverride) {
+            return formatValueOverride(value);
+        }
+        const integerDigits = Math.trunc(Math.abs(value)).toString().length;
+        if (integerDigits <= MAX_DIGITS_FOR_TOTAL_WITH_DECIMALS) {
+            return formatExactValue(value, decimals);
+        }
+        if (integerDigits <= MAX_DIGITS_FOR_WHOLE_TOTAL) {
+            return withUnit(numberFormat(value, {maximumFractionDigits: 0}));
+        }
+        return formatCompactValue(value);
+    };
+
     const formatLabel = (value: number) => {
         const index = Math.round(value);
 
@@ -65,5 +90,7 @@ export default function useChartLabelFormats({
         formatLabel,
         formatValue,
         formatCompactValue,
+        formatExactValue,
+        formatTotalValue,
     };
 }

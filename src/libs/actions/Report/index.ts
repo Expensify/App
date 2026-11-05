@@ -32,6 +32,7 @@ import type {
     MoveIOUReportToExistingPolicyParams,
     MoveIOUReportToPolicyAndInviteSubmitterParams,
     OpenReportParams,
+    OpenReportStatusPageParams,
     OpenRoomMembersPageParams,
     ReadNewestActionParams,
     RemoveFromGroupChatParams,
@@ -94,7 +95,7 @@ import capturePageHTML from '@libs/PageHTMLCapture';
 import {prunePagesToNewestWindow} from '@libs/PaginationUtils';
 import Parser from '@libs/Parser';
 import {getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
-import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
+import {getAllPersonalDetails, getPersonalDetail} from '@libs/PersonalDetailsStore';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
@@ -345,7 +346,7 @@ type ParticipantInfo = {
     accountIDForOptimisticData?: number;
 };
 
-type OpenReportActionParams = {
+type OpenReportActionBaseParams = {
     reportID: string | undefined;
     introSelected: OnyxEntry<IntroSelected>;
 
@@ -353,10 +354,6 @@ type OpenReportActionParams = {
     reportActionID?: string;
 
     participants?: ParticipantInfo[];
-
-    // TODO: personalDetails should be a required field in follow-up PRs https://github.com/Expensify/App/issues/73656
-    /** The personal details of the participants */
-    personalDetails?: OnyxEntry<PersonalDetailsList>;
 
     /** The optimistic report object created when making a new chat, saved as optimistic data */
     newReportObject?: OptimisticChatReport;
@@ -417,6 +414,19 @@ type OpenReportActionParams = {
     // TODO: This will be made required once all callers thread the value. Refactor issue: https://github.com/Expensify/App/issues/66425
     delegateAccountID?: number;
 };
+
+type OpenReportActionParams = OpenReportActionBaseParams &
+    (
+        | {
+              /** Required when creating a report or opening a transaction that may need optimistic actions. */
+              personalDetails: OnyxEntry<PersonalDetailsList>;
+          }
+        | {
+              personalDetails?: OnyxEntry<PersonalDetailsList>;
+              newReportObject?: never;
+              transaction?: never;
+          }
+    );
 
 type PregeneratedResponseParams = {
     optimisticConciergeReportActionID: string;
@@ -502,6 +512,7 @@ type MergeReportsProps = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     isVendorMatchingBetaEnabled: boolean | undefined;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
 };
 
 const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
@@ -2053,8 +2064,7 @@ function openReport(params: OpenReportActionParams) {
 
         let emailCreatingAction: string = CONST.REPORT.OWNER_EMAIL_FAKE;
         if (newReportObject.ownerAccountID && newReportObject.ownerAccountID !== CONST.REPORT.OWNER_ACCOUNT_ID_FAKE) {
-            // TODO: getAllPersonalDetails() fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
-            emailCreatingAction = (personalDetails ?? getAllPersonalDetails())?.[newReportObject.ownerAccountID]?.login ?? '';
+            emailCreatingAction = personalDetails?.[newReportObject.ownerAccountID]?.login ?? '';
         }
         const optimisticCreatedAction = buildOptimisticCreatedReportAction({emailCreatingAction});
         optimisticData.push(
@@ -2094,8 +2104,7 @@ function openReport(params: OpenReportActionParams) {
                 continue;
             }
 
-            // TODO: getAllPersonalDetails() fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
-            const isOptimisticAccount = !(personalDetails ?? getAllPersonalDetails())?.[accountID];
+            const isOptimisticAccount = !personalDetails?.[accountID];
 
             if (!isOptimisticAccount) {
                 continue;
@@ -2772,7 +2781,7 @@ function navigateToAndOpenReport({
         callback: (updatedReport) => {
             const notFoundError = updatedReport?.errorFields?.notFound;
             if (notFoundError === null) {
-                Onyx.disconnect(reportConnection);
+                reportConnection.unsubscribe();
                 return;
             }
 
@@ -2781,7 +2790,7 @@ function navigateToAndOpenReport({
             }
 
             hasAttemptedFallback = true;
-            Onyx.disconnect(reportConnection);
+            reportConnection.unsubscribe();
             createAndOpenNewOptimisticChat(chat.reportID);
         },
     });
@@ -2938,7 +2947,7 @@ function navigateToAndOpenReportWithAccountIDs(
         callback: (updatedReport) => {
             const notFoundError = updatedReport?.errorFields?.notFound;
             if (notFoundError === null) {
-                Onyx.disconnect(reportConnection);
+                reportConnection.unsubscribe();
                 return;
             }
 
@@ -2947,7 +2956,7 @@ function navigateToAndOpenReportWithAccountIDs(
             }
 
             hasAttemptedFallback = true;
-            Onyx.disconnect(reportConnection);
+            reportConnection.unsubscribe();
             createAndOpenNewOptimisticChat(chat.reportID);
         },
     });
@@ -4771,11 +4780,9 @@ function navigateToConciergeChat({
             navigateToAndOpenReport({
                 login: CONST.EMAIL.CONCIERGE,
                 personalDetailsByLogin: {[CONST.EMAIL.CONCIERGE]: {accountID: CONST.ACCOUNT_ID.CONCIERGE, login: CONST.EMAIL.CONCIERGE}},
-                // The list was captured before onServerDataReady(), so it can be stale when OpenApp only just loaded Concierge.
-                // When Concierge is missing from it, pass undefined so openReport reads the live list instead of treating Concierge
-                // as a new account and merging an optimistic personal detail over the real one.
-                // TODO: Remove this fallback together with the allPersonalDetails Onyx.connect https://github.com/Expensify/App/issues/73656
-                personalDetails: conciergePersonalDetails?.[CONST.ACCOUNT_ID.CONCIERGE] ? conciergePersonalDetails : undefined,
+                // OpenApp may load Concierge while waiting for server data. Read its current record at this
+                // non-React boundary so a stale caller snapshot cannot replace it with an optimistic profile.
+                personalDetails: buildPersonalDetailsList([getPersonalDetail(CONST.ACCOUNT_ID.CONCIERGE) ?? conciergePersonalDetails?.[CONST.ACCOUNT_ID.CONCIERGE] ?? undefined]),
                 currentUserAccountID,
                 introSelected,
                 // The Concierge chat does not exist yet on this path (it is being created here), so there is no report to thread.
@@ -5200,6 +5207,14 @@ function dismissFailedSupportTicket(supportTicketReportID: string, parentReportI
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${supportTicketReportID}`, null);
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${supportTicketReportID}`, null);
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {[parentReportActionID]: null});
+}
+
+/** Opens a support ticket without going through createChildReport, which would overwrite an unloaded ticket with an optimistic chat. */
+function navigateToSupportTicket(reportID: string | undefined) {
+    if (!reportID) {
+        return;
+    }
+    Navigation.navigate(getReportRouteForCurrentContext({reportID}));
 }
 
 /**
@@ -6660,6 +6675,33 @@ function openRoomMembersPage(reportID: string) {
     const parameters: OpenRoomMembersPageParams = {reportID};
 
     API.read(READ_COMMANDS.OPEN_ROOM_MEMBERS_PAGE, parameters);
+}
+
+/** Loads the report's history and upcoming steps for the ReportHistoryPage */
+function openReportStatusPage(reportID: string) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`,
+            value: {
+                isLoadingReportStatus: true,
+            },
+        },
+    ];
+
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`,
+            value: {
+                isLoadingReportStatus: false,
+            },
+        },
+    ];
+
+    const parameters: OpenReportStatusPageParams = {reportID};
+
+    API.read(READ_COMMANDS.OPEN_REPORT_STATUS_PAGE, parameters, {optimisticData, finallyData});
 }
 
 /**
@@ -9252,6 +9294,7 @@ function mergeReports({
     getCurrencyDecimals,
     getCurrencySymbol,
     isVendorMatchingBetaEnabled,
+    currentUserPersonalDetails,
 }: MergeReportsProps) {
     const reports = allReportsParam ?? allReports;
     const destinationReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
@@ -9286,6 +9329,7 @@ function mergeReports({
         delegateAccountID,
         getCurrencyDecimals,
         getCurrencySymbol,
+        currentUserPersonalDetails,
     });
 
     const {
@@ -9482,6 +9526,7 @@ export {
     openSupportTicket,
     isNoSupportRepAvailableResponse,
     dismissFailedSupportTicket,
+    navigateToSupportTicket,
     clearAllReportActionDrafts,
     clearReportActionDrafts,
     deleteReportComment,
@@ -9523,6 +9568,7 @@ export {
     navigateToConciergeChatAndDeleteReport,
     clearCreateChatError,
     openReport,
+    openReportStatusPage,
     openRoomMembersPage,
     readNewestAction,
     removeFromGroupChat,
