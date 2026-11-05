@@ -3,13 +3,14 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {isReportNotFound, isReportTransactionThread, isValidReportIDFromPath} from '@libs/ReportUtils';
+import {isReportNotFound, isReportTransactionThread, isValidReportIDFromPath, shouldHideBillReport} from '@libs/ReportUtils';
 import {getParentReportActionDeletionStatus} from '@libs/TransactionNavigationUtils';
 
 import CONST from '@src/CONST';
@@ -40,6 +41,7 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
     const reportIDFromRoute = getNonEmptyStringOnyxID(routeParams?.reportID);
 
     const {isOffline} = useNetwork();
+    const {isBetaEnabled} = usePermissions();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [userLeavingStatus = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`);
@@ -76,7 +78,8 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
     }
 
     const isReportMissingAfterLoad = !isLoading && hasSeenLoadingForCurrentReportID && !reportExists && !isPendingCreation;
-    const shouldShowNotFoundPage = !deleteTransactionNavigateBackUrl && (isInvalidReportPath || isReportMissingAfterLoad);
+    const isBillHidden = shouldHideBillReport(report?.type, isBetaEnabled(CONST.BETAS.NEW_DOT_BILL_PAY));
+    const shouldShowNotFoundPage = isBillHidden || (!deleteTransactionNavigateBackUrl && (isInvalidReportPath || isReportMissingAfterLoad));
 
     useEffect(() => {
         if (!shouldShowNotFoundPage) {
@@ -93,6 +96,7 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
             reportIDFromPath: routeParams?.reportID,
             isPendingCreation,
             deleteTransactionNavigateBackUrl,
+            isBillHidden,
         });
     }, [
         shouldShowNotFoundPage,
@@ -106,6 +110,7 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
         userLeavingStatus,
         routeParams?.reportID,
         deleteTransactionNavigateBackUrl,
+        isBillHidden,
     ]);
 
     if (shouldShowNotFoundPage) {

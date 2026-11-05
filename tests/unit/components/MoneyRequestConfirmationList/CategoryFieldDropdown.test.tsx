@@ -5,6 +5,7 @@ import CategoryFieldDropdown from '@components/MoneyRequestConfirmationList/sect
 import type PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type TextComponent from '@components/Text';
 
+import type usePolicy from '@hooks/usePolicy';
 import usePolicyData from '@hooks/usePolicyData';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -40,7 +41,10 @@ jest.mock('@hooks/useUpdateTransactionCategory', () => () => ({updateCategory: j
 const mockCreateAndApplyCategory = jest.fn();
 jest.mock('@hooks/useCreateAndApplyCategory', () => () => mockCreateAndApplyCategory);
 
-jest.mock('@hooks/usePolicyData', () => jest.fn(() => ({})));
+jest.mock('@hooks/usePolicyData', () => {
+    const {default: useRealPolicy} = jest.requireActual<{default: typeof usePolicy}>('@hooks/usePolicy');
+    return jest.fn((policyID?: string) => ({policy: useRealPolicy(policyID)}));
+});
 
 jest.mock('@components/CategoryPicker/CategoryPickerModal', () => {
     const {default: Pressable} = jest.requireActual<{default: typeof PressableWithoutFeedback}>('@components/Pressable/PressableWithoutFeedback');
@@ -69,6 +73,7 @@ jest.mock('@components/CategoryPicker/CategoryPickerModal', () => {
 
 const TRANSACTION_ID = '1';
 const REPORT_ID = 'reportID';
+const POLICY = createRandomPolicy(1);
 
 const renderDropdown = (onClose: () => void, canAddCategory = true) =>
     render(
@@ -88,7 +93,7 @@ const renderDropdown = (onClose: () => void, canAddCategory = true) =>
                 popoverWidth={CONST.POPOVER_DROPDOWN_WIDTH}
                 popoverHeight={CONST.POPOVER_DROPDOWN_MAX_HEIGHT}
                 transactionID={TRANSACTION_ID}
-                policy={createRandomPolicy(1)}
+                policy={POLICY}
                 selectedCategory=""
                 canAddCategory={canAddCategory}
             />
@@ -105,6 +110,7 @@ describe('CategoryFieldDropdown', () => {
         mockRunPendingTransition = undefined;
         jest.clearAllMocks();
         await Onyx.clear();
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY.id}`, POLICY);
         await waitForBatchedUpdates();
     });
 
@@ -165,5 +171,35 @@ describe('CategoryFieldDropdown', () => {
 
         // And the workspace's reports aren't scanned, since only the create row's re-enable path needs them
         expect(usePolicyData).toHaveBeenCalledWith(undefined);
+    });
+
+    it('hides only the create row for a draft-only workspace', async () => {
+        // Given a workspace that exists only as a draft
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY.id}`, null);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${POLICY.id}`, {...POLICY, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
+
+        // When its category dropdown opens
+        renderDropdown(jest.fn());
+        await waitForBatchedUpdatesWithAct();
+
+        // Then inline creation is hidden without changing the existing plus button
+        expect(screen.queryByLabelText('createCategory')).toBeNull();
+        expect(screen.getByLabelText('addCategory')).toBeTruthy();
+        expect(mockCreateAndApplyCategory).not.toHaveBeenCalled();
+    });
+
+    it('keeps the create row for a real workspace created optimistically while offline', async () => {
+        // Given a real workspace whose creation is still pending while offline
+        await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY.id}`, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
+
+        // When the user creates the searched-for category
+        renderDropdown(jest.fn());
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByLabelText('createCategory'));
+
+        // Then pending workspace creation does not block inline category creation
+        expect(mockCreateAndApplyCategory).toHaveBeenCalledWith('Training');
+        expect(screen.getByLabelText('addCategory')).toBeTruthy();
     });
 });
