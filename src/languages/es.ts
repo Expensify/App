@@ -47,6 +47,7 @@ const translations: TranslationDeepObject<typeof en> = {
         chartFailedToLoad: 'No se pudo cargar el gráfico. Actualiza la página e inténtalo de nuevo.',
         dismiss: 'Descartar',
         resizeColumn: ({columnName}: {columnName: string}) => `Redimensionar la columna ${columnName}`,
+        resizePanel: 'Redimensionar el panel',
         widthInPixels: ({width}: {width: number}) => `${width} píxeles`,
         proceed: 'Proceder',
         unshare: 'Dejar de compartir',

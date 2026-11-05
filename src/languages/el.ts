@@ -58,6 +58,7 @@ const translations: TranslationDeepObject<typeof en> = {
         chartFailedToLoad: 'Δεν ήταν δυνατή η φόρτωση του γραφήματος. Ανανεώστε τη σελίδα και δοκιμάστε ξανά.',
         dismiss: 'Κλείσιμο',
         resizeColumn: ({columnName}: {columnName: string}) => `Αλλαγή μεγέθους της στήλης ${columnName}`,
+        resizePanel: 'Αλλαγή μεγέθους πλαισίου',
         widthInPixels: ({width}: {width: number}) => `${width} pixel`,
         proceed: 'Συνέχεια',
         unshare: 'Αναίρεση κοινής χρήσης',

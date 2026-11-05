@@ -58,6 +58,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cancel: '取消',
         dismiss: '关闭',
         resizeColumn: ({columnName}: {columnName: string}) => `调整${columnName}列宽`,
+        resizePanel: '调整面板宽度',
         widthInPixels: ({width}: {width: number}) => `${width} 像素`,
         proceed: '继续',
         unshare: '取消共享',
