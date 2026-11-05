@@ -29,6 +29,12 @@ type DatePickerBaseProps = ForwardedFSClassProps & {
     /** A function that is passed by FormWrapper */
     onTouched?: () => void;
 
+    /**
+     * Called once focus has left the field and whatever was being typed has settled. A consumer that saves outside a
+     * form uses this rather than `onInputChange`, which reports every date the user passes through on the way.
+     */
+    onFieldBlur?: () => void;
+
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft?: boolean;
 

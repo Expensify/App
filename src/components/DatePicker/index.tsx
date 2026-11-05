@@ -66,6 +66,7 @@ function DatePicker({
     onPickerVisibilityChange,
     shouldHideCalendarIcon = false,
     onValidationErrorChange,
+    onFieldBlur,
     icon,
     shouldEnableMonthYearBackdropInNarrowPane = false,
     textInputContainerStyles,
@@ -369,6 +370,7 @@ function DatePicker({
         }
 
         segmentInput.onFieldBlur();
+        onFieldBlur?.();
     };
 
     useEffect(() => {
@@ -378,6 +380,7 @@ function DatePicker({
 
         hasPendingFieldBlurRef.current = false;
         segmentInput.onFieldBlur();
+        onFieldBlur?.();
         // The handler is rebuilt on every render, and the refs above are what decide whether it has anything to do
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isModalVisible]);

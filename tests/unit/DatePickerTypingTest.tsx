@@ -164,6 +164,28 @@ describe('DatePicker typing', () => {
         expect(onInputChange).toHaveBeenLastCalledWith('2024-03-17');
     });
 
+    it('tells the consumer the field was left, once the date it ends on has been reported', async () => {
+        // Given a field holding a date, whose day the user is replacing, watched by a consumer that saves for itself
+        const onInputChange = jest.fn();
+        const onFieldBlur = jest.fn();
+        await renderDatePicker({value: '2026-11-12', onInputChange, onFieldBlur, minDate: new Date('1900-01-01'), maxDate: new Date('2100-12-31')});
+
+        // When the day is retyped
+        focusSegment(SEGMENT_LABELS.day);
+        pressKeys(SEGMENT_LABELS.day, ['1', '3']);
+
+        // Then nothing says the field has been left, so a consumer saving on it has nothing to save yet
+        expect(onFieldBlur).not.toHaveBeenCalled();
+
+        // When focus leaves the field
+        leaveFieldByTabbing();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it is told once, after the date it is going to save has already been reported
+        expect(onFieldBlur).toHaveBeenCalledTimes(1);
+        expect(onInputChange).toHaveBeenLastCalledWith('2026-11-13');
+    });
+
     it('withholds a date that is still part way through being typed', async () => {
         // Given the same field
         const onInputChange = jest.fn();
