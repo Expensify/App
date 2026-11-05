@@ -96,7 +96,7 @@ function readDraft() {
         const connection = Onyx.connectWithoutView({
             key: ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT,
             callback: (value) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 resolve(value);
             },
         });
@@ -361,7 +361,7 @@ describe('WiseBusinessOnboardingPage', () => {
             const connection = Onyx.connectWithoutView({
                 key: ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS,
                 callback: (value) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(value);
                 },
             });
@@ -371,7 +371,7 @@ describe('WiseBusinessOnboardingPage', () => {
             const connection = Onyx.connectWithoutView({
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 callback: (value) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(value);
                 },
             });
