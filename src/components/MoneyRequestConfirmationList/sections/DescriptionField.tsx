@@ -2,6 +2,7 @@ import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/M
 import MenuItem from '@components/MenuItem';
 import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
+import {recordFocusedConfirmationField, useRestoreConfirmationFieldFocus} from '@components/MoneyRequestConfirmationList/focusManager';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import TextInput from '@components/TextInput';
 
@@ -53,6 +54,8 @@ function DescriptionField({isDescriptionRequired, policy, descriptionHint = ''}:
     // Ref on the field's outer container (the bordered box), so scrolling brings the whole field — including its
     // top border and label — into view rather than just the inner text area.
     const fieldContainerRef = useRef<ComponentRef<typeof View>>(null);
+    const descriptionInputRef = useRef<ComponentRef<typeof TextInput>>(null);
+    const shouldRestoreDescriptionFocus = useRestoreConfirmationFieldFocus(transactionID, 'description', descriptionInputRef);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
@@ -148,10 +151,14 @@ function DescriptionField({isDescriptionRequired, policy, descriptionHint = ''}:
                                 style={[styles.mh4, styles.mv2]}
                             >
                                 <TextInput
+                                    ref={descriptionInputRef}
                                     value={iouComment ?? ''}
                                     readOnly={didConfirm}
                                     onChangeText={handleDescriptionInputChange}
-                                    onFocus={() => scrollFocusedInputIntoView?.(fieldContainerRef.current)}
+                                    onFocus={() => {
+                                        recordFocusedConfirmationField(transactionID, 'description');
+                                        scrollFocusedInputIntoView?.(fieldContainerRef.current);
+                                    }}
                                     submitBehavior={canUseHardwareKeyboard ? 'blurAndSubmit' : 'newline'}
                                     onSubmitEditing={canUseHardwareKeyboard ? onSubmitForm : undefined}
                                     label={translate('common.description')}
@@ -162,6 +169,7 @@ function DescriptionField({isDescriptionRequired, policy, descriptionHint = ''}:
                                     excludedMarkdownStyles={!policy ? ['mentionReport'] : []}
                                     hint={descriptionHint}
                                     shouldRenderHintAsHTML={!!descriptionHint}
+                                    shouldAllowFocusInLandscapeMode={shouldRestoreDescriptionFocus}
                                 />
                             </View>
                         ) : (

@@ -75,6 +75,7 @@ function useConfirmationListDataWithPolicy({
     showRemoveExpenseConfirmModal,
     isPerDiemRequest = false,
     isTimeRequest = false,
+    shouldAllowParticipantEdit,
     isDistanceRequest = false,
     distanceState,
 }: UseConfirmationListDataParams): ConfirmationListData {
@@ -213,6 +214,7 @@ function useConfirmationListDataWithPolicy({
         isTypeInvoice,
         isPerDiemRequest,
         isTimeRequest,
+        shouldAllowParticipantEdit,
         shouldHideToSection,
         shouldShowReadOnlySplits,
         selectedParticipantsProp,
