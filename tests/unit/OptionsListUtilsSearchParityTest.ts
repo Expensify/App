@@ -69,8 +69,12 @@ function clearSearchCaches() {
  * [nav: ...] is the row's navigation target (reportID, else login, else none), emitted only when it differs from keyForList: report rows navigate by reportID, which equals keyForList today, so only a divergence shows.
  * The userToInvite login target is not emitted, because it is already visible as the text or the trailing invited login.
  * participantsList, icons and ownerAccountID are left out because the SearchRouter only renders them or never reads them. policyID and item are read for contextual search and FullStory masking, but only the canonical builders set them, so they are left out too.
+ * When includeWorkspaceIcon is true (used by autocompleteIn), [wsIcon] is emitted if the option carries a workspace avatar (first icon type is CONST.ICON_TYPE_WORKSPACE), matching what useAutocompleteSuggestions surfaces.
  */
-function serializeOption(option: SearchOptionData | null | undefined, {isUserToInvite = false}: {isUserToInvite?: boolean} = {}): string | null {
+function serializeOption(
+    option: SearchOptionData | null | undefined,
+    {isUserToInvite = false, includeWorkspaceIcon = false}: {isUserToInvite?: boolean; includeWorkspaceIcon?: boolean} = {},
+): string | null {
     if (!option) {
         return null;
     }
@@ -85,11 +89,12 @@ function serializeOption(option: SearchOptionData | null | undefined, {isUserToI
     const invitedLogin = isUserToInvite && option.login !== option.text ? ` ${option.login ?? ''}` : '';
     const altText = option.alternateText ? ` [alt: ${option.alternateText}]` : '';
     const subtitle = (option.isChatRoom || option.isPolicyExpenseChat) && option.subtitle ? ` [sub: ${option.subtitle}]` : '';
+    const workspaceIcon = includeWorkspaceIcon && option.icons?.at(0)?.type === CONST.ICON_TYPE_WORKSPACE ? ' [wsIcon]' : '';
     const accountID = option.accountID ? ` [accID: ${option.accountID}]` : '';
     const navigationTarget = option.reportID || option.login;
     const isLoginShownAlready = isUserToInvite && !option.reportID;
     const navigation = !isLoginShownAlready && String(navigationTarget ?? '') !== (option.keyForList ?? '') ? ` [nav: ${navigationTarget || 'none'}]` : '';
-    return `${option.keyForList ?? ''} ${option.text ?? ''}${flags}${altText}${subtitle}${accountID}${navigation}${invitedLogin}`;
+    return `${option.keyForList ?? ''} ${option.text ?? ''}${flags}${altText}${subtitle}${workspaceIcon}${accountID}${navigation}${invitedLogin}`;
 }
 
 /** What the screen shows: one flat list of rows, in order. */
@@ -106,7 +111,16 @@ function serializeResult(result: OptionsResult | DisplayedResult | SectionResult
         };
     }
     if (!('options' in result)) {
-        return Object.fromEntries(Object.entries(result).map(([section, options]) => [section, options.map((option) => serializeOption(option))]));
+        return Object.fromEntries(
+            Object.entries(result).map(([section, options]) => [
+                section,
+                options.map((option) =>
+                    serializeOption(option, {
+                        includeWorkspaceIcon: section === 'recentReports',
+                    }),
+                ),
+            ]),
+        );
     }
     const {options, hasMore} = result;
     return {
@@ -342,6 +356,7 @@ function createCallSites(sourceFixture: SearchFixture) {
 
         // The in: room filter of useAutocompleteSuggestions (src/hooks/useAutocompleteSuggestions.ts), which only reads recentReports.
         // The config is copied from that hook, so keep the two in sync. As above, isDefaultRoomsBetaEnabled is fixed to true, maxResults is the hook's literal 10, and the hook's filter of rows without text or already typed is not replicated.
+        // serializeResult captures [wsIcon] for this call site because the hook reads chat.icons.at(0) to disambiguate identically named rooms across workspaces.
         autocompleteIn: (options, query) => ({
             recentReports: getSearchOptions({
                 ...commonSearchConfig,

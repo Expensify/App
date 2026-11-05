@@ -351,7 +351,7 @@ exports[`OptionsListUtils search parity (golden master) call site autocompleteIn
   "": {
     "recentReports": [
       "2004 Current User (you) [alt: This is your personal space. Use it for notes, tasks, drafts, and reminders.] [accID: 1]",
-      "2013 #orphan-room [alt: Gone Workspace • This chat room is for anything #orphan-room related.] [sub: Gone Workspace]",
+      "2013 #orphan-room [alt: Gone Workspace • This chat room is for anything #orphan-room related.] [sub: Gone Workspace] [wsIcon]",
       "1124 Ada Cole [alt: This chat is with Ada Cole.] [accID: 124]",
       "1103 Dan Ames [alt: This chat is with Dan Ames.] [accID: 103]",
       "1019 No Login [alt: This chat is with No Login.] [accID: 19]",
@@ -365,7 +365,7 @@ exports[`OptionsListUtils search parity (golden master) call site autocompleteIn
   "   ": {
     "recentReports": [
       "2004 Current User (you) [alt: This is your personal space. Use it for notes, tasks, drafts, and reminders.] [accID: 1]",
-      "2013 #orphan-room [alt: Gone Workspace • This chat room is for anything #orphan-room related.] [sub: Gone Workspace]",
+      "2013 #orphan-room [alt: Gone Workspace • This chat room is for anything #orphan-room related.] [sub: Gone Workspace] [wsIcon]",
       "1124 Ada Cole [alt: This chat is with Ada Cole.] [accID: 124]",
       "1103 Dan Ames [alt: This chat is with Dan Ames.] [accID: 103]",
       "1019 No Login [alt: This chat is with No Login.] [accID: 19]",
@@ -441,8 +441,8 @@ exports[`OptionsListUtils search parity (golden master) call site autocompleteIn
   },
   "Groß": {
     "recentReports": [
-      "2007 Groß Straße [alt: Vít Workspace • This chat is for invoices between Groß Straße and Vít Workspace. Use the + button to send an invoice.] [sub: Invoices]",
-      "2006 Groß Straße's expenses [alt: Vít Workspace • This is where Groß Straße will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace]",
+      "2007 Groß Straße [alt: Vít Workspace • This chat is for invoices between Groß Straße and Vít Workspace. Use the + button to send an invoice.] [sub: Invoices] [wsIcon]",
+      "2006 Groß Straße's expenses [alt: Vít Workspace • This is where Groß Straße will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace] [wsIcon]",
     ],
   },
   "JOSÉ": {
@@ -465,23 +465,23 @@ exports[`OptionsListUtils search parity (golden master) call site autocompleteIn
   },
   "Vít": {
     "recentReports": [
-      "2012 #vít-room [rbr] [alt: Acme Holdings • This chat room is for anything #vít-room related.] [sub: Acme Holdings]",
-      "2011 #announce [alt: Vít Workspace • This chat is with everyone in Vít Workspace. Use it for the most important announcements.] [sub: Vít Workspace]",
-      "2006 Groß Straße's expenses [alt: Vít Workspace • This is where Groß Straße will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace]",
-      "2005 Current User's expenses [gbr] [alt: Vít Workspace • This is where Current User will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace • Submits to Current User]",
+      "2012 #vít-room [rbr] [alt: Acme Holdings • This chat room is for anything #vít-room related.] [sub: Acme Holdings] [wsIcon]",
+      "2011 #announce [alt: Vít Workspace • This chat is with everyone in Vít Workspace. Use it for the most important announcements.] [sub: Vít Workspace] [wsIcon]",
+      "2006 Groß Straße's expenses [alt: Vít Workspace • This is where Groß Straße will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace] [wsIcon]",
+      "2005 Current User's expenses [gbr] [alt: Vít Workspace • This is where Current User will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace • Submits to Current User] [wsIcon]",
       "2003 Weekend Hiking [alt: This chat is with José Ñúñez, Mary-Jane O'Brien, and Vít Novák.]",
-      "2010 #admins [alt: Vít Workspace • This chat is with Vít Workspace admin. Use it to chat about workspace setup and more.] [sub: Vít Workspace]",
+      "2010 #admins [alt: Vít Workspace • This chat is with Vít Workspace admin. Use it to chat about workspace setup and more.] [sub: Vít Workspace] [wsIcon]",
       "1003 Vít Novák [alt: This chat is with Vít Novák.] [accID: 3]",
     ],
   },
   "Vít": {
     "recentReports": [
-      "2012 #vít-room [rbr] [alt: Acme Holdings • This chat room is for anything #vít-room related.] [sub: Acme Holdings]",
-      "2011 #announce [alt: Vít Workspace • This chat is with everyone in Vít Workspace. Use it for the most important announcements.] [sub: Vít Workspace]",
-      "2006 Groß Straße's expenses [alt: Vít Workspace • This is where Groß Straße will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace]",
-      "2005 Current User's expenses [gbr] [alt: Vít Workspace • This is where Current User will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace • Submits to Current User]",
+      "2012 #vít-room [rbr] [alt: Acme Holdings • This chat room is for anything #vít-room related.] [sub: Acme Holdings] [wsIcon]",
+      "2011 #announce [alt: Vít Workspace • This chat is with everyone in Vít Workspace. Use it for the most important announcements.] [sub: Vít Workspace] [wsIcon]",
+      "2006 Groß Straße's expenses [alt: Vít Workspace • This is where Groß Straße will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace] [wsIcon]",
+      "2005 Current User's expenses [gbr] [alt: Vít Workspace • This is where Current User will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace • Submits to Current User] [wsIcon]",
       "2003 Weekend Hiking [alt: This chat is with José Ñúñez, Mary-Jane O'Brien, and Vít Novák.]",
-      "2010 #admins [alt: Vít Workspace • This chat is with Vít Workspace admin. Use it to chat about workspace setup and more.] [sub: Vít Workspace]",
+      "2010 #admins [alt: Vít Workspace • This chat is with Vít Workspace admin. Use it to chat about workspace setup and more.] [sub: Vít Workspace] [wsIcon]",
       "1003 Vít Novák [alt: This chat is with Vít Novák.] [accID: 3]",
     ],
   },
@@ -494,7 +494,7 @@ exports[`OptionsListUtils search parity (golden master) call site autocompleteIn
   "a": {
     "recentReports": [
       "2004 Current User (you) [alt: This is your personal space. Use it for notes, tasks, drafts, and reminders.] [accID: 1]",
-      "2013 #orphan-room [alt: Gone Workspace • This chat room is for anything #orphan-room related.] [sub: Gone Workspace]",
+      "2013 #orphan-room [alt: Gone Workspace • This chat room is for anything #orphan-room related.] [sub: Gone Workspace] [wsIcon]",
       "1124 Ada Cole [alt: This chat is with Ada Cole.] [accID: 124]",
       "1103 Dan Ames [alt: This chat is with Dan Ames.] [accID: 103]",
       "1123 Lou Byrd [alt: This chat is with Lou Byrd.] [accID: 123]",
@@ -507,7 +507,7 @@ exports[`OptionsListUtils search parity (golden master) call site autocompleteIn
   },
   "acme": {
     "recentReports": [
-      "2012 #vít-room [rbr] [alt: Acme Holdings • This chat room is for anything #vít-room related.] [sub: Acme Holdings]",
+      "2012 #vít-room [rbr] [alt: Acme Holdings • This chat room is for anything #vít-room related.] [sub: Acme Holdings] [wsIcon]",
     ],
   },
   "ada byrd": {
@@ -517,7 +517,7 @@ exports[`OptionsListUtils search parity (golden master) call site autocompleteIn
   },
   "admins": {
     "recentReports": [
-      "2010 #admins [alt: Vít Workspace • This chat is with Vít Workspace admin. Use it to chat about workspace setup and more.] [sub: Vít Workspace]",
+      "2010 #admins [alt: Vít Workspace • This chat is with Vít Workspace admin. Use it to chat about workspace setup and more.] [sub: Vít Workspace] [wsIcon]",
     ],
   },
   "al": {
@@ -634,13 +634,13 @@ exports[`OptionsListUtils search parity (golden master) call site autocompleteIn
   "mary jane": {
     "recentReports": [
       "2003 Weekend Hiking [alt: This chat is with José Ñúñez, Mary-Jane O'Brien, and Vít Novák.]",
-      "2000 Mary-Jane O'Brien (archived)  [archived] [alt: This chat room has been archived.] [accID: 11]",
+      "2000 Mary-Jane O'Brien (archived)  [archived] [alt: This chat room has been archived.] [wsIcon] [accID: 11]",
     ],
   },
   "mary-jane": {
     "recentReports": [
       "2003 Weekend Hiking [alt: This chat is with José Ñúñez, Mary-Jane O'Brien, and Vít Novák.]",
-      "2000 Mary-Jane O'Brien (archived)  [archived] [alt: This chat room has been archived.] [accID: 11]",
+      "2000 Mary-Jane O'Brien (archived)  [archived] [alt: This chat room has been archived.] [wsIcon] [accID: 11]",
     ],
   },
   "me": {
@@ -649,7 +649,7 @@ exports[`OptionsListUtils search parity (golden master) call site autocompleteIn
       "1103 Dan Ames [alt: This chat is with Dan Ames.] [accID: 103]",
       "1102 Cyd Ames [alt: This chat is with Cyd Ames.] [accID: 102]",
       "1100 Ada Ames [alt: This chat is with Ada Ames.] [accID: 100]",
-      "2012 #vít-room [rbr] [alt: Acme Holdings • This chat room is for anything #vít-room related.] [sub: Acme Holdings]",
+      "2012 #vít-room [rbr] [alt: Acme Holdings • This chat room is for anything #vít-room related.] [sub: Acme Holdings] [wsIcon]",
       "1111 Lou Ames [alt: This chat is with Lou Ames.] [accID: 111]",
       "1109 Jon Ames [alt: This chat is with Jon Ames.] [accID: 109]",
       "1108 Ivy Ames [alt: This chat is with Ivy Ames.] [accID: 108]",
@@ -667,7 +667,7 @@ exports[`OptionsListUtils search parity (golden master) call site autocompleteIn
   },
   "nounce": {
     "recentReports": [
-      "2011 #announce [alt: Vít Workspace • This chat is with everyone in Vít Workspace. Use it for the most important announcements.] [sub: Vít Workspace]",
+      "2011 #announce [alt: Vít Workspace • This chat is with everyone in Vít Workspace. Use it for the most important announcements.] [sub: Vít Workspace] [wsIcon]",
     ],
   },
   "nunez": {
@@ -679,27 +679,27 @@ exports[`OptionsListUtils search parity (golden master) call site autocompleteIn
   "o'brien": {
     "recentReports": [
       "2003 Weekend Hiking [alt: This chat is with José Ñúñez, Mary-Jane O'Brien, and Vít Novák.]",
-      "2000 Mary-Jane O'Brien (archived)  [archived] [alt: This chat room has been archived.] [accID: 11]",
+      "2000 Mary-Jane O'Brien (archived)  [archived] [alt: This chat room has been archived.] [wsIcon] [accID: 11]",
     ],
   },
   "obrien": {
     "recentReports": [
       "2003 Weekend Hiking [alt: This chat is with José Ñúñez, Mary-Jane O'Brien, and Vít Novák.]",
-      "2000 Mary-Jane O'Brien (archived)  [archived] [alt: This chat room has been archived.] [accID: 11]",
+      "2000 Mary-Jane O'Brien (archived)  [archived] [alt: This chat room has been archived.] [wsIcon] [accID: 11]",
     ],
   },
   "oldings": {
     "recentReports": [
-      "2012 #vít-room [rbr] [alt: Acme Holdings • This chat room is for anything #vít-room related.] [sub: Acme Holdings]",
+      "2012 #vít-room [rbr] [alt: Acme Holdings • This chat room is for anything #vít-room related.] [sub: Acme Holdings] [wsIcon]",
     ],
   },
   "orkspace": {
     "recentReports": [
-      "2013 #orphan-room [alt: Gone Workspace • This chat room is for anything #orphan-room related.] [sub: Gone Workspace]",
-      "2011 #announce [alt: Vít Workspace • This chat is with everyone in Vít Workspace. Use it for the most important announcements.] [sub: Vít Workspace]",
-      "2006 Groß Straße's expenses [alt: Vít Workspace • This is where Groß Straße will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace]",
-      "2005 Current User's expenses [gbr] [alt: Vít Workspace • This is where Current User will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace • Submits to Current User]",
-      "2010 #admins [alt: Vít Workspace • This chat is with Vít Workspace admin. Use it to chat about workspace setup and more.] [sub: Vít Workspace]",
+      "2013 #orphan-room [alt: Gone Workspace • This chat room is for anything #orphan-room related.] [sub: Gone Workspace] [wsIcon]",
+      "2011 #announce [alt: Vít Workspace • This chat is with everyone in Vít Workspace. Use it for the most important announcements.] [sub: Vít Workspace] [wsIcon]",
+      "2006 Groß Straße's expenses [alt: Vít Workspace • This is where Groß Straße will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace] [wsIcon]",
+      "2005 Current User's expenses [gbr] [alt: Vít Workspace • This is where Current User will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace • Submits to Current User] [wsIcon]",
+      "2010 #admins [alt: Vít Workspace • This chat is with Vít Workspace admin. Use it to chat about workspace setup and more.] [sub: Vít Workspace] [wsIcon]",
     ],
   },
   "ovak": {
@@ -728,14 +728,14 @@ exports[`OptionsListUtils search parity (golden master) call site autocompleteIn
   },
   "strasse": {
     "recentReports": [
-      "2007 Groß Straße [alt: Vít Workspace • This chat is for invoices between Groß Straße and Vít Workspace. Use the + button to send an invoice.] [sub: Invoices]",
-      "2006 Groß Straße's expenses [alt: Vít Workspace • This is where Groß Straße will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace]",
+      "2007 Groß Straße [alt: Vít Workspace • This chat is for invoices between Groß Straße and Vít Workspace. Use the + button to send an invoice.] [sub: Invoices] [wsIcon]",
+      "2006 Groß Straße's expenses [alt: Vít Workspace • This is where Groß Straße will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace] [wsIcon]",
     ],
   },
   "straße": {
     "recentReports": [
-      "2007 Groß Straße [alt: Vít Workspace • This chat is for invoices between Groß Straße and Vít Workspace. Use the + button to send an invoice.] [sub: Invoices]",
-      "2006 Groß Straße's expenses [alt: Vít Workspace • This is where Groß Straße will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace]",
+      "2007 Groß Straße [alt: Vít Workspace • This chat is for invoices between Groß Straße and Vít Workspace. Use the + button to send an invoice.] [sub: Invoices] [wsIcon]",
+      "2006 Groß Straße's expenses [alt: Vít Workspace • This is where Groß Straße will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace] [wsIcon]",
     ],
   },
   "thread": {
@@ -751,30 +751,30 @@ exports[`OptionsListUtils search parity (golden master) call site autocompleteIn
   },
   "vit": {
     "recentReports": [
-      "2012 #vít-room [rbr] [alt: Acme Holdings • This chat room is for anything #vít-room related.] [sub: Acme Holdings]",
-      "2011 #announce [alt: Vít Workspace • This chat is with everyone in Vít Workspace. Use it for the most important announcements.] [sub: Vít Workspace]",
-      "2006 Groß Straße's expenses [alt: Vít Workspace • This is where Groß Straße will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace]",
-      "2005 Current User's expenses [gbr] [alt: Vít Workspace • This is where Current User will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace • Submits to Current User]",
+      "2012 #vít-room [rbr] [alt: Acme Holdings • This chat room is for anything #vít-room related.] [sub: Acme Holdings] [wsIcon]",
+      "2011 #announce [alt: Vít Workspace • This chat is with everyone in Vít Workspace. Use it for the most important announcements.] [sub: Vít Workspace] [wsIcon]",
+      "2006 Groß Straße's expenses [alt: Vít Workspace • This is where Groß Straße will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace] [wsIcon]",
+      "2005 Current User's expenses [gbr] [alt: Vít Workspace • This is where Current User will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace • Submits to Current User] [wsIcon]",
       "2003 Weekend Hiking [alt: This chat is with José Ñúñez, Mary-Jane O'Brien, and Vít Novák.]",
-      "2010 #admins [alt: Vít Workspace • This chat is with Vít Workspace admin. Use it to chat about workspace setup and more.] [sub: Vít Workspace]",
+      "2010 #admins [alt: Vít Workspace • This chat is with Vít Workspace admin. Use it to chat about workspace setup and more.] [sub: Vít Workspace] [wsIcon]",
       "1003 Vít Novák [alt: This chat is with Vít Novák.] [accID: 3]",
     ],
   },
   "vit workspace": {
     "recentReports": [
-      "2011 #announce [alt: Vít Workspace • This chat is with everyone in Vít Workspace. Use it for the most important announcements.] [sub: Vít Workspace]",
-      "2006 Groß Straße's expenses [alt: Vít Workspace • This is where Groß Straße will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace]",
-      "2005 Current User's expenses [gbr] [alt: Vít Workspace • This is where Current User will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace • Submits to Current User]",
-      "2010 #admins [alt: Vít Workspace • This chat is with Vít Workspace admin. Use it to chat about workspace setup and more.] [sub: Vít Workspace]",
+      "2011 #announce [alt: Vít Workspace • This chat is with everyone in Vít Workspace. Use it for the most important announcements.] [sub: Vít Workspace] [wsIcon]",
+      "2006 Groß Straße's expenses [alt: Vít Workspace • This is where Groß Straße will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace] [wsIcon]",
+      "2005 Current User's expenses [gbr] [alt: Vít Workspace • This is where Current User will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace • Submits to Current User] [wsIcon]",
+      "2010 #admins [alt: Vít Workspace • This chat is with Vít Workspace admin. Use it to chat about workspace setup and more.] [sub: Vít Workspace] [wsIcon]",
     ],
   },
   "workspace": {
     "recentReports": [
-      "2013 #orphan-room [alt: Gone Workspace • This chat room is for anything #orphan-room related.] [sub: Gone Workspace]",
-      "2011 #announce [alt: Vít Workspace • This chat is with everyone in Vít Workspace. Use it for the most important announcements.] [sub: Vít Workspace]",
-      "2006 Groß Straße's expenses [alt: Vít Workspace • This is where Groß Straße will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace]",
-      "2005 Current User's expenses [gbr] [alt: Vít Workspace • This is where Current User will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace • Submits to Current User]",
-      "2010 #admins [alt: Vít Workspace • This chat is with Vít Workspace admin. Use it to chat about workspace setup and more.] [sub: Vít Workspace]",
+      "2013 #orphan-room [alt: Gone Workspace • This chat room is for anything #orphan-room related.] [sub: Gone Workspace] [wsIcon]",
+      "2011 #announce [alt: Vít Workspace • This chat is with everyone in Vít Workspace. Use it for the most important announcements.] [sub: Vít Workspace] [wsIcon]",
+      "2006 Groß Straße's expenses [alt: Vít Workspace • This is where Groß Straße will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace] [wsIcon]",
+      "2005 Current User's expenses [gbr] [alt: Vít Workspace • This is where Current User will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace • Submits to Current User] [wsIcon]",
+      "2010 #admins [alt: Vít Workspace • This chat is with Vít Workspace admin. Use it to chat about workspace setup and more.] [sub: Vít Workspace] [wsIcon]",
     ],
   },
   "x.com": {
