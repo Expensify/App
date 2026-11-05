@@ -84,7 +84,7 @@ describe('TransferOwnershipFlow', () => {
         expect(toJSON()).toBeNull();
     });
 
-    it('calls clearWorkspaceOwnerChangeFlow with the policy ID once data loads', async () => {
+    it('calls clearWorkspaceOwnerChangeFlow with the policy ID', async () => {
         await Onyx.set(ONYXKEYS.SESSION, {
             email: USER_EMAIL,
             accountID: USER_ACCOUNT_ID,
@@ -99,7 +99,7 @@ describe('TransferOwnershipFlow', () => {
         expect(mockClearWorkspaceOwnerChangeFlow).toHaveBeenCalledWith(POLICY_ID);
     });
 
-    it('calls requestWorkspaceOwnerChange with the personal details account ID and login', async () => {
+    it('leaves starting the transfer to the owner change page', async () => {
         await Onyx.set(ONYXKEYS.SESSION, {
             email: USER_EMAIL,
             accountID: USER_ACCOUNT_ID,
@@ -111,7 +111,8 @@ describe('TransferOwnershipFlow', () => {
         });
         renderAction();
         await waitForBatchedUpdatesWithAct();
-        expect(mockRequestWorkspaceOwnerChange).toHaveBeenCalledWith(expect.objectContaining({id: POLICY_ID}), USER_ACCOUNT_ID, USER_EMAIL);
+        // The page may first ask to take over all of the owner's workspaces, so nothing is transferred from the row menu
+        expect(mockRequestWorkspaceOwnerChange).not.toHaveBeenCalled();
     });
 
     it('navigates to the ownership change check screen', async () => {
