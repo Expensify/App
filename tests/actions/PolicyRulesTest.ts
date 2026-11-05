@@ -660,7 +660,7 @@ describe('actions/PolicyRules', () => {
     });
     describe('getTransactionsMatchingRule', () => {
         const PREVIEW_POLICY_ID = 'policy1';
-        const CATEGORY_FILTERS = {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Advertising'};
+        const CATEGORY_FILTERS = JSON.stringify({left: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Advertising'});
 
         /** The preview is a read, so there is no persisted request to inspect and the call itself is the assertion. */
         let readSpy: jest.SpyInstance;
@@ -682,7 +682,7 @@ describe('actions/PolicyRules', () => {
             // Then it goes to the command that reads a rule's own filters, scoped to the policy
             expect(readSpy).toHaveBeenCalledWith(
                 READ_COMMANDS.GET_TRANSACTIONS_MATCHING_RULE,
-                {scope: CONST.RULES.SCOPE.POLICY, scopeID: PREVIEW_POLICY_ID, filters: JSON.stringify(CATEGORY_FILTERS)},
+                {scope: CONST.RULES.SCOPE.POLICY, scopeID: PREVIEW_POLICY_ID, filters: CATEGORY_FILTERS},
                 expect.anything(),
             );
         });

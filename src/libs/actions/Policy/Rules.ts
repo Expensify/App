@@ -30,7 +30,6 @@ import type {AgentRule, CodingRule} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type Rule from '@src/types/onyx/Rule';
 import type {RuleBody} from '@src/types/onyx/Rule';
-import type {RuleFilterNode} from '@src/types/onyx/RuleFilters';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 
@@ -279,7 +278,7 @@ async function importMerchantRulesSpreadsheet(policyID: string, rules: Record<st
  * The previous answer is cleared first. The collection is keyed by transaction, so without the clear a preview
  * that matches fewer expenses than the last one keeps showing the ones it no longer matches.
  */
-function getTransactionsMatchingRule(policyID: string, filters: RuleFilterNode) {
+function getTransactionsMatchingRule(policyID: string, filters: string) {
     Onyx.setCollection(ONYXKEYS.COLLECTION.CODING_RULE_MATCHING_TRANSACTION, {});
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW>> = [
@@ -304,11 +303,7 @@ function getTransactionsMatchingRule(policyID: string, filters: RuleFilterNode) 
         },
     ];
 
-    return API.read(
-        READ_COMMANDS.GET_TRANSACTIONS_MATCHING_RULE,
-        {scope: CONST.RULES.SCOPE.POLICY, scopeID: policyID, filters: JSON.stringify(filters)},
-        {optimisticData, successData, failureData},
-    );
+    return API.read(READ_COMMANDS.GET_TRANSACTIONS_MATCHING_RULE, {scope: CONST.RULES.SCOPE.POLICY, scopeID: policyID, filters}, {optimisticData, successData, failureData});
 }
 
 /**

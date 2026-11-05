@@ -58,13 +58,17 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
     // The preview matches on everything the rule does, so it asks with the tree the rule would be saved with.
     const filters = buildExpenseDefaultFilters(form ?? {});
 
+    // A fresh tree is built on every render, so the request is keyed on what the tree holds rather than on its
+    // identity. Keying on the tree itself asks again on every render, and each answer renders again.
+    const serializedFilters = filters ? JSON.stringify(filters) : '';
+
     useEffect(() => {
-        if (isOffline || !filters) {
+        if (isOffline || !serializedFilters) {
             return;
         }
 
-        getTransactionsMatchingRule(policyID, filters);
-    }, [filters, policyID, isOffline]);
+        getTransactionsMatchingRule(policyID, serializedFilters);
+    }, [serializedFilters, policyID, isOffline]);
 
     const matchingTransactionsArray = Object.values(matchingTransactions ?? {}).filter((transaction): transaction is Transaction => !!transaction);
     const hasMatchingTransactions = !!filters && matchingTransactionsArray.length > 0;
