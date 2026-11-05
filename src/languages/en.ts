@@ -182,6 +182,7 @@ const translations = {
             pay: 'Pay',
             fix: 'Fix',
             task: 'Task',
+            add: 'Add',
         },
         // @context Used in confirmation or result messages indicating that an action completed successfully, not the abstract noun “success.”
         success: 'Success',
@@ -2351,16 +2352,17 @@ const translations = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Waiting for <strong>you</strong> to approve expenses.`;
+                        return isBill ? `Waiting for <strong>you</strong> to approve the bill.` : `Waiting for <strong>you</strong> to approve expenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Waiting for <strong>${actor}</strong> to approve expenses.`;
+                        return isBill ? `Waiting for <strong>${actor}</strong> to approve the bill.` : `Waiting for <strong>${actor}</strong> to approve expenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Waiting for an admin to approve expenses.`;
+                        return isBill ? `Waiting for an admin to approve the bill.` : `Waiting for an admin to approve expenses.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (
@@ -2385,16 +2387,17 @@ const translations = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Waiting for <strong>you</strong> to pay expenses.`;
+                        return isBill ? `Waiting for <strong>you</strong> to pay this bill.` : `Waiting for <strong>you</strong> to pay expenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Waiting for <strong>${actor}</strong> to pay expenses.`;
+                        return isBill ? `Waiting for <strong>${actor}</strong> to pay this bill.` : `Waiting for <strong>${actor}</strong> to pay expenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Waiting for an admin to pay expenses.`;
+                        return isBill ? `Waiting for an admin to pay this bill.` : `Waiting for an admin to pay expenses.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
@@ -10096,8 +10099,9 @@ const translations = {
                 describeRuleForConcierge: 'Describe your rule and Concierge will build it',
                 disclaimer: 'AI agents can make mistakes.',
                 createRule: 'Create rule',
-                fallbackBanner: "This isn't a standard rule, so we drafted an agent rule.",
-                fallbackBannerWithExplanation: (explanation: string) => `This isn't a standard rule, so we drafted an agent rule. ${explanation}`,
+                fallbackBanner: "This isn't a standard rule, so we drafted an agent rule. Agent rules run when an expense or report is created or updated.",
+                fallbackBannerWithExplanation: (explanation: string) =>
+                    `This isn't a standard rule, so we drafted an agent rule. Agent rules run when an expense or report is created or updated. ${explanation}`,
                 agentCreatedTitle: 'RuleBot has been added to your workspace!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>To enforce your agent rules, we’ve created an agent for you and added it as an admin to your workspace.<br><br>Edit your agent’s details in <a href="${agentsRoute}">Account &gt; Agents</a>.</muted-text>`,

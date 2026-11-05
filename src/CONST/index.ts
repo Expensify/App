@@ -829,8 +829,6 @@ const CONST = {
         MONTH_DAY_YEAR_FORMAT: 'MMMM d, yyyy',
         FNS_TIMEZONE_FORMAT_STRING: "yyyy-MM-dd'T'HH:mm:ssXXX",
         FNS_DB_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss.SSS',
-        LONG_DATE_FORMAT_WITH_WEEKDAY: 'eeee, MMMM d, yyyy',
-        LONG_DATE_FORMAT_WITH_WEEKDAY_WITHOUT_YEAR: 'eeee, MMMM d',
         ORDINAL_DAY_OF_MONTH: 'do',
         MONTH_DAY_YEAR_ORDINAL_FORMAT: 'MMMM do, yyyy',
         SECONDS_PER_DAY: 24 * 60 * 60,
@@ -1531,6 +1529,7 @@ const CONST = {
         RESIZABLE_RHP: 'resizableRHP',
         TRAVEL_APPROVAL: 'travelApproval',
         SCAN_FLASH_TORCH: 'scanFlashTorch',
+        NEW_DOT_BILL_PAY: 'newDotBillPay',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1875,7 +1874,7 @@ const CONST = {
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME: 'ExpensifyPackageForSageIntacct',
     SAGE_INTACCT_INSTRUCTIONS: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct',
     HOW_TO_CONNECT_TO_SAGE_INTACCT: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct#how-to-connect-to-sage-intacct',
-    BUSINESS_CENTRAL_HELP_URL: 'https://help.expensify.com/new-expensify/hubs/connections/',
+    BUSINESS_CENTRAL_HELP_URL: 'https://help.expensify.com/new-expensify/hubs/connections/business-central',
     PRICING: `https://www.expensify.com/pricing`,
     COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS:
         'https://help.expensify.com/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Commercial-Feed-for-Company-Cards#how-to-enable-a-mastercard-commercial-card-feed-cdf',
@@ -2123,6 +2122,7 @@ const CONST = {
             PAY: 'pay',
             FIX: 'fix',
             TASK: 'task',
+            ADD: 'add',
         },
         ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE: {
             EXPENSE: 'expense',
@@ -10819,6 +10819,7 @@ const CONST = {
         },
         SHARE_DETAIL: {
             DISMISS_KEYBOARD_BUTTON: 'ShareDetail-DismissKeyboardButton',
+            SHARE_BUTTON: 'ShareDetail-ShareButton',
         },
         MAP_VIEW: {
             COMPASS: 'compass',

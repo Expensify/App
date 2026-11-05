@@ -122,6 +122,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pay: '支付',
             fix: '修复',
             task: '任务',
+            add: '添加',
         },
         success: '成功',
         group: '群组',
@@ -2122,14 +2123,15 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `正在等待<strong>你</strong>审批报销。`;
+                        return isBill ? `正在等待<strong>你</strong>审批账单。` : `正在等待<strong>你</strong>审批报销。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待<strong>${actor}</strong>审批报销。`;
+                        return isBill ? `正在等待<strong>${actor}</strong>审批账单。` : `正在等待<strong>${actor}</strong>审批报销。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `正在等待管理员批准报销。`;
+                        return isBill ? `正在等待管理员批准账单。` : `正在等待管理员批准报销。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (
@@ -2152,14 +2154,15 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `正在等待<strong>你</strong>报销费用。`;
+                        return isBill ? `正在等待<strong>你</strong>支付此账单。` : `正在等待<strong>你</strong>报销费用。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待<strong>${actor}</strong>支付报销费用。`;
+                        return isBill ? `正在等待<strong>${actor}</strong>支付此账单。` : `正在等待<strong>${actor}</strong>支付报销费用。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `正在等待管理员报销费用。`;
+                        return isBill ? `正在等待管理员支付此账单。` : `正在等待管理员报销费用。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
@@ -8854,8 +8857,8 @@ ${reportName}`,
                 describeRuleForConcierge: '描述你的规则，Concierge 会帮你创建',
                 gotIt: '知道了',
                 createRule: '创建规则',
-                fallbackBanner: '这不是一条标准规则，所以我们起草了一条代理规则。',
-                fallbackBannerWithExplanation: (explanation: string) => `这不是一条标准规则，所以我们起草了一条代理规则。${explanation}`,
+                fallbackBanner: '这不是一条标准规则，所以我们起草了一条代理规则。代理规则会在报销或报表被创建或更新时运行。',
+                fallbackBannerWithExplanation: (explanation: string) => `这不是一条标准规则，所以我们起草了一条代理规则。代理规则会在报销或报表被创建或更新时运行。${explanation}`,
             },
             tabs: {general: '常规', cardRestrictions: '卡片限制', expenseDefaults: '报销默认设置', requireFields: '字段要求', flagForReview: '标记以供审核', agents: '代理人'},
             bulkActions: {
