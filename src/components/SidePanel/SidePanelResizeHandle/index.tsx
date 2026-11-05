@@ -1,7 +1,7 @@
 import PaneResizeHandle from '@components/ResizeHandle/PaneResizeHandle';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSidePanelWidth from '@hooks/useSidePanelWidth';
+import useSidePanelState from '@hooks/useSidePanelState';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {sidePanelWidthVariable} from '@libs/Navigation/helpers/sidePanelWidth';
@@ -16,17 +16,17 @@ import React from 'react';
 function SidePanelResizeHandle() {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {width, bounds, isResizable} = useSidePanelWidth();
+    const {sidePanelWidth, sidePanelWidthBounds, isSidePanelResizable} = useSidePanelState();
 
-    if (!isResizable || shouldUseNarrowLayout) {
+    if (!isSidePanelResizable || shouldUseNarrowLayout) {
         return null;
     }
 
     return (
         <PaneResizeHandle
             onyxKey={ONYXKEYS.SIDE_PANEL_WIDTH}
-            width={width}
-            bounds={bounds}
+            width={sidePanelWidth}
+            bounds={sidePanelWidthBounds}
             defaultWidth={variables.sidePanelWidth}
             liveWidth={sidePanelWidthVariable}
             style={styles.sidePanelResizeHandle}

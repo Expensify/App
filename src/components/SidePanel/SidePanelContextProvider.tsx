@@ -16,6 +16,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {emailSelector} from '@src/selectors/Session';
 import type {SidePanel} from '@src/types/onyx';
+import type PaneWidthBounds from '@src/types/utils/PaneWidthBounds';
 
 import type {PropsWithChildren, RefObject} from 'react';
 
@@ -39,6 +40,9 @@ type SidePanelStateContextProps = {
     /** The panel's committed width on a wide layout, whether it's docked or floats over the page. */
     sidePanelWidth: number;
 
+    /** How far the panel can be dragged in this window, beside whatever RHP is open. */
+    sidePanelWidthBounds: PaneWidthBounds;
+
     /** Whether the user's beta lets them drag the panel's width. */
     isSidePanelResizable: boolean;
     sidePanelNVP?: SidePanel;
@@ -60,6 +64,7 @@ const SidePanelStateContext = createContext<SidePanelStateContextProps>({
     sidePanelOffset: {current: new Animated.Value(0)},
     sidePanelTranslateX: {current: new Animated.Value(0)},
     sidePanelWidth: variables.sidePanelWidth,
+    sidePanelWidthBounds: {min: variables.sidePanelWidth, max: variables.sidePanelWidth},
     isSidePanelResizable: false,
     sessionStartTime: null,
 });
@@ -77,7 +82,7 @@ const SidePanelActionsContext = createContext<SidePanelActionsContextProps>({
 function SidePanelContextProvider({children}: PropsWithChildren) {
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
-    const {width: dockedSidePanelWidth, isResizable: isSidePanelResizable} = useSidePanelWidth();
+    const {width: dockedSidePanelWidth, bounds: sidePanelWidthBounds, isResizable: isSidePanelResizable} = useSidePanelWidth();
     const sidePanelWidth = shouldUseNarrowLayout ? windowWidth : dockedSidePanelWidth;
 
     const [isSidePanelTransitionEnded, setIsSidePanelTransitionEnded] = useState(true);
@@ -183,6 +188,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
         sidePanelOffset,
         sidePanelTranslateX,
         sidePanelWidth: dockedSidePanelWidth,
+        sidePanelWidthBounds,
         isSidePanelResizable,
         sidePanelNVP,
         sessionStartTime,

@@ -129,6 +129,7 @@ const defaultSidePanelState: ReturnType<typeof useSidePanelState> = {
     sidePanelOffset: {current: null} as React.RefObject<never>,
     sidePanelTranslateX: {current: null} as React.RefObject<never>,
     sidePanelWidth: 375,
+    sidePanelWidthBounds: {min: 375, max: 375},
     isSidePanelResizable: false,
 };
 

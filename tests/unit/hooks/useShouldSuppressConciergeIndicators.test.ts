@@ -41,6 +41,7 @@ const sidePanelState: ReturnType<typeof useSidePanelState> = {
     sidePanelOffset: {current: new Animated.Value(0)},
     sidePanelTranslateX: {current: new Animated.Value(0)},
     sidePanelWidth: 375,
+    sidePanelWidthBounds: {min: 375, max: 375},
     isSidePanelResizable: false,
 };
 
