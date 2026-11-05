@@ -55,6 +55,7 @@ export default function useReportUnreadMessageScrollTracking({
 }: Args) {
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
     const [isActionBadgeAboveViewport, setIsActionBadgeAboveViewport] = useState(false);
+    const [isActionBadgeBelowViewport, setIsActionBadgeBelowViewport] = useState(false);
     const isFocused = useIsFocused();
     const ref = useRef<{
         previousViewableItems: ViewToken[];
@@ -168,17 +169,21 @@ export default function useReportUnreadMessageScrollTracking({
             ref.current.onUnreadActionVisible();
         }
 
-        // Track whether the action badge target is above the viewport (i.e., not visible and at a higher index in the inverted list)
+        // Track whether the action badge target is out of view above or below the viewport
         const badgeTargetIndex = ref.current.actionBadgeTargetIndex;
         if (badgeTargetIndex !== -1) {
-            // In an inverted list, higher indexes are "above" (older messages). The target is above the viewport
-            // when its index is greater than the max visible index.
+            // In an inverted list, higher indexes are "above" (older messages) and lower indexes are "below" (newer messages)
             // FlashList reports a snapshot taken up to 250ms earlier, which can predate the new row's measured layout, so prefer the live range
             const visibleRange = ref.current.getVisibleIndexRange?.();
-            const isAbove = isInverted ? badgeTargetIndex > (visibleRange?.endIndex ?? maxIndex) : badgeTargetIndex < (visibleRange?.startIndex ?? minIndex);
+            const startIndex = visibleRange?.startIndex ?? minIndex;
+            const endIndex = visibleRange?.endIndex ?? maxIndex;
+            const isAbove = isInverted ? badgeTargetIndex > endIndex : badgeTargetIndex < startIndex;
+            const isBelow = isInverted ? badgeTargetIndex < startIndex : badgeTargetIndex > endIndex;
             setIsActionBadgeAboveViewport(isAbove);
+            setIsActionBadgeBelowViewport(isBelow);
         } else {
             setIsActionBadgeAboveViewport(false);
+            setIsActionBadgeBelowViewport(false);
         }
     };
 
@@ -203,6 +208,8 @@ export default function useReportUnreadMessageScrollTracking({
         setIsFloatingMessageCounterVisible,
         isActionBadgeAboveViewport,
         setIsActionBadgeAboveViewport,
+        isActionBadgeBelowViewport,
+        setIsActionBadgeBelowViewport,
         trackVerticalScrolling,
         onViewableItemsChanged,
         updatePillVisibility,
