@@ -325,6 +325,21 @@ describe('SearchEditMultiplePage', () => {
         expect(updateMultipleMoneyRequests).toHaveBeenCalledWith(expect.objectContaining({changes: {merchant: 'Starbucks'}}));
     });
 
+    it('shows the currency on the amount input and saves a picked currency', async () => {
+        // Given a selection whose draft holds a currency picked from the amount input's currency button
+        await selectTransactions([OPEN_TRANSACTION_ID], {currency: CONST.CURRENCY.EUR});
+
+        // When the Edit multiple page is opened and the changes are saved
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByText(CONST.CURRENCY.EUR)).toBeOnTheScreen();
+        fireEvent.press(screen.getByText('Save'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the picked currency is applied to the selected expenses
+        expect(updateMultipleMoneyRequests).toHaveBeenCalledWith(expect.objectContaining({changes: {currency: CONST.CURRENCY.EUR}}));
+    });
+
     it('locks Merchant when a selected expense is a distance expense', async () => {
         // Given a selection with a distance expense, whose merchant is computed from the route
         const distanceTransactionID = 'distanceTransaction';

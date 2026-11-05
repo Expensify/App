@@ -27,7 +27,7 @@ import type {StartWithLoading} from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearBulkEditDraftTransaction, updateBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
-import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
+import {convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import {getBackendAmountFromInput} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
@@ -47,6 +47,8 @@ import {
 } from '@libs/TransactionUtils';
 import {isInvalidMerchantValue, isValidDate, isValidInputLength} from '@libs/ValidationUtils';
 
+import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
+
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -57,7 +59,7 @@ import type {TransactionChanges} from '@src/types/onyx/Transaction';
 import type {GestureResponderEvent} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import SearchEditMultipleAttendeesDropdown from './SearchEditMultipleAttendeesDropdown';
@@ -80,7 +82,7 @@ import {
 const DATE_INPUT_ID = 'created';
 
 function SearchEditMultiplePage() {
-    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber, preferredLocale} = useLocalize();
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {convertToDisplayStringWithoutCurrency, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -202,8 +204,11 @@ function SearchEditMultiplePage() {
     }, []);
 
     const [isSaving, setIsSaving] = useState(false);
+    const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
+    const currencyButtonRef = useRef<View>(null);
 
-    const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
+    // The draft only holds a currency once one is picked; until then the amount is read in the workspace's currency.
+    const currency = draftTransaction?.currency ?? policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const decimals = getCurrencyDecimals(currency);
     const draftAmount = draftTransaction?.amount;
     const draftMerchant = draftTransaction?.merchant ?? '';
@@ -247,6 +252,19 @@ function SearchEditMultiplePage() {
     // An emptied field drops the pending change rather than recording an empty value.
     const saveDraftAmount = (newAmount: string) => {
         updateBulkEditDraftTransaction({amount: getBackendAmountFromInput(newAmount)});
+    };
+
+    const showCurrencyPicker = () => {
+        setIsCurrencyPickerVisible(true);
+    };
+
+    const hideCurrencyPicker = () => {
+        setIsCurrencyPickerVisible(false);
+    };
+
+    const saveDraftCurrency = (newCurrency: string) => {
+        hideCurrencyPicker();
+        updateBulkEditDraftTransaction({currency: newCurrency});
     };
 
     const saveDraftMerchant = (newMerchant: string) => {
@@ -316,6 +334,9 @@ function SearchEditMultiplePage() {
         if (draftTransaction.amount !== undefined) {
             changes.amount = draftTransaction.amount;
         }
+        if (draftTransaction.currency) {
+            changes.currency = draftTransaction.currency;
+        }
         if (trimmedMerchant) {
             changes.merchant = trimmedMerchant;
         }
@@ -367,7 +388,6 @@ function SearchEditMultiplePage() {
         commit(changes, startWithLoading);
     };
 
-    // TODO: Currency editing and currency symbol should be handled in a separate PR
     const tagsArray = getTagArrayFromName(draftTransaction?.tag ?? '');
     const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTags);
     const shouldShowTagList = hasDependentTags ? getDependentTagVisibility(policyTagLists, draftTransaction?.tag) : [];
@@ -398,6 +418,14 @@ function SearchEditMultiplePage() {
                 title={translate('search.bulkActions.editMultipleTitle')}
                 onBackButtonPress={Navigation.goBack}
             />
+            <IOURequestStepCurrencyModal
+                isPickerVisible={isCurrencyPickerVisible}
+                hidePickerModal={hideCurrencyPicker}
+                headerText={translate('common.selectCurrency')}
+                value={currency}
+                onInputChange={saveDraftCurrency}
+                launcherRef={currencyButtonRef}
+            />
             <View style={[styles.flex1]}>
                 <ScrollView contentContainerStyle={styles.flexGrow1}>
                     <Text style={[styles.ph5, styles.mb3, styles.textSupporting]}>{translate('search.bulkActions.editMultipleDescription')}</Text>
@@ -416,12 +444,15 @@ function SearchEditMultiplePage() {
                                 value={draftAmount === undefined ? '' : convertToFrontendAmountAsString(draftAmount, decimals)}
                                 decimals={decimals}
                                 currency={currency}
-                                symbol=""
+                                symbol={getLocalizedCurrencySymbol(preferredLocale, currency) ?? ''}
                                 label={translate('iou.amount')}
                                 errorText={amountErrorText}
                                 onInputChange={saveDraftAmount}
                                 allowNegativeInput={allowNegative}
                                 shouldShowFlipButton={allowNegative}
+                                shouldShowCurrencyButton
+                                onCurrencyButtonPress={showCurrencyPicker}
+                                currencyButtonRef={currencyButtonRef}
                                 shouldShowBigNumberPad={false}
                                 shouldUseBorderlessButtons
                             />
