@@ -100,6 +100,9 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
     return (
         <MoneyRequestParticipantsSelector
             iouType={CONST.IOU.TYPE.SUBMIT}
+            // Share shows file errors in a bottom sheet from the global modal stack. On iOS the contacts prompt opening
+            // over that sheet replaced it mid-presentation and froze the screen, so this flow doesn't show the prompt.
+            shouldShowContactImportPrompt={false}
             initiallySelectedReportID={typeof selectedReportID === 'string' ? selectedReportID : undefined}
             onParticipantsAdded={(value) => {
                 // clear the existing draft transaction from the previous flow to prevent the old data from being displayed

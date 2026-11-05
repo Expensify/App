@@ -68,6 +68,9 @@ type MoneyRequestParticipantsSelectorProps = {
      */
     shouldBlockParticipantSelection?: (policyID?: string) => boolean;
 
+    /** Whether the import contacts prompt may be shown when the picker opens */
+    shouldShowContactImportPrompt?: boolean;
+
     ref?: Ref<InputFocusRef>;
 };
 
@@ -93,6 +96,7 @@ function MoneyRequestParticipantsSelector({
     onRestrictedParticipantSelected,
     onCloseParticipantPicker,
     shouldBlockParticipantSelection,
+    shouldShowContactImportPrompt,
     ref,
 }: MoneyRequestParticipantsSelectorProps) {
     const isFocused = useIsFocused();
@@ -137,6 +141,7 @@ function MoneyRequestParticipantsSelector({
                     onRestrictedParticipantSelected={onRestrictedParticipantSelected}
                     onCloseParticipantPicker={onCloseParticipantPicker}
                     shouldBlockParticipantSelection={shouldBlockParticipantSelection}
+                    shouldShowContactImportPrompt={shouldShowContactImportPrompt}
                 />
             </AlwaysPaintedView>
         </Activity>

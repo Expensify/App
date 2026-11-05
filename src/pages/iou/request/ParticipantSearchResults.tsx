@@ -126,6 +126,9 @@ type ParticipantSearchResultsProps = {
      * Return true to block the selection (e.g. manual/odometer distance into a commuter-exclusion workspace).
      */
     shouldBlockParticipantSelection?: (policyID?: string) => boolean;
+
+    /** Whether the import contacts prompt may be shown when the picker opens */
+    shouldShowContactImportPrompt?: boolean;
 };
 
 function ParticipantSearchResults({
@@ -149,6 +152,7 @@ function ParticipantSearchResults({
     onRestrictedParticipantSelected,
     onCloseParticipantPicker,
     shouldBlockParticipantSelection,
+    shouldShowContactImportPrompt = true,
 }: ParticipantSearchResultsProps) {
     const getParticipantOptionKey = (option: Partial<Participant>) => option.reportID ?? option.accountID?.toString() ?? option.login ?? option.phoneNumber ?? '';
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
@@ -574,6 +578,7 @@ function ParticipantSearchResults({
         onFocusTextInput: () => {
             setTextInputAutoFocus(true);
         },
+        isEnabled: shouldShowContactImportPrompt,
     });
 
     return (
