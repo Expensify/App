@@ -91,6 +91,7 @@ function ZohoBooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 title={translate('workspace.accounting.autoSync')}
                 subtitle={translate('workspace.zohoBooks.autoSyncDescription')}
                 switchAccessibilityLabel={translate('workspace.accounting.autoSync')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.ZOHO_BOOKS.AUTO_SYNC_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive={autoSync}
@@ -129,6 +130,7 @@ function ZohoBooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 title={translate('workspace.zohoBooks.syncReimbursedReports')}
                 subtitle={translate('workspace.zohoBooks.syncReimbursedReportsDescription')}
                 switchAccessibilityLabel={translate('workspace.zohoBooks.syncReimbursedReports')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.ZOHO_BOOKS.SYNC_REIMBURSED_REPORTS_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive={syncReimbursedReports}
@@ -159,6 +161,7 @@ function ZohoBooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     <ToggleSettingOptionRow
                         title={translate('workspace.zohoBooks.syncExpensifyCardSettlements')}
                         switchAccessibilityLabel={translate('workspace.zohoBooks.syncExpensifyCardSettlements')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.ZOHO_BOOKS.SYNC_EXPENSIFY_CARD_SETTLEMENTS_SWITCH}
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={[styles.mv3, styles.mh5]}
                         isActive={syncExpensifyCardSettlements}
@@ -191,6 +194,7 @@ function ZohoBooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     <ToggleSettingOptionRow
                         title={translate('workspace.zohoBooks.syncTravelBillingSettlements')}
                         switchAccessibilityLabel={translate('workspace.zohoBooks.syncTravelBillingSettlements')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.ZOHO_BOOKS.SYNC_TRAVEL_BILLING_SETTLEMENTS_SWITCH}
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={[styles.mv3, styles.mh5]}
                         isActive={syncTravelInvoicingSettlements}
