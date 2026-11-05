@@ -9,6 +9,7 @@ import type {View} from 'react-native';
 
 import {Skia} from '@shopify/react-native-skia';
 import {domToCanvas} from 'modern-screenshot';
+import {PixelRatio, Platform} from 'react-native';
 import RNFS from 'react-native-fs';
 import Share from 'react-native-share';
 import {captureRef, releaseCapture} from 'react-native-view-shot';
@@ -213,11 +214,15 @@ describe('exportInsightsDashboard on native', () => {
         jest.mocked(Share.open).mockResolvedValue({success: false, message: ''});
     });
 
+    afterEach(() => jest.restoreAllMocks());
+
     it.each([
-        {platform: 'iOS', prefix: ''},
-        {platform: 'Android', prefix: 'file://'},
-    ])('shares a named temporary PNG and cleans up dismissed sharing on $platform', async ({prefix}) => {
-        // Given native capture paths and a dashboard taller than the viewport
+        {platform: 'iOS', os: 'ios' as const, prefix: '', capturePixelRatio: 3},
+        {platform: 'Android', os: 'android' as const, prefix: 'file://', capturePixelRatio: 1},
+    ])('shares a named temporary PNG and cleans up dismissed sharing on $platform', async ({os, prefix, capturePixelRatio}) => {
+        // Given a 3x native screen and a dashboard taller than the viewport
+        jest.replaceProperty(Platform, 'OS', os);
+        jest.spyOn(PixelRatio, 'get').mockReturnValue(3);
         const loadCapture = jest.spyOn(Skia.Data, 'fromURI');
         jest.mocked(captureRef).mockReset().mockResolvedValueOnce(`${prefix}/header.png`).mockResolvedValueOnce(`${prefix}/controls.png`).mockResolvedValueOnce(`${prefix}/content.png`);
         const headerRef = makeRef(64, 0, 500);
@@ -227,11 +232,15 @@ describe('exportInsightsDashboard on native', () => {
         // When the dashboard is exported and the user cancels sharing
         await exportInsightsDashboardNative({headerRef, controlsRef, contentRef, fileName, backgroundColor});
 
-        // Then Skia reads file URLs while cleanup retains the original capture paths
+        // Then capture produces 2x pixels on either platform and cleanup retains the original paths
         expect(loadCapture).toHaveBeenNthCalledWith(1, 'file:///header.png');
         expect(loadCapture).toHaveBeenNthCalledWith(2, 'file:///controls.png');
         expect(loadCapture).toHaveBeenNthCalledWith(3, 'file:///content.png');
-        expect(captureRef).toHaveBeenNthCalledWith(3, contentRef, expect.objectContaining({width: 800, height: 2400, handleGLSurfaceViewOnAndroid: true}));
+        expect(captureRef).toHaveBeenNthCalledWith(
+            3,
+            contentRef,
+            expect.objectContaining({width: 800 / capturePixelRatio, height: 2400 / capturePixelRatio, handleGLSurfaceViewOnAndroid: true}),
+        );
         expect(Skia.Surface.MakeOffscreen).toHaveBeenCalledWith(1000, 2708);
         expect(mockClear).toHaveBeenCalledWith(backgroundColor);
         expect(mockDrawImageRect).toHaveBeenCalledWith(expect.anything(), {x: 0, y: 0, width: 560, height: 60}, {x: 200, y: 168, width: 560, height: 60}, expect.anything());

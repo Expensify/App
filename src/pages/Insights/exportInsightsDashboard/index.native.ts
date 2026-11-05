@@ -2,6 +2,7 @@
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 
 import {Skia} from '@shopify/react-native-skia';
+import {PixelRatio, Platform} from 'react-native';
 import RNFS from 'react-native-fs';
 import Share from 'react-native-share';
 import {captureRef, releaseCapture} from 'react-native-view-shot';
@@ -31,6 +32,8 @@ function measure(ref: InsightsCaptureRef): Promise<{x: number; width: number; he
 const exportInsightsDashboard: ExportInsightsDashboard = async (options) => {
     // Hermes drops awaited values when async arrows destructure their parameters.
     const {headerRef, controlsRef, contentRef, backgroundColor, fileName} = options;
+    // ViewShot sizes are points on iOS but pixels on Android.
+    const capturePixelRatio = Platform.OS === 'ios' ? PixelRatio.get() : 1;
     const refs = [headerRef, controlsRef, contentRef];
     const bounds = await Promise.all(refs.map(measure));
     const [headerBounds, controlsBounds, contentBounds] = bounds;
@@ -59,8 +62,8 @@ const exportInsightsDashboard: ExportInsightsDashboard = async (options) => {
             const uri = await captureRef(ref, {
                 format: 'png',
                 result: 'tmpfile',
-                width: Math.ceil(sectionBounds.width * INSIGHTS_EXPORT_SCALE),
-                height: Math.ceil(sectionBounds.height * INSIGHTS_EXPORT_SCALE),
+                width: Math.ceil(sectionBounds.width * INSIGHTS_EXPORT_SCALE) / capturePixelRatio,
+                height: Math.ceil(sectionBounds.height * INSIGHTS_EXPORT_SCALE) / capturePixelRatio,
                 handleGLSurfaceViewOnAndroid: true,
             });
             uris.push(uri);
