@@ -4,6 +4,7 @@ import {ListFilterHeightContextProvider} from '@components/Search/FilterComponen
 import DisplayPopup from '@components/Search/FilterDropdowns/DisplayPopup';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import FilterPopupButton from '@components/Search/FilterDropdowns/FilterPopupButton';
+import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -11,6 +12,8 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {getChangedDisplayOptionsCount} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import type {SearchResults} from '@src/types/onyx';
@@ -38,6 +41,7 @@ function SearchDisplayDropdownButton({queryJSON, searchResults, onSort}: SearchD
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Eye']);
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {currentDefaultSearchQueryJSON} = useSearchQueryContext();
 
     if (queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return null;
@@ -84,7 +88,7 @@ function SearchDisplayDropdownButton({queryJSON, searchResults, onSort}: SearchD
 
     return (
         <DropdownButton
-            label={translate('search.display.label')}
+            label={translate('search.display.labelWithCount', {count: getChangedDisplayOptionsCount(queryJSON, currentDefaultSearchQueryJSON)})}
             sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_DISPLAY}
             value={null}
             PopoverComponent={displayPopup}

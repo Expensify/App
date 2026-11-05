@@ -46,15 +46,12 @@ Only reports in **Approved**, **Done**, or **Paid** status can be exported. If t
 
 ## Why are company card expenses exporting to the wrong account?
 
-Company card expenses may export to the wrong account if the card export mapping is incorrect or the exporter doesn't have the right permissions.
+Company card expenses may export to the wrong account if the card export mapping is incorrect.
 
 **Verify the company card export mapping:**
 
 1. Confirm the correct export account is mapped for the affected card under your company card settings.
 2. Confirm the expenses display the **Card + Lock icon**, which means they're mapped correctly.
-3. Confirm the **Preferred Exporter** is a **Domain Admin**.
-
-If the Preferred Exporter is not a Domain Admin, exports default to the fallback company card account set in the Workspace configuration.
 
 ---
 
