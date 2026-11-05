@@ -184,8 +184,8 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
                 clearAgentZeroProcessingIndicator(reportID, agentAccountID);
             }
 
-            // Fetch missed actions so the Onyx-driven Concierge-reply detection can fire.
-            getNewerActions(reportID, newestReportActionRef.current?.reportActionID);
+            // Recover this turn's completion too: its transient event may have been missed even when there is no reply.
+            getNewerActions(reportID, newestReportActionRef.current?.reportActionID, optimisticEntry?.triggeringReportActionID);
 
             if (serverLabel || wasOptimistic) {
                 startSafetyTimer();

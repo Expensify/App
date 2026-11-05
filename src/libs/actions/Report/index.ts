@@ -3245,7 +3245,7 @@ function getOlderActions(reportID: string | undefined, reportActionID: string | 
  * Gets the newer actions that have not been read yet.
  * Normally happens when you are not located at the bottom of the list and scroll down on a chat.
  */
-function getNewerActions(reportID: string | undefined, reportActionID: string | undefined) {
+function getNewerActions(reportID: string | undefined, reportActionID: string | undefined, conciergeReportActionID?: string) {
     if (!reportID || !reportActionID) {
         return;
     }
@@ -3285,6 +3285,7 @@ function getNewerActions(reportID: string | undefined, reportActionID: string | 
     const parameters: GetNewerActionsParams = {
         reportID,
         reportActionID,
+        conciergeReportActionID,
     };
 
     API.paginate(

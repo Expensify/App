@@ -1,5 +1,5 @@
 import AgentZeroOptimisticStore from '@libs/AgentZeroOptimisticStore';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import reconcileConciergeProcessingStatus from '@libs/Middleware/ReconcileConciergeProcessingStatus';
 
 import CONST from '@src/CONST';
@@ -21,6 +21,24 @@ describe('ReconcileConciergeProcessingStatus', () => {
     afterEach(() => {
         AgentZeroOptimisticStore.clear(REPORT_ID, AGENT_ID);
         AgentZeroOptimisticStore.clear(SERVER_REPORT_ID, AGENT_ID);
+    });
+
+    it.each([ACTION_ID, NEXT_ACTION_ID])('recovers completion from pagination without clearing a newer turn: %s', async (pendingActionID) => {
+        // Given a tracked send whose completion event was missed.
+        AgentZeroOptimisticStore.increment(REPORT_ID, AGENT_ID, null, pendingActionID);
+
+        // When reconnect pagination recovers completion for the requested message.
+        await reconcileConciergeProcessingStatus(
+            Promise.resolve({
+                jsonCode: 200,
+                conciergeProcessingStatus: {reportID: REPORT_ID, reportActionID: ACTION_ID, isProcessing: false},
+            }),
+            {command: READ_COMMANDS.GET_NEWER_ACTIONS, data: {reportActionID: 'cursor', conciergeReportActionID: ACTION_ID}},
+            false,
+        );
+
+        // Then only that message is retired; a send made during the fetch remains pending.
+        expect(AgentZeroOptimisticStore.getEntry(REPORT_ID, AGENT_ID)?.triggeringReportActionID).toBe(pendingActionID === ACTION_ID ? undefined : NEXT_ACTION_ID);
     });
 
     it.each<Response<never>>([
