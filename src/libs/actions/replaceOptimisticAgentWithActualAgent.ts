@@ -1,3 +1,4 @@
+import {isClientTheLeader, isReady as isActiveClientReady} from '@libs/ActiveClientManager';
 import {isValidAgentAccountID, registerAgentAccountIDMapping} from '@libs/AgentAccountIDMapping';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
@@ -23,6 +24,7 @@ import Onyx from 'react-native-onyx';
  * Like replaceOptimisticReportWithActualReport, this module listens to that mapping. For each entry it redirects
  * any open agent settings screen to the real accountID, remaps the agent DM participants, clears the optimistic
  * data. The mapping stays in Onyx so other tabs and screens opened later can still resolve the optimistic ID.
+ * Every tab redirects its own screens, but only the leader tab writes the shared cleanup (see below).
  * The cleanup lives here instead of createAgent()'s successData so it runs after this tab's redirect.
  *
  * Nothing is migrated onto the real keys: the mapping is only flushed to Onyx after the queue has drained, so any
@@ -160,7 +162,7 @@ function replaceOptimisticAgentWithActualAgent(optimisticAccountID: number, real
 
     // Wait for hydration before deciding which cleanup is still needed. Batch retained mappings so startup
     // walks the report collection and navigation tree once, rather than once per agent created in the past.
-    Promise.all([reportsHydrationPromise, personalDetailsHydrationPromise, agentsHydrationPromise, Navigation.isNavigationReady()]).then(() => {
+    Promise.all([reportsHydrationPromise, personalDetailsHydrationPromise, agentsHydrationPromise, Navigation.isNavigationReady(), isActiveClientReady()]).then(() => {
         TransitionTracker.runAfterTransitions({
             callback: () => {
                 const accountIDs = new Map(pendingAccountIDs);
@@ -170,6 +172,14 @@ function replaceOptimisticAgentWithActualAgent(optimisticAccountID: number, real
                 // Repair buried routes too; the hook only repairs a screen once it mounts.
                 if (navigationRef.isReady()) {
                     redirectAgentSettingsScreens(accountIDs);
+                }
+
+                // On web, Onyx writes the whole value of a key from the writing tab's own cache. Another tab's cache can
+                // still lack the real agent that CreateAgent's response added, so its cleanup could erase the real agent's
+                // personal details or report data. Only the leader tab applies the response, so only it cleans up. The
+                // other tabs receive the result through Onyx's cross-tab sync.
+                if (!isClientTheLeader()) {
+                    return;
                 }
                 remapReportParticipants(accountIDs);
                 clearOptimisticAgentData(accountIDs);

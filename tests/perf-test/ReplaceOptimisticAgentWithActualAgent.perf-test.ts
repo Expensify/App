@@ -40,6 +40,7 @@ jest.mock('react-native-onyx', () => ({
     merge: mockMerge,
     update: mockUpdate,
 }));
+jest.mock('@libs/ActiveClientManager', () => ({isClientTheLeader: () => true, isReady: () => Promise.resolve(), init: jest.fn()}));
 jest.mock('@libs/PersonalDetailsStore', () => ({getPersonalDetail: () => undefined, personalDetailsHydrationPromise: Promise.resolve()}));
 jest.mock('@libs/PersonalDetailsUtils', () => ({buildPersonalDetailsUpdate: jest.fn()}));
 jest.mock('@libs/Navigation/Navigation', () => ({

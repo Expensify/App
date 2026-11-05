@@ -31,6 +31,13 @@ const mockSetParams = jest.fn<ReturnType<Navigation['setParams']>, Parameters<Na
 const mockIsNavigationReady = jest.fn<Promise<void>, []>(() => Promise.resolve());
 const mockIsReady = jest.fn(() => false);
 const mockGetRootState = jest.fn<PartialState<NavigationState> | undefined, []>(() => undefined);
+const mockIsClientTheLeader = jest.fn(() => true);
+
+jest.mock('@libs/ActiveClientManager', () => ({
+    isClientTheLeader: () => mockIsClientTheLeader(),
+    isReady: () => Promise.resolve(),
+    init: jest.fn(),
+}));
 
 jest.mock('@libs/Navigation/Navigation', () => {
     const mockNavigation = {
@@ -85,6 +92,7 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         mockIsReady.mockReturnValue(false);
         mockGetRootState.mockReturnValue(undefined);
         mockSetParams.mockClear();
+        mockIsClientTheLeader.mockReturnValue(true);
     });
 
     it('remaps the DM participants from the optimistic accountID to the real one', async () => {
@@ -468,6 +476,50 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         expect(mapping?.[negativeMappedAccountID]).toBeUndefined();
         expect(resolveAgentAccountID(zeroMappedAccountID)).toBe(zeroMappedAccountID);
         expect(resolveAgentAccountID(negativeMappedAccountID)).toBe(negativeMappedAccountID);
+    });
+
+    it('redirects its own screens but leaves the shared cleanup to the leader when the tab is not the leader', async () => {
+        // Given a second browser tab that created the agent but is not the leader, so the leader tab applied CreateAgent's
+        // response. This tab still holds the optimistic agent, its DM and an open EDIT screen for it.
+        const optimisticAccountID = 5172839406517283;
+        const realAccountID = 3846152907384615;
+        const ownerAccountID = 16180339;
+        const reportID = '9182736450918273';
+        const optimisticPersonalDetail = {accountID: optimisticAccountID, displayName: 'Concierge Travel', isOptimisticPersonalDetail: true};
+        const realPersonalDetail = {accountID: realAccountID, displayName: 'Concierge Travel', login: 'agent+3846152907384615@expensify.com'};
+        const optimisticAgent = {prompt: 'Book my flights', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
+        const participants = {
+            [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            [optimisticAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+        };
+
+        mockIsClientTheLeader.mockReturnValue(false);
+        mockIsReady.mockReturnValue(true);
+        mockGetRootState.mockReturnValue(buildAgentEditNavigationState(optimisticAccountID));
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[optimisticAccountID]: optimisticPersonalDetail, [realAccountID]: realPersonalDetail});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`, optimisticAgent);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, type: CONST.REPORT.TYPE.CHAT, participants});
+        await waitForBatchedUpdates();
+        const mergeSpy = jest.spyOn(Onyx, 'merge');
+        const updateSpy = jest.spyOn(Onyx, 'update');
+
+        // When this tab receives the mapping through Onyx's cross-tab sync
+        replaceOptimisticAgentWithActualAgent(optimisticAccountID, realAccountID);
+        await waitForBatchedUpdates();
+
+        // Then its screen moves to the real accountID, but it writes no shared data. On web each write saves the whole
+        // value from this tab's cache, which may still lack the real agent, so a write here could erase it.
+        expect(mockSetParams).toHaveBeenCalledWith({accountID: String(realAccountID)}, 'agents-edit-route-key', 'agent-settings-stack-key');
+        expect(resolveAgentAccountID(optimisticAccountID)).toBe(realAccountID);
+        expect(mergeSpy).not.toHaveBeenCalled();
+        expect(updateSpy).not.toHaveBeenCalled();
+        const personalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+        expect(personalDetails?.[realAccountID]).toStrictEqual(realPersonalDetail);
+        expect(personalDetails?.[optimisticAccountID]).toStrictEqual(optimisticPersonalDetail);
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`)).toStrictEqual(optimisticAgent);
+        expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`))?.participants).toStrictEqual(participants);
+        mergeSpy.mockRestore();
+        updateSpy.mockRestore();
     });
 
     // The module consumes a persisted mapping as soon as it loads, so the cold start is reproduced by seeding storage
