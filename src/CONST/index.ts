@@ -1048,6 +1048,46 @@ const CONST = {
         TERMS_URL: 'https://wise.com/terms-and-conditions',
         PRIVACY_URL: 'https://wise.com/privacy-policy',
 
+        /** Countries missing from Wise's supported list, so the bank account picker leaves them out */
+        EXCLUDED_BANK_ACCOUNT_COUNTRIES: [
+            'AC',
+            'AF',
+            'AQ',
+            'BI',
+            'BL',
+            'BY',
+            'CD',
+            'CF',
+            'CG',
+            'CU',
+            'EH',
+            'ER',
+            'GS',
+            'IO',
+            'IQ',
+            'IR',
+            'KM',
+            'KP',
+            'LY',
+            'MF',
+            'MM',
+            'PN',
+            'PS',
+            'RU',
+            'SD',
+            'SO',
+            'SS',
+            'SY',
+            'TA',
+            'TD',
+            'TF',
+            'TK',
+            'TM',
+            'VE',
+            'YE',
+            'ZW',
+        ] as string[],
+
         /** Server-derived state of the Wise onboarding */
         ONBOARDING_STATUS: {
             IN_REVIEW: 'IN_REVIEW',
@@ -1478,7 +1518,6 @@ const CONST = {
         GLOBAL_REIMBURSEMENTS: 'globalReimbursements',
         WISE_REIMBURSEMENTS: 'wiseReimbursements',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
-        TRAVEL_CODING_SYNC: 'travelCodingSync',
         ARCHIVE_POLICIES: 'archivePolicies',
         MERGE_ATS: 'mergeATSConnections',
         REPORT_MERGE: 'reportMerge',
@@ -1492,6 +1531,7 @@ const CONST = {
         RESIZABLE_RHP: 'resizableRHP',
         TRAVEL_APPROVAL: 'travelApproval',
         SCAN_FLASH_TORCH: 'scanFlashTorch',
+        NEW_DOT_BILL_PAY: 'newDotBillPay',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1836,7 +1876,7 @@ const CONST = {
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME: 'ExpensifyPackageForSageIntacct',
     SAGE_INTACCT_INSTRUCTIONS: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct',
     HOW_TO_CONNECT_TO_SAGE_INTACCT: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct#how-to-connect-to-sage-intacct',
-    BUSINESS_CENTRAL_HELP_URL: 'https://help.expensify.com/new-expensify/hubs/connections/',
+    BUSINESS_CENTRAL_HELP_URL: 'https://help.expensify.com/new-expensify/hubs/connections/business-central',
     PRICING: `https://www.expensify.com/pricing`,
     COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS:
         'https://help.expensify.com/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Commercial-Feed-for-Company-Cards#how-to-enable-a-mastercard-commercial-card-feed-cdf',
@@ -2084,6 +2124,7 @@ const CONST = {
             PAY: 'pay',
             FIX: 'fix',
             TASK: 'task',
+            ADD: 'add',
         },
         ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE: {
             EXPENSE: 'expense',
@@ -10237,6 +10278,9 @@ const CONST = {
     },
 
     SENTRY_LABEL: {
+        NUMBER_WITH_SYMBOL_FORM: {
+            INPUT: 'NumberWithSymbolForm-Input',
+        },
         TEST_TOOL_MENU: {
             SERVER: 'TestToolMenu-Server',
         },
@@ -10777,6 +10821,7 @@ const CONST = {
         },
         SHARE_DETAIL: {
             DISMISS_KEYBOARD_BUTTON: 'ShareDetail-DismissKeyboardButton',
+            SHARE_BUTTON: 'ShareDetail-ShareButton',
         },
         MAP_VIEW: {
             COMPASS: 'compass',

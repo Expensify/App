@@ -503,6 +503,7 @@ type MergeReportsProps = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     isVendorMatchingBetaEnabled: boolean | undefined;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
 };
 
 const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
@@ -2773,7 +2774,7 @@ function navigateToAndOpenReport({
         callback: (updatedReport) => {
             const notFoundError = updatedReport?.errorFields?.notFound;
             if (notFoundError === null) {
-                Onyx.disconnect(reportConnection);
+                reportConnection.unsubscribe();
                 return;
             }
 
@@ -2782,7 +2783,7 @@ function navigateToAndOpenReport({
             }
 
             hasAttemptedFallback = true;
-            Onyx.disconnect(reportConnection);
+            reportConnection.unsubscribe();
             createAndOpenNewOptimisticChat(chat.reportID);
         },
     });
@@ -2939,7 +2940,7 @@ function navigateToAndOpenReportWithAccountIDs(
         callback: (updatedReport) => {
             const notFoundError = updatedReport?.errorFields?.notFound;
             if (notFoundError === null) {
-                Onyx.disconnect(reportConnection);
+                reportConnection.unsubscribe();
                 return;
             }
 
@@ -2948,7 +2949,7 @@ function navigateToAndOpenReportWithAccountIDs(
             }
 
             hasAttemptedFallback = true;
-            Onyx.disconnect(reportConnection);
+            reportConnection.unsubscribe();
             createAndOpenNewOptimisticChat(chat.reportID);
         },
     });
@@ -9288,6 +9289,7 @@ function mergeReports({
     getCurrencyDecimals,
     getCurrencySymbol,
     isVendorMatchingBetaEnabled,
+    currentUserPersonalDetails,
 }: MergeReportsProps) {
     const reports = allReportsParam ?? allReports;
     const destinationReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
@@ -9322,6 +9324,7 @@ function mergeReports({
         delegateAccountID,
         getCurrencyDecimals,
         getCurrencySymbol,
+        currentUserPersonalDetails,
     });
 
     const {

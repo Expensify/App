@@ -122,6 +122,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pay: 'Payer',
             fix: 'Corriger',
             task: 'Tâche',
+            add: 'Ajouter',
         },
         success: 'Réussi',
         group: 'Groupe',
@@ -2212,14 +2213,17 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `En attente de <strong>votre</strong> approbation des dépenses.`;
+                        return isBill ? `En attente de <strong>votre</strong> approbation de la facture.` : `En attente de <strong>votre</strong> approbation des dépenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `En attente de l’approbation des dépenses par <strong>${actor}</strong>.`;
+                        return isBill
+                            ? `En attente de l’approbation de la facture par <strong>${actor}</strong>.`
+                            : `En attente de l’approbation des dépenses par <strong>${actor}</strong>.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `En attente qu’un administrateur approuve les dépenses.`;
+                        return isBill ? `En attente qu’un administrateur approuve la facture.` : `En attente qu’un administrateur approuve les dépenses.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (
@@ -2242,14 +2246,15 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `En attente que <strong>vous</strong> payiez les dépenses.`;
+                        return isBill ? `En attente que <strong>vous</strong> payiez cette facture.` : `En attente que <strong>vous</strong> payiez les dépenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `En attente que <strong>${actor}</strong> paie les dépenses.`;
+                        return isBill ? `En attente que <strong>${actor}</strong> paie cette facture.` : `En attente que <strong>${actor}</strong> paie les dépenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `En attente qu’un administrateur paie les dépenses.`;
+                        return isBill ? `En attente qu’un administrateur paie cette facture.` : `En attente qu’un administrateur paie les dépenses.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
@@ -9275,8 +9280,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 describeRuleForConcierge: 'Décrivez votre règle et Concierge la créera',
                 gotIt: 'Compris',
                 createRule: 'Créer une règle',
-                fallbackBanner: 'Ce n’est pas une règle standard, nous avons donc rédigé une règle d’agent.',
-                fallbackBannerWithExplanation: (explanation: string) => `Ce n’est pas une règle standard, nous avons donc rédigé une règle d’agent. ${explanation}`,
+                fallbackBanner:
+                    'Ce n’est pas une règle standard, nous avons donc rédigé une règle d’agent. Les règles d’agent s’exécutent lorsqu’une dépense ou une note de frais est créée ou mise à jour.',
+                fallbackBannerWithExplanation: (explanation: string) =>
+                    `Ce n’est pas une règle standard, nous avons donc rédigé une règle d’agent. Les règles d’agent s’exécutent lorsqu’une dépense ou une note de frais est créée ou mise à jour. ${explanation}`,
             },
             tabs: {
                 general: 'Général',
