@@ -25,16 +25,17 @@ To connect a business bank account, the Workspace must have Workflows enabled. [
 
 ## How to add a new US business bank account in Wallet
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account > Wallet**. 
-2. Click **Add bank account**.
-3. Select **Make payments**.
-4. Choose the country where your bank is located.
-5. Select **Log into your bank** (preferred) or **Connect manually**.
-6. Complete the identity verification, company details, and Beneficial Owner steps described below.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Wallet**.
+3. Click **Add bank account**.
+4. Select **Make payments**.
+5. Choose the country where your bank is located.
+6. Select **Log into your bank** (preferred) or **Connect manually**.
+7. Complete the identity verification, company details, and Beneficial Owner steps described below.
 
 <!-- SCREENSHOT:
 Suggestion: Wallet page showing Add bank account button and the Make payments option
-Location: After step 3
+Location: After step 4
 Purpose: Shows the new Wallet entry point for business bank accounts
 -->
 

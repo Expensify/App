@@ -69,6 +69,21 @@ function isDate(arg: unknown): arg is Date {
 }
 
 /**
+ * Copies a date's wall-clock fields in the device's timezone onto the same fields in UTC.
+ *
+ * An `Intl.DateTimeFormat` created without a `timeZone` keeps the device's timezone from when it was created, so a
+ * cached one would keep showing the old day after the device moves to another timezone. Cached formatters are created
+ * with `timeZone: 'UTC'` instead and given the result of this function, which reads the device's timezone on every call.
+ */
+function toUTCWallClockDate(date: Date): Date {
+    const utcDate = new Date(0);
+    // `setUTCFullYear` rather than `Date.UTC`, which treats the years 0 to 99 as 1900 to 1999
+    utcDate.setUTCFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+    utcDate.setUTCHours(date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds());
+    return utcDate;
+}
+
+/**
  * Get the day of the week that the week starts on
  */
 function getWeekStartsOn(): WeekDay {
@@ -254,16 +269,38 @@ function getZoneAbbreviation(datetime: string | Date, selectedTimezone: Selected
 }
 
 /**
- * Format date to a long date format with weekday
- *
- * @returns Sunday, July 9, 2023
+ * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language. They
+ * format in UTC, so pass dates through `toUTCWallClockDate` to show them in the device's current timezone.
  */
-function formatToLongDateWithWeekday(datetime: string | Date, dateFnsLocale: DateFnsLocale | undefined): string {
+const memoizedCreateLongDateWithWeekdayFormatter = memoize(
+    (localeCode: string, shouldIncludeYear: boolean) =>
+        new Intl.DateTimeFormat(localeCode, {weekday: 'long', year: shouldIncludeYear ? 'numeric' : undefined, month: 'long', day: 'numeric', timeZone: 'UTC'}),
+);
+
+/**
+ * Formats a full date with a weekday, with or without the year, for the two public helpers below.
+ */
+function formatLongDateWithWeekday(datetime: string | Date, dateFnsLocale: DateFnsLocale | undefined, shouldIncludeYear: boolean): string {
     const date = new Date(datetime);
     if (!isValid(date)) {
         return '';
     }
-    return format(date, CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY, {locale: dateFnsLocale});
+    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
+    return memoizedCreateLongDateWithWeekdayFormatter(dateFnsLocale?.code ?? 'en-US', shouldIncludeYear).format(toUTCWallClockDate(date));
+}
+
+/**
+ * Format date to a long date format with weekday
+ *
+ * A hand-written date-fns pattern fixes the US component order, so every language rendered its own month name in an
+ * English shape. Japanese and Chinese put the weekday last with no comma, Spanish and Portuguese need a `de` between
+ * the day and the month, and German needs the period its ordinal day takes. date-fns' own full date (`PPPP`) would get
+ * the order right but adds an ordinal day in English, so `Intl` is used to keep the English output unchanged.
+ *
+ * @returns Sunday, July 9, 2023
+ */
+function formatToLongDateWithWeekday(datetime: string | Date, dateFnsLocale: DateFnsLocale | undefined): string {
+    return formatLongDateWithWeekday(datetime, dateFnsLocale, true);
 }
 
 /**
@@ -272,7 +309,7 @@ function formatToLongDateWithWeekday(datetime: string | Date, dateFnsLocale: Dat
  * @returns Sunday, July 9
  */
 function formatToLongDateWithWeekdayWithoutYear(datetime: string | Date, dateFnsLocale: DateFnsLocale | undefined): string {
-    return format(new Date(datetime), CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY_WITHOUT_YEAR, {locale: dateFnsLocale});
+    return formatLongDateWithWeekday(datetime, dateFnsLocale, false);
 }
 
 /**
@@ -965,18 +1002,26 @@ function getCancellationDateTimezoneLabel(venueTimezone: string): string {
  * Dates are formatted as follows:
  * 1. When the date refers to the current year: Wednesday, Mar 17 8:00 AM, GMT+7
  * 2. When the date refers not to the current year: Wednesday, Mar 17, 2023 8:00 AM, GMT+7
+ * When the string has no offset, `localTimeLabel` (e.g. "hotel's local time") is appended instead of a timezone label, if passed.
  */
-function getFormattedCancellationDate(isoDateString: string, dateFnsLocale: DateFnsLocale | undefined): string {
+function getFormattedCancellationDate(isoDateString: string, dateFnsLocale: DateFnsLocale | undefined, localTimeLabel?: string): string {
     if (!isoDateString) {
         return '';
     }
-    const offsetMatch = isoDateString.match(/([+-]\d{2}:\d{2})$/);
+    const offsetMatch = isoDateString.match(CONST.REGEX.ISO_8601_UTC_OFFSET_SUFFIX);
     const venueTimezone = offsetMatch ? offsetMatch[1] : 'UTC';
-    const date = new Date(isoDateString);
+    // A string with no offset and no `Z` is the venue's wall-clock time in an unknown timezone. `new Date` would read it
+    // in the device's timezone, so read it as-is and leave out the timezone label instead of guessing one.
+    const isWallClockTime = !offsetMatch && !isoDateString.endsWith('Z');
+    const date = isWallClockTime ? fromZonedTime(isoDateString, venueTimezone) : new Date(isoDateString);
     const pattern = isThisYear(date) ? `EEEE, MMM d ${CONST.DATE.LOCAL_TIME_FORMAT}` : `EEEE, MMM d, yyyy ${CONST.DATE.LOCAL_TIME_FORMAT}`;
+    const formattedDate = formatInTimeZone(date, venueTimezone, pattern, {locale: dateFnsLocale});
+    if (isWallClockTime) {
+        return localTimeLabel ? `${formattedDate}, ${localTimeLabel}` : formattedDate;
+    }
     // `formatInTimeZone`'s `zzz` token relies on `Intl.DateTimeFormat`, which rejects raw offset strings like
     // `+07:00`, so the timezone label is derived from the offset and appended manually.
-    return `${formatInTimeZone(date, venueTimezone, pattern, {locale: dateFnsLocale})}, ${getCancellationDateTimezoneLabel(venueTimezone)}`;
+    return `${formattedDate}, ${getCancellationDateTimezoneLabel(venueTimezone)}`;
 }
 
 /**

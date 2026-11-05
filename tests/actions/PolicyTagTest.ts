@@ -75,7 +75,7 @@ describe('actions/Policy', () => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                                 callback: (policy) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
 
                                     // RequiresTag is enabled and pending
                                     expect(policy?.requiresTag).toBeTruthy();
@@ -94,7 +94,7 @@ describe('actions/Policy', () => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                                 callback: (policy) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
                                     expect(policy?.pendingFields?.requiresTag).toBeFalsy();
                                     resolve();
                                 },
@@ -121,7 +121,7 @@ describe('actions/Policy', () => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                                 callback: (policy) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
 
                                     // RequiresTag is disabled and pending
                                     expect(policy?.requiresTag).toBeFalsy();
@@ -140,7 +140,7 @@ describe('actions/Policy', () => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                                 callback: (policy) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
                                     expect(policy?.pendingFields?.requiresTag).toBeFalsy();
                                     resolve();
                                 },
@@ -171,7 +171,7 @@ describe('actions/Policy', () => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                                 callback: (policy) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
                                     expect(policy?.pendingFields?.requiresTag).toBeFalsy();
                                     expect(policy?.errors).toBeTruthy();
                                     expect(policy?.requiresTag).toBeTruthy();
@@ -224,7 +224,7 @@ describe('actions/Policy', () => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                                 callback: (policy) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
 
                                     expect(policy?.showTagGLCodes).toBeTruthy();
                                     expect(policy?.pendingFields?.showTagGLCodes).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
@@ -242,7 +242,7 @@ describe('actions/Policy', () => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                                 callback: (policy) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
                                     expect(policy?.pendingFields?.showTagGLCodes).toBeFalsy();
                                     resolve();
                                 },
@@ -271,7 +271,7 @@ describe('actions/Policy', () => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                                 callback: (policy) => {
-                                    Onyx.disconnect(connection);
+                                    connection.unsubscribe();
                                     expect(policy?.pendingFields?.showTagGLCodes).toBeFalsy();
                                     expect(policy?.errorFields?.showTagGLCodes).toBeTruthy();
                                     expect(policy?.showTagGLCodes).toBeTruthy();
