@@ -31,7 +31,16 @@ import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {getConnectedHRProvider, getHRAdvancedModeFinalApprover, getHRFinalApprover, isAnyHRConnected, isHRAdvancedMode, isAnyHRReadOnlyWorkflowMode} from './merge/HRUtils';
 import {getConnectedATSProvider, isAnyRecruitingReadOnlyWorkflowMode} from './merge/RecruitingUtils';
 import {rand64} from './NumberUtils';
-import {canMemberWrite, getDefaultApprover, isExpensifyTeam, isNonMemberApprover, isSubmitPolicy, shouldFilterExpensifyTeam, shouldHideDynamicExternalWorkflowPeople} from './PolicyUtils';
+import {
+    canMemberWrite,
+    getApprovalWorkflow,
+    getDefaultApprover,
+    isExpensifyTeam,
+    isNonMemberApprover,
+    isSubmitPolicy,
+    shouldFilterExpensifyTeam,
+    shouldHideDynamicExternalWorkflowPeople,
+} from './PolicyUtils';
 import {fromIndexMap, getApprovalWorkflowRulesForPolicy, isApprovalWorkflowRule, isRuleFilterComparison, toIndexMap} from './RuleUtils';
 
 const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
@@ -1566,9 +1575,13 @@ function hasApprovalWorkflowRules(rulesCollection: OnyxCollection<Rule> | undefi
  * Whether the policy's approval workflows are read from and saved as approval workflow rules.
  *
  * Under the `MULTIPLE_APPROVERS` beta, saving a workflow writes rules, and from then on the rules route the policy's
- * reports instead of `employeeList`. A policy without rules stays on `employeeList` while any member has an over-limit
+ * reports instead of `employeeList`. A policy without rules stays on `employeeList` while its reports reach an over-limit
  * approver: `employeeList` sends a report over the approval limit on down the over-limit approver's own chain, while
  * rules bring it back to the workflow after them, so writing rules would change where those reports go.
+ *
+ * Only the advanced approval chain sends reports over the limit, and only from an approver a member's reports reach.
+ * Turning approvals off resets `submitsTo` and `forwardsTo` but leaves `approvalLimit` and `overLimitForwardsTo` behind,
+ * so those leftovers don't keep a policy off rules.
  *
  * @param hasRules whether approval workflow rules route the policy's reports, see `hasApprovalWorkflowRules`
  */
@@ -1577,8 +1590,26 @@ function shouldUseApprovalWorkflowRules(policy: OnyxEntry<Policy>, hasRules: boo
         return false;
     }
 
-    // `employeeList` can hold a null entry at runtime, so read it optionally
-    return hasRules || !Object.values(policy?.employeeList ?? {}).some((employee) => !!employee?.overLimitForwardsTo);
+    const approvalMode = getApprovalWorkflow(policy);
+    if (hasRules || approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL || approvalMode === CONST.POLICY.APPROVAL_MODE.BASIC) {
+        return true;
+    }
+
+    // A member without a submitsTo submits to the default approver. `employeeList` can hold a null entry at runtime, so read it optionally
+    const employees = policy?.employeeList ?? {};
+    const reachedApproverEmails = new Set<string>();
+    for (const firstApproverEmail of [getDefaultApprover(policy), ...Object.values(employees).map((employee) => employee?.submitsTo)]) {
+        let approverEmail = firstApproverEmail;
+        while (approverEmail && !reachedApproverEmails.has(approverEmail)) {
+            if (employees[approverEmail]?.overLimitForwardsTo) {
+                return false;
+            }
+            reachedApproverEmails.add(approverEmail);
+            approverEmail = employees[approverEmail]?.forwardsTo;
+        }
+    }
+
+    return true;
 }
 
 /**

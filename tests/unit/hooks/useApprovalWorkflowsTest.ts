@@ -125,11 +125,13 @@ describe('useApprovalWorkflows', () => {
     });
 
     it('keeps deriving workflows from employeeList under MULTIPLE_APPROVERS while a policy without rules has an over-limit approver', async () => {
-        // Given the beta is on, and a policy without rules whose approver sends reports over their limit to the admin
+        // Given the beta is on, and an advanced policy without rules whose approver sends reports over their limit to the admin
         mockIsBetaEnabled([CONST.BETAS.MULTIPLE_APPROVERS]);
         const policy = {
             ...createRandomPolicy(1),
             id: POLICY_ID,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
             approver: APPROVER_EMAIL,
             employeeList: {
                 [SUBMITTER_EMAIL]: {email: SUBMITTER_EMAIL, submitsTo: APPROVER_EMAIL},

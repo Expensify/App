@@ -2848,7 +2848,14 @@ describe('WorkflowUtils', () => {
     });
 
     describe('shouldUseApprovalWorkflowRules', () => {
-        const policyWithEmployees = (employeeList: PolicyEmployeeList): Policy => ({...createRandomPolicy(1), employeeList});
+        const defaultApproverEmail = 'admin@example.com';
+        const policyWithEmployees = (employeeList: PolicyEmployeeList, approvalMode: ValueOf<typeof CONST.POLICY.APPROVAL_MODE> = CONST.POLICY.APPROVAL_MODE.ADVANCED): Policy => ({
+            ...createRandomPolicy(1),
+            type: CONST.POLICY.TYPE.CORPORATE,
+            approvalMode,
+            approver: defaultApproverEmail,
+            employeeList,
+        });
 
         it('keeps every policy on employeeList without the multiple approvers beta', () => {
             // Given a policy whose reports approval workflow rules already route
@@ -2875,7 +2882,7 @@ describe('WorkflowUtils', () => {
             expect(shouldUseRules).toBe(true);
         });
 
-        it('keeps a policy without rules on employeeList while a member has an over-limit approver', () => {
+        it('keeps a policy without rules on employeeList while its reports reach an over-limit approver', () => {
             // Given a policy whose approver 2 sends reports over their limit on to 4, next to a null employeeList entry,
             // which the type rules out but happens at runtime
             const employeeList: PolicyEmployeeList = {};
@@ -2892,6 +2899,25 @@ describe('WorkflowUtils', () => {
             // over the limit go, and a policy the rules already route keeps using them
             expect(shouldUseRulesWithoutRules).toBe(false);
             expect(shouldUseRulesWithRules).toBe(true);
+        });
+
+        it('moves a policy onto rules when no report reaches its over-limit approver', () => {
+            // Given a policy whose approvals were turned off and back on, which sends every member to the default approver
+            // but leaves approver 2's limit and over-limit approver behind, as it comes back on in basic mode and once a
+            // workflow takes it back to advanced mode
+            const employeeList: PolicyEmployeeList = {
+                [defaultApproverEmail]: {email: defaultApproverEmail, submitsTo: defaultApproverEmail},
+                '1@example.com': {email: '1@example.com', submitsTo: defaultApproverEmail},
+                '2@example.com': {email: '2@example.com', submitsTo: defaultApproverEmail, approvalLimit: 10000, overLimitForwardsTo: '4@example.com'},
+            };
+
+            // When the multiple approvers beta is on
+            const shouldUseRulesInBasicMode = shouldUseApprovalWorkflowRules(policyWithEmployees(employeeList, CONST.POLICY.APPROVAL_MODE.BASIC), false, true);
+            const shouldUseRulesInAdvancedMode = shouldUseApprovalWorkflowRules(policyWithEmployees(employeeList), false, true);
+
+            // Then both write rules, since no report goes through approver 2 to be sent over their limit
+            expect(shouldUseRulesInBasicMode).toBe(true);
+            expect(shouldUseRulesInAdvancedMode).toBe(true);
         });
     });
 
@@ -3280,25 +3306,6 @@ describe('WorkflowUtils', () => {
             // Then only the removed default approver is flagged, since basic mode runs only the default workflow
             expect(hasApprovalWorkflowWithNonMemberApprover({policy: basicPolicy, currentUserLogin: ownerEmail, isMultipleApproversBetaEnabled: false})).toBe(false);
             expect(hasApprovalWorkflowWithNonMemberApprover({policy: basicPolicyWithRemovedDefaultApprover, currentUserLogin: ownerEmail, isMultipleApproversBetaEnabled: false})).toBe(true);
-        });
-
-        it('reads a workspace without rules from employeeList under the multiple approvers beta while a member has an over-limit approver', () => {
-            // Given a basic workspace without rules where member 1 still submits to someone no longer on it, once as is
-            // and once with the owner sending reports over their limit to member 1
-            const policy = buildPolicy({approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC});
-            const overLimitPolicy = buildPolicy({
-                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
-                employeeList: {
-                    [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail, approvalLimit: 10000, overLimitForwardsTo: '1@example.com'},
-                    '1@example.com': {email: '1@example.com', role: CONST.POLICY.ROLE.USER, submitsTo: removedEmail},
-                },
-            });
-
-            // When the owner checks whether a workflow needs fixing under the multiple approvers beta
-            // Then member 1's workflow is flagged on the workspace the rules take over, which runs every workflow. The
-            // over-limit one stays on employeeList, where basic mode only runs the default workflow
-            expect(hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin: ownerEmail, rules: {}, isMultipleApproversBetaEnabled: true})).toBe(true);
-            expect(hasApprovalWorkflowWithNonMemberApprover({policy: overLimitPolicy, currentUserLogin: ownerEmail, rules: {}, isMultipleApproversBetaEnabled: true})).toBe(false);
         });
 
         it('routes from the rules under the multiple approvers beta', () => {
