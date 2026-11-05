@@ -27,6 +27,9 @@ type CompanyCardNumberSearch = {
     /** Whether a search request is in flight */
     isLoading: boolean;
 
+    /** Whether the request failed rather than returning an authoritative empty result */
+    hasError?: boolean;
+
     /** The normalized number the current results belong to */
     query: string;
 

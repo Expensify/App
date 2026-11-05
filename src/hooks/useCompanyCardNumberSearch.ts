@@ -1,3 +1,4 @@
+/** Keeps full-number company-card searches isolated and matches server results to the current input. */
 import {clearCompanyCardNumberSearch, searchCompanyCardByNumber} from '@libs/actions/CompanyCards';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,7 +22,7 @@ type UseCompanyCardNumberSearch = {
     /** cardIDs of assigned cards matching the typed number on this feed */
     matchedCardIDs: Set<number>;
 
-    /** encryptedCardNumbers of unassigned cards matching the typed number on this feed */
+    /** Unassigned card identifiers: encrypted numbers for commercial feeds, card names for direct feeds */
     matchedEncryptedNumbers: Set<string>;
 
     /** cardIDs that matched on partial digits only (another card could share them) */
@@ -35,6 +36,12 @@ type UseCompanyCardNumberSearch = {
 
     /** Whether a full-number search is in flight (used to avoid a flash of "No results") */
     isSearching: boolean;
+
+    /** Whether the current query failed and can be retried */
+    hasError: boolean;
+
+    /** Retry the current full-number query after a failure */
+    retrySearch: () => void;
 
     /** Whether the current typed value is a 13-19 digit number, i.e. a full-number query that the server
      * must authoritatively match; callers use this to suppress local tokenized matches against masked card
@@ -67,13 +74,15 @@ function useCompanyCardNumberSearch(policyID: string | undefined, feed: CompanyC
         // Clearing the input drops any stale results so a later re-type does not briefly show the old match.
         if (!searchValue) {
             clearCompanyCardNumberSearch(policyID, consumerID);
-            return;
         }
-        if (!isFullNumberQuery || !feed || !domainAccountID) {
+    }, [policyID, consumerID, searchValue]);
+
+    useEffect(() => {
+        if (!policyID || !isFullNumberQuery || debouncedNormalized !== immediateNormalized || !feed || !domainAccountID) {
             return;
         }
         searchCompanyCardByNumber(policyID, consumerID, debouncedNormalized, feed, domainAccountID);
-    }, [policyID, consumerID, feed, domainAccountID, isFullNumberQuery, debouncedNormalized, searchValue]);
+    }, [policyID, consumerID, feed, domainAccountID, isFullNumberQuery, debouncedNormalized, immediateNormalized]);
 
     useEffect(
         () => () => {
@@ -90,7 +99,7 @@ function useCompanyCardNumberSearch(policyID: string | undefined, feed: CompanyC
     // of lingering until the next debounce tick.
     // Treat stale cards as "no match" while a new request is in flight so an in-progress result never
     // leaks into the list for a different query.
-    const resultsMatchQuery = isEligibleQuery && searchResult?.query === immediateNormalized && searchResult?.isLoading !== true;
+    const resultsMatchQuery = isEligibleQuery && searchResult?.query === immediateNormalized && searchResult?.isLoading !== true && !searchResult?.hasError;
     const relevantCards = resultsMatchQuery
         ? (searchResult?.cards ?? []).filter((card) => card.feed.toLowerCase() === String(feed).toLowerCase() && (!domainAccountID || card.domainAccountID === domainAccountID))
         : [];
@@ -106,16 +115,24 @@ function useCompanyCardNumberSearch(policyID: string | undefined, feed: CompanyC
                 lastFourCardIDs.add(card.cardID);
             }
         }
-        if (card.encryptedCardNumber) {
-            matchedEncryptedNumbers.add(card.encryptedCardNumber);
+        const unassignedCardIdentifier = card.encryptedCardNumber || (card.status === 'unassigned' ? card.cardName : undefined);
+        if (unassignedCardIdentifier) {
+            matchedEncryptedNumbers.add(unassignedCardIdentifier);
             if (card.matchType === 'lastFour') {
-                lastFourEncryptedNumbers.add(card.encryptedCardNumber);
+                lastFourEncryptedNumbers.add(unassignedCardIdentifier);
             }
         }
     }
 
     // Loading runs from the first eligible keystroke until the results for the number currently typed land.
     const resultsReadyForCurrentInput = searchResult?.query === immediateNormalized && searchResult?.isLoading !== true;
+
+    const retrySearch = () => {
+        if (!policyID || !feed || !domainAccountID || !isEligibleQuery) {
+            return;
+        }
+        searchCompanyCardByNumber(policyID, consumerID, immediateNormalized, feed, domainAccountID);
+    };
 
     return {
         setSearchValue,
@@ -125,6 +142,8 @@ function useCompanyCardNumberSearch(policyID: string | undefined, feed: CompanyC
         lastFourEncryptedNumbers,
         resultsQuery: resultsMatchQuery ? immediateNormalized : undefined,
         isSearching: isEligibleQuery && !resultsReadyForCurrentInput,
+        hasError: isEligibleQuery && resultsReadyForCurrentInput && !!searchResult?.hasError,
+        retrySearch,
         isFullNumberQuery: isEligibleQuery,
     };
 }

@@ -629,7 +629,24 @@ function WorkspaceCompanyCardsTable({
                     />
                 </View>
             )}
-            {showCards && !shouldShowPendingUnassignmentLoading && !companyCardNumberSearch.isSearching && <Table.NoResultsState />}
+            {showCards && !shouldShowPendingUnassignmentLoading && !companyCardNumberSearch.isSearching && (
+                <Table.NoResultsState
+                    {...(companyCardNumberSearch.hasError
+                        ? {
+                              title: translate('common.genericErrorMessage'),
+                              subtitle: '',
+                              headerMedia: illustrations.BrokenMagnifyingGlass,
+                              buttons: [
+                                  {
+                                      buttonText: translate('common.tryAgain'),
+                                      buttonAction: companyCardNumberSearch.retrySearch,
+                                      sentryLabel: CONST.SENTRY_LABEL.BLOCKING_VIEW.RETRY_BUTTON,
+                                  },
+                              ],
+                          }
+                        : {})}
+                />
+            )}
             {showCards && <Table.Header />}
             {showCards && <Table.Body />}
         </Table>

@@ -1671,7 +1671,8 @@ function searchCompanyCardByNumber(policyID: string, consumerID: string, cardNum
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: searchKey,
-            value: {isLoading: true, query: cardNumber, cards: []},
+            // Optimistic data is logged by the API layer, so never include the typed card number here.
+            value: {isLoading: true, query: '', cards: [], hasError: false},
         },
     ];
 
@@ -1682,6 +1683,13 @@ function searchCompanyCardByNumber(policyID: string, consumerID: string, cardNum
         domainAccountID,
     };
 
+    const setSearchError = () => {
+        if (pendingCompanyCardNumberSearchIDs.get(searchKey) !== requestID) {
+            return;
+        }
+        Onyx.merge(searchKey, {isLoading: false, query: cardNumber, cards: [], hasError: true});
+    };
+
     // makeRequestWithSideEffects is used so we can read the matching cards from the response and store them.
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SEARCH_COMPANY_CARD_BY_NUMBER, params, {optimisticData})
@@ -1689,16 +1697,15 @@ function searchCompanyCardByNumber(policyID: string, consumerID: string, cardNum
             if (pendingCompanyCardNumberSearchIDs.get(searchKey) !== requestID) {
                 return;
             }
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            const cards = (response as {cards?: CompanyCardNumberSearchResult[]} | undefined)?.cards ?? [];
-            Onyx.merge(searchKey, {isLoading: false, query: cardNumber, cards});
-        })
-        .catch(() => {
-            if (pendingCompanyCardNumberSearchIDs.get(searchKey) !== requestID) {
+            if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                setSearchError();
                 return;
             }
-            Onyx.merge(searchKey, {isLoading: false, query: cardNumber, cards: []});
-        });
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const cards = (response as {cards?: CompanyCardNumberSearchResult[]} | undefined)?.cards ?? [];
+            Onyx.merge(searchKey, {isLoading: false, query: cardNumber, cards, hasError: false});
+        })
+        .catch(setSearchError);
 }
 
 /**

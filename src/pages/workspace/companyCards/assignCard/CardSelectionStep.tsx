@@ -1,3 +1,4 @@
+import BlockingView from '@components/BlockingViews/BlockingView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Icon from '@components/Icon';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
@@ -164,7 +165,7 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
     // Feed the typed text into the search hook from the input's own change handler rather than mirroring it
     // through an effect; the search state only ever transitions in response to this user event.
     const textInputOptions = {
-        headerMessage: searchedListOptions.length || companyCardNumberSearch.isSearching ? undefined : translate('common.noResultsFound'),
+        headerMessage: searchedListOptions.length || companyCardNumberSearch.isSearching || companyCardNumberSearch.hasError ? undefined : translate('common.noResultsFound'),
         label: cardListOptions.length > CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD ? translate('common.search') : undefined,
         value: searchText,
         onChangeText: (text: string) => {
@@ -225,7 +226,17 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
                         textInputOptions={textInputOptions}
                         customListHeaderContent={customListHeader}
                         shouldScrollToFocusedIndex={false}
-                        shouldShowListEmptyContent={false}
+                        shouldShowListEmptyContent={companyCardNumberSearch.hasError}
+                        listEmptyContent={
+                            companyCardNumberSearch.hasError ? (
+                                <BlockingView
+                                    icon={lazyIllustrations.BrokenMagnifyingGlass}
+                                    title={translate('common.genericErrorMessage')}
+                                    buttonTranslationKey="common.tryAgain"
+                                    onButtonPress={companyCardNumberSearch.retrySearch}
+                                />
+                            ) : undefined
+                        }
                         addBottomSafeAreaPadding
                         shouldUpdateFocusedIndex
                         footerContent={
