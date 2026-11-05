@@ -123,6 +123,7 @@ import {getEnvironmentURL} from './Environment/Environment';
 import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from './ErrorUtils';
 import getAttachmentDetails from './fileDownload/getAttachmentDetails';
 import getBankAccountLastFourDigits from './getBankAccountLastFourDigits';
+import isBillReport from './isBillReport';
 import isTeachersUnitePolicyID from './isTeachersUnitePolicyID';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
@@ -220,7 +221,9 @@ import {
     isCreatedTaskReportAction,
     isCurrentActionUnread,
     isDeletedAction,
+    getVisibleReportActionErrors,
     isDeletedParentAction,
+    isDeletedReportPreviewWithError,
     isDynamicExternalWorkflowApproveFailedAction,
     isDynamicExternalWorkflowSubmitFailedAction,
     isExportIntegrationAction,
@@ -3264,7 +3267,9 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, rules
  * - if current user is not the submitter of an expense report
  */
 function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, rules: OnyxCollection<Rule>, isReportArchived = false, isMovingTransaction = false): boolean {
-    if (!isMoneyRequestReport(moneyRequestReport)) {
+    // A bill mirrors the vendor's invoice, so its expenses come only from that invoice.
+    // isMoneyRequestReport excludes bills today. This check keeps bills blocked once bills count as expense reports.
+    if (isBillReport(moneyRequestReport) || !isMoneyRequestReport(moneyRequestReport)) {
         return false;
     }
 
@@ -5374,43 +5379,12 @@ function getReasonAndReportActionThatRequiresAttention({
         };
     }
 
-    // An unread mention falls back to a green dot linked to the oldest unread mention. It stays above the invoice room
-    // branch, which can return null.
+    // An unread mention falls back to a green dot linked to the oldest unread mention.
     if (isUnreadWithMention(optionOrReport)) {
         return {
             reason: CONST.REQUIRES_ATTENTION_REASONS.IS_UNREAD_WITH_MENTION,
             reportAction: getOldestUnreadMentionReportAction(optionOrReport, reportActions, currentUserLogin, currentUserAccountID),
         };
-    }
-
-    if (hasMissingInvoiceBankAccount(optionOrReport.reportID) && !isSettled(optionOrReport.reportID)) {
-        return {
-            reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_MISSING_INVOICE_BANK_ACCOUNT,
-        };
-    }
-
-    if (isInvoiceRoom(optionOrReport)) {
-        let earliestAction: ReportAction | undefined;
-        for (const action of Object.values(reportActions)) {
-            if (
-                action.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ||
-                !action.childReportID ||
-                !hasMissingInvoiceBankAccount(action.childReportID) ||
-                isSettled(action.childReportID)
-            ) {
-                continue;
-            }
-            if (!earliestAction || isOlderReportAction(action, earliestAction)) {
-                earliestAction = action;
-            }
-        }
-
-        return earliestAction
-            ? {
-                  reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_MISSING_INVOICE_BANK_ACCOUNT,
-                  reportAction: earliestAction,
-              }
-            : null;
     }
 
     return null;
@@ -5665,15 +5639,19 @@ function isReportExcludedForHeldExpenses(iouReport: OnyxEntry<Report>, transacti
  * 1. The user is not admin of the report
  * 2. Report is settled, closed, approved, or submitted and already forwarded for review
  */
-function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry<PolicyReportField>, policy: OnyxEntry<Policy>, rules: OnyxCollection<Rule>): boolean {
+function isReportFieldDisabled(
+    report: OnyxEntry<Report>,
+    reportField: OnyxEntry<PolicyReportField>,
+    policy: OnyxEntry<Policy>,
+    rules: OnyxCollection<Rule>,
+    reportOwnerLogin: string | undefined,
+): boolean {
     const isReportSettled = isSettled(report?.reportID);
     const isReportClosed = isClosedReport(report);
     const isTitleField = isReportFieldOfTypeTitle(reportField);
     const isAdmin = isPolicyAdmin(policy);
     const isApproved = isReportApproved({report});
-    // TODO: Pass reportOwnerLogin in Part 6, once isReportFieldDisabled takes it first.
-    // isAwaitingFirstLevelApproval falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
-    const isForwardedForSubmitter = isReportOwner(report) && isExpenseReport(report) && isProcessingReport(report) && !isAwaitingFirstLevelApproval(report, rules, undefined);
+    const isForwardedForSubmitter = isReportOwner(report) && isExpenseReport(report) && isProcessingReport(report) && !isAwaitingFirstLevelApproval(report, rules, reportOwnerLogin);
     if (!isAdmin && (isReportSettled || isReportClosed || isApproved || isForwardedForSubmitter)) {
         return true;
     }
@@ -5696,8 +5674,9 @@ function isReportFieldDisabledForUser(
     policy: OnyxEntry<Policy>,
     currentUserAccountID: number | undefined,
     rules: OnyxCollection<Rule>,
+    reportOwnerLogin: string | undefined,
 ): boolean {
-    return isReportFieldDisabled(report, reportField, policy, rules) || !isAdminOwnerApproverOrReportOwner(report, policy, currentUserAccountID);
+    return isReportFieldDisabled(report, reportField, policy, rules, reportOwnerLogin) || !isAdminOwnerApproverOrReportOwner(report, policy, currentUserAccountID);
 }
 
 /**
@@ -5710,10 +5689,16 @@ function isReportFieldDisabledForUser(
  * - the report is an expense report,
  * - the report belongs to a paid group policy.
  */
-function canEditReportTitle(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, currentUserAccountID: number | undefined, rules: OnyxCollection<Rule>): boolean {
+function canEditReportTitle(
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    currentUserAccountID: number | undefined,
+    rules: OnyxCollection<Rule>,
+    reportOwnerLogin: string | undefined,
+): boolean {
     const titleField =
         getAvailableReportFields(report, Object.values(policy?.fieldList ?? {})).find((reportField) => isReportFieldOfTypeTitle(reportField)) ?? getTitleFieldWithFallback(policy);
-    const isFieldDisabled = isReportFieldDisabled(report, titleField, policy, rules);
+    const isFieldDisabled = isReportFieldDisabled(report, titleField, policy, rules, reportOwnerLogin);
 
     return !isFieldDisabled && isAdminOwnerApproverOrReportOwner(report, policy, currentUserAccountID) && isExpenseReport(report) && isGroupPolicyPolicyUtils(policy);
 }
@@ -6448,7 +6433,14 @@ function canEditReportAction(
     );
 }
 
-function canModifyHoldStatus(report: Report, reportAction: OnyxEntry<ReportAction>, currentUserAccountID: number | undefined, isAdmin: boolean, rules: OnyxCollection<Rule>): boolean {
+function canModifyHoldStatus(
+    report: Report,
+    reportAction: OnyxEntry<ReportAction>,
+    currentUserAccountID: number | undefined,
+    isAdmin: boolean,
+    rules: OnyxCollection<Rule>,
+    reportOwnerLogin: string | undefined,
+): boolean {
     if (!isMoneyRequestReport(report) || isTrackExpenseReport(report)) {
         return false;
     }
@@ -6465,9 +6457,7 @@ function canModifyHoldStatus(report: Report, reportAction: OnyxEntry<ReportActio
     }
 
     if (isActionOwner && !isAdmin) {
-        // TODO: Pass reportOwnerLogin in Part 7, once canModifyHoldStatus takes it first.
-        // isAwaitingFirstLevelApproval falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
-        return isAwaitingFirstLevelApproval(report, rules, undefined);
+        return isAwaitingFirstLevelApproval(report, rules, reportOwnerLogin);
     }
 
     return (isAdmin || isManager) && isProcessingReport(report);
@@ -6481,6 +6471,7 @@ function canHoldUnholdReportAction(
     policy: OnyxEntry<Policy>,
     currentUserAccountID: number | undefined,
     rules: OnyxCollection<Rule>,
+    reportOwnerLogin: string | undefined,
 ): {canHoldRequest: boolean; canUnholdRequest: boolean} {
     // Some reported expenses have no IOU action. HoldRequest creates the missing action and transaction thread, so they can still be held.
     // Unlike canEditFieldOfMoneyRequest, this check never looks up the expense's report and judges everything on the report passed in.
@@ -6503,7 +6494,7 @@ function canHoldUnholdReportAction(
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const isClosed = isClosedReport(report);
 
-    const canModifyStatus = canModifyHoldStatus(report, reportAction, currentUserAccountID, isAdmin, rules);
+    const canModifyStatus = canModifyHoldStatus(report, reportAction, currentUserAccountID, isAdmin, rules, reportOwnerLogin);
     const canModifyUnholdStatus = !isTrackExpenseMoneyReport && (isAdmin || (isActionOwner && isHoldActionCreator) || isApprover);
 
     const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isClosed && !isDeletedParentAction(reportAction);
@@ -7349,6 +7340,11 @@ function getParentNavigationSubtitle(
     parentReportName: string | undefined,
     isParentReportArchived = false,
 ): ParentNavigationSummaryParams {
+    // Bills have no parent chat, so their subtitle contains only the policy name.
+    if (report?.type === CONST.REPORT.UNSUPPORTED_TYPE.BILL) {
+        return {workspaceName: getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')})};
+    }
+
     const parentReport = getParentReport(report);
 
     if (isEmptyObject(parentReport)) {
@@ -10809,7 +10805,9 @@ function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEnt
     const drivingActorAccountID =
         (oneTransactionThreadReport?.lastVisibleActionCreated ?? '') > (report?.lastVisibleActionCreated ?? '') ? oneTransactionThreadReport?.lastActorAccountID : report?.lastActorAccountID;
 
-    if (isUnreadFromTimestamp && drivingActorAccountID === deprecatedCurrentUserAccountID && !(lastReadTime < lastMentionedTime)) {
+    // A manual mark-as-unread wins over the "last actor is me" rule, so a report where only the current user has written
+    // (e.g. a new thread) still shows as unread. Reading the report moves lastReadTime forward, so this can't stick.
+    if (isUnreadFromTimestamp && drivingActorAccountID === deprecatedCurrentUserAccountID && !(lastReadTime < lastMentionedTime) && !report.manuallyMarkedUnreadReportActionID) {
         return false;
     }
 
@@ -10869,6 +10867,19 @@ function canAccessReport(report: OnyxEntry<Report>, isDefaultRoomsBetaEnabled: b
     }
 
     return true;
+}
+
+/** Bills stay hidden from users without the newDotBillPay beta. */
+function shouldHideBillReport(reportType: string | undefined, isBillPayBetaEnabled: boolean): boolean {
+    return reportType === CONST.REPORT.UNSUPPORTED_TYPE.BILL && !isBillPayBetaEnabled;
+}
+
+/** NewDot can't show unsupported report types. Bills are the exception for users with the newDotBillPay beta. */
+function isUnsupportedReportType(reportType: string | undefined, isBillPayBetaEnabled: boolean): boolean {
+    if (reportType === CONST.REPORT.UNSUPPORTED_TYPE.BILL) {
+        return shouldHideBillReport(reportType, isBillPayBetaEnabled);
+    }
+    return (Object.values(CONST.REPORT.UNSUPPORTED_TYPE) as string[]).includes(reportType ?? '');
 }
 
 function isReportNotFound(report: OnyxEntry<Report>): boolean {
@@ -11031,6 +11042,7 @@ function hasVisibleReportFieldViolations(
     policy: OnyxEntry<Policy>,
     currentUserAccountID: number | undefined,
     rules: OnyxCollection<Rule>,
+    reportOwnerLogin: string | undefined,
     reportNameValuePairs: OnyxEntry<ReportNameValuePairs>,
 ): boolean {
     const areFieldsEnabledForReport = isInvoiceReport(report) ? policy?.areInvoiceFieldsEnabled : policy?.areReportFieldsEnabled;
@@ -11062,7 +11074,7 @@ function hasVisibleReportFieldViolations(
         if (shouldHideSingleReportField(field)) {
             return false;
         }
-        if (isReportFieldDisabledForUser(report, field, policy, currentUserAccountID, rules)) {
+        if (isReportFieldDisabledForUser(report, field, policy, currentUserAccountID, rules, reportOwnerLogin)) {
             return false;
         }
         return !!getFieldViolation(field);
@@ -11195,13 +11207,16 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
     isReportArchived = false,
     reports?: OnyxCollection<Report>,
 ): ReportErrorsAndReportActionThatRequiresAttention {
-    const reportActionsArray = Object.values(reportActions ?? {}).filter((action) => !isDeletedAction(action));
+    // The mirrored pay failure lives on a deleted preview, so keep that one or the chat row never gets a red dot
+    // and the message below it is unreachable from the LHN.
+    const reportActionsArray = Object.values(reportActions ?? {}).filter((action) => !isDeletedAction(action) || isDeletedReportPreviewWithError(action));
     const reportActionErrors: ErrorFields = {};
     let reportAction: OnyxEntry<ReportAction>;
 
     for (const action of reportActionsArray) {
-        if (action && !isEmptyValueObject(action.errors)) {
-            Object.assign(reportActionErrors, action.errors);
+        const actionErrors = getVisibleReportActionErrors(action);
+        if (action && !isEmptyValueObject(actionErrors)) {
+            Object.assign(reportActionErrors, actionErrors);
 
             if (!reportAction) {
                 reportAction = action;
@@ -11347,6 +11362,9 @@ type ShouldReportBeInOptionListParams = {
     currentReportId: string | undefined;
     isInFocusMode: boolean;
     isDefaultRoomsBetaEnabled: boolean;
+
+    /** Only the LHN passes this, so bills stay hidden from every other option list */
+    isBillPayBetaEnabled?: boolean;
     excludeEmptyChats: boolean;
     doesReportHaveViolations: boolean;
     includeSelfDM?: boolean;
@@ -11372,6 +11390,7 @@ function reasonForReportToBeInOptionList({
     currentReportId,
     isInFocusMode,
     isDefaultRoomsBetaEnabled,
+    isBillPayBetaEnabled = false,
     excludeEmptyChats,
     doesReportHaveViolations,
     draftComment,
@@ -11442,7 +11461,7 @@ function reasonForReportToBeInOptionList({
         return null;
     }
 
-    if ((Object.values(CONST.REPORT.UNSUPPORTED_TYPE) as string[]).includes(report?.type ?? '')) {
+    if (isUnsupportedReportType(report?.type, isBillPayBetaEnabled)) {
         return null;
     }
 
@@ -11913,8 +11932,18 @@ function getMoneyRequestOptions(
 ): IOUType[] {
     const isTeachersUniteReportValue = isTeachersUniteReport(report);
 
-    // In any thread, task report or trip room, we do not allow any new expenses
-    if (isChatThread(report) || isTaskReport(report) || isSupportTicket(report) || isInvoiceReport(report) || isSystemChat(report) || isReportArchived || isTripRoom(report)) {
+    // In any thread, task report or trip room, we do not allow any new expenses.
+    // A bill mirrors the vendor's invoice, so its expenses come only from that invoice.
+    if (
+        isChatThread(report) ||
+        isTaskReport(report) ||
+        isSupportTicket(report) ||
+        isInvoiceReport(report) ||
+        isBillReport(report) ||
+        isSystemChat(report) ||
+        isReportArchived ||
+        isTripRoom(report)
+    ) {
         return [];
     }
 
@@ -12823,7 +12852,7 @@ function hasOnlyHeldExpenses(allReportTransactions: Transaction[]): boolean {
  */
 function shouldDisplayThreadReplies(reportAction: OnyxInputOrEntry<ReportAction>, isThreadReportParentAction: boolean, isAgentProcessingInThread = false): boolean {
     const hasReplies = (reportAction?.childVisibleActionCount ?? 0) > 0 && !!reportAction?.childCommenterCount;
-    return (hasReplies || isAgentProcessingInThread) && !isThreadReportParentAction && !isCreatedSupportTicketReportAction(reportAction);
+    return (hasReplies || isAgentProcessingInThread) && !isThreadReportParentAction;
 }
 
 /**
@@ -13336,6 +13365,9 @@ function isReportOutstanding(
         !iouReport ||
         isEmptyObject(iouReport) ||
         !isExpenseReport(iouReport) ||
+        // A bill's expenses come only from the vendor's invoice, so users can't add or move expenses to it.
+        // isExpenseReport excludes bills today. This check keeps bills blocked once bills count as expense reports.
+        isBillReport(iouReport) ||
         iouReport?.stateNum === undefined ||
         iouReport?.statusNum === undefined ||
         iouReport?.policyID !== policyID ||
@@ -14689,29 +14721,6 @@ function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
     return fullApprovalChain;
 }
 
-/**
- * Checks if the user has missing bank account for the invoice room.
- */
-// TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
-function hasMissingInvoiceBankAccount(iouReportID: string | undefined, currentUserAccountID?: number): boolean {
-    if (!iouReportID) {
-        return false;
-    }
-
-    const invoiceReport = getReport(iouReportID, deprecatedAllReports);
-
-    if (!isInvoiceReport(invoiceReport)) {
-        return false;
-    }
-
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    return (
-        invoiceReport?.ownerAccountID === (currentUserAccountID ?? deprecatedCurrentUserAccountID) &&
-        !getPolicy(invoiceReport?.policyID)?.invoice?.bankAccount?.transferBankAccountID &&
-        isSettled(iouReportID)
-    );
-}
-
 function hasInvoiceReports() {
     const reports = Object.values(deprecatedAllReports ?? {});
     return reports.some((report) => isInvoiceReport(report));
@@ -15948,6 +15957,7 @@ export {
     isTrackExpenseReport,
     isUnread,
     isUnreadWithMention,
+    isUnsupportedReportType,
     isUserCreatedPolicyRoom,
     isValidReport,
     isValidReportIDFromPath,
@@ -16081,6 +16091,7 @@ export {
     isWorkspaceChat,
     isOneTransactionReport,
     isTrackExpenseReportNew,
+    shouldHideBillReport,
     shouldHideSingleReportField,
     getBillableAndTaxTotal,
     getReportForHeader,

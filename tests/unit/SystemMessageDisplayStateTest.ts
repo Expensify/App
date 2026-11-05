@@ -170,6 +170,7 @@ describe('system message presentation', () => {
             CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER,
             CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER,
             CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
+            CONST.REPORT.ACTIONS.TYPE.AUTO_PAY_FEE_DISCLOSURE,
         ])('does not classify the chat, structural, task, or actionable row %s as a system message', (actionName) => {
             // Given an interactive, structural, or unsupported action
             // When selecting its presentation
