@@ -30,6 +30,9 @@ type GovernmentRateSnapshot = {
 
     /** Government-published end date (ISO 8601) at the time the rate was copied, omitted if the source rate has none */
     endDate?: string;
+
+    /** Government-published tax reclaimable fraction at the time the rate was copied, omitted if the source rate has none */
+    taxClaimablePercentage?: number;
 };
 
 /** General-purpose optional attributes of the policy distance rate */
@@ -1818,6 +1821,9 @@ type RilletExport = {
 
     /** Export behavior for non-reimbursable expenses. */
     nonReimbursable: RilletExportNonReimbursable;
+
+    /** Account code where reimbursements land (applicable if `reimbursable` type is REIMBURSEMENT). */
+    reimbursementAccountCode: string;
 
     /** Default vendor to associate with exported transactions. */
     defaultVendorID: string;
@@ -4525,6 +4531,7 @@ export type {
     RilletCoding,
     RilletConnectionsConfig,
     RilletExport,
+    RilletExportReimbursable,
     RilletBankAccount,
     RilletAutoSync,
     RilletSync,
