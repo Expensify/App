@@ -5,7 +5,6 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
-import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
@@ -136,7 +135,7 @@ function AccountingIntegrationWaitlistCard({connectionName, title, icon, policyI
                             {isOnWaitlist ? (
                                 <Text style={styles.textSupporting}>{translate('workspace.accounting.integrationWaitlist.onWaitlist')}</Text>
                             ) : (
-                                <ButtonDisabledWhenOffline
+                                <Button
                                     onPress={joinWaitlist}
                                     isLoading={!!request?.pendingAction}
                                     style={styles.justifyContentCenter}
@@ -146,7 +145,7 @@ function AccountingIntegrationWaitlistCard({connectionName, title, icon, policyI
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.JOIN_WAITLIST_BUTTON}
                                 >
                                     <Button.Text>{translate('workspace.accounting.integrationWaitlist.joinWaitlist')}</Button.Text>
-                                </ButtonDisabledWhenOffline>
+                                </Button>
                             )}
                         </MenuItem.Trailing>
                     </MenuItem.Row>

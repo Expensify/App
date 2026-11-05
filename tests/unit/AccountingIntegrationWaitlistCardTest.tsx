@@ -106,8 +106,8 @@ describe('AccountingIntegrationWaitlistCard', () => {
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
     });
 
-    it('disables Join waitlist while offline', async () => {
-        // Given the user is offline, since the confirmation must not promise a signup that hasn't reached the server
+    it('queues the signup while offline and confirms it once the server saves it', async () => {
+        // Given the user is offline
         await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: true});
         renderCard();
         await waitForBatchedUpdatesWithAct();
@@ -115,9 +115,8 @@ describe('AccountingIntegrationWaitlistCard', () => {
         // When the user presses Join waitlist
         fireEvent.press(screen.getByRole('button', {name: 'Join waitlist'}));
 
-        // Then nothing is sent and no confirmation appears
-        expect(screen.getByRole('button', {name: 'Join waitlist', disabled: true})).toBeOnTheScreen();
-        expect(joinAccountingIntegrationWaitlist).not.toHaveBeenCalled();
+        // Then the signup is queued for when the user is back online, with no confirmation until the server saves it
+        expect(joinAccountingIntegrationWaitlist).toHaveBeenCalledWith('policy', SAGE_ACCOUNTING);
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
     });
 
