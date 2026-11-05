@@ -82,7 +82,6 @@ type WorkspaceMenuItem = WithSentryLabel & {
     badgeTranslationKey?: TranslationPaths;
     badgeText?: string;
     isBadgeSuccess?: boolean;
-    isBadgeCondensed?: boolean;
     highlighted?: boolean;
 
     /** Other names the Search router also matches this item by */
@@ -221,7 +220,6 @@ function getWorkspaceMenuItems({
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.MEMBERS,
             badgeTranslationKey: shouldShowNewRolesBadge ? 'workspace.common.newRoles' : undefined,
             isBadgeSuccess: shouldShowNewRolesBadge,
-            isBadgeCondensed: shouldShowNewRolesBadge,
         },
         {
             translationKey: 'workspace.common.rooms',

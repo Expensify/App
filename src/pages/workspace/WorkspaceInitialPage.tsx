@@ -335,7 +335,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                         role={CONST.ROLE.TAB}
                                         badgeText={item.badgeTranslationKey ? translate(item.badgeTranslationKey) : item.badgeText}
                                         isBadgeSuccess={item.isBadgeSuccess}
-                                        isBadgeCondensed={item.isBadgeCondensed}
                                         shouldIconUseAutoWidthStyle
                                         sentryLabel={item.sentryLabel}
                                         shouldGreyOutWhenDisabled={hasPolicyCreationError}
