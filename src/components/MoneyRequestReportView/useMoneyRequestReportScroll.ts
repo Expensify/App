@@ -197,7 +197,7 @@ function useMoneyRequestReportScroll({
         resetKey,
     });
 
-    // The indicator renders in the list footer, below the row scrollToBottom targets, so only scrollToEnd reveals it
+    // The indicator is below the last row, so use the manager's full-list scroll to include the footer.
     const {candidateAgentIDs} = useAgentZeroStatus();
     const isThinkingIndicatorVisible = candidateAgentIDs.length > 0;
     // Scroll once per appearance, because the label changes many times per run and re-firing would yank the viewport
@@ -214,7 +214,7 @@ function useMoneyRequestReportScroll({
 
         // Wait for the footer to lay out, otherwise there is nothing to scroll to yet
         const timeoutID = setTimeout(() => {
-            reportScrollManager.scrollToEnd();
+            reportScrollManager.scrollToBottom();
         }, DELAY_FOR_SCROLLING_TO_END);
 
         return () => clearTimeout(timeoutID);

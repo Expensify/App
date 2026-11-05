@@ -127,6 +127,56 @@ describe('useReportUnreadMessageScrollTracking', () => {
             expect(result.current.isFloatingMessageCounterVisible).toBe(false);
         });
 
+        it.each([false, true])('defers unread viewability until initial positioning finishes when inverted is %s', (isInverted) => {
+            // Given the list is still positioning an unread message outside its provisional viewport.
+            const onUnreadActionVisible = jest.fn();
+            const {result, rerender} = renderHook(
+                ({shouldDisablePillTracking}) =>
+                    useReportUnreadMessageScrollTracking({
+                        reportID,
+                        currentVerticalScrollingOffsetRef: {current: 0},
+                        onUnreadActionVisible,
+                        onTrackScrolling: jest.fn(),
+                        hasNewerActions: false,
+                        unreadMarkerReportActionIndex: 5,
+                        isInverted,
+                        shouldDisablePillTracking,
+                    }),
+                {initialProps: {shouldDisablePillTracking: true}},
+            );
+
+            // When provisional viewability arrives before initial positioning settles.
+            act(() => {
+                result.current.onViewableItemsChanged({viewableItems: [{index: isInverted ? 6 : 4, key: 'older-message', isViewable: true, item: {}}], changed: []});
+            });
+
+            // Then the unread pill does not flash over the covered list.
+            expect(result.current.isFloatingMessageCounterVisible).toBe(false);
+            expect(onUnreadActionVisible).not.toHaveBeenCalled();
+
+            // When positioning finishes without another viewability event.
+            rerender({shouldDisablePillTracking: false});
+
+            // Then the saved viewport exposes the pill because the unread message is still outside it.
+            expect(result.current.isFloatingMessageCounterVisible).toBe(true);
+
+            // When another positioning pass brings the unread message into its covered viewport.
+            rerender({shouldDisablePillTracking: true});
+            act(() => {
+                result.current.onViewableItemsChanged({viewableItems: [{index: 5, key: 'unread-message', isViewable: true, item: {}}], changed: []});
+            });
+
+            // Then the covered message does not complete read tracking.
+            expect(onUnreadActionVisible).not.toHaveBeenCalled();
+
+            // When that viewport becomes ready without another viewability event.
+            rerender({shouldDisablePillTracking: false});
+
+            // Then the latest saved viewport completes read tracking and hides the pill.
+            expect(onUnreadActionVisible).toHaveBeenCalled();
+            expect(result.current.isFloatingMessageCounterVisible).toBe(false);
+        });
+
         it.each([false, true])('ignores viewability events behind another screen and resumes after refocus when inverted is %s', (isInverted) => {
             // Given the unread marker is outside the viewport and the pill is visible.
             const onUnreadActionVisible = jest.fn();

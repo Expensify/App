@@ -19,6 +19,7 @@ type ReportActionsListProps = {
 type UseReportActionsListDataParams = {
     sortedVisibleReportActions: OnyxTypes.ReportAction[];
     reportNameValuePairs: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
+    isOffline: boolean;
     sessionStartTime: string | null;
     linkedReportActionID: string | undefined;
     unreadMarkerReportActionID: string | null;
@@ -29,15 +30,13 @@ type UseReportActionsListScrollParams = Pick<
     | 'reportID'
     | 'sortedVisibleReportActions'
     | 'renderedVisibleReportActions'
-    | 'hasScrolledOverThreshold'
     | 'markNewestActionAsRead'
     | 'completeSkippedMarkAsRead'
     | 'unreadMarkerReportActionID'
     | 'unreadMarkerReportActionIndex'
-    | 'draftAutoScrollKey'
 > &
     Pick<ReturnType<typeof useReportActionsPresentation>, 'reportActionIDToDisplayIndex' | 'focusRequestedReportActionID'> &
-    Pick<UseReportActionsListDataParams, 'linkedReportActionID'> &
+    Pick<UseReportActionsListDataParams, 'isOffline' | 'linkedReportActionID'> &
     Pick<ReportActionsListProps, 'onLayout'> & {
         actionBadgeTargetID: string | undefined;
         onScrolledOverThresholdChange: (isOverThreshold: boolean) => void;
@@ -46,6 +45,7 @@ type UseReportActionsListScrollParams = Pick<
 type UseReportActionsListRenderItemParams = Pick<
     ReturnType<typeof useReportActionsListData>,
     | 'renderedVisibleReportActions'
+    | 'reportActionsToRender'
     | 'listData'
     | 'canonicalIndexByReportActionID'
     | 'runsByAnchorReportActionID'
@@ -57,14 +57,31 @@ type UseReportActionsListRenderItemParams = Pick<
     | 'draftReportActionID'
     | 'isDraftPendingCompletion'
 > &
-    Pick<UseReportActionsListDataParams, 'reportNameValuePairs' | 'linkedReportActionID' | 'unreadMarkerReportActionID'> &
+    Pick<UseReportActionsListDataParams, 'reportNameValuePairs' | 'isOffline' | 'linkedReportActionID' | 'unreadMarkerReportActionID'> &
     Pick<ReportActionsListProps, 'reportID'> & {
         isReportArchived: boolean;
-        isOffline: boolean;
         sortedReportActions: OnyxTypes.ReportAction[];
         onShowPreviousMessages: () => void;
     };
 
-type UseReportActionsListTelemetryParams = Pick<ReportActionsListProps, 'reportID' | 'onLayout'>;
+type UseReportActionsListTelemetryParams = {
+    reportID: string;
+    listID: string;
+    loadedInitialViewportListID: string | undefined;
+    shouldShowInitialViewportSkeleton: boolean;
+};
 
-export type {ReportActionsListProps, UseReportActionsListDataParams, UseReportActionsListScrollParams, UseReportActionsListRenderItemParams, UseReportActionsListTelemetryParams};
+type ReportActionsListScrollMetrics = {
+    offset: number;
+    contentHeight: number;
+    viewportHeight: number;
+};
+
+export type {
+    ReportActionsListProps,
+    UseReportActionsListDataParams,
+    UseReportActionsListScrollParams,
+    UseReportActionsListRenderItemParams,
+    UseReportActionsListTelemetryParams,
+    ReportActionsListScrollMetrics,
+};

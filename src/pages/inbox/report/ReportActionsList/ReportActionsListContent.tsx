@@ -1,5 +1,5 @@
+/** Renders report messages with history controls, unread indicators, and loading states. */
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
-import InvertedFlashList from '@components/FlashList/InvertedFlashList';
 import MerchantRuleSuggestionBanner from '@components/MerchantRuleSuggestionBanner';
 import {ReportActionsAnimatedSkeletonCover} from '@components/ReportActionsSkeletonCover';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
@@ -28,7 +28,7 @@ import {useConciergeChatHistoryActions} from '@pages/inbox/ConciergeChatHistoryC
 import AskConciergeWelcome from '@pages/inbox/report/AskConciergeWelcome';
 import ConciergeChatHistoryToggle from '@pages/inbox/report/ConciergeChatHistoryToggle';
 import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
-import {useReportActionsListActions, useReportActionsListState} from '@pages/inbox/report/ReportActionsListContext';
+import {useReportActionsListState} from '@pages/inbox/report/ReportActionsListContext';
 import ReportActionsListHeader from '@pages/inbox/report/ReportActionsListHeader';
 import ReportActionsListPaddingView from '@pages/inbox/report/ReportActionsListPaddingView';
 
@@ -39,9 +39,11 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {LegendList} from '@legendapp/list/react-native';
 import {useRoute} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useState} from 'react';
+import {Platform, View} from 'react-native';
 
 import type {ReportActionsListProps} from './types';
 
@@ -49,6 +51,11 @@ import useReportActionsListData from './useReportActionsListData';
 import useReportActionsListRenderItem from './useReportActionsListRenderItem';
 import useReportActionsListScroll from './useReportActionsListScroll';
 import useReportActionsListTelemetry from './useReportActionsListTelemetry';
+
+const REPORT_ACTIONS_DRAW_DISTANCE = 1500;
+// Close to a typical message row. Unmeasured rows keep this estimate, and LegendList's 100px default made every
+// measurement shift the scroll offset. On web, dragging the scrollbar undoes each shift, which shows as a jump.
+const REPORT_ACTIONS_ESTIMATED_ITEM_SIZE = 50;
 
 /**
  * Renders the report-actions list. Reads its data from `ReportActionsListStateContext` / `ReportActionsListActionsContext` and holds the
@@ -79,15 +86,11 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         ? unfilteredVisibleReportActions.filter((action) => !shouldHidePayAction(action, true))
         : unfilteredVisibleReportActions;
 
-    const {handleShowPreviousMessages: onShowPreviousMessages} = useReportActionsListActions();
-
     const {isOffline} = useNetwork();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const linkedReportActionID = route?.params?.reportActionID;
     const {sessionStartTime} = useSidePanelState();
     const {collapseHistory: collapseConciergeHistory} = useConciergeChatHistoryActions();
-
-    const recordTimeToMeasureItemLayout = useReportActionsListTelemetry({reportID, onLayout});
 
     useLinkedMessageOfflineLoading({reportID: report?.reportID ?? reportID, reportActionIDFromRoute: linkedReportActionID});
 
@@ -117,7 +120,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
 
     const {getScrollOffset} = useActionListContext();
     const [hasScrolledOverThreshold, setHasScrolledOverThreshold] = useState(() => getScrollOffset() >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
-
     const {unreadMarkerReportActionID} = useUnreadMarker({
         reportID,
         sortedVisibleReportActions,
@@ -140,30 +142,42 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     const reportActionsListData = useReportActionsListData({
         sortedVisibleReportActions,
         reportNameValuePairs,
+        isOffline,
         sessionStartTime,
         linkedReportActionID,
         unreadMarkerReportActionID,
     });
-    const {listData, reportActionIDToDisplayIndex, unreadMarkerListIndex, focusRequestedReportActionID, draftAutoScrollKey, isDraftPendingCompletion} = reportActionsListData;
+    const {listData, reportActionIDToDisplayIndex, unreadMarkerListIndex, focusRequestedReportActionID, isDraftPendingCompletion} = reportActionsListData;
 
-    const {listID, listProps, shouldBeAlignedToTop, isFloatingMessageCounterVisible, isActionBadgeAboveViewport, scrollToBottomAndMarkReportAsRead, scrollToActionBadgeTarget} =
-        useReportActionsListScroll({
-            reportID,
-            sortedVisibleReportActions,
-            renderedVisibleReportActions: listData,
-            reportActionIDToDisplayIndex,
-            hasScrolledOverThreshold,
-            markNewestActionAsRead,
-            completeSkippedMarkAsRead,
-            unreadMarkerReportActionID,
-            unreadMarkerReportActionIndex: unreadMarkerListIndex,
-            draftAutoScrollKey,
-            focusRequestedReportActionID,
-            actionBadgeTargetID: reportAttributes?.actionTargetReportActionID,
-            linkedReportActionID,
-            onScrolledOverThresholdChange: setHasScrolledOverThreshold,
-            onLayout: recordTimeToMeasureItemLayout,
-        });
+    const {
+        listID,
+        legendListProps,
+        loadedInitialViewportListID,
+        shouldShowInitialViewportSkeleton,
+        shouldBeAlignedToTop,
+        onShowPreviousMessages,
+        isFloatingMessageCounterVisible,
+        isActionBadgeAboveViewport,
+        scrollToBottomAndMarkReportAsRead,
+        scrollToActionBadgeTarget,
+    } = useReportActionsListScroll({
+        reportID,
+        sortedVisibleReportActions,
+        renderedVisibleReportActions: listData,
+        reportActionIDToDisplayIndex,
+        markNewestActionAsRead,
+        completeSkippedMarkAsRead,
+        unreadMarkerReportActionID,
+        unreadMarkerReportActionIndex: unreadMarkerListIndex,
+        focusRequestedReportActionID,
+        actionBadgeTargetID: reportAttributes?.actionTargetReportActionID,
+        isOffline,
+        linkedReportActionID,
+        onScrolledOverThresholdChange: setHasScrolledOverThreshold,
+        onLayout,
+    });
+
+    useReportActionsListTelemetry({reportID, listID, loadedInitialViewportListID, shouldShowInitialViewportSkeleton});
 
     const {renderItem, extraData} = useReportActionsListRenderItem({
         ...reportActionsListData,
@@ -177,7 +191,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         onShowPreviousMessages,
     });
 
-    const listHeaderComponent = (
+    const latestActionsFooter = (
         <>
             {isConciergeHistoryExpanded && (
                 <ConciergeChatHistoryToggle
@@ -199,7 +213,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
 
     const shouldShowOfflineSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 
-    const listFooterComponent = shouldShowOfflineSkeleton ? <ReportActionsSkeletonView shouldAnimate={false} /> : undefined;
+    const offlineHistoryHeader = shouldShowOfflineSkeleton ? <ReportActionsSkeletonView shouldAnimate={false} /> : undefined;
 
     const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy,
@@ -247,23 +261,40 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                 report={report}
                 isReportArchived={isReportArchived}
             >
-                <InvertedFlashList
-                    {...listProps}
-                    accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
-                    testID="report-actions-list"
-                    style={styles.overscrollBehaviorContain}
+                <LegendList
+                    {...legendListProps}
+                    accessibilityLabel={Platform.OS === 'web' ? undefined : translate('sidebarScreen.listOfChatMessages')}
+                    aria-label={Platform.OS === 'web' ? translate('sidebarScreen.listOfChatMessages') : undefined}
+                    data-testid={Platform.OS === 'web' ? 'report-actions-list' : undefined}
+                    testID={Platform.OS === 'web' ? undefined : 'report-actions-list'}
+                    style={[styles.flex1, styles.overscrollBehaviorContain]}
                     data={listData}
                     renderItem={renderItem}
-                    drawDistance={1500}
-                    renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={styles.chatContentScrollView}
-                    ListHeaderComponent={listHeaderComponent}
-                    ListHeaderComponentStyle={shouldBeAlignedToTop ? styles.flex1 : undefined}
-                    ListFooterComponent={listFooterComponent}
+                    drawDistance={REPORT_ACTIONS_DRAW_DISTANCE}
+                    estimatedItemSize={REPORT_ACTIONS_ESTIMATED_ITEM_SIZE}
+                    recycleItems
+                    experimental_hideItemsUntilMeasured
+                    renderScrollComponent={Platform.OS === 'web' ? undefined : renderActionSheetAwareScrollView}
+                    scrollEventThrottle={16}
+                    contentContainerStyle={[styles.chatContentScrollView, styles.pb0]}
+                    ListHeaderComponent={offlineHistoryHeader}
+                    ListFooterComponent={latestActionsFooter}
+                    ListFooterComponentStyle={shouldBeAlignedToTop ? styles.flex1 : undefined}
                     keyboardShouldPersistTaps="handled"
                     extraData={extraData}
                     key={listID}
+                    // Keep the existing pixel-based new-message policy in useReportActionsScroll.
+                    maintainScrollAtEnd={false}
+                    maintainVisibleContentPosition
                 />
+                {shouldShowInitialViewportSkeleton && (
+                    <View
+                        pointerEvents="none"
+                        style={[styles.pAbsolute, styles.t0, styles.r0, styles.b0, styles.l0, styles.zIndex10]}
+                    >
+                        <ReportActionsAnimatedSkeletonCover />
+                    </View>
+                )}
             </ReportActionsListPaddingView>
         </>
     );
