@@ -6,12 +6,15 @@ import {SPAN_STATUS_OK, spanTimeInputToSeconds} from '@sentry/core';
 import * as Sentry from '@sentry/react-native';
 import {AppState} from 'react-native';
 
+import {endFlow, startFlow} from './frameDrops/frameDropTimeline';
 import logBenchmarkSpanEnd, {isBenchmarkSpanEnabled} from './logBenchmarkSpanEnd';
 
 type ActiveSpanEntry = {
     span: ReturnType<typeof Sentry.startInactiveSpan>;
     spanName: string;
     startTimeForLog: number;
+    /** Set for root spans, which are recorded as the user flow frame drops are attributed to. */
+    frameDropFlowID?: number;
 };
 
 const activeSpans = new Map<string, ActiveSpanEntry>();
@@ -45,7 +48,9 @@ function startSpan(spanId: string, options: StartSpanOptions) {
 
     const startTimeForLog = getPerformanceStartTimeForLog(options.startTime);
 
-    activeSpans.set(spanId, {span, spanName: options.name, startTimeForLog});
+    const frameDropFlowID = options.parentSpan ? undefined : startFlow(options.name);
+
+    activeSpans.set(spanId, {span, spanName: options.name, startTimeForLog, frameDropFlowID});
 
     return span;
 }
@@ -56,7 +61,8 @@ function endSpan(spanId: string) {
     if (!entry) {
         return;
     }
-    const {span, spanName, startTimeForLog} = entry;
+    const {span, spanName, startTimeForLog, frameDropFlowID} = entry;
+    endFlow(frameDropFlowID);
     const performanceTimestamp = performance.now();
     const durationMs = Math.round(performanceTimestamp - startTimeForLog);
     const attributes = Sentry.spanToJSON(span).data ?? {};

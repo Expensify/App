@@ -1,6 +1,9 @@
 import type FlatListRefType from '@components/FlashList/types';
 
+import useRecordScrollForFrameDrops from '@hooks/useRecordScrollForFrameDrops';
+
 import type {FlashListProps} from '@shopify/flash-list';
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
 import React from 'react';
 
@@ -15,11 +18,19 @@ type InvertedFlashListProps<T> = FlashListProps<T> & {
     ref: FlatListRefType;
 };
 
-function InvertedFlashList<T>(props: InvertedFlashListProps<T>) {
+function InvertedFlashList<T>({onScroll, ...props}: InvertedFlashListProps<T>) {
+    const recordScrollForFrameDrops = useRecordScrollForFrameDrops();
+
+    const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+        onScroll?.(e);
+        recordScrollForFrameDrops();
+    };
+
     return (
         <FlashList<T>
             {...props}
             inverted
+            onScroll={handleScroll}
             CellRendererComponent={CellRendererComponent}
         />
     );
