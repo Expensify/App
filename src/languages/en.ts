@@ -399,6 +399,7 @@ const translations = {
         searchOnGoogle: ({merchant}: {merchant: string}) => `Search ${merchant} on Google`,
         change: 'Change',
         category: 'Category',
+        amount: 'Amount',
         vendor: 'Vendor',
         report: 'Report',
         billable: 'Billable',
