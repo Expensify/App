@@ -7340,6 +7340,11 @@ function getParentNavigationSubtitle(
     parentReportName: string | undefined,
     isParentReportArchived = false,
 ): ParentNavigationSummaryParams {
+    // Bills have no parent chat, so their subtitle contains only the policy name.
+    if (report?.type === CONST.REPORT.UNSUPPORTED_TYPE.BILL) {
+        return {workspaceName: getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')})};
+    }
+
     const parentReport = getParentReport(report);
 
     if (isEmptyObject(parentReport)) {

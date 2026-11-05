@@ -4049,6 +4049,24 @@ describe('ReportUtils', () => {
             expect(actual.workspaceName).toBe('Direct Policy Name');
         });
 
+        it.each([true, false])('returns only the policy name for a bill when the policy is available: %s', (hasPolicy) => {
+            // Given a bill can receive its policy name without the policy record.
+            const billReport: Report = {
+                reportID: 'bill-subtitle',
+                type: CONST.REPORT.UNSUPPORTED_TYPE.BILL,
+                policyID: 'bill-policy',
+                policyName: 'Bill Policy',
+                ownerAccountID: currentUserAccountID,
+            };
+            const billPolicy = hasPolicy ? createMock<Policy>({id: 'bill-policy', name: 'Current Bill Policy'}) : undefined;
+
+            // When the header builds the bill subtitle.
+            const subtitle = getParentNavigationSubtitle(billReport, billPolicy, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
+
+            // Then it omits the owner's expense chat and uses the current policy name when available.
+            expect(subtitle).toEqual({workspaceName: hasPolicy ? 'Current Bill Policy' : 'Bill Policy'});
+        });
+
         it('should use the policy name from the passed policy parameter for invoice reports', () => {
             const testPolicy = createMock<Policy>({
                 id: 'invoicePolicyID',
