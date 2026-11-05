@@ -4,6 +4,7 @@
  */
 import {isQBORefreshTokenExpiringSoon} from '@libs/AccountingUtils';
 import {hasSynchronizationErrorMessage} from '@libs/actions/connections';
+import {isFuelBandGovernmentRate} from '@libs/GovernmentRateUtils';
 import {isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/merge/HRUtils';
 
 import CONST from '@src/CONST';
@@ -15,7 +16,36 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {getAccountingConnectionNames} from './connections';
+import {getDistanceRateCustomUnit} from './customUnits';
 import {isPolicyAdmin} from './permissions';
+import {isSelectableTaxCode} from './tax';
+
+/** Returns enabled UK fuel bands whose VAT mapping needs an admin's attention. */
+function getUKFuelRatesWithInvalidTax(policy: OnyxEntry<Policy>) {
+    const customUnit = getDistanceRateCustomUnit(policy);
+    if (
+        !isPolicyAdmin(policy) ||
+        !policy?.areDistanceRatesEnabled ||
+        !policy.tax?.trackingEnabled ||
+        !customUnit?.attributes?.taxEnabled ||
+        customUnit.attributes.isUKFuelRateTaxErrorDismissed
+    ) {
+        return [];
+    }
+    return Object.values(customUnit.rates ?? {}).filter(
+        (rate) =>
+            rate.enabled &&
+            rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+            !!rate.attributes?.governmentRate?.sourceRateID &&
+            isFuelBandGovernmentRate(rate.attributes.governmentRate.sourceRateID) &&
+            !isSelectableTaxCode(policy, rate.attributes?.taxRateExternalID),
+    );
+}
+
+/** Whether the workspace has a UK advisory fuel rate without a valid VAT mapping. */
+function shouldShowUKFuelRateTaxError(policy: OnyxEntry<Policy>): boolean {
+    return getUKFuelRatesWithInvalidTax(policy).length > 0;
+}
 
 /**
  * Checks if we have any errors stored within the policy?.employeeList. Determines whether we should show a red brick road error or not.
@@ -114,6 +144,7 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, isConnecti
     if (
         shouldShowEmployeeListError(policy) ||
         shouldShowCustomUnitsError(policy) ||
+        shouldShowUKFuelRateTaxError(policy) ||
         shouldShowPolicyErrorFields(policy) ||
         shouldShowSyncError(policy, isConnectionInProgress, getAccountingConnectionNames()) ||
         shouldShowReimbursableExportDestinationAccountError(policy) ||
@@ -156,6 +187,8 @@ function settingsPendingAction(settings?: string[], pendingFields?: PendingField
 }
 
 export {
+    getUKFuelRatesWithInvalidTax,
+    shouldShowUKFuelRateTaxError,
     shouldShowEmployeeListError,
     shouldShowTaxRateError,
     hasPolicyCategoriesError,

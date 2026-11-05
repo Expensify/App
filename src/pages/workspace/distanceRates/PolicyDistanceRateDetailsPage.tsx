@@ -1,4 +1,5 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -23,7 +24,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getTaxReclaimableAmount} from '@libs/PolicyDistanceRatesUtils';
-import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
+import {getCurrentConnectionName, getDistanceRateCustomUnit, getUKFuelRatesWithInvalidTax} from '@libs/PolicyUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -105,6 +106,11 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
         (distanceRate: Rate) => distanceRate?.enabled && rateID !== distanceRate?.customUnitRateID && distanceRate?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
     const errorFields = rate?.errorFields;
+    const hasFuelRateTaxError = getUKFuelRatesWithInvalidTax(policy).some((invalidRate) => invalidRate.customUnitRateID === rateID);
+    const connectionName = getCurrentConnectionName(policy);
+    const fuelRateTaxError = connectionName
+        ? translate('workspace.distanceRates.ukFuelRateTaxErrorWithIntegration', {integrationName: connectionName})
+        : translate('workspace.distanceRates.ukFuelRateTaxError');
 
     if (!rate) {
         return <NotFoundPage />;
@@ -264,11 +270,24 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                             onClose={() => clearErrorFields('taxRateExternalID')}
                         >
                             <View style={styles.w100}>
-                                <MenuItemField
-                                    name={translate('workspace.taxes.taxRate')}
+                                <MenuItem.Root
                                     onPress={canWriteDistanceRates ? editTaxRateValue : undefined}
-                                    value={taxRate}
-                                />
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.TAX_RATE}
+                                >
+                                    <MenuItemField.Row
+                                        name={translate('workspace.taxes.taxRate')}
+                                        value={taxRate}
+                                    >
+                                        {hasFuelRateTaxError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                        <MenuItem.Chevron />
+                                    </MenuItemField.Row>
+                                    {hasFuelRateTaxError && (
+                                        <MenuItem.HelpText
+                                            isError
+                                            message={fuelRateTaxError}
+                                        />
+                                    )}
+                                </MenuItem.Root>
                             </View>
                         </OfflineWithFeedback>
                     )}

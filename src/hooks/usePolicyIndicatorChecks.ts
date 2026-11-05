@@ -5,6 +5,7 @@ import {
     getUberConnectionErrorDirectlyFromPolicy,
     isPolicyAdmin,
     shouldShowCustomUnitsError,
+    shouldShowUKFuelRateTaxError,
     shouldShowEmployeeListError,
     shouldShowPolicyError,
     shouldShowReimbursableExportDestinationAccountError,
@@ -58,6 +59,7 @@ function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
     const policyErrorChecks: Array<[IndicatorStatus, Policy | undefined]> = [
         [CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS, cleanPolicies.find(shouldShowPolicyError)],
         [CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR, cleanPolicies.find(shouldShowCustomUnitsError)],
+        [CONST.INDICATOR_STATUS.HAS_UK_FUEL_RATE_TAX_ERROR, cleanPolicies.find(shouldShowUKFuelRateTaxError)],
         [CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR, cleanPolicies.find(shouldShowEmployeeListError)],
         [
             CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS,

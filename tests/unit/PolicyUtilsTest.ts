@@ -6,6 +6,7 @@ import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginPro
 import useDefaultFundID from '@hooks/useDefaultFundID';
 
 import DateUtils from '@libs/DateUtils';
+import {getUKFuelRatesWithInvalidTax, shouldShowUKFuelRateTaxError} from '@libs/PolicyUtils/errors';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     areApprovalsEnabled,
@@ -181,6 +182,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
+import createUKFuelRateTaxPolicy from '../utils/createUKFuelRateTaxPolicy';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -374,6 +376,78 @@ const policyTags = {
 };
 
 describe('PolicyUtils', () => {
+    describe('UK fuel rate VAT warnings', () => {
+        it.each(['', 'deleted', 'disabled', 'pendingDelete', 'valid'])('checks the %s tax code', (taxCode) => {
+            // Given a fuel band mapped to each possible tax code state
+            const policy = createUKFuelRateTaxPolicy();
+            policy.taxRates = createMock<Policy['taxRates']>({
+                taxes: {
+                    disabled: {name: 'Disabled', value: '20%', isDisabled: true},
+                    pendingDelete: {name: 'Deleting', value: '20%', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    valid: {name: 'VAT', value: '20%'},
+                },
+            });
+            const attributes = policy.customUnits?.distance.rates.fuel.attributes;
+            if (!attributes) {
+                throw new Error('Expected fuel rate attributes');
+            }
+            attributes.taxRateExternalID = taxCode;
+            // When the policy is checked
+            const rates = getUKFuelRatesWithInvalidTax(policy);
+            // Then only a selectable tax code clears the warning and workspace red dot
+            expect(rates).toHaveLength(taxCode === 'valid' ? 0 : 1);
+            expect(getPolicyBrickRoadIndicatorStatus(policy, false)).toBe(taxCode === 'valid' ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+        });
+
+        it.each(['taxOff', 'distanceTaxOff', 'distanceFeatureOff', 'member', 'dismissed', 'disabled', 'deleting', 'standardMileage', 'nonUK', 'custom'])(
+            'does not warn for %s',
+            (scenario) => {
+                // Given a policy outside the warning's eligibility rules
+                const policy = createUKFuelRateTaxPolicy();
+                const unit = policy.customUnits?.distance;
+                if (!unit?.attributes || !policy.tax || !unit.rates.fuel.attributes?.governmentRate) {
+                    throw new Error('Expected fuel rate and distance tax attributes');
+                }
+                const rate = unit.rates.fuel;
+                const governmentRate = unit.rates.fuel.attributes.governmentRate;
+                if (scenario === 'taxOff') {
+                    policy.tax.trackingEnabled = false;
+                }
+                if (scenario === 'distanceTaxOff') {
+                    unit.attributes.taxEnabled = false;
+                }
+                if (scenario === 'distanceFeatureOff') {
+                    policy.areDistanceRatesEnabled = false;
+                }
+                if (scenario === 'member') {
+                    policy.role = CONST.POLICY.ROLE.USER;
+                }
+                if (scenario === 'dismissed') {
+                    unit.attributes.isUKFuelRateTaxErrorDismissed = true;
+                }
+                if (scenario === 'disabled') {
+                    rate.enabled = false;
+                }
+                if (scenario === 'deleting') {
+                    rate.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                }
+                if (scenario === 'standardMileage') {
+                    governmentRate.sourceRateID = 'GB_2026-04-06';
+                }
+                if (scenario === 'nonUK') {
+                    governmentRate.sourceRateID = 'US_PETROL_2026-01-01';
+                }
+                if (scenario === 'custom') {
+                    rate.attributes = {};
+                }
+                // When the policy is checked
+                const shouldShow = shouldShowUKFuelRateTaxError(policy);
+                // Then it is excluded without hiding another workspace's warning
+                expect(shouldShow).toBe(false);
+                expect(shouldShowUKFuelRateTaxError(createUKFuelRateTaxPolicy())).toBe(true);
+            },
+        );
+    });
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,

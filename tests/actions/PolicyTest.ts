@@ -2,7 +2,7 @@ import type {GuidedSetupTask} from '@libs/actions/Report';
 import * as APIModule from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import GoogleTagManager from '@libs/GoogleTagManager';
-import {isPolicyPayer} from '@libs/PolicyUtils';
+import {isPolicyPayer, shouldShowUKFuelRateTaxError} from '@libs/PolicyUtils';
 // eslint-disable-next-line no-restricted-imports -- Namespace import is required to spy on ReportUtils without replacing the production module.
 import * as ReportUtils from '@libs/ReportUtils';
 
@@ -36,6 +36,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
+import createUKFuelRateTaxPolicy from '../utils/createUKFuelRateTaxPolicy';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import {
@@ -6241,6 +6242,37 @@ describe('actions/Policy', () => {
             expect(updatedPolicy?.pendingFields?.areWorkflowsEnabled).toBeUndefined();
         });
     });
+    describe('dismissUKFuelRateTaxError', () => {
+        it.each([false, true])('hides the warning optimistically and handles failure: %s', async (shouldFail) => {
+            // Given a workspace with an invalid UK fuel VAT mapping
+            const policy = createUKFuelRateTaxPolicy();
+            const unit = policy.customUnits?.distance;
+            if (!unit) {
+                throw new Error('Expected distance unit');
+            }
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await waitForBatchedUpdates();
+            mockFetch.pause();
+            if (shouldFail) {
+                mockFetch.fail();
+            }
+            // When the admin dismisses the warning
+            Policy.dismissUKFuelRateTaxError(policy.id, unit);
+            await waitForBatchedUpdates();
+            let updated = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            // Then the warning disappears immediately, with the unit's other attributes preserved
+            expect(shouldShowUKFuelRateTaxError(updated)).toBe(false);
+            expect(updated?.customUnits?.distance.attributes?.isUKFuelRateTaxErrorDismissed).toBe(true);
+            expect(updated?.customUnits?.distance.attributes?.taxEnabled).toBe(true);
+            expect(updated?.customUnits?.distance.pendingFields?.isUKFuelRateTaxErrorDismissed).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            await mockFetch.resume();
+            updated = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(shouldShowUKFuelRateTaxError(updated)).toBe(shouldFail);
+            expect(updated?.customUnits?.distance.pendingFields?.isUKFuelRateTaxErrorDismissed).toBeUndefined();
+            expect(!!updated?.customUnits?.distance.errorFields?.isUKFuelRateTaxErrorDismissed).toBe(shouldFail);
+        });
+    });
+
     describe('enableDistanceRequestTax', () => {
         it('should enable distance request tax optimistically and succeed', async () => {
             // Given a policy with a custom unit and tax disabled
