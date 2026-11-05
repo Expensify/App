@@ -4,6 +4,7 @@ import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -17,6 +18,12 @@ type WiseBankAccountAddedProps = {
 function WiseBankAccountAdded({onContinue}: WiseBankAccountAddedProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+
+    // The form's own back handler is gone with the form, and Android's back would otherwise leave without clearing the success
+    useAndroidBackButtonHandler(() => {
+        onContinue();
+        return true;
+    });
 
     return (
         <ScreenWrapper

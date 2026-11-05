@@ -275,6 +275,38 @@ describe('WiseDepositAccountContent', () => {
             expect(goBackSpy).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('123'));
             expect(await getOnyxValue(ONYXKEYS.PERSONAL_BANK_ACCOUNT)).toBeUndefined();
         });
+
+        it('drops the sensitive answers when the user continues, since the success screen replaces the form before it can drop them', async () => {
+            // Given a sensitive answer kept in memory while the user filled in the form
+            await Onyx.merge(ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS, {[ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM]: {accountNumber: '87654321'}});
+            await renderAddedAccount();
+
+            // When the user continues from the success screen
+            fireEvent.press(screen.getByText('common.continue'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the account number of the created account is no longer kept in memory
+            expect((await getOnyxValue(ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS))?.[ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM]).toBeUndefined();
+        });
+
+        it('starts over on the next visit when the user closed the success screen without continuing', async () => {
+            // Given a success, its form and its answers left behind, as when the user swipes the success screen away instead of pressing Continue
+            await Onyx.set(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS, wiseBankAccountFieldsGB);
+            await Onyx.merge(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT, {accountNumber: '87654321'});
+            await Onyx.merge(ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS, {[ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM]: {accountNumber: '87654321'}});
+            createWiseBankAccount('GB', 'GBP', {accountNumber: '87654321'});
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user opens the flow again
+            await renderScreen();
+
+            // Then the old success is not shown, and the created account's answers and form are dropped so the user starts from the country list
+            expect(screen.queryByText('addPersonalBankAccountPage.bankAccountAddedTitle')).not.toBeOnTheScreen();
+            expect((await getOnyxValue(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM))?.isSuccess).toBeFalsy();
+            expect(await getOnyxValue(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT)).toBeUndefined();
+            expect((await getOnyxValue(ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS))?.[ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM]).toBeUndefined();
+            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS)).toBeUndefined();
+        });
     });
 
     it('keeps what the user typed on the page while the form refreshes', async () => {

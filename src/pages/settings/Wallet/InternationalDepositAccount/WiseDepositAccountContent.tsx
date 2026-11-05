@@ -91,6 +91,8 @@ function WiseDepositAccountContent({backTo, subPage, isEditing}: WiseDepositAcco
     const [shouldShowTermsError, setShouldShowTermsError] = useState(false);
     // Remounts the form when it starts over, since its pages keep what the user typed in their own state as well as in the draft
     const [formStartCount, setFormStartCount] = useState(0);
+    // Read once when the screen opens: a success that arrives later belongs to this visit and shows the success screen
+    const [hasSuccessFromEarlierVisit, setHasSuccessFromEarlierVisit] = useState(() => !!formState?.isSuccess);
     const errorMessage = getLatestErrorMessage(wiseBankAccountFields);
     const payoutType = wiseBankAccountFields?.payoutType;
     const formCurrency = wiseBankAccountFields?.currency;
@@ -145,9 +147,23 @@ function WiseDepositAccountContent({backTo, subPage, isEditing}: WiseDepositAcco
 
     const clearFlow = () => {
         clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
+        // The form drops these itself only when it sees the submit end, and a success replaces the form before that
+        clearSensitiveAnswers(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
         clearWiseBankAccountForm();
         clearWiseBankAccountFields();
     };
+
+    // A success is cleared by Continue, so closing the success screen another way (a swipe, Escape) leaves it, with the created account's
+    // answers, for the next visit. That visit starts over instead of opening on the success screen.
+    const clearSuccessFromEarlierVisit = useEffectEvent(() => {
+        if (!hasSuccessFromEarlierVisit) {
+            return;
+        }
+        clearFlow();
+    });
+    useEffect(() => {
+        clearSuccessFromEarlierVisit();
+    }, []);
 
     const leaveFlow = () => {
         clearFlow();
@@ -175,6 +191,7 @@ function WiseDepositAccountContent({backTo, subPage, isEditing}: WiseDepositAcco
         clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
         // A success from an earlier visit is kept on the device, so it is dropped before the new form arrives
         clearWiseBankAccountForm();
+        setHasSuccessFromEarlierVisit(false);
         getWiseBankAccountFields(selectedCountry);
     };
 
@@ -232,7 +249,7 @@ function WiseDepositAccountContent({backTo, subPage, isEditing}: WiseDepositAcco
     }
 
     // The form state is saved on the device, while the form is only kept in memory. A success left behind by a reload shows the country list instead.
-    if (formState?.isSuccess && schema) {
+    if (formState?.isSuccess && schema && !hasSuccessFromEarlierVisit) {
         return <WiseBankAccountAdded onContinue={finishFlow} />;
     }
 
