@@ -12,12 +12,6 @@ type UseDiscardChangesConfirmationOptions = {
      * Code that closes the flow on purpose from a later step, such as a submit, must call `suppressFlowDiscardPrompt` first.
      */
     shouldPromptWhenUnfocused?: boolean;
-
-    /**
-     * Runs after the user picks Discard, right before this screen is removed. Use it to clear the screen's data.
-     * It also runs when the user picked Discard in another screen's prompt for the same navigation.
-     */
-    onDiscarded?: () => void;
 };
 
 type DiscardChangesConfirmation = {

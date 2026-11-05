@@ -42,7 +42,6 @@ function useDiscardChangesConfirmation({
     onConfirm,
     onTabSwitchDiscard,
     shouldPromptWhenUnfocused = false,
-    onDiscarded,
 }: UseDiscardChangesConfirmationOptions): DiscardChangesConfirmation {
     const route = useRoute();
     const navigation = useNavigation();
@@ -91,7 +90,6 @@ function useDiscardChangesConfirmation({
         if (!blockedAction) {
             return;
         }
-        onDiscarded?.();
         shouldNavigateBack.current = true;
         runWhileReplayingDiscardedNavigation(() => navigationRef.current?.dispatch(getNavigationActionForReplay(blockedAction)));
         shouldNavigateBack.current = false;
@@ -133,11 +131,8 @@ function useDiscardChangesConfirmation({
             return;
         }
 
+        // The user already picked Discard in another guard's prompt for this navigation, so don't ask again
         if (isReplayingDiscardedNavigation()) {
-            // The user already picked Discard in another guard's prompt for this navigation. Don't ask again, only clear this screen's data too.
-            if (hasUnsavedChanges()) {
-                onDiscarded?.();
-            }
             return;
         }
 

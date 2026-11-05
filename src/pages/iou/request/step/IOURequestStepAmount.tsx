@@ -23,7 +23,6 @@ import {getIsP2PForAmount, submitAmount} from '@libs/IOUAmountSubmission';
 import {isLookingAroundSearchRoutingActive, isMovingTransactionFromTrackExpense, isSelfDMSoleDestination} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import {getAmountHasUnsavedChanges} from '@libs/MoneyRequestUtils';
-import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
@@ -169,8 +168,6 @@ function IOURequestStepAmount({
             focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
         },
         shouldPromptWhenUnfocused: isFlowRoot,
-        // Wait for the RHP to finish closing, so its screens don't show empty fields on the way out
-        onDiscarded: isFlowRoot ? () => cleanupAfterExpenseCreate({draftTransactionIDs: [transactionID], shouldWaitForUpcomingTransition: true}) : undefined,
     });
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);

@@ -34,7 +34,6 @@ function useDiscardChangesConfirmation({
     onConfirm,
     onTabSwitchDiscard,
     shouldPromptWhenUnfocused = false,
-    onDiscarded,
 }: UseDiscardChangesConfirmationOptions): DiscardChangesConfirmation {
     const route = useRoute();
     const navigation = useNavigation();
@@ -93,7 +92,6 @@ function useDiscardChangesConfirmation({
                 return;
             }
             const confirmNavigation = () => {
-                onDiscarded?.();
                 isReplayingBlockedNavigation.current = true;
                 runWhileReplayingDiscardedNavigation(() => {
                     if (blockedNavigationAction.current) {
@@ -114,15 +112,8 @@ function useDiscardChangesConfirmation({
     usePreventRemove(shouldPreventRemove, ({data}: {data: {action: NavigationAction}}) => {
         // The action delivered here carries react-navigation's visited-routes marker, so re-dispatching it skips this screen's prevention
         const letThrough = () => navigationRef.current?.dispatch(getNavigationActionForReplay(data.action));
-        if (isReplayingBlockedNavigation.current) {
-            letThrough();
-            return;
-        }
-        if (isReplayingDiscardedNavigation()) {
-            // The user already picked Discard in another guard's prompt for this navigation. Don't ask again, only clear this screen's data too.
-            if (hasUnsavedChanges()) {
-                onDiscarded?.();
-            }
+        // The user already picked Discard in this or another guard's prompt for this navigation, so don't ask again
+        if (isReplayingBlockedNavigation.current || isReplayingDiscardedNavigation()) {
             letThrough();
             return;
         }

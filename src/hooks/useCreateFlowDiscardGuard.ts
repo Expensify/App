@@ -1,5 +1,4 @@
 import {haveMoneyRequestDraftsUserEdits} from '@libs/MoneyRequestUtils';
-import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OdometerDraft} from '@src/types/onyx';
@@ -26,8 +25,8 @@ type UseCreateFlowDiscardGuardParams = {
 };
 
 /**
- * Asks "Discard changes?" when the user closes a create expense flow from any step while a draft has their input. Discard clears
- * the drafts. Use it on the flow's first screen: going back between steps never removes that screen, so it doesn't prompt.
+ * Asks "Discard changes?" when the user closes a create expense flow from any step while a draft has their input. Use it on the
+ * flow's first screen: going back between steps never removes that screen, so it doesn't prompt.
  */
 function useCreateFlowDiscardGuard({isEnabled, shouldPrompt, savedOdometerDraft, onBeforeClose}: UseCreateFlowDiscardGuardParams) {
     // Starting a flow clears all drafts, so every draft here belongs to this flow. Multi-scan has one draft per receipt.
@@ -38,8 +37,6 @@ function useCreateFlowDiscardGuard({isEnabled, shouldPrompt, savedOdometerDraft,
         getHasUnsavedChanges: () => isFlowDirty && (shouldPrompt?.() ?? true),
         shouldPromptWhenUnfocused: isEnabled,
         onConfirm: onBeforeClose,
-        // Wait for the RHP to finish closing, so its screens don't show empty fields on the way out
-        onDiscarded: () => cleanupAfterExpenseCreate({draftTransactionIDs: Object.keys(drafts ?? {}), shouldWaitForUpcomingTransition: true}),
     });
 
     return {isFlowDirty};

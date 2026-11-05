@@ -1,9 +1,7 @@
-import {act, renderHook, waitFor} from '@testing-library/react-native';
+import {renderHook, waitFor} from '@testing-library/react-native';
 
 import useCreateFlowDiscardGuard from '@hooks/useCreateFlowDiscardGuard';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
-
-import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -13,7 +11,6 @@ import Onyx from 'react-native-onyx';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useDiscardChangesConfirmation', () => jest.fn(() => ({suppressDiscardPrompt: jest.fn()})));
-jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => jest.fn());
 
 const getGuardOptions = () => jest.mocked(useDiscardChangesConfirmation).mock.calls.at(-1)?.[0];
 
@@ -51,7 +48,7 @@ describe('useCreateFlowDiscardGuard', () => {
         expect(getGuardOptions()?.shouldPromptWhenUnfocused).toBe(true);
     });
 
-    it('prompts for user input in any of the flow drafts, and clears all of them on Discard', async () => {
+    it('prompts for user input in any of the flow drafts', async () => {
         // Given a multi-scan flow where only the second draft holds a scanned receipt
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {
             transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
@@ -77,15 +74,6 @@ describe('useCreateFlowDiscardGuard', () => {
 
         // Then leaving the flow prompts
         expect(getGuardOptions()?.getHasUnsavedChanges()).toBe(true);
-
-        // When the user confirms Discard
-        act(() => getGuardOptions()?.onDiscarded?.());
-
-        // Then every draft of the flow is cleared once the flow has closed
-        expect(cleanupAfterExpenseCreate).toHaveBeenCalledWith({
-            draftTransactionIDs: expect.arrayContaining([CONST.IOU.OPTIMISTIC_TRANSACTION_ID, '2']),
-            shouldWaitForUpcomingTransition: true,
-        });
     });
 
     it('stays out of the way when the screen is not the root of the flow', async () => {
@@ -99,15 +87,15 @@ describe('useCreateFlowDiscardGuard', () => {
             merchant: '',
             receipt: {source: 'blob:receipt'},
         });
-        const getIsFlowRoot = jest.fn(() => false);
+        const shouldPrompt = jest.fn(() => false);
 
         // When the screen sets up its guard on top of the start page that already guards the flow
-        const {result} = renderHook(() => useCreateFlowDiscardGuard({isEnabled: true, getIsFlowRoot}));
+        const {result} = renderHook(() => useCreateFlowDiscardGuard({isEnabled: true, shouldPrompt}));
         await waitFor(() => expect(result.current.isFlowDirty).toBe(true));
 
         // Then it doesn't prompt, so the user is asked once, by the start page
         expect(getGuardOptions()?.getHasUnsavedChanges()).toBe(false);
-        expect(getIsFlowRoot).toHaveBeenCalled();
+        expect(shouldPrompt).toHaveBeenCalled();
     });
 
     it('stays clean when disabled', async () => {

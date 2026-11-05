@@ -368,31 +368,27 @@ describe('useDiscardChangesConfirmation (native)', () => {
             expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'DISMISS_MODAL'});
         });
 
-        it('runs onDiscarded and replays a root-level close at the root navigator on Discard', async () => {
-            // Given a dirty flow root that clears its drafts on discard
-            const onDiscarded = jest.fn();
-            renderFlowRootHook({onDiscarded});
+        it('replays a root-level close at the root navigator on Discard', async () => {
+            // Given a dirty flow root
+            renderFlowRootHook();
 
             // When a close sent from the root-level RHP route is blocked and the user confirms Discard
             invokeBeforeRemove('GO_BACK', {source: 'rhp-route'});
             await resolveModalWith('CONFIRM');
 
-            // Then the drafts are cleared and the close is replayed where it was first handled, closing the whole RHP
-            expect(onDiscarded).toHaveBeenCalledTimes(1);
+            // Then the close is replayed where it was first handled, closing the whole RHP
             expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'GO_BACK', source: 'rhp-route', target: 'root'});
         });
 
         it('discards without a second prompt when another guard already confirmed the navigation', () => {
             // Given a dirty flow root under another guard of the same flow
-            const onDiscarded = jest.fn();
-            renderFlowRootHook({onDiscarded});
+            renderFlowRootHook();
 
             // When the other guard replays the navigation the user confirmed to discard
             runWhileReplayingDiscardedNavigation(() => invokeBeforeRemove('DISMISS_MODAL'));
 
-            // Then the root lets it through without asking again, and still discards its own changes
+            // Then the root lets it through without asking again
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
-            expect(onDiscarded).toHaveBeenCalledTimes(1);
             expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'DISMISS_MODAL'});
         });
     });

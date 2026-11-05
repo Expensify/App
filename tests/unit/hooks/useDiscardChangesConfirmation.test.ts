@@ -436,20 +436,16 @@ describe('useDiscardChangesConfirmation (web)', () => {
             expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         });
 
-        it('replays the overlay close at the root navigator on Discard, after running onDiscarded', async () => {
-            // Given a dirty flow root that clears its drafts on discard
-            const onDiscarded = jest.fn(() => {
-                expect(mockNavigationDispatch).not.toHaveBeenCalled();
-            });
+        it('replays the overlay close at the root navigator on Discard', async () => {
+            // Given a dirty flow root covered by a later step
             mockIsFocused = false;
-            renderFlowRootHook({onDiscarded});
+            renderFlowRootHook();
 
             // When the overlay sends its GO_BACK without a target from the root-level RHP route and the user confirms Discard
             invokeBeforeRemove('GO_BACK', {source: 'rhp-route'});
             await resolveModalWith('CONFIRM');
 
-            // Then the replay targets the root, which closes the whole RHP instead of popping one inner screen, and the drafts were cleared first
-            expect(onDiscarded).toHaveBeenCalledTimes(1);
+            // Then the replay targets the root, which closes the whole RHP instead of popping one inner screen
             expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'GO_BACK', source: 'rhp-route', target: 'root'});
         });
 
@@ -467,8 +463,7 @@ describe('useDiscardChangesConfirmation (web)', () => {
 
         it('discards without a second prompt when another guard already confirmed the navigation', () => {
             // Given a dirty flow root under another guard of the same flow
-            const onDiscarded = jest.fn();
-            renderFlowRootHook({onDiscarded});
+            renderFlowRootHook();
 
             // When the other guard replays the navigation the user confirmed to discard
             let event: MockBeforeRemoveEvent | undefined;
@@ -476,10 +471,9 @@ describe('useDiscardChangesConfirmation (web)', () => {
                 event = invokeBeforeRemove('DISMISS_MODAL');
             });
 
-            // Then the root lets it through without asking again, and still discards its own changes
+            // Then the root lets it through without asking again
             expect(event?.defaultPrevented).toBe(false);
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
-            expect(onDiscarded).toHaveBeenCalledTimes(1);
         });
     });
 });
