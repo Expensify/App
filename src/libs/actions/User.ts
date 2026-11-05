@@ -1414,6 +1414,14 @@ function joinAccountingIntegrationWaitlist(waitlist: OnyxEntry<AccountingIntegra
     API.write(WRITE_COMMANDS.JOIN_ACCOUNTING_INTEGRATION_WAITLIST, {policyID, connectionName}, {optimisticData, successData, failureData});
 }
 
+/** Removes the workspace's failed attempt to join an accounting integration waitlist, so the user can try again */
+function clearAccountingIntegrationWaitlistError(waitlist: OnyxEntry<AccountingIntegrationWaitlist>, policyID: string, connectionName: AccountingIntegrationWaitlistConnectionName) {
+    Onyx.set(
+        ONYXKEYS.NVP_ACCOUNTING_INTEGRATION_WAITLIST,
+        (waitlist ?? []).filter((entry) => !entry.errors || entry.connectionName !== connectionName || entry.policyID !== policyID),
+    );
+}
+
 function dismissMarketingWindow(updateKey: string) {
     const optimisticData: AnyOnyxUpdate[] = [
         {
@@ -2135,6 +2143,7 @@ export {
     joinExactOnlineWaitlist,
     clearExactOnlineWaitlistError,
     joinAccountingIntegrationWaitlist,
+    clearAccountingIntegrationWaitlistError,
     setSubmitMigrationModalShown,
     clearUnvalidatedNewContactMethodAction,
     clearPendingContactActionErrors,
