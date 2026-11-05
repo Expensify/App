@@ -852,6 +852,7 @@ describe('actions/Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: RORY_ACCOUNT_ID,
                 email: RORY_EMAIL,
+                currentUserPersonalDetails,
                 newReport: report,
                 policy: mockPolicy,
                 allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction},

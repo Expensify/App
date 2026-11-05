@@ -2318,7 +2318,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             const {onyxData} = getUpdateTrackExpenseParams({
                 transactionID,
                 transaction: fakeTransaction,
-                transactionThreadReportID,
+                transactionThread: fakeThreadReport,
+                transactionThreadParentReport: fakeSelfDMReport,
                 transactionChanges: {customUnitRateID: 'default'},
                 policy: fakePolicy,
                 delegateAccountID: undefined,
