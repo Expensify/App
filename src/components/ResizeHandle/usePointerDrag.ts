@@ -36,6 +36,11 @@ function usePointerDrag<Drag>({dragRef, onMove, onEnd}: UsePointerDragParams<Dra
     };
 
     const startDrag = (event: PointerDragEvent, createDrag: () => Drag) => {
+        // The drag cancels pointerdown, which would otherwise keep the press from focusing the handle for the arrow keys. Focused
+        // before the drag starts, so the handle losing focus hides its line. A script focus inherits the last input's modality, so
+        // after any key press it would otherwise match :focus-visible and show the focus ring and line on a plain click.
+        event.currentTarget.focus({preventScroll: true, focusVisible: false});
+
         // Secondary buttons open context menus rather than dragging.
         if (event.button !== 0) {
             return false;
