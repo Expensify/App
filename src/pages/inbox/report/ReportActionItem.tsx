@@ -277,7 +277,9 @@ function ReportActionItem({
     // IOUDetails only exists when we are sending money
     const isSendingMoney = isMoneyRequestAction(action) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && getOriginalMessage(action)?.IOUDetails;
 
-    const [sendMoneyChatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
+    // Only send money rows need the chat's actions. A comment on an expense report updates the report preview in that chat,
+    // so subscribing on every row would re-render the whole list on each send.
+    const [sendMoneyChatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(isSendingMoney ? report?.chatReportID : undefined)}`);
 
     const updateHiddenState = (isHiddenValue: boolean) => {
         setIsHidden(isHiddenValue);

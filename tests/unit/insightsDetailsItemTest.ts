@@ -71,6 +71,29 @@ describe('insightsDetailsItem', () => {
         expect(item).toEqual({title: 'Jane Doe', filterQuery: 'from:1'});
     });
 
+    it.each([
+        ['foo', '2026-03-31'],
+        ['2026-03-01', 'foo'],
+        ['2026-03-01', undefined],
+    ])('resolves no period for the keys "%s" and "%s"', (itemKey, periodEnd) => {
+        // Given period keys that are not dates, as in a hand-edited URL
+        // When the panel resolves them
+        const item = resolve(CONST.SEARCH.GROUP_BY.MONTH, itemKey, periodEnd);
+
+        // Then nothing resolves, so the panel shows the not found page instead of failing to format the title
+        expect(item).toBeUndefined();
+    });
+
+    it('resolves no member whose name is unknown', () => {
+        // Given the key of an account with no stored details, so the panel has no name to title it with
+        // When the panel resolves it
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the resolver only reads the translation keys it passes
+        const item = resolveInsightsDetailsItem({groupBy: CONST.SEARCH.GROUP_BY.FROM, itemKey: '999999', member: undefined, dateFnsLocale: undefined, translate: translate as never});
+
+        // Then nothing resolves, so the panel shows the not found page instead of an untitled panel
+        expect(item).toBeUndefined();
+    });
+
     it('titles an empty merchant like the chart does', () => {
         // Given the key of expenses with no merchant
         // When the panel resolves it

@@ -210,7 +210,9 @@ function MoneyRequestReportTransactionList({
 }: MoneyRequestReportTransactionListProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Columns']);
+    // The icon map is a new object on every render, so only the icon is kept. Depending on the map would rebuild the list
+    // header, and with it every row of the list, on each render.
+    const {Columns: columnsIcon} = useMemoizedLazyExpensifyIcons(['Columns']);
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -426,7 +428,7 @@ function MoneyRequestReportTransactionList({
                         onPress={openColumnsPage}
                     >
                         <LinkButton.Icon
-                            src={expensifyIcons.Columns}
+                            src={columnsIcon}
                             fill={theme.link}
                             hoverFill={theme.linkHover}
                         />

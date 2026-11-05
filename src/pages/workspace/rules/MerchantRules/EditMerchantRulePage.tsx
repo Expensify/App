@@ -5,13 +5,13 @@ import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
 
-import ExpenseDefaultRulePageBase from './ExpenseDefaultRulePageBase';
+import MerchantRulePageBase from './MerchantRulePageBase';
 
 type EditMerchantRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_EDIT>;
 
 function EditMerchantRulePage({route}: EditMerchantRulePageProps) {
     return (
-        <ExpenseDefaultRulePageBase
+        <MerchantRulePageBase
             policyID={route.params.policyID}
             ruleID={route.params.ruleID}
             testID="EditMerchantRulePage"

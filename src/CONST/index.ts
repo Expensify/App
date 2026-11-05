@@ -5081,10 +5081,13 @@ const CONST = {
         /** Subsections of the Rules > Expense defaults table, listed in the order they render. */
         EXPENSE_DEFAULTS_SECTION: {
             CATEGORIES: 'categories',
-            TAGS: 'tags',
             MERCHANTS: 'merchants',
-            MULTIPLE_CONDITIONS: 'multipleConditions',
             MERCHANT_TYPES: 'merchantTypes',
+        },
+        /** What an expense default rule matches on, chosen before the editor opens and kept in its draft. */
+        EXPENSE_DEFAULT_RULE_TYPE: {
+            MERCHANT: 'merchant',
+            CATEGORY: 'category',
         },
         DEFAULT_REPORT_NAME_PATTERN: '{report:type} {report:startdate}',
         DEFAULT_FIELD_LIST_TYPE: 'formula',
@@ -9663,7 +9666,6 @@ const CONST = {
         EXPENSE_DEFAULT: {
             /** Expense fields a `Set` action can write to */
             FIELD: {
-                AMOUNT: 'amount',
                 BILLABLE: 'billable',
                 CATEGORY: 'category',
                 COMMENT: 'comment',
@@ -10466,6 +10468,7 @@ const CONST = {
             CONTROL_GROUP_CURRENCY: 'Insights-ControlGroupCurrency',
             CONTROL_GROUP_BY: 'Insights-ControlGroupBy',
             CONTROL_COMPARE: 'Insights-ControlCompare',
+            AI_EXPLAIN: 'Insights-AIExplain',
             DASHBOARD_TAB: 'Insights-DashboardTab',
             TABLE_ROW: 'Insights-TableRow',
             DETAILS_TOP_EXPENSE: 'Insights-DetailsTopExpense',
@@ -10495,6 +10498,7 @@ const CONST = {
             ATTACHMENT_PICKER_MENU_ADD_ATTACHMENT: 'Report-AttachmentPickerMenuAddAttachment',
             REPORT_ACTION_ITEM_CREATED: 'Report-ReportActionItemCreated',
             REPORT_ACTION_ITEM_MESSAGE_ENTER_SIGNER_INFO: 'Report-ReportActionItemMessageEnterSignerInfo',
+            REPORT_ACTION_ITEM_ADD_HOME_ADDRESS: 'Report-ReportActionItemAddHomeAddress',
             REPORT_ACTION_ITEM_MESSAGE_EDIT_CANCEL_BUTTON: 'Report-ReportActionItemMessageEditCancelButton',
             REPORT_ACTION_ITEM_MESSAGE_EDIT_SAVE_BUTTON: 'Report-ReportActionItemMessageEditSaveButton',
             REPORT_ACTION_ITEM_SINGLE_AVATAR_BUTTON: 'Report-ReportActionItemSingleAvatarButton',
@@ -10990,7 +10994,6 @@ const CONST = {
                 INDIVIDUAL_EXPENSES_MENU_ITEM: 'WorkspaceRules-IndividualExpensesMenuItem',
                 SPEND_RULE_ITEM: 'WorkspaceRules-SpendRuleItem',
                 MERCHANT_RULE_ITEM: 'WorkspaceRules-MerchantRuleItem',
-                TAG_RULE_ITEM: 'WorkspaceRules-TagRuleItem',
                 REQUIRE_FIELDS_RULE_ITEM: 'WorkspaceRules-RequireFieldsRuleItem',
                 REQUIRE_FIELDS_RULE_SAVE: 'WorkspaceRules-RequireFieldsRuleSave',
                 REQUIRE_FIELDS_RULE_DESCRIBE: 'WorkspaceRules-RequireFieldsRuleDescribe',
@@ -11194,6 +11197,7 @@ const CONST = {
             LANGUAGE: 'SettingsPreferences-Language',
             PAYMENT_CURRENCY: 'SettingsPreferences-PaymentCurrency',
             THEME: 'SettingsPreferences-Theme',
+            HOME_ADDRESS: 'SettingsPreferences-HomeAddress',
         },
         SETTINGS_SECURITY: {
             TWO_FACTOR_AUTH: 'SettingsSecurity-TwoFactorAuth',

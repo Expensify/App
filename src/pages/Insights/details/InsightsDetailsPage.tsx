@@ -7,6 +7,7 @@ import {buildChartDrillDownQuery} from '@components/Search/chartDrillDown';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -24,6 +25,7 @@ import useInsightsFilters from '@pages/Insights/useInsightsFilters';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
@@ -43,11 +45,16 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
     const {isBetaEnabled} = usePermissions();
     const {graphKey, item: itemKey, end: periodEnd} = route.params;
     const {filters, isResolved} = useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND);
-    const [member] = usePersonalDetail(graphKey === CONST.INSIGHTS.GRAPH.TOP_SPENDERS ? Number(itemKey) : undefined);
+    const memberAccountID = graphKey === CONST.INSIGHTS.GRAPH.TOP_SPENDERS ? Number(itemKey) : undefined;
+    const [storedMember] = usePersonalDetail(memberAccountID);
 
     const {headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND];
     const chartSpec = route.params.dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND ? [headlineChart, ...supportingCharts].find((spec) => spec.graphKey === graphKey) : undefined;
     const chartQueryJSON = chartSpec && isResolved ? buildSearchQueryJSON(applyInsightsFilters(chartSpec, filters)) : undefined;
+    const [chartMember] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${chartQueryJSON?.hash}`, {
+        selector: (snapshot) => (memberAccountID === undefined ? undefined : snapshot?.data?.personalDetailsList?.[memberAccountID]),
+    });
+    const member = chartMember ?? storedMember;
     // A period's title depends on the saved Group by, so nothing resolves until the saved filters load
     const item =
         chartSpec && isResolved

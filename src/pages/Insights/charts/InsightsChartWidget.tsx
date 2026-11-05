@@ -21,6 +21,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {INSIGHTS_CHART_STATE} from '@libs/resolveInsightsChartData';
 import {getDateFilterRange} from '@libs/SearchQueryUtils';
 
+import InsightsExplainButton from '@pages/Insights/ai/InsightsExplainButton';
 import buildInsightsChartCSV from '@pages/Insights/buildInsightsChartCSV';
 import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDropdown';
 import type {InsightsChartSpec} from '@pages/Insights/dashboardSpecs';
@@ -32,7 +33,7 @@ import useInsightsChartData from '@pages/Insights/useInsightsChartData';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {InsightsDashboardID, SearchResults} from '@src/types/onyx';
+import type {InsightsDashboardID, InsightsScope, SearchResults} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -69,6 +70,9 @@ type InsightsChartWidgetProps = {
     /** Page-level filters every chart on the dashboard is narrowed by */
     filters: InsightsFilters;
 
+    /** Dashboard filters sent to Concierge when the user asks to explain the chart */
+    insightsScope: InsightsScope;
+
     /** Called by the retry button to request the dashboard again */
     onRetry: () => void;
 
@@ -86,15 +90,16 @@ function InsightsChartWidget({
     averageTotal,
     isDashboardLoaded,
     filters,
+    insightsScope,
     onRetry,
     onGroupByChange,
 }: InsightsChartWidgetProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
     const {cardPaddingHorizontal, cardPaddingBottom} = useLayoutSpacing();
     const icons = useMemoizedLazyExpensifyIcons(['Expand', 'Table']);
     const {getCurrencyDecimals} = useCurrencyListActions();
-    const {isBetaEnabled} = usePermissions();
 
     const {data, state, comparison} = useInsightsChartData({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageTotal, isDashboardLoaded}, filters);
     const groupBy = chart.groupBy ?? getQueryGroupBy(filters);
@@ -146,6 +151,14 @@ function InsightsChartWidget({
             />
         ) : null;
 
+    const explainButton =
+        isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && (state === INSIGHTS_CHART_STATE.READY || isLoading) ? (
+            <InsightsExplainButton
+                explainPrompt={translate('insightsPage.explainChartPrompt', translate(chart.titleKey))}
+                insightsScope={insightsScope}
+            />
+        ) : null;
+
     const headerMenu =
         !!queryJSON && (state === INSIGHTS_CHART_STATE.READY || isLoading) ? (
             <WidgetHeaderMenu
@@ -177,9 +190,10 @@ function InsightsChartWidget({
         <WidgetContainer
             title={translate(chart.titleKey)}
             titleRightContent={
-                !!groupByControl || !!headerMenu ? (
+                !!groupByControl || !!explainButton || !!headerMenu ? (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.flexShrink1]}>
                         {groupByControl}
+                        {explainButton}
                         {headerMenu}
                     </View>
                 ) : null
