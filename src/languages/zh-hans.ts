@@ -190,6 +190,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dob: '出生日期',
         currentYear: '本年度',
         currentMonth: '本月',
+        todayDateLabel: (date: string) => `${date}，今天`,
         ssnLast4: '社保号后四位',
         ssnFull9: '社会安全号码的完整 9 位数字',
         addressLine: (lineNumber: number) => `地址第 ${lineNumber} 行`,
@@ -1037,6 +1038,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             emailDeliveryFailure: {title: '我们无法向你发送电子邮件通知', subtitle: '账户'},
             upgradeNetSuiteConnection: {title: '升级您的 NetSuite 连接'},
+            verifyWiseBankAccount: {title: '验证银行账户', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `尾号为 ${bankAccountLastFour} 的银行账户`},
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -1200,6 +1202,8 @@ const translations: TranslationDeepObject<typeof en> = {
         runningTotal: '累计总额',
         explain: '解释',
         explainChartPrompt: (chartTitle: string) => `解释「${chartTitle}」中的数据。`,
+        viewDetails: '查看详情',
+        viewAll: '查看全部',
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -2070,6 +2074,13 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `请更改报告的工作区以执行进一步操作。`,
+
+            [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `您只能在此工作区执行批准操作。将此报表移动到其他工作区后即可提交。`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -3056,6 +3067,7 @@ const translations: TranslationDeepObject<typeof en> = {
             payingReportSubtitle: '公司账户和员工账户使用的货币不同。',
         },
         wiseGlobalReimbursementsBanner: {title: '向全球付款', subtitle: '在您的美元账户中启用全球报销。'},
+        wiseMoreInfoNeeded: '启用全球报销所需的更多信息',
         globalReimbursementsEnabled: '已启用全球报销',
     },
     addCardToDigitalWallet: {
@@ -3207,8 +3219,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         addApprovalsDescription: '在付款前需要额外审批。',
         makeOrTrackPaymentsTitle: '付款',
         makeOrTrackPaymentsDescription: '为在 Expensify 中进行的付款添加授权付款人，或跟踪在其他地方进行的付款。',
-        collectEmployeeBankDetails: '收集员工银行账户信息',
-        collectEmployeeBankDetailsDescription: '收集员工的银行账户信息，以便在 Expensify 之外向他们报销。',
+        collectEmployeeBankDetails: '收集银行账户详细信息',
+        collectEmployeeBankDetailsDescription: '从工作区成员处收集银行账户信息，以便在 Expensify 之外向他们报销。',
+        disablePaymentsTitle: '要禁用付款吗？',
+        disablePaymentsPrompt: '这将删除您的所有付款设置。',
         businessBankAccountCountries: '企业银行账户国家',
         businessBankAccountCountriesDescription: '这些国家的员工需提供本地转账信息，其他员工需提供国际电汇信息。',
         customApprovalWorkflowEnabled:
@@ -5051,6 +5065,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         defaultWorkspaceTravelDisabled: {
             title: '你目前还不能预订行程',
             message: '您是已启用差旅功能的工作区成员，但该工作区不是您的默认工作区。要预订，请在您的默认工作区启用差旅功能，或将默认工作区切换为已启用差旅功能的工作区。',
+        },
+        approval: {
+            status: {outstanding: '未结', approved: '已批准', rejected: '已拒绝', canceled: '已取消'},
+            deadline: {softApproval: (time: string) => `将在 ${time} 后自动批准。在此之前可免费取消。`, hardApproval: (time: string) => `若未获批准，将在 ${time} 后自动取消。`},
         },
     },
     workspace: {
@@ -9301,6 +9319,27 @@ ${reportName}`,
             noVendorsFoundDescription: '请在 Zoho Books 中添加供应商，然后再次同步连接',
             noAccountsFound: '未找到账户',
             noAccountsFoundDescription: '请在 Zoho Books 中添加账户，然后再次同步连接',
+            autoSyncDescription: '每天自动同步 Zoho Books 和 Expensify。报告实时同步。',
+            accountingMethods: {
+                label: '导出方式',
+                description: '选择导出报销的时间。',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '权责发生制',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '现金',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '自付报销将在最终批准后导出',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自付费用将在支付后导出',
+                },
+            },
+            syncReimbursedReports: '同步已报销报表',
+            syncReimbursedReportsDescription: '当报表通过 ACH 支付时，将在此账户中生成一笔账单付款。',
+            billPaymentAccount: {label: '账单支付账户', description: '选择当 Expensify 将账单标记为已付款时，Zoho Books 贷记的清算账户。'},
+            syncExpensifyCardSettlements: '同步 Expensify 卡结算',
+            settlementAccount: {label: 'Expensify 卡结算账户', description: '选择您的结算账户，我们将会在 Zoho Books 中创建付款。'},
+            syncTravelBillingSettlements: '同步合并差旅结算',
+            travelBillingSettlementAccount: {label: '合并差旅结算账户', description: '选择您的结算账户，我们将会在 Zoho Books 中创建付款。'},
+            travelBillingPayableAccount: {label: '合并差旅计费应付账户'},
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central 设置',
@@ -10450,6 +10489,7 @@ ${reportName}`,
         },
         display: {
             label: '显示',
+            labelWithCount: ({count}: {count: number}) => (count > 0 ? `显示 (${count})` : '显示'),
             sortBy: '按排序',
             sortOrder: '排序顺序',
             groupBy: '分组依据',
@@ -10520,6 +10560,8 @@ ${reportName}`,
                 upcoming: '即将开始',
                 done: '已完成',
                 canceled: '已取消',
+                outstanding: '未结',
+                rejected: '已拒绝',
             },
         },
         tabs: {
@@ -12341,6 +12383,7 @@ ${reportName}`,
             other: (count: number) => `${count} 天前`,
         }),
         offlineMessage: '您已离线。报表历史可能不是最新的。',
+        toMarkAsDone: '标记为已完成',
     },
 };
 export default translations;

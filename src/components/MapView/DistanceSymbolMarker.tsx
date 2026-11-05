@@ -22,6 +22,7 @@ function DistanceSymbolMarker({distanceSymbolCoordinate, children, onPress}: Dis
                 <ToggleDistanceUnitButton
                     accessibilityRole={CONST.ROLE.BUTTON}
                     accessibilityLabel="distance-label"
+                    sentryLabel={CONST.SENTRY_LABEL.MAP_VIEW.TOGGLE_DISTANCE_UNIT}
                     onPress={onPress}
                 >
                     {children}

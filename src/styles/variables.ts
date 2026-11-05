@@ -32,6 +32,8 @@ const avatarSizes = {
 export default {
     bottomTabHeight: 72,
     floatingTabBarHeight: 60,
+    /** A phone in landscape has little height to spare, so the bar lays each tab's label beside its icon and is shorter. */
+    floatingTabBarLandscapeHeight: 44,
     floatingTabBarHorizontalInset: 16,
     // How far the selected pill reaches past its tab on each side, whatever the label's length.
     floatingTabBarSelectedOverhang: 4,

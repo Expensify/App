@@ -253,6 +253,7 @@ const translations = {
         dob: 'Date of birth',
         currentYear: 'Current year',
         currentMonth: 'Current month',
+        todayDateLabel: (date: string) => `${date}, today`,
         ssnLast4: 'Last 4 digits of SSN',
         ssnFull9: 'Full 9 digits of SSN',
         addressLine: (lineNumber: number) => `Address line ${lineNumber}`,
@@ -1212,6 +1213,10 @@ const translations = {
                 title: 'Signer info needed',
                 subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bank account ${bankAccountLastFour}`,
             },
+            verifyWiseBankAccount: {
+                title: 'Verify bank account',
+                subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bank account ending ${bankAccountLastFour}`,
+            },
             upgradeNetSuiteConnection: {
                 title: 'Upgrade your NetSuite connection',
             },
@@ -1361,6 +1366,8 @@ const translations = {
         viewOnSpend: 'View on Spend',
         explain: 'Explain',
         explainChartPrompt: (chartTitle: string) => `Explain the data in ${chartTitle}.`,
+        viewDetails: 'View details',
+        viewAll: 'View all',
         compliance: 'Compliance',
         runningTotal: 'Running total',
         compare: {
@@ -2292,6 +2299,12 @@ const translations = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `Change the report's workspace for further actions.`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `You can only approve in this workspace. Move this report to another one to submit.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -3010,6 +3023,7 @@ const translations = {
     },
     walletPage: {
         balance: 'Balance',
+        wiseMoreInfoNeeded: 'More information needed to enable global reimbursements',
         paymentMethodsTitle: 'Payment methods',
         setDefaultConfirmation: 'Make default payment method',
         setDefaultSuccess: 'Default payment method set!',
@@ -3552,8 +3566,10 @@ const translations = {
         manager: 'Manager',
         makeOrTrackPaymentsTitle: 'Payments',
         makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify or track payments made elsewhere.',
-        collectEmployeeBankDetails: 'Collect employee bank details',
-        collectEmployeeBankDetailsDescription: 'Gather bank account details from employees, so you can reimburse them outside of Expensify.',
+        collectEmployeeBankDetails: 'Collect bank account details',
+        collectEmployeeBankDetailsDescription: 'Gather bank details from workspace members, so you can reimburse them outside of Expensify.',
+        disablePaymentsTitle: 'Disable payments?',
+        disablePaymentsPrompt: 'This will remove all of your payment settings.',
         businessBankAccountCountries: 'Business bank account countries',
         businessBankAccountCountriesDescription: 'Employees in these countries provide local transfer details. Everyone else provides international wire details.',
         customApprovalWorkflowEnabled:
@@ -3933,6 +3949,7 @@ const translations = {
             }
             return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `to automatically submit on the ${eta} of each month` : `to automatically submit ${eta}`;
         },
+        toMarkAsDone: 'to mark as done',
         toApprove: 'to approve',
         toPay: 'to pay',
         minutesAgo: (count: number) => `${count}m ago`,
@@ -5288,6 +5305,18 @@ const translations = {
         bookDemo: 'Book demo',
         bookADemo: 'Book a demo',
         toLearnMore: ' to learn more.',
+        approval: {
+            status: {
+                outstanding: 'Outstanding',
+                approved: 'Approved',
+                rejected: 'Rejected',
+                canceled: 'Canceled',
+            },
+            deadline: {
+                softApproval: (time: string) => `Auto-approves in ${time}. Free cancellation until then.`,
+                hardApproval: (time: string) => `Auto-cancels in ${time} if not approved.`,
+            },
+        },
         termsAndConditions: {
             header: 'Before we continue...',
             title: 'Review terms & conditions',
@@ -7137,6 +7166,38 @@ const translations = {
             noVendorsFoundDescription: 'Please add vendors in Zoho Books and sync the connection again',
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Please add accounts in Zoho Books and sync the connection again',
+            autoSyncDescription: 'Sync Zoho Books and Expensify automatically, every day. Reports sync in realtime.',
+            accountingMethods: {
+                label: 'Export method',
+                description: 'Choose when to export expenses.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Cash',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Out-of-pocket expenses will export when final approved',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Out-of-pocket expenses will export when paid',
+                },
+            },
+            syncReimbursedReports: 'Sync reimbursed reports',
+            syncReimbursedReportsDescription: 'When a report is paid via ACH, a bill payment will be generated in this account.',
+            billPaymentAccount: {
+                label: 'Bill payment account',
+                description: 'Choose the clearing account Zoho Books credits when Expensify marks a bill paid.',
+            },
+            syncExpensifyCardSettlements: 'Sync Expensify Card settlements',
+            settlementAccount: {
+                label: 'Expensify Card settlement account',
+                description: "Choose your settlement account and we'll create the payment in Zoho Books.",
+            },
+            syncTravelBillingSettlements: 'Sync Consolidated Travel Billing settlements',
+            travelBillingSettlementAccount: {
+                label: 'Consolidated Travel Billing settlement account',
+                description: "Choose your settlement account and we'll create the payment in Zoho Books.",
+            },
+            travelBillingPayableAccount: {
+                label: 'Consolidated Travel Billing payable account',
+            },
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central setup',
@@ -10986,6 +11047,8 @@ const translations = {
                 upcoming: 'Upcoming',
                 done: 'Done',
                 canceled: 'Canceled',
+                outstanding: 'Outstanding',
+                rejected: 'Rejected',
             },
         },
         tabs: {
@@ -11280,6 +11343,7 @@ const translations = {
         },
         display: {
             label: 'Display',
+            labelWithCount: ({count}: {count: number}) => (count > 0 ? `Display (${count})` : 'Display'),
             sortBy: 'Sort by',
             sortOrder: 'Sort order',
             groupBy: 'Group by',

@@ -13,7 +13,7 @@ import CONST from '@src/CONST';
 import type {ComponentRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import {addMonths, addYears, clamp, format, isSameDay, isValid, setMonth, setYear, startOfDay, startOfMonth, subMonths, subYears} from 'date-fns';
+import {addMonths, addYears, clamp, format, isSameDay, isToday, isValid, setMonth, setYear, startOfDay, startOfMonth, subMonths, subYears} from 'date-fns';
 import {Str} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -242,6 +242,7 @@ function CalendarPicker({
                 const currentDate = day ? new Date(currentYearView, currentMonthView, day) : undefined;
                 const isDisabled = !currentDate || currentDate < minDay || currentDate > maxDay || !(isDateSelectable?.(currentDate) ?? true);
                 const isSelected = !!currentDate && !!value && isSameDay(value, currentDate);
+                const isCurrentDay = !!currentDate && isToday(currentDate);
                 const handleOnPress = () => {
                     if (!currentDate || isDisabled) {
                         return;
@@ -250,7 +251,9 @@ function CalendarPicker({
                     onDayPressed(currentDate);
                 };
                 const key = `${index}_day-${day}`;
-                const accessibilityDateLabel = currentDate ? DateUtils.formatToLongDateWithWeekday(currentDate, dateFnsLocale) : '';
+                const longDateLabel = currentDate ? DateUtils.formatToLongDateWithWeekday(currentDate, dateFnsLocale) : '';
+                // Screen readers can't see today's fill, so today's label says it too
+                const accessibilityDateLabel = isCurrentDay ? translate('common.todayDateLabel', longDateLabel) : longDateLabel;
                 return (
                     <PressableWithoutFeedback
                         key={key}
@@ -275,6 +278,7 @@ function CalendarPicker({
                                 disabled={isDisabled}
                                 hovered={hovered}
                                 pressed={pressed}
+                                today={isCurrentDay}
                             >
                                 {day}
                             </DayComponent>
