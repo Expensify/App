@@ -162,6 +162,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDFromAction}`);
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
 
     // Collection Onyx subscriptions (isolated here to prevent parent header re-renders)
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -328,18 +329,20 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const dismissModalAndUpdateUseHold = () => {
         setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !shouldFailAllRequests);
         if (parentReportAction) {
-            changeMoneyRequestHoldStatus(
-                parentReportAction,
-                transaction,
+            changeMoneyRequestHoldStatus({
+                reportAction: parentReportAction,
+                iouTransaction: transaction,
+                iouTransactionReport: transactionReport,
+                reportActionChildReport: report,
                 policy,
                 isOffline,
-                currentUserLogin ?? '',
-                accountID,
-                rawTransactionViolations,
+                currentUserLogin: currentUserLogin ?? '',
+                currentUserAccountID: accountID,
+                transactionViolations: rawTransactionViolations,
                 isTrackIntentUser,
                 delegateAccountID,
                 rules,
-            );
+            });
         }
     };
 
@@ -347,18 +350,20 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
             dismissRejectUseExplanation();
             if (parentReportAction) {
-                changeMoneyRequestHoldStatus(
-                    parentReportAction,
-                    transaction,
+                changeMoneyRequestHoldStatus({
+                    reportAction: parentReportAction,
+                    iouTransaction: transaction,
+                    iouTransactionReport: transactionReport,
+                    reportActionChildReport: report,
                     policy,
                     isOffline,
-                    currentUserLogin ?? '',
-                    accountID,
-                    rawTransactionViolations,
+                    currentUserLogin: currentUserLogin ?? '',
+                    currentUserAccountID: accountID,
+                    transactionViolations: rawTransactionViolations,
                     isTrackIntentUser,
                     delegateAccountID,
                     rules,
-                );
+                });
             }
         } else {
             dismissRejectUseExplanation();
@@ -441,18 +446,20 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 const shouldShowHoldEducationalModal = isReportSubmitter || isParentChatReportDM;
                 const isDismissed = shouldShowHoldEducationalModal ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
                 if (isDismissed) {
-                    changeMoneyRequestHoldStatus(
-                        parentReportAction,
-                        transaction,
+                    changeMoneyRequestHoldStatus({
+                        reportAction: parentReportAction,
+                        iouTransaction: transaction,
+                        iouTransactionReport: transactionReport,
+                        reportActionChildReport: report,
                         policy,
                         isOffline,
-                        currentUserLogin ?? '',
-                        accountID,
-                        rawTransactionViolations,
+                        currentUserLogin: currentUserLogin ?? '',
+                        currentUserAccountID: accountID,
+                        transactionViolations: rawTransactionViolations,
                         isTrackIntentUser,
                         delegateAccountID,
                         rules,
-                    );
+                    });
                 } else if (shouldShowHoldEducationalModal) {
                     showHoldSubmitterEducationalModal({isDM: isParentChatReportDM}).finally(dismissModalAndUpdateUseHold);
                 } else {
@@ -474,18 +481,20 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                     return;
                 }
 
-                changeMoneyRequestHoldStatus(
-                    parentReportAction,
-                    transaction,
+                changeMoneyRequestHoldStatus({
+                    reportAction: parentReportAction,
+                    iouTransaction: transaction,
+                    iouTransactionReport: transactionReport,
+                    reportActionChildReport: report,
                     policy,
                     isOffline,
-                    currentUserLogin ?? '',
-                    accountID,
-                    rawTransactionViolations,
+                    currentUserLogin: currentUserLogin ?? '',
+                    currentUserAccountID: accountID,
+                    transactionViolations: rawTransactionViolations,
                     isTrackIntentUser,
                     delegateAccountID,
                     rules,
-                );
+                });
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT]: {

@@ -494,6 +494,7 @@ function getAllExpensesToHoldIfApplicable(
     policy: OnyxEntry<Policy>,
     currentUserAccountID: number | undefined,
     rules: OnyxCollection<Rule>,
+    reportOwnerLogin: string | undefined,
 ) {
     if (!report || !reportActions || !hasOnlyHeldExpenses(reportTransactions)) {
         return [];
@@ -507,7 +508,7 @@ function getAllExpensesToHoldIfApplicable(
         const transactionID = getOriginalMessage(action)?.IOUTransactionID;
         const transaction = reportTransactions.find((reportTransaction) => reportTransaction.transactionID === transactionID);
         const holdReportAction = getReportAction(action?.childReportID, `${transaction?.comment?.hold ?? ''}`);
-        return canHoldUnholdReportAction(report, action, holdReportAction, transaction, policy, currentUserAccountID, rules).canUnholdRequest;
+        return canHoldUnholdReportAction(report, action, holdReportAction, transaction, policy, currentUserAccountID, rules, reportOwnerLogin).canUnholdRequest;
     });
 }
 
@@ -556,7 +557,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
             reportActions,
             canNonPayerAdminPay: true,
         }) && allExpensesHeld;
-    const expensesToHold = getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy, currentUserAccountID, rules);
+    const expensesToHold = getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy, currentUserAccountID, rules, ownerLogin);
 
     if (isMarkAsCashAction(currentUserLogin, currentUserAccountID, report, ownerLogin, reportTransactions, violations, cardList, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH;

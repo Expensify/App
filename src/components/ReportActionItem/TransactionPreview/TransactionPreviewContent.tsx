@@ -52,6 +52,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {cardByIdSelector, cardsWithBrokenConnectionPastDismissThresholdSelector} from '@src/selectors/Card';
 import {getStableReportSelector} from '@src/selectors/Report';
+import type {CardList} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import truncate from 'lodash/truncate';
 import React from 'react';
@@ -59,6 +62,21 @@ import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import type {TransactionPreviewContentProps} from './types';
+
+// Only when the expense is actually held: the hold is appended to the RBR message on its own, so it must not also be picked
+// as the violation to describe. Left alone otherwise, so duplicates and settled expenses keep their existing message.
+function getViolationToDescribe(violations: TransactionPreviewContentProps['violations'], transaction: TransactionPreviewContentProps['transaction']) {
+    return filterReceiptViolations(violations).find((violation) => violation.name !== CONST.VIOLATIONS.HOLD || !transaction?.comment?.hold);
+}
+
+// A broken connection past the dismiss threshold is dropped from the list rather than having only its message
+// suppressed, because the red dot beside the message is driven by the list itself - leaving it in would render a dot
+// with no text next to it. Kept as a function, like getViolationToDescribe, so no array is built before the last hook.
+function getVisibleViolations(violations: TransactionPreviewContentProps['violations'], cardsPastDismissThreshold: OnyxEntry<CardList>) {
+    return violations.filter(
+        (violation) => !isBrokenConnectionViolationPastDismissThreshold(violation, violation.data?.cardID ? cardsPastDismissThreshold?.[violation.data.cardID] : undefined),
+    );
+}
 
 function TransactionPreviewContent({
     action,
@@ -92,31 +110,35 @@ function TransactionPreviewContent({
     const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {environmentURL} = useEnvironment();
     const buildDynamicRoute = useScreenBoundDynamicRoute();
+    const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {selector: getStableReportSelector});
+    const [policyVendors] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${report?.policyID}`);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.reportID)}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
+    const currentUserDetails = useCurrentUserPersonalDetails();
+    const {personalCardsWithBrokenConnection} = useCardFeedErrors();
+    // Narrowed to the cards past the dismiss threshold so this row doesn't re-render on every unrelated card change.
+    const [cardsPastDismissThreshold] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardsWithBrokenConnectionPastDismissThresholdSelector});
+    const animatedHighlightStyle = useAnimatedHighlightStyle({
+        shouldHighlight,
+        highlightColor: theme.messageHighlightBG,
+        backgroundColor: theme.cardBG,
+        shouldApplyOtherStyles: false,
+    });
+    const cardID = getViolationToDescribe(getVisibleViolations(violations, cardsPastDismissThreshold), transaction)?.data?.cardID;
+    // Keep this the last hook and derive the violation again below it. React Compiler cannot cache values that alias
+    // an array built before a hook call, and the whole preview derivation depends on this violation.
+    const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardByIdSelector(String(cardID))});
+
+    const visibleViolations = getVisibleViolations(violations, cardsPastDismissThreshold);
+    const firstViolation = getViolationToDescribe(visibleViolations, transaction);
     const isParentPolicyExpenseChat = isPolicyExpenseChat(chatReport);
     const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, undefined, policy, isParentPolicyExpenseChat) ?? {};
     const {amount, comment: requestComment, merchant, category, currency: requestCurrency} = transactionDetails;
-    const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
-    // Narrowed to the cards past the dismiss threshold so this row doesn't re-render on every unrelated card change.
-    const [cardsPastDismissThreshold] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardsWithBrokenConnectionPastDismissThresholdSelector});
-    // Dropped here rather than only suppressing its message, because the red dot beside the message is driven by the
-    // violation list itself - leaving it in would render a dot with no text next to it.
-    const visibleViolations = violations.filter(
-        (violation) => !isBrokenConnectionViolationPastDismissThreshold(violation, violation.data?.cardID ? cardsPastDismissThreshold?.[violation.data.cardID] : undefined),
-    );
-    // Only when the expense is actually held: the hold is appended to the RBR message on its own, so it must not also be picked
-    // as the violation to describe. Left alone otherwise, so duplicates and settled expenses keep their existing message.
-    const filteredViolations = filterReceiptViolations(visibleViolations).filter((violation) => violation.name !== CONST.VIOLATIONS.HOLD || !transaction?.comment?.hold);
-    const firstViolation = filteredViolations.at(0);
-    const cardID = firstViolation?.data?.cardID;
-    const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardByIdSelector(String(cardID))});
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {selector: getStableReportSelector});
-    const [policyVendors] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${report?.policyID}`);
     const managerID = report?.managerID ?? reportPreviewAction?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerAccountID = report?.ownerAccountID ?? reportPreviewAction?.childOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerLogin = getLoginByAccountID(ownerAccountID, personalDetails);
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.reportID)}`);
-    const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
-    const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserDetails.email ?? '';
     const currentUserLogin = currentUserDetails.login;
     const currentUserAccountID = currentUserDetails.accountID;
@@ -142,11 +164,9 @@ function TransactionPreviewContent({
 
     const {shouldShowRBR, shouldShowMerchant, shouldShowSplitShare, shouldShowCategory, shouldShowSkeleton, shouldShowDescription} = conditionals;
 
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const isIOUActionType = isMoneyRequestAction(action);
     const canEdit = isIOUActionType && canEditMoneyRequest(action, transaction, rules, isChatReportArchived, report, policy, reportActions);
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
-    const {personalCardsWithBrokenConnection} = useCardFeedErrors();
     const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL, buildDynamicRoute);
     const isMarkAsCash = parentReport && currentUserLogin ? isMarkAsCashActionForTransaction(currentUserLogin, parentReport, visibleViolations, cardsPastDismissThreshold, policy) : false;
 
@@ -248,13 +268,6 @@ function TransactionPreviewContent({
             );
         }
     }
-
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        shouldHighlight,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: theme.cardBG,
-        shouldApplyOtherStyles: false,
-    });
 
     const transactionWrapperStyles = [styles.border, styles.moneyRequestPreviewBox, (isIOUSettled || isApproved) && isSettlementOrApprovalPartial && styles.offlineFeedbackPending];
 
