@@ -72,6 +72,7 @@
         "CARDFROZEN",
         "CARDUNFROZEN",
         "CARDDEACTIVATED",
+        "CARDLIMITAMOUNTCHANGED",
         "CAROOT",
         "CCDQCAMM",
         "CFPB",
