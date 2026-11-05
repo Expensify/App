@@ -1,4 +1,4 @@
-import {markAgentAccountIDMappingReceivedInThisTab, registerAgentAccountIDMapping} from '@libs/AgentAccountIDMapping';
+import {registerAgentAccountIDMapping} from '@libs/AgentAccountIDMapping';
 import deepReplaceKeysAndValues from '@libs/deepReplaceKeysAndValues';
 import type {Middleware} from '@libs/Request';
 
@@ -142,8 +142,6 @@ const replaceOptimisticAgentAccountID: Middleware = (requestResponse) =>
                 // response is flushed to Onyx. Registering it here lets agent actions fired before then already
                 // resolve the real accountID instead of enqueueing the optimistic one after the sweep below.
                 registerAgentAccountIDMapping(optimisticAccountID, realAccountID);
-                // Only the tab that applies this response may clear the optimistic agent (see AgentAccountIDMapping).
-                markAgentAccountIDMappingReceivedInThisTab(optimisticAccountID);
 
                 // The request that produced the mapping is no longer in the persisted list here, so only the
                 // requests queued behind it are rewritten. update() re-persists the queue, so unchanged requests

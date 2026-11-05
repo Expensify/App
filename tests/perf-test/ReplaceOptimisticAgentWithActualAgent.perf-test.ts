@@ -40,7 +40,12 @@ jest.mock('react-native-onyx', () => ({
     merge: mockMerge,
     update: mockUpdate,
 }));
-jest.mock('@libs/PersonalDetailsStore', () => ({getPersonalDetail: () => undefined, personalDetailsHydrationPromise: Promise.resolve()}));
+// Only the three real agents (REAL_ACCOUNT_ID and the next two) have personal details, as after CreateAgent's
+// response; the optimistic ones were already cleared. Literals because jest.mock factories cannot use outer constants.
+jest.mock('@libs/PersonalDetailsStore', () => ({
+    getPersonalDetail: (accountID: number) => (accountID >= 12001 && accountID <= 12003 ? {accountID} : undefined),
+    personalDetailsHydrationPromise: Promise.resolve(),
+}));
 jest.mock('@libs/PersonalDetailsUtils', () => ({buildPersonalDetailsUpdate: jest.fn()}));
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,

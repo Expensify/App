@@ -1,6 +1,6 @@
 import {beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
 
-import {markAgentAccountIDMappingReceivedInThisTab, resolveAgentAccountID} from '@libs/AgentAccountIDMapping';
+import {resolveAgentAccountID} from '@libs/AgentAccountIDMapping';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import findFocusedRouteWithOnyxTabGuard from '@libs/Navigation/helpers/findFocusedRouteWithOnyxTabGuard';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
@@ -67,11 +67,10 @@ function buildAgentEditNavigationState(accountID: number): PartialState<Navigati
     };
 }
 
-// The ReplaceOptimisticAgentAccountID middleware marks a mapping in the tab that applies CreateAgent's response, before the
-// mapping reaches Onyx. Only that tab clears the optimistic agent, so most tests act as that tab.
-function replaceAgentFromResponseInThisTab(optimisticAccountID: number, realAccountID: number) {
-    markAgentAccountIDMappingReceivedInThisTab(optimisticAccountID);
-    replaceOptimisticAgentWithActualAgent(optimisticAccountID, realAccountID);
+// CreateAgent's response adds the real agent's personal details. A tab only clears the optimistic agent once its own
+// cache holds them, so tests of the cleanup seed them first.
+function addRealAgentPersonalDetails(...realAccountIDs: number[]) {
+    return Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, Object.fromEntries(realAccountIDs.map((accountID) => [accountID, {accountID, displayName: 'Created agent'}])));
 }
 
 describe('replaceOptimisticAgentWithActualAgent', () => {
@@ -109,10 +108,11 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
                 [optimisticAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
             },
         });
+        await addRealAgentPersonalDetails(realAccountID);
         await waitForBatchedUpdates();
 
         // When the optimistic agent is replaced with the real one
-        replaceAgentFromResponseInThisTab(optimisticAccountID, realAccountID);
+        replaceOptimisticAgentWithActualAgent(optimisticAccountID, realAccountID);
         await waitForBatchedUpdates();
 
         // Then the optimistic participant is copied onto the real accountID and the optimistic key is removed
@@ -139,7 +139,7 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, swappedReport);
         await waitForBatchedUpdates();
 
-        replaceAgentFromResponseInThisTab(optimisticAccountID, realAccountID);
+        replaceOptimisticAgentWithActualAgent(optimisticAccountID, realAccountID);
         await waitForBatchedUpdates();
 
         const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -159,14 +159,15 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
             reportID,
             participants: {[firstOptimisticID]: optimisticParticipant, [secondOptimisticID]: optimisticParticipant, [firstRealID]: realParticipant},
         });
+        await addRealAgentPersonalDetails(firstRealID, secondRealID);
         await waitForBatchedUpdates();
         const mergeSpy = jest.spyOn(Onyx, 'merge');
         mockIsReady.mockReturnValue(true);
         mockGetRootState.mockClear();
 
         // When both mappings arrive together, report repair should be batched rather than repeated per agent
-        replaceAgentFromResponseInThisTab(firstOptimisticID, firstRealID);
-        replaceAgentFromResponseInThisTab(secondOptimisticID, secondRealID);
+        replaceOptimisticAgentWithActualAgent(firstOptimisticID, firstRealID);
+        replaceOptimisticAgentWithActualAgent(secondOptimisticID, secondRealID);
         await waitForBatchedUpdates();
 
         // Then one navigation pass and one report update preserve the server-provided participant
@@ -194,17 +195,18 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
             [optimisticAccountID]: {displayName: 'Concierge Travel', isOptimisticPersonalDetail: true},
         });
+        await addRealAgentPersonalDetails(realAccountID);
         await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`, {prompt: 'Book my flights'});
         await waitForBatchedUpdates();
 
-        replaceAgentFromResponseInThisTab(optimisticAccountID, realAccountID);
+        replaceOptimisticAgentWithActualAgent(optimisticAccountID, realAccountID);
         await waitForBatchedUpdates();
 
         const reportAfterFirstRun = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
         const personalDetailsAfterFirstRun = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
         const promptAfterFirstRun = await getOnyxValue(`${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`);
 
-        replaceAgentFromResponseInThisTab(optimisticAccountID, realAccountID);
+        replaceOptimisticAgentWithActualAgent(optimisticAccountID, realAccountID);
         await waitForBatchedUpdates();
 
         expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)).toStrictEqual(reportAfterFirstRun);
@@ -251,7 +253,6 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         await waitForBatchedUpdates();
 
         // When the mapping written by CreateAgent's success response is consumed
-        markAgentAccountIDMappingReceivedInThisTab(optimisticAccountID);
         await Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {[optimisticAccountID]: realAccountID});
         await waitForBatchedUpdates();
 
@@ -280,7 +281,7 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         });
         await waitForBatchedUpdates();
 
-        replaceAgentFromResponseInThisTab(optimisticAccountID, realAccountID);
+        replaceOptimisticAgentWithActualAgent(optimisticAccountID, realAccountID);
         await waitForBatchedUpdates();
 
         // Then nothing is written under the real accountID and the optimistic keys are cleared
@@ -360,11 +361,11 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         const optimisticPersonalDetail = {accountID: optimisticAccountID, displayName: 'Concierge Travel', isOptimisticPersonalDetail: true};
         const optimisticAgentPrompt = {prompt: 'Book my flights'};
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[optimisticAccountID]: optimisticPersonalDetail});
+        await addRealAgentPersonalDetails(realAccountID);
         await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`, optimisticAgentPrompt);
         await waitForBatchedUpdates();
 
         // When the mapping is consumed before navigation is ready
-        markAgentAccountIDMappingReceivedInThisTab(optimisticAccountID);
         await Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {[optimisticAccountID]: realAccountID});
         await waitForBatchedUpdates();
 
@@ -414,7 +415,6 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
             [realAccountID]: {accountID: realAccountID, displayName: 'Created agent'},
         });
         await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`, {prompt: 'Test instructions'});
-        markAgentAccountIDMappingReceivedInThisTab(optimisticAccountID);
         await Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {[optimisticAccountID]: realAccountID});
         await waitForBatchedUpdates();
 
@@ -480,15 +480,15 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         expect(resolveAgentAccountID(negativeMappedAccountID)).toBe(negativeMappedAccountID);
     });
 
-    it('redirects its own screens but clears no shared data in a tab that only received the mapping from another tab', async () => {
-        // Given a browser tab that created the agent while another tab applied CreateAgent's response, so this tab gets
-        // the mapping through Onyx's cross-tab sync. It still holds the optimistic agent, its DM and an open EDIT screen.
+    it('redirects its own screens but clears nothing while its cache does not hold the real agent yet', async () => {
+        // Given a second browser tab that created the agent while another tab applied CreateAgent's response. Onyx's
+        // cross-tab sync delivered the mapping, but not yet the personal details list holding the real agent, so this
+        // tab still has the optimistic agent, its DM and an open EDIT screen for it.
         const optimisticAccountID = 5172839406517283;
         const realAccountID = 3846152907384615;
         const ownerAccountID = 16180339;
         const reportID = '9182736450918273';
         const optimisticPersonalDetail = {accountID: optimisticAccountID, displayName: 'Concierge Travel', isOptimisticPersonalDetail: true};
-        const realPersonalDetail = {accountID: realAccountID, displayName: 'Concierge Travel', login: 'agent+3846152907384615@expensify.com'};
         const optimisticAgent = {prompt: 'Book my flights', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
         const participants = {
             [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
@@ -497,26 +497,24 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
 
         mockIsReady.mockReturnValue(true);
         mockGetRootState.mockReturnValue(buildAgentEditNavigationState(optimisticAccountID));
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[optimisticAccountID]: optimisticPersonalDetail, [realAccountID]: realPersonalDetail});
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[optimisticAccountID]: optimisticPersonalDetail});
         await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`, optimisticAgent);
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, type: CONST.REPORT.TYPE.CHAT, participants});
         await waitForBatchedUpdates();
         const mergeSpy = jest.spyOn(Onyx, 'merge');
         const updateSpy = jest.spyOn(Onyx, 'update');
 
-        // When this tab receives the mapping through Onyx's cross-tab sync
+        // When this tab receives the mapping
         replaceOptimisticAgentWithActualAgent(optimisticAccountID, realAccountID);
         await waitForBatchedUpdates();
 
-        // Then its screen moves to the real accountID, but it writes no shared data. On web each write saves the whole
-        // value from this tab's cache, which may still lack the real agent, so a write here could erase it.
+        // Then its screen moves to the real accountID, but it writes nothing. On web each write saves the whole value from
+        // this tab's cache, so clearing the optimistic agent here would erase the real agent the other tab just saved.
         expect(mockSetParams).toHaveBeenCalledWith({accountID: String(realAccountID)}, 'agents-edit-route-key', 'agent-settings-stack-key');
         expect(resolveAgentAccountID(optimisticAccountID)).toBe(realAccountID);
         expect(mergeSpy).not.toHaveBeenCalled();
         expect(updateSpy).not.toHaveBeenCalled();
-        const personalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
-        expect(personalDetails?.[realAccountID]).toStrictEqual(realPersonalDetail);
-        expect(personalDetails?.[optimisticAccountID]).toStrictEqual(optimisticPersonalDetail);
+        expect((await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST))?.[optimisticAccountID]).toStrictEqual(optimisticPersonalDetail);
         expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`)).toStrictEqual(optimisticAgent);
         expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`))?.participants).toStrictEqual(participants);
         mergeSpy.mockRestore();
@@ -545,6 +543,7 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
             });
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 [optimisticAccountID]: {accountID: optimisticAccountID, displayName: 'Concierge Travel', isOptimisticPersonalDetail: true},
+                [realAccountID]: {accountID: realAccountID, displayName: 'Concierge Travel'},
             });
             await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`, {prompt: 'Book my flights', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
             await waitForBatchedUpdates();
