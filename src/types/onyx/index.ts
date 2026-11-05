@@ -3,6 +3,7 @@ import type {OnboardingPurpose} from '@libs/actions/Welcome/OnboardingFlow';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import type Account from './Account';
+import type AccountingIntegrationWaitlist from './AccountingIntegrationWaitlist';
 import type AccountData from './AccountData';
 import type Agent from './Agent';
 import type AgentNewAvatarDraft from './AgentNewAvatarDraft';
@@ -274,6 +275,7 @@ export type {
     AvatarCropResult,
     Account,
     AccountData,
+    AccountingIntegrationWaitlist,
     AssignCard,
     TransactionPending3DSReview,
     TransactionsPending3DSReview,
