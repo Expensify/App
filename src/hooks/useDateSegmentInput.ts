@@ -205,11 +205,11 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLe
     const isSegmentElement = (target: unknown) => !!target && Object.values(segmentRefs.current).some((element) => element === target);
 
     /** Rests the caret after the segment's digits, so a half typed month reads as 02 and not 0, a caret, then 2 */
-    const focusSegment = (name: DateSegmentName) => {
+    const focusSegment = (name: DateSegmentName, shouldRestCaretAtStart = false) => {
         const element = segmentRefs.current[name];
         element?.focus();
 
-        const caretPosition = element?.value?.length ?? 0;
+        const caretPosition = shouldRestCaretAtStart ? 0 : (element?.value?.length ?? 0);
         element?.setSelectionRange?.(caretPosition, caretPosition);
     };
 
@@ -229,9 +229,9 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLe
         return {start, end};
     };
 
-    const enterSegment = (name: DateSegmentName) => {
+    const enterSegment = (name: DateSegmentName, shouldRestCaretAtStart = false) => {
         setShouldOverwrite(true);
-        focusSegment(name);
+        focusSegment(name, shouldRestCaretAtStart);
     };
 
     /**
@@ -307,7 +307,8 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLe
         if (isMoveKey(key) && (event.nativeEvent.altKey || event.nativeEvent.metaKey || event.nativeEvent.ctrlKey)) {
             event.preventDefault();
             setIsAllSelected(false);
-            enterSegment(MOVE_KEYS[key] < 0 ? FIRST_SEGMENT_NAME : LAST_SEGMENT_NAME);
+            const isMovingBack = MOVE_KEYS[key] < 0;
+            enterSegment(isMovingBack ? FIRST_SEGMENT_NAME : LAST_SEGMENT_NAME, isMovingBack);
             return;
         }
 

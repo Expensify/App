@@ -71,6 +71,9 @@ describe('useDateSegmentInput', () => {
             // Then it reaches the year, rather than stopping at the month as an unmodified arrow would
             expect(stubs.year.focus).toHaveBeenCalled();
             expect(stubs.month.focus).not.toHaveBeenCalled();
+
+            // Then it rests before the first digit, which is where the start of the line is
+            expect(stubs.year.setSelectionRange).toHaveBeenCalledWith(0, 0);
         });
 
         it('carries the caret to the end of the date', () => {
@@ -80,9 +83,10 @@ describe('useDateSegmentInput', () => {
             // When the caret is sent the other way, which a modifier the browser answers alone would otherwise swallow
             pressKey(result, 'year', CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey, {metaKey: true});
 
-            // Then it reaches the day
+            // Then it reaches the day, resting after its digits the way the end of a line does
             expect(stubs.day.focus).toHaveBeenCalled();
             expect(stubs.month.focus).not.toHaveBeenCalled();
+            expect(stubs.day.setSelectionRange).toHaveBeenCalledWith(2, 2);
         });
     });
 
