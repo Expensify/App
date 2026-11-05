@@ -136,7 +136,7 @@ function getAssignableWorkspaceMemberRoleItems(
             keyForList: CONST.POLICY.ROLE.USER,
         },
     ];
-    const roleItems = workspaceRoles.map((item) => (NEW_ROLES.has(item.value) ? {...item, rightElement: newRoleBadge} : item));
+    const roleItems = workspaceRoles.map((item) => (NEW_ROLES.has(item.value) ? {...item, titleRightElement: newRoleBadge} : item));
 
     const selectableRoles = getSelectableRoles(policy, currentUserLogin, allowedRoles);
 
