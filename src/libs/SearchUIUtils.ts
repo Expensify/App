@@ -3920,25 +3920,16 @@ function getQuarterSections(
  * every user until Search supports paying bills, so this removes the actions on bills and the previews that link to a bill.
  */
 function omitBillReportActionRows(rows: ReportActionListItemType[], data: OnyxTypes.SearchResults['data']): ReportActionListItemType[] {
-    const billReportIDs = new Set<string>();
-    for (const key of Object.keys(data)) {
-        if (!isReportEntry(key)) {
-            continue;
+    const isBill = (reportID: string | undefined) => {
+        if (!reportID) {
+            return false;
         }
-        const report = data[key];
-        if (report?.reportID && report.type === CONST.REPORT.UNSUPPORTED_TYPE.BILL) {
-            billReportIDs.add(report.reportID);
-        }
-    }
-    if (billReportIDs.size === 0) {
-        return rows;
-    }
-    return rows.filter((row) => {
-        const linkedReportID = getIOUReportIDFromReportActionPreview(row);
-        const isBillAction = !!row.reportID && billReportIDs.has(row.reportID);
-        const isBillPreview = !!linkedReportID && billReportIDs.has(linkedReportID);
-        return !isBillAction && !isBillPreview;
-    });
+
+        const report = data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+        return report?.reportID === reportID && report.type === CONST.REPORT.UNSUPPORTED_TYPE.BILL;
+    };
+
+    return rows.filter((row) => !isBill(row.reportID) && !isBill(getIOUReportIDFromReportActionPreview(row)));
 }
 
 /**
