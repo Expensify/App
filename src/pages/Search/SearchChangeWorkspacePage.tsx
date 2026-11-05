@@ -18,20 +18,20 @@ import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceList from '@hooks/useWorkspaceList';
 
-import {getReportActionsFromSearchSnapshot, getReportFromSearchSnapshot, queueBulkChangeReportPolicy} from '@libs/actions/Search';
+import {getReportFromSearchSnapshot, queueBulkChangeReportPolicy} from '@libs/actions/Search';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isPolicyAdmin, isPolicyMember} from '@libs/PolicyUtils';
-import {isChangeWorkspaceAction} from '@libs/ReportSecondaryActionUtils';
-import {isExpenseReport, isSettled, isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
+import {isSettled, isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import {buildSearchQueryJSON, getAllMatchingReportQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
+import {canChangeWorkspaceOfSearchReport} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -63,13 +63,7 @@ function SearchChangeWorkspacePage() {
     // The reports the Change workspace option counted, so an exported one doesn't add workspaces.
     const movableReports = selectedReports
         .map((selectedReport) => getReportFromSearchSnapshot(selectedReport.reportID, currentSearchResults?.data, allReports))
-        .filter((report): report is Report => {
-            if (!report || !isExpenseReport(report)) {
-                return false;
-            }
-            const reportActions = Object.values(getReportActionsFromSearchSnapshot(report.reportID, currentSearchResults?.data, allReportActions) ?? {});
-            return isChangeWorkspaceAction(report, policies, session?.email ?? '', getLoginByAccountID(report.ownerAccountID, personalDetails), reportActions);
-        });
+        .filter((report) => canChangeWorkspaceOfSearchReport(report, currentSearchResults?.data, allReportActions, policies, session?.email, personalDetails));
 
     // The backend skips the reports that can't move to a workspace, so it's offered when one loaded report can.
     // Unlike a single report, it doesn't invite the submitter, so they must already be a member.

@@ -59,7 +59,7 @@ import Parser from '@libs/Parser';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
 import {getConnectedIntegration, isAdminOfCardEnabledPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
-import {getReportAccountingExportActions, isChangeWorkspaceAction, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
+import {getReportAccountingExportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
     canIOUBePaid,
@@ -93,6 +93,7 @@ import {
 import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
 import type {SearchGroupKey} from '@libs/SearchUIUtils';
 import {
+    canChangeWorkspaceOfSearchReport,
     getColumnsToShow,
     getSearchColumnTranslationKey,
     getSelectedGroupFilterEntry,
@@ -2958,14 +2959,15 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         };
 
         // The same rules as Change workspace on a single report, so exported or settled reports stay put.
-        const canChangeWorkspaceOfReport = (selectedReport: SelectedReports) => {
-            const report = getReportFromSearchSnapshot(selectedReport.reportID, searchResults?.data, allReports);
-            if (!report || !isExpenseReportUtil(report)) {
-                return false;
-            }
-            const reportActions = Object.values(getReportActionsFromSearchSnapshot(report.reportID, searchResults?.data, allReportActions) ?? {});
-            return isChangeWorkspaceAction(report, policies, currentUserLogin ?? '', getLoginByAccountID(report.ownerAccountID, personalDetails), reportActions);
-        };
+        const canChangeWorkspaceOfReport = (selectedReport: SelectedReports) =>
+            canChangeWorkspaceOfSearchReport(
+                getReportFromSearchSnapshot(selectedReport.reportID, searchResults?.data, allReports),
+                searchResults?.data,
+                allReportActions,
+                policies,
+                currentUserLogin,
+                personalDetails,
+            );
         const changeWorkspaceOption: DropdownOption<SearchHeaderOptionValue> = {
             icon: expensifyIcons.Buildings,
             text: translate('iou.changeWorkspace'),

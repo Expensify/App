@@ -169,6 +169,7 @@ import {
 } from './ReportActionsUtils';
 import {getReportName} from './ReportNameUtils';
 import {isExportAction} from './ReportPrimaryActionUtils';
+import {isChangeWorkspaceAction} from './ReportSecondaryActionUtils';
 import {
     canApproveIOU,
     canIOUBePaid,
@@ -7733,6 +7734,22 @@ function navigateToSearchRHP(route: {route: string; getRoute: (backTo?: string) 
     }
 }
 
+/** Whether a report on Search can change workspace, by the same rules as Change workspace on the report itself. */
+function canChangeWorkspaceOfSearchReport(
+    report: OnyxEntry<OnyxTypes.Report>,
+    currentSearchResults: SearchResults['data'] | undefined,
+    allReportActions: OnyxCollection<OnyxTypes.ReportActions>,
+    policies: OnyxCollection<OnyxTypes.Policy>,
+    currentUserLogin: string | undefined,
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
+): report is OnyxTypes.Report {
+    if (!report || !isExpenseReportUtil(report)) {
+        return false;
+    }
+    const reportActions = Object.values(getReportActionsFromSearchSnapshot(report.reportID, currentSearchResults, allReportActions) ?? {});
+    return isChangeWorkspaceAction(report, policies, currentUserLogin ?? '', getLoginByAccountID(report.ownerAccountID, personalDetails), reportActions);
+}
+
 function shouldShowDeleteOption(
     selectedTransactions: Record<string, SelectedTransactionInfo>,
     currentSearchResults: SearchResults['data'] | undefined,
@@ -7902,6 +7919,7 @@ function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, gro
 }
 
 export {
+    canChangeWorkspaceOfSearchReport,
     doesTransactionMatchFooterTotal,
     getSnapshotFooterTotal,
     getSearchBulkEditPolicyID,

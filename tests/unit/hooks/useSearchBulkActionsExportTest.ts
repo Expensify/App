@@ -219,7 +219,7 @@ jest.mock('@hooks/useUndeleteTransactions', () => ({
 }));
 
 jest.mock('@libs/SearchUIUtils', () => {
-    const {getColumnsToShow, getTransactionsByReportID} = jest.requireActual<typeof SearchUIUtilsModule>('@libs/SearchUIUtils');
+    const {canChangeWorkspaceOfSearchReport, getColumnsToShow, getTransactionsByReportID} = jest.requireActual<typeof SearchUIUtilsModule>('@libs/SearchUIUtils');
     const actualCONSTForSearchUIUtils = jest.requireActual<{default: typeof CONSTType}>('@src/CONST').default;
     return {
         shouldShowDeleteOption: () => false,
@@ -229,6 +229,7 @@ jest.mock('@libs/SearchUIUtils', () => {
         // The real validator, so the `groupBy === GROUP_BY.CARD` comparison is exercised against it rather than an identity stub.
         getValidGroupBy: jest.fn(jest.requireActual<{getValidGroupBy: (groupBy?: string) => string | undefined}>('@libs/SearchUIUtils').getValidGroupBy),
         getSearchColumnTranslationKey: jest.fn((column: string) => column),
+        canChangeWorkspaceOfSearchReport,
         getColumnsToShow,
         // The bulk pay check reads each report's expenses from the search snapshot, so keep the real lookup
         getTransactionsByReportID,
