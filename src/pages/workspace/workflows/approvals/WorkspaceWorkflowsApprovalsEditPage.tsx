@@ -19,11 +19,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {canMemberWrite, goBackFromInvalidPolicy, isPendingDeletePolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
+import {filterRulesForPolicy, getApprovalWorkflowRulesForPolicy} from '@libs/RuleUtils';
 import {
     convertApprovalWorkflowRulesToWorkflows,
     convertPolicyEmployeesToApprovalWorkflows,
-    filterRulesForPolicy,
-    getApprovalWorkflowRulesForPolicy,
     getWorkflowMemberEmails,
     includesEveryWorkspaceMember,
     isApprovalWorkflowLockedByIntegration,
