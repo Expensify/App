@@ -105,7 +105,8 @@ function MoneyReportHeaderKYCDropdown({
                             }
                             return;
                         }
-                        if (!isSecondaryActionAPaymentOption(item)) {
+                        // An item with its own onSelected, like an invoice's "Mark as paid", already pays when the menu runs it
+                        if (!isSecondaryActionAPaymentOption(item) || item.onSelected) {
                             return;
                         }
                         onPaymentSelect(event, item.value, triggerKYCFlow);

@@ -16,6 +16,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsByID from '@hooks/useTransactionsByID';
 import useTransactionThreadReportIDs from '@hooks/useTransactionThreadReportIDs';
@@ -73,6 +74,8 @@ function DynamicConfirmationPage() {
     );
     const {superWideRHPRouteKeys} = useWideRHPState();
     const isSuperWideRHPDisplayed = superWideRHPRouteKeys.length > 0;
+    const superWideRHPReportID = isSuperWideRHPDisplayed ? Navigation.getTopmostSuperWideRHPReportID() : undefined;
+    const superWideRHPReportTransactions = useReportTransactionsCollection(superWideRHPReportID);
 
     const [duplicates] = useTransactionsByID(reviewDuplicates?.duplicates);
     const transactionsMergeParams = useMemo(
@@ -122,7 +125,11 @@ function DynamicConfirmationPage() {
             allReportActionsList: allReportActions,
             allReportsList: allReports,
         });
-        if (isSuperWideRHPDisplayed) {
+        // The merge removes the discarded expenses. A single-expense report in the table view also uses the super wide RHP,
+        // and once its only expense is discarded it is gone, so going back to it would show "Not here".
+        const discardedTransactionIDs = new Set(mergeParams.transactionList.map((transaction) => transaction.transactionID));
+        const doesSuperWideRHPReportKeepExpenses = TransactionUtils.doesReportKeepExpensesAfterMerge(Object.values(superWideRHPReportTransactions), discardedTransactionIDs);
+        if (isSuperWideRHPDisplayed && doesSuperWideRHPReportKeepExpenses) {
             Navigation.dismissToSuperWideRHP();
             return;
         }
@@ -135,7 +142,18 @@ function DynamicConfirmationPage() {
         Navigation.dismissModal({
             afterTransition: () => Navigation.navigate(keptReportRoute, {forceReplace: true}),
         });
-    }, [childReportID, transactionsMergeParams, taxData, currentUserAccountID, currentUserLogin, isSuperWideRHPDisplayed, allTransactionViolations, allReportActions, allReports]);
+    }, [
+        childReportID,
+        transactionsMergeParams,
+        taxData,
+        currentUserAccountID,
+        currentUserLogin,
+        isSuperWideRHPDisplayed,
+        superWideRHPReportTransactions,
+        allTransactionViolations,
+        allReportActions,
+        allReports,
+    ]);
 
     const handleResolveDuplicates = useCallback(() => {
         resolveDuplicates({...transactionsMergeParams, ...taxData, transactionThreadReportIDMap, allTransactionViolations, allReportActionsList: allReportActions, delegateAccountID});
