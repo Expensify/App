@@ -125,8 +125,18 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
     }
 
     useEffect(() => {
+        if (sidePanelWidthRef.current === sidePanelWidth) {
+            return;
+        }
         sidePanelWidthRef.current = sidePanelWidth;
-    }, [sidePanelWidth]);
+
+        // A hidden panel waits off-screen by its own width, so a width that changes meanwhile has to move it, or the next open starts from the wrong spot.
+        // A panel still sliding out is left to the slide, which lands on the new width once it ends.
+        if (!shouldHideSidePanel || !isSidePanelTransitionEnded) {
+            return;
+        }
+        sidePanelTranslateX.current.setValue(sidePanelWidth);
+    }, [sidePanelWidth, shouldHideSidePanel, isSidePanelTransitionEnded]);
 
     // sidePanelWidth dependency in useEffect below caused the help panel content to slide in on window resize
     useEffect(() => {
@@ -151,6 +161,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
             // a null session empties its message list. `finished` is false on an interrupted close, sparing the new session.
             if (finished && shouldHideSidePanel) {
                 setSessionStartTime(null);
+                sidePanelTranslateX.current.setValue(sidePanelWidthRef.current);
             }
             onCloseCompleteRef.current?.();
             onCloseCompleteRef.current = undefined;
