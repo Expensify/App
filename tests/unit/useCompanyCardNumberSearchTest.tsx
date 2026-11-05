@@ -14,8 +14,12 @@ const mockSearchCompanyCardByNumber = jest.fn();
 const mockClearCompanyCardNumberSearch = jest.fn();
 
 jest.mock('@libs/actions/CompanyCards', () => ({
-    searchCompanyCardByNumber: (...args: unknown[]) => mockSearchCompanyCardByNumber(...args),
-    clearCompanyCardNumberSearch: (...args: unknown[]) => mockClearCompanyCardNumberSearch(...args),
+    searchCompanyCardByNumber: (...args: unknown[]): void => {
+        mockSearchCompanyCardByNumber(...args);
+    },
+    clearCompanyCardNumberSearch: (...args: unknown[]): void => {
+        mockClearCompanyCardNumberSearch(...args);
+    },
 }));
 
 const POLICY_ID = 'POLICY1';

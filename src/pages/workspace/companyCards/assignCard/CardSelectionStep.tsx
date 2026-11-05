@@ -38,9 +38,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {UnassignedCard} from '@src/types/onyx/Card';
+import type {CardFeedWithNumber, CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
 import {Str} from 'expensify-common';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type CardSelectionStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION>;
@@ -57,7 +58,10 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
     const [searchText, setSearchText] = useState('');
     // Split the route's domain-suffixed feed id into (plain feed, domainID) for the server-side number search.
     const feedWithDomain = splitCardFeedWithDomainID(feed);
-    const companyCardNumberSearch = useCompanyCardNumberSearch(policyID, feedWithDomain?.feedName, feedWithDomain?.domainID);
+    // This step only runs in the company-card flow, so narrow off the Expensify Card bank before passing.
+    const isCompanyCardFeed = (value: CardFeedWithNumber): value is CompanyCardFeedWithNumber => !value.startsWith(CONST.EXPENSIFY_CARD.BANK);
+    const companyCardFeedName = feedWithDomain?.feedName && isCompanyCardFeed(feedWithDomain.feedName) ? feedWithDomain.feedName : undefined;
+    const companyCardNumberSearch = useCompanyCardNumberSearch(policyID, companyCardFeedName, feedWithDomain?.domainID);
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const [list] = useCardsList(feed);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
@@ -144,32 +148,25 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
         setCompanyCardNumberSearchValue(searchText);
     }, [searchText, setCompanyCardNumberSearchValue]);
 
-    const searchedListOptions = useMemo(() => {
-        const tokenizedOptions = tokenizedSearch(cardListOptions, searchText, (option) => [option.text]);
-
-        // A full card number can't match the masked name, so OR in the cards the server matched by their
-        // encryptedCardNumber (the option value here), but only while the typed number matches the results.
-        const {resultsQuery, matchedEncryptedNumbers} = companyCardNumberSearch;
-        if (!resultsQuery || normalizeCardNumber(searchText) !== resultsQuery) {
-            return tokenizedOptions;
-        }
-        const seenKeys = new Set(tokenizedOptions.map((option) => option.keyForList));
-        const serverMatchedOptions = cardListOptions.filter((option) => matchedEncryptedNumbers.has(option.value) && !seenKeys.has(option.keyForList));
-        return [...tokenizedOptions, ...serverMatchedOptions];
-    }, [searchText, cardListOptions, companyCardNumberSearch]);
+    const tokenizedOptions = tokenizedSearch(cardListOptions, searchText, (option) => [option.text]);
+    // A full card number can't match the masked name, so OR in the cards the server matched by their
+    // encryptedCardNumber (the option value here), but only while the typed number matches the results.
+    const {resultsQuery, matchedEncryptedNumbers} = companyCardNumberSearch;
+    const serverMatchedOptions =
+        resultsQuery && normalizeCardNumber(searchText) === resultsQuery
+            ? cardListOptions.filter((option) => matchedEncryptedNumbers.has(option.value) && !new Set(tokenizedOptions.map((o) => o.keyForList)).has(option.keyForList))
+            : [];
+    const searchedListOptions = serverMatchedOptions.length ? [...tokenizedOptions, ...serverMatchedOptions] : tokenizedOptions;
 
     const safeAreaPaddingBottomStyle = useBottomSafeSafeAreaPaddingStyle();
 
-    const textInputOptions = useMemo(
-        () => ({
-            headerMessage: searchedListOptions.length || companyCardNumberSearch.isSearching ? undefined : translate('common.noResultsFound'),
-            label: cardListOptions.length > CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD ? translate('common.search') : undefined,
-            value: searchText,
-            onChangeText: setSearchText,
-            shouldBeInsideList: true,
-        }),
-        [cardListOptions.length, searchText, searchedListOptions.length, companyCardNumberSearch.isSearching, translate],
-    );
+    const textInputOptions = {
+        headerMessage: searchedListOptions.length || companyCardNumberSearch.isSearching ? undefined : translate('common.noResultsFound'),
+        label: cardListOptions.length > CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD ? translate('common.search') : undefined,
+        value: searchText,
+        onChangeText: setSearchText,
+        shouldBeInsideList: true,
+    };
 
     const customListHeader = (
         <View>
