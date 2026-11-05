@@ -1,6 +1,6 @@
 /**
  * Lets an admin pick the Zoho Books account that bill payments are recorded against when Expensify marks a reimbursed report's bill paid.
- * It lists only active bank accounts, and is only reachable while reimbursed report sync is on.
+ * It lists only active bank and cash accounts, and is only reachable while reimbursed report sync is on.
  */
 import BlockingView from '@components/BlockingViews/BlockingView';
 import type {ListItem} from '@components/SelectionList/types';
@@ -48,7 +48,9 @@ function ZohoBooksBillPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
 
     const data: AccountListItem[] =
         zohoBooksData?.bankAccounts
-            ?.filter((accountItem) => accountItem.isActive && accountItem.accountType === CONST.ZOHO_BOOKS_ACCOUNT_TYPE.BANK)
+            ?.filter(
+                (accountItem) => accountItem.isActive && (accountItem.accountType === CONST.ZOHO_BOOKS_ACCOUNT_TYPE.BANK || accountItem.accountType === CONST.ZOHO_BOOKS_ACCOUNT_TYPE.CASH),
+            )
             .map((accountItem) => ({
                 value: accountItem.id,
                 text: accountItem.name,

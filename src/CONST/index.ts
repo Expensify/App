@@ -4542,7 +4542,9 @@ const CONST = {
     // Zoho Books accounts have one account_type. These are the lowercase values the API returns.
     ZOHO_BOOKS_ACCOUNT_TYPE: {
         BANK: 'bank',
+        CASH: 'cash',
         CREDIT_CARD: 'credit_card',
+        OTHER_CURRENT_LIABILITY: 'other_current_liability',
         EXPENSE: 'expense',
         COST_OF_GOODS_SOLD: 'cost_of_goods_sold',
         OTHER_EXPENSE: 'other_expense',

@@ -1,6 +1,6 @@
 /**
  * Lets an admin pick the workspace-level Zoho Books liability account that Consolidated Travel Billing amounts owed are recorded in.
- * It lists active credit card accounts, the only liability account type Zoho Books syncs here.
+ * It lists active credit card and other current liability accounts.
  */
 import type {SelectorType} from '@components/SelectionScreen';
 
@@ -40,7 +40,11 @@ function ZohoBooksTravelInvoicingPayableAccountPage({policy}: WithPolicyConnecti
 
     const data: Array<SelectorType<string>> =
         zohoBooksData?.accounts
-            ?.filter((accountItem) => accountItem.isActive && accountItem.accountType === CONST.ZOHO_BOOKS_ACCOUNT_TYPE.CREDIT_CARD)
+            ?.filter(
+                (accountItem) =>
+                    accountItem.isActive &&
+                    (accountItem.accountType === CONST.ZOHO_BOOKS_ACCOUNT_TYPE.CREDIT_CARD || accountItem.accountType === CONST.ZOHO_BOOKS_ACCOUNT_TYPE.OTHER_CURRENT_LIABILITY),
+            )
             .map((accountItem) => ({
                 value: accountItem.id,
                 text: accountItem.name,
