@@ -184,7 +184,7 @@ function WorkspaceMemberRoleList({
 
     const footerContent = (
         <>
-            <View style={[styles.renderHTML, styles.mb4]}>
+            <View style={[styles.renderHTML, styles.alignItemsCenter, styles.mb4]}>
                 <RenderHTML html={translate('workspace.common.roleSelectorFeedback')} />
             </View>
             {!!errorMessage && (

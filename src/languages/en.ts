@@ -5618,7 +5618,7 @@ const translations = {
             adminRoles: 'Admin roles',
             otherRoles: 'Other roles',
             roleSelectorDescription: `Assign a role to manage a member's workspace permissions. <a href="${CONST.HELP_DOC_LINKS.MANAGING_WORKSPACE_MEMBERS}">Compare workspace roles</a>.`,
-            roleSelectorFeedback: '<centered-text><label-text>Not seeing the role you need? <concierge-link>Let us know</concierge-link>.</label-text></centered-text>',
+            roleSelectorFeedback: '<muted-text-label><centered-text>Not seeing the role you need? <concierge-link>Let us know</concierge-link>.</centered-text></muted-text-label>',
             reimbursementChoice: {
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES]: 'Direct',
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO]: 'None',
