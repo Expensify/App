@@ -29,9 +29,7 @@ jest.mock('@components/RNTextInput', () => {
     return {__esModule: true, default: MockInput};
 });
 
-const WebBaseTextInputImplementation = jest.requireActual<{default: typeof BaseTextInputImplementation}>(
-    '../../src/components/TextInput/BaseTextInput/implementation/index.tsx',
-).default;
+const WebBaseTextInputImplementation = jest.requireActual<{default: typeof BaseTextInputImplementation}>('../../src/components/TextInput/BaseTextInput/implementation/index.tsx').default;
 
 const labelConditions = [
     {name: 'prefix', props: {prefixCharacter: '$'}},
