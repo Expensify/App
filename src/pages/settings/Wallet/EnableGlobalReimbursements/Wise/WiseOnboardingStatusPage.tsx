@@ -13,8 +13,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import stripDynamicRouteSuffixFromPath from '@libs/Navigation/helpers/dynamicRoutesUtils/stripDynamicRouteSuffixFromPath';
+import getWiseOnboardingStatusRoute from '@libs/Navigation/helpers/getWiseOnboardingStatusRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import Navigation from '@navigation/Navigation';
@@ -97,8 +97,8 @@ function WiseOnboardingStatusPage({route, navigation}: WiseOnboardingStatusPageP
             content = (
                 <MoreInfoNeededContent
                     bankAccountID={bankAccountID}
-                    // Wallet and Home open this page without the intro on the stack, so only the route's own path keeps the bank account in it
-                    statusPath={route.path ?? createDynamicRoute(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path, introPath)}
+                    // Wallet and Home open this page without the intro on the stack, so the path is built over the entry screen instead of read from the stack
+                    statusPath={getWiseOnboardingStatusRoute(bankAccountID, entryPath)}
                 />
             );
             break;

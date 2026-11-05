@@ -39,7 +39,7 @@ jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) =
 
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
-async function renderPage(statusPath?: string) {
+async function renderPage() {
     await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.WISE_REIMBURSEMENTS]);
     await Onyx.set(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, false);
     await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
@@ -47,12 +47,7 @@ async function renderPage(statusPath?: string) {
     });
     render(
         <OnyxListItemProvider>
-            <NavigationContainer
-                ref={navigationRef}
-                initialState={
-                    statusPath ? {routes: [{name: SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ONBOARDING_STATUS, params: {bankAccountID: String(BANK_ACCOUNT_ID)}, path: statusPath}]} : undefined
-                }
-            >
+            <NavigationContainer ref={navigationRef}>
                 <Stack.Navigator initialRouteName={SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ONBOARDING_STATUS}>
                     <Stack.Screen
                         name={SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ONBOARDING_STATUS}
@@ -166,19 +161,19 @@ describe('WiseOnboardingStatusPage while Wise needs more info', () => {
         }
     });
 
-    it("sends Wise and the form's screen the route's own path when the page opened without the intro underneath", async () => {
-        // Given the page opened straight from the Wallet, so the intro is not on the stack and only the route's path names the bank account
+    it("sends Wise and the form's screen the full status path when the page opened without the intro underneath", async () => {
+        // Given the page opened straight from the Wallet, so the intro is not on the stack and the path rebuilt from the stack has no bank account
         jest.mocked(useDynamicBackPath).mockReturnValue(ROUTES.SETTINGS_WALLET);
         mockKYCReviewLinkResponse(mockFetch, KYC_REVIEW_URL);
         mockFetch.pause();
 
         try {
-            await renderPage(`/${createDynamicRoute(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path, WALLET_INTRO_PATH)}`);
+            await renderPage();
 
             // When the user presses Continue
             await pressContinue();
 
-            // Then the return URL is the one the browser shows, since a URL without the bank account cannot load the status page
+            // Then the return URL is built over the Wallet, since a URL without the bank account cannot load the status page
             TestHelper.expectAPICommandToHaveBeenCalledWith(READ_COMMANDS.GET_WISE_KYC_REVIEW_EMBEDDED_LINK, 0, {
                 bankAccountID: BANK_ACCOUNT_ID,
                 redirectURL: `https://new.expensify.com/settings/wallet/global-reimbursements/${BANK_ACCOUNT_ID}/status`,
