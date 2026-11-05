@@ -15,6 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {assignReportToMe} from '@libs/actions/IOU/ReportWorkflow';
@@ -78,10 +79,14 @@ function canReassignAllReports({
     selectedReports,
     onyxReports,
     allPolicies,
+    currentUserAccountID,
+    areStrictPolicyRulesEnabled,
 }: {
     selectedReports: SelectedReportRef[];
     onyxReports: Record<string, Report> | undefined;
     allPolicies: OnyxCollection<Policy>;
+    currentUserAccountID: number;
+    areStrictPolicyRulesEnabled: boolean;
 }): boolean {
     return (
         selectedReports.length > 0 &&
@@ -89,11 +94,12 @@ function canReassignAllReports({
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
             const report = selectedReport.reportID ? onyxReports?.[selectedReport.reportID] : undefined;
             const isApprovalEnabled = !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+            const canReassignAsApprover = report?.managerID === currentUserAccountID && !areStrictPolicyRulesEnabled;
 
             return (
                 !!policy &&
                 !!report &&
-                isPolicyAdmin(policy) &&
+                (isPolicyAdmin(policy) || canReassignAsApprover) &&
                 !isPendingDeletePolicy(policy) &&
                 isMoneyRequestReport(report) &&
                 !isMoneyRequestReportPendingDeletion(report) &&
@@ -113,6 +119,7 @@ function SearchChangeApproverPage() {
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [selectedApproverType, setSelectedApproverType] = useState<ApproverType>(APPROVER_TYPE.ADD_APPROVER);
     const {isBetaEnabled} = usePermissions();
+    const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -244,7 +251,7 @@ function SearchChangeApproverPage() {
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
             return !!policy && isPolicyAdmin(policy) && !isPendingDeletePolicy(policy);
         });
-        const canReassign = canReassignAllReports({selectedReports, onyxReports, allPolicies});
+        const canReassign = canReassignAllReports({selectedReports, onyxReports, allPolicies, currentUserAccountID: currentUserDetails.accountID, areStrictPolicyRulesEnabled});
 
         const isAllowedToBypassApprovers =
             hasAdminPermission &&

@@ -36,6 +36,7 @@ import useOnyx from './useOnyx';
 import {usePersonalDetail} from './usePersonalDetails';
 import useReportIsArchived from './useReportIsArchived';
 import useSelectionModePayment from './useSelectionModePayment';
+import useStrictPolicyRules from './useStrictPolicyRules';
 
 type UseSelectionModeReportActionsParams = {
     report: OnyxEntry<OnyxTypes.Report>;
@@ -58,6 +59,7 @@ function useSelectionModeReportActions({
     transactions,
     selectedTransactionIDs,
 }: UseSelectionModeReportActionsParams) {
+    const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -180,6 +182,7 @@ function useSelectionModeReportActions({
             return [];
         }
         return getSecondaryReportActions({
+            areStrictPolicyRulesEnabled,
             currentUserLogin: currentUserEmail,
             currentUserAccountID,
             submitterLogin,
