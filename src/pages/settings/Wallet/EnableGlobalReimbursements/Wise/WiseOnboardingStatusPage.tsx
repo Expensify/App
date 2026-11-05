@@ -19,7 +19,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
-import {markWiseKYCReviewSubmitted} from '@userActions/Wise';
+import {setOptimisticWiseOnboardingInReview} from '@userActions/Wise';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -73,7 +73,7 @@ function WiseOnboardingStatusPage({route, navigation}: WiseOnboardingStatusPageP
         }
         // Only an onboarding still waiting for Wise's form takes its outcome, so an old redirect does not overwrite a status the server sent since
         if (kycReviewFormStatus === CONST.WISE.KYC_REVIEW_REDIRECT_STATUS_SUCCESS && onboardingStatus === CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED) {
-            markWiseKYCReviewSubmitted(bankAccountID);
+            setOptimisticWiseOnboardingInReview(bankAccountID);
         }
         // The screen's own navigation reaches the route even on a cold start, when the navigators above it are not listening yet
         navigation.setParams({status: undefined});

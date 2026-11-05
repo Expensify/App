@@ -43,11 +43,11 @@ function clearWiseKYCReviewEmbeddedLink() {
 }
 
 /**
- * Shows the onboarding as in review as soon as Wise's hosted KYC form ends with success.
- * Only Wise's webhook tells the server the real result, so the server's next push replaces this value.
+ * Optimistic update with no API call: sets the account's Wise onboarding to in review on the device as soon as Wise's hosted KYC form ends with success.
+ * Wise sends the form's real result only to our server, through a webhook, so the bank account the server sends next replaces this status with the real one.
  */
-function markWiseKYCReviewSubmitted(bankAccountID: number) {
+function setOptimisticWiseOnboardingInReview(bankAccountID: number) {
     Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {[bankAccountID]: {accountData: {additionalData: {wise: {status: CONST.WISE.ONBOARDING_STATUS.IN_REVIEW}}}}});
 }
 
-export {clearWiseKYCReviewEmbeddedLink, getWiseKYCReviewEmbeddedLink, markWiseKYCReviewSubmitted};
+export {clearWiseKYCReviewEmbeddedLink, getWiseKYCReviewEmbeddedLink, setOptimisticWiseOnboardingInReview};
