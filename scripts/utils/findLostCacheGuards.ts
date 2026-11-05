@@ -21,6 +21,9 @@ type CallCounts = {
 
 type FunctionCalls = {
     isCompiled: boolean;
+
+    /** Number of `if` blocks that read the `$` cache, including ones that only cache a callback or object */
+    cacheGuardCount: number;
     calls: Map<string, CallCounts>;
 };
 
@@ -165,7 +168,7 @@ function collectFunctionCalls(code: string): Map<string, FunctionCalls> | undefi
         if (FUNCTION_TYPES.has(node.type)) {
             const functionName = getFunctionName(node, nameHint);
             const cacheName = getCacheName(node);
-            const functionCalls = functions.get(functionName) ?? {isCompiled: false, calls: new Map<string, CallCounts>()};
+            const functionCalls = functions.get(functionName) ?? {isCompiled: false, cacheGuardCount: 0, calls: new Map<string, CallCounts>()};
             functionCalls.isCompiled ||= cacheName !== undefined;
             functions.set(functionName, functionCalls);
 
@@ -178,6 +181,7 @@ function collectFunctionCalls(code: string): Map<string, FunctionCalls> | undefi
         }
 
         if (node.type === 'IfStatement' && context && BabelASTUtils.isASTNode(node.test) && readsCache(node.test, context.cacheName)) {
+            context.functionCalls.cacheGuardCount += 1;
             visit(node.test, context, nameHint);
             if (BabelASTUtils.isASTNode(node.consequent)) {
                 visit(node.consequent, {...context, isGuarded: true}, nameHint);
@@ -234,8 +238,9 @@ function findLostCacheGuards(baseSource: string, branchSource: string, filename:
             continue;
         }
         if (!branchFunction.isCompiled) {
-            // A function left with nothing worth caching, such as one returning a boolean, is skipped by the compiler too.
-            if ([...baseFunction.calls.values()].some((counts) => counts.guarded > 0)) {
+            // Counting guards, not guarded calls, also catches a function that only cached callbacks or objects.
+            // A function with no guard on main cached nothing, so the compiler skipping it now loses nothing.
+            if (baseFunction.cacheGuardCount > 0) {
                 lostGuards.push({functionName});
             }
             continue;

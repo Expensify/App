@@ -86,6 +86,25 @@ export default useFoo;
         expect(lostGuards).toEqual([{functionName: 'useFoo'}]);
     });
 
+    it('should report a hook that only cached a callback on main and is no longer compiled', () => {
+        // Given a hook whose only cache holds a callback, which has no calls that run on render, and that loses its hook call
+        const baseSource = `
+import {useThing} from './utils';
+function useFoo(onDone: (value: number) => void) {
+    useThing();
+    return () => onDone(1);
+}
+export default useFoo;
+`;
+        const branchSource = baseSource.replace('    useThing();\n', '');
+
+        // When both versions are compared
+        const lostGuards = findLostCacheGuards(baseSource, branchSource, 'src/hooks/useFoo.ts');
+
+        // Then the hook is reported, because the callback is now a new function on every render
+        expect(lostGuards).toEqual([{functionName: 'useFoo'}]);
+    });
+
     it('should not compare a function that was renamed', () => {
         // Given a branch that loses the cache but also renames the hook
         const branchSource = UNCACHED_SOURCE.replaceAll('useFoo', 'useBar');
