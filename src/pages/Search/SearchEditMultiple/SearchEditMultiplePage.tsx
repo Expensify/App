@@ -83,7 +83,7 @@ const DATE_INPUT_ID = 'created';
 
 function SearchEditMultiplePage() {
     const {translate, localeCompare, formatPhoneNumber, preferredLocale} = useLocalize();
-    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {convertToDisplayStringWithoutCurrency, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const styles = useThemeStyles();
@@ -403,9 +403,9 @@ function SearchEditMultiplePage() {
     const isBillableDisabled = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.BILLABLE);
     const isAttendeesDisabled = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.ATTENDEES);
 
-    // The selectable rows open their list in a container anchored to the row for users on the beta, and on their own
-    // page for everyone else. A dependent tag level needs the levels above it, which only the full page walks through.
-    const canOpenListInDropdown = isBetaEnabled(CONST.BETAS.ANCHORED_BULK_EDIT_DROPDOWNS) && !!policyID;
+    // The selectable rows open their list in a container anchored to the row. A dependent tag level needs the levels
+    // above it, which only the full page walks through, and a selection without a workspace has no lists to show.
+    const canOpenListInDropdown = !!policyID;
     const selectedTaxRate = draftTransaction?.taxCode ? (getTaxName(policy, draftTransaction) ?? '') : '';
     const taxRateName = policy?.taxRates?.name ?? translate('common.tax');
 

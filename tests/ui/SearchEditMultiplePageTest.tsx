@@ -59,9 +59,8 @@ jest.mock('@userActions/Policy/Tag', () => ({
     openPolicyTagsPage: jest.fn(),
 }));
 
-let mockIsAnchoredDropdownsBetaEnabled = false;
 jest.mock('@hooks/usePermissions', () => () => ({
-    isBetaEnabled: (beta: string) => mockIsAnchoredDropdownsBetaEnabled && beta === jest.requireActual<{default: typeof CONST}>('@src/CONST').default.BETAS.ANCHORED_BULK_EDIT_DROPDOWNS,
+    isBetaEnabled: () => false,
     isBetaEnabledOrUnknown: () => false,
 }));
 
@@ -179,7 +178,6 @@ describe('SearchEditMultiplePage', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        mockIsAnchoredDropdownsBetaEnabled = false;
         for (const rowName of Object.keys(mockShouldOpenInDropdownByRow)) {
             delete mockShouldOpenInDropdownByRow[rowName];
         }
@@ -375,9 +373,8 @@ describe('SearchEditMultiplePage', () => {
         expect(updateMultipleMoneyRequests).not.toHaveBeenCalled();
     });
 
-    it('opens the category list in place for a user on the bulk edit dropdowns beta', async () => {
-        // Given a workspace with categories, for a user on the beta
-        mockIsAnchoredDropdownsBetaEnabled = true;
+    it('opens the category list in place', async () => {
+        // Given a workspace with categories
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {areCategoriesEnabled: true});
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, {Food: {name: 'Food', enabled: true}});
         await selectTransactions([OPEN_TRANSACTION_ID]);
@@ -390,23 +387,8 @@ describe('SearchEditMultiplePage', () => {
         expect(mockShouldOpenInDropdownByRow.Category).toBe(true);
     });
 
-    it('keeps the full-page category selector for a user off the beta', async () => {
-        // Given the same workspace, for a user without the beta
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {areCategoriesEnabled: true});
-        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, {Food: {name: 'Food', enabled: true}});
-        await selectTransactions([OPEN_TRANSACTION_ID]);
-
-        // When the Edit multiple page renders the category row
-        renderPage();
-        await waitForBatchedUpdatesWithAct();
-
-        // Then the row opens the full-page selector as before
-        expect(mockShouldOpenInDropdownByRow.Category).toBe(false);
-    });
-
     it('keeps the full-page tag selector for dependent tags, which need the levels above', async () => {
-        // Given a workspace with dependent tag lists, for a user on the beta
-        mockIsAnchoredDropdownsBetaEnabled = true;
+        // Given a workspace with dependent tag lists
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {areTagsEnabled: true, hasMultipleTagLists: true});
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${POLICY_ID}`, {
             Region: {name: 'Region', required: false, orderWeight: 0, tags: {EMEA: {name: 'EMEA', enabled: true, rules: {parentTagsFilter: ''}}}},

@@ -1526,7 +1526,6 @@ const CONST = {
         NL_FILTERS: 'nlFilters',
         SUPPORT_TICKET: 'supportTicket',
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
-        ANCHORED_BULK_EDIT_DROPDOWNS: 'anchoredBulkEditDropdowns',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
         COLLECT_DEPOSIT_ACCOUNTS: 'collectDepositAccounts',
         RESIZABLE_RHP: 'resizableRHP',
