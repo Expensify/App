@@ -5,6 +5,7 @@ import type {DynamicFormValues} from '@components/DynamicForm/types';
 import type {FormValue} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
+import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useLocalize from '@hooks/useLocalize';
@@ -17,17 +18,22 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import CountrySelectionList from '@pages/settings/Wallet/CountrySelectionList';
 
-import {clearWiseBankAccountFields, createWiseBankAccount, getWiseBankAccountFields} from '@userActions/BankAccounts';
+import {clearPersonalBankAccount, clearWiseBankAccountFields, clearWiseBankAccountForm, createWiseBankAccount, getWiseBankAccountFields} from '@userActions/BankAccounts';
 import {clearDraftValues, clearErrors, setDraftValues} from '@userActions/FormActions';
+import {continueSetup, getPaymentMethods} from '@userActions/PaymentMethods';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import type {PersonalBankAccount} from '@src/types/onyx';
 
-import React, {useEffect, useEffectEvent, useState} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useContext, useEffect, useEffectEvent, useState} from 'react';
 
 import getCurrentSchemaAnswers from './getCurrentSchemaAnswers';
+import WiseBankAccountAdded from './WiseBankAccountAdded';
 
 type WiseDepositAccountContentProps = {
     backTo?: Route;
@@ -35,6 +41,8 @@ type WiseDepositAccountContentProps = {
     /** The form page the URL points at, if any */
     subPage?: string;
 };
+
+const onSuccessFallbackRouteSelector = (personalBankAccount: OnyxEntry<PersonalBankAccount>) => personalBankAccount?.onSuccessFallbackRoute;
 
 const COUNTRIES = Object.keys(CONST.ALL_COUNTRIES).filter((countryISO) => !CONST.WISE.EXCLUDED_BANK_ACCOUNT_COUNTRIES.includes(countryISO));
 
@@ -62,6 +70,8 @@ function WiseDepositAccountContent({backTo, subPage}: WiseDepositAccountContentP
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT);
     const [formState] = useOnyx(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
     const [country] = useOnyx(ONYXKEYS.COUNTRY);
+    const [onSuccessFallbackRoute] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {selector: onSuccessFallbackRouteSelector});
+    const kycWallRef = useContext(KYCWallContext);
     const storedCountry = wiseBankAccountFields?.country ?? country ?? '';
     const [selectedCountry, setSelectedCountry] = useState(COUNTRIES.includes(storedCountry) ? storedCountry : '');
     const errorMessage = getLatestErrorMessage(wiseBankAccountFields);
@@ -113,14 +123,37 @@ function WiseDepositAccountContent({backTo, subPage}: WiseDepositAccountContentP
         Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(backTo), {forceReplace: true});
     };
 
-    const leaveFlow = () => {
+    // The purpose page only asks what the account is for, so like the Corpay flow, the user lands on the wallet instead of answering it again
+    const exitRoute = backTo && !backTo.includes(ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE) ? backTo : ROUTES.SETTINGS_WALLET;
+
+    const clearFlow = () => {
         clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
+        clearWiseBankAccountForm();
         clearWiseBankAccountFields();
-        Navigation.goBack(backTo ?? ROUTES.SETTINGS_WALLET);
+    };
+
+    const leaveFlow = () => {
+        clearFlow();
+        Navigation.goBack(exitRoute);
+    };
+
+    const finishFlow = () => {
+        clearFlow();
+        // The wallet stays open under the flow and fetches its bank accounts only when it opens, so it would not show the new account otherwise
+        getPaymentMethods();
+        // A payment that asked for a bank account saved where to go on, so it resumes now that the account exists
+        if (onSuccessFallbackRoute) {
+            continueSetup(kycWallRef, onSuccessFallbackRoute);
+        } else {
+            Navigation.goBack(exitRoute);
+        }
+        clearPersonalBankAccount();
     };
 
     const fetchForm = () => {
         clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
+        // A success from an earlier visit is kept on the device, so it is dropped before the new form arrives
+        clearWiseBankAccountForm();
         getWiseBankAccountFields(selectedCountry);
     };
 
@@ -137,13 +170,19 @@ function WiseDepositAccountContent({backTo, subPage}: WiseDepositAccountContentP
         createWiseBankAccount(selectedCountry, getAnswerCurrency(answers), answers);
     };
 
-    if (wiseBankAccountFields?.isLoading) {
+    // Only the first form takes the whole screen. A refresh keeps the form mounted, so the page keeps what the user typed and shows its progress in place.
+    if (wiseBankAccountFields?.isLoading && !schema) {
         return (
             <FullScreenLoadingIndicator
                 shouldUseGoBackButton
                 onGoBack={leaveFlow}
             />
         );
+    }
+
+    // The form state is saved on the device, while the form is only kept in memory. A success left behind by a reload shows the country list instead.
+    if (formState?.isSuccess && schema) {
+        return <WiseBankAccountAdded onContinue={finishFlow} />;
     }
 
     if (schema) {
@@ -160,6 +199,8 @@ function WiseDepositAccountContent({backTo, subPage}: WiseDepositAccountContentP
                 onSubmit={submitForm}
                 isSubmitting={!!formState?.isLoading}
                 submitError={getLatestErrorMessage(formState)}
+                isRefreshingRequirements={!!wiseBankAccountFields.isLoading}
+                refreshError={errorMessage}
                 onBack={returnToCountryList}
             />
         );

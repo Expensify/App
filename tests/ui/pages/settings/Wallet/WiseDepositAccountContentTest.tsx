@@ -1,15 +1,20 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import {getPages} from '@components/DynamicForm/utils/paginate';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import {READ_COMMANDS} from '@libs/API/types';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import InternationalDepositAccount from '@pages/settings/Wallet/InternationalDepositAccount';
 
+import {createWiseBankAccount} from '@userActions/BankAccounts';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
@@ -26,7 +31,10 @@ jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) =
 
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
-async function renderScreen(subPage?: string) {
+// The flow names its pages by the schema's keys in lower case, so a page opens only under that name
+const FIRST_PAGE_NAME = getPages(wiseBankAccountFieldsGB.schema).at(0)?.key;
+
+async function renderScreen(subPage?: string, backTo?: Route) {
     await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.WISE_REIMBURSEMENTS]);
     render(
         <OnyxListItemProvider>
@@ -35,7 +43,7 @@ async function renderScreen(subPage?: string) {
                     <Stack.Screen
                         name={SCREENS.SETTINGS.ADD_BANK_ACCOUNT}
                         component={InternationalDepositAccount}
-                        initialParams={{subPage}}
+                        initialParams={{subPage, backTo}}
                     />
                 </Stack.Navigator>
             </NavigationContainer>
@@ -118,10 +126,10 @@ describe('WiseDepositAccountContent', () => {
     });
 
     it('does not open the flow again when the user leaves it while a form page is loading', async () => {
-        // Given a form page whose new form is still being fetched, with the loader's go back button shown
+        // Given a form page whose first form is still being fetched, with the loader's go back button shown
         jest.useFakeTimers({advanceTimers: true});
         const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
-        await Onyx.set(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS, {...wiseBankAccountFieldsGB, isLoading: true});
+        await Onyx.set(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS, {isLoading: true});
         await renderScreen('accountDetails');
         act(() => {
             jest.advanceTimersByTime(CONST.TIMING.ACTIVITY_INDICATOR_TIMEOUT);
@@ -149,5 +157,164 @@ describe('WiseDepositAccountContent', () => {
         // Then the form is dropped and the URL is replaced with the country list it shows
         expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS)).toBeUndefined();
         expect(navigateSpy).toHaveBeenCalledWith(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(undefined), {forceReplace: true});
+    });
+
+    describe('after the bank account is added', () => {
+        let goBackSpy: jest.SpyInstance;
+
+        beforeEach(() => {
+            // The flow leaves by going back, which this single screen stack cannot follow
+            goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
+        });
+
+        afterEach(() => {
+            goBackSpy.mockRestore();
+        });
+
+        async function renderAddedAccount(backTo?: Route) {
+            await Onyx.set(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS, wiseBankAccountFieldsGB);
+            await Onyx.merge(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT, {accountNumber: '87654321'});
+            await renderScreen(CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY, backTo);
+
+            // The server answered the submit from the confirmation page with a success
+            createWiseBankAccount('GB', 'GBP', {accountNumber: '87654321'});
+            await waitForBatchedUpdatesWithAct();
+        }
+
+        it('shows that the bank account was added, so the user knows the submit went through', async () => {
+            // Given the user submitted the form
+            // When the server reports the account was created
+            await renderAddedAccount();
+
+            // Then the success screen replaces the confirmation page
+            expect(screen.getByText('addPersonalBankAccountPage.bankAccountAddedTitle')).toBeOnTheScreen();
+        });
+
+        it('returns to the wallet and drops the bank details when the user continues', async () => {
+            // Given the success screen
+            await renderAddedAccount();
+
+            // When the user continues
+            fireEvent.press(screen.getByText('common.continue'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the flow closes, so a new visit starts from the country list without the old bank details or a success left over
+            expect(goBackSpy).toHaveBeenCalledWith(ROUTES.SETTINGS_WALLET);
+            expect(await getOnyxValue(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT)).toBeUndefined();
+            expect((await getOnyxValue(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM))?.isSuccess).toBeFalsy();
+            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS)).toBeUndefined();
+
+            // And the wallet asks for its bank accounts again, since it stays open under the flow and does not refetch by itself
+            TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_PAYMENTS_PAGE, 1);
+        });
+
+        it('returns to the report the user came from when they continue', async () => {
+            // Given the flow opened from a report
+            await renderAddedAccount(ROUTES.REPORT_WITH_ID.getRoute('123'));
+
+            // When the user continues
+            fireEvent.press(screen.getByText('common.continue'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then they are back on that report
+            expect(goBackSpy).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('123'));
+        });
+
+        it('returns to the wallet instead of the purpose page when the user continues', async () => {
+            // Given the flow opened from the bank account purpose page
+            await renderAddedAccount(ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE);
+
+            // When the user continues
+            fireEvent.press(screen.getByText('common.continue'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then they land on the wallet with the new account, since the purpose question is already answered
+            expect(goBackSpy).toHaveBeenCalledWith(ROUTES.SETTINGS_WALLET);
+        });
+
+        it('goes on with the payment that asked for a bank account when the user continues', async () => {
+            // Given the flow opened from a payment, which saves where to go on once the account exists
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {onSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS});
+            await renderAddedAccount(ROUTES.REPORT_WITH_ID.getRoute('123'));
+
+            // When the user continues
+            fireEvent.press(screen.getByText('common.continue'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the payment goes on, and its saved route is dropped so a later visit does not follow it
+            expect(goBackSpy).toHaveBeenCalledWith(ROUTES.ENABLE_PAYMENTS);
+            expect(goBackSpy).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('123'));
+            expect(await getOnyxValue(ONYXKEYS.PERSONAL_BANK_ACCOUNT)).toBeUndefined();
+        });
+    });
+
+    it('keeps what the user typed on the page while the form refreshes', async () => {
+        // Given the first page of the GBP form with a sort code typed but not saved yet
+        await Onyx.set(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS, wiseBankAccountFieldsGB);
+        await renderScreen(FIRST_PAGE_NAME);
+        fireEvent.changeText(screen.getByLabelText('Sort code', {exact: false}), '403020');
+
+        // When a currency change asks the server for a new form, and it arrives
+        await Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS, {isLoading: true});
+        await waitForBatchedUpdatesWithAct();
+        const isPageShownWhileLoading = !!screen.queryByLabelText('Sort code', {exact: false});
+        await Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS, {isLoading: false});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the page stays on screen the whole time, so the typed sort code is still there instead of the form starting over
+        expect(isPageShownWhileLoading).toBe(true);
+        expect(screen.getByLabelText('Sort code', {exact: false}).props.value).toBe('403020');
+    });
+
+    it('shows a failed refresh on the form page and hides it on the next attempt', async () => {
+        // Given the first page of the GBP form
+        await Onyx.set(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS, wiseBankAccountFieldsGB);
+        await renderScreen(FIRST_PAGE_NAME);
+
+        // When the refresh fails
+        await Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS, {errors: {refreshError: 'The form could not be refreshed'}});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the user sees why the fields did not change, on the page they are on
+        expect(screen.getByText('The form could not be refreshed')).toBeOnTheScreen();
+
+        // When the user tries again, which clears the error while the request runs
+        await Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS, {isLoading: true, errors: null});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the old error is gone
+        expect(screen.queryByText('The form could not be refreshed')).not.toBeOnTheScreen();
+    });
+
+    it('opens the new form instead of the success screen after a success from an earlier visit', async () => {
+        // Given a success the device kept from an earlier visit, while the form itself was only in memory, as after a reload
+        createWiseBankAccount('GB', 'GBP', {accountNumber: '87654321'});
+        await waitForBatchedUpdatesWithAct();
+        await Onyx.set(ONYXKEYS.COUNTRY, 'GB');
+        await renderScreen();
+
+        // When the user confirms a country and its form arrives
+        fireEvent.press(screen.getByText('common.next'));
+        await waitForBatchedUpdatesWithAct();
+        await Onyx.set(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS, wiseBankAccountFieldsGB);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the user fills in the new form, rather than being told an account they have not sent yet was added
+        expect(screen.queryByText('addPersonalBankAccountPage.bankAccountAddedTitle')).not.toBeOnTheScreen();
+        expect((await getOnyxValue(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM))?.isSuccess).toBeFalsy();
+    });
+
+    it('returns to the wallet instead of the purpose page when the user leaves the country list', async () => {
+        // Given the country list, opened from the bank account purpose page
+        const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
+        await renderScreen(undefined, ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE);
+
+        // When the user leaves the flow
+        fireEvent.press(screen.getByLabelText('common.back'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then they land on the wallet, as the Corpay flow does, since the purpose page was only a step on the way in
+        expect(goBackSpy).toHaveBeenCalledWith(ROUTES.SETTINGS_WALLET);
+        goBackSpy.mockRestore();
     });
 });

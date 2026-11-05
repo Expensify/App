@@ -63,6 +63,12 @@ type DynamicFormFlowProps = Pick<DynamicFormFieldsProps, 'currency' | 'maxFileSi
      */
     isSavingPages?: boolean;
 
+    /** Shows the Next and Confirm buttons loading while the screen asks for requirements that match a new answer, so the user does not move on with fields that are about to change */
+    isRefreshingRequirements?: boolean;
+
+    /** Error from asking for new requirements, shown on every fields page, since the answer that asked for them can be on any page */
+    refreshError?: string;
+
     /** Pages whose `onPageSubmit` save has not gone through, so a new visit starts on the first one shown instead of where the draft leaves off */
     unsavedPageKeys?: string[];
 
@@ -83,7 +89,17 @@ type DynamicFormFlowProps = Pick<DynamicFormFieldsProps, 'currency' | 'maxFileSi
 type DynamicFormSubPageProps = SubPageProps &
     Pick<
         DynamicFormFlowProps,
-        'formID' | 'currency' | 'maxFileSize' | 'onRefreshRequirements' | 'confirmationTitle' | 'isSubmitting' | 'submitError' | 'isSavingPages' | 'shouldDisableNextWhenOffline'
+        | 'formID'
+        | 'currency'
+        | 'maxFileSize'
+        | 'onRefreshRequirements'
+        | 'confirmationTitle'
+        | 'isSubmitting'
+        | 'submitError'
+        | 'isSavingPages'
+        | 'isRefreshingRequirements'
+        | 'refreshError'
+        | 'shouldDisableNextWhenOffline'
     > & {
         pages: DynamicFormPage[];
 

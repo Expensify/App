@@ -19,6 +19,7 @@ function DynamicFormConfirmationPage({
     confirmationTitle,
     isSubmitting,
     isSavingPages,
+    isRefreshingRequirements,
     submitError,
     onOpenListItemEditor,
 }: DynamicFormSubPageProps) {
@@ -33,7 +34,7 @@ function DynamicFormConfirmationPage({
             pageTitle={confirmationTitle}
             groups={getConfirmationItems(pages, allFields, values, translate, onMove, onOpenListItemEditor)}
             showOnfidoLinks={false}
-            isLoading={!!isSubmitting || !!isSavingPages}
+            isLoading={!!isSubmitting || !!isSavingPages || !!isRefreshingRequirements}
             error={submitError}
             shouldMarkTitleAsHeading
             shouldAnnounceSubmitState

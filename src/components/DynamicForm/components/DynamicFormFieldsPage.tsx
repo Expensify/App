@@ -37,13 +37,16 @@ function DynamicFormFieldsPage({
     onListItemsChange,
     isSubmitting,
     submitError,
+    isRefreshingRequirements,
+    refreshError,
     shouldDisableNextWhenOffline,
 }: DynamicFormSubPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const page = pages.find((candidate) => candidate.key === currentPageName);
     // VoiceOver ignores the error's live region, so the error is announced as it appears, as on the confirmation page
-    useAccessibilityAnnouncement(submitError, !!isLastPage && !!submitError, {shouldAnnounceOnNative: true});
+    const pageError = (isLastPage ? submitError : undefined) ?? refreshError;
+    useAccessibilityAnnouncement(pageError, !!pageError, {shouldAnnounceOnNative: true});
     if (!page) {
         return null;
     }
@@ -69,14 +72,15 @@ function DynamicFormFieldsPage({
             keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
             // An offline request is saved to disk, so the last page submits only online, as the confirmation page does. A flow that saves each page asks for it on every page.
             enabledWhenOffline={!isLastPage && !shouldDisableNextWhenOffline}
-            // Without a confirmation page the last page sends the form, so it shows the request's progress and error as the confirmation page does
-            isLoading={isLastPage && !!isSubmitting}
+            // Without a confirmation page the last page sends the form, so it shows the request's progress and error as the confirmation page does.
+            // A refresh can change the fields on any page, so Next waits for it everywhere.
+            isLoading={(isLastPage && !!isSubmitting) || !!isRefreshingRequirements}
             footerContent={
-                isLastPage && !!submitError ? (
+                pageError ? (
                     <DotIndicatorMessage
                         textStyles={[styles.formError]}
                         type="error"
-                        messages={{error: submitError}}
+                        messages={{error: pageError}}
                     />
                 ) : undefined
             }

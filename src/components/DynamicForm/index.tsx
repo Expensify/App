@@ -63,6 +63,8 @@ function DynamicFormFlow({
     isSubmitting,
     submitError,
     isSavingPages,
+    isRefreshingRequirements,
+    refreshError,
     unsavedPageKeys,
     layout = 'auto',
     hasConfirmation = true,
@@ -373,6 +375,8 @@ function DynamicFormFlow({
                     isSubmitting={isSubmitting}
                     submitError={submitError}
                     isSavingPages={isSavingPages}
+                    isRefreshingRequirements={isRefreshingRequirements}
+                    refreshError={refreshError}
                     shouldDisableNextWhenOffline={shouldDisableNextWhenOffline}
                 />
             )}

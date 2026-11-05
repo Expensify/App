@@ -1398,6 +1398,11 @@ function clearWiseBankAccountFields() {
     Onyx.set(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS, null);
 }
 
+/** Drops the result of the last submit, so the next visit opens on the form instead of the success screen */
+function clearWiseBankAccountForm() {
+    Onyx.merge(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, {isSuccess: null, errors: null, errorFields: null});
+}
+
 function clearReimbursementAccountBankCreation() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isCreateCorpayBankAccount: null, isSuccess: null, isLoading: null});
 }
@@ -2167,6 +2172,7 @@ export {
     clearReimbursementAccountSaveCorpayOnboardingDirectorInformation,
     clearCorpayBankAccountFields,
     clearWiseBankAccountFields,
+    clearWiseBankAccountForm,
     createWiseBankAccount,
     finishCorpayBankAccountOnboarding,
     shareBankAccountAndSetPayer,
