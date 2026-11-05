@@ -8,12 +8,15 @@ import Parser from '@libs/Parser';
 import {
     getChangedApproverActionMessage,
     getDelegateSubmitMessage,
+    getOriginalMessage,
+    getReportActionActorAccountID,
     getSortedReportActions,
     hasPendingDEWApprove,
     hasPendingDEWSubmit,
     isActionOfType,
     isApprovedAction,
     isForwardedAction,
+    isMarkAsClosedAction,
     isPayAction,
     isReopenedAction,
     isRetractedAction,
@@ -47,6 +50,7 @@ type GetReportHistoryStepsParams = {
     nextStep: ReportNextStep | undefined;
     isOpenReport: boolean;
     isDEWPolicy: boolean;
+    shouldDisplayMarkAsDone: boolean;
     reportMetadata: OnyxEntry<ReportMetadata>;
 };
 
@@ -55,14 +59,22 @@ function getCompletedStep(
     reportAction: ReportAction,
     currentUserEmail: string | undefined,
     reportOwnerAccountID: number | undefined,
+    shouldDisplayMarkAsDone: boolean,
 ): ReportHistoryStep | undefined {
-    const step = {key: reportAction.reportActionID, accountID: reportAction.actorAccountID, created: reportAction.created, isUpcoming: false};
+    const step = {key: reportAction.reportActionID, accountID: getReportActionActorAccountID(reportAction, undefined, undefined), created: reportAction.created, isUpcoming: false};
 
     if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATED)) {
         return {...step, accountID: reportAction.actorAccountID ?? reportOwnerAccountID, icon: 'Receipt', label: translate('reportHistoryPage.created')};
     }
     if (isSubmittedAction(reportAction) || isSubmittedAndClosedAction(reportAction)) {
+        // Automatic submissions keep their submission wording, even in a Mark as done workflow.
+        if (shouldDisplayMarkAsDone && !getOriginalMessage(reportAction)?.harvesting) {
+            return {...step, icon: 'Send', label: translate('iou.markedAsDone')};
+        }
         return {...step, icon: 'Send', label: translate('reportHistoryPage.submitted')};
+    }
+    if (shouldDisplayMarkAsDone && isMarkAsClosedAction(reportAction)) {
+        return {...step, icon: 'Send', label: translate('iou.markedAsDone')};
     }
     if (isApprovedAction(reportAction) || isForwardedAction(reportAction)) {
         return {...step, icon: 'ThumbsUp', label: translate('reportHistoryPage.approved')};
@@ -105,6 +117,7 @@ function getUpcomingStep(
     upcomingStep: ReportUpcomingStep,
     index: number,
     nextStep: ReportNextStep | undefined,
+    shouldDisplayMarkAsDone: boolean,
 ): ReportHistoryStep | undefined {
     const step = {key: `${upcomingStep.action}_${upcomingStep.actorAccountID}_${index}`, accountID: upcomingStep.actorAccountID, isUpcoming: true};
 
@@ -113,6 +126,9 @@ function getUpcomingStep(
         if (nextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT) {
             const {eta, etaType} = getNextStepETA(nextStep, translate, dateFnsLocale);
             return {...step, icon: 'Send', label: translate('reportHistoryPage.toSubmitAutomatically', eta, etaType)};
+        }
+        if (shouldDisplayMarkAsDone) {
+            return {...step, icon: 'Send', label: translate('reportHistoryPage.toMarkAsDone')};
         }
         return {...step, icon: 'Send', label: translate('reportHistoryPage.toSubmit')};
     }
@@ -186,8 +202,10 @@ function getReportHistorySteps({
     nextStep,
     isOpenReport,
     isDEWPolicy,
+    shouldDisplayMarkAsDone,
     reportMetadata,
 }: GetReportHistoryStepsParams): ReportHistoryStep[] {
+    const isMarkAsDoneWorkflow = shouldDisplayMarkAsDone && !isDEWPolicy;
     const completedSteps: ReportHistoryStep[] = [];
     let lastStepAction: ReportAction | undefined;
     for (const reportAction of getSortedReportActions(Object.values(reportActions ?? {}))) {
@@ -198,7 +216,7 @@ function getReportHistorySteps({
         ) {
             continue;
         }
-        const step = getCompletedStep(translate, reportAction, currentUserEmail, reportOwnerAccountID);
+        const step = getCompletedStep(translate, reportAction, currentUserEmail, reportOwnerAccountID, isMarkAsDoneWorkflow);
         if (step) {
             completedSteps.push(step);
             lastStepAction = reportAction;
@@ -212,7 +230,7 @@ function getReportHistorySteps({
             (hasPendingDEWApprove(reportMetadata, isDEWPolicy) && (isApprovedAction(lastStepAction) || isForwardedAction(lastStepAction))));
 
     const currentUpcomingSteps = getCurrentUpcomingSteps(upcomingSteps, nextStep, isOpenReport, isLastStepQueuedForDEW ? lastStepAction : undefined)
-        .map((upcomingStep, index) => getUpcomingStep(translate, dateFnsLocale, upcomingStep, index, nextStep))
+        .map((upcomingStep, index) => getUpcomingStep(translate, dateFnsLocale, upcomingStep, index, nextStep, isMarkAsDoneWorkflow))
         .filter((step): step is ReportHistoryStep => !!step);
 
     return [...completedSteps, ...currentUpcomingSteps];

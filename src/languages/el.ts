@@ -125,6 +125,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pay: 'Πληρωμή',
             fix: 'Διόρθωση',
             task: 'Εργασία',
+            add: 'Προσθήκη',
         },
         success: 'Επιτυχία',
         group: 'Ομάδα',
@@ -188,6 +189,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dob: 'Ημερομηνία γέννησης',
         currentYear: 'Τρέχον έτος',
         currentMonth: 'Τρέχων μήνας',
+        todayDateLabel: (date: string) => `${date}, σήμερα`,
         ssnLast4: 'Τελευταία 4 ψηφία του SSN',
         ssnFull9: 'Ολόκληροι οι 9 αριθμοί του SSN',
         addressLine: (lineNumber: number) => `Γραμμή διεύθυνσης ${lineNumber}`,
@@ -1107,6 +1109,10 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             emailDeliveryFailure: {title: 'Δεν μπορούμε να σας στέλνουμε ειδοποιήσεις μέσω email', subtitle: 'Λογαρια​σμός'},
             upgradeNetSuiteConnection: {title: 'Αναβαθμίστε τη σύνδεσή σας με το NetSuite'},
+            verifyWiseBankAccount: {
+                title: 'Επαληθεύστε τον τραπεζικό λογαριασμό',
+                subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Τραπεζικός λογαριασμός που λήγει σε ${bankAccountLastFour}`,
+            },
         },
         freeTrialSection: {
             title: ({count}: {count: number}) => ({
@@ -1285,6 +1291,8 @@ const translations: TranslationDeepObject<typeof en> = {
         runningTotal: 'Τρέχον σύνολο',
         explain: 'Επεξήγηση',
         explainChartPrompt: (chartTitle: string) => `Εξηγήστε τα δεδομένα στο ${chartTitle}.`,
+        viewDetails: 'Προβολή λεπτομερειών',
+        viewAll: 'Προβολή όλων',
     },
     allSettingsScreen: {
         subscription: 'Συνδρομή',
@@ -2195,6 +2203,13 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `Αλλάξτε τον χώρο εργασίας της αναφοράς για περαιτέρω ενέργειες.`,
+
+            [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `Μπορείτε μόνο να εγκρίνετε σε αυτόν τον χώρο εργασίας. Μετακινήστε αυτήν την αναφορά σε κάποιον άλλον για να την υποβάλετε.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -3221,6 +3236,7 @@ const translations: TranslationDeepObject<typeof en> = {
             payingReportSubtitle: 'Οι τραπεζικοί λογαριασμοί της εταιρείας και των εργαζομένων χρησιμοποιούν διαφορετικά νομίσματα.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Πληρώστε ανθρώπους παγκοσμίως', subtitle: 'Ενεργοποιήστε τις παγκόσμιες αποζημιώσεις στον λογαριασμό USD σας.'},
+        wiseMoreInfoNeeded: 'Απαιτούνται περισσότερες πληροφορίες για την ενεργοποίηση των παγκόσμιων επιστροφών χρημάτων',
         globalReimbursementsEnabled: 'Έγινε ενεργοποίηση των παγκόσμιων αποζημιώσεων',
     },
     addCardToDigitalWallet: {
@@ -3384,8 +3400,10 @@ ${amount} για ${merchant} - ${date}`,
         manager: 'Διαχειριστής',
         makeOrTrackPaymentsTitle: 'Πληρωμές',
         makeOrTrackPaymentsDescription: 'Προσθέστε ένα εξουσιοδοτημένο πρόσωπο πληρωμής για πληρωμές που γίνονται στο Expensify ή παρακολουθήστε πληρωμές που έγιναν αλλού.',
-        collectEmployeeBankDetails: 'Συλλογή τραπεζικών στοιχείων υπαλλήλων',
-        collectEmployeeBankDetailsDescription: 'Συλλέξτε τα τραπεζικά στοιχεία των υπαλλήλων, ώστε να μπορείτε να τους αποζημιώνετε εκτός Expensify.',
+        collectEmployeeBankDetails: 'Συλλογή στοιχείων τραπεζικού λογαριασμού',
+        collectEmployeeBankDetailsDescription: 'Συλλέξτε τραπεζικά στοιχεία από τα μέλη του χώρου εργασίας, ώστε να μπορείτε να τα αποζημιώνετε εκτός Expensify.',
+        disablePaymentsTitle: 'Απενεργοποίηση πληρωμών;',
+        disablePaymentsPrompt: 'Αυτό θα αφαιρέσει όλες τις ρυθμίσεις πληρωμής σας.',
         businessBankAccountCountries: 'Χώρες επαγγελματικών τραπεζικών λογαριασμών',
         businessBankAccountCountriesDescription: 'Οι υπάλληλοι σε αυτές τις χώρες δίνουν στοιχεία για τοπική μεταφορά. Όλοι οι υπόλοιποι δίνουν στοιχεία για διεθνές έμβασμα.',
         customApprovalWorkflowEnabled:
@@ -5299,6 +5317,13 @@ ${amount} για ${merchant} - ${date}`,
             title: 'Δεν μπορείτε ακόμη να κάνετε κράτηση ταξιδιού',
             message:
                 'Είστε μέλος ενός χώρου εργασίας με ενεργοποιημένα ταξίδια, αλλά δεν είναι ο προεπιλεγμένος χώρος εργασίας σας. Για να κάνετε κράτηση, ενεργοποιήστε τα ταξίδια στον προεπιλεγμένο χώρο εργασίας σας ή αλλάξτε τον προεπιλεγμένο χώρο εργασίας σας σε έναν με ενεργοποιημένα ταξίδια.',
+        },
+        approval: {
+            status: {outstanding: 'Εκκρεμές', approved: 'Εγκρίθηκε', rejected: 'Απορρίφθηκε', canceled: 'Ακυρώθηκε'},
+            deadline: {
+                softApproval: (time: string) => `Αυτόματη έγκριση σε ${time}. Δυνατή η δωρεάν ακύρωση μέχρι τότε.`,
+                hardApproval: (time: string) => `Ακυρώνεται αυτόματα σε ${time} αν δεν εγκριθεί.`,
+            },
         },
     },
     proactiveAppReview: {
@@ -9699,8 +9724,10 @@ ${reportName}`,
                 describeRuleHeadline: 'Περιγράψτε τον κανόνα σας',
                 describeRuleForConcierge: 'Περιγράψτε τον κανόνα σας και το Concierge θα τον δημιουργήσει',
                 createRule: 'Δημιουργία κανόνα',
-                fallbackBanner: 'Αυτός δεν είναι τυπικός κανόνας, οπότε συντάξαμε έναν κανόνα πράκτορα.',
-                fallbackBannerWithExplanation: (explanation: string) => `Αυτός δεν είναι τυπικός κανόνας, οπότε συντάξαμε έναν κανόνα πράκτορα. ${explanation}`,
+                fallbackBanner:
+                    'Αυτός δεν είναι τυπικός κανόνας, οπότε συντάξαμε έναν κανόνα πράκτορα. Οι κανόνες πράκτορα εκτελούνται όταν δημιουργείται ή ενημερώνεται ένα έξοδο ή μια αναφορά.',
+                fallbackBannerWithExplanation: (explanation: string) =>
+                    `Αυτός δεν είναι τυπικός κανόνας, οπότε συντάξαμε έναν κανόνα πράκτορα. Οι κανόνες πράκτορα εκτελούνται όταν δημιουργείται ή ενημερώνεται ένα έξοδο ή μια αναφορά. ${explanation}`,
                 suggestionsTab: 'Προτεινόμενο',
                 writeTab: 'Προσαρμοσμένο',
                 findSuggestion: 'Βρείτε έναν κανόνα',
@@ -9897,6 +9924,33 @@ ${reportName}`,
             noVendorsFoundDescription: 'Παρακαλούμε προσθέστε προμηθευτές στο Zoho Books και συγχρονίστε ξανά τη σύνδεση',
             noAccountsFound: 'Δεν βρέθηκαν λογαριασμοί',
             noAccountsFoundDescription: 'Παρακαλούμε προσθέστε λογαριασμούς στο Zoho Books και συγχρονίστε ξανά τη σύνδεση',
+            autoSyncDescription: 'Συγχρονίστε αυτόματα κάθε μέρα το Zoho Books και το Expensify. Οι αναφορές συγχρονίζονται σε πραγματικό χρόνο.',
+            accountingMethods: {
+                label: 'Μέθοδος εξαγωγής',
+                description: 'Επιλέξτε πότε να γίνεται η εξαγωγή των εξόδων.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Δεδουλευμένη βάση',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Μετρητά',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Τα έξοδα από την τσέπη θα εξαχθούν όταν εγκριθούν οριστικά',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Τα έξοδα από την τσέπη θα εξαχθούν όταν πληρωθούν',
+                },
+            },
+            syncReimbursedReports: 'Συγχρονισμός αποζημιωμένων αναφορών',
+            syncReimbursedReportsDescription: 'Όταν μια αναφορά πληρώνεται μέσω ACH, θα δημιουργείται μια πληρωμή λογαριασμού σε αυτόν τον λογαριασμό.',
+            billPaymentAccount: {
+                label: 'Λογαριασμός πληρωμής λογαριασμών',
+                description: 'Επιλέξτε τον λογαριασμό εκκαθάρισης που πιστώνει το Zoho Books όταν το Expensify σημειώνει έναν λογαριασμό ως πληρωμένο.',
+            },
+            syncExpensifyCardSettlements: 'Συγχρονισμός διακανονισμών κάρτας Expensify',
+            settlementAccount: {label: 'λογαριασμός διακανονισμού κάρτας Expensify', description: 'Επιλέξτε τον λογαριασμό εκκαθάρισης και θα δημιουργήσουμε την πληρωμή στο Zoho Books.'},
+            syncTravelBillingSettlements: 'Συγχρονισμός διακανονισμών ενοποιημένης χρέωσης ταξιδιών',
+            travelBillingSettlementAccount: {
+                label: 'Λογαριασμός διακανονισμού ενοποιημένης χρέωσης ταξιδιών',
+                description: 'Επιλέξτε τον λογαριασμό εκκαθάρισης και θα δημιουργήσουμε την πληρωμή στο Zoho Books.',
+            },
+            travelBillingPayableAccount: {label: 'Λογαριασμός πληρωτέων για ενοποιημένη χρέωση ταξιδιών'},
         },
         businessCentral: {
             businessCentralSetup: 'Ρύθμιση Dynamics 365 Business Central',
@@ -10878,6 +10932,8 @@ ${reportName}`,
                 upcoming: 'Επερχόμενο',
                 done: 'Ολοκληρώθηκε',
                 canceled: 'Ακυρώθηκε',
+                outstanding: 'Εκκρεμές',
+                rejected: 'Απορρίφθηκε',
             },
         },
         tabs: {
@@ -11141,6 +11197,7 @@ ${reportName}`,
         },
         display: {
             label: 'Εμφάνιση',
+            labelWithCount: ({count}: {count: number}) => (count > 0 ? `Εμφάνιση (${count})` : 'Εμφάνιση'),
             sortBy: 'Ταξινόμηση κατά',
             sortOrder: 'Σειρά ταξινόμησης',
             groupBy: 'Ομαδοποίηση κατά',
@@ -13124,6 +13181,7 @@ ${reportName}`,
             other: (count: number) => `πριν από ${count} ημ.`,
         }),
         offlineMessage: 'Είστε εκτός σύνδεσης. Το ιστορικό αναφορών μπορεί να είναι παρωχημένο.',
+        toMarkAsDone: 'να επισημάνετε ως ολοκληρωμένο',
     },
 };
 export default translations;
