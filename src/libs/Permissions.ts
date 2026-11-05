@@ -31,6 +31,11 @@ function canUseLinkPreviews(): boolean {
 
 /** The configuration, the overrides and the environment are required so that no call site can skip them by accident. */
 function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration: OnyxEntry<BetaConfiguration>, betaOverrides: OnyxEntry<BetaOverrides>, environment: Environment): boolean {
+    // Forced on while the resizable RHP and Side Panel are prototyped.
+    if (beta === CONST.BETAS.RESIZABLE_RHP) {
+        return true;
+    }
+
     if (canApplyBetaOverrides(environment)) {
         const override = betaOverrides?.[beta];
         if (override !== undefined) {

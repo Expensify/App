@@ -10238,6 +10238,14 @@ const CONST = {
         CONTENT_RESERVE_WIDTH: 360,
     },
 
+    SIDE_PANEL_RESIZE: {
+        /** Narrowest the Side Panel can be dragged, in px. */
+        MIN_WIDTH: 320,
+
+        /** Room, in px, the widest Side Panel still leaves for the content to its left, past the navigation tab bar. */
+        CONTENT_RESERVE_WIDTH: 735,
+    },
+
     TABLES: {
         FILTER_TYPE: {
             SINGLE_SELECT: 'singleSelect',
@@ -10520,6 +10528,7 @@ const CONST = {
             BACK_BUTTON: 'HeaderView-BackButton',
             CHRONOS_TIMER_BUTTON: 'HeaderView-ChronosTimerButton',
             DETAILS_BUTTON: 'HeaderView-DetailsButton',
+            EXPAND_BUTTON: 'HeaderView-ExpandButton',
         },
         BLOCKING_VIEW: {
             RETRY_BUTTON: 'BlockingView-RetryButton',
