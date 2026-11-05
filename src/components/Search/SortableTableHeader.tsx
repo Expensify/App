@@ -16,6 +16,7 @@ import {View} from 'react-native';
 import type {SearchColumnType, SearchSortBy, SortOrder, TableColumnSize} from './types';
 
 import {useSearchColumnStyles} from './SearchColumnWidthsContext';
+import {SortableColumnProvider} from './SortableColumnContext';
 import SortableHeaderText from './SortableHeaderText';
 
 type ColumnConfig = {
@@ -48,6 +49,12 @@ type SearchTableHeaderProps = {
     shouldRemoveTotalColumnFlex?: boolean;
     isActionColumnWide?: boolean;
     isDateColumnCreated?: boolean;
+
+    /**
+     * Replaces each labelled column's heading, reading the column from `useSortableColumn`.
+     * Without it the headings sort when pressed.
+     */
+    children?: React.ReactNode;
 };
 
 function SortableTableHeader({
@@ -70,6 +77,7 @@ function SortableTableHeader({
     taxAmountColumnSize,
     shouldRemoveTotalColumnFlex,
     isActionColumnWide,
+    children,
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -84,7 +92,8 @@ function SortableTableHeader({
                         return null;
                     }
 
-                    const isSortable = shouldShowSorting && isColumnSortable;
+                    // `SortableHeaderText` sorts by default, so a column sorts unless it sets `isColumnSortable: false`.
+                    const isSortable = shouldShowSorting && isColumnSortable !== false;
                     const sortByColumnName = sortColumnName ?? columnName;
                     const isActive = sortBy === sortByColumnName;
                     const isYesNoColumn =
@@ -97,47 +106,74 @@ function SortableTableHeader({
                         columnName === CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED ||
                         columnName === CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED ||
                         columnName === CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED;
+                    const label = translationKey ? translate(translationKey) : '';
                     const textStyle = [
                         columnName === CONST.SEARCH.TABLE_COLUMNS.RECEIPT ? StyleUtils.getTextOverflowStyle('clip') : null,
                         isYesNoColumn || isConversionAmountColumn ? styles.flexShrink1 : null,
                     ];
 
-                    const columnLabel = translationKey ? translate(translationKey) : '';
+                    const containerStyle = [
+                        getSearchColumnStyles(columnName, {
+                            isDateColumnWide: dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                            isDateColumnCreated,
+                            isSubmittedColumnWide: submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                            isApprovedColumnWide: approvedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                            isPostedColumnWide: postedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                            isExportedColumnWide: exportedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                            isPaidColumnWide: paidColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                            isTaxAmountColumnWide: taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                            isAmountColumnWide: amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                            shouldRemoveTotalColumnFlex,
+                            isWithdrawnColumnWide: withdrawnColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                            isActionColumnWide,
+                        }),
+                        styles.justifyContentCenter,
+                    ];
+                    const resolvedSortOrder = sortOrder ?? CONST.SEARCH.SORT_ORDER.ASC;
+                    const innerContainerStyle = canEdit && styles.editableCellHeader;
+
+                    const resizeHandle = (
+                        <ColumnResizeHandle
+                            columnKey={columnName}
+                            columnLabel={label}
+                        />
+                    );
+
+                    if (children && !!label) {
+                        return (
+                            <View
+                                key={columnName}
+                                style={containerStyle}
+                            >
+                                <SortableColumnProvider
+                                    columnName={columnName}
+                                    label={label}
+                                    alignment={StyleUtils.getReportTableColumnAlignment(columnName)}
+                                    sorting={isSortable ? {activeSortOrder: isActive ? sortOrder : undefined, onSort: (order) => onSortPress(sortByColumnName, order)} : undefined}
+                                    labelProps={{text: label, icon, isActive, sortOrder: resolvedSortOrder, innerContainerStyle, textStyle}}
+                                >
+                                    {children}
+                                </SortableColumnProvider>
+                                {resizeHandle}
+                            </View>
+                        );
+                    }
 
                     return (
                         <SortableHeaderText
                             key={columnName}
-                            text={columnLabel}
+                            text={label}
                             icon={icon}
                             textStyle={textStyle}
-                            sortOrder={sortOrder ?? CONST.SEARCH.SORT_ORDER.ASC}
+                            sortOrder={resolvedSortOrder}
                             isActive={isActive}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.SORTABLE_HEADER}
-                            innerContainerStyle={canEdit && styles.editableCellHeader}
-                            containerStyle={[
-                                getSearchColumnStyles(columnName, {
-                                    isDateColumnWide: dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    isDateColumnCreated,
-                                    isSubmittedColumnWide: submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    isApprovedColumnWide: approvedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    isPostedColumnWide: postedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    isExportedColumnWide: exportedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    isPaidColumnWide: paidColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    isTaxAmountColumnWide: taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    isAmountColumnWide: amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    shouldRemoveTotalColumnFlex,
-                                    isWithdrawnColumnWide: withdrawnColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    isActionColumnWide,
-                                }),
-                                styles.justifyContentCenter,
-                            ]}
+                            innerContainerStyle={innerContainerStyle}
+                            containerStyle={containerStyle}
                             isSortable={isSortable}
                             onPress={(order: SortOrder) => onSortPress(sortByColumnName, order)}
                         >
-                            <ColumnResizeHandle
-                                columnKey={columnName}
-                                columnLabel={columnLabel}
-                            />
+                            {resizeHandle}
                         </SortableHeaderText>
                     );
                 })}
