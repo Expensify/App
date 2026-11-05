@@ -2594,7 +2594,7 @@ const isIOUActionMatchingTransactionList = (
  * Returns a report action if there is exactly one transaction thread for the report, and undefined otherwise.
  */
 function getOneTransactionThreadReportAction(
-    report: OnyxEntry<Pick<Report, 'type'>>,
+    report: OnyxEntry<Pick<Report, 'type' | 'transactionCount'>>,
     chatReport: OnyxEntry<Report>,
     reportActions: OnyxEntry<ReportActions> | ReportAction[],
     isOffline: boolean | undefined = undefined,
@@ -2607,6 +2607,11 @@ function getOneTransactionThreadReportAction(
         report?.type !== CONST.REPORT.UNSUPPORTED_TYPE.BILL &&
         report?.type !== CONST.REPORT.TYPE.INVOICE
     ) {
+        return;
+    }
+
+    // Loaded actions can miss some expenses of a bill, so only the count from the server shows that a bill has one expense.
+    if (report?.type === CONST.REPORT.UNSUPPORTED_TYPE.BILL && report.transactionCount !== 1) {
         return;
     }
 
