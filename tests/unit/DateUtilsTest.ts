@@ -1,5 +1,5 @@
 // cspell:ignore Montag Dienstag Freitag Sonntag März Τρίτη Κυριακή Januar grudzień janv styczeń stycznia
-// cspell:ignore Ιανουάριος Ιανουαρίου -- German, Polish, French and Greek weekday and month
+// cspell:ignore Ιανουάριος Ιανουαρίου lundi novembre Δευτέρα Νοεμβρίου -- German, Polish, French and Greek weekday and month
 // names, asserted verbatim so the locale-driven formatters are covered rather than only the English path.
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
@@ -75,16 +75,39 @@ describe('DateUtils', () => {
     });
 
     it('formatToLongDateWithWeekday should return a long date with a weekday', () => {
-        const formattedDate = DateUtils.formatToLongDateWithWeekday(datetime, undefined);
-        expect(formattedDate).toBe('Monday, November 7, 2022');
+        // Given a date and no locale, which falls back to en-US
+        // When it is rendered as a full date
+        // Then English keeps the output it had before the component order was localized, with no ordinal day
+        expect(DateUtils.formatToLongDateWithWeekday(datetime, undefined)).toBe('Monday, November 7, 2022');
     });
 
-    it('formatToLongDateWithWeekday should translate the weekday and month names', () => {
-        // Only the words follow the locale here. `LONG_DATE_FORMAT_WITH_WEEKDAY` is still the hand-written
-        // `eeee, MMMM d, yyyy`, so the component order stays US — German would otherwise read `Montag, 7. November
-        // 2022` and Japanese `2022年11月7日月曜日`. Localizing that ordering is a separate change to `CONST.DATE`.
-        expect(DateUtils.formatToLongDateWithWeekday(datetime, de)).toBe('Montag, November 7, 2022');
-        expect(DateUtils.formatToLongDateWithWeekday(datetime, ja)).toBe('月曜日, 11月 7, 2022');
+    it('formatToLongDateWithWeekday should order the components the way the language does', () => {
+        // Given languages that do not write a full date in the US order
+        // When the same date is rendered in each
+        // Then the day moves ahead of the month, German adds the period its ordinal needs, and Japanese leads with
+        // the year and puts the weekday last. None of that is reachable by reordering a fixed pattern.
+        expect(DateUtils.formatToLongDateWithWeekday(datetime, de)).toBe('Montag, 7. November 2022');
+        expect(DateUtils.formatToLongDateWithWeekday(datetime, ja)).toBe('2022年11月7日月曜日');
+        expect(DateUtils.formatToLongDateWithWeekday(datetime, fr)).toBe('lundi 7 novembre 2022');
+    });
+
+    it('formatToLongDateWithWeekdayWithoutYear should drop the year but keep the locale ordering', () => {
+        // Given the same date its sibling `formatToLongDateWithWeekday` renders with a year
+        // When it is rendered without one
+        // Then only the year is missing. The two helpers sit next to each other and feed the same kind of label, so
+        // they have to agree on component order; this is the assertion that catches them drifting apart.
+        expect(DateUtils.formatToLongDateWithWeekdayWithoutYear(datetime, undefined)).toBe('Monday, November 7');
+        expect(DateUtils.formatToLongDateWithWeekdayWithoutYear(datetime, de)).toBe('Montag, 7. November');
+        expect(DateUtils.formatToLongDateWithWeekdayWithoutYear(datetime, fr)).toBe('lundi 7 novembre');
+    });
+
+    it('formatToLongDateWithWeekdayWithoutYear places the weekday where the language puts it', () => {
+        // Given languages that do not lead with the weekday
+        // When the date is rendered in each
+        // Then the weekday moves to the end with no comma, which no reordering of a date-fns pattern can produce
+        // because none of its canned date patterns omits the year
+        expect(DateUtils.formatToLongDateWithWeekdayWithoutYear(datetime, ja)).toBe('11月7日月曜日');
+        expect(DateUtils.formatToLongDateWithWeekdayWithoutYear(datetime, el)).toBe('Δευτέρα 7 Νοεμβρίου');
     });
 
     it('formatToDayOfWeek should return a weekday', () => {

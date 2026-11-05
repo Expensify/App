@@ -67,7 +67,7 @@ describe('ReimbursementAccount', () => {
                         const connection = Onyx.connect({
                             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                             callback: (policy) => {
-                                Onyx.disconnect(connection);
+                                connection.unsubscribe();
                                 expectDisconnectedAchAccount(policy?.achAccount, TEST_EMAIL);
                                 resolve();
                             },
@@ -97,7 +97,7 @@ describe('ReimbursementAccount', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.BANK_ACCOUNT_LIST,
                     callback: (bankAccountList) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(bankAccountList?.[bankAccountID]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
                         resolve();
                     },
@@ -125,7 +125,7 @@ describe('ReimbursementAccount', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.BANK_ACCOUNT_LIST,
                     callback: (bankAccountList) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(bankAccountList?.[bankAccountID]).toBeUndefined();
                         resolve();
                     },
@@ -159,7 +159,7 @@ describe('ReimbursementAccount', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.BANK_ACCOUNT_LIST,
                     callback: (bankAccountList) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(bankAccountList?.[bankAccountID]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
                         resolve();
                     },
@@ -186,7 +186,7 @@ describe('ReimbursementAccount', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.BANK_ACCOUNT_LIST,
                     callback: (bankAccountList) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(bankAccountList?.[bankAccountID]).toBeUndefined();
                         resolve();
                     },
@@ -212,7 +212,7 @@ describe('ReimbursementAccount', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (policy) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expectDisconnectedAchAccount(policy?.achAccount, TEST_EMAIL);
                         resolve();
                     },
@@ -237,14 +237,14 @@ describe('ReimbursementAccount', () => {
                 const reimbursementConnection = Onyx.connect({
                     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                     callback: (reimbursementAccount) => {
-                        Onyx.disconnect(reimbursementConnection);
+                        reimbursementConnection.unsubscribe();
                         expect(reimbursementAccount).toEqual(CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA);
                     },
                 });
                 const policyConnection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (policy) => {
-                        Onyx.disconnect(policyConnection);
+                        policyConnection.unsubscribe();
                         expectDisconnectedAchAccount(policy?.achAccount, TEST_EMAIL);
                         resolve();
                     },
@@ -271,7 +271,7 @@ describe('ReimbursementAccount', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (policy) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expectDisconnectedAchAccount(policy?.achAccount, designatedPayer);
                         resolve();
                     },
@@ -289,7 +289,7 @@ describe('ReimbursementAccount', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (policy) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expectDisconnectedAchAccount(policy?.achAccount, policyOwner);
                         resolve();
                     },
