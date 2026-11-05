@@ -1157,6 +1157,13 @@ describe('useSearchBulkActions - Change workspace', () => {
         mockGetExportTemplates.mockReturnValue({customTemplates: [], defaultTemplates: []});
 
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, login: 'test@example.com'},
+            [CURRENT_USER_ACCOUNT_ID + 1]: {accountID: CURRENT_USER_ACCOUNT_ID + 1, login: 'other@example.com'},
+        });
+        for (const policyID of ['policy1', 'policy2']) {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {id: policyID, name: policyID, type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.USER});
+        }
         await addDraftReport('report1', CURRENT_USER_ACCOUNT_ID);
         await addDraftReport('report2', CURRENT_USER_ACCOUNT_ID + 1);
     });
@@ -1194,6 +1201,23 @@ describe('useSearchBulkActions - Change workspace', () => {
         await waitFor(() => {
             expect(hasChangeWorkspaceOption(result.current.headerButtonsOptions)).toBe(true);
         });
+    });
+
+    it('hides Change workspace for a hand-picked report that was exported', async () => {
+        // Given a hand-picked selection of the user's own drafts, one of which was exported, so its own menu has no Change workspace
+        mockAreAllMatchingItemsSelected = false;
+        await addDraftReport('report2', CURRENT_USER_ACCOUNT_ID);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}report2`, {isExportedToIntegration: true});
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        // Then Change workspace is not offered, the same as the exported report's own menu
+        expect(hasChangeWorkspaceOption(result.current.headerButtonsOptions)).toBe(false);
     });
 
     it('hides Change workspace for hand-picked reports when one of them cannot be moved', async () => {

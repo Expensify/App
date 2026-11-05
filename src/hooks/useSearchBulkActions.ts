@@ -59,10 +59,9 @@ import Parser from '@libs/Parser';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
 import {getConnectedIntegration, isAdminOfCardEnabledPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
-import {getReportAccountingExportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
+import {getReportAccountingExportActions, isChangeWorkspaceAction, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
-    canEditReportPolicy,
     canIOUBePaid,
     canMergeReports,
     getAllPolicyExpenseChatReportActions,
@@ -2958,9 +2957,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             },
         };
 
+        // The same rules as Change workspace on a single report, so exported or settled reports stay put.
         const canChangeWorkspaceOfReport = (selectedReport: SelectedReports) => {
             const report = getReportFromSearchSnapshot(selectedReport.reportID, searchResults?.data, allReports);
-            return isExpenseReportUtil(report) && canEditReportPolicy(report, getPolicyFromSearchSnapshot(report?.policyID, searchResults?.data, policies));
+            if (!report || !isExpenseReportUtil(report)) {
+                return false;
+            }
+            const reportActions = Object.values(getReportActionsFromSearchSnapshot(report.reportID, searchResults?.data, allReportActions) ?? {});
+            return isChangeWorkspaceAction(report, policies, currentUserLogin ?? '', getLoginByAccountID(report.ownerAccountID, personalDetails), reportActions);
         };
         const changeWorkspaceOption: DropdownOption<SearchHeaderOptionValue> = {
             icon: expensifyIcons.Buildings,
