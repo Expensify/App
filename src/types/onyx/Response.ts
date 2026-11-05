@@ -65,6 +65,9 @@ type Response<TKey extends OnyxKey> = {
     /** Used to pass error messages for error handling purposes */
     message?: string;
 
+    /** Stable identifier for a user-facing API error. */
+    UUID?: string;
+
     /** Used to pass error title for error handling purposes */
     title?: string;
 

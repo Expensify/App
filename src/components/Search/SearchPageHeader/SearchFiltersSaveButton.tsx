@@ -1,15 +1,17 @@
 import DecisionModal from '@components/DecisionModal';
-import {useSearchQueryContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 
 import useActiveSavedSearch from '@hooks/useActiveSavedSearch';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {close} from '@libs/actions/Modal';
 import {saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
+import {isSearchQuerySavable} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -25,6 +27,9 @@ function SearchFiltersSaveButton() {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
+    const {currentSearchResults, shouldUseLiveData} = useSearchResultsContext();
+    const {isOffline} = useNetwork();
+    const isSaveDisabled = !isSearchQuerySavable(currentSearchQueryJSON, undefined, currentSearchResults?.search, !isOffline && !shouldUseLiveData);
     const activeSavedSearch = useActiveSavedSearch();
     const activeSavedSearchID = searchKeyToSavedSearchID(currentSearchKey);
 
@@ -50,7 +55,7 @@ function SearchFiltersSaveButton() {
     const updateActiveSavedSearch = () => {
         setIsSaveEditsModalVisible(false);
 
-        if (!activeSavedSearchID || !currentSearchQueryJSON) {
+        if (isSaveDisabled || !activeSavedSearchID || !currentSearchQueryJSON) {
             return;
         }
 
@@ -63,6 +68,7 @@ function SearchFiltersSaveButton() {
                 icon={expensifyIcons.Bookmark}
                 text={translate('common.save')}
                 onPress={savePressed}
+                isDisabled={isSaveDisabled}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVE_FILTERS_BUTTON}
             />
             {!!activeSavedSearchID && (

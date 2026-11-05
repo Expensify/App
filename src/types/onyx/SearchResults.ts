@@ -9,6 +9,7 @@ import type {
 import type {SearchFooterTotal, SearchGroupBy, SearchSortBy, SortOrder} from '@components/Search/types';
 
 import type CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 
@@ -79,12 +80,18 @@ type SearchResultsInfo = {
      * the same request is already running. */
     state?: ValueOf<typeof CONST.SEARCH.SNAPSHOT_STATE>;
 
+    /** Whether Search has successfully validated this query. Optimistic snapshots may already contain results. */
+    hasSuccessfulResponse?: boolean;
+
     /** jsonCode of the most recent failed search response for this snapshot. Cleared when a new request starts.
      *
      * The error view reads it to tell an invalid query, where retrying cannot help, apart from a retryable
      * failure. That verdict otherwise lives in component state, which a reload resets while the errored
      * snapshot survives, so without this a reload would offer a pointless Retry. */
     responseJsonCode?: number;
+
+    /** Client-only validation message key. Cleared when a new search starts so a previous failure cannot supply its message. */
+    errorTranslationKey?: TranslationPaths;
 
     /** The number of results */
     count?: number;

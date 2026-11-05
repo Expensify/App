@@ -3805,6 +3805,22 @@ describe('SearchQueryUtils', () => {
     });
 
     describe('isSearchQuerySavable', () => {
+        it.each([
+            ['type:expense reportID:0', undefined, true],
+            ['type:expense reportID:-1', undefined, false],
+            ['type:expense reportID:-1', CONST.JSON_CODE.INVALID_SEARCH_QUERY, true],
+        ])('returns false when the search is invalid or awaiting validation (%s, %s, %s)', (query, responseJsonCode, hasSuccessfulResponse) => {
+            // Given a query rejected by client validation or by Auth
+            const currentQueryJSON = buildSearchQueryJSON(query);
+            const search = {hash: currentQueryJSON?.hash ?? -1, responseJsonCode, hasSuccessfulResponse};
+
+            // When checking whether it can be saved
+            const canSave = isSearchQuerySavable(currentQueryJSON, undefined, search, true);
+
+            // Then the invalid query cannot be saved
+            expect(canSave).toBe(false);
+        });
+
         it('returns true when there is no default query, even without filters or a keyword', () => {
             // Given a query that isn't bound to any suggested or saved search
             const currentQueryJSON = buildSearchQueryJSON('type:trip');
@@ -3812,6 +3828,7 @@ describe('SearchQueryUtils', () => {
             // When checking whether it can be saved without a default query to compare against
             // Then it's savable because nothing in the LHN already covers it
             expect(isSearchQuerySavable(currentQueryJSON, undefined)).toBe(true);
+            expect(isSearchQuerySavable(currentQueryJSON, undefined, {hash: currentQueryJSON?.hash ?? -1, hasSuccessfulResponse: true}, true)).toBe(true);
         });
 
         it('returns false when there is no current query', () => {
