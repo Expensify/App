@@ -83,11 +83,13 @@ function createCurrentReportIDStore(): CurrentReportIDStore {
     };
 }
 
+const defaultCurrentReportIDStore: CurrentReportIDStore = {get: () => undefined, set: () => {}, subscribe: () => () => {}};
+
 /**
  * Lets a component subscribe to whether one report is the current one. A component reading the current report ID
  * from context re-renders on every report switch, which would re-render every LHN row when only two of them change.
  */
-const CurrentReportIDStoreContext = createContext<CurrentReportIDStore>(createCurrentReportIDStore());
+const CurrentReportIDStoreContext = createContext<CurrentReportIDStore>(defaultCurrentReportIDStore);
 
 const CurrentReportIDActionsContext = createContext<CurrentReportIDActionsContextType>(defaultCurrentReportIDActionsContext);
 
@@ -165,6 +167,10 @@ function useCurrentReportIDState() {
     return useContext(CurrentReportIDStateContext);
 }
 
+/**
+ * The store is synced in a layout effect, so for one commit after a report switch this disagrees with
+ * `useCurrentReportIDState()`. Don't combine the two in one component.
+ */
 function useIsCurrentReportID(reportID: string) {
     const store = useContext(CurrentReportIDStoreContext);
     return useSyncExternalStore(store.subscribe, () => store.get() === reportID);
