@@ -51,9 +51,9 @@ function formatChangePercentage(primaryValue: number, comparedValue: number, loc
     return formatPercentOfTotal((Math.abs(difference) / Math.abs(comparedValue)) * 100, difference, locale);
 }
 
-/** Formats how much the primary value rose or fell against the compared one. */
+/** Formats how much the primary value rose or fell against the compared one, or nothing when it is unchanged or the compared value is zero. */
 function formatChange(primaryValue: number, comparedValue: number, formatAmount: (value: number) => string, locale: Locale | undefined): TooltipChange | undefined {
-    if (primaryValue === comparedValue) {
+    if (primaryValue === comparedValue || comparedValue === 0) {
         return undefined;
     }
 
