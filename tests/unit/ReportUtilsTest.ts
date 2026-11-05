@@ -5144,6 +5144,38 @@ describe('ReportUtils', () => {
                 const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, 20], undefined);
                 expect(moneyRequestOptions.length).toBe(0);
             });
+
+            it('it is a bill', async () => {
+                // Given a paid group policy
+                const paidPolicy: Policy = {
+                    ...createRandomPolicy(97770),
+                    id: 'billMoneyRequestOptionsPolicy',
+                    type: CONST.POLICY.TYPE.TEAM,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${paidPolicy.id}`, paidPolicy);
+
+                // And an open bill the current user owns, with the vendor as another participant
+                const vendorAccountID = 20;
+                const bill: Report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    type: CONST.REPORT.UNSUPPORTED_TYPE.BILL,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    policyID: paidPolicy.id,
+                    ownerAccountID: currentUserAccountID,
+                    managerID: currentUserAccountID,
+                    participants: buildParticipantsFromAccountIDs([currentUserAccountID, vendorAccountID]),
+                };
+
+                // When getting the money request options for the bill
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(bill, paidPolicy, [currentUserAccountID, vendorAccountID], undefined);
+
+                // Then no option is offered, because a bill's expenses come only from the vendor's invoice
+                expect(moneyRequestOptions.length).toBe(0);
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${paidPolicy.id}`, null);
+            });
+
             it('the current user is an invited user of the iou report', () => {
                 const report: Report = {
                     ...LHNTestUtils.getFakeReport(),
@@ -13331,6 +13363,24 @@ describe('ReportUtils', () => {
             const reportNameValuePair = {private_isArchived: '2024-01-01 00:00:00.000'};
             expect(isReportOutstanding(report, policy.id, undefined, reportNameValuePair)).toBe(false);
         });
+
+        it('should keep returning false for an open bill once bills count as expense reports', () => {
+            // isExpenseReport excludes bills today, so this test protects the behavior for when bills count as expense reports.
+            // Given an open bill and an open expense report on the same policy
+            const expenseReport: Report = {
+                ...createRandomReport(1, undefined),
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const bill: Report = {...expenseReport, type: CONST.REPORT.UNSUPPORTED_TYPE.BILL};
+
+            // When it's checked if each report is outstanding
+            // Then only the expense report is offered as a report to add expenses to, because a bill's expenses come only from the vendor's invoice
+            expect(isReportOutstanding(expenseReport, policy.id, undefined, {})).toBe(true);
+            expect(isReportOutstanding(bill, policy.id, undefined, {})).toBe(false);
+        });
     });
 
     describe('getOutstandingReportsForUser', () => {
@@ -13458,6 +13508,29 @@ describe('ReportUtils', () => {
 
             // Then the result is true
             expect(result).toBe(true);
+        });
+
+        it('should keep returning false for a bill once bills count as expense reports', async () => {
+            // isMoneyRequestReport excludes bills today, so this test protects the behavior for when bills count as expense reports.
+            // Given an open bill and an open expense report with the same owner and policy
+            const expenseReport: Report = {
+                ...createRandomReport(10005, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: currentUserAccountID,
+            };
+            const bill: Report = {...expenseReport, reportID: '10006', type: CONST.REPORT.UNSUPPORTED_TYPE.BILL};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${bill.reportID}`, bill);
+
+            mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
+
+            // When it's checked if expenses can be added to each report
+            // Then only the expense report accepts expenses, because a bill's expenses come only from the vendor's invoice
+            expect(canAddTransaction(expenseReport, undefined)).toBe(true);
+            expect(canAddTransaction(bill, undefined)).toBe(false);
+            expect(canAddTransaction(bill, undefined, false, true)).toBe(false);
         });
 
         it('should return false for an expense report the current user is not the submitter', async () => {
