@@ -9,7 +9,6 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateDraftMerchantRule} from '@libs/actions/User';
@@ -39,9 +38,6 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
     const {isEditing, backToRoute, getRuleRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_MERCHANT_TO_MATCH_FROM_EXPENSE.path, policyID, ruleID);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isBetaEnabled} = usePermissions();
-    const isExpenseDefaultConditionsBetaEnabled = isBetaEnabled(CONST.BETAS.EXPENSE_DEFAULT_CONDITIONS);
-
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
     const {inputCallbackRef} = useAutoFocusInput();
 
@@ -76,12 +72,8 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
         const trimmedValue = fieldValue.trim();
 
         if (!isRequiredFulfilled(fieldValue)) {
-            // On the beta a rule can match on a category or a tag instead, so clearing the merchant here is how an
-            // admin swaps one condition for another. The rule editor still refuses a rule that matches on nothing.
-            if (!isExpenseDefaultConditionsBetaEnabled) {
-                errors[fieldID] = translate('common.error.fieldRequired');
-            }
-
+            // A rule can match on a category or a tag instead, so clearing the merchant here is how an admin swaps
+            // one condition for another. The rule editor still refuses a rule that matches on nothing.
             return errors;
         }
 

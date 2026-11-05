@@ -15,7 +15,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
-import type Beta from '@src/types/onyx/Beta';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
@@ -46,13 +45,12 @@ function buildRulesEnabledControlPolicy(): Policy {
     };
 }
 
-async function seedOnyx(betas: Beta[]) {
+async function seedOnyx() {
     await act(async () => {
         await Onyx.clear();
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildRulesEnabledControlPolicy());
         await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ADMIN_ACCOUNT_ID]: buildPersonalDetails(ADMIN_EMAIL, ADMIN_ACCOUNT_ID, 'admin')});
         await Onyx.merge(ONYXKEYS.SESSION, {email: ADMIN_EMAIL, accountID: ADMIN_ACCOUNT_ID});
-        await Onyx.set(ONYXKEYS.BETAS, betas);
         await Onyx.set(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {merchantToMatch: SAVED_MERCHANT});
         await waitForBatchedUpdatesWithAct();
     });
@@ -91,23 +89,9 @@ describe('AddMerchantToMatchPage', () => {
         });
     });
 
-    it('refuses an empty merchant off the beta', async () => {
-        // Given the expense default conditions beta is off, so a merchant is the only thing a rule can match on
-        await seedOnyx([]);
-        renderAddMerchantToMatchPage();
-        await waitForBatchedUpdatesWithAct();
-
-        // When the admin clears the merchant and saves
-        await clearTheMerchantAndSave();
-
-        // Then the field is refused, because a rule with no merchant would match on nothing
-        expect(screen.getByText('This field is required')).toBeOnTheScreen();
-        expect(await getOnyxValue(ONYXKEYS.FORMS.MERCHANT_RULE_FORM)).toEqual(expect.objectContaining({merchantToMatch: SAVED_MERCHANT}));
-    });
-
-    it('accepts an empty merchant on the beta', async () => {
-        // Given the beta is on, so a rule can match on a category or a tag instead
-        await seedOnyx([CONST.BETAS.EXPENSE_DEFAULT_CONDITIONS]);
+    it('accepts an empty merchant', async () => {
+        // Given a rule that already matches on a merchant, which can match on a category or a tag instead
+        await seedOnyx();
         renderAddMerchantToMatchPage();
         await waitForBatchedUpdatesWithAct();
 

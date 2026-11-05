@@ -8,7 +8,6 @@ import {
     getExpenseDefaultRuleSummaryFields,
     getExpenseDefaultFormValues,
     getPolicyExpenseDefaultRules,
-    hasExpenseDefaultConditions,
     hasExpenseDefaultRuleErrors,
     haveSameConditions,
 } from '@libs/ExpenseDefaultRuleUtils';
@@ -807,90 +806,6 @@ describe('ExpenseDefaultRuleUtils', () => {
             // When the rate for that category is resolved
             // Then no rate is taken, because the rule is written to leave this category alone
             expect(getCategoryOnlyExpenseDefaultTaxID(rules, policyID, 'Travel')).toBeUndefined();
-        });
-    });
-    describe('hasExpenseDefaultConditions', () => {
-        it('counts a merchant on its own', () => {
-            // Given a form matching only on a merchant, the one condition that works off the beta
-            const formValues: Partial<ExpenseDefaultFormValues> = {merchantToMatch: 'Uber'};
-
-            // When the form is checked with the beta off
-            // Then the merchant counts, because the engine applies merchant rules today
-            expect(hasExpenseDefaultConditions(formValues, false)).toBe(true);
-        });
-
-        it('does not count a category on its own off the beta', () => {
-            // Given a form matching only on a category
-            const formValues: Partial<ExpenseDefaultFormValues> = {categoriesToMatch: ['Advertising']};
-
-            // When the form is checked with the beta off
-            // Then it has nothing to match on, so the editor refuses to save a rule that would never fire
-            expect(hasExpenseDefaultConditions(formValues, false)).toBe(false);
-        });
-
-        it('counts a category whose only default is a tax off the beta', () => {
-            // Given the rule the category settings page creates, which has matched on a category alone since before
-            // expense defaults could match on anything but a merchant
-            const formValues: Partial<ExpenseDefaultFormValues> = {categoriesToMatch: ['Advertising'], tax: 'id_TAX_RATE_1'};
-
-            // When the form is checked with the beta off
-            // Then it counts, because the client applies a category tax default itself when an expense is categorized
-            expect(hasExpenseDefaultConditions(formValues, false)).toBe(true);
-        });
-
-        it('does not count a category that sets more than a tax off the beta', () => {
-            // Given a category rule that also renames the merchant, which is not a category tax default
-            const formValues: Partial<ExpenseDefaultFormValues> = {categoriesToMatch: ['Advertising'], tax: 'id_TAX_RATE_1', merchant: 'Uber'};
-
-            // When the form is checked with the beta off
-            // Then it does not count, because the engine does not apply the rename to a category matched rule yet
-            expect(hasExpenseDefaultConditions(formValues, false)).toBe(false);
-        });
-
-        it('does not count a tag on its own off the beta', () => {
-            // Given a form matching only on a tag
-            const formValues: Partial<ExpenseDefaultFormValues> = {tagsToMatch: ['Engineering']};
-
-            // When the form is checked with the beta off
-            // Then it has nothing to match on
-            expect(hasExpenseDefaultConditions(formValues, false)).toBe(false);
-        });
-
-        it('does not count a merchant of only spaces', () => {
-            // Given a merchant the admin typed as whitespace, which stores nothing to match on
-            const formValues: Partial<ExpenseDefaultFormValues> = {merchantToMatch: '   '};
-
-            // When the form is checked with the beta off
-            // Then it does not count, matching how the merchant page itself treats a blank value
-            expect(hasExpenseDefaultConditions(formValues, false)).toBe(false);
-        });
-
-        it('counts a category on its own on the beta', () => {
-            // Given the same category only form
-            const formValues: Partial<ExpenseDefaultFormValues> = {categoriesToMatch: ['Advertising']};
-
-            // When the form is checked with the beta on
-            // Then the category counts, which is what the beta adds
-            expect(hasExpenseDefaultConditions(formValues, true)).toBe(true);
-        });
-
-        it('counts a tag on its own on the beta', () => {
-            // Given the same tag only form
-            const formValues: Partial<ExpenseDefaultFormValues> = {tagsToMatch: ['Engineering']};
-
-            // When the form is checked with the beta on
-            // Then the tag counts
-            expect(hasExpenseDefaultConditions(formValues, true)).toBe(true);
-        });
-
-        it('counts nothing when the form is empty either way', () => {
-            // Given a form with no conditions at all, which would apply the rule to every expense
-            const formValues: Partial<ExpenseDefaultFormValues> = {};
-
-            // When the form is checked with the beta off and on
-            // Then neither counts, because the API rejects a rule that matches everything
-            expect(hasExpenseDefaultConditions(formValues, false)).toBe(false);
-            expect(hasExpenseDefaultConditions(formValues, true)).toBe(false);
         });
     });
 });

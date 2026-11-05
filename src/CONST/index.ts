@@ -1532,7 +1532,6 @@ const CONST = {
         TRAVEL_APPROVAL: 'travelApproval',
         SCAN_FLASH_TORCH: 'scanFlashTorch',
         NEW_DOT_BILL_PAY: 'newDotBillPay',
-        EXPENSE_DEFAULT_CONDITIONS: 'expenseDefaultConditions',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
