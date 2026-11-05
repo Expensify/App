@@ -2,7 +2,7 @@
 title: Configure Rillet
 description: Learn how to configure Rillet import, export, and advanced sync settings in Expensify.
 keywords: [New Expensify, Rillet configuration, Rillet import, Rillet export, Rillet advanced sync, Rillet vendor bills, Rillet reimbursements, Rillet reimbursement account]
-internalScope: Audience is Workspace Admins configuring an existing Rillet connection. Covers import, export, exporting reimbursable expenses as reimbursements, advanced sync and settlement, and multiple card account export settings. Does not cover the initial connection or API-key setup.
+internalScope: Audience is workspace admins configuring an existing Rillet connection. Covers import, export, exporting reimbursable expenses as reimbursements, advanced sync and settlement, and multiple card account export settings. Does not cover the initial connection or API-key setup.
 ---
 
 # Configure Rillet
