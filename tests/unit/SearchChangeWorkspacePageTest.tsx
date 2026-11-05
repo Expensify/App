@@ -13,6 +13,7 @@ import SearchChangeWorkspacePage from '@pages/Search/SearchChangeWorkspacePage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Report} from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
 
@@ -97,7 +98,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     isNavigationReady: jest.fn(() => Promise.resolve()),
 }));
 
-function makeReport(reportID: string, statusNum: number) {
+function makeReport(reportID: string, statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM>): Report {
     return {reportID, policyID: 'policy1', type: CONST.REPORT.TYPE.EXPENSE, ownerAccountID: SUBMITTER_ACCOUNT_ID, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum};
 }
 
