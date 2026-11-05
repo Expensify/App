@@ -53,6 +53,7 @@ declare module 'react-native' {
         metaKey?: boolean;
         ctrlKey?: boolean;
         shiftKey?: boolean;
+        altKey?: boolean;
     }
 
     interface PressableStateCallbackType extends WebPressableStateCallbackType {

@@ -7,6 +7,10 @@ import useDateSegmentInput from '@hooks/useDateSegmentInput';
 import {DATE_SEGMENT_NAMES, getSegmentsFromISODate} from '@libs/DateInputMaskUtils';
 import type {DateSegmentName} from '@libs/DateInputMaskUtils';
 
+import CONST from '@src/CONST';
+
+import type {TextInputKeyPressEvent} from 'react-native';
+
 type StubSegment = {
     focus: jest.Mock;
     setSelectionRange: jest.Mock;
@@ -47,7 +51,41 @@ function renderDateSegmentInput(value = '') {
     return {result, stubs};
 }
 
+/** Every keystroke is handled by the hook rather than by the input, so a test only has to hand it the key and its modifiers */
+function pressKey(result: ReturnType<typeof renderDateSegmentInput>['result'], name: DateSegmentName, key: string, modifiers: Record<string, boolean> = {}) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only event stub carrying the two fields the handler reads
+    const event = {preventDefault: jest.fn(), nativeEvent: {key, ...modifiers}} as unknown as TextInputKeyPressEvent;
+
+    act(() => result.current.getSegmentProps(name).onKeyPress(event));
+}
+
 describe('useDateSegmentInput', () => {
+    describe('arrow keys held with a modifier', () => {
+        it('carries the caret to the start of the date rather than one segment back', () => {
+            // Given a field holding a whole date, which the user is at the end of
+            const {result, stubs} = renderDateSegmentInput('1990-05-15');
+
+            // When the caret is sent left the way a text field is asked for the start of the line
+            pressKey(result, 'day', CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey, {altKey: true});
+
+            // Then it reaches the year, rather than stopping at the month as an unmodified arrow would
+            expect(stubs.year.focus).toHaveBeenCalled();
+            expect(stubs.month.focus).not.toHaveBeenCalled();
+        });
+
+        it('carries the caret to the end of the date', () => {
+            // Given the same date, which the user is at the start of
+            const {result, stubs} = renderDateSegmentInput('1990-05-15');
+
+            // When the caret is sent the other way, which a modifier the browser answers alone would otherwise swallow
+            pressKey(result, 'year', CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey, {metaKey: true});
+
+            // Then it reaches the day
+            expect(stubs.day.focus).toHaveBeenCalled();
+            expect(stubs.month.focus).not.toHaveBeenCalled();
+        });
+    });
+
     describe('restoreFocus', () => {
         it('gives focus back to the segment the user was last in', () => {
             // Given a field holding a whole date, which the user has entered at the month

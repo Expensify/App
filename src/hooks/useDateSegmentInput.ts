@@ -296,6 +296,15 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLe
         const wasCaretHandedOver = isCaretHandedOverRef.current;
         isCaretHandedOverRef.current = false;
 
+        // A text field answers a modified arrow by carrying the caret to the end of the word or of the line. Each
+        // segment is an input of its own here, so neither jump reaches past the one the caret is already in.
+        if (isMoveKey(key) && (event.nativeEvent.altKey || event.nativeEvent.metaKey || event.nativeEvent.ctrlKey)) {
+            event.preventDefault();
+            setIsAllSelected(false);
+            enterSegment(MOVE_KEYS[key] < 0 ? FIRST_SEGMENT_NAME : LAST_SEGMENT_NAME);
+            return;
+        }
+
         // A shortcut is the browser's to handle, apart from the ones it cannot apply across separate inputs
         if (event.nativeEvent.metaKey || event.nativeEvent.ctrlKey) {
             if (key === CONST.KEYBOARD_SHORTCUTS.BACKSPACE.shortcutKey || key === CONST.KEYBOARD_SHORTCUTS.DELETE.shortcutKey) {
