@@ -56,8 +56,9 @@ function SearchChangeWorkspacePage() {
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentSearchResults} = useSearchResultsContext();
     const [personalDetails] = useAllPersonalDetails();
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
-    const loadedReports = selectedReports.map((selectedReport) => getReportFromSearchSnapshot(selectedReport.reportID, currentSearchResults?.data, undefined)).filter((report) => !!report);
+    const loadedReports = selectedReports.map((selectedReport) => getReportFromSearchSnapshot(selectedReport.reportID, currentSearchResults?.data, allReports)).filter((report) => !!report);
 
     // The backend skips the reports that can't move to a workspace, so it's offered when one loaded report can.
     const canMoveAReportTo = (policy: OnyxEntry<Policy>) =>

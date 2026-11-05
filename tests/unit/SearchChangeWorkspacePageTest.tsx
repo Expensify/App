@@ -213,6 +213,25 @@ describe('SearchChangeWorkspacePage', () => {
         expect(mockListData.map((item) => item.policyID)).toEqual(['policy3']);
     });
 
+    it('uses the rules of a selected report that is only in Onyx', async () => {
+        // Given a paid report that the current search results don't hold, only Onyx
+        mockSelectedReports = [{reportID: 'report1'}];
+        mockSearchData = {};
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}report1`, makeReport('report1', CONST.REPORT.STATUS_NUM.REIMBURSED));
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy3`, {id: 'policy3', name: 'Workspace 3', type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.ADMIN});
+
+        // When the page lists the workspaces
+        render(
+            <OnyxListItemProvider>
+                <SearchChangeWorkspacePage />
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the report still counts, so the workspace the user administers is offered
+        expect(mockListData.map((item) => item.policyID)).toEqual(['policy3']);
+    });
+
     it('moves every matching report except the deselected ones when Select all is checked', async () => {
         // Given "Select all" on a reports search, with report3 deselected afterwards
         // When the user picks a workspace and saves
