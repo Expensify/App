@@ -116,6 +116,29 @@ describe('useAccountingConnectionListings', () => {
         expect(findListing(CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL)).toBeUndefined();
     });
 
+    it('should offer the Sage Accounting waitlist right after Sage Intacct', () => {
+        // Given a workspace with no accounting integration
+        const {result} = renderHook(() => useAccountingConnectionListings(policy));
+
+        // When the accounting listings are built
+        const keys = result.current.map((listing) => listing.key);
+
+        // Then Sage Accounting follows Sage Intacct and offers its waitlist instead of a connect flow
+        expect(keys.indexOf(CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING)).toBe(keys.indexOf(CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT) + 1);
+        expect(findListing(CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING)?.waitlistConnectionName).toBe(CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING);
+    });
+
+    it('should offer the Sage Accounting waitlist to users in the beta too', () => {
+        // Given a user in the Sage Accounting beta, which has no connector to offer until a later release
+        mockEnabledBetas = [CONST.BETAS.SAGE_ACCOUNTING];
+
+        // When the accounting listings are built
+        const sageAccounting = findListing(CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING);
+
+        // Then they see the same waitlist card as everyone else
+        expect(sageAccounting?.waitlistConnectionName).toBe(CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING);
+    });
+
     it('should offer Business Central alongside Campfire to a workspace in the Business Central beta', () => {
         // Given a workspace enrolled in the Business Central beta
         mockEnabledBetas = [CONST.BETAS.BUSINESS_CENTRAL];
