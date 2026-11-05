@@ -110,7 +110,14 @@ describe('useSearchAutoRefetch', () => {
         });
 
         rerender(updatedProps);
-        expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
+        expect(search).toHaveBeenCalledWith({
+            queryJSON: baseProps.queryJSON,
+            searchKey: undefined,
+            offset: 0,
+            shouldCalculateTotals: false,
+            isLoading: false,
+            shouldDiscardStaleSnapshot: true,
+        });
     });
 
     it('should not trigger search when not focused', () => {
@@ -162,7 +169,14 @@ describe('useSearchAutoRefetch', () => {
         });
 
         rerender(updatedProps);
-        expect(search).toHaveBeenCalledWith({queryJSON: chatProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
+        expect(search).toHaveBeenCalledWith({
+            queryJSON: chatProps.queryJSON,
+            searchKey: undefined,
+            offset: 0,
+            shouldCalculateTotals: false,
+            isLoading: false,
+            shouldDiscardStaleSnapshot: true,
+        });
     });
 
     it('should not trigger search when new transaction removed and focused', () => {
@@ -223,7 +237,14 @@ describe('useSearchAutoRefetch', () => {
         });
 
         rerender(updatedProps);
-        expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
+        expect(search).toHaveBeenCalledWith({
+            queryJSON: baseProps.queryJSON,
+            searchKey: undefined,
+            offset: 0,
+            shouldCalculateTotals: false,
+            isLoading: false,
+            shouldDiscardStaleSnapshot: true,
+        });
     });
 
     it('should not trigger search when the added transaction is already in the search results', () => {
@@ -287,7 +308,14 @@ describe('useSearchAutoRefetch', () => {
         });
 
         rerender(updatedProps);
-        expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
+        expect(search).toHaveBeenCalledWith({
+            queryJSON: baseProps.queryJSON,
+            searchKey: undefined,
+            offset: 0,
+            shouldCalculateTotals: false,
+            isLoading: false,
+            shouldDiscardStaleSnapshot: true,
+        });
     });
 
     it('should not trigger search when the edited transaction is absent from the results', () => {
@@ -342,7 +370,14 @@ describe('useSearchAutoRefetch', () => {
         });
 
         rerender(updatedProps);
-        expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
+        expect(search).toHaveBeenCalledWith({
+            queryJSON: baseProps.queryJSON,
+            searchKey: undefined,
+            offset: 0,
+            shouldCalculateTotals: false,
+            isLoading: false,
+            shouldDiscardStaleSnapshot: true,
+        });
     });
 
     it('should not trigger search when a transaction moves between reports the results do not display', () => {
@@ -645,7 +680,14 @@ describe('useSearchAutoRefetch', () => {
 
             // Then one search is sent so the snapshot picks up the new value
             expect(search).toHaveBeenCalledTimes(1);
-            expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
+            expect(search).toHaveBeenCalledWith({
+                queryJSON: baseProps.queryJSON,
+                searchKey: undefined,
+                offset: 0,
+                shouldCalculateTotals: false,
+                isLoading: false,
+                shouldDiscardStaleSnapshot: true,
+            });
         });
 
         it('should defer the search for a member custom field change until Search is focused again', () => {

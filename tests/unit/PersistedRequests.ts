@@ -1,3 +1,5 @@
+import {WRITE_COMMANDS} from '@libs/API/types';
+
 import type {OnyxInput, OnyxKey} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
@@ -55,6 +57,67 @@ describe('PersistedRequests', () => {
     it('save a request without conflicts', () => {
         PersistedRequests.save(request);
         expect(PersistedRequests.getAll().length).toBe(2);
+    });
+
+    it('keeps counting inline edits after they leave the queue', () => {
+        // Given an empty queue and the local inline-edit count so far
+        PersistedRequests.clear();
+        const queuedInlineEditWritesCount = PersistedRequests.getQueuedInlineEditWritesCount();
+
+        // When a request is queued and then processed and removed
+        PersistedRequests.save({...request, command: WRITE_COMMANDS.UPDATE_MONEY_REQUEST_MERCHANT});
+        const ongoingRequest = PersistedRequests.processNextRequest();
+        if (ongoingRequest) {
+            PersistedRequests.endRequestAndRemoveFromQueue(ongoingRequest);
+        }
+
+        // Then the count still includes it, so a search in flight meanwhile can tell a write was queued behind it
+        expect(PersistedRequests.getQueuedInlineEditWritesCount()).toBe(queuedInlineEditWritesCount + 1);
+    });
+
+    it.each([
+        WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE,
+        WRITE_COMMANDS.UPDATE_MONEY_REQUEST_MERCHANT,
+        WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DESCRIPTION,
+        WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY,
+        WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY,
+        WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAG,
+        WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE,
+    ])('counts the inline-edit command %s saved in this tab', (command) => {
+        // Given a baseline that excludes unrelated commands already in the queue
+        const count = PersistedRequests.getQueuedInlineEditWritesCount();
+
+        // When this tab saves an inline-edit write
+        PersistedRequests.save({...request, command});
+
+        // Then an in-flight search can detect the edit
+        expect(PersistedRequests.getQueuedInlineEditWritesCount()).toBe(count + 1);
+    });
+
+    it('does not count unrelated writes', () => {
+        // Given a search's inline-edit baseline
+        const count = PersistedRequests.getQueuedInlineEditWritesCount();
+
+        // When an unrelated command is saved in this tab
+        PersistedRequests.save(request);
+
+        // Then it cannot invalidate the search snapshot
+        expect(PersistedRequests.getQueuedInlineEditWritesCount()).toBe(count);
+    });
+
+    it('merges an inline edit from another tab without counting it as a local edit', async () => {
+        // Given this tab's queue and count after its own writes have settled
+        await waitForBatchedUpdates();
+        const count = PersistedRequests.getQueuedInlineEditWritesCount();
+        const otherTabEdit = {...request, command: WRITE_COMMANDS.UPDATE_MONEY_REQUEST_MERCHANT, requestIndex: 2};
+
+        // When storage notifies this tab of an edit saved elsewhere
+        await Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, [request, otherTabEdit]);
+        await waitForBatchedUpdates();
+
+        // Then queue synchronization still works without invalidating this tab's search
+        expect(PersistedRequests.getAll()).toContainEqual(otherTabEdit);
+        expect(PersistedRequests.getQueuedInlineEditWritesCount()).toBe(count);
     });
 
     it('remove a request from the PersistedRequests array', () => {

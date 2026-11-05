@@ -35,11 +35,12 @@ import getTransactionFromTransactionListItem from '@libs/getTransactionFromTrans
 import HttpUtils from '@libs/HttpUtils';
 import isTransactionGroupListItemType from '@libs/isTransactionGroupListItemType';
 import Log from '@libs/Log';
+import {guardSearchAgainstStaleSnapshot, releaseStaleSnapshotGuard} from '@libs/Middleware/DiscardStaleSearchSnapshot';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import enhanceParameters from '@libs/Network/enhanceParameters';
-import {getIsOffline} from '@libs/NetworkState';
+import {getIsOffline, subscribe as subscribeNetworkState} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
 import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
@@ -121,6 +122,7 @@ import {markExportInitiatedLocally} from './Export';
 import {payMoneyRequest} from './IOU/PayMoneyRequest';
 import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU/RejectMoneyRequest';
 import {approveMoneyRequest} from './IOU/ReportWorkflow';
+import {getQueuedInlineEditWritesCount} from './PersistedRequests';
 import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
 import {setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
@@ -1243,9 +1245,26 @@ type InFlightSearchRequest = {
     promise?: Promise<string | number | undefined>;
     pendingShouldCalculateTotals?: boolean;
     pendingShouldSaveRecentSearch?: boolean;
+    pendingShouldDiscardStaleSnapshot?: boolean;
     pendingUpgradeRequest?: () => Promise<string | number | undefined> | undefined;
     didSucceed?: boolean;
+    /** Whether the response's snapshot should be dropped, and the request run again, when an inline edit is queued in this tab while the request is in flight. */
+    shouldDiscardStaleSnapshot: boolean;
+    jsonQuery?: string;
+    /** How many inline edit writes this tab had queued when the request was sent. It is compared with the current count when the response arrives, to tell whether an edit was queued while the request was in flight. */
+    queuedInlineEditWritesCountWhenSent?: number;
 };
+
+/** Runs the search once the app is back online. */
+function searchWhenOnline(runSearch: () => Promise<string | number | undefined> | undefined) {
+    const unsubscribe = subscribeNetworkState(() => {
+        if (getIsOffline()) {
+            return;
+        }
+        unsubscribe();
+        runSearch();
+    });
+}
 
 // Tracks in-flight search requests by hash+offset to prevent duplicate API calls when both page-level
 // and Search-internal effects fire for the same query. A request that calculates totals or declares
@@ -1340,6 +1359,7 @@ function search({
     skipWaitForWrites = false,
     shouldSaveRecentSearch = false,
     shouldShowLoading = true,
+    shouldDiscardStaleSnapshot = false,
     shouldReturnTripRooms = false,
 }: {
     queryJSON: Readonly<SearchQueryJSON>;
@@ -1357,8 +1377,7 @@ function search({
      */
     shouldSaveRecentSearch?: boolean;
     /**
-     * When true, fires the search API immediately without waiting for pending writes in the sequential queue. Safe because search
-     * responses only write snapshot keys, so they can't overwrite a pending write's optimistic data. Used by the
+     * When true, fires the search API immediately without waiting for pending writes in the sequential queue. Used by the
      * post-expense-creation flow (where the expense write is deferred) and by home screen sections that would otherwise sit behind
      * a slow OpenApp. Only pass this when the query itself doesn't depend on data OpenApp delivers — otherwise the request is sent
      * with an incomplete filter set and has to be re-fired once that data lands.
@@ -1366,17 +1385,37 @@ function search({
     skipWaitForWrites?: boolean;
     /** When false, the request leaves `search.isLoading` unset, so the current results stay on screen without a loading state. */
     shouldShowLoading?: boolean;
+    /**
+     * When true, the response's snapshot is dropped if local inline-edit writes were queued in flight, and the search runs
+     * again after waiting for writes. Used by the refetch that follows an edit, so a quick second edit (e.g. inline editing a table cell)
+     * isn't flipped back to its old value by the results of a search sent before it.
+     */
+    shouldDiscardStaleSnapshot?: boolean;
     /** Makes a trip search return one row per trip room instead of travel expenses. Only sent with the TravelApproval beta. */
     shouldReturnTripRooms?: boolean;
 }): Promise<string | number | undefined> | undefined {
+    const dedupeKey = `${queryJSON.hash}_${offset ?? 0}`;
+    const inFlightRequest = inFlightSearchRequests.get(dedupeKey);
+
+    // A refetch that wants the guard joins the search already running for its key instead of sending its own, even while
+    // that search shows loading. That search started before the change that triggered the refetch, so it takes the guard,
+    // or a stale response could overwrite the change's optimistic values with the server's old ones.
+    if (shouldDiscardStaleSnapshot && inFlightRequest && !inFlightRequest.shouldDiscardStaleSnapshot) {
+        inFlightRequest.shouldDiscardStaleSnapshot = true;
+
+        // A search still waiting for writes guards itself once it is sent. One already sent is guarded now, counting every
+        // write queued since it was sent, because its response predates all of them.
+        if (inFlightRequest.jsonQuery !== undefined && inFlightRequest.queuedInlineEditWritesCountWhenSent !== undefined) {
+            guardSearchAgainstStaleSnapshot(inFlightRequest.jsonQuery, inFlightRequest.queuedInlineEditWritesCountWhenSent);
+        }
+    }
+
     if (isLoading || shouldPreventSearchAPI) {
         return;
     }
 
-    const dedupeKey = `${queryJSON.hash}_${offset ?? 0}`;
     const isTripRoomsSearch = shouldReturnTripRooms && queryJSON.type === CONST.SEARCH.DATA_TYPES.TRIP;
     const {footerTotal} = getFooterSelectionFromQuery(queryJSON);
-    const inFlightRequest = inFlightSearchRequests.get(dedupeKey);
     if (inFlightRequest) {
         // Not just EXPENSE: any type can now need totals (e.g. EXPENSE_REPORT's reportCount). Gating this
         // to one type let a totals request for another type collide with an in-flight request and get
@@ -1395,6 +1434,7 @@ function search({
             // upgrade for the other. Only a single pending re-fire is kept.
             inFlightRequest.pendingShouldCalculateTotals = (inFlightRequest.pendingShouldCalculateTotals ?? inFlightRequest.shouldCalculateTotals) || shouldCalculateTotals;
             inFlightRequest.pendingShouldSaveRecentSearch = (inFlightRequest.pendingShouldSaveRecentSearch ?? inFlightRequest.shouldSaveRecentSearch) || shouldSaveRecentSearch;
+            inFlightRequest.pendingShouldDiscardStaleSnapshot = !!inFlightRequest.pendingShouldDiscardStaleSnapshot || shouldDiscardStaleSnapshot;
             inFlightRequest.pendingUpgradeRequest = () =>
                 search({
                     queryJSON,
@@ -1404,18 +1444,36 @@ function search({
                     prevReportsLength,
                     isLoading: false,
                     shouldUpdateLastSearchParams,
-                    skipWaitForWrites,
+                    // A stale-snapshot re-fire must wait for the edit, even when the joining call skipped the queue.
+                    skipWaitForWrites: skipWaitForWrites && !inFlightRequest.pendingShouldDiscardStaleSnapshot,
                     shouldSaveRecentSearch: inFlightRequest.pendingShouldSaveRecentSearch,
                     // A re-fire that only adds the save flag returns the same results the finished request just showed,
                     // so it must not show loading again (the footer would flash its skeleton over the totals).
                     shouldShowLoading: !inFlightRequest.didSucceed || inFlightRequest.pendingShouldCalculateTotals !== inFlightRequest.shouldCalculateTotals,
+                    shouldDiscardStaleSnapshot: inFlightRequest.pendingShouldDiscardStaleSnapshot,
                     shouldReturnTripRooms,
                 });
         }
         return needsBreakdownRefire ? inFlightRequest.promise : undefined;
     }
-    const inFlightRequestState: InFlightSearchRequest = {shouldCalculateTotals, shouldSaveRecentSearch, footerTotal, shouldReturnTripRooms: isTripRoomsSearch};
+    const inFlightRequestState: InFlightSearchRequest = {shouldCalculateTotals, shouldSaveRecentSearch, footerTotal, shouldReturnTripRooms: isTripRoomsSearch, shouldDiscardStaleSnapshot};
     inFlightSearchRequests.set(dedupeKey, inFlightRequestState);
+
+    // Sends this Search API request again after its snapshot was dropped or went stale, with `shouldDiscardStaleSnapshot` and no loading state.
+    const searchAgain = () =>
+        search({
+            queryJSON,
+            searchKey,
+            offset,
+            shouldCalculateTotals,
+            prevReportsLength,
+            isLoading: false,
+            shouldUpdateLastSearchParams,
+            shouldSaveRecentSearch,
+            shouldShowLoading: false,
+            shouldDiscardStaleSnapshot: true,
+            shouldReturnTripRooms,
+        });
 
     const onyxLoadingData = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, true, shouldCalculateTotals, shouldShowLoading);
     const {backendQueryJSON, limit} = getBackendQueryJSON(queryJSON);
@@ -1431,6 +1489,7 @@ function search({
         ...(isTripRoomsSearch && {shouldReturnTripRooms: true}),
     };
     const jsonQuery = serializeQueryJSONForBackend(query);
+    inFlightRequestState.jsonQuery = jsonQuery;
 
     if (shouldUpdateLastSearchParams) {
         saveLastSearchParams({
@@ -1463,13 +1522,35 @@ function search({
         });
     }
 
-    const startRequest = () =>
-        makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, successData, finallyData, failureData})
+    const startRequest = () => {
+        inFlightRequestState.queuedInlineEditWritesCountWhenSent = getQueuedInlineEditWritesCount();
+        if (inFlightRequestState.shouldDiscardStaleSnapshot) {
+            guardSearchAgainstStaleSnapshot(jsonQuery, inFlightRequestState.queuedInlineEditWritesCountWhenSent);
+        }
+        return makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, successData, finallyData, failureData})
             .then((result) => {
                 const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const;
                 // To-do responses list the other collections first and the snapshot last.
                 const response = result?.onyxData?.find((update) => update.key === snapshotKey)?.value as OnyxSearchResponse | undefined;
                 inFlightRequestState.didSucceed = result?.jsonCode === CONST.JSON_CODE.SUCCESS;
+
+                const wasSnapshotDropped = inFlightRequestState.shouldDiscardStaleSnapshot && releaseStaleSnapshotGuard(jsonQuery);
+                // A refetch can join after the response already passed the guard, so its stale snapshot was applied. A write
+                // queued since the search was sent still needs a run that includes it.
+                const wasWriteQueuedSinceSent =
+                    inFlightRequestState.shouldDiscardStaleSnapshot &&
+                    inFlightRequestState.queuedInlineEditWritesCountWhenSent !== undefined &&
+                    getQueuedInlineEditWritesCount() > inFlightRequestState.queuedInlineEditWritesCountWhenSent;
+
+                // Writes were queued behind this search, so run it again once they land. A re-fire already set up by a
+                // joining call runs instead, so it is guarded too.
+                if (wasSnapshotDropped || wasWriteQueuedSinceSent) {
+                    inFlightRequestState.pendingShouldDiscardStaleSnapshot = true;
+                    inFlightRequestState.pendingUpgradeRequest ??= searchAgain;
+                }
+                if (wasSnapshotDropped) {
+                    return result?.jsonCode;
+                }
 
                 // The UI treats a successful response with no snapshot data as an empty result, so record it for diagnosis.
                 if (result?.jsonCode === CONST.JSON_CODE.SUCCESS && response?.data === undefined) {
@@ -1543,9 +1624,13 @@ function search({
                 throw error;
             })
             .finally(() => {
+                if (inFlightRequestState.shouldDiscardStaleSnapshot) {
+                    releaseStaleSnapshotGuard(jsonQuery);
+                }
                 inFlightSearchRequests.delete(dedupeKey);
                 return inFlightRequestState.pendingUpgradeRequest?.();
             });
+    };
 
     // Catch here so every caller (the page-load fire in useSearchPageSetup and the re-search handlers
     // in SearchPage/SearchPageNarrow) is covered without a separate catch each. Failure and terminal state
@@ -1579,6 +1664,17 @@ function search({
     inFlightRequestState.promise = waitForWrites(READ_COMMANDS.SEARCH)
         .then(() => {
             endSpan(queueSpanId);
+
+            // A refetch that wants the guard, and its re-fire after a dropped snapshot, only refresh rows already on screen.
+            // The wait ends at once when the app is offline, and sending then would fail and replace those rows with an
+            // error, so it runs once the app is back online. A re-fire set up by a joining call runs in its place.
+            if (inFlightRequestState.shouldDiscardStaleSnapshot && getIsOffline()) {
+                inFlightSearchRequests.delete(dedupeKey);
+                inFlightRequestState.pendingShouldDiscardStaleSnapshot = true;
+                searchWhenOnline(inFlightRequestState.pendingUpgradeRequest ?? searchAgain);
+                return undefined;
+            }
+
             return startRequest();
         })
         .catch((error: unknown) => {
