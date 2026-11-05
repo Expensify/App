@@ -689,7 +689,7 @@ describe('actions/PolicyRules', () => {
 
         it('drops the previous preview before asking again', async () => {
             // Given a previous preview that matched an expense
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.CODING_RULE_MATCHING_TRANSACTION}1`, {transactionID: '1'});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.RULE_MATCHING_TRANSACTION}1`, {transactionID: '1'});
             await waitForBatchedUpdates();
 
             // When a different rule is previewed
@@ -697,7 +697,7 @@ describe('actions/PolicyRules', () => {
             await waitForBatchedUpdates();
 
             // Then the old match is gone, so an expense the new rule does not match is not still listed
-            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.CODING_RULE_MATCHING_TRANSACTION}1`)).toBeUndefined();
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.RULE_MATCHING_TRANSACTION}1`)).toBeUndefined();
         });
     });
 

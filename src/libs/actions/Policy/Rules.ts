@@ -279,7 +279,7 @@ async function importMerchantRulesSpreadsheet(policyID: string, rules: Record<st
  * that matches fewer expenses than the last one keeps showing the ones it no longer matches.
  */
 function getTransactionsMatchingRule(policyID: string, filters: string) {
-    Onyx.setCollection(ONYXKEYS.COLLECTION.CODING_RULE_MATCHING_TRANSACTION, {});
+    Onyx.setCollection(ONYXKEYS.COLLECTION.RULE_MATCHING_TRANSACTION, {});
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW>> = [
         {

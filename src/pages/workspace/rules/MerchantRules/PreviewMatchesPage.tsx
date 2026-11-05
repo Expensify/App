@@ -53,7 +53,7 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
     const [isLoading] = useOnyx(ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW);
-    const [matchingTransactions] = useOnyx(ONYXKEYS.COLLECTION.CODING_RULE_MATCHING_TRANSACTION);
+    const [matchingTransactions] = useOnyx(ONYXKEYS.COLLECTION.RULE_MATCHING_TRANSACTION);
 
     // The preview matches on everything the rule does, so it asks with the tree the rule would be saved with.
     const filters = buildExpenseDefaultFilters(form ?? {});
