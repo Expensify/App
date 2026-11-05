@@ -28,10 +28,11 @@ If you're not sure whether you need to reauthenticate or fix a broken connection
 
 ## How to reauthenticate a personal card
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Account > Wallet**.
-2. Under **Cards**, select the personal card showing the reauthentication message.
-3. Choose **Fix card**.
-4. Log into your bank when prompted and re-approve the connection.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Wallet**.
+3. Under **Cards**, select the personal card showing the reauthentication message.
+4. Choose **Fix card**.
+5. Log into your bank when prompted and re-approve the connection.
 
 <!-- SCREENSHOT:
 Suggestion: Personal card details page in Wallet with the "Fix card" action for a card that needs reauthentication.

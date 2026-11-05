@@ -10,9 +10,11 @@ import React from 'react';
 
 type ShareButtonProps = {
     onPress: () => void;
+    /** Disables the button and shows a loading indicator while sharing. Defaults to false. */
+    isLoading?: boolean;
 };
 
-function ShareButton({onPress}: ShareButtonProps) {
+function ShareButton({onPress, isLoading = false}: ShareButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -23,6 +25,8 @@ function ShareButton({onPress}: ShareButtonProps) {
                 size={CONST.BUTTON_SIZE.LARGE}
                 style={styles.w100}
                 onPress={onPress}
+                isLoading={isLoading}
+                sentryLabel={CONST.SENTRY_LABEL.SHARE_DETAIL.SHARE_BUTTON}
             >
                 <Button.Text>{translate('common.share')}</Button.Text>
             </Button>
