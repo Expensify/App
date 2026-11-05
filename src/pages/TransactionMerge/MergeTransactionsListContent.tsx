@@ -198,7 +198,11 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
               getCurrencySymbol,
               reportAction: undefined,
               linkedTransaction: targetTransaction,
-              report: getReportOrDraftReport(targetTransaction?.reportID, targetTransactionReport ? [targetTransactionReport] : [], undefined, undefined, targetTransactionReport),
+              report: getReportOrDraftReport({
+                  reportID: targetTransaction?.reportID,
+                  searchReports: targetTransactionReport ? [targetTransactionReport] : [],
+                  report: targetTransactionReport,
+              }),
           })
         : '';
 
@@ -213,7 +217,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     );
 
     const subTitleContent = (
-        <View style={[styles.renderHTML, styles.textNormal]}>
+        <View style={[styles.renderHTML, styles.textNormal, styles.textAlignCenter, styles.alignItemsCenter]}>
             <RenderHTML html={translate('transactionMerge.listPage.noEligibleExpenseFoundSubtitle')} />
         </View>
     );

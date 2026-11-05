@@ -16,6 +16,7 @@ import Text from '@components/Text';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useEnvironment from '@hooks/useEnvironment';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -56,6 +57,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {StyleProp, TextStyle} from 'react-native';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -66,6 +68,7 @@ function SubscriptionSettings() {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {environmentURL} = useEnvironment();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const privateSubscription = usePrivateSubscription();
     const [privatePromoCode] = useOnyx(ONYXKEYS.NVP_PRIVATE_PROMO_CODE);
@@ -141,6 +144,7 @@ function SubscriptionSettings() {
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_EXPENSIFY_CODE);
     };
     const illustrations = useMemoizedLazyIllustrations(['SubscriptionAnnual', 'SubscriptionPPU']);
+    const delegateAccountID = useDelegateAccountID();
 
     const options: Array<OptionsPickerItem<SubscriptionType>> = [
         {
@@ -227,7 +231,7 @@ function SubscriptionSettings() {
                 openAdminsRoom();
             }
         } else if (href.endsWith(CONST.PRICING)) {
-            openLink(CONST.PRICING, environmentURL);
+            openLink(CONST.PRICING, environmentURL, false, session);
         }
     };
 
@@ -367,6 +371,7 @@ function SubscriptionSettings() {
                                 hasCompletedGuidedSetupFlow,
                                 conciergePersonalDetails,
                                 shouldDismissModal: false,
+                                delegateAccountID,
                             });
                         }}
                     >

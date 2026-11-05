@@ -11,9 +11,13 @@ import type {ModalProps} from './ModalContext';
 
 import {ModalActions} from './ModalContext';
 
-type FileDownloadModalWrapperProps = ModalProps & Omit<FileDownloadModalProps, 'isVisible' | 'onClose' | 'onModalHide'>;
+type FileDownloadModalWrapperProps = ModalProps &
+    Omit<FileDownloadModalProps, 'isVisible' | 'onClose' | 'onModalHide'> & {
+        /** Whether to settle the show promise as soon as the user dismisses the modal, instead of once it has finished hiding */
+        shouldResolveOnDismiss?: boolean;
+    };
 
-function FileDownloadModalWrapper({closeModal, resolveModal, ...props}: FileDownloadModalWrapperProps) {
+function FileDownloadModalWrapper({closeModal, resolveModal, shouldResolveOnDismiss = false, ...props}: FileDownloadModalWrapperProps) {
     const [isVisible, setIsVisible] = useState(true);
 
     // The props at the moment the user dismissed the modal. The props keep changing as the file generates until the
@@ -32,10 +36,15 @@ function FileDownloadModalWrapper({closeModal, resolveModal, ...props}: FileDown
         closeActionRef.current = props.status === CONST.FILE_DOWNLOAD_STATUS.GENERATING ? ModalActions.CLOSE : ModalActions.CONFIRM;
         setDismissedProps(props);
         setIsVisible(false);
+
+        // Lets callers run their cleanup while the modal fades out, so UI changes behind it are hidden by the overlay.
+        if (shouldResolveOnDismiss) {
+            resolveModal({action: closeActionRef.current});
+        }
     };
 
     // Remove the modal from the stack only once it has finished hiding, so callers awaiting the show promise run
-    // their cleanup after the modal is gone.
+    // their cleanup after the modal is gone (unless shouldResolveOnDismiss already settled it).
     const handleModalHide = () => {
         if (isVisible || hasClosedModalRef.current) {
             return;
