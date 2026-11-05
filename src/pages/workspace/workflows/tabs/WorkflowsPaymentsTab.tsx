@@ -302,6 +302,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
             title={translate('workflowsPage.makeOrTrackPaymentsTitle')}
             subtitle={translate('workflowsPage.makeOrTrackPaymentsDescription')}
             switchAccessibilityLabel={translate('workflowsPage.makeOrTrackPaymentsDescription')}
+            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.MAKE_OR_TRACK_PAYMENTS_SWITCH}
             onToggle={(isEnabled: boolean) => {
                 if (!canWritePayments) {
                     showReadOnlyModal();
@@ -449,6 +450,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                             title={translate('workflowsPage.collectEmployeeBankDetails')}
                             subtitle={translate('workflowsPage.collectEmployeeBankDetailsDescription')}
                             switchAccessibilityLabel={translate('workflowsPage.collectEmployeeBankDetails')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.COLLECT_EMPLOYEE_BANK_DETAILS_SWITCH}
                             wrapperStyle={[styles.mt6, styles.pt6, styles.borderTop]}
                             shouldPlaceSubtitleBelowSwitch
                             titleStyle={styles.pv2}
