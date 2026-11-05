@@ -26,3 +26,12 @@
 - E/App issue: 🛑
 - PR introducing patch: https://github.com/Expensify/App/pull/100733
 - Reproduction: On web, clear the cache and open a chat with a long history. Drag the scrollbar thumb quickly up and down a few times, then hold it near the top until older messages load. The messages on screen should not move.
+
+### [@legendapp+list+3.7.1+004+reveal-list-after-initial-scroll-adjustments.patch](@legendapp+list+3.7.1+004+reveal-list-after-initial-scroll-adjustments.patch)
+
+- Reason: Before a list is ready, LegendList moves its items as soon as they are measured but applies the matching native scroll adjustment one frame later. It could mark the list ready, and show it, before that frame ran. On iOS, a chat that opens at a linked message then shows the message at the top of the list and moves it down by about 45 points. With this patch, the list becomes ready only after those adjustments have run.
+- Scope: All bundles, and only during a list's initial layout while a scroll adjustment requested before the list was ready is still pending.
+- Upstream PR/issue: https://github.com/LegendApp/legend-list/pull/600
+- E/App issue: 🛑
+- PR introducing patch: https://github.com/Expensify/App/pull/100733
+- Reproduction: On iOS, open a chat from an LHN row with a Pay or Approve action, so it opens at the linked expense. The highlighted expense should appear once, a little below the top of the list, and not move afterward.
