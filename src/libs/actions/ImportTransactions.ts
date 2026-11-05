@@ -247,22 +247,24 @@ function buildOptimisticCard(cardDisplayName: string, accountID: number, isReimb
  * Creates optimistic transaction objects from the CSV data
  */
 function buildOptimisticTransactions(transactionList: TransactionFromCSV[], cardID: number, currency: string, isReimbursable: boolean): Transaction[] {
-    return transactionList.map((csvTransaction): Transaction => ({
-        transactionID: csvTransaction.transactionID,
-        cardID,
-        created: csvTransaction.created,
-        merchant: csvTransaction.merchant,
-        amount: csvTransaction.amount,
-        currency,
-        category: csvTransaction.category ?? '',
-        tag: csvTransaction.tag ?? '',
-        reimbursable: isReimbursable,
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        comment: {
-            comment: '',
-        },
-        reportID: '0',
-    }));
+    return transactionList.map(
+        (csvTransaction): Transaction => ({
+            transactionID: csvTransaction.transactionID,
+            cardID,
+            created: csvTransaction.created,
+            merchant: csvTransaction.merchant,
+            amount: csvTransaction.amount,
+            currency,
+            category: csvTransaction.category ?? '',
+            tag: csvTransaction.tag ?? '',
+            reimbursable: isReimbursable,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            comment: {
+                comment: '',
+            },
+            reportID: '0',
+        }),
+    );
 }
 
 /**
