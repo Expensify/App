@@ -17,6 +17,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import type useBlockDistanceRequest from './useBlockDistanceRequest';
 
+import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 import useOptimisticDraftTransactions from './useOptimisticDraftTransactions';
@@ -58,6 +59,7 @@ function useConfirmationParticipantSelection({
     blockDistanceRequestIfNeeded,
     onIOUTypeChange,
 }: UseConfirmationParticipantSelectionParams) {
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalPolicy = usePersonalPolicy();
     const selfDMReport = useSelfDMReport();
@@ -149,7 +151,7 @@ function useConfirmationParticipantSelection({
                         });
                         setCustomUnitRateID(transactionIDToUpdate, p2pRateID, transactionToUpdate, undefined, false, personalPolicy?.outputCurrency);
                     }
-                    setMoneyRequestCategory(transactionIDToUpdate, '', undefined);
+                    setMoneyRequestCategory(transactionIDToUpdate, '', undefined, getCurrencyDecimals);
                     setMoneyRequestTag(transactionIDToUpdate, '');
                 } else {
                     const workspacePolicy = selectedPolicy;
@@ -172,7 +174,7 @@ function useConfirmationParticipantSelection({
                     // passed, so the category's tax is cleared too.
                     if (firstParticipant.policyID && firstParticipant.policyID !== policyID) {
                         const defaultCategory = isDistanceRequest ? (getDistanceRateCustomUnit(workspacePolicy)?.defaultCategory ?? '') : '';
-                        setMoneyRequestCategory(transactionIDToUpdate, defaultCategory, undefined);
+                        setMoneyRequestCategory(transactionIDToUpdate, defaultCategory, undefined, getCurrencyDecimals);
                         setMoneyRequestTag(transactionIDToUpdate, '');
                     }
                 }

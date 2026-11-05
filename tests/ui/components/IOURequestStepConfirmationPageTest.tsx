@@ -595,7 +595,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -2855,7 +2855,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (value) => {
                         resolve(value);
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                     },
                 });
             });
@@ -2897,7 +2897,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`,
                     callback: (value) => {
                         resolve(value);
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                     },
                 });
             });
@@ -3015,7 +3015,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${SECOND_TRANSACTION_ID}`,
                     callback: (value) => {
                         resolve(value);
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                     },
                 });
             });
