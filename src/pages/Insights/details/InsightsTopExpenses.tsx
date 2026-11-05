@@ -37,28 +37,19 @@ import {fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@selectors/Polic
 import React from 'react';
 import {View} from 'react-native';
 
-import type {TopExpensesState} from './useInsightsTopExpenses';
-
-import {TOP_EXPENSES_STATE} from './useInsightsTopExpenses';
+import useInsightsTopExpenses, {TOP_EXPENSES_STATE} from './useInsightsTopExpenses';
 
 type InsightsTopExpensesProps = {
-    /** Sorted by amount, highest first */
-    expenses: TransactionListItemType[];
-
-    state: TopExpensesState;
-
-    /** Called by the retry button when the expenses failed to load */
-    onRetry: () => void;
-
-    /** Spend table query that View all opens */
+    /** Spend table query whose largest expenses the section lists, and that View all opens */
     viewAllQuery: SearchQueryString;
 };
 
 /** Lists the largest expenses behind the clicked item, each opening in the RHP. */
-function InsightsTopExpenses({expenses, state, onRetry, viewAllQuery}: InsightsTopExpensesProps) {
+function InsightsTopExpenses({viewAllQuery}: InsightsTopExpensesProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const {expenses, state, retry} = useInsightsTopExpenses(viewAllQuery);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowUpRight']);
     const {markReportRHPWidth} = useWideRHPActions();
@@ -107,7 +98,7 @@ function InsightsTopExpenses({expenses, state, onRetry, viewAllQuery}: InsightsT
                 illustrationWidth={variables.iconSizeUltraLarge}
                 illustrationHeight={variables.iconSizeUltraLarge}
                 buttonTranslationKey="search.searchResults.staleResults.buttonText"
-                onButtonPress={onRetry}
+                onButtonPress={retry}
             />
         );
     }
@@ -118,7 +109,7 @@ function InsightsTopExpenses({expenses, state, onRetry, viewAllQuery}: InsightsT
                 title={translate('errorPage.title', {isBreakLine: shouldUseNarrowLayout})}
                 subtitle={translate('errorPage.subtitle')}
                 buttonTranslationKey="common.tryAgain"
-                onButtonPress={onRetry}
+                onButtonPress={retry}
             />
         );
     }

@@ -29,7 +29,6 @@ import {View} from 'react-native';
 
 import {resolveInsightsDetailsItem} from './insightsDetailsItem';
 import InsightsTopExpenses from './InsightsTopExpenses';
-import useInsightsTopExpenses from './useInsightsTopExpenses';
 
 type InsightsDetailsPageProps = PlatformStackScreenProps<InsightsDetailsParamList, typeof SCREENS.INSIGHTS_DETAILS>;
 
@@ -63,7 +62,6 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
               })
             : undefined;
     const viewAllQuery = chartQueryJSON && item ? buildChartDrillDownQuery(chartQueryJSON, item.filterQuery) : undefined;
-    const topExpenses = useInsightsTopExpenses(viewAllQuery);
 
     if (!isBetaEnabled(CONST.BETAS.INSIGHTS_AI) || !chartSpec || (isResolved && !item)) {
         return (
@@ -97,12 +95,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                         </Text>
                         <Text variant="h1">{item.title}</Text>
                     </View>
-                    <InsightsTopExpenses
-                        expenses={topExpenses.expenses}
-                        state={topExpenses.state}
-                        onRetry={topExpenses.retry}
-                        viewAllQuery={viewAllQuery}
-                    />
+                    <InsightsTopExpenses viewAllQuery={viewAllQuery} />
                 </ScrollView>
             )}
         </ScreenWrapper>
