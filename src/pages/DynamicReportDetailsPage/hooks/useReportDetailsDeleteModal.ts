@@ -3,6 +3,7 @@ import {SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_R
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 
 import getCentralPaneReportID from '@libs/Navigation/helpers/getCentralPaneReportID';
@@ -34,6 +35,7 @@ function useReportDetailsDeleteModal(reportID: string, caseID: CaseID, parentRep
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {showConfirmModal} = useConfirmModal();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const taskDeleteBackTo = Navigation.getTopmostSearchReportRouteParams()?.backTo;
 
     // Where to navigate back to after deleting the transaction and its report.
@@ -107,6 +109,7 @@ function useReportDetailsDeleteModal(reportID: string, caseID: CaseID, parentRep
                     isChatIOUReportArchived,
                     getCurrencyDecimals,
                     isSingleTransactionView,
+                    currentUserAccountID,
                 );
             } else {
                 urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(
@@ -117,6 +120,7 @@ function useReportDetailsDeleteModal(reportID: string, caseID: CaseID, parentRep
                     chatIOUReport,
                     isChatIOUReportArchived,
                     getCurrencyDecimals,
+                    currentUserAccountID,
                     isSingleTransactionView,
                     chatIOUReportActions,
                 );

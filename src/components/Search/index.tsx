@@ -54,6 +54,7 @@ import {
     getValidGroupBy,
     getWideAmountIndicators,
     isCashBackWithdrawalGroup,
+    isCreatedDateType,
     isGroupedItemArray,
     isReportActionListItemType,
     isSearchDataLoaded,
@@ -107,6 +108,7 @@ import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@re
 import * as Sentry from '@sentry/react-native';
 import React, {startTransition, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
 import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType} from './SearchList/ListItem/types';
@@ -192,8 +194,6 @@ function Search({
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView();
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
     });
@@ -219,8 +219,6 @@ function Search({
     // getSections memo on every unrelated policy update (Pusher pushes); the boolean only flips when
     // attendee tracking on the moving policy toggles. Rows derive their own display gate independently.
     const isAttendeesEnabledForMovingPolicy = shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, policyForMovingExpenses);
-
-    const [, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
 
     const isSnapshotPending = isSearchPending(searchResults);
 
@@ -291,9 +289,6 @@ function Search({
     const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults, validGroupBy);
     const isSearchResultsEmptyRef = useRef(isSearchResultsEmpty);
     isSearchResultsEmptyRef.current = isSearchResultsEmpty;
-
-    // When grouping by card, we need cardFeeds to display feed names
-    const isCardFeedsLoading = validGroupBy === CONST.SEARCH.GROUP_BY.CARD && cardFeedsResult?.status === 'loading';
 
     useEffect(() => {
         if (prevValidGroupBy === validGroupBy) {
@@ -435,7 +430,7 @@ function Search({
     // that component state would have lost. `null` means the code for these errors has not been stored yet.
     const responseStatusCode = searchResults?.search?.responseJsonCode ?? null;
     const hasUnresolvedErrors = hasErrors && responseStatusCode === null;
-    const isWaitingForInitialData = !shouldUseLiveData && !isOffline && (!isDataLoaded || isSearchLoadingWithNoResults || hasUnresolvedErrors || isCardFeedsLoading);
+    const isWaitingForInitialData = !shouldUseLiveData && !isOffline && (!isDataLoaded || isSearchLoadingWithNoResults || hasUnresolvedErrors);
     const shouldShowLoadingState = isDeferringHeavyWork || isWaitingForInitialData;
     const shouldShowRowSkeleton = (!skeletonWasDisplayed || shouldShowLoadingState) && showPendingExpensePlaceholder && !hasErrors;
 
@@ -452,12 +447,11 @@ function Search({
         Log.info('[Search] Showing skeleton', false, {
             isOffline,
             isDataLoaded,
-            isCardFeedsLoading,
             isSearchLoading: !!searchResults?.search?.isLoading,
             hasErrors,
             shouldUseLiveData,
         });
-    }, [hasErrors, isCardFeedsLoading, isDataLoaded, isOffline, searchResults?.search?.isLoading, shouldShowLoadingState, shouldUseLiveData]);
+    }, [hasErrors, isDataLoaded, isOffline, searchResults?.search?.isLoading, shouldShowLoadingState, shouldUseLiveData]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
@@ -687,8 +681,12 @@ function Search({
         hasSeededCarouselRef.current = false;
     }, [carouselSource, hash]);
 
-    const onSelectRow = useCallback(
-        (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => {
+    const selectRow = useCallback(
+        async (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => {
+            const readConciergeChat = async () => {
+                const conciergeReportID = await Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID);
+                return Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+            };
             // A cash back row has no expenses to open, and Enter on a focused row still lands here.
             if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isCashBackWithdrawalGroup(item)) {
                 return;
@@ -716,6 +714,7 @@ function Search({
                 if (shouldOpenTransactionThread && !shouldOpenTransactionThreadInNewTab) {
                     seedCarouselForOpenedExpense();
                 }
+                const conciergeChat = await readConciergeChat();
                 const targetReportID = createAndOpenSearchTransactionThread({
                     conciergeChat,
                     getCurrencyDecimals,
@@ -788,22 +787,25 @@ function Search({
                 const firstTransaction = item.transactions.at(0);
                 if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
                     if (!firstTransaction?.reportAction?.childReportID) {
-                        createAndOpenSearchTransactionThread({
-                            conciergeChat,
-                            getCurrencyDecimals,
-                            item: firstTransaction,
-                            introSelected,
-                            backTo,
-                            currentUserLogin: email ?? '',
-                            currentUserAccountID: accountID,
-                            personalDetails,
-                            isSelfTourViewed,
-                            hasCompletedGuidedSetupFlow,
-                            delegateAccountID,
-                            IOUTransactionID: firstTransaction?.reportAction?.childReportID,
-                            transactionPreviewData,
-                            shouldNavigate: false,
-                            fullPolicySnapshotLastModifiedByPolicyID,
+                        // Nothing after this needs the thread ID, so read the Concierge chat without awaiting and keep the new-tab and navigation code inside the click
+                        readConciergeChat().then((conciergeChat) => {
+                            createAndOpenSearchTransactionThread({
+                                conciergeChat,
+                                getCurrencyDecimals,
+                                item: firstTransaction,
+                                introSelected,
+                                backTo,
+                                currentUserLogin: email ?? '',
+                                currentUserAccountID: accountID,
+                                personalDetails,
+                                isSelfTourViewed,
+                                hasCompletedGuidedSetupFlow,
+                                delegateAccountID,
+                                IOUTransactionID: firstTransaction?.reportAction?.childReportID,
+                                transactionPreviewData,
+                                shouldNavigate: false,
+                                fullPolicySnapshotLastModifiedByPolicyID,
+                            });
                         });
                     } else {
                         setOptimisticDataForTransactionThreadPreview(
@@ -909,11 +911,17 @@ function Search({
             currentSearchKey,
             seedCarouselForOpenedExpense,
             getCurrencyDecimals,
-            conciergeChat,
             delegateAccountID,
             fullPolicySnapshotLastModifiedByPolicyID,
             shouldUseTableViewForSingleExpense,
         ],
+    );
+
+    const onSelectRow = useCallback(
+        (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => {
+            selectRow(item, transactionPreviewData, event);
+        },
+        [selectRow],
     );
 
     const carouselSiblingsKey = carouselSiblingTransactionIDs.join(',');
@@ -1349,9 +1357,11 @@ function Search({
     // column is. Read once here because they are decided across the whole search, not from the rows currently loaded.
     // Memoized above the early returns: this file doesn't compile with React Compiler, and a new object re-renders every row.
     const isActionColumnWide = isTask || hasDeletedTransaction;
+    const isDateColumnCreated = isCreatedDateType(type);
     const columnSizeOptions: GetReportTableColumnStylesParams = useMemo(
         () => ({
             isActionColumnWide,
+            isDateColumnCreated,
             isDateColumnWide: yearIndicators.shouldShowYearCreated,
             isSubmittedColumnWide: yearIndicators.shouldShowYearSubmitted,
             isApprovedColumnWide: yearIndicators.shouldShowYearApproved,
@@ -1364,6 +1374,7 @@ function Search({
         }),
         [
             isActionColumnWide,
+            isDateColumnCreated,
             yearIndicators.shouldShowYearCreated,
             yearIndicators.shouldShowYearSubmitted,
             yearIndicators.shouldShowYearApproved,

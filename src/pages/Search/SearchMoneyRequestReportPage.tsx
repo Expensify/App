@@ -14,6 +14,7 @@ import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -32,7 +33,7 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getIOUActionForTransactionID, getReportAction} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
-import {isMoneyRequestReportPendingDeletion, isValidReportIDFromPath} from '@libs/ReportUtils';
+import {isMoneyRequestReportPendingDeletion, isValidReportIDFromPath, shouldHideBillReport} from '@libs/ReportUtils';
 import {cancelSendMessageSpansForReport} from '@libs/telemetry/sendMessageSpans';
 import {doesDeleteNavigateBackUrlIncludeDuplicatesReview, getParentReportActionDeletionStatus, hasLoadedReportActions, isThreadReportDeleted} from '@libs/TransactionNavigationUtils';
 
@@ -73,6 +74,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const {isBetaEnabled} = usePermissions();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const {currentSearchResults: snapshot} = useSearchResultsContext();
 
@@ -350,15 +352,17 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const hasAnyTransactions = reportTransactions.length > 0 || shouldUseSnapshotTransaction;
     const wereAllTransactionsDeleted = hasAnyTransactions && activeTransactionsCount === 0;
 
+    const isBillHidden = shouldHideBillReport(report?.type, isBetaEnabled(CONST.BETAS.NEW_DOT_BILL_PAY));
     const shouldShowAccessErrorPage: boolean =
-        !(isLoadingApp !== false) &&
-        !deleteTransactionNavigateBackUrl &&
-        ((!!reportID && !doesReportIDLookValid) ||
-            isReportPendingDeletion ||
-            wereAllTransactionsDeleted ||
-            wasParentActionDeleted ||
-            isThreadReportDeletedForReview ||
-            (!reportID && hasLoadedReportActionsForAccessError && !hasAnyTransactions));
+        isBillHidden ||
+        (!(isLoadingApp !== false) &&
+            !deleteTransactionNavigateBackUrl &&
+            ((!!reportID && !doesReportIDLookValid) ||
+                isReportPendingDeletion ||
+                wereAllTransactionsDeleted ||
+                wasParentActionDeleted ||
+                isThreadReportDeletedForReview ||
+                (!reportID && hasLoadedReportActionsForAccessError && !hasAnyTransactions)));
 
     useEffect(() => {
         if (!shouldShowAccessErrorPage) {
@@ -376,6 +380,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             wasParentActionDeleted,
             isThreadReportDeletedForReview,
             shouldUseSnapshotTransaction,
+            isBillHidden,
         });
     }, [
         shouldShowAccessErrorPage,
@@ -389,6 +394,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         wasParentActionDeleted,
         isThreadReportDeletedForReview,
         shouldUseSnapshotTransaction,
+        isBillHidden,
     ]);
 
     useClearReportActionDraftsOnReportChange(reportIDFromRoute);

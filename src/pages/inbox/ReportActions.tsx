@@ -47,7 +47,6 @@ function ReportActions() {
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
     const isAppLoadPending = useIsAppLoadPending();
     const isReportLoadPending = useIsReportLoadPending(reportIDFromRoute);
@@ -95,7 +94,6 @@ function ReportActions() {
     return (
         <>
             <ReportActionsList
-                conciergeChat={conciergeChat}
                 key={report.reportID}
                 reportID={report.reportID}
             />

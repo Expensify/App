@@ -125,8 +125,6 @@ function MoneyRequestReportView({report, reportIDFromRoute, reportLoadingState, 
     const isAppLoadPending = useIsAppLoadPending();
     const {reportPendingAction, reportErrors: allReportErrors} = getReportOfflinePendingActionAndErrors(report);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(reportID);
 
@@ -271,7 +269,6 @@ function MoneyRequestReportView({report, reportIDFromRoute, reportLoadingState, 
                                 <>
                                     <ReportActionsList
                                         reportID={report.reportID}
-                                        conciergeChat={conciergeChat}
                                         onLayout={onLayout}
                                     />
                                     <UserTypingEventListener report={report} />
