@@ -51,6 +51,8 @@ function SearchEditMultipleAttendeesDropdown({draftAttendees, isVisible, onClose
             onAttendeesChanged={setPickedAttendees}
             onApply={applyAttendees}
             iouType={CONST.IOU.TYPE.SUBMIT}
+            // The list opens empty, as nothing is pending, so the error waits for an apply attempt as on the full page.
+            shouldDeferEmptySelectionError
         />
     );
 }
