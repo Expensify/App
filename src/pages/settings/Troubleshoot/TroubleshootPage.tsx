@@ -37,6 +37,7 @@ import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 import colors from '@styles/theme/colors';
 
 import {clearOnyxAndResetApp} from '@userActions/App';
+import {resetAllChecks} from '@userActions/Welcome';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -88,6 +89,8 @@ function TroubleshootPage() {
             return;
         }
         setShouldResetSearchQuery(true);
+        // The cleared state has no Concierge reportID, so opening Concierge must wait for OpenApp instead of creating a duplicate chat
+        resetAllChecks(true);
         clearOnyxAndResetApp();
     };
     const exportOnyxState = async () => {
