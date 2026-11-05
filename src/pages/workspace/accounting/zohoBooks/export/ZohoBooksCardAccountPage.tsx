@@ -76,7 +76,7 @@ function ZohoBooksCardAccountPage({policy}: WithPolicyConnectionsProps) {
                         : '';
                     return (
                         <OfflineWithFeedback
-                            key={feedKey}
+                            key={feedWithDomainID}
                             pendingAction={getCardsCustomExportPendingAction(cardFeeds ?? {}, cardLists ?? {}, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_ZOHO_BOOKS_EXPORT_ACCOUNT, feedKey)}
                         >
                             <MenuItem.Root
@@ -85,6 +85,7 @@ function ZohoBooksCardAccountPage({policy}: WithPolicyConnectionsProps) {
                                     false,
                                     session,
                                 )}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ZOHO_BOOKS.CARD_ACCOUNT_FEED}
                             >
                                 <MenuItemField.Row
                                     name={feedName ?? ''}
@@ -96,7 +97,7 @@ function ZohoBooksCardAccountPage({policy}: WithPolicyConnectionsProps) {
                                     <MenuItem.Chevron />
                                 </MenuItemField.Row>
                                 {!!cardsUsingCustomAccountsCount.perFeedCount[feedKey] && (
-                                    <MenuItem.HelpText message={translate('workspace.zohoBooks.cardAccount.countInfo', cardsUsingCustomAccountsCount.perFeedCount[feedKey])} />
+                                    <MenuItem.HelpText message={translate('workspace.zohoBooks.cardAccount.countInfo', {count: cardsUsingCustomAccountsCount.perFeedCount[feedKey]})} />
                                 )}
                             </MenuItem.Root>
                         </OfflineWithFeedback>

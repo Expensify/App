@@ -11057,6 +11057,13 @@ const CONST = {
                 CARD_SECTION_ADD_BUTTON: 'WorkspaceAccounting-CardSectionAddButton',
                 THREE_DOT_MENU: 'WorkspaceAccounting-ThreeDotMenu',
             },
+            ZOHO_BOOKS: {
+                CARD_PROGRAM_ACCOUNT: 'WorkspaceZohoBooks-CardProgramAccount',
+                CARD_ACCOUNT: 'WorkspaceZohoBooks-CardAccount',
+                CARD_PROGRAM_ACCOUNT_FEED: 'WorkspaceZohoBooks-CardProgramAccountFeed',
+                CARD_ACCOUNT_FEED: 'WorkspaceZohoBooks-CardAccountFeed',
+                CARD_ACCOUNT_CARD: 'WorkspaceZohoBooks-CardAccountCard',
+            },
             CONNECTIONS: {
                 CARD: 'WorkspaceConnections-Card',
                 CONFIGURE_BUTTON: 'WorkspaceConnections-ConfigureButton',

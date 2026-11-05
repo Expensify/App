@@ -163,7 +163,8 @@ function ZohoBooksExportPage({policy}: WithPolicyConnectionsProps) {
                             <MenuItemField
                                 name={translate('workspace.zohoBooks.cardProgramAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_CARD_PROGRAM_ACCOUNT.getRoute(policyID)) : undefined)}
-                                value={translate('workspace.zohoBooks.cardProgramAccount.countInfo', cardProgramsUsingCustomAccountsCount)}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ZOHO_BOOKS.CARD_PROGRAM_ACCOUNT}
+                                value={translate('workspace.zohoBooks.cardProgramAccount.countInfo', {count: cardProgramsUsingCustomAccountsCount})}
                             >
                                 {areSettingsInErrorFields(cardProgramsOfflineFeedbackKeys, zohoBooksConfig?.errorFields) && (
                                     <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
@@ -176,7 +177,8 @@ function ZohoBooksExportPage({policy}: WithPolicyConnectionsProps) {
                             <MenuItemField
                                 name={translate('workspace.zohoBooks.cardAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_CARD_ACCOUNT.getRoute(policyID)) : undefined)}
-                                value={translate('workspace.zohoBooks.cardAccount.countInfo', cardsUsingCustomAccountsCount.totalCount)}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ZOHO_BOOKS.CARD_ACCOUNT}
+                                value={translate('workspace.zohoBooks.cardAccount.countInfo', {count: cardsUsingCustomAccountsCount.totalCount})}
                             >
                                 {areCardsCustomExportInErrorFields(cardFeeds ?? {}, cardLists, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_ZOHO_BOOKS_EXPORT_ACCOUNT) && (
                                     <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />

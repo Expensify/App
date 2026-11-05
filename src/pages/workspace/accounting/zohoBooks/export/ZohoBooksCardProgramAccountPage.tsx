@@ -77,7 +77,7 @@ function ZohoBooksCardProgramAccountPage({policy}: WithPolicyConnectionsProps) {
                         : '';
                     return (
                         <OfflineWithFeedback
-                            key={feedKey}
+                            key={feedWithDomainID}
                             pendingAction={settingsPendingAction([`${CONST.ZOHO_BOOKS_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feedKey}`], zohoBooksConfig?.pendingFields)}
                         >
                             <MenuItem.Root
@@ -87,6 +87,7 @@ function ZohoBooksCardProgramAccountPage({policy}: WithPolicyConnectionsProps) {
                                     false,
                                     session,
                                 )}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ZOHO_BOOKS.CARD_PROGRAM_ACCOUNT_FEED}
                             >
                                 <MenuItemField.Row
                                     name={feedName ?? ''}
@@ -98,7 +99,7 @@ function ZohoBooksCardProgramAccountPage({policy}: WithPolicyConnectionsProps) {
                                     <MenuItem.Chevron />
                                 </MenuItemField.Row>
                                 {!!cardsUsingCustomAccountsCount.perFeedCount[feedKey] && (
-                                    <MenuItem.HelpText message={translate('workspace.zohoBooks.cardAccount.countInfo', cardsUsingCustomAccountsCount.perFeedCount[feedKey])} />
+                                    <MenuItem.HelpText message={translate('workspace.zohoBooks.cardAccount.countInfo', {count: cardsUsingCustomAccountsCount.perFeedCount[feedKey]})} />
                                 )}
                             </MenuItem.Root>
                         </OfflineWithFeedback>
