@@ -44,14 +44,13 @@ type ReportState = {
     isOpenReport?: boolean;
     isDEWPolicy?: boolean;
     reportMetadata?: ReportMetadata;
-    manualPayerAccountID?: number;
 };
 
 function getUpcoming(
     reportActions: ReportAction[],
     upcomingSteps: ReportUpcomingStep[],
     nextStep: ReportNextStep | undefined,
-    {isOpenReport = false, isDEWPolicy = false, reportMetadata, manualPayerAccountID}: ReportState = {},
+    {isOpenReport = false, isDEWPolicy = false, reportMetadata}: ReportState = {},
 ) {
     return getReportHistorySteps({
         translate: translateLocal,
@@ -67,7 +66,6 @@ function getUpcoming(
         isDEWPolicy,
         shouldDisplayMarkAsDone: false,
         reportMetadata,
-        manualPayerAccountID,
     })
         .filter((step) => step.isUpcoming)
         .map((step) => [step.label, step.accountID]);
@@ -88,7 +86,6 @@ function getCompletedSteps(reportActions: ReportAction[]) {
         isDEWPolicy: false,
         shouldDisplayMarkAsDone: false,
         reportMetadata: undefined,
-        manualPayerAccountID: undefined,
     })
         .filter((step) => !step.isUpcoming)
         .map((step) => [step.label, step.accountID]);
@@ -124,7 +121,6 @@ describe('getReportHistorySteps', () => {
             isDEWPolicy: false,
             shouldDisplayMarkAsDone: true,
             reportMetadata: undefined,
-            manualPayerAccountID: undefined,
         });
 
         // Then history uses the same wording as the report conversation
@@ -158,7 +154,6 @@ describe('getReportHistorySteps', () => {
             isDEWPolicy,
             shouldDisplayMarkAsDone,
             reportMetadata: undefined,
-            manualPayerAccountID: undefined,
         });
 
         // Then unrelated submission flows retain their existing label
@@ -204,7 +199,6 @@ describe('getReportHistorySteps', () => {
         const upcoming = getUpcoming([SUBMITTED_ACTION, approvedAction], SNAPSHOT, nextStep, {
             isDEWPolicy: true,
             reportMetadata: {pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE},
-            manualPayerAccountID: undefined,
         });
 
         // Then the approval isn't shown as both done and upcoming
@@ -225,7 +219,6 @@ describe('getReportHistorySteps', () => {
         const dewUpcoming = getUpcoming([SUBMITTED_ACTION, approvedAction, unapprovedAction], SNAPSHOT, nextStep, {
             isDEWPolicy: true,
             reportMetadata: {pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE},
-            manualPayerAccountID: undefined,
         });
 
         // Then the approval is still upcoming in both cases
@@ -341,28 +334,6 @@ describe('getReportHistorySteps', () => {
         expect(upcoming).toEqual([]);
     });
 
-    it('keeps the pay step of an approved report that is paid outside Expensify', () => {
-        // Given an approved, unpaid report on a workspace that reimburses outside Expensify, whose next step says no further action
-        const nextStep = buildNextStep(CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION);
-
-        // When the steps are built
-        const upcoming = getUpcoming([SUBMITTED_ACTION], SNAPSHOT, nextStep, {manualPayerAccountID: OWNER_ACCOUNT_ID});
-
-        // Then the snapshot's pay step stays, because the payer can still mark the report as paid
-        expect(upcoming).toEqual([[translateLocal('reportHistoryPage.toPay'), PAYER_ACCOUNT_ID]]);
-    });
-
-    it('shows the workspace payer when the snapshot has no pay step for a report paid outside Expensify', () => {
-        // Given an approved, unpaid report on a workspace that reimburses outside Expensify, and a snapshot without a pay step
-        const nextStep = buildNextStep(CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION);
-
-        // When the steps are built
-        const upcoming = getUpcoming([SUBMITTED_ACTION], [], nextStep, {manualPayerAccountID: PAYER_ACCOUNT_ID});
-
-        // Then the workspace payer is shown as the one to pay
-        expect(upcoming).toEqual([[translateLocal('reportHistoryPage.toPay'), PAYER_ACCOUNT_ID]]);
-    });
-
     it('skips upcoming actions it does not know', () => {
         // Given the backend sends an action this version of the app doesn't support
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the action is deliberately outside the known union
@@ -396,7 +367,6 @@ describe('getReportHistorySteps', () => {
             isDEWPolicy: false,
             shouldDisplayMarkAsDone: false,
             reportMetadata: undefined,
-            manualPayerAccountID: undefined,
         });
 
         // Then they fall back to the report action ID order, like the report itself
