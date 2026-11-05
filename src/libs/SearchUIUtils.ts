@@ -587,7 +587,7 @@ function getTripStatusOptions(translate: LocalizedTranslate): Array<MultiSelectI
 }
 
 function getTripRoomStatusOptions(translate: LocalizedTranslate): Array<MultiSelectItem<SingularSearchStatus>> {
-    return Object.values(CONST.SEARCH.TRIP_STATUS).map((status) => ({text: translate(`search.trip.status.${status}`), value: status}));
+    return CONST.SEARCH.TRIP_FILTER_STATUSES.map((status) => ({text: translate(`search.trip.status.${status}`), value: status}));
 }
 
 const legacyTripStatusToTripRoomStatus: Record<string, string> = {

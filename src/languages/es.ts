@@ -178,6 +178,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dob: 'Fecha de nacimiento',
         currentYear: 'Año actual',
         currentMonth: 'Mes actual',
+        todayDateLabel: (date: string) => `${date}, hoy`,
         ssnLast4: 'Últimos 4 dígitos de tu SSN',
         ssnFull9: 'Los 9 dígitos del SSN',
         addressLine: (lineNumber) => `Dirección línea ${lineNumber}`,
@@ -2112,6 +2113,13 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_actor, _actorType, _eta, _etaType) => `¡No se requiere ninguna acción adicional!`,
             [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (_actor, _actorType, _eta, _etaType) => `Cambia el espacio de trabajo del informe para realizar más acciones.`,
+
+            [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `Solo puedes aprobar en este espacio de trabajo. Mueve este informe a otro para enviarlo.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (actor, actorType, _eta, _etaType, requiredDepositCurrency?: string) => {
                 const account = requiredDepositCurrency ? `cuenta bancaria en ${requiredDepositCurrency}` : 'cuenta bancaria';
                 switch (actorType) {
@@ -3221,8 +3229,10 @@ ${amount} para ${merchant} - ${date}`,
         manager: 'Responsable',
         makeOrTrackPaymentsTitle: 'Realizar o seguir pagos',
         makeOrTrackPaymentsDescription: 'Añade un pagador autorizado para los pagos realizados en Expensify o realiza un seguimiento de los pagos realizados en otro lugar.',
-        collectEmployeeBankDetails: 'Recopilar los datos bancarios de los empleados',
-        collectEmployeeBankDetailsDescription: 'Recopila los datos bancarios de los empleados para poder reembolsarles fuera de Expensify.',
+        collectEmployeeBankDetails: 'Recopilar datos bancarios',
+        collectEmployeeBankDetailsDescription: 'Recopila los datos bancarios de los miembros del espacio de trabajo para poder reembolsarles fuera de Expensify.',
+        disablePaymentsTitle: '¿Desactivar pagos?',
+        disablePaymentsPrompt: 'Esto eliminará toda tu configuración de pagos.',
         businessBankAccountCountries: 'Países con cuenta bancaria de empresa',
         businessBankAccountCountriesDescription:
             'Los empleados de estos países proporcionan datos de transferencia local. Todos los demás proporcionan datos de transferencia bancaria internacional.',
@@ -5136,6 +5146,13 @@ ${amount} para ${merchant} - ${date}`,
             title: 'Aún no puedes reservar viajes',
             message:
                 'Eres miembro de un espacio de trabajo con viajes habilitados, pero no es tu espacio de trabajo predeterminado. Para reservar, habilita los viajes en tu espacio de trabajo predeterminado o cambia tu espacio de trabajo predeterminado a uno que tenga los viajes habilitados.',
+        },
+        approval: {
+            status: {outstanding: 'Pendiente', approved: 'Aprobado', rejected: 'Rechazado', canceled: 'Cancelado'},
+            deadline: {
+                softApproval: (time: string) => `Se aprueba automáticamente en ${time}. Cancelación gratuita hasta entonces.`,
+                hardApproval: (time: string) => `Se cancela automáticamente en ${time} si no se aprueba.`,
+            },
         },
     },
     proactiveAppReview: {
@@ -10557,6 +10574,8 @@ ${reportName}`,
                 upcoming: 'Próximo',
                 done: 'Finalizado',
                 canceled: 'Cancelado',
+                outstanding: 'Pendiente',
+                rejected: 'Rechazado',
             },
         },
         tabs: {
@@ -13182,6 +13201,7 @@ ${reportName}`,
             }
             return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `enviar automáticamente el día ${eta} de cada mes` : `enviar automáticamente ${eta}`;
         },
+        toMarkAsDone: 'marcar como listo',
         toApprove: 'aprobar',
         toPay: 'pagar',
         minutesAgo: (count: number) => `hace ${count} min`,

@@ -185,6 +185,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dob: 'Data di nascita',
         currentYear: 'Anno corrente',
         currentMonth: 'Mese corrente',
+        todayDateLabel: (date: string) => `${date}, oggi`,
         ssnLast4: 'Ultime 4 cifre del SSN',
         ssnFull9: 'Tutte le 9 cifre del SSN',
         addressLine: (lineNumber: number) => `Riga indirizzo ${lineNumber}`,
@@ -2150,6 +2151,13 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `Cambia lo spazio di lavoro del rendiconto per ulteriori azioni.`,
+
+            [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `In questo spazio di lavoro puoi solo approvare. Sposta questo report in un altro per inviarlo.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -3314,8 +3322,10 @@ ${amount} per ${merchant} - ${date}`,
         addApprovalsDescription: 'Richiedi un’approvazione aggiuntiva prima di autorizzare un pagamento.',
         makeOrTrackPaymentsTitle: 'Pagamenti',
         makeOrTrackPaymentsDescription: 'Aggiungi un pagatore autorizzato per i pagamenti effettuati in Expensify o tieni traccia dei pagamenti effettuati altrove.',
-        collectEmployeeBankDetails: 'Raccogli i dati bancari dei dipendenti',
-        collectEmployeeBankDetailsDescription: 'Raccogli i dati bancari dei dipendenti per poterli rimborsare al di fuori di Expensify.',
+        collectEmployeeBankDetails: 'Raccogli i dati del conto bancario',
+        collectEmployeeBankDetailsDescription: 'Raccogli i dati bancari dei membri dello spazio di lavoro, così puoi rimborsarli al di fuori di Expensify.',
+        disablePaymentsTitle: 'Disattivare i pagamenti?',
+        disablePaymentsPrompt: 'Questo rimuoverà tutte le tue impostazioni di pagamento.',
         businessBankAccountCountries: 'Paesi del conto bancario aziendale',
         businessBankAccountCountriesDescription: 'I dipendenti in questi paesi forniscono i dati per i bonifici locali. Tutti gli altri forniscono i dati per i bonifici internazionali.',
         customApprovalWorkflowEnabled:
@@ -5214,6 +5224,13 @@ ${amount} per ${merchant} - ${date}`,
             title: 'Non puoi ancora prenotare viaggi',
             message:
                 'Sei membro di uno spazio di lavoro con viaggi abilitati, ma non è il tuo spazio di lavoro predefinito. Per prenotare, abilita i viaggi sul tuo spazio di lavoro predefinito oppure imposta come predefinito uno spazio di lavoro con viaggi abilitati.',
+        },
+        approval: {
+            status: {outstanding: 'In sospeso', approved: 'Approvato', rejected: 'Rifiutato', canceled: 'Annullata'},
+            deadline: {
+                softApproval: (time: string) => `Approvazione automatica tra ${time}. Cancellazione gratuita fino ad allora.`,
+                hardApproval: (time: string) => `Annullamento automatico tra ${time} se non approvata.`,
+            },
         },
     },
     workspace: {
@@ -11000,6 +11017,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 upcoming: 'In arrivo',
                 done: 'Completato',
                 canceled: 'Annullato',
+                outstanding: 'In sospeso',
+                rejected: 'Rifiutato',
             },
         },
         tabs: {
@@ -12881,6 +12900,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             other: (count: number) => `${count} g fa`,
         }),
         offlineMessage: 'Sei offline. La cronologia dei report potrebbe non essere aggiornata.',
+        toMarkAsDone: 'segnare come completato',
     },
 };
 export default translations;

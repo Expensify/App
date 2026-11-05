@@ -185,6 +185,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dob: '生年月日',
         currentYear: '今年',
         currentMonth: '今月',
+        todayDateLabel: (date: string) => `${date}（本日）`,
         ssnLast4: 'SSN の下4桁',
         ssnFull9: 'SSN の9桁すべて',
         addressLine: (lineNumber: number) => `住所 ${lineNumber} 行目`,
@@ -2129,6 +2130,13 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `さらに操作を行うには、レポートのワークスペースを変更してください。`,
+
+            [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `このワークスペースでは承認しかできません。提出するには、このレポートを別のワークスペースに移動してください。`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -3282,8 +3290,10 @@ ${date} の ${merchant} への ${amount}`,
         addApprovalsDescription: '支払いを承認する前に、追加の承認を必須にする。',
         makeOrTrackPaymentsTitle: '支払',
         makeOrTrackPaymentsDescription: 'Expensifyでの支払いに対する承認済み支払者を追加するか、他の場所で行われた支払いを記録します。',
-        collectEmployeeBankDetails: '従業員の銀行口座情報を収集',
-        collectEmployeeBankDetailsDescription: '従業員の銀行口座情報を収集して、Expensify以外で精算できるようにします。',
+        collectEmployeeBankDetails: '銀行口座情報を収集します',
+        collectEmployeeBankDetailsDescription: 'ワークスペースメンバーから銀行口座情報を収集し、Expensify 外で精算できるようにします。',
+        disablePaymentsTitle: '支払いを無効にしますか？',
+        disablePaymentsPrompt: 'これにより、お支払い設定がすべて削除されます。',
         businessBankAccountCountries: 'ビジネス銀行口座の国',
         businessBankAccountCountriesDescription: 'これらの国の従業員は現地送金の詳細を入力します。それ以外の方は国際電信送金の詳細を入力します。',
         customApprovalWorkflowEnabled:
@@ -5164,6 +5174,13 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             title: 'まだ旅行を予約できません',
             message:
                 '現在、出張機能が有効なワークスペースのメンバーですが、そのワークスペースはデフォルトではありません。予約するには、デフォルトのワークスペースで出張機能を有効にするか、デフォルトのワークスペースを出張機能が有効なワークスペースに変更してください。',
+        },
+        approval: {
+            status: {outstanding: '未払い', approved: '承認済み', rejected: '却下されました', canceled: 'キャンセルされました'},
+            deadline: {
+                softApproval: (time: string) => `${time}後に自動承認されます。そこまでは無料でキャンセルできます。`,
+                hardApproval: (time: string) => `承認されない場合は ${time} で自動的にキャンセルされます。`,
+            },
         },
     },
     workspace: {
@@ -10811,6 +10828,8 @@ ${reportName}`,
                 upcoming: '予定',
                 done: '完了',
                 canceled: 'キャンセル済み',
+                outstanding: '未払い',
+                rejected: '却下されました',
             },
         },
         tabs: {
@@ -12672,6 +12691,7 @@ ${reportName}`,
             other: (count: number) => `${count}日前`,
         }),
         offlineMessage: 'オフラインです。レポート履歴が最新ではない可能性があります。',
+        toMarkAsDone: '完了としてマークする',
     },
 };
 export default translations;
