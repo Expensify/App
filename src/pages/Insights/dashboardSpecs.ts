@@ -1,6 +1,6 @@
 /** Declares the charts each Insights dashboard renders and how they map to backend graph slots and search views. */
 
-import type {ChartView, SearchGroupBy} from '@components/Search/types';
+import type {ChartView, SearchChartMetric, SearchGroupBy} from '@components/Search/types';
 
 import {isPolicyEligibleForTopCategories, isPolicyEligibleForTopSpenders} from '@libs/SearchUIUtils';
 
@@ -17,6 +17,9 @@ type InsightsChartSpec = {
     graphKey: InsightsGraphKey;
     titleKey: TranslationPaths;
     view: ChartView;
+
+    /** What the chart plots for each group, left out by charts plotting the money each group totals */
+    metric?: SearchChartMetric;
 
     /** What the chart aggregates by, left out by charts that follow the page's group-by filter */
     groupBy?: SearchGroupBy;
@@ -98,6 +101,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_OVER_TIME,
             titleKey: 'insightsPage.compliance',
             view: CONST.SEARCH.VIEW.LINE,
+            metric: CONST.SEARCH.CHART_METRIC.COUNT,
         },
         supportingCharts: [],
     },

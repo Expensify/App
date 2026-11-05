@@ -57,10 +57,10 @@ describe('XeroSetupPage (web)', () => {
         jest.clearAllMocks();
     });
 
-    it('returns to the workspace accounting page', () => {
+    it('returns to the workspace Connections page', () => {
         renderXeroSetupPage();
 
-        expect(mockedGoBack).toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING.getRoute(POLICY_ID));
+        expect(mockedGoBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_CONNECTIONS.getRoute(POLICY_ID));
     });
 
     it('renders nothing', () => {
