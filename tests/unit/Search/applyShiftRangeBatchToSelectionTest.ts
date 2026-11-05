@@ -27,11 +27,16 @@ const buildEntry = (item: TransactionListItemType): [string, SelectedTransaction
         rules: undefined,
     });
 
-const lookupsFor = (groupKeyByChildKey: Map<string, string> = new Map(), childrenByGroupKey: Map<string, TransactionListItemType[]> = new Map()) => ({
+const lookupsFor = (
+    groupKeyByChildKey: Map<string, string> = new Map(),
+    childrenByGroupKey: Map<string, TransactionListItemType[]> = new Map(),
+    groupCountByKey: Record<string, number> = {},
+) => ({
     groupKeyByChildKey,
     childrenByGroupKey,
     buildSelectedEntry: buildEntry,
-    getGroupCount: () => undefined,
+    getGroupCount: (groupKey: string): number | undefined => groupCountByKey[groupKey],
+    isExpenseReportType: false,
 });
 
 const batchOf = (toSelect: SearchListItem[] = [], toDeselect: SearchListItem[] = []): ShiftRangeBatch<SearchListItem> => ({toSelect, toDeselect});
@@ -128,17 +133,17 @@ describe('applyShiftRangeBatchToSelection', () => {
         expect(Object.keys(updated)).toEqual(['report-1']);
     });
 
-    it('marks a whole group row it covers as selected through the group, so a later range may narrow it', () => {
-        // Given a group row with one child
+    it('stores a fully loaded group row it covers as its rows, exactly as a header click writes it', () => {
+        // Given a group row whose one child is every row it has
         const child = makeChild(1, 'c1');
         const group = makeGroup('groupA', [child]);
 
         // When a range covers the group row itself
         const updated = applyShiftRangeBatchToSelection(batchOf([group]), {}, false, lookupsFor());
 
-        // Then its children carry the selection and the group's own key does not, exactly as a header click writes it
-        expect(updated.c1?.isSelectedViaGroup).toBe(true);
+        // Then its child carries the selection and the group's own key does not, since the loaded row is the whole group
         expect(updated.c1?.groupKey).toBe('groupA');
+        expect(updated.c1?.isEntireGroupSelected).toBe(true);
         expect(updated.groupA).toBeUndefined();
     });
 
@@ -153,87 +158,76 @@ describe('applyShiftRangeBatchToSelection', () => {
         expect(applyShiftRangeBatchToSelection(batchOf([group]), selection, false, lookupsFor())).toBe(selection);
     });
 
-    it('stops a row claiming its group covers it once the range takes only part of that group', () => {
-        // Given two rows checked through their group
-        const kept = makeChild(1, 'c1');
-        const dropped = makeChild(2, 'c2');
-        const selection: SelectedTransactions = {
-            ...selectionOf(kept, dropped),
-        };
-        selection.c1 = {...selection.c1, groupKey: 'groupA', isSelectedViaGroup: true};
-        selection.c2 = {...selection.c2, groupKey: 'groupA', isSelectedViaGroup: true};
-
-        // When a range gives back one of the two rows the group covered
-        const updated = applyShiftRangeBatchToSelection(batchOf([], [dropped]), selection, false, lookupsFor(new Map([['c2', 'groupA']])));
-
-        // Then the row left behind stops claiming the group covers it, or an export would send a whole-group filter
-        expect(updated.c2).toBeUndefined();
-        expect(updated.c1?.isSelectedViaGroup).toBe(false);
-        expect(updated.c1?.groupKey).toBe('groupA');
-    });
-
-    it('keeps the claim on rows a range only re-covers, since it took none of them back', () => {
-        // Given two rows selected through their group's header
+    it('holds a group row with rows left to load under its own key when a range covers it', () => {
+        // Given a group of five whose two loaded rows include one already picked by hand
         const first = makeChild(1, 'c1');
         const second = makeChild(2, 'c2');
-        const selection: SelectedTransactions = {...selectionOf(first, second)};
-        selection.c1 = {...selection.c1, groupKey: 'groupA', isSelectedViaGroup: true};
-        selection.c2 = {...selection.c2, groupKey: 'groupA', isSelectedViaGroup: true};
+        const group = makeGroup('groupA', [first, second]);
+        const selection: SelectedTransactions = {c1: {...buildEntry(first)[1], groupKey: 'groupA'}};
 
-        // When a range covers both of them again and gives nothing back
-        const updated = applyShiftRangeBatchToSelection(
-            batchOf([first, second]),
-            selection,
-            false,
-            lookupsFor(
-                new Map([
-                    ['c1', 'groupA'],
-                    ['c2', 'groupA'],
-                ]),
-            ),
-        );
+        // When a range covers the group row
+        const updated = applyShiftRangeBatchToSelection(batchOf([group]), selection, false, lookupsFor(new Map(), new Map(), {groupA: 5}));
 
-        // Then both still claim the group, so an export keeps sending the group filter that reaches its unloaded rows
-        expect(updated.c1?.isSelectedViaGroup).toBe(true);
-        expect(updated.c2?.isSelectedViaGroup).toBe(true);
+        // Then the group's own entry holds the selection alone, so it still reaches the three rows that have not loaded and nothing is counted twice
+        expect(Object.keys(updated)).toEqual(['groupA']);
     });
 
-    it('drops the claim when the same batch re-covers one row of a group and gives another back', () => {
-        // Given two rows selected through their group's header
+    it('keeps a group held under its own key when a range only re-covers its loaded rows', () => {
+        // Given a group of five held under its own key, with two rows loaded
+        const first = makeChild(1, 'c1');
+        const second = makeChild(2, 'c2');
+        const [groupKey, groupEntry] = mapEmptyReportToSelectedEntry(makeGroup('groupA', []));
+        const selection: SelectedTransactions = {[groupKey]: groupEntry};
+        const lookups = lookupsFor(
+            new Map([
+                ['c1', 'groupA'],
+                ['c2', 'groupA'],
+            ]),
+            new Map([['groupA', [first, second]]]),
+            {groupA: 5},
+        );
+
+        // When a range covers both loaded rows again and gives nothing back
+        // Then the same map comes back: the rows were already checked through the group, and writing them would drop the three that never loaded
+        expect(applyShiftRangeBatchToSelection(batchOf([first, second]), selection, false, lookups)).toBe(selection);
+    });
+
+    it('spells a group held under its own key out when the same batch re-covers one of its rows and gives another back', () => {
+        // Given a group of five held under its own key, with two rows loaded
         const kept = makeChild(1, 'c1');
         const dropped = makeChild(2, 'c2');
-        const selection: SelectedTransactions = {...selectionOf(kept, dropped)};
-        selection.c1 = {...selection.c1, groupKey: 'groupA', isSelectedViaGroup: true};
-        selection.c2 = {...selection.c2, groupKey: 'groupA', isSelectedViaGroup: true};
-
-        // When a range narrows onto the first, re-covering it and giving the second back
-        const updated = applyShiftRangeBatchToSelection(
-            batchOf([kept], [dropped]),
-            selection,
-            false,
-            lookupsFor(
-                new Map([
-                    ['c1', 'groupA'],
-                    ['c2', 'groupA'],
-                ]),
-            ),
+        const [groupKey, groupEntry] = mapEmptyReportToSelectedEntry(makeGroup('groupA', []));
+        const selection: SelectedTransactions = {[groupKey]: groupEntry};
+        const lookups = lookupsFor(
+            new Map([
+                ['c1', 'groupA'],
+                ['c2', 'groupA'],
+            ]),
+            new Map([['groupA', [kept, dropped]]]),
+            {groupA: 5},
         );
 
-        // Then the re-covered row stops claiming the group, because the group is no longer whole
+        // When a range narrows onto the first, re-covering it and giving the second back
+        const updated = applyShiftRangeBatchToSelection(batchOf([kept], [dropped]), selection, false, lookups);
+
+        // Then the group is no longer whole, so the row it kept is named and the group's entry is gone
+        expect(updated.groupA).toBeUndefined();
         expect(updated.c2).toBeUndefined();
-        expect(updated.c1?.isSelectedViaGroup).toBe(false);
+        expect(updated.c1?.groupKey).toBe('groupA');
+        expect(updated.c1?.isEntireGroupSelected).toBe(false);
     });
 
-    it('keeps the claim when the range takes the whole group, since nothing was left behind', () => {
-        // Given a group whose every row the range covers
+    it('stores the rows of a group with rows left to load under select-all-matching, where each row has to stay possible to exclude', () => {
+        // Given a group of five with one row loaded, and every matching item selected
         const child = makeChild(1, 'c1');
         const group = makeGroup('groupA', [child]);
 
-        // When the batch is applied
-        const updated = applyShiftRangeBatchToSelection(batchOf([group]), {}, false, lookupsFor(new Map([['c1', 'groupA']])));
+        // When a range covers the group row
+        const updated = applyShiftRangeBatchToSelection(batchOf([group]), {}, true, lookupsFor(new Map([['c1', 'groupA']]), new Map(), {groupA: 5}));
 
-        // Then the whole-group claim stands, since it is a whole-group gesture and an export may send one filter
-        expect(updated.c1?.isSelectedViaGroup).toBe(true);
+        // Then the row carries the selection, since select-all-matching already reaches the rows that have not loaded
+        expect(updated.c1?.groupKey).toBe('groupA');
+        expect(updated.groupA).toBeUndefined();
     });
 
     it('writes a group held under its own key out into its rows before dropping one of them', () => {

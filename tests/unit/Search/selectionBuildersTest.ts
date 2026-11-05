@@ -69,8 +69,8 @@ describe('selectionBuilders', () => {
         it('does not cover a truncated limit selection as the whole group', () => {
             const selected = stampGroupCoverageFlags({
                 selectedTransactions: buildSelection({
-                    txn1: {isSelectedViaGroup: true, groupKey},
-                    txn2: {isSelectedViaGroup: true, groupKey},
+                    txn1: {groupKey},
+                    txn2: {groupKey},
                 }),
                 groupKey,
                 groupCount: 5,
@@ -79,7 +79,7 @@ describe('selectionBuilders', () => {
             });
 
             expect(selected.txn1.isEntireGroupSelected).toBe(false);
-            expect(selected.txn1.isSelectedViaGroup).toBe(true);
+            expect(selected.txn2.isEntireGroupSelected).toBe(false);
         });
     });
 });

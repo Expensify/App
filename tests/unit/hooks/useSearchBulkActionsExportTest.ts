@@ -1452,7 +1452,6 @@ describe('useSearchBulkActions - export options', () => {
         mockSelectedTransactions = {
             tx1: makeSelectedTransaction({
                 groupKey: `${CONST.SEARCH.GROUP_PREFIX}${REPORT_ID}`,
-                isSelectedViaGroup: true,
             }),
         };
 
@@ -1466,16 +1465,19 @@ describe('useSearchBulkActions - export options', () => {
     it('shows templates when a full group is selected in an explicitly grouped search', async () => {
         // Regression test for https://github.com/Expensify/App/issues/100074: selecting a group row used to leave
         // "Current view" as the only export option, so the templates were only reachable by ticking every line item
-        // in the group one by one. A group selection exports through a query filter, so the templates apply to it too.
+        // in the group one by one.
+        // Given a group ticked from its header with every expense loaded, so the selection holds those expenses
         mockSelectedTransactions = {
             tx1: makeSelectedTransaction({
                 groupKey: `${CONST.SEARCH.GROUP_PREFIX}category`,
-                isSelectedViaGroup: true,
+                isEntireGroupSelected: true,
             }),
         };
 
+        // When the export options are built
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
+        // Then the templates are offered, since they export the selected expenses like any other
         await waitFor(() => {
             expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(
                 expect.arrayContaining(['export.currentView', 'Custom template', 'export.expenseLevelExport', 'export.reportLevelExport']),
@@ -1486,15 +1488,17 @@ describe('useSearchBulkActions - export options', () => {
         expect(getExportOptionTexts(result.current.headerButtonsOptions)).not.toContain('export.basicExport');
     });
 
-    it('shows templates when a collapsed group is selected before its children have loaded', async () => {
-        // The other selection shape for the same user action: a group selected while collapsed is stored under a
-        // single `group_` stub instead of one entry per child, and it must offer the same templates.
+    it('shows templates when a group is selected before all of its children have loaded', async () => {
+        // Given the other selection shape for the same user action: a group with expenses left to load is stored under
+        // a single `group_` entry instead of one entry per child
         mockSelectedTransactions = {
             [`${CONST.SEARCH.GROUP_PREFIX}category`]: makeSelectedTransaction(),
         };
 
+        // When the export options are built
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
+        // Then it offers the same templates, because a template export sends the group as a query filter
         await waitFor(() => {
             expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(
                 expect.arrayContaining(['export.currentView', 'Custom template', 'export.expenseLevelExport', 'export.reportLevelExport']),
@@ -1503,12 +1507,9 @@ describe('useSearchBulkActions - export options', () => {
     });
 
     it('exports an expanded group through the group query when a template is picked', async () => {
-        // Given an expanded group selected through its header, stored as one entry per loaded child rather than a `group_` stub
+        // Given an expanded group selected through its header while some of its expenses are still unloaded, so it is held under its `group_` entry
         mockSelectedTransactions = {
-            tx1: makeSelectedTransaction({
-                groupKey: `${CONST.SEARCH.GROUP_PREFIX}category`,
-                isSelectedViaGroup: true,
-            }),
+            [`${CONST.SEARCH.GROUP_PREFIX}category`]: makeSelectedTransaction(),
         };
 
         // Given the group row as it arrives in the search snapshot, which the group's filter entry is derived from
@@ -1536,6 +1537,33 @@ describe('useSearchBulkActions - export options', () => {
         // Then the query is ungrouped, because the template export has no group mode and would otherwise return one row per group
         expect(query).not.toHaveProperty('groupBy');
         expect(JSON.stringify(query)).toContain('Travel');
+    });
+
+    it('exports a fully loaded group by its expense IDs when a template is picked', async () => {
+        // Given a group selected through its header once every one of its expenses had loaded, so the selection holds those expenses and no `group_` entry
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction({groupKey: `${CONST.SEARCH.GROUP_PREFIX}category`, isEntireGroupSelected: true}),
+            tx2: makeSelectedTransaction({groupKey: `${CONST.SEARCH.GROUP_PREFIX}category`, isEntireGroupSelected: true}),
+        };
+        const searchResults = makeSearchResults([]);
+        Object.assign(searchResults.data, {[`${CONST.SEARCH.GROUP_PREFIX}category`]: {category: 'Travel'}});
+        mockCurrentSearchResults = searchResults;
+        jest.mocked(getSelectedGroupFilterEntry).mockReturnValue({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, value: 'Travel'});
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'Custom template')).toBeDefined();
+        });
+
+        // When a template is picked
+        getExportOptionByText(result.current.headerButtonsOptions, 'Custom template')?.onSelected?.();
+
+        // Then the expenses go by their IDs with no group filter, since they already are every expense in the group
+        expect(queueExportSearchWithTemplate).toHaveBeenCalledTimes(1);
+        const [parameters] = jest.mocked(queueExportSearchWithTemplate).mock.calls.at(0) ?? [];
+        expect(parameters?.transactionIDList).toEqual(['tx1', 'tx2']);
+        expect(parameters?.jsonQuery ?? '').not.toContain('Travel');
     });
 
     it('shows templates when a group selection is mixed with individually picked expenses', async () => {
@@ -1604,13 +1632,12 @@ describe('useSearchBulkActions - export options', () => {
         }
 
         /**
-         * A selection made by ticking a populated card group's checkbox. `SearchWriteActionsProvider` stores the
-         * group's loaded children stamped with `groupKey`/`isSelectedViaGroup` and does NOT store the group key
-         * itself. It only stores that when the group had no children loaded (see `selectEmptyCardGroup`).
+         * A selection made by ticking a populated card group's checkbox while some of its expenses are still unloaded.
+         * `SearchWriteActionsProvider` holds it under the group key until every expense has loaded.
          */
         function selectCardGroup() {
             mockSelectedTransactions = {
-                tx1: makeSelectedTransaction({groupKey: CARD_GROUP_KEY, isSelectedViaGroup: true}),
+                [CARD_GROUP_KEY]: makeSelectedTransaction(),
             };
         }
 
@@ -1687,9 +1714,8 @@ describe('useSearchBulkActions - export options', () => {
             expect(getExportOptionTexts(result.current.headerButtonsOptions)).not.toContain('export.reconciliationAllExpenses');
         });
 
-        // Regression test for detecting the group export from the child metadata: with only `isSelectedViaGroup`
-        // children selected, looking for the group prefix alone misses the group and exports the loaded IDs instead
-        // of the `cardID:` filter, so a group with paginated children would export incompletely.
+        // Regression test for a group with paginated children: exporting the loaded IDs instead of the `cardID:` filter
+        // would export it incompletely.
         it('scopes the Reconciliation export to the selected card groups instead of a transaction ID list', async () => {
             // Given a user who qualifies for the Reconciliation template
             mockTemplatesIncludingReconciliation();

@@ -48,6 +48,37 @@ function getRemainingSearchGroupCount(groupCount: number | undefined, loadedChil
 }
 
 /**
+ * Whether the rows a group has loaded are all of its remaining transactions, so they can stand in for the group. If
+ * the group count is unknown (expense-report rows), the loaded rows are treated as the whole group.
+ */
+function isGroupFullyLoaded(groupCount: number | undefined, loadedChildren: TransactionListItemType[]): boolean {
+    const loadedSelectableCount = loadedChildren.filter((child) => !isTransactionPendingDelete(child)).length;
+    const remainingGroupCount = getRemainingSearchGroupCount(groupCount, loadedChildren.length, loadedSelectableCount);
+    return remainingGroupCount === undefined || remainingGroupCount <= loadedSelectableCount;
+}
+
+/**
+ * Whether ticking a group stores the group's own key instead of its rows. Until every row has loaded, only the group's
+ * key reaches the rows that have not. The selection count, the checkbox and every writer follow this one rule, or they
+ * would disagree about what a ticked group holds. A report row on an expense-report search is the whole report, so it
+ * is never held this way.
+ */
+function shouldSelectGroupUnderOwnKey(groupCount: number | undefined, loadedChildren: TransactionListItemType[], isExpenseReportType: boolean): boolean {
+    return !isExpenseReportType && loadedChildren.some((child) => !isTransactionPendingDelete(child)) && !isGroupFullyLoaded(groupCount, loadedChildren);
+}
+
+/**
+ * Whether the rows a selection holds for a group cover every expense the group still has, counting rows that are no
+ * longer loaded. A refresh that brings back fewer rows than a fully selected group had must not shrink the selection to
+ * the rows that came back. A count that grew past the selected rows means an expense nobody picked, so it does not count.
+ */
+function isGroupCoveredBySelectedRows(groupCount: number | undefined, loadedChildren: TransactionListItemType[], selectedRowCount: number): boolean {
+    const loadedSelectableCount = loadedChildren.filter((child) => !isTransactionPendingDelete(child)).length;
+    const remainingGroupCount = getRemainingSearchGroupCount(groupCount, loadedChildren.length, loadedSelectableCount);
+    return remainingGroupCount !== undefined && selectedRowCount > 0 && selectedRowCount >= remainingGroupCount;
+}
+
+/**
  * A group is fully selected only when every remaining transaction it contains is selected. If the group count
  * is unknown (expense-report rows), the loaded selectable children are treated as the whole group.
  */
@@ -72,8 +103,7 @@ type StampGroupCoverageFlagsParams = {
 /**
  * Sets `isEntireGroupSelected` from whether the selection covers the group's remaining transaction count.
  * A `limit:` that leaves children unloaded must not look like a whole-group selection, because delete only
- * removes the loaded rows. `isSelectedViaGroup` is left alone so export can still treat a group-row click as a
- * group export.
+ * removes the loaded rows.
  */
 function stampGroupCoverageFlags({selectedTransactions, groupKey, groupCount, loadedChildrenCount, loadedSelectableCount}: StampGroupCoverageFlagsParams): SelectedTransactions {
     if (!groupKey) {
@@ -406,11 +436,14 @@ function deriveSelectedReports(transactionIDs: SelectedTransactions, data: Searc
 }
 
 type GroupSelectionParams = {
-    /** The group's own key, which is where a group selected before its children loaded is stored */
+    /** The group's own key, which is where a group selected before all of its children loaded is stored */
     groupKey: string | undefined;
 
     /** The group's loaded rows */
     children: TransactionListItemType[];
+
+    /** The group's total on the server, which can be more than the rows it has loaded. Without one (expense-report rows), the loaded rows are the whole group. */
+    groupCount?: number;
 
     /** The rows with a selection entry of their own */
     selectedTransactions: SelectedTransactions;
@@ -429,7 +462,7 @@ function isGroupSelected(params: GroupSelectionParams): boolean {
 }
 
 /** What a group's checkbox shows: fully checked, and whether only some of its rows are. Rows being deleted count for neither. */
-function getGroupCheckboxState({groupKey, children, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: GroupSelectionParams): {
+function getGroupCheckboxState({groupKey, children, groupCount, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: GroupSelectionParams): {
     isSelectAllChecked: boolean;
     isIndeterminate: boolean;
 } {
@@ -451,7 +484,13 @@ function getGroupCheckboxState({groupKey, children, selectedTransactions, exclud
             isIndeterminate: false,
         };
     }
-    return {isSelectAllChecked: selectableCount > 0 && checkedCount === selectableCount, isIndeterminate: checkedCount > 0 && checkedCount !== selectableCount};
+    // Every loaded row being checked covers the group only when nothing is left to load, or when something wider than the rows selected it.
+    // The row counts are checked first, so the scan of the rows only runs once every loaded row is checked.
+    const isSelectAllChecked =
+        selectableCount > 0 &&
+        checkedCount === selectableCount &&
+        ((!!groupKey && !!selectedTransactions[groupKey]?.isSelected) || areAllMatchingItemsSelected || isGroupFullyLoaded(groupCount, children));
+    return {isSelectAllChecked, isIndeterminate: checkedCount > 0 && !isSelectAllChecked};
 }
 
 type RowCheckedParams = {
@@ -545,6 +584,9 @@ type GroupLookups = {
 
     /** The group's total on the server, which can be more than the rows it has loaded */
     getGroupCount: (groupKey: string) => number | undefined;
+
+    /** A report row on an expense-report search is the whole report, so it is never held under its own key */
+    isExpenseReportType: boolean;
 };
 
 /** Undefined under select-all-matching, where the group is selected without its rows being known. */
@@ -556,7 +598,7 @@ function resolveGroupBlock(selection: SelectedTransactions, childKey: string, ar
     return {groupKey, loaded: lookups.childrenByGroupKey.get(groupKey) ?? []};
 }
 
-/** A group selected before its children loaded lives under its own key, so dropping one child means writing it out first. */
+/** A group selected before all of its children loaded lives under its own key, so dropping one child means writing it out first. */
 function spellOutGroupSelection(selection: SelectedTransactions, childKey: string, areAllMatchingItemsSelected: boolean, lookups: GroupLookups): SelectedTransactions {
     const block = resolveGroupBlock(selection, childKey, areAllMatchingItemsSelected, lookups);
     // Counted the same way the loop writes, so writing out can never delete the entry and put nothing back.
@@ -569,7 +611,6 @@ function spellOutGroupSelection(selection: SelectedTransactions, childKey: strin
     delete spelledOut[groupKey];
     for (const child of selectable) {
         const [key, info] = lookups.buildSelectedEntry(child);
-        // No `isSelectedViaGroup`: the caller is about to drop one of these, so the group stops being a whole-group selection.
         spelledOut[key] = {...info, groupKey};
     }
     return spelledOut;
@@ -585,9 +626,6 @@ function applyShiftRangeBatchToSelection(
     let updated: SelectedTransactions = {...selection};
     // Returning the given map unchanged is what lets the commit bail on identity rather than re-render every row.
     let hasWritten = false;
-    // Whole wins over partial, since that is the gesture a header click makes.
-    const partialGroupKeys = new Set<string>();
-    const wholeGroupKeys = new Set<string>();
     // Every group written under, with the rows it has loaded, so its coverage can be recounted once the batch is in.
     const touchedGroups = new Map<string, TransactionListItemType[]>();
     const touchGroup = (groupKey: string, loadedRows: TransactionListItemType[]) => {
@@ -610,20 +648,16 @@ function applyShiftRangeBatchToSelection(
         if (!transaction.keyForList || isTransactionPendingDelete(transaction)) {
             return;
         }
-        updated = spellOutGroupSelection(updated, transaction.keyForList, areAllMatchingItemsSelected, lookups);
-        const [key, info] = lookups.buildSelectedEntry(transaction);
         const parentGroupKey = blockGroupKey ?? lookups.groupKeyByChildKey.get(transaction.keyForList);
-        // A row the range only re-covers keeps its group claim. Only a row the range gives back makes the group partial.
-        const isAlreadySelectedViaGroup = !!parentGroupKey && updated[key]?.groupKey === parentGroupKey && !!updated[key]?.isSelectedViaGroup;
+        // A row its group's own entry already covers is re-covered, not picked, so the group keeps reaching the rows that have not loaded yet.
+        if (parentGroupKey && !areAllMatchingItemsSelected && updated[parentGroupKey]?.isSelected) {
+            return;
+        }
+        const [key, info] = lookups.buildSelectedEntry(transaction);
         if (parentGroupKey) {
-            if (blockGroupKey) {
-                wholeGroupKeys.add(parentGroupKey);
-            } else if (!isAlreadySelectedViaGroup) {
-                partialGroupKeys.add(parentGroupKey);
-            }
             touchGroup(parentGroupKey, lookups.childrenByGroupKey.get(parentGroupKey) ?? []);
         }
-        const entry = parentGroupKey ? {...info, groupKey: parentGroupKey, isSelectedViaGroup: !!blockGroupKey || isAlreadySelectedViaGroup} : info;
+        const entry = parentGroupKey ? {...info, groupKey: parentGroupKey} : info;
         // Re-covering a row is not a write, and coverage is recounted after the batch, so it is left out of the comparison.
         if (deepEqual({...updated[key], isEntireGroupSelected: undefined}, {...entry, isEntireGroupSelected: undefined})) {
             return;
@@ -637,7 +671,6 @@ function applyShiftRangeBatchToSelection(
             if (row.keyForList) {
                 const parentGroupKey = lookups.groupKeyByChildKey.get(row.keyForList);
                 if (parentGroupKey) {
-                    partialGroupKeys.add(parentGroupKey);
                     touchGroup(parentGroupKey, lookups.childrenByGroupKey.get(parentGroupKey) ?? []);
                 }
                 updated = spellOutGroupSelection(updated, row.keyForList, areAllMatchingItemsSelected, lookups);
@@ -678,6 +711,21 @@ function applyShiftRangeBatchToSelection(
             if (selectable.length === 0) {
                 return;
             }
+            // Until every row has loaded, the group's own key is what reaches the rest, so it holds the selection instead of the rows.
+            if (row.keyForList && !areAllMatchingItemsSelected && shouldSelectGroupUnderOwnKey(lookups.getGroupCount(row.keyForList), row.transactions ?? [], lookups.isExpenseReportType)) {
+                const [groupKey, groupInfo] = mapEmptyReportToSelectedEntry(row);
+                for (const child of row.transactions ?? []) {
+                    if (child.keyForList) {
+                        dropKey(child.keyForList);
+                    }
+                }
+                touchedGroups.delete(groupKey);
+                if (!deepEqual(updated[groupKey], groupInfo)) {
+                    updated[groupKey] = groupInfo;
+                    hasWritten = true;
+                }
+                return;
+            }
             // The children carry the selection from here, so the group's own key would count it twice.
             if (row.keyForList) {
                 dropKey(row.keyForList);
@@ -694,14 +742,6 @@ function applyShiftRangeBatchToSelection(
     }
     for (const row of batch.toSelect) {
         addRow(row);
-    }
-
-    // Rows left behind must stop claiming the group covers them, or an export sends a whole-group filter.
-    for (const [key, transaction] of Object.entries(updated)) {
-        if (transaction.isSelectedViaGroup && transaction.groupKey && partialGroupKeys.has(transaction.groupKey) && !wholeGroupKeys.has(transaction.groupKey)) {
-            updated[key] = {...transaction, isSelectedViaGroup: false};
-            hasWritten = true;
-        }
     }
 
     // Delete takes a whole group on this flag, so each group the range wrote under is recounted, in one pass over the selection rather than one per group.
@@ -747,5 +787,8 @@ export {
     isRowChecked,
     getSearchGroupCount,
     getSearchGroupCountByKey,
+    isGroupCoveredBySelectedRows,
+    isGroupFullyLoaded,
+    shouldSelectGroupUnderOwnKey,
     stampGroupCoverageFlags,
 };

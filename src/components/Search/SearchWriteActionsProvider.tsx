@@ -45,11 +45,13 @@ import {
     getSearchGroupCount,
     getSearchGroupCountByKey,
     getSelectableRows,
+    isGroupCoveredBySelectedRows,
     isGroupSelected,
     isRowChecked,
     mapEmptyReportToSelectedEntry,
     mapTransactionItemToSelectedEntry,
     prepareTransactionsList,
+    shouldSelectGroupUnderOwnKey,
     spellOutGroupSelection,
     stampGroupCoverageFlags,
 } from './selectionBuilders';
@@ -189,6 +191,13 @@ function useReconcileSelectionWithData({
                       .filter((reportID): reportID is string => !!reportID)
                 : [],
         );
+        // Counted from the selection as it stood before this data, since a refresh may have dropped some of those rows from the list.
+        const selectedRowCountByGroupKey = new Map<string, number>();
+        for (const [key, selectedTransaction] of Object.entries(selectedTransactions)) {
+            if (selectedTransaction.isSelected && selectedTransaction.groupKey && key !== selectedTransaction.groupKey) {
+                selectedRowCountByGroupKey.set(selectedTransaction.groupKey, (selectedRowCountByGroupKey.get(selectedTransaction.groupKey) ?? 0) + 1);
+            }
+        }
         if (areItemsGrouped) {
             for (const transactionGroup of filteredData) {
                 if (!Object.hasOwn(transactionGroup, 'transactions') || !('transactions' in transactionGroup)) {
@@ -224,6 +233,33 @@ function useReconcileSelectionWithData({
 
                 if (isExpenseReportType && reportKey) {
                     nonEmptyReportKeys.add(reportKey);
+                }
+
+                // A group selected under its own key keeps it until every row has loaded, since only the key reaches the rows that have not.
+                // Its loaded rows read as checked through it. Under select-all-matching the rows carry the selection, as every other row does.
+                const groupCount = getSearchGroupCount(transactionGroup) ?? getSearchGroupCountByKey(searchResultsData, reportKey);
+                if (
+                    !areAllMatchingItemsSelected &&
+                    reportKey &&
+                    selectedTransactions[reportKey]?.isSelected &&
+                    !Object.hasOwn(excludedTransactions, reportKey) &&
+                    shouldSelectGroupUnderOwnKey(groupCount, transactionGroup.transactions, isExpenseReportType)
+                ) {
+                    newTransactionList[reportKey] = mapEmptyReportToSelectedEntry(transactionGroup)[1];
+                    continue;
+                }
+
+                // A whole group selected as its rows goes back under its own key when a refresh brings back only part of it,
+                // as expanding it or returning to the screen does, instead of shrinking to the rows that came back.
+                if (
+                    !areAllMatchingItemsSelected &&
+                    reportKey &&
+                    !Object.hasOwn(excludedTransactions, reportKey) &&
+                    isGroupCoveredBySelectedRows(groupCount, transactionGroup.transactions, selectedRowCountByGroupKey.get(reportKey) ?? 0) &&
+                    shouldSelectGroupUnderOwnKey(groupCount, transactionGroup.transactions, isExpenseReportType)
+                ) {
+                    newTransactionList[reportKey] = mapEmptyReportToSelectedEntry(transactionGroup)[1];
+                    continue;
                 }
 
                 // For expense reports: when ANY transaction is selected, we want ALL transactions in the report selected.
@@ -288,7 +324,6 @@ function useReconcileSelectionWithData({
                         policyID: transactionItem.report?.policyID,
                         groupKey:
                             previousSelection?.groupKey ?? ((propagateSelectionToAllRows && !isExpenseReportType) || (isExpenseReportType && isParentGroupExcluded) ? reportKey : undefined),
-                        isSelectedViaGroup: previousSelection?.isSelectedViaGroup,
                     };
                     liveSelectionEntries.set(listKey, liveSelectionEntry);
                     liveSelectionEntries.set(transactionItem.transactionID, liveSelectionEntry);
@@ -315,7 +350,7 @@ function useReconcileSelectionWithData({
                     const stampedSelection = stampGroupCoverageFlags({
                         selectedTransactions: newTransactionList,
                         groupKey: reportKey,
-                        groupCount: getSearchGroupCount(transactionGroup) ?? getSearchGroupCountByKey(searchResultsData, reportKey),
+                        groupCount,
                         loadedChildrenCount: transactionGroup.transactions.length,
                         loadedSelectableCount: transactionGroup.transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).length,
                     });
@@ -415,7 +450,6 @@ function useReconcileSelectionWithData({
                     nextExcludedTransactions[key] = {
                         ...liveEntry,
                         groupKey: excludedTransaction.groupKey,
-                        isSelectedViaGroup: excludedTransaction.isSelectedViaGroup,
                         isEntireGroupSelected: liveEntry.isEntireGroupSelected,
                     };
                     continue;
@@ -615,6 +649,7 @@ function SearchWriteActionsProvider({
         childrenByGroupKey: childrenByGroupKeyRef.current,
         buildSelectedEntry,
         getGroupCount,
+        isExpenseReportType,
     });
 
     // Called from a click, the defaults read the current selection. A state updater passes the values from its own update instead.
@@ -627,6 +662,7 @@ function SearchWriteActionsProvider({
     ) => ({
         groupKey,
         children: groupChildren,
+        groupCount: groupKey ? getGroupCount(groupKey) : undefined,
         selectedTransactions,
         excludedTransactions,
         areAllMatchingItemsSelected,
@@ -661,7 +697,7 @@ function SearchWriteActionsProvider({
         });
     };
 
-    // A row checked through a group header belongs to that block, so a range may take it back.
+    // A row checked through its group's own entry belongs to that block, so a range may take it back.
     const isRowHandPicked = (item: SearchData[number]) => {
         const selectedTransactions = getSelectedTransactions();
         const entry = item.keyForList ? selectedTransactions[item.keyForList] : undefined;
@@ -669,7 +705,7 @@ function SearchWriteActionsProvider({
         if (isTransactionGroupListItemType(item)) {
             return !!entry?.isSelected || item.transactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected);
         }
-        return !!entry?.isSelected && !entry.isSelectedViaGroup;
+        return !!entry?.isSelected;
     };
 
     const rangeApi = useShiftRangeSelection<SearchData[number]>({
@@ -751,13 +787,6 @@ function SearchWriteActionsProvider({
                     const loadedChildren = itemTransactions ?? parentGroup?.transactions ?? [];
 
                     if (groupKey) {
-                        // Toggling one expense makes this group a partial selection, so export the remaining expenses individually.
-                        for (const [key, transaction] of Object.entries(updatedTransactions)) {
-                            if (transaction.groupKey === groupKey && transaction.isSelectedViaGroup) {
-                                updatedTransactions[key] = {...transaction, isSelectedViaGroup: false};
-                            }
-                        }
-
                         // Selecting every child individually is still a whole-group selection for delete, so stamp
                         // the parent key on siblings that were picked one by one and had no group key yet.
                         for (const child of loadedChildren) {
@@ -838,21 +867,38 @@ function SearchWriteActionsProvider({
                     }
                     return withoutStaleKeys;
                 }
-                return stampGroupCoverageFlags({
+                const groupCount = getSearchGroupCount(item) ?? getSearchGroupCountByKey(searchResultsData, groupKey);
+                const isHeldUnderGroupKey = !!groupKey && shouldSelectGroupUnderOwnKey(groupCount, groupTransactions, isExpenseReportType);
+                // Until every row has loaded, only the group's own key reaches the rows that have not, so it holds the selection and the loaded rows read as checked through it.
+                if (isHeldUnderGroupKey && !areAllMatchingItemsSelected) {
+                    const groupSelection: SelectedTransactions = {...selectedTransactions};
+                    for (const transactionItem of groupTransactions) {
+                        delete groupSelection[transactionItem.keyForList];
+                    }
+                    groupSelection[groupKey] = mapEmptyReportToSelectedEntry(item)[1];
+                    return groupSelection;
+                }
+                const rowSelection = stampGroupCoverageFlags({
                     selectedTransactions: {
                         ...selectedTransactions,
                         ...Object.fromEntries(
                             selectableTransactions.map((transactionItem) => {
                                 const [key, entry] = buildSelectedEntry(transactionItem);
-                                return [key, {...entry, groupKey: item.keyForList, isSelectedViaGroup: !!item.keyForList}];
+                                return [key, {...entry, groupKey: item.keyForList}];
                             }),
                         ),
                     },
                     groupKey,
-                    groupCount: getSearchGroupCount(item) ?? getSearchGroupCountByKey(searchResultsData, groupKey),
+                    groupCount,
                     loadedChildrenCount: groupTransactions.length,
                     loadedSelectableCount: selectableTransactions.length,
                 });
+                // Under select-all-matching the rows carry the selection so a row can still be excluded, and the group's own key is written as well,
+                // which is what takes the group back out of the exclusions.
+                if (isHeldUnderGroupKey || (areAllMatchingItemsSelected && !isExpenseReportType && groupKey)) {
+                    return {...rowSelection, [groupKey]: mapEmptyReportToSelectedEntry(item)[1]};
+                }
+                return rowSelection;
                 // A report row's own selection is derived from `selectedReports`, so this one commit has to re-derive it.
             },
             {...commitOptions, ...(isExpenseReportType ? {data: filteredData} : {})},
@@ -883,15 +929,20 @@ function SearchWriteActionsProvider({
                         }
                         const entries: Array<[string, SelectedTransactionInfo]> = [];
                         const selectableTransactions = item.transactions.filter((transactionItem) => !isTransactionPendingDelete(transactionItem));
+                        const groupCount = getSearchGroupCount(item) ?? getSearchGroupCountByKey(searchResultsData, item.keyForList);
+                        // The same rule a header press follows: a group with rows left to load is held under its own key.
+                        if (item.keyForList && shouldSelectGroupUnderOwnKey(groupCount, item.transactions, isExpenseReportType)) {
+                            return [mapEmptyReportToSelectedEntry(item)];
+                        }
                         for (const transactionItem of selectableTransactions) {
                             const [key, entry] = buildSelectedEntry(transactionItem);
-                            entries.push([key, {...entry, groupKey: item.keyForList, isSelectedViaGroup: !!item.keyForList}]);
+                            entries.push([key, {...entry, groupKey: item.keyForList}]);
                         }
                         return Object.entries(
                             stampGroupCoverageFlags({
                                 selectedTransactions: Object.fromEntries(entries),
                                 groupKey: item.keyForList,
-                                groupCount: getSearchGroupCount(item) ?? getSearchGroupCountByKey(searchResultsData, item.keyForList),
+                                groupCount,
                                 loadedChildrenCount: item.transactions.length,
                                 loadedSelectableCount: selectableTransactions.length,
                             }),

@@ -432,9 +432,9 @@ describe('useSearchBulkActions - CSV export flow', () => {
     });
 
     it('exports a selected merchant group with an exact merchant match', async () => {
-        // Given a merchant-grouped search where the user ticked the "Amazon" group, so its loaded child is stamped with the group key
+        // Given a merchant-grouped search where the user ticked the "Amazon" group before its expenses had all loaded, so it is held under its own key
         const merchantGroupKey = `${CONST.SEARCH.GROUP_PREFIX}123` as const;
-        mockSelectedTransactions = {tx1: makeSelectedTransaction({groupKey: merchantGroupKey, isSelectedViaGroup: true})};
+        mockSelectedTransactions = {[merchantGroupKey]: makeSelectedTransaction()};
         mockCurrentSearchResults = {
             search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE},
             data: {
