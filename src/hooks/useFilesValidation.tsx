@@ -27,6 +27,11 @@ type ValidationOptions = {
     isValidatingReceipts?: boolean;
 };
 
+type UseFilesValidationOptions = {
+    /** Called when validation ends with the user closing the error modal, after the last error or by cancelling */
+    onErrorModalClosed?: () => void;
+};
+
 type ValidationState = {
     isValidatingReceipts: boolean;
     isValidatingMultipleFiles: boolean;
@@ -38,7 +43,7 @@ const sortFilesByOriginalOrder = (files: FileObject[], orderMap: Map<string, num
 
 const isImageFile = (file: FileObject) => !!hasHeicOrHeifExtension(file) || Str.isImage(file.name ?? '');
 
-function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransferItems: DataTransferItem[]) => void) {
+function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransferItems: DataTransferItem[]) => void, {onErrorModalClosed}: UseFilesValidationOptions = {}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
@@ -158,7 +163,10 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
 
         // User cancelled
         if (result.action !== ModalActions.CONFIRM) {
-            pendingAfterHide.current = reset;
+            pendingAfterHide.current = () => {
+                reset();
+                onErrorModalClosed?.();
+            };
             runPendingAfterHide();
             return;
         }
@@ -192,6 +200,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
                 onFilesValidated(sortedFiles, dataTransferItemList.current);
             }
             reset();
+            onErrorModalClosed?.();
         };
 
         // If we're validating attachments we need to wait for the error modal close
