@@ -51,6 +51,8 @@ const mockMarkPendingSearchWrite = jest.mocked(markPendingSearchWrite);
 const mockIsSearchTopmostFullScreenRoute = jest.mocked(isSearchTopmostFullScreenRoute);
 const mockReleaseSubmitLock = jest.fn();
 
+const STALE_TRANSACTION_ID = 'stale-transaction';
+
 type UseSplitSubmissionParams = Parameters<typeof useSplitSubmission>[0];
 
 function buildParams(overrides: Partial<UseSplitSubmissionParams> = {}): UseSplitSubmissionParams {
@@ -232,7 +234,7 @@ describe('useSplitSubmission', () => {
 
         it('falls through to the manual split when a leftover receipt matches no transaction being submitted', async () => {
             // Given a receipt keyed to a transaction that is no longer being submitted, so there is no scan to write
-            const params = buildScanSplitParams([buildTransaction()], {'stale-transaction': {source: 'file://receipt.jpg'}});
+            const params = buildScanSplitParams([buildTransaction()], {[STALE_TRANSACTION_ID]: {source: 'file://receipt.jpg'}});
 
             // When it is submitted
             await submit(params, true);
@@ -245,7 +247,7 @@ describe('useSplitSubmission', () => {
         it('writes nothing and hands the page back when a scan split has no receipt file ready', async () => {
             // Given a scan with no matching receipt yet. A scan carries no amount until SmartScan returns, so the manual split would write a $0 expense.
             const scannedTransaction = buildTransaction({amount: 0, iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN});
-            const params = buildScanSplitParams([scannedTransaction], {'stale-transaction': {source: 'file://receipt.jpg'}});
+            const params = buildScanSplitParams([scannedTransaction], {[STALE_TRANSACTION_ID]: {source: 'file://receipt.jpg'}});
 
             // When it is submitted
             await submit(params, true);

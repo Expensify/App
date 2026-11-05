@@ -11,7 +11,7 @@ import {requestMoney} from '@userActions/IOU/TrackExpense';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, Transaction} from '@src/types/onyx';
+import type {Policy, Transaction} from '@src/types/onyx';
 import type {Receipt} from '@src/types/onyx/Transaction';
 
 import Onyx from 'react-native-onyx';
@@ -54,7 +54,7 @@ function buildParams(overrides: Partial<UseRequestMoneySubmissionParams> = {}): 
         report: buildChatReport(),
         reportDrafts: {},
         policy: createMock<Policy>({id: 'policy-1'}),
-        policyCategories: {} as PolicyCategories,
+        policyCategories: {},
         personalDetails: {},
         currentUserPersonalDetails: CURRENT_USER_PERSONAL_DETAILS,
         selectedParticipants: [OTHER_USER_PARTICIPANT],

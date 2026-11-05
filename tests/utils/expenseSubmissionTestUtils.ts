@@ -1,12 +1,15 @@
 import {act, renderHook} from '@testing-library/react-native';
 
+import {buildOptimisticIOUReportAction} from '@libs/ReportUtils';
+
 import type {SubmissionHandle} from '@pages/iou/request/step/confirmation/submission/types';
 
 import CONST from '@src/CONST';
-import type {Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {Report, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
+import {getCurrencyDecimalsLocal} from './TestHelper';
 import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
 
 const CURRENT_USER_ACCOUNT_ID = 1;
@@ -31,31 +34,24 @@ function buildTransaction(overrides: Partial<Transaction> = {}): Transaction {
         created: '2026-04-24',
         comment: {comment: ''},
         ...overrides,
-    } as Transaction;
+    };
 }
 
 function buildChatReport(overrides: Partial<Report> = {}): Report {
-    return {reportID: REPORT_ID, type: CONST.REPORT.TYPE.CHAT, ...overrides} as Report;
-}
-
-function buildReportAction(overrides: Partial<ReportAction> = {}): ReportAction {
-    return {
-        reportActionID: 'report-action-1',
-        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-        created: '2026-04-24',
-        ...overrides,
-    };
+    return {reportID: REPORT_ID, type: CONST.REPORT.TYPE.CHAT, ...overrides};
 }
 
 /** The linked-track metadata a transaction moved off a tracked expense carries, which the move commands require. */
 function buildLinkedTrackedExpenseFields(existingTrackedTransactionID: string): Pick<Transaction, 'linkedTrackedExpenseReportAction' | 'linkedTrackedExpenseReportID'> {
     return {
-        linkedTrackedExpenseReportAction: buildReportAction({
-            reportActionID: `linked-action-${existingTrackedTransactionID}`,
-            originalMessage: {
-                IOUTransactionID: existingTrackedTransactionID,
-                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            },
+        linkedTrackedExpenseReportAction: buildOptimisticIOUReportAction({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            amount: 100,
+            currency: 'USD',
+            comment: '',
+            participants: [],
+            transactionID: existingTrackedTransactionID,
         }),
         linkedTrackedExpenseReportID: `tracked-report-${existingTrackedTransactionID}`,
     };

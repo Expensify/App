@@ -8,7 +8,7 @@ import type * as SendInvoice from '@userActions/IOU/SendInvoice';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -35,7 +35,7 @@ function buildParams(): UseInvoiceSubmissionParams {
         report: buildChatReport(),
         reportID: REPORT_ID,
         policy: createMock<Policy>({id: 'policy-1'}),
-        policyCategories: {} as PolicyCategories,
+        policyCategories: {},
         currentUserPersonalDetails: CURRENT_USER_PERSONAL_DETAILS,
         action: CONST.IOU.ACTION.CREATE,
         draftTransactionIDs: [DRAFT_ID],

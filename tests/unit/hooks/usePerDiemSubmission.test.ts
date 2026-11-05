@@ -9,7 +9,7 @@ import {hasCompletePerDiemCustomUnit, submitPerDiemExpense, submitPerDiemExpense
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -39,7 +39,7 @@ function buildParams(overrides: Partial<UsePerDiemSubmissionParams> = {}): UsePe
         report: buildChatReport(),
         reportDrafts: {},
         policy: createMock<Policy>({id: 'policy-1'}),
-        policyCategories: {} as PolicyCategories,
+        policyCategories: {},
         personalDetails: {},
         currentUserPersonalDetails: CURRENT_USER_PERSONAL_DETAILS,
         selectedParticipants: [OTHER_USER_PARTICIPANT],
@@ -80,7 +80,7 @@ describe('usePerDiemSubmission', () => {
 
         function buildExpenseReportParams(reportDrafts: UsePerDiemSubmissionParams['reportDrafts']) {
             return buildParams({
-                report: {reportID: 'expense-1', type: CONST.REPORT.TYPE.EXPENSE, chatReportID: 'draft-chat-1'} as Report,
+                report: {reportID: 'expense-1', type: CONST.REPORT.TYPE.EXPENSE, chatReportID: 'draft-chat-1'},
                 reportDrafts,
             });
         }
@@ -101,7 +101,7 @@ describe('usePerDiemSubmission', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}draft-chat-1`, {
                 reportID: 'draft-chat-1',
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-            } as Report);
+            });
 
             // When the per diem expense is submitted
             await submit(buildExpenseReportParams({}), true);

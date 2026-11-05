@@ -4,7 +4,7 @@ import {createDistanceRequest} from '@userActions/IOU/Split';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -36,7 +36,7 @@ function buildParams(overrides: Partial<UseDistanceSubmissionParams> = {}): UseD
         report: buildChatReport(),
         reportDrafts: {},
         policy: createMock<Policy>({id: 'policy-1'}),
-        policyCategories: {} as PolicyCategories,
+        policyCategories: {},
         personalDetails: {},
         currentUserPersonalDetails: CURRENT_USER_PERSONAL_DETAILS,
         selectedParticipants: [OTHER_USER_PARTICIPANT],

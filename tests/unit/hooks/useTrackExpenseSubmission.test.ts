@@ -7,7 +7,7 @@ import {trackExpense} from '@userActions/IOU/TrackExpense';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, Report} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -45,7 +45,7 @@ function buildParams(overrides: Partial<UseTrackExpenseSubmissionParams> = {}): 
         report: buildChatReport(),
         reportDrafts: {},
         policy: createMock<Policy>({id: 'policy-1'}),
-        policyCategories: {} as PolicyCategories,
+        policyCategories: {},
         isDraftPolicy: false,
         personalDetails: {},
         currentUserPersonalDetails: CURRENT_USER_PERSONAL_DETAILS,
@@ -151,7 +151,7 @@ describe('useTrackExpenseSubmission', () => {
     it('reports isDraftChatReport=false for a self DM destination even when the route report is a draft', async () => {
         // Given a route report that only exists as a draft, while the expense goes to the self DM.
         // Reporting the route report's draft state would make getTrackExpenseInformation build a workspace whose expense chat overwrites the self DM.
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${REPORT_ID}`, {reportID: REPORT_ID, chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT} as Report);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${REPORT_ID}`, {reportID: REPORT_ID, chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT});
 
         // When the expense is submitted
         await submit(buildParams({isSelfDMDestination: true}), true);
@@ -162,7 +162,7 @@ describe('useTrackExpenseSubmission', () => {
 
     it('reports isDraftChatReport=true when the draft route report is the chat the expense is tracked against', async () => {
         // Given a route report that only exists as a draft and is the chat the expense goes to
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${REPORT_ID}`, {reportID: REPORT_ID, chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT} as Report);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${REPORT_ID}`, {reportID: REPORT_ID, chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT});
 
         // When the expense is submitted
         await submit(buildParams(), true);
