@@ -18,7 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import CountrySelectionList from '@pages/settings/Wallet/CountrySelectionList';
 
 import {clearWiseBankAccountFields, createWiseBankAccount, getWiseBankAccountFields} from '@userActions/BankAccounts';
-import {clearDraftValues, setDraftValues} from '@userActions/FormActions';
+import {clearDraftValues, clearErrors, setDraftValues} from '@userActions/FormActions';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -97,6 +97,15 @@ function WiseDepositAccountContent({backTo, subPage}: WiseDepositAccountContentP
     }, [hasSchema, payoutType, formCurrency]);
 
     useReturnToCountryListOnOpenWithoutSchema(!!subPage && !schema && !wiseBankAccountFields?.isLoading, backTo);
+
+    // The form key is persisted, so a failed submit's error is cleared when the flow opens and when it closes. Otherwise it shows on the
+    // confirmation page the next time the user opens the flow, before they press Confirm
+    useEffect(() => {
+        clearErrors(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
+        return () => {
+            clearErrors(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
+        };
+    }, []);
 
     // Back from the first form page shows the country list again, so the URL drops the form page to match it
     const returnToCountryList = () => {
