@@ -25,7 +25,7 @@ const NARROW_WINDOW_WIDTH = 1100;
 let mockWindowWidth = WIDE_WINDOW_WIDTH;
 jest.mock('@hooks/useWindowDimensions', () => () => ({windowWidth: mockWindowWidth}));
 jest.mock('@hooks/useResponsiveLayout', () => () => ({isExtraLargeScreenWidth: false}));
-jest.mock('@hooks/useSidePanelState', () => () => ({shouldHideSidePanel: true, sidePanelWidth: 375}));
+jest.mock('@hooks/useSidePanelState', () => () => ({shouldHideSidePanel: true}));
 
 let mockIsResizableRHPEnabled = true;
 jest.mock('@hooks/usePermissions', () => () => ({isBetaEnabled: () => mockIsResizableRHPEnabled}));

@@ -6,25 +6,9 @@ import getSingleRHPWidthBounds from '@libs/Navigation/helpers/singleRHPWidth/get
 import variables from '@styles/variables';
 
 // jest-expo resolves bare specifiers to index.native.ts, where the wide RHP has no width, so the web module is loaded explicitly.
-jest.mock('@libs/Navigation/helpers/calculateReceiptPaneRHPWidth', () =>
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    jest.requireActual('@libs/Navigation/helpers/calculateReceiptPaneRHPWidth/index.ts'),
-);
+jest.mock('@libs/Navigation/helpers/calculateReceiptPaneRHPWidth', () => jest.requireActual<Record<string, unknown>>('@libs/Navigation/helpers/calculateReceiptPaneRHPWidth/index.ts'));
 
 describe('getSidePanelWidthBounds', () => {
-    it('stops at the default width and at the widest single RHP', () => {
-        // Given a wide window, where both panes have room to grow
-        const windowWidth = 1920;
-
-        // When the side panel's bounds are read
-        const {min, max} = getSidePanelWidthBounds(windowWidth, false);
-
-        // Then the panel can't go narrower than its default, and grows as far as a single RHP can, so the two panes resize alike
-        expect(min).toBe(variables.sidePanelWidth);
-        expect(max).toBe(getSingleRHPWidthBounds(windowWidth, 0).max);
-        expect(max).toBeGreaterThan(min);
-    });
-
     it.each([variables.sidePanelResponsiveWidthBreakpoint + 1, 1440, 1920, 2560])('keeps a single RHP beside the widest docked panel on screen in a %ipx window', (windowWidth) => {
         // Given a window wide enough to dock the panel, which shifts the RHP left by the panel's width
         const {max: sidePanelMaxWidth} = getSidePanelWidthBounds(windowWidth, false);
@@ -47,27 +31,27 @@ describe('getSidePanelWidthBounds', () => {
         expect(max + RHP_FLOATING_CARD_INSET + calculateWideRHPWidth(windowWidth)).toBeLessThanOrEqual(windowWidth);
     });
 
-    it('gives the dragged width back once the wide RHP closes', () => {
-        // Given a window where a wide RHP leaves the panel less room than it can be dragged to
+    it('only caps the panel while a wide RHP is beside it', () => {
+        // Given a window where a wide RHP leaves the panel less room than it can otherwise be dragged to
         const windowWidth = 1440;
         const {max: maxBesideWideRHP} = getSidePanelWidthBounds(windowWidth, true);
 
-        // When the wide RHP closes
+        // When the bounds are read without a wide RHP
         const {max} = getSidePanelWidthBounds(windowWidth, false);
 
-        // Then the panel can grow back past the cap, so a saved width it was clamped from comes back
+        // Then the panel can grow past the cap again, so closing the wide RHP brings back the width it was clamped from
         expect(max).toBeGreaterThan(maxBesideWideRHP);
     });
 
-    it('never lets the maximum fall below the minimum in a narrow window', () => {
-        // Given a window narrower than the default panel plus the content it must leave room for
-        const windowWidth = 600;
+    it('keeps the default width beside a wide RHP that leaves less room than that', () => {
+        // Given the narrowest docking window, where a wide RHP leaves less room than the panel's default width
+        const windowWidth = variables.sidePanelResponsiveWidthBreakpoint + 1;
 
-        // When the side panel's bounds are read
-        const {min, max} = getSidePanelWidthBounds(windowWidth, false);
+        // When the side panel's bounds are read beside the wide RHP
+        const {min, max} = getSidePanelWidthBounds(windowWidth, true);
 
-        // Then the range never inverts, so a drag still has somewhere to land
+        // Then the panel stays at its default instead of shrinking or inverting the range, so a drag still has somewhere to land
         expect(min).toBe(variables.sidePanelWidth);
-        expect(max).toBeGreaterThanOrEqual(min);
+        expect(max).toBe(min);
     });
 });

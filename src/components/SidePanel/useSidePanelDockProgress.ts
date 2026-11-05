@@ -8,7 +8,7 @@ import type {Animated} from 'react-native';
 
 import {useLayoutEffect, useRef} from 'react';
 
-/** Returns the docked width the open and close animations should slide the offset to. */
+/** Returns a ref to the docked width the open and close animations should slide the offset to, read when they start. */
 function useSidePanelDockProgress(sidePanelOffset: RefObject<Animated.Value>, dockedSidePanelWidth: number, shouldApplySidePanelOffset: boolean): RefObject<number> {
     const initialDockProgress = useRef(shouldApplySidePanelOffset ? 1 : 0);
     const dockedSidePanelWidthRef = useRef(dockedSidePanelWidth);

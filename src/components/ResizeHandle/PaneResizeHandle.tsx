@@ -41,7 +41,7 @@ type PaneResizeHandleProps = {
     /** The width a drag snaps onto and a click resets to. */
     defaultWidth: number;
 
-    /** Paints the width mid-drag without rendering. Handles over one pane share it, which keys their shared drag. */
+    /** Paints the width mid-drag without rendering. Also keys `lastDragRefByLiveWidth`, so handles over one pane don't clear each other's drag. */
     liveWidth: LiveSizeVariable;
 
     /** Positions the strip that picks up a drag over the pane's left edge. */

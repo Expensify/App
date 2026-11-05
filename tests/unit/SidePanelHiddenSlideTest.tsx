@@ -21,7 +21,7 @@ jest.mock('@hooks/useSidePanelDisplayStatus');
 
 const DEFAULT_WIDTH = 375;
 const DRAGGED_WIDTH = 800;
-const NARROWER_WINDOW_WIDTH = 600;
+const CLAMPED_WIDTH = 600;
 
 let mockSidePanelWidth = DRAGGED_WIDTH;
 jest.mock('@hooks/useSidePanelWidth', () => () => ({width: mockSidePanelWidth, bounds: {min: 375, max: 1000}, isResizable: true}));
@@ -99,11 +99,11 @@ describe('SidePanelContextProvider (hidden slide distance)', () => {
         const translateX = trackTranslateX(result.current.sidePanelTranslateX.current);
 
         // When the window shrinks and re-clamps the width while the panel is hidden
-        mockSidePanelWidth = NARROWER_WINDOW_WIDTH;
+        mockSidePanelWidth = CLAMPED_WIDTH;
         rerender({});
 
         // Then the panel waits at the new width. Left at the old one, it would stay fully off-screen for the first part of the next open.
-        expect(translateX.value).toBe(NARROWER_WINDOW_WIDTH);
+        expect(translateX.value).toBe(CLAMPED_WIDTH);
     });
 
     it('lands a panel whose width changed while it slid out on the new width', () => {
