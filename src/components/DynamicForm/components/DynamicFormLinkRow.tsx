@@ -27,7 +27,7 @@ function DynamicFormLinkRow({link}: DynamicFormLinkRowProps) {
     const text = getLocalizedText(translate, link.textKey, link.text);
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt4]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt3]}>
             <Icon
                 src={icons.QuestionMark}
                 width={variables.iconSizeExtraSmall}
