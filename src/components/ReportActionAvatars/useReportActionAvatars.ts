@@ -15,7 +15,9 @@ import {
     getHumanAgentFirstName,
     getOriginalMessage,
     getReportActionActorAccountID,
+    isDeletedAction,
     isMoneyRequestAction,
+    isReportPreviewAction,
 } from '@libs/ReportActionsUtils';
 import {
     getDefaultWorkspaceAvatar,
@@ -88,7 +90,10 @@ function useReportActionAvatars({
     const [reportChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {selector: getStableReportSelector});
 
     const chatReport = isReportAChatReport ? report : reportChatReport;
-    const iouReport = isReportAChatReport ? undefined : report;
+    // A failed payment restores a snapshot of the report it was for, so a deleted preview can find its report back in
+    // Onyx and swap the actor it resolves. Keep resolving from the chat, which every caller of this row agrees on.
+    const isADeletedReportPreview = isReportPreviewAction(passedAction) && isDeletedAction(passedAction);
+    const iouReport = isReportAChatReport || isADeletedReportPreview ? undefined : report;
 
     const [chatReportPendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(chatReport?.reportID)}`, {
         selector: pendingDeleteMemberAccountIDsSelector,
@@ -213,7 +218,8 @@ function useReportActionAvatars({
     const isReportPreviewInTripRoom = isAReportPreviewAction && isATripRoom;
 
     // We want to display only the sender's avatar next to the report preview if it only contains one person's expenses.
-    const displayAllActors = isAReportPreviewAction && !isATripRoom && !isAWorkspaceChat && !reportPreviewSenderID;
+    // A deleted report has no second actor left to show either, and naming two would not match where tapping the row goes.
+    const displayAllActors = isAReportPreviewAction && !isATripRoom && !isAWorkspaceChat && !reportPreviewSenderID && !isADeletedReportPreview;
 
     const shouldUseAccountIDs = accountIDs.length > 0;
     const shouldShowAllActors = displayAllActors && !reportPreviewSenderID;
