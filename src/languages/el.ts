@@ -1108,6 +1108,10 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             emailDeliveryFailure: {title: 'Δεν μπορούμε να σας στέλνουμε ειδοποιήσεις μέσω email', subtitle: 'Λογαρια​σμός'},
             upgradeNetSuiteConnection: {title: 'Αναβαθμίστε τη σύνδεσή σας με το NetSuite'},
+            verifyWiseBankAccount: {
+                title: 'Επαληθεύστε τον τραπεζικό λογαριασμό',
+                subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Τραπεζικός λογαριασμός που λήγει σε ${bankAccountLastFour}`,
+            },
         },
         freeTrialSection: {
             title: ({count}: {count: number}) => ({
@@ -3224,6 +3228,7 @@ const translations: TranslationDeepObject<typeof en> = {
             payingReportSubtitle: 'Οι τραπεζικοί λογαριασμοί της εταιρείας και των εργαζομένων χρησιμοποιούν διαφορετικά νομίσματα.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Πληρώστε ανθρώπους παγκοσμίως', subtitle: 'Ενεργοποιήστε τις παγκόσμιες αποζημιώσεις στον λογαριασμό USD σας.'},
+        wiseMoreInfoNeeded: 'Απαιτούνται περισσότερες πληροφορίες για την ενεργοποίηση των παγκόσμιων επιστροφών χρημάτων',
         globalReimbursementsEnabled: 'Έγινε ενεργοποίηση των παγκόσμιων αποζημιώσεων',
     },
     addCardToDigitalWallet: {

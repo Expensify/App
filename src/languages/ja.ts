@@ -1058,6 +1058,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             emailDeliveryFailure: {title: 'メール通知をお送りできません', subtitle: 'アカウント'},
             upgradeNetSuiteConnection: {title: 'NetSuite 接続をアップグレードする'},
+            verifyWiseBankAccount: {title: '銀行口座を確認', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `末尾が ${bankAccountLastFour} の銀行口座`},
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -3129,6 +3130,7 @@ const translations: TranslationDeepObject<typeof en> = {
             payingReportSubtitle: '会社と従業員の銀行口座は異なる通貨を使用しています。',
         },
         wiseGlobalReimbursementsBanner: {title: '世界中の人に支払いましょう', subtitle: 'USD アカウントでグローバル払い戻しを有効にします。'},
+        wiseMoreInfoNeeded: 'グローバル払い戻しを有効にするには、さらに情報が必要です',
         globalReimbursementsEnabled: 'グローバル精算が有効になりました',
     },
     addCardToDigitalWallet: {

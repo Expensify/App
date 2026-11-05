@@ -9826,6 +9826,7 @@ const CONST = {
         HAS_PENDING_CARD_INFO: 'hasPendingCardInfo',
         HAS_UBER_CREDENTIALS_ERROR: 'hasUberCredentialsError',
         HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO: 'hasPartiallySetupBankAccountInfo',
+        HAS_WISE_MORE_INFO_NEEDED_INFO: 'hasWiseMoreInfoNeededInfo',
         HAS_EMPLOYEE_CARD_FEED_ERRORS: 'hasEmployeeCardFeedErrors',
         HAS_POLICY_ADMIN_CARD_FEED_ERRORS: 'hasPolicyAdminCardFeedErrors',
         HAS_DOMAIN_ERRORS: 'hasDomainErrors',
@@ -11287,6 +11288,9 @@ const CONST = {
             IMPORT_TRANSACTIONS: 'SettingsWallet-ImportTransactions',
             TRANSFER_BALANCE: 'SettingsWallet-TransferBalance',
             ENABLE_WALLET: 'SettingsWallet-EnableWallet',
+            WISE_MORE_INFO_NEEDED_REVIEW: 'SettingsWallet-WiseMoreInfoNeeded-Review',
+            DIGITAL_WALLET_APPROVAL_REVIEW: 'SettingsWallet-DigitalWalletApproval-Review',
+            MISSING_PERSONAL_DETAILS_ADD: 'SettingsWallet-MissingPersonalDetails-Add',
         },
         SETTINGS_RULES: {
             NEW_RULE: 'SettingsRules-NewRule',
