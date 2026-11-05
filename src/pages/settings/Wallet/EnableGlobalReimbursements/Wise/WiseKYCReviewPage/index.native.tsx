@@ -2,11 +2,10 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import FullScreenWebView from '@components/FullScreenWebView';
 import ScreenWrapper from '@components/ScreenWrapper';
 
-import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
 import useOnyx from '@hooks/useOnyx';
+import useWiseOnboardingEntryPath from '@hooks/useWiseOnboardingEntryPath';
 
-import stripDynamicRouteSuffixFromPath from '@libs/Navigation/helpers/dynamicRoutesUtils/stripDynamicRouteSuffixFromPath';
 import getWiseOnboardingStatusRoute from '@libs/Navigation/helpers/getWiseOnboardingStatusRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import openExternalLink from '@libs/openExternalLink';
@@ -16,7 +15,6 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import type {ShouldStartLoadRequest, WebViewOpenWindowEvent} from 'react-native-webview/lib/WebViewTypes';
@@ -39,12 +37,7 @@ function getRedirectStatus(url: string, environmentURL: string): string | null {
 function WiseKYCReviewPage({route}: WiseKYCReviewPageProps) {
     const [kycReviewURL] = useOnyx(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK, {selector: (embeddedLink) => embeddedLink?.url});
     const bankAccountID = Number(route.params.bankAccountID);
-    const statusPathOnStack = useDynamicBackPath(DYNAMIC_ROUTES.WISE_KYC_REVIEW.path);
-    // Wallet and Home open the status page without the intro on the stack, so only the entry screen is read from the stack and the rest of the path is built
-    const entryPath = stripDynamicRouteSuffixFromPath(
-        stripDynamicRouteSuffixFromPath(statusPathOnStack, DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path),
-        DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.path,
-    );
+    const entryPath = useWiseOnboardingEntryPath();
     const {environmentURL} = useEnvironment();
 
     const goBack = () => Navigation.goBack(getWiseOnboardingStatusRoute(bankAccountID, entryPath));

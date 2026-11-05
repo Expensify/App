@@ -6,6 +6,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 
 import {READ_COMMANDS} from '@libs/API/types';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import stripDynamicRouteSuffixFromPath from '@libs/Navigation/helpers/dynamicRoutesUtils/stripDynamicRouteSuffixFromPath';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -199,9 +200,8 @@ describe('WiseOnboardingStatusPage while Wise needs more info', () => {
 
         try {
             // When the form's screen is focused, so the path read from the focused screen ends in the form, and the page underneath renders again
-            jest.mocked(useDynamicBackPath).mockReturnValue(
-                createDynamicRoute(DYNAMIC_ROUTES.WISE_KYC_REVIEW.path, createDynamicRoute(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path, ROUTES.SETTINGS_WALLET)),
-            );
+            const formPath = createDynamicRoute(DYNAMIC_ROUTES.WISE_KYC_REVIEW.path, createDynamicRoute(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path, ROUTES.SETTINGS_WALLET));
+            jest.mocked(useDynamicBackPath).mockImplementation((suffix) => stripDynamicRouteSuffixFromPath(formPath, suffix));
             await act(() => Onyx.set(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, true));
             await waitForBatchedUpdatesWithAct();
 

@@ -20,7 +20,7 @@ import {clearWiseKYCReviewEmbeddedLink, getWiseKYCReviewEmbeddedLink} from '@use
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useEffect, useEffectEvent, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
 type MoreInfoNeededContentProps = {
     bankAccountID: number;
@@ -52,14 +52,12 @@ function MoreInfoNeededContent({bankAccountID, statusPath}: MoreInfoNeededConten
     // Only a link asked for on this visit redirects, so a fetch that returns after an earlier visit closed does not
     const [hasRequestedLink, setHasRequestedLink] = useState(false);
     const kycReviewURL = embeddedLink?.url;
-    // The path is read from the focused screen, so it changes once the form opens on top, which must not open the form again
-    const openFormOverStatusPage = useEffectEvent((url: string) => openWiseKYCReview(url, statusPathWithoutQuery));
     useEffect(() => {
         if (!hasRequestedLink || !kycReviewURL) {
             return;
         }
-        openFormOverStatusPage(kycReviewURL);
-    }, [hasRequestedLink, kycReviewURL]);
+        openWiseKYCReview(kycReviewURL, statusPathWithoutQuery);
+    }, [hasRequestedLink, kycReviewURL, statusPathWithoutQuery]);
 
     // The link carries a token and a fetch can land after an earlier visit closed, so the content drops it on open and on close
     useEffect(() => {
