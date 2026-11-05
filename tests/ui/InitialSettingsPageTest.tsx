@@ -456,6 +456,7 @@ describe('InitialSettingsPage - Go to Expensify Classic', () => {
     });
 
     it('updates tryNewDot and opens Classic when the exit survey was completed within the last month', async () => {
+        // Given a web user who completed the exit survey yesterday, so pressing the button skips the survey
         mockUseSubscriptionPlan.mockImplementation(() => null);
         await TestHelper.signInWithTestUser(accountID, 'user@expensify.com');
         await act(async () => {
@@ -480,9 +481,11 @@ describe('InitialSettingsPage - Go to Expensify Classic', () => {
             expect(screen.getByTestId(`menu-item-${goToClassicTitle}`)).toBeDefined();
         });
 
+        // When they press "Switch to Expensify Classic" in Settings
         fireEvent.press(screen.getByTestId(`menu-item-${goToClassicTitle}`));
         await waitForBatchedUpdatesWithAct();
 
+        // Then SwitchToOldDot is sent so the backend marks classicRedirect as dismissed and Classic doesn't redirect back, and Classic opens
         expect(switchToOldDot).toHaveBeenCalledWith('');
         expect(openOldDotLink).toHaveBeenCalledWith(CONST.OLDDOT_URLS.INBOX, true);
     });
