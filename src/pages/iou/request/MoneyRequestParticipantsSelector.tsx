@@ -71,6 +71,9 @@ type MoneyRequestParticipantsSelectorProps = {
     /** Whether the import contacts prompt may be shown when the picker opens */
     shouldShowContactImportPrompt?: boolean;
 
+    /** Whether to hold off focusing the search input, e.g. while the share flow is still checking the shared file */
+    shouldDeferTextInputAutoFocus?: boolean;
+
     ref?: Ref<InputFocusRef>;
 };
 
@@ -97,6 +100,7 @@ function MoneyRequestParticipantsSelector({
     onCloseParticipantPicker,
     shouldBlockParticipantSelection,
     shouldShowContactImportPrompt,
+    shouldDeferTextInputAutoFocus = false,
     ref,
 }: MoneyRequestParticipantsSelectorProps) {
     const isFocused = useIsFocused();
@@ -110,7 +114,7 @@ function MoneyRequestParticipantsSelector({
 
     useImperativeHandle(ref, () => ({
         focus: () => {
-            if (!textInputAutoFocus) {
+            if (!textInputAutoFocus || shouldDeferTextInputAutoFocus) {
                 return;
             }
             selectionListRef.current?.focusTextInput?.();
@@ -142,6 +146,7 @@ function MoneyRequestParticipantsSelector({
                     onCloseParticipantPicker={onCloseParticipantPicker}
                     shouldBlockParticipantSelection={shouldBlockParticipantSelection}
                     shouldShowContactImportPrompt={shouldShowContactImportPrompt}
+                    shouldDeferTextInputAutoFocus={shouldDeferTextInputAutoFocus}
                 />
             </AlwaysPaintedView>
         </Activity>

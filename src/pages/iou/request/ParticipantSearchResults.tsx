@@ -129,6 +129,9 @@ type ParticipantSearchResultsProps = {
 
     /** Whether the import contacts prompt may be shown when the picker opens */
     shouldShowContactImportPrompt?: boolean;
+
+    /** Whether to hold off focusing the search input, e.g. while the share flow is still checking the shared file */
+    shouldDeferTextInputAutoFocus?: boolean;
 };
 
 function ParticipantSearchResults({
@@ -153,6 +156,7 @@ function ParticipantSearchResults({
     onCloseParticipantPicker,
     shouldBlockParticipantSelection,
     shouldShowContactImportPrompt = true,
+    shouldDeferTextInputAutoFocus = false,
 }: ParticipantSearchResultsProps) {
     const getParticipantOptionKey = (option: Partial<Participant>) => option.reportID ?? option.accountID?.toString() ?? option.login ?? option.phoneNumber ?? '';
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
@@ -568,7 +572,7 @@ function ParticipantSearchResults({
         label: translate('selectionList.nameEmailOrPhoneNumber'),
         hint: offlineMessage,
         onChangeText: setSearchTerm,
-        disableAutoFocus: !textInputAutoFocus,
+        disableAutoFocus: !textInputAutoFocus || shouldDeferTextInputAutoFocus,
         headerMessage: header,
     };
 
