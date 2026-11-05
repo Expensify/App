@@ -70,8 +70,8 @@ async function renderPage() {
 }
 
 /** Asks the WebView whether it may load the URL, the way the native WebView does before each navigation */
-function startLoading(url: string): unknown {
-    return fireEvent(screen.getByTestId(WEB_VIEW_TEST_ID), 'shouldStartLoadWithRequest', {url});
+function startLoading(url: string, isTopFrame?: boolean): unknown {
+    return fireEvent(screen.getByTestId(WEB_VIEW_TEST_ID), 'shouldStartLoadWithRequest', {url, isTopFrame});
 }
 
 describe('WiseKYCReviewPage', () => {
@@ -113,6 +113,19 @@ describe('WiseKYCReviewPage', () => {
         const shouldLoad = startLoading('https://wise-sandbox.com/embedded-flows/verification/documents?status=success');
 
         // Then the page loads and the form stays open
+        expect(shouldLoad).toBe(true);
+        expect(goBackSpy).not.toHaveBeenCalled();
+    });
+
+    it('keeps the form open when an iframe in the form loads a URL with a status param', async () => {
+        // Given Wise's form is open
+        const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
+        await renderPage();
+
+        // When an iframe on Wise's page loads a non-Wise URL with a status param, which iOS reports with isTopFrame false
+        const shouldLoad = startLoading('https://www.expensify.com/wise-kyc?status=success', false);
+
+        // Then the iframe loads and the form stays open, since only the top page's redirect ends the form
         expect(shouldLoad).toBe(true);
         expect(goBackSpy).not.toHaveBeenCalled();
     });

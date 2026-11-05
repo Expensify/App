@@ -36,8 +36,9 @@ function WiseKYCReviewPage() {
     const goBack = () => Navigation.goBack(backPath);
 
     // Wise ends the form by redirecting to our redirect URL with the outcome in a query param, so the WebView stops there instead of loading that page
-    const closeFormOnRedirect = ({url}: ShouldStartLoadRequest) => {
-        const status = kycReviewURL ? getRedirectStatus(url, kycReviewURL) : null;
+    const closeFormOnRedirect = ({url, isTopFrame}: ShouldStartLoadRequest) => {
+        // iOS also asks about iframe loads, which must not close the form. Android leaves isTopFrame out, so only an explicit false is an iframe
+        const status = isTopFrame !== false && kycReviewURL ? getRedirectStatus(url, kycReviewURL) : null;
         if (!status) {
             return true;
         }
