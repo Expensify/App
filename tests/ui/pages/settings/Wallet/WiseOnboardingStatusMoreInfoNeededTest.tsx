@@ -125,7 +125,7 @@ describe('WiseOnboardingStatusPage while Wise needs more info', () => {
         // Then the link is fetched for the bank account from the route, since Wise's form is tied to it, with the status page as the place Wise returns to, and Continue spins until it arrives
         TestHelper.expectAPICommandToHaveBeenCalledWith(READ_COMMANDS.GET_WISE_KYC_REVIEW_EMBEDDED_LINK, 0, {
             bankAccountID: BANK_ACCOUNT_ID,
-            redirectUrl: 'https://new.expensify.com/settings/wallet/global-reimbursements/9053192/status',
+            redirectURL: 'https://new.expensify.com/settings/wallet/global-reimbursements/9053192/status',
         });
         expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK)).toEqual({isLoading: true});
         expect(openWiseKYCReview).not.toHaveBeenCalled();
