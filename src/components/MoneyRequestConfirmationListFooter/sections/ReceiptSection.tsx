@@ -73,13 +73,25 @@ function ReceiptSection({
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const isInLandscapeMode = useIsInLandscapeMode();
-    const {action, iouType, transactionID, reportID, isReadOnly, isPerDiemRequest, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest} = useConfirmationFields();
+    const {
+        action,
+        iouType,
+        transactionID,
+        reportID,
+        isReadOnly,
+        isPerDiemRequest,
+        isDistanceRequest,
+        isManualDistanceRequest,
+        isOdometerDistanceRequest,
+        isScanRequest: isScanVariant,
+    } = useConfirmationFields();
     const transaction = useTransactionSelector(transactionID, receiptSliceSelector);
 
     const receiptSource = useReceiptThumbnailSource({transaction, receiptPath, receiptFilename});
 
     const horizontalMargin = typeof styles.moneyRequestImage.marginHorizontal === 'number' ? styles.moneyRequestImage.marginHorizontal : 0;
-    const isScan = isScanRequest(transaction);
+    // The scan variant can render before the draft is initialized as a scan, so its flag counts as well as the draft's type.
+    const isScan = isScanVariant || isScanRequest(transaction);
     const compact = useCompactReceiptDimensions({
         showMoreFields,
         isScan,

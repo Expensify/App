@@ -12,7 +12,7 @@ import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpen
 import {shouldShowConfirmationDate} from '@libs/MoneyRequestUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {arePolicyRulesEnabled, isTaxTrackingEnabled} from '@libs/PolicyUtils';
-import {getCategory, getCurrency, getMerchant, getRateID, hasValidModifiedAmount} from '@libs/TransactionUtils';
+import {getCategory, getCurrency, getMerchant, getRateID, hasValidModifiedAmount, isScanRequest as isScanRequestUtil} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -76,6 +76,7 @@ function useConfirmationListDataWithPolicy({
     isPerDiemRequest = false,
     isTimeRequest = false,
     isDistanceRequest = false,
+    isScanRequest: isScanRequestProp = false,
     distanceState,
 }: UseConfirmationListDataParams): ConfirmationListData {
     // Every distance branch below goes inert for the variants that pass no distance state.
@@ -127,7 +128,11 @@ function useConfirmationListDataWithPolicy({
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat || isTrackExpense, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
 
-    const {amountToBeUsed, formattedAmount, formattedAmountPerAttendee, isScanRequest} = useConfirmationAmount({
+    // The scan variant is also picked by a caller that knows the expense is a scan before its draft is initialized
+    // (the share flow), so trust that flag too or the first render would derive non-scan data inside the scan layout.
+    const isScanRequest = isScanRequestProp || isScanRequestUtil(transaction);
+
+    const {amountToBeUsed, formattedAmount, formattedAmountPerAttendee} = useConfirmationAmount({
         transaction,
         iouAmount,
         iouCurrencyCode,
@@ -138,6 +143,7 @@ function useConfirmationListDataWithPolicy({
         distanceRequestAmount,
         distanceCurrency,
         isPerDiemRequest,
+        isScanRequest,
         prevSubRates,
     });
 

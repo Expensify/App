@@ -15,14 +15,14 @@ import TimeConfirmationList from './variants/TimeConfirmationList';
  * Selects the confirmation list variant for the expense type being confirmed.
  */
 function MoneyRequestConfirmationList(props: MoneyRequestConfirmationListProps) {
-    const {transaction, action, isTimeRequest} = props;
+    const {transaction, action, isTimeRequest, isScanRequest} = props;
 
     // Outside CREATE a time expense shows Merchant and hides the hours/rate fields, which is what ManualConfirmationList renders.
     if (isTimeRequest && action === CONST.IOU.ACTION.CREATE) {
         return <TimeConfirmationList {...props} />;
     }
 
-    if (isScanRequestUtil(transaction)) {
+    if (isScanRequest || isScanRequestUtil(transaction)) {
         return <ScanConfirmationList {...props} />;
     }
 

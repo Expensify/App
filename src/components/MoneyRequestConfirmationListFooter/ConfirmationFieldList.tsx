@@ -76,7 +76,7 @@ function ConfirmationFieldList({
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles', 'DownArrow']);
-    const {action, iouType, transactionID, isReadOnly, isPolicyExpenseChat, isDistanceRequest, isPerDiemRequest, isTimeRequest, isTypeInvoice} = useConfirmationFields();
+    const {action, iouType, transactionID, isReadOnly, isPolicyExpenseChat, isDistanceRequest, isPerDiemRequest, isTimeRequest, isScanRequest, isTypeInvoice} = useConfirmationFields();
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const policyTagLists = getTagLists(policyTags);
     const hasDependentTagLists = hasDependentTags(policy, policyTags);
@@ -92,6 +92,7 @@ function ConfirmationFieldList({
         isDistanceRequest,
         isPerDiemRequest,
         isTimeRequest,
+        isScanRequest,
         isTypeInvoice,
         shouldShowSmartScanFields: visibilityFlags.shouldShowSmartScanFields,
     });

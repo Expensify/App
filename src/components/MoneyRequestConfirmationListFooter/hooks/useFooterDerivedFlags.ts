@@ -47,6 +47,9 @@ type UseFooterDerivedFlagsParams = {
     /** Whether the active transaction is a time-tracking request */
     isTimeRequest: boolean;
 
+    /** Whether the scan variant renders this footer, which holds even before the draft is initialized as a scan */
+    isScanRequest: boolean;
+
     /** Whether the IOU type is invoice */
     isTypeInvoice: boolean;
 
@@ -65,6 +68,7 @@ function useFooterDerivedFlags({
     isDistanceRequest,
     isPerDiemRequest,
     isTimeRequest,
+    isScanRequest: isScanVariant,
     isTypeInvoice,
     shouldShowSmartScanFields,
 }: UseFooterDerivedFlagsParams) {
@@ -74,7 +78,7 @@ function useFooterDerivedFlags({
 
     // Self-derived iou* values from the slice
     const iouCurrencyCode = getCurrency(transaction);
-    const isScan = isScanRequest(transaction);
+    const isScan = isScanVariant || isScanRequest(transaction);
 
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
