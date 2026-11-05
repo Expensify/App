@@ -20,6 +20,7 @@ import {
     getSegmentsFromText,
     getViewDateFromSegments,
     hasAnySegment,
+    hasUnfinishedSegment,
     removeLastDigit,
     typeDigitIntoSegments,
 } from '@libs/DateInputMaskUtils';
@@ -243,6 +244,12 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLe
         const isoDate = getISODateFromSegments(newSegments);
 
         if (!isoDate && hasAnySegment(newSegments)) {
+            return;
+        }
+
+        // A single digit month or day is zero padded into a date of its own, so handing it over would report one the
+        // user is partway through writing. It waits for the digit that fills the segment, or for the field to be left.
+        if (hasUnfinishedSegment(newSegments)) {
             return;
         }
 
@@ -520,12 +527,15 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLe
         // A segment showing a zero is one the user moved on from before its second digit, so leaving the field is
         // where it settles on a number a date can hold
         const completedSegments = completeZeroSegments(segments);
+        const settledDate = getISODateFromSegments(completedSegments);
 
-        if (completedSegments !== segments) {
-            commitSegments(completedSegments);
+        // Leaving is also what finishes a segment the user only typed one digit into, so a date held back while it
+        // could still grow is handed over here rather than being left behind with the field.
+        if (settledDate && settledDate !== value) {
+            onCommit(settledDate);
         }
 
-        const hasUnusableEntry = hasAnySegment(completedSegments) && !getISODateFromSegments(completedSegments);
+        const hasUnusableEntry = hasAnySegment(completedSegments) && !settledDate;
         setHasInvalidEntry(hasUnusableEntry);
         setSegments(hasUnusableEntry ? completedSegments : EMPTY_SEGMENTS);
     };
@@ -633,7 +643,7 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLe
         isAllSelected,
         isEditing,
         hasInvalidEntry,
-        hasIncompleteEntry: shouldShowSegments && hasAnySegment(segments) && !getISODateFromSegments(segments),
+        hasIncompleteEntry: shouldShowSegments && hasAnySegment(segments) && (hasUnfinishedSegment(segments) || !getISODateFromSegments(segments)),
         getSegmentProps: (name: DateSegmentName) => ({
             value: getSegmentDisplay(displayedSegments, name),
             onKeyPress: (event: TextInputKeyPressEvent) => applyKeyToSegments(name, event),

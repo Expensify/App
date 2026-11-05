@@ -228,6 +228,42 @@ describe('DatePicker typing', () => {
         expect(onInputChange).not.toHaveBeenCalledWith('2030-05-09');
     });
 
+    it('waits for the digit that finishes a segment before handing the date over', async () => {
+        // Given a field holding a date, whose day the user is replacing
+        const onInputChange = jest.fn();
+        await renderDatePicker({value: '2026-11-12', onInputChange, minDate: new Date('1900-01-01'), maxDate: new Date('2100-12-31')});
+        focusSegment(SEGMENT_LABELS.day);
+
+        // When the first of the two digits is typed, which already stands for a date of its own
+        pressKeys(SEGMENT_LABELS.day, ['1']);
+
+        // Then nothing is handed over, since a consumer that saves on every change would record a day nobody chose
+        expect(onInputChange).not.toHaveBeenCalled();
+
+        // When the digit that finishes the day follows
+        pressKeys(SEGMENT_LABELS.day, ['3']);
+
+        // Then the date is handed over once, for the day the user meant rather than for both of them in turn
+        expect(onInputChange).toHaveBeenCalledTimes(1);
+        expect(onInputChange).toHaveBeenCalledWith('2026-11-13');
+    });
+
+    it('hands over a day left holding one digit once the field is left', async () => {
+        // Given the same field, whose day the user has typed a single digit into
+        const onInputChange = jest.fn();
+        await renderDatePicker({value: '2026-11-12', onInputChange, minDate: new Date('1900-01-01'), maxDate: new Date('2100-12-31')});
+        focusSegment(SEGMENT_LABELS.day);
+        pressKeys(SEGMENT_LABELS.day, ['1']);
+
+        // When they leave the field rather than typing a second digit
+        leaveFieldByTabbing();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the day they stopped at is handed over, since leaving is what finishes it
+        expect(onInputChange).toHaveBeenCalledTimes(1);
+        expect(onInputChange).toHaveBeenCalledWith('2026-11-01');
+    });
+
     it('keeps a date the calendar would never have offered on screen once the field is left', async () => {
         // Given a field bounded to a range, holding a date the consumer has not been told to change
         await renderDatePicker({

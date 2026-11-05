@@ -465,6 +465,14 @@ function hasAnySegment(segments: DateSegments): boolean {
     return DATE_SEGMENT_NAMES.some((name) => !!segments[name]);
 }
 
+/**
+ * Whether any segment holds fewer digits than it has room for, so what it reads as now is not what the user is going
+ * to leave it at. A single digit day is zero padded into a date of its own, which is one they are still partway through.
+ */
+function hasUnfinishedSegment(segments: DateSegments): boolean {
+    return DATE_SEGMENT_NAMES.some((name) => !!segments[name] && segments[name].length < getSegmentLength(name));
+}
+
 export {
     DATE_SEGMENT_NAMES,
     clearSegmentsUpTo,
@@ -481,6 +489,7 @@ export {
     getSegmentsFromText,
     getViewDateFromSegments,
     hasAnySegment,
+    hasUnfinishedSegment,
     removeLastDigit,
     typeDigitIntoSegments,
 };
