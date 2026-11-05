@@ -4748,27 +4748,27 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 }
             },
         },
-        auRegistrationTitle: 'What is the business name and incorporation date?',
-        registeredTradeName: 'Registered business or trading name',
-        paymentsAndFunding: 'How will your business use Corpay?',
-        sourceOfFunds: 'Source of funds',
-        otherSourceOfFunds: 'Describe the other source of funds',
-        otherBusinessLegalStructure: 'Describe the other business legal structure',
-        monthlyTransactions: 'Expected number of transactions per month',
-        invalidMonthlyTransactions: 'Enter a valid number of transactions',
-        transactionFrequency: 'Expected frequency of transactions',
-        corpayAccountUse: 'How will you use your Corpay account?',
-        businessActivities: 'Does your business do any of the following?',
+        auRegistrationTitle: '会社名と設立日は何ですか？',
+        registeredTradeName: '登録済みの商号または取引名',
+        paymentsAndFunding: 'お客様のビジネスでは、Corpay をどのようにご利用になりますか？',
+        sourceOfFunds: '資金の出所',
+        otherSourceOfFunds: '他の資金源を説明してください',
+        otherBusinessLegalStructure: 'その他の事業形態を記入してください',
+        monthlyTransactions: '月あたりの想定取引件数',
+        invalidMonthlyTransactions: '有効な取引数を入力してください',
+        transactionFrequency: '取引の想定頻度',
+        corpayAccountUse: 'Corpay アカウントをどのようにご利用になりますか？',
+        businessActivities: 'お客様のビジネスでは、次のうちいずれかを行っていますか？',
         activities: {
-            charitableOrganization: 'Operate as a charitable organization',
-            preciousStonesOrMetals: 'Deal in precious stones or metals',
-            highValueDealer: 'Operate as a high-value dealer',
-            networkMarketing: 'Operate as a network marketing company',
-            realEstate: 'Operate in real estate',
-            travelOrTour: 'Operate a travel or tour company',
-            cannabis: 'Operate a cannabis-related business',
-            crypto: 'Operate a cryptocurrency-related business',
-            moneyServicesOrFinancialInstitution: 'Operate as a money services business or financial institution',
+            charitableOrganization: '慈善団体として運営する',
+            preciousStonesOrMetals: '貴石や貴金属を取り扱う',
+            highValueDealer: '高額取引業者として営業する',
+            networkMarketing: 'ネットワークマーケティング企業として運営する',
+            realEstate: '不動産業を営む',
+            travelOrTour: '旅行・ツアー会社を運営する',
+            cannabis: '大麻関連ビジネスを運営する',
+            crypto: '暗号資産関連の事業を運営する',
+            moneyServicesOrFinancialInstitution: 'マネーサービス事業者または金融機関として運営する',
         },
     },
     beneficialOwnerInfoStep: {
@@ -4845,11 +4845,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         codiceFiscale: '納税者番号／Tax ID',
         codiceFiscaleDescription:
             '署名担当者との現地訪問の様子、または録音済み通話の動画をアップロードしてください。担当者は以下の情報を提供する必要があります：氏名、生年月日、会社名、登記番号、納税者番号、登記住所、事業内容、および口座の目的。',
-        ownerDeclarations: 'Owner declarations',
-        anyUSCitizenOwners: 'Do any beneficial owners hold US citizenship?',
-        isPoliticallyExposed:
-            'Are any company personnel or signatories, their family members, or close associates a person who is or was entrusted with a prominent public function (for example, in government, the military, or the judiciary)?',
-        pepDetails: 'Name, position held, and dates from and to for each person',
+        ownerDeclarations: 'オーナー申告',
+        anyUSCitizenOwners: '実質的支配者の中に、米国市民権を持っている方はいますか？',
+        isPoliticallyExposed: '会社の役職者または署名権者、その家族または緊密な関係者の中に、現在または過去に、政府、軍、司法などで重要な公的地位を任されていた方はいますか？',
+        pepDetails: '各担当者の氏名、役職、および在籍期間（開始日と終了日）',
     },
     completeVerificationStep: {
         completeVerification: '認証を完了',
@@ -7529,7 +7528,6 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 title: 'メンバーをコピー',
                 prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
                     one: `${targetWorkspaceName}のメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`,
-                    // Japanese has no "one" plural category, so handle the single-workspace case here
                     other:
                         count === 1
                             ? `${targetWorkspaceName}のメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`
