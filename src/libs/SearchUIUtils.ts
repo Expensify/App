@@ -221,6 +221,7 @@ import {
     getQueryHashes,
     isFilterSupported,
     isFilterNegated,
+    isGroupBySupportedBySearch,
     isSearchDatePreset,
     removeNegation,
     sortOptionsWithEmptyValue,
@@ -5446,7 +5447,10 @@ function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON:
 }
 
 function getValidGroupBy(groupBy: string | undefined): ValueOf<typeof CONST.SEARCH.GROUP_BY> | undefined {
-    return groupBy && Object.values(CONST.SEARCH.GROUP_BY).includes(groupBy as ValueOf<typeof CONST.SEARCH.GROUP_BY>) ? (groupBy as ValueOf<typeof CONST.SEARCH.GROUP_BY>) : undefined;
+    // Insights-only group-bys are treated like unknown values because Search can't group by them yet (see https://github.com/Expensify/App/issues/105303)
+    return groupBy && isGroupBySupportedBySearch(groupBy) && Object.values(CONST.SEARCH.GROUP_BY).includes(groupBy as ValueOf<typeof CONST.SEARCH.GROUP_BY>)
+        ? (groupBy as ValueOf<typeof CONST.SEARCH.GROUP_BY>)
+        : undefined;
 }
 
 function getStatusOptions(translate: LocalizedTranslate, type: SearchDataTypes, shouldReturnTripRooms = false) {

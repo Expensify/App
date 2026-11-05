@@ -8275,7 +8275,7 @@ const CONST = {
             YEAR: 'year',
             QUARTER: 'quarter',
             APPROVER: 'approver',
-            // Groups by violation type. Only Insights queries use it, so Search doesn't offer it
+            // Groups by violation type. Only Insights queries use it until the Search command supports it (see https://github.com/Expensify/App/issues/105303)
             VIOLATION: 'violation',
         },
         /**

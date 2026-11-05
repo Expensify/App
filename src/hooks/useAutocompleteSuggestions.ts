@@ -19,7 +19,7 @@ import {
     getAutocompleteTaxList,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
-import {getUserFriendlyKey, getUserFriendlyValue, isFilterSupported} from '@libs/SearchQueryUtils';
+import {getUserFriendlyKey, getUserFriendlyValue, isFilterSupported, isGroupBySupportedBySearch} from '@libs/SearchQueryUtils';
 import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -79,9 +79,9 @@ type UseAutocompleteSuggestionsParams = {
 
 // Static autocomplete lists derived from CONST values, computed once at module load
 const DATA_TYPE_VALUES = Object.values(CONST.SEARCH.DATA_TYPES);
-// Violation is only used by Insights queries, so Search doesn't suggest it
+// Insights-only group-bys aren't suggested because Search can't group by them (see https://github.com/Expensify/App/issues/105303)
 const GROUP_BY_FRIENDLY_VALUES = Object.values(CONST.SEARCH.GROUP_BY)
-    .filter((value) => value !== CONST.SEARCH.GROUP_BY.VIOLATION)
+    .filter(isGroupBySupportedBySearch)
     .map((value) => getUserFriendlyValue(value));
 const VIEW_FRIENDLY_VALUES = Object.values(CONST.SEARCH.VIEW).map((value) => getUserFriendlyValue(value));
 const EXPENSE_TYPE_FRIENDLY_VALUES = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
