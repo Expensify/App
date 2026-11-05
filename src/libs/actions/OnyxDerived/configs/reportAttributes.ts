@@ -669,7 +669,14 @@ export default createOnyxDerivedValueConfig({
                 });
 
                 const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-                const hasFieldViolations = hasVisibleReportFieldViolations(report, policy, session?.accountID, rules, reportNameValuePair);
+                const hasFieldViolations = hasVisibleReportFieldViolations(
+                    report,
+                    policy,
+                    session?.accountID,
+                    rules,
+                    getLoginByAccountID(report.ownerAccountID, personalDetails),
+                    reportNameValuePair,
+                );
 
                 let brickRoadStatus;
                 let actionBadge;
@@ -677,6 +684,7 @@ export default createOnyxDerivedValueConfig({
                 let needsParentChatErrorPropagation = false;
                 const reasonAndReportAction = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                     report,
+                    policy,
                     chatReport,
                     reportActions: reportActionsList,
                     hasViolations: hasAnyViolations || hasFieldViolations,

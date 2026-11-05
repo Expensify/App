@@ -25,7 +25,7 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportActions, ReportAttributesDerivedValue, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {TransactionViolationsCollectionDataSet} from '@src/types/onyx/TransactionViolation';
@@ -54,6 +54,7 @@ jest.mock('@libs/PolicyUtils', () => ({
     // This factory runs while PolicyUtils is still loading inside an import cycle, so the barrel's `export *` helpers
     // aren't on it yet. Spread them from their own modules, which load fully.
     ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/members'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/expensifyTeam'),
     getConnectedIntegration: jest.fn(() => true),
     isPolicyAdmin: jest.fn(() => true),
 }));
@@ -143,6 +144,7 @@ describe('SidebarUtils', () => {
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                     report: MOCK_REPORT,
+                    policy: undefined,
                     chatReport: chatReportR14932,
                     reportActions: MOCK_REPORT_ACTIONS,
                     hasViolations: false,
@@ -175,6 +177,7 @@ describe('SidebarUtils', () => {
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                     report: MOCK_REPORT,
+                    policy: undefined,
                     chatReport: chatReportR14932,
                     reportActions: MOCK_REPORT_ACTIONS,
                     hasViolations: false,
@@ -202,6 +205,7 @@ describe('SidebarUtils', () => {
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                     report: MOCK_REPORT,
+                    policy: undefined,
                     chatReport: chatReportR14932,
                     reportActions: MOCK_REPORT_ACTIONS,
                     hasViolations: true,
@@ -246,6 +250,7 @@ describe('SidebarUtils', () => {
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                     report: MOCK_REPORT,
+                    policy: undefined,
                     chatReport: chatReportR14932,
                     reportActions: MOCK_REPORT_ACTIONS,
                     hasViolations: false,
@@ -279,6 +284,7 @@ describe('SidebarUtils', () => {
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                     report: MOCK_REPORT,
+                    policy: undefined,
                     chatReport: chatReportR14932,
                     reportActions: MOCK_REPORT_ACTIONS,
                     hasViolations: false,
@@ -357,6 +363,7 @@ describe('SidebarUtils', () => {
             const {reportAction} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                     report: MOCK_REPORT,
+                    policy: undefined,
                     chatReport: chatReportR14932,
                     reportActions: MOCK_REPORT_ACTIONS,
                     hasViolations: false,
@@ -383,6 +390,7 @@ describe('SidebarUtils', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                 report: MOCK_REPORT,
+                policy: undefined,
                 chatReport: chatReportR14932,
                 reportActions: MOCK_REPORT_ACTIONS,
                 hasViolations: false,
@@ -577,6 +585,7 @@ describe('SidebarUtils', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                 report: MOCK_REPORT,
+                policy: undefined,
                 chatReport: chatReportR14932,
                 reportActions: MOCK_REPORT_ACTIONS,
                 hasViolations: false,
@@ -666,6 +675,7 @@ describe('SidebarUtils', () => {
 
             const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                 report: chatReport,
+                policy: undefined,
                 chatReport,
                 reportActions: MOCK_REPORT_ACTIONS,
                 hasViolations: false,
@@ -745,6 +755,7 @@ describe('SidebarUtils', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                 report: MOCK_REPORT,
+                policy: undefined,
                 chatReport: chatReportR14932,
                 reportActions: MOCK_REPORT_ACTIONS,
                 hasViolations: false,
@@ -845,6 +856,7 @@ describe('SidebarUtils', () => {
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                     report: policyExpenseChat,
+                    policy: undefined,
                     chatReport: policyExpenseChat,
                     reportActions: {} as OnyxEntry<ReportActions>,
                     hasViolations: true,
@@ -919,6 +931,7 @@ describe('SidebarUtils', () => {
             // When: called with isOffline=false — the pending-delete action is skipped, leaving the live one as the single thread.
             const onlineResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                 report: MOCK_REPORT,
+                policy: undefined,
                 chatReport: MOCK_CHAT_REPORT,
                 reportActions: MOCK_REPORT_ACTIONS,
                 hasViolations: false,
@@ -992,6 +1005,7 @@ describe('SidebarUtils', () => {
             // When: called with isOffline=true — the pending-delete action is included, making 2 IOU actions.
             const offlineResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                 report: MOCK_REPORT,
+                policy: undefined,
                 chatReport: MOCK_CHAT_REPORT,
                 reportActions: MOCK_REPORT_ACTIONS,
                 hasViolations: false,
@@ -1071,6 +1085,7 @@ describe('SidebarUtils', () => {
             // When: the passed currentUserAccountID matches the action's actor, the smartscan action is flagged as requiring attention.
             const matchingResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                 report: chatReport,
+                policy: undefined,
                 chatReport,
                 reportActions,
                 hasViolations: false,
@@ -1088,6 +1103,7 @@ describe('SidebarUtils', () => {
             // When: the passed currentUserAccountID does NOT match, the action is not attributed to the current user, so no smartscan action is returned.
             const nonMatchingResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                 report: chatReport,
+                policy: undefined,
                 chatReport,
                 reportActions,
                 hasViolations: false,
@@ -1168,6 +1184,7 @@ describe('SidebarUtils', () => {
 
             const result = SidebarUtils.shouldDisplayReportInLHN({
                 report: MOCK_REPORT,
+                policy: undefined,
                 reports: MOCK_REPORTS,
                 currentReportId: undefined,
                 isInFocusMode: true,
@@ -1180,6 +1197,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                session: undefined,
             });
 
             expect(result).toStrictEqual({shouldDisplay: true, hasErrorsOtherThanFailedReceipt: true});
@@ -1282,6 +1300,7 @@ describe('SidebarUtils', () => {
 
             const result = SidebarUtils.shouldDisplayReportInLHN({
                 report: MOCK_TRANSACTION_THREAD_REPORT,
+                policy: undefined,
                 reports: MOCK_REPORTS,
                 currentReportId: undefined,
                 isInFocusMode: true,
@@ -1294,6 +1313,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                session: undefined,
             });
 
             expect(result).toStrictEqual({shouldDisplay: true, hasErrorsOtherThanFailedReceipt: true});
@@ -1303,6 +1323,7 @@ describe('SidebarUtils', () => {
             const result = SidebarUtils.shouldDisplayReportInLHN({
                 // @ts-expect-error Intentionally exercise the runtime guard with invalid input.
                 report: undefined,
+                policy: undefined,
                 reports: {},
                 currentReportId: undefined,
                 isInFocusMode: false,
@@ -1314,6 +1335,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                session: undefined,
             });
 
             expect(result).toStrictEqual({shouldDisplay: false});
@@ -1321,6 +1343,7 @@ describe('SidebarUtils', () => {
 
         it('returns shouldDisplay as false for unsupported report type', () => {
             const result = SidebarUtils.shouldDisplayReportInLHN({
+                policy: undefined,
                 report: {
                     ...createRandomReport(1, undefined),
                     type: CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK,
@@ -1337,6 +1360,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                session: undefined,
             });
 
             expect(result).toStrictEqual({shouldDisplay: false});
@@ -1350,6 +1374,7 @@ describe('SidebarUtils', () => {
 
             const result = SidebarUtils.shouldDisplayReportInLHN({
                 report,
+                policy: undefined,
                 reports: {[`${ONYXKEYS.COLLECTION.REPORT}1`]: report},
                 currentReportId: '1',
                 isInFocusMode: false,
@@ -1362,6 +1387,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                session: undefined,
             });
 
             expect(result).toBeDefined();
@@ -1376,6 +1402,7 @@ describe('SidebarUtils', () => {
 
             const result = SidebarUtils.shouldDisplayReportInLHN({
                 report,
+                policy: undefined,
                 reports: {[`${ONYXKEYS.COLLECTION.REPORT}1`]: report},
                 currentReportId: '1',
                 isInFocusMode: false,
@@ -1388,6 +1415,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                session: undefined,
             });
 
             expect(result).toBeDefined();
@@ -1424,6 +1452,7 @@ describe('SidebarUtils', () => {
             // When the empty chat is identified as the Concierge chat, it should be displayed
             const result = SidebarUtils.shouldDisplayReportInLHN({
                 report,
+                policy: undefined,
                 reports,
                 currentReportId: undefined,
                 isInFocusMode: false,
@@ -1436,6 +1465,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 hasGuidesEmails: false,
                 conciergeReportID,
+                session: undefined,
             });
 
             expect(result.shouldDisplay).toBe(true);
@@ -1464,6 +1494,7 @@ describe('SidebarUtils', () => {
             // When a non-matching conciergeReportID is supplied, the empty chat is excluded from the LHN
             const result = SidebarUtils.shouldDisplayReportInLHN({
                 report,
+                policy: undefined,
                 reports,
                 currentReportId: undefined,
                 isInFocusMode: false,
@@ -1476,6 +1507,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 hasGuidesEmails: false,
                 conciergeReportID: 'a-different-report-id',
+                session: undefined,
             });
 
             expect(result.shouldDisplay).toBe(false);
@@ -1500,38 +1532,8 @@ describe('SidebarUtils', () => {
             });
 
             it('keeps a hidden public room in the LHN when it is not the focused report', async () => {
-                const report = buildPublicRoom(CONST.REPORT.VISIBILITY.PUBLIC);
-                const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${PUBLIC_ROOM_ID}` as const;
-                const reports: OnyxCollection<Report> = {[reportKey]: report};
-
-                await act(async () => {
-                    await Onyx.multiSet({
-                        [ONYXKEYS.SESSION]: {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS},
-                        [reportKey]: report,
-                    });
-                });
-                await waitForBatchedUpdates();
-
-                const result = SidebarUtils.shouldDisplayReportInLHN({
-                    report,
-                    reports,
-                    currentReportId: OTHER_FOCUSED_REPORT_ID,
-                    isInFocusMode: false,
-                    isDefaultRoomsBetaEnabled: false,
-                    transactionViolations: {},
-                    draftComment: undefined,
-                    transactions: {},
-                    isOffline: false,
-                    currentUserLogin: CURRENT_USER_LOGIN,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    hasGuidesEmails: false,
-                    conciergeReportID: undefined,
-                });
-
-                expect(result.shouldDisplay).toBe(true);
-            });
-
-            it('drops the same hidden public room for an authenticated (non-anonymous) user', async () => {
+                // Given a hidden public room, a signed-in session stored in Onyx and an anonymous session passed in,
+                // so the result proves shouldDisplayReportInLHN reads the passed session rather than the stored one
                 const report = buildPublicRoom(CONST.REPORT.VISIBILITY.PUBLIC);
                 const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${PUBLIC_ROOM_ID}` as const;
                 const reports: OnyxCollection<Report> = {[reportKey]: report};
@@ -1544,8 +1546,10 @@ describe('SidebarUtils', () => {
                 });
                 await waitForBatchedUpdates();
 
+                // When checking whether the room is displayed in the LHN
                 const result = SidebarUtils.shouldDisplayReportInLHN({
                     report,
+                    policy: undefined,
                     reports,
                     currentReportId: OTHER_FOCUSED_REPORT_ID,
                     isInFocusMode: false,
@@ -1558,12 +1562,53 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    session: {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS},
                 });
 
+                // Then the anonymous user keeps the public room in the LHN
+                expect(result.shouldDisplay).toBe(true);
+            });
+
+            it('drops the same hidden public room for an authenticated (non-anonymous) user', async () => {
+                // Given a hidden public room, an anonymous session stored in Onyx and a signed-in session passed in,
+                // so the result proves the passed session wins over the stored one
+                const report = buildPublicRoom(CONST.REPORT.VISIBILITY.PUBLIC);
+                const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${PUBLIC_ROOM_ID}` as const;
+                const reports: OnyxCollection<Report> = {[reportKey]: report};
+
+                await act(async () => {
+                    await Onyx.multiSet({
+                        [ONYXKEYS.SESSION]: {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS},
+                        [reportKey]: report,
+                    });
+                });
+                await waitForBatchedUpdates();
+
+                // When checking whether the room is displayed in the LHN
+                const result = SidebarUtils.shouldDisplayReportInLHN({
+                    report,
+                    policy: undefined,
+                    reports,
+                    currentReportId: OTHER_FOCUSED_REPORT_ID,
+                    isInFocusMode: false,
+                    isDefaultRoomsBetaEnabled: false,
+                    transactionViolations: {},
+                    draftComment: undefined,
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    hasGuidesEmails: false,
+                    conciergeReportID: undefined,
+                    session: {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_LOGIN},
+                });
+
+                // Then the signed-in user does not get the anonymous override
                 expect(result.shouldDisplay).toBe(false);
             });
 
             it('does not apply the override to a non-public hidden room for an anonymous user', async () => {
+                // Given a hidden room that is not public and an anonymous session, because the override only covers public rooms
                 const report = buildPublicRoom(undefined);
                 const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${PUBLIC_ROOM_ID}` as const;
                 const reports: OnyxCollection<Report> = {[reportKey]: report};
@@ -1576,8 +1621,10 @@ describe('SidebarUtils', () => {
                 });
                 await waitForBatchedUpdates();
 
+                // When checking whether the room is displayed in the LHN
                 const result = SidebarUtils.shouldDisplayReportInLHN({
                     report,
+                    policy: undefined,
                     reports,
                     currentReportId: OTHER_FOCUSED_REPORT_ID,
                     isInFocusMode: false,
@@ -1590,9 +1637,91 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    session: {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS},
                 });
 
+                // Then the non-public room stays hidden
                 expect(result.shouldDisplay).toBe(false);
+            });
+
+            it('passes the session through getReportsToDisplayInLHN so an anonymous user keeps the public room', async () => {
+                // Given a hidden public room, a signed-in session stored in Onyx and an anonymous session passed in,
+                // so the result proves getReportsToDisplayInLHN forwards the passed session to shouldDisplayReportInLHN
+                const report = buildPublicRoom(CONST.REPORT.VISIBILITY.PUBLIC);
+                const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${PUBLIC_ROOM_ID}` as const;
+                const reports: OnyxCollection<Report> = {[reportKey]: report};
+
+                await act(async () => {
+                    await Onyx.multiSet({
+                        [ONYXKEYS.SESSION]: {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_LOGIN},
+                        [reportKey]: report,
+                    });
+                });
+                await waitForBatchedUpdates();
+
+                // When building the LHN list from scratch
+                const result = SidebarUtils.getReportsToDisplayInLHN({
+                    currentReportId: OTHER_FOCUSED_REPORT_ID,
+                    policies: {},
+                    reports,
+                    isDefaultRoomsBetaEnabled: false,
+                    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                    draftComments: {},
+                    transactionViolations: {},
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                    guideAccountIDs: [],
+                    conciergeReportID: undefined,
+                    session: {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS},
+                });
+
+                // Then the public room is in the LHN list
+                expect(result[reportKey]).toBeDefined();
+            });
+
+            it('passes the session through updateReportsToDisplayInLHN so an anonymous user keeps the public room', async () => {
+                // Given a hidden public room, a signed-in session stored in Onyx and an anonymous session passed in,
+                // so the result proves updateReportsToDisplayInLHN forwards the passed session to shouldDisplayReportInLHN
+                const report = buildPublicRoom(CONST.REPORT.VISIBILITY.PUBLIC);
+                const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${PUBLIC_ROOM_ID}` as const;
+                const reports: OnyxCollection<Report> = {[reportKey]: report};
+
+                await act(async () => {
+                    await Onyx.multiSet({
+                        [ONYXKEYS.SESSION]: {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_LOGIN},
+                        [reportKey]: report,
+                    });
+                });
+                await waitForBatchedUpdates();
+
+                // When incrementally updating an empty LHN list with the public room
+                const result = SidebarUtils.updateReportsToDisplayInLHN({
+                    displayedReports: {},
+                    policies: {},
+                    reports,
+                    updatedReportsKeys: [reportKey],
+                    currentReportId: OTHER_FOCUSED_REPORT_ID,
+                    isInFocusMode: false,
+                    isDefaultRoomsBetaEnabled: false,
+                    transactionViolations: {},
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                    draftComments: {},
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    guideAccountIDs: [],
+                    conciergeReportID: undefined,
+                    session: {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS},
+                });
+
+                // Then the public room is added to the LHN list
+                expect(result[reportKey]).toBeDefined();
             });
         });
     });
@@ -4826,6 +4955,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.updateReportsToDisplayInLHN({
                     displayedReports,
+                    policies: {},
                     reports,
                     updatedReportsKeys: [`${ONYXKEYS.COLLECTION.REPORT}999`],
                     currentReportId: '1',
@@ -4841,6 +4971,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     guideAccountIDs: [],
                     conciergeReportID: undefined,
+                    session: undefined,
                 });
 
                 expect(result).toBe(displayedReports);
@@ -4852,6 +4983,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.updateReportsToDisplayInLHN({
                     displayedReports,
+                    policies: {},
                     reports,
                     updatedReportsKeys: ['0'],
                     currentReportId: undefined,
@@ -4867,10 +4999,168 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     guideAccountIDs: [],
                     conciergeReportID: undefined,
+                    session: undefined,
                 });
 
                 expect(result).not.toBe(displayedReports);
                 expect(result['0']).toBeUndefined();
+            });
+
+            it('should update a single-expense report entry when only its transaction thread gets a newer message', () => {
+                // Given an unread single-expense report shown in the LHN, whose hidden transaction thread just got a newer comment.
+                // The LHN stores a flagged report as a copy with its flags, so the displayed entry still holds the thread's old message time.
+                const oldThreadLastVisibleActionCreated = '2025-01-20 12:00:00.000';
+                const newThreadLastVisibleActionCreated = '2025-01-20 13:00:00.000';
+                const expenseReport: Report = {
+                    ...createRandomReport(1, undefined),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    lastReadTime: '2025-01-20 10:00:00.000',
+                    lastVisibleActionCreated: '2025-01-20 11:00:00.000',
+                    lastActorAccountID: 18921695,
+                };
+                const transactionThread: Report = {
+                    ...createRandomReport(2, undefined),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    parentReportID: expenseReport.reportID,
+                    lastReadTime: '2025-01-20 10:00:00.000',
+                    lastVisibleActionCreated: newThreadLastVisibleActionCreated,
+                    lastActorAccountID: 18921695,
+                };
+                const expenseReportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`;
+                const displayedReports: ReportsToDisplayInLHN = {
+                    [expenseReportKey]: {...expenseReport, requiresAttention: false, isUnreadReport: true, lastVisibleActionCreatedForInboxTab: oldThreadLastVisibleActionCreated},
+                };
+                const reports: OnyxCollection<Report> = {
+                    [expenseReportKey]: expenseReport,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`]: transactionThread,
+                };
+                const reportAttributes: ReportAttributesDerivedValue['reports'] = {
+                    [expenseReport.reportID]: {
+                        reportName: '',
+                        isEmpty: false,
+                        brickRoadStatus: undefined,
+                        requiresAttention: false,
+                        reportErrors: {},
+                        oneTransactionThreadReportID: transactionThread.reportID,
+                    },
+                };
+
+                // When the expense report is rechecked because its transaction thread changed
+                const result = SidebarUtils.updateReportsToDisplayInLHN({
+                    displayedReports,
+                    policies: {},
+                    reports,
+                    updatedReportsKeys: [expenseReportKey],
+                    currentReportId: expenseReport.reportID,
+                    isInFocusMode: false,
+                    isDefaultRoomsBetaEnabled: false,
+                    transactions: {},
+                    transactionViolations: {},
+                    reportNameValuePairs: {},
+                    reportAttributes,
+                    draftComments: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    guideAccountIDs: [],
+                    conciergeReportID: undefined,
+                    session: undefined,
+                });
+
+                // Then the entry is replaced with the thread's newer message time, so the Inbox tab stale-unread check counts the new comment
+                expect(result).not.toBe(displayedReports);
+                expect(result[expenseReportKey]?.isUnreadReport).toBe(true);
+                expect(result[expenseReportKey]?.lastVisibleActionCreatedForInboxTab).toBe(newThreadLastVisibleActionCreated);
+            });
+
+            it('should show a read single-expense report again in Focus mode when its transaction thread gets a new comment', async () => {
+                // Given a read single-expense report in Focus mode, which the LHN hides because it has nothing unread.
+                // Focus mode finds the transaction thread through the expense report's IOU action, so both are stored in Onyx.
+                const expenseReport: Report = {
+                    ...createRandomReport(1, undefined),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    isPinned: false,
+                    isOwnPolicyExpenseChat: false,
+                    participants: {[CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
+                    lastReadTime: '2025-01-20 12:00:00.000',
+                    lastVisibleActionCreated: '2025-01-20 11:00:00.000',
+                    lastActorAccountID: CURRENT_USER_ACCOUNT_ID,
+                };
+                const readTransactionThread: Report = {
+                    ...createRandomReport(2, undefined),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    isPinned: false,
+                    isOwnPolicyExpenseChat: false,
+                    parentReportID: expenseReport.reportID,
+                    parentReportActionID: '1',
+                    lastReadTime: '2025-01-20 12:00:00.000',
+                    lastVisibleActionCreated: '2025-01-20 11:30:00.000',
+                    lastActorAccountID: 18921695,
+                };
+                const iouAction: ReportAction = {
+                    reportActionID: '1',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    originalMessage: {IOUTransactionID: '1', type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 1000, currency: CONST.CURRENCY.USD},
+                    message: [{type: 'COMMENT', html: '10.00 expense', text: '10.00 expense'}],
+                    childReportID: readTransactionThread.reportID,
+                    actorAccountID: CURRENT_USER_ACCOUNT_ID,
+                    created: '2025-01-20 11:00:00.000',
+                };
+                const expenseReportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}` as const;
+                const transactionThreadKey = `${ONYXKEYS.COLLECTION.REPORT}${readTransactionThread.reportID}` as const;
+                const reportAttributes: ReportAttributesDerivedValue['reports'] = {
+                    [expenseReport.reportID]: {
+                        reportName: '',
+                        isEmpty: false,
+                        brickRoadStatus: undefined,
+                        requiresAttention: false,
+                        reportErrors: {},
+                        oneTransactionThreadReportID: readTransactionThread.reportID,
+                    },
+                };
+                const getLHNParams = (reports: OnyxCollection<Report>) => ({
+                    reports,
+                    policies: {},
+                    currentReportId: undefined,
+                    isDefaultRoomsBetaEnabled: false,
+                    transactions: {},
+                    transactionViolations: {},
+                    reportNameValuePairs: {},
+                    reportAttributes,
+                    draftComments: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    guideAccountIDs: [],
+                    conciergeReportID: undefined,
+                    session: undefined,
+                });
+                await act(async () => {
+                    await Onyx.set(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_LOGIN});
+                    await Onyx.set(expenseReportKey, expenseReport);
+                    await Onyx.set(transactionThreadKey, readTransactionThread);
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {[iouAction.reportActionID]: iouAction});
+                });
+                const displayedReports = SidebarUtils.getReportsToDisplayInLHN({
+                    ...getLHNParams({[expenseReportKey]: expenseReport, [transactionThreadKey]: readTransactionThread}),
+                    priorityMode: CONST.PRIORITY_MODE.GSD,
+                });
+
+                // When someone else comments on the transaction thread and the LHN rechecks the expense report
+                const unreadTransactionThread: Report = {...readTransactionThread, lastVisibleActionCreated: '2025-01-20 13:00:00.000'};
+                await act(async () => {
+                    await Onyx.merge(transactionThreadKey, unreadTransactionThread);
+                });
+                const result = SidebarUtils.updateReportsToDisplayInLHN({
+                    ...getLHNParams({[expenseReportKey]: expenseReport, [transactionThreadKey]: unreadTransactionThread}),
+                    displayedReports,
+                    updatedReportsKeys: [expenseReportKey],
+                    isInFocusMode: true,
+                });
+
+                // Then the expense report shows in the LHN again, and in the Unread tab, because the new comment lives on its thread
+                expect(displayedReports[expenseReportKey]).toBeUndefined();
+                expect(result[expenseReportKey]?.isUnreadReport).toBe(true);
             });
         });
 
@@ -4878,6 +5168,7 @@ describe('SidebarUtils', () => {
             it('should return an empty object when reports is undefined', () => {
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
+                    policies: {},
                     reports: undefined,
                     isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -4891,6 +5182,7 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     guideAccountIDs: [],
                     conciergeReportID: undefined,
+                    session: undefined,
                 });
 
                 expect(result).toEqual({});
@@ -4899,6 +5191,7 @@ describe('SidebarUtils', () => {
             it('should return an empty object when reports is empty', () => {
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
+                    policies: {},
                     reports: {},
                     isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -4912,6 +5205,7 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     guideAccountIDs: [],
                     conciergeReportID: undefined,
+                    session: undefined,
                 });
 
                 expect(result).toEqual({});
@@ -4924,6 +5218,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
+                    policies: {},
                     reports,
                     isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -4937,6 +5232,7 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     guideAccountIDs: [],
                     conciergeReportID: undefined,
+                    session: undefined,
                 });
 
                 expect(result).toEqual({});
@@ -4963,6 +5259,7 @@ describe('SidebarUtils', () => {
                 // When the LHN report set is built
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
+                    policies: {},
                     reports,
                     isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -4984,6 +5281,7 @@ describe('SidebarUtils', () => {
                     },
                     guideAccountIDs: [],
                     conciergeReportID: undefined,
+                    session: undefined,
                 });
 
                 // Then it belongs in the Unread tab
@@ -5035,6 +5333,7 @@ describe('SidebarUtils', () => {
                 // last visible message from the report actions itself
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: report.reportID,
+                    policies: {},
                     reports: {[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report},
                     isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -5048,12 +5347,75 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     guideAccountIDs: [],
                     conciergeReportID: undefined,
+                    session: undefined,
                 });
 
                 // Then it is still displayed, but not flagged for the Unread tab. Asserting it is displayed matters:
                 // without it a report missing from the set entirely would satisfy the isUnreadReport check.
                 expect(result[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]).toBeDefined();
                 expect(result[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]?.isUnreadReport).toBeFalsy();
+            });
+
+            it('should flag a single-expense report as unread for the Unread tab when only its transaction thread is unread', () => {
+                // Given a read expense report with a single expense, whose transaction thread (hidden from the LHN) has a newer comment from someone else
+                const expenseReport: Report = {
+                    ...createRandomReport(1, undefined),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    lastReadTime: '2025-01-20 12:00:00.000',
+                    lastVisibleActionCreated: '2025-01-20 11:00:00.000',
+                    lastActorAccountID: CURRENT_USER_ACCOUNT_ID,
+                };
+                const transactionThread: Report = {
+                    ...createRandomReport(2, undefined),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    parentReportID: expenseReport.reportID,
+                    lastReadTime: '2025-01-20 12:00:00.000',
+                    lastVisibleActionCreated: '2025-01-20 13:00:00.000',
+                    lastActorAccountID: 18921695,
+                };
+                const reports: OnyxCollection<Report> = {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`]: expenseReport,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`]: transactionThread,
+                };
+                const createReportAttributes = (oneTransactionThreadReportID?: string): ReportAttributesDerivedValue['reports'] => ({
+                    [expenseReport.reportID]: {
+                        reportName: '',
+                        isEmpty: false,
+                        brickRoadStatus: undefined,
+                        requiresAttention: false,
+                        reportErrors: {},
+                        oneTransactionThreadReportID,
+                    },
+                });
+                const buildLHNReports = (reportAttributes: ReportAttributesDerivedValue['reports']) =>
+                    SidebarUtils.getReportsToDisplayInLHN({
+                        currentReportId: expenseReport.reportID,
+                        reports,
+                        policies: {},
+                        isDefaultRoomsBetaEnabled: false,
+                        priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                        draftComments: {},
+                        transactionViolations: {},
+                        transactions: {},
+                        isOffline: false,
+                        currentUserLogin: CURRENT_USER_LOGIN,
+                        currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                        reportNameValuePairs: {},
+                        reportAttributes,
+                        guideAccountIDs: [],
+                        conciergeReportID: undefined,
+                        session: undefined,
+                    });
+
+                // When the LHN report set is built with and without the expense report's one-transaction thread
+                const resultWithThread = buildLHNReports(createReportAttributes(transactionThread.reportID));
+                const resultWithoutThread = buildLHNReports(createReportAttributes());
+
+                // Then the thread's new comment puts the expense report in the Unread tab, since the comment lives on the thread
+                expect(resultWithThread[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`]?.isUnreadReport).toBe(true);
+                expect(resultWithThread[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`]?.lastVisibleActionCreatedForInboxTab).toBe(transactionThread.lastVisibleActionCreated);
+                expect(resultWithoutThread[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`]).toBeDefined();
+                expect(resultWithoutThread[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`]?.isUnreadReport).toBeFalsy();
             });
 
             it('should pass isOffline=false to shouldDisplayReportInLHN', () => {
@@ -5067,6 +5429,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
+                    policies: {},
                     reports,
                     isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -5080,6 +5443,7 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     guideAccountIDs: [],
                     conciergeReportID: undefined,
+                    session: undefined,
                 });
 
                 // The function should run without errors with isOffline=false
@@ -5097,6 +5461,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
+                    policies: {},
                     reports,
                     isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -5110,6 +5475,7 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     guideAccountIDs: [],
                     conciergeReportID: undefined,
+                    session: undefined,
                 });
 
                 // The function should run without errors with isOffline=true
@@ -5127,6 +5493,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
+                    policies: {},
                     reports,
                     isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -5140,6 +5507,7 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     guideAccountIDs: [],
                     conciergeReportID: undefined,
+                    session: undefined,
                 });
 
                 expect(result[`${ONYXKEYS.COLLECTION.REPORT}1`]).toBeUndefined();
@@ -5167,6 +5535,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: undefined,
+                    policies: {},
                     reports,
                     isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -5180,6 +5549,7 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     guideAccountIDs: [],
                     conciergeReportID: undefined,
+                    session: undefined,
                 });
 
                 // Should not throw and should return a valid result
@@ -5196,6 +5566,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.updateReportsToDisplayInLHN({
                     displayedReports,
+                    policies: {},
                     reports,
                     updatedReportsKeys: [`${ONYXKEYS.COLLECTION.REPORT}999`],
                     currentReportId: '1',
@@ -5211,6 +5582,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     guideAccountIDs: [],
                     conciergeReportID: undefined,
+                    session: undefined,
                 });
 
                 // No changes expected since the updated key doesn't exist in reports
@@ -5225,6 +5597,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.updateReportsToDisplayInLHN({
                     displayedReports,
+                    policies: {},
                     reports,
                     updatedReportsKeys: [`${ONYXKEYS.COLLECTION.REPORT}999`],
                     currentReportId: '1',
@@ -5240,6 +5613,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     guideAccountIDs: [],
                     conciergeReportID: undefined,
+                    session: undefined,
                 });
 
                 // No changes expected since the updated key doesn't exist in reports
@@ -5252,6 +5626,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.updateReportsToDisplayInLHN({
                     displayedReports,
+                    policies: {},
                     reports,
                     updatedReportsKeys: ['0'],
                     currentReportId: undefined,
@@ -5267,6 +5642,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     guideAccountIDs: [],
                     conciergeReportID: undefined,
+                    session: undefined,
                 });
 
                 expect(result).not.toBe(displayedReports);
@@ -5290,6 +5666,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.updateReportsToDisplayInLHN({
                     displayedReports,
+                    policies: {},
                     reports,
                     updatedReportsKeys: [`${ONYXKEYS.COLLECTION.REPORT}1`],
                     currentReportId: '1',
@@ -5305,6 +5682,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     guideAccountIDs: [],
                     conciergeReportID: undefined,
+                    session: undefined,
                 });
 
                 // Should not throw and should return a valid result
@@ -5531,7 +5909,10 @@ describe('SidebarUtils', () => {
         /** The cutoff getInboxTabSummary measures against: the start of today, CONST.INBOX_TAB_STALE_UNREAD_MONTHS ago. */
         const staleCutoff = () => subMonths(startOfDay(new Date()), CONST.INBOX_TAB_STALE_UNREAD_MONTHS);
 
-        type InboxTabReport = Pick<ReportsToDisplayInLHN[string], 'reportID' | 'isUnreadReport' | 'requiresAttention' | 'hasErrorsOtherThanFailedReceipt' | 'lastVisibleActionCreated'>;
+        type InboxTabReport = Pick<
+            ReportsToDisplayInLHN[string],
+            'reportID' | 'isUnreadReport' | 'requiresAttention' | 'hasErrorsOtherThanFailedReceipt' | 'lastVisibleActionCreated' | 'lastVisibleActionCreatedForInboxTab'
+        >;
 
         function buildReportsToDisplay(reports: InboxTabReport[]): ReportsToDisplayInLHN {
             return Object.fromEntries(reports.map((report) => [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {...createRandomReport(Number(report.reportID)), ...report}]));
@@ -5576,6 +5957,24 @@ describe('SidebarUtils', () => {
             const reportsToDisplay = buildReportsToDisplay([{reportID: '1', isUnreadReport: true, lastVisibleActionCreated: DateUtils.getDBTime(subMonths(new Date(), 1).valueOf())}]);
 
             expect(SidebarUtils.getInboxTabSummary(['1'], reportsToDisplay).hasStaleUnreadReport).toBe(false);
+        });
+
+        it('does not flag a single-expense report whose old expense report has a recent comment on its transaction thread', () => {
+            // Given an unread single-expense report whose own newest message is old, but whose transaction thread just got a comment
+            const reportsToDisplay = buildReportsToDisplay([
+                {
+                    reportID: '1',
+                    isUnreadReport: true,
+                    lastVisibleActionCreated: DateUtils.getDBTime(subMonths(new Date(), 4).valueOf()),
+                    lastVisibleActionCreatedForInboxTab: DateUtils.getDBTime(),
+                },
+            ]);
+
+            // When the Inbox tab row is summarized
+            const {hasStaleUnreadReport} = SidebarUtils.getInboxTabSummary(['1'], reportsToDisplay);
+
+            // Then the report is not stale, because the unread message is the new thread comment
+            expect(hasStaleUnreadReport).toBe(false);
         });
 
         it('ignores the age of reports that are not unread', () => {
