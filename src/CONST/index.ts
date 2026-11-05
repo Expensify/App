@@ -3081,6 +3081,7 @@ const CONST = {
             GROUP_CHAT: 'group_chat',
             DIRECT_MESSAGE: 'direct_message',
             SELF_DM: 'self_dm',
+            SUPPORT_TICKET: 'support_ticket',
             OTHER_CHAT: 'other_chat',
         },
         // Tab prefix on every send_message_source value. OTHER = a tab that doesn't host these surfaces
