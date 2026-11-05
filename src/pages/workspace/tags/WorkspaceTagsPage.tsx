@@ -505,6 +505,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             switchProps: {
                 isOn: policy?.showTagGLCodes ?? false,
                 accessibilityLabel: translate('workspace.tags.showTagGLCodes'),
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAGS.SHOW_GL_CODES_SWITCH,
                 onToggle: (value: boolean) => setPolicyShowTagGLCodes(policyID, value, policy?.showTagGLCodes),
                 disabled: !policy?.areTagsEnabled,
             },
