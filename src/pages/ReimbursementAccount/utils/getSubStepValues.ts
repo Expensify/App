@@ -15,10 +15,14 @@ function getSubStepValues<TProps extends keyof ReimbursementAccountForm>(
     reimbursementAccount: OnyxEntry<ReimbursementAccount>,
 ): SubStepValues<TProps> {
     return Object.entries(inputKeys).reduce((acc, [, value]) => {
-        acc[value] = (reimbursementAccountDraft?.[value] ??
+        const fieldValue =
+            reimbursementAccountDraft?.[value] ??
             reimbursementAccount?.achData?.[value as keyof ACHData] ??
             reimbursementAccount?.achData?.corpay?.[value as keyof Corpay] ??
-            (value === INPUT_IDS.ADDITIONAL_DATA.CORPAY.ACH_AUTHORIZATION_FORM || value === INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_STATEMENT ? [] : '')) as ReimbursementAccountForm[TProps];
+            (value === INPUT_IDS.ADDITIONAL_DATA.CORPAY.ACH_AUTHORIZATION_FORM || value === INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_STATEMENT ? [] : '');
+        acc[value] = (
+            value === INPUT_IDS.ADDITIONAL_DATA.CORPAY.NUMBER_OF_MONTHLY_TRANSACTION && typeof fieldValue === 'number' ? String(fieldValue) : fieldValue
+        ) as ReimbursementAccountForm[TProps];
         return acc;
     }, {} as SubStepValues<TProps>);
 }

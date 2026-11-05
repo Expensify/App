@@ -4,6 +4,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 
 import PushRowWithModal from '@src/components/PushRowWithModal';
 import PushRowModal from '@src/components/PushRowWithModal/PushRowModal';
+import CONST from '@src/CONST';
 
 import type {GestureResponderEvent} from 'react-native';
 
@@ -119,5 +120,23 @@ describe('PushRowWithModal', () => {
         expect(getModal()?.canSelectMultiple).toBe(false);
         expect(onInputChange).toHaveBeenNthCalledWith(1, 'CA');
         expect(onInputChange).toHaveBeenNthCalledWith(2, '', 'state');
+    });
+
+    it('passes the onboarding Sentry label to the interactive row', () => {
+        // Given a Corpay declaration row with a stable action label.
+        const label = CONST.SENTRY_LABEL.CORPAY_ONBOARDING.US_CITIZEN_OWNERS;
+        // When the row is rendered.
+        render(
+            <PushRowWithModal
+                value="false"
+                optionsList={{true: 'Yes', false: 'No'}}
+                description="US citizenship"
+                modalHeaderTitle="US citizenship"
+                searchInputTitle="US citizenship"
+                sentryLabel={label}
+            />,
+        );
+        // Then the existing row receives the label for Sentry without including user data.
+        expect(getRow()?.sentryLabel).toBe(label);
     });
 });

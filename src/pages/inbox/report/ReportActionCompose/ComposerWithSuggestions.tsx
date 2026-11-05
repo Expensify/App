@@ -893,18 +893,15 @@ function ComposerWithSuggestions({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    useImperativeHandle(
-        ref,
-        (): ComposerWithSuggestionsRef => ({
-            focus,
-            replaceSelectionWithText,
-            getCurrentText,
-            clearWorklet,
-            resetHeight,
-            blur: () => composerRef.current?.blur(),
-            isFocused: () => composerRef.current?.isFocused() ?? false,
-        }),
-    );
+    useImperativeHandle(ref, (): ComposerWithSuggestionsRef => ({
+        focus,
+        replaceSelectionWithText,
+        getCurrentText,
+        clearWorklet,
+        resetHeight,
+        blur: () => composerRef.current?.blur(),
+        isFocused: () => composerRef.current?.isFocused() ?? false,
+    }));
 
     const onClear = (textOnClear: string) => {
         resetScrollPosition();

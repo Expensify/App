@@ -23,6 +23,7 @@ type PushRowWithModalBaseProps = {
 
     modalHeaderTitle: string;
     searchInputTitle: string;
+    sentryLabel?: string;
 
     /** Whether the selected option is editable */
     shouldAllowChange?: boolean;
@@ -58,7 +59,7 @@ type PushRowWithModalMultipleProps = {
 type PushRowWithModalProps = PushRowWithModalBaseProps & (PushRowWithModalSingleProps | PushRowWithModalMultipleProps);
 
 function PushRowWithModal(props: PushRowWithModalProps) {
-    const {optionsList, wrapperStyles, description, modalHeaderTitle, searchInputTitle, shouldAllowChange = true, errorText, onBlur = () => {}} = props;
+    const {optionsList, wrapperStyles, description, modalHeaderTitle, searchInputTitle, sentryLabel, shouldAllowChange = true, errorText, onBlur = () => {}} = props;
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [pendingSelection, setPendingSelection] = useState<string[]>([]);
     const shouldBlurOnCloseRef = useRef(true);
@@ -110,6 +111,7 @@ function PushRowWithModal(props: PushRowWithModalProps) {
         <>
             <MenuItemWithTopDescription
                 description={description}
+                sentryLabel={sentryLabel}
                 title={selection
                     .map((key) => optionsList[key])
                     .filter(Boolean)

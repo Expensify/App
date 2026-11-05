@@ -2,6 +2,7 @@ import {
     isValidAddress,
     isValidCompanyName,
     isValidEmail,
+    isValidPastDate,
     isValidPhoneInternational,
     isValidRegistrationNumber,
     isValidTaxIDEINNumber,
@@ -11,8 +12,12 @@ import {
 
 import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import type {Corpay} from '@src/types/onyx/ReimbursementAccount';
 
 import {Str} from 'expensify-common';
+
+import {BUSINESS_ACTIVITY_FIELDS} from './getBusinessActivityAnswers';
+import isOtherCorpayPicklistSelection from './isOtherCorpayPicklistSelection';
 
 const BUSINESS_INFO_STEP_KEYS = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
@@ -52,7 +57,7 @@ function isMissingValidTaxIDEINNumber(taxIDEINNumber: string, country: string) {
 /**
  * Returns the initial subStep for the Business info step based on already existing data
  */
-function getInitialSubStepForBusinessInfoStep(data: Record<string, string>): number {
+function getInitialSubStepForBusinessInfoStep(data: Record<string, string>, isAustralianBusiness = false, activityAnswers: Partial<Corpay> = {}): number {
     if (isMissingValidCompanyName(data[BUSINESS_INFO_STEP_KEYS.COMPANY_NAME])) {
         return 0;
     }
@@ -106,7 +111,29 @@ function getInitialSubStepForBusinessInfoStep(data: Record<string, string>): num
         return 9;
     }
 
-    return 10;
+    if (
+        isAustralianBusiness &&
+        (!data[BUSINESS_INFO_STEP_KEYS.SOURCE_OF_FUNDS] ||
+            !data[BUSINESS_INFO_STEP_KEYS.EXPECTED_FREQUENCY_OF_TRANSACTIONS] ||
+            !data[BUSINESS_INFO_STEP_KEYS.CLIENT_INTENDS_TO_USE_CORPAY_ACCOUNT_TO] ||
+            !Number.isSafeInteger(Number(data[BUSINESS_INFO_STEP_KEYS.NUMBER_OF_MONTHLY_TRANSACTION])) ||
+            Number(data[BUSINESS_INFO_STEP_KEYS.NUMBER_OF_MONTHLY_TRANSACTION]) < 0 ||
+            !data[BUSINESS_INFO_STEP_KEYS.NUMBER_OF_MONTHLY_TRANSACTION] ||
+            (isOtherCorpayPicklistSelection(data[BUSINESS_INFO_STEP_KEYS.SOURCE_OF_FUNDS], 'SOURCE_OF_FUNDS') && !data[BUSINESS_INFO_STEP_KEYS.OTHER_SOURCE_OF_FUNDS]) ||
+            (isOtherCorpayPicklistSelection(data[BUSINESS_INFO_STEP_KEYS.APPLICANT_TYPE_ID], 'APPLICANT_TYPE') && !data[BUSINESS_INFO_STEP_KEYS.OTHER_BUSINESS_LEGAL_STRUCTURE]))
+    ) {
+        return 10;
+    }
+
+    if (isAustralianBusiness && (data[BUSINESS_INFO_STEP_KEYS.DBA_OR_REGISTERED_TRADE_NAME] === '' || !isValidPastDate(data[BUSINESS_INFO_STEP_KEYS.DATE_OF_INCORPORATION]))) {
+        return 11;
+    }
+
+    if (isAustralianBusiness && BUSINESS_ACTIVITY_FIELDS.some(({inputID}) => typeof activityAnswers[inputID] !== 'boolean')) {
+        return 12;
+    }
+
+    return 13;
 }
 
 export default getInitialSubStepForBusinessInfoStep;

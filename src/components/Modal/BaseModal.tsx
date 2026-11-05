@@ -438,16 +438,15 @@ function BaseModal({
                             )}
                             <ColorSchemeWrapper>{shouldWrapChildrenInScrollView ? <ScrollView>{children}</ScrollView> : children}</ColorSchemeWrapper>
                         </Animated.View>
-                        {stackedResizableRHPWidth !== undefined &&
-                            isVisible && (
-                                // Shifts with the card when the Side Panel opens, since the handle straddles the card's edge.
-                                <Animated.View
-                                    pointerEvents="box-none"
-                                    style={[styles.fullScreen, sidePanelAnimatedStyle]}
-                                >
-                                    <RHPResizeHandle />
-                                </Animated.View>
-                            )}
+                        {stackedResizableRHPWidth !== undefined && isVisible && (
+                            // Shifts with the card when the Side Panel opens, since the handle straddles the card's edge.
+                            <Animated.View
+                                pointerEvents="box-none"
+                                style={[styles.fullScreen, sidePanelAnimatedStyle]}
+                            >
+                                <RHPResizeHandle />
+                            </Animated.View>
+                        )}
                         {!keyboardStateContextValue?.isKeyboardActive && <NavigationBar />}
                     </ReanimatedModal>
                 </View>
