@@ -12827,8 +12827,8 @@ const translations = {
             other: `Deleted expenses on ${doneCount} of ${count} reports`,
         }),
         changedWorkspaceTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `Moved ${doneCount} of ${count} report`,
-            other: `Moved ${doneCount} of ${count} reports`,
+            one: `Changed workspace on ${doneCount} of ${count} report`,
+            other: `Changed workspace on ${doneCount} of ${count} reports`,
         }),
         noReportsTitle: 'No matching reports',
         noReportsBody: 'None of the reports you selected needed this action.',
