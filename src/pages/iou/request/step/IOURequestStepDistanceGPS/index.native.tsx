@@ -46,6 +46,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import type IOURequestStepDistanceGPSProps from './types';
 
@@ -71,15 +72,12 @@ function IOURequestStepDistanceGPS({
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isInLandscapeMode = useIsInLandscapeMode();
 
-    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const isArchived = useReportIsArchived(report?.reportID);
     const moneyRequestReportTransactions = useReportTransactions(report?.reportID);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [personalDetails] = useAllPersonalDetails();
     const reportAttributesDerived = useReportAttributes();
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
-    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const selfDMReport = useSelfDMReport();
@@ -125,8 +123,6 @@ function IOURequestStepDistanceGPS({
 
     const shouldSkipConfirmation = !skipConfirmation || !report?.reportID ? false : !(isArchived || isPolicyExpenseChatUtils(report));
 
-    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID: currentUserAccountIDParam});
 
     const {participants, participantsPolicyTags} = useMoneyRequestParticipantsPolicyTags({
@@ -142,7 +138,7 @@ function IOURequestStepDistanceGPS({
         translate,
     });
 
-    const navigateToNextStep = () => {
+    const navigateToNextStep = async () => {
         const gpsCoordinates = getStringifiedGPSCoordinates(gpsDraftDetails);
         const originalDistance = DistanceRequestUtils.convertDistanceUnit(gpsDraftDetails?.distanceInMeters ?? 0, unit);
         const modifiedDistance = gpsDraftDetails?.modifiedDistance !== undefined ? DistanceRequestUtils.convertDistanceUnit(gpsDraftDetails.modifiedDistance, unit) : undefined;
@@ -153,6 +149,13 @@ function IOURequestStepDistanceGPS({
         const waypoints = getGPSWaypoints(gpsDraftDetails);
         const optimisticTransactionID = rand64();
         const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
+        const [lastSelectedDistanceRates, quickAction, policyRecentlyUsedCurrencies, recentWaypoints, rules] = await Onyx.multiGet([
+            ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
+            ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+            ONYXKEYS.RECENTLY_USED_CURRENCIES,
+            ONYXKEYS.NVP_RECENT_WAYPOINTS,
+            ONYXKEYS.COLLECTION.RULE,
+        ]);
 
         handleMoneyRequestStepDistanceNavigation({
             isVendorMatchingBetaEnabled,
@@ -271,7 +274,9 @@ function IOURequestStepDistanceGPS({
                             type="error"
                         />
                         <GPSButtons
-                            navigateToNextStep={navigateToNextStep}
+                            navigateToNextStep={() => {
+                                navigateToNextStep();
+                            }}
                             setShouldShowStartError={setShouldShowStartError}
                             setShouldShowPermissionsError={setShouldShowPermissionsError}
                             reportID={reportID}

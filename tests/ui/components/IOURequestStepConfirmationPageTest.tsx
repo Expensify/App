@@ -1304,6 +1304,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 // Then submission also uses that same optimistic report ID, so the pre-mounted screen ends up
                 // subscribed to the report that actually gets created
                 expect(submitWithDismissFirstSpy).toHaveBeenCalledWith(expect.objectContaining({destinationReportID: optimisticP2PReportID}));
+                // sendMoney reads quickAction with Onyx.get before it writes, so let that read resolve first
+                await waitForBatchedUpdatesWithAct();
                 expect(mockSendMoneyElsewhere).toHaveBeenCalledWith(expect.objectContaining({optimisticChatReportID: optimisticP2PReportID}));
             } finally {
                 buildConfirmActionSpy.mockRestore();

@@ -71,6 +71,7 @@ import {useIsFocused} from '@react-navigation/native';
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
@@ -221,7 +222,6 @@ function IOURequestStepDistanceOdometer({
 
     const [odometerDraft] = useOnyx(ONYXKEYS.ODOMETER_DRAFT);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const {
         startReading,
@@ -402,7 +402,7 @@ function IOURequestStepDistanceOdometer({
     });
 
     // Navigate to next page following Manual tab pattern
-    const navigateToNextPage = () => {
+    const navigateToNextPage = async () => {
         const start = parseFloat(DistanceRequestUtils.normalizeOdometerText(startReading, fromLocaleDigit));
         const end = parseFloat(DistanceRequestUtils.normalizeOdometerText(endReading, fromLocaleDigit));
         const distance = end - start;
@@ -442,6 +442,7 @@ function IOURequestStepDistanceOdometer({
             const hasChanges = previousDistance !== calculatedDistance || previousStart !== start || previousEnd !== end;
 
             if (hasChanges) {
+                const rules = await Onyx.get(ONYXKEYS.COLLECTION.RULE);
                 // Update distance (which will also update amount and merchant)
                 updateMoneyRequestDistance({
                     isVendorMatchingBetaEnabled,

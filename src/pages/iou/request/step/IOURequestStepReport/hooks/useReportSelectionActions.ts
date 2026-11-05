@@ -27,6 +27,7 @@ import type {Policy, Report, Session, Transaction} from '@src/types/onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import Onyx from 'react-native-onyx';
 
 type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
@@ -113,8 +114,6 @@ function useReportSelectionActions({
 }: UseReportSelectionActionsParams): UseReportSelectionActionsResult {
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
-    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
-    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
@@ -122,8 +121,6 @@ function useReportSelectionActions({
     const {removeTransaction} = useSearchSelectionActions();
     const reports = useChangeTransactionsReportReports(transaction ? [transaction] : [], undefined);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const delegateAccountID = useDelegateAccountID();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -195,7 +192,7 @@ function useReportSelectionActions({
         TransitionTracker.runAfterTransitions({
             runImmediately: !shouldWriteAfterTransition,
             waitForUpcomingTransition: true,
-            callback: () => {
+            callback: async () => {
                 const participants = buildParticipants(report);
 
                 setTransactionReport(
@@ -208,6 +205,12 @@ function useReportSelectionActions({
                 );
 
                 if (isEditing) {
+                    const [allPolicyCategories, allPolicyTags, rules, cardList] = await Onyx.multiGet([
+                        ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
+                        ONYXKEYS.COLLECTION.POLICY_TAGS,
+                        ONYXKEYS.COLLECTION.RULE,
+                        ONYXKEYS.CARD_LIST,
+                    ]);
                     const policyTagList = item?.policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
                     const reportsForCall = report?.reportID ? {[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report, ...reports} : reports;
                     changeTransactionsReport({
@@ -243,31 +246,35 @@ function useReportSelectionActions({
         if (!transaction) {
             return;
         }
+        const moveToPersonalPolicy = async () => {
+            const [allPolicyTags, rules, cardList] = await Onyx.multiGet([ONYXKEYS.COLLECTION.POLICY_TAGS, ONYXKEYS.COLLECTION.RULE, ONYXKEYS.CARD_LIST]);
+            const policyTagList = personalPolicyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicyID}`] : {};
+            changeTransactionsReport({
+                isVendorMatchingBetaEnabled,
+                transactionIDs: targetTransactionIDs,
+                isASAPSubmitBetaEnabled,
+                accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                email: session?.email ?? '',
+                currentUserPersonalDetails,
+                policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
+                policyTagList,
+                transactions: targetTransactions,
+                allTransactionViolation: transactionViolations,
+                reports,
+                rules,
+                cardList,
+                isTrackIntentUser,
+                personalPolicyOutputCurrency: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`]?.outputCurrency,
+                selfDMReportActions,
+                delegateAccountID,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+            });
+            removeTransaction(transaction.transactionID, {isDeleted: false});
+        };
         Navigation.dismissToSuperWideRHP({
             afterTransition: () => {
-                const policyTagList = personalPolicyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicyID}`] : {};
-                changeTransactionsReport({
-                    isVendorMatchingBetaEnabled,
-                    transactionIDs: targetTransactionIDs,
-                    isASAPSubmitBetaEnabled,
-                    accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    email: session?.email ?? '',
-                    currentUserPersonalDetails,
-                    policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
-                    policyTagList,
-                    transactions: targetTransactions,
-                    allTransactionViolation: transactionViolations,
-                    reports,
-                    rules,
-                    cardList,
-                    isTrackIntentUser,
-                    personalPolicyOutputCurrency: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`]?.outputCurrency,
-                    selfDMReportActions,
-                    delegateAccountID,
-                    getCurrencyDecimals,
-                    getCurrencySymbol,
-                });
-                removeTransaction(transaction.transactionID, {isDeleted: false});
+                moveToPersonalPolicy();
             },
         });
     };

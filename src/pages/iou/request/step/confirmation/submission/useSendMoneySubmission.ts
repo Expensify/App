@@ -1,6 +1,5 @@
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
-import useOnyx from '@hooks/useOnyx';
 import useReportTransactions from '@hooks/useReportTransactions';
 
 import {resolveOptimisticChatReportID} from '@libs/IOUUtils';
@@ -19,6 +18,8 @@ import type Transaction from '@src/types/onyx/Transaction';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import Onyx from 'react-native-onyx';
+
 import type {SendMoneyOptions} from './types';
 
 type UseSendMoneySubmissionParams = {
@@ -36,9 +37,8 @@ function useSendMoneySubmission({transaction, receiptFiles, report, participants
     const {getCurrencyDecimals} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
     const reportTransactions = useReportTransactions(report?.reportID);
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
 
-    function sendMoney(paymentMethod: PaymentMethodType | undefined, options: SendMoneyOptions) {
+    async function sendMoney(paymentMethod: PaymentMethodType | undefined, options: SendMoneyOptions) {
         const {shouldHandleNavigation, resolvedReportIDs, shouldStartTracking} = options;
         const currency = transaction?.currency;
         const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
@@ -54,6 +54,7 @@ function useSendMoneySubmission({transaction, receiptFiles, report, participants
         // An explicit optimistic ID means the selected recipient has no chat yet. Do not let a stale page-level
         // report override that ID in getSendMoneyParams when the recipient changed without remounting this screen.
         const sendMoneyReport = optimisticChatReportID ? undefined : report;
+        const quickAction = await Onyx.get(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
         const sendMoneyParams = {
             getCurrencyDecimals,
             report: sendMoneyReport,
@@ -87,7 +88,11 @@ function useSendMoneySubmission({transaction, receiptFiles, report, participants
         }
     }
 
-    return {sendMoney};
+    return {
+        sendMoney: (paymentMethod: PaymentMethodType | undefined, options: SendMoneyOptions) => {
+            sendMoney(paymentMethod, options);
+        },
+    };
 }
 
 export default useSendMoneySubmission;
