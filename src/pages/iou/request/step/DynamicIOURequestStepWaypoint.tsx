@@ -41,6 +41,7 @@ import {useNavigation} from '@react-navigation/native';
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
@@ -102,7 +103,6 @@ function DynamicIOURequestStepWaypoint({
 
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {selector: recentWaypointsSelector});
-    const [allRecentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
 
     const waypointDescriptionKey: TranslationPaths = parsedWaypointIndex === 0 ? 'distance.waypointDescription.start' : 'distance.waypointDescription.stop';
 
@@ -132,7 +132,8 @@ function DynamicIOURequestStepWaypoint({
         return errors;
     };
 
-    const save = (waypoint: FormOnyxValues<'waypointForm'>) => {
+    const save = async (waypoint: FormOnyxValues<'waypointForm'>) => {
+        const allRecentWaypoints = await Onyx.get(ONYXKEYS.NVP_RECENT_WAYPOINTS);
         saveWaypoint({
             transactionID,
             index: pageIndex,
@@ -143,7 +144,7 @@ function DynamicIOURequestStepWaypoint({
         });
     };
 
-    const submit = (values: FormOnyxValues<'waypointForm'>) => {
+    const submit = async (values: FormOnyxValues<'waypointForm'>) => {
         const waypointValue = values[`waypoint${pageIndex}`] ?? '';
         // Allows letting you set a waypoint to an empty value
         if (waypointValue === '') {
@@ -160,14 +161,15 @@ function DynamicIOURequestStepWaypoint({
                 lng: values.lng,
                 keyForList: `${(values.name ?? 'waypoint') as string}_${Date.now()}`,
             };
-            save(waypoint);
+            await save(waypoint);
         }
 
         // Other flows will be handled by selecting a waypoint with selectWaypoint as this is mainly for the offline flow
         goBack();
     };
 
-    const selectWaypoint = (values: Waypoint) => {
+    const selectWaypoint = async (values: Waypoint) => {
+        const allRecentWaypoints = await Onyx.get(ONYXKEYS.NVP_RECENT_WAYPOINTS);
         const waypoint = {
             lat: values.lat,
             lng: values.lng,
@@ -223,7 +225,9 @@ function DynamicIOURequestStepWaypoint({
                     formID={ONYXKEYS.FORMS.WAYPOINT_FORM}
                     enabledWhenOffline
                     validate={validate}
-                    onSubmit={submit}
+                    onSubmit={(values) => {
+                        submit(values);
+                    }}
                     shouldValidateOnChange={false}
                     shouldValidateOnBlur={false}
                     submitButtonText={translate('common.save')}
@@ -259,7 +263,9 @@ function DynamicIOURequestStepWaypoint({
                             containerStyles={[styles.mt4]}
                             label={translate('distance.address')}
                             defaultValue={waypointAddress}
-                            onPress={selectWaypoint}
+                            onPress={(values: Waypoint) => {
+                                selectWaypoint(values);
+                            }}
                             maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                             renamedInputKeys={{
                                 address: `waypoint${pageIndex}`,

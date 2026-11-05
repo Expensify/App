@@ -50,6 +50,7 @@ import {loginSelector} from '@selectors/PersonalDetails';
 import {policyTypeSelector} from '@selectors/Policy';
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useState} from 'react';
+import Onyx from 'react-native-onyx';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
@@ -86,7 +87,6 @@ function DynamicIOURequestStepDistanceRate({
     const personalPolicy = usePersonalPolicy();
     const [currentTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transaction?.transactionID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const {policy: policyForTransaction} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType, policyDraft});
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
@@ -184,7 +184,7 @@ function DynamicIOURequestStepDistanceRate({
     const pinnedRateID = useInitialSelection(initiallySelectedRateID, {resetOnFocus: true});
     const orderedOptions = moveInitialSelectionToTop(options, pinnedRateID ? [pinnedRateID] : []);
 
-    function selectDistanceRate(customUnitRateID: string) {
+    async function selectDistanceRate(customUnitRateID: string) {
         // Validate that the new rate combined with the existing distance doesn't exceed the backend limit.
         // This check runs before any state updates so that an invalid rate doesn't modify tax or rate state.
         const newRate = rates[customUnitRateID]?.rate ?? 0;
@@ -240,6 +240,7 @@ function DynamicIOURequestStepDistanceRate({
             }
 
             if (isEditing && transaction?.transactionID) {
+                const rules = await Onyx.get(ONYXKEYS.COLLECTION.RULE);
                 // Persist preference so the default stays in sync across the workspace (the same way as in the setMoneyRequestDistanceRate)
                 setLastSelectedDistanceRate(policy, customUnitRateID);
                 updateMoneyRequestDistanceRate({

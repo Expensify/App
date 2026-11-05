@@ -36,6 +36,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
 import React, {useCallback, useRef} from 'react';
+import Onyx from 'react-native-onyx';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
@@ -79,7 +80,6 @@ function DynamicIOURequestStepTaxAmountPage({
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -121,7 +121,7 @@ function DynamicIOURequestStepTaxAmountPage({
         Navigation.goBack(backPath, {shouldSkipFocusRestore: true});
     };
 
-    const updateTaxAmount = (currentAmount: CurrentMoney) => {
+    const updateTaxAmount = async (currentAmount: CurrentMoney) => {
         const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(currentAmount.amount));
 
         if (isEditingSplitBill) {
@@ -135,6 +135,7 @@ function DynamicIOURequestStepTaxAmountPage({
                 saveAndNavigateBack();
                 return;
             }
+            const rules = await Onyx.get(ONYXKEYS.COLLECTION.RULE);
             updateMoneyRequestTaxAmount({
                 isVendorMatchingBetaEnabled,
                 transactionID,
@@ -184,7 +185,9 @@ function DynamicIOURequestStepTaxAmountPage({
                 }}
                 // onCurrencyButtonPress is intentionally left empty as currency selection is not allowed on this page
                 onCurrencyButtonPress={() => {}}
-                onSubmitButtonPress={updateTaxAmount}
+                onSubmitButtonPress={(currentAmount) => {
+                    updateTaxAmount(currentAmount);
+                }}
                 isCurrencyPressable={false}
                 chatReportID={reportID}
             />
