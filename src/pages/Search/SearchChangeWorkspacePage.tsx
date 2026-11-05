@@ -22,7 +22,7 @@ import {getReportFromSearchSnapshot, queueBulkChangeReportPolicy} from '@libs/ac
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {isPolicyAdmin, isPolicyMember} from '@libs/PolicyUtils';
 import {isSettled, isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import {buildSearchQueryJSON, getAllMatchingReportQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -61,12 +61,14 @@ function SearchChangeWorkspacePage() {
     const loadedReports = selectedReports.map((selectedReport) => getReportFromSearchSnapshot(selectedReport.reportID, currentSearchResults?.data, allReports)).filter((report) => !!report);
 
     // The backend skips the reports that can't move to a workspace, so it's offered when one loaded report can.
+    // Unlike a single report, it doesn't invite the submitter, so they must already be a member.
     const canMoveAReportTo = (policy: OnyxEntry<Policy>) =>
-        loadedReports.some(
-            (report) =>
-                isWorkspaceEligibleForReportChange(getLoginByAccountID(report.ownerAccountID, personalDetails), policy, report) &&
-                (!isSettled(report) || isPolicyAdmin(policy, session?.email)),
-        );
+        loadedReports.some((report) => {
+            const submitterLogin = getLoginByAccountID(report.ownerAccountID, personalDetails);
+            return (
+                isPolicyMember(policy, submitterLogin) && isWorkspaceEligibleForReportChange(submitterLogin, policy, report) && (!isSettled(report) || isPolicyAdmin(policy, session?.email))
+            );
+        });
 
     const {data, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
         policies,

@@ -14,6 +14,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import type {ValueOf} from 'type-fest';
+
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -98,6 +100,10 @@ function makeReport(reportID: string, statusNum: number) {
     return {reportID, policyID: 'policy1', type: CONST.REPORT.TYPE.EXPENSE, ownerAccountID: SUBMITTER_ACCOUNT_ID, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum};
 }
 
+function makePolicy(policyID: string, name: string, role: ValueOf<typeof CONST.POLICY.ROLE>) {
+    return {id: policyID, name, type: CONST.POLICY.TYPE.TEAM, role, employeeList: {[SUBMITTER_EMAIL]: {email: SUBMITTER_EMAIL, role: CONST.POLICY.ROLE.USER}}};
+}
+
 async function changeWorkspace(areAllMatchingItemsSelected: boolean) {
     mockAreAllMatchingItemsSelected = areAllMatchingItemsSelected;
     render(
@@ -133,7 +139,7 @@ describe('SearchChangeWorkspacePage', () => {
         };
         await Onyx.clear();
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[SUBMITTER_ACCOUNT_ID]: {accountID: SUBMITTER_ACCOUNT_ID, login: SUBMITTER_EMAIL}});
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy2`, {id: 'policy2', name: 'Workspace 2', type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.USER});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy2`, makePolicy('policy2', 'Workspace 2', CONST.POLICY.ROLE.USER));
     });
 
     it('keeps Save disabled when every picked report is already on the chosen workspace', async () => {
@@ -176,7 +182,7 @@ describe('SearchChangeWorkspacePage', () => {
 
     it('keeps the workspaces in place when one is picked', async () => {
         // Given two workspaces the reports can move to
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy3`, {id: 'policy3', name: 'Workspace 3', type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.USER});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy3`, makePolicy('policy3', 'Workspace 3', CONST.POLICY.ROLE.USER));
         render(
             <OnyxListItemProvider>
                 <SearchChangeWorkspacePage />
@@ -199,7 +205,7 @@ describe('SearchChangeWorkspacePage', () => {
             [`${ONYXKEYS.COLLECTION.REPORT}report1`]: makeReport('report1', CONST.REPORT.STATUS_NUM.REIMBURSED),
             [`${ONYXKEYS.COLLECTION.REPORT}report2`]: makeReport('report2', CONST.REPORT.STATUS_NUM.REIMBURSED),
         };
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy3`, {id: 'policy3', name: 'Workspace 3', type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.ADMIN});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy3`, makePolicy('policy3', 'Workspace 3', CONST.POLICY.ROLE.ADMIN));
 
         // When the page lists the workspaces
         render(
@@ -213,12 +219,28 @@ describe('SearchChangeWorkspacePage', () => {
         expect(mockListData.map((item) => item.policyID)).toEqual(['policy3']);
     });
 
+    it('leaves out a workspace the submitter is not a member of', async () => {
+        // Given a workspace the user administers that the submitter isn't a member of
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy3`, {id: 'policy3', name: 'Workspace 3', type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.ADMIN});
+
+        // When the page lists the workspaces
+        render(
+            <OnyxListItemProvider>
+                <SearchChangeWorkspacePage />
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it isn't offered, since a bulk move doesn't invite the submitter like a single report does
+        expect(mockListData.map((item) => item.policyID)).toEqual(['policy2']);
+    });
+
     it('uses the rules of a selected report that is only in Onyx', async () => {
         // Given a paid report that the current search results don't hold, only Onyx
         mockSelectedReports = [{reportID: 'report1'}];
         mockSearchData = {};
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}report1`, makeReport('report1', CONST.REPORT.STATUS_NUM.REIMBURSED));
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy3`, {id: 'policy3', name: 'Workspace 3', type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.ADMIN});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy3`, makePolicy('policy3', 'Workspace 3', CONST.POLICY.ROLE.ADMIN));
 
         // When the page lists the workspaces
         render(
