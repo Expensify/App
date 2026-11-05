@@ -173,44 +173,47 @@ const personalDetails: PersonalDetailsList = {
     [approverAccountID]: {accountID: approverAccountID, login: approverEmail, displayName: 'Approver'},
 };
 
-const renderTransactionPreviewContent = ({
-    transactionToRender = transaction,
-    displayTransaction = transactionToRender,
-    chatReport,
-    violations = [smartscanFailedViolation],
-}: {
+type TransactionPreviewContentOptions = {
     transactionToRender?: Transaction;
     displayTransaction?: Transaction;
     chatReport?: Report;
     violations?: TransactionViolation[];
-} = {}) =>
-    render(
-        <ComposeProviders components={[OnyxListItemProvider]}>
-            <TransactionPreviewContent
-                action={moneyRequestAction}
-                isWhisper={false}
-                isHovered={false}
-                chatReport={chatReport}
-                personalDetails={personalDetails}
-                report={expenseReport}
-                policy={corporatePolicy}
-                transaction={transactionToRender}
-                displayTransaction={displayTransaction}
-                violations={violations}
-                transactionRawAmount={5000}
-                offlineWithFeedbackOnClose={() => {}}
-                containerStyles={[]}
-                transactionPreviewWidth={303}
-                isBillSplit={false}
-                areThereDuplicates={false}
-                sessionAccountID={currentUserAccountID}
-                walletTermsErrors={undefined}
-                reportPreviewAction={undefined}
-                navigateToReviewFields={() => {}}
-                routeName="Report"
-            />
-        </ComposeProviders>,
-    );
+};
+
+const buildTransactionPreviewContent = ({
+    transactionToRender = transaction,
+    displayTransaction = transactionToRender,
+    chatReport,
+    violations = [smartscanFailedViolation],
+}: TransactionPreviewContentOptions = {}) => (
+    <ComposeProviders components={[OnyxListItemProvider]}>
+        <TransactionPreviewContent
+            action={moneyRequestAction}
+            isWhisper={false}
+            isHovered={false}
+            chatReport={chatReport}
+            personalDetails={personalDetails}
+            report={expenseReport}
+            policy={corporatePolicy}
+            transaction={transactionToRender}
+            displayTransaction={displayTransaction}
+            violations={violations}
+            transactionRawAmount={5000}
+            offlineWithFeedbackOnClose={() => {}}
+            containerStyles={[]}
+            transactionPreviewWidth={303}
+            isBillSplit={false}
+            areThereDuplicates={false}
+            sessionAccountID={currentUserAccountID}
+            walletTermsErrors={undefined}
+            reportPreviewAction={undefined}
+            navigateToReviewFields={() => {}}
+            routeName="Report"
+        />
+    </ComposeProviders>
+);
+
+const renderTransactionPreviewContent = (options: TransactionPreviewContentOptions = {}) => render(buildTransactionPreviewContent(options));
 
 const renderTransactionPreview = ({action = moneyRequestAction, chatReport = policyExpenseChat}: {action?: ReportAction; chatReport?: Report} = {}) =>
     render(
@@ -312,5 +315,25 @@ describe('TransactionPreviewContent', () => {
         // Then it preserves the commuter-adjusted merchant instead of showing the full route
         expect(screen.getByText('5.46 mi @ $0.76 / mi')).toBeOnTheScreen();
         expect(screen.queryByText('6.46 mi @ $0.76 / mi')).not.toBeOnTheScreen();
+    });
+
+    it('should drop the violation message when the violations are resolved on a later render', async () => {
+        // Given a preview that shows the smartscan-failed message
+        await seedOnyx({
+            [moneyRequestAction.reportActionID]: moneyRequestAction,
+            submitted: {...LHNTestUtils.getFakeReportAction(), reportActionID: 'submitted', actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED, created: '2026-04-21 17:00:00'},
+        });
+        const {rerender} = renderTransactionPreviewContent();
+        await waitForBatchedUpdatesWithAct();
+        await waitFor(() => {
+            expect(screen.getByText('smartscan#true')).toBeOnTheScreen();
+        });
+
+        // When the parent renders it again without the violation, as after the user fixes the expense
+        rerender(buildTransactionPreviewContent({violations: []}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the message is gone, because the cached preview text must be rebuilt when the violations change
+        expect(screen.queryByText('smartscan#true')).not.toBeOnTheScreen();
     });
 });

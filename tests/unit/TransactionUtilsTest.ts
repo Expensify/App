@@ -4024,7 +4024,7 @@ describe('TransactionUtils', () => {
                 reportID: undefined,
             });
 
-            const result = TransactionUtils.getReportOwnerAccountIDAsAttendee(transaction, currentUserPersonalDetails.accountID);
+            const result = TransactionUtils.getReportOwnerAccountIDAsAttendee(transaction, currentUserPersonalDetails.accountID, SECOND_USER_ID);
 
             expect(result).toBeUndefined();
         });
@@ -4034,7 +4034,7 @@ describe('TransactionUtils', () => {
                 reportID: FAKE_OPEN_REPORT_SECOND_USER_ID,
             });
 
-            const result = TransactionUtils.getReportOwnerAccountIDAsAttendee(transaction, currentUserPersonalDetails.accountID);
+            const result = TransactionUtils.getReportOwnerAccountIDAsAttendee(transaction, currentUserPersonalDetails.accountID, secondUserOpenReport.ownerAccountID);
 
             expect(result).toBe(SECOND_USER_ID);
         });
@@ -4044,7 +4044,7 @@ describe('TransactionUtils', () => {
                 reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
             });
 
-            const result = TransactionUtils.getReportOwnerAccountIDAsAttendee(transaction, currentUserPersonalDetails.accountID);
+            const result = TransactionUtils.getReportOwnerAccountIDAsAttendee(transaction, currentUserPersonalDetails.accountID, SECOND_USER_ID);
 
             expect(result).toBe(CURRENT_USER_ID);
         });
