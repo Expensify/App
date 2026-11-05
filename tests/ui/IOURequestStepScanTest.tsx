@@ -86,7 +86,7 @@ function getTransactionsDraftOnyx(transactionID: string): Promise<OnyxEntry<Tran
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`,
             callback: (val) => {
                 resolve(val);
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
             },
         });
     });

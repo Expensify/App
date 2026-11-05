@@ -373,6 +373,7 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         managerID: report.managerID || undefined,
         supportTicketCalendarLink: report.supportTicketCalendarLink,
         ownerAccountID: report.ownerAccountID,
+        billSenderAccountID: report.billSenderAccountID,
         participants: report.participants,
         total: report.total,
         unheldTotal: report.unheldTotal,
