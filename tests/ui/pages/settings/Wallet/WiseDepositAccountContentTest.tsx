@@ -34,12 +34,36 @@ jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) =
 // The terms label is HTML, whose renderer needs an engine this screen stack does not provide
 jest.mock('@components/RenderHTML', () => () => null);
 
+// The real picker opens a modal list that needs the app's currency list, so these tests get its row plus a button per currency they pick
+jest.mock('@components/CurrencyPicker', () => {
+    const {Pressable, Text, View} = jest.requireActual<Record<string, React.ComponentType<Record<string, unknown>>>>('react-native');
+    return ({label, disabled, onInputChange}: {label: string; disabled?: boolean; onInputChange?: (value: string) => void}) => (
+        <View>
+            <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={label}
+                disabled={disabled}
+                accessibilityState={{disabled}}
+            />
+            {['GBP', 'EUR'].map((currencyCode) => (
+                <Pressable
+                    key={currencyCode}
+                    accessibilityRole="button"
+                    onPress={() => onInputChange?.(currencyCode)}
+                >
+                    <Text>{`pick-${currencyCode}`}</Text>
+                </Pressable>
+            ))}
+        </View>
+    );
+});
+
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
 // The flow names its pages by the schema's keys in lower case, so a page opens only under that name
 const FIRST_PAGE_NAME = getPages(wiseBankAccountFieldsGB.schema).at(0)?.key;
 
-async function renderScreen(subPage?: string, backTo?: Route) {
+async function renderScreen(subPage?: string, backTo?: Route, action?: 'edit') {
     await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.WISE_REIMBURSEMENTS]);
     render(
         <OnyxListItemProvider>
@@ -48,7 +72,7 @@ async function renderScreen(subPage?: string, backTo?: Route) {
                     <Stack.Screen
                         name={SCREENS.SETTINGS.ADD_BANK_ACCOUNT}
                         component={InternationalDepositAccount}
-                        initialParams={{subPage, backTo}}
+                        initialParams={{subPage, backTo, action}}
                     />
                 </Stack.Navigator>
             </NavigationContainer>
@@ -259,7 +283,7 @@ describe('WiseDepositAccountContent', () => {
         await renderScreen(FIRST_PAGE_NAME);
         fireEvent.changeText(screen.getByLabelText('Sort code', {exact: false}), '403020');
 
-        // When a currency change asks the server for a new form, and it arrives
+        // When an answer that keeps the bank account, such as the holder's country, asks the server for a new form, and it arrives
         await Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS, {isLoading: true});
         await waitForBatchedUpdatesWithAct();
         const isPageShownWhileLoading = !!screen.queryByLabelText('Sort code', {exact: false});
@@ -269,6 +293,53 @@ describe('WiseDepositAccountContent', () => {
         // Then the page stays on screen the whole time, so the typed sort code is still there instead of the form starting over
         expect(isPageShownWhileLoading).toBe(true);
         expect(screen.getByLabelText('Sort code', {exact: false}).props.value).toBe('403020');
+    });
+
+    describe('when the user changes the currency', () => {
+        /** Picks a currency in the picker, which reports the pick as the real list does */
+        async function pickCurrency(currencyCode: string) {
+            fireEvent.press(screen.getByText(`pick-${currencyCode}`));
+            await waitForBatchedUpdatesWithAct();
+        }
+
+        beforeEach(async () => {
+            // Given the bank details page of the GBP form, with the bank details and the holder's name already answered
+            await Onyx.set(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS, wiseBankAccountFieldsGB);
+            await Onyx.set(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT, {currency: 'GBP', accountNumber: '12345678', sortCode: '403020', accountHolderName: 'Jane Doe'});
+        });
+
+        it('clears every answer, since the new currency can mean another account', async () => {
+            await renderScreen(FIRST_PAGE_NAME);
+
+            // When the user picks EUR
+            await pickCurrency('EUR');
+
+            // Then only the new currency is kept, so an answer typed for the GBP account never comes back on the new form
+            expect(await getOnyxValue(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT)).toEqual({currency: 'EUR'});
+            // And the page on screen is emptied as well, not only the saved draft
+            expect(screen.getByLabelText('Sort code', {exact: false}).props.value).toBe('');
+        });
+
+        it('keeps the answers when the user picks the currency that is already selected', async () => {
+            await renderScreen(FIRST_PAGE_NAME);
+
+            // When the user opens the picker and picks GBP again
+            await pickCurrency('GBP');
+
+            // Then nothing is cleared, since the account did not change
+            expect(await getOnyxValue(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT)).toMatchObject({sortCode: '403020', accountHolderName: 'Jane Doe'});
+        });
+
+        it('leaves edit mode, so the user fills in the new form before confirming again', async () => {
+            // Given the bank details page opened from the confirmation page to edit it
+            await renderScreen(FIRST_PAGE_NAME, undefined, 'edit');
+
+            // When the user picks EUR
+            await pickCurrency('EUR');
+
+            // Then the same page opens outside edit mode, so its button goes on to the holder page instead of back to a confirmation page with every answer gone
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(undefined, FIRST_PAGE_NAME), {forceReplace: true});
+        });
     });
 
     it('locks the currency offline while the bank details stay editable', async () => {

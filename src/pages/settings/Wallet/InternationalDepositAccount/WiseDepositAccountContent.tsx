@@ -21,6 +21,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import CountrySelectionList from '@pages/settings/Wallet/CountrySelectionList';
 
 import {clearPersonalBankAccount, clearWiseBankAccountFields, clearWiseBankAccountForm, createWiseBankAccount, getWiseBankAccountFields} from '@userActions/BankAccounts';
+import {clearSensitiveAnswers} from '@userActions/DynamicForm';
 import {clearDraftValues, clearErrors, setDraftValues} from '@userActions/FormActions';
 import {continueSetup, getPaymentMethods} from '@userActions/PaymentMethods';
 
@@ -44,9 +45,15 @@ type WiseDepositAccountContentProps = {
 
     /** The form page the URL points at, if any */
     subPage?: string;
+
+    /** The page was opened from the confirmation page to change an answer */
+    isEditing?: boolean;
 };
 
 const onSuccessFallbackRouteSelector = (personalBankAccount: OnyxEntry<PersonalBankAccount>) => personalBankAccount?.onSuccessFallbackRoute;
+
+/** The schema's currency field, which also picks the kind of account Wise asks for */
+const CURRENCY_INPUT_ID = 'currency';
 
 const COUNTRIES = Object.keys(CONST.ALL_COUNTRIES).filter((countryISO) => !CONST.WISE.EXCLUDED_BANK_ACCOUNT_COUNTRIES.includes(countryISO));
 
@@ -67,7 +74,7 @@ function useReturnToCountryListOnOpenWithoutSchema(isOnPageWithoutSchema: boolea
     }, []);
 }
 
-function WiseDepositAccountContent({backTo, subPage}: WiseDepositAccountContentProps) {
+function WiseDepositAccountContent({backTo, subPage, isEditing}: WiseDepositAccountContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [wiseBankAccountFields] = useOnyx(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS);
@@ -82,6 +89,8 @@ function WiseDepositAccountContent({backTo, subPage}: WiseDepositAccountContentP
     // The terms tick is kept on this screen only, not in the draft, so a new visit to the flow asks for it again
     const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
     const [shouldShowTermsError, setShouldShowTermsError] = useState(false);
+    // Remounts the form when it starts over, since its pages keep what the user typed in their own state as well as in the draft
+    const [formStartCount, setFormStartCount] = useState(0);
     const errorMessage = getLatestErrorMessage(wiseBankAccountFields);
     const payoutType = wiseBankAccountFields?.payoutType;
     const formCurrency = wiseBankAccountFields?.currency;
@@ -172,7 +181,27 @@ function WiseDepositAccountContent({backTo, subPage}: WiseDepositAccountContentP
     // A refresh that failed leaves the server's currency behind the user's pick, so the user's answer wins over what the server last sent. An empty answer means no pick yet
     const getAnswerCurrency = (answers: Record<string, unknown>) => (typeof answers.currency === 'string' && answers.currency !== '' ? answers.currency : wiseBankAccountFields?.currency);
 
+    /**
+     * Another currency can mean another account, so every answer, the holder's included, is dropped rather than carried over to the new form, as in the Corpay flow.
+     * A page opened from the confirmation page leaves edit mode, since confirming there again would show a form with every answer gone.
+     */
+    const startOverWithCurrency = (currency: string) => {
+        clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
+        clearSensitiveAnswers(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
+        setDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, {[CURRENCY_INPUT_ID]: currency});
+        setFormStartCount((count) => count + 1);
+        getWiseBankAccountFields(selectedCountry, currency);
+        if (isEditing && subPage) {
+            Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(backTo, subPage), {forceReplace: true});
+        }
+    };
+
     const refreshForm = (inputID: string, value: FormValue) => {
+        // The draft this render read still holds the currency from before the pick, so picking the same currency again keeps the answers
+        if (inputID === CURRENCY_INPUT_ID && typeof value === 'string' && value !== getAnswerCurrency(draftValues ?? {})) {
+            startOverWithCurrency(value);
+            return;
+        }
         const answers = getCurrentSchemaAnswers(schema, draftValues);
         answers[inputID] = value;
         getWiseBankAccountFields(selectedCountry, getAnswerCurrency(answers), answers);
@@ -210,6 +239,7 @@ function WiseDepositAccountContent({backTo, subPage}: WiseDepositAccountContentP
     if (schema) {
         return (
             <DynamicFormFlow
+                key={formStartCount}
                 schema={schema}
                 formID={ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM}
                 headerTitle={translate('bankAccount.addBankAccount')}
