@@ -209,11 +209,12 @@ function buildTaxActionValue(taxKey: string | undefined, policy: Policy | undefi
  */
 function buildAmountActionValue(amount: string | undefined): number | undefined {
     const amountInCents = Number(amount);
-    if (!amount || !Number.isFinite(amountInCents) || amountInCents === 0) {
+    if (!amount || !Number.isFinite(amountInCents)) {
         return undefined;
     }
 
-    return -Math.abs(amountInCents);
+    // Zero is a default an admin can set, and negating it would store -0.
+    return amountInCents === 0 ? 0 : -Math.abs(amountInCents);
 }
 
 /** A merchant rule as this editor builds it, which is the stored shape minus the fields the server fills in. */
@@ -508,7 +509,8 @@ function getExpenseDefaultFormValues(rule: Rule | ExpenseDefaultRule | undefined
 
         if (field === FIELD.AMOUNT) {
             // A rule setting a credit rather than an expense has no input in the form, so it stays read-only.
-            if (typeof value !== 'number' || value >= 0) {
+            // Zero is not a credit, so it reads back as the amount it is.
+            if (typeof value !== 'number' || value > 0) {
                 return undefined;
             }
             formValues.amount = String(Math.abs(value));
