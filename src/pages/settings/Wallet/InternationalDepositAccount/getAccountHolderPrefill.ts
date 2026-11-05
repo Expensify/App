@@ -2,7 +2,7 @@
  * The account holder answers the user's private details already hold, keyed the way the Wise bank account schema asks for them, so the form
  * starts filled in. Only details that are set are returned, so nothing blank is written over what the user types.
  */
-import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
+import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
 
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 
@@ -17,7 +17,7 @@ function getAccountHolderPrefill(privatePersonalDetails: OnyxEntry<PrivatePerson
     const legalName = [privatePersonalDetails?.legalFirstName, privatePersonalDetails?.legalLastName].filter(Boolean).join(' ');
     const candidates: Record<string, string | undefined> = {
         accountHolderName: legalName,
-        [`${ADDRESS_KEY}.firstLine`]: address?.street.split('\n').at(0),
+        [`${ADDRESS_KEY}.firstLine`]: getStreetLines(address?.street).at(0),
         [`${ADDRESS_KEY}.city`]: address?.city,
         [`${ADDRESS_KEY}.state`]: address?.state,
         [`${ADDRESS_KEY}.postCode`]: address?.zip,

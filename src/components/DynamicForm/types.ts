@@ -31,7 +31,6 @@ type DynamicFormFlowProps = Pick<DynamicFormFieldsProps, 'currency' | 'maxFileSi
     /** Title of the confirmation page */
     confirmationTitle: string;
 
-    /** Text under the confirmation page's title */
     confirmationSubtitle?: string;
 
     /** A consent checkbox above the Confirm button. Confirm shows `errorText` under it and submits nothing until it is ticked. */

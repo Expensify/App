@@ -5,7 +5,6 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
@@ -17,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 
+import TermsOfServiceLabel from '@pages/settings/Wallet/InternationalDepositAccount/TermsOfServiceLabel';
 import type CustomSubPageProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
 
 import {clearReimbursementAccountBankCreation, createCorpayBankAccountForWalletFlow, hideBankAccountErrors} from '@userActions/BankAccounts';
@@ -38,11 +38,6 @@ type MenuItemProps = {
     interactive?: boolean;
     disabled?: boolean;
 };
-
-function TermsAndConditionsLabel() {
-    const {translate} = useLocalize();
-    return <RenderHTML html={translate('common.acceptTermsOfService')} />;
-}
 
 function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProps) {
     const {translate} = useLocalize();
@@ -201,7 +196,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
                     InputComponent={CheckboxWithLabel}
                     accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.addCardTermsOfService')}`}
                     inputID="acceptTerms"
-                    LabelComponent={TermsAndConditionsLabel}
+                    LabelComponent={TermsOfServiceLabel}
                     style={[styles.mt3]}
                     shouldSaveDraft
                 />

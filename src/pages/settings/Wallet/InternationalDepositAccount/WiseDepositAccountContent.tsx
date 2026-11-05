@@ -7,7 +7,6 @@ import type {FormValue} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
-import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useLocalize from '@hooks/useLocalize';
@@ -29,6 +28,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {PersonalBankAccount} from '@src/types/onyx';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -36,6 +36,7 @@ import React, {useContext, useEffect, useEffectEvent, useState} from 'react';
 
 import getAccountHolderPrefill, {ADDRESS_COUNTRY_KEY} from './getAccountHolderPrefill';
 import getCurrentSchemaAnswers from './getCurrentSchemaAnswers';
+import TermsOfServiceLabel from './TermsOfServiceLabel';
 import WiseBankAccountAdded from './WiseBankAccountAdded';
 
 type WiseDepositAccountContentProps = {
@@ -46,11 +47,6 @@ type WiseDepositAccountContentProps = {
 };
 
 const onSuccessFallbackRouteSelector = (personalBankAccount: OnyxEntry<PersonalBankAccount>) => personalBankAccount?.onSuccessFallbackRoute;
-
-function TermsOfServiceLabel() {
-    const {translate} = useLocalize();
-    return <RenderHTML html={translate('common.acceptTermsOfService')} />;
-}
 
 const COUNTRIES = Object.keys(CONST.ALL_COUNTRIES).filter((countryISO) => !CONST.WISE.EXCLUDED_BANK_ACCOUNT_COUNTRIES.includes(countryISO));
 
@@ -78,7 +74,7 @@ function WiseDepositAccountContent({backTo, subPage}: WiseDepositAccountContentP
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT);
     const [formState] = useOnyx(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
     const [country] = useOnyx(ONYXKEYS.COUNTRY);
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [accountHolderPrefill = getEmptyObject<Record<string, string>>()] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {selector: getAccountHolderPrefill});
     const [onSuccessFallbackRoute] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {selector: onSuccessFallbackRouteSelector});
     const kycWallRef = useContext(KYCWallContext);
     const storedCountry = wiseBankAccountFields?.country ?? country ?? '';
@@ -87,7 +83,6 @@ function WiseDepositAccountContent({backTo, subPage}: WiseDepositAccountContentP
     const payoutType = wiseBankAccountFields?.payoutType;
     const formCurrency = wiseBankAccountFields?.currency;
     const schema = wiseBankAccountFields?.schema;
-    const accountHolderPrefill = getAccountHolderPrefill(privatePersonalDetails);
 
     // The currency and payout type selects start on what the server picked. A value the server just sent replaces the user's pick, while a screen
     // that opens on a later page only fills what the draft is missing, so a pick kept after a failed refresh survives the next page.
