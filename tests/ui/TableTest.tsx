@@ -2,7 +2,7 @@ import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import {ModalProvider} from '@components/Modal/Global/ModalContext';
+import {ModalActions, ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 import Table, {composeTableListHeader} from '@components/Table';
@@ -11,10 +11,13 @@ import dismissKeyboardOnDrag from '@components/Table/dismissKeyboardOnDrag';
 import Text from '@components/Text';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
+import useMobileSelectionMenuModal from '@hooks/useMobileSelectionMenuModal';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
 import {acquireBackgroundInputFocusSuppression} from '@libs/ModalFocusManager';
+import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import type Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
@@ -92,6 +95,10 @@ let mockNextTextInputInstanceID = 0;
 let mockFlashListProps: Array<MockFlashListProps<unknown>> = [];
 let mockFlashListMeasurementTargetIndexes: number[] = [];
 let mockShouldUseNarrowLayout = false;
+
+jest.mock('@hooks/useMobileSelectionMenuModal', () => ({__esModule: true, default: jest.fn()}));
+jest.mock('@hooks/useMobileSelectionMode', () => ({__esModule: true, default: jest.fn(() => false)}));
+jest.mock('@libs/actions/MobileSelectionMode', () => ({turnOnMobileSelectionMode: jest.fn(), turnOffMobileSelectionMode: jest.fn()}));
 
 jest.mock('@components/Table/dismissKeyboardOnDrag', () => ({
     __esModule: true,
@@ -644,6 +651,134 @@ describe('Table', () => {
         mockFlashListProps = [];
         mockFlashListMeasurementTargetIndexes = [];
         mockShouldUseNarrowLayout = false;
+        jest.mocked(useMobileSelectionMenuModal).mockReturnValue({showMobileSelectionMenuModal: jest.fn().mockResolvedValue({action: ModalActions.CLOSE})});
+        jest.mocked(useMobileSelectionMode).mockReturnValue(false);
+    });
+
+    describe('mobile long-press selection', () => {
+        const showMenu = jest.fn();
+        const onRowSelectionChange = jest.fn();
+        const defaultResponsiveLayoutImplementation = jest.mocked(useResponsiveLayout).getMockImplementation();
+
+        function renderSelectionTable({disabled = false, isSelectionDisabled = false, interactive = true, selectionEnabled = true, shouldEnableSelectionInNarrowPaneModal = false} = {}) {
+            const props = createDefaultProps();
+            const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
+                <Table.Row
+                    rowIndex={index}
+                    interactive={interactive}
+                    accessibilityLabel={item.name}
+                    testID={`selectable-row-${item.id}`}
+                >
+                    <Text>{item.name}</Text>
+                </Table.Row>
+            );
+
+            return render(
+                <Table
+                    {...props}
+                    data={props.data.map((item) => ({...item, disabled, isSelectionDisabled}))}
+                    renderItem={renderItem}
+                    selectionEnabled={selectionEnabled}
+                    shouldEnableSelectionInNarrowPaneModal={shouldEnableSelectionInNarrowPaneModal}
+                    onRowSelectionChange={onRowSelectionChange}
+                >
+                    <Table.Body />
+                </Table>,
+            );
+        }
+
+        beforeEach(() => {
+            jest.mocked(useMobileSelectionMenuModal).mockReturnValue({showMobileSelectionMenuModal: showMenu});
+            showMenu.mockReset().mockResolvedValue({action: ModalActions.CLOSE});
+            jest.mocked(useResponsiveLayout).mockReturnValue(createMock<ResponsiveLayoutResult>({shouldUseNarrowLayout: true, isSmallScreenWidth: true, isInNarrowPaneModal: false}));
+        });
+
+        afterEach(() => {
+            if (!defaultResponsiveLayoutImplementation) {
+                return;
+            }
+            jest.mocked(useResponsiveLayout).mockImplementation(defaultResponsiveLayoutImplementation);
+        });
+
+        it('opens the global menu and selects the pressed row on CONFIRM', async () => {
+            // Given an eligible table row and a confirmed menu action.
+            showMenu.mockResolvedValue({action: ModalActions.CONFIRM});
+            renderSelectionTable();
+            onRowSelectionChange.mockClear();
+
+            // When that row is long-pressed.
+            fireEvent(screen.getByTestId('selectable-row-2'), 'longPress');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the table preserves its selector and label, enables selection, and selects that exact key.
+            expect(showMenu).toHaveBeenCalledWith({
+                sentryLabel: CONST.SENTRY_LABEL.TABLE.SELECTION_MODE_MENU_ITEM,
+                testID: CONST.SELECTION_LIST_WITH_MODAL_TEST_ID,
+                shouldSkipFocusRestoreOnSelect: true,
+            });
+            expect(turnOnMobileSelectionMode).toHaveBeenCalledTimes(1);
+            expect(onRowSelectionChange).toHaveBeenCalledWith(['2']);
+        });
+
+        it('leaves selection untouched when the menu is dismissed', async () => {
+            // Given an eligible row whose menu will be dismissed.
+            renderSelectionTable();
+            onRowSelectionChange.mockClear();
+
+            // When the user long-presses and dismisses.
+            fireEvent(screen.getByTestId('selectable-row-1'), 'longPress');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then neither selection mode nor the selected keys change.
+            expect(showMenu).toHaveBeenCalledTimes(1);
+            expect(turnOnMobileSelectionMode).not.toHaveBeenCalled();
+            expect(onRowSelectionChange).not.toHaveBeenCalled();
+        });
+
+        it.each([
+            {disabled: true},
+            {isSelectionDisabled: true},
+            {interactive: false},
+            {selectionEnabled: false},
+        ])('does not open a menu for an ineligible row: %j', (options) => {
+            // Given a row that must not enter selection mode.
+            renderSelectionTable(options);
+
+            // When it receives a long press.
+            fireEvent(screen.getByTestId('selectable-row-1'), 'longPress');
+
+            // Then no modal is opened.
+            expect(showMenu).not.toHaveBeenCalled();
+        });
+
+        it.each([
+            {isSmallScreenWidth: false, isInNarrowPaneModal: false, isSelectionModeEnabled: false},
+            {isSmallScreenWidth: true, isInNarrowPaneModal: true, isSelectionModeEnabled: false},
+            {isSmallScreenWidth: true, isInNarrowPaneModal: false, isSelectionModeEnabled: true},
+        ])('preserves the layout and selection-mode guards: %j', ({isSmallScreenWidth, isInNarrowPaneModal, isSelectionModeEnabled}) => {
+            // Given a wide layout, a non-opted-in narrow pane, or a table already in selection mode.
+            jest.mocked(useResponsiveLayout).mockReturnValue(createMock<ResponsiveLayoutResult>({shouldUseNarrowLayout: true, isSmallScreenWidth, isInNarrowPaneModal}));
+            jest.mocked(useMobileSelectionMode).mockReturnValue(isSelectionModeEnabled);
+            renderSelectionTable();
+
+            // When a row is long-pressed.
+            fireEvent(screen.getByTestId('selectable-row-1'), 'longPress');
+
+            // Then the long press still opens no menu.
+            expect(showMenu).not.toHaveBeenCalled();
+        });
+
+        it('allows opted-in narrow-pane tables to open the menu on small screens', () => {
+            // Given a small-screen narrow pane whose table allows selection.
+            jest.mocked(useResponsiveLayout).mockReturnValue(createMock<ResponsiveLayoutResult>({shouldUseNarrowLayout: true, isSmallScreenWidth: true, isInNarrowPaneModal: true}));
+            renderSelectionTable({shouldEnableSelectionInNarrowPaneModal: true});
+
+            // When an eligible row is long-pressed.
+            fireEvent(screen.getByTestId('selectable-row-1'), 'longPress');
+
+            // Then the global menu opens as it does in the central pane.
+            expect(showMenu).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe('rendering', () => {

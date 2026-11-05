@@ -10539,6 +10539,7 @@ const CONST = {
             FILTERS: 'Table-Filters',
             SETTINGS: 'Table-Settings',
             EDITABLE_CELL: 'Table-EditableCell',
+            SELECTION_MODE_MENU_ITEM: 'Table-SelectionModeMenuItem',
         },
         REPORT: {
             FLOATING_MESSAGE_COUNTER: 'Report-FloatingMessageCounter',
