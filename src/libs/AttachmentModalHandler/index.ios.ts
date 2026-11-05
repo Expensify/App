@@ -4,16 +4,12 @@ import type AttachmentModalHandler from './types';
 
 const attachmentModalHandler: AttachmentModalHandler = {
     handleModalClose: (onCloseCallback) => {
-        // Ensure `AttachmentCarousel` is unmounted before `AttachmentModal` is closed to prevent any delay in the attachment preview when closing the modal.
-        // This delay causes the attachment preview to slide to the right on iOS, especially when there is an animation involved.
-        // The issue is tracked in https://github.com/Expensify/App/issues/52937.
-        // `TransitionTracker.runAfterTransitions` ensures that `onCloseCallback` is executed only after all interactions and animations have completed,
-        // preventing any unintended visual delay or jarring transition when the modal is closed.
+        // Wait for active transitions to avoid the visual glitch tracked in https://github.com/Expensify/App/issues/52937.
+        // Do not wait for an upcoming transition: the close callback starts the navigation that would trigger it.
         TransitionTracker.runAfterTransitions({
             callback: () => {
                 onCloseCallback?.();
             },
-            waitForUpcomingTransition: true,
         });
     },
 };
