@@ -105,6 +105,51 @@ export default useFoo;
         expect(lostGuards).toEqual([{functionName: 'useFoo'}]);
     });
 
+    it('should report an optional call that loses its cache guard', () => {
+        // Given the cached and uncached hooks, with the list built by an optional-chained call
+        const toOptionalCall = (source: string) => source.replace('buildList(items)', 'items?.slice()');
+
+        // When both versions are compared
+        const lostGuards = findLostCacheGuards(toOptionalCall(CACHED_SOURCE), toOptionalCall(UNCACHED_SOURCE), 'src/hooks/useFoo.ts');
+
+        // Then the optional call is reported, since Babel parses it as OptionalCallExpression rather than CallExpression
+        expect(lostGuards).toEqual([
+            {functionName: 'useFoo', call: 'items.slice'},
+            {functionName: 'useFoo', call: 'list.push'},
+        ]);
+    });
+
+    it('should report a constructor call that loses its cache guard', () => {
+        // Given the cached and uncached hooks, with the list built by a constructor
+        const toConstructor = (source: string) => source.replace('buildList(items)', 'new Set(items)').replace('list.push(1)', 'list.add(1)');
+
+        // When both versions are compared
+        const lostGuards = findLostCacheGuards(toConstructor(CACHED_SOURCE), toConstructor(UNCACHED_SOURCE), 'src/hooks/useFoo.ts');
+
+        // Then the constructor is reported, since Babel parses it as NewExpression rather than CallExpression
+        expect(lostGuards).toEqual([
+            {functionName: 'useFoo', call: 'new Set'},
+            {functionName: 'useFoo', call: 'list.add'},
+        ]);
+    });
+
+    it('should compile the base version with its own extension when a file was renamed from .tsx to .ts', () => {
+        // Given a hook that renders JSX on main in a .tsx file, and loses its cache after moving to a .ts file
+        const baseSource = CACHED_SOURCE.replace('return {list, labels};', 'return {list, labels, header: <Header />};').replace(
+            "import {buildList, formatLabels, useThing} from './utils';",
+            "import {buildList, formatLabels, Header, useThing} from './utils';",
+        );
+
+        // When it is compared with the branch using each version's own path
+        const lostGuards = findLostCacheGuards(baseSource, UNCACHED_SOURCE, 'src/hooks/useFoo.ts', 'src/hooks/useFoo.tsx');
+
+        // Then the lost cache is still reported, because the JSX on main no longer fails to parse as TypeScript
+        expect(lostGuards).toEqual([
+            {functionName: 'useFoo', call: 'buildList'},
+            {functionName: 'useFoo', call: 'list.push'},
+        ]);
+    });
+
     it('should not compare a function that was renamed', () => {
         // Given a branch that loses the cache but also renames the hook
         const branchSource = UNCACHED_SOURCE.replaceAll('useFoo', 'useBar');

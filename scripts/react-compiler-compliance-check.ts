@@ -137,7 +137,7 @@ async function checkChangedFiles(remote: string, verbose: boolean): Promise<bool
 
         if (branchResult.status !== 'failed') {
             const mainSource = status === 'added' || shouldSkipReactCompiler(filename) ? undefined : getMainSource(mainBaseCommitHash, previousFilename ?? filename);
-            const lostGuards = mainSource === undefined ? [] : findLostCacheGuards(mainSource, source, absolutePath);
+            const lostGuards = mainSource === undefined ? [] : findLostCacheGuards(mainSource, source, absolutePath, previousFilename ?? absolutePath);
             if (lostGuards.length > 0) {
                 failures.push({file: filename, reason: 'Calls that the React Compiler cached on main run on every render on this branch'});
                 logError(`FAILED  ${filename} (lost caching: cached on main)`);

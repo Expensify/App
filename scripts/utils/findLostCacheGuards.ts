@@ -43,6 +43,12 @@ type TraversalContext = {
 const NON_CHILD_KEYS = new Set(['loc', 'start', 'end', 'extra', 'leadingComments', 'trailingComments', 'innerComments', 'comments']);
 const FUNCTION_TYPES = new Set(['FunctionDeclaration', 'FunctionExpression', 'ArrowFunctionExpression', 'ObjectMethod', 'ClassMethod']);
 const JSX_RUNTIME_CALL_PREFIX = '_jsx';
+const NEW_EXPRESSION_PREFIX = 'new ';
+
+// Babel parses optional chaining (`items?.filter(...)`) as optional node types, and `new Set(items)` caches work
+// the same way a call does, so all of them are counted or moving one out of a guard would go unnoticed.
+const CALL_TYPES = new Set(['CallExpression', 'OptionalCallExpression', 'NewExpression']);
+const MEMBER_TYPES = new Set(['MemberExpression', 'OptionalMemberExpression']);
 const HOOK_NAME_PATTERN = /^use[A-Z0-9]/;
 const COMPILER_TEMPORARY_PATTERN = /^t\d+$/;
 const ANONYMOUS_FUNCTION_NAME = '<anonymous>';
@@ -71,7 +77,7 @@ function getMemberChainName(node: unknown): string | undefined {
     if (node.type === 'ThisExpression') {
         return 'this';
     }
-    if (node.type === 'MemberExpression' && !node.computed && BabelASTUtils.isASTNode(node.property) && typeof node.property.name === 'string') {
+    if (MEMBER_TYPES.has(node.type) && !node.computed && BabelASTUtils.isASTNode(node.property) && typeof node.property.name === 'string') {
         const objectName = getMemberChainName(node.object);
         return objectName === undefined ? undefined : `${objectName}.${node.property.name}`;
     }
@@ -82,6 +88,9 @@ function getCallName(node: ASTNode): string | undefined {
     const calleeName = getMemberChainName(node.callee);
     if (calleeName === undefined) {
         return undefined;
+    }
+    if (node.type === 'NewExpression') {
+        return `${NEW_EXPRESSION_PREFIX}${calleeName}`;
     }
     if (calleeName.startsWith(JSX_RUNTIME_CALL_PREFIX)) {
         const elementType = Array.isArray(node.arguments) ? (node.arguments.at(0) as unknown) : undefined;
@@ -192,7 +201,7 @@ function collectFunctionCalls(code: string): Map<string, FunctionCalls> | undefi
             return;
         }
 
-        if (node.type === 'CallExpression' && context) {
+        if (CALL_TYPES.has(node.type) && context) {
             const callName = getCallName(node);
             if (callName !== undefined) {
                 recordCall(context, callName);
@@ -218,9 +227,12 @@ function collectFunctionCalls(code: string): Map<string, FunctionCalls> | undefi
  * Compiles both versions of a file and lists every call that moved from inside a cache guard on the base
  * branch to outside one, plus every function that cached something on the base branch and is no longer
  * compiled. Functions that were renamed or removed are not compared.
+ *
+ * `baseFilename` is the file's path on the base branch, so a file renamed between `.ts` and `.tsx` parses each
+ * version with its own syntax.
  */
-function findLostCacheGuards(baseSource: string, branchSource: string, filename: string): LostCacheGuard[] {
-    const baseCode = compile(baseSource, filename);
+function findLostCacheGuards(baseSource: string, branchSource: string, filename: string, baseFilename = filename): LostCacheGuard[] {
+    const baseCode = compile(baseSource, baseFilename);
     const branchCode = compile(branchSource, filename);
     if (baseCode === undefined || branchCode === undefined) {
         return [];
