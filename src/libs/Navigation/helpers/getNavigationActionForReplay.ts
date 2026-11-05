@@ -1,8 +1,13 @@
+/**
+ * Prepares a navigation that a "Discard changes?" prompt blocked, so sending it again after Discard does what it first did.
+ */
 import navigationRef from '@libs/Navigation/navigationRef';
+
+import CONST from '@src/CONST';
 
 import type {NavigationAction} from '@react-navigation/native';
 
-const BACK_ACTION_TYPES = new Set<string>(['GO_BACK', 'POP', 'POP_TO_TOP']);
+const BACK_ACTION_TYPES = new Set<string>([CONST.NAVIGATION.ACTION_TYPE.GO_BACK, CONST.NAVIGATION.ACTION_TYPE.POP]);
 
 /**
  * Makes Discard close the whole RHP when the user clicked outside it.

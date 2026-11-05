@@ -1,3 +1,7 @@
+/**
+ * Asks "Discard changes?" before the user switches to another tab while the draft has their input.
+ * Switching tabs already clears the draft, so Discard has nothing extra to do.
+ */
 import {useRegisterTabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext';
 
 import {useRoute} from '@react-navigation/native';
@@ -8,10 +12,6 @@ type CreateFlowTabSwitchGuardProps = {
     hasUnsavedChanges: boolean;
 };
 
-/**
- * Asks "Discard changes?" before the user switches to another tab while the draft has their input.
- * Switching tabs already clears the draft, so Discard has nothing extra to do.
- */
 function CreateFlowTabSwitchGuard({hasUnsavedChanges}: CreateFlowTabSwitchGuardProps) {
     const route = useRoute();
     useRegisterTabSwitchGuard(route.name, () => hasUnsavedChanges, noop);

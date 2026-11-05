@@ -1,4 +1,10 @@
+/**
+ * Tells whether a navigation that removes a guarded screen still keeps the user in its flow, so the "Discard changes?" prompt
+ * shouldn't ask.
+ */
 import {isRecord} from '@libs/ObjectUtils';
+
+import CONST from '@src/CONST';
 
 import type {NavigationAction, NavigationState, PartialState} from '@react-navigation/native';
 
@@ -14,7 +20,7 @@ type GuardedStack = {
     routes: ReadonlyArray<{key: string}>;
 };
 
-const BACK_ACTION_TYPES = new Set<string>(['GO_BACK', 'POP']);
+const BACK_ACTION_TYPES = new Set<string>([CONST.NAVIGATION.ACTION_TYPE.GO_BACK, CONST.NAVIGATION.ACTION_TYPE.POP]);
 
 function isNavigationStateWithRoutes(state: unknown): state is PartialState<NavigationState> {
     return isRecord(state) && Array.isArray(state.routes);
@@ -33,8 +39,8 @@ function getTransactionIDFromRouteParams(params: unknown): string | undefined {
     return getTransactionIDFromRouteParams(params.params);
 }
 
-function stateContainsRoute(state: PartialState<NavigationState>, isMatch: (route: PartialState<NavigationState>['routes'][number]) => boolean): boolean {
-    return state.routes.some((route) => isMatch(route) || (isNavigationStateWithRoutes(route.state) && stateContainsRoute(route.state, isMatch)));
+function doesStateContainRoute(state: PartialState<NavigationState>, isMatch: (route: PartialState<NavigationState>['routes'][number]) => boolean): boolean {
+    return state.routes.some((route) => isMatch(route) || (isNavigationStateWithRoutes(route.state) && doesStateContainRoute(route.state, isMatch)));
 }
 
 /**
@@ -51,14 +57,14 @@ function stateContainsRoute(state: PartialState<NavigationState>, isMatch: (rout
 function isNavigationInsideFlow(action: NavigationAction, route: GuardedRoute, stack: GuardedStack | undefined, canGoBack: boolean): boolean {
     const transactionID = getTransactionIDFromRouteParams(route.params);
 
-    if (action.type === 'RESET') {
+    if (action.type === CONST.NAVIGATION.ACTION_TYPE.RESET) {
         if (!isNavigationStateWithRoutes(action.payload)) {
             return false;
         }
         if (canGoBack && transactionID !== undefined) {
-            return stateContainsRoute(action.payload, (stateRoute) => getTransactionIDFromRouteParams(stateRoute.params) === transactionID);
+            return doesStateContainRoute(action.payload, (stateRoute) => getTransactionIDFromRouteParams(stateRoute.params) === transactionID);
         }
-        return stateContainsRoute(
+        return doesStateContainRoute(
             action.payload,
             (stateRoute) => stateRoute.name === route.name && (transactionID === undefined || getTransactionIDFromRouteParams(stateRoute.params) === transactionID),
         );

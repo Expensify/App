@@ -1,3 +1,7 @@
+/**
+ * While multi-scan is on, the Scan step shows the receipts captured so far, so closing the RHP or switching tabs asks first.
+ * Without multi-scan, the Scan step only shows the camera, so it doesn't ask.
+ */
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useTransactionDraftReceipts from '@hooks/useTransactionDraftReceipts';
 
@@ -22,10 +26,6 @@ function CapturedReceiptsDiscardGuard() {
     return null;
 }
 
-/**
- * While multi-scan is on, the Scan step shows the receipts captured so far, so closing the RHP or switching tabs asks first.
- * Without multi-scan, the Scan step only shows the camera, so it doesn't ask.
- */
 function MultiScanDiscardGuard() {
     const {isMultiScanEnabled} = useMultiScanState();
     return isMultiScanEnabled ? <CapturedReceiptsDiscardGuard /> : null;

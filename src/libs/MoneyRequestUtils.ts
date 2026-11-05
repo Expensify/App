@@ -270,8 +270,7 @@ function hasMoneyRequestDraftUserEdits(transaction: OnyxEntry<Transaction>, opti
     }
 
     const comment = transaction.comment;
-    const hasModifiedSplitShare = Object.values(transaction.splitShares ?? {}).some((splitShare) => !!splitShare?.isModified);
-    if (transaction.hasUserEdits || transaction.isCreatedSet || !!comment?.comment?.trim() || hasModifiedSplitShare) {
+    if (transaction.hasUserEdits || transaction.isCreatedSet || !!comment?.comment?.trim() || Object.values(transaction.splitShares ?? {}).some((splitShare) => !!splitShare?.isModified)) {
         return true;
     }
 

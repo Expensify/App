@@ -45,6 +45,7 @@ import {
     shouldShowReceiptEmptyState,
     shouldUseTransactionDraft,
 } from '@libs/IOUUtils';
+import {isFlowDiscardPromptSuppressed} from '@libs/Navigation/helpers/discardPromptState';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
@@ -533,8 +534,8 @@ function IOURequestStepConfirmationContent({
     });
 
     const navigateBack = () => {
-        // When the guard asks first, it cleans up only if the user picks Discard
-        if (!isFlowDirty || !shouldPromptWhenGoingBack) {
+        // When the guard asks first, it cleans up only if the user picks Discard. A submit in progress mutes it.
+        if (!isFlowDirty || !shouldPromptWhenGoingBack || isFlowDiscardPromptSuppressed()) {
             // User is explicitly abandoning the flow - cancel any active telemetry span.
             // The orchestrator never calls navigateBack (it uses dismissModal), so this
             // reliably distinguishes user-initiated back from programmatic dismiss.
