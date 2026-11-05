@@ -7100,9 +7100,9 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             cannotDisableCategoryForMembers: {
                 title: 'Kategorie kann nicht deaktiviert werden',
                 description:
-                    'Jedes Mitglied braucht mindestens eine Kategorie zur Auswahl, und diese Mitglieder können nur diese eine verwenden. Gib ihnen zuerst Zugriff auf eine andere Kategorie und versuche es dann erneut.',
+                    'Jedes Mitglied benötigt mindestens eine Kategorie zur Auswahl, und diese Mitglieder können nur diese eine verwenden. Geben Sie ihnen zuerst Zugriff auf eine andere Kategorie und versuchen Sie es dann erneut.',
                 bulkDescription:
-                    'Jedes Mitglied braucht mindestens eine Kategorie zur Auswahl, und diese Mitglieder können nur diese Kategorien verwenden. Gib ihnen zuerst Zugriff auf eine andere Kategorie und versuche es dann erneut.',
+                    'Jedes Mitglied benötigt mindestens eine Kategorie zur Auswahl, und diese Mitglieder können nur diese Kategorien verwenden. Gewähren Sie ihnen zuerst Zugriff auf eine andere Kategorie und versuchen Sie es dann erneut.',
                 andMore: ({count}: {count: number}) => `und ${count} weitere`,
             },
         },
@@ -7818,7 +7818,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             },
             officeLocation: 'Bürostandort',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
-            categoryVisibility: 'Kategorie-Sichtbarkeit',
+            categoryVisibility: 'Kategoriesichtbarkeit',
             allCategories: 'Alle Kategorien',
             categoriesCount: ({count}: {count: number}) => ({
                 one: '1 Kategorie',
@@ -7826,7 +7826,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             }),
             categoryVisibilityRequiredModal: {
                 title: 'Mitglieder müssen mindestens eine Kategorie haben',
-                description: 'Wähle mindestens eine Kategorie aus, die dieses Mitglied verwenden kann.',
+                description: 'Wählen Sie mindestens eine Kategorie aus, die dieses Mitglied verwenden kann.',
             },
             changeOfficeLocation: 'Bürostandort ändern',
             changeWorkArrangement: 'Arbeitsvereinbarung ändern',

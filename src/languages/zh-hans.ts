@@ -6792,10 +6792,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 description: `由于您的工作区需要类别，必须至少保留一个已启用的类别。`,
             },
             cannotDisableCategoryForMembers: {
-                title: '无法停用类别',
-                description: '每位成员都需要至少一个可选择的类别，而这些成员只能使用此类别。请先为他们授予其他类别的访问权限，然后重试。',
-                bulkDescription: '每位成员都需要至少一个可选择的类别，而这些成员只能使用这些类别。请先为他们授予其他类别的访问权限，然后重试。',
-                andMore: ({count}: {count: number}) => `及其他 ${count} 人`,
+                title: '无法禁用类别',
+                description: '每位成员都至少需要一个可供选择的类别，而且这些成员目前只能使用这一项。请先为他们开放访问另一个类别，然后再试一次。',
+                bulkDescription: '每位成员都需要至少一个可供选择的类别，而且他们只能使用这些类别。请先为他们开放另一个类别的使用权限，然后再重试。',
+                andMore: ({count}: {count: number}) => `和另外 ${count} 个`,
             },
         },
         moreFeatures: {
@@ -7330,7 +7330,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 title: '复制成员',
                 prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
                     one: `确定要用此工作区的成员替换 ${targetWorkspaceName} 的成员吗？`,
-                    // Chinese has no "one" plural category, so handle the single-workspace case here
                     other: count === 1 ? `确定要用此工作区的成员替换 ${targetWorkspaceName} 的成员吗？` : `确定要用此工作区的成员替换 ${count} 个工作区的成员吗？`,
                 }),
             },
@@ -7479,10 +7478,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 one: '1 个类别',
                 other: `${count} 个类别`,
             }),
-            categoryVisibilityRequiredModal: {
-                title: '成员必须至少拥有一个类别',
-                description: '请至少选择一个此成员可以使用的类别。',
-            },
+            categoryVisibilityRequiredModal: {title: '成员必须至少拥有一个类别', description: '请选择至少一个此成员可以使用的类别。'},
             changeOfficeLocation: '更改办公室位置',
             changeWorkArrangement: '更改工作安排',
             changeRole: '更改角色',

@@ -7039,10 +7039,10 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             cannotDisableCategoryForMembers: {
                 title: 'Kan categorie niet uitschakelen',
                 description:
-                    'Elk lid heeft minstens één categorie nodig om uit te kiezen, en deze leden kunnen alleen deze gebruiken. Geef ze eerst toegang tot een andere categorie en probeer het dan opnieuw.',
+                    'Elk lid heeft minstens één categorie nodig om uit te kiezen, en deze leden kunnen alleen deze ene gebruiken. Geef ze eerst toegang tot een andere categorie en probeer het daarna opnieuw.',
                 bulkDescription:
-                    'Elk lid heeft minstens één categorie nodig om uit te kiezen, en deze leden kunnen alleen deze categorieën gebruiken. Geef ze eerst toegang tot een andere categorie en probeer het dan opnieuw.',
-                andMore: ({count}: {count: number}) => `en nog ${count}`,
+                    'Elk lid heeft minimaal één categorie nodig om uit te kiezen, en deze leden kunnen alleen deze categorieën gebruiken. Geef ze eerst toegang tot een andere categorie en probeer het dan opnieuw.',
+                andMore: ({count}: {count: number}) => `en nog ${count} andere`,
             },
         },
         moreFeatures: {
@@ -7754,16 +7754,13 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             },
             officeLocation: 'Kantoorlocatie',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
-            categoryVisibility: 'Zichtbaarheid van categorieën',
+            categoryVisibility: 'Categoriezichtbaarheid',
             allCategories: 'Alle categorieën',
             categoriesCount: ({count}: {count: number}) => ({
                 one: '1 categorie',
                 other: `${count} categorieën`,
             }),
-            categoryVisibilityRequiredModal: {
-                title: 'Leden moeten ten minste één categorie hebben',
-                description: 'Selecteer ten minste één categorie die dit lid kan gebruiken.',
-            },
+            categoryVisibilityRequiredModal: {title: 'Leden moeten minstens één categorie hebben', description: 'Selecteer minstens één categorie die dit lid kan gebruiken.'},
             changeOfficeLocation: 'Locatie kantoor wijzigen',
             changeWorkArrangement: 'Werkregeling wijzigen',
             changeRole: 'Rol wijzigen',

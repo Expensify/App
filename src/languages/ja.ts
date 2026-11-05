@@ -6946,12 +6946,12 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 description: `ワークスペースでカテゴリが必須のため、少なくとも1つのカテゴリは有効のままにする必要があります。`,
             },
             cannotDisableCategoryForMembers: {
-                title: 'カテゴリーを無効にできません',
+                title: 'カテゴリを無効にできません',
                 description:
-                    'すべてのメンバーには選択できるカテゴリーが少なくとも1つ必要ですが、これらのメンバーはこのカテゴリーしか使用できません。先に別のカテゴリーへのアクセス権を付与してから、もう一度お試しください。',
+                    'すべてのメンバーが選択できるカテゴリを少なくとも 1 つ持っている必要があり、これらのメンバーは現在そのカテゴリしか使用できません。先に別のカテゴリへのアクセス権を付与してから、もう一度お試しください。',
                 bulkDescription:
-                    'すべてのメンバーには選択できるカテゴリーが少なくとも1つ必要ですが、これらのメンバーはこれらのカテゴリーしか使用できません。先に別のカテゴリーへのアクセス権を付与してから、もう一度お試しください。',
-                andMore: ({count}: {count: number}) => `他${count}人`,
+                    '各メンバーには少なくとも 1 つ選択できるカテゴリが必要で、これらのメンバーは現在利用可能なカテゴリしか使用できません。先に別のカテゴリへのアクセス権を付与してから、もう一度お試しください。',
+                andMore: ({count}: {count: number}) => `ほか ${count} 件`,
             },
         },
         moreFeatures: {
@@ -7505,7 +7505,6 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 title: 'メンバーをコピー',
                 prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
                     one: `${targetWorkspaceName}のメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`,
-                    // Japanese has no "one" plural category, so handle the single-workspace case here
                     other:
                         count === 1
                             ? `${targetWorkspaceName}のメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`
@@ -7658,15 +7657,15 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             },
             officeLocation: 'オフィス所在地',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name}（${address}）`,
-            categoryVisibility: 'カテゴリーの表示設定',
-            allCategories: 'すべてのカテゴリー',
+            categoryVisibility: 'カテゴリの表示',
+            allCategories: 'すべてのカテゴリ',
             categoriesCount: ({count}: {count: number}) => ({
                 one: '1件のカテゴリー',
-                other: `${count}件のカテゴリー`,
+                other: `${count} 個のカテゴリ`,
             }),
             categoryVisibilityRequiredModal: {
-                title: 'メンバーには少なくとも1つのカテゴリーが必要です',
-                description: 'このメンバーが使用できるカテゴリーを少なくとも1つ選択してください。',
+                title: 'メンバーは少なくとも1つのカテゴリを持っている必要があります',
+                description: 'このメンバーが使用できるカテゴリを少なくとも1つ選択してください。',
             },
             changeOfficeLocation: 'オフィスの所在地を変更',
             changeWorkArrangement: '勤務形態を変更',

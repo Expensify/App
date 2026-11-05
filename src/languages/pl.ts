@@ -7064,10 +7064,10 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             cannotDisableCategoryForMembers: {
                 title: 'Nie można wyłączyć kategorii',
                 description:
-                    'Każdy członek musi mieć co najmniej jedną kategorię do wyboru, a ci członkowie mogą używać tylko tej jednej. Najpierw daj im dostęp do innej kategorii, a potem spróbuj ponownie.',
+                    'Każdy członek musi mieć przynajmniej jedną kategorię do wyboru, a ci członkowie mogą używać tylko tej jednej. Daj im najpierw dostęp do innej kategorii, a potem spróbuj ponownie.',
                 bulkDescription:
-                    'Każdy członek musi mieć co najmniej jedną kategorię do wyboru, a ci członkowie mogą używać tylko tych kategorii. Najpierw daj im dostęp do innej kategorii, a potem spróbuj ponownie.',
-                andMore: ({count}: {count: number}) => `i jeszcze ${count}`,
+                    'Każdy członek musi mieć przynajmniej jedną kategorię do wyboru i ci członkowie mogą używać tylko tych kategorii. Najpierw przyznaj im dostęp do innej kategorii, a potem spróbuj ponownie.',
+                andMore: ({count}: {count: number}) => `i ${count} więcej`,
             },
         },
         moreFeatures: {
@@ -7785,13 +7785,11 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             allCategories: 'Wszystkie kategorie',
             categoriesCount: ({count}: {count: number}) => ({
                 one: '1 kategoria',
-                few: `${count} kategorie`,
-                many: `${count} kategorii`,
-                other: `${count} kategorii`,
+                other: `${count} kategorie`,
             }),
             categoryVisibilityRequiredModal: {
                 title: 'Członkowie muszą mieć co najmniej jedną kategorię',
-                description: 'Wybierz co najmniej jedną kategorię, której ten członek może używać.',
+                description: 'Wybierz co najmniej jedną kategorię, z której ten członek może korzystać.',
             },
             changeOfficeLocation: 'Zmień lokalizację biura',
             changeWorkArrangement: 'Zmień tryb pracy',

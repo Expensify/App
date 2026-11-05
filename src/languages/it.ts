@@ -7043,9 +7043,9 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             cannotDisableCategoryForMembers: {
                 title: 'Impossibile disattivare la categoria',
                 description:
-                    "Ogni membro deve avere almeno una categoria tra cui scegliere, e questi membri possono usare solo questa. Dai loro prima accesso a un'altra categoria, poi riprova.",
+                    'Ogni membro deve avere almeno una categoria tra cui scegliere e questi membri possono usare solo questa. Concedi loro l’accesso a un’altra categoria prima, poi riprova.',
                 bulkDescription:
-                    "Ogni membro deve avere almeno una categoria tra cui scegliere, e questi membri possono usare solo queste categorie. Dai loro prima accesso a un'altra categoria, poi riprova.",
+                    'Ogni membro deve avere almeno una categoria tra cui scegliere e questi membri possono usare solo queste categorie. Concedi loro l’accesso a un’altra categoria, poi riprova.',
                 andMore: ({count}: {count: number}) => `e altri ${count}`,
             },
         },
@@ -7769,16 +7769,13 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             },
             officeLocation: 'Sede ufficio',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
-            categoryVisibility: 'Visibilità delle categorie',
+            categoryVisibility: 'Visibilità categoria',
             allCategories: 'Tutte le categorie',
             categoriesCount: ({count}: {count: number}) => ({
                 one: '1 categoria',
                 other: `${count} categorie`,
             }),
-            categoryVisibilityRequiredModal: {
-                title: 'I membri devono avere almeno una categoria',
-                description: 'Seleziona almeno una categoria che questo membro può usare.',
-            },
+            categoryVisibilityRequiredModal: {title: 'I membri devono avere almeno una categoria', description: 'Seleziona almeno una categoria che questo membro può usare.'},
             changeOfficeLocation: 'Cambia sede dell’ufficio',
             changeWorkArrangement: 'Modifica modalità di lavoro',
             changeRole: 'Cambia ruolo',
