@@ -666,6 +666,7 @@ export default createOnyxDerivedValueConfig({
                     cardList,
                     currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     currentUserLogin: session?.email ?? '',
+                    isOffline,
                 });
 
                 const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
