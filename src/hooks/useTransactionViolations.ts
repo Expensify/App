@@ -1,7 +1,7 @@
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import {getVisibleTransactionViolations, isDistanceRequest} from '@libs/TransactionUtils';
-import {syncCustomUnitRateOutOfDateRangeViolation} from '@libs/Violations/ViolationsUtils';
+import {syncCustomUnitOutOfPolicyViolation, syncCustomUnitRateOutOfDateRangeViolation} from '@libs/Violations/ViolationsUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, TransactionViolation, TransactionViolations} from '@src/types/onyx';
@@ -28,7 +28,9 @@ function useTransactionViolations(transactionID?: string, shouldShowRterForSettl
     const policy = policyOverride ?? distanceOriginalPolicy ?? reportPolicy;
     const currentUserDetails = useCurrentUserPersonalDetails();
 
-    const syncedViolations = syncCustomUnitRateOutOfDateRangeViolation(transactionViolations, transaction, policy);
+    const syncedDateRangeViolations = syncCustomUnitRateOutOfDateRangeViolation(transactionViolations, transaction, policy);
+    // `policy` already prefers distanceOriginalPolicy when the report policy lacks the rate.
+    const syncedViolations = syncCustomUnitOutOfPolicyViolation(syncedDateRangeViolations, transaction, policy, distanceOriginalPolicy);
 
     return getVisibleTransactionViolations(
         transaction,

@@ -38,8 +38,8 @@ function useSendMoneySubmission({transaction, receiptFiles, report, participants
     const reportTransactions = useReportTransactions(report?.reportID);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
 
-    function sendMoney(paymentMethod: PaymentMethodType | undefined, options?: SendMoneyOptions) {
-        const {shouldHandleNavigation = true, resolvedReportIDs, shouldStartTracking = true} = options ?? {};
+    function sendMoney(paymentMethod: PaymentMethodType | undefined, options: SendMoneyOptions) {
+        const {shouldHandleNavigation, resolvedReportIDs, shouldStartTracking} = options;
         const currency = transaction?.currency;
         const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
         const participant = participants?.at(0);

@@ -5,7 +5,7 @@ import ActionableItemButtons from '@components/ReportActionItem/ActionableItemBu
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
-import openPrivatePersonalDetailsPage from '@libs/Navigation/helpers/openPrivatePersonalDetailsPage';
+import openHomeAddressPage from '@libs/Navigation/helpers/openHomeAddressPage';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 import {getEffectiveWorkArrangement} from '@libs/WorkArrangementUtils';
@@ -14,7 +14,6 @@ import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBa
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {Policy, PrivatePersonalDetails, ReportAction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -48,7 +47,8 @@ function HomeAddressRequiredContent({action}: HomeAddressRequiredContentProps) {
                 <ActionableItemButtons layout="horizontal">
                     <Button
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
-                        onPress={() => openPrivatePersonalDetailsPage(INPUT_IDS.ADDRESS_LINE_1)}
+                        onPress={openHomeAddressPage}
+                        sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_ADD_HOME_ADDRESS}
                     >
                         <Button.Text>{translate('homePage.timeSensitiveSection.addHomeAddress.cta')}</Button.Text>
                     </Button>
