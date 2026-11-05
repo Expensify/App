@@ -1,20 +1,11 @@
 /**
- * Tells the duplicate review whether any duplicate's report is settled, approved or not loaded yet, and opens the
- * reports that aren't loaded so the review can decide whether Keep selected is safe.
+ * Tells the duplicate review whether any duplicate's report is settled, approved or not loaded yet, so the review can
+ * decide whether Keep selected is safe.
  */
-import {openReport} from '@libs/actions/Report';
 import {isReportApproved, isSettled} from '@libs/ReportUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
-import getEmptyArray from '@src/types/utils/getEmptyArray';
 
-import type {OnyxCollection} from 'react-native-onyx';
-
-import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
-import {useEffect, useRef} from 'react';
-
-import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 
 type DuplicateReportsStatus = {
@@ -22,48 +13,26 @@ type DuplicateReportsStatus = {
     hasUnloadedReport: boolean;
 };
 
-function getReport(reports: OnyxCollection<Report>, reportID: string) {
-    return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-}
+const DEFAULT_STATUS: DuplicateReportsStatus = {hasSettledOrApprovedReport: false, hasUnloadedReport: false};
 
 function useDuplicateReportsStatus(reportIDs: string[]): DuplicateReportsStatus {
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
-    const currentPersonalDetails = useCurrentUserPersonalDetails();
-    const [missingReportIDs = getEmptyArray<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        selector: (reports) => reportIDs.filter((reportID) => !getReport(reports, reportID)),
-    });
-    const [hasSettledOrApprovedReport = false] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        selector: (reports) =>
-            reportIDs.some((reportID) => {
-                const report = getReport(reports, reportID);
-                return isSettled(report) || isReportApproved({report});
-            }),
-    });
-    const requestedReportIDs = useRef(new Set<string>());
-
-    useEffect(() => {
-        for (const reportID of missingReportIDs) {
-            if (requestedReportIDs.current.has(reportID)) {
-                continue;
+    const [status = DEFAULT_STATUS] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: (reports) => {
+            let hasSettledOrApprovedReport = false;
+            let hasUnloadedReport = false;
+            for (const reportID of reportIDs) {
+                const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                if (!report) {
+                    hasUnloadedReport = true;
+                } else if (isSettled(report) || isReportApproved({report})) {
+                    hasSettledOrApprovedReport = true;
+                }
             }
-            requestedReportIDs.current.add(reportID);
-            openReport({
-                reportID,
-                introSelected,
-                conciergeChat,
-                hasReportActions: false,
-                currentUserAccountID: currentPersonalDetails.accountID,
-                isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
-                hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-                shouldMarkAsRead: false,
-            });
-        }
-    }, [missingReportIDs, introSelected, conciergeChat, currentPersonalDetails.accountID, guidedSetupAndTourStatus?.isSelfTourViewed, guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow]);
+            return {hasSettledOrApprovedReport, hasUnloadedReport};
+        },
+    });
 
-    return {hasSettledOrApprovedReport, hasUnloadedReport: missingReportIDs.length > 0};
+    return status;
 }
 
 export default useDuplicateReportsStatus;
