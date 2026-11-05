@@ -1,31 +1,141 @@
 diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
 --- a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
 +++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
-@@ -51,6 +51,23 @@
+@@ -22,6 +22,119 @@
+ 
+ namespace react = facebook::react;
+ 
++#pragma mark - Tab bar picture
++
++/**
++ * Keeps a picture of the tab bar between the two screens of a stack transition, read from where those screens are drawn
++ * on every frame, so it stays in step with the transition and with a swipe back at any speed. The picture moves with
++ * the root screen and is cut at the edge of the screen that slides over it.
++ */
++@interface RNSTabBarStripFollower : NSObject
++
++- (instancetype)initWithStripView:(UIView *)stripView
++                            frame:(CGRect)frame
++                     cornerRadius:(CGFloat)cornerRadius
++                         rootView:(UIView *)rootView
++                         edgeView:(UIView *)edgeView
++                    hiddenPlatter:(UIView *_Nullable)platter
++                           tabBar:(UITabBar *)tabBar;
++- (void)stop;
++
++@end
++
++@implementation RNSTabBarStripFollower {
++  UIView *_clipView;
++  UIView *_stripView;
++  CAShapeLayer *_mask;
++  CADisplayLink *_link;
++  CGFloat _width;
++  __weak UIView *_rootView;
++  __weak UIView *_edgeView;
++  __weak UIView *_hiddenPlatter;
++  __weak UITabBar *_tabBar;
++}
++
++- (instancetype)initWithStripView:(UIView *)stripView
++                            frame:(CGRect)frame
++                     cornerRadius:(CGFloat)cornerRadius
++                         rootView:(UIView *)rootView
++                         edgeView:(UIView *)edgeView
++                    hiddenPlatter:(UIView *_Nullable)platter
++                           tabBar:(UITabBar *)tabBar
++{
++  if (self = [super init]) {
++    UIView *container = rootView.superview;
++    CGSize size = container.bounds.size;
++    _width = size.width;
++    _rootView = rootView;
++    _edgeView = edgeView;
++    _clipView = [[UIView alloc] initWithFrame:CGRectMake(0, frame.origin.y, size.width, frame.size.height)];
++    // The screen sliding over the picture has rounded corners like the display, so the picture shows where that screen
++    // is not, which is not a straight line down at the bottom. The cut-out follows the edge by moving the mask.
++    UIBezierPath *path =
++        [UIBezierPath bezierPathWithRect:CGRectMake(-size.width, 0, 3 * size.width + cornerRadius, frame.size.height)];
++    [path appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(0, -frame.origin.y, size.width + cornerRadius, size.height)
++                                                cornerRadius:cornerRadius]];
++    _mask = [CAShapeLayer layer];
++    _mask.fillRule = kCAFillRuleEvenOdd;
++    _mask.frame = _clipView.bounds;
++    _mask.path = path.CGPath;
++    _clipView.layer.mask = _mask;
++    _stripView = stripView;
++    _stripView.transform = CGAffineTransformIdentity;
++    _stripView.frame = CGRectMake(frame.origin.x, 0, frame.size.width, frame.size.height);
++    [_clipView addSubview:_stripView];
++    [container insertSubview:_clipView aboveSubview:rootView];
++
++    if (platter != nil) {
++      platter.alpha = 0;
++      tabBar.userInteractionEnabled = NO;
++      tabBar.accessibilityElementsHidden = YES;
++      _hiddenPlatter = platter;
++      _tabBar = tabBar;
++    }
++
++    _link = [CADisplayLink displayLinkWithTarget:self selector:@selector(step:)];
++    _link.preferredFrameRateRange = CAFrameRateRangeMake(60, 120, 120);
++    [_link addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
++    [self step:nil];
++  }
++  return self;
++}
++
++- (void)step:(CADisplayLink *_Nullable)link
++{
++  UIView *edgeView = _edgeView;
++  UIView *rootView = _rootView;
++  if (edgeView == nil || rootView == nil) {
++    return;
++  }
++  CGFloat edgeX = (edgeView.layer.presentationLayer ?: edgeView.layer).frame.origin.x;
++  CGFloat rootX = (rootView.layer.presentationLayer ?: rootView.layer).frame.origin.x;
++  [CATransaction begin];
++  [CATransaction setDisableActions:YES];
++  _mask.transform = CATransform3DMakeTranslation(MAX(0, MIN(_width, edgeX)), 0, 0);
++  // UIKit lays the bar out again while it is shown and can bring its glass back.
++  _hiddenPlatter.alpha = 0;
++  [CATransaction commit];
++  _stripView.transform = CGAffineTransformMakeTranslation(MIN(0, rootX), 0);
++}
++
++- (void)stop
++{
++  [_link invalidate];
++  _link = nil;
++  [_clipView removeFromSuperview];
++  UITabBar *tabBar = _tabBar;
++  if (tabBar != nil) {
++    _hiddenPlatter.alpha = 1;
++    tabBar.userInteractionEnabled = YES;
++    tabBar.accessibilityElementsHidden = NO;
++  }
++}
++
++@end
++
+ #pragma mark - Modified React Subviews extension
+ 
+ @interface RNSTabsHostComponentView ()
+@@ -51,6 +164,13 @@
  
    RNSTabsNavigationStateUpdateRequest *_Nullable _navStateRequest;
  
 +  UIViewPropertyAnimator *_Nullable _tabBarFadeOutAnimator;
-+  id<UIViewControllerTransitionCoordinator> _Nullable _tabBarTransitionCoordinator;
++  __weak id<UIViewControllerTransitionCoordinator> _tabBarTransitionCoordinator;
 +  UIView *_Nullable _tabBarStripView;
 +  NSUInteger _tabBarStripTabIndex;
 +  CGRect _tabBarStripRect;
 +  NSUInteger _tabBarRetryToken;
-+  NSUInteger _tabBarRetries;
-+  CADisplayLink *_Nullable _tabBarStripLink;
-+  UIView *_Nullable _tabBarClipView;
-+  __weak UIView *_tabBarEdgeView;
-+  __weak UIView *_tabBarRootView;
-+  __weak UIView *_tabBarHiddenPlatter;
-+  CGRect _tabBarStripFrame;
-+  CGSize _tabBarContainerSize;
-+  CGFloat _tabBarCornerRadius;
-+  CAShapeLayer *_Nullable _tabBarClipMask;
 +
  #if RNS_TABS_BOTTOM_ACCESSORY_AVAILABLE
    UIView *_Nullable _bottomAccessoryWrapperView;
  #endif // RNS_TABS_BOTTOM_ACCESSORY_AVAILABLE
-@@ -60,6 +77,12 @@
+@@ -60,6 +180,12 @@
  {
    if (self = [super initWithFrame:frame]) {
      [self initState];
@@ -38,7 +148,7 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponen
    }
    return self;
  }
-@@ -121,6 +144,279 @@
+@@ -121,6 +247,216 @@
    });
  }
  
@@ -52,6 +162,16 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponen
 +  return view;
 +}
 +
++static BOOL RNSControllerIsInside(UIViewController *_Nullable controller, UIViewController *_Nullable ancestor)
++{
++  for (UIViewController *current = controller; current != nil; current = current.parentViewController) {
++    if (current == ancestor) {
++      return YES;
++    }
++  }
++  return NO;
++}
++
 +// The glass the tab items sit on is a private view of the bar, found by its class name.
 +static UIView *_Nullable RNSTabBarPlatter(UITabBar *tabBar)
 +{
@@ -61,16 +181,6 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponen
 +    }
 +  }
 +  return nil;
-+}
-+
-+- (BOOL)controller:(UIViewController *)controller isInside:(UIViewController *)ancestor
-+{
-+  for (UIViewController *current = controller; current != nil; current = current.parentViewController) {
-+    if (current == ancestor) {
-+      return YES;
-+    }
-+  }
-+  return NO;
 +}
 +
 +/**
@@ -88,7 +198,7 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponen
 +  id<UIViewControllerTransitionCoordinator> coordinator = stackController.transitionCoordinator;
 +  // The bar only travels with the screen when the screen hides it. Some screens above the root keep it.
 +  if (!_tabBarHidden || _controller == nil || tabBar.window == nil || coordinator == nil || coordinator == _tabBarTransitionCoordinator ||
-+      ![self controller:stackController isInside:_controller.selectedViewController]) {
++      !RNSControllerIsInside(stackController, _controller.selectedViewController)) {
 +    return;
 +  }
 +
@@ -104,13 +214,12 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponen
 +  }
 +  _tabBarTransitionCoordinator = coordinator;
 +
-+  // The real bar sits above every screen, so a picture of it is what travels between the two screens instead. The
-+  // window is captured, because the glass of the bar is only there in a capture of the window and not of the bar alone.
-+  // Popping back brings the picture taken when the bar left, as the bar is not on screen then.
++  // The glass of the bar is only there in a capture of the window, not of the bar alone. Popping back brings the picture
++  // taken when the bar left, as the bar is not on screen then.
 +  UIWindow *window = tabBar.window;
 +  if (hiding) {
-+    // Only the floating bar is pictured, so everything around it stays the live screen underneath. The platter is the
-+    // glass the items sit on, and the margin leaves room for its edge.
++    // Only the floating bar is pictured, so everything around it stays the live screen underneath. The margin leaves
++    // room for the edge of the glass.
 +    UIView *platter = RNSTabBarPlatter(tabBar);
 +    CGRect barRect = [window convertRect:(platter ?: tabBar).bounds fromView:platter ?: tabBar];
 +    CGRect stripRect = CGRectInset(barRect, -3, -3);
@@ -126,7 +235,7 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponen
 +
 +  RNSTabBarController *tabController = _controller;
 +  __weak auto weakSelf = self;
-+  __block __weak UIView *hiddenPlatter = nil;
++  __block RNSTabBarStripFollower *follower = nil;
 +  [coordinator animateAlongsideTransition:^(id<UIViewControllerTransitionCoordinatorContext> _Nonnull context) {
 +    UIView *container = context.containerView;
 +    // UIKit's own swipe back keeps the leaving screen inside a dimming view and the screen underneath inside a plain
@@ -137,53 +246,28 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponen
 +    UIView *incoming = RNSDirectChildAncestor(
 +        [context viewForKey:UITransitionContextToViewKey] ?: [context viewControllerForKey:UITransitionContextToViewControllerKey].view,
 +        container);
-+    BOOL hasPicture = stripView != nil && outgoing != nil && incoming != nil;
-+    auto strongSelf = weakSelf;
-+    if (hasPicture && strongSelf != nil) {
++    if (stripView != nil && outgoing != nil && incoming != nil) {
 +      [UIView performWithoutAnimation:^{
-+        // The picture is clipped at the edge of the screen that slides over it and moves with the root screen, both read
-+        // from where those screens are drawn on every frame, so it stays in step with the transition and with a swipe
-+        // back at any speed. The screen that stays on top during the transition is the incoming one when pushing and the
-+        // leaving one when popping, and the picture goes between the two.
-+        CGRect rect = [container convertRect:stripRect fromView:window];
-+        UIView *clipView = [[UIView alloc] initWithFrame:CGRectMake(0, rect.origin.y, container.bounds.size.width, rect.size.height)];
-+        // The screen sliding over the picture has rounded corners like the display, so the picture shows where that
-+        // screen is not, which is not a straight line down at the bottom.
-+        CAShapeLayer *mask = [CAShapeLayer layer];
-+        mask.fillRule = kCAFillRuleEvenOdd;
-+        clipView.layer.mask = mask;
-+        strongSelf->_tabBarClipMask = mask;
-+        strongSelf->_tabBarContainerSize = container.bounds.size;
++        // iOS 26 draws the scroll edge effect under the bar only while the bar is visible, so the bar stays visible and
++        // only its glass is hidden while the picture stands in for it.
++        UIView *platter = RNSTabBarPlatter(tabBar);
++        if (platter == nil) {
++          tabBar.alpha = 0;
++        } else if (!hiding) {
++          [tabController setTabBarHidden:NO animated:NO];
++        }
 +        NSString *radiusKey = @"_displayCornerRadius";
-+        strongSelf->_tabBarCornerRadius = [window.screen respondsToSelector:NSSelectorFromString(radiusKey)]
++        CGFloat cornerRadius = [window.screen respondsToSelector:NSSelectorFromString(radiusKey)]
 +            ? [[window.screen valueForKey:radiusKey] doubleValue]
 +            : 0;
-+        stripView.frame = CGRectMake(rect.origin.x, 0, rect.size.width, rect.size.height);
-+        [clipView addSubview:stripView];
-+        [container insertSubview:clipView aboveSubview:hiding ? outgoing : incoming];
-+        // The content under the bar draws the scroll edge effect of iOS 26 only while the bar is visible, so the bar
-+        // stays visible and only its glass is hidden while the picture stands in for it.
-+        UIView *platter = RNSTabBarPlatter(tabBar);
-+        if (platter != nil) {
-+          if (!hiding) {
-+            [tabController setTabBarHidden:NO animated:NO];
-+          }
-+          platter.alpha = 0;
-+          tabBar.userInteractionEnabled = NO;
-+          tabBar.accessibilityElementsHidden = YES;
-+          hiddenPlatter = platter;
-+        } else {
-+          tabBar.alpha = 0;
-+        }
-+        strongSelf->_tabBarHiddenPlatter = platter;
-+        strongSelf->_tabBarClipView = clipView;
-+        strongSelf->_tabBarStripFrame = rect;
-+        strongSelf->_tabBarEdgeView = hiding ? incoming : outgoing;
-+        strongSelf->_tabBarRootView = hiding ? outgoing : incoming;
-+        [strongSelf->_tabBarStripLink invalidate];
-+        strongSelf->_tabBarStripLink = [CADisplayLink displayLinkWithTarget:strongSelf selector:@selector(stepTabBarStrip:)];
-+        [strongSelf->_tabBarStripLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
-+        [strongSelf stepTabBarStrip:nil];
++        // The screen that stays on top is the incoming one when pushing and the leaving one when popping.
++        follower = [[RNSTabBarStripFollower alloc] initWithStripView:stripView
++                                                               frame:[container convertRect:stripRect fromView:window]
++                                                        cornerRadius:cornerRadius
++                                                            rootView:hiding ? outgoing : incoming
++                                                            edgeView:hiding ? incoming : outgoing
++                                                       hiddenPlatter:platter
++                                                              tabBar:tabBar];
 +      }];
 +    } else {
 +      [UIView performWithoutAnimation:^{
@@ -198,51 +282,16 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponen
 +    }
 +  }
 +      completion:^(id<UIViewControllerTransitionCoordinatorContext> _Nonnull context) {
-+        [stripView removeFromSuperview];
++        [follower stop];
++        follower = nil;
 +        tabBar.transform = CGAffineTransformIdentity;
 +        tabBar.alpha = 1;
-+        if (hiddenPlatter != nil) {
-+          hiddenPlatter.alpha = 1;
-+          tabBar.userInteractionEnabled = YES;
-+          tabBar.accessibilityElementsHidden = NO;
-+        }
 +        auto strongSelf = weakSelf;
 +        if (strongSelf != nil) {
-+          strongSelf->_tabBarHiddenPlatter = nil;
-+          [strongSelf->_tabBarStripLink invalidate];
-+          strongSelf->_tabBarStripLink = nil;
-+          [strongSelf->_tabBarClipView removeFromSuperview];
-+          strongSelf->_tabBarClipView = nil;
-+          strongSelf->_tabBarClipMask = nil;
 +          strongSelf->_tabBarTransitionCoordinator = nil;
 +          [strongSelf->_controller setTabBarHidden:context.isCancelled ? !hiding : hiding animated:NO];
 +        }
 +      }];
-+}
-+
-+- (void)stepTabBarStrip:(CADisplayLink *_Nullable)link
-+{
-+  UIView *edgeView = _tabBarEdgeView;
-+  UIView *rootView = _tabBarRootView;
-+  UIView *clipView = _tabBarClipView;
-+  if (edgeView == nil || rootView == nil || clipView == nil) {
-+    return;
-+  }
-+  CGFloat edgeX = (edgeView.layer.presentationLayer ?: edgeView.layer).frame.origin.x;
-+  CGFloat rootX = (rootView.layer.presentationLayer ?: rootView.layer).frame.origin.x;
-+  CGFloat width = _tabBarContainerSize.width;
-+  CGFloat maskedEdge = MAX(0, MIN(width, edgeX));
-+  CGRect screenFrame = CGRectMake(maskedEdge, -clipView.frame.origin.y, width + _tabBarCornerRadius, _tabBarContainerSize.height);
-+  UIBezierPath *path = [UIBezierPath bezierPathWithRect:clipView.bounds];
-+  [path appendPath:[UIBezierPath bezierPathWithRoundedRect:screenFrame cornerRadius:_tabBarCornerRadius]];
-+  [CATransaction begin];
-+  [CATransaction setDisableActions:YES];
-+  _tabBarClipMask.frame = clipView.bounds;
-+  _tabBarClipMask.path = path.CGPath;
-+  // UIKit lays the bar out again while it is shown and can bring its glass back.
-+  _tabBarHiddenPlatter.alpha = 0;
-+  [CATransaction commit];
-+  clipView.subviews.firstObject.frame = CGRectMake(_tabBarStripFrame.origin.x + MIN(0, rootX), 0, _tabBarStripFrame.size.width, _tabBarStripFrame.size.height);
 +}
 +
 +/**
@@ -253,11 +302,10 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponen
 +- (void)applyTabBarHiddenWithFade API_AVAILABLE(ios(26.0))
 +{
 +  _tabBarRetryToken++;
-+  _tabBarRetries = 0;
-+  [self attemptTabBarHiddenWithToken:_tabBarRetryToken];
++  [self attemptTabBarHiddenWithToken:_tabBarRetryToken retriesLeft:12];
 +}
 +
-+- (void)attemptTabBarHiddenWithToken:(NSUInteger)token API_AVAILABLE(ios(26.0))
++- (void)attemptTabBarHiddenWithToken:(NSUInteger)token retriesLeft:(NSUInteger)retriesLeft API_AVAILABLE(ios(26.0))
 +{
 +  if (token != _tabBarRetryToken) {
 +    return;
@@ -274,11 +322,10 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponen
 +    }
 +    // The stack starts its push some turns after the host receives the prop and takes over from there, so the bar is
 +    // only hidden by itself when no transition shows up.
-+    if (_tabBarRetries < 12) {
-+      _tabBarRetries++;
++    if (retriesLeft > 0) {
 +      __weak auto weakSelf = self;
 +      dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 16 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
-+        [weakSelf attemptTabBarHiddenWithToken:token];
++        [weakSelf attemptTabBarHiddenWithToken:token retriesLeft:retriesLeft - 1];
 +      });
 +      return;
 +    }
@@ -318,7 +365,7 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponen
  #pragma mark - UIView methods
  
  - (void)didMoveToWindow
-@@ -242,9 +538,16 @@
+@@ -242,9 +578,16 @@
  
    if (newComponentProps.tabBarHidden != oldComponentProps.tabBarHidden) {
      _tabBarHidden = newComponentProps.tabBarHidden;

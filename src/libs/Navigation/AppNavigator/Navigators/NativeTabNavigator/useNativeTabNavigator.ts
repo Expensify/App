@@ -19,9 +19,6 @@ import type {NavigationAction, NavigationState, PartialState, Router, TabNavigat
 import {findFocusedRoute, useNavigation, useNavigationState, useRoute} from '@react-navigation/native';
 import {isAnonymousSessionSelector} from '@selectors/Session';
 import {useEffect} from 'react';
-import {useSharedValue} from 'react-native-reanimated';
-
-import type {TabRootRevealing} from './TabRootRevealingContext';
 
 import getActiveTabRoute from './getActiveTabRoute';
 import {isInboxTabAtChatList, isNativeTabSelectionEnabled} from './tabScreenListeners';
@@ -59,8 +56,6 @@ function useNativeTabNavigator() {
     const activeTabRoute = getActiveTabRoute(tabState);
     const isAtTabRoot = isTabRouteAtRoot(activeTabRoute);
     const [isTabRootRevealing, setIsTabRootRevealing] = useIsTabRootRevealing(isAtTabRoot, activeTabRoute?.key);
-    const tabRootRevealed = useSharedValue(1);
-    const tabRootRevealing: TabRootRevealing = {setIsRevealing: setIsTabRootRevealing, revealed: tabRootRevealed};
     const shouldShowNativeTabBar = shouldUseNarrowLayout && (isAtTabRoot || isTabRootRevealing) && !isBlockingViewVisible;
     const getTabRoute = (tabName: string) => (isRealizedNavigationState(tabState) ? tabState.routes.find((tabRoute) => tabRoute.name === tabName) : undefined);
     const isInboxAtChatList = isInboxTabAtChatList(getTabRoute(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));
@@ -107,7 +102,7 @@ function useNativeTabNavigator() {
 
     const isTabSelectionEnabled = (routeName: string) => isNativeTabSelectionEnabled(routeName, {isAnonymousUser, isInboxAtChatList, isWorkspacesTabRestored});
 
-    return {shouldShowNativeTabBar, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled, tabRootRevealing};
+    return {shouldShowNativeTabBar, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled, setIsTabRootRevealing};
 }
 
 export default useNativeTabNavigator;

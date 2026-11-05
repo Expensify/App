@@ -84,19 +84,20 @@ index 06c1957..bb2dcb0 100644
    RCTAssert(self.selectedViewController == viewController,
              @"[RNScreens] Expected UIKit to update selectedViewController");
 diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
+index 44567be..2b5b857 100644
 --- a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
 +++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
-@@ -553,6 +553,10 @@
-     {
-       _controller.tabBar.hidden = _tabBarHidden;
+@@ -595,6 +595,10 @@ - (void)updateProps:(const facebook::react::Props::Shared &)props
      }
-+  }
-+
-+  if (newComponentProps.tabBarItemSelectionHidden != oldComponentProps.tabBarItemSelectionHidden) {
-+    _controller.tabBarItemSelectionHidden = newComponentProps.tabBarItemSelectionHidden;
    }
  
++  if (newComponentProps.tabBarItemSelectionHidden != oldComponentProps.tabBarItemSelectionHidden) {
++    _controller.tabBarItemSelectionHidden = newComponentProps.tabBarItemSelectionHidden;
++  }
++
    if (newComponentProps.bottomAccessoryHidden != oldComponentProps.bottomAccessoryHidden) {
+     _bottomAccessoryHidden = newComponentProps.bottomAccessoryHidden;
+ #if RNS_TABS_BOTTOM_ACCESSORY_AVAILABLE
 diff --git a/node_modules/react-native-screens/src/fabric/tabs/TabsHostIOSNativeComponent.ts b/node_modules/react-native-screens/src/fabric/tabs/TabsHostIOSNativeComponent.ts
 index fcd0b7f..64b2a09 100644
 --- a/node_modules/react-native-screens/src/fabric/tabs/TabsHostIOSNativeComponent.ts

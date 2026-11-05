@@ -17,14 +17,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
-import React, {useContext, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {StyleSheet, View} from 'react-native';
-import Animated, {FadeIn, FadeOut, useAnimatedStyle} from 'react-native-reanimated';
+import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 
 import type {NativeTabLayoutProps} from './NativeTabLayout';
 
 import NativeTabBarShadow from './NativeTabBarShadow';
-import TabRootRevealingContext from './TabRootRevealingContext';
 import {getFloatingButtonsBottom} from './useNativeTabBarOptions';
 
 /** What a narrow layout draws over the tabs along with the native bar, kept apart so wide layouts skip its hooks. */
@@ -41,18 +40,15 @@ function NativeTabBarOverlay({state, descriptors}: Pick<NativeTabLayoutProps, 's
         cancelTabNavigationSpans(NAVIGATION_TAB_TO_SPANS[selectedTab]);
     }, [selectedTab]);
 
-    // The buttons follow whatever the navigator decided for the bar itself.
     const shouldShowNativeTabBar = !!activeRoute && descriptors[activeRoute.key]?.options.tabBarStyle?.display !== 'none';
-    // The bar comes back under the screen leaving in a swipe back, while the buttons sit above every screen, so until the
-    // navigation state reaches the root they stay invisible and only appear once the root is fully in view.
-    const isAtTabRoot = isTabRouteAtRoot(activeRoute);
-    const {revealed} = useContext(TabRootRevealingContext);
-    const floatingButtonsStyle = useAnimatedStyle(() => ({opacity: isAtTabRoot ? 1 : (revealed?.get() ?? 1)}));
+    // The bar comes back under the screen leaving in a swipe back, while the buttons sit above every screen, so they wait
+    // for the navigation state to reach the root.
+    const shouldShowFloatingButtons = shouldShowNativeTabBar && isTabRouteAtRoot(activeRoute);
 
     return (
         <>
             {!!isDebugModeEnabled && shouldShowNativeTabBar && <DebugTabView selectedTab={selectedTab} />}
-            {shouldShowNativeTabBar && (
+            {shouldShowFloatingButtons && (
                 // The shadow and the buttons belong to the bar, so they fade with it rather than appearing in place.
                 // They leave faster than they come in, so they stop covering a bar that is still sliding out.
                 <Animated.View
@@ -61,22 +57,17 @@ function NativeTabBarOverlay({state, descriptors}: Pick<NativeTabLayoutProps, 's
                     style={[StyleSheet.absoluteFill, styles.zIndex10]}
                     pointerEvents="box-none"
                 >
-                    <Animated.View
-                        style={[StyleSheet.absoluteFill, floatingButtonsStyle]}
+                    <NativeTabBarShadow />
+                    <View
+                        style={styles.nativeTabBarFloatingButtons(getFloatingButtonsBottom(bottomInset))}
                         pointerEvents="box-none"
                     >
-                        <NativeTabBarShadow />
-                        <View
-                            style={styles.nativeTabBarFloatingButtons(getFloatingButtonsBottom(bottomInset))}
-                            pointerEvents="box-none"
-                        >
-                            <View style={[styles.navigationTabBarFABItem, styles.ph0, styles.floatingActionButtonPosition]}>
-                                <NavigationTabBarFloatingActionButton />
-                            </View>
-                            <FloatingGPSButton />
-                            <FloatingCameraButton />
+                        <View style={[styles.navigationTabBarFABItem, styles.ph0, styles.floatingActionButtonPosition]}>
+                            <NavigationTabBarFloatingActionButton />
                         </View>
-                    </Animated.View>
+                        <FloatingGPSButton />
+                        <FloatingCameraButton />
+                    </View>
                 </Animated.View>
             )}
         </>
