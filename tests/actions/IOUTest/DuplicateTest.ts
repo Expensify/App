@@ -2805,6 +2805,74 @@ describe('actions/Duplicate', () => {
             expect(Reflect.get(persistedTransaction, 'customUnitRateID')).toBeUndefined();
         });
 
+        it.each([
+            {description: 'workspace', targetPolicy: mockPolicy, command: WRITE_COMMANDS.CREATE_DISTANCE_REQUEST},
+            {description: 'self DM', targetPolicy: undefined, command: WRITE_COMMANDS.TRACK_EXPENSE},
+        ])('should send the selected alternate route distance when duplicating a map distance expense to a $description', async ({targetPolicy, command}) => {
+            // Given a saved map distance expense that uses an alternate route, so only routeDistanceMeters records which route was picked
+            const transactionID = 'distance-alternate-route';
+            const alternateRouteDistanceMeters = 16093.4;
+            const mockDistanceTransaction = {
+                ...mockTransaction,
+                transactionID,
+                amount: -1000,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                        routeDistanceMeters: alternateRouteDistanceMeters,
+                    },
+                    waypoints: {
+                        waypoint0: {address: 'Start', lat: 37.7749, lng: -122.4194},
+                        waypoint1: {address: 'End', lat: 34.0522, lng: -118.2437},
+                    },
+                },
+            };
+
+            await Onyx.clear();
+
+            // When the expense is duplicated
+            duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
+                transaction: mockDistanceTransaction,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                customUnitPolicyID: mockPolicy.id,
+                targetPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetReport: policyExpenseChat,
+                existingTransactionDraft: undefined,
+                personalDetails: mockPersonalDetails,
+                recentWaypoints,
+                targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
+                rules: undefined,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then the backend receives the alternate route's distance, so it doesn't recalculate the duplicate with the primary route
+            const writeCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(command));
+            expect(writeCall?.[1]).toEqual(expect.objectContaining({selectedRouteDistance: alternateRouteDistanceMeters}));
+        });
+
         it('should call submitPerDiemExpense for per diem transactions', async () => {
             const mockPerDiemTransaction = {
                 ...mockTransaction,

@@ -37,7 +37,7 @@ import {
     isPolicyMemberWithoutPendingDelete,
 } from '@libs/PolicyUtils';
 import {isControlPolicyOnlyRole} from '@libs/PolicyUtils/permissions';
-import {filterRulesForPolicy} from '@libs/WorkflowUtils';
+import {filterRulesForPolicy} from '@libs/RuleUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
