@@ -1,10 +1,12 @@
 import ROUTE_TO_NAVIGATION_TAB from '@components/Navigation/NavigationTabBar/ROUTE_TO_NAVIGATION_TAB';
 
-import {getFocusedTabRouteName, getTabNavigatorStateKey, isReportsTabPreloaded} from '@libs/Navigation/helpers/tabNavigatorUtils';
+import {isSearchTabContentReady} from '@libs/Navigation/helpers/searchTabPreloadStore';
+import {getFocusedTabRouteName, getTabNavigatorStateKey, isReportsTabPreloaded, isTabPreloaded} from '@libs/Navigation/helpers/tabNavigatorUtils';
 
 import navigationRef from '@navigation/navigationRef';
 
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 
 import {startSpan} from './activeSpans';
 import {startNavigateToReportsSpans} from './navigateToReportsSpans';
@@ -39,14 +41,24 @@ function startNavigateToInboxTabSpan({isWideLayout}: {isWideLayout: boolean}) {
     });
 }
 
-/** Starts the legacy ManualNavigateToReports span and its FirstPaint/ContentLoad split at the tab tap. */
+/**
+ * Whether the tap only reveals a Spend tab built at idle. A tab built only as far as its loading skeleton counts too, and
+ * those taps end with start_type cold. A tap during the background build does not count.
+ */
+function isSearchTabPreloadedAndBuilt() {
+    return isTabPreloaded(navigationRef.getRootState(), NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) && isSearchTabContentReady();
+}
+
+/** Starts ManualNavigateToReports and its FirstPaint/ContentLoad split at the tap. Call it before navigating, since opening the tab clears its preloaded state. */
 function startNavigateToReportsTabSpans() {
+    const attributes = {[CONST.TELEMETRY.ATTRIBUTE_IS_PRELOADED]: isSearchTabPreloadedAndBuilt()};
     startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {
         name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS,
         op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS,
         forceTransaction: true,
+        attributes,
     });
-    startNavigateToReportsSpans();
+    startNavigateToReportsSpans(attributes);
 }
 
 export {startNavigateToInboxTabSpan, startNavigateToReportsTabSpans};
