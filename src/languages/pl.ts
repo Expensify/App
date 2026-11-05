@@ -35,6 +35,12 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        billCreated: ({sender}) => `utworzono ten rachunek w imieniu ${sender}`,
+        billSubmitted: ({receiver}) => `wysłano ten rachunek do ${receiver}`,
+        invoiceCreated: ({sender}) => `utworzono tę fakturę w imieniu ${sender}`,
+        invoiceSubmitted: ({receiver}) => `wysłano tę fakturę do ${receiver}`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 dzień`,
@@ -120,6 +126,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pay: 'Zapłać',
             fix: 'Napraw',
             task: 'Zadanie',
+            add: 'Dodaj',
         },
         success: 'Sukces',
         group: 'Grupa',
@@ -2232,14 +2239,15 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Czekamy, aż <strong>ty</strong> zatwierdzisz wydatki.`;
+                        return isBill ? `Czekamy, aż <strong>ty</strong> zatwierdzisz rachunek.` : `Czekamy, aż <strong>ty</strong> zatwierdzisz wydatki.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Oczekiwanie, aż <strong>${actor}</strong> zatwierdzi wydatki.`;
+                        return isBill ? `Oczekiwanie, aż <strong>${actor}</strong> zatwierdzi rachunek.` : `Oczekiwanie, aż <strong>${actor}</strong> zatwierdzi wydatki.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Oczekiwanie na zatwierdzenie wydatków przez administratora.`;
+                        return isBill ? `Oczekiwanie na zatwierdzenie rachunku przez administratora.` : `Oczekiwanie na zatwierdzenie wydatków przez administratora.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (
@@ -2262,14 +2270,15 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Czekamy, aż <strong>ty</strong> zapłacisz wydatki.`;
+                        return isBill ? `Czekamy, aż <strong>ty</strong> zapłacisz ten rachunek.` : `Czekamy, aż <strong>ty</strong> zapłacisz wydatki.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Oczekiwanie, aż <strong>${actor}</strong> zapłaci wydatki.`;
+                        return isBill ? `Oczekiwanie, aż <strong>${actor}</strong> zapłaci ten rachunek.` : `Oczekiwanie, aż <strong>${actor}</strong> zapłaci wydatki.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Oczekiwanie na opłacenie wydatków przez administratora.`;
+                        return isBill ? `Oczekiwanie na opłacenie tego rachunku przez administratora.` : `Oczekiwanie na opłacenie wydatków przez administratora.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
@@ -3167,7 +3176,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: 'Zweryfikuj dodatkowe informacje',
                 subtitle: 'Nasz partner płatniczy potrzebuje bezpośrednio więcej informacji. To zajmie tylko kilka minut.',
             },
+            inReview: {
+                title: 'W trakcie przeglądu',
+                heading: 'Mamy wszystko, czego potrzebujemy.\nWkrótce się odezwiemy!',
+                description: 'Większość weryfikacji zajmuje od jednego do dwóch dni. Damy ci znać, gdy będziemy mieć aktualizację.',
+                chatWithConcierge: 'Czat z Concierge',
+            },
+            approved: {title: 'Konto zatwierdzone', heading: 'Zatwierdzone do płatności na całym świecie', description: 'Wypłacaj członkom wynagrodzenie, gdziekolwiek są.'},
+            rejected: {title: 'Odrzucono konto bankowe', heading: 'Nasz partner odrzucił twoje konto bankowe', description: 'Porozmawiaj z Concierge, żeby dowiedzieć się więcej.'},
         },
+        wiseSetupInProgress: {message: 'Konfiguracja globalnych zwrotów kosztów w toku.', continue: 'Kontynuuj.'},
         wiseGlobalReimbursementsIntro: {
             title: 'Skonfigurować globalne zwroty kosztów?',
             subtitle: 'Płać członkom na całym świecie w ich lokalnej walucie.',
@@ -9185,8 +9203,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 describeRuleForConcierge: 'Opisz swoją regułę, a Concierge ją utworzy',
                 gotIt: 'Jasne',
                 createRule: 'Utwórz regułę',
-                fallbackBanner: 'To nie jest standardowa reguła, więc przygotowaliśmy regułę agenta.',
-                fallbackBannerWithExplanation: (explanation: string) => `To nie jest standardowa reguła, więc przygotowaliśmy regułę agenta. ${explanation}`,
+                fallbackBanner:
+                    'To nie jest standardowa reguła, więc przygotowaliśmy regułę agenta. Reguły agenta są uruchamiane, gdy wydatek lub raport zostanie utworzony albo zaktualizowany.',
+                fallbackBannerWithExplanation: (explanation: string) =>
+                    `To nie jest standardowa reguła, więc przygotowaliśmy regułę agenta. Reguły agenta są uruchamiane, gdy wydatek lub raport zostanie utworzony albo zaktualizowany. ${explanation}`,
             },
             tabs: {
                 general: 'Ogólne',
@@ -12282,7 +12302,6 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             isUnreadWithMention: 'Nieprzeczytane z wzmianką',
             isWaitingForAssigneeToCompleteAction: 'Oczekuje, aż osoba przypisana wykona działanie',
             hasChildReportAwaitingAction: 'Posiada raport podrzędny oczekujący na działanie',
-            hasMissingInvoiceBankAccount: 'Brakujący rachunek bankowy faktury',
             hasUnresolvedCardFraudAlert: 'Ma nierozwiązaną blokadę oszustwa na karcie',
             hasDEWApproveFailed: 'Zatwierdzenie DEW nie powiodło się',
         },
@@ -12804,5 +12823,28 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         mobileClaimPrompt: 'Odwiedź Expensify w swojej przeglądarce internetowej, aby odebrać zniżkę na odnowienie.',
     },
     bulkActionBar: {label: 'Akcje zbiorcze', clearSelection: 'Wyczyść wybór', loadingSelection: 'Wczytywanie zaznaczenia'},
+    reportHistoryPage: {
+        title: 'Historia raportu',
+        created: 'utworzył raport',
+        submitted: 'wysłał',
+        approved: 'zatwierdził',
+        paid: 'opłacił',
+        toSubmit: 'przesłać',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return 'automatycznie przesłać';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `automatycznie przesłać ${eta} dnia każdego miesiąca` : `automatycznie przesłać ${eta}`;
+        },
+        toApprove: 'zatwierdzić',
+        toPay: 'zapłacić',
+        minutesAgo: (count: number) => `${count} min temu`,
+        hoursAgo: (count: number) => `${count} godz. temu`,
+        daysAgo: () => ({
+            one: '1 dzień temu',
+            other: (count: number) => `${count} dni temu`,
+        }),
+        offlineMessage: 'Jesteś offline. Historia raportów może być nieaktualna.',
+    },
 };
 export default translations;

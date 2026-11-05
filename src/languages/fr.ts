@@ -35,6 +35,12 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        billCreated: ({sender}) => `a créé cette facture au nom de ${sender}`,
+        billSubmitted: ({receiver}) => `a envoyé cette facture à ${receiver}`,
+        invoiceCreated: ({sender}) => `a créé cette facture au nom de ${sender}`,
+        invoiceSubmitted: ({receiver}) => `a envoyé cette facture à ${receiver}`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `${count} jour`,
@@ -116,6 +122,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pay: 'Payer',
             fix: 'Corriger',
             task: 'Tâche',
+            add: 'Ajouter',
         },
         success: 'Réussi',
         group: 'Groupe',
@@ -2208,14 +2215,17 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `En attente de <strong>votre</strong> approbation des dépenses.`;
+                        return isBill ? `En attente de <strong>votre</strong> approbation de la facture.` : `En attente de <strong>votre</strong> approbation des dépenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `En attente de l’approbation des dépenses par <strong>${actor}</strong>.`;
+                        return isBill
+                            ? `En attente de l’approbation de la facture par <strong>${actor}</strong>.`
+                            : `En attente de l’approbation des dépenses par <strong>${actor}</strong>.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `En attente qu’un administrateur approuve les dépenses.`;
+                        return isBill ? `En attente qu’un administrateur approuve la facture.` : `En attente qu’un administrateur approuve les dépenses.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (
@@ -2238,14 +2248,15 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `En attente que <strong>vous</strong> payiez les dépenses.`;
+                        return isBill ? `En attente que <strong>vous</strong> payiez cette facture.` : `En attente que <strong>vous</strong> payiez les dépenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `En attente que <strong>${actor}</strong> paie les dépenses.`;
+                        return isBill ? `En attente que <strong>${actor}</strong> paie cette facture.` : `En attente que <strong>${actor}</strong> paie les dépenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `En attente qu’un administrateur paie les dépenses.`;
+                        return isBill ? `En attente qu’un administrateur paie cette facture.` : `En attente qu’un administrateur paie les dépenses.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
@@ -3144,7 +3155,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: 'Vérifier des informations supplémentaires',
                 subtitle: 'Notre partenaire de paiement a besoin de plus d’informations directement. Cela ne devrait prendre que quelques minutes.',
             },
+            inReview: {
+                title: "En cours d'examen",
+                heading: 'Nous avons tout ce dont nous avons besoin.\nVous aurez de nos nouvelles !',
+                description: 'La plupart des examens prennent un à deux jours. Nous vous enverrons un message avec une mise à jour.',
+                chatWithConcierge: 'Discuter avec Concierge',
+            },
+            approved: {title: 'Compte approuvé', heading: 'Approuvé pour être payé dans le monde entier', description: "Payez les membres où qu'ils soient."},
+            rejected: {title: 'Compte bancaire rejeté', heading: 'Notre partenaire a rejeté votre compte bancaire', description: "Discutez avec Concierge pour plus d'informations."},
         },
+        wiseSetupInProgress: {message: 'Configuration des remboursements globaux en cours.', continue: 'Continuer.'},
         wiseGlobalReimbursementsIntro: {
             title: 'Configurer les remboursements globaux ?',
             subtitle: 'Payez des membres partout dans le monde dans leur devise locale.',
@@ -9262,8 +9282,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 describeRuleForConcierge: 'Décrivez votre règle et Concierge la créera',
                 gotIt: 'Compris',
                 createRule: 'Créer une règle',
-                fallbackBanner: 'Ce n’est pas une règle standard, nous avons donc rédigé une règle d’agent.',
-                fallbackBannerWithExplanation: (explanation: string) => `Ce n’est pas une règle standard, nous avons donc rédigé une règle d’agent. ${explanation}`,
+                fallbackBanner:
+                    'Ce n’est pas une règle standard, nous avons donc rédigé une règle d’agent. Les règles d’agent s’exécutent lorsqu’une dépense ou une note de frais est créée ou mise à jour.',
+                fallbackBannerWithExplanation: (explanation: string) =>
+                    `Ce n’est pas une règle standard, nous avons donc rédigé une règle d’agent. Les règles d’agent s’exécutent lorsqu’une dépense ou une note de frais est créée ou mise à jour. ${explanation}`,
             },
             tabs: {
                 general: 'Général',
@@ -12369,7 +12391,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             isUnreadWithMention: 'Est non lu avec mention',
             isWaitingForAssigneeToCompleteAction: 'En attente que l’assigné termine l’action',
             hasChildReportAwaitingAction: 'Une note de frais enfant est en attente d’action',
-            hasMissingInvoiceBankAccount: 'A un compte bancaire de facture manquant',
             hasUnresolvedCardFraudAlert: 'A une alerte de fraude de carte non résolue',
             hasDEWApproveFailed: 'L’approbation DEW a échoué',
         },
@@ -12894,5 +12915,28 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         mobileClaimPrompt: 'Visitez Expensify dans votre navigateur web pour bénéficier de votre réduction de renouvellement.',
     },
     bulkActionBar: {label: 'Actions groupées', clearSelection: 'Effacer la sélection', loadingSelection: 'Chargement de la sélection'},
+    reportHistoryPage: {
+        title: 'Historique de la note de frais',
+        created: 'a créé la note de frais',
+        submitted: 'a soumis',
+        approved: 'a approuvé',
+        paid: 'a payé',
+        toSubmit: 'soumettre',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return 'soumettre automatiquement';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `soumettre automatiquement le ${eta} de chaque mois` : `soumettre automatiquement ${eta}`;
+        },
+        toApprove: 'approuver',
+        toPay: 'payer',
+        minutesAgo: (count: number) => `il y a ${count} min`,
+        hoursAgo: (count: number) => `il y a ${count} h`,
+        daysAgo: () => ({
+            one: 'il y a 1 j',
+            other: (count: number) => `il y a ${count} j`,
+        }),
+        offlineMessage: 'Vous êtes hors ligne. L’historique des notes de frais peut être obsolète.',
+    },
 };
 export default translations;

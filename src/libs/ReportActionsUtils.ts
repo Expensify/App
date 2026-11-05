@@ -56,6 +56,7 @@ import Onyx from 'react-native-onyx';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 
+import {isBillPayHistoryAction} from './BillPayReportActionUtils';
 import {getBankName, getEffectiveFeedReimbursable, isCardPendingActivate} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertAmountToDisplayString, convertToBackendAmount, convertToShortDisplayString} from './CurrencyUtils';
@@ -1460,7 +1461,16 @@ function getReportActionActorAccountID(
     // When true (e.g. in search results) the actual author is returned instead of the Concierge
     // display override used in inbox timelines for automated actions.
     shouldUseRealActor = false,
+
+    // Bill intake saves a bill's creation and submission actions under the receiver's account,
+    // and its invoice's actions under the vendor's account. The history should show the person
+    // who entered the bill instead, or Concierge if the bill came from an email.
+    billPayHistory?: {isInvoiceLinkedToBill: boolean; processorAccountID: number | undefined},
 ): number | undefined {
+    if (billPayHistory && isBillPayHistoryAction(reportAction, iouReport, billPayHistory.isInvoiceLinkedToBill)) {
+        return billPayHistory.processorAccountID || CONST.ACCOUNT_ID.CONCIERGE;
+    }
+
     switch (reportAction?.actionName) {
         case CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW: {
             const ownerAccountID = iouReport?.ownerAccountID ?? reportAction?.childOwnerAccountID;
