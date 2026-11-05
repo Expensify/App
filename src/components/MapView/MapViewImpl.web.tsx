@@ -214,7 +214,6 @@ function MapViewImpl({
         };
     }, [mapRef]);
 
-    // cspell:ignore styledata
     // Keep the map labels in the user's preferred app locale and its disputed borders drawn from the user's
     // own worldview, reapplying whenever the map, the locale or the country changes.
     useEffect(() => {
@@ -233,10 +232,10 @@ function MapViewImpl({
             return;
         }
 
-        // The style must be loaded before labels and borders can be localized, so defer until it is ready.
-        map.once('styledata', applyLocalization);
+        // Wait until the style's sources exist so localization can reload their tiles.
+        map.once('style.load', applyLocalization);
         return () => {
-            map.off('styledata', applyLocalization);
+            map.off('style.load', applyLocalization);
         };
     }, [mapRef, preferredLocale, countryByIp]);
 

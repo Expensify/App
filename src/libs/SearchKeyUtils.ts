@@ -1,9 +1,14 @@
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 import type {ValueOf} from 'type-fest';
 
 type SearchKey = ValueOf<typeof CONST.SEARCH.SEARCH_KEYS> | `${typeof CONST.SEARCH.SAVED_SEARCH_PREFIX}${string}`;
+
+type ReportKey = `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`;
+
+const TODO_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.SUBMIT, CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.PAY, CONST.SEARCH.SEARCH_KEYS.EXPORT]);
 
 const DATA_TYPE_TO_SEARCH_KEY: Partial<Record<SearchDataTypes, SearchKey>> = {
     [CONST.SEARCH.DATA_TYPES.EXPENSE]: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
@@ -36,5 +41,9 @@ function getSearchKeyForDataType(type: SearchDataTypes | undefined): SearchKey |
     return type ? DATA_TYPE_TO_SEARCH_KEY[type] : undefined;
 }
 
-export {getSearchKeyForDataType, isExistingSearchKey, savedSearchIDToSearchKey, searchKeyToSavedSearchID};
-export type {SearchKey};
+function isReportEntry(key: string): key is ReportKey {
+    return key.startsWith(ONYXKEYS.COLLECTION.REPORT);
+}
+
+export {getSearchKeyForDataType, isExistingSearchKey, isReportEntry, savedSearchIDToSearchKey, searchKeyToSavedSearchID, TODO_SEARCH_KEYS};
+export type {ReportKey, SearchKey};

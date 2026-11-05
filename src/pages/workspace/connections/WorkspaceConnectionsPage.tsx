@@ -34,6 +34,8 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {openPolicyAccountingPage, openPolicyHRPage, openPolicyRecruitingPage} from '@libs/actions/PolicyConnections';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isControlPolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -50,9 +52,10 @@ import variables from '@styles/variables';
 import {clearPolicyErrorField, openPolicyReceiptPartnersPage} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
+import type SCREENS from '@src/SCREENS';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
-import {useFocusEffect, useRoute} from '@react-navigation/native';
+import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -115,6 +118,7 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     const [lastSelectedTab, setLastSelectedTab] = useState<ConnectionsTab | undefined>();
     const [mergeSetupFlow, setMergeSetupFlow] = useState<MergeSetupFlow | undefined>();
     const route = useRoute();
+    const navigation = useNavigation<PlatformStackNavigationProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.CONNECTIONS>>();
     const params = route.params as RouteParams | undefined;
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.connections');
 
@@ -162,14 +166,15 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
 
     const openSuggestIntegration = () => openConciergeAnywhere({forceConcierge: true});
 
-    // The panels go back to Connections without a tab, so a tab left in the params would stop Back from finding this page
+    // The panels go back to Connections without a tab, so a tab left in the params would stop Back from finding this page.
+    // This clears it on this page's own route, because this can run while the navigation that opened the page is still in flight.
     const linkedTab = params?.tab;
     useFocusEffect(() => {
         if (!linkedTab) {
             return;
         }
         setLastSelectedTab(linkedTab);
-        Navigation.setParams({tab: undefined});
+        navigation.setParams({tab: undefined});
     });
 
     // Upgrade and setup flows that leave the app come back here with the integration to connect in the route params.
@@ -199,7 +204,7 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
             integrationToDisconnect,
             shouldDisconnectIntegrationBeforeConnecting,
         });
-        Navigation.setParams({
+        navigation.setParams({
             newConnectionName: undefined,
             isIntuitEnterpriseSuite: undefined,
             integrationToDisconnect: undefined,
