@@ -1129,7 +1129,7 @@ function setContactMethodAsDefault(
 
     // Pattern C: apply all actual data changes only after server confirms success
     const successData: Array<
-        OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.LOGINS | `${typeof ONYXKEYS.COLLECTION.POLICY}${string}`>
+        | OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.LOGINS | `${typeof ONYXKEYS.COLLECTION.POLICY}${string}`>
         | PersonalDetailsUtils.PersonalDetailsOnyxUpdate
     > = [
         {
@@ -1182,9 +1182,7 @@ function setContactMethodAsDefault(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
-                ...(employee && oldDefaultContactMethod
-                    ? {employeeList: {[oldDefaultContactMethod]: null, [newDefaultContactMethod]: employee}}
-                    : {}),
+                ...(employee && oldDefaultContactMethod ? {employeeList: {[oldDefaultContactMethod]: null, [newDefaultContactMethod]: employee}} : {}),
                 ...(isOwner ? {owner: newDefaultContactMethod} : {}),
             },
         });

@@ -15,8 +15,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {NewLogin, Policy} from '@src/types/onyx';
 
-import {CONST as COMMON_CONST} from 'expensify-common';
 import type {OnyxCollection} from 'react-native-onyx';
+
+import {CONST as COMMON_CONST} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
 import * as App from '../../src/libs/actions/App';
@@ -165,11 +166,7 @@ describe('actions/User', () => {
             // Given the user owns one workspace and belongs to another, with different roles and an approval setting
             UserActions.setContactMethodAsDefault(currentUserPersonalDetails, policies, newLogin, formatPhoneNumber, undefined, true, '123456');
             const onyxData = mockAPI.write.mock.calls.at(0)?.[2];
-            expect(mockAPI.write).toHaveBeenCalledWith(
-                WRITE_COMMANDS.SET_CONTACT_METHOD_AS_DEFAULT,
-                {partnerUserID: newLogin, validateCode: '123456'},
-                expect.anything(),
-            );
+            expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.SET_CONTACT_METHOD_AS_DEFAULT, {partnerUserID: newLogin, validateCode: '123456'}, expect.anything());
 
             // When the server confirms the login change
             await Onyx.update(onyxData?.successData ?? []);
