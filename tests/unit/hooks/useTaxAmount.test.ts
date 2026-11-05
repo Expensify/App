@@ -299,6 +299,54 @@ describe('useTaxAmount', () => {
         expect(renders).toContainEqual({defaultTaxCode: 'tax_category', shouldKeepCurrentTaxSelection: false, areRulesLoading: false});
     });
 
+    it('reports the category rule rate for a track expense being moved', () => {
+        // Given a tracked expense being submitted to a workspace whose category carries a tax rule
+        mockCategoryTaxCodes = {Car: 'tax_category'};
+        const transaction = {...baseTransaction, category: 'Car'};
+
+        // When the hook resolves the tax for the confirmation page
+        const {result} = renderHook(() => useTaxAmount({...baseParams, transaction, isMovingTransactionFromTrackExpense: true}));
+
+        // Then the rule's rate is reported as a rule rate, which is what lets it be written over the rate the
+        // expense arrived with
+        expect(result.current.categoryTaxCode).toBe('tax_category');
+    });
+
+    it('reports no category rule rate for a track expense whose category has no rule', () => {
+        // Given a tracked expense being submitted to a workspace where its category carries no tax rule
+        const transaction = {...baseTransaction, category: 'Equipment'};
+
+        // When the hook resolves the tax for the confirmation page
+        const {result} = renderHook(() => useTaxAmount({...baseParams, transaction, isMovingTransactionFromTrackExpense: true}));
+
+        // Then nothing is reported, so the expense keeps the rate it arrived with rather than the workspace default
+        expect(result.current.categoryTaxCode).toBeUndefined();
+    });
+
+    it('charges the tax again when a category rule replaces the rate a moved track expense arrived with', () => {
+        // Given a tracked expense carrying a tax amount, being submitted to a workspace whose category has a rule
+        mockCategoryTaxCodes = {Car: 'tax_category'};
+        const transaction = {...baseTransaction, category: 'Car', taxAmount: 55};
+
+        // When the hook resolves the tax amount
+        const {result} = renderHook(() => useTaxAmount({...baseParams, transaction, isMovingTransactionFromTrackExpense: true}));
+
+        // Then the amount is charged at the rule's rate, because the amount it arrived with was charged at a rate
+        // the expense no longer carries
+        expect(result.current.taxAmountInSmallestCurrencyUnits).toBe(10000);
+    });
+
+    it('keeps the tax amount a moved track expense arrived with when no category rule applies', () => {
+        // Given a tracked expense carrying a tax amount, whose category carries no rule on the destination workspace
+        const transaction = {...baseTransaction, category: 'Equipment', taxAmount: 55};
+
+        // When the hook resolves the tax amount
+        const {result} = renderHook(() => useTaxAmount({...baseParams, transaction, isMovingTransactionFromTrackExpense: true}));
+
+        // Then it is kept, because the rate it was charged at is kept too
+        expect(result.current.taxAmountInSmallestCurrencyUnits).toBe(5500);
+    });
+
     it('applies the category rule to the distance rate default category', () => {
         // Given a distance rate whose default category carries a tax rule, on an expense with no category yet
         mockCategoryTaxCodes = {Car: 'tax_category'};

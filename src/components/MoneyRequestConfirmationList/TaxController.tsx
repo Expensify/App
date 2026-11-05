@@ -67,7 +67,7 @@ function TaxController({
 
     const previousTransactionCurrency = usePrevious(transaction?.currency);
 
-    const {defaultTaxCode, defaultTaxValue, shouldKeepCurrentTaxSelection, taxAmountInSmallestCurrencyUnits, areRulesLoading} = useTaxAmount({
+    const {categoryTaxCode, defaultTaxCode, defaultTaxValue, shouldKeepCurrentTaxSelection, taxAmountInSmallestCurrencyUnits, areRulesLoading} = useTaxAmount({
         transaction,
         policy,
         policyForMovingExpenses,
@@ -79,10 +79,14 @@ function TaxController({
         previousTransactionCurrency,
     });
 
+    // A moved track expense keeps the tax it arrived with rather than taking the destination workspace's default,
+    // which is a rate nobody chose for it. A category rule is a rate the destination's admin chose, so it still applies.
+    const shouldHoldBackDefault = isMovingTransactionFromTrackExpense && !categoryTaxCode;
+
     useEffect(() => {
         // Writing the workspace default before the rules arrive would read as a tax the user picked, and
         // `shouldKeepCurrentTaxSelection` would then hold it in place once the category's rule does land.
-        if (!transactionID || isReadOnly || !shouldShowTax || isMovingTransactionFromTrackExpense || areRulesLoading) {
+        if (!transactionID || isReadOnly || !shouldShowTax || shouldHoldBackDefault || areRulesLoading) {
             return;
         }
 
@@ -97,25 +101,14 @@ function TaxController({
             taxAmount: transactionTaxAmount ?? null,
         });
         // trigger this useEffect also when policyID changes - the defaultTaxCode may stay the same
-    }, [
-        defaultTaxCode,
-        defaultTaxValue,
-        isMovingTransactionFromTrackExpense,
-        isReadOnly,
-        transactionID,
-        policyID,
-        shouldShowTax,
-        shouldKeepCurrentTaxSelection,
-        transactionTaxAmount,
-        areRulesLoading,
-    ]);
+    }, [defaultTaxCode, defaultTaxValue, shouldHoldBackDefault, isReadOnly, transactionID, policyID, shouldShowTax, shouldKeepCurrentTaxSelection, transactionTaxAmount, areRulesLoading]);
 
     useEffect(() => {
-        if (!transactionID || isReadOnly || !shouldShowTax || isMovingTransactionFromTrackExpense || areRulesLoading) {
+        if (!transactionID || isReadOnly || !shouldShowTax || shouldHoldBackDefault || areRulesLoading) {
             return;
         }
         setMoneyRequestTaxAmount(transactionID, taxAmountInSmallestCurrencyUnits);
-    }, [transactionID, taxAmountInSmallestCurrencyUnits, isReadOnly, shouldShowTax, isMovingTransactionFromTrackExpense, areRulesLoading]);
+    }, [transactionID, taxAmountInSmallestCurrencyUnits, isReadOnly, shouldShowTax, shouldHoldBackDefault, areRulesLoading]);
 
     return null;
 }

@@ -102,7 +102,8 @@ function useTaxAmount({
     const isFollowingWorkspaceDefault = hasCurrencyChanged && !!transaction?.taxCode && transaction.taxCode === previousWorkspaceDefaultTaxCode;
     // A category tax rule outranks the workspace default, so resolve it here as well. Otherwise this default overwrites
     // the rule's tax rate on the first render of the confirmation page.
-    const defaultTaxCode = isFollowingWorkspaceDefault ? workspaceDefaultTaxCode : (getCategoryTaxCode(category, transaction, policy, rules) ?? workspaceDefaultTaxCode);
+    const categoryTaxCode = isFollowingWorkspaceDefault ? undefined : getCategoryTaxCode(category, transaction, policy, rules);
+    const defaultTaxCode = categoryTaxCode ?? workspaceDefaultTaxCode;
     const defaultTaxValue = getTaxValue(policy, transaction, defaultTaxCode) ?? null;
     const shouldKeepCurrentTaxSelection = hasTaxRateWithMatchingValue(policy, transaction) && transaction?.taxCode !== previousDefaultTaxCode;
 
@@ -120,11 +121,14 @@ function useTaxAmount({
         getTaxValue(policy, transaction, transaction?.taxCode ?? defaultTaxCode) ??
         (isMovingTransactionFromTrackExpense ? getTaxValue(policyForMovingExpenses, transaction, transaction?.taxCode ?? defaultTaxCode) : '');
     const taxDecimals = getCurrencyDecimals(transaction?.currency ?? CONST.CURRENCY.USD);
-    const taxAmount = isMovingTransactionFromTrackExpense && transaction?.taxAmount ? Math.abs(transaction?.taxAmount ?? 0) : calculateTaxAmount(taxPercentage, taxableAmount, taxDecimals);
+    // A moved track expense keeps the tax amount it arrived with, since it keeps the rate that amount was charged at.
+    // A category rule on the destination workspace replaces that rate, so the amount has to be charged again.
+    const shouldKeepMovedTaxAmount = isMovingTransactionFromTrackExpense && !!transaction?.taxAmount && !categoryTaxCode;
+    const taxAmount = shouldKeepMovedTaxAmount ? Math.abs(transaction?.taxAmount ?? 0) : calculateTaxAmount(taxPercentage, taxableAmount, taxDecimals);
 
     const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
 
-    return {defaultTaxCode, defaultTaxValue, shouldKeepCurrentTaxSelection, taxAmountInSmallestCurrencyUnits, areRulesLoading};
+    return {categoryTaxCode, defaultTaxCode, defaultTaxValue, shouldKeepCurrentTaxSelection, taxAmountInSmallestCurrencyUnits, areRulesLoading};
 }
 
 export default useTaxAmount;
