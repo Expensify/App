@@ -24,6 +24,7 @@ import {
     canSendInvoiceFromWorkspace,
     canShowReimbursableToggleForPolicy,
     canSubmitPerDiemExpenseFromWorkspace,
+    canSubmitOwnReportOnPolicy,
     canUnarchivePolicy,
     evaluateApprovalWorkflowRule,
     findVendorByID,
@@ -1440,8 +1441,8 @@ describe('PolicyUtils', () => {
                 [CONST.POLICY.ROLE.ADMIN, true, true],
                 [CONST.POLICY.ROLE.AUDITOR, true, false],
                 [CONST.POLICY.ROLE.PAYMENTS_ADMIN, true, false],
+                [CONST.POLICY.ROLE.CARD_ADMIN, true, false],
                 [CONST.POLICY.ROLE.EDITOR, false, false],
-                [CONST.POLICY.ROLE.CARD_ADMIN, false, false],
                 [CONST.POLICY.ROLE.PEOPLE_ADMIN, false, false],
                 [CONST.POLICY.ROLE.USER, false, false],
                 [CONST.POLICY.ROLE.GUEST, false, false],
@@ -1458,6 +1459,7 @@ describe('PolicyUtils', () => {
             it.each([
                 [CONST.POLICY.ROLE.AUDITOR, true],
                 [CONST.POLICY.ROLE.PAYMENTS_ADMIN, true],
+                [CONST.POLICY.ROLE.CARD_ADMIN, true],
                 [CONST.POLICY.ROLE.ADMIN, false],
                 [CONST.POLICY.ROLE.EDITOR, false],
                 [CONST.POLICY.ROLE.USER, false],
@@ -1470,14 +1472,17 @@ describe('PolicyUtils', () => {
                 expect(hasReadOnlyAllReportsAccess(policy, memberLogin)).toBe(expected);
             });
 
-            it.each([CONST.POLICY.ROLE.AUDITOR, CONST.POLICY.ROLE.PAYMENTS_ADMIN])('hasReadOnlyAllReportsAccess is false for a %s after the workspace is downgraded to Team', (role) => {
-                // Given a member whose control-only role is still stored after the policy type changed to Team
-                const policy = {...buildPolicy(role), type: CONST.POLICY.TYPE.TEAM};
+            it.each([CONST.POLICY.ROLE.AUDITOR, CONST.POLICY.ROLE.PAYMENTS_ADMIN, CONST.POLICY.ROLE.CARD_ADMIN])(
+                'hasReadOnlyAllReportsAccess is false for a %s after the workspace is downgraded to Team',
+                (role) => {
+                    // Given a member whose control-only role is still stored after the policy type changed to Team
+                    const policy = {...buildPolicy(role), type: CONST.POLICY.TYPE.TEAM};
 
-                // When we check whether they can only read all reports
-                // Then the role no longer applies, matching the other permission helpers
-                expect(hasReadOnlyAllReportsAccess(policy, memberLogin)).toBe(false);
-            });
+                    // When we check whether they can only read all reports
+                    // Then the role no longer applies, matching the other permission helpers
+                    expect(hasReadOnlyAllReportsAccess(policy, memberLogin)).toBe(false);
+                },
+            );
 
             it('allows auditors to read every policy feature but write only rooms and expense creation', () => {
                 const policy = buildPolicy(CONST.POLICY.ROLE.AUDITOR);
@@ -1563,6 +1568,12 @@ describe('PolicyUtils', () => {
                 });
 
                 expect(canCreateExpensesOnPolicy(policyWithDifferentViewerRole, memberLogin)).toBe(false);
+            });
+
+            it('lets a submitter submit their own report only when their role can create expenses', () => {
+                expect(canSubmitOwnReportOnPolicy(buildPolicy(CONST.POLICY.ROLE.USER), memberLogin)).toBe(true);
+                expect(canSubmitOwnReportOnPolicy(buildPolicy(CONST.POLICY.ROLE.APPROVE_ONLY), memberLogin)).toBe(false);
+                expect(canSubmitOwnReportOnPolicy({...buildPolicy(CONST.POLICY.ROLE.APPROVE_ONLY), type: CONST.POLICY.TYPE.PERSONAL}, memberLogin)).toBe(true);
             });
 
             it('allows Guest assignment only on Control workspaces', () => {
@@ -1762,6 +1773,17 @@ describe('PolicyUtils', () => {
                 // When that member's protection is resolved
                 // Then they are protected, because Auth rejects removing any member who can read every workspace report
                 expect(isRoomMemberProtectedByPolicyRole(policyWithPaymentsAdmin, paymentsAdminLogin, undefined)).toBe(true);
+            });
+
+            it('protects a member who is a card admin of the policy', () => {
+                // Given a policy viewed by an admin, holding a card admin in its employee list
+                const cardAdminLogin = 'cardadmin@test.com';
+                const policy = buildPolicy();
+                const policyWithCardAdmin = {...policy, employeeList: {...policy.employeeList, [cardAdminLogin]: {role: CONST.POLICY.ROLE.CARD_ADMIN}}};
+
+                // When that member's protection is resolved
+                // Then they are protected, because Auth rejects removing any member who can read every workspace report
+                expect(isRoomMemberProtectedByPolicyRole(policyWithCardAdmin, cardAdminLogin, undefined)).toBe(true);
             });
 
             it('protects the policy owner by accountID even when the employee list does not list them', () => {
@@ -4450,6 +4472,26 @@ describe('PolicyUtils', () => {
                     const canPay = canAdminPayReport(policy, 'member@example.com');
 
                     // Then normalizing the reimbursement choice does not grant payment permissions to regular members
+                    expect(canPay).toBe(false);
+                },
+            );
+
+            it.each([CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES, CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL])(
+                'should not allow a card admin to pay for %s',
+                (reimbursementChoice) => {
+                    // Given a card admin on a workspace with payments enabled, who can read every report
+                    const policy = createMock<Policy>({
+                        type: CONST.POLICY.TYPE.CORPORATE,
+                        role: CONST.POLICY.ROLE.CARD_ADMIN,
+                        reimbursementChoice,
+                        reimburser: 'payer@example.com',
+                        owner: 'payer@example.com',
+                    });
+
+                    // When the card admin's permission to pay a report is checked
+                    const canPay = canAdminPayReport(policy, 'cardadmin@example.com');
+
+                    // Then reading every report does not grant payment, which needs write access to workspace payments
                     expect(canPay).toBe(false);
                 },
             );
