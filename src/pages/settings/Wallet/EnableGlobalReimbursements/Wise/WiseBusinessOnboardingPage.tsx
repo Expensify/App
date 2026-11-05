@@ -15,6 +15,7 @@ import useWiseOnboardingSaveStatus from '@hooks/useWiseOnboardingSaveStatus';
 import {isBankAccountEligibleForGlobalReimbursements, isWiseOnboardingSubmitted} from '@libs/BankAccountUtils';
 import {getSavedFileAnswers} from '@libs/getWiseOnboardingPageParams';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import {isWiseGlobalReimbursementsIntroPath} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import Navigation from '@navigation/Navigation';
@@ -83,12 +84,14 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     // A submitted business has nothing left to submit, and the back path follows the focused route, so introPath stays out of the effect and the status page opens once
     const isOnboardingSubmitted = isWiseOnboardingSubmitted(bankAccount?.accountData);
     const openStatusPage = useEffectEvent(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path, introPath), {forceReplace: true}));
+    // A deep link renders this page before the root state holds it, so the back path is not this account's intro until then
+    const isIntroPathReady = isWiseGlobalReimbursementsIntroPath(introPath, bankAccountID);
     useEffect(() => {
-        if (!isOnboardingSubmitted) {
+        if (!isOnboardingSubmitted || !isIntroPathReady) {
             return;
         }
         openStatusPage();
-    }, [isOnboardingSubmitted]);
+    }, [isOnboardingSubmitted, isIntroPathReady]);
 
     // The flow's inputs read the draft once, when a page mounts, so the prefill lands in the draft before the flow renders. It runs once per visit, since
     // swapping the flow for a loader later would drop an SSN the user is typing.

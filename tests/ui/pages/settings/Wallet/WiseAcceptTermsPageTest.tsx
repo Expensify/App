@@ -272,6 +272,24 @@ describe('WiseAcceptTermsPage', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith('settings/wallet/global-reimbursements/1/status', {forceReplace: true});
     });
 
+    it('waits for the intro path before opening the status page from a deep link', () => {
+        // Given a submitted business and a deep link that renders the page before the root state holds it, so the back path is empty
+        mockOnyxValues[ONYXKEYS.BANK_ACCOUNT_LIST] = {[BANK_ACCOUNT_ID]: {accountData: {additionalData: {wise: {status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED}}}}};
+        mockFocusedPath = '';
+        const {rerender} = renderPage();
+
+        // Then it does not navigate yet, since a status route built on an empty path does not exist
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+
+        // When the root state catches up and the back path becomes the intro
+        mockFocusedPath = INTRO_PATH;
+        rerender();
+
+        // Then the status page replaces the terms over the intro
+        expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+        expect(Navigation.navigate).toHaveBeenCalledWith('settings/wallet/global-reimbursements/1/status', {forceReplace: true});
+    });
+
     it('opens the status page only once when the server sends the submitted business after the submission succeeded', () => {
         // Given a submission that succeeded and opened the status page
         const {rerender} = renderPage();

@@ -17,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isWiseOnboardingSubmitted} from '@libs/BankAccountUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import {isWiseGlobalReimbursementsIntroPath} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import Navigation from '@navigation/Navigation';
@@ -160,9 +161,14 @@ function WiseAcceptTermsPage({route}: WiseAcceptTermsPageProps) {
         openOnboardingPage(pageToFix.key);
     });
 
+    // A deep link renders this page before the root state holds it, so the back path is not this account's intro until then
+    const isIntroPathReady = isWiseGlobalReimbursementsIntroPath(introPath, bankAccountID);
     useEffect(() => {
+        if (!isIntroPathReady) {
+            return;
+        }
         leaveTerms();
-    }, [hasWiseBusiness, pageToFix]);
+    }, [hasWiseBusiness, pageToFix, isIntroPathReady]);
 
     const confirm = () => {
         if (!TERM_KEYS.every((key) => accepted[key])) {
