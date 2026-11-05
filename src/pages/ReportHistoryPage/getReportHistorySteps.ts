@@ -8,12 +8,15 @@ import Parser from '@libs/Parser';
 import {
     getChangedApproverActionMessage,
     getDelegateSubmitMessage,
+    getOriginalMessage,
+    getReportActionActorAccountID,
     getSortedReportActions,
     hasPendingDEWApprove,
     hasPendingDEWSubmit,
     isActionOfType,
     isApprovedAction,
     isForwardedAction,
+    isMarkAsClosedAction,
     isPayAction,
     isReopenedAction,
     isRetractedAction,
@@ -47,6 +50,7 @@ type GetReportHistoryStepsParams = {
     nextStep: ReportNextStep | undefined;
     isOpenReport: boolean;
     isDEWPolicy: boolean;
+    shouldDisplayMarkAsDone: boolean;
     reportMetadata: OnyxEntry<ReportMetadata>;
 };
 
@@ -55,14 +59,22 @@ function getCompletedStep(
     reportAction: ReportAction,
     currentUserEmail: string | undefined,
     reportOwnerAccountID: number | undefined,
+    shouldDisplayMarkAsDone: boolean,
 ): ReportHistoryStep | undefined {
-    const step = {key: reportAction.reportActionID, accountID: reportAction.actorAccountID, created: reportAction.created, isUpcoming: false};
+    const step = {key: reportAction.reportActionID, accountID: getReportActionActorAccountID(reportAction, undefined, undefined), created: reportAction.created, isUpcoming: false};
 
     if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATED)) {
         return {...step, accountID: reportAction.actorAccountID ?? reportOwnerAccountID, icon: 'Receipt', label: translate('reportHistoryPage.created')};
     }
     if (isSubmittedAction(reportAction) || isSubmittedAndClosedAction(reportAction)) {
+        // Automatic submissions keep their submission wording, even in a Mark as done workflow.
+        if (shouldDisplayMarkAsDone && !getOriginalMessage(reportAction)?.harvesting) {
+            return {...step, icon: 'Send', label: translate('iou.markedAsDone')};
+        }
         return {...step, icon: 'Send', label: translate('reportHistoryPage.submitted')};
+    }
+    if (shouldDisplayMarkAsDone && isMarkAsClosedAction(reportAction)) {
+        return {...step, icon: 'Send', label: translate('iou.markedAsDone')};
     }
     if (isApprovedAction(reportAction) || isForwardedAction(reportAction)) {
         return {...step, icon: 'ThumbsUp', label: translate('reportHistoryPage.approved')};
@@ -186,6 +198,7 @@ function getReportHistorySteps({
     nextStep,
     isOpenReport,
     isDEWPolicy,
+    shouldDisplayMarkAsDone,
     reportMetadata,
 }: GetReportHistoryStepsParams): ReportHistoryStep[] {
     const completedSteps: ReportHistoryStep[] = [];
@@ -198,7 +211,7 @@ function getReportHistorySteps({
         ) {
             continue;
         }
-        const step = getCompletedStep(translate, reportAction, currentUserEmail, reportOwnerAccountID);
+        const step = getCompletedStep(translate, reportAction, currentUserEmail, reportOwnerAccountID, shouldDisplayMarkAsDone && !isDEWPolicy);
         if (step) {
             completedSteps.push(step);
             lastStepAction = reportAction;
