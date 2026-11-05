@@ -6,6 +6,7 @@ import {findSliceAtPosition, getPrimaryValue, processDataIntoSlices} from '@comp
 import {hasRoomForSideLegend} from '@components/Charts/utils/chartHeights';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
 import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
 
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -30,6 +31,9 @@ type PieChartProps = ChartProps & {
     /** Position of the unit symbol relative to the value. Defaults to 'left'. */
     valueUnitPosition?: UnitPosition;
 
+    /** Number of decimals the center total shows under 1m and in its tooltip */
+    valueDecimals?: number;
+
     /** Whether to draw the slice legend below the donut */
     shouldShowLegend?: boolean;
 
@@ -51,8 +55,11 @@ function PieChartCanvas({
     series,
     valueUnit,
     valueUnitPosition,
+    valueDecimals,
     formatValue: formatValueOverride,
     onSlicePress,
+    onTooltipPress,
+    tooltipFooter,
     shouldShowLegend = true,
     shouldUseResponsiveLegend = false,
     chartWidth,
@@ -89,7 +96,8 @@ function PieChartCanvas({
     const [{key: primarySeriesKey}] = series;
     const processedSlices = processDataIntoSlices(data, primarySeriesKey, pieGeometry);
 
-    const {formatValue} = useChartLabelFormats({data, unit: valueUnit, unitPosition: valueUnitPosition, formatValue: formatValueOverride});
+    const {formatValue, formatExactValue, formatTotalValue} = useChartLabelFormats({data, unit: valueUnit, unitPosition: valueUnitPosition, formatValue: formatValueOverride});
+    const total = data.reduce((sum, point) => sum + getPrimaryValue(point, primarySeriesKey), 0);
 
     /** Data index of the slice at the given point, or -1 when the point is outside the slices */
     const findDataIndexAt = (x: number, y: number) => {
@@ -141,7 +149,7 @@ function PieChartCanvas({
 
     const onChartMoved = (deltaX: number, deltaY: number) => scheduleOnUI(handleChartMoved, deltaX, deltaY);
 
-    const {setIsTouchPinned, dismissTooltip, onTapFinalize, onChartTouchStart} = useTouchPinnedTooltip(() => {
+    const {isTouchPinned, setIsTouchPinned, dismissTooltip, onTapFinalize, onChartTouchStart} = useTouchPinnedTooltip(() => {
         matchedIndex.set(-1);
         setIsHoveringOverPie(false);
     });
@@ -217,7 +225,7 @@ function PieChartCanvas({
 
     // One legend entry: a color dot plus the slice name, wired to drive the tooltip on hover.
     // The responsive variant gives each slice its own row with the dot aligned to the first line. The default variant is an inline item for the wrapping row below the donut.
-    // `getPieChartLoadingHeight` reserves the wrapping row as one line of normal-size text, so the label has to keep that size.
+    // `getPieChartLoadingHeight` reserves the wrapping row as one line of legend text, so keep it in sync with the label style.
     const renderLegendEntry = (slice: PieSlice, isResponsiveRow: boolean) => {
         const dot = <View style={[styles.pieChartLegendDot, StyleUtils.getBackgroundColorStyle(slice.color)]} />;
         return (
@@ -228,7 +236,7 @@ function PieChartCanvas({
                 onMouseLeave={clearSliceHighlight}
             >
                 {isResponsiveRow ? <View style={styles.pieChartLegendDotColumn}>{dot}</View> : dot}
-                <Text style={[styles.textNormal, StyleUtils.getColorStyle(theme.icon), isResponsiveRow ? styles.flex1 : styles.ml2]}>{slice.label}</Text>
+                <Text style={[styles.pieChartLegendLabel, StyleUtils.getColorStyle(theme.icon), isResponsiveRow ? styles.flexShrink1 : styles.ml2]}>{slice.label}</Text>
             </View>
         );
     };
@@ -266,17 +274,21 @@ function PieChartCanvas({
 
                 {processedSlices.length > 0 && (
                     <View
-                        pointerEvents="none"
+                        pointerEvents="box-none"
                         style={styles.pieChartCenterLabel}
                     >
-                        <Text style={[styles.textLabelSupporting, styles.textAlignCenter]}>{translate('common.total')}</Text>
-                        <Text
-                            numberOfLines={1}
-                            adjustsFontSizeToFit
-                            style={[styles.textHeadlineH1, styles.textAlignCenter]}
-                        >
-                            {formatValue(data.reduce((sum, point) => sum + getPrimaryValue(point, primarySeriesKey), 0))}
-                        </Text>
+                        <Tooltip text={formatExactValue(total, valueDecimals)}>
+                            <View>
+                                <Text style={[styles.textLabelSupporting, styles.textAlignCenter]}>{translate('common.total')}</Text>
+                                <Text
+                                    numberOfLines={1}
+                                    adjustsFontSizeToFit
+                                    style={[styles.textHeadlineH1, styles.textAlignCenter]}
+                                >
+                                    {formatTotalValue(total, valueDecimals)}
+                                </Text>
+                            </View>
+                        </Tooltip>
                     </View>
                 )}
 
@@ -291,6 +303,8 @@ function PieChartCanvas({
                     initialTooltipPosition={tooltipPosition}
                     onChartMoved={onChartMoved}
                     onDismiss={dismissTooltip}
+                    onPress={isTouchPinned ? onTooltipPress : undefined}
+                    footer={isTouchPinned ? tooltipFooter : undefined}
                 />
             </Animated.View>
         </GestureDetector>
