@@ -68,7 +68,7 @@
         "*.markdown",
         "index.js",
         "web/snippets/**",
-        ".eslint-reports/",
+        ".lint-reports/",
         "src/libs/SearchParser/searchParser.js",
         "src/libs/SearchParser/autocompleteParser.js",
         "Mobile-Expensify",

@@ -3,7 +3,6 @@ import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
-import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -13,7 +12,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 
 import {CERTINIA_DIMENSION_PARAMS, getDimensionLabel, getDisplayTypeLabel, getParentTagMappingLabel} from '@pages/workspace/accounting/certinia/utils';
-import {getAccountingSettingsRoute} from '@pages/workspace/connections/utils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -28,14 +26,13 @@ function CertiniaImportPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
 
     const policyID = policy?.id;
-    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const config = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.config;
     const coding = config?.coding;
     const hasPSA = !!config?.hasPSA;
 
     return (
         <ConnectionLayout
-            onBackButtonPress={() => Navigation.goBack(getAccountingSettingsRoute(isUnifiedConnectionsBetaEnabled, policyID))}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))}
             displayName="CertiniaImportPage"
             headerTitle="workspace.accounting.import"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
@@ -55,6 +52,7 @@ function CertiniaImportPage({policy}: WithPolicyConnectionsProps) {
                         isActive
                         disabled
                         switchAccessibilityLabel={translate('workspace.certinia.import.expenseTypeGlaMappings')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.EXPENSE_TYPE_GLA_MAPPINGS_SWITCH}
                         onToggle={() => {}}
                     />
                     <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CERTINIA_CONFIG.PARENT_TAG_MAPPING], config?.pendingFields)}>
@@ -80,6 +78,7 @@ function CertiniaImportPage({policy}: WithPolicyConnectionsProps) {
                         shouldPlaceSubtitleBelowSwitch
                         isActive={!!coding?.syncMilestones}
                         switchAccessibilityLabel={translate('workspace.certinia.import.milestones')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.MILESTONES_SWITCH}
                         onToggle={(isEnabled: boolean) => {
                             if (!policyID) {
                                 return;
@@ -101,6 +100,7 @@ function CertiniaImportPage({policy}: WithPolicyConnectionsProps) {
                         isActive
                         disabled
                         switchAccessibilityLabel={translate('workspace.certinia.import.chartOfAccounts')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.CHART_OF_ACCOUNTS_SWITCH}
                         onToggle={() => {}}
                     />
                     {CERTINIA_DIMENSION_PARAMS.map((dimension) => (
@@ -127,6 +127,7 @@ function CertiniaImportPage({policy}: WithPolicyConnectionsProps) {
                         title={translate('common.tax')}
                         isActive={!!coding?.syncTax}
                         switchAccessibilityLabel={translate('common.tax')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.TAX_SWITCH}
                         onToggle={(isEnabled: boolean) => {
                             if (!policyID) {
                                 return;
