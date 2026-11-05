@@ -1,9 +1,13 @@
 import {DialogLabelProvider, useDialogLabelData} from '@components/DialogLabelContext';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
+import RHPResizeHandle from '@components/RHPResizeHandle';
 import {expandedRHPProgress, thirdOverlayProgress, useWideRHPActions, useWideRHPState} from '@components/WideRHPContextProvider';
 
+import useIsResizableSingleRHP from '@hooks/useIsResizableSingleRHP';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
+import useSingleRHPWidth from '@hooks/useSingleRHPWidth';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -17,6 +21,7 @@ import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperW
 import calculateWideRHPWidth from '@libs/Navigation/helpers/calculateWideRHPWidth';
 import getSidePanelRHPShrink from '@libs/Navigation/helpers/getSidePanelRHPShrink';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
+import RHP_FLOATING_CARD_INSET from '@libs/Navigation/helpers/rhpFloatingCardInset';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -35,17 +40,18 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 import type {NavigatorScreenParams} from '@react-navigation/native';
 import type {ComponentRef} from 'react';
-import type {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {Animated, DeviceEventEmitter} from 'react-native';
+import {Animated, DeviceEventEmitter, View} from 'react-native';
 
 import getRHPFrameStyle from './getRHPFrameStyle';
 import {NarrowPaneContextProvider} from './NarrowPaneContext';
@@ -100,6 +106,9 @@ type RightModalDialogFrameProps = {
     /** Animated style applied to the RHP container. */
     style: React.ComponentProps<typeof Animated.View>['style'];
 
+    /** Style of the box around the stack navigator. */
+    contentStyle: StyleProp<ViewStyle>;
+
     /** Callback ref for the container node so the provider can observe node identity changes. */
     onContainerRef: (node: ComponentRef<typeof View> | null) => void;
 
@@ -115,7 +124,7 @@ type RightModalDialogFrameProps = {
  * aria-label is applied only once the visible title is registered so JAWS can announce a named dialog;
  * Header also announces "{title}, dialog" via a polite live region when the title is ready.
  */
-function RightModalDialogFrame({hasDialogSemantics, style, onContainerRef, children}: RightModalDialogFrameProps) {
+function RightModalDialogFrame({hasDialogSemantics, style, contentStyle, onContainerRef, children}: RightModalDialogFrameProps) {
     const {dialogAriaLabel} = useDialogLabelData();
     const hasName = !!dialogAriaLabel;
 
@@ -129,7 +138,7 @@ function RightModalDialogFrame({hasDialogSemantics, style, onContainerRef, child
             tabIndex={hasDialogSemantics ? -1 : undefined}
             style={style}
         >
-            {children}
+            <View style={contentStyle}>{children}</View>
         </Animated.View>
     );
 }
@@ -137,6 +146,7 @@ function RightModalDialogFrame({hasDialogSemantics, style, onContainerRef, child
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const [is2FAEnabled = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.requiresTwoFactorAuth});
     const [containerNode, setContainerNode] = useState<ComponentRef<typeof View> | null>(null);
     const [setContainerNodeFromRef] = useState(() => (node: ComponentRef<typeof View> | null) => {
         setContainerNode(node);
@@ -208,7 +218,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     }
 
     // Where the focused card starts, measured from the right window edge and from the left.
-    const tertiaryOverlayColumn = Animated.add(sidePanelOffset.current, Animated.add(focusedRHPWidth, 2 * variables.rhpFloatingCardBorderWidth + variables.rhpFloatingCardMargin));
+    const tertiaryOverlayColumn = Animated.add(sidePanelOffset.current, Animated.add(focusedRHPWidth, RHP_FLOATING_CARD_INSET));
     const tertiaryOverlayCardBandLeft = Animated.subtract(windowWidth, tertiaryOverlayColumn);
     const tertiaryOverlayVerticalGapInset = windowHeight - variables.rhpFloatingCardMargin;
 
@@ -217,7 +227,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         !shouldUseNarrowLayout &&
         (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0 || shouldRenderSecondaryOverlayForRHPOnWideRHP || shouldRenderSecondaryOverlayForRHPOnSuperWideRHP);
 
-    const frameStyle = getRHPFrameStyle({styles, animatedWidth, shouldUseNarrowLayout, shouldUseCenteredFrame});
+    const {width: resizableSingleRHPWidth} = useSingleRHPWidth();
+    const frameStyle = getRHPFrameStyle({styles, animatedWidth, singleRHPWidth: resizableSingleRHPWidth, shouldUseNarrowLayout, shouldUseCenteredFrame});
+    const isResizableSingleRHP = useIsResizableSingleRHP();
+    const stackContentStyle = styles.singleRHPStackBox(isResizableSingleRHP);
 
     const screenListeners = {
         blur: () => {
@@ -299,6 +312,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         hasDialogSemantics={!isSmallScreenWidth}
                         onContainerRef={setContainerNodeFromRef}
                         style={frameStyle}
+                        contentStyle={stackContentStyle}
                     >
                         <Stack.Navigator
                             parentRoute={route}
@@ -315,7 +329,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 component={ModalStackNavigators.TwoFactorAuthenticatorStackNavigator}
                                 listeners={{
                                     beforeRemove: () => {
-                                        TransitionTracker.runAfterTransitions({callback: () => clearTwoFactorAuthData(true), waitForUpcomingTransition: true});
+                                        TransitionTracker.runAfterTransitions({callback: () => clearTwoFactorAuthData(is2FAEnabled, true), waitForUpcomingTransition: true});
                                     },
                                 }}
                             />
@@ -362,6 +376,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.REPORT_DESCRIPTION}
                                 component={ModalStackNavigators.ReportDescriptionModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.REPORT_HISTORY}
+                                component={ModalStackNavigators.ReportHistoryModalStackNavigator}
                             />
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.CHRONOS_SCHEDULE_OOO}
@@ -550,6 +568,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 component={ModalStackNavigators.SearchColumnsModalStackNavigator}
                             />
                             <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.INSIGHTS_DETAILS}
+                                component={ModalStackNavigators.InsightsDetailsModalStackNavigator}
+                            />
+                            <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.MULTIFACTOR_AUTHENTICATION}
                                 component={ModalStackNavigators.MultifactorAuthenticationStackNavigator}
                             />
@@ -594,6 +616,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         />
                     </>
                 )}
+                {isResizableSingleRHP && <RHPResizeHandle />}
             </NoDropZone>
         </NarrowPaneContextProvider>
     );

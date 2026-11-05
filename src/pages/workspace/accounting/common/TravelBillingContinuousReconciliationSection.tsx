@@ -4,6 +4,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTravelBillingFundID from '@hooks/useTravelBillingFundID';
 
 import {getRouteParamForConnection} from '@libs/AccountingUtils';
 import {toggleTravelBillingContinuousReconciliation} from '@libs/actions/TravelBilling';
@@ -36,8 +37,9 @@ function TravelBillingContinuousReconciliationSection({policy, connectionName, i
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const travelBillingFundID = useTravelBillingFundID(policy?.id);
 
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${travelBillingFundID}`);
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
     const isTravelBillingEnabled = getIsTravelBillingEnabled(travelSettings);
     const [travelBillingContinuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_BILLING_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`);
@@ -70,6 +72,7 @@ function TravelBillingContinuousReconciliationSection({policy, connectionName, i
                 title={translate('workspace.accounting.syncTravelBillingSettlements')}
                 isActive={!!travelBillingContinuousReconciliation}
                 switchAccessibilityLabel={translate('workspace.accounting.syncTravelBillingSettlements')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_SWITCH}
                 disabled={isToggleDisabled}
                 showLockIcon={isToggleDisabled}
                 disabledText={

@@ -86,7 +86,7 @@ type TwoFactorAuthNavigatorParamList = {
     [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_ROOT]: undefined;
     [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY_ACCOUNT]: undefined;
     [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY]: undefined;
-    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_SUCCESS]: {policyID?: string};
+    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_SUCCESS]: {policyID?: string; forceSetup?: string};
     [SCREENS.TWO_FACTOR_AUTH.ENABLED]: undefined;
     [SCREENS.TWO_FACTOR_AUTH.SUCCESS]: undefined;
     [SCREENS.TWO_FACTOR_AUTH.DISABLE]: undefined;
@@ -184,6 +184,12 @@ type ReportDescriptionNavigatorParamList = {
     };
 };
 
+type ReportHistoryNavigatorParamList = {
+    [SCREENS.DYNAMIC_REPORT_HISTORY]: {
+        reportID: string;
+    };
+};
+
 type ChronosScheduleOOONavigatorParamList = {
     [SCREENS.CHRONOS_SCHEDULE_OOO_ROOT]: {
         reportID: string;
@@ -259,6 +265,9 @@ type MoneyRequestNavigatorParamList = {
 
         /** Whether owned workspace chats should be left out of the picker (sent as the string 'true' when on) */
         shouldExcludeWorkspaces?: string;
+
+        /** Whether the page was opened from the confirmation's "To" row, so a selection returns to it (sent as the string 'true' when on) */
+        isFromConfirmation?: string;
     };
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DATE]: {
         action: IOUAction;
@@ -898,6 +907,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.EXPENSIFY_CARD]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.DOMAIN_CARD]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_DESCRIPTION]: NavigatorScreenParams<ReportDescriptionNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.REPORT_HISTORY]: NavigatorScreenParams<ReportHistoryNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.CHRONOS_SCHEDULE_OOO]: NavigatorScreenParams<ChronosScheduleOOONavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PARTICIPANTS]: NavigatorScreenParams<ParticipantsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.ROOM_MEMBERS]: NavigatorScreenParams<RoomMembersNavigatorParamList>;
@@ -966,6 +976,7 @@ type RightModalNavigatorParamList = {
     };
     [SCREENS.RIGHT_MODAL.DOMAIN]: NavigatorScreenParams<WorkspacesDomainModalNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_COLUMNS]: NavigatorScreenParams<SearchColumnsParamList>;
+    [SCREENS.RIGHT_MODAL.INSIGHTS_DETAILS]: NavigatorScreenParams<InsightsDetailsParamList>;
     [SCREENS.RIGHT_MODAL.MULTIFACTOR_AUTHENTICATION]: NavigatorScreenParams<MultifactorAuthenticationParamList>;
 };
 
@@ -1078,6 +1089,7 @@ type WorkspaceSplitNavigatorParamList = {
         integrationToDisconnect?: ConnectionName;
         shouldDisconnectIntegrationBeforeConnecting?: boolean;
         isIntuitEnterpriseSuite?: string;
+        tab?: ValueOf<typeof CONST.TAB.CONNECTIONS>;
     };
     [SCREENS.WORKSPACE.DYNAMIC_RECEIPT_PARTNERS_INVITE]: {
         policyID: string;
@@ -1151,6 +1163,13 @@ type WorkspaceSplitNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: {
         policyID: string;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_WEEKLY_OFFSET]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_SEMI_MONTHLY_OFFSET]: {
+        policyID: string;
+        submission: ValueOf<typeof CONST.POLICY.SEMI_MONTHLY_SUBMISSIONS>;
     };
     [SCREENS.WORKSPACE.INVOICES]: {
         policyID: string;
@@ -1478,6 +1497,7 @@ type AttachmentModalScreensParamList = {
 type AuthScreensParamList = SharedScreensParamList &
     AttachmentModalScreensParamList & {
         [SCREENS.CONCIERGE]: undefined;
+        [SCREENS.TALK_TO_HUMAN]: undefined;
         [SCREENS.TRACK_EXPENSE]: undefined;
         [SCREENS.SUBMIT_EXPENSE]: undefined;
         [SCREENS.WORKSPACE_JOIN_USER]: {
@@ -1581,6 +1601,21 @@ type SearchSavedSearchParamList = {
 
 type SearchColumnsParamList = {
     [SCREENS.SEARCH.COLUMNS_RHP]: Record<string, never>;
+};
+
+type InsightsDetailsParamList = {
+    [SCREENS.INSIGHTS_DETAILS]: {
+        dashboardID: string;
+
+        /** Chart the clicked point was plotted on */
+        graphKey: string;
+
+        /** The clicked member's account ID, merchant, category, or the first day of the clicked period */
+        item: string;
+
+        /** Last day of the clicked period, trimmed to the date range like the chart's label */
+        end?: string;
+    };
 };
 
 type RestrictedActionParamList = {
@@ -1748,6 +1783,7 @@ export type {
     ConnectExistingBankAccountNavigatorParamList,
     NewReportWorkspaceSelectionNavigatorParamList,
     ReportDescriptionNavigatorParamList,
+    ReportHistoryNavigatorParamList,
     ChronosScheduleOOONavigatorParamList,
     ReportDetailsNavigatorParamList,
     ReportChangeWorkspaceNavigatorParamList,
@@ -1800,6 +1836,7 @@ export type {
     WorkspacesDomainModalNavigatorParamList,
     DomainSplitNavigatorParamList,
     SearchColumnsParamList,
+    InsightsDetailsParamList,
     MultifactorAuthenticationParamList,
     MultifactorAuthenticationModalNavigatorParamList,
 };

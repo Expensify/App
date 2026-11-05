@@ -15,6 +15,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import {isBankAccountEligibleForGlobalReimbursements} from '@libs/BankAccountUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import {isWiseGlobalReimbursementsIntroOverPayReportScreen} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
+import getWiseOnboardingPageToContinue from '@libs/Navigation/helpers/getWiseOnboardingPageToContinue';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import Navigation from '@navigation/Navigation';
@@ -35,9 +38,11 @@ type WiseGlobalReimbursementsIntroPageProps = PlatformStackScreenProps<SettingsN
 function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntroPageProps) {
     const bankAccountID = Number(route.params.bankAccountID);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.path);
+    const isPayingReport = isWiseGlobalReimbursementsIntroOverPayReportScreen(backPath);
     const [bankAccountList, bankAccountListMetadata] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS);
     const bankAccount = bankAccountList?.[bankAccountID];
+    const pageToContinue = getWiseOnboardingPageToContinue(bankAccount);
 
     const {translate} = useLocalize();
     const {isBetaEnabledOrUnknown} = usePermissions();
@@ -80,7 +85,9 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
                             illustrationStyle={StyleUtils.getWidthAndHeightStyle(variables.wiseGlobalReimbursementsIntroIllustrationSize)}
                         />
                         <ConfirmationPage.Heading>{translate('walletPage.wiseGlobalReimbursementsIntro.title')}</ConfirmationPage.Heading>
-                        <ConfirmationPage.Description style={styles.textSupporting}>{translate('walletPage.wiseGlobalReimbursementsIntro.subtitle')}</ConfirmationPage.Description>
+                        <ConfirmationPage.Description style={styles.textSupporting}>
+                            {translate(isPayingReport ? 'walletPage.wiseGlobalReimbursementsIntro.payingReportSubtitle' : 'walletPage.wiseGlobalReimbursementsIntro.subtitle')}
+                        </ConfirmationPage.Description>
                     </ConfirmationPage.Content>
                     <FixedFooter>
                         <ConfirmationPage.SecondaryButton
@@ -88,11 +95,12 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
                             onPress={goBackToEntryPoint}
                         />
                         <ConfirmationPage.PrimaryButton
-                            text={translate('walletPage.wiseGlobalReimbursementsIntro.getStarted')}
+                            text={translate(pageToContinue ? 'common.continue' : 'walletPage.wiseGlobalReimbursementsIntro.getStarted')}
                             onPress={() => {
                                 // Starting onboarding for any account retires both banners for good
                                 dismissProductTraining(CONST.WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER);
                                 dismissProductTraining(CONST.WISE_GLOBAL_REIMBURSEMENTS_WORKSPACE_BANNER);
+                                Navigation.navigate(createDynamicRoute(pageToContinue ?? DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute()));
                             }}
                         />
                     </FixedFooter>

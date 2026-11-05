@@ -30,7 +30,7 @@ import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useWaypointItems from '@hooks/useWaypointItems';
 
-import {setMoneyRequestDistance} from '@libs/actions/IOU/MoneyRequest';
+import {clearMoneyRequestDistance, clearReusedRoute, setMoneyRequestDistance} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestDistance} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {init, stop} from '@libs/actions/MapboxToken';
@@ -46,8 +46,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtil, isSelfDM} from '@libs/ReportUtils';
 import {getDistanceInMeters, getRateID, getRequestType, getSelectedRouteKey, hasManualDistanceOverride, haveWaypointAddressesChanged} from '@libs/TransactionUtils';
+import hasManualMapDistanceOverride from '@libs/TransactionUtils/hasManualMapDistanceOverride';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -178,6 +180,7 @@ function DynamicIOURequestStepDistance({
     const isCreatingNewRequest = !backTo && !isEditing;
     const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const iouRequestType = getRequestType(currentTransaction);
+    const shouldShowMapManualTabs = isEditing || (iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP && !isMapOrGPSRequired(policy));
     const customUnitRateID = getRateID(currentTransaction);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
@@ -423,13 +426,12 @@ function DynamicIOURequestStepDistance({
      * @param index of the waypoint to edit
      */
     const navigateToWaypointEditPage = (index: number) => {
-        // In the edit flow this page is wrapped in an OnyxTabNavigator, so Navigation.getActiveRoute()
+        // When the tabs are shown this page is wrapped in an OnyxTabNavigator, so Navigation.getActiveRoute()
         // returns a URL with the tab suffix (e.g. "/distance-map") that doesn't match the stack entry.
-        // Navigation.goBack() then REPLACEs instead of POPs and crashes, so build the base URL
-        // explicitly there. The create flow has no tab navigator, so the production getActiveRoute()
-        // path is correct (GH #90037).
+        // Navigation.goBack() then REPLACEs instead of POPs and crashes, so build the base URL explicitly
+        // there. Without the tabs the getActiveRoute() path is correct (GH #90037).
         const waypointBase =
-            isEditing && backTo
+            shouldShowMapManualTabs && backTo
                 ? createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, report?.reportID ?? reportID), backTo)
                 : Navigation.getActiveRoute();
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(index), waypointBase));
@@ -611,6 +613,13 @@ function DynamicIOURequestStepDistance({
             return;
         }
 
+        // Saving from the Map tab means the route distance wins over a value typed earlier on the Manual tab. A reused
+        // route offline has no route to fall back to, so clearing its quantity would leave the expense without a distance.
+        const hasRouteDistance = !!currentTransaction?.routes?.[getSelectedRouteKey(currentTransaction)]?.distance || !!currentTransaction?.comment?.customUnit?.routeDistanceMeters;
+        const canFallBackToRoute = hasRouteDistance || !currentTransaction?.isReusedRoute;
+        if (shouldShowMapManualTabs && canFallBackToRoute && hasManualMapDistanceOverride(currentTransaction)) {
+            clearMoneyRequestDistance(transactionID, shouldUseTransactionDraft(action, iouType));
+        }
         suppressDiscardPrompt();
         navigateToNextStep();
     };
@@ -642,6 +651,20 @@ function DynamicIOURequestStepDistance({
         }
 
         const distanceAsFloat = roundToTwoDecimalPlaces(parseFloat(value));
+
+        if (!isEditing) {
+            // Without this the backup cleanup restores the original route distance over the manual value
+            // when this step was opened from confirmation.
+            transactionWasSaved.current = true;
+            setMoneyRequestDistance(transactionID, distanceAsFloat, shouldUseTransactionDraft(action, iouType), distanceUnit);
+            // A typed distance replaces the reused route's seeded one, so the draft must stop reading as a reused route.
+            if (currentTransaction?.isReusedRoute) {
+                clearReusedRoute(transactionID);
+            }
+            suppressDiscardPrompt();
+            navigateToNextStep();
+            return;
+        }
 
         if (isEditingSplit && transaction) {
             setMoneyRequestDistance(transactionID, distanceAsFloat, shouldUseTransactionDraft(action, iouType), distanceUnit);
@@ -784,17 +807,17 @@ function DynamicIOURequestStepDistance({
         </TabScreenWithFocusTrapWrapper>
     );
 
-    if (isEditing) {
+    if (shouldShowMapManualTabs) {
         return (
             <StepScreenWrapper
                 headerTitle={translate('common.distance')}
-                onBackButtonPress={navigateBackFromEditFlow}
+                onBackButtonPress={isEditing ? navigateBackFromEditFlow : navigateBack}
                 testID="DynamicIOURequestStepDistance"
                 shouldShowNotFoundPage={!currentTransaction?.comment?.waypoints || shouldShowNotFoundPage}
-                shouldShowWrapper
+                shouldShowWrapper={isEditing || !isCreatingNewRequest}
             >
                 <OnyxTabNavigator
-                    id={CONST.TAB.DISTANCE_EDIT_TYPE}
+                    id={isEditing ? CONST.TAB.DISTANCE_EDIT_TYPE : CONST.TAB.DISTANCE_CREATE_TYPE}
                     defaultSelectedTab={CONST.TAB_REQUEST.DISTANCE_MAP}
                     tabBar={TabSelector}
                 >

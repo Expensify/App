@@ -61,6 +61,9 @@ const MCP_HELP_URL = 'https://help.expensify.com/articles/new-expensify/connecti
 const CLAUDE_CONNECT_URL = 'https://claude.ai/directory/connectors/expensify';
 const CLAUDE_MCP_HELP_URL = 'https://help.expensify.com/articles/new-expensify/connections/connect-ai-assistants/Connect-Claude-to-Expensify-Using-MCP';
 const CURSOR_MCP_HELP_URL = 'https://help.expensify.com/articles/new-expensify/connections/connect-ai-assistants/Connect-Cursor-to-Expensify-Using-MCP';
+const DISTANCE_EXPENSES_FREQUENT_TRIPS_HELP_URL = 'https://help.expensify.com/articles/new-expensify/reports-and-expenses/Distance-Expenses#how-to-reuse-a-route-from-a-frequent-trip';
+const DISTANCE_RATES_AUTO_UPDATE_HELP_URL =
+    'https://help.expensify.com/articles/new-expensify/workspaces/Set-distance-rates#how-to-automatically-update-distance-rates-when-government-rates-change';
 const XERO_PARTNER_LINK = 'https://referrals.xero.com/uzfjy4uegog2-v0pj1v';
 const UBER_TERMS_LINK = 'https://www.uber.com/us/en/business/sign-up/terms/expense-partners/';
 const PLATFORM_OS_MACOS = 'Mac OS';
@@ -415,13 +418,14 @@ const CONST = {
     // tap submit. If the user submits before this fires, the fallback (non-pre-insert) path is used.
     PRE_INSERT_FULLSCREEN_DELAY: 300,
     /**
-     * Controls when a fullscreen destination is placed behind an open RHP on narrow layout.
+     * Controls when the fullscreen submit destination of an open RHP is mounted. Narrow layout puts it under the RHP, wide
+     * layout mounts it hidden inside the tab navigator.
      */
-    NARROW_DESTINATION_STRATEGY: {
-        /** Put the destination behind the RHP before submit, so closing the RHP shows an already-rendered screen. */
+    DESTINATION_STRATEGY: {
+        /** Mount the destination before submit, so closing the RHP shows an already-rendered screen. */
         PRE_INSERT: 'preInsert',
 
-        /** Wait until submit to put the destination behind the RHP, avoiding early navigation changes. */
+        /** Wait until submit to put the destination in place, avoiding early navigation changes. */
         REVEAL: 'reveal',
     },
     LIMIT_TIMEOUT: 2147483647,
@@ -710,6 +714,7 @@ const CONST = {
         DUALENTRY: 'DualEntry',
         CAMPFIRE: 'Campfire',
         DIGITS: 'Digits',
+        ZOHO_BOOKS: 'Zoho Books',
         BUSINESS_CENTRAL: 'Dynamics 365 Business Central',
     },
 
@@ -793,6 +798,8 @@ const CONST = {
     CLAUDE_CONNECT_URL,
     CLAUDE_MCP_HELP_URL,
     CURSOR_MCP_HELP_URL,
+    DISTANCE_EXPENSES_FREQUENT_TRIPS_HELP_URL,
+    DISTANCE_RATES_AUTO_UPDATE_HELP_URL,
     XERO_PARTNER_LINK,
     UBER_TERMS_LINK,
     APP_DOWNLOAD_LINKS: {
@@ -822,8 +829,6 @@ const CONST = {
         MONTH_DAY_YEAR_FORMAT: 'MMMM d, yyyy',
         FNS_TIMEZONE_FORMAT_STRING: "yyyy-MM-dd'T'HH:mm:ssXXX",
         FNS_DB_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss.SSS',
-        LONG_DATE_FORMAT_WITH_WEEKDAY: 'eeee, MMMM d, yyyy',
-        LONG_DATE_FORMAT_WITH_WEEKDAY_WITHOUT_YEAR: 'eeee, MMMM d',
         ORDINAL_DAY_OF_MONTH: 'do',
         MONTH_DAY_YEAR_ORDINAL_FORMAT: 'MMMM do, yyyy',
         SECONDS_PER_DAY: 24 * 60 * 60,
@@ -844,8 +849,10 @@ const CONST = {
         PRODUCT_UPDATE_JULY_2026: 'productUpdateJuly2026',
         PRODUCT_UPDATE_AUGUST_2026: 'productUpdateAugust2026',
         PRODUCT_UPDATE_SEPTEMBER_2026: 'productUpdateSeptember2026',
+        PRODUCT_UPDATE_OCTOBER_2026: 'productUpdateOctober2026',
     },
     BANK_ACCOUNT: {
+        PLAID_WRONG_ACCOUNT_ERROR_FIELD: 'plaidWrongAccount',
         BENEFICIAL_OWNER_INFO_STEP: {
             BENEFICIAL_OWNER_DATA: {
                 BENEFICIAL_OWNER_KEYS: 'beneficialOwnerKeys',
@@ -1035,12 +1042,72 @@ const CONST = {
         CORPAY: 'CORPAY',
     },
     WISE: {
+        /** Wise's legal pages, linked from the terms page of the onboarding */
+        TERMS_URL: 'https://wise.com/terms-and-conditions',
+        PRIVACY_URL: 'https://wise.com/privacy-policy',
+
+        /** The query param Wise adds to the redirect URL when its hosted KYC form ends, saying how it ended */
+        KYC_REVIEW_REDIRECT_STATUS_PARAM: 'status',
+
+        /** Countries missing from Wise's supported list, so the bank account picker leaves them out */
+        EXCLUDED_BANK_ACCOUNT_COUNTRIES: [
+            'AC',
+            'AF',
+            'AQ',
+            'BI',
+            'BL',
+            'BY',
+            'CD',
+            'CF',
+            'CG',
+            'CU',
+            'EH',
+            'ER',
+            'GS',
+            'IO',
+            'IQ',
+            'IR',
+            'KM',
+            'KP',
+            'LY',
+            'MF',
+            'MM',
+            'PN',
+            'PS',
+            'RU',
+            'SD',
+            'SO',
+            'SS',
+            'SY',
+            'TA',
+            'TD',
+            'TF',
+            'TK',
+            'TM',
+            'VE',
+            'YE',
+            'ZW',
+        ] as string[],
+
         /** Server-derived state of the Wise onboarding */
         ONBOARDING_STATUS: {
             IN_REVIEW: 'IN_REVIEW',
             ACTION_REQUIRED: 'ACTION_REQUIRED',
             APPROVED: 'APPROVED',
             NOT_APPROVED: 'NOT_APPROVED',
+        },
+        /** The content the onboarding status page shows, read from its `status` query param */
+        ONBOARDING_STATUS_PAGE: {
+            REVIEW: 'review',
+            APPROVED: 'approved',
+            REJECTED: 'rejected',
+        },
+        /** The steps UpdateWiseOnboardingAdditionalData accepts: our intake pages, and the EDD pages keyed by Wise's KYC requirement key. The server answers any other step with 400 Invalid step. */
+        ONBOARDING_STEP: {
+            BUSINESS: 'business',
+            REPRESENTATIVE: 'representative',
+            BUSINESS_SOURCE_OF_WEALTH_INFO: 'BUSINESS_SOURCE_OF_WEALTH_INFO',
+            BUSINESS_SOURCE_OF_WEALTH_PROOF: 'BUSINESS_SOURCE_OF_WEALTH_PROOF',
         },
         /** Wise's state for one KYC requirement */
         KYC_REQUIREMENT_STATE: {
@@ -1450,25 +1517,23 @@ const CONST = {
         COMMUTER_EXCLUSIONS_ARRANGEMENTS: 'commuterExclusionsArrangements',
         MULTIPLE_APPROVERS: 'multipleApprovers',
         GLOBAL_REIMBURSEMENTS: 'globalReimbursements',
-        GLOBAL_REIMBURSEMENT_FX: 'globalReimbursementFX',
         WISE_REIMBURSEMENTS: 'wiseReimbursements',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
-        TRAVEL_CODING_SYNC: 'travelCodingSync',
-        CONCIERGE_RESPOND_IN_THREAD: 'conciergeRespondInThread',
         ARCHIVE_POLICIES: 'archivePolicies',
         MERGE_ATS: 'mergeATSConnections',
         REPORT_MERGE: 'reportMerge',
-        INSIGHTS_PAGE: 'insightsPage',
-        INSIGHTS_COMPARE: 'insightsCompare',
+        INSIGHTS_AI: 'insightsAI',
+        INSIGHTS_COMPLIANCE: 'insightsCompliance',
         NL_FILTERS: 'nlFilters',
-        PAYMENT_HISTORY: 'paymentHistory',
-        UNIFIED_CONNECTIONS: 'unifiedConnections',
-        SPEND_FOOTER_SELECTORS: 'spendFooterSelectors',
         SUPPORT_TICKET: 'supportTicket',
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
-        COMPANY_AGENTS: 'companyAgents',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
+        COLLECT_DEPOSIT_ACCOUNTS: 'collectDepositAccounts',
+        RESIZABLE_RHP: 'resizableRHP',
         TRAVEL_APPROVAL: 'travelApproval',
+        SCAN_FLASH_TORCH: 'scanFlashTorch',
+        NEW_DOT_BILL_PAY: 'newDotBillPay',
+        HYBRID_WEB: 'hybridWeb',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1743,7 +1808,6 @@ const CONST = {
     EXAMPLE_PHONE_NUMBER: '+15005550006',
     FORMATTED_EXAMPLE_PHONE_NUMBER: '+1-(201)-867-5309',
     CONCIERGE_CHAT_NAME: 'Concierge',
-    CONCIERGE_SESSION_EXPIRATION_MS: 2 * 3600 * 1000, // 2 hours
     CLOUDFRONT_URL,
     EMPTY_ARRAY,
     EMPTY_OBJECT,
@@ -1814,7 +1878,7 @@ const CONST = {
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME: 'ExpensifyPackageForSageIntacct',
     SAGE_INTACCT_INSTRUCTIONS: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct',
     HOW_TO_CONNECT_TO_SAGE_INTACCT: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct#how-to-connect-to-sage-intacct',
-    BUSINESS_CENTRAL_HELP_URL: 'https://help.expensify.com/new-expensify/hubs/connections/',
+    BUSINESS_CENTRAL_HELP_URL: 'https://help.expensify.com/new-expensify/hubs/connections/business-central',
     PRICING: `https://www.expensify.com/pricing`,
     COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS:
         'https://help.expensify.com/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Commercial-Feed-for-Company-Cards#how-to-enable-a-mastercard-commercial-card-feed-cdf',
@@ -1943,6 +2007,11 @@ const CONST = {
             ADMIN: 'admin',
             MEMBER: 'member',
         },
+        UPCOMING_STEP_ACTION: {
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
+        },
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
         // The backend rejects moving an expense into a report that already holds this many transactions, so the App
@@ -2057,6 +2126,7 @@ const CONST = {
             PAY: 'pay',
             FIX: 'fix',
             TASK: 'task',
+            ADD: 'add',
         },
         ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE: {
             EXPENSE: 'expense',
@@ -2081,6 +2151,7 @@ const CONST = {
                 // Hidden action that only carries the violations snapshot of an expense added to a report that was already awaiting its first approval
                 ADD_EXPENSE_ON_SUBMITTED: 'ADDEXPENSEONSUBMITTED',
                 APPROVED: 'APPROVED',
+                AUTO_PAY_FEE_DISCLOSURE: 'AUTOPAYFEEDISCLOSURE',
                 CARD_MISSING_ADDRESS: 'CARDMISSINGADDRESS',
                 CARD_ISSUED: 'CARDISSUED',
                 CARD_ISSUED_VIRTUAL: 'CARDISSUEDVIRTUAL',
@@ -2136,6 +2207,7 @@ const CONST = {
                 UNREPORTED_TRANSACTION: 'UNREPORTEDTRANSACTION',
                 UNDELETED_TRANSACTION: 'UNDELETEDTRANSACTION',
                 OUTDATED_BANK_ACCOUNT: 'OUTDATEDBANKACCOUNT', // OldDot Action
+                QUEUED_FOR_EXPORT: 'QUEUEDFOREXPORT',
                 REIMBURSED: 'REIMBURSED',
                 REIMBURSEMENT_ACH_BOUNCE: 'REIMBURSEMENTACHBOUNCE', // OldDot Action
                 REIMBURSEMENT_ACH_CANCELED: 'REIMBURSEMENTACHCANCELED', // OldDot Action
@@ -2306,6 +2378,7 @@ const CONST = {
                     UNASSIGN_COMPANY_CARD: 'POLICYCHANGELOG_UNASSIGN_COMPANY_CARD',
                     UPDATE_CARD_FEED_LIABILITY: 'POLICYCHANGELOG_UPDATE_CARD_FEED_LIABILITY',
                     UPDATE_CARD_FEED_STATEMENT_PERIOD: 'POLICYCHANGELOG_UPDATE_CARD_FEED_STATEMENT_PERIOD',
+                    UPDATE_CARD_FEED_REIMBURSABLE: 'POLICYCHANGELOG_UPDATE_CARD_FEED_REIMBURSABLE',
                     LEAVE_POLICY: 'POLICYCHANGELOG_LEAVE_POLICY',
                     ARCHIVE_POLICY: 'POLICYCHANGELOG_ARCHIVE_POLICY',
                     UNARCHIVE_POLICY: 'POLICYCHANGELOG_UNARCHIVE_POLICY',
@@ -2348,6 +2421,7 @@ const CONST = {
             AUTOSCROLL_TO_TOP_THRESHOLD: 250,
             LINKED_MESSAGE_OFFSET: 40,
             MAX_GROUPING_TIME: 300000,
+            MAX_SYSTEM_MESSAGE_COLLAPSE_TIME: 24 * 60 * 60 * 1000,
         },
         CANCEL_PAYMENT_REASONS: {
             ADMIN: 'CANCEL_REASON_ADMIN',
@@ -2873,6 +2947,8 @@ const CONST = {
         // Leaving a tab is paid inside the navigate-to-inbox-tab span, so the same tap costs more from some tabs.
         ATTRIBUTE_SOURCE_TAB: 'source_tab',
         ATTRIBUTE_MS_SINCE_PRELOAD: 'ms_since_preload',
+        // `<Area>-<Action>` part of a `<Area>-<Action>-<Detail>` data-sentry-label, stamped on INP spans so the dashboard can group them.
+        ATTRIBUTE_INP_CATEGORY: 'inp.category',
         // The tap also kicked off an OpenReport request, so exclude these from render-only comparisons.
         ATTRIBUTE_WAITED_ON_OPEN_REPORT: 'waited_on_open_report',
         ATTRIBUTE_WAS_LIST_EMPTY: 'was_list_empty',
@@ -2915,6 +2991,7 @@ const CONST = {
         ATTRIBUTE_NEUTRAL_ZOOM: 'neutral_zoom',
         ATTRIBUTE_ODOMETER_IMAGE_TYPE: 'odometer_image_type',
         ATTRIBUTE_DURATION_SINCE_NATIVE_APP_STARTUP_MS: 'duration_since_native_app_startup_ms',
+        ATTRIBUTE_DURATION_SINCE_JS_STARTUP_MS: 'duration_since_js_startup_ms',
         CAPTURE_METHOD: {
             PHOTO: 'photo',
             SNAPSHOT: 'snapshot',
@@ -3364,6 +3441,7 @@ const CONST = {
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_ID_ATTRIBUTE: 'data-attachment-id',
     ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE: 'data-optimistic-src',
+    ADDITIONAL_ATTACHMENT_FILE_KEY_REGEX: /^file_\d+$/,
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
     ATTACHMENT_LOCAL_URL_PREFIX: ['blob:', 'file:'],
@@ -3925,6 +4003,7 @@ const CONST = {
         REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'reimbursableExpensesExportDestination',
         NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'nonreimbursableExpensesExportDestination',
         DEFAULT_VENDOR: 'defaultVendor',
+        CREDIT_CARD_ACCOUNT: 'creditCardAccount',
         TRAVEL_BILLING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
         TRAVEL_BILLING_JOURNAL_POSTING_PREFERENCE: 'travelInvoicingJournalPostingPreference',
         REIMBURSABLE_PAYABLE_ACCOUNT: 'reimbursablePayableAccount',
@@ -3972,6 +4051,9 @@ const CONST = {
                 'enable-oauth': 'enableOAuth',
                 'enable-rest': 'enableRestWebServices',
             },
+        },
+        AUTH_TYPE: {
+            OAUTH2: 'oauth2',
         },
         IMPORT_CUSTOM_FIELDS: {
             CUSTOM_SEGMENTS: 'customSegments',
@@ -4057,12 +4139,14 @@ const CONST = {
     },
 
     NETSUITE_EXPORT_DESTINATION: {
+        CREDIT_CARD_CHARGE: 'CREDIT_CARD_CHARGE',
         EXPENSE_REPORT: 'EXPENSE_REPORT',
         VENDOR_BILL: 'VENDOR_BILL',
         JOURNAL_ENTRY: 'JOURNAL_ENTRY',
     },
 
     NETSUITE_MAP_EXPORT_DESTINATION: {
+        CREDIT_CARD_CHARGE: 'creditCardCharge',
         EXPENSE_REPORT: 'expenseReport',
         VENDOR_BILL: 'vendorBill',
         JOURNAL_ENTRY: 'journalEntry',
@@ -4236,6 +4320,7 @@ const CONST = {
         EXPORT_DATE: 'exportDate',
         REIMBURSABLE: 'reimbursable',
         NON_REIMBURSABLE: 'nonReimbursable',
+        REIMBURSEMENT_ACCOUNT_CODE: 'reimbursementAccountCode',
         DEFAULT_VENDORID: 'defaultVendorID',
         CREDIT_CARD_ACCOUNTCODE: 'creditCardAccountCode',
         EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
@@ -4259,6 +4344,7 @@ const CONST = {
 
     RILLET_EXPORT_REIMBURSABLE: {
         VENDOR_BILL: 'VENDOR_BILL',
+        REIMBURSEMENT: 'REIMBURSEMENT',
     },
 
     RILLET_EXPORT_NON_REIMBURSABLE: {
@@ -4286,6 +4372,8 @@ const CONST = {
 
     RILLET_ACCOUNT_SUBTYPE: {
         CREDIT_CARD: 'Credit Card',
+        ACCOUNTS_PAYABLE: 'Accounts Payable',
+        OTHER_LONG_TERM_LIABILITY: 'Other Long Term Liability',
     },
 
     DUALENTRY_CONFIG: {
@@ -4508,7 +4596,9 @@ const CONST = {
     // Zoho Books accounts have one account_type. These are the lowercase values the API returns.
     ZOHO_BOOKS_ACCOUNT_TYPE: {
         BANK: 'bank',
+        CASH: 'cash',
         CREDIT_CARD: 'credit_card',
+        OTHER_CURRENT_LIABILITY: 'other_current_liability',
         EXPENSE: 'expense',
         COST_OF_GOODS_SOLD: 'cost_of_goods_sold',
         OTHER_EXPENSE: 'other_expense',
@@ -4600,6 +4690,7 @@ const CONST = {
             ADDRESS: 'address',
             PHONE_NUMBER: 'phone-number',
             CONFIRMATION: 'confirmation',
+            VALIDATE_CODE: 'validate-code',
             SUCCESS: 'success',
         },
     },
@@ -4857,6 +4948,10 @@ const CONST = {
         MAX_RECENT_REPORTS_TO_SHOW: 5,
         MAX_RECENT_ATTENDEES: 40,
 
+        // Tells a payment failure apart from other errors on a report preview. Numeric so a real error, which is
+        // keyed on microseconds, still wins in getLatestErrorMessageField.
+        PAY_FAILURE_PREVIEW_ERROR_KEY: 0,
+
         // This will guranatee that the quantity input will not exceed 9,007,199,254,740,991 (Number.MAX_SAFE_INTEGER).
         QUANTITY_MAX_LENGTH: 12,
         // This is the transactionID used when going through the create expense flow so that it mimics a real transaction (like the edit flow)
@@ -5055,7 +5150,6 @@ const CONST = {
         DEFAULT_FIELD_LIST_TARGET: 'expense',
         DEFAULT_FIELD_LIST_NAME: 'title',
         ROLE: {
-            OWNER: 'owner',
             ADMIN: 'admin',
             AUDITOR: 'auditor',
             GUEST: 'guest',
@@ -5139,6 +5233,28 @@ const CONST = {
         AUTO_REPORTING_OFFSET: {
             LAST_BUSINESS_DAY_OF_MONTH: 'lastBusinessDayOfMonth',
             LAST_DAY_OF_MONTH: 'lastDayOfMonth',
+            LAST_MONDAY_OF_MONTH: 'lastMondayOfMonth',
+            LAST_TUESDAY_OF_MONTH: 'lastTuesdayOfMonth',
+            LAST_WEDNESDAY_OF_MONTH: 'lastWednesdayOfMonth',
+            LAST_THURSDAY_OF_MONTH: 'lastThursdayOfMonth',
+            LAST_FRIDAY_OF_MONTH: 'lastFridayOfMonth',
+            LAST_SATURDAY_OF_MONTH: 'lastSaturdayOfMonth',
+            LAST_SUNDAY_OF_MONTH: 'lastSundayOfMonth',
+        },
+        AUTO_REPORTING_WEEKDAYS: {
+            MONDAY: 1,
+            TUESDAY: 2,
+            WEDNESDAY: 3,
+            THURSDAY: 4,
+            FRIDAY: 5,
+            SATURDAY: 6,
+            SUNDAY: 7,
+        },
+        AUTO_REPORTING_MAX_DAY_OF_MONTH: 28,
+        AUTO_REPORTING_DEFAULT_SEMI_MONTHLY_OFFSET: 15,
+        SEMI_MONTHLY_SUBMISSIONS: {
+            FIRST: 'first',
+            SECOND: 'second',
         },
         APPROVAL_MODE: {
             OPTIONAL: 'OPTIONAL',
@@ -5322,7 +5438,9 @@ const CONST = {
             AUTOREPORTING_FREQUENCY: 'autoReportingFrequency',
             AUTOREPORTING_OFFSET: 'autoReportingOffset',
             GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY: 'globalReimbursementFXPreferCompany',
+            IS_COLLECT_DEPOSIT_ACCOUNTS_ENABLED: 'isCollectDepositAccountsEnabled',
             GENERAL_SETTINGS: 'generalSettings',
+            TIME_ZONE: 'timeZone',
         },
         EXPENSE_REPORT_RULES: {
             PREVENT_SELF_APPROVAL: 'preventSelfApproval',
@@ -5608,6 +5726,7 @@ const CONST = {
                 DIGITS_SYNC_PAYMENTS: 'digitsSyncPayments',
                 DIGITS_SYNC_CARD_SETTLEMENTS: 'digitsSyncCardSettlements',
                 DIGITS_SYNC_TRAVEL_SETTLEMENTS: 'digitsSyncTravelSettlements',
+                ZOHO_BOOKS_SYNC_TITLE: 'zohoBooksSyncTitle',
                 ZOHO_BOOKS_SYNC_CONNECTION: 'zohoBooksSyncConnection',
                 BUSINESS_CENTRAL_SYNC_TITLE: 'businessCentralSyncTitle',
                 BUSINESS_CENTRAL_SYNC_CONNECTION: 'businessCentralSyncConnection',
@@ -5697,6 +5816,8 @@ const CONST = {
             SEK: 'SE',
             ZAR: 'ZA',
         },
+        // The country that publishes fuel-band rates, which replace its standard rate on workspaces tracking distance tax
+        GOVERNMENT_RATE_FUEL_BAND_COUNTRY: 'GB',
         // EUR is shared by several supported countries, so an EUR workspace picks the country itself
         GOVERNMENT_RATE_SUPPORTED_EUR_COUNTRIES: ['AT', 'BE', 'FI', 'DE', 'NL', 'PT', 'ES'] as const,
         // Unit each country publishes its rates in
@@ -6070,6 +6191,13 @@ const CONST = {
             LAST_BUSINESS_DAY_OF_MONTH: 'LAST_BUSINESS_DAY_OF_MONTH',
             CUSTOM_DAY_OF_MONTH: 'CUSTOM_DAY_OF_MONTH',
         },
+        FEED_REIMBURSABLE: {
+            FORCE_YES: 'force_yes',
+            FORCE_NO: 'force_no',
+            DEFAULT_YES: 'default_yes',
+            DEFAULT_NO: 'default_no',
+        },
+        FEED_REIMBURSABLE_LEGACY_NONE: 'none',
         CARD_NAME: {
             CASH: '__CASH__',
         },
@@ -6095,6 +6223,11 @@ const CONST = {
              * Name of Card NVP for NetSuite custom export accounts
              */
             NVP_NETSUITE_EXPORT_ACCOUNT: 'netsuite_export_payable_account',
+
+            /**
+             * Name of Card NVP for NetSuite custom credit card charge export accounts
+             */
+            NVP_NETSUITE_EXPORT_CREDIT_CARD_ACCOUNT: 'netsuite_export_credit_card_account',
 
             /**
              * Name of Card NVP for NetSuite custom vendors
@@ -6162,6 +6295,11 @@ const CONST = {
              * Name of Card NVP for NetSuite custom export accounts
              */
             NVP_NETSUITE_EXPORT_ACCOUNT_POLICY_ID: 'netsuite_export_payable_account_policy_id',
+
+            /**
+             * Name of Card NVP for NetSuite custom credit card charge export accounts
+             */
+            NVP_NETSUITE_EXPORT_CREDIT_CARD_ACCOUNT_POLICY_ID: 'netsuite_export_credit_card_account_policy_id',
 
             /**
              * Name of Card NVP for NetSuite custom vendors
@@ -6393,6 +6531,7 @@ const CONST = {
         ROOM_NAME_WITHOUT_LIMIT: /^#[\p{Ll}0-9-]+$/u,
         DOMAIN_BASE: '^(?:https?:\\/\\/)?(?:www\\.)?([^\\/]+)',
         ALPHANUMERIC_WITH_SPACE_AND_HYPHEN: /^[A-Za-z0-9 -]+$/,
+        ISO_8601_UTC_OFFSET_SUFFIX: /([+-]\d{2}:\d{2})$/,
 
         // eslint-disable-next-line no-misleading-character-class
         EMOJI: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
@@ -7307,6 +7446,8 @@ const CONST = {
         SCROLLBAR: 'scrollbar',
         /** Use for text fields that are used for searching. */
         SEARCHBOX: 'searchbox',
+        /** Use for dividers, including focusable ones that resize the areas on either side. */
+        SEPARATOR: 'separator',
         /** Use for adjustable elements like sliders. */
         SLIDER: 'slider',
         /** Use for a button that opens a list of choices. */
@@ -7404,6 +7545,7 @@ const CONST = {
         NEW_ROOM: 'room',
         IOU_REQUEST_TYPE: 'iouRequestType',
         DISTANCE_REQUEST_TYPE: 'distanceRequestType',
+        DISTANCE_CREATE_TYPE: 'distanceCreateType',
         DISTANCE_EDIT_TYPE: 'distanceEditType',
         SPLIT_EXPENSE_TAB_TYPE: 'splitExpenseTabType',
         RULES_TAB_TYPE: 'rulesTabType',
@@ -8150,7 +8292,7 @@ const CONST = {
         WITHDRAWAL_TYPE: {
             EXPENSIFY_CARD: 'expensify-card',
             REIMBURSEMENT: 'reimbursement',
-            TRAVEL_BILLING: 'central-travel-invoicing',
+            TRAVEL_BILLING: 'central-travel-billing',
         },
         SETTLEMENT_STATUS: {
             PENDING: 'pending',
@@ -8188,6 +8330,7 @@ const CONST = {
             WEEK: 'week',
             YEAR: 'year',
             QUARTER: 'quarter',
+            APPROVER: 'approver',
         },
         /**
          * Single source of truth for which transaction-level columns are available in each column-picker surface:
@@ -8226,6 +8369,11 @@ const CONST = {
                 },
                 APPROVED: {
                     column: this.TABLE_COLUMNS.APPROVED,
+                    search: true,
+                    reportView: false,
+                },
+                PAID: {
+                    column: this.TABLE_COLUMNS.PAID,
                     search: true,
                     reportView: false,
                 },
@@ -8336,6 +8484,11 @@ const CONST = {
                     search: true,
                     reportView: true,
                 },
+                DECLINED: {
+                    column: this.TABLE_COLUMNS.DECLINED,
+                    search: true,
+                    reportView: false,
+                },
                 MCC: {column: this.TABLE_COLUMNS.MCC, search: true, reportView: true},
                 TAX_CODE: {
                     column: this.TABLE_COLUMNS.TAX_CODE,
@@ -8414,10 +8567,12 @@ const CONST = {
                     APPROVED: this.TABLE_COLUMNS.APPROVED,
                     FIRST_APPROVER: this.TABLE_COLUMNS.FIRST_APPROVER,
                     FIRST_APPROVED: this.TABLE_COLUMNS.FIRST_APPROVED,
+                    PAID: this.TABLE_COLUMNS.PAID,
                     PAID_BY: this.TABLE_COLUMNS.PAID_BY,
                     EXPORTED: this.TABLE_COLUMNS.EXPORTED,
                     STATUS: this.TABLE_COLUMNS.STATUS,
                     PAID_STATUS: this.TABLE_COLUMNS.PAID_STATUS,
+                    DECLINED: this.TABLE_COLUMNS.DECLINED,
                     TITLE: this.TABLE_COLUMNS.TITLE,
                     FROM: this.TABLE_COLUMNS.FROM,
                     TO: this.TABLE_COLUMNS.TO,
@@ -8438,7 +8593,15 @@ const CONST = {
                 },
                 INVOICE: {},
                 TASK: {},
-                TRIP: {},
+                TRIP: {
+                    START_DATE: this.TABLE_COLUMNS.START_DATE,
+                    END_DATE: this.TABLE_COLUMNS.END_DATE,
+                    STATUS: this.TABLE_COLUMNS.STATUS,
+                    TRIP_NAME: this.TABLE_COLUMNS.TRIP_NAME,
+                    TRAVELER: this.TABLE_COLUMNS.TRAVELER,
+                    TOTAL: this.TABLE_COLUMNS.TOTAL,
+                    ACTION: this.TABLE_COLUMNS.ACTION,
+                },
                 CHAT: {},
             };
         },
@@ -8516,6 +8679,12 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
+                APPROVER: {
+                    AVATAR: this.TABLE_COLUMNS.AVATAR,
+                    APPROVER: this.TABLE_COLUMNS.GROUP_APPROVER,
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
             };
         },
         get TYPE_DEFAULT_COLUMNS() {
@@ -8542,7 +8711,15 @@ const CONST = {
                 ],
                 INVOICE: [],
                 TASK: [],
-                TRIP: [],
+                TRIP: [
+                    this.TABLE_COLUMNS.START_DATE,
+                    this.TABLE_COLUMNS.END_DATE,
+                    this.TABLE_COLUMNS.STATUS,
+                    this.TABLE_COLUMNS.TRIP_NAME,
+                    this.TABLE_COLUMNS.TRAVELER,
+                    this.TABLE_COLUMNS.TOTAL,
+                    this.TABLE_COLUMNS.ACTION,
+                ],
                 CHAT: [],
             };
         },
@@ -8569,6 +8746,7 @@ const CONST = {
                 WEEK: [this.TABLE_COLUMNS.GROUP_WEEK, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 YEAR: [this.TABLE_COLUMNS.GROUP_YEAR, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 QUARTER: [this.TABLE_COLUMNS.GROUP_QUARTER, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                APPROVER: [this.TABLE_COLUMNS.AVATAR, this.TABLE_COLUMNS.GROUP_APPROVER, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
             };
         },
         BOOLEAN: {
@@ -8611,6 +8789,12 @@ const CONST = {
             },
         },
         GROUP_COLUMN_PREFIX: 'group',
+        // Status the backend works out for each trip row, from the trip's dates and Spotnana status
+        TRIP_STATUS: {
+            UPCOMING: 'upcoming',
+            DONE: 'done',
+            CANCELED: 'canceled',
+        },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
             DATE: 'date',
@@ -8618,6 +8802,7 @@ const CONST = {
             APPROVED: 'approved',
             FIRST_APPROVER: 'firstapprover',
             FIRST_APPROVED: 'firstapproved',
+            PAID: 'paid',
             PAID_BY: 'paidBy',
             POSTED: 'posted',
             EXPORTED: 'exported',
@@ -8633,6 +8818,7 @@ const CONST = {
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             HELD: 'held',
+            DECLINED: 'declined',
             TAX_RATE: 'taxrate',
             TOTAL_AMOUNT: 'amount',
             ATTENDEES: 'attendees',
@@ -8689,6 +8875,11 @@ const CONST = {
             GROUP_WITHDRAWAL_STATUS: 'groupWithdrawalStatus',
             GROUP_AMOUNT_DEBITED: 'groupAmountDebited',
             GROUP_AMOUNT_REIMBURSED: 'groupAmountReimbursed',
+            GROUP_APPROVER: 'groupApprover',
+            START_DATE: 'startDate',
+            END_DATE: 'endDate',
+            TRIP_NAME: 'tripName',
+            TRAVELER: 'traveler',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -8736,6 +8927,11 @@ const CONST = {
         COMPARE: {
             PREVIOUS_PERIOD: 'previousPeriod',
             AVERAGE: 'average',
+        },
+        /** What a chart plots for each group: the money it totals, or how many expenses it holds */
+        CHART_METRIC: {
+            AMOUNT: 'amount',
+            COUNT: 'count',
         },
         SYNTAX_FILTER_KEYS: {
             TYPE: 'type',
@@ -8797,6 +8993,7 @@ const CONST = {
             SUBMITTER_USER_ID: 'submitterUserID',
             SUBMITTER_PAYROLL_ID: 'submitterPayrollID',
             ORDER_DEAL_NUMBERS: 'orderDealNumbers',
+            APPROVER: 'approver',
             // The Spend footer's display selections. They travel as filters because that is where the backend reads
             // them from, but they never narrow the result set: only `footerTotal` changes the response, by swapping
             // which aggregate comes back as the search total.
@@ -8891,6 +9088,7 @@ const CONST = {
             SUBMITTER_USER_ID: 'submitter-user-id',
             SUBMITTER_PAYROLL_ID: 'submitter-payroll-id',
             ORDER_DEAL_NUMBERS: 'order-deal-numbers',
+            APPROVER: 'approver',
             COLUMNS: 'columns',
             LIMIT: 'limit',
             FOOTER_COUNT: 'footer-count',
@@ -8920,6 +9118,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.REIMBURSABLE]: 'reimbursable',
                 [this.TABLE_COLUMNS.BILLABLE]: 'billable',
                 [this.TABLE_COLUMNS.HELD]: 'held',
+                [this.TABLE_COLUMNS.DECLINED]: 'declined',
                 [this.TABLE_COLUMNS.TAX_RATE]: 'tax-rate',
                 [this.TABLE_COLUMNS.TOTAL_AMOUNT]: 'amount',
                 [this.TABLE_COLUMNS.TOTAL]: 'total',
@@ -8968,6 +9167,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS]: 'group-withdrawal-status',
                 [this.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED]: 'group-amount-debited',
                 [this.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED]: 'group-amount-reimbursed',
+                [this.TABLE_COLUMNS.GROUP_APPROVER]: 'group-approver',
                 [this.TABLE_COLUMNS.AMOUNT_DEBITED]: 'amount-debited',
                 [this.TABLE_COLUMNS.AMOUNT_REIMBURSED]: 'amount-reimbursed',
             };
@@ -8995,6 +9195,15 @@ const CONST = {
             YEAR_TO_DATE: 'year-to-date',
             LAST_12_MONTHS: 'last-12-months',
             LAST_STATEMENT: 'last-statement',
+            THIS_WEEK: 'this-week',
+            LAST_WEEK: 'last-week',
+            THIS_QUARTER: 'this-quarter',
+            LAST_QUARTER: 'last-quarter',
+            THIS_YEAR: 'this-year',
+            LAST_YEAR: 'last-year',
+            LAST_30_DAYS: 'last-30-days',
+            LAST_90_DAYS: 'last-90-days',
+            LAST_6_MONTHS: 'last-6-months',
         },
         SNAPSHOT_ONYX_KEYS: CONST_RUNTIME.SEARCH_SNAPSHOT_ONYX_KEYS,
         SEARCH_KEYS: {
@@ -9577,6 +9786,11 @@ const CONST = {
         REIMBURSABLE: 'reimbursable',
         BILLABLE: 'billable',
         VENDOR: 'vendor',
+
+        // The members import has these columns for every approver of a member's workflow, so their roles end with the approver's position, like `approverLimit2`
+        APPROVER: 'approver',
+        APPROVER_LIMIT: 'approverLimit',
+        APPROVER_OVER_LIMIT_APPROVER: 'approverOverLimitApprover',
     },
 
     IMPORT_SPREADSHEET: {
@@ -9589,6 +9803,9 @@ const CONST = {
         MULTI_LEVEL_TAGS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/workspaces/Create-expense-tags#import-multi-level-tags-from-a-spreadsheet',
         IMPORT_TRANSACTIONS_ARTICLE_LINK:
             'https://help.expensify.com/articles/new-expensify/connect-credit-cards/connect-and-manage-personal-cards/Import-Personal-Card-Transactions-From-a-Spreadsheet',
+
+        // How many approvers the members import reads for each member
+        MAX_APPROVERS: 10,
     },
 
     // The timeout duration (1 minute) (in milliseconds) before the window reloads due to an error.
@@ -9600,7 +9817,7 @@ const CONST = {
         HAS_POLICY_ERRORS: 'hasPolicyError',
         HAS_CUSTOM_UNITS_ERROR: 'hasCustomUnitsError',
         HAS_EMPLOYEE_LIST_ERROR: 'hasEmployeeListError',
-        HAS_QBO_EXPORT_ERROR: 'hasQBOExportError',
+        HAS_REIMBURSEMENT_EXPORT_ERROR: 'hasReimbursementExportError',
         HAS_SYNC_ERRORS: 'hasSyncError',
         HAS_SUBSCRIPTION_ERRORS: 'hasSubscriptionError',
         HAS_REIMBURSEMENT_ACCOUNT_ERRORS: 'hasReimbursementAccountErrors',
@@ -9613,6 +9830,7 @@ const CONST = {
         HAS_PENDING_CARD_INFO: 'hasPendingCardInfo',
         HAS_UBER_CREDENTIALS_ERROR: 'hasUberCredentialsError',
         HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO: 'hasPartiallySetupBankAccountInfo',
+        HAS_WISE_MORE_INFO_NEEDED_INFO: 'hasWiseMoreInfoNeededInfo',
         HAS_EMPLOYEE_CARD_FEED_ERRORS: 'hasEmployeeCardFeedErrors',
         HAS_POLICY_ADMIN_CARD_FEED_ERRORS: 'hasPolicyAdminCardFeedErrors',
         HAS_DOMAIN_ERRORS: 'hasDomainErrors',
@@ -9622,6 +9840,7 @@ const CONST = {
         HAS_MERGE_HR_SETUP_NEEDED: 'hasMergeHRSetupNeeded',
         HAS_HR_CONNECTION_ERROR: 'hasHRConnectionError',
         HAS_APPROVAL_WORKFLOW_NON_MEMBER_APPROVER: 'hasApprovalWorkflowNonMemberApprover',
+        HAS_AGENT_ERRORS: 'hasAgentErrors',
     },
 
     DEBUG: {
@@ -9656,7 +9875,6 @@ const CONST = {
         IS_UNREAD_WITH_MENTION: 'isUnreadWithMention',
         IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION: 'isWaitingForAssigneeToCompleteAction',
         HAS_CHILD_REPORT_AWAITING_ACTION: 'hasChildReportAwaitingAction',
-        HAS_MISSING_INVOICE_BANK_ACCOUNT: 'hasMissingInvoiceBankAccount',
         HAS_UNRESOLVED_CARD_FRAUD_ALERT: 'hasUnresolvedCardFraudAlert',
         HAS_DEW_APPROVE_FAILED: 'hasDEWApproveFailed',
     },
@@ -9965,6 +10183,38 @@ const CONST = {
         },
     },
 
+    /** A draggable edge that resizes a pane or a column horizontally. */
+    RESIZE_HANDLE: {
+        /** Width of the line drawn on a dragged edge, and of the grip shown while a table heading is hovered. */
+        INDICATOR_WIDTH: 2,
+
+        /** Pointer travel, in px, under which pressing a handle counts as a click rather than a drag. */
+        DRAG_SLOP: 3,
+    },
+
+    RHP_RESIZE: {
+        /** Width of the strip straddling the single RHP's left edge that picks up a drag, as wide as the floating card's gutter. */
+        HANDLE_HIT_WIDTH: 12,
+
+        /** How close, in px, a drag has to come to the default width to snap onto it. */
+        SNAP_THRESHOLD: 20,
+
+        /** Width of the line while the edge is pressed or dragged. */
+        ACTIVE_INDICATOR_WIDTH: 3,
+
+        /** Width of the line while a drag is held on the default width. */
+        SNAPPED_INDICATOR_WIDTH: 5,
+
+        /** Narrowest the single RHP can be dragged, in px. */
+        MIN_WIDTH: 380,
+
+        /** How much narrower, in px, the widest single RHP stays than a wide RHP, so a single RHP stacked on one never covers it. */
+        WIDE_RHP_INSET: 40,
+
+        /** Room, in px, the widest RHP still leaves for the content to its left. */
+        CONTENT_RESERVE_WIDTH: 360,
+    },
+
     TABLES: {
         FILTER_TYPE: {
             SINGLE_SELECT: 'singleSelect',
@@ -9990,7 +10240,10 @@ const CONST = {
             /** How narrow a free-text column may be squeezed before the table scrolls instead. Around 17 characters, so a typical merchant name or full name still reads, and a column is never squeezed below its header regardless. */
             MIN_FREE_TEXT_COLUMN_WIDTH: 120,
 
-            /** How wide a free-text column may be sized for its content once the table scrolls, so one unusually long value doesn't push every column after it out of view. A table that still fits its columns caps nothing: the spare room is there to be used. */
+            /** The width a free-text column is laid out at once the table scrolls, when horizontal room is no longer scarce. */
+            SCROLLED_FREE_TEXT_COLUMN_WIDTH: 180,
+
+            /** The cap a column opts into through `dynamicSizing.maxWidth`, so one unusually long value doesn't take room the columns after it need. */
             MAX_FREE_TEXT_COLUMN_WIDTH: 180,
         },
 
@@ -10000,28 +10253,28 @@ const CONST = {
             WORKSPACE_TAXES: 'workspaceTaxes',
             WORKSPACE_EXPENSIFY_CARDS: 'workspaceExpensifyCards',
             WORKSPACE_COMPANY_CARDS: 'workspaceCompanyCards',
+
+            /** Prefix of the Search table IDs, one per data type. See `getSearchColumnResizingID`. */
+            SEARCH_PREFIX: 'search',
         },
 
         COLUMN_RESIZE: {
             /** Narrowest drag width. Low enough to hide most content, but wide enough to keep the column's edge reachable. */
             MIN_WIDTH: 48,
 
-            /** Pointer travel, in px, under which pressing a column's edge counts as a click rather than a drag. */
-            DRAG_SLOP: 3,
+            /** How far, in px, one arrow key press on a focused column edge moves it. */
+            KEYBOARD_STEP: 8,
 
-            /** How long, in ms, a click on a column's edge waits for a second click before fitting the column. */
-            DOUBLE_CLICK_INTERVAL: 150,
+            /** Share of the heading's height the grip spans, centred vertically. The heading spans the header row, padding included. */
+            GRIP_HEIGHT_RATIO: 0.4,
 
-            /** Width of the line shown while a column's edge is dragged, and of the grip shown while its heading is hovered. */
-            INDICATOR_WIDTH: 2,
-
-            /** Share of the heading's height the grip spans, centred vertically. */
-            GRIP_HEIGHT_RATIO: 0.8,
+            /** Width of the strip centred on a column's edge that picks up a drag, the smallest comfortable desktop click target. */
+            HIT_AREA_WIDTH: 24,
 
             /** How long, in ms, the grip takes to stretch into the line once its edge is dragged. */
             INDICATOR_MORPH_DURATION: 150,
 
-            /** What a click (`FIT`) or a double-click (`RESET`) on a column's edge sizes it to. */
+            /** What a click on a column's edge sizes it to: `FIT` its content, or `RESET` it when it already fits. */
             WIDTH_TARGET: {
                 FIT: 'fit',
                 RESET: 'reset',
@@ -10030,8 +10283,18 @@ const CONST = {
     },
 
     SENTRY_LABEL: {
+        NUMBER_WITH_SYMBOL_FORM: {
+            INPUT: 'NumberWithSymbolForm-Input',
+        },
         TEST_TOOL_MENU: {
             SERVER: 'TestToolMenu-Server',
+            DEBUG_MODE_SWITCH: 'TestToolMenu-DebugModeSwitch',
+            SHOW_BRANCH_NAME_SWITCH: 'TestToolMenu-ShowBranchNameSwitch',
+            FORCE_OFFLINE_SWITCH: 'TestToolMenu-ForceOfflineSwitch',
+            SIMULATE_POOR_CONNECTION_SWITCH: 'TestToolMenu-SimulatePoorConnectionSwitch',
+            SIMULATE_FAILING_REQUESTS_SWITCH: 'TestToolMenu-SimulateFailingRequestsSwitch',
+            SENTRY_SEND_SWITCH: 'TestToolMenu-SentrySendSwitch',
+            SENTRY_DEBUG_SWITCH: 'TestToolMenu-SentryDebugSwitch',
         },
         BILLING_BANNER: {
             RIGHT_ICON: 'BillingBanner-RightIcon',
@@ -10057,6 +10320,23 @@ const CONST = {
         WISE_GLOBAL_REIMBURSEMENTS_WORKSPACE_BANNER: {
             CTA: 'WiseGlobalReimbursementsWorkspaceBanner-CTA',
             DISMISS: 'WiseGlobalReimbursementsWorkspaceBanner-Dismiss',
+        },
+        WISE_ACCEPT_TERMS: {
+            CONFIRM: 'WiseAcceptTerms-Confirm',
+        },
+        WISE_MORE_INFO_NEEDED: {
+            CONTINUE: 'WiseMoreInfoNeeded-Continue',
+        },
+        WISE_ONBOARDING_IN_REVIEW: {
+            CHAT_WITH_CONCIERGE: 'WiseOnboardingInReview-ChatWithConcierge',
+            DONE: 'WiseOnboardingInReview-Done',
+        },
+        WISE_ONBOARDING_REJECTED: {
+            CHAT_WITH_CONCIERGE: 'WiseOnboardingRejected-ChatWithConcierge',
+            GOT_IT: 'WiseOnboardingRejected-GotIt',
+        },
+        WISE_ONBOARDING_APPROVED: {
+            DONE: 'WiseOnboardingApproved-Done',
         },
         PRODUCT_MARKETING_WINDOW: {
             CTA: 'ProductMarketingWindow-CTA',
@@ -10089,6 +10369,9 @@ const CONST = {
         ODOMETER_EXPENSE: {
             CAPTURE_IMAGE_START: 'IOURequestStepDistanceOdometer-CaptureStartImage',
             CAPTURE_IMAGE_END: 'IOURequestStepDistanceOdometer-CaptureEndImage',
+        },
+        PILL_SELECTOR: {
+            PILL: 'PillSelector-Pill',
         },
         OPTION_CARD_PICKER: {
             OPTION_ITEM: 'OptionCardPicker-OptionItem',
@@ -10152,6 +10435,9 @@ const CONST = {
             THUMBNAIL: 'VideoPlayer-Thumbnail',
             MUTE_BUTTON: 'VideoPlayer-MuteButton',
             VIDEO: 'VideoPlayer-Video',
+        },
+        CHART_TOOLTIP: {
+            PRESS: 'ChartTooltip-Press',
         },
         HTML_RENDERER: {
             IMAGE: 'HTMLRenderer-Image',
@@ -10223,10 +10509,29 @@ const CONST = {
             SAVED_SEARCH_MENU_ITEM: 'Search-SavedSearchMenuItem',
             SAVE_VIEW_BUTTON: 'Search-SaveViewButton',
             RESET_FILTERS_BUTTON: 'Search-ResetFiltersButton',
+            RESET_DISPLAY_BUTTON: 'Search-ResetDisplayButton',
             SAVE_FILTERS_BUTTON: 'Search-SaveFiltersButton',
             ACTION_CELL_VIEW: 'Search-ActionCellView',
-            ACTION_CELL_PAY: 'Search-ActionCellPay',
-            ACTION_CELL_ACTION: 'Search-ActionCellAction',
+            ACTION_CELL_ACTION: {
+                SUBMIT: 'Search-ActionCellAction-Submit',
+                APPROVE: 'Search-ActionCellAction-Approve',
+                PAY: 'Search-ActionCellAction-Pay',
+                CHANGE_APPROVER: 'Search-ActionCellAction-ChangeApprover',
+                EXPORT_TO_ACCOUNTING: 'Search-ActionCellAction-ExportToAccounting',
+                UNDELETE: 'Search-ActionCellAction-Undelete',
+            },
+            CREATE_BUTTON: 'Search-CreateButton',
+            CREATE_MENU: {
+                CREATE_EXPENSE: 'Search-CreateMenu-CreateExpense',
+                TRACK_DISTANCE: 'Search-CreateMenu-TrackDistance',
+                CREATE_REPORT: 'Search-CreateMenu-CreateReport',
+            },
+            EMPTY_STATE: {
+                TAKE_TEST_DRIVE: 'Search-EmptyState-TakeTestDrive',
+                CREATE_EXPENSE: 'Search-EmptyState-CreateExpense',
+                CREATE_REPORT: 'Search-EmptyState-CreateReport',
+                SEND_INVOICE: 'Search-EmptyState-SendInvoice',
+            },
             EXPENSE_REPORT_CHECKBOX: 'Search-ExpenseReportCheckbox',
             GROUP_EXPAND_TOGGLE: 'Search-GroupExpandToggle',
             GROUP_SELECT_ALL_CHECKBOX: 'Search-GroupSelectAllCheckbox',
@@ -10236,10 +10541,14 @@ const CONST = {
         },
         INSIGHTS: {
             CONTROL_DATE: 'Insights-ControlDate',
+            CONTROL_EXPORT: 'Insights-ControlExport',
             CONTROL_WORKSPACE: 'Insights-ControlWorkspace',
             CONTROL_GROUP_CURRENCY: 'Insights-ControlGroupCurrency',
             CONTROL_GROUP_BY: 'Insights-ControlGroupBy',
             CONTROL_COMPARE: 'Insights-ControlCompare',
+            AI_EXPLAIN: 'Insights-AIExplain',
+            DASHBOARD_TAB: 'Insights-DashboardTab',
+            TABLE_ROW: 'Insights-TableRow',
         },
         EXPENSE_RULES: {
             TABLE_ROW: 'ExpenseRules-TableRow',
@@ -10265,6 +10574,7 @@ const CONST = {
             ATTACHMENT_PICKER_MENU_ADD_ATTACHMENT: 'Report-AttachmentPickerMenuAddAttachment',
             REPORT_ACTION_ITEM_CREATED: 'Report-ReportActionItemCreated',
             REPORT_ACTION_ITEM_MESSAGE_ENTER_SIGNER_INFO: 'Report-ReportActionItemMessageEnterSignerInfo',
+            REPORT_ACTION_ITEM_ADD_HOME_ADDRESS: 'Report-ReportActionItemAddHomeAddress',
             REPORT_ACTION_ITEM_MESSAGE_EDIT_CANCEL_BUTTON: 'Report-ReportActionItemMessageEditCancelButton',
             REPORT_ACTION_ITEM_MESSAGE_EDIT_SAVE_BUTTON: 'Report-ReportActionItemMessageEditSaveButton',
             REPORT_ACTION_ITEM_SINGLE_AVATAR_BUTTON: 'Report-ReportActionItemSingleAvatarButton',
@@ -10273,13 +10583,29 @@ const CONST = {
             REPORT_ACTION_ITEM_THREAD: 'Report-ReportActionItemThread',
             THREAD_DIVIDER: 'Report-ThreadDivider',
             REPORT_ACTION_ITEM: 'Report-ReportActionItem',
+            COLLAPSED_SYSTEM_MESSAGES: 'Report-CollapsedSystemMessages',
             MODERATION_BUTTON: 'Report-ModerationButton',
             MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL: 'MoneyRequestReportActionsList-SelectAll',
             MONEY_REQUEST_REPORT_TRANSACTION_ITEM: 'MoneyRequestReportTransactionItem',
+            MONEY_REPORT_HEADER_NEXT_STEP: 'Report-MoneyReportHeaderNextStep',
+            MONEY_REPORT_HEADER_STATUS_BAR: 'Report-MoneyReportHeaderStatusBar',
             REPORT_FIELD_DELETE_BUTTON: 'Report-ReportFieldDeleteButton',
             REPORT_ACTION_AVATAR: 'Report-ReportActionAvatar',
             PARTICIPANTS_ROW: 'Report-ParticipantsRow',
             ROOM_MEMBERS_ROW: 'Report-RoomMembersRow',
+            SELECTION_MODE_MENU_ITEM: 'Report-SelectionModeMenuItem',
+            EMPTY_STATE: {
+                ADD_EXPENSE: 'Report-EmptyStateAddExpense',
+                CREATE_EXPENSE: 'Report-EmptyStateAddExpenseMenu-CreateExpense',
+                TRACK_DISTANCE: 'Report-EmptyStateAddExpenseMenu-TrackDistance',
+                ADD_EXISTING_EXPENSE: 'Report-EmptyStateAddExpenseMenu-AddExistingExpense',
+            },
+            LIST_FOOTER: {
+                ADD_EXPENSE: 'Report-ListFooterAddExpense',
+                CREATE_EXPENSE: 'Report-ListFooterAddExpenseMenu-CreateExpense',
+                TRACK_DISTANCE: 'Report-ListFooterAddExpenseMenu-TrackDistance',
+                ADD_EXISTING_EXPENSE: 'Report-ListFooterAddExpenseMenu-AddExistingExpense',
+            },
         },
         SIDEBAR: {
             SIGN_IN_BUTTON: 'Sidebar-SignInButton',
@@ -10370,6 +10696,11 @@ const CONST = {
             EXPORT_BUTTON: 'ReportPreview-ExportButton',
             VIEW_BUTTON: 'ReportPreview-ViewButton',
             ADD_EXPENSE_BUTTON: 'ReportPreview-AddExpenseButton',
+            ADD_EXPENSE_MENU: {
+                CREATE_EXPENSE: 'ReportPreview-AddExpenseMenu-CreateExpense',
+                TRACK_DISTANCE: 'ReportPreview-AddExpenseMenu-TrackDistance',
+                ADD_EXISTING_EXPENSE: 'ReportPreview-AddExpenseMenu-AddExistingExpense',
+            },
         },
         REQUEST_CONFIRMATION_LIST: {
             RESET_SPLIT_SHARES: 'RequestConfirmationList-ResetSplitShares',
@@ -10395,6 +10726,8 @@ const CONST = {
             SUBRATE_FIELD: 'RequestConfirmationList-SubrateField',
             SEND_FROM_FIELD: 'RequestConfirmationList-SendFromField',
             ADD_RECEIPT_BUTTON: 'RequestConfirmationList-AddReceiptButton',
+            REIMBURSABLE_SWITCH: 'RequestConfirmationList-ReimbursableSwitch',
+            BILLABLE_SWITCH: 'RequestConfirmationList-BillableSwitch',
         },
         TRANSACTION_PREVIEW: {
             CARD: 'TransactionPreview-Card',
@@ -10413,6 +10746,7 @@ const CONST = {
         },
         PAYMENT_METHOD_LIST_ITEM: {
             CHASE_ACCOUNT_HELP: 'PaymentMethodListItem-ChaseAccountHelp',
+            GLOBAL_REIMBURSEMENTS_ENABLED: 'PaymentMethodListItem-GlobalReimbursementsEnabled',
         },
         EMOJI_PICKER: {
             BUTTON: 'EmojiPicker-Button',
@@ -10461,12 +10795,32 @@ const CONST = {
             WIDGET_ITEM: 'HomePage-WidgetItem',
             GETTING_STARTED_ROW: 'HomePage-GettingStartedRow',
             GETTING_STARTED_FOOTER_HELP: 'HomePage-GettingStartedFooterHelp',
+            QUICK_CREATE: {
+                EXPENSE: 'HomePage-QuickCreate-Expense',
+                REPORT: 'HomePage-QuickCreate-Report',
+                DISTANCE: 'HomePage-QuickCreate-Distance',
+                BOOK_TRAVEL: 'HomePage-QuickCreate-BookTravel',
+            },
+        },
+        CONCIERGE_PROMPT_BOX: {
+            ADD_ATTACHMENT: 'ConciergePromptBox-AddAttachment',
+            INPUT: 'ConciergePromptBox-Input',
+            SEND: 'ConciergePromptBox-Send',
         },
         CATEGORY_PICKER_MODAL: {
             BACK_BUTTON: 'CategoryPickerModal-BackButton',
         },
         TAG_PICKER_MODAL: {
             BACK_BUTTON: 'TagPickerModal-BackButton',
+        },
+        TAX_PICKER_MODAL: {
+            BACK_BUTTON: 'TaxPickerModal-BackButton',
+        },
+        REPORT_PICKER_MODAL: {
+            BACK_BUTTON: 'ReportPickerModal-BackButton',
+        },
+        ATTENDEE_PICKER_MODAL: {
+            BACK_BUTTON: 'AttendeePickerModal-BackButton',
         },
         CALENDAR_PICKER: {
             YEAR_PICKER: 'CalendarPicker-YearPicker',
@@ -10486,6 +10840,7 @@ const CONST = {
         },
         SHARE_DETAIL: {
             DISMISS_KEYBOARD_BUTTON: 'ShareDetail-DismissKeyboardButton',
+            SHARE_BUTTON: 'ShareDetail-ShareButton',
         },
         MAP_VIEW: {
             COMPASS: 'compass',
@@ -10507,6 +10862,8 @@ const CONST = {
             CONFIRMATION_REMOVE_EXPENSE_BUTTON: 'MoneyRequest-ConfirmationRemoveExpenseButton',
             CONFIRMATION_PAY_BUTTON: 'MoneyRequest-ConfirmationPayButton',
             GOOGLE_MERCHANT_SEARCH_BUTTON: 'MoneyRequest-GoogleMerchantSearchButton',
+            REIMBURSABLE_SWITCH: 'MoneyRequest-ReimbursableSwitch',
+            BILLABLE_SWITCH: 'MoneyRequest-BillableSwitch',
         },
         SPLIT_EXPENSE: {
             ADD_SPLIT_BUTTON: 'SplitExpense-AddSplitButton',
@@ -10514,6 +10871,8 @@ const CONST = {
             SAVE_BUTTON: 'SplitExpense-SaveButton',
             REMOVE_SPLIT_BUTTON: 'SplitExpense-RemoveSplitButton',
             EDIT_SAVE_BUTTON: 'SplitExpense-EditSaveButton',
+            REIMBURSABLE_SWITCH: 'SplitExpense-ReimbursableSwitch',
+            BILLABLE_SWITCH: 'SplitExpense-BillableSwitch',
         },
         MERGE_EXPENSE: {
             MERGE_TRANSACTION_ITEM: 'MergeExpense-MergeTransactionItem',
@@ -10587,6 +10946,8 @@ const CONST = {
         WORKSPACE: {
             APPROVAL_WORKFLOW_SECTION: 'Workspace-ApprovalWorkflowSection',
             TOGGLE_SETTINGS_ROW: 'Workspace-ToggleSettingsRow',
+            CONFIRMATION_FORM_KEEP_ME_AS_ADMIN_SWITCH: 'WorkspaceConfirmationForm-KeepMeAsAdminSwitch',
+            IMPORT_SPREADSHEET_FILE_CONTAINS_HEADER_SWITCH: 'WorkspaceImportSpreadsheet-FileContainsHeaderSwitch',
             DUPLICATE_SELECT_FEATURES_SELECT_ALL: 'WorkspaceDuplicate-SelectFeaturesSelectAll',
             COPY_SETTINGS_SELECT_FEATURES_SELECT_ALL: 'WorkspaceCopySettings-SelectFeaturesSelectAll',
             INVITE_MESSAGE_PRIVACY_LINK: 'WorkspaceInviteMessage-PrivacyLink',
@@ -10599,6 +10960,7 @@ const CONST = {
                 CARD_EXPORT: 'WorkspaceCompanyCards-CardExport',
                 UNASSIGN_CARD: 'WorkspaceCompanyCards-UnassignCard',
                 TRANSACTION_START_DATE: 'WorkspaceCompanyCards-TransactionStartDate',
+                PERSONAL_LIABILITY_SWITCH: 'WorkspaceCompanyCards-PersonalLiabilitySwitch',
             },
             LIST: {
                 NEW_WORKSPACE_BUTTON: 'WorkspaceList-NewWorkspaceButton',
@@ -10638,6 +11000,7 @@ const CONST = {
                 NAME: 'WorkspaceOverview-Name',
                 DESCRIPTION: 'WorkspaceOverview-Description',
                 CURRENCY: 'WorkspaceOverview-Currency',
+                TIMEZONE: 'WorkspaceOverview-Timezone',
                 ADDRESS: 'WorkspaceOverview-Address',
                 OFFICE_LOCATION: 'WorkspaceOverview-OfficeLocation',
                 COMPANY_ADDRESS_OFFICE_LOCATION: 'WorkspaceOverview-CompanyAddressOfficeLocation',
@@ -10661,21 +11024,41 @@ const CONST = {
                 ADD_BUTTON: 'WorkspaceCategories-AddButton',
                 MORE_DROPDOWN: 'WorkspaceCategories-MoreDropdown',
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceCategories-BulkActionsDropdown',
+                ROW_ENABLE_SWITCH: 'WorkspaceCategories-RowEnableSwitch',
+                SETTINGS_ENABLE_SWITCH: 'WorkspaceCategories-SettingsEnableSwitch',
+                REQUIRE_DESCRIPTION_SWITCH: 'WorkspaceCategories-RequireDescriptionSwitch',
+                REQUIRE_ATTENDEES_SWITCH: 'WorkspaceCategories-RequireAttendeesSwitch',
+                AUTO_CATEGORIZE_SWITCH: 'WorkspaceCategories-AutoCategorizeSwitch',
+                SHOW_GL_CODES_SWITCH: 'WorkspaceCategories-ShowGLCodesSwitch',
             },
             TAGS: {
                 ROW: 'WorkspaceTags-Row',
                 ADD_BUTTON: 'WorkspaceTags-AddButton',
                 MORE_DROPDOWN: 'WorkspaceTags-MoreDropdown',
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceTags-BulkActionsDropdown',
+                ROW_ENABLE_SWITCH: 'WorkspaceTags-RowEnableSwitch',
+                SETTINGS_ENABLE_SWITCH: 'WorkspaceTags-SettingsEnableSwitch',
+                SHOW_GL_CODES_SWITCH: 'WorkspaceTags-ShowGLCodesSwitch',
+                IMPORT_FIRST_ROW_TITLE_SWITCH: 'WorkspaceTags-ImportFirstRowTitleSwitch',
+                IMPORT_INDEPENDENT_TAGS_SWITCH: 'WorkspaceTags-ImportIndependentTagsSwitch',
+                IMPORT_GL_ADJACENT_COLUMN_SWITCH: 'WorkspaceTags-ImportGLAdjacentColumnSwitch',
             },
             REPORT_FIELDS: {
                 LIST_VALUE_ROW: 'WorkspaceReportFields-ListValueRow',
+                LIST_VALUE_ENABLE_SWITCH: 'WorkspaceReportFields-ListValueEnableSwitch',
+                VALUE_SETTINGS_ENABLE_SWITCH: 'WorkspaceReportFields-ValueSettingsEnableSwitch',
+                ENABLE_SWITCH: 'WorkspaceReportFields-EnableSwitch',
             },
             TAXES: {
                 ROW: 'WorkspaceTaxes-Row',
                 ADD_BUTTON: 'WorkspaceTaxes-AddButton',
                 MORE_DROPDOWN: 'WorkspaceTaxes-MoreDropdown',
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceTaxes-BulkActionsDropdown',
+                ROW_ENABLE_SWITCH: 'WorkspaceTaxes-RowEnableSwitch',
+                EDIT_ENABLE_SWITCH: 'WorkspaceTaxes-EditEnableSwitch',
+            },
+            VENDORS: {
+                ROW_ENABLE_SWITCH: 'WorkspaceVendors-RowEnableSwitch',
             },
             DISTANCE_RATES: {
                 ROW: 'WorkspaceDistanceRates-Row',
@@ -10684,9 +11067,16 @@ const CONST = {
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceDistanceRates-BulkActionsDropdown',
                 UNIT_SELECTOR: 'WorkspaceDistanceRates-UnitSelector',
                 COUNTRY_SELECTOR: 'WorkspaceDistanceRates-CountrySelector',
+                ROW_ENABLE_SWITCH: 'WorkspaceDistanceRates-RowEnableSwitch',
+                RATE_DETAILS_ENABLE_SWITCH: 'WorkspaceDistanceRates-RateDetailsEnableSwitch',
+                AUTO_UPDATE_GOVERNMENT_RATE_SWITCH: 'WorkspaceDistanceRates-AutoUpdateGovernmentRateSwitch',
+                TRACK_TAX_SWITCH: 'WorkspaceDistanceRates-TrackTaxSwitch',
+                REQUIRE_MAP_OR_GPS_SWITCH: 'WorkspaceDistanceRates-RequireMapOrGPSSwitch',
             },
             WORKFLOWS: {
                 AUTO_REPORTING_FREQUENCY: 'WorkspaceWorkflows-AutoReportingFrequency',
+                AUTO_REPORTING_OFFSET: 'WorkspaceWorkflows-AutoReportingOffset',
+                AUTO_REPORTING_SECOND_OFFSET: 'WorkspaceWorkflows-AutoReportingSecondOffset',
                 CURRENCY_CONVERSION_FEES: 'WorkspaceWorkflows-CurrencyConversionFees',
                 ADD_APPROVAL: 'WorkspaceWorkflows-AddApproval',
                 MORE_DROPDOWN: 'WorkspaceWorkflows-MoreDropdown',
@@ -10694,29 +11084,173 @@ const CONST = {
                 BANK_ACCOUNT: 'WorkspaceWorkflows-BankAccount',
                 ADD_BANK_ACCOUNT: 'WorkspaceWorkflows-AddBankAccount',
                 AUTHORIZED_PAYER: 'WorkspaceWorkflows-AuthorizedPayer',
+                BUSINESS_BANK_ACCOUNT_COUNTRIES: 'WorkspaceWorkflows-BusinessBankAccountCountries',
                 APPROVALS_EDIT_SAVE: 'WorkspaceWorkflows-ApprovalsEditSave',
                 APPROVAL_EDITOR_MEMBERS: 'WorkspaceWorkflows-ApprovalEditorMembers',
                 APPROVAL_EDITOR_APPROVER: 'WorkspaceWorkflows-ApprovalEditorApprover',
                 APPROVAL_SECTION_EXPENSES_FROM: 'WorkspaceWorkflows-ApprovalSectionExpensesFrom',
                 APPROVAL_SECTION_APPROVER: 'WorkspaceWorkflows-ApprovalSectionApprover',
                 APPROVAL_SECTION_SHOW_ALL_MEMBERS: 'WorkspaceWorkflows-ApprovalSectionShowAllMembers',
+                ADD_APPROVALS_SWITCH: 'WorkspaceWorkflows-AddApprovalsSwitch',
+                COLLECT_EMPLOYEE_BANK_DETAILS_SWITCH: 'WorkspaceWorkflows-CollectEmployeeBankDetailsSwitch',
+                MAKE_OR_TRACK_PAYMENTS_SWITCH: 'WorkspaceWorkflows-MakeOrTrackPaymentsSwitch',
+                SUBMISSION_FREQUENCY_SWITCH: 'WorkspaceWorkflows-SubmissionFrequencySwitch',
             },
             ACCOUNTING: {
                 SETUP_BUTTON: 'WorkspaceAccounting-SetupButton',
                 EXACT_ONLINE_WAITLIST_BUTTON: 'WorkspaceAccounting-ExactOnlineWaitlistButton',
                 CARD_SECTION_ADD_BUTTON: 'WorkspaceAccounting-CardSectionAddButton',
                 THREE_DOT_MENU: 'WorkspaceAccounting-ThreeDotMenu',
+                TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_SWITCH: 'WorkspaceAccounting-TravelBillingContinuousReconciliationSwitch',
+                CONTINUOUS_RECONCILIATION_SWITCH: 'WorkspaceAccounting-ContinuousReconciliationSwitch',
+                QBO: {
+                    AUTO_SYNC_SWITCH: 'WorkspaceAccountingQBO-AutoSyncSwitch',
+                    INVITE_EMPLOYEES_SWITCH: 'WorkspaceAccountingQBO-InviteEmployeesSwitch',
+                    AUTO_CREATE_VENDOR_SWITCH: 'WorkspaceAccountingQBO-AutoCreateVendorSwitch',
+                    SYNC_REIMBURSED_REPORTS_SWITCH: 'WorkspaceAccountingQBO-SyncReimbursedReportsSwitch',
+                    CHART_OF_ACCOUNTS_IMPORT_SWITCH: 'WorkspaceAccountingQBO-ChartOfAccountsImportSwitch',
+                    ENABLE_NEW_CATEGORIES_SWITCH: 'WorkspaceAccountingQBO-EnableNewCategoriesSwitch',
+                    IMPORT_CLASSES_SWITCH: 'WorkspaceAccountingQBO-ImportClassesSwitch',
+                    IMPORT_CUSTOM_DIMENSION_SWITCH: 'WorkspaceAccountingQBO-ImportCustomDimensionSwitch',
+                    IMPORT_CUSTOMERS_SWITCH: 'WorkspaceAccountingQBO-ImportCustomersSwitch',
+                    IMPORT_ITEMS_SWITCH: 'WorkspaceAccountingQBO-ImportItemsSwitch',
+                    IMPORT_LOCATIONS_SWITCH: 'WorkspaceAccountingQBO-ImportLocationsSwitch',
+                    IMPORT_TAXES_SWITCH: 'WorkspaceAccountingQBO-ImportTaxesSwitch',
+                },
+                QBD: {
+                    AUTO_SYNC_SWITCH: 'WorkspaceAccountingQBD-AutoSyncSwitch',
+                    AUTO_CREATE_VENDOR_SWITCH: 'WorkspaceAccountingQBD-AutoCreateVendorSwitch',
+                    DEFAULT_VENDOR_SWITCH: 'WorkspaceAccountingQBD-DefaultVendorSwitch',
+                    MARK_CHECKS_TO_BE_PRINTED_SWITCH: 'WorkspaceAccountingQBD-MarkChecksToBePrintedSwitch',
+                    CHART_OF_ACCOUNTS_IMPORT_SWITCH: 'WorkspaceAccountingQBD-ChartOfAccountsImportSwitch',
+                    ENABLE_NEW_CATEGORIES_SWITCH: 'WorkspaceAccountingQBD-EnableNewCategoriesSwitch',
+                    IMPORT_CLASSES_SWITCH: 'WorkspaceAccountingQBD-ImportClassesSwitch',
+                    IMPORT_CUSTOMERS_SWITCH: 'WorkspaceAccountingQBD-ImportCustomersSwitch',
+                    IMPORT_ITEMS_SWITCH: 'WorkspaceAccountingQBD-ImportItemsSwitch',
+                },
+                XERO: {
+                    AUTO_SYNC_SWITCH: 'WorkspaceAccountingXero-AutoSyncSwitch',
+                    SYNC_REIMBURSED_REPORTS_SWITCH: 'WorkspaceAccountingXero-SyncReimbursedReportsSwitch',
+                    ENABLE_NEW_CATEGORIES_SWITCH: 'WorkspaceAccountingXero-EnableNewCategoriesSwitch',
+                    IMPORT_CUSTOMERS_SWITCH: 'WorkspaceAccountingXero-ImportCustomersSwitch',
+                    IMPORT_TAX_RATES_SWITCH: 'WorkspaceAccountingXero-ImportTaxRatesSwitch',
+                    IMPORT_TRACKING_CATEGORIES_SWITCH: 'WorkspaceAccountingXero-ImportTrackingCategoriesSwitch',
+                    CHART_OF_ACCOUNTS_SWITCH: 'WorkspaceAccountingXero-ChartOfAccountsSwitch',
+                },
+                BUSINESS_CENTRAL: {
+                    AUTO_SYNC_SWITCH: 'WorkspaceAccountingBusinessCentral-AutoSyncSwitch',
+                    AUTO_CREATE_ENTITIES_SWITCH: 'WorkspaceAccountingBusinessCentral-AutoCreateEntitiesSwitch',
+                    EXPORT_TO_NEXT_OPEN_PERIOD_SWITCH: 'WorkspaceAccountingBusinessCentral-ExportToNextOpenPeriodSwitch',
+                    SYNC_REIMBURSED_REPORTS_SWITCH: 'WorkspaceAccountingBusinessCentral-SyncReimbursedReportsSwitch',
+                    SYNC_EXPENSIFY_CARD_SETTLEMENTS_SWITCH: 'WorkspaceAccountingBusinessCentral-SyncExpensifyCardSettlementsSwitch',
+                    EXPORT_TO_MULTIPLE_ACCOUNTS_SWITCH: 'WorkspaceAccountingBusinessCentral-ExportToMultipleAccountsSwitch',
+                    ACCOUNTS_SWITCH: 'WorkspaceAccountingBusinessCentral-AccountsSwitch',
+                    ITEMS_SWITCH: 'WorkspaceAccountingBusinessCentral-ItemsSwitch',
+                    ENABLE_NEW_CATEGORIES_SWITCH: 'WorkspaceAccountingBusinessCentral-EnableNewCategoriesSwitch',
+                    DIMENSION_SWITCH: 'WorkspaceAccountingBusinessCentral-DimensionSwitch',
+                    TAXES_SWITCH: 'WorkspaceAccountingBusinessCentral-TaxesSwitch',
+                    PROJECTS_SWITCH: 'WorkspaceAccountingBusinessCentral-ProjectsSwitch',
+                    CUSTOMERS_SWITCH: 'WorkspaceAccountingBusinessCentral-CustomersSwitch',
+                },
+                CAMPFIRE: {
+                    AUTO_SYNC_SWITCH: 'WorkspaceAccountingCampfire-AutoSyncSwitch',
+                    SYNC_REIMBURSED_REPORTS_SWITCH: 'WorkspaceAccountingCampfire-SyncReimbursedReportsSwitch',
+                    SYNC_EXPENSIFY_CARD_SETTLEMENTS_SWITCH: 'WorkspaceAccountingCampfire-SyncExpensifyCardSettlementsSwitch',
+                    SYNC_TRAVEL_BILLING_SETTLEMENTS_SWITCH: 'WorkspaceAccountingCampfire-SyncTravelBillingSettlementsSwitch',
+                    EXPORT_TO_MULTIPLE_ACCOUNTS_SWITCH: 'WorkspaceAccountingCampfire-ExportToMultipleAccountsSwitch',
+                    ACCOUNTS_SWITCH: 'WorkspaceAccountingCampfire-AccountsSwitch',
+                    ENABLE_NEW_ACCOUNTS_SWITCH: 'WorkspaceAccountingCampfire-EnableNewAccountsSwitch',
+                    DIMENSION_SWITCH: 'WorkspaceAccountingCampfire-DimensionSwitch',
+                    TAX_RATES_SWITCH: 'WorkspaceAccountingCampfire-TaxRatesSwitch',
+                },
+                CERTINIA: {
+                    AUTO_SYNC_SWITCH: 'WorkspaceAccountingCertinia-AutoSyncSwitch',
+                    TAX_NON_BILLABLE_SWITCH: 'WorkspaceAccountingCertinia-TaxNonBillableSwitch',
+                    FOREIGN_CURRENCY_AMOUNT_SWITCH: 'WorkspaceAccountingCertinia-ForeignCurrencyAmountSwitch',
+                    SYNC_REIMBURSED_REPORTS_SWITCH: 'WorkspaceAccountingCertinia-SyncReimbursedReportsSwitch',
+                    EXPENSE_TYPE_GLA_MAPPINGS_SWITCH: 'WorkspaceAccountingCertinia-ExpenseTypeGLAMappingsSwitch',
+                    MILESTONES_SWITCH: 'WorkspaceAccountingCertinia-MilestonesSwitch',
+                    CHART_OF_ACCOUNTS_SWITCH: 'WorkspaceAccountingCertinia-ChartOfAccountsSwitch',
+                    TAX_SWITCH: 'WorkspaceAccountingCertinia-TaxSwitch',
+                },
+                DUAL_ENTRY: {
+                    AUTO_SYNC_SWITCH: 'WorkspaceAccountingDualEntry-AutoSyncSwitch',
+                    SYNC_REIMBURSED_REPORTS_SWITCH: 'WorkspaceAccountingDualEntry-SyncReimbursedReportsSwitch',
+                    SYNC_EXPENSIFY_CARD_SETTLEMENTS_SWITCH: 'WorkspaceAccountingDualEntry-SyncExpensifyCardSettlementsSwitch',
+                    SYNC_TRAVEL_BILLING_SETTLEMENTS_SWITCH: 'WorkspaceAccountingDualEntry-SyncTravelBillingSettlementsSwitch',
+                    EXPORT_TO_MULTIPLE_ACCOUNTS_SWITCH: 'WorkspaceAccountingDualEntry-ExportToMultipleAccountsSwitch',
+                    ACCOUNTS_SWITCH: 'WorkspaceAccountingDualEntry-AccountsSwitch',
+                    ENABLE_NEW_ACCOUNTS_SWITCH: 'WorkspaceAccountingDualEntry-EnableNewAccountsSwitch',
+                    CLASSIFICATION_SWITCH: 'WorkspaceAccountingDualEntry-ClassificationSwitch',
+                    TAX_RATES_SWITCH: 'WorkspaceAccountingDualEntry-TaxRatesSwitch',
+                },
+                SAGE_INTACCT: {
+                    AUTO_SYNC_SWITCH: 'WorkspaceAccountingSageIntacct-AutoSyncSwitch',
+                    DEFAULT_VENDOR_SWITCH: 'WorkspaceAccountingSageIntacct-DefaultVendorSwitch',
+                    EXPENSE_TYPES_SWITCH: 'WorkspaceAccountingSageIntacct-ExpenseTypesSwitch',
+                    ACCOUNTS_SWITCH: 'WorkspaceAccountingSageIntacct-AccountsSwitch',
+                    BILLABLE_SWITCH: 'WorkspaceAccountingSageIntacct-BillableSwitch',
+                    IMPORT_TAX_SWITCH: 'WorkspaceAccountingSageIntacct-ImportTaxSwitch',
+                    IMPORT_DEPARTMENTS_SWITCH: 'WorkspaceAccountingSageIntacct-ImportMappingSwitch-Departments',
+                    IMPORT_CLASSES_SWITCH: 'WorkspaceAccountingSageIntacct-ImportMappingSwitch-Classes',
+                    IMPORT_LOCATIONS_SWITCH: 'WorkspaceAccountingSageIntacct-ImportMappingSwitch-Locations',
+                    IMPORT_CUSTOMERS_SWITCH: 'WorkspaceAccountingSageIntacct-ImportMappingSwitch-Customers',
+                    IMPORT_PROJECTS_SWITCH: 'WorkspaceAccountingSageIntacct-ImportMappingSwitch-Projects',
+                    INVITE_EMPLOYEES_SWITCH: 'WorkspaceAccountingSageIntacct-InviteEmployeesSwitch',
+                    SYNC_REIMBURSED_REPORTS_SWITCH: 'WorkspaceAccountingSageIntacct-SyncReimbursedReportsSwitch',
+                },
+                NETSUITE: {
+                    AUTO_SYNC_SWITCH: 'WorkspaceAccountingNetSuite-AutoSyncSwitch',
+                    SYNC_REIMBURSED_REPORTS_SWITCH: 'WorkspaceAccountingNetSuite-SyncReimbursedReportsSwitch',
+                    INVITE_EMPLOYEES_SWITCH: 'WorkspaceAccountingNetSuite-InviteEmployeesSwitch',
+                    AUTO_CREATE_ENTITIES_SWITCH: 'WorkspaceAccountingNetSuite-AutoCreateEntitiesSwitch',
+                    ENABLE_NEW_CATEGORIES_SWITCH: 'WorkspaceAccountingNetSuite-EnableNewCategoriesSwitch',
+                    CUSTOM_FORM_ID_SWITCH: 'WorkspaceAccountingNetSuite-CustomFormIDSwitch',
+                    FOREIGN_CURRENCY_AMOUNT_SWITCH: 'WorkspaceAccountingNetSuite-ForeignCurrencyAmountSwitch',
+                    EXPORT_TO_NEXT_OPEN_PERIOD_SWITCH: 'WorkspaceAccountingNetSuite-ExportToNextOpenPeriodSwitch',
+                    SPLIT_EXPORTS_BY_POSTING_PERIOD_SWITCH: 'WorkspaceAccountingNetSuite-SplitExportsByPostingPeriodSwitch',
+                    IMPORT_CUSTOMERS_SWITCH: 'WorkspaceAccountingNetSuite-ImportCustomersSwitch',
+                    IMPORT_JOBS_SWITCH: 'WorkspaceAccountingNetSuite-ImportJobsSwitch',
+                    CROSS_SUBSIDIARY_CUSTOMERS_SWITCH: 'WorkspaceAccountingNetSuite-CrossSubsidiaryCustomersSwitch',
+                    EXPENSE_CATEGORIES_SWITCH: 'WorkspaceAccountingNetSuite-ExpenseCategoriesSwitch',
+                    TAX_SWITCH: 'WorkspaceAccountingNetSuite-TaxSwitch',
+                },
+                RILLET: {
+                    AUTO_SYNC_SWITCH: 'WorkspaceAccountingRillet-AutoSyncSwitch',
+                    SYNC_REIMBURSED_REPORTS_SWITCH: 'WorkspaceAccountingRillet-SyncReimbursedReportsSwitch',
+                    SYNC_EXPENSIFY_CARD_SETTLEMENTS_SWITCH: 'WorkspaceAccountingRillet-SyncExpensifyCardSettlementsSwitch',
+                    SYNC_TRAVEL_BILLING_SETTLEMENTS_SWITCH: 'WorkspaceAccountingRillet-SyncTravelBillingSettlementsSwitch',
+                    EXPORT_TO_MULTIPLE_ACCOUNTS_SWITCH: 'WorkspaceAccountingRillet-ExportToMultipleAccountsSwitch',
+                    ACCOUNTS_SWITCH: 'WorkspaceAccountingRillet-AccountsSwitch',
+                    ENABLE_NEW_ACCOUNTS_SWITCH: 'WorkspaceAccountingRillet-EnableNewAccountsSwitch',
+                    DIMENSION_SWITCH: 'WorkspaceAccountingRillet-DimensionSwitch',
+                    TAX_RATES_SWITCH: 'WorkspaceAccountingRillet-TaxRatesSwitch',
+                },
+                ZOHO_BOOKS: {
+                    ACCOUNTS_SWITCH: 'WorkspaceAccountingZohoBooks-AccountsSwitch',
+                    ENABLE_NEW_ACCOUNTS_SWITCH: 'WorkspaceAccountingZohoBooks-EnableNewAccountsSwitch',
+                    REPORTING_TAG_SWITCH: 'WorkspaceAccountingZohoBooks-ReportingTagSwitch',
+                    TAX_RATES_SWITCH: 'WorkspaceAccountingZohoBooks-TaxRatesSwitch',
+                    AUTO_SYNC_SWITCH: 'WorkspaceAccountingZohoBooks-AutoSyncSwitch',
+                    SYNC_REIMBURSED_REPORTS_SWITCH: 'WorkspaceAccountingZohoBooks-SyncReimbursedReportsSwitch',
+                    SYNC_EXPENSIFY_CARD_SETTLEMENTS_SWITCH: 'WorkspaceAccountingZohoBooks-SyncExpensifyCardSettlementsSwitch',
+                    SYNC_TRAVEL_BILLING_SETTLEMENTS_SWITCH: 'WorkspaceAccountingZohoBooks-SyncTravelBillingSettlementsSwitch',
+                },
             },
             CONNECTIONS: {
                 CARD: 'WorkspaceConnections-Card',
                 CONFIGURE_BUTTON: 'WorkspaceConnections-ConfigureButton',
                 SUGGEST_INTEGRATION: 'WorkspaceConnections-SuggestIntegration',
+                UBER_AUTO_INVITE_SWITCH: 'WorkspaceConnections-UberAutoInviteSwitch',
+                UBER_AUTO_REMOVE_SWITCH: 'WorkspaceConnections-UberAutoRemoveSwitch',
             },
             RULES: {
                 ADD_SPEND_RULE: 'WorkspaceRules-AddSpendRule',
                 INDIVIDUAL_EXPENSES_MENU_ITEM: 'WorkspaceRules-IndividualExpensesMenuItem',
                 SPEND_RULE_ITEM: 'WorkspaceRules-SpendRuleItem',
                 MERCHANT_RULE_ITEM: 'WorkspaceRules-MerchantRuleItem',
+                MERCHANT_RULE_APPLY_TO_EXISTING_SWITCH: 'WorkspaceRules-MerchantRuleApplyToExistingSwitch',
+                PROHIBITED_EXPENSE_SWITCH: 'WorkspaceRules-ProhibitedExpenseSwitch',
                 REQUIRE_FIELDS_RULE_ITEM: 'WorkspaceRules-RequireFieldsRuleItem',
                 REQUIRE_FIELDS_RULE_SAVE: 'WorkspaceRules-RequireFieldsRuleSave',
                 REQUIRE_FIELDS_RULE_DESCRIBE: 'WorkspaceRules-RequireFieldsRuleDescribe',
@@ -10764,12 +11298,30 @@ const CONST = {
                 REQUIRE_FIELDS_SAVE: 'WorkspaceRules-RequireFieldsSave',
                 FLAG_RECEIPT_LINE_ITEMS_SAVE: 'WorkspaceRules-FlagReceiptLineItemsSave',
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceRules-BulkActionsDropdown',
+                ATTENDEE_TRACKING_SWITCH: 'WorkspaceRules-AttendeeTrackingSwitch',
+                AUTO_APPROVE_COMPLIANT_REPORTS_SWITCH: 'WorkspaceRules-AutoApproveCompliantReportsSwitch',
+                AUTO_PAY_APPROVED_REPORTS_SWITCH: 'WorkspaceRules-AutoPayApprovedReportsSwitch',
+                E_RECEIPTS_SWITCH: 'WorkspaceRules-EReceiptsSwitch',
+                PREVENT_PAYOUT_NON_REIMBURSABLE_REPORTS_SWITCH: 'WorkspaceRules-PreventPayoutNonReimbursableReportsSwitch',
+                PREVENT_SELF_APPROVALS_SWITCH: 'WorkspaceRules-PreventSelfApprovalsSwitch',
+                PUBLIC_RECEIPT_VISIBILITY_SWITCH: 'WorkspaceRules-PublicReceiptVisibilitySwitch',
+                REQUIRE_CATEGORY_SWITCH: 'WorkspaceRules-RequireCategorySwitch',
+                REQUIRE_COMPANY_CARD_SWITCH: 'WorkspaceRules-RequireCompanyCardSwitch',
+                REQUIRE_ITEMIZED_RECEIPT_SWITCH: 'WorkspaceRules-RequireItemizedReceiptSwitch',
+                REQUIRE_RECEIPT_SWITCH: 'WorkspaceRules-RequireReceiptSwitch',
+                REQUIRE_TAG_LEVEL_SWITCH: 'WorkspaceRules-RequireTagLevelSwitch',
+                REQUIRE_TAG_SWITCH: 'WorkspaceRules-RequireTagSwitch',
+                TRACK_BILLABLE_SWITCH: 'WorkspaceRules-TrackBillableSwitch',
             },
             EXPENSIFY_CARD: {
                 ROW: 'WorkspaceExpensifyCard-Row',
                 ISSUE_CARD_BUTTON: 'WorkspaceExpensifyCard-IssueCardButton',
                 MORE_DROPDOWN: 'WorkspaceExpensifyCard-MoreDropdown',
                 CHOOSE_SPEND_RULE: 'WorkspaceExpensifyCard-ChooseSpendRule',
+                APPLY_CASHBACK_TO_BILL_SWITCH: 'WorkspaceExpensifyCard-ApplyCashbackToBillSwitch',
+                ISSUE_CARD_ADD_EXPIRATION_DATE_SWITCH: 'WorkspaceExpensifyCard-IssueCardAddExpirationDateSwitch',
+                ISSUE_CARD_ADD_SPEND_RULE_SWITCH: 'WorkspaceExpensifyCard-IssueCardAddSpendRuleSwitch',
+                LIMIT_TYPE_ADD_EXPIRATION_DATE_SWITCH: 'WorkspaceExpensifyCard-LimitTypeAddExpirationDateSwitch',
             },
             PER_DIEM: {
                 ROW: 'WorkspacePerDiem-Row',
@@ -10779,13 +11331,40 @@ const CONST = {
             TRAVEL: {
                 BOOK_TRAVEL_BUTTON: 'WorkspaceTravel-BookTravelButton',
                 GET_STARTED_BUTTON: 'WorkspaceTravel-GetStartedButton',
+                AUTO_ADD_TRIP_NAME_SWITCH: 'WorkspaceTravel-AutoAddTripNameSwitch',
+                CODING_SYNC_SWITCH: 'WorkspaceTravel-CodingSyncSwitch',
+                TRAVEL_BILLING_SWITCH: 'WorkspaceTravel-TravelBillingSwitch',
             },
             INVOICES: {
                 COMPANY_NAME: 'WorkspaceInvoices-CompanyName',
                 COMPANY_WEBSITE: 'WorkspaceInvoices-CompanyWebsite',
+                INVOICE_FIELDS_ENABLE_SWITCH: 'WorkspaceInvoices-InvoiceFieldsEnableSwitch',
             },
             FEATURE_LIST: {
                 CTA_BUTTON: 'WorkspaceFeatureList-CtaButton',
+            },
+            MORE_FEATURES: {
+                CATEGORIES_SWITCH: 'WorkspaceMoreFeatures-FeatureSwitch-Categories',
+                COMPANY_CARDS_SWITCH: 'WorkspaceMoreFeatures-FeatureSwitch-CompanyCards',
+                DISTANCE_RATES_SWITCH: 'WorkspaceMoreFeatures-FeatureSwitch-DistanceRates',
+                EXPENSIFY_CARD_SWITCH: 'WorkspaceMoreFeatures-FeatureSwitch-ExpensifyCard',
+                INVOICES_SWITCH: 'WorkspaceMoreFeatures-FeatureSwitch-Invoices',
+                PER_DIEM_SWITCH: 'WorkspaceMoreFeatures-FeatureSwitch-PerDiem',
+                RULES_SWITCH: 'WorkspaceMoreFeatures-FeatureSwitch-Rules',
+                TAGS_SWITCH: 'WorkspaceMoreFeatures-FeatureSwitch-Tags',
+                TAXES_SWITCH: 'WorkspaceMoreFeatures-FeatureSwitch-Taxes',
+                TIME_TRACKING_SWITCH: 'WorkspaceMoreFeatures-FeatureSwitch-TimeTracking',
+                TRAVEL_SWITCH: 'WorkspaceMoreFeatures-FeatureSwitch-Travel',
+                VENDORS_SWITCH: 'WorkspaceMoreFeatures-FeatureSwitch-Vendors',
+                WORKFLOWS_SWITCH: 'WorkspaceMoreFeatures-FeatureSwitch-Workflows',
+            },
+            RECRUITING: {
+                MERGE_ATS_OFFICES_FILTER_SWITCH: 'WorkspaceRecruiting-MergeATSFilterSwitch-Offices',
+                MERGE_ATS_STAGES_FILTER_SWITCH: 'WorkspaceRecruiting-MergeATSFilterSwitch-Stages',
+                MERGE_ATS_TAGS_FILTER_SWITCH: 'WorkspaceRecruiting-MergeATSFilterSwitch-Tags',
+            },
+            REPORTS: {
+                PREVENT_MEMBERS_CHANGING_CUSTOM_NAMES_SWITCH: 'WorkspaceReports-PreventMembersChangingCustomNamesSwitch',
             },
         },
         ACCOUNT_SWITCHER: {
@@ -10914,12 +11493,17 @@ const CONST = {
             DATE_OF_BIRTH: 'SettingsProfile-DateOfBirth',
             PHONE_NUMBER: 'SettingsProfile-PhoneNumber',
             ADDRESS: 'SettingsProfile-Address',
+            TIMEZONE_AUTOMATIC_SWITCH: 'SettingsProfile-TimezoneAutomaticSwitch',
         },
         SETTINGS_PREFERENCES: {
             PRIORITY_MODE: 'SettingsPreferences-PriorityMode',
             LANGUAGE: 'SettingsPreferences-Language',
             PAYMENT_CURRENCY: 'SettingsPreferences-PaymentCurrency',
             THEME: 'SettingsPreferences-Theme',
+            FEATURE_UPDATES_SWITCH: 'SettingsPreferences-FeatureUpdatesSwitch',
+            MUTE_ALL_SOUNDS_SWITCH: 'SettingsPreferences-MuteAllSoundsSwitch',
+            HIGH_CONTRAST_MODE_SWITCH: 'SettingsPreferences-HighContrastModeSwitch',
+            HOME_ADDRESS: 'SettingsPreferences-HomeAddress',
         },
         SETTINGS_SECURITY: {
             TWO_FACTOR_AUTH: 'SettingsSecurity-TwoFactorAuth',
@@ -10941,13 +11525,22 @@ const CONST = {
             IMPORT_TRANSACTIONS: 'SettingsWallet-ImportTransactions',
             TRANSFER_BALANCE: 'SettingsWallet-TransferBalance',
             ENABLE_WALLET: 'SettingsWallet-EnableWallet',
+            IMPORT_TRANSACTIONS_REIMBURSABLE_SWITCH: 'SettingsWallet-ImportTransactionsReimbursableSwitch',
+            IMPORT_TRANSACTIONS_FLIP_AMOUNT_SIGN_SWITCH: 'SettingsWallet-ImportTransactionsFlipAmountSignSwitch',
+            PERSONAL_CARD_REIMBURSABLE_SWITCH: 'SettingsWallet-PersonalCardReimbursableSwitch',
+            WISE_MORE_INFO_NEEDED_REVIEW: 'SettingsWallet-WiseMoreInfoNeededReview',
+            DIGITAL_WALLET_APPROVAL_REVIEW: 'SettingsWallet-DigitalWalletApprovalReview',
+            MISSING_PERSONAL_DETAILS_ADD: 'SettingsWallet-MissingPersonalDetailsAdd',
         },
         SETTINGS_RULES: {
             NEW_RULE: 'SettingsRules-NewRule',
+            CREATE_REPORT_SWITCH: 'SettingsRules-CreateReportSwitch',
+            APPLY_TO_EXISTING_EXPENSES_SWITCH: 'SettingsRules-ApplyToExistingExpensesSwitch',
         },
         SETTINGS_TEACHERS_UNITE: {
             I_KNOW_A_TEACHER: 'SettingsTeachersUnite-IKnowATeacher',
             I_AM_A_TEACHER: 'SettingsTeachersUnite-IAmATeacher',
+            PERSONAL_KARMA_SWITCH: 'SettingsTeachersUnite-PersonalKarmaSwitch',
         },
         SETTINGS_SUBSCRIPTION: {
             EXPLORE_PLANS: 'SettingsSubscription-ExplorePlans',
@@ -10956,9 +11549,12 @@ const CONST = {
             AUTHENTICATE_PAYMENT: 'SettingsSubscription-AuthenticatePayment',
             VIEW_PAYMENT_HISTORY: 'SettingsSubscription-ViewPaymentHistory',
             PAYMENT_HISTORY_ROW: 'SettingsSubscription-PaymentHistoryRow',
+            PAYMENT_ACTIVITY_ROW: 'SettingsSubscription-PaymentActivityRow',
             VIEW_BILLING_RECEIPT: 'SettingsSubscription-ViewBillingReceipt',
             REQUEST_REFUND: 'SettingsSubscription-RequestRefund',
             CANCEL_SUBSCRIPTION: 'SettingsSubscription-CancelSubscription',
+            AUTO_RENEW_SWITCH: 'SettingsSubscription-AutoRenewSwitch',
+            AUTO_INCREASE_SWITCH: 'SettingsSubscription-AutoIncreaseSwitch',
         },
         SETTINGS_HELP: {
             CONCIERGE_CHAT: 'SettingsHelp-ConciergeChat',
@@ -10979,6 +11575,8 @@ const CONST = {
             CLEAR_CACHE: 'SettingsTroubleshoot-ClearCache',
             EXPORT_ONYX: 'SettingsTroubleshoot-ExportOnyx',
             GO_TO_CLASSIC: 'SettingsTroubleshoot-GoToExpensifyClassic',
+            MASK_EXPORT_ONYX_DATA_SWITCH: 'SettingsTroubleshoot-MaskExportOnyxDataSwitch',
+            BETA_OVERRIDE_SWITCH: 'SettingsTroubleshoot-BetaOverrideSwitch',
         },
         SETTINGS_EXIT_SURVEY: {
             GO_TO_CLASSIC: 'SettingsExitSurvey-GoToExpensifyClassic',
@@ -11010,13 +11608,32 @@ const CONST = {
                 REQUEST_ROW: 'DomainAdmins-RequestRow',
                 REQUEST_APPROVE: 'DomainAdmins-RequestApprove',
                 REQUEST_DENY: 'DomainAdmins-RequestDeny',
+                CONSOLIDATED_DOMAIN_BILLING_SWITCH: 'DomainAdmins-ConsolidatedDomainBillingSwitch',
             },
             GROUPS: {
                 CREATE_GROUP_BUTTON: 'DomainGroups-CreateGroupButton',
                 ROW: 'DomainGroups-Row',
+                DEFAULT_GROUP_SWITCH: 'DomainGroups-DefaultGroupSwitch',
+                STRICTLY_ENFORCE_WORKSPACE_RULES_SWITCH: 'DomainGroups-StrictlyEnforceWorkspaceRulesSwitch',
+                RESTRICT_DEFAULT_LOGIN_SELECTION_SWITCH: 'DomainGroups-RestrictDefaultLoginSelectionSwitch',
+                RESTRICT_EXPENSE_WORKSPACE_CREATION_SWITCH: 'DomainGroups-RestrictExpenseWorkspaceCreationSwitch',
+                PREFERRED_WORKSPACE_SWITCH: 'DomainGroups-PreferredWorkspaceSwitch',
+                EXPENSIFY_CARD_PREFERRED_WORKSPACE_SWITCH: 'DomainGroups-ExpensifyCardPreferredWorkspaceSwitch',
+                CREATE_DEFAULT_GROUP_SWITCH: 'DomainGroups-CreateDefaultGroupSwitch',
+                CREATE_STRICTLY_ENFORCE_WORKSPACE_RULES_SWITCH: 'DomainGroups-CreateStrictlyEnforceWorkspaceRulesSwitch',
+                CREATE_RESTRICT_DEFAULT_LOGIN_SELECTION_SWITCH: 'DomainGroups-CreateRestrictDefaultLoginSelectionSwitch',
+                CREATE_RESTRICT_EXPENSE_WORKSPACE_CREATION_SWITCH: 'DomainGroups-CreateRestrictExpenseWorkspaceCreationSwitch',
+                CREATE_PREFERRED_WORKSPACE_SWITCH: 'DomainGroups-CreatePreferredWorkspaceSwitch',
+                CREATE_EXPENSIFY_CARD_PREFERRED_WORKSPACE_SWITCH: 'DomainGroups-CreateExpensifyCardPreferredWorkspaceSwitch',
             },
             MEMBERS: {
                 ROW: 'DomainMembers-Row',
+                FORCE_TWO_FACTOR_AUTH_SWITCH: 'DomainMembers-ForceTwoFactorAuthSwitch',
+                MEMBER_FORCE_TWO_FACTOR_AUTH_SWITCH: 'DomainMembers-MemberForceTwoFactorAuthSwitch',
+            },
+            SAML: {
+                ENABLE_SWITCH: 'DomainSaml-EnableSwitch',
+                REQUIRE_SWITCH: 'DomainSaml-RequireSwitch',
             },
         },
         FEATURE_TRAINING: {
@@ -11100,12 +11717,15 @@ const CONST = {
     INSIGHTS: {
         DASHBOARD: {
             SPEND: 'spend',
+            COMPLIANCE: 'compliance',
         },
         SEARCH_KEY: {
             SPEND: 'insightsSpend',
+            COMPLIANCE: 'insightsCompliance',
         },
         GRAPH: {
             SPEND_OVER_TIME: 'spendOverTime',
+            VIOLATIONS_OVER_TIME: 'violationsOverTime',
             TOP_MERCHANTS: 'topMerchants',
             TOP_CATEGORIES: 'topCategories',
             TOP_SPENDERS: 'topSpenders',

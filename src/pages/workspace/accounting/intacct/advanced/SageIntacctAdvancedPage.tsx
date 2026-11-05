@@ -6,8 +6,8 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
-import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -16,7 +16,6 @@ import {areSettingsInErrorFields, getCurrentSageIntacctEntityName, settingsPendi
 import createDynamicRoute from '@navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@navigation/Navigation';
 
-import {getAccountingSettingsRoute} from '@pages/workspace/connections/utils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -32,9 +31,11 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {SageIntacctDataElement} from '@src/types/onyx/Policy';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React from 'react';
 
@@ -43,10 +44,10 @@ function getReimbursedAccountName(bankAccounts: SageIntacctDataElement[], reimbu
 }
 
 function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
     const policyID = policy?.id;
-    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const styles = useThemeStyles();
 
     const {importEmployees, sync, pendingFields, errorFields} = policy?.connections?.intacct?.config ?? {};
@@ -59,6 +60,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
         {
             label: translate('workspace.sageIntacct.inviteEmployees'),
             description: translate('workspace.sageIntacct.inviteEmployeesDescription'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.INVITE_EMPLOYEES_SWITCH,
             isActive: !!importEmployees,
             onToggle: (enabled: boolean) => {
                 if (!policyID) {
@@ -77,6 +79,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
         {
             label: translate('workspace.sageIntacct.syncReimbursedReports'),
             description: translate('workspace.sageIntacct.syncReimbursedReportsDescription'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.SYNC_REIMBURSED_REPORTS_SWITCH,
             isActive: !!sync?.syncReimbursedReports,
             onToggle: (enabled: boolean) => {
                 if (!policyID) {
@@ -108,10 +111,12 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
-            onBackButtonPress={() => Navigation.goBack(getAccountingSettingsRoute(isUnifiedConnectionsBetaEnabled, policyID))}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))}
         >
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC_ENABLED, CONST.SAGE_INTACCT_CONFIG.ACCOUNTING_METHOD], config?.pendingFields)}>
-                <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC.path)))}>
+                <MenuItem.Root
+                    onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC.path)), false, session)}
+                >
                     <MenuItemField.Row
                         name={translate('workspace.accounting.autoSync')}
                         value={config?.autoSync?.enabled ? translate('common.enabled') : translate('common.disabled')}
@@ -133,6 +138,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                     subtitle={section.description}
                     shouldPlaceSubtitleBelowSwitch
                     switchAccessibilityLabel={section.label}
+                    switchSentryLabel={section.switchSentryLabel}
                     isActive={section.isActive}
                     onToggle={section.onToggle}
                     wrapperStyle={[styles.ph5, styles.pv3]}
