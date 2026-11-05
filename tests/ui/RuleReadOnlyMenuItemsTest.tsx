@@ -168,8 +168,7 @@ describe('Read-only facts in the rule editors', () => {
         expect(detailsText).toHaveProp('numberOfLines', 2);
         expect(nameText).toHaveStyle({fontSize: fontScale.label, lineHeight: lineHeightScale.label});
         expect(valueText).toHaveStyle({fontSize: fontScale.text, lineHeight: lineHeightScale.text});
-        expect(detailsText).toHaveStyle({fontSize: fontScale.label});
-        expect(detailsText).not.toHaveStyle({lineHeight: lineHeightScale.label});
+        expect(detailsText).toHaveStyle({fontSize: fontScale.label, lineHeight: lineHeightScale.label});
         expect(row).not.toHaveProp('role', CONST.ROLE.BUTTON);
         expect(row).toHaveProp('tabIndex', -1);
         expect(row).toBeEnabled();
