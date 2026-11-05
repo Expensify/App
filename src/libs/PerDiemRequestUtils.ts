@@ -13,6 +13,7 @@ import lodashSortBy from 'lodash/sortBy';
 
 import type {OptionTree} from './OptionsListUtils';
 
+import DateUtils from './DateUtils';
 import {isPolicyExpenseChat} from './ReportUtils';
 import tokenizedSearch from './tokenizedSearch';
 
@@ -218,7 +219,8 @@ function getSubratesForDisplay(subrate: Subrate | undefined, qtyText: string) {
 }
 
 /**
- * Formats a per-diem start or end time for display, e.g. 11:10 PM, May 16, 2023. Returns '' when the date can't be read.
+ * Formats a per-diem start or end time for display, e.g. 11:10 PM, 05/16/2023, with the date in the language's own
+ * numeric order, such as 23:10, 16.05.2023 in German. Returns '' when the date can't be read.
  */
 function formatDateTimeTo12Hour(dateTimeString: string, dateFnsLocale: DateFnsLocale | undefined): string {
     if (!dateTimeString) {
@@ -228,7 +230,7 @@ function formatDateTimeTo12Hour(dateTimeString: string, dateFnsLocale: DateFnsLo
     if (!isValid(date)) {
         return '';
     }
-    return `${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}, ${format(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, {locale: dateFnsLocale})}`;
+    return `${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}, ${DateUtils.formatToNumericDateWithYear(date, dateFnsLocale)}`;
 }
 
 function getTimeForDisplay(transaction: OnyxEntry<Transaction>, dateFnsLocale: DateFnsLocale | undefined) {
