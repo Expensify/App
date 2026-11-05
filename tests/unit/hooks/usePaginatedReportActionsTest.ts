@@ -47,7 +47,7 @@ describe('usePaginatedReportActions', () => {
 
     it('keeps the DEW routed row when a linked page starts at its forward action', async () => {
         // Given a linked page whose newest action is a DEW forward, with a newer approval outside the page.
-        // Pages never hold the app-only routed row, so it sorts just before the page's first action.
+        // The page includes its routed row so the linked slice starts at that row, not at the forward action.
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
             [CREATED_ACTION.reportActionID]: CREATED_ACTION,
             [DEW_FORWARDED_ACTION.reportActionID]: DEW_FORWARDED_ACTION,
@@ -55,7 +55,7 @@ describe('usePaginatedReportActions', () => {
         });
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${REPORT_ID}`, [
             [CONST.PAGINATION_START_ID, APPROVED_ACTION.reportActionID],
-            [DEW_FORWARDED_ACTION.reportActionID, CREATED_ACTION.reportActionID, CONST.PAGINATION_END_ID],
+            [`${DEW_FORWARDED_ACTION.reportActionID}DEW`, DEW_FORWARDED_ACTION.reportActionID, CREATED_ACTION.reportActionID, CONST.PAGINATION_END_ID],
         ]);
         await waitForBatchedUpdates();
 

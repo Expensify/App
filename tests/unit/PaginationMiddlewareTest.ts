@@ -131,10 +131,17 @@ describe('Pagination middleware registration readiness', () => {
         expect(mockConnectWithoutView).toHaveBeenCalledTimes(4);
     });
 
-    it('leaves app-only DEW routed actions out of the pages and the newer actions cursor', async () => {
-        // Given a response whose newest action is a DEW forward, which the display sort follows with an app-only routed action
+    it.each([
+        [CONST.REPORT.ACTIONS.TYPE.FORWARDED, WRITE_COMMANDS.OPEN_REPORT, true],
+        [CONST.REPORT.ACTIONS.TYPE.SUBMITTED, WRITE_COMMANDS.OPEN_REPORT, false],
+        [CONST.REPORT.ACTIONS.TYPE.FORWARDED, READ_COMMANDS.GET_NEWER_ACTIONS, false],
+        [CONST.REPORT.ACTIONS.TYPE.SUBMITTED, READ_COMMANDS.GET_NEWER_ACTIONS, true],
+        [CONST.REPORT.ACTIONS.TYPE.FORWARDED, READ_COMMANDS.GET_OLDER_ACTIONS, true],
+        [CONST.REPORT.ACTIONS.TYPE.SUBMITTED, READ_COMMANDS.GET_OLDER_ACTIONS, true],
+    ] as const)('keeps the %s routed row in pages but uses server cursors for %s (hasNewerActions: %s)', async (actionName, command, hasNewerActions) => {
+        // Given a response whose newest action produces a routed row that the server does not know about
         const forwardedAction: ReportAction = {
-            actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+            actionName,
             created: '2026-08-21 11:00:00.000',
             reportActionID: '3',
         };
@@ -150,7 +157,7 @@ describe('Pagination middleware registration readiness', () => {
         const {Pagination} = await loadPaginationModule();
         await registerReportActionsPaginationConfig();
         const response: Response<ReportActionsKey> = {
-            hasNewerActions: true,
+            hasNewerActions,
             hasOlderActions: false,
             onyxData: [
                 {
@@ -162,20 +169,31 @@ describe('Pagination middleware registration readiness', () => {
         };
 
         // When the pagination middleware processes the response
-        const result = await Pagination(Promise.resolve(response), createRequest(), false);
+        const result = await Pagination(Promise.resolve(response), {...createRequest(), command}, false);
 
-        // Then the page and the cursor use only real action IDs, because the API rejects the routed action ID
+        // Then the page keeps the routed row for display, but only server IDs are saved for the requested direction
         expect(result?.onyxData).toEqual(
             expect.arrayContaining([
                 {
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${REPORT_ID}`,
                     onyxMethod: 'set',
-                    value: [[forwardedAction.reportActionID, REPORT_ACTION.reportActionID, CONST.PAGINATION_END_ID]],
+                    value: [
+                        [
+                            ...(!hasNewerActions ? [CONST.PAGINATION_START_ID] : []),
+                            routedAction.reportActionID,
+                            forwardedAction.reportActionID,
+                            REPORT_ACTION.reportActionID,
+                            CONST.PAGINATION_END_ID,
+                        ],
+                    ],
                 },
                 {
                     key: `${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${REPORT_ID}`,
                     onyxMethod: 'merge',
-                    value: {newestFetchedReportActionID: forwardedAction.reportActionID},
+                    value:
+                        command === READ_COMMANDS.GET_OLDER_ACTIONS
+                            ? {oldestFetchedReportActionID: REPORT_ACTION.reportActionID}
+                            : {newestFetchedReportActionID: forwardedAction.reportActionID},
                 },
             ]),
         );

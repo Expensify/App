@@ -2059,17 +2059,12 @@ function getFilteredReportActionsForReportView(actions: ReportAction[]) {
     return actions.filter(isVisiblePreviewOrMoneyRequest);
 }
 
-/** Returns the ID of the app-only DEW routed action that follows the given submit or forward action. */
-function getDynamicExternalWorkflowRoutedActionID(reportActionID: string): string {
-    return `${reportActionID}DEW`;
-}
-
 function getDynamicExternalWorkflowRoutedAction(
     reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>,
 ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED> {
     const originalMessage = getOriginalMessage(reportAction);
     return {
-        reportActionID: getDynamicExternalWorkflowRoutedActionID(reportAction.reportActionID),
+        reportActionID: `${reportAction.reportActionID}DEW`,
         created: DateUtils.addMillisecondsFromDateTime(reportAction.created, 1),
         actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
         actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
@@ -6383,7 +6378,6 @@ export {
     isOriginalReportDeleted,
     isSystemMessageAction,
     isSystemUserMentioned,
-    getDynamicExternalWorkflowRoutedActionID,
     withDEWRoutedActionsArray,
     withDEWRoutedActionsObject,
     getReportActionActorAccountID,
