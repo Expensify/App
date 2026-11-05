@@ -13162,6 +13162,7 @@ ${reportName}`,
             other: (count: number) => `πριν από ${count} ημ.`,
         }),
         offlineMessage: 'Είστε εκτός σύνδεσης. Το ιστορικό αναφορών μπορεί να είναι παρωχημένο.',
+        toMarkAsDone: 'να επισημάνετε ως ολοκληρωμένο',
     },
 };
 export default translations;
