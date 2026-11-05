@@ -50,6 +50,7 @@ import {loginSelector} from '@selectors/PersonalDetails';
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useState} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
@@ -84,7 +85,6 @@ function DynamicIOURequestStepDescription({
 
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -135,7 +135,7 @@ function DynamicIOURequestStepDescription({
         setCurrentDescription(value);
     };
 
-    const updateComment = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM>) => {
+    const updateComment = async (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM>) => {
         if (!transaction?.transactionID) {
             return;
         }
@@ -156,6 +156,7 @@ function DynamicIOURequestStepDescription({
         }
 
         if (action === CONST.IOU.ACTION.EDIT) {
+            const rules = await Onyx.get(ONYXKEYS.COLLECTION.RULE);
             updateMoneyRequestDescription({
                 isVendorMatchingBetaEnabled,
                 transactionID: transaction?.transactionID,
@@ -216,7 +217,9 @@ function DynamicIOURequestStepDescription({
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM}
-                onSubmit={updateComment}
+                onSubmit={(value) => {
+                    updateComment(value);
+                }}
                 validate={validate}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline

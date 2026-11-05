@@ -83,6 +83,7 @@ import {authTokenTypeSelector} from '@selectors/Session';
 import {deepEqual} from 'fast-equals';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import SplitList from './SplitList';
 import updateSplitTransactionsFromSplitExpensesFlow from './updateSplitTransactionsFromSplitExpensesFlow';
@@ -122,7 +123,6 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const [draftTransaction, draftTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const isLoadingDraftTransaction = isLoadingOnyxValue(draftTransactionMetadata);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const draftTransactionReport = useReportOrReportDraft(draftTransaction?.reportID);
     const parentTransactionReport = useReportOrReportDraft(draftTransactionReport?.parentReportID);
@@ -138,12 +138,10 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const [personalDetails] = useAllPersonalDetails();
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
-    const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const currentReport = report ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
-    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getIOURequestPolicyID(transaction, currentReport)}`);
     const personalPolicy = usePersonalPolicy();
     const effectivePolicy = useSplitEffectivePolicy(currentReport, draftTransaction, transaction);
@@ -245,7 +243,6 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
     const splitFieldDataFromOriginalTransaction = initSplitExpenseItemData(transaction, transactionReport, {isManuallyEdited: true, policy: effectivePolicy, getCurrencyDecimals});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const icons = useMemoizedLazyExpensifyIcons(['ArrowsLeftRight', 'Plus']);
 
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
@@ -332,10 +329,9 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
         );
     };
 
-    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
-    const onSaveSplitExpense = () => {
+    const onSaveSplitExpense = async () => {
         if (isPerDiemRequest(transaction) && hasCustomUnitOutOfPolicyViolation) {
             showConfirmModal({
                 title: translate('iou.splitExpense'),
@@ -397,6 +393,13 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
             return;
         }
 
+        const [reportDrafts, allSnapshots, policyRecentlyUsedCurrencies, quickAction, allPolicyTags] = await Onyx.multiGet([
+            ONYXKEYS.COLLECTION.REPORT_DRAFT,
+            ONYXKEYS.COLLECTION.SNAPSHOT,
+            ONYXKEYS.RECENTLY_USED_CURRENCIES,
+            ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+            ONYXKEYS.COLLECTION.POLICY_TAGS,
+        ]);
         updateSplitTransactionsFromSplitExpensesFlow({
             isVendorMatchingBetaEnabled,
             getCurrencyDecimals,

@@ -45,6 +45,7 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
 import lodashIsEmpty from 'lodash/isEmpty';
 import React from 'react';
+import Onyx from 'react-native-onyx';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
@@ -90,13 +91,11 @@ function DynamicIOURequestStepDate({
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {isOffline} = useNetwork();
-    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
@@ -115,7 +114,7 @@ function DynamicIOURequestStepDate({
         Navigation.goBack(backPath, {shouldSkipFocusRestore: true});
     };
 
-    const updateDate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM>) => {
+    const updateDate = async (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM>) => {
         const newCreated = value.moneyRequestCreated;
 
         // Only update created if it has changed
@@ -131,6 +130,7 @@ function DynamicIOURequestStepDate({
             return;
         }
 
+        const [rules, lastSelectedDistanceRates] = await Onyx.multiGet([ONYXKEYS.COLLECTION.RULE, ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES]);
         const isTransactionDraft = shouldUseTransactionDraft(action);
 
         if (isEditing) {
@@ -202,7 +202,9 @@ function DynamicIOURequestStepDate({
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM}
-                onSubmit={updateDate}
+                onSubmit={(value) => {
+                    updateDate(value);
+                }}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert

@@ -36,6 +36,7 @@ import INPUT_IDS from '@src/types/form/MoneyRequestCompanyInfoForm';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import {Str} from 'expensify-common';
 import React from 'react';
+import Onyx from 'react-native-onyx';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -63,11 +64,6 @@ function DynamicIOURequestStepCompanyInfo({route, report, transaction}: DynamicI
 
     const policyID = getIOURequestPolicyID(transaction, report);
     const policy = usePolicy(policyID);
-    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     const formattedAmount = convertToDisplayString(Math.abs(transaction?.amount ?? 0), transaction?.currency);
@@ -92,7 +88,7 @@ function DynamicIOURequestStepCompanyInfo({route, report, transaction}: DynamicI
         return errors;
     };
 
-    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM>) => {
+    const submit = async (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM>) => {
         const companyWebsite = Str.sanitizeURL(values.companyWebsite, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
         const isFromGlobalCreate = getIsFromGlobalCreate(transaction);
         startTracking(
@@ -107,6 +103,13 @@ function DynamicIOURequestStepCompanyInfo({route, report, transaction}: DynamicI
         );
         markPendingWriteForSearchPage(!!isFromGlobalCreate);
         const invoiceChatReportID = report?.reportID ? undefined : reportID;
+        const [policyRecentlyUsedCategories, policyCategories, policyRecentlyUsedTags, policyTags, policyRecentlyUsedCurrencies] = await Onyx.multiGet([
+            `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`,
+            `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+            `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`,
+            `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+            ONYXKEYS.RECENTLY_USED_CURRENCIES,
+        ]);
         sendInvoice({
             getCurrencyDecimals,
             currentUserAccountID: currentUserPersonalDetails.accountID,
@@ -148,7 +151,9 @@ function DynamicIOURequestStepCompanyInfo({route, report, transaction}: DynamicI
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM}
-                onSubmit={submit}
+                onSubmit={(values) => {
+                    submit(values);
+                }}
                 validate={validate}
                 submitButtonText={translate('iou.sendInvoice', formattedAmount)}
                 enabledWhenOffline
