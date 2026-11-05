@@ -99,4 +99,5 @@ function useInsightsTopExpenses(query: SearchQueryString | undefined): TopExpens
 }
 
 export {TOP_EXPENSES_STATE};
+export type {TopExpensesState};
 export default useInsightsTopExpenses;

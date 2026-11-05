@@ -1,4 +1,3 @@
-import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -10,7 +9,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -22,8 +20,6 @@ import {getQueryGroupBy} from '@pages/Insights/insightsGroupByUtils';
 import {applyInsightsFilters} from '@pages/Insights/insightsQueries';
 import useInsightsFilters from '@pages/Insights/useInsightsFilters';
 
-import variables from '@styles/variables';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -33,7 +29,7 @@ import {View} from 'react-native';
 
 import {resolveInsightsDetailsItem} from './insightsDetailsItem';
 import InsightsTopExpenses from './InsightsTopExpenses';
-import useInsightsTopExpenses, {TOP_EXPENSES_STATE} from './useInsightsTopExpenses';
+import useInsightsTopExpenses from './useInsightsTopExpenses';
 
 type InsightsDetailsPageProps = PlatformStackScreenProps<InsightsDetailsParamList, typeof SCREENS.INSIGHTS_DETAILS>;
 
@@ -41,7 +37,6 @@ type InsightsDetailsPageProps = PlatformStackScreenProps<InsightsDetailsParamLis
 function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBetaEnabled} = usePermissions();
     const {graphKey, item: itemKey, end: periodEnd} = route.params;
     const {filters, isResolved} = useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND);
@@ -78,61 +73,6 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
         );
     }
 
-    const renderContent = () => {
-        if (!item || !viewAllQuery) {
-            return null;
-        }
-
-        switch (topExpenses.state) {
-            case TOP_EXPENSES_STATE.STALE:
-                return (
-                    <FullPageErrorView
-                        shouldShow
-                        title={translate('search.searchResults.staleResults.title')}
-                        subtitle={translate('search.searchResults.staleResults.subtitle')}
-                        illustration="ChartSync"
-                        illustrationWidth={variables.iconSizeUltraLarge}
-                        illustrationHeight={variables.iconSizeUltraLarge}
-                        buttonTranslationKey="search.searchResults.staleResults.buttonText"
-                        onButtonPress={topExpenses.retry}
-                    />
-                );
-            case TOP_EXPENSES_STATE.ERROR:
-                return (
-                    <FullPageErrorView
-                        shouldShow
-                        title={translate('errorPage.title', {isBreakLine: shouldUseNarrowLayout})}
-                        subtitle={translate('errorPage.subtitle')}
-                        buttonTranslationKey="common.tryAgain"
-                        onButtonPress={topExpenses.retry}
-                    />
-                );
-            default:
-                return (
-                    <ScrollView
-                        contentContainerStyle={[styles.ph5, styles.pb5, styles.gap5]}
-                        addBottomSafeAreaPadding
-                    >
-                        <View style={styles.gap1}>
-                            <Text
-                                variant="label"
-                                style={styles.textSupporting}
-                            >
-                                {translate(chartSpec.titleKey)}
-                            </Text>
-                            <Text variant="h1">{item.title}</Text>
-                        </View>
-                        <InsightsTopExpenses
-                            expenses={topExpenses.expenses}
-                            isLoading={topExpenses.state === TOP_EXPENSES_STATE.LOADING}
-                            isOffline={topExpenses.state === TOP_EXPENSES_STATE.OFFLINE}
-                            viewAllQuery={viewAllQuery}
-                        />
-                    </ScrollView>
-                );
-        }
-    };
-
     return (
         <ScreenWrapper
             testID="InsightsDetailsPage"
@@ -143,7 +83,28 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                 <Header.BackButton />
                 <Header.Title title={translate('common.details')} />
             </Header>
-            {renderContent()}
+            {!!item && !!viewAllQuery && (
+                <ScrollView
+                    contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb5, styles.gap5]}
+                    addBottomSafeAreaPadding
+                >
+                    <View style={styles.gap1}>
+                        <Text
+                            variant="label"
+                            style={styles.textSupporting}
+                        >
+                            {translate(chartSpec.titleKey)}
+                        </Text>
+                        <Text variant="h1">{item.title}</Text>
+                    </View>
+                    <InsightsTopExpenses
+                        expenses={topExpenses.expenses}
+                        state={topExpenses.state}
+                        onRetry={topExpenses.retry}
+                        viewAllQuery={viewAllQuery}
+                    />
+                </ScrollView>
+            )}
         </ScreenWrapper>
     );
 }

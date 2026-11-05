@@ -1,3 +1,4 @@
+import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import Icon from '@components/Icon';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -14,6 +15,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -35,24 +37,29 @@ import {fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@selectors/Polic
 import React from 'react';
 import {View} from 'react-native';
 
+import type {TopExpensesState} from './useInsightsTopExpenses';
+
+import {TOP_EXPENSES_STATE} from './useInsightsTopExpenses';
+
 type InsightsTopExpensesProps = {
     /** The largest expenses, largest first */
     expenses: TransactionListItemType[];
 
-    isLoading: boolean;
+    state: TopExpensesState;
 
-    /** Whether the expenses can't load because the device is offline */
-    isOffline: boolean;
+    /** Called by the retry button when the expenses failed to load */
+    onRetry: () => void;
 
     /** Spend table query that View all opens */
     viewAllQuery: SearchQueryString;
 };
 
 /** Lists the largest expenses behind the clicked item, each opening in the RHP. */
-function InsightsTopExpenses({expenses, isLoading, isOffline, viewAllQuery}: InsightsTopExpensesProps) {
+function InsightsTopExpenses({expenses, state, onRetry, viewAllQuery}: InsightsTopExpensesProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowUpRight']);
     const {markReportRHPWidth} = useWideRHPActions();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -62,7 +69,7 @@ function InsightsTopExpenses({expenses, isLoading, isOffline, viewAllQuery}: Ins
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT, {selector: fullPolicySnapshotLastModifiedByPolicyIDSelector});
-    const isEmpty = !isLoading && expenses.length === 0;
+    const isEmpty = state === TOP_EXPENSES_STATE.READY && expenses.length === 0;
 
     const toDescriptor = (expense: TransactionListItemType): TransactionThreadNavigationDescriptor => ({
         reportID: expense.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
@@ -92,6 +99,32 @@ function InsightsTopExpenses({expenses, isLoading, isOffline, viewAllQuery}: Ins
         });
     };
 
+    if (state === TOP_EXPENSES_STATE.STALE) {
+        return (
+            <FullPageErrorView
+                shouldShow
+                title={translate('search.searchResults.staleResults.title')}
+                subtitle={translate('search.searchResults.staleResults.subtitle')}
+                illustration="ChartSync"
+                illustrationWidth={variables.iconSizeUltraLarge}
+                illustrationHeight={variables.iconSizeUltraLarge}
+                buttonTranslationKey="search.searchResults.staleResults.buttonText"
+                onButtonPress={onRetry}
+            />
+        );
+    }
+    if (state === TOP_EXPENSES_STATE.ERROR) {
+        return (
+            <FullPageErrorView
+                shouldShow
+                title={translate('errorPage.title', {isBreakLine: shouldUseNarrowLayout})}
+                subtitle={translate('errorPage.subtitle')}
+                buttonTranslationKey="common.tryAgain"
+                onButtonPress={onRetry}
+            />
+        );
+    }
+
     return (
         <View style={[styles.highlightBG, styles.borderRadiusComponentLarge, styles.overflowHidden]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.p4, styles.borderBottom]}>
@@ -101,7 +134,7 @@ function InsightsTopExpenses({expenses, isLoading, isOffline, viewAllQuery}: Ins
                 >
                     {translate('insightsPage.topExpenses')}
                 </Text>
-                {!isEmpty && (
+                {(state === TOP_EXPENSES_STATE.LOADING || expenses.length > 0) && (
                     <PressableWithoutFeedback
                         onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: viewAllQuery}))}
                         accessibilityRole={CONST.ROLE.LINK}
@@ -124,15 +157,15 @@ function InsightsTopExpenses({expenses, isLoading, isOffline, viewAllQuery}: Ins
                     </PressableWithoutFeedback>
                 )}
             </View>
-            {isLoading && (
+            {state === TOP_EXPENSES_STATE.LOADING && (
                 <SearchRowSkeleton
                     shouldAnimate
                     fixedNumItems={TOP_EXPENSES_LIMIT}
                     shouldUseNarrowLayout
                 />
             )}
-            {isOffline && <ChartOfflineState />}
-            {isEmpty && !isOffline && (
+            {state === TOP_EXPENSES_STATE.OFFLINE && <ChartOfflineState />}
+            {isEmpty && (
                 <Text
                     variant="label"
                     style={[styles.textSupporting, styles.p4]}
