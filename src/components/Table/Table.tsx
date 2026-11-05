@@ -152,6 +152,21 @@ type TableContentProps<DataType extends TableData, ColumnKey extends string, Fil
     storedTableColumnWidths?: StoredTableColumnWidths;
 };
 
+function useTableListMetadata<DataType extends TableData>({
+    listHeaderElement,
+    listHeaderComponent,
+    hasColumnHeaderElement,
+    hasRows,
+    isColumnHeaderHiddenInNarrowLayout,
+    canStickColumnHeaderInScroller,
+}: Parameters<typeof getTableListMetadata<DataType>>[0]): TableListMetadata {
+    // TableContent passes its rest props into the context value, which stops React Compiler from caching this there.
+    // This hook calls no other hooks, so it opts into compilation explicitly.
+    'use memo';
+
+    return getTableListMetadata({listHeaderElement, listHeaderComponent, hasColumnHeaderElement, hasRows, isColumnHeaderHiddenInNarrowLayout, canStickColumnHeaderInScroller});
+}
+
 function TableContent<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string>({
     ref,
     title,
@@ -368,7 +383,7 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
     const hasBulkActionBarChild = childrenArray.some((child) => React.isValidElement(child) && child.type === TableBulkActionBar);
     const isBulkActionBarVisible = hasBulkActionBarChild && !shouldUseNarrowLayout && selectedKeys.length > 0;
 
-    const tableListMetadata = getTableListMetadata({
+    const tableListMetadata = useTableListMetadata({
         listHeaderElement,
         listHeaderComponent: listProps.ListHeaderComponent,
         hasColumnHeaderElement,
