@@ -6,6 +6,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import * as API from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -17,7 +18,7 @@ import {createWiseBankAccount} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import {NavigationContainer} from '@react-navigation/native';
@@ -330,6 +331,36 @@ describe('WiseDepositAccountContent', () => {
         // Then the user fills in the new form, rather than being told an account they have not sent yet was added
         expect(screen.queryByText('addPersonalBankAccountPage.bankAccountAddedTitle')).not.toBeOnTheScreen();
         expect((await getOnyxValue(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM))?.isSuccess).toBeFalsy();
+    });
+
+    it('opens the US bank account flow instead of asking Wise for a form when the user picks the United States', async () => {
+        // Given a verified user on the country list with the United States picked
+        await Onyx.set(ONYXKEYS.ACCOUNT, {validated: true});
+        await Onyx.set(ONYXKEYS.COUNTRY, CONST.COUNTRY.US);
+        await renderScreen();
+
+        // When the user confirms the country
+        fireEvent.press(screen.getByText('common.next'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the existing US flow opens, since US accounts are added with Plaid or by hand, and Wise is never asked for a form
+        expect(navigateSpy).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.ADD_US_BANK_ACCOUNT_ENTRY_POINT.path, ROUTES.SETTINGS_WALLET));
+        expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS)).toBeUndefined();
+    });
+
+    it('asks a user who is not verified for the magic code before the US bank account flow', async () => {
+        // Given a user who has not verified their account, on the country list with the United States picked
+        await Onyx.set(ONYXKEYS.ACCOUNT, {validated: false});
+        await Onyx.set(ONYXKEYS.COUNTRY, CONST.COUNTRY.US);
+        await renderScreen();
+
+        // When the user confirms the country
+        fireEvent.press(screen.getByText('common.next'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the code check opens first, since the US flow adds a bank account only for a verified user, and Wise is still not asked for a form
+        expect(navigateSpy).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
+        expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS)).toBeUndefined();
     });
 
     it('returns to the wallet instead of the purpose page when the user leaves the country list', async () => {

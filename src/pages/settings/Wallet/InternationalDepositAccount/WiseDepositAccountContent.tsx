@@ -24,7 +24,7 @@ import {clearPersonalBankAccount, clearWiseBankAccountFields, clearWiseBankAccou
 import {clearDraftValues, clearErrors, setDraftValues} from '@userActions/FormActions';
 import {continueSetup, getPaymentMethods} from '@userActions/PaymentMethods';
 
-import CONST from '@src/CONST';
+import CONST, {COUNTRIES_US_BANK_FLOW} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -32,9 +32,11 @@ import type {PersonalBankAccount} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useContext, useEffect, useEffectEvent, useState} from 'react';
 
 import getCurrentSchemaAnswers from './getCurrentSchemaAnswers';
+import navigateToUSBankAccountFlow from './navigateToUSBankAccountFlow';
 import WiseBankAccountAdded from './WiseBankAccountAdded';
 
 type WiseDepositAccountContentProps = {
@@ -72,6 +74,7 @@ function WiseDepositAccountContent({backTo, subPage}: WiseDepositAccountContentP
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT);
     const [formState] = useOnyx(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
     const [country] = useOnyx(ONYXKEYS.COUNTRY);
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const [onSuccessFallbackRoute] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {selector: onSuccessFallbackRouteSelector});
     const kycWallRef = useContext(KYCWallContext);
     const storedCountry = wiseBankAccountFields?.country ?? country ?? '';
@@ -155,7 +158,11 @@ function WiseDepositAccountContent({backTo, subPage}: WiseDepositAccountContentP
         clearPersonalBankAccount();
     };
 
-    const fetchForm = () => {
+    const confirmCountry = () => {
+        if (COUNTRIES_US_BANK_FLOW.includes(selectedCountry)) {
+            navigateToUSBankAccountFlow(isUserValidated);
+            return;
+        }
         clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
         // A success from an earlier visit is kept on the device, so it is dropped before the new form arrives
         clearWiseBankAccountForm();
@@ -250,7 +257,7 @@ function WiseDepositAccountContent({backTo, subPage}: WiseDepositAccountContentP
                 selectedCountry={selectedCountry}
                 countries={COUNTRIES}
                 onCountrySelected={setSelectedCountry}
-                onConfirm={fetchForm}
+                onConfirm={confirmCountry}
             />
         </ScreenWrapper>
     );
