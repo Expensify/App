@@ -5175,6 +5175,13 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             message:
                 '現在、出張機能が有効なワークスペースのメンバーですが、そのワークスペースはデフォルトではありません。予約するには、デフォルトのワークスペースで出張機能を有効にするか、デフォルトのワークスペースを出張機能が有効なワークスペースに変更してください。',
         },
+        approval: {
+            status: {outstanding: '未払い', approved: '承認済み', rejected: '却下されました', canceled: 'キャンセルされました'},
+            deadline: {
+                softApproval: (time: string) => `${time}後に自動承認されます。そこまでは無料でキャンセルできます。`,
+                hardApproval: (time: string) => `承認されない場合は ${time} で自動的にキャンセルされます。`,
+            },
+        },
     },
     workspace: {
         common: {
@@ -10821,6 +10828,8 @@ ${reportName}`,
                 upcoming: '予定',
                 done: '完了',
                 canceled: 'キャンセル済み',
+                outstanding: '未払い',
+                rejected: '却下されました',
             },
         },
         tabs: {

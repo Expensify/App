@@ -5300,6 +5300,18 @@ const translations = {
         bookDemo: 'Book demo',
         bookADemo: 'Book a demo',
         toLearnMore: ' to learn more.',
+        approval: {
+            status: {
+                outstanding: 'Outstanding',
+                approved: 'Approved',
+                rejected: 'Rejected',
+                canceled: 'Canceled',
+            },
+            deadline: {
+                softApproval: (time: string) => `Auto-approves in ${time}. Free cancellation until then.`,
+                hardApproval: (time: string) => `Auto-cancels in ${time} if not approved.`,
+            },
+        },
         termsAndConditions: {
             header: 'Before we continue...',
             title: 'Review terms & conditions',
@@ -11030,6 +11042,8 @@ const translations = {
                 upcoming: 'Upcoming',
                 done: 'Done',
                 canceled: 'Canceled',
+                outstanding: 'Outstanding',
+                rejected: 'Rejected',
             },
         },
         tabs: {

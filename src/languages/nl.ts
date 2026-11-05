@@ -5222,6 +5222,13 @@ ${amount} voor ${merchant} - ${date}`,
             message:
                 'Je bent lid van een werkruimte met reizen ingeschakeld, maar dit is niet je standaardwerkruimte. Schakel reizen in op je standaardwerkruimte of stel een werkruimte met reizen als standaardwerkruimte in om te boeken.',
         },
+        approval: {
+            status: {outstanding: 'Uitstaand', approved: 'Goedgekeurd', rejected: 'Afgewezen', canceled: 'Geannuleerd'},
+            deadline: {
+                softApproval: (time: string) => `Wordt automatisch goedgekeurd over ${time}. Gratis annuleren tot die tijd.`,
+                hardApproval: (time: string) => `Wordt automatisch geannuleerd over ${time} als deze niet is goedgekeurd.`,
+            },
+        },
     },
     workspace: {
         common: {
@@ -10980,6 +10987,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 upcoming: 'Gepland',
                 done: 'Afgerond',
                 canceled: 'Geannuleerd',
+                outstanding: 'Uitstaand',
+                rejected: 'Afgewezen',
             },
         },
         tabs: {

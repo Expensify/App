@@ -5268,6 +5268,13 @@ ${amount} pour ${merchant} - ${date}`,
             message:
                 'Vous êtes membre d’un espace de travail avec voyage activé, mais ce n’est pas votre espace de travail par défaut. Pour réserver, veuillez activer le voyage sur votre espace de travail par défaut ou définir comme espace de travail par défaut un espace de travail avec voyage activé.',
         },
+        approval: {
+            status: {outstanding: 'En souffrance', approved: 'Approuvé', rejected: 'Rejeté', canceled: 'Annulé'},
+            deadline: {
+                softApproval: (time: string) => `Approbation automatique dans ${time}. Annulation gratuite jusqu’à cette heure.`,
+                hardApproval: (time: string) => `Annulation automatique dans ${time} si non approuvé.`,
+            },
+        },
     },
     workspace: {
         common: {
@@ -11094,6 +11101,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 upcoming: 'À venir',
                 done: 'Terminé',
                 canceled: 'Annulé',
+                outstanding: 'En souffrance',
+                rejected: 'Rejeté',
             },
         },
         tabs: {

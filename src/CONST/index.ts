@@ -8795,6 +8795,12 @@ const CONST = {
             UPCOMING: 'upcoming',
             DONE: 'done',
             CANCELED: 'canceled',
+            OUTSTANDING: 'outstanding',
+            REJECTED: 'rejected',
+        },
+        get TRIP_FILTER_STATUSES() {
+            // Approval statuses only show as badges, so the Status filter keeps to where the trip is in time
+            return [this.TRIP_STATUS.UPCOMING, this.TRIP_STATUS.DONE, this.TRIP_STATUS.CANCELED] as const;
         },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
@@ -10075,6 +10081,21 @@ const CONST = {
             BOOKING_OTHER_UPDATE: 'BOOKING_OTHER_UPDATE',
             REFUND: 'REFUND',
             EXCHANGE: 'EXCHANGE',
+        },
+        BOOKING_APPROVAL: {
+            STATUS: {
+                OUTSTANDING: 'outstanding',
+                APPROVED: 'approved',
+                REJECTED: 'rejected',
+                CANCELED: 'canceled',
+                NOT_REQUIRED: 'notRequired',
+            },
+            TYPE: {
+                HARD: 'HARD_APPROVAL',
+                SOFT: 'SOFT_APPROVAL',
+                PASSIVE: 'PASSIVE_APPROVAL',
+                PRE: 'PRE_APPROVAL',
+            },
         },
         /**
          * The Travel Billing feed type constant.

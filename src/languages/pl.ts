@@ -5260,6 +5260,13 @@ ${amount} dla ${merchant} - ${date}`,
             message:
                 'Jesteś członkiem przestrzeni roboczej z włączonymi podróżami, ale nie jest to twoja domyślna przestrzeń robocza. Aby dokonać rezerwacji, włącz podróże w swojej domyślnej przestrzeni roboczej albo zmień domyślną przestrzeń roboczą na taką, która ma włączone podróże.',
         },
+        approval: {
+            status: {outstanding: 'Nierozliczone', approved: 'Zatwierdzone', rejected: 'Odrzucono', canceled: 'Anulowano'},
+            deadline: {
+                softApproval: (time: string) => `Zostanie automatycznie zatwierdzone za ${time}. Do tego czasu możesz bezpłatnie anulować.`,
+                hardApproval: (time: string) => `Automatycznie anuluje się za ${time}, jeśli nie zostanie zatwierdzone.`,
+            },
+        },
     },
     workspace: {
         common: {
@@ -11001,6 +11008,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 upcoming: 'Nadchodząca',
                 done: 'Zakończona',
                 canceled: 'Anulowana',
+                outstanding: 'Nierozliczone',
+                rejected: 'Odrzucono',
             },
         },
         tabs: {

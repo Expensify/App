@@ -5227,6 +5227,13 @@ ${amount} para ${merchant} - ${date}`,
             message:
                 'Você é membro de um workspace com viagens ativadas, mas ele não é o seu workspace padrão. Para fazer reservas, ative viagens no seu workspace padrão ou altere o seu workspace padrão para um que tenha viagens ativadas.',
         },
+        approval: {
+            status: {outstanding: 'Pendente', approved: 'Aprovado', rejected: 'Rejeitado', canceled: 'Cancelado'},
+            deadline: {
+                softApproval: (time: string) => `Será aprovado automaticamente em ${time}. Cancelamento gratuito até lá.`,
+                hardApproval: (time: string) => `Cancela automaticamente em ${time} se não for aprovado.`,
+            },
+        },
     },
     workspace: {
         common: {
@@ -10986,6 +10993,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 upcoming: 'Próxima',
                 done: 'Concluída',
                 canceled: 'Cancelada',
+                outstanding: 'Pendente',
+                rejected: 'Rejeitado',
             },
         },
         tabs: {

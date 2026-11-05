@@ -5259,6 +5259,13 @@ ${amount} für ${merchant} – ${date}`,
             message:
                 'Sie sind Mitglied eines Reise-fähigen Arbeitsbereichs, aber er ist nicht Ihr Standardarbeitsbereich. Um zu buchen, aktivieren Sie bitte Reisen in Ihrem Standardarbeitsbereich oder ändern Sie Ihren Standardarbeitsbereich auf einen, der Reisen aktiviert hat.',
         },
+        approval: {
+            status: {outstanding: 'Ausstehend', approved: 'Genehmigt', rejected: 'Abgelehnt', canceled: 'Storniert'},
+            deadline: {
+                softApproval: (time: string) => `Wird in ${time} automatisch genehmigt. Kostenlose Stornierung bis dahin.`,
+                hardApproval: (time: string) => `Wird automatisch in ${time} storniert, wenn nicht genehmigt.`,
+            },
+        },
     },
     workspace: {
         common: {
@@ -11059,6 +11066,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 upcoming: 'Bevorstehend',
                 done: 'Abgeschlossen',
                 canceled: 'Storniert',
+                outstanding: 'Ausstehend',
+                rejected: 'Abgelehnt',
             },
         },
         tabs: {
