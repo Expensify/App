@@ -2237,8 +2237,8 @@ function setPolicyMemberCategoryVisibility(
 }
 
 /** Signals the "Cannot disable category" modal for members the backend refused to leave without a category. */
-function setMembersNeedCategoryModal(policyID: string, accountIDs: number[], categoryCount: number) {
-    Onyx.set(ONYXKEYS.RAM_ONLY_MEMBERS_NEED_CATEGORY_MODAL, {policyID, accountIDs, categoryCount});
+function setMembersNeedCategoryModal(policyID: string, accountIDs: number[], categoryNames: string[]) {
+    Onyx.set(ONYXKEYS.RAM_ONLY_MEMBERS_NEED_CATEGORY_MODAL, {policyID, accountIDs, categoryNames});
 }
 
 /** Clears the signal for the "Cannot disable category" modal once it has been shown. */

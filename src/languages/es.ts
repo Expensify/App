@@ -6943,11 +6943,12 @@ ${amount} para ${merchant} - ${date}`,
                 description: `Debe quedar al menos una categoría habilitada porque tu espacio de trabajo requiere categorías.`,
             },
             cannotDisableCategoryForMembers: {
-                title: 'No se puede deshabilitar la categoría',
-                description:
-                    'Cada miembro necesita al menos una categoría para elegir, y estos miembros solo pueden usar esta. Primero dales acceso a otra categoría y luego vuelve a intentarlo.',
-                bulkDescription:
-                    'Cada miembro necesita al menos una categoría para elegir, y estos miembros solo pueden usar estas categorías. Dales acceso primero a otra categoría y luego inténtalo de nuevo.',
+                title: ({categoryName}: {categoryName: string}) => `No se puede deshabilitar ${categoryName}`,
+                bulkTitle: 'No se pueden deshabilitar estas categorías',
+                description: ({count}: {count: number}) => ({
+                    one: '1 miembro se quedaría sin categorías para elegir. Actualiza su visibilidad de categorías y vuelve a intentarlo:',
+                    other: `${count} miembros se quedarían sin categorías para elegir. Actualiza su visibilidad de categorías y vuelve a intentarlo:`,
+                }),
                 andMore: ({count}: {count: number}) => `y ${count} más`,
             },
         },

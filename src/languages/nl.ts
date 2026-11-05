@@ -7037,11 +7037,12 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 description: `Minstens één categorie moet ingeschakeld blijven, omdat je werkruimte categorieën vereist.`,
             },
             cannotDisableCategoryForMembers: {
-                title: 'Kan categorie niet uitschakelen',
-                description:
-                    'Elk lid heeft minstens één categorie nodig om uit te kiezen, en deze leden kunnen alleen deze ene gebruiken. Geef ze eerst toegang tot een andere categorie en probeer het daarna opnieuw.',
-                bulkDescription:
-                    'Elk lid heeft minimaal één categorie nodig om uit te kiezen, en deze leden kunnen alleen deze categorieën gebruiken. Geef ze eerst toegang tot een andere categorie en probeer het dan opnieuw.',
+                title: ({categoryName}: {categoryName: string}) => `Kan ${categoryName} niet uitschakelen`,
+                bulkTitle: 'Kan deze categorieën niet uitschakelen',
+                description: ({count}: {count: number}) => ({
+                    one: '1 lid zou geen categorieën meer hebben om uit te kiezen. Werk de categoriezichtbaarheid bij en probeer het opnieuw:',
+                    other: `${count} leden zouden geen categorieën meer hebben om uit te kiezen. Werk hun categoriezichtbaarheid bij en probeer het opnieuw:`,
+                }),
                 andMore: ({count}: {count: number}) => `en nog ${count} andere`,
             },
         },

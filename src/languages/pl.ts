@@ -7062,11 +7062,14 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 description: `Co najmniej jedna kategoria musi pozostać włączona, ponieważ w Twoim workspace wymagane są kategorie.`,
             },
             cannotDisableCategoryForMembers: {
-                title: 'Nie można wyłączyć kategorii',
-                description:
-                    'Każdy członek musi mieć przynajmniej jedną kategorię do wyboru, a ci członkowie mogą używać tylko tej jednej. Daj im najpierw dostęp do innej kategorii, a potem spróbuj ponownie.',
-                bulkDescription:
-                    'Każdy członek musi mieć przynajmniej jedną kategorię do wyboru i ci członkowie mogą używać tylko tych kategorii. Najpierw przyznaj im dostęp do innej kategorii, a potem spróbuj ponownie.',
+                title: ({categoryName}: {categoryName: string}) => `Nie można wyłączyć kategorii ${categoryName}`,
+                bulkTitle: 'Nie można wyłączyć tych kategorii',
+                description: ({count}: {count: number}) => ({
+                    one: '1 członek zostałby bez kategorii do wyboru. Zaktualizuj widoczność kategorii, a potem spróbuj ponownie:',
+                    few: `${count} członkowie zostaliby bez kategorii do wyboru. Zaktualizuj ich widoczność kategorii, a potem spróbuj ponownie:`,
+                    many: `${count} członków zostałoby bez kategorii do wyboru. Zaktualizuj ich widoczność kategorii, a potem spróbuj ponownie:`,
+                    other: `${count} członków zostałoby bez kategorii do wyboru. Zaktualizuj ich widoczność kategorii, a potem spróbuj ponownie:`,
+                }),
                 andMore: ({count}: {count: number}) => `i ${count} więcej`,
             },
         },

@@ -7043,11 +7043,12 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 description: `Pelo menos uma categoria deve permanecer ativada porque seu workspace exige categorias.`,
             },
             cannotDisableCategoryForMembers: {
-                title: 'Não é possível desativar a categoria',
-                description:
-                    'Cada membro precisa de pelo menos uma categoria para escolher, e esses membros só podem usar esta. Dê acesso a outra categoria para eles primeiro e tente novamente.',
-                bulkDescription:
-                    'Cada membro precisa de pelo menos uma categoria para escolher, e esses membros só podem usar essas categorias. Dê acesso a outra categoria para eles primeiro e tente novamente.',
+                title: ({categoryName}: {categoryName: string}) => `Não é possível desativar ${categoryName}`,
+                bulkTitle: 'Não é possível desativar estas categorias',
+                description: ({count}: {count: number}) => ({
+                    one: '1 membro ficaria sem categorias para escolher. Atualize a visibilidade de categorias e tente novamente:',
+                    other: `${count} membros ficariam sem categorias para escolher. Atualize a visibilidade de categorias e tente novamente:`,
+                }),
                 andMore: ({count}: {count: number}) => `e mais ${count}`,
             },
         },

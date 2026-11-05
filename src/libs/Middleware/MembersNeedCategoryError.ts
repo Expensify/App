@@ -1,5 +1,6 @@
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
+import {isRecord} from '@libs/ObjectUtils';
 
 import {setMembersNeedCategoryModal} from '@userActions/Policy/Category';
 
@@ -31,15 +32,18 @@ const MembersNeedCategoryError: Middleware = <TKey extends OnyxKey>(responseProm
             return response;
         }
 
-        let categoryCount = 1;
+        // The request sends each category as {name, enabled}. Without the names the modal falls back to its bulk title.
+        let categoryNames: string[] = [];
         try {
             const parsedCategories: unknown = JSON.parse(categories);
-            categoryCount = Array.isArray(parsedCategories) ? parsedCategories.length : 1;
+            if (Array.isArray(parsedCategories)) {
+                categoryNames = parsedCategories.map((category: unknown) => (isRecord(category) && typeof category.name === 'string' ? category.name : '')).filter((name) => !!name);
+            }
         } catch (error) {
             Log.warn('MembersNeedCategoryError: could not parse the request categories', {error});
         }
 
-        setMembersNeedCategoryModal(policyID, accountIDs, categoryCount);
+        setMembersNeedCategoryModal(policyID, accountIDs, categoryNames);
         return response;
     });
 

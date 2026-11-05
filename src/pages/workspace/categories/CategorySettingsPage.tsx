@@ -152,7 +152,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
         if (!value) {
             const membersWithoutVisibleCategories = getMembersWithoutVisibleCategories(policyCategories, [policyCategory.name], policyMemberAccountIDs);
             if (membersWithoutVisibleCategories.length > 0) {
-                showMembersNeedCategoryModal(membersWithoutVisibleCategories, 1);
+                showMembersNeedCategoryModal(membersWithoutVisibleCategories, [policyCategory.name]);
                 return;
             }
         }

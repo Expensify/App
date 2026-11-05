@@ -6792,9 +6792,12 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 description: `由于您的工作区需要类别，必须至少保留一个已启用的类别。`,
             },
             cannotDisableCategoryForMembers: {
-                title: '无法禁用类别',
-                description: '每位成员都至少需要一个可供选择的类别，而且这些成员目前只能使用这一项。请先为他们开放访问另一个类别，然后再试一次。',
-                bulkDescription: '每位成员都需要至少一个可供选择的类别，而且他们只能使用这些类别。请先为他们开放另一个类别的使用权限，然后再重试。',
+                title: ({categoryName}: {categoryName: string}) => `无法停用${categoryName}`,
+                bulkTitle: '无法停用这些类别',
+                description: ({count}: {count: number}) => ({
+                    one: '1 名成员将没有可选择的类别。请更新其类别可见性，然后重试：',
+                    other: `${count} 名成员将没有可选择的类别。请更新他们的类别可见性，然后重试：`,
+                }),
                 andMore: ({count}: {count: number}) => `和另外 ${count} 个`,
             },
         },

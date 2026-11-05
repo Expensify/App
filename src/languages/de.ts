@@ -7098,11 +7098,12 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 description: `Mindestens eine Kategorie muss aktiviert bleiben, da dein Workspace Kategorien erfordert.`,
             },
             cannotDisableCategoryForMembers: {
-                title: 'Kategorie kann nicht deaktiviert werden',
-                description:
-                    'Jedes Mitglied benötigt mindestens eine Kategorie zur Auswahl, und diese Mitglieder können nur diese eine verwenden. Geben Sie ihnen zuerst Zugriff auf eine andere Kategorie und versuchen Sie es dann erneut.',
-                bulkDescription:
-                    'Jedes Mitglied benötigt mindestens eine Kategorie zur Auswahl, und diese Mitglieder können nur diese Kategorien verwenden. Gewähren Sie ihnen zuerst Zugriff auf eine andere Kategorie und versuchen Sie es dann erneut.',
+                title: ({categoryName}: {categoryName: string}) => `${categoryName} kann nicht deaktiviert werden`,
+                bulkTitle: 'Diese Kategorien können nicht deaktiviert werden',
+                description: ({count}: {count: number}) => ({
+                    one: '1 Mitglied hätte keine Kategorien mehr zur Auswahl. Aktualisiere die Kategorie-Sichtbarkeit und versuche es dann erneut:',
+                    other: `${count} Mitglieder hätten keine Kategorien mehr zur Auswahl. Aktualisiere ihre Kategorie-Sichtbarkeit und versuche es dann erneut:`,
+                }),
                 andMore: ({count}: {count: number}) => `und ${count} weitere`,
             },
         },

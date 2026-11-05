@@ -7611,10 +7611,12 @@ const translations = {
                 description: `At least one category must remain enabled because your workspace requires categories.`,
             },
             cannotDisableCategoryForMembers: {
-                title: 'Cannot disable category',
-                description: 'Every member needs at least one category to choose from, and these members can only use this one. Give them access to another category first, then try again.',
-                bulkDescription:
-                    'Every member needs at least one category to choose from, and these members can only use these categories. Give them access to another category first, then try again.',
+                title: ({categoryName}: {categoryName: string}) => `Can’t disable ${categoryName}`,
+                bulkTitle: 'Can’t disable these categories',
+                description: ({count}: {count: number}) => ({
+                    one: '1 member would be left with no categories to choose from. Update their category visibility, then try again:',
+                    other: `${count} members would be left with no categories to choose from. Update their category visibility, then try again:`,
+                }),
                 andMore: ({count}: {count: number}) => `and ${count} more`,
             },
         },

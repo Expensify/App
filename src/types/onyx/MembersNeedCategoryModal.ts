@@ -6,8 +6,8 @@ type MembersNeedCategoryModal = {
     /** The members who would have been left without a category they can use */
     accountIDs: number[];
 
-    /** How many categories the rejected request tried to disable, so the copy can say "this one" or "these categories" */
-    categoryCount: number;
+    /** The categories the rejected request tried to disable, so a single one can be named in the title */
+    categoryNames: string[];
 };
 
 export default MembersNeedCategoryModal;

@@ -241,7 +241,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         if (!enabled) {
             const membersWithoutVisibleCategories = getMembersWithoutVisibleCategories(policyCategories, [category.name], policyMemberAccountIDs);
             if (membersWithoutVisibleCategories.length > 0) {
-                showMembersNeedCategoryModal(membersWithoutVisibleCategories, 1);
+                showMembersNeedCategoryModal(membersWithoutVisibleCategories, [category.name]);
                 return;
             }
         }
@@ -486,7 +486,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             return;
                         }
                         if (membersWithoutVisibleCategories.length > 0) {
-                            showMembersNeedCategoryModal(membersWithoutVisibleCategories, enabledCategories.length);
+                            showMembersNeedCategoryModal(membersWithoutVisibleCategories, enabledCategories);
                             return;
                         }
                         clearTableSelection();

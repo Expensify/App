@@ -6,6 +6,7 @@
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 
+import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 
 import variables from '@styles/variables';
@@ -39,7 +40,7 @@ function useMembersNeedCategoryModal(policyID: string | undefined) {
     // Members being removed are left out, since they'll lose access to every category anyway.
     const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, true, false));
 
-    const showMembersNeedCategoryModal = (accountIDs: number[], categoryCount: number) => {
+    const showMembersNeedCategoryModal = (accountIDs: number[], categoryNames: string[]) => {
         const memberLogins = accountIDs
             .map((accountID) => employeeLogins.find((login) => employeePersonalDetails[login]?.accountID === accountID))
             .filter((login): login is string => !!login)
@@ -52,14 +53,13 @@ function useMembersNeedCategoryModal(policyID: string | undefined) {
         }
 
         showConfirmModal({
-            title: translate('workspace.categories.cannotDisableCategoryForMembers.title'),
+            title:
+                categoryNames.length === 1
+                    ? translate('workspace.categories.cannotDisableCategoryForMembers.title', {categoryName: getDecodedCategoryName(categoryNames.at(0) ?? '')})
+                    : translate('workspace.categories.cannotDisableCategoryForMembers.bulkTitle'),
             prompt: (
                 <View>
-                    <Text>
-                        {translate(
-                            categoryCount === 1 ? 'workspace.categories.cannotDisableCategoryForMembers.description' : 'workspace.categories.cannotDisableCategoryForMembers.bulkDescription',
-                        )}
-                    </Text>
+                    <Text>{translate('workspace.categories.cannotDisableCategoryForMembers.description', {count: accountIDs.length})}</Text>
                     <View style={styles.mt3}>
                         {listItems.map((item) => (
                             <View

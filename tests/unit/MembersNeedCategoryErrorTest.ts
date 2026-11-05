@@ -56,7 +56,7 @@ describe('MembersNeedCategoryError', () => {
         const result = await membersNeedCategoryError(Promise.resolve(response), buildDisableRequest(), true);
 
         // Then the modal is signalled for that workspace, those members and both categories, and the response is untouched
-        expect(await getModalSignal()).toEqual({policyID: POLICY_ID, accountIDs: [2, 3], categoryCount: 2});
+        expect(await getModalSignal()).toEqual({policyID: POLICY_ID, accountIDs: [2, 3], categoryNames: ['Fuel', 'Meals']});
         expect(result).toBe(response);
     });
 
