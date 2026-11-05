@@ -404,7 +404,7 @@ describe('useDateSegmentInput', () => {
             expect(onCommit).not.toHaveBeenCalled();
         });
 
-        it('hands over a date as soon as it is complete', () => {
+        it('waits for the digit that finishes the day before handing the date over', () => {
             // Given a full date being typed
             const {focusSegment, type, press, onCommit} = setup();
             focusSegment('year');
@@ -413,9 +413,16 @@ describe('useDateSegmentInput', () => {
             press('month', '9');
             press('day', '1');
 
-            // When the day reads as a number a date can hold
-            // Then the date is handed over without waiting for its second digit
-            expect(onCommit).toHaveBeenLastCalledWith('2026-09-01');
+            // When the day holds one digit, which is zero padded into a date of its own
+            // Then nothing is handed over, since the user is partway through the number they mean
+            expect(onCommit).not.toHaveBeenCalled();
+
+            // When the digit that fills the day follows
+            press('day', '5');
+
+            // Then the date is handed over once, for the day they meant rather than for both in turn
+            expect(onCommit).toHaveBeenCalledTimes(1);
+            expect(onCommit).toHaveBeenCalledWith('2026-09-15');
         });
 
         it('reports a date that does not exist as no date at all', () => {
