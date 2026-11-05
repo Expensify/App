@@ -33,6 +33,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useContext, useEffect, useEffectEvent, useState} from 'react';
 
+import getAccountHolderPrefill from './getAccountHolderPrefill';
 import getCurrentSchemaAnswers from './getCurrentSchemaAnswers';
 import WiseBankAccountAdded from './WiseBankAccountAdded';
 
@@ -76,6 +77,7 @@ function WiseDepositAccountContent({backTo, subPage}: WiseDepositAccountContentP
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT);
     const [formState] = useOnyx(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
     const [country] = useOnyx(ONYXKEYS.COUNTRY);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [onSuccessFallbackRoute] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {selector: onSuccessFallbackRouteSelector});
     const kycWallRef = useContext(KYCWallContext);
     const storedCountry = wiseBankAccountFields?.country ?? country ?? '';
@@ -84,6 +86,7 @@ function WiseDepositAccountContent({backTo, subPage}: WiseDepositAccountContentP
     const payoutType = wiseBankAccountFields?.payoutType;
     const formCurrency = wiseBankAccountFields?.currency;
     const schema = wiseBankAccountFields?.schema;
+    const accountHolderPrefill = getAccountHolderPrefill(privatePersonalDetails);
 
     // The currency and payout type selects start on what the server picked. A value the server just sent replaces the user's pick, while a screen
     // that opens on a later page only fills what the draft is missing, so a pick kept after a failed refresh survives the next page.
@@ -99,6 +102,13 @@ function WiseDepositAccountContent({backTo, subPage}: WiseDepositAccountContentP
         }
         if (shouldSeed(formCurrency, previousFormCurrency, draftValues?.currency)) {
             seed.currency = formCurrency;
+        }
+        // The holder's details fill only what the form asks and the user has not answered, so a refresh never writes over an edit
+        for (const [key, value] of Object.entries(getCurrentSchemaAnswers(schema, accountHolderPrefill))) {
+            if (draftValues?.[key] || typeof value !== 'string') {
+                continue;
+            }
+            seed[key] = value;
         }
         if (Object.keys(seed).length === 0) {
             return;
@@ -160,7 +170,8 @@ function WiseDepositAccountContent({backTo, subPage}: WiseDepositAccountContentP
         clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
         // A success from an earlier visit is kept on the device, so it is dropped before the new form arrives
         clearWiseBankAccountForm();
-        getWiseBankAccountFields(selectedCountry);
+        // The holder's details go with the first request, so the form arrives with the fields they call for, such as a state for the country
+        getWiseBankAccountFields(selectedCountry, undefined, Object.keys(accountHolderPrefill).length > 0 ? accountHolderPrefill : undefined);
     };
 
     // A refresh that failed leaves the server's currency behind the user's pick, so the user's answer wins over what the server last sent. An empty answer means no pick yet
