@@ -10,6 +10,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 /** The schema keeps the holder's address parts under this key, as Wise names them */
 const ADDRESS_KEY = 'address';
+const ADDRESS_COUNTRY_KEY = `${ADDRESS_KEY}.country`;
 
 function getAccountHolderPrefill(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): Record<string, string> {
     const address = getCurrentAddress(privatePersonalDetails);
@@ -20,9 +21,10 @@ function getAccountHolderPrefill(privatePersonalDetails: OnyxEntry<PrivatePerson
         [`${ADDRESS_KEY}.city`]: address?.city,
         [`${ADDRESS_KEY}.state`]: address?.state,
         [`${ADDRESS_KEY}.postCode`]: address?.zip,
-        [`${ADDRESS_KEY}.country`]: address?.country,
+        [ADDRESS_COUNTRY_KEY]: address?.country,
     };
     return Object.fromEntries(Object.entries(candidates).filter((entry): entry is [string, string] => !!entry[1]));
 }
 
 export default getAccountHolderPrefill;
+export {ADDRESS_COUNTRY_KEY};

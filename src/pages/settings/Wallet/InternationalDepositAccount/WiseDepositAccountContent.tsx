@@ -1,6 +1,7 @@
 /** Lets an employee pick the country of their bank account, then fills in the bank account form Wise defines for it. */
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import DynamicFormFlow from '@components/DynamicForm';
+import getContentFields from '@components/DynamicForm/utils/getContentFields';
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 import type {FormValue} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -33,7 +34,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useContext, useEffect, useEffectEvent, useState} from 'react';
 
-import getAccountHolderPrefill from './getAccountHolderPrefill';
+import getAccountHolderPrefill, {ADDRESS_COUNTRY_KEY} from './getAccountHolderPrefill';
 import getCurrentSchemaAnswers from './getCurrentSchemaAnswers';
 import WiseBankAccountAdded from './WiseBankAccountAdded';
 
@@ -103,9 +104,13 @@ function WiseDepositAccountContent({backTo, subPage}: WiseDepositAccountContentP
         if (shouldSeed(formCurrency, previousFormCurrency, draftValues?.currency)) {
             seed.currency = formCurrency;
         }
-        // The holder's details fill only what the form asks and the user has not answered, so a refresh never writes over an edit
+        // The holder's details fill only what the form asks and the user has not answered, so a refresh never writes over an edit. A select takes a
+        // saved value only when it is one of its options, since a saved state can be a name where Wise lists codes
+        const schemaFields = schema && 'pages' in schema ? schema.pages.flatMap((page) => getContentFields(page.content)) : (schema?.fields ?? []);
         for (const [key, value] of Object.entries(getCurrentSchemaAnswers(schema, accountHolderPrefill))) {
-            if (draftValues?.[key] || typeof value !== 'string') {
+            const field = schemaFields.find((schemaField) => schemaField.key === key);
+            const isUnlistedOption = !!field && 'values' in field && Array.isArray(field.values) && !field.values.some((option) => option.key === value);
+            if (draftValues?.[key] || typeof value !== 'string' || isUnlistedOption) {
                 continue;
             }
             seed[key] = value;
@@ -170,8 +175,10 @@ function WiseDepositAccountContent({backTo, subPage}: WiseDepositAccountContentP
         clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
         // A success from an earlier visit is kept on the device, so it is dropped before the new form arrives
         clearWiseBankAccountForm();
-        // The holder's details go with the first request, so the form arrives with the fields they call for, such as a state for the country
-        getWiseBankAccountFields(selectedCountry, undefined, Object.keys(accountHolderPrefill).length > 0 ? accountHolderPrefill : undefined);
+        // The holder's country goes with the first request, so the form arrives with the fields it calls for, such as a state select. The rest of
+        // the address only fills the draft, since Wise could reject a saved value before the form is even shown
+        const holderCountry = accountHolderPrefill[ADDRESS_COUNTRY_KEY];
+        getWiseBankAccountFields(selectedCountry, undefined, holderCountry ? {[ADDRESS_COUNTRY_KEY]: holderCountry} : undefined);
     };
 
     // A refresh that failed leaves the server's currency behind the user's pick, so the user's answer wins over what the server last sent. An empty answer means no pick yet
