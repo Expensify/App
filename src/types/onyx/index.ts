@@ -3,8 +3,8 @@ import type {OnboardingPurpose} from '@libs/actions/Welcome/OnboardingFlow';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import type Account from './Account';
-import type AccountingIntegrationWaitlist from './AccountingIntegrationWaitlist';
 import type AccountData from './AccountData';
+import type AccountingIntegrationWaitlist from './AccountingIntegrationWaitlist';
 import type Agent from './Agent';
 import type AgentNewAvatarDraft from './AgentNewAvatarDraft';
 import type AppReview from './AppReview';
