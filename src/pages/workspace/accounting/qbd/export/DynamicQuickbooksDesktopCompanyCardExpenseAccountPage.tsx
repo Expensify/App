@@ -103,6 +103,7 @@ function DynamicQuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPol
                         title={translate('workspace.accounting.defaultVendor')}
                         subtitle={translate('workspace.qbd.defaultVendorDescription')}
                         switchAccessibilityLabel={translate('workspace.qbd.defaultVendorDescription')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBD.DEFAULT_VENDOR_SWITCH}
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={[styles.ph5, styles.mb3, styles.mt1]}
                         isActive={!!qbdConfig?.shouldAutoCreateVendor}

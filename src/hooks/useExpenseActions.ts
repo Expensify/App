@@ -589,6 +589,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                             chatIOUReport,
                             isChatIOUReportArchived,
                             getCurrencyDecimals,
+                            accountID,
                             false,
                             chatIOUReportActions,
                         );

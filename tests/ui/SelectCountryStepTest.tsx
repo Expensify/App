@@ -2,9 +2,11 @@ import {act, render} from '@testing-library/react-native';
 
 import SelectionList from '@components/SelectionList';
 
+import {getPlaidCountry} from '@libs/CardUtils';
 import searchOptions from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
 
+import PersonalCardSelectCountryStep from '@pages/settings/Wallet/PersonalCards/steps/SelectCountryStep';
 import SelectCountryStep from '@pages/workspace/companyCards/addNew/SelectCountryStep';
 
 import CONST from '@src/CONST';
@@ -52,6 +54,7 @@ jest.mock('@hooks/useDebouncedState', () =>
 );
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
+        localeCompare: (a: string, b: string) => a.localeCompare(b),
         translate: (key: string) => {
             if (key.startsWith('allCountries.')) {
                 const countryISO = key.split('.').at(-1) ?? '';
@@ -63,6 +66,8 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 jest.mock('@hooks/usePolicy', () => jest.fn(() => ({outputCurrency: 'USD'})));
+jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({localCurrencyCode: 'EUR'})));
+jest.mock('@userActions/PersonalCards', () => ({clearAddNewPersonalCardFlow: jest.fn(), setAddNewPersonalCardStepAndData: jest.fn()}));
 jest.mock('@hooks/useThemeStyles', () =>
     jest.fn(() => ({
         textHeadlineLineHeightXXL: {},
@@ -164,6 +169,19 @@ describe('SelectCountryStep', () => {
                 isSelected: true,
             }),
         );
+    });
+
+    it.each(['', 'IR'])('clears the personal-card error after selecting a valid country (initial: %s)', (initialCountry) => {
+        // Given an invalid country has triggered the required-country error
+        jest.mocked(getPlaidCountry).mockReturnValue(initialCountry);
+        render(<PersonalCardSelectCountryStep />);
+        act(() => mockedSelectionList.mock.lastCall?.[0].confirmButtonOptions?.onConfirm?.());
+        expect(mockedSelectionList.mock.lastCall?.[0].children).toBeTruthy();
+        // When a supported country is selected
+        const country = mockedSelectionList.mock.lastCall?.[0].data.find((item) => item.keyForList === 'US');
+        act(() => country && mockedSelectionList.mock.lastCall?.[0].onSelectRow?.(country));
+        // Then the obsolete error is removed
+        expect(mockedSelectionList.mock.lastCall?.[0].children).toBe(false);
     });
 
     it('keeps natural filtered ordering while search is active', async () => {
