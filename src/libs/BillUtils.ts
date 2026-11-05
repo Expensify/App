@@ -6,4 +6,9 @@ function isBillReport(report: OnyxInputOrEntry<Report>): boolean {
     return report?.type === CONST.REPORT.UNSUPPORTED_TYPE.BILL;
 }
 
-export default isBillReport;
+/** Bills stay hidden from users without the newDotBillPay beta. */
+function shouldHideBillReport(reportType: string | undefined, isBillPayBetaEnabled: boolean): boolean {
+    return reportType === CONST.REPORT.UNSUPPORTED_TYPE.BILL && !isBillPayBetaEnabled;
+}
+
+export {isBillReport, shouldHideBillReport};

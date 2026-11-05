@@ -247,6 +247,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                 <Switch
                                     isOn={policyCategory.enabled}
                                     accessibilityLabel={translate('workspace.categories.enableCategory')}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_ENABLE_SWITCH}
                                     onToggle={updateWorkspaceCategoryEnabled}
                                     disabled={!canWriteCategories}
                                     disabledAction={withReadOnlyFallback()}
