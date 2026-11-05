@@ -136,7 +136,7 @@ function SearchChangeWorkspacePage() {
                         showButton: true,
                         text: translate('common.save'),
                         onConfirm: changeWorkspace,
-                        isDisabled: !policyID,
+                        isDisabled: !policyID || (!areAllMatchingItemsSelected && selectedReports.every((report) => report.policyID === policyID)),
                     }}
                     initiallyFocusedItemKey={policyID}
                     shouldUpdateFocusedIndex

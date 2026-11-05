@@ -33,10 +33,11 @@ const mockQueryJSON: SearchQueryJSON = {
 };
 const mockClearSelectedTransactions = jest.fn();
 let mockAreAllMatchingItemsSelected = false;
-let mockSelectedReports = [{reportID: 'report1'}, {reportID: 'report2'}];
+let mockSelectedReports: Array<{reportID: string; policyID?: string}> = [{reportID: 'report1'}, {reportID: 'report2'}];
 let mockSelectRow: ((option: {policyID: string}) => void) | undefined;
 let mockConfirm: (() => void) | undefined;
 let mockListData: Array<{policyID?: string}> = [];
+let mockIsSaveDisabled: boolean | undefined;
 let mockSearchData: Record<string, unknown> = {};
 
 jest.mock('@components/SelectionList', () => {
@@ -47,9 +48,10 @@ jest.mock('@components/SelectionList', () => {
     }: {
         data: Array<{policyID?: string}>;
         onSelectRow: (option: {policyID: string}) => void;
-        confirmButtonOptions: {onConfirm: () => void};
+        confirmButtonOptions: {onConfirm: () => void; isDisabled?: boolean};
     }) {
         mockListData = data;
+        mockIsSaveDisabled = confirmButtonOptions.isDisabled;
         mockSelectRow = onSelectRow;
         mockConfirm = confirmButtonOptions.onConfirm;
         return null;
@@ -125,6 +127,28 @@ describe('SearchChangeWorkspacePage', () => {
         await Onyx.clear();
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {1: {accountID: 1, login: 'submitter@example.com'}});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy2`, {id: 'policy2', name: 'Workspace 2', type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.USER});
+    });
+
+    it('keeps Save disabled when every picked report is already on the chosen workspace', async () => {
+        // Given two picked reports that are both on Workspace 2
+        mockAreAllMatchingItemsSelected = false;
+        mockSelectedReports = [
+            {reportID: 'report1', policyID: 'policy2'},
+            {reportID: 'report2', policyID: 'policy2'},
+        ];
+        render(
+            <OnyxListItemProvider>
+                <SearchChangeWorkspacePage />
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user picks Workspace 2
+        act(() => mockSelectRow?.({policyID: 'policy2'}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Save stays disabled, the same as picking a report's own workspace on its page
+        expect(mockIsSaveDisabled).toBe(true);
     });
 
     it('only lists workspaces the user administers when the reports are paid', async () => {
