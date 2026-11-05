@@ -255,6 +255,30 @@ jobs:
             echo 'PROFILES=[{"name":"(OldApp) AdHoc","file":"./OldApp_AdHoc.mobileprovision"},{"name":"(OldApp) AdHoc: Share Extension","file":"./OldApp_AdHoc_Share_Extension.mobileprovision"},{"name":"(OldApp) AdHoc: Notification Service","file":"./OldApp_AdHoc_Notification_Service.mobileprovision"},{"name":"(OldApp) AdHoc: LiveActivityExtension","file":"./OldApp_AdHoc_LiveActivityExtension.mobileprovision"}]' >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Debug signing and simulator runtimes (temporary)
+        shell: bash {0}
+        run: |
+          KC="$RUNNER_TEMP/debug.keychain-db"
+          security create-keychain -p debug "$KC"
+          security unlock-keychain -p debug "$KC"
+
+          security import ./Certificates.p12 -A -t cert -f pkcs12 -k "$KC"
+          echo "security import exit code: $?"
+
+          echo "--- find-identity without -v (lists invalid ones with the reason)"
+          security find-identity -p codesigning "$KC" | sed -E 's/[0-9A-F]{40}/<sha1>/'
+
+          echo "--- which WWDR issued our cert"
+          { openssl pkcs12 -in ./Certificates.p12 -nokeys -passin pass: 2>/dev/null || openssl pkcs12 -in ./Certificates.p12 -nokeys -passin pass: -legacy; } | openssl x509 -noout -issuer -enddate
+
+          echo "--- WWDR certs in the System keychains"
+          security find-certificate -a -c "Apple Worldwide Developer Relations" /Library/Keychains/System.keychain /System/Library/Keychains/SystemRootCertificates.keychain | grep '"labl"'
+
+          echo "--- simulator runtimes"
+          xcrun simctl list runtimes
+
+          security delete-keychain "$KC"
+
       - name: Rock Remote Build - iOS
         id: rock-remote-build-ios
         uses: callstackincubator/ios@dd30f7e53eee2ea6a59509793d0a30fbb5c91216
