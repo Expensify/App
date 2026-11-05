@@ -151,6 +151,25 @@ describe('SearchChangeWorkspacePage', () => {
         expect(mockIsSaveDisabled).toBe(true);
     });
 
+    it('keeps the workspaces in place when one is picked', async () => {
+        // Given two workspaces the reports can move to
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy3`, {id: 'policy3', name: 'Workspace 3', type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.USER});
+        render(
+            <OnyxListItemProvider>
+                <SearchChangeWorkspacePage />
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+        const initialOrder = mockListData.map((item) => item.policyID);
+
+        // When the user picks the last one
+        act(() => mockSelectRow?.({policyID: initialOrder.at(-1) ?? ''}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the list keeps its order, the same as the single report page
+        expect(mockListData.map((item) => item.policyID)).toEqual(initialOrder);
+    });
+
     it('only lists workspaces the user administers when the reports are paid', async () => {
         // Given two paid reports, which the single report page only moves to a workspace the user administers
         mockSearchData = {

@@ -64,6 +64,8 @@ function SearchChangeWorkspacePage() {
         currentUserLogin: session?.email,
         shouldShowPendingDeletePolicy: false,
         selectedPolicyIDs: policyID ? [policyID] : undefined,
+        // An empty list keeps the picked workspace where it is instead of moving it to the top.
+        policyIDsToSortToTop: [],
         searchTerm: debouncedSearchTerm,
         localeCompare,
         additionalFilter: canMoveAReportTo,
