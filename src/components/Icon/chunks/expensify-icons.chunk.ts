@@ -10,6 +10,7 @@ import ArrowRightLong from '@assets/images/arrow-right-long.svg';
 import ArrowRight from '@assets/images/arrow-right.svg';
 import ArrowSplit from '@assets/images/arrow-split.svg';
 import ArrowUpLong from '@assets/images/arrow-up-long.svg';
+import ArrowUpRight from '@assets/images/arrow-up-right.svg';
 import UpArrow from '@assets/images/arrow-up.svg';
 import ArrowsLeftRight from '@assets/images/arrows-leftright.svg';
 import AttachmentNotFound from '@assets/images/attachment-not-found.svg';
@@ -326,6 +327,7 @@ const Expensicons = {
     ArrowRightLong,
     ArrowsLeftRight,
     ArrowUpLong,
+    ArrowUpRight,
     ArrowDownLong,
     AttachmentNotFound,
     BackArrow,
