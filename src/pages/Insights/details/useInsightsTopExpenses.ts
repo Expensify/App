@@ -32,12 +32,10 @@ type TopExpensesState = ValueOf<typeof TOP_EXPENSES_STATE>;
 type TopExpenses = {
     expenses: TransactionListItemType[];
     state: TopExpensesState;
-
-    /** Requests the expenses again */
     retry: () => void;
 };
 
-/** Requests the largest expenses in a Spend table query and returns them as Spend rows, largest first. */
+/** Requests the largest expenses in a Spend table query and returns them as Spend rows, sorted by amount. */
 function useInsightsTopExpenses(query: SearchQueryString | undefined): TopExpenses {
     const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();

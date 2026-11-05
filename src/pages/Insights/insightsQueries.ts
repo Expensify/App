@@ -176,7 +176,7 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
     };
 }
 
-/** Builds the query of the largest expenses in a Spend table query, largest first. */
+/** Builds a Spend table query for its largest expenses, sorted by amount. */
 function buildTopExpensesQueryJSON(query: SearchQueryString): Readonly<SearchQueryJSON> | undefined {
     const queryJSON = buildSearchQueryJSON(query);
     if (!queryJSON) {

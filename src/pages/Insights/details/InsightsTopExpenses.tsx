@@ -42,7 +42,7 @@ import type {TopExpensesState} from './useInsightsTopExpenses';
 import {TOP_EXPENSES_STATE} from './useInsightsTopExpenses';
 
 type InsightsTopExpensesProps = {
-    /** The largest expenses, largest first */
+    /** Sorted by amount, highest first */
     expenses: TransactionListItemType[];
 
     state: TopExpensesState;
@@ -71,15 +71,14 @@ function InsightsTopExpenses({expenses, state, onRetry, viewAllQuery}: InsightsT
     const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT, {selector: fullPolicySnapshotLastModifiedByPolicyIDSelector});
     const isEmpty = state === TOP_EXPENSES_STATE.READY && expenses.length === 0;
 
-    const toDescriptor = (expense: TransactionListItemType): TransactionThreadNavigationDescriptor => ({
-        reportID: expense.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
-        transaction: expense,
-        reportAction: expense.reportAction,
-        report: expense.report,
-    });
-
     const openExpense = (expense: TransactionListItemType) => {
-        const reportID = getReportIDToOpenForExpense(toDescriptor(expense), {
+        const descriptors = Object.fromEntries(
+            expenses.map((sibling): [string, TransactionThreadNavigationDescriptor] => [
+                sibling.transactionID,
+                {reportID: sibling.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID, transaction: sibling, reportAction: sibling.reportAction, report: sibling.report},
+            ]),
+        );
+        const reportID = getReportIDToOpenForExpense(descriptors[expense.transactionID], {
             introSelected,
             conciergeChat,
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
@@ -89,7 +88,6 @@ function InsightsTopExpenses({expenses, state, onRetry, viewAllQuery}: InsightsT
             personalDetails,
             fullPolicySnapshotLastModifiedByPolicyID,
         });
-        const descriptors = Object.fromEntries(expenses.map((sibling) => [sibling.transactionID, toDescriptor(sibling)]));
         setActiveTransactionIDs(
             expenses.map((sibling) => sibling.transactionID),
             {source: CAROUSEL_SOURCE.insightsTopExpenses, descriptors},
@@ -190,9 +188,8 @@ function InsightsTopExpenses({expenses, state, onRetry, viewAllQuery}: InsightsT
                         policy={item.policy}
                         shouldUseNarrowLayout
                         isSelected={false}
-                        shouldShowTooltip={false}
-                        shouldShowCheckbox={false}
-                        shouldShowErrors={false}
+                        shouldShowTooltip
+                        violations={item.violations}
                         dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                         amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                         taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}

@@ -374,7 +374,7 @@ describe('insightsQueries', () => {
             // When the Details panel builds its Top expenses query from it
             const queryJSON = buildTopExpensesQueryJSON(query);
 
-            // Then it keeps the point's filters but sorts by amount, largest first, and stops at 10, so the panel lists the largest expenses
+            // Then it keeps the point's filters but sorts by amount, highest first, and adds a limit of 10, so the panel lists the largest expenses
             expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
             expect(queryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.DESC);
             expect(queryJSON?.limit).toBe(10);
