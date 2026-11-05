@@ -141,6 +141,7 @@ const SCREENS = {
             LANGUAGE: 'Settings_Preferences_Language',
             THEME: 'Settings_Preferences_Theme',
             PAYMENT_CURRENCY: 'Settings_Payment_Currency',
+            HOME_ADDRESS: 'Settings_Preferences_HomeAddress',
         },
 
         AGENTS: {
@@ -214,6 +215,7 @@ const SCREENS = {
             DYNAMIC_WISE_BUSINESS_ONBOARDING: 'Dynamic_Settings_Wallet_Wise_Business_Onboarding',
             DYNAMIC_WISE_ACCEPT_TERMS: 'Dynamic_Settings_Wallet_Wise_Accept_Terms',
             DYNAMIC_WISE_MORE_INFO_NEEDED: 'Dynamic_Settings_Wallet_Wise_More_Info_Needed',
+            DYNAMIC_WISE_ONBOARDING_STATUS: 'Dynamic_Settings_Wallet_Wise_Onboarding_Status',
             DYNAMIC_BANK_ACCOUNT_LINK_PLAID: 'Dynamic_Settings_Wallet_BankAccount_LinkPlaid',
             TRAVEL_CVV: 'Settings_Wallet_Travel_CVV',
             TRAVEL_CVV_VERIFY_ACCOUNT: 'Settings_Wallet_Travel_CVV_VerifyAccount',
@@ -296,6 +298,7 @@ const SCREENS = {
         POLICY_COPY_SETTINGS: 'Policy_Copy_Settings',
         REPORT_SETTINGS: 'Report_Settings',
         REPORT_DESCRIPTION: 'Report_Description',
+        REPORT_HISTORY: 'Report_History',
         PARTICIPANTS: 'Participants',
         MONEY_REQUEST: 'MoneyRequest',
         NEW_TASK: 'NewTask',
@@ -1202,6 +1205,7 @@ const SCREENS = {
     DYNAMIC_TASK_TITLE: 'Dynamic_Task_Title',
     DYNAMIC_TASK_ASSIGNEE: 'Dynamic_Task_Assignee',
     DYNAMIC_REPORT_DESCRIPTION: 'Dynamic_Report_Description',
+    DYNAMIC_REPORT_HISTORY: 'Dynamic_Report_History',
     DYNAMIC_PRIVATE_NOTES_LIST: 'Dynamic_PrivateNotes_List',
     DYNAMIC_PRIVATE_NOTES_EDIT: 'Dynamic_PrivateNotes_Edit',
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',

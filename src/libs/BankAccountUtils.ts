@@ -298,6 +298,32 @@ function getWorkspaceWiseGlobalReimbursementsBannerBankAccountID(policy: OnyxEnt
     return bankAccountID;
 }
 
+/**
+ * Whether the admin saved part of the account's Wise onboarding and has not submitted it yet. The server sets Wise as the provider on the first saved page,
+ * and the onboarding opens only for an eligible account.
+ */
+function isWiseOnboardingPendingSubmit(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
+    const additionalData = bankAccount?.accountData?.additionalData;
+    return (
+        bankAccount?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+        additionalData?.globalReimbursementProvider === CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE &&
+        !additionalData.wise?.status &&
+        isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData, bankAccount?.bankCurrency)
+    );
+}
+
+/** Whether the account's Wise onboarding is submitted and Wise is reviewing it, with nothing for the admin to do */
+function isWiseOnboardingAwaitingDecision(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
+    return bankAccount?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && bankAccount?.accountData?.additionalData?.wise?.status === CONST.WISE.ONBOARDING_STATUS.IN_REVIEW;
+}
+
+/** Whether Wise needs more info from the admin on its own form before it can decide on the submitted business */
+function isWiseOnboardingMoreInfoNeeded(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
+    return (
+        bankAccount?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && bankAccount?.accountData?.additionalData?.wise?.status === CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED
+    );
+}
+
 function doesPolicyHavePartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>, policyID: string) {
     if (!bankAccountList) {
         return false;
@@ -471,6 +497,9 @@ export {
     isGlobalReimbursementsEnabled,
     getWiseGlobalReimbursementsBannerBankAccountID,
     getWorkspaceWiseGlobalReimbursementsBannerBankAccountID,
+    isWiseOnboardingPendingSubmit,
+    isWiseOnboardingAwaitingDecision,
+    isWiseOnboardingMoreInfoNeeded,
     getDefaultCompanyWebsite,
     getBankAccountState,
     hasBankAccountAllowDebit,

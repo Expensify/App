@@ -32,6 +32,12 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        billCreated: ({sender}) => `δημιούργησε αυτόν τον λογαριασμό εκ μέρους του ${sender}`,
+        billSubmitted: ({receiver}) => `έστειλε αυτόν τον λογαριασμό στον ${receiver}`,
+        invoiceCreated: ({sender}) => `δημιούργησε αυτό το τιμολόγιο εκ μέρους του ${sender}`,
+        invoiceSubmitted: ({receiver}) => `έστειλε αυτό το τιμολόγιο στον ${receiver}`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 ημέρα`,
@@ -1277,6 +1283,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'Συμμόρφωση',
         runningTotal: 'Τρέχον σύνολο',
+        explain: 'Επεξήγηση',
+        explainChartPrompt: (chartTitle: string) => `Εξηγήστε τα δεδομένα στο ${chartTitle}.`,
     },
     allSettingsScreen: {
         subscription: 'Συνδρομή',
@@ -2243,14 +2251,17 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Αναμένονται από <strong>εσάς</strong> εγκρίσεις εξόδων.`;
+                        return isBill ? `Αναμένεται από <strong>εσάς</strong> η έγκριση του λογαριασμού.` : `Αναμένονται από <strong>εσάς</strong> εγκρίσεις εξόδων.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Αναμονή για την έγκριση των εξόδων από τον/την <strong>${actor}</strong>.`;
+                        return isBill
+                            ? `Αναμονή για την έγκριση του λογαριασμού από τον/την <strong>${actor}</strong>.`
+                            : `Αναμονή για την έγκριση των εξόδων από τον/την <strong>${actor}</strong>.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Αναμονή για έγκριση εξόδων από διαχειριστή.`;
+                        return isBill ? `Αναμονή για έγκριση του λογαριασμού από διαχειριστή.` : `Αναμονή για έγκριση εξόδων από διαχειριστή.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (
@@ -2273,14 +2284,15 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Σε αναμονή να αποπληρώσετε <strong>εσείς</strong> τα έξοδα.`;
+                        return isBill ? `Σε αναμονή να πληρώσετε <strong>εσείς</strong> αυτόν τον λογαριασμό.` : `Σε αναμονή να αποπληρώσετε <strong>εσείς</strong> τα έξοδα.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Αναμονή για να πληρώσει ο/η <strong>${actor}</strong> τα έξοδα.`;
+                        return isBill ? `Αναμονή για να πληρώσει ο/η <strong>${actor}</strong> αυτόν τον λογαριασμό.` : `Αναμονή για να πληρώσει ο/η <strong>${actor}</strong> τα έξοδα.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Αναμονή διαχειριστή για την πληρωμή εξόδων.`;
+                        return isBill ? `Αναμονή διαχειριστή για την πληρωμή αυτού του λογαριασμού.` : `Αναμονή διαχειριστή για την πληρωμή εξόδων.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
@@ -3187,7 +3199,20 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: 'Επαληθεύστε επιπλέον πληροφορίες',
                 subtitle: 'Ο συνεργάτης μας για τις πληρωμές χρειάζεται περισσότερες πληροφορίες απευθείας. Αυτό θα σας πάρει μόνο λίγα λεπτά.',
             },
+            inReview: {
+                title: 'Υπό εξέταση',
+                heading: 'Πήραμε ό,τι χρειαζόμαστε.\nΘα επικοινωνήσουμε μαζί σας!',
+                description: 'Οι περισσότερες αξιολογήσεις διαρκούν μία έως δύο ημέρες. Θα σας στείλουμε μήνυμα με μια ενημέρωση.',
+                chatWithConcierge: 'Συνομιλήστε με το Concierge',
+            },
+            approved: {title: 'Ο λογαριασμός εγκρίθηκε', heading: 'Εγκρίθηκε για πληρωμές παγκοσμίως', description: 'Πληρώστε τα μέλη όπου κι αν βρίσκονται.'},
+            rejected: {
+                title: 'Ο λογαριασμός τράπεζας απορρίφθηκε',
+                heading: 'Ο συνεργάτης μας απέρριψε τον τραπεζικό σας λογαριασμό',
+                description: 'Συνομιλήστε με το Concierge για περισσότερες πληροφορίες.',
+            },
         },
+        wiseSetupInProgress: {message: 'Η ρύθμιση των παγκόσμιων αποζημιώσεων βρίσκεται σε εξέλιξη.', continue: 'Συνέχεια.'},
         wiseGlobalReimbursementsIntro: {
             title: 'Να ρυθμιστούν οι παγκόσμιες αποζημιώσεις;',
             subtitle: 'Πληρώστε μέλη παγκοσμίως στο τοπικό τους νόμισμα.',
@@ -3710,6 +3735,7 @@ ${amount} για ${merchant} - ${date}`,
         appSection: {
             title: 'Προτιμήσεις εφαρμογής',
         },
+        distanceSection: {title: 'Προτιμήσεις απόστασης'},
         testSection: {
             title: 'Προτιμήσεις δοκιμών',
             subtitle: 'Ρυθμίσεις για βοήθεια στον εντοπισμό σφαλμάτων και τη δοκιμή της εφαρμογής σε staging.',
@@ -9665,8 +9691,10 @@ ${reportName}`,
                 describeRuleHeadline: 'Περιγράψτε τον κανόνα σας',
                 describeRuleForConcierge: 'Περιγράψτε τον κανόνα σας και το Concierge θα τον δημιουργήσει',
                 createRule: 'Δημιουργία κανόνα',
-                fallbackBanner: 'Αυτός δεν είναι τυπικός κανόνας, οπότε συντάξαμε έναν κανόνα πράκτορα.',
-                fallbackBannerWithExplanation: (explanation: string) => `Αυτός δεν είναι τυπικός κανόνας, οπότε συντάξαμε έναν κανόνα πράκτορα. ${explanation}`,
+                fallbackBanner:
+                    'Αυτός δεν είναι τυπικός κανόνας, οπότε συντάξαμε έναν κανόνα πράκτορα. Οι κανόνες πράκτορα εκτελούνται όταν δημιουργείται ή ενημερώνεται ένα έξοδο ή μια αναφορά.',
+                fallbackBannerWithExplanation: (explanation: string) =>
+                    `Αυτός δεν είναι τυπικός κανόνας, οπότε συντάξαμε έναν κανόνα πράκτορα. Οι κανόνες πράκτορα εκτελούνται όταν δημιουργείται ή ενημερώνεται ένα έξοδο ή μια αναφορά. ${explanation}`,
                 suggestionsTab: 'Προτεινόμενο',
                 writeTab: 'Προσαρμοσμένο',
                 findSuggestion: 'Βρείτε έναν κανόνα',
@@ -12517,7 +12545,6 @@ ${reportName}`,
             isUnreadWithMention: 'Είναι μη αναγνωσμένο με αναφορά',
             isWaitingForAssigneeToCompleteAction: 'Αναμονή για την ολοκλήρωση ενέργειας από τον υπεύθυνο',
             hasChildReportAwaitingAction: 'Υπάρχει θυγατρική αναφορά σε αναμονή ενέργειας',
-            hasMissingInvoiceBankAccount: 'Έχει ελλιπή τραπεζικό λογαριασμό τιμολογίου',
             hasUnresolvedCardFraudAlert: 'Έχει μη επιλυμένη ειδοποίηση απάτης με κάρτα',
             hasDEWApproveFailed: 'Η έγκριση DEW απέτυχε',
         },
@@ -13061,5 +13088,28 @@ ${reportName}`,
         mobileClaimPrompt: 'Επισκεφθείτε το Expensify στον φυλλομετρητή σας για να διεκδικήσετε την έκπτωση ανανέωσης.',
     },
     bulkActionBar: {label: 'Μαζικές ενέργειες', clearSelection: 'Καθαρισμός επιλογής', loadingSelection: 'Φόρτωση επιλογής'},
+    reportHistoryPage: {
+        title: 'Ιστορικό αναφοράς',
+        created: 'δημιούργησε αναφορά',
+        submitted: 'υπέβαλε',
+        approved: 'ενέκρινε',
+        paid: 'πλήρωσε',
+        toSubmit: 'να υποβάλει',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return 'να υποβάλει αυτόματα';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `να υποβάλει αυτόματα στις ${eta} κάθε μήνα` : `να υποβάλει αυτόματα ${eta}`;
+        },
+        toApprove: 'να εγκρίνει',
+        toPay: 'να πληρώσει',
+        minutesAgo: (count: number) => `πριν από ${count} λεπ.`,
+        hoursAgo: (count: number) => `πριν από ${count} ώρ.`,
+        daysAgo: () => ({
+            one: 'πριν από 1 ημ.',
+            other: (count: number) => `πριν από ${count} ημ.`,
+        }),
+        offlineMessage: 'Είστε εκτός σύνδεσης. Το ιστορικό αναφορών μπορεί να είναι παρωχημένο.',
+    },
 };
 export default translations;

@@ -254,6 +254,12 @@ const DYNAMIC_ROUTES = {
         path: 'more-info-needed',
         entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO],
     },
+    WISE_ONBOARDING_STATUS: {
+        path: 'status',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO],
+        getRoute: (status: ValueOf<typeof CONST.WISE.ONBOARDING_STATUS_PAGE>) => getUrlWithParams('status', {status}),
+        queryParams: ['status'],
+    },
     BANK_ACCOUNT_LINK_PLAID: {
         path: ':bankAccountID/link-plaid',
         entryScreens: [SCREENS.SETTINGS.WALLET.ROOT],
@@ -1047,6 +1053,7 @@ const DYNAMIC_ROUTES = {
         entryScreens: [
             SCREENS.SETTINGS.PROFILE.ADDRESS,
             SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS,
+            SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS,
             SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS,
             SCREENS.WORKSPACE.OFFICE_LOCATION_ADD,
             SCREENS.WORKSPACE.OFFICE_LOCATION_EDIT,
@@ -1065,6 +1072,7 @@ const DYNAMIC_ROUTES = {
         entryScreens: [
             SCREENS.SETTINGS.PROFILE.ADDRESS,
             SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS,
+            SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS,
             SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS,
             SCREENS.WORKSPACE.OFFICE_LOCATION_ADD,
             SCREENS.WORKSPACE.OFFICE_LOCATION_EDIT,
@@ -1859,6 +1867,10 @@ const DYNAMIC_ROUTES = {
         path: 'change-approver',
         entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
     },
+    REPORT_HISTORY: {
+        path: 'history',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+    },
     TASK_TITLE: {
         path: 'title',
         entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
@@ -1888,8 +1900,10 @@ const DYNAMIC_ROUTES = {
     },
     SPLIT_BILL_DETAILS: {
         path: 'split/:reportActionID',
-        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
-        getRoute: (reportActionID: string) => `split/${reportActionID}` as const,
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.SEARCH.ROOT],
+        // reportID is only needed from the Search root, which has no reportID of its own
+        getRoute: (reportActionID: string, reportID?: string) => getUrlWithParams(`split/${reportActionID}`, {reportID}),
+        queryParams: ['reportID'],
     },
     TASK_ASSIGNEE: {
         path: 'assignee',
@@ -2598,6 +2612,7 @@ const ROUTES = {
     SETTINGS_LANGUAGE: 'settings/preferences/language',
     SETTINGS_PAYMENT_CURRENCY: 'setting/preferences/payment-currency',
     SETTINGS_THEME: 'settings/preferences/theme',
+    SETTINGS_HOME_ADDRESS: 'settings/preferences/home-address',
     SETTINGS_COPILOT: 'settings/copilot',
     SETTINGS_SECURITY: {
         route: 'settings/security',
