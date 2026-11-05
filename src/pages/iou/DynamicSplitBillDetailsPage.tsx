@@ -48,6 +48,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useState} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 type SplitBillDetailsPageProps = WithReportAndReportActionOrNotFoundProps & PlatformStackScreenProps<SplitDetailsNavigatorParamList, typeof SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT>;
 
@@ -69,7 +70,6 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${IOUTransactionID}`);
     const [personalDetails] = useAllPersonalDetails();
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const reportAttributesDerived = useReportAttributes();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
@@ -137,8 +137,9 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
     const delegateAccountID = useDelegateAccountID();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const chatReportTransactions = useReportTransactions(reportID);
-    const onConfirm = () => {
+    const onConfirm = async () => {
         setIsConfirmed(true);
+        const quickAction = await Onyx.get(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
         completeSplitBill({
             isVendorMatchingBetaEnabled,
             getCurrencyDecimals,
@@ -204,7 +205,9 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
                                 reportID={reportID}
                                 reportActionID={reportAction?.reportActionID}
                                 transaction={isEditingSplitBill && draftTransaction ? draftTransaction : transaction}
-                                onConfirm={onConfirm}
+                                onConfirm={() => {
+                                    onConfirm();
+                                }}
                                 isPolicyExpenseChat={isPolicyExpenseChat(report)}
                                 policyID={isPolicyExpenseChat(report) ? report?.policyID : undefined}
                                 action={isEditingSplitBill ? CONST.IOU.ACTION.EDIT : CONST.IOU.ACTION.CREATE}

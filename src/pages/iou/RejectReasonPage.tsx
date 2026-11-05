@@ -29,6 +29,7 @@ import INPUT_IDS from '@src/types/form/MoneyRequestRejectReasonForm';
 
 import {getReportPolicyID} from '@selectors/Report';
 import React, {useEffect} from 'react';
+import Onyx from 'react-native-onyx';
 
 import RejectReasonFormView from './RejectReasonFormView';
 
@@ -47,17 +48,17 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
     const {superWideRHPRouteKeys} = useWideRHPState();
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const reportTransactionsCollection = useReportTransactionsCollection(reportID);
     const delegateAccountID = useDelegateAccountID();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
+    const onSubmit = async (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return;
         }
 
+        const rules = await Onyx.get(ONYXKEYS.COLLECTION.RULE);
         const urlToNavigateBack = rejectMoneyRequest({
             transactionID,
             reportID,
@@ -99,7 +100,9 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
 
     return (
         <RejectReasonFormView
-            onSubmit={onSubmit}
+            onSubmit={(values) => {
+                onSubmit(values);
+            }}
             validate={validate}
             backTo={backTo}
         />
