@@ -589,16 +589,19 @@ function SubmitDetailsPage({
                 Log.warn('[SubmitDetailsPage] Failed to read the cached user location', {error});
                 return null;
             })
-            .then((userLocation) => {
+            .then((userLocation): GpsPoint | Promise<GpsPoint | undefined> => {
                 if (userLocation) {
-                    finishRequestAndNavigate(receipt, {
+                    return {
                         lat: userLocation.latitude,
                         long: userLocation.longitude,
-                    });
-                    return;
+                    };
                 }
-                getCurrentPositionWithinCap((gpsCoords) => finishRequestAndNavigate(receipt, gpsCoords));
+                // Wrapped in a promise so a throw in the submit that follows still reaches the catch below instead of escaping from the callback
+                return new Promise((resolve) => {
+                    getCurrentPositionWithinCap((gpsCoords) => resolve(gpsCoords));
+                });
             })
+            .then((gpsPoint) => finishRequestAndNavigate(receipt, gpsPoint))
             .catch((error: unknown) => {
                 // This chain runs after readFileAsync has already resolved, so its onFailure reset no longer covers a throw here.
                 // Reset the same way so the confirm button does not stay loading and the user can retry.

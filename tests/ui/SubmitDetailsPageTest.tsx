@@ -510,6 +510,36 @@ describe('SubmitDetailsPage', () => {
         logWarnSpy.mockRestore();
     });
 
+    it('lets the user retry when submitting with the device position throws (no cached position)', async () => {
+        // Given location permission granted, no cached position, and an expense write that throws on the first attempt
+        mockPositionAnswer();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, null);
+            await Onyx.set(ONYXKEYS.USER_LOCATION, null);
+        });
+        const logWarnSpy = jest.spyOn(Log, 'warn').mockImplementation(() => {});
+        jest.mocked(TrackExpense.requestMoney).mockImplementationOnce(() => {
+            throw new Error('requestMoney failed');
+        });
+        const unhandledRejection = jest.fn();
+        process.on('unhandledRejection', unhandledRejection);
+        renderSubmitDetailsPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user confirms, the write throws after the device position was read, and the user confirms again
+        fireEvent.press(screen.getByTestId('mock-confirm-button'));
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByTestId('mock-confirm-button'));
+        await waitForBatchedUpdatesWithAct();
+        process.off('unhandledRejection', unhandledRejection);
+
+        // Then the failure resets the submit lock instead of surfacing as an unhandled rejection, because the device read is wrapped in a promise
+        // and a stuck lock would leave the confirm button loading with no retry
+        expect(unhandledRejection).not.toHaveBeenCalled();
+        expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(2);
+        logWarnSpy.mockRestore();
+    });
+
     // Error #5 — wide layout fallback: when destination is not topmost, reveal it via revealRouteBeforeDismissingModal
     // and defer navigation to cleanup (shouldNavigate: false) so we do not double-navigate after dismiss.
     it('wide layout: reveals destination via revealRouteBeforeDismissingModal when another report is topmost', async () => {
