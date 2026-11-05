@@ -260,7 +260,7 @@ type HandleActionButtonPressParams = {
     hash: number;
     item: TransactionListItemType | TransactionReportGroupListItemType;
     goToItem: () => void;
-    policyID?: string;
+    policyID: string | undefined;
     snapshotReport: Report;
     snapshotPolicy: Policy;
     submitterLogin: string | undefined;
@@ -2692,7 +2692,8 @@ function setOptimisticDataForTransactionThreadPreview(
     delegateAccountID: number | undefined,
     IOUTransactionID?: string,
 ) {
-    const {reportID, report, amount, currency, transactionID, created, policyID, from} = item;
+    const {reportID, report, amount, currency, transactionID, created, from} = item;
+    const policyID = report?.policyID;
     const moneyRequestReportActionID = item?.reportAction?.reportActionID;
     const {hasParentReport, hasParentReportAction, hasTransaction, hasTransactionThreadReport} = transactionPreviewData;
     const onyxUpdates: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [];
