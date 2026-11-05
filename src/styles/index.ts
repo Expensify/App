@@ -7246,8 +7246,8 @@ const dynamicStyles = (theme: ThemeColors) =>
                 ...positioning.pAbsolute,
                 top: variables.rhpFloatingCardMargin,
                 bottom: variables.rhpFloatingCardMargin,
-                width: CONST.RHP_RESIZE.HANDLE_HIT_WIDTH,
-                right: getSingleRHPWidthStyleValue(singleRHPWidth, RHP_FLOATING_CARD_INSET - CONST.RHP_RESIZE.HANDLE_HIT_WIDTH / 2),
+                width: CONST.RESIZE_HANDLE.PANE_HIT_WIDTH,
+                right: getSingleRHPWidthStyleValue(singleRHPWidth, RHP_FLOATING_CARD_INSET - CONST.RESIZE_HANDLE.PANE_HIT_WIDTH / 2),
             }) satisfies ViewStyle,
 
         // Floats the offline indicator above a footer laid over the bottom of a tab root screen, without shrinking the

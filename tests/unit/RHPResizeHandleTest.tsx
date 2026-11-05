@@ -218,13 +218,13 @@ describe('RHPResizeHandle', () => {
         firePointer('pointerMove', 970);
 
         // Then the line thickens, so the snap onto the default is visible before release
-        expect(readPaintedLineWidth()).toBe(`${CONST.RHP_RESIZE.SNAPPED_INDICATOR_WIDTH}px`);
+        expect(readPaintedLineWidth()).toBe(`${CONST.RESIZE_HANDLE.PANE_SNAPPED_INDICATOR_WIDTH}px`);
 
         // When it is dragged past the snap threshold
         firePointer('pointerMove', 930);
 
         // Then the line goes back to the pressed width, since the cards follow the pointer again
-        expect(readPaintedLineWidth()).toBe(`${CONST.RHP_RESIZE.ACTIVE_INDICATOR_WIDTH}px`);
+        expect(readPaintedLineWidth()).toBe(`${CONST.RESIZE_HANDLE.PANE_ACTIVE_INDICATOR_WIDTH}px`);
     });
 
     it('lets go of the default width once a drag passes the snap threshold', () => {
@@ -281,7 +281,7 @@ describe('RHPResizeHandle', () => {
         firePointer('pointerDown', 1000);
 
         // Then the line is a pixel wider than the hover one, so the press reads as grabbing the edge
-        expect(readLineWidth()).toBe(CONST.RHP_RESIZE.ACTIVE_INDICATOR_WIDTH);
+        expect(readLineWidth()).toBe(CONST.RESIZE_HANDLE.PANE_ACTIVE_INDICATOR_WIDTH);
 
         // When it is released
         firePointer('pointerUp', 1000);
