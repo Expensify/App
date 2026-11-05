@@ -326,7 +326,8 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
     const {sortedReportIDs} = useSearchResultsContext();
     const contextReports = useFilterPendingDeleteReports(sortedReportIDs).filter(isNavigableReportID);
 
-    const isLiveGuardSatisfied = isExpenseReportSearch && snapshotGuard.hasMultiple && snapshotGuard.includesReport;
+    const isReportInContextList = !!reportID && contextReports.length > 1 && contextReports.includes(reportID);
+    const isLiveGuardSatisfied = isExpenseReportSearch && ((snapshotGuard.hasMultiple && snapshotGuard.includesReport) || isReportInContextList);
 
     // Once the live snapshot has satisfied the guard during this mount, keep the inner component
     // mounted even if the guard later flips false (e.g. the current report is removed from the

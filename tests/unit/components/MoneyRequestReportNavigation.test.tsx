@@ -292,6 +292,40 @@ describe('MoneyRequestReportNavigation', () => {
             });
         });
     });
+
+    describe('to-do list', () => {
+        it('shows the arrows for a report the live list holds but the snapshot does not', () => {
+            // Given a to-do list like Drafts, which lists every live report while the snapshot holds only the first page from the server
+            mockOnNext = undefined;
+            const liveReportIDs = Array.from({length: 83}, (_, index) => `${index + 1}`);
+            const lastSearchQuery = {
+                queryJSON: {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, hash: 1},
+                offset: 0,
+                hasMoreResults: true,
+                previousLengthOfResults: liveReportIDs.length,
+            };
+            const snapshot = {
+                data: Object.fromEntries(liveReportIDs.slice(0, CONST.SEARCH.RESULTS_PAGE_SIZE).map((id) => [`${ONYXKEYS.COLLECTION.REPORT}${id}`, {reportID: id}])),
+                search: {isLoading: false, offset: 0, hasMoreResults: true},
+            };
+            mockSortedReportIDs = liveReportIDs;
+            mockUseOnyx.mockImplementation((key: string, options?: {selector?: (value: unknown) => unknown}) => {
+                const value = key === ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY ? lastSearchQuery : snapshot;
+                return [options?.selector ? options.selector(value) : value];
+            });
+
+            // When Next opens report 52, which remounts the navigation on a report outside the snapshot
+            render(
+                <MoneyRequestReportNavigation
+                    reportID="52"
+                    shouldDisplayNarrowVersion
+                />,
+            );
+
+            // Then the arrows still render, because they page through the live list rather than the snapshot
+            expect(mockOnNext).toBeDefined();
+        });
+    });
 });
 
 /** Renders the navigation for `reportID` with the first page of 50 reports in the snapshot, and returns the saved params it starts from. */
