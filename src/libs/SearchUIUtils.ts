@@ -152,6 +152,7 @@ import {
 } from './PolicyUtils';
 import {
     getIOUActionForReportID,
+    getIOUReportIDFromReportActionPreview,
     getOriginalMessage,
     isCreatedAction,
     isDeletedAction,
@@ -3915,6 +3916,23 @@ function getQuarterSections(
 }
 
 /**
+ * Chat search returns the actions of every report the user can access, including bills. Bills stay out of Search for
+ * every user until Search supports paying bills, so this removes the actions on bills and the previews that link to a bill.
+ */
+function omitBillReportActionRows(rows: ReportActionListItemType[], data: OnyxTypes.SearchResults['data']): ReportActionListItemType[] {
+    const isBill = (reportID: string | undefined) => {
+        if (!reportID) {
+            return false;
+        }
+
+        const report = data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+        return report?.reportID === reportID && report.type === CONST.REPORT.UNSUPPORTED_TYPE.BILL;
+    };
+
+    return rows.filter((row) => !isBill(row.reportID) && !isBill(getIOUReportIDFromReportActionPreview(row)));
+}
+
+/**
  * Organizes data into appropriate list sections for display based on the type of search results.
  */
 function getSections({
@@ -3948,7 +3966,9 @@ function getSections({
     shouldReturnTripRooms = false,
 }: GetSectionsParams): GetSectionsResult {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
-        return [...getReportActionsSections(data, reportAttributesDerivedValue, visibleReportActionsData), false];
+        // The count keeps the bill actions, because paging compares it with the server offset, which counts them.
+        const [reportActionRows, reportActionCount] = getReportActionsSections(data, reportAttributesDerivedValue, visibleReportActionsData);
+        return [omitBillReportActionRows(reportActionRows, data), reportActionCount, false];
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
         return [...getTaskSections(data, formatPhoneNumber, translate, conciergeReportID, reportNameValuePairs, reportAttributesDerivedValue, queryJSON), false];

@@ -2140,14 +2140,14 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Esperando a que un administrador solucione ellos problemas.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: (actor, actorType, _eta, _etaType) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: (actor, actorType, _eta, _etaType, isBill = false) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Esperando a que <strong>tú</strong> apruebes los gastos.`;
+                        return isBill ? `Esperando a que <strong>tú</strong> apruebes la factura.` : `Esperando a que <strong>tú</strong> apruebes los gastos.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Esperando a que <strong>${actor}</strong> apruebe los gastos.`;
+                        return isBill ? `Esperando a que <strong>${actor}</strong> apruebe la factura.` : `Esperando a que <strong>${actor}</strong> apruebe los gastos.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Esperando a que un administrador apruebe los gastos.`;
+                        return isBill ? `Esperando a que un administrador apruebe la factura.` : `Esperando a que un administrador apruebe los gastos.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (actor, actorType, _eta, _etaType) => {
@@ -2160,14 +2160,14 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Esperando a que un administrador exporte este informe.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: (actor, actorType, _eta, _etaType) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: (actor, actorType, _eta, _etaType, isBill = false) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Esperando a que <strong>tú</strong> pagues los gastos.`;
+                        return isBill ? `Esperando a que <strong>tú</strong> pagues esta factura.` : `Esperando a que <strong>tú</strong> pagues los gastos.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Esperando a que <strong>${actor}</strong> pague los gastos.`;
+                        return isBill ? `Esperando a que <strong>${actor}</strong> pague esta factura.` : `Esperando a que <strong>${actor}</strong> pague los gastos.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Esperando a que un administrador pague los gastos.`;
+                        return isBill ? `Esperando a que un administrador pague esta factura.` : `Esperando a que un administrador pague los gastos.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (_actor, _actorType, eta, etaType) => {
@@ -3045,7 +3045,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: 'Verifica información adicional',
                 subtitle: 'Nuestro socio de pagos necesita más información directamente. Esto solo te llevará un par de minutos.',
             },
+            inReview: {
+                title: 'En revisión',
+                heading: 'Tenemos lo que necesitamos.\n¡Sabrás de nosotros!',
+                description: 'La mayoría de las revisiones tardan de uno a dos días. Te enviaremos un mensaje con una actualización.',
+                chatWithConcierge: 'Chatea con Concierge',
+            },
+            approved: {title: 'Cuenta aprobada', heading: 'Aprobada para pagar en todo el mundo', description: 'Paga a los miembros estén donde estén.'},
+            rejected: {title: 'Cuenta bancaria rechazada', heading: 'Nuestro socio rechazó tu cuenta bancaria', description: 'Chatea con Concierge para más información.'},
         },
+        wiseSetupInProgress: {message: 'Configuración de reembolsos globales en curso.', continue: 'Continuar.'},
         wiseGlobalReimbursementsIntro: {
             title: '¿Configurar reembolsos globales?',
             subtitle: 'Paga a miembros de todo el mundo en su moneda local.',
@@ -9238,8 +9247,9 @@ ${reportName}`,
                 describeRuleForConcierge: 'Describe tu regla y Concierge la creará',
                 gotIt: 'Entendido',
                 createRule: 'Crear regla',
-                fallbackBanner: 'Esta no es una regla estándar, así que redactamos una regla de agente.',
-                fallbackBannerWithExplanation: (explanation: string) => `Esta no es una regla estándar, así que redactamos una regla de agente. ${explanation}`,
+                fallbackBanner: 'Esta no es una regla estándar, así que redactamos una regla de agente. Las reglas de agente se ejecutan cuando se crea o actualiza un gasto o un informe.',
+                fallbackBannerWithExplanation: (explanation: string) =>
+                    `Esta no es una regla estándar, así que redactamos una regla de agente. Las reglas de agente se ejecutan cuando se crea o actualiza un gasto o un informe. ${explanation}`,
             },
             tabs: {
                 general: 'General',
@@ -13123,5 +13133,28 @@ ${reportName}`,
         mobileClaimPrompt: 'Visita Expensify en tu navegador web para obtener tu descuento de renovación.',
     },
     bulkActionBar: {label: 'Acciones en bloque', clearSelection: 'Borrar selección', loadingSelection: 'Cargando selección'},
+    reportHistoryPage: {
+        title: 'Historial del informe',
+        created: 'creó el informe',
+        submitted: 'envió',
+        approved: 'aprobó',
+        paid: 'pagó',
+        toSubmit: 'enviar',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return 'enviar automáticamente';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `enviar automáticamente el día ${eta} de cada mes` : `enviar automáticamente ${eta}`;
+        },
+        toApprove: 'aprobar',
+        toPay: 'pagar',
+        minutesAgo: (count: number) => `hace ${count} min`,
+        hoursAgo: (count: number) => `hace ${count} h`,
+        daysAgo: () => ({
+            one: 'hace 1 d',
+            other: (count: number) => `hace ${count} d`,
+        }),
+        offlineMessage: 'Estás sin conexión. El historial de informes puede estar desactualizado.',
+    },
 };
 export default translations;

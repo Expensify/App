@@ -203,6 +203,7 @@ import type ReportMetadata from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
 import type LastSearchParams from './ReportNavigation';
 import type ReportPaginationState from './ReportPaginationState';
+import type ReportUpcomingSteps from './ReportUpcomingSteps';
 import type ReportUserIsTyping from './ReportUserIsTyping';
 import type ReportViolationName from './ReportViolationName';
 import type Request from './Request';
@@ -259,6 +260,7 @@ import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
+import type WiseBankAccountFields from './WiseBankAccountFields';
 import type {WiseKYCReviewEmbeddedLink} from './WiseKYCReview';
 import type WorkspaceMembersSelectedForBulkEdit from './WorkspaceMembersSelectedForBulkEdit';
 import type WorkspaceMembersSelectedForRoleChange from './WorkspaceMembersSelectedForRoleChange';
@@ -404,6 +406,7 @@ export type {
     ReportLoadingState,
     ReportMetadata,
     ReportPaginationState,
+    ReportUpcomingSteps,
     ReportViolationName,
     ReportLayoutGroupBy,
     ReportLayoutOption,
@@ -490,6 +493,7 @@ export type {
     VerifyValidateCodeAction,
     ShareTempFile,
     CorpayFields,
+    WiseBankAccountFields,
     WiseKYCReviewEmbeddedLink,
     CorpayFormField,
     DynamicFormAddressField,

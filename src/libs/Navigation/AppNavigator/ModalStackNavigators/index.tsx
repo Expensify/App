@@ -33,6 +33,7 @@ import type {
     ReportChangeApproverParamList,
     ReportChangeWorkspaceNavigatorParamList,
     ReportDescriptionNavigatorParamList,
+    ReportHistoryNavigatorParamList,
     ReportDetailsNavigatorParamList,
     ReportSettingsNavigatorParamList,
     RestrictedActionParamList,
@@ -346,6 +347,10 @@ const ReportDescriptionModalStackNavigator = createModalStackNavigator<ReportDes
     [SCREENS.DYNAMIC_REPORT_DESCRIPTION]: () => require<ReactComponentModule>('../../../../pages/ReportDescriptionPage').default,
 });
 
+const ReportHistoryModalStackNavigator = createModalStackNavigator<ReportHistoryNavigatorParamList>({
+    [SCREENS.DYNAMIC_REPORT_HISTORY]: () => require<ReactComponentModule>('../../../../pages/ReportHistoryPage').default,
+});
+
 const ChronosScheduleOOOModalStackNavigator = createModalStackNavigator<ChronosScheduleOOONavigatorParamList>({
     [SCREENS.CHRONOS_SCHEDULE_OOO_ROOT]: () => require<ReactComponentModule>('../../../../pages/ChronosScheduleOOOPage').default,
 });
@@ -511,6 +516,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ACCEPT_TERMS]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseAcceptTermsPage').default,
     [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_MORE_INFO_NEEDED]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseMoreInfoNeededPage').default,
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ONBOARDING_STATUS]: () =>
+        require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseOnboardingStatusPage').default,
     [SCREENS.SETTINGS.WALLET.DYNAMIC_BANK_ACCOUNT_LINK_PLAID]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/LinkPlaidToBankAccountPage').default,
     [SCREENS.SETTINGS.WALLET.TRAVEL_CVV]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/TravelCVVPage/TravelCVVPage').default,
     [SCREENS.SETTINGS.WALLET.TRAVEL_CVV_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/TravelCVVPage/TravelCVVVerifyAccountPage').default,
@@ -1596,6 +1603,7 @@ export {
     ReportChangeWorkspaceModalStackNavigator,
     ChronosScheduleOOOModalStackNavigator,
     ReportDescriptionModalStackNavigator,
+    ReportHistoryModalStackNavigator,
     ReportDetailsModalStackNavigator,
     ReportParticipantsModalStackNavigator,
     ReportSettingsModalStackNavigator,
