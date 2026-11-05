@@ -6,6 +6,7 @@ import type {FormValue} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useLocalize from '@hooks/useLocalize';
@@ -43,6 +44,11 @@ type WiseDepositAccountContentProps = {
 };
 
 const onSuccessFallbackRouteSelector = (personalBankAccount: OnyxEntry<PersonalBankAccount>) => personalBankAccount?.onSuccessFallbackRoute;
+
+function TermsOfServiceLabel() {
+    const {translate} = useLocalize();
+    return <RenderHTML html={translate('common.acceptTermsOfService')} />;
+}
 
 const COUNTRIES = Object.keys(CONST.ALL_COUNTRIES).filter((countryISO) => !CONST.WISE.EXCLUDED_BANK_ACCOUNT_COUNTRIES.includes(countryISO));
 
@@ -192,6 +198,12 @@ function WiseDepositAccountContent({backTo, subPage}: WiseDepositAccountContentP
                 formID={ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM}
                 headerTitle={translate('bankAccount.addBankAccount')}
                 confirmationTitle={translate('addPersonalBankAccount.confirmationStepHeader')}
+                confirmationSubtitle={translate('addPersonalBankAccount.confirmationStepSubHeader')}
+                confirmationTerms={{
+                    LabelComponent: TermsOfServiceLabel,
+                    accessibilityLabel: `${translate('common.iAcceptThe')} ${translate('common.addCardTermsOfService')}`,
+                    errorText: translate('common.error.acceptTerms'),
+                }}
                 testID="WiseDepositAccountContent"
                 buildRoute={(pageName, action) => ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(backTo, pageName, action)}
                 currency={wiseBankAccountFields.currency}

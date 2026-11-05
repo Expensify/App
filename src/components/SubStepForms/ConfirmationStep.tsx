@@ -18,6 +18,8 @@ import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 
 import CONST from '@src/CONST';
 
+import type {ReactNode} from 'react';
+
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -131,6 +133,9 @@ type ConfirmationStepProps = SubPageProps &
 
         /** Whether screen readers hear that Confirm is in progress, and hear the error after each Confirm press */
         shouldAnnounceSubmitState?: boolean;
+
+        /** Drawn between the summary and the Confirm button, for a consent checkbox or a note */
+        children?: ReactNode;
     };
 
 function ConfirmationStep({
@@ -147,6 +152,7 @@ function ConfirmationStep({
     shouldMarkTitleAsHeading = false,
     shouldAnnounceSubmitState = false,
     forwardedFSClass,
+    children,
 }: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -255,6 +261,7 @@ function ConfirmationStep({
             )}
 
             <View style={[styles.ph5, styles.mt5, styles.flexGrow1, styles.justifyContentEnd]}>
+                {children}
                 {!!error && error.length > 0 && (
                     <DotIndicatorMessage
                         textStyles={[styles.formError]}

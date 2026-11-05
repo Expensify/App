@@ -51,6 +51,8 @@ function DynamicFormFlow({
     formID,
     headerTitle,
     confirmationTitle,
+    confirmationSubtitle,
+    confirmationTerms,
     testID,
     buildRoute,
     shouldReplaceRoute,
@@ -372,6 +374,8 @@ function DynamicFormFlow({
                     onListItemSave={saveListItem}
                     onListItemsChange={changeListItems}
                     confirmationTitle={confirmationTitle}
+                    confirmationSubtitle={confirmationSubtitle}
+                    confirmationTerms={confirmationTerms}
                     isSubmitting={isSubmitting}
                     submitError={submitError}
                     isSavingPages={isSavingPages}

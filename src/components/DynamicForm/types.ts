@@ -5,6 +5,8 @@ import type {SubPageProps, UseSubPageProps} from '@hooks/useSubPage/types';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {DynamicFormField, DynamicFormFieldType, DynamicFormPage, DynamicFormSchema} from '@src/types/onyx';
 
+import type {ComponentType} from 'react';
+
 import type {DynamicFormFieldsProps} from './components/DynamicFormFields';
 
 /** Current answers keyed by draft key. Address parts sit under `<fieldKey>.<part>`. */
@@ -28,6 +30,12 @@ type DynamicFormFlowProps = Pick<DynamicFormFieldsProps, 'currency' | 'maxFileSi
 
     /** Title of the confirmation page */
     confirmationTitle: string;
+
+    /** Text under the confirmation page's title */
+    confirmationSubtitle?: string;
+
+    /** A consent checkbox above the Confirm button. Confirm shows `errorText` under it and submits nothing until it is ticked. */
+    confirmationTerms?: DynamicFormConfirmationTerms;
 
     /** testID of the screen wrapper */
     testID: string;
@@ -85,6 +93,18 @@ type DynamicFormFlowProps = Pick<DynamicFormFieldsProps, 'currency' | 'maxFileSi
     shouldDisableNextWhenOffline?: boolean;
 };
 
+/** A consent the user ticks on the confirmation page, such as accepting the terms of service */
+type DynamicFormConfirmationTerms = {
+    /** Draws the text beside the checkbox, so it can hold a link */
+    LabelComponent: ComponentType;
+
+    /** What screen readers call the checkbox, since its label is a component */
+    accessibilityLabel: string;
+
+    /** Shown under the checkbox when Confirm is pressed without ticking it */
+    errorText: string;
+};
+
 /** Props of every page in the flow: useSubPage's routing props plus the form's data */
 type DynamicFormSubPageProps = SubPageProps &
     Pick<
@@ -94,6 +114,8 @@ type DynamicFormSubPageProps = SubPageProps &
         | 'maxFileSize'
         | 'onRefreshRequirements'
         | 'confirmationTitle'
+        | 'confirmationSubtitle'
+        | 'confirmationTerms'
         | 'isSubmitting'
         | 'submitError'
         | 'isSavingPages'
@@ -122,4 +144,4 @@ type DynamicFormSubPageProps = SubPageProps &
         onListItemSave: (listKey: string, itemID: string | undefined, answers: DynamicFormValues) => void;
     };
 
-export type {DynamicFormFieldOfType, DynamicFormFlowProps, DynamicFormLayout, DynamicFormSubPageProps, DynamicFormValues};
+export type {DynamicFormConfirmationTerms, DynamicFormFieldOfType, DynamicFormFlowProps, DynamicFormLayout, DynamicFormSubPageProps, DynamicFormValues};

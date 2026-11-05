@@ -291,6 +291,12 @@ type DynamicFormContentItem = DynamicFormHeading | DynamicFormLink | DynamicForm
 type DynamicFormPage = DynamicFormHeading & {
     /** The headings and fields shown on this page */
     content: DynamicFormContentItem[];
+
+    /** The schema author's name for the page's section on the confirmation page, shown when there is no sectionTitleKey. Without either, the page title names the section. */
+    sectionTitle?: string;
+
+    /** Translation of `sectionTitle`, used instead of it when set */
+    sectionTitleKey?: TranslationPaths;
 };
 
 /** What a multi-page form is built from: pages as the server groups them, or a flat list of fields the App paginates */
