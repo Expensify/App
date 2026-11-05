@@ -8,6 +8,7 @@ import Parser from '@libs/Parser';
 import {
     getChangedApproverActionMessage,
     getDelegateSubmitMessage,
+    getReportActionActorAccountID,
     getSortedReportActions,
     hasPendingDEWApprove,
     hasPendingDEWSubmit,
@@ -56,7 +57,7 @@ function getCompletedStep(
     currentUserEmail: string | undefined,
     reportOwnerAccountID: number | undefined,
 ): ReportHistoryStep | undefined {
-    const step = {key: reportAction.reportActionID, accountID: reportAction.actorAccountID, created: reportAction.created, isUpcoming: false};
+    const step = {key: reportAction.reportActionID, accountID: getReportActionActorAccountID(reportAction, undefined, undefined), created: reportAction.created, isUpcoming: false};
 
     if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATED)) {
         return {...step, accountID: reportAction.actorAccountID ?? reportOwnerAccountID, icon: 'Receipt', label: translate('reportHistoryPage.created')};
