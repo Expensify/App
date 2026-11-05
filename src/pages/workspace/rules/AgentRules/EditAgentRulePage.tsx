@@ -92,8 +92,9 @@ function EditAgentRulePage({
 
     const inputWrapperStyles = useAgentPromptInputStyles();
 
+    // The save at the end of the check goes back one page. If the delete confirmation is open at that time, the delete goes back one more page.
     const {deleteIconButtonProps} = useRuleDeleteHeaderProps({
-        canDelete: !!policy && !!agentRule && agentRule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        canDelete: !!policy && !!agentRule && agentRule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isChecking,
         onDelete: () => {
             if (!policy) {
                 return false;

@@ -11,6 +11,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import AddAgentRuleWriteTab from '@pages/workspace/rules/AgentRules/AddAgentRuleWriteTab';
 import EditAgentRulePage from '@pages/workspace/rules/AgentRules/EditAgentRulePage';
+import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
 import {updatePolicyAgentRule} from '@userActions/Policy/Rules';
 
@@ -457,6 +458,26 @@ describe('Agent rule prompt check', () => {
             expect(updatePolicyAgentRule).not.toHaveBeenCalled();
             await submit(TYPED_PROMPT, 'workspace.rules.agentRules.saveAnyway');
             expect(updatePolicyAgentRule).toHaveBeenCalledWith(POLICY_ID, RULE_ID, TYPED_PROMPT, SAVED_PROMPT, 'Receipts');
+        });
+
+        it('hides the delete button during the check', async () => {
+            // Given an admin who opened a saved agent rule, and an API that applies the loading state of the check
+            writeSpy.mockImplementation((_command, _parameters, onyxData) => {
+                Onyx.update(onyxData?.optimisticData ?? []);
+                return Promise.resolve();
+            });
+            await renderEditPage();
+            expect(jest.mocked(useRuleDeleteHeaderProps).mock.lastCall?.[0].canDelete).toBe(true);
+
+            // When the admin saves a changed rule and the check starts
+            await submit(TYPED_PROMPT, 'common.save');
+
+            // Then the admin cannot delete, because the save at the end of the check goes back one page under the confirmation
+            expect(jest.mocked(useRuleDeleteHeaderProps).mock.lastCall?.[0].canDelete).toBe(false);
+
+            // And the admin can delete again after Concierge answers
+            await answerCheck(buildImpossibleAnswer(getLastGenerationID(writeSpy)));
+            expect(jest.mocked(useRuleDeleteHeaderProps).mock.lastCall?.[0].canDelete).toBe(true);
         });
     });
 });
