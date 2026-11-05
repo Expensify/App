@@ -106,9 +106,6 @@ type SelectedTransactionInfo = {
     /** The group key this transaction belongs to when in a grouped view */
     groupKey?: string;
 
-    /** Whether the transaction was selected through its group header */
-    isSelectedViaGroup?: boolean;
-
     /** Whether every transaction in the group is selected. False when a `limit:` left some of the group unloaded. */
     isEntireGroupSelected?: boolean;
 };

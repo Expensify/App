@@ -217,29 +217,36 @@ function getRestrictedPolicyID(
         );
 }
 
-function isGroupSelection(key: string, transaction: SelectedTransactions[string]): boolean {
-    return key.startsWith(CONST.SEARCH.GROUP_PREFIX) || (!!transaction.isSelectedViaGroup && !!transaction.groupKey);
+/**
+ * Groups selected under their own key, because some of their expenses have not loaded.
+ * Export uses this instead of `getSelectedGroupKeys`, which only covers a whole-group delete.
+ */
+function getUnloadedGroupSelectionKeys(selectedTransactions: SelectedTransactions): SearchGroupKey[] {
+    return Object.keys(selectedTransactions).filter(isGroupEntry);
 }
 
-function hasAnyGroupSelection(selectedTransactions: SelectedTransactions): boolean {
-    return Object.entries(selectedTransactions).some(([key, transaction]) => isGroupSelection(key, transaction));
+/**
+ * Whether a group is selected under its own key, which is how a group stays selected until every one of its expenses
+ * has loaded. Once they have, the selection holds those expenses instead.
+ */
+function hasAnyUnloadedGroupSelection(selectedTransactions: SelectedTransactions): boolean {
+    return getUnloadedGroupSelectionKeys(selectedTransactions).length > 0;
 }
 
 /**
  * How a selection on a grouped search has to be exported.
  *
- * Selecting a group stores its loaded children with isSelectedViaGroup. The group key is only stored when no children are loaded.
- * Use isGroupSelection rather than the key prefix so exports include every item matching the group filter.
+ * A group whose expenses have not all loaded is exported as a filter, so the export reaches the ones that are not loaded.
  *
  * `transactionIDList` drops the rows covered by that filter and keeps the rows the user ticked individually
  * alongside them.
  */
 function getGroupExportScope(queryJSON: SearchQueryJSON | undefined, selectedTransactions: SelectedTransactions): {isGroupExport: boolean; transactionIDList: string[]} {
     const selectedTransactionsKeys = Object.keys(selectedTransactions);
-    const isGroupExport = !!queryJSON?.groupBy && hasAnyGroupSelection(selectedTransactions);
+    const isGroupExport = !!queryJSON?.groupBy && hasAnyUnloadedGroupSelection(selectedTransactions);
     return {
         isGroupExport,
-        transactionIDList: isGroupExport ? selectedTransactionsKeys.filter((key) => !isGroupSelection(key, selectedTransactions[key])) : selectedTransactionsKeys,
+        transactionIDList: isGroupExport ? selectedTransactionsKeys.filter((key) => !isGroupEntry(key)) : selectedTransactionsKeys,
     };
 }
 
@@ -307,34 +314,13 @@ function getFullyDeletedGroupKeysByTransactionID(selectedTransactions: SelectedT
     return byTransactionID;
 }
 
-/**
- * Groups the user selected through a group header, including when `limit:` left children unloaded.
- * Export uses this instead of `getSelectedGroupKeys`, which only covers a whole-group delete.
- */
-function getGroupKeysSelectedViaGroup(selectedTransactions: SelectedTransactions): SearchGroupKey[] {
-    const groupKeys = new Set<SearchGroupKey>();
-
-    for (const [key, transaction] of Object.entries(selectedTransactions)) {
-        if (isGroupEntry(key)) {
-            groupKeys.add(key);
-            continue;
-        }
-        if (!transaction.isSelectedViaGroup || !transaction.groupKey || !isGroupEntry(transaction.groupKey)) {
-            continue;
-        }
-        groupKeys.add(transaction.groupKey);
-    }
-
-    return [...groupKeys];
-}
-
 function addSelectedGroupsFilter(queryJSON: SearchQueryJSON, selectedTransactions: SelectedTransactions, searchData: SearchResultDataType | undefined): SearchQueryJSON {
     const {groupBy} = queryJSON;
     if (!groupBy || !searchData) {
         return queryJSON;
     }
 
-    const groupKeys = getGroupKeysSelectedViaGroup(selectedTransactions);
+    const groupKeys = getUnloadedGroupSelectionKeys(selectedTransactions);
     if (groupKeys.length === 0) {
         return queryJSON;
     }
@@ -2232,7 +2218,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const exportOptions: ExportMenuItem[] = [];
 
             const isReportsTab = isExpenseReportType;
-            const includesGroupExport = isGroupedSearch && hasAnyGroupSelection(selectedTransactions);
+            const includesGroupExport = isGroupedSearch && hasAnyUnloadedGroupSelection(selectedTransactions);
             // A template export sends a group selection as a filter on the ungrouped query (see `getTemplateGroupExportQuery`), alongside any individually picked expenses.
             // Groupings with no such filter (the time-based ones) would fail that export, so they keep only "Current view".
             const canExportGroupWithTemplates = !includesGroupExport || (!!groupBy && TEMPLATE_EXPORTABLE_GROUP_BYS.has(groupBy));
@@ -2754,6 +2740,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return buildResult(allMatchingOptions);
         }
 
+        // A group whose expenses have not all loaded reaches the rest only through an export, which sends the group as a
+        // filter. Every other action works on the loaded expenses alone, so it would leave the rest of the group behind.
+        if (getValidGroupBy(queryJSON?.groupBy) && hasAnyUnloadedGroupSelection(selectedTransactions)) {
+            return buildResult([exportButtonOption]);
+        }
+
         if (allSelectedAreDeleted) {
             const deletedTransactionOptions: Array<DropdownOption<SearchHeaderOptionValue>> = [
                 {
@@ -2792,9 +2784,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         const selectedTransactionsList = Object.values(selectedTransactions)
             .map((transaction) => transaction.transaction)
             .filter((transaction): transaction is Transaction => !!transaction);
-        // A group selection covers expenses that may not be loaded, so editing only the loaded ones would leave the rest of the group behind.
         const canEditMultiple =
-            !hasAnyGroupSelection(selectedTransactions) &&
             canEditMultipleTransactions(selectedTransactionsList, allReportActions, allReports, policies, rules, isExpenseReportSearch, searchResults?.data) &&
             isBetaEnabled(CONST.BETAS.BULK_EDIT);
 
@@ -3555,5 +3545,5 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 }
 
 export default useSearchBulkActions;
-export {getFullyDeletedGroupKeysByTransactionID, getGroupKeysSelectedViaGroup, getSelectedGroupKeys, shouldShowBulkDuplicateOption};
+export {getFullyDeletedGroupKeysByTransactionID, getUnloadedGroupSelectionKeys, getSelectedGroupKeys, shouldShowBulkDuplicateOption};
 export type {SearchHeaderOptionValue};

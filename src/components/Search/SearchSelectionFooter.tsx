@@ -369,18 +369,12 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
     const defaultFooterCountType = getDefaultFooterCount(currentSearchQueryJSON?.type);
 
     // A group row selected as a whole is out of scope for now, pending the backend returning breakdowns per group. It
-    // reaches the selection one of two ways: as a single group entry when its expenses are not loaded, or as those
-    // expenses each flagged `isSelectedViaGroup` when they are. The flag is cleared as soon as one of them is toggled
-    // off, so a part-deselected group counts as an individual selection again and keeps both selectors.
+    // is held as a single group entry until every one of its expenses has loaded. From then on the selection holds
+    // those expenses, which the footer can count and sum like any other, so both selectors come back.
     //
-    // Only a grouped search is affected. A Reports search carries the same flag, because a report row is a group row
-    // there, but a report is that search's natural unit and its expenses are exactly what the selection holds.
-    const hasGroupSelection =
-        isGroupedSearch &&
-        (selectedTransactionsKeys.some(isGroupEntry) ||
-            excludedTransactionsKeys.some(isGroupEntry) ||
-            selectedTransactionsKeys.some((key) => selectedTransactions[key]?.isSelectedViaGroup) ||
-            excludedTransactionsKeys.some((key) => excludedTransactions[key]?.isSelectedViaGroup));
+    // Only a grouped search is affected. A report row is a group row on a Reports search, but a report is that
+    // search's natural unit and its expenses are exactly what the selection holds.
+    const hasGroupSelection = isGroupedSearch && (selectedTransactionsKeys.some(isGroupEntry) || excludedTransactionsKeys.some(isGroupEntry));
 
     // The other case with no answer to give: the whole-search report count comes from the server, and a search that
     // returned none of it (a grouped search, or a to-do search counting live Onyx data) has nothing to switch to.

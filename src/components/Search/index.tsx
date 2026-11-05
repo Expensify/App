@@ -125,6 +125,7 @@ import {useRegisterSearchScrollView, useSearchListScrollLockStyle} from './Searc
 import {SearchScopeProvider} from './SearchScopeProvider';
 import SearchTableHeader from './SearchTableHeader';
 import SearchWriteActionsProvider from './SearchWriteActionsProvider';
+import {getSearchGroupCount, getSearchGroupCountByKey, shouldSelectGroupUnderOwnKey} from './selectionBuilders';
 import TaskSearchView from './TaskSearchView';
 import TripSearchView from './TripSearchView';
 
@@ -640,9 +641,15 @@ function Search({
             // For groups with transactions, count all transactions except pending delete ones
             const selectableTransactions = item.transactions.filter((transaction) => !isTransactionPendingDelete(transaction));
 
+            // A group with rows left to load is selected under its own key, so it counts once
+            const groupCount = getSearchGroupCount(item) ?? getSearchGroupCountByKey(searchResults?.data, item.keyForList);
+            if (shouldSelectGroupUnderOwnKey(groupCount, item.transactions, isExpenseReportType)) {
+                return count + 1;
+            }
+
             return count + selectableTransactions.length;
         }, 0);
-    }, [areItemsGrouped, filteredData]);
+    }, [areItemsGrouped, filteredData, isExpenseReportType, searchResults?.data]);
 
     const carouselSiblingTransactionIDs = useMemo(
         () =>
