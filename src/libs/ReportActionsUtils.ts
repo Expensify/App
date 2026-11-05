@@ -3484,7 +3484,9 @@ function isActionableCardFraudAlert(reportAction: OnyxInputOrEntry<ReportAction>
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT;
 }
 
-/** Whether the action records a payment that ReimburseReport or MarkReimbursed made */
+/**
+ * Whether the action records a payment that ReimburseReport or MarkReimbursed made
+ */
 function isPaymentRecordedByReimbursedAction(
     reportAction: OnyxEntry<ReportAction>,
 ): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED | typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> {
