@@ -12872,7 +12872,6 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             }
             return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `inviare automaticamente il ${eta} di ogni mese` : `inviare automaticamente ${eta}`;
         },
-        toMarkAsDone: 'segnare come completata',
         toApprove: 'approvare',
         toPay: 'pagare',
         minutesAgo: (count: number) => `${count} min fa`,

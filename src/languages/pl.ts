@@ -12866,7 +12866,6 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             }
             return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `automatycznie przesłać ${eta} dnia każdego miesiąca` : `automatycznie przesłać ${eta}`;
         },
-        toMarkAsDone: 'oznaczyć jako wykonane',
         toApprove: 'zatwierdzić',
         toPay: 'zapłacić',
         minutesAgo: (count: number) => `${count} min temu`,

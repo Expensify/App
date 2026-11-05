@@ -12838,7 +12838,6 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             }
             return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `automatisch indienen op de ${eta} van elke maand` : `${eta} automatisch indienen`;
         },
-        toMarkAsDone: 'markeren als voltooid',
         toApprove: 'goedkeuren',
         toPay: 'betalen',
         minutesAgo: (count: number) => `${count} min geleden`,

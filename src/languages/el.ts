@@ -13153,7 +13153,6 @@ ${reportName}`,
             }
             return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `να υποβάλει αυτόματα στις ${eta} κάθε μήνα` : `να υποβάλει αυτόματα ${eta}`;
         },
-        toMarkAsDone: 'να σημειώσει ως ολοκληρωμένο',
         toApprove: 'να εγκρίνει',
         toPay: 'να πληρώσει',
         minutesAgo: (count: number) => `πριν από ${count} λεπ.`,
