@@ -122,7 +122,7 @@ describe('Insights chart CSV action', () => {
     );
 });
 
-describe('Insights chart press', () => {
+describe('Insights chart view and press', () => {
     beforeAll(() => Onyx.init({keys: ONYXKEYS}));
 
     beforeEach(async () => {
@@ -133,6 +133,34 @@ describe('Insights chart press', () => {
     });
 
     afterEach(() => Onyx.clear());
+
+    it.each([
+        {hasComparison: false, expectedView: CONST.SEARCH.VIEW.PIE},
+        {hasComparison: true, expectedView: CONST.SEARCH.VIEW.BAR},
+    ])('renders multiple tags as $expectedView with comparison=$hasComparison', async ({hasComparison, expectedView}) => {
+        // Given multiple tag results, optionally paired with historical groups.
+        const chart = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND].supportingCharts.find(({graphKey}) => graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS);
+        if (!chart) {
+            throw new Error('Missing Top tags chart');
+        }
+        const data: GroupedItem[] = ['Marketing', 'Sales'].map((tag) => ({
+            groupedBy: CONST.SEARCH.GROUP_BY.TAG,
+            tag,
+            keyForList: tag,
+            total: 10000,
+            count: 1,
+            currency: CONST.CURRENCY.USD,
+            transactions: [],
+        }));
+        jest.mocked(useInsightsChartData).mockReturnValue({data, state: INSIGHTS_CHART_STATE.READY, comparison: hasComparison ? {data, color: '#000000'} : undefined});
+
+        // When the Top tags widget renders the selected comparison.
+        renderWidget(CONST.INSIGHTS.DASHBOARD.SPEND, chart);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then ordinary rankings use a donut while comparisons retain paired bars.
+        expect(jest.mocked(SearchChartView).mock.lastCall?.[0]).toMatchObject({view: expectedView, shouldShowSinglePointAsBar: true});
+    });
 
     it('opens the Details panel for the pressed period on the Spend dashboard', async () => {
         // Given a Spend chart plotting February, for a user on the beta the panel ships behind
@@ -174,7 +202,7 @@ describe('Insights chart press', () => {
         await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.INSIGHTS_AI]);
 
         // When the tag chart renders on the Spend dashboard.
-        renderWidget(CONST.INSIGHTS.DASHBOARD.SPEND, {...CHART, graphKey: CONST.INSIGHTS.GRAPH.TOP_TAGS, groupBy: CONST.SEARCH.GROUP_BY.TAG, view: CONST.SEARCH.VIEW.BAR});
+        renderWidget(CONST.INSIGHTS.DASHBOARD.SPEND, {...CHART, graphKey: CONST.INSIGHTS.GRAPH.TOP_TAGS, groupBy: CONST.SEARCH.GROUP_BY.TAG, view: CONST.SEARCH.VIEW.PIE});
         await waitForBatchedUpdatesWithAct();
 
         // Then tags retain the existing level-aware Search drill-down instead of a Details handler that does nothing.

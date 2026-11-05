@@ -27,7 +27,7 @@ describe('Home tag insight', () => {
 
         // Then the widget uses the same positional scope as Insights, not a legacy full-tag query
         expect(tags?.icon).toBe('Tag');
-        expect(tags?.searchQueryJSON).toMatchObject({groupBy: 'tag', tagLevel: 2, limit: CONST.SEARCH.TOP_SEARCH_LIMIT});
+        expect(tags?.searchQueryJSON).toMatchObject({groupBy: 'tag', tagLevel: 2, limit: CONST.SEARCH.TOP_SEARCH_LIMIT, view: CONST.SEARCH.VIEW.PIE});
         expect(tags?.searchQuery).toContain('policyID:A1');
         expect(result.current.tagPolicyIDs).toEqual(['A1']);
     });

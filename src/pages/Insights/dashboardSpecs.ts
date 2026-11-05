@@ -93,7 +93,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             {
                 graphKey: CONST.INSIGHTS.GRAPH.TOP_TAGS,
                 titleKey: 'search.tabs.topTags',
-                view: CONST.SEARCH.VIEW.BAR,
+                view: CONST.SEARCH.VIEW.PIE,
                 groupBy: CONST.SEARCH.GROUP_BY.TAG,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,

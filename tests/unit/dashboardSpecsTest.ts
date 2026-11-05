@@ -6,6 +6,19 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import createRandomPolicy from '../utils/collections/policies';
 
 describe('Insights dashboard charts', () => {
+    it('uses the same pie chart configuration for Top tags and Top categories', () => {
+        // Given the Spend dashboard's ranking charts.
+        const charts = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND].supportingCharts;
+
+        // When selecting the category and tag charts.
+        const categoryChart = charts.find(({graphKey}) => graphKey === CONST.INSIGHTS.GRAPH.TOP_CATEGORIES);
+        const tagChart = charts.find(({graphKey}) => graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS);
+
+        // Then both use donuts, with single-result and comparison fallbacks handled by the shared chart components.
+        expect(categoryChart?.view).toBe(CONST.SEARCH.VIEW.PIE);
+        expect(tagChart?.view).toBe(CONST.SEARCH.VIEW.PIE);
+    });
+
     it.each([
         {policyIDs: [], type: CONST.POLICY.TYPE.CORPORATE, areTagsEnabled: true, shouldShowTags: true},
         {policyIDs: ['enabled'], type: CONST.POLICY.TYPE.CORPORATE, areTagsEnabled: true, shouldShowTags: true},
