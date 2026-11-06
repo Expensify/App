@@ -5802,7 +5802,7 @@ const CONST = {
         'Sage Intacct': 'https://help.expensify.com/articles/new-expensify/connections/sage-intacct/Configure-Sage-Intacct',
         Certinia: 'https://help.expensify.com/articles/expensify-classic/connections/certinia/Connect-To-Certinia',
         MERGE_EXPENSES: 'https://help.expensify.com/articles/new-expensify/reports-and-expenses/Merging-expenses',
-        MANAGING_WORKSPACE_MEMBERS: 'https://help.expensify.com/articles/new-expensify/workspaces/Managing-Workspace-Members',
+        WORKSPACE_ROLES_AND_PERMISSIONS: 'https://help.expensify.com/articles/new-expensify/workspaces/Understand-Workspace-Roles-and-Permissions',
     },
 
     CUSTOM_UNITS: {

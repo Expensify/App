@@ -5551,7 +5551,7 @@ ${amount} για ${merchant} - ${date}`,
             newRoles: 'Νέοι ρόλοι',
             adminRoles: 'Ρόλοι διαχειριστή',
             otherRoles: 'Άλλοι ρόλοι',
-            roleSelectorDescription: `Αναθέστε έναν ρόλο για τη διαχείριση των δικαιωμάτων χώρου εργασίας ενός μέλους. <a href="${CONST.HELP_DOC_LINKS.MANAGING_WORKSPACE_MEMBERS}">Συγκρίνετε ρόλους χώρου εργασίας</a>.`,
+            roleSelectorDescription: `Αναθέστε έναν ρόλο για τη διαχείριση των δικαιωμάτων χώρου εργασίας ενός μέλους. <a href="${CONST.HELP_DOC_LINKS.WORKSPACE_ROLES_AND_PERMISSIONS}">Συγκρίνετε ρόλους χώρου εργασίας</a>.`,
             roleSelectorFeedback: '<muted-text-label><centered-text>Δεν βλέπετε τον ρόλο που χρειάζεστε; <concierge-link>Ενημερώστε μας</concierge-link>.</centered-text></muted-text-label>',
         },
         createdForClient: {

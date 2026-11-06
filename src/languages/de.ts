@@ -5478,7 +5478,7 @@ ${amount} für ${merchant} – ${date}`,
             newRoles: 'Neue Rollen',
             adminRoles: 'Adminrollen',
             otherRoles: 'Andere Rollen',
-            roleSelectorDescription: `Weisen Sie eine Rolle zu, um die Workspace-Berechtigungen eines Mitglieds zu verwalten. <a href="${CONST.HELP_DOC_LINKS.MANAGING_WORKSPACE_MEMBERS}">Workspace-Rollen vergleichen</a>.`,
+            roleSelectorDescription: `Weisen Sie eine Rolle zu, um die Workspace-Berechtigungen eines Mitglieds zu verwalten. <a href="${CONST.HELP_DOC_LINKS.WORKSPACE_ROLES_AND_PERMISSIONS}">Workspace-Rollen vergleichen</a>.`,
             roleSelectorFeedback:
                 '<muted-text-label><centered-text>Sie sehen die benötigte Rolle nicht? <concierge-link>Teilen Sie uns dies mit</concierge-link>.</centered-text></muted-text-label>',
         },

@@ -5272,7 +5272,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             newRoles: '新角色',
             adminRoles: '管理员角色',
             otherRoles: '其他角色',
-            roleSelectorDescription: `为成员分配一个角色以管理其工作区权限。<a href="${CONST.HELP_DOC_LINKS.MANAGING_WORKSPACE_MEMBERS}">比较工作区角色</a>。`,
+            roleSelectorDescription: `为成员分配一个角色以管理其工作区权限。<a href="${CONST.HELP_DOC_LINKS.WORKSPACE_ROLES_AND_PERMISSIONS}">比较工作区角色</a>。`,
             roleSelectorFeedback: '<muted-text-label><centered-text>没有找到你需要的角色？<concierge-link>告诉我们</concierge-link>。</centered-text></muted-text-label>',
         },
         createdForClient: {

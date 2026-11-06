@@ -5391,7 +5391,7 @@ ${amount} para ${merchant} - ${date}`,
             newRoles: 'Nuevos roles',
             adminRoles: 'Roles de administrador',
             otherRoles: 'Otros roles',
-            roleSelectorDescription: `Asigna un rol para gestionar los permisos de espacio de trabajo de un miembro. <a href="${CONST.HELP_DOC_LINKS.MANAGING_WORKSPACE_MEMBERS}">Comparar roles de espacio de trabajo</a>.`,
+            roleSelectorDescription: `Asigna un rol para gestionar los permisos de espacio de trabajo de un miembro. <a href="${CONST.HELP_DOC_LINKS.WORKSPACE_ROLES_AND_PERMISSIONS}">Comparar roles de espacio de trabajo</a>.`,
             roleSelectorFeedback: '<muted-text-label><centered-text>¿No ves el rol que necesitas? <concierge-link>Dínoslo</concierge-link>.</centered-text></muted-text-label>',
         },
         createdForClient: {

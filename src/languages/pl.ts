@@ -5480,7 +5480,7 @@ ${amount} dla ${merchant} - ${date}`,
             newRoles: 'Nowe role',
             adminRoles: 'Role administratora',
             otherRoles: 'Inne role',
-            roleSelectorDescription: `Przydziel rolę, aby zarządzać uprawnieniami członka w przestrzeni roboczej. <a href="${CONST.HELP_DOC_LINKS.MANAGING_WORKSPACE_MEMBERS}">Porównaj role w przestrzeni roboczej</a>.`,
+            roleSelectorDescription: `Przydziel rolę, aby zarządzać uprawnieniami członka w przestrzeni roboczej. <a href="${CONST.HELP_DOC_LINKS.WORKSPACE_ROLES_AND_PERMISSIONS}">Porównaj role w przestrzeni roboczej</a>.`,
             roleSelectorFeedback: '<muted-text-label><centered-text>Nie widzisz potrzebnej roli? <concierge-link>Daj nam znać</concierge-link>.</centered-text></muted-text-label>',
         },
         createdForClient: {
