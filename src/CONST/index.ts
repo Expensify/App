@@ -10435,6 +10435,10 @@ const CONST = {
         WISE_ONBOARDING_APPROVED: {
             DONE: 'WiseOnboardingApproved-Done',
         },
+        WISE_QUOTE_CAROUSEL: {
+            PREVIOUS: 'WiseQuoteCarousel-Previous',
+            NEXT: 'WiseQuoteCarousel-Next',
+        },
         PRODUCT_MARKETING_WINDOW: {
             CTA: 'ProductMarketingWindow-CTA',
             DISMISS: 'ProductMarketingWindow-Dismiss',
@@ -11762,6 +11766,7 @@ const CONST = {
         },
         CONFIRM_CONTENT: {
             DISMISS_BUTTON: 'ConfirmContent-DismissButton',
+            CONFIRM_BUTTON: 'ConfirmContent-ConfirmButton',
         },
         COPY_TEXT_TO_CLIPBOARD: {
             COPY_BUTTON: 'CopyTextToClipboard-CopyButton',
