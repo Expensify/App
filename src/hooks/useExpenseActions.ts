@@ -323,9 +323,9 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
         translate,
         icons: useMemoizedLazyExpensifyIcons(['Plus', 'ReceiptPlus', 'Location', 'Feed', 'ArrowRight']),
         sentryLabels: {
-            createExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE,
-            trackDistance: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE,
-            addExistingExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_EXISTING,
+            createExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_MENU.CREATE_EXPENSE,
+            trackDistance: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_MENU.TRACK_DISTANCE,
+            addExistingExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_MENU.ADD_EXISTING_EXPENSE,
         },
         iouReportID: moneyRequestReport?.reportID,
         policy,
