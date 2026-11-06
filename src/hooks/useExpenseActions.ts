@@ -614,7 +614,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                                     return;
                                 }
 
-                                removeTransaction(transaction.transactionID);
+                                removeTransaction(transaction.transactionID, {isDeleted: true});
                             }, CONST.EXPENSE_REPORT_DELETE_DELAY_MS);
                         };
                         if (goBackRoute) {
