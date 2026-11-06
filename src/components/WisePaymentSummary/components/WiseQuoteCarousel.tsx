@@ -5,6 +5,8 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {Report} from '@src/types/onyx';
+
 import type {ComponentRef} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
@@ -18,7 +20,7 @@ import WiseQuotePaymentSummary from './WiseQuotePaymentSummary';
 const NEXT_CARD_PEEK = 32;
 
 type WiseQuoteCarouselProps = {
-    reportIDs: string[];
+    reports: Report[];
 
     /** The reports Wise pays through a global provider, which show a quote. The rest show their amounts with no fees */
     quotedReportIDs: string[];
@@ -28,7 +30,7 @@ type WiseQuoteCarouselProps = {
 };
 
 /** One Wise quote card per report, swiped or stepped through with the arrows */
-function WiseQuoteCarousel({reportIDs, quotedReportIDs, isLoading}: WiseQuoteCarouselProps) {
+function WiseQuoteCarousel({reports, quotedReportIDs, isLoading}: WiseQuoteCarouselProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const scrollViewRef = useRef<ComponentRef<typeof ScrollView>>(null);
@@ -40,10 +42,10 @@ function WiseQuoteCarousel({reportIDs, quotedReportIDs, isLoading}: WiseQuoteCar
     const [targetIndex, setTargetIndex] = useState<number | undefined>(undefined);
     const shownIndex = targetIndex ?? currentIndex;
 
-    const hasMultipleReports = reportIDs.length > 1;
+    const hasMultipleReports = reports.length > 1;
     const cardWidth = hasMultipleReports ? containerWidth - NEXT_CARD_PEEK : containerWidth;
     const cardStep = cardWidth + styles.gap3.gap;
-    const lastIndex = reportIDs.length - 1;
+    const lastIndex = reports.length - 1;
 
     const scrollToIndex = (index: number) => {
         setTargetIndex(index);
@@ -67,7 +69,7 @@ function WiseQuoteCarousel({reportIDs, quotedReportIDs, isLoading}: WiseQuoteCar
             onLayout={(event) => setContainerWidth(event.nativeEvent.layout.width)}
         >
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                <Text style={styles.textLabelSupporting}>{translate('iou.wisePaymentSummary.reportCount', {count: reportIDs.length})}</Text>
+                <Text style={styles.textLabelSupporting}>{translate('iou.wisePaymentSummary.reportCount', {count: reports.length})}</Text>
                 {hasMultipleReports && (
                     <View style={styles.flexRow}>
                         <WiseQuoteCarouselArrow
@@ -96,15 +98,16 @@ function WiseQuoteCarousel({reportIDs, quotedReportIDs, isLoading}: WiseQuoteCar
                         onScrollBeginDrag={() => setTargetIndex(undefined)}
                         contentContainerStyle={styles.gap3}
                     >
-                        {reportIDs.map((reportID) => (
+                        {reports.map((report) => (
                             <View
-                                key={reportID}
+                                key={report.reportID}
                                 style={{width: cardWidth}}
                             >
                                 <WiseQuotePaymentSummary
-                                    reportID={reportID}
+                                    reportID={report.reportID}
+                                    searchReport={report}
                                     isPayingUnheldOnly={false}
-                                    isQuoteRequired={quotedReportIDs.includes(reportID)}
+                                    isQuoteRequired={quotedReportIDs.includes(report.reportID)}
                                     shouldShowLoadingIndicator={false}
                                 />
                             </View>

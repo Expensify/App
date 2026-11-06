@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report} from '@src/types/onyx';
 
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
@@ -17,6 +18,9 @@ import WisePaymentSummary from '..';
 
 type WiseQuotePaymentSummaryProps = {
     reportID: string | undefined;
+
+    /** The report as Search loaded it. Bulk pay can pay a report that only Search results hold, and the quote merges into Onyx on top of it */
+    searchReport?: Report;
 
     /** True when the admin chose to pay only the expenses that are not on hold */
     isPayingUnheldOnly: boolean;
@@ -32,11 +36,12 @@ type WiseQuotePaymentSummaryProps = {
  * The payment summary filled from the report's Wise quote. It always takes the space of a loaded card with a tax row,
  * so neither the loader nor a card without tax changes the modal's height.
  */
-function WiseQuotePaymentSummary({reportID, isPayingUnheldOnly, isQuoteRequired = true, shouldShowLoadingIndicator = true}: WiseQuotePaymentSummaryProps) {
+function WiseQuotePaymentSummary({reportID, searchReport, isPayingUnheldOnly, isQuoteRequired = true, shouldShowLoadingIndicator = true}: WiseQuotePaymentSummaryProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
+    const [onyxReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
+    const report = searchReport ? {...searchReport, ...onyxReport} : onyxReport;
 
     if (!report) {
         return null;
@@ -55,6 +60,7 @@ function WiseQuotePaymentSummary({reportID, isPayingUnheldOnly, isQuoteRequired 
             >
                 <WisePaymentSummary
                     reportID={reportID}
+                    report={report}
                     rows={[]}
                     placeholderRowCount={getWisePaymentSummaryRowCount({report, isPayingUnheldOnly})}
                 />
@@ -69,6 +75,7 @@ function WiseQuotePaymentSummary({reportID, isPayingUnheldOnly, isQuoteRequired 
                 ) : (
                     <WisePaymentSummary
                         reportID={reportID}
+                        report={report}
                         rows={rows}
                         errors={quoteErrors}
                     />

@@ -17,7 +17,8 @@ import ConfirmModalWrapper from './ConfirmModalWrapper';
 import {ModalActions} from './ModalContext';
 
 type WiseQuoteCarouselModalWrapperProps = ModalProps & {
-    reportIDs: string[];
+    /** The reports being paid, as bulk pay read them, which can be from Search results only */
+    reports: Report[];
 
     /** The reports Wise pays through a global provider, each waiting for its quote */
     quotedReportIDs: string[];
@@ -27,12 +28,12 @@ type WiseQuoteCarouselModalWrapperProps = ModalProps & {
 };
 
 /** Pay all stays disabled until every quoted report's quote is loaded, since Wise requires the admin to be able to see each one */
-function WiseQuoteCarouselModalWrapper({closeModal, resolveModal, reportIDs, quotedReportIDs, onConfirm}: WiseQuoteCarouselModalWrapperProps) {
+function WiseQuoteCarouselModalWrapper({closeModal, resolveModal, reports, quotedReportIDs, onConfirm}: WiseQuoteCarouselModalWrapperProps) {
     const {translate} = useLocalize();
-    const selectQuoteStates = (reports: OnyxCollection<Report>) =>
+    const selectQuoteStates = (onyxReports: OnyxCollection<Report>) =>
         Object.fromEntries(
             quotedReportIDs.map((reportID) => {
-                const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                const report = onyxReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                 return [reportID, {wiseQuoteID: report?.wiseQuote?.wiseQuoteID, hasError: !!report?.errorFields?.wiseQuote}];
             }),
         );
@@ -56,7 +57,7 @@ function WiseQuoteCarouselModalWrapper({closeModal, resolveModal, reportIDs, quo
             title={translate('iou.wisePaymentSummary.confirmPayment')}
             prompt={
                 <WiseQuoteCarousel
-                    reportIDs={reportIDs}
+                    reports={reports}
                     quotedReportIDs={quotedReportIDs}
                     isLoading={isLoading}
                 />

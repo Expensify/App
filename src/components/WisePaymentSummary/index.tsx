@@ -11,12 +11,15 @@ import WisePaymentSummaryHeader from './components/WisePaymentSummaryHeader';
 import WisePaymentSummaryRow from './components/WisePaymentSummaryRow';
 
 /** The report and the amounts of a Wise payment, shown before Pay and in the payment details afterwards */
-function WisePaymentSummary({reportID, rows, placeholderRowCount = 0, errors}: WisePaymentSummaryProps) {
+function WisePaymentSummary({reportID, report, rows, placeholderRowCount = 0, errors}: WisePaymentSummaryProps) {
     const styles = useThemeStyles();
 
     return (
         <View style={[styles.borderedContentCard, styles.p4, styles.gap3]}>
-            <WisePaymentSummaryHeader reportID={reportID} />
+            <WisePaymentSummaryHeader
+                reportID={reportID}
+                report={report}
+            />
             {rows.map(({label, value}) => (
                 <WisePaymentSummaryRow
                     key={label}
