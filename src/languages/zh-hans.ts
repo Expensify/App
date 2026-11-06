@@ -122,6 +122,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pay: '支付',
             fix: '修复',
             task: '任务',
+            add: '添加',
         },
         success: '成功',
         group: '群组',
@@ -184,6 +185,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dob: '出生日期',
         currentYear: '本年度',
         currentMonth: '本月',
+        todayDateLabel: (date: string) => `${date}，今天`,
         ssnLast4: '社保号后四位',
         ssnFull9: '社会安全号码的完整 9 位数字',
         addressLine: (lineNumber: number) => `地址第 ${lineNumber} 行`,
@@ -1031,6 +1033,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             emailDeliveryFailure: {title: '我们无法向你发送电子邮件通知', subtitle: '账户'},
             upgradeNetSuiteConnection: {title: '升级您的 NetSuite 连接'},
+            verifyWiseBankAccount: {title: '验证银行账户', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `尾号为 ${bankAccountLastFour} 的银行账户`},
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -1198,6 +1201,8 @@ const translations: TranslationDeepObject<typeof en> = {
         topViolations: '严重违规排行',
         violationsBySubmitter: '提交人违规',
         violationsByApprover: '审批人违规',
+        viewDetails: '查看详情',
+        viewAll: '查看全部',
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -2068,6 +2073,13 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `请更改报告的工作区以执行进一步操作。`,
+
+            [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `您只能在此工作区执行批准操作。将此报表移动到其他工作区后即可提交。`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -2124,14 +2136,15 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `正在等待<strong>你</strong>审批报销。`;
+                        return isBill ? `正在等待<strong>你</strong>审批账单。` : `正在等待<strong>你</strong>审批报销。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待<strong>${actor}</strong>审批报销。`;
+                        return isBill ? `正在等待<strong>${actor}</strong>审批账单。` : `正在等待<strong>${actor}</strong>审批报销。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `正在等待管理员批准报销。`;
+                        return isBill ? `正在等待管理员批准账单。` : `正在等待管理员批准报销。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (
@@ -2154,14 +2167,15 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
             ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `正在等待<strong>你</strong>报销费用。`;
+                        return isBill ? `正在等待<strong>你</strong>支付此账单。` : `正在等待<strong>你</strong>报销费用。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待<strong>${actor}</strong>支付报销费用。`;
+                        return isBill ? `正在等待<strong>${actor}</strong>支付此账单。` : `正在等待<strong>${actor}</strong>支付报销费用。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `正在等待管理员报销费用。`;
+                        return isBill ? `正在等待管理员支付此账单。` : `正在等待管理员报销费用。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
@@ -3031,10 +3045,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `我同意 Wise 的<a href="${CONST.WISE.TERMS_URL}">条款和条件</a>以及<a href="${CONST.WISE.PRIVACY_URL}">隐私政策</a>。`,
                 wiseTermsAccessibilityLabel: '我同意 Wise 的条款和条件以及隐私政策。',
                 error: '请接受所有条款以继续。',
-                alreadySubmitted: '该企业已提交给 Wise 进行审核。',
             },
             moreInfoNeeded: {headerTitle: '需要更多信息', title: '验证其他信息', subtitle: '我们的支付合作伙伴需要直接向你获取更多信息。这只需要几分钟时间。'},
+            inReview: {
+                title: '审核中',
+                heading: '我们已经获得所需信息。\n我们会再联系你！',
+                description: '大多数审核需要一到两天。我们会发送消息告知最新进展。',
+                chatWithConcierge: '与 Concierge 聊天',
+            },
+            approved: {title: '账户已批准', heading: '获批可在全球范围内支付', description: '无论成员身在何处，都能支付给他们。'},
+            rejected: {title: '银行账户已被拒绝', heading: '我们的合作伙伴拒绝了你的银行账户', description: '与 Concierge 聊天以获取更多信息。'},
         },
+        wiseSetupInProgress: {message: '全球报销设置进行中。', continue: '继续。'},
         wiseGlobalReimbursementsIntro: {
             title: '设置全球报销？',
             subtitle: '按当地货币向全球成员付款。',
@@ -3043,6 +3065,7 @@ const translations: TranslationDeepObject<typeof en> = {
             payingReportSubtitle: '公司账户和员工账户使用的货币不同。',
         },
         wiseGlobalReimbursementsBanner: {title: '向全球付款', subtitle: '在您的美元账户中启用全球报销。'},
+        wiseMoreInfoNeeded: '启用全球报销所需的更多信息',
         globalReimbursementsEnabled: '已启用全球报销',
     },
     addCardToDigitalWallet: {
@@ -3194,8 +3217,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         addApprovalsDescription: '在付款前需要额外审批。',
         makeOrTrackPaymentsTitle: '付款',
         makeOrTrackPaymentsDescription: '为在 Expensify 中进行的付款添加授权付款人，或跟踪在其他地方进行的付款。',
-        collectEmployeeBankDetails: '收集员工银行账户信息',
-        collectEmployeeBankDetailsDescription: '收集员工的银行账户信息，以便在 Expensify 之外向他们报销。',
+        collectEmployeeBankDetails: '收集银行账户详细信息',
+        collectEmployeeBankDetailsDescription: '从工作区成员处收集银行账户信息，以便在 Expensify 之外向他们报销。',
+        disablePaymentsTitle: '要禁用付款吗？',
+        disablePaymentsPrompt: '这将删除您的所有付款设置。',
         businessBankAccountCountries: '企业银行账户国家',
         businessBankAccountCountriesDescription: '这些国家的员工需提供本地转账信息，其他员工需提供国际电汇信息。',
         customApprovalWorkflowEnabled:
@@ -5039,6 +5064,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             title: '你目前还不能预订行程',
             message: '您是已启用差旅功能的工作区成员，但该工作区不是您的默认工作区。要预订，请在您的默认工作区启用差旅功能，或将默认工作区切换为已启用差旅功能的工作区。',
         },
+        approval: {
+            status: {outstanding: '未结', approved: '已批准', rejected: '已拒绝', canceled: '已取消'},
+            deadline: {softApproval: (time: string) => `将在 ${time} 后自动批准。在此之前可免费取消。`, hardApproval: (time: string) => `若未获批准，将在 ${time} 后自动取消。`},
+        },
     },
     workspace: {
         common: {
@@ -6784,6 +6813,15 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 title: '无法删除或停用所有类别',
                 description: `由于您的工作区需要类别，必须至少保留一个已启用的类别。`,
             },
+            cannotDisableCategoryForMembers: {
+                title: ({categoryName}: {categoryName: string}) => `无法禁用 ${categoryName}`,
+                bulkTitle: '无法禁用这些类别',
+                description: ({count}: {count: number}) => ({
+                    one: '将会有 1 名成员没有可选择的类别。请先更新 TA 的类别可见性，然后再试一次：',
+                    other: `将有 ${count} 名成员将没有可选择的类别。请先更新他们的类别可见性，然后重试：`,
+                }),
+                andMore: ({count}: {count: number}) => `和另外 ${count} 个`,
+            },
         },
         moreFeatures: {
             subtitle: '使用下方切换按钮，在业务成长过程中启用更多功能。每个功能都会出现在导航菜单中，供你进一步自定义。',
@@ -7459,6 +7497,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             },
             officeLocation: '办公室地点',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name}（${address}）`,
+            categoryVisibility: '类别可见性',
+            allCategories: '所有类别',
+            categoriesCount: ({count}: {count: number}) => ({
+                one: '1 个类别',
+                other: `${count} 个类别`,
+            }),
+            categoryVisibilityRequiredModal: {title: '成员必须至少有一个类别', description: '请选择该成员可使用的至少一个类别。'},
             changeOfficeLocation: '更改办公室位置',
             changeWorkArrangement: '更改工作安排',
             changeRole: '更改角色',
@@ -8846,8 +8891,8 @@ ${reportName}`,
                 describeRuleForConcierge: '描述你的规则，Concierge 会帮你创建',
                 gotIt: '知道了',
                 createRule: '创建规则',
-                fallbackBanner: '这不是一条标准规则，所以我们起草了一条代理规则。',
-                fallbackBannerWithExplanation: (explanation: string) => `这不是一条标准规则，所以我们起草了一条代理规则。${explanation}`,
+                fallbackBanner: '这不是一条标准规则，所以我们起草了一条代理规则。代理规则会在报销或报表被创建或更新时运行。',
+                fallbackBannerWithExplanation: (explanation: string) => `这不是一条标准规则，所以我们起草了一条代理规则。代理规则会在报销或报表被创建或更新时运行。${explanation}`,
             },
             tabs: {general: '常规', cardRestrictions: '卡片限制', expenseDefaults: '报销默认设置', requireFields: '字段要求', flagForReview: '标记以供审核', agents: '代理人'},
             bulkActions: {
@@ -9283,10 +9328,60 @@ ${reportName}`,
             exportNonReimbursable: {label: '导出公司卡消费为', values: {EXPENSE: {label: '费用'}}},
             defaultCompanyCardVendor: {label: '所有公司卡的默认供应商', description: '为未自动匹配的报销选择一个默认的 Zoho Books 供应商。'},
             companyCardAccount: {label: '公司信用卡账户', description: '选择公司卡交易的导出位置。'},
+            exportToMultipleAccounts: '配置导出到多个账户',
+            cardProgramAccount: {
+                label: '卡计划账户',
+                description: '为这些卡计划覆盖工作区账户。',
+                descriptionLevel2: '覆盖此卡计划的工作区账户。',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return '所有方案使用默认账户';
+                    }
+                    return {
+                        one: `${count} 个自定义账户的项目`,
+                        other: `${count} 个具有自定义科目的项目`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: '按卡计费账户',
+                description: '为单张卡片覆盖默认项目账户。',
+                descriptionLevel2: '为这些卡片覆盖默认项目账户。',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return '所有卡都使用项目账户';
+                    }
+                    return {
+                        one: `${count} 张带有自定义账户的卡`,
+                        other: `${count} 张带有自定义账户的卡`,
+                    };
+                },
+            },
             noVendorsFound: '未找到供应商',
             noVendorsFoundDescription: '请在 Zoho Books 中添加供应商，然后再次同步连接',
             noAccountsFound: '未找到账户',
             noAccountsFoundDescription: '请在 Zoho Books 中添加账户，然后再次同步连接',
+            autoSyncDescription: '每天自动同步 Zoho Books 和 Expensify。报告实时同步。',
+            accountingMethods: {
+                label: '导出方式',
+                description: '选择导出报销的时间。',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '权责发生制',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '现金',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '自付报销将在最终批准后导出',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自付费用将在支付后导出',
+                },
+            },
+            syncReimbursedReports: '同步已报销报表',
+            syncReimbursedReportsDescription: '当报表通过 ACH 支付时，将在此账户中生成一笔账单付款。',
+            billPaymentAccount: {label: '账单支付账户', description: '选择当 Expensify 将账单标记为已付款时，Zoho Books 贷记的清算账户。'},
+            syncExpensifyCardSettlements: '同步 Expensify 卡结算',
+            settlementAccount: {label: 'Expensify 卡结算账户', description: '选择您的结算账户，我们将会在 Zoho Books 中创建付款。'},
+            syncTravelBillingSettlements: '同步合并差旅结算',
+            travelBillingSettlementAccount: {label: '合并差旅结算账户', description: '选择您的结算账户，我们将会在 Zoho Books 中创建付款。'},
+            travelBillingPayableAccount: {label: '合并差旅计费应付账户'},
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central 设置',
@@ -10437,6 +10532,7 @@ ${reportName}`,
         },
         display: {
             label: '显示',
+            labelWithCount: ({count}: {count: number}) => (count > 0 ? `显示 (${count})` : '显示'),
             sortBy: '按排序',
             sortOrder: '排序顺序',
             groupBy: '分组依据',
@@ -10508,11 +10604,14 @@ ${reportName}`,
                 upcoming: '即将开始',
                 done: '已完成',
                 canceled: '已取消',
+                outstanding: '未结',
+                rejected: '已拒绝',
             },
         },
         tabs: {
             expenseReports: '报销报告',
             reports: '报表',
+            myReports: '我的报告',
             expenses: '报销费用',
             submit: '草稿',
             approve: '待审批',
@@ -12307,5 +12406,29 @@ ${reportName}`,
         mobileClaimPrompt: '请在网页浏览器中访问 Expensify 以领取您的续订折扣。',
     },
     bulkActionBar: {label: '批量操作', clearSelection: '清除选择', loadingSelection: '正在加载所选内容'},
+    reportHistoryPage: {
+        title: '报表历史',
+        created: '已创建报表',
+        submitted: '已提交',
+        approved: '已批准',
+        paid: '已付款',
+        toSubmit: '提交',
+        toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
+            if (!eta) {
+                return '自动提交';
+            }
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `在每月的 ${eta} 自动提交` : `${eta}自动提交`;
+        },
+        toApprove: '批准',
+        toPay: '支付',
+        minutesAgo: (count: number) => `${count} 分钟前`,
+        hoursAgo: (count: number) => `${count} 小时前`,
+        daysAgo: () => ({
+            one: '1 天前',
+            other: (count: number) => `${count} 天前`,
+        }),
+        offlineMessage: '您已离线。报表历史可能不是最新的。',
+        toMarkAsDone: '标记为已完成',
+    },
 };
 export default translations;

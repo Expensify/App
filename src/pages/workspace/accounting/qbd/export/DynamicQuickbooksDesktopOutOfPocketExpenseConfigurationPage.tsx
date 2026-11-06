@@ -133,6 +133,7 @@ function DynamicQuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: W
                     key={translate('workspace.qbd.exportOutOfPocketExpensesCheckToggle')}
                     title={translate('workspace.qbd.exportOutOfPocketExpensesCheckToggle')}
                     switchAccessibilityLabel={translate('workspace.qbd.exportOutOfPocketExpensesCheckToggle')}
+                    switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBD.MARK_CHECKS_TO_BE_PRINTED_SWITCH}
                     shouldPlaceSubtitleBelowSwitch
                     wrapperStyle={[styles.mv3, styles.ph5]}
                     isActive={!!qbdConfig?.markChecksToBePrinted}

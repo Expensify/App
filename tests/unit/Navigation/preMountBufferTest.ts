@@ -344,7 +344,8 @@ describe('Navigation pre-mount buffer', () => {
 
     it('tab-switch mode: RHP-closed listener restores the original tab route instead of popping a pushed destination', () => {
         // Given a buffered tab switch that replaced the original tab route beneath the RHP
-        mockOriginalTabRoute = {key: 'tab-origin', name: NAVIGATORS.TAB_NAVIGATOR, state: {index: 0, routes: [{name: SCREENS.INBOX}]} as PartialState<NavigationState>};
+        const originalTabRoute: MockRoute = {key: 'tab-1', name: NAVIGATORS.TAB_NAVIGATOR, state: {index: 0, routes: [{name: SCREENS.INBOX}]}};
+        mockOriginalTabRoute = originalTabRoute;
         mockStateFromPathRoutes = [{key: 'target', name: NAVIGATORS.TAB_NAVIGATOR, state: {index: 0, routes: [{name: SCREENS.SEARCH.ROOT}]} as PartialState<NavigationState>}];
 
         const TAB_KEY = 'tab-1';
@@ -376,8 +377,46 @@ describe('Navigation pre-mount buffer', () => {
         expect(mockDispatch).toHaveBeenCalledTimes(1);
         const resetAction = mockDispatch.mock.calls.at(0)?.at(0);
         const restoredTabRoute = resetAction?.payload?.routes?.find((r) => r.key === TAB_KEY);
-        expect(restoredTabRoute).toEqual(mockOriginalTabRoute);
+        expect(restoredTabRoute).toEqual(originalTabRoute);
         expect(resetAction?.payload?.routes?.some((r) => r.key === BUFFER_KEY)).toBe(false);
+    });
+
+    it('tab-switch mode: RHP-closed listener restores the original tab into its own slot when another tab was pushed above it', () => {
+        // Given a buffered tab switch beneath the RHP, and a second tab navigator pushed above it later
+        const TAB_KEY = 'tab-1';
+        const SECOND_TAB_KEY = 'tab-2';
+        const originalTabRoute: MockRoute = {key: TAB_KEY, name: NAVIGATORS.TAB_NAVIGATOR, state: {index: 0, routes: [{name: SCREENS.INBOX}]}};
+        mockOriginalTabRoute = originalTabRoute;
+        mockStateFromPathRoutes = [{key: 'target', name: NAVIGATORS.TAB_NAVIGATOR, state: {index: 0, routes: [{name: SCREENS.SEARCH.ROOT}]}}];
+        setRootState([
+            {key: TAB_KEY, name: NAVIGATORS.TAB_NAVIGATOR},
+            {key: RHP_KEY, name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR},
+        ]);
+        mockDispatch.mockImplementationOnce(() => {
+            setRootState([
+                {key: TAB_KEY, name: NAVIGATORS.TAB_NAVIGATOR, state: {index: 0, routes: [{name: SCREENS.SEARCH.ROOT}]}},
+                {key: BUFFER_KEY, name: SCREENS.PRE_MOUNT_BUFFER},
+                {key: RHP_KEY, name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR},
+            ]);
+        });
+        // eslint-disable-next-line rulesdir/no-direct-pre-insert-fullscreen-under-rhp -- unit-testing the guarded function itself, not a production call site
+        Navigation.preInsertFullscreenUnderRHP(ROUTES.HOME);
+        mockDispatch.mockClear();
+        const secondTabRoute: MockRoute = {key: SECOND_TAB_KEY, name: NAVIGATORS.TAB_NAVIGATOR, state: {index: 0, routes: [{name: SCREENS.SEARCH.ROOT}]}};
+        setRootState([
+            {key: TAB_KEY, name: NAVIGATORS.TAB_NAVIGATOR, state: {index: 0, routes: [{name: SCREENS.SEARCH.ROOT}]}},
+            {key: BUFFER_KEY, name: SCREENS.PRE_MOUNT_BUFFER},
+            secondTabRoute,
+        ]);
+
+        // When the RHP is removed while the second tab stays on top
+        mockStateListener?.();
+
+        // Then the saved tab replaces only its own route, so the second tab keeps its key and no two root routes share one
+        const resetAction = mockDispatch.mock.calls.at(0)?.at(0);
+        expect(resetAction?.payload?.routes?.map((r) => r.key)).toEqual([TAB_KEY, SECOND_TAB_KEY]);
+        expect(resetAction?.payload?.routes?.at(0)).toEqual(originalTabRoute);
+        expect(resetAction?.payload?.routes?.at(1)).toEqual(secondTabRoute);
     });
 
     it('tab-switch mode falls back to stripping the Buffer when the original tab route was cleared', () => {
@@ -773,7 +812,8 @@ describe('Navigation pre-mount buffer', () => {
     it('recoverFromPreMountBuffer fallback restores the original tab route when the stranded buffer came from a tab switch', () => {
         // Given a stranded tab-switch buffer with its original tab snapshot still available
         const TAB_KEY = 'tab-1';
-        mockOriginalTabRoute = {key: 'tab-origin', name: NAVIGATORS.TAB_NAVIGATOR, state: {index: 0, routes: [{name: SCREENS.INBOX}]} as PartialState<NavigationState>};
+        const originalTabRoute: MockRoute = {key: 'tab-1', name: NAVIGATORS.TAB_NAVIGATOR, state: {index: 0, routes: [{name: SCREENS.INBOX}]}};
+        mockOriginalTabRoute = originalTabRoute;
         setRootState([
             {key: TAB_KEY, name: NAVIGATORS.TAB_NAVIGATOR, state: {index: 0, routes: [{name: SCREENS.SEARCH.ROOT}]} as PartialState<NavigationState>},
             {key: BUFFER_KEY, name: SCREENS.PRE_MOUNT_BUFFER},
@@ -786,7 +826,7 @@ describe('Navigation pre-mount buffer', () => {
         expect(mockDispatch).toHaveBeenCalledTimes(1);
         const resetAction = mockDispatch.mock.calls.at(0)?.at(0);
         const restoredTabRoute = resetAction?.payload?.routes?.find((r) => r.key === TAB_KEY);
-        expect(restoredTabRoute).toEqual(mockOriginalTabRoute);
+        expect(restoredTabRoute).toEqual(originalTabRoute);
         expect(resetAction?.payload?.routes?.some((r) => r.key === BUFFER_KEY)).toBe(false);
         expect(mockClearPreInsertedOriginalTabRoute).toHaveBeenCalledTimes(1);
     });
