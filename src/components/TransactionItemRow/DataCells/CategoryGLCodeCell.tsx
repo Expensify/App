@@ -21,6 +21,9 @@ type CategoryGLCodeCellProps = TransactionDataCellProps &
     EditableProps<string> & {
         policyID?: string;
         policyCategories?: PolicyCategories;
+
+        /** The account the expense belongs to, passed only when the current user owns it, so the picker lists just their categories */
+        ownerAccountID?: number;
     };
 
 /**
@@ -31,7 +34,7 @@ type CategoryGLCodeCellProps = TransactionDataCellProps &
  * Codes shared by several categories stay distinguishable by name. When no category on the workspace has a GL code
  * there is nothing to pick, so the cell stays read-only.
  */
-function CategoryGLCodeCell({shouldShowTooltip, transactionItem, canEdit: canEditCategory, onSave, policyID, policyCategories}: CategoryGLCodeCellProps) {
+function CategoryGLCodeCell({shouldShowTooltip, transactionItem, canEdit: canEditCategory, onSave, policyID, policyCategories, ownerAccountID}: CategoryGLCodeCellProps) {
     const styles = useThemeStyles();
     const [categoriesLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE}${policyID}`);
 
@@ -72,6 +75,7 @@ function CategoryGLCodeCell({shouldShowTooltip, transactionItem, canEdit: canEdi
                     shouldMeasureAnchorPositionFromTop={!shouldOpenAbove}
                     shouldSwitchPositionIfOverflow={false}
                     onSelected={handleCategorySelected}
+                    ownerAccountID={ownerAccountID}
                 />
             }
         >

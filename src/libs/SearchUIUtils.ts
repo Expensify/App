@@ -7929,6 +7929,29 @@ function getSearchBulkEditPolicyID(
     return activePolicyID;
 }
 
+/**
+ * Whether every selected expense belongs to the given member: it's on a report they submitted, or not on a report yet,
+ * which only its owner can see. Bulk editing limits the category list to their categories only in that case.
+ */
+function isEverySearchBulkEditExpenseOwnedBy(
+    selectedTransactionIDs: string[],
+    accountID: number,
+    allTransactions: OnyxCollection<OnyxTypes.Transaction> | undefined,
+    allReports: OnyxCollection<OnyxTypes.Report> | undefined,
+): boolean {
+    if (selectedTransactionIDs.length === 0) {
+        return false;
+    }
+
+    return selectedTransactionIDs.every((transactionID) => {
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        if (!transaction?.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+            return true;
+        }
+        return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`]?.ownerAccountID === accountID;
+    });
+}
+
 function filterValidHasValues(hasValues: HasFilterValues | undefined, type: SearchDataTypes | undefined, translate: LocalizedTranslate): HasFilterValues | undefined {
     if (!hasValues || !type) {
         return undefined;
@@ -8121,6 +8144,7 @@ export {
     doesTransactionMatchFooterTotal,
     getSnapshotFooterTotal,
     getSearchBulkEditPolicyID,
+    isEverySearchBulkEditExpenseOwnedBy,
     getSuggestedSearches,
     getSections,
     getSuggestedSearchesVisibility,
