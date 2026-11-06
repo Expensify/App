@@ -3160,7 +3160,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `J’accepte les <a href="${CONST.WISE.TERMS_URL}">conditions générales</a> et la <a href="${CONST.WISE.PRIVACY_URL}">politique de confidentialité</a> de Wise.`,
                 wiseTermsAccessibilityLabel: 'J’accepte les conditions générales et la politique de confidentialité de Wise.',
                 error: 'Veuillez accepter toutes les conditions pour continuer.',
-                alreadySubmitted: 'Cette entreprise a déjà été envoyée à Wise pour examen.',
             },
             moreInfoNeeded: {
                 headerTitle: 'Plus d’informations nécessaires',

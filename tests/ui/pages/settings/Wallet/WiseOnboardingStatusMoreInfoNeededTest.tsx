@@ -2,17 +2,22 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
+
 import {READ_COMMANDS} from '@libs/API/types';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import stripDynamicRouteSuffixFromPath from '@libs/Navigation/helpers/dynamicRoutesUtils/stripDynamicRouteSuffixFromPath';
+import {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {setHasRadio} from '@libs/NetworkState';
 import openWiseKYCReview from '@libs/openWiseKYCReview';
 
-import WiseMoreInfoNeededPage from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseMoreInfoNeededPage';
+import WiseOnboardingStatusPage from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseOnboardingStatusPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import {NavigationContainer} from '@react-navigation/native';
@@ -27,8 +32,9 @@ import {mockKYCReviewLinkResponse} from '../../../../utils/WiseTestUtils';
 const BANK_ACCOUNT_ID = 9053192;
 const CONTINUE_BUTTON_TEST_ID = 'confirmation-primary-button';
 const KYC_REVIEW_URL = 'https://sandbox.transferwise.tech/embedded-flows/kyc-review?token=abc';
+const WALLET_INTRO_PATH = createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(BANK_ACCOUNT_ID), ROUTES.SETTINGS_WALLET);
 
-jest.mock('@libs/openWiseKYCReview', () => jest.fn());
+jest.mock('@libs/openWiseKYCReview', () => ({...jest.requireActual<Record<string, unknown>>('@libs/openWiseKYCReview'), __esModule: true, default: jest.fn()}));
 jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => 'settings/wallet/global-reimbursements/9053192'));
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
 
@@ -36,13 +42,17 @@ const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
 async function renderPage() {
     await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.WISE_REIMBURSEMENTS]);
+    await Onyx.set(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, false);
+    await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+        [BANK_ACCOUNT_ID]: {accountData: {bankAccountID: BANK_ACCOUNT_ID, additionalData: {wise: {status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED}}}},
+    });
     render(
         <OnyxListItemProvider>
             <NavigationContainer ref={navigationRef}>
-                <Stack.Navigator initialRouteName={SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_MORE_INFO_NEEDED}>
+                <Stack.Navigator initialRouteName={SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ONBOARDING_STATUS}>
                     <Stack.Screen
-                        name={SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_MORE_INFO_NEEDED}
-                        component={WiseMoreInfoNeededPage}
+                        name={SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ONBOARDING_STATUS}
+                        component={WiseOnboardingStatusPage}
                         initialParams={{bankAccountID: String(BANK_ACCOUNT_ID)}}
                     />
                 </Stack.Navigator>
@@ -67,7 +77,7 @@ async function resumeFetch() {
     await waitForBatchedUpdatesWithAct();
 }
 
-describe('WiseMoreInfoNeededPage', () => {
+describe('WiseOnboardingStatusPage while Wise needs more info', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -105,7 +115,7 @@ describe('WiseMoreInfoNeededPage', () => {
     });
 
     it("fetches the link for the bank account on Continue and redirects to Wise's form once it arrives", async () => {
-        // Given the page opened from the terms for a bank account, and a server that answers with a link
+        // Given the page opened for a bank account Wise needs more info about, and a server that answers with a link
         mockKYCReviewLinkResponse(mockFetch, KYC_REVIEW_URL);
         mockFetch.pause();
         await renderPage();
@@ -113,16 +123,94 @@ describe('WiseMoreInfoNeededPage', () => {
         // When the user presses Continue
         await pressContinue();
 
-        // Then the link is fetched for the bank account from the route, since Wise's form is tied to it, and Continue spins until it arrives
-        TestHelper.expectAPICommandToHaveBeenCalledWith(READ_COMMANDS.GET_WISE_KYC_REVIEW_EMBEDDED_LINK, 0, {bankAccountID: BANK_ACCOUNT_ID});
+        // Then the link is fetched for the bank account from the route, since Wise's form is tied to it, with the status page as the place Wise returns to, and Continue spins until it arrives
+        TestHelper.expectAPICommandToHaveBeenCalledWith(READ_COMMANDS.GET_WISE_KYC_REVIEW_EMBEDDED_LINK, 0, {
+            bankAccountID: BANK_ACCOUNT_ID,
+            redirectURL: 'https://new.expensify.com/settings/wallet/global-reimbursements/9053192/status',
+        });
         expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK)).toEqual({isLoading: true});
         expect(openWiseKYCReview).not.toHaveBeenCalled();
 
         // When the server answers
         await resumeFetch();
 
-        // Then Wise's form opens with the link
-        expect(openWiseKYCReview).toHaveBeenCalledWith(KYC_REVIEW_URL);
+        // Then Wise's form opens with the link, over the status page
+        expect(openWiseKYCReview).toHaveBeenCalledWith(KYC_REVIEW_URL, 'settings/wallet/global-reimbursements/9053192/status');
+    });
+
+    it("sends Wise the status page's path without the entry screen's query, which can hold personal data", async () => {
+        // Given the flow opened over a Search whose query names a person
+        jest.mocked(useDynamicBackPath).mockReturnValue(
+            createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(BANK_ACCOUNT_ID), ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense from:jane@example.com'})),
+        );
+        mockFetch.pause();
+
+        try {
+            await renderPage();
+
+            // When the user presses Continue
+            await pressContinue();
+
+            // Then the return URL keeps the Search page but drops the query, since Search falls back to its default query without it
+            TestHelper.expectAPICommandToHaveBeenCalledWith(READ_COMMANDS.GET_WISE_KYC_REVIEW_EMBEDDED_LINK, 0, {
+                bankAccountID: BANK_ACCOUNT_ID,
+                redirectURL: `https://new.expensify.com/search/global-reimbursements/${BANK_ACCOUNT_ID}/status`,
+            });
+        } finally {
+            // The mock is module-level, so the other tests get the Wallet path back even if an assertion fails
+            jest.mocked(useDynamicBackPath).mockReturnValue(WALLET_INTRO_PATH);
+        }
+    });
+
+    it("sends Wise and the form's screen the full status path when the page opened without the intro underneath", async () => {
+        // Given the page opened straight from the Wallet, so the intro is not on the stack and the path rebuilt from the stack has no bank account
+        jest.mocked(useDynamicBackPath).mockReturnValue(ROUTES.SETTINGS_WALLET);
+        mockKYCReviewLinkResponse(mockFetch, KYC_REVIEW_URL);
+        mockFetch.pause();
+
+        try {
+            await renderPage();
+
+            // When the user presses Continue
+            await pressContinue();
+
+            // Then the return URL is built over the Wallet, since a URL without the bank account cannot load the status page
+            TestHelper.expectAPICommandToHaveBeenCalledWith(READ_COMMANDS.GET_WISE_KYC_REVIEW_EMBEDDED_LINK, 0, {
+                bankAccountID: BANK_ACCOUNT_ID,
+                redirectURL: `https://new.expensify.com/settings/wallet/global-reimbursements/${BANK_ACCOUNT_ID}/status`,
+            });
+
+            // When the server answers
+            await resumeFetch();
+
+            // Then the form opens over the same path, since on mobile a path without the bank account opens "not found"
+            expect(openWiseKYCReview).toHaveBeenCalledWith(KYC_REVIEW_URL, `settings/wallet/global-reimbursements/${BANK_ACCOUNT_ID}/status`);
+        } finally {
+            // The mock is module-level, so the other tests get the intro path back even if an assertion fails
+            jest.mocked(useDynamicBackPath).mockReturnValue(WALLET_INTRO_PATH);
+        }
+    });
+
+    it("doesn't open the form again when the focused path changes after the form opened", async () => {
+        // Given the link arrived and Wise's form opened over the status page
+        mockKYCReviewLinkResponse(mockFetch, KYC_REVIEW_URL);
+        await renderPage();
+        await pressContinue();
+        expect(openWiseKYCReview).toHaveBeenCalledTimes(1);
+
+        try {
+            // When the form's screen is focused, so the path read from the focused screen ends in the form, and the page underneath renders again
+            const formPath = createDynamicRoute(DYNAMIC_ROUTES.WISE_KYC_REVIEW.path, createDynamicRoute(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path, ROUTES.SETTINGS_WALLET));
+            jest.mocked(useDynamicBackPath).mockImplementation((suffix) => stripDynamicRouteSuffixFromPath(formPath, suffix));
+            await act(() => Onyx.set(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, true));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the form isn't opened again over a path built from the form's own, which opens "not found"
+            expect(openWiseKYCReview).toHaveBeenCalledTimes(1);
+        } finally {
+            // The mock is module-level, so the other tests get the intro path back even if an assertion fails
+            jest.mocked(useDynamicBackPath).mockReturnValue(WALLET_INTRO_PATH);
+        }
     });
 
     it('shows an error above Continue when the link cannot be fetched', async () => {
@@ -186,18 +274,5 @@ describe('WiseMoreInfoNeededPage', () => {
             // Network state is module-level, so restore it even if an assertion fails
             setHasRadio(true);
         }
-    });
-
-    it('goes back to the screen the flow started from', async () => {
-        // Given the page replaced the terms over the intro opened from the wallet
-        const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
-        await renderPage();
-
-        // When the user presses the back button
-        fireEvent.press(screen.getByLabelText('common.back'));
-
-        // Then the user leaves the intro too rather than reopening the form, since our part of the flow is done
-        expect(goBackSpy).toHaveBeenCalledWith('settings/wallet');
-        goBackSpy.mockRestore();
     });
 });

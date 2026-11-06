@@ -1050,6 +1050,9 @@ const CONST = {
         /** The query param Wise adds to the redirect URL when its hosted KYC form ends, saying how it ended */
         KYC_REVIEW_REDIRECT_STATUS_PARAM: 'status',
 
+        /** The value of that param when the user finished the form */
+        KYC_REVIEW_REDIRECT_STATUS_SUCCESS: 'success',
+
         /** Countries missing from Wise's supported list, so the bank account picker leaves them out */
         EXCLUDED_BANK_ACCOUNT_COUNTRIES: [
             'AC',
@@ -1096,12 +1099,6 @@ const CONST = {
             ACTION_REQUIRED: 'ACTION_REQUIRED',
             APPROVED: 'APPROVED',
             NOT_APPROVED: 'NOT_APPROVED',
-        },
-        /** The content the onboarding status page shows, read from its `status` query param */
-        ONBOARDING_STATUS_PAGE: {
-            REVIEW: 'review',
-            APPROVED: 'approved',
-            REJECTED: 'rejected',
         },
         /** The steps UpdateWiseOnboardingAdditionalData accepts: our intake pages, and the EDD pages keyed by Wise's KYC requirement key. The server answers any other step with 400 Invalid step. */
         ONBOARDING_STEP: {
