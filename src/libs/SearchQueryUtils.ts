@@ -849,13 +849,13 @@ function getQueryWithFooterSelection(
  * search snapshots can still include FORWARDED actions with violation data.
  */
 function queryHasViolationFilter(queryJSON: SearchQueryJSON | undefined): boolean {
-    return queryHasPositiveHasFilter(queryJSON, [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]);
+    return queryHasHasFilter(queryJSON, [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]);
 }
 
 /**
- * Whether the query includes a positive `has:` filter for any of the given values.
+ * Whether the query includes a `has:` filter for any of the given values. Negated filters only count when `shouldIncludeNegated` is set.
  */
-function queryHasPositiveHasFilter(queryJSON: SearchQueryJSON | undefined, hasValues: ReadonlyArray<ValueOf<typeof CONST.SEARCH.HAS_VALUES>>): boolean {
+function queryHasHasFilter(queryJSON: SearchQueryJSON | undefined, hasValues: ReadonlyArray<ValueOf<typeof CONST.SEARCH.HAS_VALUES>>, shouldIncludeNegated = false): boolean {
     const hasFilterGroups = queryJSON?.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) ?? [];
     if (hasFilterGroups.length === 0) {
         return false;
@@ -863,7 +863,7 @@ function queryHasPositiveHasFilter(queryJSON: SearchQueryJSON | undefined, hasVa
 
     return hasFilterGroups.some((group) =>
         group.filters.some((filter) => {
-            if (filter.operator !== CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+            if (!shouldIncludeNegated && filter.operator !== CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
                 return false;
             }
             const value = filter.value.toString();
@@ -874,10 +874,11 @@ function queryHasPositiveHasFilter(queryJSON: SearchQueryJSON | undefined, hasVa
 
 /**
  * Whether the query's results depend on report state that only report actions reveal, so adding an approval action
- * must refetch it: grouping by approver, or a `has:approved-violation` filter.
+ * must refetch it: grouping by approver, or an `approved-violation` filter. Negated filters count too, because
+ * approving a report moves its expenses out of a `-has:approved-violation` search.
  */
 function shouldRefetchSearchOnReportActionChange(queryJSON: SearchQueryJSON): boolean {
-    return queryJSON.groupBy === CONST.SEARCH.GROUP_BY.APPROVER || queryHasPositiveHasFilter(queryJSON, [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]);
+    return queryJSON.groupBy === CONST.SEARCH.GROUP_BY.APPROVER || queryHasHasFilter(queryJSON, [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION], true);
 }
 
 /**

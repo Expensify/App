@@ -4,7 +4,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import {search} from '@libs/actions/Search';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {isApprovedAction, isUnapprovedAction} from '@libs/ReportActionsUtils';
+import {isApprovedAction, isForwardedAction, isUnapprovedAction} from '@libs/ReportActionsUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import {shouldRefetchSearchOnReportActionChange} from '@libs/SearchQueryUtils';
 import {isReportActionEntry} from '@libs/SearchUIUtils';
@@ -117,16 +117,14 @@ function useSearchAutoRefetch({
             return;
         }
 
-        const shouldCheckReportActions = isChat || shouldRefetchOnReportActionChange;
-        const reportActionEntries = shouldCheckReportActions ? Object.values(reportActions ?? {}).flatMap((actions) => Object.entries(actions ?? {})) : [];
-        const reportActionsIDs = reportActionEntries.map(([reportActionID]) => reportActionID);
-        const previousReportActionsIDs = shouldCheckReportActions ? Object.values(previousReportActions ?? {}).flatMap((actions) => Object.keys(actions ?? {})) : [];
+        // Only chat searches are driven by report actions, so the rest skip walking that collection entirely.
+        const reportActionsIDs = isChat ? Object.values(reportActions ?? {}).flatMap((actions) => Object.keys(actions ?? {})) : [];
+        const previousReportActionsIDs = isChat ? Object.values(previousReportActions ?? {}).flatMap((actions) => Object.keys(actions ?? {})) : [];
 
         const previousTransactionsIDsSet = new Set(previousTransactionIDsLocal);
         const previousReportActionsIDsSet = new Set(previousReportActionsIDs);
         const hasTransactionsIDsChange = transactionsIDs.length !== previousTransactionIDsLocal.length || transactionsIDs.some((id) => !previousTransactionsIDsSet.has(id));
-        const addedReportActions = reportActionEntries.filter(([reportActionID]) => !previousReportActionsIDsSet.has(reportActionID)).map(([, reportAction]) => reportAction);
-        const hasReportActionsIDsChange = addedReportActions.length > 0;
+        const hasReportActionsIDsChange = reportActionsIDs.some((id) => !previousReportActionsIDsSet.has(id));
 
         // Editing an expense that the results already show changes no transaction ID, so the ID checks above miss it.
         // The rows and the footer total are served from the Search snapshot, and the footer total is computed by the
@@ -135,9 +133,8 @@ function useSearchAutoRefetch({
             !isChat && !hasTransactionsIDsChange && hasChangedTransactionInSearchResults(transactions, transactionsIDs, previousTransactions, previousTransactionsIDsSet, searchResultsData);
         const hasChangedResultMemberCustomField = !isChat && hasChangedMemberCustomField(memberCustomFields, previousMemberCustomFields);
 
-        // Approving or unapproving a report changes no transaction, but it can move the report's expenses in or out of the results.
-        const hasRelevantReportActionChange =
-            !isChat && shouldRefetchOnReportActionChange && addedReportActions.some((reportAction) => isApprovedAction(reportAction) || isUnapprovedAction(reportAction));
+        // Approving, unapproving or forwarding a report changes no transaction, but it can move the report's expenses in or out of the results.
+        const hasRelevantReportActionChange = !isChat && shouldRefetchOnReportActionChange && hasAddedApprovalReportAction(reportActions, previousReportActions);
 
         // Check if there is a change in the transactions or report actions list
         if (
@@ -340,6 +337,30 @@ function hasChangedTransactionInSearchResults(
 
     const searchResultIDs = new Set(extractTransactionIDsFromSearchResults(searchResultsData));
     return changedTransactionIDs.some((transactionID) => searchResultIDs.has(transactionID));
+}
+
+/**
+ * Whether an approved, unapproved or forwarded report action was added, which changes the report's approver and approved violations.
+ *
+ * Onyx only replaces the report action maps it writes, so maps with an unchanged reference are skipped, and the walk stops at the first match.
+ */
+function hasAddedApprovalReportAction(reportActions: OnyxCollection<ReportActions>, previousReportActions: OnyxCollection<ReportActions>): boolean {
+    for (const [key, actions] of Object.entries(reportActions ?? {})) {
+        const previousActions = previousReportActions?.[key];
+        if (!actions || actions === previousActions) {
+            continue;
+        }
+        for (const [reportActionID, reportAction] of Object.entries(actions)) {
+            if (previousActions?.[reportActionID]) {
+                continue;
+            }
+            if (isApprovedAction(reportAction) || isUnapprovedAction(reportAction) || isForwardedAction(reportAction)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 function hasChangedMemberCustomField(memberCustomFields: MemberCustomFieldsByPolicyID | undefined, previousMemberCustomFields: MemberCustomFieldsByPolicyID | undefined): boolean {

@@ -655,40 +655,41 @@ describe('useSearchAutoRefetch', () => {
                 },
             });
 
-        it.each<ReportActionName>(['APPROVED', 'UNAPPROVED'])('should trigger search when an %s report action is added while grouped by approver', (actionName) => {
+        it.each<ReportActionName>(['APPROVED', 'UNAPPROVED', 'FORWARDED'])('should trigger search when an %s report action is added while grouped by approver', (actionName) => {
             // Given a search grouped by approver whose results already show a row
             const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
                 initialProps: approverProps,
             });
 
-            // When a report is approved or unapproved, which adds a report action but changes no transaction
+            // When a report is approved, unapproved or forwarded, which adds a report action but changes no transaction
             rerender(withAddedAction(approverProps, actionName));
 
             // Then the search runs again, because the report's expenses move in or out of an approver group
             expect(search).toHaveBeenCalledTimes(1);
         });
 
-        it('should trigger search when an APPROVED report action is added while filtered by has:approved-violation', () => {
-            // Given a search filtered to approved violations whose results already show a row
-            const approvedViolationProps = createMock<UseSearchAutoRefetch>({
-                ...approverProps,
-                queryJSON: {
-                    ...baseProps.queryJSON,
-                    flatFilters: [
-                        {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}]},
-                    ],
-                },
-            });
-            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
-                initialProps: approvedViolationProps,
-            });
+        it.each([CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO])(
+            'should trigger search when an APPROVED report action is added while the has:approved-violation filter uses %s',
+            (operator) => {
+                // Given a search that includes or excludes approved violations, whose results already show a row
+                const approvedViolationProps = createMock<UseSearchAutoRefetch>({
+                    ...approverProps,
+                    queryJSON: {
+                        ...baseProps.queryJSON,
+                        flatFilters: [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS, filters: [{operator, value: CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}]}],
+                    },
+                });
+                const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                    initialProps: approvedViolationProps,
+                });
 
-            // When a report is approved, which adds a report action but changes no transaction
-            rerender(withAddedAction(approvedViolationProps, 'APPROVED'));
+                // When a report is approved, which adds a report action but changes no transaction
+                rerender(withAddedAction(approvedViolationProps, 'APPROVED'));
 
-            // Then the search runs again, because the report's violations now count as approved violations
-            expect(search).toHaveBeenCalledTimes(1);
-        });
+                // Then the search runs again, because the report's violations now count as approved violations either way
+                expect(search).toHaveBeenCalledTimes(1);
+            },
+        );
 
         it('should not trigger search when a non-approval report action is added while grouped by approver', () => {
             // Given a search grouped by approver whose results already show a row

@@ -6427,32 +6427,44 @@ describe('SearchQueryUtils', () => {
             // Given a query grouped by approver, whose groups change when a report is approved
             const queryJSON = buildSearchQueryJSON(`type:expense groupBy:${CONST.SEARCH.GROUP_BY.APPROVER}`);
 
-            // When / Then it needs a refetch on approval actions
-            expect(queryJSON && shouldRefetchSearchOnReportActionChange(queryJSON)).toBe(true);
+            // When checking whether approval actions should refetch it
+            const shouldRefetch = queryJSON && shouldRefetchSearchOnReportActionChange(queryJSON);
+
+            // Then it should, because the approver groups come from the server
+            expect(shouldRefetch).toBe(true);
         });
 
         test('returns true for a positive has:approved-violation filter', () => {
             // Given a query filtered to approved violations, whose matches change when a report is approved
             const queryJSON = buildSearchQueryJSON(`type:expense has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`);
 
-            // When / Then it needs a refetch on approval actions
-            expect(queryJSON && shouldRefetchSearchOnReportActionChange(queryJSON)).toBe(true);
+            // When checking whether approval actions should refetch it
+            const shouldRefetch = queryJSON && shouldRefetchSearchOnReportActionChange(queryJSON);
+
+            // Then it should, because approving the report adds its expenses to the results
+            expect(shouldRefetch).toBe(true);
         });
 
-        test('returns false when has:approved-violation is negated', () => {
+        test('returns true for a negated has:approved-violation filter', () => {
             // Given a query that excludes approved violations
             const queryJSON = buildSearchQueryJSON(`type:expense -has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`);
 
-            // When / Then it doesn't need a refetch, matching how queryHasViolationFilter treats negated filters
-            expect(queryJSON && shouldRefetchSearchOnReportActionChange(queryJSON)).toBe(false);
+            // When checking whether approval actions should refetch it
+            const shouldRefetch = queryJSON && shouldRefetchSearchOnReportActionChange(queryJSON);
+
+            // Then it should, because approving a report with violations moves its expenses out of the results
+            expect(shouldRefetch).toBe(true);
         });
 
         test('returns false for other groupings and has filters', () => {
             // Given a query whose results don't depend on approval state
             const queryJSON = buildSearchQueryJSON(`type:expense groupBy:from has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
 
-            // When / Then it doesn't need a refetch on approval actions
-            expect(queryJSON && shouldRefetchSearchOnReportActionChange(queryJSON)).toBe(false);
+            // When checking whether approval actions should refetch it
+            const shouldRefetch = queryJSON && shouldRefetchSearchOnReportActionChange(queryJSON);
+
+            // Then it shouldn't, so these searches skip walking the report actions
+            expect(shouldRefetch).toBe(false);
         });
     });
 
