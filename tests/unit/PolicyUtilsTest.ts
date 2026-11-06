@@ -6,7 +6,6 @@ import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginPro
 import useDefaultFundID from '@hooks/useDefaultFundID';
 
 import DateUtils from '@libs/DateUtils';
-import {getUKFuelRateTaxErrors, getUKFuelRatesWithInvalidTax, shouldShowUKFuelRateTaxError} from '@libs/PolicyUtils/errors';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     areApprovalsEnabled,
@@ -153,6 +152,7 @@ import {
     sortWorkspacesBySelected,
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
+import {getUKFuelRateTaxErrors, getUKFuelRatesWithInvalidTax, shouldShowUKFuelRateTaxError} from '@libs/PolicyUtils/errors';
 import {getApprovalChain, isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 

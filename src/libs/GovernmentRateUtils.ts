@@ -10,8 +10,7 @@ function getGovernmentRateSeries(sourceRateID: string): string {
 /** Whether a source rate belongs to a UK advisory fuel band rather than the standard mileage allowance. */
 function isFuelBandGovernmentRate(sourceRateID: string): boolean {
     return (
-        sourceRateID.startsWith(`${CONST.CUSTOM_UNITS.GOVERNMENT_RATE_FUEL_BAND_COUNTRY}_`) &&
-        getGovernmentRateSeries(sourceRateID) !== CONST.CUSTOM_UNITS.GOVERNMENT_RATE_FUEL_BAND_COUNTRY
+        sourceRateID.startsWith(`${CONST.CUSTOM_UNITS.GOVERNMENT_RATE_FUEL_BAND_COUNTRY}_`) && getGovernmentRateSeries(sourceRateID) !== CONST.CUSTOM_UNITS.GOVERNMENT_RATE_FUEL_BAND_COUNTRY
     );
 }
 

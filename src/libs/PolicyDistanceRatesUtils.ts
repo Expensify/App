@@ -16,8 +16,8 @@ import Onyx from 'react-native-onyx';
 import type {Option} from './searchOptions';
 
 import {getMicroSecondOnyxErrorWithTranslationKey} from './ErrorUtils';
-import {getGovernmentRateSeries, isFuelBandGovernmentRate} from './GovernmentRateUtils';
 import getPermittedDecimalSeparator from './getPermittedDecimalSeparator';
+import {getGovernmentRateSeries, isFuelBandGovernmentRate} from './GovernmentRateUtils';
 import Log from './Log';
 import {replaceAllDigits} from './MoneyRequestUtils';
 import {generateHexadecimalValue, parseFloatAnyLocale} from './NumberUtils';
