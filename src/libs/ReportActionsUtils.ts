@@ -896,24 +896,34 @@ function getCrossBorderReimbursedMessage(
     });
 }
 
+type WiseCrossBorderPaymentDetails = {
+    /** Link to the Payment details screen. The message has no "View details" link without it */
+    detailsURL?: string;
+};
+
 /**
  * Appends the delivery estimate to a bank account payment message. Wise cross-border payments read "funds are expected to
  * arrive by" with the full month, the same as the Wise delivery estimate actions, while other payments keep the next step wording.
+ *
+ * @param wiseCrossBorderPayment - set only for a Wise cross-border payment
+ * @returns HTML when the "View details" link is included, so callers render it with RenderHTML
  */
 function getPaymentMessageWithExpectedDate(
     translate: LocalizedTranslate,
     dateFnsLocale: DateFnsLocale | undefined,
     paymentMessage: string,
     expectedDate: string | undefined,
-    isWiseCrossBorderPayment = false,
+    wiseCrossBorderPayment?: WiseCrossBorderPaymentDetails,
 ): string {
     if (!expectedDate) {
         return paymentMessage;
     }
 
-    if (isWiseCrossBorderPayment) {
+    if (wiseCrossBorderPayment) {
         const formattedArrivalDate = DateUtils.formatWithUTCTimeZone(expectedDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale);
-        return formattedArrivalDate ? translate('iou.paymentWithArrivalDate', {paymentMessage, expectedDate: formattedArrivalDate}) : paymentMessage;
+        return formattedArrivalDate
+            ? translate('iou.paymentWithArrivalDate', {paymentMessage, expectedDate: formattedArrivalDate, detailsURL: wiseCrossBorderPayment.detailsURL})
+            : paymentMessage;
     }
 
     const formattedExpectedDate = DateUtils.formatWithUTCTimeZone(expectedDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, dateFnsLocale);

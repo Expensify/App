@@ -1748,7 +1748,8 @@ const translations = {
         automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `paid ${amount ? `${amount} ` : ''}with bank account ${last4Digits} via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>`,
         paymentWithExpectedDate: ({paymentMessage, expectedDateMessage}: {paymentMessage: string; expectedDateMessage: string}) => `${paymentMessage}. ${expectedDateMessage}`,
-        paymentWithArrivalDate: ({paymentMessage, expectedDate}: {paymentMessage: string; expectedDate: string}) => `${paymentMessage}, funds are expected to arrive by ${expectedDate}.`,
+        paymentWithArrivalDate: ({paymentMessage, expectedDate, detailsURL}: {paymentMessage: string; expectedDate: string; detailsURL?: string}) =>
+            `${paymentMessage}, funds are expected to arrive by ${expectedDate}.${detailsURL ? ` <a href="${detailsURL}">View details</a>` : ''}`,
         invoicePersonalBank: (lastFour: string) => `Personal account • ${lastFour}`,
         invoiceBusinessBank: (lastFour: string) => `Business Account • ${lastFour}`,
         nextStep: 'Next steps',

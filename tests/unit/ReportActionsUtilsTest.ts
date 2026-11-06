@@ -2448,10 +2448,21 @@ describe('ReportActionsUtils', () => {
             const paymentMessage = 'paid with bank account 1234';
 
             // When the estimate is added to the message
-            const message = ReportActionsUtils.getPaymentMessageWithExpectedDate(translateLocal, undefined, paymentMessage, '2026-08-18', true);
+            const message = ReportActionsUtils.getPaymentMessageWithExpectedDate(translateLocal, undefined, paymentMessage, '2026-08-18', {});
 
             // Then it uses the same "funds are expected to arrive" wording as the Wise delivery estimate actions
             expect(message).toBe('paid with bank account 1234, funds are expected to arrive by August 18, 2026.');
+        });
+
+        it('should link to the payment details for a Wise cross-border payment', () => {
+            // Given a Wise cross-border payment message, its delivery estimate and the link to the Payment details screen
+            const paymentMessage = 'paid with bank account 1234';
+
+            // When the estimate is added to the message
+            const message = ReportActionsUtils.getPaymentMessageWithExpectedDate(translateLocal, undefined, paymentMessage, '2026-08-18', {detailsURL: 'https://new.expensify.com/details'});
+
+            // Then the message ends with the View details link, so the payer can see what Wise charged
+            expect(message).toBe('paid with bank account 1234, funds are expected to arrive by August 18, 2026. <a href="https://new.expensify.com/details">View details</a>');
         });
 
         it('should keep the next step wording for other bank account payments', () => {
@@ -2470,7 +2481,7 @@ describe('ReportActionsUtils', () => {
             const paymentMessage = 'paid with bank account 1234';
 
             // When the estimate is added to the message
-            const message = ReportActionsUtils.getPaymentMessageWithExpectedDate(translateLocal, undefined, paymentMessage, undefined, true);
+            const message = ReportActionsUtils.getPaymentMessageWithExpectedDate(translateLocal, undefined, paymentMessage, undefined, {});
 
             // Then nothing is appended, because there is no date to show
             expect(message).toBe(paymentMessage);
@@ -2481,7 +2492,7 @@ describe('ReportActionsUtils', () => {
             const paymentMessage = 'paid with bank account 1234';
 
             // When the estimate is added to the message
-            const message = ReportActionsUtils.getPaymentMessageWithExpectedDate(translateLocal, undefined, paymentMessage, 'not a date', true);
+            const message = ReportActionsUtils.getPaymentMessageWithExpectedDate(translateLocal, undefined, paymentMessage, 'not a date', {});
 
             // Then nothing is appended, so the message never ends with "arrive by ."
             expect(message).toBe(paymentMessage);
