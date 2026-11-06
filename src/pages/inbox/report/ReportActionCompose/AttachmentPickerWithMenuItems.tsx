@@ -61,6 +61,11 @@ type MoneyRequestOptions = Record<
     PopoverMenuItem[]
 >;
 
+const POPOVER_ANCHOR_ALIGNMENT = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+};
+
 type AttachmentPickerWithMenuItemsProps = {
     report: OnyxEntry<OnyxTypes.Report>;
     currentUserPersonalDetails: OnyxTypes.PersonalDetails;
@@ -151,7 +156,6 @@ function AttachmentPickerWithMenuItems({
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-    const distanceExpenseType = getDistanceExpenseTypeForPolicy(policy, lastDistanceExpenseType);
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         policyID: policy?.id,
         isDistanceRequest: true,
@@ -213,6 +217,7 @@ function AttachmentPickerWithMenuItems({
         }
     };
 
+    const distanceExpenseType = getDistanceExpenseTypeForPolicy(policy, lastDistanceExpenseType);
     const isReportTeachersUnite = isTeachersUniteReport(report);
 
     /**
@@ -332,6 +337,18 @@ function AttachmentPickerWithMenuItems({
               },
           ];
 
+    const menuItems = [
+        ...moneyRequestOptions,
+        ...(!isReportTeachersUnite ? createReportOption : []),
+        ...taskOption,
+        {
+            icon: icons.Paperclip,
+            text: translate('reportActionCompose.addAttachment'),
+            disabled: shouldDisableAttachmentItem,
+            sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_ADD_ATTACHMENT,
+        },
+    ];
+
     const onPopoverMenuClose = () => {
         setMenuVisibility(false);
         onMenuClosed?.();
@@ -360,10 +377,7 @@ function AttachmentPickerWithMenuItems({
             return;
         }
 
-        calculatePopoverPosition(actionButtonRef as React.RefObject<ComponentRef<typeof View>>, {
-            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-        }).then((position) => {
+        calculatePopoverPosition(actionButtonRef as React.RefObject<ComponentRef<typeof View>>, POPOVER_ANCHOR_ALIGNMENT).then((position) => {
             setPopoverAnchorPosition({...position, vertical: position.vertical - CONST.MODAL.POPOVER_MENU_PADDING});
         });
     }, [isMenuVisible, calculatePopoverPosition, actionButtonRef]);
@@ -400,17 +414,6 @@ function AttachmentPickerWithMenuItems({
                         onClosed: () => setIsLoaderVisible(false),
                     });
                 };
-                const menuItems = [
-                    ...moneyRequestOptions,
-                    ...(!isReportTeachersUnite ? createReportOption : []),
-                    ...taskOption,
-                    {
-                        icon: icons.Paperclip,
-                        text: translate('reportActionCompose.addAttachment'),
-                        disabled: shouldDisableAttachmentItem,
-                        sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_ADD_ATTACHMENT,
-                    },
-                ];
                 return (
                     <>
                         <View
@@ -483,10 +486,7 @@ function AttachmentPickerWithMenuItems({
                                 }
                             }}
                             anchorPosition={popoverAnchorPosition ?? {horizontal: 0, vertical: 0}}
-                            anchorAlignment={{
-                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                            }}
+                            anchorAlignment={POPOVER_ANCHOR_ALIGNMENT}
                             menuItems={menuItems}
                             anchorRef={actionButtonRef}
                             enableEdgeToEdgeBottomSafeAreaPadding

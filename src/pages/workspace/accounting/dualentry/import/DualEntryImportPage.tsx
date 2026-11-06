@@ -49,6 +49,7 @@ function DualEntryImportPage({policy}: WithPolicyConnectionsProps) {
                 title={translate('workspace.accounting.accounts')}
                 subtitle={translate('workspace.dualEntry.accountTypesDescription')}
                 switchAccessibilityLabel={translate('workspace.accounting.accounts')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.DUAL_ENTRY.ACCOUNTS_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive
@@ -59,6 +60,7 @@ function DualEntryImportPage({policy}: WithPolicyConnectionsProps) {
                 title={translate('workspace.dualEntry.enableNewAccountsTitle')}
                 subtitle={translate('workspace.dualEntry.enableNewAccountsDescription')}
                 switchAccessibilityLabel={translate('workspace.dualEntry.enableNewAccountsTitle')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.DUAL_ENTRY.ENABLE_NEW_ACCOUNTS_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive={enableNewCategories}
@@ -79,6 +81,7 @@ function DualEntryImportPage({policy}: WithPolicyConnectionsProps) {
                         key={classification.id}
                         title={classification.name}
                         switchAccessibilityLabel={classification.name}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.DUAL_ENTRY.CLASSIFICATION_SWITCH}
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={[styles.mv3, styles.mh5]}
                         isActive={isImported}
@@ -97,6 +100,7 @@ function DualEntryImportPage({policy}: WithPolicyConnectionsProps) {
                     <ToggleSettingOptionRow
                         title={translate('workspace.taxes.taxRates')}
                         switchAccessibilityLabel={translate('workspace.taxes.taxRates')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.DUAL_ENTRY.TAX_RATES_SWITCH}
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={[styles.mv3, styles.mh5]}
                         isActive={syncTaxRates}

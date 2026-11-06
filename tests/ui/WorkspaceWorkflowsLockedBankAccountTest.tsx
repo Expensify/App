@@ -154,7 +154,7 @@ const getInitiatingBankAccountUnlock = () =>
         const connection = Onyx.connect({
             key: ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK,
             callback: (value) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 resolve(value);
             },
         });

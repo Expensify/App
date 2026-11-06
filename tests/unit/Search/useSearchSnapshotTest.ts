@@ -58,6 +58,11 @@ jest.mock('@hooks/usePolicyForMovingExpenses', () => ({
         policyForMovingExpenses: undefined,
     }),
 }));
+let mockShouldReturnTripRooms = false;
+jest.mock('@hooks/useShouldReturnTripRooms', () => ({
+    __esModule: true,
+    default: () => mockShouldReturnTripRooms,
+}));
 jest.mock('@hooks/useMultipleSnapshots', () => ({
     __esModule: true,
     default: () => ({}),
@@ -159,6 +164,7 @@ function trackingReturn(searchDataWithOptimisticTransaction: unknown, optimistic
 describe('useSearchSnapshot', () => {
     beforeEach(() => {
         mockIsOffline = false;
+        mockShouldReturnTripRooms = false;
         for (const key of Object.keys(onyxData)) {
             delete onyxData[key];
         }
@@ -378,6 +384,27 @@ describe('useSearchSnapshot', () => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             expect(mockGetSortedSections.mock.calls.at(-1)?.[0]).toBe(type);
         }
+    });
+
+    it('tells getSortedSections when a trip search returns trip rooms', () => {
+        // Given a trip search with the TravelApproval beta, whose rows are trip rooms with their own sort keys
+        mockShouldReturnTripRooms = true;
+        const searchResults = makeSearchResults({type: CONST.SEARCH.DATA_TYPES.TRIP});
+        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
+
+        // When the snapshot is projected
+        renderHook(() =>
+            useSearchSnapshot({
+                queryJSON: makeQueryJSON({type: CONST.SEARCH.DATA_TYPES.TRIP}),
+                searchResults,
+                transactions: undefined,
+                reportActions: undefined,
+            }),
+        );
+
+        // Then the trip rooms flag reaches the sort, or trip rows keep the server order whatever column is sorted
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        expect(mockGetSortedSections.mock.calls.at(-1)?.[7]).toEqual(expect.objectContaining({shouldReturnTripRooms: true}));
     });
 
     it('keeps the projected data referentially stable across re-renders with unchanged inputs', () => {
