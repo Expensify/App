@@ -146,6 +146,7 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
                     // The hint only renders while the date is empty, and `TextInput` drops its right-hand-side
                     // component whenever the clear button can appear, which it can't without a value to clear.
                     shouldHideClearButton={shouldShowEmptyDate}
+                    clearButtonSentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DATE_FIELD_CLEAR_BUTTON}
                     rightHandSideComponent={shouldShowAutomaticHint ? <AutomaticFieldHint /> : undefined}
                     // The calendar icon and the hint share the right-hand side, so the field shows one or the other.
                     // The icon comes back once the user opens the picker, the same way the amount field's buttons do.

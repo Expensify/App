@@ -8,6 +8,7 @@ import {normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
 import {
     RHP_TO_DOMAIN,
     RHP_TO_HOME,
+    RHP_TO_INSIGHTS,
     RHP_TO_SEARCH,
     RHP_TO_SEARCH_DEEPLINK,
     RHP_TO_SETTINGS,
@@ -133,6 +134,14 @@ function getMatchingFullScreenRoute(route: NavigationRoute, isDeeplink = false) 
             ...getTabNavigatorState({name: SCREENS.HOME}),
             path: normalizePath(ROUTES.HOME),
         };
+    }
+
+    if (RHP_TO_INSIGHTS[route.name]) {
+        const paramsFromRoute = getParamsFromRoute(RHP_TO_INSIGHTS[route.name]);
+        return getTabNavigatorState({
+            name: SCREENS.INSIGHTS,
+            params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
+        });
     }
 
     if (RHP_TO_WORKSPACES_LIST[route.name]) {

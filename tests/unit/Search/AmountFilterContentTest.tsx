@@ -10,6 +10,8 @@ import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 import useAmountFilterCurrency from '@hooks/useAmountFilterCurrency';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 
+import type * as CurrencyUtils from '@libs/CurrencyUtils';
+
 import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
 
 import CONST from '@src/CONST';
@@ -28,11 +30,17 @@ jest.mock('@hooks/useShouldFooterBeInsideList', () => () => false);
 jest.mock('@hooks/useDefaultExpensePolicy', () => jest.fn(() => undefined));
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key, preferredLocale: 'en'}));
 jest.mock('@hooks/useResponsiveLayout', () => () => ({shouldUseNarrowLayout: false}));
-jest.mock('@hooks/useCurrencyList', () => ({
-    useCurrencyListActions: () => ({
-        getCurrencyDecimals: (currency: string) => (currency === 'JPY' || currency === 'VND' ? 0 : 2),
-    }),
-}));
+jest.mock('@hooks/useCurrencyList', () => {
+    const {convertToDisplayStringWithoutCurrencyForLocale} = jest.requireActual<typeof CurrencyUtils>('@libs/CurrencyUtils');
+    const getCurrencyDecimals = (currency?: string) => (currency === 'JPY' || currency === 'VND' ? 0 : 2);
+
+    return {
+        useCurrencyListActions: () => ({
+            getCurrencyDecimals,
+            convertToDisplayStringWithoutCurrency: (amount: number, currency?: string) => convertToDisplayStringWithoutCurrencyForLocale('en', amount, currency, getCurrencyDecimals),
+        }),
+    };
+});
 
 beforeEach(() => {
     jest.clearAllMocks();

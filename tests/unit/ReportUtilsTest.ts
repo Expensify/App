@@ -240,7 +240,6 @@ import {
     shouldEnableNegative,
     shouldExcludeAncestorReportAction,
     shouldCreateNewMoneyRequestReport,
-    shouldHideBillReport,
     shouldHideSingleReportField,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
@@ -4568,6 +4567,70 @@ describe('ReportUtils', () => {
 
             // Even though the chat carries an outstanding-child flag, an all-pending card report can't be actioned yet.
             expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
+        });
+
+        it('returns false when the outstanding child is the member own empty report on a workspace they cannot create expenses on', async () => {
+            // Given the member's own open, empty report on an approve-only workspace
+            // When the LHN checks whether their workspace chat needs attention
+            // Then the outstanding-child flag alone does not show the GBR, since only the owner can act on it
+            const expenseReportID = '7101';
+            const expenseReport = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: expenseReportID,
+                policyID: '1',
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                transactionCount: 0,
+            };
+
+            const policyExpenseChat = {
+                ...createPolicyExpenseChat(101, true),
+                policyID: '1',
+                ownerAccountID: currentUserAccountID,
+                hasOutstandingChildRequest: true,
+                iouReportID: expenseReportID,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {role: CONST.POLICY.ROLE.APPROVE_ONLY});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport);
+            await waitForBatchedUpdates();
+
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
+        });
+
+        it('returns true when the outstanding child is the member own empty report on a workspace they can create expenses on', async () => {
+            // Given the member's own open, empty report on a workspace where they are a regular member
+            // When the LHN checks whether their workspace chat needs attention
+            // Then the outstanding-child flag shows the GBR, since adding expenses is an action for them
+            const expenseReportID = '7102';
+            const expenseReport = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: expenseReportID,
+                policyID: '1',
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                transactionCount: 0,
+            };
+
+            const policyExpenseChat = {
+                ...createPolicyExpenseChat(102, true),
+                policyID: '1',
+                ownerAccountID: currentUserAccountID,
+                hasOutstandingChildRequest: true,
+                iouReportID: expenseReportID,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {role: CONST.POLICY.ROLE.USER});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport);
+            await waitForBatchedUpdates();
+
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
         });
 
         describe('when the outstanding child expense is all on hold', () => {
@@ -11760,7 +11823,7 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('isUnsupportedReportType and shouldHideBillReport', () => {
+    describe('isUnsupportedReportType', () => {
         it.each([
             {reportType: CONST.REPORT.UNSUPPORTED_TYPE.BILL, isBillPayBetaEnabled: false, expected: true},
             {reportType: CONST.REPORT.UNSUPPORTED_TYPE.BILL, isBillPayBetaEnabled: true, expected: false},
@@ -11772,18 +11835,6 @@ describe('ReportUtils', () => {
             // When we check whether NewDot supports the type for this user
             // Then only bills depend on the beta, and other unsupported types stay unsupported
             expect(isUnsupportedReportType(reportType, isBillPayBetaEnabled)).toBe(expected);
-        });
-
-        it.each([
-            {reportType: CONST.REPORT.UNSUPPORTED_TYPE.BILL, isBillPayBetaEnabled: false, expected: true},
-            {reportType: CONST.REPORT.UNSUPPORTED_TYPE.BILL, isBillPayBetaEnabled: true, expected: false},
-            {reportType: CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK, isBillPayBetaEnabled: false, expected: false},
-            {reportType: CONST.REPORT.TYPE.INVOICE, isBillPayBetaEnabled: false, expected: false},
-        ])('shouldHideBillReport returns $expected for $reportType when isBillPayBetaEnabled is $isBillPayBetaEnabled', ({reportType, isBillPayBetaEnabled, expected}) => {
-            // Given a report type and the user's newDotBillPay beta state
-            // When the report screen checks whether to hide the report
-            // Then only bills are hidden, and only from users without the beta
-            expect(shouldHideBillReport(reportType, isBillPayBetaEnabled)).toBe(expected);
         });
     });
 
@@ -20682,6 +20733,18 @@ describe('ReportUtils', () => {
             const result = canDuplicateExpenseIntoSourceReport(buildParams(sourceReport, {policy: {...sourcePolicy, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}}));
 
             // Then the duplicate falls back to the default workspace routing
+            expect(result).toBe(false);
+        });
+
+        it('returns false when the member cannot create expenses on the source workspace', async () => {
+            // Given an open expense report on a workspace where the current user has the approve-only role
+            const sourceReport = await buildOpenSourceReport();
+
+            // When it's checked whether a duplicate can stay on that report
+            const result = canDuplicateExpenseIntoSourceReport(buildParams(sourceReport, {policy: {...sourcePolicy, role: CONST.POLICY.ROLE.APPROVE_ONLY}}));
+
+            // Then the duplicate falls back to the default workspace routing, because duplicating
+            // would create a new expense the member is not allowed to create there
             expect(result).toBe(false);
         });
 
