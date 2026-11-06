@@ -1,4 +1,5 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import type {PaymentMethod} from '@components/KYCWall/types';
 
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
@@ -23,6 +24,7 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
 import useOnyx from './useOnyx';
 import usePayChatReportActions from './usePayChatReportActions';
+import usePayViaABA from './usePayViaABA';
 import usePermissions from './usePermissions';
 import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
 import {usePersonalDetail} from './usePersonalDetails';
@@ -36,12 +38,13 @@ type UseHoldMenuSubmitParams = {
     chatReport: OnyxEntry<OnyxTypes.Report>;
     requestType?: ActionHandledType;
     paymentType?: PaymentMethodType;
+    paymentMethod?: PaymentMethod;
     methodID?: number;
     onClose: () => void;
     onConfirm?: (full: boolean) => void;
 };
 
-function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, paymentType, methodID, onClose, onConfirm}: UseHoldMenuSubmitParams) {
+function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, paymentType, paymentMethod, methodID, onClose, onConfirm}: UseHoldMenuSubmitParams) {
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
@@ -67,6 +70,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const {getCurrencyDecimals} = useCurrencyListActions();
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const delegateAccountID = useDelegateAccountID();
+    const {payReportsViaABA} = usePayViaABA();
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -110,6 +114,10 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 delegateAccountID,
                 isTrackIntentUser,
             });
+        } else if (paymentMethod === CONST.PAYMENT_METHODS.ABA) {
+            if (currentMoneyRequestReport?.reportID) {
+                payReportsViaABA([currentMoneyRequestReport.reportID], policy, full);
+            }
         } else if (currentChatReport && paymentType) {
             payMoneyRequest({
                 bankAccountList,

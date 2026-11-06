@@ -1,5 +1,7 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import type HttpsError from '@libs/Errors/HttpsError';
+
 import type {RequestType} from '@src/types/onyx/Request';
 
 import type {Asset} from 'react-native-image-picker';
@@ -12,7 +14,7 @@ type FileDownload = (
     shouldOpenExternalLink?: boolean,
     formData?: FormData,
     requestType?: RequestType,
-    onDownloadFailed?: () => void,
+    onDownloadFailed?: (error?: HttpsError) => void,
     shouldUnlink?: boolean,
     appendTimestamp?: boolean,
 ) => Promise<void>;

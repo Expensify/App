@@ -5,11 +5,13 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 import {createContext, useContext} from 'react';
 
+import type {PaymentMethod} from './KYCWall/types';
 import type {ModalStateChangePayload} from './Modal/Global/ModalContext';
 
 type HoldMenuParams = {
     requestType?: ActionHandledType;
     paymentType?: PaymentMethodType;
+    paymentMethod?: PaymentMethod;
     methodID?: number;
     onConfirm?: (full: boolean) => void;
 };

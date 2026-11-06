@@ -609,6 +609,29 @@ describe('handleBulkPayItemSelected', () => {
         expect(baseParams.confirmPayment).toHaveBeenCalled();
     });
 
+    it('should defer to verifyAccountAndResume when user is unvalidated and item is Pay via ABA', async () => {
+        // Given an unvalidated user on a workspace
+        const policy: Policy = {
+            ...createRandomPolicy(Number(policyID)),
+            id: policyID,
+            ownerAccountID,
+        };
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+        // When they pick "Pay via ABA" from the bulk pay options
+        handleBulkPayItemSelected({
+            ...baseParams,
+            policy,
+            amountOwed: 0,
+            isUserValidated: false,
+            item: {key: CONST.PAYMENT_METHODS.ABA, text: 'Pay via ABA', icon: () => null, additionalData: {paymentMethod: CONST.PAYMENT_METHODS.ABA}},
+        });
+
+        // Then they verify their account before anything is paid, because unlike Mark as paid, the ABA file pays out of the workspace's bank account
+        expect(baseParams.verifyAccountAndResume).toHaveBeenCalled();
+        expect(baseParams.confirmPayment).not.toHaveBeenCalled();
+    });
+
     it('should defer to verifyAccountAndResume when user is unvalidated and item is a bank-funded payment type (VBBA), then resume the payment after validation', async () => {
         const policy: Policy = {
             ...createRandomPolicy(Number(policyID)),

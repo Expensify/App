@@ -2,7 +2,7 @@ import type {BankAccountMenuItem} from '@components/Search/types';
 
 import {approveMoneyRequest} from '@libs/actions/IOU/ReportWorkflow';
 import Navigation from '@libs/Navigation/Navigation';
-import {getActivePaymentType, getBusinessBankAccountOptions, selectPaymentType} from '@libs/PaymentUtils';
+import {getActivePaymentType, getBusinessBankAccountOptions, isSecondaryActionAPaymentOption, selectPaymentType} from '@libs/PaymentUtils';
 import type {SelectPaymentTypeParams} from '@libs/PaymentUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
@@ -35,6 +35,30 @@ describe('PaymentUtils', () => {
     it('Test rounding wallet transfer instant fee', () => {
         expect(calculateWalletTransferBalanceFee(2100, CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT)).toBe(32);
     });
+    describe('isSecondaryActionAPaymentOption', () => {
+        it.each([CONST.IOU.PAYMENT_TYPE.ELSEWHERE, CONST.IOU.PAYMENT_TYPE.VBBA])('treats a %s option as a payment option', (value) => {
+            // Given a More menu option for one of the payment types
+            const option = {text: 'Pay', value};
+
+            // When checking whether the More menu pays with it
+            const isPaymentOption = isSecondaryActionAPaymentOption(option);
+
+            // Then it does
+            expect(isPaymentOption).toBe(true);
+        });
+
+        it('does not treat the ABA option as a payment option', () => {
+            // Given the More menu's "Pay via ABA" option, which pays when it's selected
+            const option = {text: 'Pay via ABA', value: CONST.PAYMENT_METHODS.ABA};
+
+            // When checking whether the More menu pays with it
+            const isPaymentOption = isSecondaryActionAPaymentOption(option);
+
+            // Then it doesn't, so the report isn't also marked as paid by the More menu's own handler
+            expect(isPaymentOption).toBe(false);
+        });
+    });
+
     describe('getActivePaymentType', () => {
         const randomPolicyA = createRandomPolicy(1);
         const randomPolicyB = createRandomPolicy(2);
@@ -91,6 +115,18 @@ describe('PaymentUtils', () => {
         it('should set shouldSelectPaymentMethod to false when paymentMethod is explicitly ELSEWHERE (Mark as Paid)', () => {
             const result = getActivePaymentType(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, [], [bankItem]);
 
+            expect(result.paymentType).toBe(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
+            expect(result.shouldSelectPaymentMethod).toBe(false);
+        });
+
+        it('should set shouldSelectPaymentMethod to false when paymentMethod is ABA', () => {
+            // Given the user has a bank account they could pay with
+            const businessBankAccountOptions = [bankItem];
+
+            // When they choose to pay via ABA
+            const result = getActivePaymentType(CONST.PAYMENT_METHODS.ABA, [], businessBankAccountOptions);
+
+            // Then it's paid as Elsewhere without asking for a payment method, since the ABA file pays from outside of Expensify
             expect(result.paymentType).toBe(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
             expect(result.shouldSelectPaymentMethod).toBe(false);
         });
@@ -346,6 +382,19 @@ describe('PaymentUtils', () => {
                 }),
                 createMockPaymentMethod({
                     accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS},
+                }),
+            ];
+            expect(getBusinessBankAccountOptions(methods)).toHaveLength(0);
+        });
+
+        it('drops accounts that are only used for ABA files', () => {
+            const methods: PaymentMethod[] = [
+                createMockPaymentMethod({
+                    accountData: {
+                        type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        additionalData: {isForABA: true},
+                    },
                 }),
             ];
             expect(getBusinessBankAccountOptions(methods)).toHaveLength(0);

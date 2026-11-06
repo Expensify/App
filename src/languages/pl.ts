@@ -2059,6 +2059,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         undeletedExpense: 'przywrócił ten wydatek',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `stawki za przejechany dystans zaktualizowane dla nowej przestrzeni roboczej – ${policyName}`,
+        payViaABA: 'Zapłać przez ABA',
     },
     transactionMerge: {
         listPage: {
