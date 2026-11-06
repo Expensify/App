@@ -4,7 +4,7 @@ import {getHiddenProvidedKeys} from '@components/DynamicForm/utils/hasProvidedAn
 import isCountryCode from '@components/DynamicForm/utils/isCountryCode';
 import {getAllFields, getPages} from '@components/DynamicForm/utils/paginate';
 
-import {getCountryCode, resolveStateCode} from '@libs/CountryUtils';
+import {getCountryCode} from '@libs/CountryUtils';
 import {toSavedFile} from '@libs/getWiseOnboardingPageParams';
 import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
 
@@ -34,14 +34,13 @@ const ALL_FIELDS = getAllFields(getPages(US));
 
 const READONLY_KEYS = new Set(ALL_FIELDS.filter((field) => field.readonly).map((field) => field.key));
 
-/** The state picker lists states by code, so a state that is not one is left out. Only US state names are turned into codes. */
+/** The state picker lists states by code, so a state saved as its full name is turned into the code, and a state that matches neither is left out */
 function getStateCode(countryCode: string | undefined, state: string | undefined): string | undefined {
     const stateOptions = STATES_BY_COUNTRY[countryCode ?? ''];
     if (!stateOptions || !state) {
         return state;
     }
-    const stateCode = countryCode === CONST.COUNTRY.US ? resolveStateCode(state) : state;
-    return Object.hasOwn(stateOptions, stateCode) ? stateCode : undefined;
+    return Object.entries(stateOptions).find(([code, name]) => code === state || name.toLowerCase() === state.toLowerCase())?.[0];
 }
 
 /** The answers of every saved page, with each saved file as a draft entry the next save can tell apart from a new one. A key a later save dropped comes back as null and is left out. */

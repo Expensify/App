@@ -116,16 +116,23 @@ describe('getWiseBusinessOnboardingPrefill', () => {
         expect(prefill[ADDRESS_KEYS.country]).toBe(CONST.COUNTRY.US);
     });
 
-    it('prefills a state outside the US only when it is a code the picker lists', () => {
-        // Given a Canadian address whose state was saved as a full name, and an Australian one saved as a code
+    it('turns a state outside the US into the code the picker lists, whether it was saved as the full name or the code', () => {
+        // Given addresses saved the way the address page saves them, with the full state name AddressSearch gives outside the US,
+        // one saved with the code, and one with a name the picker does not list
         const getStateFor = (state: string, country: Country) =>
             getWiseBusinessOnboardingPrefill(BANK_ACCOUNT_ID, BUSINESS_ACCOUNT_DATA, {addresses: [{street: '1 Main St', city: 'City', state, zip: '1000', country}]})[ADDRESS_KEYS.state];
 
         // When the onboarding builds its starting answers for each
-        const states = [getStateFor('Ontario', CONST.COUNTRY.CA), getStateFor('NSW', CONST.COUNTRY.AU)];
+        const states = [
+            getStateFor('Ontario', CONST.COUNTRY.CA),
+            getStateFor('new south wales', CONST.COUNTRY.AU),
+            getStateFor('São Paulo', CONST.COUNTRY.BR),
+            getStateFor('NSW', CONST.COUNTRY.AU),
+            getStateFor('State of São Paulo', CONST.COUNTRY.BR),
+        ];
 
-        // Then only the code is prefilled, so the user picks the other instead of sending Wise a name
-        expect(states).toEqual([undefined, 'NSW']);
+        // Then each listed state starts picked by its code, and the unlisted one is left for the user to pick instead of sending Wise a name
+        expect(states).toEqual(['ON', 'NSW', 'SP', 'NSW', undefined]);
     });
 
     it('leaves out what is not on file', () => {
