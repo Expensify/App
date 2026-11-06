@@ -38,7 +38,7 @@ function getWiseKYCReviewEmbeddedLink(bankAccountID: number, redirectURL: string
 }
 
 /** Asks Wise for a fresh price for paying the report. The server merges it into `report.wiseQuote`, so the old quote is dropped first */
-function getWiseQuote(reportID: string) {
+function getWiseQuote(reportID: string, full: boolean) {
     const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT> = {
         optimisticData: [
@@ -57,7 +57,7 @@ function getWiseQuote(reportID: string) {
         ],
     };
 
-    read(READ_COMMANDS.GET_WISE_QUOTE, {reportID}, onyxData);
+    read(READ_COMMANDS.GET_WISE_QUOTE, {reportID, full}, onyxData);
 }
 
 /** Drops the link, which carries a token */

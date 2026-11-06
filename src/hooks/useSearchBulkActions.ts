@@ -2013,7 +2013,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 const reports = expensePayments.flatMap((params) => (params.iouReport?.reportID ? [params.iouReport] : []));
                 const quotedReportIDs = expensePayments.flatMap((params) => (params.iouReport?.reportID && shouldGetWiseQuote(params) ? [params.iouReport.reportID] : []));
                 for (const reportID of quotedReportIDs) {
-                    getWiseQuote(reportID);
+                    getWiseQuote(reportID, true);
                 }
                 // Bulk pay runs while the pay popover is still dismissing, and iOS can't present a modal until it's gone
                 deferModalPresentationAfterPopoverDismiss(() => {

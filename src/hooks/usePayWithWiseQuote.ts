@@ -16,10 +16,11 @@ function usePayWithWiseQuote() {
             return;
         }
 
-        getWiseQuote(reportID);
+        const isPayingUnheldOnly = params.full === false;
+        getWiseQuote(reportID, !isPayingUnheldOnly);
         showWiseQuoteConfirmModal({
             reportID,
-            isPayingUnheldOnly: params.full === false,
+            isPayingUnheldOnly,
             onConfirm: (wiseQuoteID) => payMoneyRequest({...params, wiseQuoteID}),
         });
     };
