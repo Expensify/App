@@ -164,8 +164,8 @@ function buildChartSeries({
     const comparedRows = comparison && !isChartAverage(comparison) ? comparison : undefined;
     const periods = comparedRows?.periods;
     const getValue = (item: GroupedItem) => (isCountMetric ? item.count : convertToFrontendAmountAsInteger(item.total ?? 0, getCurrencyDecimals(item.currency ?? CONST.CURRENCY.USD)));
-    // The share the search reports is a share of total spend, so it says nothing about a group's place among the counts.
-    const getShare = (item: GroupedItem) => (isCountMetric ? undefined : item.percentOfTotal);
+    // The search measures the share against what the chart plots, so a count chart's share is of the period's expenses rather than its spend.
+    const getShare = (item: GroupedItem) => item.percentOfTotal;
     // A group a search reports no spend for has no money to name, so the value stands on its own.
     const getTotal = (item: GroupedItem) => (item.total === undefined ? undefined : formatTotal?.(item.total, item.currency));
     // A time bucket's counterpart covers other dates, so compared time buckets are keyed by start date. Other groups match by their own key.

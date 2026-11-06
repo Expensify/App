@@ -123,21 +123,22 @@ describe('formatTooltipComparison', () => {
         expect(comparison).toEqual({rows: [{key: CHART_SERIES_KEY.COMPARISON, color: colors.green200, label: 'January 2026', value: '$100', note: undefined}], change: undefined});
     });
 
-    it('names the money behind a count in each row, since a count chart has no share of spend to quote', () => {
-        // Given two quarters plotted by how many expenses they hold, each carrying what those expenses totalled
+    it("writes each row's share of its period's expenses after a count", () => {
+        // Given two quarters plotted by how many expenses they hold, each carrying its share of its own period's expenses
         const point: ChartDataPoint = {
             label: 'Q1',
             values: {[CHART_SERIES_KEY.PRIMARY]: 77, [CHART_SERIES_KEY.COMPARISON]: 70},
+            seriesPercentOfTotal: {[CHART_SERIES_KEY.PRIMARY]: 25, [CHART_SERIES_KEY.COMPARISON]: 20},
             seriesTotals: {[CHART_SERIES_KEY.PRIMARY]: '$415.23', [CHART_SERIES_KEY.COMPARISON]: '$390.00'},
         };
 
         // When the tooltip comparison for that point is built
         const comparison = formatTooltipComparison(point, COMPARED_SERIES, (value) => `${value} expenses`, 'en');
 
-        // Then each row's parentheses carry its own spend, so the tooltip says what the counted expenses were worth
+        // Then each row's parentheses carry its share, as amount rows do, while the money stays on the tooltip's detail line
         expect(comparison?.rows).toEqual([
-            {key: CHART_SERIES_KEY.PRIMARY, color: colors.green400, label: undefined, value: '77 expenses', note: '$415.23'},
-            {key: CHART_SERIES_KEY.COMPARISON, color: colors.green200, label: 'Average', value: '70 expenses', note: '$390.00'},
+            {key: CHART_SERIES_KEY.PRIMARY, color: colors.green400, label: undefined, value: '77 expenses', note: '25%'},
+            {key: CHART_SERIES_KEY.COMPARISON, color: colors.green200, label: 'Average', value: '70 expenses', note: '20%'},
         ]);
     });
 

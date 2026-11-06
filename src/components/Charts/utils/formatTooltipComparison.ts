@@ -95,7 +95,7 @@ function formatTooltipComparison(
             isAverage,
             label: dataPoint.seriesLabels?.[key] ?? label,
             value: formatAmount(value),
-            note: getTooltipNote(value, dataPoint.seriesPercentOfTotal?.[key], dataPoint.seriesTotals?.[key], locale),
+            note: getTooltipNote(value, dataPoint.seriesPercentOfTotal?.[key], locale),
         };
     });
 

@@ -798,7 +798,7 @@ describe('buildChartSeries with the count metric', () => {
             formatTotal: (total) => `$${total / 100}`,
         });
 
-        // Then each point carries its group's total, which the tooltip and the table write in the parentheses the share would have held
+        // Then each point carries its group's total, which the tooltip writes on the line under the count
         expect(rows.map((row) => row.point.seriesTotals?.[CHART_SERIES_KEY.PRIMARY])).toEqual(['$4800', '$1900']);
     });
 
@@ -847,9 +847,9 @@ describe('buildChartSeries with the count metric', () => {
         expect(rows.every((row) => row.point.seriesTotals === undefined)).toBe(true);
     });
 
-    it('leaves the share off every point, since the only share the search reports is of total spend', () => {
-        // Given merchant groups the search reported shares of total spend for
-        const data = [merchantGroup('Person', 480000, 12, 71.6), merchantGroup('Target', 190000, 41, 28.4)];
+    it('carries the share of expenses the search reported onto each point of a count chart', () => {
+        // Given merchant groups the search reported shares of the period's expenses for
+        const data = [merchantGroup('Person', 480000, 12, 22.6), merchantGroup('Target', 190000, 41, 77.4)];
 
         // When the series is built for a pie chart plotting counts
         const {rows} = buildChartSeries({
@@ -864,9 +864,8 @@ describe('buildChartSeries with the count metric', () => {
             getCurrencyDecimals,
         });
 
-        // Then no point carries a share, because quoting a spend share beside a count would read as the count's
-        // share, and the donut would size its slices by count while dropping the ones that spent too little to draw
-        expect(rows.every((row) => row.point.percentOfTotal === undefined)).toBe(true);
+        // Then each point carries its share untouched, because the search measures it against the expenses the chart counts
+        expect(rows.map((row) => row.point.percentOfTotal)).toEqual([22.6, 77.4]);
     });
 });
 
