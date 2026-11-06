@@ -29,7 +29,6 @@ type ConfirmationPageProps = {
     /** A function that is called when the button is clicked on */
     onButtonPress?: () => void;
 
-    /** Sentry label for the button */
     buttonSentryLabel?: string;
 
     /** Whether the button should be disabled */
