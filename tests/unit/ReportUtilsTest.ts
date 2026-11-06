@@ -4298,7 +4298,7 @@ describe('ReportUtils', () => {
             });
 
             // Then it uses the cross-border copy, because the employee may receive a different amount than the report total
-            expect(result).toBe(translateLocal('iou.waitingOnBankAccountCrossBorder', 'Todd Clyde'));
+            expect(result).toBe("started payment. Waiting for Todd Clyde's bank account. Final FX rate may change amount.");
         });
 
         it('keeps the personal bank account copy for other bank account payments', () => {
@@ -4321,7 +4321,7 @@ describe('ReportUtils', () => {
             });
 
             // Then the existing copy is unchanged, because the FX warning is only for Wise
-            expect(result).toBe(translateLocal('iou.waitingOnBankAccount', 'Todd Clyde'));
+            expect(result).toBe('started payment, but is waiting for Todd Clyde to add a personal bank account.');
         });
     });
 

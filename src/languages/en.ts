@@ -1786,7 +1786,7 @@ const translations = {
         forwarded: (memo?: string) => `approved${memo ? `, saying ${memo}` : ''}`,
         rejectedThisReport: 'rejected',
         waitingOnBankAccount: (submitterDisplayName: string) => `started payment, but is waiting for ${submitterDisplayName} to add a personal bank account.`,
-        waitingOnBankAccountCrossBorder: (submitterDisplayName: string) => `started payment. Waiting for ${submitterDisplayName}'s bank account. The final FX rate may change the amount.`,
+        waitingOnBankAccountCrossBorder: (submitterDisplayName: string) => `started payment. Waiting for ${submitterDisplayName}'s bank account. Final FX rate may change amount.`,
         adminCanceledRequest: 'canceled the payment',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,

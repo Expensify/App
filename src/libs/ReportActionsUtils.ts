@@ -47,8 +47,7 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from '
 import type {ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
-import {format, isBefore, isValid, parseJSON} from 'date-fns';
-import {toDate} from 'date-fns-tz';
+import {format, parseJSON} from 'date-fns';
 import {fastMerge, Str} from 'expensify-common';
 import clone from 'lodash/clone';
 import isEmpty from 'lodash/isEmpty';
@@ -2904,10 +2903,12 @@ function getReimbursementDelayedMessage(
         return translate('report.actions.type.reimbursementDelayed');
     }
 
-    // Parse both dates the way formatReimbursementDate does, so date-only and Auth's "yyyy-MM-dd HH:mm:ss" values compare in UTC
-    const expected = toDate(expectedDate, {timeZone: 'UTC'});
-    const previous = previousExpectedDate ? toDate(previousExpectedDate, {timeZone: 'UTC'}) : undefined;
-    const isSooner = !!previous && isValid(previous) && isBefore(expected, previous);
+    // The message only shows the day, so compare UTC days rather than timestamps. Otherwise an estimate that moves a few hours
+    // earlier on the same day, or a date-only value next to Auth's "yyyy-MM-dd HH:mm:ss", would read as good news with an unchanged date.
+    // An invalid previous date formats to an empty string, which never counts as later.
+    const expectedDay = DateUtils.formatMachineDateWithUTCTimeZone(expectedDate);
+    const previousDay = previousExpectedDate ? DateUtils.formatMachineDateWithUTCTimeZone(previousExpectedDate) : '';
+    const isSooner = !!previousDay && expectedDay < previousDay;
     return isSooner
         ? translate('report.actions.type.reimbursementEstimateSooner', {expectedDate: formattedExpectedDate})
         : translate('report.actions.type.reimbursementEstimateUpdated', {expectedDate: formattedExpectedDate});
@@ -3191,6 +3192,14 @@ function getUpdateRoomDescriptionFragment(translate: LocalizedTranslate, reportA
         text: getReportActionMessage(reportAction) ? getReportActionText(reportAction) : '',
         type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
     };
+}
+
+/**
+ * Plain text version of getMessageOfOldDotReportAction for surfaces that can't render HTML (LHN, thread title, clipboard).
+ * Some OldDot messages contain markup such as <concierge-link>, which would otherwise show as raw tags there.
+ */
+function getMessageTextOfOldDotReportAction(translate: LocalizedTranslate, oldDotAction: PartialReportAction | OldDotReportAction, withMarkdown = true): string {
+    return Parser.htmlToText(getMessageOfOldDotReportAction(translate, oldDotAction, withMarkdown));
 }
 
 function getReportActionMessageFragments(translate: LocalizedTranslate, action: ReportAction, isSupportTicketReport = false): Message[] {
@@ -6268,6 +6277,7 @@ export {
     getUpdateRoomDescriptionFragment,
     getReportActionMessageFragments,
     getMessageOfOldDotReportAction,
+    getMessageTextOfOldDotReportAction,
     getNumberOfMoneyRequests,
     getOneTransactionThreadReportAction,
     getOneTransactionThreadReportID,

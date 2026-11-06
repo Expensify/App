@@ -88,7 +88,7 @@ import {
     getLastVisibleMessage,
     getMarkedReimbursedMessage,
     getMccGroupCategoryMessage,
-    getMessageOfOldDotReportAction,
+    getMessageTextOfOldDotReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getOverLimitForwardsToUpdateMessage,
@@ -790,7 +790,7 @@ function getLastMessageTextForReport({
         const missingFields = getOriginalMessage(lastReportAction)?.missingFields;
         lastMessageTextFromReport = translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction), missingFields});
     } else if (lastReportAction?.actionName && isOldDotReportAction(lastReportAction)) {
-        lastMessageTextFromReport = Parser.htmlToText(getMessageOfOldDotReportAction(translate, lastReportAction, false));
+        lastMessageTextFromReport = getMessageTextOfOldDotReportAction(translate, lastReportAction, false);
     } else if (isActionableJoinRequest(lastReportAction)) {
         lastMessageTextFromReport = getJoinRequestMessage(
             translate,
@@ -1589,7 +1589,7 @@ function getReportAlternateText({
         } else if (isCardIssuedAction(lastAction)) {
             alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card, translate, currentUserAccountID, buildDynamicRoute: createDynamicRoute});
         } else if (lastAction && isOldDotReportAction(lastAction)) {
-            alternateText = Parser.htmlToText(getMessageOfOldDotReportAction(translate, lastAction));
+            alternateText = getMessageTextOfOldDotReportAction(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION) {
             alternateText = StringUtils.lineBreaksToSpaces(Parser.htmlToText(getUpdateRoomDescriptionMessage(translate, lastAction)));
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_AVATAR) {
