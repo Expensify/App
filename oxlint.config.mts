@@ -187,7 +187,7 @@ export default extendOxlintConfig({
                 'hosted/no-extraneous-dependencies': 'off',
                 'es/no-nullish-coalescing-operators': 'off',
                 'es/no-optional-chaining': 'off',
-                // eslint-config-prettier turns this off; it is not a formatting choice here.
+                // eslint-config-prettier turns this off, but the App requires braces on every block.
                 curly: ['error', 'all'],
                 'react/jsx-key': 'error',
                 // oxlint's no-redeclare defaults to `builtinGlobals: true`, which flags global augmentations like

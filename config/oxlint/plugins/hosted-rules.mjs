@@ -1,8 +1,8 @@
 /**
  * Runs rules from ESLint plugins (react, import, jsdoc, storybook, react-hooks, typescript-eslint) inside oxlint,
  * using the plugins' own code. config/oxlint/derive.mjs lists them: the preset rules oxlint has no native version
- * of, or whose native version reports differently, plus the ones only oxlint.config.mts turns on. oxlint reserves
- * most of these plugin names for its own ports, so all of them load under `hosted`.
+ * of, or whose oxlint version reports differently, plus the ones only oxlint.config.mts turns on. oxlint already
+ * uses most of these plugin names for its own versions, so all of them load under `hosted`.
  */
 import {EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN} from '../../reactCompiler/suppressedRules.mjs';
 import {STUBBED_PARSER_SERVICES, hostedRuleIDs, getPluginRules, splitRuleID} from '../derive.mjs';

@@ -26,8 +26,8 @@ function resolvePackage(request) {
     return require.resolve(request, {paths: [expensifyConfigDirectory, repoRoot]});
 }
 
-// oxlint has built-in plugins with the first four names, so ESLint's versions of rules it lacks load as
-// `hosted/<rule>`. storybook and react-hooks rules load there too.
+// ESLint plugins whose rules can run as `hosted/<rule>`. oxlint already uses the first four plugin names for its own
+// versions, so the ESLint rules need a different name.
 const HOSTED_PLUGIN_PACKAGES = {
     react: 'eslint-plugin-react',
     import: 'eslint-plugin-import',
@@ -37,17 +37,17 @@ const HOSTED_PLUGIN_PACKAGES = {
     storybook: 'eslint-plugin-storybook',
 };
 
-// Rules oxlint has natively that still run from ESLint's code, as `hosted/<name>`.
+// Rules oxlint has its own version of that still run from ESLint's code, as `hosted/<name>`.
 const ALWAYS_HOSTED = new Set([
-    // The native port anchors its report on a different line than ESLint's.
+    // oxlint's version reports on a different line than ESLint's.
     'import/prefer-default-export',
-    // The native port also fires inside Jest mock factories.
+    // oxlint's version also reports components defined inside `jest.mock()` factories.
     'react/function-component-definition',
-    // The native port reports on the JSX provider rather than the value's declaration, and the React Compiler gate
-    // (reactCompilerGate.mjs) only works on JS plugin rules.
+    // oxlint's version reports on the JSX provider instead of where the value is declared. Also, reactCompilerGate.mjs,
+    // which drops these reports in files React Compiler memoizes, only works on JS plugin rules.
     'react/jsx-no-constructed-context-values',
-    // The React Compiler gate finds the "wrap it in useCallback/useMemo" reports by ESLint's wording, which the
-    // native port does not use.
+    // reactCompilerGate.mjs finds the "wrap it in useCallback/useMemo" reports by ESLint's wording, which oxlint's
+    // version does not use.
     'react-hooks/exhaustive-deps',
 ]);
 
@@ -76,8 +76,8 @@ const LOCAL_HOSTED_RULES = {
     'no-deprecated-self-closing-jsx': '@typescript-eslint/no-deprecated',
 };
 
-// typescript-eslint rules that ask for type information, which oxlint JS plugins don't get. naming-convention works
-// with empty placeholders instead (plugins/hosted-rules.mjs) as long as no option uses the `types` selector.
+// typescript-eslint rules that want type information, which oxlint JS plugins don't get. naming-convention still works
+// when given empty stand-ins (plugins/hosted-rules.mjs), as long as no option uses the `types` selector.
 const STUBBED_PARSER_SERVICES = new Set(['@typescript-eslint/naming-convention']);
 
 const DROPPED_RULES = {
@@ -95,7 +95,7 @@ const STAND_INS = {
     'rulesdir/prefer-at': 'unicorn/prefer-at',
 };
 
-// oxlint's versions of these take no options and fail to load with ESLint's.
+// oxlint's versions of these accept no options and fail to load when given ESLint's.
 const DROP_OPTIONS = new Set(['react/jsx-no-duplicate-props', 'react/jsx-no-undef']);
 
 // ESLint's deprecated core rule names, and the names oxlint runs them under.
@@ -109,10 +109,9 @@ const ESLINT_RULE_RENAMES = {
 // hides every compiler error in that component (https://github.com/oxc-project/oxc/issues/26277).
 const REACT_COMPILER_RULES = new Set(Object.values(RULE_BY_CATEGORY));
 
-// Warnings @oxlint/migrate gives for today's presets. They are about settings (this file copies the `import/*` ones and
-// sets react.version; react.pragma is the default `React`), the parser, and globals. Any other warning, like a dropped
-// `sort-imports` or an `ignores` list oxlint can't express, may mean a rule changed scope or went missing, so it stops
-// the load.
+// @oxlint/migrate warnings that are safe to ignore. They are about settings this file sets itself, the parser, and
+// globals. Any other warning, for example a dropped `sort-imports` or a preset `ignores` list oxlint can't express,
+// can mean a rule now covers different files or is gone, so loading stops.
 const EXPECTED_WARNINGS = [/^Settings not migrated/, /^Settings found under a 'files' pattern/, /^special parser detected/, /^react\.version "detect"/, /^Added \d+ globals/];
 
 const getSeverity = (entry) => (Array.isArray(entry) ? entry[0] : entry);
@@ -134,9 +133,9 @@ function getPluginRules(prefix) {
 
 const REACT_HOOKS_RULE_NAMES = new Set(Object.keys(getPluginRules('react-hooks')));
 
-// migrate runs twice. With type information on, it replaces core rules like dot-notation with their
-// typescript-eslint versions. The presets turn those off for JS files and use the core rule there. The run without
-// type information lists those core rules as unsupported, so the `core` plugin runs them.
+// @oxlint/migrate runs twice. With type information on, it swaps core rules like dot-notation for their
+// typescript-eslint versions, but the presets turn those off for JS files and use the core rule there. The second run,
+// without type information, lists those core rules as unsupported, so the `core` plugin runs them for JS files.
 async function runMigrate() {
     const skipped = new Set();
     const run = async (typeAware) => {
@@ -169,7 +168,8 @@ async function runMigrate() {
 const {config: migrated, skipped} = await runMigrate();
 
 /**
- * Names the JS plugin rule, or the renamed native rule, that runs a preset rule migrate skipped.
+ * For a preset rule @oxlint/migrate skipped, returns the name of the rule that runs it instead: `core/<name>`,
+ * `hosted/<name>`, or the name oxlint uses for a renamed ESLint core rule.
  * @param {string} ruleID an ESLint rule ID
  * @returns {string | undefined} undefined for rules in DROPPED_RULES or STAND_INS
  */
@@ -199,9 +199,9 @@ const replayedRuleIDs = new Map(
 );
 
 /**
- * Adds back the preset rules migrate skipped, for the same files as in the preset, under the name of the rule that
- * runs each one. When a later block sets only a severity, ESLint keeps the earlier block's options and oxlint drops
- * them, so this copies the earlier options in.
+ * Adds back the preset rules @oxlint/migrate skipped, for the same files as in the preset, under the name of the rule
+ * that runs each one. When a later block sets only a severity, ESLint keeps the earlier block's options and oxlint
+ * drops them, so this copies the earlier options in.
  * @returns {{rules: Record<string, unknown>, overrides: Array<{files: string[], rules: Record<string, unknown>}>}}
  */
 function replaySkippedRules() {
@@ -257,7 +257,7 @@ function replaySkippedRules() {
 
 const replayed = replaySkippedRules();
 
-// Only rules some preset leaves on need a JS plugin rule, so a rule the presets only turn off is not registered.
+// A rule the presets only ever turn off is left out of the `core` and `hosted` plugins.
 const enabledReplayTargets = new Set([replayed.rules, ...replayed.overrides.map((override) => override.rules)].flatMap((rules) => Object.keys(rules).filter((rule) => !isOff(rules[rule]))));
 const isNeeded = (target) => !/^(core|hosted)\//.test(target) || enabledReplayTargets.has(target);
 const dropUnneededRules = (rules) => Object.fromEntries(Object.entries(rules).filter(([rule]) => isNeeded(rule)));
@@ -273,7 +273,7 @@ if (duplicateName) {
 }
 
 /**
- * Converts the rules of one migrated block to the names the App's oxlint config uses.
+ * Renames the rules of one block @oxlint/migrate produced to the names the App's oxlint config uses.
  * @param {Record<string, unknown>} rules
  * @returns {Record<string, unknown>}
  */
@@ -285,13 +285,14 @@ function translateRules(rules = {}) {
             out[`rc/${name}`] = entry;
             continue;
         }
-        // migrate writes react-hooks rules under the `react/` prefix.
+        // @oxlint/migrate writes react-hooks rules under the `react/` prefix.
         const hooksRuleID = prefix === 'react' && REACT_HOOKS_RULE_NAMES.has(name) ? `react-hooks/${name}` : undefined;
         if (ALWAYS_HOSTED.has(ruleID) || ALWAYS_HOSTED.has(hooksRuleID) || DROPPED_RULES[ruleID] || DROPPED_RULES[hooksRuleID]) {
             continue;
         }
         if (hooksRuleID && name !== 'rules-of-hooks') {
-            // Any other react-hooks rule is a React Compiler check that should run as `rc/`, gated like the others.
+            // Any other react-hooks rule is a React Compiler check. It should run as `rc/` like the others, so its reports
+            // are dropped in files React Compiler memoizes.
             throw new Error(`${hooksRuleID} has no rc/ version. Add it to RULE_BY_CATEGORY in config/oxlint/reactCompilerRust.mjs, or to DROPPED_RULES in config/oxlint/derive.mjs.`);
         }
         if (STAND_INS[ruleID]) {
@@ -350,8 +351,9 @@ function getJsPluginName(jsPlugin) {
     return jsPlugin.replace(/^eslint-plugin-/, '');
 }
 
-// migrate puts the jsPlugins of rules from plugins oxlint doesn't reserve (eslint-plugin-es) inside overrides. They
-// load at the top level with the rest. eslint-plugin-rulesdir is replaced by plugins/expensify-rules.mjs.
+// Some preset rules come from ESLint plugins oxlint has no version of (today only eslint-plugin-es), so that plugin has
+// to be loaded. @oxlint/migrate lists it on each override; this loads it once for the whole config.
+// eslint-plugin-rulesdir is skipped because plugins/expensify-rules.mjs loads those rules.
 function getPresetJsPlugins() {
     const specifiers = new Set([migrated, ...(migrated.overrides ?? [])].flatMap((block) => block.jsPlugins ?? []));
     specifiers.delete('eslint-plugin-rulesdir');
