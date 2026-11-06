@@ -7,6 +7,7 @@ import type {GroupedItem, SearchGroupBy} from '@components/Search/types';
 
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import escapeCsvField from '@libs/escapeCsvField';
+import formatTagParentPath from '@libs/formatTagParentPath';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -26,10 +27,36 @@ const GROUP_HEADER_KEYS: Partial<Record<SearchGroupBy, TranslationPaths>> = {
     [CONST.SEARCH.GROUP_BY.FROM]: 'common.from',
     [CONST.SEARCH.GROUP_BY.MERCHANT]: 'common.merchant',
     [CONST.SEARCH.GROUP_BY.CATEGORY]: 'common.category',
+    [CONST.SEARCH.GROUP_BY.TAG]: 'common.tag',
 };
 
 function buildInsightsChartCSV({data, groupBy, dateFilterStart, currency, getCurrencyDecimals, translate, today, shouldShowRunningTotal}: BuildInsightsChartCSVParams): string {
     const {getLabel, getDateRange} = CHART_GROUP_BY_CONFIG[groupBy];
+    if (groupBy === CONST.SEARCH.GROUP_BY.TAG && data.some((item) => item.groupedBy === CONST.SEARCH.GROUP_BY.TAG && item.tagLevel !== undefined)) {
+        const tagHeader = [
+            translate('common.tag'),
+            translate('insightsPage.parent'),
+            translate('common.total'),
+            translate('insightsPage.shareOfTotal'),
+            translate('common.expenses'),
+            translate('common.currency'),
+        ];
+        const tagRows = data.flatMap((item) =>
+            item.groupedBy === CONST.SEARCH.GROUP_BY.TAG
+                ? [
+                      [
+                          escapeCsvField(item.formattedTagName ?? item.tag),
+                          escapeCsvField(formatTagParentPath(item.parentTagPath)),
+                          convertToFrontendAmountAsString(item.total ?? 0, getCurrencyDecimals(item.currency ?? currency)),
+                          String(item.percentOfTotal ?? 0),
+                          String(item.count ?? 0),
+                          escapeCsvField(item.currency ?? currency),
+                      ].join(','),
+                  ]
+                : [],
+        );
+        return `\uFEFF${[tagHeader.map(escapeCsvField).join(','), ...tagRows].join('\r\n')}`;
+    }
     const groupHeader = translate(GROUP_HEADER_KEYS[groupBy] ?? 'common.date');
     const header = [groupHeader, translate('common.expenses'), translate('common.total'), translate('common.currency')].map(escapeCsvField).join(',');
 

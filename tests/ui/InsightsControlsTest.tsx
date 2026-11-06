@@ -5,12 +5,14 @@ import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import BasePopup from '@components/Search/FilterDropdowns/BasePopup';
 
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 
 import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDropdown';
 import InsightsGroupCurrencyControl from '@pages/Insights/controls/InsightsGroupCurrencyControl';
 import InsightsPageControls from '@pages/Insights/controls/InsightsPageControls';
+import InsightsTagLevelControl from '@pages/Insights/controls/InsightsTagLevelControl';
 import InsightsWorkspaceControl from '@pages/Insights/controls/InsightsWorkspaceControl';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
@@ -210,12 +212,70 @@ describe('Insights controls', () => {
 
         // When the user picks Quarter and applies it
         await openPill(/^(Month|search\.filters\.groupBy\.month)$/);
+        const popupProps = screen.UNSAFE_getByType(BasePopup).props;
         fireEvent.press(screen.getByText(/^(Quarter|search\.filters\.groupBy\.quarter)$/));
         fireEvent.press(screen.getByText(APPLY));
         await waitForBatchedUpdatesWithAct();
 
-        // Then the chart is asked to regroup by quarter
+        // Then Group by keeps its own telemetry while updating the chart.
         expect(onChange).toHaveBeenCalledWith({groupBy: CONST.SEARCH.GROUP_BY.QUARTER});
+        expect(popupProps).toMatchObject({
+            resetSentryLabel: CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_RESET.GROUP_BY,
+            applySentryLabel: CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_APPLY.GROUP_BY,
+        });
+    });
+
+    it('applies a configured tag position only after Apply', async () => {
+        // Given level one named Department and level two named Location
+        const onChange = jest.fn();
+        renderWithProviders(
+            <InsightsTagLevelControl
+                tagLevel={1}
+                options={[
+                    {value: 1, label: 'Department'},
+                    {value: 2, label: 'Location'},
+                ]}
+                onChange={onChange}
+            />,
+        );
+
+        // When the user selects Location without applying it yet
+        await openPill(/^Department$/);
+        const popupProps = screen.UNSAFE_getByType(BasePopup).props;
+        fireEvent.press(screen.getByText('Location'));
+        expect(onChange).not.toHaveBeenCalled();
+        fireEvent.press(screen.getByText(APPLY));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then only the tag level changes, and its telemetry stays separate from Group by.
+        expect(onChange).toHaveBeenCalledWith({tagLevel: 2});
+        expect(popupProps).toMatchObject({
+            resetSentryLabel: CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_RESET.TAG_LEVEL,
+            applySentryLabel: CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_APPLY.TAG_LEVEL,
+        });
+    });
+
+    it('resets the tag position to level one', async () => {
+        // Given a chart showing the second configured level
+        const onChange = jest.fn();
+        renderWithProviders(
+            <InsightsTagLevelControl
+                tagLevel={2}
+                options={[
+                    {value: 1, label: 'Department'},
+                    {value: 2, label: 'Location'},
+                ]}
+                onChange={onChange}
+            />,
+        );
+
+        // When the user resets the shared grouping menu
+        await openPill(/^Location$/);
+        fireEvent.press(screen.getByText(RESET));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then level one is selected and saved by the dashboard
+        expect(onChange).toHaveBeenCalledWith({tagLevel: 1});
     });
 
     it('resets the grouping to month', async () => {

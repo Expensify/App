@@ -1010,6 +1010,12 @@ function getQueryHashes(query: SearchQueryJSON) {
     orderedQuery += ` ${status.isNegated ? CONST.SEARCH.NOT_PREFIX : ''}${CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS}:${status.value?.join(',') ?? ''}`;
 
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${query.groupBy}`;
+    if (query.tagLevel !== undefined) {
+        orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.TAG_LEVEL}:${query.tagLevel}`;
+    }
+    if (query.tagParent !== undefined) {
+        orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.TAG_PARENT}:${JSON.stringify(query.tagParent)}`;
+    }
 
     const policyID = getFilterFromQuery(query, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
     if (policyID.value) {
@@ -1017,6 +1023,12 @@ function getQueryHashes(query: SearchQueryJSON) {
     }
 
     const filterSet = new Set<string>(orderedQuery);
+    if (query.tagLevel !== undefined) {
+        filterSet.add(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TAG_LEVEL}:${query.tagLevel}`);
+    }
+    if (query.tagParent !== undefined) {
+        filterSet.add(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TAG_PARENT}:${JSON.stringify(query.tagParent)}`);
+    }
 
     // Certain filters shouldn't affect whether two searchers are similar or not, since they dont
     // actually filter out results
@@ -1203,6 +1215,14 @@ function getCachedSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQue
             result.limit = Number.isInteger(num) && num > 0 ? num : undefined;
         }
 
+        if (result.tagLevel !== undefined) {
+            const tagLevel = Number(result.tagLevel);
+            result.tagLevel = Number.isSafeInteger(tagLevel) && tagLevel > 0 ? tagLevel : undefined;
+        }
+        if (result.tagParent !== undefined && (result.tagLevel === undefined || typeof result.tagParent !== 'string')) {
+            result.tagParent = undefined;
+        }
+
         // Normalize compare before computing hashes so invalid values don't affect hash
         if (result.compare !== undefined && !Object.values(CONST.SEARCH.COMPARE).includes(result.compare)) {
             result.compare = undefined;
@@ -1250,6 +1270,10 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON | Readonly<SearchQue
     const isViewExplicitlySet = wasViewExplicitlySet(queryJSON);
 
     for (const [, key] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
+        if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TAG_PARENT && queryJSON?.tagParent !== undefined) {
+            queryParts.push(`${key}:${sanitizeSearchValue(queryJSON.tagParent) || '""'}`);
+            continue;
+        }
         if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW && (!isViewExplicitlySet || !queryJSON?.groupBy)) {
             continue;
         }
@@ -1481,7 +1505,20 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     }
 
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
-    const {type, groupBy, view, columns, limit, footerCount, footerTotal, footerCurrency, [FILTER_KEYS.MERCHANT_OPERATOR]: merchantOperator, ...otherFilters} = supportedFilterValues;
+    const {
+        type,
+        groupBy,
+        view,
+        columns,
+        limit,
+        tagLevel,
+        tagParent,
+        footerCount,
+        footerTotal,
+        footerCurrency,
+        [FILTER_KEYS.MERCHANT_OPERATOR]: merchantOperator,
+        ...otherFilters
+    } = supportedFilterValues;
     const filtersString: string[] = [];
 
     if (options?.sortBy) {
@@ -1499,6 +1536,13 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     if (groupBy) {
         const sanitizedGroupBy = sanitizeSearchValue(groupBy);
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${sanitizedGroupBy}`);
+    }
+    const level = Number(tagLevel);
+    if (tagLevel !== undefined && Number.isSafeInteger(level) && level > 0) {
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TAG_LEVEL}:${level}`);
+        if (tagParent !== undefined) {
+            filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TAG_PARENT}:${sanitizeSearchValue(tagParent) || '""'}`);
+        }
     }
 
     // View is only valid when groupBy is set
@@ -2326,6 +2370,12 @@ function buildFilterFormValuesFromQuery(
 
     if (queryJSON.limit !== undefined) {
         filtersForm[FILTER_KEYS.LIMIT] = queryJSON.limit.toString();
+    }
+    if (queryJSON.tagLevel !== undefined) {
+        filtersForm[FILTER_KEYS.TAG_LEVEL] = queryJSON.tagLevel.toString();
+        if (queryJSON.tagParent !== undefined) {
+            filtersForm[FILTER_KEYS.TAG_PARENT] = queryJSON.tagParent;
+        }
     }
 
     const footerSelection = getFooterSelectionFromQuery(queryJSON);

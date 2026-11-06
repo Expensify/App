@@ -74,6 +74,7 @@ function parseInsightsFilters(query: string | undefined): Partial<InsightsFilter
         ...parseGroupCurrency(queryJSON),
         ...parseGroupBy(queryJSON, query),
         ...parseCompare(queryJSON),
+        ...(queryJSON.tagLevel !== undefined && {tagLevel: queryJSON.tagLevel}),
     };
 }
 

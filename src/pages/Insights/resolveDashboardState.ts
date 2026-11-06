@@ -26,6 +26,7 @@ type InsightsDashboardState = ValueOf<typeof INSIGHTS_DASHBOARD_STATE>;
 type InsightsDashboardChart = InsightsChartQuery & {
     snapshot: OnyxEntry<SearchResults>;
     previousPeriodSnapshot?: OnyxEntry<SearchResults>;
+    averageSnapshot?: OnyxEntry<SearchResults>;
     averageTotal?: number;
     isDashboardLoaded?: boolean;
 };

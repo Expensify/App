@@ -8924,6 +8924,8 @@ const CONST = {
             COLUMNS: 'columns',
             LIMIT: 'limit',
             COMPARE: 'compare',
+            TAG_LEVEL: 'tagLevel',
+            TAG_PARENT: 'tagParent',
         },
         VIEW: {
             TABLE: 'table',
@@ -9240,6 +9242,7 @@ const CONST = {
             RECONCILIATION: 'reconciliation',
             TOP_SPENDERS: 'topSpenders',
             TOP_CATEGORIES: 'topCategories',
+            TOP_TAGS: 'topTags',
             TOP_MERCHANTS: 'topMerchants',
             SPEND_OVER_TIME: 'spendOverTime',
             VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
@@ -10818,6 +10821,7 @@ const CONST = {
             CONTROL_WORKSPACE: 'Insights-ControlWorkspace',
             CONTROL_GROUP_CURRENCY: 'Insights-ControlGroupCurrency',
             CONTROL_GROUP_BY: 'Insights-ControlGroupBy',
+            CONTROL_TAG_LEVEL: 'Insights-ControlTagLevel',
             CONTROL_COMPARE: 'Insights-ControlCompare',
             AI_EXPLAIN: 'Insights-AIExplain',
             DASHBOARD_TAB: 'Insights-DashboardTab',
@@ -10827,12 +10831,14 @@ const CONST = {
                 DATE: 'Insights-ControlPopupApply-Date',
                 WORKSPACE: 'Insights-ControlPopupApply-Workspace',
                 GROUP_BY: 'Insights-ControlPopupApply-GroupBy',
+                TAG_LEVEL: 'Insights-ControlPopupApply-TagLevel',
                 GROUP_CURRENCY: 'Insights-ControlPopupApply-GroupCurrency',
                 COMPARE: 'Insights-ControlPopupApply-Compare',
             },
             CONTROL_POPUP_RESET: {
                 WORKSPACE: 'Insights-ControlPopupReset-Workspace',
                 GROUP_BY: 'Insights-ControlPopupReset-GroupBy',
+                TAG_LEVEL: 'Insights-ControlPopupReset-TagLevel',
                 GROUP_CURRENCY: 'Insights-ControlPopupReset-GroupCurrency',
                 COMPARE: 'Insights-ControlPopupReset-Compare',
             },
@@ -12058,6 +12064,7 @@ const CONST = {
     },
 
     INSIGHTS: {
+        DEFAULT_TAG_LEVEL: 1,
         DASHBOARD: {
             SPEND: 'spend',
             COMPLIANCE: 'compliance',
@@ -12072,6 +12079,7 @@ const CONST = {
             TOP_MERCHANTS: 'topMerchants',
             TOP_CATEGORIES: 'topCategories',
             TOP_SPENDERS: 'topSpenders',
+            TOP_TAGS: 'topTags',
         },
     },
 

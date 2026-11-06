@@ -17,8 +17,11 @@ type SidePanel = {
 };
 
 /** Insights dashboard and filters the user was looking at when they asked Concierge about it */
-type InsightsScope = Pick<InsightsFilters, 'policyIDs' | 'date' | 'groupCurrency'> & {
+type InsightsScope = Pick<InsightsFilters, 'policyIDs' | 'date' | 'groupCurrency' | 'tagLevel'> & {
     searchKey: InsightsSearchKey;
+
+    /** Encoded ancestor path when explaining a specific dependent tag. */
+    tagParent?: string;
 };
 
 /**

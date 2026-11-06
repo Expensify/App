@@ -1,4 +1,5 @@
 import DateUtils from '@libs/DateUtils';
+import {sanitizeSearchValue} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 
@@ -76,7 +77,15 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
     [CONST.SEARCH.GROUP_BY.TAG]: {
         titleIconName: 'Tag',
         getLabel: (item: GroupedItem) => (item as TransactionTagGroupListItemType).formattedTag ?? '',
-        getFilterQuery: (item: GroupedItem) => `tag:"${(item as TransactionTagGroupListItemType).tag}"`,
+        getShortLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.TAG ? item.formattedTagName : undefined),
+        getFilterQuery: (item: GroupedItem) => {
+            const {tag, tagLevel, parentTagPath} = item as TransactionTagGroupListItemType;
+            if (tagLevel !== undefined) {
+                return `tag:${sanitizeSearchValue(tag)} tagLevel:${tagLevel} tagParent:${sanitizeSearchValue(parentTagPath ?? '') || '""'}`;
+            }
+            // Grouped snapshots use an empty string or "(untagged)", but Search filters require "none" for missing tags.
+            return `tag:${sanitizeSearchValue(tag === '' || tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : tag)}`;
+        },
     },
     [CONST.SEARCH.GROUP_BY.DAY]: {
         titleIconName: 'Calendar',

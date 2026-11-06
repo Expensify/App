@@ -3,6 +3,7 @@ import type {ChartComparison} from '@components/Search/buildChartSeries';
 import useGroupedItems from '@components/Search/hooks/useGroupedItems';
 import type {GroupedItem} from '@components/Search/types';
 
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 
@@ -34,8 +35,9 @@ const BLOCKING_STATES = new Set<InsightsChartState>([INSIGHTS_CHART_STATE.LOADIN
 
 /** Resolves a chart's rows, and what it is compared against when the page compares. */
 function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: InsightsFilters): InsightsChartData {
-    const {queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageTotal, isDashboardLoaded} = dashboardChart;
+    const {queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot, averageTotal, isDashboardLoaded} = dashboardChart;
     const theme = useTheme();
+    const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
     const sortedData = useGroupedItems(snapshot, queryJSON);
@@ -43,8 +45,13 @@ function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: I
 
     const compare = filters.compare;
     const isPreviousPeriod = compare === CONST.SEARCH.COMPARE.PREVIOUS_PERIOD;
+    const isTagAverage = compare === CONST.SEARCH.COMPARE.AVERAGE && dashboardChart.chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS;
+    let comparedSnapshot = isPreviousPeriod ? previousPeriodSnapshot : undefined;
+    if (isTagAverage) {
+        comparedSnapshot = averageSnapshot;
+    }
     // Keeps every compared group, so each plotted group finds its own and not only the top ones.
-    const comparedSortedData = useGroupedItems(isPreviousPeriod ? previousPeriodSnapshot : undefined, queryJSON && {...queryJSON, limit: undefined});
+    const comparedSortedData = useGroupedItems(comparedSnapshot, queryJSON && {...queryJSON, limit: undefined});
 
     if (current.state !== INSIGHTS_CHART_STATE.READY) {
         return current;
@@ -52,6 +59,14 @@ function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: I
 
     switch (compare) {
         case CONST.SEARCH.COMPARE.AVERAGE: {
+            if (isTagAverage) {
+                const compared = resolveInsightsChartData({snapshot: averageSnapshot, queryJSON: averageQueryJSON, sortedData: comparedSortedData, isOffline});
+                if (BLOCKING_STATES.has(compared.state)) {
+                    return {data: current.data, state: compared.state};
+                }
+                const color = VictoryTheme.colors.getComparisonColor(VictoryTheme.colors.default, theme.colorScheme);
+                return {...current, comparison: {data: compared.data, color, label: translate('insightsPage.compare.tagAverage')}};
+            }
             if (!isDashboardLoaded) {
                 return {data: current.data, state: isOffline ? INSIGHTS_CHART_STATE.OFFLINE : INSIGHTS_CHART_STATE.LOADING};
             }

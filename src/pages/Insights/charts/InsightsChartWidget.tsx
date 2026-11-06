@@ -60,6 +60,8 @@ type InsightsChartWidgetProps = {
 
     /** The snapshot stored under the chart's query for the previous period */
     previousPeriodSnapshot: OnyxEntry<SearchResults>;
+    averageQueryJSON?: Readonly<SearchQueryJSON>;
+    averageSnapshot?: OnyxEntry<SearchResults>;
 
     /** Average group total the backend returned for the chart, drawn in the Average compare mode */
     averageTotal: number | undefined;
@@ -78,6 +80,9 @@ type InsightsChartWidgetProps = {
 
     /** Shows a group-by control in the chart's header when set. Stores the time bucket or Running total the control picks. */
     onGroupByChange?: (update: Partial<InsightsFilters>) => void;
+
+    /** Extra controls rendered in the chart header, not the chart body. */
+    children?: React.ReactNode;
 };
 
 function InsightsChartWidget({
@@ -87,12 +92,15 @@ function InsightsChartWidget({
     snapshot,
     previousPeriodQueryJSON,
     previousPeriodSnapshot,
+    averageQueryJSON,
+    averageSnapshot,
     averageTotal,
     isDashboardLoaded,
     filters,
     insightsScope,
     onRetry,
     onGroupByChange,
+    children,
 }: InsightsChartWidgetProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -101,7 +109,10 @@ function InsightsChartWidget({
     const icons = useMemoizedLazyExpensifyIcons(['Expand', 'Table']);
     const {getCurrencyDecimals} = useCurrencyListActions();
 
-    const {data, state, comparison} = useInsightsChartData({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageTotal, isDashboardLoaded}, filters);
+    const {data, state, comparison} = useInsightsChartData(
+        {chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot, averageTotal, isDashboardLoaded},
+        filters,
+    );
     const groupBy = chart.groupBy ?? getQueryGroupBy(filters);
     const isLoading = state === INSIGHTS_CHART_STATE.LOADING;
     useReportChartCaptureLoading(isLoading);
@@ -130,9 +141,9 @@ function InsightsChartWidget({
         localFileDownload(`Expensify-${chart.graphKey}.csv`, content, translate);
     };
 
-    // The Details panel covers the Spend dashboard only. Other dashboards open Search filtered to the pressed group.
+    // The Details panel does not support tags yet. Tags and other dashboards keep their Search drill-down.
     const openDetails =
-        dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND && isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && queryJSON
+        dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND && groupBy !== CONST.SEARCH.GROUP_BY.TAG && isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && queryJSON
             ? (item: GroupedItem) => {
                   const itemParams = getInsightsDetailsItemParams(item, queryJSON);
                   if (!itemParams) {
@@ -190,8 +201,9 @@ function InsightsChartWidget({
         <WidgetContainer
             title={translate(chart.titleKey)}
             titleRightContent={
-                !!groupByControl || !!explainButton || !!headerMenu ? (
+                !!children || !!groupByControl || !!explainButton || !!headerMenu ? (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.flexShrink1]}>
+                        {children}
                         {groupByControl}
                         {explainButton}
                         {headerMenu}
