@@ -4,7 +4,7 @@ description: Learn how to set up, use, and recover your Expensify account with t
 keywords: [New Expensify, two-factor authentication, 2FA, login security, authenticator app, recovery codes, locked out, lost phone, account recovery, Domain Admin reset, backup codes, MFA, multi-factor, multi-factor authentication, verification code, security code, two factor, two-factor, security key]
 ---
 
-# Two-factor Authentication 
+# Two-Factor Authentication
 
 Two-factor authentication (2FA) adds an extra layer of protection to your account. This guide explains how to set up two-factor authentication and what to expect if you're ever locked out.
 
@@ -23,7 +23,7 @@ To set up two-factor authentication on your account, you'll need an authenticato
 On mobile:
 
 1. Select your profile icon.
-2. Select **Security**
+2. Select **Security**.
 3. Select **Two-factor authentication**.
 4. On the **Recovery codes** screen, select **Download codes** to securely save your recovery codes and continue. You can also select **Copy codes** to store an additional copy in a secure location. You'll need these codes if you lose access to your authenticator app.
 5. On the **Verify** screen, use your authenticator app to scan the QR code or select **Copy** to manually add the secret key to your authenticator app.
@@ -47,18 +47,18 @@ If a member loses access to their authenticator app or recovery codes, a domain 
 
 To reset a member’s two-factor authentication settings:
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces**.
 2. Select **Domains > [domain name]**. 
 3. Select **Domain members**.
 4. Select the affected employee from the list. 
-5. Select **Reset two-factor authentication**,
+5. Select **Reset two-factor authentication**.
 6. On the **Disable two-factor authentication** screen, enter a valid code from your authentication app.
 7. The member can now log in and set up two-factor authentication again.
 
 If your domain doesn't have two-factor authentication enabled yet:
 
 1. From the Domain members table, select **More > Settings**.
-2. Turn on **Force two-factor authentication**.
+2. Enable **Force two-factor authentication**.
 3. Then follow the steps above to reset 2FA for the member.
 
 ---
