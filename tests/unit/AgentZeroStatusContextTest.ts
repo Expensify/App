@@ -2,9 +2,11 @@ import {act, render, renderHook, waitFor} from '@testing-library/react-native';
 
 import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 
-import {clearAgentZeroProcessingIndicator, subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
+import {clearAgentZeroProcessingIndicator, getNewerActions, subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
 import AgentZeroOptimisticStore from '@libs/AgentZeroOptimisticStore';
 import AgentZeroReasoningStore from '@libs/AgentZeroReasoningStore';
+import {READ_COMMANDS} from '@libs/API/types';
+import reconcileConciergeProcessingStatus from '@libs/Middleware/ReconcileConciergeProcessingStatus';
 import {setForceOffline} from '@libs/NetworkState';
 
 import {AgentZeroStatusProvider, useAgentZeroStatus, useAgentZeroStatusActions} from '@pages/inbox/AgentZeroStatusContext';
@@ -125,6 +127,7 @@ describe('AgentZeroStatusContext', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        jest.mocked(getNewerActions).mockReset();
         await Onyx.clear();
 
         // Clear AgentZeroReasoningStore between tests
@@ -820,6 +823,54 @@ describe('AgentZeroStatusContext', () => {
     });
 
     describe('final response handling', () => {
+        it('keeps a new turn visible through an older reply and an empty snapshot, then clears on silent completion', async () => {
+            // Given a new message is pending while a previous Concierge reply is still newest locally.
+            const previousReportActionID = 'old-reply';
+            AgentZeroOptimisticStore.increment(reportID, CONST.ACCOUNT_ID.CONCIERGE, previousReportActionID, 'new-question');
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [previousReportActionID]: {
+                    reportActionID: previousReportActionID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                    created: '2026-10-27 10:57:24.000',
+                    message: [
+                        {
+                            type: 'COMMENT',
+                            html: 'An earlier answer',
+                            text: 'An earlier answer',
+                        },
+                    ],
+                },
+            });
+            const {result} = renderHook(
+                () => ({
+                    ...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE),
+                    ...useAgentZeroStatus(),
+                }),
+                {wrapper},
+            );
+            await waitForBatchedUpdates();
+
+            // Then the previous reply does not hide the new pending turn.
+            expect(result.current.isProcessing).toBe(true);
+            expect(result.current.candidateAgentIDs).toContain(CONST.ACCOUNT_ID.CONCIERGE);
+
+            // When OpenReport returns an empty processing snapshot before the run finishes.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {agentZeroProcessingRequestIndicator: null});
+            await waitForBatchedUpdates();
+
+            // Then the local indicator survives that ordinary snapshot.
+            expect(result.current.isProcessing).toBe(true);
+
+            // When the server completes the exact turn without adding a reply.
+            act(() => AgentZeroOptimisticStore.complete(reportID, CONST.ACCOUNT_ID.CONCIERGE, 'new-question'));
+            await waitForBatchedUpdates();
+
+            // Then the indicator ends immediately rather than waiting for its safety timeout.
+            expect(result.current.isProcessing).toBe(false);
+            expect(result.current.candidateAgentIDs).not.toContain(CONST.ACCOUNT_ID.CONCIERGE);
+        });
+
         it('should clear reasoning history when processing indicator is cleared', async () => {
             // Given a Concierge chat with active reasoning
             const serverLabel = 'Concierge is looking up categories...';
@@ -1055,6 +1106,46 @@ describe('AgentZeroStatusContext', () => {
     });
 
     describe('reconnect reset', () => {
+        it.each([true, false])('recovers a tracked completion after reconnect with a final reply present: %s', async (hasReply) => {
+            // Given a tracked message whose completion event will not reach this tab.
+            const questionID = 'pending-question';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [questionID]: {reportActionID: questionID, actorAccountID: currentUserAccountID, created: '2026-11-05 10:00:00.000'},
+            });
+            AgentZeroOptimisticStore.increment(reportID, CONST.ACCOUNT_ID.CONCIERGE, questionID, questionID);
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), {wrapper});
+            await waitForBatchedUpdates();
+            act(() => setForceOffline(true));
+            await waitForBatchedUpdates();
+            jest.mocked(getNewerActions).mockImplementation((rID, cursorID, conciergeReportActionID) => {
+                Onyx.merge(
+                    `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                    hasReply
+                        ? {
+                              reply: {reportActionID: 'reply', actorAccountID: CONST.ACCOUNT_ID.CONCIERGE, created: '2026-11-05 10:01:00.000'},
+                          }
+                        : {},
+                ).then(() =>
+                    reconcileConciergeProcessingStatus(
+                        Promise.resolve({
+                            jsonCode: 200,
+                            conciergeProcessingStatus: conciergeReportActionID === questionID ? {reportID, reportActionID: questionID, isProcessing: false} : undefined,
+                        }),
+                        {command: READ_COMMANDS.GET_NEWER_ACTIONS, data: {reportID: rID, reportActionID: cursorID, conciergeReportActionID}},
+                        false,
+                    ),
+                );
+            });
+
+            // When reconnect fetches actions and the backend's completion for this exact message.
+            act(() => setForceOffline(false));
+            await waitForBatchedUpdates();
+
+            // Then recovery clears the tracked send even when processing produced no reply.
+            expect(getNewerActions).toHaveBeenCalledWith(reportID, questionID, questionID);
+            await waitFor(() => expect(result.current.isProcessing).toBe(false));
+        });
+
         it('should keep indicator on network reconnect and rearm the safety timer', async () => {
             // Given a Concierge chat with an active processing indicator
             const serverLabel = 'Concierge is looking up categories...';
