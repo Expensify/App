@@ -14,10 +14,15 @@ import type {
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
 } from './SearchList/ListItem/types';
-import type {GroupedItem, SearchGroupBy} from './types';
+import type {GroupedItem, SearchDateFilterKeys, SearchGroupBy} from './types';
 
 /** The dates a time bucket covers */
 type ChartBucketRange = {start: string; end: string};
+
+/** Builds the query fragment that narrows the given date to a time bucket */
+function buildBucketFilterQuery({start, end}: ChartBucketRange, dateFilterKey: SearchDateFilterKeys = CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE): string {
+    return `${dateFilterKey}>=${start} ${dateFilterKey}<=${end}`;
+}
 
 type ChartGroupByConfig = {
     /** Name of the icon rendered next to the chart title */
@@ -35,8 +40,8 @@ type ChartGroupByConfig = {
     /** Intervals, in groups, the line chart may label its x-axis at. The smallest one that fits is used. */
     axisLabelSteps?: readonly number[];
 
-    /** Builds the query fragment appended to the current query to drill into a group's transactions */
-    getFilterQuery: (item: GroupedItem) => string;
+    /** Builds the query fragment appended to the current query to drill into a group's transactions. A time bucket narrows `dateFilterKey`, the expense date by default. */
+    getFilterQuery: (item: GroupedItem, dateFilterKey?: SearchDateFilterKeys) => string;
 
     /** Returns the dates a time-based group covers, as yyyy-MM-dd strings */
     getDateRange?: (item: GroupedItem) => ChartBucketRange | undefined;
@@ -84,7 +89,8 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         getShortLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.DAY ? item.shortFormattedDay : undefined),
         getLineChartLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.DAY ? item.lineChartFormattedDay : undefined),
         axisLabelSteps: [1, 2, 7, 14],
-        getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.DAY ? `date>=${item.day} date<=${item.day}` : ''),
+        getFilterQuery: (item: GroupedItem, dateFilterKey?: SearchDateFilterKeys) =>
+            item.groupedBy === CONST.SEARCH.GROUP_BY.DAY ? buildBucketFilterQuery({start: item.day, end: item.day}, dateFilterKey) : '',
         getDateRange: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.DAY ? {start: item.day, end: item.day} : undefined),
     },
     [CONST.SEARCH.GROUP_BY.MONTH]: {
@@ -92,10 +98,9 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         getLabel: (item: GroupedItem) => (item as TransactionMonthGroupListItemType).formattedMonth ?? '',
         getShortLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MONTH ? item.shortFormattedMonth : undefined),
         axisLabelSteps: [1, 2, 3, 6],
-        getFilterQuery: (item: GroupedItem) => {
+        getFilterQuery: (item: GroupedItem, dateFilterKey?: SearchDateFilterKeys) => {
             const monthItem = item as TransactionMonthGroupListItemType;
-            const {start, end} = DateUtils.getMonthDateRange(monthItem.year, monthItem.month);
-            return `date>=${start} date<=${end}`;
+            return buildBucketFilterQuery(DateUtils.getMonthDateRange(monthItem.year, monthItem.month), dateFilterKey);
         },
         getDateRange: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MONTH ? DateUtils.getMonthDateRange(item.year, item.month) : undefined),
     },
@@ -105,10 +110,9 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         getShortLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.WEEK ? item.shortFormattedWeek : undefined),
         getLineChartLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.WEEK ? item.lineChartFormattedWeek : undefined),
         axisLabelSteps: [1, 2, 4],
-        getFilterQuery: (item: GroupedItem) => {
+        getFilterQuery: (item: GroupedItem, dateFilterKey?: SearchDateFilterKeys) => {
             const weekItem = item as TransactionWeekGroupListItemType;
-            const {start, end} = DateUtils.getWeekDateRange(weekItem.week);
-            return `date>=${start} date<=${end}`;
+            return buildBucketFilterQuery(DateUtils.getWeekDateRange(weekItem.week), dateFilterKey);
         },
         getDateRange: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.WEEK ? DateUtils.getWeekDateRange(item.week) : undefined),
     },
@@ -116,10 +120,9 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         titleIconName: 'Calendar',
         getLabel: (item: GroupedItem) => (item as TransactionYearGroupListItemType).formattedYear ?? '',
         axisLabelSteps: [1, 2, 5],
-        getFilterQuery: (item: GroupedItem) => {
+        getFilterQuery: (item: GroupedItem, dateFilterKey?: SearchDateFilterKeys) => {
             const yearItem = item as TransactionYearGroupListItemType;
-            const {start, end} = DateUtils.getYearDateRange(yearItem.year);
-            return `date>=${start} date<=${end}`;
+            return buildBucketFilterQuery(DateUtils.getYearDateRange(yearItem.year), dateFilterKey);
         },
         getDateRange: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.YEAR ? DateUtils.getYearDateRange(item.year) : undefined),
     },
@@ -128,10 +131,9 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         getLabel: (item: GroupedItem) => (item as TransactionQuarterGroupListItemType).formattedQuarter ?? '',
         getShortLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? item.shortFormattedQuarter : undefined),
         axisLabelSteps: [1, 2, 4],
-        getFilterQuery: (item: GroupedItem) => {
+        getFilterQuery: (item: GroupedItem, dateFilterKey?: SearchDateFilterKeys) => {
             const quarterItem = item as TransactionQuarterGroupListItemType;
-            const {start, end} = DateUtils.getQuarterDateRange(quarterItem.year, quarterItem.quarter);
-            return `date>=${start} date<=${end}`;
+            return buildBucketFilterQuery(DateUtils.getQuarterDateRange(quarterItem.year, quarterItem.quarter), dateFilterKey);
         },
         getDateRange: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? DateUtils.getQuarterDateRange(item.year, item.quarter) : undefined),
     },

@@ -1369,6 +1369,11 @@ const translations = {
         violationsBySubmitter: 'Violations by submitter',
         violationsByApprover: 'Violations by approver',
         runningTotal: 'Running total',
+        violationStage: {
+            label: 'Violations of',
+            [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTERS]: 'Submitters',
+            [CONST.INSIGHTS.VIOLATION_STAGE.APPROVERS]: 'Approvers',
+        },
         compare: {
             label: 'Compare',
             previousPeriod: 'Previous period',

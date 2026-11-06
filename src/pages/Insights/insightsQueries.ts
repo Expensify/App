@@ -7,10 +7,10 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {InsightsDashboard, InsightsDashboardID, InsightsGraphKey} from '@src/types/onyx';
 
-import type {InsightsChartSpec, InsightsDateFilterKey} from './dashboardSpecs';
+import type {InsightsChartSpec, InsightsDateFilterKey, InsightsViolationStage} from './dashboardSpecs';
 import type {InsightsFilters} from './insightsFilters';
 
-import INSIGHTS_DASHBOARD_SPECS, {VIOLATION_HAS_VALUES} from './dashboardSpecs';
+import INSIGHTS_DASHBOARD_SPECS, {applyViolationStage, VIOLATION_HAS_VALUES} from './dashboardSpecs';
 import {getQueryGroupBy} from './insightsGroupByUtils';
 
 /** How many periods before the selected date range the Average mode spans */
@@ -128,8 +128,16 @@ type InsightsQuery = {
     supportingCharts: InsightsChartQuery[];
 };
 
-/** Builds one request for the dashboard's headline chart and the given supporting charts, naming each graph's snapshots by its chart's query hashes, and returns those chart queries to read the snapshots back with. */
-function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: InsightsFilters, supportingChartSpecs: InsightsChartSpec[]): InsightsQuery | undefined {
+/** Violation stage the user picked on each chart that offers one */
+type InsightsViolationStages = Partial<Record<InsightsGraphKey, InsightsViolationStage>>;
+
+/** Builds one request for the headline and supporting charts, applying each chart's picked violation stage and returns the chart queries to read their snapshots back with. */
+function buildInsightsJsonQuery(
+    dashboard: InsightsDashboardID,
+    filters: InsightsFilters,
+    supportingChartSpecs: InsightsChartSpec[],
+    violationStages: InsightsViolationStages = {},
+): InsightsQuery | undefined {
     // The backend saves inputQuery as the dashboard's filters, so it keeps the Group by the user picked, not the one fitted to the date range
     const inputQuery = buildInsightsQueryString(filters);
     const queryJSON = buildSearchQueryJSON(buildInsightsQueryString({...filters, groupBy: getQueryGroupBy(filters), compare: undefined}));
@@ -138,11 +146,14 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
     }
 
     const spec = INSIGHTS_DASHBOARD_SPECS[dashboard];
-    const buildChartQuery = (chart: InsightsChartSpec): InsightsChartQuery => ({
-        chart,
-        queryJSON: buildSearchQueryJSON(applyInsightsFilters(chart, filters)),
-        previousPeriodQueryJSON: buildSearchQueryJSON(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.PREVIOUS_PERIOD)),
-    });
+    const buildChartQuery = (declaredChart: InsightsChartSpec): InsightsChartQuery => {
+        const chart = applyViolationStage(declaredChart, violationStages[declaredChart.graphKey]);
+        return {
+            chart,
+            queryJSON: buildSearchQueryJSON(applyInsightsFilters(chart, filters)),
+            previousPeriodQueryJSON: buildSearchQueryJSON(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.PREVIOUS_PERIOD)),
+        };
+    };
     const headlineChart = buildChartQuery(spec.headlineChart);
     const supportingCharts = supportingChartSpecs.map(buildChartQuery);
     const graphEntries = [headlineChart, ...supportingCharts].map((chartQuery) => buildSnapshotHashEntry(chartQuery, filters)).filter((entry): entry is InsightsGraphHashEntry => !!entry);
@@ -166,5 +177,5 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
 }
 
 export {applyInsightsFilters, buildDateFormValues, buildInsightsQueryString};
-export type {InsightsChartQuery, InsightsQuery};
+export type {InsightsChartQuery, InsightsQuery, InsightsViolationStages};
 export default buildInsightsJsonQuery;

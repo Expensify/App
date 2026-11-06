@@ -10827,6 +10827,7 @@ const CONST = {
             CONTROL_GROUP_CURRENCY: 'Insights-ControlGroupCurrency',
             CONTROL_GROUP_BY: 'Insights-ControlGroupBy',
             CONTROL_COMPARE: 'Insights-ControlCompare',
+            CONTROL_VIOLATION_STAGE: 'Insights-ControlViolationStage',
             AI_EXPLAIN: 'Insights-AIExplain',
             DASHBOARD_TAB: 'Insights-DashboardTab',
             CHART_MENU: 'Insights-ChartMenu',
@@ -10837,12 +10838,14 @@ const CONST = {
                 GROUP_BY: 'Insights-ControlPopupApply-GroupBy',
                 GROUP_CURRENCY: 'Insights-ControlPopupApply-GroupCurrency',
                 COMPARE: 'Insights-ControlPopupApply-Compare',
+                VIOLATION_STAGE: 'Insights-ControlPopupApply-ViolationStage',
             },
             CONTROL_POPUP_RESET: {
                 WORKSPACE: 'Insights-ControlPopupReset-Workspace',
                 GROUP_BY: 'Insights-ControlPopupReset-GroupBy',
                 GROUP_CURRENCY: 'Insights-ControlPopupReset-GroupCurrency',
                 COMPARE: 'Insights-ControlPopupReset-Compare',
+                VIOLATION_STAGE: 'Insights-ControlPopupReset-ViolationStage',
             },
         },
         EXPENSE_RULES: {
@@ -12082,6 +12085,10 @@ const CONST = {
             TOP_VIOLATIONS: 'topViolations',
             VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
             VIOLATIONS_BY_APPROVER: 'violationsByApprover',
+        },
+        VIOLATION_STAGE: {
+            SUBMITTERS: 'submitters',
+            APPROVERS: 'approvers',
         },
     },
 
