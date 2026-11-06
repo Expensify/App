@@ -20,7 +20,10 @@ import {View} from 'react-native';
 
 import type {DynamicFormFieldsProps} from './DynamicFormFields';
 
-type DynamicFormFieldRowProps = Pick<DynamicFormFieldsProps, 'values' | 'maxFileSize' | 'onRefreshRequirements' | 'onOpenListItemEditor' | 'onListItemsChange' | 'isSensitive'> &
+type DynamicFormFieldRowProps = Pick<
+    DynamicFormFieldsProps,
+    'values' | 'maxFileSize' | 'onRefreshRequirements' | 'onOpenListItemEditor' | 'onListItemsChange' | 'isSensitive' | 'isRefreshingRequirements'
+> &
     Required<Pick<DynamicFormFieldsProps, 'currency'>> &
     Pick<DynamicFieldContext, 'renderFields'> & {
         field: DynamicFormField;
@@ -47,6 +50,7 @@ function DynamicFormFieldRow({
     onOpenListItemEditor,
     onListItemsChange,
     isSensitive = false,
+    isRefreshingRequirements = false,
     renderFields,
 }: DynamicFormFieldRowProps) {
     const {translate} = useLocalize();
@@ -94,7 +98,7 @@ function DynamicFormFieldRow({
             forwardedFSClass: CONST.FULLSTORY.CLASS.MASK,
             onValueChange: shouldRefreshOnChange ? (value, key) => onRefreshRequirements?.(key, value) : undefined,
             onBlur: shouldRefreshOnBlur ? refreshRequirements : undefined,
-            disabled: isOffline && !!field.refreshOnChange,
+            disabled: (isOffline || isRefreshingRequirements) && !!field.refreshOnChange,
         },
     );
     const description = showsDescription ? undefined : getLocalizedText(translate, field.descriptionKey, field.description);

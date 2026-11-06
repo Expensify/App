@@ -113,6 +113,7 @@ function DynamicFormFieldsPage({
                             onRefreshRequirements={onRefreshRequirements}
                             onOpenListItemEditor={onOpenListItemEditor}
                             onListItemsChange={onListItemsChange}
+                            isRefreshingRequirements={isRefreshingRequirements}
                         />
                     </>
                 );

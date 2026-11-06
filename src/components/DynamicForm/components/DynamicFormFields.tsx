@@ -47,6 +47,9 @@ type DynamicFormFieldsProps = {
 
     /** Every answer here is sensitive, as in the editor of an entry of a sensitive list: none is drafted, and each starts from the answer in `values` */
     isSensitive?: boolean;
+
+    /** A refresh is in progress. Fields marked `refreshOnChange` wait for it, since a second refresh could finish first and leave the form on requirements for an earlier answer. */
+    isRefreshingRequirements?: boolean;
 };
 
 /** The inputs of a schema-driven form. Render it inside a FormProvider and validate the fields of the same content with getDynamicFieldErrors. */
@@ -61,6 +64,7 @@ function DynamicFormFields({
     onOpenListItemEditor,
     onListItemsChange,
     isSensitive = false,
+    isRefreshingRequirements = false,
 }: DynamicFormFieldsProps) {
     const {translate} = useLocalize();
     const visibleContent = getVisibleContent(content, values, allFields);
@@ -89,6 +93,7 @@ function DynamicFormFields({
             currency={currency}
             maxFileSize={maxFileSize}
             onRefreshRequirements={onRefreshRequirements}
+            isRefreshingRequirements={isRefreshingRequirements}
         />
     );
 
@@ -123,6 +128,7 @@ function DynamicFormFields({
                 onOpenListItemEditor={onOpenListItemEditor}
                 onListItemsChange={onListItemsChange}
                 isSensitive={isSensitive}
+                isRefreshingRequirements={isRefreshingRequirements}
                 renderFields={renderFields}
             />
         );

@@ -24,7 +24,7 @@ import {View} from 'react-native';
 import DynamicFormFields from './DynamicFormFields';
 
 /** The editor of one list entry, or of a new one: the entry's fields and a Save button */
-function DynamicFormListItemPage({currentPageName, allFields, values, currency, maxFileSize, onRefreshRequirements, onListItemSave}: DynamicFormSubPageProps) {
+function DynamicFormListItemPage({currentPageName, allFields, values, currency, maxFileSize, onRefreshRequirements, isRefreshingRequirements, onListItemSave}: DynamicFormSubPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const page = parseListItemPageName(currentPageName);
@@ -97,6 +97,7 @@ function DynamicFormListItemPage({currentPageName, allFields, values, currency, 
                         currency={currency}
                         maxFileSize={maxFileSize}
                         onRefreshRequirements={onRefreshRequirements}
+                        isRefreshingRequirements={isRefreshingRequirements}
                     />
                 </>
             )}
