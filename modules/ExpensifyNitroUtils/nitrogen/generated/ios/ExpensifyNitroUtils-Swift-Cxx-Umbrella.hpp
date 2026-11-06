@@ -16,6 +16,10 @@ namespace margelo::nitro::utils { struct Contact; }
 namespace margelo::nitro::utils { class HybridAppStartTimeModuleSpec; }
 // Forward declaration of `HybridContactsModuleSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridContactsModuleSpec; }
+// Forward declaration of `HybridShareActionHandlerSpec` to properly resolve imports.
+namespace margelo::nitro::utils { class HybridShareActionHandlerSpec; }
+// Forward declaration of `SharedFile` to properly resolve imports.
+namespace margelo::nitro::utils { struct SharedFile; }
 // Forward declaration of `StringHolder` to properly resolve imports.
 namespace margelo::nitro::utils { struct StringHolder; }
 
@@ -24,6 +28,8 @@ namespace margelo::nitro::utils { struct StringHolder; }
 #include "ContactFields.hpp"
 #include "HybridAppStartTimeModuleSpec.hpp"
 #include "HybridContactsModuleSpec.hpp"
+#include "HybridShareActionHandlerSpec.hpp"
+#include "SharedFile.hpp"
 #include "StringHolder.hpp"
 #include <NitroModules/Promise.hpp>
 #include <NitroModules/Result.hpp>
@@ -48,6 +54,8 @@ namespace margelo::nitro::utils { struct StringHolder; }
 namespace ExpensifyNitroUtils { class HybridAppStartTimeModuleSpec_cxx; }
 // Forward declaration of `HybridContactsModuleSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridContactsModuleSpec_cxx; }
+// Forward declaration of `HybridShareActionHandlerSpec_cxx` to properly resolve imports.
+namespace ExpensifyNitroUtils { class HybridShareActionHandlerSpec_cxx; }
 
 // Include Swift defined types
 #if __has_include("ExpensifyNitroUtils-Swift.h")

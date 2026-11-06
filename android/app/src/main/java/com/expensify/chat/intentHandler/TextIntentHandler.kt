@@ -62,7 +62,7 @@ class TextIntentHandler(private val context: Context) : AbstractIntentHandler() 
     private fun handleTextPlainIntent(intent: Intent, context: Context) {
             var intentTextContent = intent.getStringExtra(Intent.EXTRA_TEXT)
             if(intentTextContent != null) {
-                val shareFileObject = ShareFileObject(intentTextContent, intent.type)
+                val shareFileObject = ShareFileObject(intentTextContent, intent.type, isText = true)
                 saveToSharedPreferences(IntentHandlerConstants.shareObjectProperty, shareFileObject.toString())
             }
     }

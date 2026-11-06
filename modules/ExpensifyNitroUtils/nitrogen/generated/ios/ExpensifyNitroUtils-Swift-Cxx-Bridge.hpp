@@ -16,6 +16,10 @@ namespace margelo::nitro::utils { struct Contact; }
 namespace margelo::nitro::utils { class HybridAppStartTimeModuleSpec; }
 // Forward declaration of `HybridContactsModuleSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridContactsModuleSpec; }
+// Forward declaration of `HybridShareActionHandlerSpec` to properly resolve imports.
+namespace margelo::nitro::utils { class HybridShareActionHandlerSpec; }
+// Forward declaration of `SharedFile` to properly resolve imports.
+namespace margelo::nitro::utils { struct SharedFile; }
 // Forward declaration of `StringHolder` to properly resolve imports.
 namespace margelo::nitro::utils { struct StringHolder; }
 
@@ -24,12 +28,16 @@ namespace margelo::nitro::utils { struct StringHolder; }
 namespace ExpensifyNitroUtils { class HybridAppStartTimeModuleSpec_cxx; }
 // Forward declaration of `HybridContactsModuleSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridContactsModuleSpec_cxx; }
+// Forward declaration of `HybridShareActionHandlerSpec_cxx` to properly resolve imports.
+namespace ExpensifyNitroUtils { class HybridShareActionHandlerSpec_cxx; }
 
 // Include C++ defined types
 #include "Contact.hpp"
 #include "ContactFields.hpp"
 #include "HybridAppStartTimeModuleSpec.hpp"
 #include "HybridContactsModuleSpec.hpp"
+#include "HybridShareActionHandlerSpec.hpp"
+#include "SharedFile.hpp"
 #include "StringHolder.hpp"
 #include <NitroModules/Promise.hpp>
 #include <NitroModules/PromiseHolder.hpp>
@@ -223,6 +231,87 @@ namespace margelo::nitro::utils::bridge::swift {
   }
   inline Result_std__shared_ptr_Promise_std__vector_Contact____ create_Result_std__shared_ptr_Promise_std__vector_Contact____(const std::exception_ptr& error) noexcept {
     return Result<std::shared_ptr<Promise<std::vector<Contact>>>>::withError(error);
+  }
+  
+  // pragma MARK: std::optional<double>
+  /**
+   * Specialized version of `std::optional<double>`.
+   */
+  using std__optional_double_ = std::optional<double>;
+  inline std::optional<double> create_std__optional_double_(const double& value) noexcept {
+    return std::optional<double>(value);
+  }
+  inline bool has_value_std__optional_double_(const std::optional<double>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline double get_std__optional_double_(const std::optional<double>& optional) noexcept {
+    return optional.value();
+  }
+  
+  // pragma MARK: std::vector<SharedFile>
+  /**
+   * Specialized version of `std::vector<SharedFile>`.
+   */
+  using std__vector_SharedFile_ = std::vector<SharedFile>;
+  inline std::vector<SharedFile> create_std__vector_SharedFile_(size_t size) noexcept {
+    std::vector<SharedFile> vector;
+    vector.reserve(size);
+    return vector;
+  }
+  
+  // pragma MARK: std::shared_ptr<Promise<std::vector<SharedFile>>>
+  /**
+   * Specialized version of `std::shared_ptr<Promise<std::vector<SharedFile>>>`.
+   */
+  using std__shared_ptr_Promise_std__vector_SharedFile___ = std::shared_ptr<Promise<std::vector<SharedFile>>>;
+  inline std::shared_ptr<Promise<std::vector<SharedFile>>> create_std__shared_ptr_Promise_std__vector_SharedFile___() noexcept {
+    return Promise<std::vector<SharedFile>>::create();
+  }
+  inline PromiseHolder<std::vector<SharedFile>> wrap_std__shared_ptr_Promise_std__vector_SharedFile___(std::shared_ptr<Promise<std::vector<SharedFile>>> promise) noexcept {
+    return PromiseHolder<std::vector<SharedFile>>(std::move(promise));
+  }
+  
+  // pragma MARK: std::function<void(const std::vector<SharedFile>& /* result */)>
+  /**
+   * Specialized version of `std::function<void(const std::vector<SharedFile>&)>`.
+   */
+  using Func_void_std__vector_SharedFile_ = std::function<void(const std::vector<SharedFile>& /* result */)>;
+  /**
+   * Wrapper class for a `std::function<void(const std::vector<SharedFile>& / * result * /)>`, this can be used from Swift.
+   */
+  class Func_void_std__vector_SharedFile__Wrapper final {
+  public:
+    explicit Func_void_std__vector_SharedFile__Wrapper(std::function<void(const std::vector<SharedFile>& /* result */)>&& func): _function(std::make_unique<std::function<void(const std::vector<SharedFile>& /* result */)>>(std::move(func))) {}
+    inline void call(std::vector<SharedFile> result) const noexcept {
+      _function->operator()(result);
+    }
+  private:
+    std::unique_ptr<std::function<void(const std::vector<SharedFile>& /* result */)>> _function;
+  } SWIFT_NONCOPYABLE;
+  Func_void_std__vector_SharedFile_ create_Func_void_std__vector_SharedFile_(void* NON_NULL swiftClosureWrapper) noexcept;
+  inline Func_void_std__vector_SharedFile__Wrapper wrap_Func_void_std__vector_SharedFile_(Func_void_std__vector_SharedFile_ value) noexcept {
+    return Func_void_std__vector_SharedFile__Wrapper(std::move(value));
+  }
+  
+  // pragma MARK: std::shared_ptr<HybridShareActionHandlerSpec>
+  /**
+   * Specialized version of `std::shared_ptr<HybridShareActionHandlerSpec>`.
+   */
+  using std__shared_ptr_HybridShareActionHandlerSpec_ = std::shared_ptr<HybridShareActionHandlerSpec>;
+  std::shared_ptr<HybridShareActionHandlerSpec> create_std__shared_ptr_HybridShareActionHandlerSpec_(void* NON_NULL swiftUnsafePointer) noexcept;
+  void* NON_NULL get_std__shared_ptr_HybridShareActionHandlerSpec_(std__shared_ptr_HybridShareActionHandlerSpec_ cppType);
+  
+  // pragma MARK: std::weak_ptr<HybridShareActionHandlerSpec>
+  using std__weak_ptr_HybridShareActionHandlerSpec_ = std::weak_ptr<HybridShareActionHandlerSpec>;
+  inline std__weak_ptr_HybridShareActionHandlerSpec_ weakify_std__shared_ptr_HybridShareActionHandlerSpec_(const std::shared_ptr<HybridShareActionHandlerSpec>& strong) noexcept { return strong; }
+  
+  // pragma MARK: Result<std::shared_ptr<Promise<std::vector<SharedFile>>>>
+  using Result_std__shared_ptr_Promise_std__vector_SharedFile____ = Result<std::shared_ptr<Promise<std::vector<SharedFile>>>>;
+  inline Result_std__shared_ptr_Promise_std__vector_SharedFile____ create_Result_std__shared_ptr_Promise_std__vector_SharedFile____(const std::shared_ptr<Promise<std::vector<SharedFile>>>& value) noexcept {
+    return Result<std::shared_ptr<Promise<std::vector<SharedFile>>>>::withValue(value);
+  }
+  inline Result_std__shared_ptr_Promise_std__vector_SharedFile____ create_Result_std__shared_ptr_Promise_std__vector_SharedFile____(const std::exception_ptr& error) noexcept {
+    return Result<std::shared_ptr<Promise<std::vector<SharedFile>>>>::withError(error);
   }
 
 } // namespace margelo::nitro::utils::bridge::swift
