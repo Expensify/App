@@ -6,6 +6,7 @@ import useAlertModals from '@hooks/useAlertModals';
 import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
 import useHydrateReportsFromSnapshot from '@hooks/useHydrateReportsFromSnapshot';
@@ -91,7 +92,9 @@ function SearchTransactionsChangeReport() {
     // Asked for here too, so opening this screen retries a fetch that failed earlier.
     const {areCardsLoaded: isSearchCardListComplete} = useLoadSearchCardData();
     const reports = useChangeTransactionsReportReports(transactions, undefined);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
+        selector: isTrackIntentUserSelector,
+    });
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
@@ -100,6 +103,7 @@ function SearchTransactionsChangeReport() {
     const session = useSession();
     const personalDetails = usePersonalDetails();
     const {formatPhoneNumber} = useLocalize();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const firstTransactionKey = selectedTransactionsKeys.at(0);
@@ -175,7 +179,11 @@ function SearchTransactionsChangeReport() {
         const policyTagList = policyForMovingExpenses?.id ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyForMovingExpenses.id}`] : {};
         const reportsForCall = {
             ...reports,
-            [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`]: {...optimisticReport, transactionCount: 0, unheldNonReimbursableTotal: 0},
+            [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`]: {
+                ...optimisticReport,
+                transactionCount: 0,
+                unheldNonReimbursableTotal: 0,
+            },
         };
         setNavigationActionToMicrotaskQueue(() => {
             changeTransactionsReport({
@@ -184,6 +192,7 @@ function SearchTransactionsChangeReport() {
                 isASAPSubmitBetaEnabled,
                 accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 email: session?.email ?? '',
+                currentUserPersonalDetails,
                 newReport: optimisticReport,
                 policy: policyForMovingExpenses,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyForMovingExpensesID}`],
@@ -293,6 +302,7 @@ function SearchTransactionsChangeReport() {
             isASAPSubmitBetaEnabled,
             accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             email: session?.email ?? '',
+            currentUserPersonalDetails,
             newReport: destinationReport,
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
             policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
@@ -310,7 +320,9 @@ function SearchTransactionsChangeReport() {
             getCurrencySymbol,
             ...allMatchingQueryParams,
         });
-        Navigation.goBack(undefined, {afterTransition: clearSelectedTransactions});
+        Navigation.goBack(undefined, {
+            afterTransition: clearSelectedTransactions,
+        });
     };
 
     const autoReport = () => {
@@ -318,7 +330,9 @@ function SearchTransactionsChangeReport() {
             return;
         }
         autoReportTransactions(selectedTransactionsKeys);
-        Navigation.goBack(undefined, {afterTransition: clearSelectedTransactions});
+        Navigation.goBack(undefined, {
+            afterTransition: clearSelectedTransactions,
+        });
     };
 
     const removeFromReport = () => {
@@ -336,6 +350,7 @@ function SearchTransactionsChangeReport() {
             isASAPSubmitBetaEnabled,
             accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             email: session?.email ?? '',
+            currentUserPersonalDetails,
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
             policyTagList,
             transactions,

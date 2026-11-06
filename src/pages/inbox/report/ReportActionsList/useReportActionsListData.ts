@@ -1,5 +1,5 @@
 import {getReportActionMessage, isTransactionThread} from '@libs/ReportActionsUtils';
-import {isExpenseReport, isIOUReport, isInvoiceReport, isResolvedSupportTicket, isSupportTicket} from '@libs/ReportUtils';
+import {isExpenseReport, isIOUReport, isInvoiceReport} from '@libs/ReportUtils';
 
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 import {useReportActionsListState} from '@pages/inbox/report/ReportActionsListContext';
@@ -13,8 +13,8 @@ import type {UseReportActionsListDataParams} from './types';
 
 import getReportActionsWithStreamedReply from './getReportActionsWithStreamedReply';
 
-/** Prepares the rendered report rows, including streamed Concierge drafts, support surveys, and collapsed system messages. */
-function useReportActionsListData({sortedVisibleReportActions, reportNameValuePairs, sessionStartTime, linkedReportActionID, unreadMarkerReportActionID}: UseReportActionsListDataParams) {
+/** Prepares the rendered report rows, including streamed Concierge drafts and collapsed system messages. */
+function useReportActionsListData({sortedVisibleReportActions, sessionStartTime, linkedReportActionID, unreadMarkerReportActionID}: UseReportActionsListDataParams) {
     const {report, sortedAllReportActions, parentReportAction, isConciergeHiddenHistory, showFullHistory} = useReportActionsListState();
     const {draftReportAction, isDraftPendingCompletion} = useConciergeDraft();
     const {clearDraft, revealDraftFromReportAction} = useConciergeDraftActions();
@@ -26,35 +26,14 @@ function useReportActionsListData({sortedVisibleReportActions, reportNameValuePa
           )
         : undefined;
 
-    const shouldHideSupportTicketSurvey = isSupportTicket(report) && (!isResolvedSupportTicket(report) || !!reportNameValuePairs?.reopenedAsReportID);
-    const latestResolvedSupportTicketAction = sortedAllReportActions?.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
-    const latestSupportTicketSurveyAction = latestResolvedSupportTicketAction
-        ? sortedAllReportActions?.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY && action.created >= latestResolvedSupportTicketAction.created)
-        : undefined;
-
     const shouldHideDraft = !!(showHiddenHistory && sessionStartTime && draftReportAction && draftReportAction.created < sessionStartTime);
-    const {reportActionsWithStreamedReply, isSyntheticDraftVisible} = getReportActionsWithStreamedReply({
+    const {reportActionsWithStreamedReply: renderedVisibleReportActions, isSyntheticDraftVisible} = getReportActionsWithStreamedReply({
         sortedVisibleReportActions,
         draftReportAction,
         isDraftPendingCompletion,
         hasPersistedDraft: !!persistedDraftReportAction,
         shouldHideDraft,
     });
-
-    const shouldFilterSupportTicketSurveys =
-        isSupportTicket(report) &&
-        reportActionsWithStreamedReply.some(
-            (action) =>
-                action.actionName === CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY &&
-                (shouldHideSupportTicketSurvey || action.reportActionID !== latestSupportTicketSurveyAction?.reportActionID),
-        );
-    const renderedVisibleReportActions = shouldFilterSupportTicketSurveys
-        ? reportActionsWithStreamedReply.filter(
-              (action) =>
-                  action.actionName !== CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY ||
-                  (!shouldHideSupportTicketSurvey && action.reportActionID === latestSupportTicketSurveyAction?.reportActionID),
-          )
-        : reportActionsWithStreamedReply;
 
     const shouldCollapseSystemMessages = isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report) || isTransactionThread(parentReportAction);
     const {

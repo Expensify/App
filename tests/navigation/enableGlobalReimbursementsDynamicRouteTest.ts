@@ -6,6 +6,7 @@ import {
     getEnableGlobalReimbursementsBusinessNavigationRoute,
     getWiseGlobalReimbursementsIntroNavigationRoute,
     isWiseGlobalReimbursementsIntroOverPayReportScreen,
+    isWiseGlobalReimbursementsIntroPath,
     shouldUseDynamicEnableGlobalReimbursementsBase,
 } from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
 
@@ -150,6 +151,34 @@ describe('Enable global reimbursements dynamic routes', () => {
 
             // Then it keeps the generic copy because the admin asked to enable global reimbursements directly
             expect(isOverPayReportScreen).toBe(false);
+        });
+    });
+
+    describe('isWiseGlobalReimbursementsIntroPath', () => {
+        it.each([
+            ['the wallet', 'settings/wallet/global-reimbursements/1'],
+            ['home with a leading slash', '/home/global-reimbursements/1'],
+        ])('recognizes the intro over %s', (_label, path) => {
+            // Given the back path of a page over the intro, once the root state holds that page
+            // When the page checks whether the path is the intro
+            const isIntroPath = isWiseGlobalReimbursementsIntroPath(path, 1);
+
+            // Then it can build its next route on the path
+            expect(isIntroPath).toBe(true);
+        });
+
+        it.each([
+            ['an empty path', ''],
+            ['the status page', 'settings/wallet/global-reimbursements/1/status'],
+            ['the wallet', 'settings/wallet'],
+            ["another bank account's intro", 'settings/wallet/global-reimbursements/2'],
+        ])('rejects %s', (_label, path) => {
+            // Given a back path read before the root state holds the page, or after the page navigated away, or one left over from another account's intro
+            // When the page checks whether the path is the intro
+            const isIntroPath = isWiseGlobalReimbursementsIntroPath(path, 1);
+
+            // Then it does not build a route on the path, since the route would not exist
+            expect(isIntroPath).toBe(false);
         });
     });
 });

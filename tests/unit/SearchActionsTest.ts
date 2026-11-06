@@ -882,7 +882,7 @@ describe('getPayOption', () => {
                 },
             });
             await waitForBatchedUpdates();
-            Onyx.disconnect(connection);
+            connection.unsubscribe();
 
             expect(storedResults).toEqual(tags);
         });
@@ -921,7 +921,7 @@ describe('getPayOption', () => {
                 },
             });
             await waitForBatchedUpdates();
-            Onyx.disconnect(connection);
+            connection.unsubscribe();
 
             expect(storedResults).toEqual([...existingTags, ...nextTags]);
         });

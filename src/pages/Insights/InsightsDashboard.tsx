@@ -30,7 +30,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AIInsight, InsightsDashboard as InsightsDashboardRecord, InsightsDashboardID} from '@src/types/onyx';
+import type {AIInsight, InsightsDashboard as InsightsDashboardRecord, InsightsDashboardID, InsightsScope} from '@src/types/onyx';
 import viewRef from '@src/types/utils/viewRef';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -59,8 +59,10 @@ import useInsightsExport from './useInsightsExport';
 import useInsightsFilters from './useInsightsFilters';
 
 type InsightsDashboardContentProps = {
+    dashboardID: InsightsDashboardID;
     state: InsightsDashboardState;
     aiInsights: AIInsight[] | undefined;
+    insightsScope: InsightsScope;
     isLoadingAIInsights: boolean;
     headlineChart: InsightsDashboardChart;
 
@@ -84,8 +86,10 @@ type InsightsDashboardContentProps = {
 };
 
 function InsightsDashboardContent({
+    dashboardID,
     state,
     aiInsights,
+    insightsScope,
     isLoadingAIInsights,
     headlineChart,
     supportingCharts,
@@ -222,10 +226,12 @@ function InsightsDashboardContent({
                     {isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && (
                         <InsightsAICardRow
                             insights={aiInsights}
+                            insightsScope={insightsScope}
                             isLoading={isLoadingAIInsights}
                         />
                     )}
                     <InsightsChartWidget
+                        dashboardID={dashboardID}
                         chart={headlineChart.chart}
                         queryJSON={headlineChart.queryJSON}
                         snapshot={headlineChart.snapshot}
@@ -234,6 +240,7 @@ function InsightsDashboardContent({
                         averageTotal={headlineChart.averageTotal}
                         isDashboardLoaded={headlineChart.isDashboardLoaded}
                         filters={filters}
+                        insightsScope={insightsScope}
                         onRetry={onRetry}
                         onGroupByChange={onGroupByChange}
                     />
@@ -247,6 +254,7 @@ function InsightsDashboardContent({
                                 {columnCharts.map(({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageTotal, isDashboardLoaded}) => (
                                     <InsightsChartWidget
                                         key={chart.graphKey}
+                                        dashboardID={dashboardID}
                                         chart={chart}
                                         queryJSON={queryJSON}
                                         snapshot={snapshot}
@@ -255,6 +263,7 @@ function InsightsDashboardContent({
                                         averageTotal={averageTotal}
                                         isDashboardLoaded={isDashboardLoaded}
                                         filters={filters}
+                                        insightsScope={insightsScope}
                                         onRetry={onRetry}
                                     />
                                 ))}
@@ -406,8 +415,15 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                         style={StyleSheet.absoluteFill}
                     >
                         <InsightsDashboardContent
+                            dashboardID={dashboardID}
                             state={state}
                             aiInsights={dashboard?.aiInsights}
+                            insightsScope={{
+                                searchKey: INSIGHTS_DASHBOARD_SPECS[dashboardID].searchKey,
+                                policyIDs: filters.policyIDs,
+                                date: filters.date,
+                                groupCurrency: filters.groupCurrency,
+                            }}
                             // Offline no response is coming, so the row hides instead of loading forever
                             isLoadingAIInsights={!hasDashboardResponse(dashboard) && !isOffline}
                             headlineChart={headlineChart}

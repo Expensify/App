@@ -108,7 +108,6 @@ function ReportSubmitToContent({
         selector: expensifyLoginsSelector,
     });
     const [personalDetails] = useAllPersonalDetails();
-    const submitterLogin = getLoginByAccountID(report?.ownerAccountID, personalDetails);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
         selector: isTrackIntentUserSelector,
@@ -121,12 +120,7 @@ function ReportSubmitToContent({
     const {currentSearchResults} = useSearchResultsContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, true);
     const lazyIllustrations = useMemoizedLazyIllustrations(['PaperAirplane']);
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
     const reportTransactions = useReportTransactions(report?.reportID);
-
-    const prepopulatedEmail = getSubmitToEmail(policy, report, submitterLogin, rules);
-    const prepopulatedAccountID = usePersonalDetailByLogin(prepopulatedEmail?.trim(), (details) => details?.accountID);
 
     const [userSelectedManagerEmail, setUserSelectedManagerEmail] = useState<string | undefined>();
     const [extraSubmitToRecipients, setExtraSubmitToRecipients] = useState<WorkspaceMemberItem[]>([]);
@@ -138,12 +132,22 @@ function ReportSubmitToContent({
 
     const employeePersonalDetails = usePersonalDetailsByLogins([...Object.keys(policy?.employeeList ?? {}), managerEmail]);
 
+    useEffect(() => {
+        searchUserInServer(debouncedSearchTerm.trim());
+    }, [debouncedSearchTerm]);
+
+    const submitterLogin = getLoginByAccountID(report?.ownerAccountID, personalDetails);
+    const prepopulatedEmail = getSubmitToEmail(policy, report, submitterLogin, rules).trim();
+    const prepopulatedAccountID = usePersonalDetailByLogin(prepopulatedEmail, (details) => details?.accountID);
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
+
     let workspaceMembers: WorkspaceMemberItem[];
     const employeeList = policy?.employeeList;
     if (!employeeList) {
         workspaceMembers = [];
     } else {
-        const prepopulatedEmailLower = prepopulatedEmail?.trim().toLowerCase();
+        const prepopulatedEmailLower = prepopulatedEmail.toLowerCase();
         const emailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, employeePersonalDetails, true, false);
         workspaceMembers = Object.values(employeeList).flatMap((employee): WorkspaceMemberItem[] => {
             const email = employee.email?.trim();
@@ -172,7 +176,7 @@ function ReportSubmitToContent({
     }
 
     let prepopulatedSubmitToRecipient: WorkspaceMemberItem | null;
-    const email = prepopulatedEmail?.trim();
+    const email = prepopulatedEmail;
     if (!email) {
         prepopulatedSubmitToRecipient = null;
     } else {
@@ -211,10 +215,6 @@ function ReportSubmitToContent({
         filteredWorkspaceMembers = tokenizedSearch(combinedSubmitToMembers, normalized, (item) => [item.text ?? '', item.alternateText ?? '', item.email]);
     }
 
-    useEffect(() => {
-        searchUserInServer(debouncedSearchTerm.trim());
-    }, [debouncedSearchTerm]);
-
     let nonWorkspaceInviteRow: WorkspaceMemberItem | null;
     const trimmedSearchTerm = searchTerm.trim();
     if (!trimmedSearchTerm || filteredWorkspaceMembers.length !== 0) {
@@ -248,6 +248,8 @@ function ReportSubmitToContent({
     }
 
     const submitToSelectionData = !nonWorkspaceInviteRow ? filteredWorkspaceMembers : [nonWorkspaceInviteRow, ...filteredWorkspaceMembers];
+
+    const initiallyFocusedItemKey = submitToSelectionData.find((m) => m.isSelected)?.keyForList;
 
     const selectedSubmitToMember: WorkspaceMemberItem | undefined = nonWorkspaceInviteRow?.isSelected ? nonWorkspaceInviteRow : combinedSubmitToMembers.find((item) => item.isSelected);
 
@@ -436,7 +438,7 @@ function ReportSubmitToContent({
                 shouldShowTextInput
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 shouldSingleExecuteRowSelect
-                initiallyFocusedItemKey={submitToSelectionData.find((m) => m.isSelected)?.keyForList}
+                initiallyFocusedItemKey={initiallyFocusedItemKey}
                 style={{containerStyle: styles.flex1}}
                 disableMaintainingScrollPosition
                 addBottomSafeAreaPadding={!isInLandscapeMode && !isKeyboardActive}

@@ -1359,7 +1359,6 @@ function setDraftSplitTransaction(
     policy?: OnyxEntry<OnyxTypes.Policy>,
     personalPolicyOutputCurrency?: string,
     policies?: OnyxCollection<OnyxTypes.Policy>,
-    rules?: OnyxCollection<OnyxTypes.Rule>,
 ) {
     if (!transactionID) {
         return undefined;
@@ -1380,9 +1379,8 @@ function setDraftSplitTransaction(
               policies,
               isSplitTransaction: true,
               personalPolicyOutputCurrency,
-              getCurrencySymbol,
               getCurrencyDecimals,
-              rules,
+              getCurrencySymbol,
           })
         : null;
 
