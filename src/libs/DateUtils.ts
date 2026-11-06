@@ -1116,10 +1116,12 @@ const memoizedCreateLongDateInTimeZoneFormatter = memoize(
  * @returns June 20, 2026, or Saturday, June 20, 2026 with the weekday
  */
 function formatToLongDateInTimeZone(date: string | Date, timeZone: SelectedTimezone, dateFnsLocale: DateFnsLocale | undefined, shouldIncludeWeekday = false): string {
+    // A date-only string, such as the day picked for a call, is already a calendar day in the user's timezone, so it is
+    // shown exactly as stored by reading and formatting it in UTC. Reading it as midnight in the user's timezone would
+    // show the day before where that midnight does not exist, such as when daylight saving time starts in Santiago.
+    const isDateOnly = typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date);
     // Some native platforms only know older timezone names, and `Intl` throws on a name it does not know.
-    const supportedTimeZone = fallbackToSupportedTimezone(timeZone);
-    // A date-only string is read as midnight in the target timezone, the way date-fns-tz's `formatInTimeZone` reads it,
-    // so the displayed day does not move.
+    const supportedTimeZone = isDateOnly ? 'UTC' : fallbackToSupportedTimezone(timeZone);
     const parsedDate = toDate(date, {timeZone: supportedTimeZone});
     if (!isValid(parsedDate)) {
         return '';

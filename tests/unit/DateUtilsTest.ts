@@ -982,10 +982,24 @@ describe('DateUtils', () => {
         it('keeps a date-only value on its own day in every timezone', () => {
             // Given a picked call date with no time, in timezones on both sides of UTC
             // When it is formatted in each
-            // Then the picked day is shown, because a date-only value is read as midnight in the target timezone
+            // Then the picked day is shown, because a date-only value is a calendar day and is shown as stored
             expect(DateUtils.formatToLongDateInTimeZone('2026-06-20', NEW_YORK, undefined)).toBe('June 20, 2026');
             expect(DateUtils.formatToLongDateInTimeZone('2026-06-20', TOKYO, undefined)).toBe('June 20, 2026');
         });
+
+        it.each([
+            {timeZone: 'America/Santiago', date: '2026-09-06', expected: 'September 6, 2026'},
+            {timeZone: 'Asia/Beirut', date: '2026-03-29', expected: 'March 29, 2026'},
+            {timeZone: 'America/Havana', date: '2026-03-08', expected: 'March 8, 2026'},
+        ] satisfies Array<{timeZone: SelectedTimezone; date: string; expected: string}>)(
+            'keeps a date-only value on its own day when daylight saving time starts at midnight in $timeZone',
+            ({timeZone, date, expected}) => {
+                // Given a picked call date on the day daylight saving time starts at midnight, so that midnight does not exist
+                // When it is formatted in that timezone
+                // Then the picked day is still shown. Reading it as local midnight would land on 23:00 the day before.
+                expect(DateUtils.formatToLongDateInTimeZone(date, timeZone, undefined)).toBe(expected);
+            },
+        );
 
         it('shows an instant on the day it falls on in the target timezone', () => {
             // Given a call time that is late on June 20 in New York, which is already June 21 in UTC
