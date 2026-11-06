@@ -2679,6 +2679,7 @@ describe('ReportActionItem', () => {
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
                     <PaymentContent
                         action={action}
+                        reportID={undefined}
                         expectedDate={undefined}
                         policyID={undefined}
                     />

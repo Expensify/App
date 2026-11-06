@@ -104,6 +104,21 @@ type OriginalMessageIOU = {
     /** Cross-border FX reimbursement: last 4 of the employee deposit account that was credited */
     creditBankAccountLast4?: string;
 
+    /** Wise payment: total fees, in cents of `currency` */
+    fee?: number;
+
+    /** Wise payment: units of `paymentCurrency` per one unit of `currency` */
+    rate?: number;
+
+    /** Wise payment: amount taken from the company's bank account, in cents of `currency` */
+    debitedAmount?: number;
+
+    /** Wise payment: currency of the employee's bank account, which `creditedAmount` is in */
+    paymentCurrency?: string;
+
+    /** Wise payment: tax Wise charges on the transfer in some corridors, in cents of `currency` */
+    tax?: number;
+
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
 };

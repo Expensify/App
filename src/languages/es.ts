@@ -1808,6 +1808,9 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmApprovalWithHeldAmount: 'El informe contiene gastos retenidos. ¿Quieres aprobar sólo los gastos que cumplen con los requisitos o aprobar todo el informe?',
         confirmApprovalAllHoldAmount: 'Todos los gastos están retenidos. ¿Aprobar de todos modos?',
         confirmPay: 'Confirmar importe de pago',
+        wisePaymentArrival: ({paymentMessage, expectedDate}: {paymentMessage: string; expectedDate: string}) =>
+            `${paymentMessage}, se espera que los fondos lleguen antes del ${expectedDate}`,
+        wisePaymentDetailsLink: ({paymentMessage, href}: {paymentMessage: string; href: string}) => `${paymentMessage}. <a href="${href}">Ver detalles</a>.`,
         wisePaymentSummary: {
             confirmPayment: 'Confirmar pago',
             reportTotal: 'Total del informe',
@@ -1816,6 +1819,9 @@ const translations: TranslationDeepObject<typeof en> = {
             employeeWillReceive: 'El empleado recibirá',
             totalFees: 'Comisiones totales',
             fxRate: 'Tipo de cambio',
+            paymentDetails: 'Detalles del pago',
+            debitedAmount: 'Importe cargado',
+            employeeReceived: 'El empleado recibió',
             payAll: 'Pagar todo',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 informe',

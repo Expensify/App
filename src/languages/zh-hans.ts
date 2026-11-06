@@ -1751,6 +1751,8 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmApprovalWithHeldAmount: '报告包含暂停的费用。仅批准合规的费用，还是批准整个报告？',
         confirmApprovalAllHoldAmount: '所有费用都已被暂停。仍要批准吗？',
         confirmPay: '确认付款金额',
+        wisePaymentArrival: ({paymentMessage, expectedDate}: {paymentMessage: string; expectedDate: string}) => `${paymentMessage}，资金预计将于 ${expectedDate} 前到账`,
+        wisePaymentDetailsLink: ({paymentMessage, href}: {paymentMessage: string; href: string}) => `${paymentMessage}。<a href="${href}">查看详情</a>。`,
         wisePaymentSummary: {
             confirmPayment: '确认付款',
             reportTotal: '报告总额',
@@ -1759,6 +1761,9 @@ const translations: TranslationDeepObject<typeof en> = {
             employeeWillReceive: '员工将收到',
             totalFees: '总费用',
             fxRate: '汇率',
+            paymentDetails: '付款详情',
+            debitedAmount: '扣款金额',
+            employeeReceived: '员工已收到',
             payAll: '全部支付',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 份报告',

@@ -1797,6 +1797,8 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmApprovalWithHeldAmount: 'レポートには保留中の経費が含まれています。準拠している経費のみを承認しますか、それともレポート全体を承認しますか？',
         confirmApprovalAllHoldAmount: 'すべての経費が保留中です。それでも承認しますか？',
         confirmPay: '支払金額を確認',
+        wisePaymentArrival: ({paymentMessage, expectedDate}: {paymentMessage: string; expectedDate: string}) => `${paymentMessage}。資金は${expectedDate}までに到着する予定です`,
+        wisePaymentDetailsLink: ({paymentMessage, href}: {paymentMessage: string; href: string}) => `${paymentMessage}。<a href="${href}">詳細を表示</a>。`,
         wisePaymentSummary: {
             confirmPayment: '支払いを確認',
             reportTotal: 'レポート合計',
@@ -1805,6 +1807,9 @@ const translations: TranslationDeepObject<typeof en> = {
             employeeWillReceive: '従業員の受取額',
             totalFees: '手数料合計',
             fxRate: '為替レート',
+            paymentDetails: '支払いの詳細',
+            debitedAmount: '引き落とし額',
+            employeeReceived: '従業員の受取額',
             payAll: 'すべて支払う',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 件のレポート',

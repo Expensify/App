@@ -49,6 +49,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.AUTO_SUBMIT_ROOT]: ROUTES.AUTO_SUBMIT_MODAL_ROOT,
                 [SCREENS.DYNAMIC_CHANGE_POLICY_EDUCATIONAL_ROOT]: DYNAMIC_ROUTES.CHANGE_POLICY_EDUCATIONAL.path,
+                [SCREENS.DYNAMIC_PAYMENT_DETAILS_ROOT]: DYNAMIC_ROUTES.PAYMENT_DETAILS.path,
             },
         },
         [NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]: {
