@@ -35,6 +35,7 @@ const RUNNING_TITLES = {
     [CONST.SEARCH.BULK_ACTION_TYPES.REJECT]: 'bulkAction.rejectingTitle',
     [CONST.SEARCH.BULK_ACTION_TYPES.DELETE]: 'bulkAction.deletingTitle',
     [CONST.BULK_ACTION.DELETE_EXPENSES]: 'bulkAction.deletingExpensesTitle',
+    [CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE]: 'bulkAction.changingWorkspaceTitle',
 } as const satisfies Record<BulkActionType, TranslationPaths>;
 
 const DONE_TITLES = {
@@ -46,6 +47,7 @@ const DONE_TITLES = {
     [CONST.SEARCH.BULK_ACTION_TYPES.REJECT]: 'bulkAction.rejectedTitle',
     [CONST.SEARCH.BULK_ACTION_TYPES.DELETE]: 'bulkAction.deletedTitle',
     [CONST.BULK_ACTION.DELETE_EXPENSES]: 'bulkAction.deletedExpensesTitle',
+    [CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE]: 'bulkAction.changedWorkspaceTitle',
 } as const satisfies Record<BulkActionType, TranslationPaths>;
 
 const FAILED_BODIES = {
@@ -56,6 +58,7 @@ const FAILED_BODIES = {
     [CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD]: 'bulkAction.notUnheldBody',
     [CONST.SEARCH.BULK_ACTION_TYPES.REJECT]: 'bulkAction.notRejectedBody',
     [CONST.SEARCH.BULK_ACTION_TYPES.DELETE]: 'bulkAction.notDeletedBody',
+    [CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE]: 'bulkAction.notMovedBody',
     [CONST.BULK_ACTION.DELETE_EXPENSES]: 'bulkAction.expensesNotDeletedBody',
 } as const satisfies Record<BulkActionType, TranslationPaths>;
 

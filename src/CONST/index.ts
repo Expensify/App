@@ -8274,6 +8274,7 @@ const CONST = {
             DUPLICATE: 'duplicate',
             DUPLICATE_REPORT: 'duplicateReport',
             UNDELETE: 'undelete',
+            CHANGE_WORKSPACE: 'changeWorkspace',
         },
         BULK_DUPLICATE_LIMIT: 50,
         TRANSACTION_TYPE: {
