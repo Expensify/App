@@ -5,7 +5,7 @@ import isCountryCode from '@components/DynamicForm/utils/isCountryCode';
 import {getAllFields, getPages} from '@components/DynamicForm/utils/paginate';
 
 import {getCountryCode, resolveStateCode} from '@libs/CountryUtils';
-import {toSavedFile} from '@libs/getWiseOnboardingPageParams';
+import {getSourceOfWealthEntries, withSavedFiles} from '@libs/getWiseOnboardingPageParams';
 import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
@@ -44,20 +44,36 @@ function getStateCode(countryCode: string | undefined, state: string | undefined
     return stateCode in COMMON_CONST.STATES ? stateCode : undefined;
 }
 
+/** A saved answer the draft can hold as it is. A key a later save dropped comes back as null. */
+function isSavedAnswer(answer: unknown): answer is string | boolean | string[] {
+    if (typeof answer === 'string' || typeof answer === 'boolean') {
+        return true;
+    }
+    if (!Array.isArray(answer)) {
+        return false;
+    }
+    const items: unknown[] = answer;
+    return items.every((item) => typeof item === 'string');
+}
+
 /** The answers of every saved page, with each saved file as a draft entry the next save can tell apart from a new one. A key a later save dropped comes back as null and is left out. */
 function getSavedAnswers(wise: WiseBusinessAccountData['wise']): DynamicFormValues {
-    const answers: DynamicFormValues = {};
+    let answers: DynamicFormValues = {};
     for (const pageAnswers of Object.values(wise?.pages ?? {})) {
-        for (const [key, answer] of Object.entries(pageAnswers ?? {})) {
-            if (answer !== null && answer !== undefined) {
+        for (const [key, answer] of Object.entries<unknown>(pageAnswers ?? {})) {
+            if (key === CONST.WISE.SOURCE_OF_WEALTH_LIST_KEY) {
+                const entries = getSourceOfWealthEntries(answer);
+                answers[CONST.WISE.SOURCE_OF_WEALTH_INFO_KEY] = entries.map((entry) => entry.businessSourceOfWealthInfo);
+                answers[CONST.WISE.SOURCE_OF_FUNDS_KEY] = entries.filter((entry) => entry.isSourceOfFund).map((entry) => entry.businessSourceOfWealthInfo);
+            } else if (isSavedAnswer(answer)) {
                 answers[key] = answer;
             }
         }
     }
     for (const pageDocuments of Object.values(wise?.documents ?? {})) {
-        for (const [fieldKey, fileKeys] of Object.entries(pageDocuments ?? {})) {
-            if (fileKeys?.length) {
-                answers[fieldKey] = fileKeys.map(toSavedFile);
+        for (const [fileKey, savedFileKeys] of Object.entries(pageDocuments ?? {})) {
+            if (savedFileKeys?.length) {
+                answers = withSavedFiles(answers, fileKey, savedFileKeys);
             }
         }
     }

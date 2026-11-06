@@ -84,11 +84,12 @@ function saveWiseOnboardingPageWithSensitiveAnswers(params: UpdateWiseOnboarding
 /**
  * Saves one intake page the user left with Next. A typed SSN goes in `inputs`, where the server reads it, and keeps the request out of the queue.
  * A page whose key is not a step the server accepts is not sent, since the server would answer it with 400 Invalid step.
+ * `savedSourceOfWealthList` is what the server holds for the source of wealth step.
  */
-function saveWiseOnboardingPage(bankAccountID: number, page: DynamicFormPage, answers: DynamicFormValues, sensitiveAnswers: DynamicFormValues) {
+function saveWiseOnboardingPage(bankAccountID: number, page: DynamicFormPage, answers: DynamicFormValues, sensitiveAnswers: DynamicFormValues, savedSourceOfWealthList?: unknown) {
     // A blank SSN keeps the one the server holds, so it is only sent when the user typed one
     const ssn = typeof sensitiveAnswers.ssn === 'string' && sensitiveAnswers.ssn !== '' ? sensitiveAnswers.ssn : undefined;
-    const params = getWiseOnboardingPageParams(bankAccountID, page, ssn ? {...answers, ssn} : answers);
+    const params = getWiseOnboardingPageParams(bankAccountID, page, ssn ? {...answers, ssn} : answers, savedSourceOfWealthList);
     if (!params) {
         return;
     }

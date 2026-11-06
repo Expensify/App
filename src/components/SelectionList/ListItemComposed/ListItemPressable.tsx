@@ -138,7 +138,8 @@ function ListItemPressable<TItem extends ListItem>({
                         e?.stopPropagation(); // Preventing the click action
                         return;
                     }
-                    if (shouldPreventEnterKeySubmit && e && 'key' in e && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
+                    // The list's Enter shortcut stands down while a checkbox is focused, so a checkbox row takes its own Enter press
+                    if (shouldPreventEnterKeySubmit && role !== CONST.ROLE.CHECKBOX && e && 'key' in e && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
                         return;
                     }
                     onSelectRow(item, undefined, e);

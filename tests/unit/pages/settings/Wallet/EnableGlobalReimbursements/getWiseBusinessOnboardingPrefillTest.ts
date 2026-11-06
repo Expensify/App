@@ -212,6 +212,45 @@ describe('getMissingPrefill', () => {
         });
     });
 
+    it('resumes the picked sources and their documents labelled by type', () => {
+        // Given the source of funds pages saved earlier, as the server stores them
+        const businessAccountData: WiseBusinessAccountData = {
+            ...BUSINESS_ACCOUNT_DATA,
+            wise: {
+                pages: {
+                    BUSINESS_SOURCE_OF_WEALTH_INFO: {
+                        sourceOfWealthList: [
+                            {businessSourceOfWealthInfo: CONST.WISE.SOURCE_OF_WEALTH.BUSINESS_LOAN, isSourceOfFund: true},
+                            {businessSourceOfWealthInfo: CONST.WISE.SOURCE_OF_WEALTH.REVENUE, isSourceOfFund: false},
+                        ],
+                    },
+                },
+                documents: {
+                    BUSINESS_SOURCE_OF_WEALTH_PROOF: {
+                        [`proofFile-REVENUE-TAX_DOCUMENTS`]: ['kyc/42/BusinessTaxReturn.pdf'],
+                        [`proofFile-BUSINESS_LOAN-LOAN_AGREEMENT`]: ['kyc/42/LoanAgreement.pdf'],
+                        [`proofFile-BUSINESS_LOAN-BANK_STATEMENT`]: ['kyc/42/BankStatement.pdf'],
+                    },
+                },
+            },
+        };
+
+        // When the onboarding builds its starting answers
+        const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT_ID, businessAccountData, PRIVATE_PERSONAL_DETAILS);
+
+        // Then the sources come back ticked, and each source's files come back under their document type
+        expect(prefill).toMatchObject({
+            businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.BUSINESS_LOAN, CONST.WISE.SOURCE_OF_WEALTH.REVENUE],
+            [`proofFile-${CONST.WISE.SOURCE_OF_WEALTH.REVENUE}`]: [
+                {id: 'TAX_DOCUMENTS', fileType: 'TAX_DOCUMENTS', files: [expect.objectContaining({savedFileKey: 'kyc/42/BusinessTaxReturn.pdf'})]},
+            ],
+            [`proofFile-${CONST.WISE.SOURCE_OF_WEALTH.BUSINESS_LOAN}`]: [
+                {id: 'LOAN_AGREEMENT', fileType: 'LOAN_AGREEMENT', files: [expect.objectContaining({savedFileKey: 'kyc/42/LoanAgreement.pdf'})]},
+                {id: 'BANK_STATEMENT', fileType: 'BANK_STATEMENT', files: [expect.objectContaining({savedFileKey: 'kyc/42/BankStatement.pdf'})]},
+            ],
+        });
+    });
+
     it('drops an SSN the server holds once a saved page says the representative has none', () => {
         // Given a representative page saved with "I don't have an SSN" after an SSN was saved, which the server still reports as provided
         const businessAccountData: WiseBusinessAccountData = {

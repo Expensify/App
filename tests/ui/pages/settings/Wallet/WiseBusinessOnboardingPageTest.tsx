@@ -549,11 +549,12 @@ describe('WiseBusinessOnboardingPage', () => {
         await act(() => Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}}}));
         await waitForBatchedUpdatesWithAct();
 
-        // Then the source of funds and its proof are asked before the confirmation page
+        // Then the sources, the sources that fund daily operations and their proof are asked before the confirmation page
         expect(getFlowPageKeys()).toEqual([
             'representative',
             'business',
             CONST.WISE.KYC_REQUIREMENT.BUSINESS_SOURCE_OF_WEALTH_INFO,
+            'BUSINESS_SOURCE_OF_FUNDS',
             CONST.WISE.KYC_REQUIREMENT.BUSINESS_SOURCE_OF_WEALTH_PROOF,
         ]);
     });
@@ -604,7 +605,8 @@ describe('WiseBusinessOnboardingPage', () => {
         await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {
             bankAccountID: String(BANK_ACCOUNT_ID),
             businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE],
-            proofFile: [toSavedFile('kyc/1/proof.pdf')],
+            sourceOfFunds: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE],
+            [`proofFile-${CONST.WISE.SOURCE_OF_WEALTH.REVENUE}`]: [{id: 'TAX_DOCUMENTS', fileType: 'TAX_DOCUMENTS', files: [toSavedFile('kyc/1/proof.pdf')]}],
         });
         const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
 
@@ -629,6 +631,34 @@ describe('WiseBusinessOnboardingPage', () => {
         act(() => flowProps?.onPageSubmit?.(sourceOfFundsPage, answers, {}));
 
         // Then the page is saved under Wise's requirement key with every source picked
-        expect(saveWiseOnboardingPage).toHaveBeenCalledWith(BANK_ACCOUNT_ID, expect.objectContaining({key: CONST.WISE.KYC_REQUIREMENT.BUSINESS_SOURCE_OF_WEALTH_INFO}), answers, {});
+        expect(saveWiseOnboardingPage).toHaveBeenCalledWith(
+            BANK_ACCOUNT_ID,
+            expect.objectContaining({key: CONST.WISE.KYC_REQUIREMENT.BUSINESS_SOURCE_OF_WEALTH_INFO}),
+            answers,
+            {},
+            undefined,
+        );
+    });
+
+    it('saves the daily operations page under the sources page step, with the picked sources', async () => {
+        // Given revenue and grants picked on the sources page
+        const pickedSources = [CONST.WISE.SOURCE_OF_WEALTH.REVENUE, CONST.WISE.SOURCE_OF_WEALTH.GRANTS];
+        await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {bankAccountID: String(BANK_ACCOUNT_ID), businessSourceOfWealthInfo: pickedSources});
+        await renderPage({reimbursementAccount: {achData: {...REIMBURSEMENT_ACCOUNT.achData, wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}}}, subPage: 'business'});
+        const flowProps = mockFlowProps.mock.lastCall?.[0];
+        const dailyOperationsPage: DynamicFormPage = {key: 'business-source-of-funds', content: []};
+        const answers = {sourceOfFunds: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE]};
+
+        // When the user leaves the daily operations page with Next
+        act(() => flowProps?.onPageSubmit?.(dailyOperationsPage, answers, {}));
+
+        // Then it is saved under the sources page step with the picked sources, since the server replaces that step's answers whole
+        expect(saveWiseOnboardingPage).toHaveBeenCalledWith(
+            BANK_ACCOUNT_ID,
+            expect.objectContaining({key: CONST.WISE.KYC_REQUIREMENT.BUSINESS_SOURCE_OF_WEALTH_INFO}),
+            {...answers, businessSourceOfWealthInfo: pickedSources},
+            {},
+            undefined,
+        );
     });
 });

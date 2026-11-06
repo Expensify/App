@@ -492,4 +492,24 @@ describe('getDynamicFieldErrors with an answer the server holds', () => {
         // Then the flag is ignored, since only sensitive answers are held back by the server
         expect(errors).toEqual({firstName: translateLocal('common.error.fieldRequired')});
     });
+
+    it('requires a file on every upload button of a required file field', () => {
+        // Given a loan's documents, with one button for the loan agreement and one for the bank statement
+        const loanDocuments: DynamicFormField = {
+            key: 'proofFile-BUSINESS_LOAN',
+            type: 'file',
+            required: true,
+            uploads: [{fileTypes: [{key: 'LOAN_AGREEMENT'}]}, {fileTypes: [{key: 'BANK_STATEMENT'}]}],
+        };
+        const loanAgreement = {id: 'LOAN_AGREEMENT', fileType: 'LOAN_AGREEMENT', files: [{name: 'loan.pdf', uri: 'file://loan.pdf'}]};
+        const bankStatement = {id: 'BANK_STATEMENT', fileType: 'BANK_STATEMENT', files: [{name: 'statement.pdf', uri: 'file://statement.pdf'}]};
+
+        // When only the loan agreement is uploaded, then both documents
+        const partialErrors = getDynamicFieldErrors([loanDocuments], {[loanDocuments.key]: [loanAgreement]}, translateLocal);
+        const completeErrors = getDynamicFieldErrors([loanDocuments], {[loanDocuments.key]: [loanAgreement, bankStatement]}, translateLocal);
+
+        // Then the field stays required until the bank statement is uploaded too, since each button asks for its own document
+        expect(partialErrors).toEqual({[loanDocuments.key]: translateLocal('common.error.fieldRequired')});
+        expect(completeErrors).toEqual({});
+    });
 });
