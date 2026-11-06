@@ -256,10 +256,13 @@ const SELECTABLE_ROLES = [
 
 /**
  * The roles the given member may assign on this policy, optionally narrowed to a permitted set (for example an
- * Authorized Payer may only hold a role that can pay).
+ * Authorized Payer may only hold a role that can pay). Travel admin is only offered once the workspace has travel turned
+ * on, while members who already hold it can still be moved to another role.
  */
 function getSelectableRoles(policy: OnyxInputOrEntry<Policy>, login: string, allowedRoles?: Array<ValueOf<typeof CONST.POLICY.ROLE>>): Array<ValueOf<typeof CONST.POLICY.ROLE>> {
-    return SELECTABLE_ROLES.filter((role) => canMemberAssignRole(policy, login, role) && (!allowedRoles || allowedRoles.includes(role)));
+    return SELECTABLE_ROLES.filter(
+        (role) => canMemberAssignRole(policy, login, role) && (!allowedRoles || allowedRoles.includes(role)) && (role !== CONST.POLICY.ROLE.TRAVEL_ADMIN || !!policy?.isTravelEnabled),
+    );
 }
 
 // Whether the member can assign any elevated role: admins (via assignElevatedRoles) on any policy, or People Admins (up to auditor) on Control.
