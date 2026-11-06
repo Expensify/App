@@ -87,6 +87,7 @@ type ReportNextStepMessageParams = {
     eta?: string;
     etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>;
     requiredDepositCurrency?: string;
+    isBill?: boolean;
 };
 
 export type {

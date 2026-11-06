@@ -54,6 +54,7 @@ jest.mock('@libs/PolicyUtils', () => ({
     // This factory runs while PolicyUtils is still loading inside an import cycle, so the barrel's `export *` helpers
     // aren't on it yet. Spread them from their own modules, which load fully.
     ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/members'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/expensifyTeam'),
     isPolicyAdmin: jest.fn().mockImplementation((policy?: Policy) => policy?.role === 'admin'),
     getValidConnectedIntegration: jest.fn(),
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
@@ -111,6 +112,7 @@ describe('getPrimaryAction', () => {
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
         });
         const transaction = createMock<Transaction>({
@@ -144,6 +146,7 @@ describe('getPrimaryAction', () => {
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
         });
         const transaction = createMock<Transaction>({
@@ -246,6 +249,7 @@ describe('getPrimaryAction', () => {
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
         });
         const transaction = createMock<Transaction>({
@@ -280,6 +284,7 @@ describe('getPrimaryAction', () => {
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
         });
         const heldTransaction = createMock<Transaction>({
@@ -322,6 +327,7 @@ describe('getPrimaryAction', () => {
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
         });
         const transaction = createMock<Transaction>({
@@ -358,6 +364,7 @@ describe('getPrimaryAction', () => {
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
         });
         const transaction = createMock<Transaction>({
@@ -392,6 +399,7 @@ describe('getPrimaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL, // Submit & Close
             autoReporting: true,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT, // Instant submit
@@ -417,6 +425,45 @@ describe('getPrimaryAction', () => {
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
     });
+    it('should not return SUBMIT as the primary action for an approve-only member', async () => {
+        // Given an open expense report owned by the current user, who has the approve-only role on the policy
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.APPROVE_ONLY,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+        });
+        const transaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+        });
+
+        // When the primary action is resolved
+        const primaryAction = getReportPrimaryAction({
+            rules: undefined,
+            currentUserLogin: CURRENT_USER_EMAIL,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            report,
+            ownerLogin: '',
+            chatReport,
+            reportTransactions: [transaction],
+            violations: {},
+            bankAccountList: {},
+            policy,
+            isChatReportArchived: false,
+        });
+
+        // Then it is not SUBMIT
+        expect(primaryAction).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
+    });
+
     it('should not return SUBMIT as the primary action for a workflow approver who does not own the report', async () => {
         const SUBMITTER_ACCOUNT_ID = 2;
         const SUBMITTER_EMAIL = 'submitter@mail.com';
@@ -595,6 +642,7 @@ describe('getPrimaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
         });
         const transaction = createMock<Transaction>({
@@ -631,6 +679,7 @@ describe('getPrimaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
         });
         const transaction = createMock<Transaction>({
@@ -2158,6 +2207,7 @@ describe('getPrimaryAction', () => {
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
         });
         const TRANSACTION_ID = 'TRANSACTION_ID';
@@ -2199,6 +2249,7 @@ describe('getPrimaryAction', () => {
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
         });
         const TRANSACTION_ID = 'TRANSACTION_ID';
@@ -2237,6 +2288,7 @@ describe('getPrimaryAction', () => {
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
         });
         const VALID_TRANSACTION_ID = 'VALID_TRANSACTION_ID';
@@ -3011,5 +3063,75 @@ describe('isExportAction and isPreferredExporter for todos filtering', () => {
         });
 
         expect(isPreferredExporter(policy, CURRENT_USER_EMAIL)).toBe(true);
+    });
+});
+
+describe('isExportAction cash-basis card-only carve-out', () => {
+    const buildCashQBOPolicy = () =>
+        createMock<Policy>({
+            role: CONST.POLICY.ROLE.ADMIN,
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {
+                        autoSync: {enabled: false},
+                        accountingMethod: 'CASH',
+                        export: {exporter: CURRENT_USER_EMAIL},
+                    },
+                },
+            },
+        });
+
+    const buildApprovedReport = (overrides: Partial<Report> = {}) =>
+        createMock<Report>({
+            reportID: '1',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            isWaitingOnBankAccount: false,
+            ...overrides,
+        });
+
+    beforeEach(() => {
+        jest.mocked(getValidConnectedIntegration).mockReturnValue(CONST.POLICY.CONNECTIONS.NAME.QBO);
+    });
+
+    it('returns true when every expense is non-reimbursable', () => {
+        // Given an approved report on a cash-basis QBO policy where every expense is non-reimbursable, so the report
+        // has nothing to pay and would never reach the paid state that cash-basis exports normally wait for
+        const policy = buildCashQBOPolicy();
+        const report = buildApprovedReport();
+        const reportTransactions = [
+            createMock<Transaction>({transactionID: 't1', reportID: '1', reimbursable: false}),
+            createMock<Transaction>({transactionID: 't2', reportID: '1', reimbursable: false}),
+        ];
+
+        // When checking whether the exporter can export it
+        // Then export is allowed while the report is only approved
+        expect(isExportAction(report, CURRENT_USER_EMAIL, policy, [], {reportTransactions})).toBe(true);
+    });
+
+    it('returns false when at least one expense is reimbursable', () => {
+        // Given an approved report on a cash-basis QBO policy with one reimbursable expense that still has to be paid
+        const policy = buildCashQBOPolicy();
+        const report = buildApprovedReport();
+        const reportTransactions = [
+            createMock<Transaction>({transactionID: 't1', reportID: '1', reimbursable: false}),
+            createMock<Transaction>({transactionID: 't2', reportID: '1', reimbursable: true}),
+        ];
+
+        // When checking whether the exporter can export it
+        // Then export is blocked, because cash-basis accounting records the report only once it is paid
+        expect(isExportAction(report, CURRENT_USER_EMAIL, policy, [], {reportTransactions})).toBe(false);
+    });
+
+    it('falls back to report totals when transactions have not hydrated yet', () => {
+        // Given an approved card-only report on a cash-basis QBO policy whose transactions have not loaded yet, so
+        // only the report totals show that nothing is reimbursable
+        const policy = buildCashQBOPolicy();
+        const report = buildApprovedReport({total: -500, nonReimbursableTotal: -500, reimbursableTotal: undefined});
+
+        // When checking whether the exporter can export it without any transactions
+        // Then export is still allowed, so the action does not flicker while the transactions load
+        expect(isExportAction(report, CURRENT_USER_EMAIL, policy, [], {})).toBe(true);
     });
 });

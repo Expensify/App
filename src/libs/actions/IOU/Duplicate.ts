@@ -13,7 +13,7 @@ import {getExistingTransactionID} from '@libs/IOUUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
-import {getReimbursementChoice, isInstantSubmitEnabled, isPolicyAccessible, isSubmitAndClose} from '@libs/PolicyUtils';
+import {canCreateExpensesOnPolicy, getReimbursementChoice, isInstantSubmitEnabled, isPolicyAccessible, isSubmitAndClose} from '@libs/PolicyUtils';
 import {getIOUActionForReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticCreatedReportAction,
@@ -39,6 +39,7 @@ import {
     isExpenseSplit,
     isFromCreditCardImport,
     isGPSDistanceRequest,
+    isMapDistanceRequest,
     isOdometerDistanceRequest,
     isPartialTransaction,
     isPerDiemRequest,
@@ -660,6 +661,9 @@ function buildDuplicateTransactionParams(transaction: OnyxTypes.Transaction, tra
         count: transaction.comment?.units?.count,
         rate: transaction.comment?.units?.rate,
         unit: transaction.comment?.units?.unit,
+        // Saved expenses don't keep `routes`, so the selected route's distance only survives in routeDistanceMeters.
+        // Without it, the backend recalculates the duplicate using the primary route instead of the alternate route.
+        selectedRouteDistance: isMapDistanceRequest(transaction) && shouldKeepWaypoints ? (transaction.comment?.customUnit?.routeDistanceMeters ?? undefined) : undefined,
     };
 
     if (isDistanceRequest(transaction) && (isExpenseSplit(transaction) || isOdometerDistanceRequest(transaction) || isManualDistanceDuplicate)) {
@@ -1584,7 +1588,7 @@ async function bulkDuplicateReports({
         }
 
         const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-        const isSourcePolicyValid = !!reportPolicy && isPolicyAccessible(reportPolicy, currentUserLogin);
+        const isSourcePolicyValid = !!reportPolicy && isPolicyAccessible(reportPolicy, currentUserLogin) && canCreateExpensesOnPolicy(reportPolicy, currentUserLogin);
         const chatReportID = report.chatReportID ?? report.parentReportID;
         const chatReport = chatReportID
             ? ((searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] as OnyxTypes.Report | undefined) ?? allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`])

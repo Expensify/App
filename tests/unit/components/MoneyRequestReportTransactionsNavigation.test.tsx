@@ -27,8 +27,6 @@ type MockOnyxState = {
     snapshot: {data: Record<string, unknown>} | undefined;
     siblingDescriptors: Record<string, unknown> | undefined;
     transactionsCollection: Record<string, unknown>;
-    /** Fetch status of the `transactions_` subscription, which is how the carousel tells "not loaded" from "gone" */
-    transactionsStatus: 'loading' | 'loaded';
     reportActionsCollection: Record<string, unknown>;
     reportsCollection: Record<string, unknown>;
     modal: Record<string, unknown> | undefined;
@@ -40,7 +38,6 @@ const mockState: MockOnyxState = {
     snapshot: undefined,
     siblingDescriptors: undefined,
     transactionsCollection: {},
-    transactionsStatus: 'loaded',
     reportActionsCollection: {},
     reportsCollection: {},
     modal: undefined,
@@ -48,7 +45,7 @@ const mockState: MockOnyxState = {
 
 type KeyboardShortcutRegistration = {
     callback: (event?: KeyboardEvent) => void;
-    config: {captureOnInputs?: boolean; isActive?: boolean};
+    config: {captureOnInputs?: boolean; isActive?: boolean; shouldPreventDefault?: boolean};
 };
 
 // The latest registration per key, so a test can check whether a shortcut is active and fire it like a key press would.
@@ -192,7 +189,6 @@ const resetMockState = () => {
     mockState.snapshot = undefined;
     mockState.siblingDescriptors = undefined;
     mockState.transactionsCollection = {};
-    mockState.transactionsStatus = 'loaded';
     mockState.reportActionsCollection = {};
     mockState.reportsCollection = {};
     mockState.modal = undefined;
@@ -204,8 +200,7 @@ const resetMockState = () => {
 const setupUseOnyx = () => {
     mockUseOnyx.mockImplementation((key: string, options?: {selector?: (data: unknown) => unknown}) => {
         const selector = options?.selector;
-        // Every branch returns the full `[value, metadata]` tuple `useOnyx` returns. Consumers read the metadata
-        // (`useCarouselTransactionIDs` gates on its `status`), so a value-only mock isn't the hook's contract.
+        // Every branch returns the full `[value, metadata]` tuple `useOnyx` returns.
         const loaded = (value: unknown) => [value, {status: 'loaded'}];
         if (key === ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS) {
             return loaded(mockState.transactionIDsList);
@@ -220,7 +215,7 @@ const setupUseOnyx = () => {
             return loaded(mockState.siblingDescriptors);
         }
         if (key === ONYXKEYS.COLLECTION.TRANSACTION) {
-            return [selector ? selector(mockState.transactionsCollection) : undefined, {status: mockState.transactionsStatus}];
+            return loaded(selector ? selector(mockState.transactionsCollection) : undefined);
         }
         if (key === ONYXKEYS.COLLECTION.REPORT_ACTIONS) {
             return loaded(selector ? selector(mockState.reportActionsCollection) : undefined);
@@ -421,9 +416,11 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
             mockState.transactionIDsList = [PREV_ID, CURRENT_ID];
             renderNavigation();
 
-            // Then only the left arrow is active
-            expect(isShortcutActive(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey)).toBe(false);
-            expect(isShortcutActive(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey)).toBe(true);
+            // When the right arrow is pressed
+            pressKey(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey);
+
+            // Then it stays on the current expense
+            expect(Navigation.setParams).not.toHaveBeenCalled();
         });
 
         it('does nothing at the first expense, the same as the disabled previous arrow', () => {
@@ -431,9 +428,25 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
             mockState.transactionIDsList = [CURRENT_ID, NEXT_ID];
             renderNavigation();
 
-            // Then only the right arrow is active
-            expect(isShortcutActive(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey)).toBe(false);
+            // When the left arrow is pressed
+            pressKey(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey);
+
+            // Then it stays on the current expense
+            expect(Navigation.setParams).not.toHaveBeenCalled();
+        });
+
+        it('keeps both arrow keys active at the last expense so the browser does not scroll the page behind the RHP', () => {
+            // Given the current expense is the last one in the list, and nothing in the RHP has focus to take the key
+            mockState.transactionIDsList = [PREV_ID, CURRENT_ID];
+            renderNavigation();
+
+            // When the registered shortcuts are inspected before any key is pressed, since the bug is about what's registered at the edge
+
+            // Then both shortcuts stay active and keep preventing the default, so an arrow press with nowhere to go
+            // doesn't fall through to the browser and scroll the report table behind the expense
+            expect(isShortcutActive(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey)).toBe(true);
             expect(isShortcutActive(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey)).toBe(true);
+            expect(mockKeyboardShortcuts.get(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey)?.config.shouldPreventDefault).not.toBe(false);
         });
 
         it('gives the arrow keys up while a modal or popover opens on top of the expense', () => {
@@ -654,17 +667,6 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
             expectArrowDisabled('prev-button', true);
             press('prev-button');
             expect(Navigation.setParams).not.toHaveBeenCalled();
-        });
-
-        // A transaction that hasn't loaded yet is not a transaction that is gone: dropping those would shrink the
-        // carousel under the user on a cold open (https://github.com/Expensify/App/issues/99641).
-        it('keeps siblings while the transaction collection is still loading', () => {
-            mockState.transactionsCollection = {};
-            mockState.transactionsStatus = 'loading';
-
-            renderNavigation();
-
-            expect(screen.getByText(counterFor(2, 3))).toBeTruthy();
         });
 
         // The other half of that rule, and the regression guard that matters: a confirmed delete SETs

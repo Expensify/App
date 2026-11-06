@@ -62,6 +62,7 @@ function DynamicXeroAutoSyncPage({policy}: WithPolicyConnectionsProps) {
                     title={translate('workspace.accounting.autoSync')}
                     subtitle={translate('workspace.xero.advancedConfig.autoSyncDescription')}
                     switchAccessibilityLabel={translate('workspace.xero.advancedConfig.autoSyncDescription')}
+                    switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.AUTO_SYNC_SWITCH}
                     isActive={!!autoSync?.enabled}
                     wrapperStyle={[styles.pv2, styles.mh5]}
                     shouldPlaceSubtitleBelowSwitch

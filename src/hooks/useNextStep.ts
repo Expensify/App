@@ -3,6 +3,7 @@ import {getReportNextStep} from '@libs/NextStepUtils';
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import {loginSelector} from '@src/selectors/PersonalDetails';
 
 import {pendingExpenseActionSelector} from '@selectors/ReportMetaData';
 
@@ -10,6 +11,7 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePaginatedReportActions from './usePaginatedReportActions';
+import {usePersonalDetail} from './usePersonalDetails';
 import useReportIsArchived from './useReportIsArchived';
 import useStrictPolicyRules from './useStrictPolicyRules';
 import useTheme from './useTheme';
@@ -24,6 +26,7 @@ function useNextStep(reportID: string | undefined) {
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(report?.reportID);
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+    const [reportOwnerLogin] = usePersonalDetail(report?.ownerAccountID, loginSelector);
     const {transactions, violations} = useTransactionsAndViolationsForReport(report?.reportID);
     const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
     const isReportArchived = useReportIsArchived(report?.reportID);
@@ -34,6 +37,7 @@ function useNextStep(reportID: string | undefined) {
         currentUserEmail: currentUserEmail ?? '',
         currentUserAccountID,
         report,
+        reportOwnerLogin: reportOwnerLogin ?? '',
         reportMetadata: pendingExpenseActionMetadata,
         reportActions,
         transactions,
