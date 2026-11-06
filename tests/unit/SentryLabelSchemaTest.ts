@@ -26,19 +26,19 @@ describe('CONST.SENTRY_LABEL', () => {
     });
 
     it('has at least two variants in every inp.category', () => {
-        // Given the three-part labels, grouped by the <Area>-<Action> that becomes the inp.category of their INP spans
-        const labelsByCategory = new Map<string, string[]>();
+        // Given the distinct three-part labels, grouped by the <Area>-<Action> that becomes the inp.category of their INP spans
+        const labelsByCategory = new Map<string, Set<string>>();
         for (const label of labels) {
             const [area, action, detail] = label.split('-');
             if (!detail) {
                 continue;
             }
             const category = `${area}-${action}`;
-            labelsByCategory.set(category, [...(labelsByCategory.get(category) ?? []), label]);
+            labelsByCategory.set(category, (labelsByCategory.get(category) ?? new Set<string>()).add(label));
         }
 
         // When looking for categories with a single variant
-        const singleVariantLabels = [...labelsByCategory.values()].filter((categoryLabels) => categoryLabels.length === 1).flat();
+        const singleVariantLabels = [...labelsByCategory.values()].filter((categoryLabels) => categoryLabels.size === 1).flatMap((categoryLabels) => [...categoryLabels]);
 
         // Then there are none, because a <Detail> only tells variants of one element apart, so an element with one variant gets a two-part label
         expect(singleVariantLabels).toEqual([]);
