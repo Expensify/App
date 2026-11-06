@@ -32,7 +32,7 @@ const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, repor
 
     let actionsReportID;
     if (isEditing) {
-        actionsReportID = iouType === CONST.IOU.TYPE.SPLIT ? report?.reportID : report?.parentReportID;
+        actionsReportID = iouType === CONST.IOU.TYPE.SPLIT ? report?.reportID : (transaction?.reportID ?? report?.parentReportID);
     }
     const reportActionsReportID = actionsReportID;
 
