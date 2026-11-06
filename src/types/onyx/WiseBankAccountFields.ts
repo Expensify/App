@@ -18,6 +18,7 @@ type WiseBankAccountFields = {
     /** The form's pages as the server groups them */
     schema?: DynamicFormSchema;
 
+    /** GetWiseBankAccountFields is in flight, for the first form of a country or after a field marked refreshOnChange changed */
     isLoading?: boolean;
 
     /** Errors from the last fetch */

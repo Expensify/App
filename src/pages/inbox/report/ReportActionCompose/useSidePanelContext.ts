@@ -1,6 +1,6 @@
 import {useSearchQueryContext, useSearchSelectionContext} from '@components/Search/SearchContext';
 
-import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
+import {useCurrentReportIDState, useCurrentRHPReportID} from '@hooks/useCurrentReportID';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useOnyx from '@hooks/useOnyx';
 
@@ -19,7 +19,8 @@ import {useRoute} from '@react-navigation/native';
 function useSidePanelContext(reportID: string): OnyxTypes.SidePanelContext | undefined {
     const isInSidePanel = useIsInSidePanel();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const {currentReportID, currentRHPReportID} = useCurrentReportIDState();
+    const {currentReportID} = useCurrentReportIDState();
+    const currentRHPReportID = useCurrentRHPReportID();
     const {currentSearchQueryJSON} = useSearchQueryContext();
     const {selectedTransactionIDs, selectedTransactions, selectedReports} = useSearchSelectionContext();
 

@@ -60,6 +60,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
         {
             label: translate('workspace.sageIntacct.inviteEmployees'),
             description: translate('workspace.sageIntacct.inviteEmployeesDescription'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.INVITE_EMPLOYEES_SWITCH,
             isActive: !!importEmployees,
             onToggle: (enabled: boolean) => {
                 if (!policyID) {
@@ -78,6 +79,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
         {
             label: translate('workspace.sageIntacct.syncReimbursedReports'),
             description: translate('workspace.sageIntacct.syncReimbursedReportsDescription'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.SYNC_REIMBURSED_REPORTS_SWITCH,
             isActive: !!sync?.syncReimbursedReports,
             onToggle: (enabled: boolean) => {
                 if (!policyID) {
@@ -136,6 +138,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                     subtitle={section.description}
                     shouldPlaceSubtitleBelowSwitch
                     switchAccessibilityLabel={section.label}
+                    switchSentryLabel={section.switchSentryLabel}
                     isActive={section.isActive}
                     onToggle={section.onToggle}
                     wrapperStyle={[styles.ph5, styles.pv3]}

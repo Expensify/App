@@ -120,7 +120,6 @@ const renderMoneyRequestConfirmationListFooter = async (transaction: Transaction
             shouldShowMerchant: false,
             shouldShowCategories: false,
             shouldShowTax: false,
-            isParticipantPickerVisible: false,
             hasParticipantSection: false,
         },
         errorState: {shouldDisplayFieldError: false, formError: 'common.error.fieldRequired' as TranslationPaths, clearFormErrors: jest.fn(), setFormError: jest.fn()},
