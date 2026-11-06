@@ -10,6 +10,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     canAdminPayReport,
+    canSubmitOwnReportOnPolicy,
     getIntegrationAccountingMethod,
     getManagerAccountID,
     getSubmitToAccountID,
@@ -36,7 +37,6 @@ import {
     isMoneyRequestAction,
 } from './ReportActionsUtils';
 import {
-    canAddTransaction as canAddTransactionUtil,
     canHoldUnholdReportAction,
     getMoneyRequestSpendBreakdown,
     getParentReport,
@@ -124,17 +124,6 @@ type IsExportActionOptions = {
     reportTransactions?: Transaction[];
 };
 
-function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isChatReportArchived: boolean, rules: OnyxCollection<Rule>) {
-    if (isChatReportArchived) {
-        return false;
-    }
-
-    const isExpenseReport = isExpenseReportUtils(report);
-    const canAddTransaction = canAddTransactionUtil(report, rules);
-
-    return isExpenseReport && canAddTransaction && reportTransactions.length === 0;
-}
-
 function isSubmitAction(
     report: Report,
     reportTransactions: Transaction[],
@@ -185,6 +174,10 @@ function isSubmitAction(
         !!ownerLogin &&
         !isSubmitAndClose(policy) &&
         currentUserAccountID === getManagerAccountID(policy, ownerLogin, rules, report.total ?? 0);
+    // A role that cannot create expenses cannot submit its own report.
+    if (isReportSubmitter && !canSubmitOwnReportOnPolicy(policy, currentUserEmail)) {
+        return false;
+    }
     const canBeSubmitter = isReportSubmitter || isWorkflowApprover;
     return isExpenseReport && canBeSubmitter && isOpenReport && reportTransactions.length !== 0;
 }
@@ -691,7 +684,6 @@ function getTransactionThreadPrimaryAction(
 export {
     getReportPrimaryAction,
     getTransactionThreadPrimaryAction,
-    isAddExpenseAction,
     isPrimaryPayAction,
     isExportAction,
     isApproveAction,

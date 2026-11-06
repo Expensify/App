@@ -56,6 +56,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                 isActive
                 disabled
                 switchAccessibilityLabel={translate('workspace.netsuite.import.expenseCategories')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.EXPENSE_CATEGORIES_SWITCH}
                 onToggle={() => {}}
             />
             {CONST.NETSUITE_CONFIG.IMPORT_FIELDS.map((importField) => (
@@ -116,6 +117,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                     shouldPlaceSubtitleBelowSwitch
                     isActive={config?.syncOptions?.syncTax ?? false}
                     switchAccessibilityLabel={translate('common.tax')}
+                    switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.TAX_SWITCH}
                     onToggle={(isEnabled: boolean) => {
                         if (!policyID) {
                             return;
