@@ -163,11 +163,32 @@ describe('EnableTravelContent', () => {
                 [ADMIN_DOMAIN_B_EMAIL]: {role: CONST.POLICY.ROLE.ADMIN},
             },
         };
+        await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.TRAVEL_MEMBER_ACCESS]);
         renderContent(policy, {validated: true, primaryLogin: ADMIN_DOMAIN_A_EMAIL}, {});
         await waitForBatchedUpdatesWithAct();
 
         // legal name, domain selector, workspace address, tax ID, who can book travel, terms (verify account is a pre-stepper gate, not a numbered step)
         expect(screen.queryAllByRole(CONST.ROLE.BUTTON, {name: /^Step \d+ of \d+/})).toHaveLength(6);
+    });
+
+    it('skips choosing who can book travel without the travel member access beta', async () => {
+        const policy: Policy = {
+            ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
+            id: POLICY_ID,
+            role: CONST.POLICY.ROLE.ADMIN,
+            outputCurrency: 'GBP',
+            travelSettings: {},
+            address: undefined,
+            employeeList: {
+                [ADMIN_DOMAIN_A_EMAIL]: {role: CONST.POLICY.ROLE.ADMIN},
+                [ADMIN_DOMAIN_B_EMAIL]: {role: CONST.POLICY.ROLE.ADMIN},
+            },
+        };
+        renderContent(policy, {validated: true, primaryLogin: ADMIN_DOMAIN_A_EMAIL}, {});
+        await waitForBatchedUpdatesWithAct();
+
+        // Every member gets travel without the beta, so there's no member step: legal name, domain selector, workspace address, tax ID, terms
+        expect(screen.queryAllByRole(CONST.ROLE.BUTTON, {name: /^Step \d+ of \d+/})).toHaveLength(5);
     });
 
     it('freezes the step count across remounts within the same flow session, even after an earlier step is completed', async () => {

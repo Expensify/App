@@ -55,6 +55,7 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
     const canReadMoreFeatures = canMemberRead(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const blockIfDefaultWorkspaceLacksTravel = useDefaultWorkspaceTravelGuard();
     const isPreventSpotnanaTravelEnabled = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
+    const isTravelMemberAccessBetaEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS);
 
     const autoAddTripName = policy?.travelSettings?.autoAddTripName !== false;
 
@@ -167,40 +168,47 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
                         wrapperStyle={styles.mt3}
                     />
                 )}
-                <ToggleSettingOptionRow
-                    title={translate('workspace.moreFeatures.travel.settings.autoEnableNewMembers.title')}
-                    subtitle={translate('workspace.moreFeatures.travel.settings.autoEnableNewMembers.subtitle')}
-                    shouldPlaceSubtitleBelowSwitch
-                    switchAccessibilityLabel={translate('workspace.moreFeatures.travel.settings.autoEnableNewMembers.title')}
-                    isActive={autoEnableNewMembers}
-                    onToggle={toggleAutoEnableNewMembers}
-                    disabled={!canWriteTravel}
-                    disabledAction={withTravelReadOnlyFallback()}
-                    showLockIcon={!canWriteTravel}
-                    pendingAction={policy?.pendingFields?.autoEnableNewMembers}
-                    errors={policy?.errorFields?.autoEnableNewMembers ?? undefined}
-                    onCloseError={() => clearPolicyErrorField(policyID, 'autoEnableNewMembers')}
-                    wrapperStyle={styles.mt3}
-                />
-                <View style={styles.mt3}>
-                    <MenuItemSectionRoot
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID))}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.MANAGE_MEMBERS_BUTTON}
-                    >
-                        <MenuItem.Row>
-                            <MenuItem.Icon src={icons.Users} />
-                            <MenuItem.Content>
-                                <MenuItem.Title>{translate('workspace.moreFeatures.travel.members.manageMembers')}</MenuItem.Title>
-                                <MenuItem.Description>
-                                    {translate('workspace.moreFeatures.travel.members.membersWithTravelAccess', {enabledCount: membersWithTravelCount, totalCount: memberLogins.length})}
-                                </MenuItem.Description>
-                            </MenuItem.Content>
-                            <MenuItem.Trailing>
-                                <MenuItem.Chevron />
-                            </MenuItem.Trailing>
-                        </MenuItem.Row>
-                    </MenuItemSectionRoot>
-                </View>
+                {isTravelMemberAccessBetaEnabled && (
+                    <>
+                        <ToggleSettingOptionRow
+                            title={translate('workspace.moreFeatures.travel.settings.autoEnableNewMembers.title')}
+                            subtitle={translate('workspace.moreFeatures.travel.settings.autoEnableNewMembers.subtitle')}
+                            shouldPlaceSubtitleBelowSwitch
+                            switchAccessibilityLabel={translate('workspace.moreFeatures.travel.settings.autoEnableNewMembers.title')}
+                            isActive={autoEnableNewMembers}
+                            onToggle={toggleAutoEnableNewMembers}
+                            disabled={!canWriteTravel}
+                            disabledAction={withTravelReadOnlyFallback()}
+                            showLockIcon={!canWriteTravel}
+                            pendingAction={policy?.pendingFields?.autoEnableNewMembers}
+                            errors={policy?.errorFields?.autoEnableNewMembers ?? undefined}
+                            onCloseError={() => clearPolicyErrorField(policyID, 'autoEnableNewMembers')}
+                            wrapperStyle={styles.mt3}
+                        />
+                        <View style={styles.mt3}>
+                            <MenuItemSectionRoot
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID))}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.MANAGE_MEMBERS_BUTTON}
+                            >
+                                <MenuItem.Row>
+                                    <MenuItem.Icon src={icons.Users} />
+                                    <MenuItem.Content>
+                                        <MenuItem.Title>{translate('workspace.moreFeatures.travel.members.manageMembers')}</MenuItem.Title>
+                                        <MenuItem.Description>
+                                            {translate('workspace.moreFeatures.travel.members.membersWithTravelAccess', {
+                                                enabledCount: membersWithTravelCount,
+                                                totalCount: memberLogins.length,
+                                            })}
+                                        </MenuItem.Description>
+                                    </MenuItem.Content>
+                                    <MenuItem.Trailing>
+                                        <MenuItem.Chevron />
+                                    </MenuItem.Trailing>
+                                </MenuItem.Row>
+                            </MenuItemSectionRoot>
+                        </View>
+                    </>
+                )}
             </Section>
             {canReadMoreFeatures && <WorkspaceTravelBillingSection policyID={policyID} />}
         </>
