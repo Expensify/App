@@ -1000,7 +1000,8 @@ function getCancellationDateTimezoneLabel(venueTimezone: string): string {
 /**
  * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language and
  * whether the year is shown.
- * They format in UTC, so pass dates through `toUTCWallClockDate` to show them in the device's current timezone.
+ * They format in UTC, so move the date to the venue's wall-clock time with `toZonedTime` and pass it through
+ * `toUTCWallClockDate`.
  */
 const memoizedCreateCancellationDateFormatter = memoize(
     (localeCode: string, shouldIncludeYear: boolean) =>
