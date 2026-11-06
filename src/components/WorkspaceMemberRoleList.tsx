@@ -1,5 +1,6 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -146,8 +147,13 @@ function WorkspaceMemberRoleList({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
+    const {isBetaEnabled} = usePermissions();
 
-    const availableRoleItems = getAssignableWorkspaceMemberRoleItems(translate, role, policy, currentUserLogin, allowedRoles);
+    // Travel admins choose who can book travel, so the role comes with the travel member access beta
+    const isTravelMemberAccessBetaEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS);
+    const availableRoleItems = getAssignableWorkspaceMemberRoleItems(translate, role, policy, currentUserLogin, allowedRoles).filter(
+        (item) => isTravelMemberAccessBetaEnabled || item.value !== CONST.POLICY.ROLE.TRAVEL_ADMIN,
+    );
 
     return (
         <>

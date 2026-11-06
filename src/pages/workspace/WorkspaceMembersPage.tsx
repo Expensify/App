@@ -415,7 +415,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const shouldShowOfficeLocationColumn = !shouldUseNarrowLayout && shouldShowOfficeLocations;
     const officeLocations = getAssignableOfficeLocations(policy, translate, localeCompare);
     const shouldShowBankAccountColumn = !shouldUseNarrowLayout && !isMediumScreenWidth && shouldShowMemberBankAccounts;
-    const shouldShowTravelColumn = !shouldUseNarrowLayout && isProvisionedForTravel;
+    const shouldShowTravelColumn = !shouldUseNarrowLayout && isProvisionedForTravel && isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS);
 
     // Unlike the custom fields, this column applies to every workspace type, so it isn't gated on Control.
     const isApprovalsEnabled = areApprovalsEnabled(policy);
@@ -629,7 +629,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         // The Authorized Payer (reimburser) must stay a valid payer, so a selection holding them may only be moved to a role that can pay.
         const reimburserEmail = getReimburserEmail(policy);
         const hasAtLeastOnePayer = !!reimburserEmail && selectedEmployees.includes(reimburserEmail);
-        const selectableRoles = getSelectableRoles(policy, currentUserLogin ?? '', hasAtLeastOnePayer ? [...PAYER_ROLES] : undefined);
+        const selectableRoles = getSelectableRoles(policy, currentUserLogin ?? '', hasAtLeastOnePayer ? [...PAYER_ROLES] : undefined).filter(
+            (selectableRole) => isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS) || selectableRole !== CONST.POLICY.ROLE.TRAVEL_ADMIN,
+        );
 
         if (isPaidGroupPolicy(policy) && canManageSelectedEmployees && selectableRoles.length > 0) {
             options.push({

@@ -1497,6 +1497,7 @@ const CONST = {
         ASAP_SUBMIT: 'asapSubmit',
         DEFAULT_ROOMS: 'defaultRooms',
         PREVENT_SPOTNANA_TRAVEL: 'preventSpotnanaTravel',
+        TRAVEL_MEMBER_ACCESS: 'travelMemberAccess',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
         PER_DIEM: 'newDotPerDiem',
