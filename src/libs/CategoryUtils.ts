@@ -119,8 +119,22 @@ function getEnabledCategoriesCount(policyCategories: PolicyCategories | undefine
  */
 function getMemberVisibleCategoryNames(policyCategories: PolicyCategories | undefined, accountID: number): string[] {
     return Object.values(policyCategories ?? {})
-        .filter((policyCategory) => policyCategory.enabled && (!policyCategory.visibleTo || !!policyCategory.visibleTo[accountID]))
+        .filter((policyCategory) => policyCategory.enabled && isCategoryVisibleToMember(policyCategory, accountID))
         .map((policyCategory) => policyCategory.name);
+}
+
+/**
+ * Returns the categories the expense's owner can use, keyed like the input. Disabled ones are kept, since the picker
+ * filters those out itself.
+ */
+function getVisibleCategories(policyCategories: PolicyCategories, ownerAccountID: number): PolicyCategories {
+    const visibleCategories: PolicyCategories = {};
+    for (const [categoryName, category] of Object.entries(policyCategories)) {
+        if (isCategoryVisibleToMember(category, ownerAccountID)) {
+            visibleCategories[categoryName] = category;
+        }
+    }
+    return visibleCategories;
 }
 
 /**
@@ -386,6 +400,7 @@ export {
     updateCategoryInMccGroup,
     getEnabledCategoriesCount,
     getMemberVisibleCategoryNames,
+    getVisibleCategories,
     getMembersWithoutVisibleCategories,
     isCategoryMissing,
     isCategoryDescriptionRequired,
