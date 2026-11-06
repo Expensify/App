@@ -44,7 +44,7 @@ function scrollInputIntoView(scrollWithKeyboard: ScrollWithKeyboard) {
         return;
     }
 
-    // Past the end, so it stops at the end and shows the whole input
+    // Same as scrollToEnd: the scroll view stops at the end of the content
     scrollWithKeyboard({offset: Number.MAX_SAFE_INTEGER});
 }
 
