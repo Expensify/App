@@ -410,6 +410,16 @@ function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxC
         buildPersonalDetailsUpdate({[agentAccountID]: {accountID: agentAccountID}}),
     ];
 
+    // The real accountID is known before the queue drains, but the optimistic agent stays listed until then and is only
+    // cleared once the real agent's personal details arrive, which a successful deletion removes. The DELETE marker hides
+    // it now and lets replaceOptimisticAgentWithActualAgent clear it. A failed deletion drops the marker, because the real
+    // agent still exists and is cleared the usual way.
+    if (agentAccountID !== accountID) {
+        const optimisticAgentKey = `${ONYXKEYS.COLLECTION.AGENT}${accountID}` as const;
+        optimisticData.push({onyxMethod: Onyx.METHOD.MERGE, key: optimisticAgentKey, value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}});
+        failureData.push({onyxMethod: Onyx.METHOD.MERGE, key: optimisticAgentKey, value: {pendingAction: null}});
+    }
+
     // Mark the agent's row pending-delete on every policy it belongs to so workflow cards render
     // the agent's approver row with strikethrough/RBR while DELETE_AGENT is in flight.
     if (agentLogin && allPolicies) {

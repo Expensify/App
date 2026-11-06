@@ -1,10 +1,13 @@
 import {beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
 
-import {resolveAgentAccountID} from '@libs/AgentAccountIDMapping';
+import {registerAgentAccountIDMapping, resolveAgentAccountID} from '@libs/AgentAccountIDMapping';
+import {write} from '@libs/API';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import findFocusedRouteWithOnyxTabGuard from '@libs/Navigation/helpers/findFocusedRouteWithOnyxTabGuard';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import type * as NavigationModule from '@libs/Navigation/Navigation';
+
+import {deleteAgent} from '@userActions/Agent';
 
 import CONST from '@src/CONST';
 import type * as ReplaceOptimisticAgentWithActualAgentModule from '@src/libs/actions/replaceOptimisticAgentWithActualAgent';
@@ -48,6 +51,11 @@ jest.mock('@libs/Navigation/Navigation', () => {
         default: mockNavigation,
     };
 });
+
+// deleteAgent only builds its Onyx data and hands it to write(), so the request itself is never sent. A factory keeps the
+// real API module, and the native modules its logging needs, out of this test.
+jest.mock('@libs/API', () => ({write: jest.fn(), read: jest.fn()}));
+const mockWrite = jest.mocked(write);
 
 function buildAgentEditNavigationState(accountID: number): PartialState<NavigationState> {
     return {
@@ -519,6 +527,43 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`))?.participants).toStrictEqual(participants);
         mergeSpy.mockRestore();
         updateSpy.mockRestore();
+    });
+
+    it('clears an optimistic agent that was deleted after its real accountID was registered', async () => {
+        // Given an agent deleted while another request kept the queue from draining after CreateAgent's response. The
+        // middleware had already registered the real accountID, so DeleteAgent targets the real agent.
+        const optimisticAccountID = 2864019375286401;
+        const realAccountID = 7392018465739201;
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [optimisticAccountID]: {accountID: optimisticAccountID, displayName: 'Concierge Travel', isOptimisticPersonalDetail: true},
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`, {prompt: 'Book my flights', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
+        await waitForBatchedUpdates();
+        registerAgentAccountIDMapping(optimisticAccountID, realAccountID);
+        deleteAgent(optimisticAccountID, undefined, undefined, false);
+        const deleteOnyxData = mockWrite.mock.calls.at(-1)?.[2];
+        if (!deleteOnyxData) {
+            throw new Error('deleteAgent did not call write with its Onyx data');
+        }
+        await Onyx.update(deleteOnyxData.optimisticData ?? []);
+
+        // When the queue drains: CreateAgent's response adds the real agent, DeleteAgent's success removes it again, and
+        // then the mapping reaches this tab
+        await Onyx.update([
+            {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.PERSONAL_DETAILS_LIST, value: {[realAccountID]: {accountID: realAccountID, displayName: 'Concierge Travel'}}},
+            {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`, value: {prompt: 'Book my flights'}},
+        ]);
+        await Onyx.update(deleteOnyxData.successData ?? []);
+        replaceOptimisticAgentWithActualAgent(optimisticAccountID, realAccountID);
+        await waitForBatchedUpdates();
+
+        // Then the optimistic agent is cleared too. The real agent's personal details it normally waits for are gone, so
+        // only the DELETE marker on the optimistic agent keeps the deleted agent from staying listed.
+        const personalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+        expect(personalDetails?.[optimisticAccountID]).toBeUndefined();
+        expect(personalDetails?.[realAccountID]).toBeUndefined();
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`)).toBeUndefined();
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`)).toBeUndefined();
     });
 
     // The module consumes a persisted mapping as soon as it loads, so the cold start is reproduced by seeding storage

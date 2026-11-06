@@ -1,3 +1,4 @@
+import {registerAgentAccountIDMapping} from '@libs/AgentAccountIDMapping';
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
@@ -555,6 +556,39 @@ describe('deleteAgent', () => {
         deleteAgent(TEST_ACCOUNT_ID);
 
         expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('also marks the optimistic agent as deleted when its real accountID is already known', () => {
+        // Given a CreateAgent response that registered the real accountID while another request kept the queue from
+        // draining, so the agents list still shows the optimistic agent
+        const optimisticAccountID = 4718293056471829;
+        const realAccountID = 9031827465903182;
+        registerAgentAccountIDMapping(optimisticAccountID, realAccountID);
+
+        // When the agent is deleted through the optimistic accountID the list still holds
+        deleteAgent(optimisticAccountID, undefined, undefined, false);
+
+        // Then the request targets the real agent and the optimistic agent is marked as deleted too. Its cleanup otherwise
+        // waits for the real agent's personal details, which this deletion removes, so it would stay listed. A failed
+        // deletion drops that marker because the real agent still exists.
+        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.DELETE_AGENT, {agentAccountID: realAccountID}, expect.any(Object));
+        const {optimisticData, successData, failureData} = getWriteOptions();
+        expect(findUpdate(optimisticData, `${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`)?.value).toMatchObject({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+        expect(findUpdate(optimisticData, `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`)?.value).toStrictEqual({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+        expect(findUpdate(successData, `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`)).toBeUndefined();
+        expect(findUpdate(failureData, `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`)?.value).toStrictEqual({pendingAction: null});
+    });
+
+    it('marks only the given agent when no real accountID is known for it', () => {
+        // Given an accountID that has no registered mapping, like any agent that already exists on the server
+
+        // When it is deleted
+        deleteAgent(TEST_ACCOUNT_ID, undefined, undefined, false);
+
+        // Then no other agent key is written
+        const {optimisticData, successData, failureData} = getWriteOptions();
+        const agentKeys = [...optimisticData, ...successData, ...failureData].map((update) => String(update.key)).filter((key) => key.startsWith(ONYXKEYS.COLLECTION.AGENT));
+        expect(new Set(agentKeys)).toStrictEqual(new Set([`${ONYXKEYS.COLLECTION.AGENT}${TEST_ACCOUNT_ID}`]));
     });
 
     describe('cascade to policies containing the agent', () => {
