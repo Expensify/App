@@ -8610,6 +8610,8 @@ ${reportName}`,
                 autoPayApprovedReportsControlPlanSubtitle: (upgradeLink: string) => `自动付款仅适用于 Control 方案。[升级](${upgradeLink})以解锁此功能。`,
                 autoPayReportsUnderTitle: '自动支付报销单于',
                 autoPayReportsUnderDescription: '在此金额以下且完全合规的报销单将被自动支付。',
+                autoPayCrossBorderFeesDisclosure:
+                    '跨境付款采用付款时的中间市场汇率。所有跨境付款均收取1%的浮动费用，但以下货币除外：CRC（1.32%）、KES（1.01%）、MAD（1.60%）、NPR（1.05%）、UGX（1.47%）、UYU（1.12%）。\n\n报销单自动支付时，无法在付款前预览确切的汇率和费用。付款后，报销单上会立即提供完整的明细（包括确切的汇率、费用和最终金额）。',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `添加 ${featureName} 以解锁此功能。`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) => `前往[更多功能](${moreFeaturesLink})并启用 ${featureName} 以解锁此功能。`,
                 preventPayoutNonReimbursableReportsTitle: '防止将不可报销的报告标记为已支付',

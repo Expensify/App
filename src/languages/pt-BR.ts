@@ -8939,6 +8939,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                     `O pagamento automático está disponível apenas no plano Control. [Faça upgrade](${upgradeLink}) para desbloquear este recurso.`,
                 autoPayReportsUnderTitle: 'Relatórios com pagamento automático em',
                 autoPayReportsUnderDescription: 'Relatórios de despesas totalmente compatíveis abaixo deste valor serão pagos automaticamente.',
+                autoPayCrossBorderFeesDisclosure:
+                    'Pagamentos internacionais usam a taxa de câmbio média de mercado no momento do pagamento. Uma tarifa variável de 1% se aplica a todos os pagamentos internacionais, exceto para as seguintes moedas: CRC (1,32%), KES (1,01%), MAD (1,60%), NPR (1,05%), UGX (1,47%), UYU (1,12%).\n\nTaxas de câmbio e tarifas exatas não podem ser visualizadas antes do pagamento quando um relatório é pago automaticamente. Um detalhamento completo (incluindo a taxa de câmbio exata, as tarifas e o valor final) fica disponível no relatório imediatamente após o pagamento.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Adicione ${featureName} para desbloquear este recurso.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Vá para [mais recursos](${moreFeaturesLink}) e ative ${featureName} para desbloquear este recurso.`,

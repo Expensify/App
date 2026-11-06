@@ -8945,6 +8945,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                     `Il pagamento automatico è disponibile solo con il piano Control. [Esegui l’upgrade](${upgradeLink}) per sbloccare questa funzione.`,
                 autoPayReportsUnderTitle: 'Paga automaticamente i report sotto',
                 autoPayReportsUnderDescription: 'Le note spese pienamente conformi inferiori a questo importo verranno rimborsate automaticamente.',
+                autoPayCrossBorderFeesDisclosure:
+                    'I pagamenti internazionali utilizzano il tasso di cambio medio di mercato al momento del pagamento. Su tutti i pagamenti internazionali si applica una commissione variabile dell’1%, tranne per le seguenti valute: CRC (1,32%), KES (1,01%), MAD (1,60%), NPR (1,05%), UGX (1,47%), UYU (1,12%).\n\nTassi e commissioni esatti non possono essere visualizzati prima del pagamento quando un report viene pagato automaticamente. Un riepilogo dettagliato completo (inclusi il tasso di cambio esatto, le commissioni e l’importo finale) è disponibile nel report subito dopo il pagamento.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Aggiungi ${featureName} per sbloccare questa funzione.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Vai su [altre funzionalità](${moreFeaturesLink}) e abilita ${featureName} per sbloccare questa funzione.`,

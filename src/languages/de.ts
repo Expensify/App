@@ -9001,6 +9001,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                     `Automatische Zahlung ist nur im Control-Tarif verfügbar. [Upgrade](${upgradeLink}), um diese Funktion freizuschalten.`,
                 autoPayReportsUnderTitle: 'Berichte für automatische Bezahlung unter',
                 autoPayReportsUnderDescription: 'Vollständig konforme Spesenabrechnungen unter diesem Betrag werden automatisch bezahlt.',
+                autoPayCrossBorderFeesDisclosure:
+                    'Grenzüberschreitende Zahlungen verwenden den Mittelkurs zum Zeitpunkt der Zahlung. Für alle grenzüberschreitenden Zahlungen fällt eine variable Gebühr von 1 % an, außer bei folgenden Währungen: CRC (1,32 %), KES (1,01 %), MAD (1,60 %), NPR (1,05 %), UGX (1,47 %), UYU (1,12 %).\n\nGenaue Kurse und Gebühren können bei automatisch bezahlten Berichten nicht vor der Zahlung angezeigt werden. Eine vollständige, detaillierte Aufschlüsselung (einschließlich des genauen Wechselkurses, der Gebühren und des Endbetrags) ist unmittelbar nach der Zahlung im Bericht verfügbar.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Füge ${featureName} hinzu, um diese Funktion freizuschalten.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Gehe zu [weitere Funktionen](${moreFeaturesLink}) und aktiviere ${featureName}, um diese Funktion freizuschalten.`,

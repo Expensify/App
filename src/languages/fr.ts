@@ -9025,6 +9025,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                     `Le paiement automatique n’est disponible qu’avec l’offre Control. [Mettez à niveau](${upgradeLink}) pour déverrouiller cette fonctionnalité.`,
                 autoPayReportsUnderTitle: 'Notes de frais payées automatiquement sous',
                 autoPayReportsUnderDescription: 'Les notes de frais entièrement conformes en dessous de ce montant seront payées automatiquement.',
+                autoPayCrossBorderFeesDisclosure:
+                    'Les paiements internationaux utilisent le taux de change moyen du marché au moment du paiement. Des frais variables de 1 % s’appliquent à tous les paiements internationaux, sauf pour les devises suivantes : CRC (1,32 %), KES (1,01 %), MAD (1,60 %), NPR (1,05 %), UGX (1,47 %), UYU (1,12 %).\n\nLes taux et frais exacts ne peuvent pas être consultés avant le paiement lorsqu’une note de frais est payée automatiquement. Une ventilation détaillée complète (y compris le taux de change exact, les frais et le montant final) est disponible sur la note de frais immédiatement après le paiement.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Ajoutez ${featureName} pour déverrouiller cette fonctionnalité.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Allez dans [plus de fonctionnalités](${moreFeaturesLink}) et activez ${featureName} pour déverrouiller cette fonctionnalité.`,

@@ -9798,8 +9798,10 @@ const translations = {
                 autoPayApprovedReportsLimitError: (currency?: string) => `Please enter an amount less than ${currency ?? ''}20,000`,
                 autoPayApprovedReportsLockedSubtitle: 'Go to more features and enable workflows, then add payments to unlock this feature.',
                 autoPayApprovedReportsControlPlanSubtitle: (upgradeLink: string) => `Auto-pay is only available on the Control plan. [Upgrade](${upgradeLink}) to unlock this feature.`,
-                autoPayReportsUnderTitle: 'Auto-pay reports under',
+                autoPayReportsUnderTitle: 'Auto-pay reports less than',
                 autoPayReportsUnderDescription: 'Fully compliant expense reports under this amount will be automatically paid.',
+                autoPayCrossBorderFeesDisclosure:
+                    'Cross-border payments use the mid-market exchange rate at the time of payment. A 1% variable fee applies to all cross-border payments, except the following currencies: CRC (1.32%), KES (1.01%), MAD (1.60%), NPR (1.05%), UGX (1.47%), UYU (1.12%).\n\nExact rates and fees cannot be previewed prior to payment when a report is auto-paid. A complete itemized breakdown (including the exact exchange rate, fees, and final amount) is available on the report immediately after payment.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Add ${featureName} to unlock this feature.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) => `Go to [more features](${moreFeaturesLink}) and enable ${featureName} to unlock this feature.`,
             },
