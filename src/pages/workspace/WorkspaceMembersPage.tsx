@@ -206,7 +206,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     // Members who only manage travel can select members too, so they can change travel access in bulk
     const isProvisionedForTravel = isWorkspaceProvisionedForTravel(policy?.travelSettings);
-    const canWriteTravel = isProvisionedForTravel && canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.TRAVEL);
+    const canWriteTravel = isProvisionedForTravel && isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS) && canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.TRAVEL);
     const canSelectMembers = canWriteMembers || canWriteTravel;
     const canSelectMultiple = canSelectMembers && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
 
