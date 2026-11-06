@@ -11416,6 +11416,7 @@ const CONST = {
         },
         CONFIRM_CONTENT: {
             DISMISS_BUTTON: 'ConfirmContent-DismissButton',
+            CONFIRM_BUTTON: 'ConfirmContent-ConfirmButton',
         },
         COPY_TEXT_TO_CLIPBOARD: {
             COPY_BUTTON: 'CopyTextToClipboard-CopyButton',

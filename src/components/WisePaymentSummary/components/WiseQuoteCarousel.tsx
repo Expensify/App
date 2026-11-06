@@ -1,18 +1,11 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Icon from '@components/Icon';
-import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import variables from '@styles/variables';
-
-import CONST from '@src/CONST';
+import type {Report} from '@src/types/onyx';
 
 import type {ComponentRef} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
@@ -20,13 +13,14 @@ import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import React, {useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
+import WiseQuoteCarouselArrow from './WiseQuoteCarouselArrow';
 import WiseQuotePaymentSummary from './WiseQuotePaymentSummary';
 
 /** How much of the next card shows at the edge, so the admin sees there is more to review */
 const NEXT_CARD_PEEK = 32;
 
 type WiseQuoteCarouselProps = {
-    reportIDs: string[];
+    reports: Report[];
 
     /** The reports Wise pays through a global provider, which show a quote. The rest show their amounts with no fees */
     quotedReportIDs: string[];
@@ -36,12 +30,9 @@ type WiseQuoteCarouselProps = {
 };
 
 /** One Wise quote card per report, swiped or stepped through with the arrows */
-function WiseQuoteCarousel({reportIDs, quotedReportIDs, isLoading}: WiseQuoteCarouselProps) {
+function WiseQuoteCarousel({reports, quotedReportIDs, isLoading}: WiseQuoteCarouselProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    const theme = useTheme();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'BackArrow']);
     const scrollViewRef = useRef<ComponentRef<typeof ScrollView>>(null);
     const [containerWidth, setContainerWidth] = useState(0);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -51,10 +42,10 @@ function WiseQuoteCarousel({reportIDs, quotedReportIDs, isLoading}: WiseQuoteCar
     const [targetIndex, setTargetIndex] = useState<number | undefined>(undefined);
     const shownIndex = targetIndex ?? currentIndex;
 
-    const hasMultipleReports = reportIDs.length > 1;
+    const hasMultipleReports = reports.length > 1;
     const cardWidth = hasMultipleReports ? containerWidth - NEXT_CARD_PEEK : containerWidth;
     const cardStep = cardWidth + styles.gap3.gap;
-    const lastIndex = reportIDs.length - 1;
+    const lastIndex = reports.length - 1;
 
     const scrollToIndex = (index: number) => {
         setTargetIndex(index);
@@ -72,41 +63,25 @@ function WiseQuoteCarousel({reportIDs, quotedReportIDs, isLoading}: WiseQuoteCar
         }
     };
 
-    const renderArrow = (direction: 'previous' | 'next') => {
-        const isPrevious = direction === 'previous';
-        const isDisabled = isPrevious ? shownIndex === 0 : shownIndex === lastIndex;
-        return (
-            <PressableWithFeedback
-                accessibilityRole="button"
-                accessible
-                accessibilityLabel={translate(isPrevious ? 'common.previous' : 'common.next')}
-                style={[styles.reportPreviewArrowButton, StyleUtils.getBackgroundColorStyle(theme.buttonDefaultBG)]}
-                onPress={() => scrollToIndex(isPrevious ? shownIndex - 1 : shownIndex + 1)}
-                disabled={isDisabled}
-                disabledStyle={[styles.cursorDefault, styles.buttonOpacityDisabled]}
-                sentryLabel={isPrevious ? CONST.SENTRY_LABEL.WISE_QUOTE_CAROUSEL.PREVIOUS : CONST.SENTRY_LABEL.WISE_QUOTE_CAROUSEL.NEXT}
-            >
-                <Icon
-                    src={isPrevious ? icons.BackArrow : icons.ArrowRight}
-                    fill={theme.icon}
-                    width={variables.iconSizeExtraSmall}
-                    height={variables.iconSizeExtraSmall}
-                />
-            </PressableWithFeedback>
-        );
-    };
-
     return (
         <View
             style={styles.gap3}
             onLayout={(event) => setContainerWidth(event.nativeEvent.layout.width)}
         >
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                <Text style={styles.textLabelSupporting}>{translate('iou.wisePaymentSummary.reportCount', {count: reportIDs.length})}</Text>
+                <Text style={styles.textLabelSupporting}>{translate('iou.wisePaymentSummary.reportCount', {count: reports.length})}</Text>
                 {hasMultipleReports && (
                     <View style={styles.flexRow}>
-                        {renderArrow('previous')}
-                        {renderArrow('next')}
+                        <WiseQuoteCarouselArrow
+                            direction="previous"
+                            isDisabled={shownIndex === 0}
+                            onPress={() => scrollToIndex(shownIndex - 1)}
+                        />
+                        <WiseQuoteCarouselArrow
+                            direction="next"
+                            isDisabled={shownIndex === lastIndex}
+                            onPress={() => scrollToIndex(shownIndex + 1)}
+                        />
                     </View>
                 )}
             </View>
@@ -123,15 +98,16 @@ function WiseQuoteCarousel({reportIDs, quotedReportIDs, isLoading}: WiseQuoteCar
                         onScrollBeginDrag={() => setTargetIndex(undefined)}
                         contentContainerStyle={styles.gap3}
                     >
-                        {reportIDs.map((reportID) => (
+                        {reports.map((report) => (
                             <View
-                                key={reportID}
+                                key={report.reportID}
                                 style={{width: cardWidth}}
                             >
                                 <WiseQuotePaymentSummary
-                                    reportID={reportID}
+                                    reportID={report.reportID}
+                                    searchReport={report}
                                     isPayingUnheldOnly={false}
-                                    isQuoteRequired={quotedReportIDs.includes(reportID)}
+                                    isQuoteRequired={quotedReportIDs.includes(report.reportID)}
                                     shouldShowLoadingIndicator={false}
                                 />
                             </View>

@@ -240,6 +240,7 @@ function ConfirmContent({
                             accessibilityLabel={confirmText || translate('common.yes')}
                             isDisabled={(isOffline && shouldDisableConfirmButtonWhenOffline) || isConfirmDisabled}
                             isLoading={isConfirmLoading}
+                            sentryLabel={CONST.SENTRY_LABEL.CONFIRM_CONTENT.CONFIRM_BUTTON}
                         >
                             <Button.KeyboardShortcut isPressOnEnterActive={isVisible} />
                             <Button.Text>{confirmText || translate('common.yes')}</Button.Text>
@@ -270,6 +271,7 @@ function ConfirmContent({
                             onPress={onConfirm}
                             isDisabled={(isOffline && shouldDisableConfirmButtonWhenOffline) || isConfirmDisabled}
                             isLoading={isConfirmLoading}
+                            sentryLabel={CONST.SENTRY_LABEL.CONFIRM_CONTENT.CONFIRM_BUTTON}
                         >
                             <Button.KeyboardShortcut isPressOnEnterActive={isVisible} />
                             <Button.Text>{confirmText || translate('common.yes')}</Button.Text>
