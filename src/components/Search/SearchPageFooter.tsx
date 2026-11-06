@@ -172,6 +172,7 @@ function SearchPageFooter({
         <Button
             ref={props.ref}
             accessibilityLabel={footerAccessibilityLabel}
+            sentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_BUTTON}
             style={styles.flexShrink1}
             innerStyles={[styles.bgTransparent, styles.mnh0, styles.ph0, styles.pv0, styles.flexShrink1]}
             size={CONST.BUTTON_SIZE.SMALL}
@@ -198,9 +199,11 @@ function SearchPageFooter({
                             />
                         ) : (
                             // Measured so the skeleton stands in at the same size. Anything else resizes the footer or
-                            // moves the total between one line and two.
+                            // moves the total between one line and two. It shrinks so a total too long even for a line
+                            // of its own ends in an ellipsis, keeping its label and the arrow visible.
                             <View
                                 testID="searchPageFooterTotal"
+                                style={styles.flexShrink1}
                                 onLayout={handleTotalLayout}
                             >
                                 <Button.Text
