@@ -514,8 +514,6 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_BUSINESS_ONBOARDING]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseBusinessOnboardingPage').default,
     [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ACCEPT_TERMS]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseAcceptTermsPage').default,
-    [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_MORE_INFO_NEEDED]: () =>
-        require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseMoreInfoNeededPage').default,
     [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_KYC_REVIEW]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseKYCReviewPage').default,
     [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ONBOARDING_STATUS]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseOnboardingStatusPage').default,
@@ -639,6 +637,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.DYNAMIC_MEMBER_DISPLAY_NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberDisplayNamePage').default,
     [SCREENS.WORKSPACE.ROOM_CREATE]: () => require<ReactComponentModule>('../../../../pages/workspace/rooms/WorkspaceRoomCreatePage').default,
     [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberDetailsRolePage').default,
+    [SCREENS.WORKSPACE.MEMBER_DETAILS_CATEGORY_VISIBILITY]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberCategoryVisibilityPage').default,
     [SCREENS.WORKSPACE.MEMBERS_ROLE]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMembersRolePage').default,
     [SCREENS.WORKSPACE.MEMBER_WORK_ARRANGEMENT]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkArrangementPage').default,
     [SCREENS.WORKSPACE.MEMBER_OFFICE_LOCATION]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberOfficeLocationPage').default,

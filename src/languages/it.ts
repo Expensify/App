@@ -3141,7 +3141,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `Accetto i <a href="${CONST.WISE.TERMS_URL}">termini e condizioni</a> e l’<a href="${CONST.WISE.PRIVACY_URL}">informativa sulla privacy</a> di Wise.`,
                 wiseTermsAccessibilityLabel: 'Accetto i termini e condizioni e l’informativa sulla privacy di Wise.',
                 error: 'Accetta tutti i termini per continuare.',
-                alreadySubmitted: 'Questa azienda è già stata inviata a Wise per la revisione.',
             },
             moreInfoNeeded: {
                 headerTitle: 'Ulteriori informazioni necessarie',
@@ -7069,6 +7068,15 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 title: 'Impossibile eliminare o disattivare tutte le categorie',
                 description: `Almeno una categoria deve rimanere abilitata perché il tuo spazio di lavoro richiede le categorie.`,
             },
+            cannotDisableCategoryForMembers: {
+                title: ({categoryName}: {categoryName: string}) => `Impossibile disabilitare ${categoryName}`,
+                bulkTitle: 'Impossibile disattivare queste categorie',
+                description: ({count}: {count: number}) => ({
+                    one: '1 membro resterebbe senza categorie tra cui scegliere. Aggiorna la visibilità delle sue categorie, quindi riprova:',
+                    other: `A ${count} membri non rimarrebbe alcuna categoria tra cui scegliere. Aggiorna la visibilità delle loro categorie, poi riprova:`,
+                }),
+                andMore: ({count}: {count: number}) => `e altri ${count}`,
+            },
         },
         moreFeatures: {
             subtitle:
@@ -7790,6 +7798,13 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             },
             officeLocation: 'Sede ufficio',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            categoryVisibility: 'Visibilità categoria',
+            allCategories: 'Tutte le categorie',
+            categoriesCount: ({count}: {count: number}) => ({
+                one: '1 categoria',
+                other: `${count} categorie`,
+            }),
+            categoryVisibilityRequiredModal: {title: 'I membri devono avere almeno una categoria', description: 'Seleziona almeno una categoria che questo membro può usare.'},
             changeOfficeLocation: 'Cambia sede dell’ufficio',
             changeWorkArrangement: 'Modifica modalità di lavoro',
             changeRole: 'Cambia ruolo',

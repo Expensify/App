@@ -1050,6 +1050,9 @@ const CONST = {
         /** The query param Wise adds to the redirect URL when its hosted KYC form ends, saying how it ended */
         KYC_REVIEW_REDIRECT_STATUS_PARAM: 'status',
 
+        /** The value of that param when the user finished the form */
+        KYC_REVIEW_REDIRECT_STATUS_SUCCESS: 'success',
+
         /** Countries missing from Wise's supported list, so the bank account picker leaves them out */
         EXCLUDED_BANK_ACCOUNT_COUNTRIES: [
             'AC',
@@ -1096,12 +1099,6 @@ const CONST = {
             ACTION_REQUIRED: 'ACTION_REQUIRED',
             APPROVED: 'APPROVED',
             NOT_APPROVED: 'NOT_APPROVED',
-        },
-        /** The content the onboarding status page shows, read from its `status` query param */
-        ONBOARDING_STATUS_PAGE: {
-            REVIEW: 'review',
-            APPROVED: 'approved',
-            REJECTED: 'rejected',
         },
         /** The steps UpdateWiseOnboardingAdditionalData accepts: our intake pages, and the EDD pages keyed by Wise's KYC requirement key. The server answers any other step with 400 Invalid step. */
         ONBOARDING_STEP: {
@@ -1533,6 +1530,7 @@ const CONST = {
         RESIZABLE_RHP: 'resizableRHP',
         TRAVEL_APPROVAL: 'travelApproval',
         FLAT_NAV: 'flatNav',
+        CATEGORY_VISIBILITY: 'categoryVisibility',
         SCAN_FLASH_TORCH: 'scanFlashTorch',
         NEW_DOT_BILL_PAY: 'newDotBillPay',
         HYBRID_WEB: 'hybridWeb',
@@ -2852,6 +2850,7 @@ const CONST = {
         SEARCH_ROUTER_MAX_MEASURED_QUERIES_PER_OPEN: 5,
         SEARCH_ROUTER_QUERY_MAX_DURATION_MS: 10_000,
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
+        SPAN_OPEN_MEMBER_CATEGORY_VISIBILITY: 'ManualOpenMemberCategoryVisibility',
         SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW: 'ShareExtensionOpenSubmitFlow',
         SPAN_CAMERA_INIT: 'ManualCameraInit',
         SPAN_ENTRY_TO_SCAN: 'ManualEntryToScan',
@@ -2988,6 +2987,8 @@ const CONST = {
         ATTRIBUTE_UPGRADE_OUTCOME: 'upgrade_outcome',
         ATTRIBUTE_PHOTO_WIDTH: 'photo_width',
         ATTRIBUTE_PHOTO_HEIGHT: 'photo_height',
+        ATTRIBUTE_CAPTURE_DURATION_MS: 'capture_duration_ms',
+        ATTRIBUTE_SAVE_DURATION_MS: 'save_duration_ms',
         ATTRIBUTE_SOURCE: 'source',
         ATTRIBUTE_SELECTED_FORMAT_AF_SYSTEM: 'selected_format_af_system',
         ATTRIBUTE_PHYSICAL_DEVICE_COUNT: 'physical_device_count',
@@ -10833,6 +10834,7 @@ const CONST = {
             FILTERS: 'Table-Filters',
             SETTINGS: 'Table-Settings',
             EDITABLE_CELL: 'Table-EditableCell',
+            SELECTION_MODE_MENU_ITEM: 'Table-SelectionModeMenuItem',
             FILTER_POPUP_APPLY: 'Table-FilterPopupApply',
             FILTER_POPUP_RESET: 'Table-FilterPopupReset',
             DISPLAY_SETTINGS_POPUP_APPLY: {
@@ -11310,6 +11312,7 @@ const CONST = {
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceMembers-BulkActionsDropdown',
                 MORE_DROPDOWN: 'WorkspaceMembers-MoreDropdown',
                 LIST_ROW: 'WorkspaceMembers-ListRow',
+                CATEGORY_VISIBILITY: 'WorkspaceMemberDetails-CategoryVisibility',
             },
             CATEGORIES: {
                 ROW: 'WorkspaceCategories-Row',

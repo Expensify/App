@@ -3226,7 +3226,6 @@ const translations = {
                 wiseTerms: `I agree to the Wise <a href="${CONST.WISE.TERMS_URL}">terms and conditions</a> and <a href="${CONST.WISE.PRIVACY_URL}">privacy policy</a>.`,
                 wiseTermsAccessibilityLabel: 'I agree to the Wise terms and conditions and privacy policy.',
                 error: 'Please accept all of the terms to continue.',
-                alreadySubmitted: 'This business is already submitted to Wise for review.',
             },
             moreInfoNeeded: {
                 headerTitle: 'More info needed',
@@ -7676,6 +7675,15 @@ const translations = {
                 title: 'Cannot delete or disable all categories',
                 description: `At least one category must remain enabled because your workspace requires categories.`,
             },
+            cannotDisableCategoryForMembers: {
+                title: ({categoryName}: {categoryName: string}) => `Can’t disable ${categoryName}`,
+                bulkTitle: 'Can’t disable these categories',
+                description: ({count}: {count: number}) => ({
+                    one: '1 member would be left with no categories to choose from. Update their category visibility, then try again:',
+                    other: `${count} members would be left with no categories to choose from. Update their category visibility, then try again:`,
+                }),
+                andMore: ({count}: {count: number}) => `and ${count} more`,
+            },
         },
         moreFeatures: {
             subtitle: 'Use the toggles below to enable more features as you grow. Each feature will appear in the navigation menu for further customization.',
@@ -8318,6 +8326,16 @@ const translations = {
             },
             officeLocation: 'Office location',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            categoryVisibility: 'Category visibility',
+            allCategories: 'All categories',
+            categoriesCount: ({count}: {count: number}) => ({
+                one: '1 category',
+                other: `${count} categories`,
+            }),
+            categoryVisibilityRequiredModal: {
+                title: 'Members must have at least one category',
+                description: 'Select at least one category this member can use.',
+            },
             changeOfficeLocation: 'Change office location',
             changeWorkArrangement: 'Change work arrangement',
             removeWorkspaceMemberButtonTitle: 'Remove from workspace',

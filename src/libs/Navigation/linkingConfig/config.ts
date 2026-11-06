@@ -247,7 +247,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO]: DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.path,
                         [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_BUSINESS_ONBOARDING]: DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.path,
                         [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ACCEPT_TERMS]: DYNAMIC_ROUTES.WISE_ACCEPT_TERMS.path,
-                        [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_MORE_INFO_NEEDED]: DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path,
                         [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_KYC_REVIEW]: DYNAMIC_ROUTES.WISE_KYC_REVIEW.path,
                         [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ONBOARDING_STATUS]: DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path,
                         [SCREENS.SETTINGS.WALLET.EDIT_BANK_ACCOUNT_NICKNAME]: {
@@ -1168,6 +1167,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE]: {
                             path: ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.route,
+                        },
+                        [SCREENS.WORKSPACE.MEMBER_DETAILS_CATEGORY_VISIBILITY]: {
+                            path: ROUTES.WORKSPACE_MEMBER_DETAILS_CATEGORY_VISIBILITY.route,
                         },
                         [SCREENS.WORKSPACE.MEMBERS_ROLE]: {
                             path: ROUTES.WORKSPACE_MEMBERS_ROLE.route,

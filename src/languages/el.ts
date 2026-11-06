@@ -3207,7 +3207,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `Αποδέχομαι τους <a href="${CONST.WISE.TERMS_URL}">όρους και προϋποθέσεις</a> και την <a href="${CONST.WISE.PRIVACY_URL}">πολιτική απορρήτου</a> της Wise.`,
                 wiseTermsAccessibilityLabel: 'Αποδέχομαι τους όρους και προϋποθέσεις και την πολιτική απορρήτου της Wise.',
                 error: 'Αποδεχτείτε όλους τους όρους για να συνεχίσετε.',
-                alreadySubmitted: 'Αυτή η επιχείρηση έχει ήδη υποβληθεί στη Wise για έλεγχο.',
             },
             moreInfoNeeded: {
                 headerTitle: 'Απαιτούνται περισσότερες πληροφορίες',
@@ -7223,6 +7222,15 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 title: 'Δεν μπορείτε να διαγράψετε ή να απενεργοποιήσετε όλες τις κατηγορίες',
                 description: `Πρέπει να παραμείνει ενεργοποιημένη τουλάχιστον μία κατηγορία, επειδή ο χώρος εργασίας σας απαιτεί κατηγορίες.`,
             },
+            cannotDisableCategoryForMembers: {
+                title: ({categoryName}: {categoryName: string}) => `Δεν είναι δυνατή η απενεργοποίηση της κατηγορίας ${categoryName}`,
+                bulkTitle: 'Δεν μπορείτε να απενεργοποιήσετε αυτές τις κατηγορίες',
+                description: ({count}: {count: number}) => ({
+                    one: '1 μέλος θα μείνει χωρίς κατηγορίες για να διαλέξει. Ενημερώστε την ορατότητα των κατηγοριών του και δοκιμάστε ξανά:',
+                    other: `${count} μέλη θα μείνουν χωρίς κατηγορίες για να επιλέξουν. Ενημερώστε την ορατότητα των κατηγοριών τους και δοκιμάστε ξανά:`,
+                }),
+                andMore: ({count}: {count: number}) => `και ${count} ακόμη`,
+            },
         },
         moreFeatures: {
             subtitle:
@@ -7952,6 +7960,16 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             },
             officeLocation: 'Τοποθεσία γραφείου',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            categoryVisibility: 'Ορατότητα κατηγορίας',
+            allCategories: 'Όλες οι κατηγορίες',
+            categoriesCount: ({count}: {count: number}) => ({
+                one: '1 κατηγορία',
+                other: `${count} κατηγορίες`,
+            }),
+            categoryVisibilityRequiredModal: {
+                title: 'Τα μέλη πρέπει να έχουν τουλάχιστον μία κατηγορία',
+                description: 'Επιλέξτε τουλάχιστον μία κατηγορία που μπορεί να χρησιμοποιεί αυτό το μέλος.',
+            },
             changeOfficeLocation: 'Αλλαγή τοποθεσίας γραφείου',
             changeWorkArrangement: 'Αλλαγή ρύθμισης εργασίας',
             changeRole: 'Αλλαγή ρόλου',

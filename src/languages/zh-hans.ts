@@ -3041,7 +3041,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `我同意 Wise 的<a href="${CONST.WISE.TERMS_URL}">条款和条件</a>以及<a href="${CONST.WISE.PRIVACY_URL}">隐私政策</a>。`,
                 wiseTermsAccessibilityLabel: '我同意 Wise 的条款和条件以及隐私政策。',
                 error: '请接受所有条款以继续。',
-                alreadySubmitted: '该企业已提交给 Wise 进行审核。',
             },
             moreInfoNeeded: {headerTitle: '需要更多信息', title: '验证其他信息', subtitle: '我们的支付合作伙伴需要直接向你获取更多信息。这只需要几分钟时间。'},
             inReview: {
@@ -6814,6 +6813,15 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 title: '无法删除或停用所有类别',
                 description: `由于您的工作区需要类别，必须至少保留一个已启用的类别。`,
             },
+            cannotDisableCategoryForMembers: {
+                title: ({categoryName}: {categoryName: string}) => `无法禁用 ${categoryName}`,
+                bulkTitle: '无法禁用这些类别',
+                description: ({count}: {count: number}) => ({
+                    one: '将会有 1 名成员没有可选择的类别。请先更新 TA 的类别可见性，然后再试一次：',
+                    other: `将有 ${count} 名成员将没有可选择的类别。请先更新他们的类别可见性，然后重试：`,
+                }),
+                andMore: ({count}: {count: number}) => `和另外 ${count} 个`,
+            },
         },
         moreFeatures: {
             subtitle: '使用下方切换按钮，在业务成长过程中启用更多功能。每个功能都会出现在导航菜单中，供你进一步自定义。',
@@ -7347,7 +7355,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 title: '复制成员',
                 prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
                     one: `确定要用此工作区的成员替换 ${targetWorkspaceName} 的成员吗？`,
-                    // Chinese has no "one" plural category, so handle the single-workspace case here
                     other: count === 1 ? `确定要用此工作区的成员替换 ${targetWorkspaceName} 的成员吗？` : `确定要用此工作区的成员替换 ${count} 个工作区的成员吗？`,
                 }),
             },
@@ -7490,6 +7497,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             },
             officeLocation: '办公室地点',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name}（${address}）`,
+            categoryVisibility: '类别可见性',
+            allCategories: '所有类别',
+            categoriesCount: ({count}: {count: number}) => ({
+                one: '1 个类别',
+                other: `${count} 个类别`,
+            }),
+            categoryVisibilityRequiredModal: {title: '成员必须至少有一个类别', description: '请选择该成员可使用的至少一个类别。'},
             changeOfficeLocation: '更改办公室位置',
             changeWorkArrangement: '更改工作安排',
             changeRole: '更改角色',

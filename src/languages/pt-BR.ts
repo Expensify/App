@@ -3144,7 +3144,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `Concordo com os <a href="${CONST.WISE.TERMS_URL}">termos e condições</a> e a <a href="${CONST.WISE.PRIVACY_URL}">política de privacidade</a> da Wise.`,
                 wiseTermsAccessibilityLabel: 'Concordo com os termos e condições e a política de privacidade da Wise.',
                 error: 'Aceite todos os termos para continuar.',
-                alreadySubmitted: 'Esta empresa já foi enviada à Wise para análise.',
             },
             moreInfoNeeded: {
                 headerTitle: 'Mais informações necessárias',
@@ -7071,6 +7070,15 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 title: 'Não é possível excluir ou desativar todas as categorias',
                 description: `Pelo menos uma categoria deve permanecer ativada porque seu workspace exige categorias.`,
             },
+            cannotDisableCategoryForMembers: {
+                title: ({categoryName}: {categoryName: string}) => `Não é possível desativar ${categoryName}`,
+                bulkTitle: 'Não é possível desativar estas categorias',
+                description: ({count}: {count: number}) => ({
+                    one: '1 membro ficaria sem categorias para escolher. Atualize a visibilidade das categorias dele e tente novamente:',
+                    other: `${count} membros ficariam sem categorias para escolher. Atualize a visibilidade das categorias para eles e tente novamente:`,
+                }),
+                andMore: ({count}: {count: number}) => `e mais ${count}`,
+            },
         },
         moreFeatures: {
             subtitle: 'Use as chaves abaixo para ativar mais recursos conforme você cresce. Cada recurso aparecerá no menu de navegação para personalização adicional.',
@@ -7786,6 +7794,13 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             },
             officeLocation: 'Local do escritório',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            categoryVisibility: 'Visibilidade da categoria',
+            allCategories: 'Todas as categorias',
+            categoriesCount: ({count}: {count: number}) => ({
+                one: '1 categoria',
+                other: `${count} categorias`,
+            }),
+            categoryVisibilityRequiredModal: {title: 'Membros devem ter pelo menos uma categoria', description: 'Selecione pelo menos uma categoria que este membro possa usar.'},
             changeOfficeLocation: 'Alterar local do escritório',
             changeWorkArrangement: 'Alterar regime de trabalho',
             changeRole: 'Alterar função',
