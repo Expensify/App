@@ -458,7 +458,12 @@ describe('TransactionUtils', () => {
                 const fakePolicy = buildDistancePolicy(category, true);
 
                 // When retrieving the tax from the associated category
-                const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, buildDistanceTransaction(), fakePolicy, getCurrencyDecimalsLocal);
+                const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(
+                    category,
+                    buildDistanceTransaction(),
+                    fakePolicy,
+                    getCurrencyDecimalsLocal,
+                );
 
                 // Then the category rule fills the slot the rate left empty, rather than the workspace default
                 expect(categoryTaxCode).toBe('id_TAX_RATE_1');
