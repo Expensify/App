@@ -91,6 +91,37 @@ function expensifyLoginsSelector(logins: OnyxEntry<Logins>): LoginList | undefin
     return result;
 }
 
+/**
+ * Selector that filters the `logins` Onyx key to the Integration Server API logins: the standard one (partnerID === 53)
+ * and the ones issued to Integration Server OAuth partners. Those are matched by their partnerUserID too, because a login
+ * pushed to the client before the server started sending integrationPartnerName only gets the name on the next OpenApp.
+ */
+function integrationServerLoginsSelector(logins: OnyxEntry<Logins>) {
+    return Object.values(logins ?? {}).filter(
+        (login) => login.partnerID === CONST.PARTNER_ID.INTEGRATIONS || !!login.integrationPartnerName || login.partnerUserID.startsWith(CONST.INTEGRATION_SERVER_OAUTH_LOGIN_PREFIX),
+    );
+}
+
+/**
+ * Returns the copy for an Integration Server API login: named after the OAuth partner it was issued to, or "Integrations"
+ * for the standard login
+ */
+function getIntegrationServerLoginCopy(login: NewLogin, translate: LocalizedTranslate) {
+    const partnerName = login.integrationPartnerName;
+    if (!partnerName) {
+        return {
+            title: translate('contacts.integrationServerLogin.title'),
+            description: translate('contacts.integrationServerLogin.description'),
+            removeDescription: translate('contacts.integrationServerLogin.removeDescription'),
+        };
+    }
+    return {
+        title: partnerName,
+        description: translate('contacts.integrationServerLogin.partnerDescription', {partnerName}),
+        removeDescription: translate('contacts.integrationServerLogin.partnerRemoveDescription', {partnerName}),
+    };
+}
+
 const DEVICE_PARTNER_IDS = new Set<number>([CONST.PARTNER_ID.IPHONE, CONST.PARTNER_ID.ANDROID, CONST.PARTNER_ID.NEWDOT, CONST.PARTNER_ID.OAUTH]);
 
 function isDeviceLogin(login: NewLogin) {
@@ -290,5 +321,7 @@ export {
     getDeviceDisplayName,
     hasDeviceManagementError,
     expensifyLoginsSelector,
+    integrationServerLoginsSelector,
+    getIntegrationServerLoginCopy,
 };
 export type {AvatarSource};

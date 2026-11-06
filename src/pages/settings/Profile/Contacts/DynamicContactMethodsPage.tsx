@@ -15,7 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {expensifyLoginsSelector, getContactMethodsOptions} from '@libs/UserUtils';
+import {expensifyLoginsSelector, getContactMethodsOptions, getIntegrationServerLoginCopy, getLoginKey, integrationServerLoginsSelector} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,6 +29,7 @@ function DynamicContactMethodsPage() {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const [integrationServerLogins] = useOnyx(ONYXKEYS.LOGINS, {selector: integrationServerLoginsSelector});
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const {isActingAsDelegate} = useDelegateNoAccessState();
@@ -88,6 +89,34 @@ function DynamicContactMethodsPage() {
                             </OfflineWithFeedback>
                         ),
                 )}
+                {!!integrationServerLogins && integrationServerLogins.length > 0 && <View style={styles.dividerLine} />}
+                {integrationServerLogins?.map((login) => {
+                    const {title, description} = getIntegrationServerLoginCopy(login, translate);
+                    return (
+                        <OfflineWithFeedback
+                            pendingAction={login.pendingAction}
+                            key={getLoginKey(login)}
+                        >
+                            <MenuItem.Root
+                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHOD_DETAILS.getRoute(login.partnerUserID)))}
+                                isDisabled={!!login.pendingAction}
+                                accessibilityLabel={[title, login.partnerUserID, description].join(', ')}
+                            >
+                                <MenuItem.Row>
+                                    <MenuItem.Content>
+                                        <MenuItem.Label>{title}</MenuItem.Label>
+                                        <MenuItem.FieldValue>{login.partnerUserID}</MenuItem.FieldValue>
+                                        <MenuItem.Description>{description}</MenuItem.Description>
+                                    </MenuItem.Content>
+                                    <MenuItem.Trailing>
+                                        {!!login.errorFields?.revoke && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                        <MenuItem.Chevron />
+                                    </MenuItem.Trailing>
+                                </MenuItem.Row>
+                            </MenuItem.Root>
+                        </OfflineWithFeedback>
+                    );
+                })}
                 <FixedFooter style={[styles.mtAuto, styles.pt5]}>
                     <Button
                         size={CONST.BUTTON_SIZE.LARGE}

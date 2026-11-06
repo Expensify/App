@@ -266,4 +266,113 @@ describe('UserUtils', () => {
             expect(result.map((login) => login.partnerUserID)).toEqual(['b@example.com', 'a@example.com']);
         });
     });
+
+    describe('integrationServerLoginsSelector', () => {
+        test('returns an empty array when there are no logins', () => {
+            // Given the logins key hasn't loaded
+            // When the Integration Server logins are selected
+            const result = UserUtils.integrationServerLoginsSelector(undefined);
+
+            // Then the contact methods page gets an empty list, so it shows no Integrations section
+            expect(result).toEqual([]);
+        });
+
+        test('keeps only Integration Server logins', () => {
+            // Given an account with an email contact method, a device login, the standard Integration Server login and two issued to OAuth partners,
+            // one of which reached the client before the server sent partner names
+            const logins = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '1_user@example.com': {
+                    created: '2024-01-01',
+                    accountID: 1,
+                    partnerID: CONST.PARTNER_ID.EXPENSIFY,
+                    partnerUserID: 'user@example.com',
+                    lastLogin: '2024-01-02',
+                    validatedDate: '2024-01-01',
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '14_device': {
+                    created: '2024-01-01',
+                    accountID: 1,
+                    partnerID: CONST.PARTNER_ID.IPHONE,
+                    partnerUserID: 'device@example.com',
+                    lastLogin: '2024-01-02',
+                    validatedDate: null,
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '53_aa_user_example_com': {
+                    created: '2024-01-01',
+                    accountID: 1,
+                    partnerID: CONST.PARTNER_ID.INTEGRATIONS,
+                    partnerUserID: 'aa_user_example_com',
+                    lastLogin: '2024-01-02',
+                    validatedDate: null,
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '201_is-oauth-0123456789abcdef': {
+                    created: '2024-01-01',
+                    accountID: 1,
+                    partnerID: 201,
+                    partnerUserID: 'is-oauth-0123456789abcdef',
+                    lastLogin: '2024-01-02',
+                    validatedDate: null,
+                    integrationPartnerName: 'Acme',
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '202_is-oauth-fedcba9876543210': {
+                    created: '2024-01-01',
+                    accountID: 1,
+                    partnerID: 202,
+                    partnerUserID: 'is-oauth-fedcba9876543210',
+                    lastLogin: '2024-01-02',
+                    validatedDate: null,
+                },
+            };
+
+            // When the Integration Server logins are selected
+            const result = UserUtils.integrationServerLoginsSelector(logins);
+
+            // Then only the Integration Server logins are kept, including the one without a name, because the other logins have their own sections and pages
+            expect(result.map((login) => login.partnerUserID)).toEqual(['aa_user_example_com', 'is-oauth-0123456789abcdef', 'is-oauth-fedcba9876543210']);
+        });
+    });
+
+    describe('getIntegrationServerLoginCopy', () => {
+        const baseLogin = {
+            created: '2024-01-01',
+            accountID: 1,
+            lastLogin: '2024-01-02',
+            validatedDate: null,
+        };
+
+        test('names the standard Integration Server login "Integrations"', () => {
+            // Given the standard Integration Server login, which has no partner name
+            const login = {...baseLogin, partnerID: CONST.PARTNER_ID.INTEGRATIONS, partnerUserID: 'aa_user_example_com'};
+
+            // When its copy is built
+            const result = UserUtils.getIntegrationServerLoginCopy(login, translateLocal);
+
+            // Then it describes the Integration Server API, since no partner issued it
+            expect(result).toEqual({
+                title: translateLocal('contacts.integrationServerLogin.title'),
+                description: translateLocal('contacts.integrationServerLogin.description'),
+                removeDescription: translateLocal('contacts.integrationServerLogin.removeDescription'),
+            });
+        });
+
+        test('names an OAuth partner login after the partner', () => {
+            // Given a login issued to the Acme OAuth partner
+            const login = {...baseLogin, partnerID: 201, partnerUserID: 'is-oauth-0123456789abcdef', integrationPartnerName: 'Acme'};
+
+            // When its copy is built
+            const result = UserUtils.getIntegrationServerLoginCopy(login, translateLocal);
+
+            // Then the label and text use the partner's name, so the user can tell which integration they would revoke
+            expect(result).toEqual({
+                title: 'Acme',
+                description: translateLocal('contacts.integrationServerLogin.partnerDescription', {partnerName: 'Acme'}),
+                removeDescription: translateLocal('contacts.integrationServerLogin.partnerRemoveDescription', {partnerName: 'Acme'}),
+            });
+        });
+    });
 });
