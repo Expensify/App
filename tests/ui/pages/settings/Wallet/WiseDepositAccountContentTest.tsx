@@ -183,8 +183,8 @@ describe('WiseDepositAccountContent', () => {
         fireEvent.press(screen.getByLabelText('common.back'));
         await waitForBatchedUpdatesWithAct();
 
-        // Then the form is dropped and the URL is replaced with the country list it shows
-        expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS)).toBeUndefined();
+        // Then the form is dropped but the picked country is kept, so the country list starts on it, and the URL is replaced with the country list
+        expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS)).toEqual({country: 'GB'});
         expect(navigateSpy).toHaveBeenCalledWith(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(undefined), {forceReplace: true});
     });
 
