@@ -101,9 +101,9 @@ jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
     default: jest.fn(() => ({translate: (key: string) => key})),
 }));
-jest.mock('@hooks/useTransactionsAndViolationsForReport', () => ({
+jest.mock('@hooks/useReportTransactionsCollection', () => ({
     __esModule: true,
-    default: jest.fn(() => ({transactions: {}, violations: {}, isLoaded: true})),
+    default: jest.fn(() => ({})),
 }));
 jest.mock('@hooks/useOnyx', () => jest.fn());
 

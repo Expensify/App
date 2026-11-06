@@ -3,7 +3,7 @@ import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginPro
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
-import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 
 import {convertAttendeesToArray} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -298,7 +298,7 @@ type UseReportPreviewTransactionsParams = {
 
 // React Compiler does not cache values computed between hook calls, so the filtering lives after this hook's only hook call.
 function useReportPreviewTransactions({shouldFetchData, childReportID, iouActions, activeMoneyRequestCount}: UseReportPreviewTransactionsParams): Transaction[] | undefined {
-    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(shouldFetchData ? childReportID : undefined);
+    const reportTransactions = useReportTransactionsCollection(shouldFetchData ? childReportID : undefined);
     if (!shouldFetchData) {
         return undefined;
     }
