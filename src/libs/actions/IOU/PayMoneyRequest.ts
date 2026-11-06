@@ -31,6 +31,7 @@ import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {shouldSplitScanFailedTransactions} from '@libs/TransactionUtils';
 
+import {showEnableGlobalReimbursementsModal} from '@userActions/App';
 import {buildPolicyData, generatePolicyID} from '@userActions/Policy/Policy';
 import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
@@ -942,11 +943,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     // The backend rejects this payment until the account is set up for global reimbursements, so open the onboarding right away instead of showing an optimistic payment
     const bankAccountToSetUp = getBankAccountToSetUpBeforePaying({paymentType, iouReport, methodID, bankAccountList, isWiseReimbursementsBetaEnabled});
     if (methodID && bankAccountToSetUp) {
-        Onyx.set(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL, {
-            bankAccountID: methodID,
-            bankCountry: bankAccountToSetUp.bankCountry,
-            bankCurrency: bankAccountToSetUp.bankCurrency,
-        });
+        showEnableGlobalReimbursementsModal({bankAccountID: methodID, bankCountry: bankAccountToSetUp.bankCountry, bankCurrency: bankAccountToSetUp.bankCurrency});
         return;
     }
 
