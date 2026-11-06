@@ -274,6 +274,54 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
+    it('shows the merchant and description as inline inputs for a user on the inline fields beta', async () => {
+        // Given an open expense the user can edit, for a user on the inline fields beta
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.EXPENSE_VIEW_INLINE_FIELDS]);
+        });
+
+        // When the expense view renders
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then both text fields are inputs edited in place, in place of the rows that open their page
+        await waitFor(() => {
+            expect(screen.getByLabelText('common.merchant')).toBeOnTheScreen();
+        });
+        expect(screen.getByLabelText('common.description')).toBeOnTheScreen();
+        expect(screen.queryByTestId('menu-item-common.merchant')).toBeNull();
+        expect(screen.queryByTestId('menu-item-common.description')).toBeNull();
+    });
+
+    it('keeps the merchant a read-only row when it cannot be edited, even on the beta', async () => {
+        // Given a settled expense, whose merchant can no longer be edited, for a user on the inline fields beta
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+        await setupTestData(true);
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.EXPENSE_VIEW_INLINE_FIELDS]);
+        });
+
+        // When the expense view renders
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the merchant stays a read-only row, as an input would invite an edit that cannot be saved
+        await waitFor(() => {
+            expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('readonly');
+        });
+        expect(screen.queryByLabelText('common.merchant')).toBeNull();
+    });
+
     it('shows the Category and Tag rows from the report policy when nothing is selected yet', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
