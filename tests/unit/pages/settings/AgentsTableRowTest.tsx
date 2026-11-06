@@ -56,21 +56,25 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
 }));
 
-jest.mock('@components/Table/TableContext', () => ({
-    useTableContext: jest.fn(() => ({
-        processedData: [{keyForList: '12345'}],
-        columns: [{width: undefined}, {width: 260}],
-        shouldUseNarrowTableLayout: false,
-        tableMethods: {},
-        selectionEnabled: false,
-        isMobileSelectionEnabled: false,
-        tableListMetadata: {
-            hasPageHeader: false,
-            columnHeaderPlacement: 'none',
-        },
-    })),
-    useTableRowSemanticID: jest.fn(() => undefined),
-}));
+jest.mock('@components/Table/TableContext', () => {
+    const ReactLocal = jest.requireActual<typeof React>('react');
+    return {
+        TableActionsContext: ReactLocal.createContext({showSelectionMenu: jest.fn()}),
+        useTableContext: jest.fn(() => ({
+            processedData: [{keyForList: '12345'}],
+            columns: [{width: undefined}, {width: 260}],
+            shouldUseNarrowTableLayout: false,
+            tableMethods: {},
+            selectionEnabled: false,
+            isMobileSelectionEnabled: false,
+            tableListMetadata: {
+                hasPageHeader: false,
+                columnHeaderPlacement: 'none',
+            },
+        })),
+        useTableRowSemanticID: jest.fn(() => undefined),
+    };
+});
 
 jest.mock('@components/Avatar/connected/AccountAvatar', () => {
     function MockAccountAvatar() {

@@ -192,6 +192,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dob: 'Data urodzenia',
         currentYear: 'Bieżący rok',
         currentMonth: 'Bieżący miesiąc',
+        todayDateLabel: (date: string) => `${date}, dzisiaj`,
         ssnLast4: 'Ostatnie 4 cyfry numeru SSN',
         ssnFull9: 'Pełne 9 cyfr numeru SSN',
         addressLine: (lineNumber: number) => `Wiersz adresu ${lineNumber}`,
@@ -2188,6 +2189,13 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `Zmień przestrzeń roboczą raportu, aby wykonać dalsze działania.`,
+
+            [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `Możesz tylko zatwierdzać w tym obszarze roboczym. Przenieś ten raport do innego, żeby go przesłać.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -3174,7 +3182,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `Akceptuję <a href="${CONST.WISE.TERMS_URL}">regulamin</a> i <a href="${CONST.WISE.PRIVACY_URL}">politykę prywatności</a> Wise.`,
                 wiseTermsAccessibilityLabel: 'Akceptuję regulamin i politykę prywatności Wise.',
                 error: 'Zaakceptuj wszystkie warunki, aby kontynuować.',
-                alreadySubmitted: 'Ta firma została już wysłana do Wise do weryfikacji.',
             },
             moreInfoNeeded: {
                 headerTitle: 'Potrzebne są dodatkowe informacje',
@@ -3352,8 +3359,10 @@ ${amount} dla ${merchant} - ${date}`,
         addApprovalsDescription: 'Wymagaj dodatkowej akceptacji przed autoryzacją płatności.',
         makeOrTrackPaymentsTitle: 'Płatności',
         makeOrTrackPaymentsDescription: 'Dodaj upoważnionego płatnika dla płatności dokonywanych w Expensify lub śledź płatności wykonywane gdzie indziej.',
-        collectEmployeeBankDetails: 'Zbieraj dane bankowe pracowników',
-        collectEmployeeBankDetailsDescription: 'Zbieraj dane bankowe pracowników, aby móc zwracać im wydatki poza Expensify.',
+        collectEmployeeBankDetails: 'Zbierz dane konta bankowego',
+        collectEmployeeBankDetailsDescription: 'Zbierz dane bankowe członków przestrzeni roboczej, żeby móc im zwracać wydatki poza Expensify.',
+        disablePaymentsTitle: 'Wyłączyć płatności?',
+        disablePaymentsPrompt: 'To usunie wszystkie twoje ustawienia płatności.',
         businessBankAccountCountries: 'Kraje firmowych kont bankowych',
         businessBankAccountCountriesDescription: 'Pracownicy w tych krajach podają dane do lokalnego przelewu. Wszyscy pozostali podają dane do międzynarodowego przelewu bankowego.',
         customApprovalWorkflowEnabled:
@@ -5251,6 +5260,13 @@ ${amount} dla ${merchant} - ${date}`,
             message:
                 'Jesteś członkiem przestrzeni roboczej z włączonymi podróżami, ale nie jest to twoja domyślna przestrzeń robocza. Aby dokonać rezerwacji, włącz podróże w swojej domyślnej przestrzeni roboczej albo zmień domyślną przestrzeń roboczą na taką, która ma włączone podróże.',
         },
+        approval: {
+            status: {outstanding: 'Nierozliczone', approved: 'Zatwierdzone', rejected: 'Odrzucono', canceled: 'Anulowano'},
+            deadline: {
+                softApproval: (time: string) => `Zostanie automatycznie zatwierdzone za ${time}. Do tego czasu możesz bezpłatnie anulować.`,
+                hardApproval: (time: string) => `Automatycznie anuluje się za ${time}, jeśli nie zostanie zatwierdzone.`,
+            },
+        },
     },
     workspace: {
         common: {
@@ -7070,6 +7086,15 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 title: 'Nie można usunąć ani wyłączyć wszystkich kategorii',
                 description: `Co najmniej jedna kategoria musi pozostać włączona, ponieważ w Twoim workspace wymagane są kategorie.`,
             },
+            cannotDisableCategoryForMembers: {
+                title: ({categoryName}: {categoryName: string}) => `Nie można wyłączyć ${categoryName}`,
+                bulkTitle: 'Nie można wyłączyć tych kategorii',
+                description: ({count}: {count: number}) => ({
+                    one: '1 członek nie miałby żadnych kategorii do wyboru. Zaktualizuj widoczność kategorii dla tej osoby, a potem spróbuj ponownie:',
+                    other: `${count} członków nie będzie miało żadnych kategorii do wyboru. Zaktualizuj widoczność ich kategorii, a potem spróbuj ponownie:`,
+                }),
+                andMore: ({count}: {count: number}) => `i jeszcze ${count}`,
+            },
         },
         moreFeatures: {
             subtitle: 'Użyj poniższych przełączników, aby włączać kolejne funkcje w miarę rozwoju. Każda funkcja pojawi się w menu nawigacji, gdzie będzie można ją dalej dostosować.',
@@ -7782,6 +7807,16 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             },
             officeLocation: 'Lokalizacja biura',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            categoryVisibility: 'Widoczność kategorii',
+            allCategories: 'Wszystkie kategorie',
+            categoriesCount: ({count}: {count: number}) => ({
+                one: '1 kategoria',
+                other: `${count} kategorie`,
+            }),
+            categoryVisibilityRequiredModal: {
+                title: 'Członkowie muszą mieć co najmniej jedną kategorię',
+                description: 'Wybierz co najmniej jedną kategorię, z której ten członek może korzystać.',
+            },
             changeOfficeLocation: 'Zmień lokalizację biura',
             changeWorkArrangement: 'Zmień tryb pracy',
             changeRole: 'Zmień rolę',
@@ -10992,11 +11027,14 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 upcoming: 'Nadchodząca',
                 done: 'Zakończona',
                 canceled: 'Anulowana',
+                outstanding: 'Nierozliczone',
+                rejected: 'Odrzucono',
             },
         },
         tabs: {
             expenseReports: 'Raporty wydatków',
             reports: 'Raporty',
+            myReports: 'Moje raporty',
             expenses: 'Wydatki',
             submit: 'Szkice',
             approve: 'Wymaga zatwierdzenia',
@@ -12876,6 +12914,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             other: (count: number) => `${count} dni temu`,
         }),
         offlineMessage: 'Jesteś offline. Historia raportów może być nieaktualna.',
+        toMarkAsDone: 'oznacz jako wykonane',
     },
 };
 export default translations;

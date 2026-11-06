@@ -143,6 +143,7 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
                                 title={translate('workspace.expensifyCard.applyCashbackToBill')}
                                 subtitle={translate('workspace.expensifyCard.applyCashbackToBillDescription')}
                                 switchAccessibilityLabel={translate('workspace.expensifyCard.applyCashbackToBill')}
+                                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.APPLY_CASHBACK_TO_BILL_SWITCH}
                                 isActive={shouldApplyCashbackToBill}
                                 shouldPlaceSubtitleBelowSwitch
                                 wrapperStyle={[styles.mv3, styles.mh5]}

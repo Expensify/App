@@ -240,7 +240,6 @@ import {
     shouldEnableNegative,
     shouldExcludeAncestorReportAction,
     shouldCreateNewMoneyRequestReport,
-    shouldHideBillReport,
     shouldHideSingleReportField,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
@@ -11760,7 +11759,7 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('isUnsupportedReportType and shouldHideBillReport', () => {
+    describe('isUnsupportedReportType', () => {
         it.each([
             {reportType: CONST.REPORT.UNSUPPORTED_TYPE.BILL, isBillPayBetaEnabled: false, expected: true},
             {reportType: CONST.REPORT.UNSUPPORTED_TYPE.BILL, isBillPayBetaEnabled: true, expected: false},
@@ -11772,18 +11771,6 @@ describe('ReportUtils', () => {
             // When we check whether NewDot supports the type for this user
             // Then only bills depend on the beta, and other unsupported types stay unsupported
             expect(isUnsupportedReportType(reportType, isBillPayBetaEnabled)).toBe(expected);
-        });
-
-        it.each([
-            {reportType: CONST.REPORT.UNSUPPORTED_TYPE.BILL, isBillPayBetaEnabled: false, expected: true},
-            {reportType: CONST.REPORT.UNSUPPORTED_TYPE.BILL, isBillPayBetaEnabled: true, expected: false},
-            {reportType: CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK, isBillPayBetaEnabled: false, expected: false},
-            {reportType: CONST.REPORT.TYPE.INVOICE, isBillPayBetaEnabled: false, expected: false},
-        ])('shouldHideBillReport returns $expected for $reportType when isBillPayBetaEnabled is $isBillPayBetaEnabled', ({reportType, isBillPayBetaEnabled, expected}) => {
-            // Given a report type and the user's newDotBillPay beta state
-            // When the report screen checks whether to hide the report
-            // Then only bills are hidden, and only from users without the beta
-            expect(shouldHideBillReport(reportType, isBillPayBetaEnabled)).toBe(expected);
         });
     });
 

@@ -247,7 +247,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO]: DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.path,
                         [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_BUSINESS_ONBOARDING]: DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.path,
                         [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ACCEPT_TERMS]: DYNAMIC_ROUTES.WISE_ACCEPT_TERMS.path,
-                        [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_MORE_INFO_NEEDED]: DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path,
+                        [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_KYC_REVIEW]: DYNAMIC_ROUTES.WISE_KYC_REVIEW.path,
                         [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ONBOARDING_STATUS]: DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path,
                         [SCREENS.SETTINGS.WALLET.EDIT_BANK_ACCOUNT_NICKNAME]: {
                             path: ROUTES.SETTINGS_WALLET_EDIT_BANK_ACCOUNT_NICKNAME.route,
@@ -1161,11 +1161,15 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
                             path: ROUTES.WORKSPACE_MEMBER_DETAILS.route,
                         },
+                        [SCREENS.WORKSPACE.DYNAMIC_MEMBER_DISPLAY_NAME]: DYNAMIC_ROUTES.WORKSPACE_MEMBER_DISPLAY_NAME.path,
                         [SCREENS.WORKSPACE.ROOM_CREATE]: {
                             path: ROUTES.WORKSPACE_ROOM_CREATE.route,
                         },
                         [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE]: {
                             path: ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.route,
+                        },
+                        [SCREENS.WORKSPACE.MEMBER_DETAILS_CATEGORY_VISIBILITY]: {
+                            path: ROUTES.WORKSPACE_MEMBER_DETAILS_CATEGORY_VISIBILITY.route,
                         },
                         [SCREENS.WORKSPACE.MEMBERS_ROLE]: {
                             path: ROUTES.WORKSPACE_MEMBERS_ROLE.route,
@@ -1885,7 +1889,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.PROFILE]: {
                     screens: {
                         [SCREENS.DYNAMIC_PROFILE]: DYNAMIC_ROUTES.PROFILE.path,
-                        [SCREENS.DYNAMIC_PROFILE_DISPLAY_NAME]: DYNAMIC_ROUTES.PROFILE_DISPLAY_NAME.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.PARTICIPANTS]: {

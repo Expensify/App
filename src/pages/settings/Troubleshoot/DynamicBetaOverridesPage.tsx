@@ -92,6 +92,7 @@ function DynamicBetaOverridesPage() {
                             <View style={[styles.flexGrow0, styles.flexShrink0, styles.alignItemsEnd]}>
                                 <Switch
                                     accessibilityLabel={beta}
+                                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_TROUBLESHOOT.BETA_OVERRIDE_SWITCH}
                                     isOn={isBetaEnabled(beta)}
                                     onToggle={() => toggleBeta(beta)}
                                 />
