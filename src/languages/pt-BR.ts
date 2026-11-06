@@ -7088,6 +7088,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 title: 'Não é possível excluir ou desativar todas as categorias',
                 description: `Pelo menos uma categoria deve permanecer ativada porque seu workspace exige categorias.`,
             },
+            enableAtLeastOneCategory: 'Ative pelo menos uma categoria.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Não é possível desativar ${categoryName}`,
                 bulkTitle: 'Não é possível desativar estas categorias',

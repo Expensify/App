@@ -7140,6 +7140,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 title: 'Es können nicht alle Kategorien gelöscht oder deaktiviert werden',
                 description: `Mindestens eine Kategorie muss aktiviert bleiben, da dein Workspace Kategorien erfordert.`,
             },
+            enableAtLeastOneCategory: 'Bitte aktivieren Sie mindestens eine Kategorie.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `${categoryName} kann nicht deaktiviert werden`,
                 bulkTitle: 'Diese Kategorien können nicht deaktiviert werden',

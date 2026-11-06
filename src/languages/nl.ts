@@ -7079,6 +7079,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 title: 'Kan niet alle categorieën verwijderen of uitschakelen',
                 description: `Minstens één categorie moet ingeschakeld blijven, omdat je werkruimte categorieën vereist.`,
             },
+            enableAtLeastOneCategory: 'Schakel minimaal één categorie in.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Kan ${categoryName} niet uitschakelen`,
                 bulkTitle: 'Deze categorieën kunnen niet worden uitgeschakeld',

@@ -6988,6 +6988,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 title: 'すべてのカテゴリを削除または無効にすることはできません',
                 description: `ワークスペースでカテゴリが必須のため、少なくとも1つのカテゴリは有効のままにする必要があります。`,
             },
+            enableAtLeastOneCategory: '少なくとも1つのカテゴリを有効にしてください。',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `${categoryName}を無効にできません`,
                 bulkTitle: 'これらのカテゴリーは無効にできません',

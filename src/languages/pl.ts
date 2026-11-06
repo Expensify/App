@@ -7109,6 +7109,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 title: 'Nie można usunąć ani wyłączyć wszystkich kategorii',
                 description: `Co najmniej jedna kategoria musi pozostać włączona, ponieważ w Twoim workspace wymagane są kategorie.`,
             },
+            enableAtLeastOneCategory: 'Włącz co najmniej jedną kategorię.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Nie można wyłączyć ${categoryName}`,
                 bulkTitle: 'Nie można wyłączyć tych kategorii',
