@@ -1,6 +1,6 @@
-import {startSpan} from '@libs/telemetry/activeSpans';
-
 import CONST from '@src/CONST';
+
+import {startSpan} from './activeSpans';
 
 /**
  * Starts timing how long the category picker takes to show its list, from the tap that opens it. CategoryPicker ends
