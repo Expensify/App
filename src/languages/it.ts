@@ -2021,10 +2021,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         undeletedExpense: 'ha ripristinato questa spesa',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `tariffe chilometriche aggiornate per il nuovo spazio di lavoro - ${policyName}`,
-        paymentWithArrivalDate: ({paymentMessage, expectedDate, detailsURL}: {paymentMessage: string; expectedDate: string; detailsURL?: string}) =>
-            `${paymentMessage}, i fondi dovrebbero arrivare entro il ${expectedDate}.${detailsURL ? `<a href="${detailsURL}">Vedi dettagli</a>` : ''}`,
-        waitingOnBankAccountCrossBorder: (submitterDisplayName: string) =>
-            `pagamento avviato. In attesa del conto bancario di ${submitterDisplayName}. Il tasso di cambio finale potrebbe modificare l’importo.`,
+        paymentWithArrivalDate: ({paymentMessage, expectedDate}: {paymentMessage: string; expectedDate: string}) =>
+            `${paymentMessage}, i fondi dovrebbero arrivare entro il ${expectedDate}.`,
     },
     transactionMerge: {
         listPage: {

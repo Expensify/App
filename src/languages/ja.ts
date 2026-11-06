@@ -2000,10 +2000,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         undeletedExpense: 'この経費を復元しました',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `新しいワークスペース「${policyName}」の距離単価を更新しました`,
-        paymentWithArrivalDate: ({paymentMessage, expectedDate, detailsURL}: {paymentMessage: string; expectedDate: string; detailsURL?: string}) =>
-            `${paymentMessage}、資金は${expectedDate}までに到着する予定です。${detailsURL ? `<a href="${detailsURL}">詳細を表示</a>` : ''}`,
-        waitingOnBankAccountCrossBorder: (submitterDisplayName: string) =>
-            `支払いを開始しました。${submitterDisplayName}の銀行口座を待っています。最終的な為替レートにより金額が変わる場合があります。`,
+        paymentWithArrivalDate: ({paymentMessage, expectedDate}: {paymentMessage: string; expectedDate: string}) => `${paymentMessage}、資金は${expectedDate}までに到着する予定です。`,
     },
     transactionMerge: {
         listPage: {

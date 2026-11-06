@@ -898,23 +898,14 @@ function getCrossBorderReimbursedMessage(
 
 /**
  * Appends the delivery estimate to a bank account payment message, e.g. "paid with bank account 1234, funds are expected to arrive by August 18, 2026."
- *
- * @param detailsURL - link to the Payment details screen, added as "View details" for cross-border payments
- * @returns HTML when the "View details" link is included, so callers render it with RenderHTML
  */
-function getPaymentMessageWithExpectedDate(
-    translate: LocalizedTranslate,
-    dateFnsLocale: DateFnsLocale | undefined,
-    paymentMessage: string,
-    expectedDate: string | undefined,
-    detailsURL?: string,
-): string {
+function getPaymentMessageWithExpectedDate(translate: LocalizedTranslate, dateFnsLocale: DateFnsLocale | undefined, paymentMessage: string, expectedDate: string | undefined): string {
     const formattedArrivalDate = expectedDate ? DateUtils.formatWithUTCTimeZone(expectedDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale) : '';
     if (!formattedArrivalDate) {
         return paymentMessage;
     }
 
-    return translate('iou.paymentWithArrivalDate', {paymentMessage, expectedDate: formattedArrivalDate, detailsURL});
+    return translate('iou.paymentWithArrivalDate', {paymentMessage, expectedDate: formattedArrivalDate});
 }
 
 function getMarkedReimbursedMessage(translate: LocalizedTranslate, reportAction: OnyxInputOrEntry<ReportAction>): string {

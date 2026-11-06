@@ -4276,53 +4276,6 @@ describe('ReportUtils', () => {
 
             expect(result).toContain('HiddenMarker');
         });
-
-        it('warns that the FX rate may change the amount for a Wise cross-border payment', () => {
-            // Given a bank account payment Wise sends in another currency, queued until the employee adds a bank account
-            const submitterAccountID = 780040;
-            const reportAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>>({
-                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
-                reportActionID: '780041',
-                created: '2024-01-01 00:00:00',
-                originalMessage: {paymentType: CONST.IOU.PAYMENT_TYPE.VBBA},
-            });
-
-            // When the queued message is built
-            const result = getReimbursementQueuedActionMessage({
-                reportAction,
-                report: createMock<Report>({reportID: '780042', ownerAccountID: submitterAccountID}),
-                translate: translateLocal,
-                formatPhoneNumber,
-                personalDetails: {[submitterAccountID]: {accountID: submitterAccountID, login: 'todd@test.com', displayName: 'Todd Clyde'}},
-                isWiseCrossBorderPayment: true,
-            });
-
-            // Then it uses the cross-border copy, because the employee may receive a different amount than the report total
-            expect(result).toBe("started payment. Waiting for Todd Clyde's bank account. Final FX rate may change amount.");
-        });
-
-        it('keeps the personal bank account copy for other bank account payments', () => {
-            // Given a bank account payment that does not go through Wise, queued until the employee adds a bank account
-            const submitterAccountID = 780050;
-            const reportAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>>({
-                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
-                reportActionID: '780051',
-                created: '2024-01-01 00:00:00',
-                originalMessage: {paymentType: CONST.IOU.PAYMENT_TYPE.VBBA},
-            });
-
-            // When the queued message is built
-            const result = getReimbursementQueuedActionMessage({
-                reportAction,
-                report: createMock<Report>({reportID: '780052', ownerAccountID: submitterAccountID}),
-                translate: translateLocal,
-                formatPhoneNumber,
-                personalDetails: {[submitterAccountID]: {accountID: submitterAccountID, login: 'todd@test.com', displayName: 'Todd Clyde'}},
-            });
-
-            // Then the existing copy is unchanged, because the FX warning is only for Wise
-            expect(result).toBe('started payment, but is waiting for Todd Clyde to add a personal bank account.');
-        });
     });
 
     describe('getReimbursementDeQueuedOrCanceledActionMessage', () => {

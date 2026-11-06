@@ -2016,10 +2016,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         undeletedExpense: 'heeft deze uitgave teruggezet',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `kilometervergoedingen bijgewerkt voor de nieuwe workspace - ${policyName}`,
-        paymentWithArrivalDate: ({paymentMessage, expectedDate, detailsURL}: {paymentMessage: string; expectedDate: string; detailsURL?: string}) =>
-            `${paymentMessage}, de middelen worden naar verwachting ontvangen vóór ${expectedDate}.${detailsURL ? `<a href="${detailsURL}">Details bekijken</a>` : ''}`,
-        waitingOnBankAccountCrossBorder: (submitterDisplayName: string) =>
-            `betaling gestart. Wachten op de bankrekening van ${submitterDisplayName}. De definitieve wisselkoers kan het bedrag wijzigen.`,
+        paymentWithArrivalDate: ({paymentMessage, expectedDate}: {paymentMessage: string; expectedDate: string}) =>
+            `${paymentMessage}, de middelen worden naar verwachting ontvangen vóór ${expectedDate}.`,
     },
     transactionMerge: {
         listPage: {

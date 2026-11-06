@@ -2058,10 +2058,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         undeletedExpense: 'przywrócił ten wydatek',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `stawki za przejechany dystans zaktualizowane dla nowej przestrzeni roboczej – ${policyName}`,
-        paymentWithArrivalDate: ({paymentMessage, expectedDate, detailsURL}: {paymentMessage: string; expectedDate: string; detailsURL?: string}) =>
-            `${paymentMessage}, środki powinny dotrzeć do ${expectedDate}.${detailsURL ? `<a href="${detailsURL}">Zobacz szczegóły</a>` : ''}`,
-        waitingOnBankAccountCrossBorder: (submitterDisplayName: string) =>
-            `rozpoczął(-ę) płatność. Oczekiwanie na konto bankowe użytkownika ${submitterDisplayName}. Ostateczny kurs walutowy może zmienić kwotę.`,
+        paymentWithArrivalDate: ({paymentMessage, expectedDate}: {paymentMessage: string; expectedDate: string}) => `${paymentMessage}, środki powinny dotrzeć do ${expectedDate}.`,
     },
     transactionMerge: {
         listPage: {

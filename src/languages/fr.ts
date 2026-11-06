@@ -2034,10 +2034,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         undeletedExpense: 'a restauré cette dépense',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `les taux kilométriques ont été mis à jour pour le nouvel espace de travail - ${policyName}`,
-        paymentWithArrivalDate: ({paymentMessage, expectedDate, detailsURL}: {paymentMessage: string; expectedDate: string; detailsURL?: string}) =>
-            `${paymentMessage}, les fonds devraient arriver d’ici le ${expectedDate}.${detailsURL ? `<a href="${detailsURL}">Voir les détails</a>` : ''}`,
-        waitingOnBankAccountCrossBorder: (submitterDisplayName: string) =>
-            `paiement lancé. En attente du compte bancaire de ${submitterDisplayName}. Le taux de change final peut modifier le montant.`,
+        paymentWithArrivalDate: ({paymentMessage, expectedDate}: {paymentMessage: string; expectedDate: string}) =>
+            `${paymentMessage}, les fonds devraient arriver d’ici le ${expectedDate}.`,
     },
     transactionMerge: {
         listPage: {

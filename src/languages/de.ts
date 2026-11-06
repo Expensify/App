@@ -2026,10 +2026,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         undeletedExpense: 'Löschvorgang für diese Ausgabe rückgängig gemacht',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `Kilometersätze für den neuen Arbeitsbereich aktualisiert – ${policyName}`,
-        paymentWithArrivalDate: ({paymentMessage, expectedDate, detailsURL}: {paymentMessage: string; expectedDate: string; detailsURL?: string}) =>
-            `${paymentMessage}, die Gelder werden voraussichtlich bis zum ${expectedDate} eingehen.${detailsURL ? `<a href="${detailsURL}">Details anzeigen</a>` : ''}`,
-        waitingOnBankAccountCrossBorder: (submitterDisplayName: string) =>
-            `Zahlung gestartet. Warten auf das Bankkonto von ${submitterDisplayName}. Der endgültige FX-Kurs kann den Betrag ändern.`,
+        paymentWithArrivalDate: ({paymentMessage, expectedDate}: {paymentMessage: string; expectedDate: string}) =>
+            `${paymentMessage}, die Gelder werden voraussichtlich bis zum ${expectedDate} eingehen.`,
     },
     transactionMerge: {
         listPage: {

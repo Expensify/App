@@ -2454,17 +2454,6 @@ describe('ReportActionsUtils', () => {
             expect(message).toBe('paid with bank account 1234, funds are expected to arrive by August 18, 2026.');
         });
 
-        it('should link to the payment details when a details URL is given', () => {
-            // Given a cross-border payment message, its delivery estimate and the link to the Payment details screen
-            const paymentMessage = 'paid with bank account 1234';
-
-            // When the estimate is added to the message
-            const message = ReportActionsUtils.getPaymentMessageWithExpectedDate(translateLocal, undefined, paymentMessage, '2026-08-18', 'https://new.expensify.com/details');
-
-            // Then the message ends with the View details link, so the payer can see what was charged
-            expect(message).toBe('paid with bank account 1234, funds are expected to arrive by August 18, 2026. <a href="https://new.expensify.com/details">View details</a>');
-        });
-
         it.each([
             ['no estimate', undefined],
             ['an estimate that cannot be parsed', 'not a date'],

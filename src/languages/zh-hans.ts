@@ -1939,9 +1939,7 @@ const translations: TranslationDeepObject<typeof en> = {
         tagDisabledAlert: {title: '标签已停用', prompt: '请在工作区中启用标签，以便编辑该报销的详细信息或从此报销中删除该标签。', confirmText: '删除标签'},
         undeletedExpense: '恢复了此报销单',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `已为新工作区更新里程报销标准 - ${policyName}`,
-        paymentWithArrivalDate: ({paymentMessage, expectedDate, detailsURL}: {paymentMessage: string; expectedDate: string; detailsURL?: string}) =>
-            `${paymentMessage}，预计款项将在 ${expectedDate} 前到账。${detailsURL ? `<a href="${detailsURL}">查看详情</a>` : ''}`,
-        waitingOnBankAccountCrossBorder: (submitterDisplayName: string) => `已开始付款。正在等待 ${submitterDisplayName} 的银行账户。最终外汇汇率可能会改变金额。`,
+        paymentWithArrivalDate: ({paymentMessage, expectedDate}: {paymentMessage: string; expectedDate: string}) => `${paymentMessage}，预计款项将在 ${expectedDate} 前到账。`,
     },
     transactionMerge: {
         listPage: {

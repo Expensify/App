@@ -2010,10 +2010,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         undeletedExpense: 'restauró este gasto',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `se han actualizado las tarifas de kilometraje para el nuevo espacio de trabajo: ${policyName}`,
-        paymentWithArrivalDate: ({paymentMessage, expectedDate, detailsURL}: {paymentMessage: string; expectedDate: string; detailsURL?: string}) =>
-            `${paymentMessage}, se espera que los fondos lleguen para el ${expectedDate}.${detailsURL ? `<a href="${detailsURL}">Ver detalles</a>` : ''}`,
-        waitingOnBankAccountCrossBorder: (submitterDisplayName: string) =>
-            `inició el pago. Esperando la cuenta bancaria de ${submitterDisplayName}. La Tasa de cambio final puede modificar el importe.`,
+        paymentWithArrivalDate: ({paymentMessage, expectedDate}: {paymentMessage: string; expectedDate: string}) =>
+            `${paymentMessage}, se espera que los fondos lleguen para el ${expectedDate}.`,
     },
     transactionMerge: {
         listPage: {

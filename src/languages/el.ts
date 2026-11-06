@@ -2073,10 +2073,8 @@ const translations: TranslationDeepObject<typeof en> = {
         unholdWhenReadyDM: 'Αποδεσμεύστε τις δαπάνες όταν είστε έτοιμοι να τις στείλετε.',
         undeletedExpense: 'ανέκτησε αυτή τη δαπάνη',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `οι τιμές αποζημίωσης χιλιομέτρων ενημερώθηκαν για το νέο χώρο εργασίας - ${policyName}`,
-        paymentWithArrivalDate: ({paymentMessage, expectedDate, detailsURL}: {paymentMessage: string; expectedDate: string; detailsURL?: string}) =>
-            `${paymentMessage}, τα χρήματα αναμένεται να φτάσουν έως ${expectedDate}.${detailsURL ? `<a href="${detailsURL}">Προβολή λεπτομερειών</a>` : ''}`,
-        waitingOnBankAccountCrossBorder: (submitterDisplayName: string) =>
-            `πληρωμή ξεκίνησε. Αναμονή για τον τραπεζικό λογαριασμό του/της ${submitterDisplayName}. Η τελική συναλλαγματική ισοτιμία μπορεί να αλλάξει το ποσό.`,
+        paymentWithArrivalDate: ({paymentMessage, expectedDate}: {paymentMessage: string; expectedDate: string}) =>
+            `${paymentMessage}, τα χρήματα αναμένεται να φτάσουν έως ${expectedDate}.`,
     },
     transactionMerge: {
         listPage: {
