@@ -22,6 +22,8 @@ Each report status reflects a different stage in the reporting workflow:
   - **Confirmed**: The reimbursement has been confirmed.
 - **Done**: The report is locked. No further edits or deletions can be made. This is the final status for non-approvable reports.
 
+To view **Report history**, open a workspace expense report and select the next-step message in the report header. You can see completed actions and upcoming steps, including who needs to act next.
+
 ---
 
 # Report Action Buttons
