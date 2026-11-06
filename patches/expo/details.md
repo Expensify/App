@@ -1,6 +1,6 @@
 # `expo` patches
 
-### [expo+57.0.8+001+fix-hmrclient-race-condition.patch](expo+57.0.8+001+fix-hmrclient-race-condition.patch)
+### [expo+58.0.14+001+fix-hmrclient-race-condition.patch](expo+58.0.14+001+fix-hmrclient-race-condition.patch)
 
 - Reason:
 
@@ -13,6 +13,6 @@
     when setup() eventually calls registerBundleEntryPoints().
     ```
 
-- Upstream PR/issue: https://github.com/expo/expo/pull/43864
+- Upstream PR/issue: https://github.com/expo/expo/pull/43864 (same change, closed without merging). Still unfixed in 58.0.14.
 - E/App issue: https://github.com/Expensify/App/issues/75120
 - PR introducing patch: https://github.com/Expensify/App/pull/79962

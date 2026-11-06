@@ -22,3 +22,11 @@
 - Upstream PR/issue: https://github.com/computerjazz/react-native-draggable-flatlist/issues/509
 - E/App issue: [#87362](https://github.com/Expensify/App/issues/87362)
 - PR Introducing Patch: [#90617](https://github.com/Expensify/App/pull/90617)
+
+
+### [react-native-draggable-flatlist+4.0.3+004+replace-removed-InteractionManager.patch](react-native-draggable-flatlist+4.0.3+004+replace-removed-InteractionManager.patch)
+
+- Reason: React Native 0.87 removed `InteractionManager`. In dev builds, reading it from `react-native` throws an invariant, and in release builds it is `undefined`. `DraggableFlatList` calls `InteractionManager.runAfterInteractions(reset)` during render whenever the keys in `data` change, for example when the Columns search filters the list or when a waypoint is added or removed. The render throws, React recovers by rendering again synchronously, and `reset()` never runs, so the drag state is not cleared. The patch defers `reset()` with `requestAnimationFrame` instead, as the upstream fix does. It changes `src/`, which the app bundle uses through the `react-native` field, and `lib/commonjs/`, which Jest uses through `main`.
+- Upstream PR/issue: https://github.com/computerjazz/react-native-draggable-flatlist/pull/628 (fixes https://github.com/computerjazz/react-native-draggable-flatlist/issues/627)
+- E/App issue: https://github.com/Expensify/App/issues/101427
+- PR Introducing Patch: [#101739](https://github.com/Expensify/App/pull/101739)

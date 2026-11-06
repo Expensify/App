@@ -1,0 +1,24 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.kt
+index b854262..d46de43 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.kt
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.kt
+@@ -310,12 +310,14 @@ internal constructor(
+     }
+ 
+     val parentView = parentViewState.view
+-    checkNotNull(parentView) { "Unable to find parentView for tag $parentTag" }
+     if (parentView !is ViewGroup) {
+-      val message =
+-          "Unable to add a view into a non-ViewGroup ${parentView.javaClass.simpleName} when inserting [$tag] into parent [$parentTag]"
+-      FLog.e(TAG, message)
+-      throw IllegalStateException(message)
++      ReactSoftExceptionLogger.logSoftException(
++          TAG,
++          ReactNoCrashSoftException(
++              "Unable to add a view into a view that is not a ViewGroup. ParentTag: $parentTag - Tag: $tag - Index: $index - ParentView: ${parentView?.javaClass?.simpleName}"
++          ),
++      )
++      return
+     }
+ 
+     val viewState = getNullableViewState(tag)

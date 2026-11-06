@@ -1,8 +1,7 @@
 import type {FlatListInnerRefType} from '@components/FlatList/types';
 
-import type {ComponentRef, ForwardedRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {FlatList as RNFlatList, ScrollView} from 'react-native';
+import type {ForwardedRef} from 'react';
+import type {FlatList as RNFlatList} from 'react-native';
 
 import {useImperativeHandle} from 'react';
 
@@ -31,7 +30,7 @@ function useFlatListHandle<T>({ref, listRef, setCurrentDataId, remainingItemsToD
             const scrollViewRef = listRef.current?.getNativeScrollRef();
             // Try to scroll on underlying scrollView if available, fallback to usual listRef
             if (scrollViewRef && 'scrollToEnd' in scrollViewRef) {
-                (scrollViewRef as ComponentRef<typeof ScrollView>).scrollToEnd({animated: !!params?.animated});
+                scrollViewRef.scrollToEnd({animated: !!params?.animated});
                 return;
             }
             listRef.current?.scrollToEnd(params);

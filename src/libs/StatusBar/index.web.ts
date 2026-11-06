@@ -17,7 +17,7 @@ StatusBar.setBackgroundColor = (backgroundColor) => {
         return;
     }
 
-    element.content = backgroundColor as string;
+    element.content = backgroundColor;
 };
 
 export default StatusBar;

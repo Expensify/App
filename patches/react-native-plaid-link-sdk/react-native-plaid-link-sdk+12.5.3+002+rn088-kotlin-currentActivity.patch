@@ -1,0 +1,21 @@
+diff --git a/node_modules/react-native-plaid-link-sdk/android/src/main/java/com/plaid/PlaidModule.kt b/node_modules/react-native-plaid-link-sdk/android/src/main/java/com/plaid/PlaidModule.kt
+--- a/node_modules/react-native-plaid-link-sdk/android/src/main/java/com/plaid/PlaidModule.kt
++++ b/node_modules/react-native-plaid-link-sdk/android/src/main/java/com/plaid/PlaidModule.kt
+@@ -126,7 +126,7 @@ class PlaidModule internal constructor(reactContext: ReactApplicationContext) :
+ 
+   @ReactMethod
+   override fun open(onSuccessCallback: Callback, onExitCallback: Callback) {
+-    val activity = currentActivity ?: throw IllegalStateException("Current activity is null")
++    val activity = reactApplicationContext.currentActivity ?: throw IllegalStateException("Current activity is null")
+ 
+     plaidHandler?.let { handler ->
+       // Work with nonNullValue here
+@@ -176,7 +176,7 @@ class PlaidModule internal constructor(reactContext: ReactApplicationContext) :
+     onSuccessCallback: Callback,
+     onExitCallback: Callback
+   ) {
+-    val activity = currentActivity ?: throw IllegalStateException("Current activity is null")
++    val activity = reactApplicationContext.currentActivity ?: throw IllegalStateException("Current activity is null")
+     this.onSuccessCallback = onSuccessCallback
+     this.onExitCallback = onExitCallback
+ 

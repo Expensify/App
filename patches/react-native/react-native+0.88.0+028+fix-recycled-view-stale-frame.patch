@@ -1,0 +1,25 @@
+diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
+index fb542c1..11a2f22 100644
+--- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
++++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
+@@ -747,13 +747,14 @@ - (void)prepareForRecycle
+   [super prepareForRecycle];
+ 
+   // If view was managed by animated, its props need to align with UIView's properties.
++  // We realign unconditionally (instead of only when the key is present in
++  // `_propKeysManagedByAnimated_DO_NOT_USE_THIS_IS_BROKEN`) because libraries such as
++  // Reanimated mutate `layer.transform`/`layer.opacity` directly on the UI thread without
++  // registering those keys, so the conditional checks below would otherwise miss them and
++  // leave a recycled view with a stale transform/opacity.
+   const auto &props = static_cast<const ViewProps &>(*_props);
+-  if ([_propKeysManagedByAnimated_DO_NOT_USE_THIS_IS_BROKEN containsObject:@"transform"]) {
+-    self.layer.transform = RCTCATransform3DFromTransformMatrix(props.transform);
+-  }
+-  if ([_propKeysManagedByAnimated_DO_NOT_USE_THIS_IS_BROKEN containsObject:@"opacity"]) {
+-    self.layer.opacity = (float)props.opacity;
+-  }
++  self.layer.transform = RCTCATransform3DFromTransformMatrix(props.transform);
++  self.layer.opacity = (float)props.opacity;
+ 
+   // Clean up box shadow layers to prevent cross-component contamination
+   if (_boxShadowLayers != nullptr) {
