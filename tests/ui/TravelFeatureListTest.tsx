@@ -64,7 +64,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {navigate: jest.fn(), getActiveRoute: jest.fn(() => ''), getActiveRouteWithoutParams: jest.fn(() => '')},
 }));
-jest.mock('@libs/actions/Travel', () => ({requestTravelAccess: jest.fn(), cleanupTravelProvisioningSession: jest.fn()}));
+jest.mock('@libs/actions/Travel', () => ({requestTravelAccess: jest.fn(() => Promise.resolve(true)), cleanupTravelProvisioningSession: jest.fn()}));
 jest.mock('@libs/openTravelDotLink', () => ({openTravelDotLink: jest.fn()}));
 
 // The animation player and workspace access chrome do not render the benefit rows or footer actions.
