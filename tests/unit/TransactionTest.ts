@@ -2400,6 +2400,7 @@ describe('Transaction', () => {
                     accountID: CURRENT_USER_ID,
                     email: 'test@example.com',
                     newReport: destinationReport,
+                    currentUserPersonalDetails,
                     policy: policies[DESTINATION_POLICY_ID],
                     policies: policyCollection,
                     allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction},
