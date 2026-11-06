@@ -5044,6 +5044,7 @@ function getReimbursementQueuedActionMessage({
     formatPhoneNumber,
     shouldUseShortDisplayName = true,
     personalDetails,
+    isWiseCrossBorderPayment = false,
 }: {
     reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>>;
     report: OnyxEntry<Report>;
@@ -5051,6 +5052,9 @@ function getReimbursementQueuedActionMessage({
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     shouldUseShortDisplayName?: boolean;
     personalDetails?: Partial<PersonalDetailsList>;
+
+    /** Wise pays the employee in another currency, so the message warns that the final FX rate may change the amount */
+    isWiseCrossBorderPayment?: boolean;
 }): string {
     const submitterDisplayName =
         getDisplayNameForParticipant({
@@ -5064,6 +5068,8 @@ function getReimbursementQueuedActionMessage({
     let messageKey: TranslationPaths;
     if (originalMessage?.paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
         messageKey = 'iou.waitingOnEnabledWallet';
+    } else if (isWiseCrossBorderPayment) {
+        messageKey = 'iou.waitingOnBankAccountCrossBorder';
     } else {
         messageKey = 'iou.waitingOnBankAccount';
     }

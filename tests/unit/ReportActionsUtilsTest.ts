@@ -2320,6 +2320,41 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getPaymentMessageWithExpectedDate', () => {
+        it('should say when funds arrive, with the full month, for a Wise cross-border payment', () => {
+            // Given a Wise cross-border payment message and its delivery estimate
+            const paymentMessage = 'paid with bank account 1234';
+
+            // When the estimate is added to the message
+            const message = ReportActionsUtils.getPaymentMessageWithExpectedDate(translateLocal, undefined, paymentMessage, '2026-08-18', true);
+
+            // Then it uses the same "funds are expected to arrive" wording as the Wise delivery estimate actions
+            expect(message).toBe('paid with bank account 1234, funds are expected to arrive by August 18, 2026.');
+        });
+
+        it('should keep the next step wording for other bank account payments', () => {
+            // Given a bank account payment that does not go through Wise and its delivery estimate
+            const paymentMessage = 'paid with bank account 1234';
+
+            // When the estimate is added to the message
+            const message = ReportActionsUtils.getPaymentMessageWithExpectedDate(translateLocal, undefined, paymentMessage, '2026-08-18');
+
+            // Then the existing copy is unchanged, because the new wording is only for Wise
+            expect(message).toBe('paid with bank account 1234. Waiting for payment to complete by Aug 18, 2026.');
+        });
+
+        it('should return the payment message alone for a Wise cross-border payment without an estimate', () => {
+            // Given a Wise cross-border payment message with no delivery estimate yet
+            const paymentMessage = 'paid with bank account 1234';
+
+            // When the estimate is added to the message
+            const message = ReportActionsUtils.getPaymentMessageWithExpectedDate(translateLocal, undefined, paymentMessage, undefined, true);
+
+            // Then nothing is appended, because there is no date to show
+            expect(message).toBe(paymentMessage);
+        });
+    });
+
     describe('getSendMoneyFlowAction', () => {
         const mockChatReportID = `${ONYXKEYS.COLLECTION.REPORT}REPORT` as const;
         const mockDMChatReportID = `${ONYXKEYS.COLLECTION.REPORT}REPORT_DM` as const;

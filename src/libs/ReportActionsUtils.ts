@@ -897,9 +897,24 @@ function getCrossBorderReimbursedMessage(
     });
 }
 
-function getPaymentMessageWithExpectedDate(translate: LocalizedTranslate, dateFnsLocale: DateFnsLocale | undefined, paymentMessage: string, expectedDate: string | undefined): string {
+/**
+ * Appends the delivery estimate to a bank account payment message. Wise cross-border payments read "funds are expected to
+ * arrive by" with the full month, the same as the Wise delivery estimate actions, while other payments keep the next step wording.
+ */
+function getPaymentMessageWithExpectedDate(
+    translate: LocalizedTranslate,
+    dateFnsLocale: DateFnsLocale | undefined,
+    paymentMessage: string,
+    expectedDate: string | undefined,
+    isWiseCrossBorderPayment = false,
+): string {
     if (!expectedDate) {
         return paymentMessage;
+    }
+
+    if (isWiseCrossBorderPayment) {
+        const formattedArrivalDate = DateUtils.formatWithUTCTimeZone(expectedDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale);
+        return formattedArrivalDate ? translate('iou.paymentWithArrivalDate', {paymentMessage, expectedDate: formattedArrivalDate}) : paymentMessage;
     }
 
     const formattedExpectedDate = DateUtils.formatWithUTCTimeZone(expectedDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, dateFnsLocale);
