@@ -55,7 +55,7 @@ const restrictedImportPaths = [
     {name: '@styles/utils', importNames: ['default', 'DefaultStyleUtils'], message: 'Do not import StyleUtils directly. Please use the `useStyleUtils` hook instead.'},
     {name: '@styles/theme', importNames: ['default', 'defaultTheme'], message: 'Do not import themes directly. Please use the `useTheme` hook instead.'},
     {name: '@styles/theme/illustrations', message: 'Do not import theme illustrations directly. Please use the `useThemeIllustrations` hook instead.'},
-    {name: 'date-fns/locale', message: "Do not import 'date-fns/locale' directly. Please use the submodule import instead, like 'date-fns/locale/en-GB'."},
+    {name: 'date-fns/locale', message: "Do not import 'date-fns/locale' directly. Please use the submodule import instead, like 'date-fns/locale/en-US'."},
     {
         name: 'expensify-common',
         importNames: ['Device', 'ExpensiMark'],

@@ -6257,7 +6257,11 @@ ${amount} dla ${merchant} - ${date}`,
             noSubsidiariesFoundDescription: 'Dodaj proszę jednostkę zależną w NetSuite i ponownie zsynchronizuj połączenie',
             tokenInput: {
                 title: 'Konfiguracja NetSuite',
-                connectWithTokenAuthentication: 'Połącz się zamiast tego z użyciem uwierzytelniania opartego na tokenie (SOAP)',
+                tokenAuthenticationPrompt: {
+                    beforeLink: 'Lub połącz się zamiast tego z użyciem',
+                    link: 'uwierzytelniania opartego na tokenie',
+                    afterLink: '(SOAP).',
+                },
                 formSteps: {
                     installBundle: {
                         title: 'Zainstaluj pakiet Expensify',
@@ -8949,8 +8953,10 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 autoPayApprovedReportsLockedSubtitle: 'Przejdź do „Więcej funkcji” i włącz Workflows, a następnie dodaj płatności, aby odblokować tę funkcję.',
                 autoPayApprovedReportsControlPlanSubtitle: (upgradeLink: string) =>
                     `Automatyczna płatność jest dostępna tylko w planie Control. [Uaktualnij](${upgradeLink}), aby odblokować tę funkcję.`,
-                autoPayReportsUnderTitle: 'Automatycznie opłacaj raporty w ramach',
+                autoPayReportsUnderTitle: 'Automatycznie opłacaj raporty poniżej',
                 autoPayReportsUnderDescription: 'W pełni zgodne raporty wydatków poniżej tej kwoty zostaną opłacone automatycznie.',
+                autoPayCrossBorderFeesDisclosure:
+                    'Płatności zagraniczne korzystają ze średniego kursu rynkowego z chwili płatności. Do wszystkich płatności zagranicznych naliczana jest zmienna opłata w wysokości 1%, z wyjątkiem następujących walut: CRC (1,32%), KES (1,01%), MAD (1,60%), NPR (1,05%), UGX (1,47%), UYU (1,12%).\n\nDokładnych kursów i opłat nie można sprawdzić przed płatnością, gdy raport jest opłacany automatycznie. Pełne, szczegółowe zestawienie (w tym dokładny kurs wymiany, opłaty i kwota końcowa) jest dostępne w raporcie zaraz po płatności.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Dodaj ${featureName}, aby odblokować tę funkcję.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Przejdź do [więcej funkcji](${moreFeaturesLink}) i włącz ${featureName}, aby odblokować tę funkcję.`,
@@ -9723,6 +9729,39 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 description: 'Wybierz domyślnego dostawcę Zoho Books dla wydatków, które nie dopasowują się automatycznie.',
             },
             companyCardAccount: {label: 'Konto karty firmowej', description: 'Wybierz miejsce eksportu transakcji z kart firmowych.'},
+            exportToMultipleAccounts: 'Skonfiguruj eksport do wielu kont',
+            cardProgramAccount: {
+                label: 'Konto programu kartowego',
+                description: 'Zastąp konto przestrzeni roboczej dla tych programów kart.',
+                descriptionLevel2: 'Zastąp konto przestrzeni roboczej dla tego programu kart.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Wszystkie programy używają domyślnego konta';
+                    }
+                    return {
+                        one: `${count} program z niestandardowym kontem`,
+                        few: `${count} programy z niestandardowymi kontami`,
+                        many: `${count} programów z niestandardowymi kontami`,
+                        other: `${count} programu z niestandardowymi kontami`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'Konto przypisane do karty',
+                description: 'Zastąp konto programu dla poszczególnych kart.',
+                descriptionLevel2: 'Zastąp konto programu dla tych kart.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Wszystkie karty korzystają z kont programu';
+                    }
+                    return {
+                        one: `${count} karta z niestandardowym kontem`,
+                        few: `${count} karty z niestandardowymi kontami`,
+                        many: `${count} kart z niestandardowymi kontami`,
+                        other: `${count} karty z niestandardowymi kontami`,
+                    };
+                },
+            },
             noVendorsFound: 'Nie znaleziono dostawców',
             noVendorsFoundDescription: 'Dodaj proszę dostawców w Zoho Books i zsynchronizuj połączenie ponownie',
             noAccountsFound: 'Nie znaleziono kont',
@@ -11617,6 +11656,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         autoReportedRejectedExpense: 'Ten wydatek został odrzucony.',
         billableExpense: 'Rozliczalne już nieważne',
         cashExpenseWithNoReceipt: (formattedLimit?: string) => `Wymagany paragon${formattedLimit ? `powyżej ${formattedLimit}` : ''}`,
+        categoryNotAllowed: 'Kategoria niedozwolona',
         categoryOutOfPolicy: 'Kategoria nie jest już prawidłowa',
         conversionSurcharge: (surcharge: number) => `Zastosowano prowizję za przewalutowanie w wysokości ${surcharge}%`,
         customUnitOutOfPolicy: 'Stawka nie jest ważna dla tego workspace’u',
@@ -11801,6 +11841,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             autoReportedRejectedExpense: 'Wydatek odrzucony',
             billableExpense: 'Opcja rozliczalne nie jest już dostępna',
             cashExpenseWithNoReceipt: 'Wymagany paragon',
+            categoryNotAllowed: 'Kategoria niedozwolona',
             categoryOutOfPolicy: 'Kategoria już nieaktualna',
             companyCardRequired: 'Wymagana karta firmowa',
             conversionSurcharge: 'Naliczono opłatę za przewalutowanie',

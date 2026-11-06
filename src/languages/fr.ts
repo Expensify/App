@@ -6282,7 +6282,11 @@ ${amount} pour ${merchant} - ${date}`,
             noSubsidiariesFoundDescription: 'Veuillez ajouter une filiale dans NetSuite et synchroniser à nouveau la connexion',
             tokenInput: {
                 title: 'Configuration NetSuite',
-                connectWithTokenAuthentication: 'Connectez-vous plutôt avec l’authentification par jeton (SOAP)',
+                tokenAuthenticationPrompt: {
+                    beforeLink: 'Ou connectez-vous plutôt avec',
+                    link: 'l’authentification par jeton',
+                    afterLink: '(SOAP).',
+                },
                 formSteps: {
                     installBundle: {
                         title: 'Installer le bundle Expensify',
@@ -9021,6 +9025,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                     `Le paiement automatique n’est disponible qu’avec l’offre Control. [Mettez à niveau](${upgradeLink}) pour déverrouiller cette fonctionnalité.`,
                 autoPayReportsUnderTitle: 'Notes de frais payées automatiquement sous',
                 autoPayReportsUnderDescription: 'Les notes de frais entièrement conformes en dessous de ce montant seront payées automatiquement.',
+                autoPayCrossBorderFeesDisclosure:
+                    'Les paiements internationaux utilisent le taux de change moyen du marché au moment du paiement. Des frais variables de 1 % s’appliquent à tous les paiements internationaux, sauf pour les devises suivantes : CRC (1,32 %), KES (1,01 %), MAD (1,60 %), NPR (1,05 %), UGX (1,47 %), UYU (1,12 %).\n\nLes taux et frais exacts ne peuvent pas être consultés avant le paiement lorsqu’une note de frais est payée automatiquement. Une ventilation détaillée complète (y compris le taux de change exact, les frais et le montant final) est disponible sur la note de frais immédiatement après le paiement.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Ajoutez ${featureName} pour déverrouiller cette fonctionnalité.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Allez dans [plus de fonctionnalités](${moreFeaturesLink}) et activez ${featureName} pour déverrouiller cette fonctionnalité.`,
@@ -9812,6 +9818,35 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 description: 'Choisissez un fournisseur Zoho Books par défaut pour les dépenses qui ne correspondent pas automatiquement.',
             },
             companyCardAccount: {label: 'Compte de carte d’entreprise', description: 'Choisissez où exporter les transactions de carte d’entreprise.'},
+            exportToMultipleAccounts: 'Configurer l’exportation vers plusieurs comptes',
+            cardProgramAccount: {
+                label: 'Compte du programme de carte',
+                description: 'Remplacer le compte de l’espace de travail pour ces programmes de cartes.',
+                descriptionLevel2: 'Remplacer le compte de l’espace de travail pour ce programme de carte.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Tous les programmes utilisent le compte par défaut';
+                    }
+                    return {
+                        one: `${count} programme avec compte personnalisé`,
+                        other: `${count} programmes avec comptes personnalisés`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'Compte par carte',
+                description: 'Remplacez le compte de programme pour des cartes individuelles.',
+                descriptionLevel2: 'Remplacer le compte de programme pour ces cartes.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Toutes les cartes utilisent des comptes de programme';
+                    }
+                    return {
+                        one: `${count} carte avec un compte personnalisé`,
+                        other: `${count} cartes avec comptes personnalisés`,
+                    };
+                },
+            },
             noVendorsFound: 'Aucun fournisseur trouvé',
             noVendorsFoundDescription: 'Veuillez ajouter des fournisseurs dans Zoho Books et synchroniser de nouveau la connexion',
             noAccountsFound: 'Aucun compte trouvé',
@@ -11710,6 +11745,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         autoReportedRejectedExpense: 'Cette dépense a été rejetée.',
         billableExpense: 'Facturable n’est plus valide',
         cashExpenseWithNoReceipt: (formattedLimit?: string) => `Reçu obligatoire${formattedLimit ? `au-delà de ${formattedLimit}` : ''}`,
+        categoryNotAllowed: 'Catégorie non autorisée',
         categoryOutOfPolicy: 'Catégorie plus valide',
         conversionSurcharge: (surcharge: number) => `Surcharge de conversion de ${surcharge}% appliquée`,
         customUnitOutOfPolicy: 'Taux non valide pour cet espace de travail',
@@ -11895,6 +11931,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             autoReportedRejectedExpense: 'Dépense rejetée',
             billableExpense: 'Facturable n’est plus valide',
             cashExpenseWithNoReceipt: 'Reçu obligatoire',
+            categoryNotAllowed: 'Catégorie non autorisée',
             categoryOutOfPolicy: 'Catégorie n’est plus valide',
             companyCardRequired: 'Carte d’entreprise requise',
             conversionSurcharge: 'Surcharge de conversion appliquée',

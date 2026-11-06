@@ -1,21 +1,30 @@
 /**
  * Zoho Books export settings: the preferred exporter, vendor bill date, and the vendor and account company card expenses export with.
  * Reimbursable and company card export types are shown read-only because Zoho Books supports one type each.
+ * When the workspace has active company cards, admins can also override the company card account per card feed and per card.
  */
+import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 
+import useAccordionAnimation from '@hooks/useAccordionAnimation';
+import useCardFeeds from '@hooks/useCardFeeds';
+import useCardsLists from '@hooks/useCardsLists';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {clearZohoBooksErrorField, updateZohoBooksExportToMultipleAccounts} from '@libs/actions/connections/ZohoBooks';
+import {areCardsCustomExportInErrorFields, findMatchingCards, getCardsCustomExportPendingAction, getCardsUsingCustomExportCount} from '@libs/CardFeedUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, getZohoBooksVendors, settingsPendingAction} from '@libs/PolicyUtils';
 
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -26,6 +35,8 @@ function ZohoBooksExportPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
+    const [cardFeeds] = useCardFeeds(policyID);
+    const [cardLists] = useCardsLists();
     const policyOwner = policy?.owner;
     const zohoBooksConfig = policy?.connections?.zohoBooks?.config;
     const zohoBooksData = policy?.connections?.zohoBooks?.data;
@@ -35,6 +46,19 @@ function ZohoBooksExportPage({policy}: WithPolicyConnectionsProps) {
     const exportNonReimbursable = zohoBooksConfig?.export?.nonReimbursable ?? CONST.ZOHO_BOOKS_EXPORT_NON_REIMBURSABLE.EXPENSE;
     const defaultCompanyCardVendor = getZohoBooksVendors(policy).find((vendor) => vendor.id === zohoBooksConfig?.export?.defaultVendorID);
     const companyCardAccount = zohoBooksData?.bankAccounts?.find((account) => account.id === zohoBooksConfig?.export?.creditCardAccountID);
+    const exportToMultipleAccounts = zohoBooksConfig?.export?.exportToMultipleAccounts ?? false;
+    // A feed can be connected under more than one domain, so count each feed once
+    const cardProgramsUsingCustomAccountsCount = new Set(
+        Object.values(cardFeeds ?? {})
+            .map((cardFeed) => cardFeed.feed)
+            .filter((feed) => !!zohoBooksConfig?.export?.cardProgramAccounts?.[feed] && findMatchingCards(cardFeeds ?? {}, cardLists, feed).length > 0),
+    ).size;
+    const cardProgramsOfflineFeedbackKeys = Object.values(cardFeeds ?? {}).map((program) => `${CONST.ZOHO_BOOKS_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${program.feed}`);
+    const cardsUsingCustomAccountsCount = getCardsUsingCustomExportCount(cardFeeds ?? {}, cardLists, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_ZOHO_BOOKS_EXPORT_ACCOUNT);
+    const hasActiveCards = findMatchingCards(cardFeeds ?? {}, cardLists).length > 0;
+
+    const {isAccordionExpanded: isExportToMultipleAccountsAccordionExpanded, shouldAnimateAccordionSection: shouldAnimateExportToMultipleAccountsAccordionSection} =
+        useAccordionAnimation(exportToMultipleAccounts);
 
     return (
         <ConnectionLayout
@@ -118,6 +142,53 @@ function ZohoBooksExportPage({policy}: WithPolicyConnectionsProps) {
                     )}
                 </MenuItemField>
             </OfflineWithFeedback>
+            {hasActiveCards && (
+                <>
+                    <ToggleSettingOptionRow
+                        title={translate('workspace.zohoBooks.exportToMultipleAccounts')}
+                        switchAccessibilityLabel={translate('workspace.zohoBooks.exportToMultipleAccounts')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.ZOHO_BOOKS.EXPORT_TO_MULTIPLE_ACCOUNTS_SWITCH}
+                        shouldPlaceSubtitleBelowSwitch
+                        wrapperStyle={[styles.mv3, styles.mh5]}
+                        isActive={exportToMultipleAccounts}
+                        onToggle={() => policyID && updateZohoBooksExportToMultipleAccounts(policyID, !exportToMultipleAccounts, exportToMultipleAccounts)}
+                        pendingAction={settingsPendingAction([CONST.ZOHO_BOOKS_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS], zohoBooksConfig?.pendingFields)}
+                        errors={getLatestErrorField(zohoBooksConfig ?? {}, CONST.ZOHO_BOOKS_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS)}
+                        onCloseError={() => policyID && clearZohoBooksErrorField(policyID, CONST.ZOHO_BOOKS_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS)}
+                    />
+                    <Accordion
+                        isExpanded={isExportToMultipleAccountsAccordionExpanded}
+                        isToggleTriggered={shouldAnimateExportToMultipleAccountsAccordionSection}
+                    >
+                        <OfflineWithFeedback pendingAction={settingsPendingAction(cardProgramsOfflineFeedbackKeys, zohoBooksConfig?.pendingFields)}>
+                            <MenuItemField
+                                name={translate('workspace.zohoBooks.cardProgramAccount.label')}
+                                onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_CARD_PROGRAM_ACCOUNT.getRoute(policyID)) : undefined)}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ZOHO_BOOKS.CARD_PROGRAM_ACCOUNT}
+                                value={translate('workspace.zohoBooks.cardProgramAccount.countInfo', {count: cardProgramsUsingCustomAccountsCount})}
+                            >
+                                {areSettingsInErrorFields(cardProgramsOfflineFeedbackKeys, zohoBooksConfig?.errorFields) && (
+                                    <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                                )}
+                            </MenuItemField>
+                        </OfflineWithFeedback>
+                        <OfflineWithFeedback
+                            pendingAction={getCardsCustomExportPendingAction(cardFeeds ?? {}, cardLists, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_ZOHO_BOOKS_EXPORT_ACCOUNT)}
+                        >
+                            <MenuItemField
+                                name={translate('workspace.zohoBooks.cardAccount.label')}
+                                onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_CARD_ACCOUNT.getRoute(policyID)) : undefined)}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ZOHO_BOOKS.CARD_ACCOUNT}
+                                value={translate('workspace.zohoBooks.cardAccount.countInfo', {count: cardsUsingCustomAccountsCount.totalCount})}
+                            >
+                                {areCardsCustomExportInErrorFields(cardFeeds ?? {}, cardLists, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_ZOHO_BOOKS_EXPORT_ACCOUNT) && (
+                                    <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                                )}
+                            </MenuItemField>
+                        </OfflineWithFeedback>
+                    </Accordion>
+                </>
+            )}
         </ConnectionLayout>
     );
 }

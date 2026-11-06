@@ -6354,7 +6354,11 @@ ${amount} για ${merchant} - ${date}`,
             noSubsidiariesFoundDescription: 'Παρακαλούμε προσθέστε μια θυγατρική στο NetSuite και συγχρονίστε ξανά τη σύνδεση',
             tokenInput: {
                 title: 'Ρύθμιση NetSuite',
-                connectWithTokenAuthentication: 'Συνδεθείτε με έλεγχο ταυτότητας βάσει διακριτικού (SOAP) αντ’ αυτού',
+                tokenAuthenticationPrompt: {
+                    beforeLink: 'Ή συνδεθείτε με',
+                    link: 'έλεγχο ταυτότητας βάσει διακριτικού',
+                    afterLink: '(SOAP) αντ’ αυτού.',
+                },
                 formSteps: {
                     installBundle: {
                         title: 'Εγκαταστήστε το πακέτο Expensify',
@@ -9348,6 +9352,8 @@ ${reportName}`,
                     `Η αυτόματη πληρωμή είναι διαθέσιμη μόνο στο πλάνο Control. [Κάντε αναβάθμιση](${upgradeLink}) για να ξεκλειδώσετε αυτή τη λειτουργία.`,
                 autoPayReportsUnderTitle: 'Αυτόματη πληρωμή αναφορών κάτω από',
                 autoPayReportsUnderDescription: 'Πλήρως συμβατικές αναφορές εξόδων κάτω από αυτό το ποσό θα εξοφλούνται αυτόματα.',
+                autoPayCrossBorderFeesDisclosure:
+                    'Οι διασυνοριακές πληρωμές χρησιμοποιούν τη μέση ισοτιμία της αγοράς τη στιγμή της πληρωμής. Μεταβλητή χρέωση 1% ισχύει για όλες τις διασυνοριακές πληρωμές, εκτός από τα ακόλουθα νομίσματα: CRC (1,32%), KES (1,01%), MAD (1,60%), NPR (1,05%), UGX (1,47%), UYU (1,12%).\n\nΟι ακριβείς ισοτιμίες και χρεώσεις δεν μπορούν να προβληθούν πριν από την πληρωμή όταν μια αναφορά πληρώνεται αυτόματα. Πλήρης αναλυτική κατάσταση (συμπεριλαμβανομένων της ακριβούς ισοτιμίας, των χρεώσεων και του τελικού ποσού) είναι διαθέσιμη στην αναφορά αμέσως μετά την πληρωμή.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Προσθέστε ${featureName} για να ξεκλειδώσετε αυτήν τη δυνατότητα.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Μεταβείτε στις [περισσότερες δυνατότητες](${moreFeaturesLink}) και ενεργοποιήστε το ${featureName} για να ξεκλειδώσετε αυτήν τη λειτουργία.`,
@@ -9938,6 +9944,35 @@ ${reportName}`,
                 description: 'Επιλέξτε έναν προεπιλεγμένο προμηθευτή Zoho Books για δαπάνες που δεν αντιστοιχίζονται αυτόματα.',
             },
             companyCardAccount: {label: 'Λογαριασμός εταιρικής κάρτας', description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές εταιρικής κάρτας.'},
+            exportToMultipleAccounts: 'Ρύθμιση εξαγωγής σε πολλούς λογαριασμούς',
+            cardProgramAccount: {
+                label: 'Λογαριασμός προγράμματος κάρτας',
+                description: 'Παρακάμψτε τον λογαριασμό χώρου εργασίας για αυτά τα προγράμματα καρτών.',
+                descriptionLevel2: 'Παράκαμψη του λογαριασμού χώρου εργασίας για αυτό το πρόγραμμα κάρτας.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Όλα τα προγράμματα χρησιμοποιούν τον προεπιλεγμένο λογαριασμό';
+                    }
+                    return {
+                        one: `${count} πρόγραμμα με προσαρμοσμένο λογαριασμό`,
+                        other: `${count} προγράμματα με προσαρμοσμένους λογαριασμούς`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'Λογαριασμός ανά κάρτα',
+                description: 'Παρακάμψτε τον λογαριασμό προγράμματος για μεμονωμένες κάρτες.',
+                descriptionLevel2: 'Παράκαμψη του λογαριασμού προγράμματος για αυτές τις κάρτες.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Όλες οι κάρτες χρησιμοποιούν λογαριασμούς προγράμματος';
+                    }
+                    return {
+                        one: `${count} κάρτα με προσαρμοσμένο λογαριασμό`,
+                        other: `${count} κάρτες με προσαρμοσμένους λογαριασμούς`,
+                    };
+                },
+            },
             noVendorsFound: 'Δεν βρέθηκαν προμηθευτές',
             noVendorsFoundDescription: 'Παρακαλούμε προσθέστε προμηθευτές στο Zoho Books και συγχρονίστε ξανά τη σύνδεση',
             noAccountsFound: 'Δεν βρέθηκαν λογαριασμοί',
@@ -11873,6 +11908,7 @@ ${reportName}`,
         autoReportedRejectedExpense: 'Αυτή η δαπάνη απορρίφθηκε.',
         billableExpense: 'Χρεώσιμο, δεν ισχύει πλέον',
         cashExpenseWithNoReceipt: (formattedLimit?: string) => `Απαιτείται απόδειξη${formattedLimit ? `πάνω από ${formattedLimit}` : ''}`,
+        categoryNotAllowed: 'Η κατηγορία δεν επιτρέπεται',
         categoryOutOfPolicy: 'Η κατηγορία δεν είναι πλέον έγκυρη',
         conversionSurcharge: (surcharge: number) => `Εφαρμόστηκε προσαύξηση μετατροπής ${surcharge}%`,
         customUnitOutOfPolicy: 'Η τιμή δεν είναι έγκυρη για αυτόν τον χώρο εργασίας',
@@ -12069,6 +12105,7 @@ ${reportName}`,
             autoReportedRejectedExpense: 'Η δαπάνη απορρίφθηκε',
             billableExpense: 'Η χρέωση δεν ισχύει πλέον',
             cashExpenseWithNoReceipt: 'Απαιτείται απόδειξη',
+            categoryNotAllowed: 'Η κατηγορία δεν επιτρέπεται',
             categoryOutOfPolicy: 'Η κατηγορία δεν είναι πλέον έγκυρη',
             companyCardRequired: 'Απαιτείται εταιρική κάρτα',
             conversionSurcharge: 'Εφαρμόστηκε προσαύξηση μετατροπής',

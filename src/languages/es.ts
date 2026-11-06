@@ -6177,7 +6177,11 @@ ${amount} para ${merchant} - ${date}`,
             noSubsidiariesFoundDescription: 'Añade la subsidiaria en NetSuite y sincroniza de nuevo la conexión',
             tokenInput: {
                 title: 'Netsuite configuración',
-                connectWithTokenAuthentication: 'Conéctate con autenticación basada en tokens (SOAP) en su lugar',
+                tokenAuthenticationPrompt: {
+                    beforeLink: 'O conéctate con',
+                    link: 'autenticación basada en tokens',
+                    afterLink: '(SOAP) en su lugar.',
+                },
                 formSteps: {
                     installBundle: {
                         title: 'Instala el paquete de Expensify',
@@ -9017,6 +9021,8 @@ ${reportName}`,
                     `El pago automático solo está disponible en el plan Controlar. [Mejora el plan](${upgradeLink}) para desbloquear esta función.`,
                 autoPayReportsUnderTitle: 'Pagar automáticamente informes por debajo de',
                 autoPayReportsUnderDescription: 'Los informes de gastos totalmente conformes por debajo de este importe se pagarán automáticamente.',
+                autoPayCrossBorderFeesDisclosure:
+                    'Los pagos internacionales usan el tipo de cambio medio del mercado en el momento del pago. Se aplica una comisión variable del 1% a todos los pagos internacionales, excepto en las siguientes monedas: CRC (1,32%), KES (1,01%), MAD (1,60%), NPR (1,05%), UGX (1,47%), UYU (1,12%).\n\nLos tipos de cambio y las comisiones exactos no se pueden consultar antes del pago cuando un informe se paga automáticamente. Un desglose detallado completo (incluidos el tipo de cambio exacto, las comisiones y el importe final) está disponible en el informe inmediatamente después del pago.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName) => `Añade ${featureName} para desbloquear esta función.`,
                 enableFeatureSubtitle: (featureName, moreFeaturesLink) => `Ir a [más características](${moreFeaturesLink}) y habilita ${featureName} para desbloquear esta función.`,
                 preventPayoutNonReimbursableReportsTitle: 'Evitar marcar como pagados los informes no reembolsables',
@@ -9599,6 +9605,35 @@ ${reportName}`,
                 description: 'Elige un proveedor de Zoho Books predeterminado para los gastos que no se asignen automáticamente.',
             },
             companyCardAccount: {label: 'Cuenta de tarjeta de empresa', description: 'Elige dónde exportar las transacciones de tarjetas de empresa.'},
+            exportToMultipleAccounts: 'Configura la exportación a varias cuentas',
+            cardProgramAccount: {
+                label: 'Cuenta del programa de tarjetas',
+                description: 'Sobrescribe la cuenta del espacio de trabajo para estos programas de tarjetas.',
+                descriptionLevel2: 'Anular la cuenta del espacio de trabajo para este programa de tarjetas.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Todos los programas usan la cuenta predeterminada';
+                    }
+                    return {
+                        one: `${count} programa con cuenta personalizada`,
+                        other: `${count} programas con cuentas personalizadas`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'Cuenta por tarjeta',
+                description: 'Anula la cuenta del programa para tarjetas individuales.',
+                descriptionLevel2: 'Sobrescribe la cuenta del programa para estas tarjetas.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Todas las tarjetas usan cuentas del programa';
+                    }
+                    return {
+                        one: `${count} tarjeta con cuenta personalizada`,
+                        other: `${count} tarjetas con cuentas personalizadas`,
+                    };
+                },
+            },
             noVendorsFound: 'No se encontraron proveedores',
             noVendorsFoundDescription: 'Por favor, añade proveedores en Zoho Books y sincroniza la conexión de nuevo',
             noAccountsFound: 'No se encontraron cuentas',
@@ -11865,6 +11900,7 @@ ${reportName}`,
         autoReportedRejectedExpense: 'Este gasto fue rechazado.',
         billableExpense: 'La opción facturable ya no es válida',
         cashExpenseWithNoReceipt: (formattedLimit) => `Recibo obligatorio para importes mayores de ${formattedLimit}`,
+        categoryNotAllowed: 'Categoría no permitida',
         categoryOutOfPolicy: 'La categoría ya no es válida',
         conversionSurcharge: (surcharge) => `${surcharge}% de recargo aplicado`,
         customUnitOutOfPolicy: 'Tasa inválida para este espacio de trabajo',
@@ -12051,6 +12087,7 @@ ${reportName}`,
             autoReportedRejectedExpense: 'Gasto rechazado',
             billableExpense: 'Refacturable ya no válido',
             cashExpenseWithNoReceipt: 'Recibo obligatorio',
+            categoryNotAllowed: 'Categoría no permitida',
             categoryOutOfPolicy: 'La categoría ya no es válida',
             companyCardRequired: 'Tarjeta de empresa obligatoria',
             conversionSurcharge: 'Suplemento por conversión aplicado',
