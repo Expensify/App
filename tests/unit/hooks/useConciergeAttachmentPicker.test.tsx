@@ -1,5 +1,7 @@
 import {renderHook} from '@testing-library/react-native';
 
+import type useFilesValidation from '@hooks/useFilesValidation';
+
 import Navigation from '@navigation/Navigation';
 
 import useConciergeAttachmentPicker from '@pages/home/ForYouSection/useConciergeAttachmentPicker';
@@ -12,7 +14,7 @@ import React from 'react';
 
 const REPORT_ID = '100';
 
-const mockValidateFiles = jest.fn();
+const mockValidateFiles = jest.fn<ReturnType<ReturnType<typeof useFilesValidation>['validateFiles']>, Parameters<ReturnType<typeof useFilesValidation>['validateFiles']>>();
 const validationHandler: {onFilesValidated?: (files: FileObject[]) => void} = {};
 
 jest.mock('@hooks/useFilesValidation', () => ({
@@ -77,6 +79,36 @@ describe('useConciergeAttachmentPicker', () => {
 
             // Then no validation is started
             expect(mockValidateFiles).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('nullable extraction', () => {
+        it('forwards null extraction from a single item without inventing a file', () => {
+            // Given DataTransferItem.getAsFile may fail even though a picker item exists.
+            const item = {getAsFile: () => null} satisfies FileObject;
+            const {result} = renderPicker(REPORT_ID, jest.fn());
+
+            // When the actual picker uses the actual extraction and name-cleaning functions.
+            result.current.pickAttachments(item);
+
+            // Then the validator receives null at its established boundary, with no filtering.
+            expect(mockValidateFiles).toHaveBeenCalledWith([null], undefined, {isValidatingReceipts: false});
+        });
+
+        it('keeps valid files and null entries in their original array order', () => {
+            // Given extraction mixes a real File, a failed item and a native descriptor.
+            const file = Object.assign(new File(['receipt'], 'receipt.txt', {type: 'text/plain'}), {uri: 'blob:receipt'});
+            const failedItem = {getAsFile: () => null} satisfies FileObject;
+            const descriptor = {name: 'native.jpg', type: 'image/jpeg', uri: 'file:///native.jpg'} satisfies FileObject;
+            const {result} = renderPicker(REPORT_ID, jest.fn());
+
+            // When the real Concierge mapping extracts and cleans the array.
+            result.current.pickAttachments([file, failedItem, descriptor]);
+
+            // Then values and identities reach validation unchanged in their original positions.
+            expect(mockValidateFiles).toHaveBeenCalledWith([file, null, descriptor], undefined, {isValidatingReceipts: false});
+            expect(mockValidateFiles.mock.calls.at(0)?.[0].at(0)).toBe(file);
+            expect(mockValidateFiles.mock.calls.at(0)?.[0].at(2)).toBe(descriptor);
         });
     });
 

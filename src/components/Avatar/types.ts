@@ -1,3 +1,5 @@
+import type {ImageProps} from '@components/Image/types';
+
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import type {AvatarShape, AvatarSizeName} from '@styles/utils';
@@ -11,7 +13,7 @@ type AvatarCommonProps = {
     source?: AvatarSource;
 
     /** Extra styles for the rendered image, or for the container of the rendered icon/initials */
-    imageStyles?: StyleProp<ViewStyle & ImageStyle>;
+    imageStyles?: ImageProps['style'] & StyleProp<ViewStyle & ImageStyle>;
 
     /** Additional styles for the rendered icon/initials, or for the container of the rendered image */
     iconAdditionalStyles?: StyleProp<ViewStyle>;
