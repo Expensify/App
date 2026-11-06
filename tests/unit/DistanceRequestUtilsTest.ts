@@ -908,6 +908,57 @@ describe('DistanceRequestUtils', () => {
     });
 
     describe('getTaxableAmount', () => {
+        it.each([0, 0.5])('preserves an explicit reclaimable share of %s without a selectable rate tax', (percentage) => {
+            // Given a distance rate with an explicitly configured reclaimable share
+            const rate: Rate = {customUnitRateID: 'rate', attributes: {taxClaimablePercentage: percentage}};
+
+            // When resolving the share without a selectable rate tax
+            const result = DistanceRequestUtils.getTaxClaimablePercentage(FAKE_POLICY, rate);
+
+            // Then neither zero nor a partial share is replaced by the full amount
+            expect(result).toBe(percentage);
+        });
+
+        it.each([
+            ['missing', undefined],
+            ['disabled', {name: 'Tax', value: '10%', isDisabled: true}],
+            ['pending deletion', {name: 'Tax', value: '10%', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}],
+        ])('taxes the full distance amount when the rate tax is %s and no share is configured', (_status, taxRate) => {
+            // Given a rate whose tax is no longer selectable and whose reclaimable share was never configured
+            const taxCode = 'id_TAX_RATE_1';
+            const policy: Policy = {...FAKE_POLICY, taxRates: {...CONST.DEFAULT_TAX, taxes: taxRate ? {[taxCode]: taxRate} : {}}};
+
+            // When calculating its taxable distance amount
+            const result = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateIDWithOutTaxClaimablePercentage, totalDistance);
+
+            // Then a fallback tax covers the full reimbursable amount
+            const rate = policy.customUnits?.[distanceCustomUnitBase.customUnitID]?.rates?.[customUnitRateIDWithOutTaxClaimablePercentage]?.rate ?? 0;
+            expect(result).toBe(DistanceRequestUtils.getDistanceRequestAmount(totalDistance, distanceUnit, rate));
+            expect(result).toBeGreaterThan(0);
+        });
+
+        it('keeps a zero taxable share when an active rate tax has no configured share', () => {
+            // Given a selectable tax on a distance rate with no reclaimable share
+            const policy: Policy = {...FAKE_POLICY, taxRates: CONST.DEFAULT_TAX};
+
+            // When calculating the taxable amount
+            const result = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateIDWithOutTaxClaimablePercentage, totalDistance);
+
+            // Then existing rate tax behavior is unchanged
+            expect(result).toBe(0);
+        });
+
+        it('taxes the full distance amount when the rate has no tax configured', () => {
+            // Given a distance rate without tax attributes
+            const rateID = 'B593F3FBBB0BD';
+
+            // When calculating its taxable amount
+            const result = DistanceRequestUtils.getTaxableAmount(FAKE_POLICY, rateID, totalDistance);
+
+            // Then category and manually selected taxes cover the full distance amount
+            expect(result).toBe(DistanceRequestUtils.getDistanceRequestAmount(totalDistance, distanceUnit, 900));
+        });
+
         it('should return 0 if tax reclaimable percentage is undefined', () => {
             const result = DistanceRequestUtils.getTaxableAmount(FAKE_POLICY, customUnitRateIDWithOutTaxClaimablePercentage, totalDistance);
             expect(result).toBe(0);
