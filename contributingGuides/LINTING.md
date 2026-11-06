@@ -126,7 +126,34 @@ Commit the updated `config/oxlint/oxlint.seatbelt.tsv` alongside the rename. The
 
 ### "I'm enabling a new rule repo-wide"
 
-1. Add the rule to an override in `oxlint.config.mts` in `'error'` mode. If oxlint has no native version and the rule comes from react, import, jsdoc, @typescript-eslint, react-hooks or storybook, add its ESLint ID to `APP_HOSTED_RULES` in `config/oxlint/derive.mjs` and set it as `hosted/<rule>`. For any other ESLint plugin, list the package in the override's `jsPlugins` and use the rule's own name.
+1. Add the rule to an override in `oxlint.config.mts` in `'error'` mode. How you name it depends on where the rule comes from:
+
+    - **oxlint has the rule.** Use its name as is:
+
+        ```ts
+        {files: ['src/**/*.ts'], rules: {'no-console': 'error'}},
+        ```
+
+    - **oxlint doesn't have it, and it comes from react, import, jsdoc, @typescript-eslint, react-hooks or storybook.** oxlint keeps those plugin names for its own rules, so ESLint's version runs inside the App's `hosted` plugin. Add the ESLint ID to `APP_HOSTED_RULES` in `config/oxlint/derive.mjs`, then use the `hosted/` name:
+
+        ```js
+        // config/oxlint/derive.mjs
+        const APP_HOSTED_RULES = ['jsdoc/require-jsdoc', ...];
+        ```
+
+        ```ts
+        // oxlint.config.mts
+        {files: ['src/types/onyx/**/*.ts'], rules: {'hosted/require-jsdoc': 'error'}},
+        ```
+
+    - **Any other ESLint plugin.** List its package in the override's `jsPlugins` and use the rule's own name:
+
+        ```ts
+        {files: ['tests/**/*'], jsPlugins: ['eslint-plugin-testing-library'], rules: {'testing-library/prefer-screen-queries': 'error'}},
+        ```
+
+    To check whether oxlint has a rule, run `npx oxlint --rules`, or add the rule and run `npm run lint`: a rule oxlint doesn't have fails with `Rule '<name>' not found in plugin '<plugin>'`. Findings, the seatbelt baseline and `eslint-disable` comments keep using the ESLint ID (`jsdoc/require-jsdoc`) in every case.
+
 2. Save the initial baseline:
 
     ```bash

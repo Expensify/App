@@ -390,16 +390,34 @@ const presetConfig = {
 };
 
 /**
+ * Returns the name a rule runs under when the App runs it as hosted/, core/ or rc/ instead of oxlint's built-in version.
+ * @param {string} rule a rule name as written in oxlint.config.mts
+ * @returns {string | undefined} undefined when the rule runs under the name given
+ */
+function getRunningName(rule) {
+    const {prefix, name} = splitRuleID(rule);
+    if (ALWAYS_HOSTED.has(rule) || (prefix === 'react' && ALWAYS_HOSTED.has(`react-hooks/${name}`))) {
+        return `hosted/${name}`;
+    }
+    if (!prefix && coreRuleNames.includes(name)) {
+        return `core/${name}`;
+    }
+    if (prefix === 'react' && REACT_COMPILER_RULES.has(name)) {
+        return `rc/${name}`;
+    }
+    return undefined;
+}
+
+/**
  * Throws when oxlint.config.mts sets a rule by its built-in name while it runs as hosted/, core/ or rc/ (like
  * `import/prefer-default-export`). That setting would do nothing or run a second copy. oxlint itself rejects names it
  * doesn't know.
  * @param {string} rule
  */
 function checkRuleName(rule) {
-    const {prefix: plugin, name} = splitRuleID(rule);
-    const runsElsewhere = ALWAYS_HOSTED.has(rule) || coreRuleNames.includes(rule) || (plugin === 'react' && (REACT_COMPILER_RULES.has(name) || ALWAYS_HOSTED.has(`react-hooks/${name}`)));
-    if (runsElsewhere) {
-        throw new Error(`oxlint.config.mts sets "${rule}", but that rule runs as hosted/, core/ or rc/ here. Use that name instead.`);
+    const runningName = getRunningName(rule);
+    if (runningName) {
+        throw new Error(`oxlint.config.mts sets "${rule}", but this rule runs as "${runningName}". Use that name instead.`);
     }
 }
 
