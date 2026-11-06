@@ -676,6 +676,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 updateMoneyRequestAmountAndCurrency({
                     isVendorMatchingBetaEnabled: false,
                     transactionID: transaction.transactionID,
+                    transaction,
                     transactions: {},
                     transactionThreadReport: thread,
                     parentReport: iouReport,
