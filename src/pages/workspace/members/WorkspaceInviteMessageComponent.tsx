@@ -129,7 +129,7 @@ function WorkspaceInviteMessageComponent({
 
     // `approvalMode` can drift from the actual workflow structure because it is updated optimistically.
     // Dynamic external workflows that hide people also have no selectable approver.
-    const {isAdvanceApproval, rulesCollection} = useApprovalWorkflows(policy);
+    const {isAdvanceApproval, rulesCollection, shouldUseApprovalWorkflowRules} = useApprovalWorkflows(policy);
 
     // Dynamic External Workflow also routes by each member's approver, even when the derived workflows look basic.
     const isDynamicExternalApproval = hasDynamicExternalWorkflow(policy) && isControlPolicy(policy);
@@ -253,7 +253,7 @@ function WorkspaceInviteMessageComponent({
                             approvalWorkflow: approvalWorkflowToSave,
                             policy,
                             rules: rulesCollection,
-                            isMultipleApproversBetaEnabled: isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS),
+                            shouldUseApprovalWorkflowRules,
                         }),
                 });
             } else {

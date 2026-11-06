@@ -8,8 +8,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePressLoading from '@hooks/usePressLoading';
+import useShouldUseApprovalWorkflowRules from '@hooks/useShouldUseApprovalWorkflowRules';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -44,7 +44,7 @@ type WorkspaceWorkflowsApprovalsCreatePageProps = WithPolicyAndFullscreenLoading
 function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsCreatePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
+    const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules(policy);
     const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -67,7 +67,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
             return;
         }
 
-        if (!validateApprovalWorkflow(approvalWorkflow)) {
+        if (!validateApprovalWorkflow(approvalWorkflow, shouldUseApprovalWorkflowRules)) {
             return;
         }
 
@@ -75,7 +75,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
         const workflowToCreate = {...approvalWorkflow, isDefault: includesEveryWorkspaceMember(getWorkflowMemberEmails(approvalWorkflow.members), policy?.employeeList)};
 
         startWithLoading(() => {
-            if (isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS)) {
+            if (shouldUseApprovalWorkflowRules) {
                 createApprovalWorkflowRules({approvalWorkflow: workflowToCreate, policy, addExpenseApprovalsTaskReport, rules: rulesCollection});
             } else {
                 createApprovalWorkflowAction({approvalWorkflow: workflowToCreate, policy, addExpenseApprovalsTaskReport});

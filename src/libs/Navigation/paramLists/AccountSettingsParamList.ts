@@ -44,6 +44,9 @@ type AccountSettingsParamList = {
     [SCREENS.SETTINGS.PREFERENCES.PAYMENT_CURRENCY]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.THEME]: undefined;
+    [SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS]: {
+        country?: Country | '';
+    };
     [SCREENS.SETTINGS.TROUBLESHOOT_SERVER]: undefined;
     [SCREENS.SETTINGS.CLOSE]: undefined;
     [SCREENS.SETTINGS.CLOSE_ACCOUNT_CONFIRM_VALIDATE_CODE]: undefined;
@@ -191,6 +194,18 @@ type AccountSettingsParamList = {
     };
     [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ACCEPT_TERMS]: {
         bankAccountID: string;
+
+        /** Set when the onboarding started from a workspace's Workflows */
+        policyID?: string;
+    };
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_KYC_REVIEW]: {
+        bankAccountID: string;
+    };
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ONBOARDING_STATUS]: {
+        bankAccountID: string;
+
+        /** How Wise's hosted KYC form ended, which Wise adds when it redirects back to this page */
+        status?: string;
     };
     [SCREENS.SETTINGS.WALLET.EDIT_BANK_ACCOUNT_NICKNAME]: {
         bankAccountID: string;
@@ -203,6 +218,9 @@ type AccountSettingsParamList = {
     };
     [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_WARNING]: undefined;
     [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_UPGRADE]: undefined;
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_BANK_ACCOUNT_LINK_PLAID]: {
+        bankAccountID: string;
+    };
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: undefined;
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md

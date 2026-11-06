@@ -14,6 +14,7 @@ const COMPARED_HEADERS = [
     'x-frame-options',
     'x-content-type-options',
     'referrer-policy',
+    'cross-origin-opener-policy',
     'document-policy',
     'content-security-policy',
 ];

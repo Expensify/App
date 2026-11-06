@@ -54,16 +54,24 @@ function navigateToRestrictedActionIfNeeded(
     return true;
 }
 
+type AddExpenseDropdownSentryLabels = {
+    createExpense: string;
+    trackDistance: string;
+    addExistingExpense: string;
+};
+
 /**
  * Returns the dropdown options for the add expense button
  * @param iouReport - The IOU report to add an expense to
  * @param policy - The policy of the IOU report
  * @param backToReport - The report to return to after adding an expense
+ * @param sentryLabels - The Sentry labels of the options, which differ per menu that shows them
  * @returns The dropdown options for the add expense button
  */
 type GetAddExpenseDropdownOptionsParams = {
     translate: LocalizedTranslate;
     icons: Record<'Location' | 'ReceiptPlus' | 'Plus', IconAsset>;
+    sentryLabels: AddExpenseDropdownSentryLabels;
     iouReportID: string | undefined;
     policy: OnyxEntry<Policy>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
@@ -80,6 +88,7 @@ type GetAddExpenseDropdownOptionsParams = {
 function getAddExpenseDropdownOptions({
     translate,
     icons,
+    sentryLabels,
     iouReportID,
     policy,
     userBillingGracePeriodEnds,
@@ -92,7 +101,7 @@ function getAddExpenseDropdownOptions({
     currentUserAccountID,
     blockDistanceRequestIfNeeded,
 }: GetAddExpenseDropdownOptionsParams): Array<DropdownOption<ValueOf<typeof CONST.REPORT.ADD_EXPENSE_OPTIONS>>> {
-    const isReportTeachersUnite = isTeachersUnitePolicyID(getReportOrDraftReport(iouReportID)?.policyID ?? policy?.id);
+    const isReportTeachersUnite = isTeachersUnitePolicyID(getReportOrDraftReport({reportID: iouReportID})?.policyID ?? policy?.id);
 
     return [
         // Teachers Unite only supports expenses via split expense
@@ -103,7 +112,7 @@ function getAddExpenseDropdownOptions({
                       value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
                       text: translate('iou.createExpense'),
                       icon: icons.Plus,
-                      sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE,
+                      sentryLabel: sentryLabels.createExpense,
                       onSelected: () => {
                           if (!iouReportID) {
                               return;
@@ -122,7 +131,7 @@ function getAddExpenseDropdownOptions({
                       value: CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE,
                       text: translate('iou.trackDistance'),
                       icon: icons.Location,
-                      sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE,
+                      sentryLabel: sentryLabels.trackDistance,
                       onSelected: () => {
                           if (!iouReportID) {
                               return;
@@ -141,7 +150,7 @@ function getAddExpenseDropdownOptions({
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_EXISTING_EXPENSE,
             text: translate('iou.addExistingExpense'),
             icon: icons.ReceiptPlus,
-            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_EXISTING,
+            sentryLabel: sentryLabels.addExistingExpense,
             onSelected: () => {
                 if (navigateToRestrictedActionIfNeeded(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
                     return;
