@@ -128,8 +128,7 @@ function useConfirmationListDataWithPolicy({
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat || isTrackExpense, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
 
-    // The scan variant is also picked by a caller that knows the expense is a scan before its draft is initialized
-    // (the share flow), so trust that flag too or the first render would derive non-scan data inside the scan layout.
+    // In the share flow, the caller knows it is a scan before the draft is initialized.
     const isScanRequest = isScanRequestProp || isScanRequestUtil(transaction);
 
     const {amountToBeUsed, formattedAmount, formattedAmountPerAttendee} = useConfirmationAmount({
@@ -346,6 +345,7 @@ function useConfirmationListDataWithPolicy({
                 didConfirm: !!didConfirm,
                 canEnterScanFieldsManually,
                 isPolicyExpenseChat,
+                isScanRequest,
                 isEditingSplitBill,
                 scrollFocusedInputIntoView,
                 onSubmitForm: confirm,

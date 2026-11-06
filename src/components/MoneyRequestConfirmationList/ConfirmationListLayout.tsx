@@ -19,10 +19,10 @@ import type {MoneyRequestConfirmationListItem} from './types';
 import ConfirmationFooterContent from './ConfirmationFooterContent';
 import ConfirmationTelemetry from './ConfirmationTelemetry';
 
-/** The expense-type flags a variant sets on `ConfirmationFieldsProvider`. Everything else on it is shared and comes from the hook. */
+/** The expense-type flags a variant sets on `ConfirmationFieldsProvider`. Everything else is shared and comes from the hook. */
 type ConfirmationFieldFlags = Pick<
     ProviderProps,
-    'isScanRequest' | 'isDistanceRequest' | 'isPerDiemRequest' | 'isTimeRequest' | 'isTypeInvoice' | 'isManualDistanceRequest' | 'isOdometerDistanceRequest' | 'isGPSDistanceRequest'
+    'isDistanceRequest' | 'isPerDiemRequest' | 'isTimeRequest' | 'isTypeInvoice' | 'isManualDistanceRequest' | 'isOdometerDistanceRequest' | 'isGPSDistanceRequest'
 >;
 
 type ConfirmationListLayoutProps = {

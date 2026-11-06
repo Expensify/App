@@ -56,7 +56,6 @@ function ScanConfirmationList(props: MoneyRequestConfirmationListProps) {
     return (
         <ConfirmationListLayout
             {...data.layoutProps}
-            fieldFlags={{isScanRequest: true}}
             isCompactMode={isCompactMode}
             listFooterContent={
                 <ScanFooter

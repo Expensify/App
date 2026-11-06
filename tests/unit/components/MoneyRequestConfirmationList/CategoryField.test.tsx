@@ -89,13 +89,14 @@ const enabledPolicy: Policy = {...createRandomPolicy(1), autoCategorizeNewExpens
 
 type ConfirmationIOUType = Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
 
-const renderCategoryField = (isCategoryRequired: boolean, policy: Policy | undefined, iouType: ConfirmationIOUType = CONST.IOU.TYPE.SUBMIT) =>
+const renderCategoryField = (isCategoryRequired: boolean, policy: Policy | undefined, iouType: ConfirmationIOUType = CONST.IOU.TYPE.SUBMIT, isScanRequest = false) =>
     render(
         <ConfirmationFieldsProvider
             transactionID={TRANSACTION_ID}
             reportID={REPORT_ID}
             action={CONST.IOU.ACTION.CREATE}
             iouType={iouType}
+            isScanRequest={isScanRequest}
         >
             <CategoryField
                 isCategoryRequired={isCategoryRequired}
@@ -199,14 +200,27 @@ describe('CategoryField', () => {
         // Given a scan whose workspace will not categorize the receipt
         await givenScanExpense();
 
-        // When the confirmation form renders the category row
-        renderCategoryField(false, disabledPolicy);
+        // When the scan confirmation form renders the category row
+        renderCategoryField(false, disabledPolicy, CONST.IOU.TYPE.SUBMIT, true);
 
         // Then the row must not say Automatic, because a turned-off workspace never categorizes the receipt
         await waitFor(() => {
             expect(screen.getByText('Travel')).toBeOnTheScreen();
         });
         expect(screen.queryByText('common.automatic')).toBeNull();
+    });
+
+    it('promises an automatic category on a required scan row before the draft is initialized as a scan', async () => {
+        // Given a draft the share flow has not marked as a scan yet, on a workspace that categorizes receipts
+        await givenManualExpense();
+
+        // When the scan confirmation form renders a required category row
+        renderCategoryField(true, enabledPolicy, CONST.IOU.TYPE.SUBMIT, true);
+
+        // Then the row already promises the category read off the receipt, so it does not change once the draft catches up
+        await waitFor(() => {
+            expect(screen.getByText('common.automatic')).toBeOnTheScreen();
+        });
     });
 
     describe('after an upgrade started from the category row', () => {
