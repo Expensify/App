@@ -425,7 +425,7 @@ function isMarkAsCashAction(
         return false;
     }
 
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations, currentUserEmail, currentUserAccountID, report, reportOwnerLogin, policy);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations, currentUserEmail, currentUserAccountID, report, reportOwnerLogin, policy, cardList);
 
     if (hasAllPendingRTERViolations) {
         return true;
@@ -623,7 +623,7 @@ function isSubmitViaPDFAction(report: Report, currentUserAccountID: number, poli
 }
 
 function isMarkAsCashActionForTransaction(currentUserLogin: string, parentReport: Report, violations: TransactionViolation[], cardList: OnyxEntry<CardList>, policy?: Policy): boolean {
-    const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(violations);
+    const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(violations, cardList);
 
     if (hasPendingRTERViolation) {
         return true;

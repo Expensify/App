@@ -376,7 +376,7 @@ function isApproveAction(
         return false;
     }
 
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations, currentUserLogin, currentUserAccountID, report, ownerLogin, policy);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations, currentUserLogin, currentUserAccountID, report, ownerLogin, policy, cardList);
 
     if (hasAllPendingRTERViolations) {
         return true;

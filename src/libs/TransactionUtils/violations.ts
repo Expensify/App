@@ -59,8 +59,10 @@ function isPendingRTERViolation(violation: TransactionViolation): boolean {
 /**
  * Check if there is pending rter violation in transactionViolations.
  */
-function hasPendingRTERViolation(transactionViolations?: TransactionViolations | null): boolean {
-    return !!transactionViolations?.some(isPendingRTERViolation);
+function hasPendingRTERViolation(transactionViolations?: TransactionViolations | null, cardList?: OnyxEntry<CardList>): boolean {
+    // A hold waiting on a feed nobody is going to reconnect is not worth showing either, so it is dropped on the same
+    // terms as the broken connection warning.
+    return !!transactionViolations?.some((violation) => isPendingRTERViolation(violation) && !isViolationOnFeedBrokenPastDismissThresholdInList(violation, cardList));
 }
 
 /**
@@ -127,30 +129,34 @@ function getUnsuppressibleBrokenConnectionTransactionID(
             // Past the grace period the connection is no longer described anywhere, so an expense that only has those
             // must not be the one the report status quotes - otherwise a report kept visible by a recently broken feed
             // would describe the expired one instead.
-            .filter((violation) => !isBrokenConnectionViolationPastDismissThresholdInList(violation, cardList));
+            .filter((violation) => !isViolationOnFeedBrokenPastDismissThresholdInList(violation, cardList));
         return brokenConnectionViolations.length > 0 && !shouldSuppressBrokenConnectionStatus(brokenConnectionViolations, cardList);
     })?.transactionID;
 }
 
 /**
- * Whether a broken connection violation has gone unresolved long enough that we stop showing it at all.
+ * Whether an RTER violation names a feed that has been broken long enough that we stop showing it at all.
  *
  * The violation asks the submitter to hold the expense until an admin reconnects the feed, which is worth saying
  * while that is still likely to happen. Past the grace period it asks them to wait for something nobody is going to
- * do, and the submitter cannot fix the feed themselves, so the expense is left to stand on its own.
+ * do, and the submitter cannot fix the feed themselves, so the expense is left to stand on its own. This covers both
+ * the broken connection warning and the awaiting-merge hold, because neither can be resolved on a dead feed.
+ *
+ * A violation that names no card, or one whose connection is not broken, is left alone - the check below requires a
+ * broken connection, so a healthy card never suppresses anything.
  *
  * The threshold is crossed by time passing rather than by any data change, so it has to be re-evaluated on read -
  * the same reason the card feed errors derived value depends on CURRENT_DATE.
  */
-function isBrokenConnectionViolationPastDismissThreshold(violation: TransactionViolation, card: OnyxEntry<Card>): boolean {
-    return isBrokenConnectionViolation(violation) && !!card && isBrokenConnectionPastDismissThreshold(card);
+function isViolationOnFeedBrokenPastDismissThreshold(violation: TransactionViolation, card: OnyxEntry<Card>): boolean {
+    return violation.name === CONST.VIOLATIONS.RTER && !!card && isBrokenConnectionPastDismissThreshold(card);
 }
 
-/** Looks the violation's card up before applying {@link isBrokenConnectionViolationPastDismissThreshold}. */
-function isBrokenConnectionViolationPastDismissThresholdInList(violation: TransactionViolation, cardList: OnyxEntry<CardList>): boolean {
+/** Looks the violation's card up before applying {@link isViolationOnFeedBrokenPastDismissThreshold}. */
+function isViolationOnFeedBrokenPastDismissThresholdInList(violation: TransactionViolation, cardList: OnyxEntry<CardList>): boolean {
     const cardID = violation.data?.cardID;
 
-    return isBrokenConnectionViolationPastDismissThreshold(violation, cardID ? cardList?.[cardID] : undefined);
+    return isViolationOnFeedBrokenPastDismissThreshold(violation, cardID ? cardList?.[cardID] : undefined);
 }
 
 function shouldShowBrokenConnectionViolationInternal(
@@ -159,7 +165,7 @@ function shouldShowBrokenConnectionViolationInternal(
     policy: OnyxEntry<Policy>,
     cardList: OnyxEntry<CardList>,
 ) {
-    if (brokenConnectionViolations.every((violation) => isBrokenConnectionViolationPastDismissThresholdInList(violation, cardList))) {
+    if (brokenConnectionViolations.every((violation) => isViolationOnFeedBrokenPastDismissThresholdInList(violation, cardList))) {
         return false;
     }
 
@@ -335,6 +341,7 @@ function allHavePendingRTERViolation(
     report: OnyxEntry<Report>,
     reportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
+    cardList?: OnyxEntry<CardList>,
 ): boolean {
     if (!transactions) {
         return false;
@@ -348,7 +355,7 @@ function allHavePendingRTERViolation(
                 shouldShowViolation(report, policy, violation.name, currentUserEmail, currentUserAccountID, true, transaction),
         );
         // Check if there is pending rter violation in the filtered violations
-        return hasPendingRTERViolation(filteredTransactionViolations);
+        return hasPendingRTERViolation(filteredTransactionViolations, cardList);
     });
     return transactionsWithRTERViolations.length > 0 && transactionsWithRTERViolations.every((value) => value === true);
 }
@@ -376,8 +383,8 @@ function hasAnyTransactionWithoutRTERViolation(
 /**
  * Check if the transaction is pending or has a pending rter violation.
  */
-function hasPendingUI(transaction: OnyxEntry<Transaction>, transactionViolations?: TransactionViolations | null): boolean {
-    return isScanning(transaction) || isPending(transaction) || (!!transaction && hasPendingRTERViolation(transactionViolations));
+function hasPendingUI(transaction: OnyxEntry<Transaction>, transactionViolations?: TransactionViolations | null, cardList?: OnyxEntry<CardList>): boolean {
+    return isScanning(transaction) || isPending(transaction) || (!!transaction && hasPendingRTERViolation(transactionViolations, cardList));
 }
 
 /**
@@ -671,8 +678,8 @@ export {
     hasViolation,
     hasWarningTypeViolation,
     isBrokenConnectionViolation,
-    isBrokenConnectionViolationPastDismissThreshold,
-    isBrokenConnectionViolationPastDismissThresholdInList,
+    isViolationOnFeedBrokenPastDismissThreshold,
+    isViolationOnFeedBrokenPastDismissThresholdInList,
     isDuplicate,
     isPendingRTERViolation,
     isTransactionSubmittable,

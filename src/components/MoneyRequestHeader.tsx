@@ -94,7 +94,7 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const isParentReportSettled = isSettledReportUtils(parentReport);
     const isDuplicate = !isParentReportSettled && isDuplicateTransactionUtils(transaction, email ?? '', accountID, report, ownerLogin, policy, transactionViolations);
-    const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(transactionViolations);
+    const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(transactionViolations, cardList);
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(parentReport, policy, transactionViolations, cardList);
 
     const reportID = report?.reportID;

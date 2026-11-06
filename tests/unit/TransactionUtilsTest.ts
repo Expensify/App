@@ -2585,6 +2585,59 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.hasPendingRTERViolation(transactionViolations)).toBe(false);
         });
 
+        it('stops treating a seven-day hold as pending once its feed is past the grace period', () => {
+            // Given an expense held for a card match on a feed that has been broken far longer than the grace period
+            const CARD_ID = 55501;
+            const transactionViolations = [
+                {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {pendingPattern: true, rterType: CONST.RTER_VIOLATION_TYPES.SEVEN_DAY_HOLD, cardID: CARD_ID}},
+            ];
+            const cardList: CardList = {
+                [CARD_ID]: createMock<Card>({
+                    cardID: CARD_ID,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                    fundID: '88801',
+                    lastScrapeResult: 438,
+                    lastScrape: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000).toISOString().replace('T', ' ').slice(0, 19),
+                }),
+            };
+
+            // When the expense is checked for a pending card match
+            // Then it is no longer pending: the match it is waiting for can never arrive on a dead feed
+            expect(TransactionUtils.hasPendingRTERViolation(transactionViolations, cardList)).toBe(false);
+        });
+
+        it('keeps treating a seven-day hold as pending while its feed is inside the grace period', () => {
+            // Given the same hold on a feed that broke recently, so a reconnect and a later match are still realistic
+            const CARD_ID = 55501;
+            const transactionViolations = [
+                {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {pendingPattern: true, rterType: CONST.RTER_VIOLATION_TYPES.SEVEN_DAY_HOLD, cardID: CARD_ID}},
+            ];
+            const cardList: CardList = {
+                [CARD_ID]: createMock<Card>({
+                    cardID: CARD_ID,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                    fundID: '88801',
+                    lastScrapeResult: 438,
+                    lastScrape: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString().replace('T', ' ').slice(0, 19),
+                }),
+            };
+
+            // When the expense is checked for a pending card match
+            // Then it stays pending, exactly as before this rule existed
+            expect(TransactionUtils.hasPendingRTERViolation(transactionViolations, cardList)).toBe(true);
+        });
+
+        it('keeps treating a seven-day hold as pending when it names no card', () => {
+            // Given a hold with no card to date, which is how it behaves today
+            const transactionViolations = [
+                {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {pendingPattern: true, rterType: CONST.RTER_VIOLATION_TYPES.SEVEN_DAY_HOLD}},
+            ];
+
+            // When the expense is checked for a pending card match
+            // Then nothing changes: with no card there is no feed age to judge
+            expect(TransactionUtils.hasPendingRTERViolation(transactionViolations)).toBe(true);
+        });
+
         it('should treat a seven-day-hold RTER violation as pending', () => {
             const transactionViolations = [
                 {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {pendingPattern: true, rterType: CONST.RTER_VIOLATION_TYPES.SEVEN_DAY_HOLD}},

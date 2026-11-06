@@ -9,7 +9,7 @@ import {
     hasMissingSmartscanFieldsForRBR,
     hasPendingRTERViolation,
     hasTransactionBeenRejected,
-    isBrokenConnectionViolationPastDismissThresholdInList,
+    isViolationOnFeedBrokenPastDismissThresholdInList,
     isFailedScanAmountPlaceholder,
     isMerchantMissing,
     isOnHold,
@@ -101,7 +101,7 @@ function getReportSubmitViolationSummary(
         if (hasTransactionBeenRejected(transactionViolations)) {
             hasRejectedExpense = true;
         }
-        if (hasPendingRTERViolation(transactionViolations)) {
+        if (hasPendingRTERViolation(transactionViolations, cardList)) {
             hasPendingCardMatch = true;
         }
         for (const violation of filterReceiptViolations(transactionViolations)) {
@@ -119,7 +119,7 @@ function getReportSubmitViolationSummary(
 
             // The expense itself stops showing a broken connection past the grace period, so the submit confirmation
             // must not resurface the same warning.
-            if (isBrokenConnectionViolationPastDismissThresholdInList(violation, cardList)) {
+            if (isViolationOnFeedBrokenPastDismissThresholdInList(violation, cardList)) {
                 continue;
             }
 
