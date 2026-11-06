@@ -39,7 +39,7 @@ import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getTaxReclaimableAmount} from '@libs/PolicyDistanceRatesUtils';
-import {getDistanceRateCustomUnit, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, isTaxTrackingEnabled, shouldShowUKFuelRateTaxError} from '@libs/PolicyUtils';
 import showInlineEditError from '@libs/showInlineEditError';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -368,11 +368,13 @@ function PolicyDistanceRatesPage({
     };
 
     const isLoading = !isOffline && customUnit === undefined;
+    const taxErrorIndicator = shouldShowUKFuelRateTaxError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
 
     const secondaryActions = [
         {
             icon: icons.Gear,
             text: translate('common.settings'),
+            brickRoadIndicator: taxErrorIndicator,
             onSelected: openSettings,
             value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
         },
@@ -396,6 +398,8 @@ function PolicyDistanceRatesPage({
                     <ButtonWithDropdownMenu
                         onPress={() => {}}
                         shouldUseOptionIcon
+                        shouldAlwaysShowDropdownMenu={!!taxErrorIndicator}
+                        brickRoadIndicator={taxErrorIndicator}
                         customText={translate('common.more')}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.MORE_DROPDOWN}
                         options={secondaryActions}
