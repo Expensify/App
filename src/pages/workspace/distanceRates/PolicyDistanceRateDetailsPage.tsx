@@ -202,6 +202,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                                 isOn={rate?.enabled ?? false}
                                 onToggle={toggleRate}
                                 accessibilityLabel={translate('workspace.distanceRates.enableRate')}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.RATE_DETAILS_ENABLE_SWITCH}
                                 disabled={!canWriteDistanceRates}
                                 disabledAction={withReadOnlyFallback()}
                                 showLockIcon={!canWriteDistanceRates || !canDisableOrDeleteRate}

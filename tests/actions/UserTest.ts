@@ -139,7 +139,7 @@ describe('actions/User', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.LOGINS,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value ?? null);
                     },
                 });
@@ -171,7 +171,7 @@ describe('actions/User', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.LOGINS,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value ?? null);
                     },
                 });
@@ -215,7 +215,7 @@ describe('actions/User', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.LOGINS,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value ?? null);
                     },
                 });
@@ -254,7 +254,7 @@ describe('actions/User', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.LOGINS,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value ?? null);
                     },
                 });
@@ -417,7 +417,7 @@ describe('actions/User', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.PENDING_CONTACT_ACTION,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value ?? null);
                     },
                 });
@@ -834,7 +834,7 @@ describe('actions/User', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.LOGINS,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value ?? null);
                     },
                 });
@@ -852,7 +852,7 @@ describe('actions/User', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.ACCOUNT,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value ?? null);
                     },
                 });
@@ -865,7 +865,7 @@ describe('actions/User', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.PENDING_CONTACT_ACTION,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value ?? null);
                     },
                 });

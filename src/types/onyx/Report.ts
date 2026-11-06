@@ -211,6 +211,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         lastActionType?: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE>;
         ownerAccountID?: number;
 
+        /** Sender of the invoice linked to the bill. An unlinked bill uses its owner's account. */
+        billSenderAccountID?: number;
+
         /** Collection of report participants, indexed by their accountID */
         participants?: Participants;
 

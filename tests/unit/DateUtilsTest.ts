@@ -1,5 +1,5 @@
 // cspell:ignore Montag Dienstag Freitag Sonntag März Τρίτη Κυριακή Januar grudzień janv styczeń stycznia
-// cspell:ignore Ιανουάριος Ιανουαρίου -- German, Polish, French and Greek weekday and month
+// cspell:ignore Ιανουάριος Ιανουαρίου lundi novembre Δευτέρα Νοεμβρίου -- German, Polish, French and Greek weekday and month
 // names, asserted verbatim so the locale-driven formatters are covered rather than only the English path.
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
@@ -17,6 +17,7 @@ import {addDays, addMinutes, endOfDay, format, set, setHours, setMinutes, startO
 import {fromZonedTime, toZonedTime, format as tzFormat} from 'date-fns-tz';
 import {de} from 'date-fns/locale/de';
 import {el} from 'date-fns/locale/el';
+import {es} from 'date-fns/locale/es';
 import {fr} from 'date-fns/locale/fr';
 import {ja} from 'date-fns/locale/ja';
 import {nl} from 'date-fns/locale/nl';
@@ -75,16 +76,39 @@ describe('DateUtils', () => {
     });
 
     it('formatToLongDateWithWeekday should return a long date with a weekday', () => {
-        const formattedDate = DateUtils.formatToLongDateWithWeekday(datetime, undefined);
-        expect(formattedDate).toBe('Monday, November 7, 2022');
+        // Given a date and no locale, which falls back to en-US
+        // When it is rendered as a full date
+        // Then English keeps the output it had before the component order was localized, with no ordinal day
+        expect(DateUtils.formatToLongDateWithWeekday(datetime, undefined)).toBe('Monday, November 7, 2022');
     });
 
-    it('formatToLongDateWithWeekday should translate the weekday and month names', () => {
-        // Only the words follow the locale here. `LONG_DATE_FORMAT_WITH_WEEKDAY` is still the hand-written
-        // `eeee, MMMM d, yyyy`, so the component order stays US — German would otherwise read `Montag, 7. November
-        // 2022` and Japanese `2022年11月7日月曜日`. Localizing that ordering is a separate change to `CONST.DATE`.
-        expect(DateUtils.formatToLongDateWithWeekday(datetime, de)).toBe('Montag, November 7, 2022');
-        expect(DateUtils.formatToLongDateWithWeekday(datetime, ja)).toBe('月曜日, 11月 7, 2022');
+    it('formatToLongDateWithWeekday should order the components the way the language does', () => {
+        // Given languages that do not write a full date in the US order
+        // When the same date is rendered in each
+        // Then the day moves ahead of the month, German adds the period its ordinal needs, and Japanese leads with
+        // the year and puts the weekday last. None of that is reachable by reordering a fixed pattern.
+        expect(DateUtils.formatToLongDateWithWeekday(datetime, de)).toBe('Montag, 7. November 2022');
+        expect(DateUtils.formatToLongDateWithWeekday(datetime, ja)).toBe('2022年11月7日月曜日');
+        expect(DateUtils.formatToLongDateWithWeekday(datetime, fr)).toBe('lundi 7 novembre 2022');
+    });
+
+    it('formatToLongDateWithWeekdayWithoutYear should drop the year but keep the locale ordering', () => {
+        // Given the same date its sibling `formatToLongDateWithWeekday` renders with a year
+        // When it is rendered without one
+        // Then only the year is missing. The two helpers sit next to each other and feed the same kind of label, so
+        // they have to agree on component order; this is the assertion that catches them drifting apart.
+        expect(DateUtils.formatToLongDateWithWeekdayWithoutYear(datetime, undefined)).toBe('Monday, November 7');
+        expect(DateUtils.formatToLongDateWithWeekdayWithoutYear(datetime, de)).toBe('Montag, 7. November');
+        expect(DateUtils.formatToLongDateWithWeekdayWithoutYear(datetime, fr)).toBe('lundi 7 novembre');
+    });
+
+    it('formatToLongDateWithWeekdayWithoutYear places the weekday where the language puts it', () => {
+        // Given languages that do not lead with the weekday
+        // When the date is rendered in each
+        // Then the weekday moves to the end with no comma, which no reordering of a date-fns pattern can produce
+        // because none of its canned date patterns omits the year
+        expect(DateUtils.formatToLongDateWithWeekdayWithoutYear(datetime, ja)).toBe('11月7日月曜日');
+        expect(DateUtils.formatToLongDateWithWeekdayWithoutYear(datetime, el)).toBe('Δευτέρα 7 Νοεμβρίου');
     });
 
     it('formatToDayOfWeek should return a weekday', () => {
@@ -667,6 +691,7 @@ describe('DateUtils', () => {
 
             const date = fromZonedTime(inputDateStrParis, inputTimeZoneParis);
             const converted = toZonedTime(date, currentTimeZone);
+            // eslint-disable-next-line rulesdir/require-locale-for-localized-date-format -- mirrors the undefined locale passed to getStatusUntilDate above, so the expectation matches what it produces.
             const expectedLabel = tzFormat(converted, `${CONST.DATE.SHORT_DATE_FORMAT} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {timeZone: currentTimeZone});
 
             expect(result).toBe(`Until ${expectedLabel}`);
@@ -681,6 +706,7 @@ describe('DateUtils', () => {
             const date = fromZonedTime(inputDateStrTokyo, inputTimeZoneTokyo);
             const converted = toZonedTime(date, currentTimeZone);
 
+            // eslint-disable-next-line rulesdir/require-locale-for-localized-date-format -- mirrors the undefined locale passed to getStatusUntilDate above, so the expectation matches what it produces.
             const expectedLabel = tzFormat(converted, `${CONST.DATE.SHORT_DATE_FORMAT} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {timeZone: currentTimeZone});
 
             expect(result).toBe(`Until ${expectedLabel}`);
@@ -694,6 +720,7 @@ describe('DateUtils', () => {
 
             const date = fromZonedTime(inputDateStrTokyo, inputTimeZoneTokyo);
             const converted = toZonedTime(date, currentTimeZone);
+            // eslint-disable-next-line rulesdir/require-locale-for-localized-date-format -- mirrors the undefined locale passed to getStatusUntilDate above, so the expectation matches what it produces.
             const expectedLabel = tzFormat(converted, `${CONST.DATE.FNS_FORMAT_STRING} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {timeZone: currentTimeZone});
 
             expect(result).toBe(`Until ${expectedLabel}`);
@@ -953,6 +980,65 @@ describe('DateUtils', () => {
             const americaNewYork = 'America/New_York' as SelectedTimezone;
             const result = DateUtils.normalizeDateToEndOfDay('2024-01-15', americaNewYork);
             expect(result).toBe('2024-01-16 04:59:59');
+        });
+    });
+
+    describe('formatToLongDateInTimeZone', () => {
+        // cspell:ignore Juni junio Samstag
+        const NEW_YORK: SelectedTimezone = 'America/New_York';
+        const TOKYO: SelectedTimezone = 'Asia/Tokyo';
+
+        it('keeps the English long date unchanged', () => {
+            // Given a date-only value and no locale, which falls back to en-US
+            // When it is formatted, with and without the weekday
+            // Then English keeps the `MMMM d, yyyy` and `eeee, MMMM d, yyyy` shapes the schedule call pages had before
+            expect(DateUtils.formatToLongDateInTimeZone('2026-06-20', NEW_YORK, undefined)).toBe('June 20, 2026');
+            expect(DateUtils.formatToLongDateInTimeZone('2026-06-20', NEW_YORK, undefined, true)).toBe('Saturday, June 20, 2026');
+        });
+
+        it('orders the date the way each language does', () => {
+            // Given languages that do not write a long date in the US order
+            // When the same date is formatted in each
+            // Then German puts the day first and Spanish adds its `de` between the parts
+            expect(DateUtils.formatToLongDateInTimeZone('2026-06-20', NEW_YORK, de)).toBe('20. Juni 2026');
+            expect(DateUtils.formatToLongDateInTimeZone('2026-06-20', NEW_YORK, de, true)).toBe('Samstag, 20. Juni 2026');
+            expect(DateUtils.formatToLongDateInTimeZone('2026-06-20', NEW_YORK, es)).toBe('20 de junio de 2026');
+        });
+
+        it('keeps a date-only value on its own day in every timezone', () => {
+            // Given a picked call date with no time, in timezones on both sides of UTC
+            // When it is formatted in each
+            // Then the picked day is shown, because a date-only value is a calendar day and is shown as stored
+            expect(DateUtils.formatToLongDateInTimeZone('2026-06-20', NEW_YORK, undefined)).toBe('June 20, 2026');
+            expect(DateUtils.formatToLongDateInTimeZone('2026-06-20', TOKYO, undefined)).toBe('June 20, 2026');
+        });
+
+        it.each([
+            {timeZone: 'America/Santiago', date: '2026-09-06', expected: 'September 6, 2026'},
+            {timeZone: 'Asia/Beirut', date: '2026-03-29', expected: 'March 29, 2026'},
+            {timeZone: 'America/Havana', date: '2026-03-08', expected: 'March 8, 2026'},
+        ] satisfies Array<{timeZone: SelectedTimezone; date: string; expected: string}>)(
+            'keeps a date-only value on its own day when daylight saving time starts at midnight in $timeZone',
+            ({timeZone, date, expected}) => {
+                // Given a picked call date on the day daylight saving time starts at midnight, so that midnight does not exist
+                // When it is formatted in that timezone
+                // Then the picked day is still shown. Reading it as local midnight would land on 23:00 the day before.
+                expect(DateUtils.formatToLongDateInTimeZone(date, timeZone, undefined)).toBe(expected);
+            },
+        );
+
+        it('shows an instant on the day it falls on in the target timezone', () => {
+            // Given a call time that is late on June 20 in New York, which is already June 21 in UTC
+            // When it is formatted in New York
+            // Then the New York day is shown
+            expect(DateUtils.formatToLongDateInTimeZone('2026-06-21T02:00:00Z', NEW_YORK, undefined)).toBe('June 20, 2026');
+        });
+
+        it('returns an empty string for an invalid date', () => {
+            // Given a value that is not a date
+            // When it is formatted
+            // Then nothing is shown instead of `Intl` throwing a RangeError into the render
+            expect(DateUtils.formatToLongDateInTimeZone('not a date', NEW_YORK, undefined)).toBe('');
         });
     });
 
