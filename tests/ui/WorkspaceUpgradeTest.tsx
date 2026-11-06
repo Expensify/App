@@ -368,6 +368,62 @@ describe('WorkspaceUpgrade', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should show the generic Control upgrade view without a workspace to an admin who owns none', async () => {
+        // Given a workspace the user administers but does not own, which is what an upsell with several
+        // candidates sends here with
+        const policy: Policy = LHNTestUtils.getFakePolicy();
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        });
+
+        // When the upgrade page is opened with no workspace in the route
+        const {unmount} = renderPage(SCREENS.WORKSPACE.UPGRADE, {});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Control pitch is shown rather than the not-found dead end that gating this on ownership used to produce, because the page only pitches and points at the workspace list from here
+        expect(await screen.findByText(TestHelper.translateLocal('workspace.upgrade.commonFeatures.title'))).toBeTruthy();
+        expect(screen.getAllByText(TestHelper.translateLocal('workspace.common.goToWorkspaces')).length).toBeGreaterThan(0);
+        expect(screen.queryByText(TestHelper.translateLocal('notFound.notHere'))).toBeNull();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should show the generic Control upgrade view without a workspace to an editor on a Submit workspace', async () => {
+        // Given a Submit workspace the user edits rather than administers, which Submit has no admin role for
+        const policy: Policy = {...LHNTestUtils.getFakePolicy(), type: CONST.POLICY.TYPE.SUBMIT, role: CONST.POLICY.ROLE.EDITOR};
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        });
+
+        // When the upgrade page is opened with no workspace in the route
+        const {unmount} = renderPage(SCREENS.WORKSPACE.UPGRADE, {});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then they get the same pitch the page gives them with this workspace in the route, rather than a dead end
+        expect(await screen.findByText(TestHelper.translateLocal('workspace.upgrade.commonFeatures.title'))).toBeTruthy();
+        expect(screen.queryByText(TestHelper.translateLocal('notFound.notHere'))).toBeNull();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should show the not-found page without a workspace to someone who administers none', async () => {
+        // Given an account with no workspaces at all
+        // When the upgrade page is opened with no workspace in the route
+        const {unmount} = renderPage(SCREENS.WORKSPACE.UPGRADE, {});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then there is nothing to upgrade, so the page still turns them away
+        expect(await screen.findByText(TestHelper.translateLocal('notFound.notHere'))).toBeTruthy();
+        expect(screen.queryByText(TestHelper.translateLocal('workspace.upgrade.commonFeatures.title'))).toBeNull();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it.each([CONST.UPGRADE_FEATURE_INTRO_MAPPING.preventSelfApproval.alias, CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoApproveCompliantReports.alias])(
         'should keep the Advanced Approvals upgrade view for %s',
         async (featureName) => {

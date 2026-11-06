@@ -6,8 +6,10 @@ import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
 import {getConnectedHRProvider} from '@libs/merge/HRUtils';
 import type {PolicyPaymentAttribution} from '@libs/PolicyPaymentUtils';
 import {
+    canEditWorkspaceSettings,
     canSendInvoice,
     getActiveAdminWorkspaces,
+    getActivePolicies,
     getActivePoliciesWithExpenseChat,
     getOwnedPaidPolicies,
     getPolicyIDFromDomainName,
@@ -160,7 +162,12 @@ const createWorkspaceListPoliciesSelector =
                         ownerAccountID: details.ownerAccountID,
                         ownerEmail: details.ownerEmail,
                         ownerDefaultAvatar:
-                            details.ownerAccountID && details.ownerEmail ? getDefaultAvatarURL({accountID: details.ownerAccountID, accountEmail: details.ownerEmail}) : undefined,
+                            details.ownerAccountID && details.ownerEmail
+                                ? getDefaultAvatarURL({
+                                      accountID: details.ownerAccountID,
+                                      accountEmail: details.ownerEmail,
+                                  })
+                                : undefined,
                         avatar: details.avatar,
                     };
                 }
@@ -212,7 +219,10 @@ type TimeSensitiveAdminPolicies = {
 const createTimeSensitiveAdminPoliciesSelector =
     (currentUserLogin: string | undefined, connectionSyncProgress: OnyxCollection<PolicyConnectionSyncProgress>) =>
     (policies: OnyxCollection<Policy>): TimeSensitiveAdminPolicies => {
-        const result: TimeSensitiveAdminPolicies = {policies: [], brokenConnections: []};
+        const result: TimeSensitiveAdminPolicies = {
+            policies: [],
+            brokenConnections: [],
+        };
 
         for (const policy of getActiveAdminWorkspaces(policies, currentUserLogin)) {
             result.policies.push({
@@ -258,6 +268,14 @@ const createHasAdminPolicyWithXeroConnectionSelector =
         hasPolicyWithXeroConnection(getActiveAdminWorkspaces(policies, currentUserLogin));
 
 const hasActiveAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => getActiveAdminWorkspaces(policies, currentUserAccountLogin).length > 0;
+
+/**
+ * Whether the user could edit the settings of any active workspace, which is what the upgrade page gates on once a
+ * workspace is in the route. Admins pass, and so do editors on a Submit workspace, who `getActiveAdminWorkspaces`
+ * leaves out.
+ */
+const canEditAnyWorkspaceSettingsSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string): boolean =>
+    getActivePolicies(policies, currentUserAccountLogin).some((policy) => canEditWorkspaceSettings(policy, currentUserAccountLogin));
 
 /**
  * Creates a selector for whether the user belongs to any workspace with Travel enabled and provisioned, so subscribers only
@@ -687,6 +705,7 @@ export {
     createWorkspaceListPoliciesSelector,
     activeAdminPoliciesSelector,
     hasActiveAdminPoliciesSelector,
+    canEditAnyWorkspaceSettingsSelector,
     createHasAdminPolicyWithXeroConnectionSelector,
     createTimeSensitiveAdminPoliciesSelector,
     createHasTravelEnabledPolicySelector,

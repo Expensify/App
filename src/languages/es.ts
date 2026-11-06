@@ -1237,6 +1237,11 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'Cumplimiento',
         runningTotal: 'Total acumulado',
+        upsellState: {
+            title: 'Mejora al plan Controlar para obtener más información',
+            subtitle: 'Supervisa las tendencias de cumplimiento de la política de gastos y señala a los infractores reincidentes.',
+            button: 'Mejorar a Control',
+        },
         explain: 'Explicar',
         explainChartPrompt: (chartTitle: string) => `Explica los datos en ${chartTitle}.`,
         viewDetails: 'Ver detalles',
