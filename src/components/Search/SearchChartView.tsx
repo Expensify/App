@@ -129,7 +129,7 @@ function SearchChartView({
         options?.shouldUseCompactNotation ? numberFormat(value, {notation: 'compact'}).replace('K', 'k') : formatExpenseCount(value, translate, numberFormat);
     const formatValue = isCountMetric ? formatCount : undefined;
 
-    // A count says nothing about the money behind it, so a count chart's tooltip names each group's spend under it, in that group's own currency.
+    // A count says nothing about the money behind it, so a count chart names each group's spend alongside it, in that group's own currency.
     const formatTotal = isCountMetric ? convertToDisplayString : undefined;
 
     const emptyLaterKeys = new Set(data.filter((item) => isEmptyPeriodAfterToday(item, groupBy, today, dateFilterRange.start)).map((item) => item.keyForList));

@@ -118,7 +118,7 @@ function ChartTooltipLayer({
                 <ChartTooltipSummary
                     value={tooltipData.value}
                     note={tooltipData.note}
-                    detail={tooltipData.detail}
+                    expenseCount={tooltipData.expenseCount}
                 />
             )}
             {footer}
