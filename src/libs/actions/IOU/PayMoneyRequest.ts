@@ -994,6 +994,15 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         rules,
     });
 
+    // Wise takes a quote for one transfer only, so a payment retried after a failure asks for a new quote
+    if (wiseQuoteID && iouReport?.reportID) {
+        onyxData.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {wiseQuote: null, wiseQuoteRequest: null},
+        });
+    }
+
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
     // Expensify Wallets.
     const apiCommand = paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET : WRITE_COMMANDS.PAY_MONEY_REQUEST;

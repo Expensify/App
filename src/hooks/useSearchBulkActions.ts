@@ -2011,10 +2011,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             if (shouldConfirmWiseQuotes) {
                 const reports = expensePayments.flatMap((params) => (params.iouReport?.reportID ? [params.iouReport] : []));
-                const quotedReportIDs = expensePayments.flatMap((params) => (params.iouReport?.reportID && shouldGetWiseQuote(params) ? [params.iouReport.reportID] : []));
-                for (const reportID of quotedReportIDs) {
-                    getWiseQuote(reportID, true);
+                const quotedReports = expensePayments.flatMap((params) => (params.iouReport?.reportID && shouldGetWiseQuote(params) ? [params.iouReport] : []));
+                for (const report of quotedReports) {
+                    // Search results don't hold the quote, which the server merges into the report in Onyx
+                    getWiseQuote({...report, ...allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]}, true);
                 }
+                const quotedReportIDs = quotedReports.map((report) => report.reportID);
                 // Bulk pay runs while the pay popover is still dismissing, and iOS can't present a modal until it's gone
                 deferModalPresentationAfterPopoverDismiss(() => {
                     showWiseQuoteCarouselModal({

@@ -32,10 +32,7 @@ type WiseQuotePaymentSummaryProps = {
     shouldShowLoadingIndicator?: boolean;
 };
 
-/**
- * The payment summary filled from the report's Wise quote. It always takes the space of a loaded card with a tax row,
- * so neither the loader nor a card without tax changes the modal's height.
- */
+/** The payment summary filled from the report's Wise quote. While the quote loads, a loader covers an empty card as tall as a loaded card without tax */
 function WiseQuotePaymentSummary({reportID, searchReport, isPayingUnheldOnly, isQuoteRequired = true, shouldShowLoadingIndicator = true}: WiseQuotePaymentSummaryProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -49,8 +46,17 @@ function WiseQuotePaymentSummary({reportID, searchReport, isPayingUnheldOnly, is
 
     const quoteErrors = isQuoteRequired ? (report.errorFields?.wiseQuote ?? undefined) : undefined;
     const amounts = isQuoteRequired ? report.wiseQuote : getAmountsWithoutQuote({report, isPayingUnheldOnly});
-    const isLoading = !amounts && !quoteErrors;
-    const rows = amounts && !quoteErrors ? getWisePaymentSummaryRows({report, amounts, isPayingUnheldOnly, translate, convertToDisplayString}) : [];
+
+    if (amounts || quoteErrors) {
+        return (
+            <WisePaymentSummary
+                reportID={reportID}
+                report={report}
+                rows={amounts && !quoteErrors ? getWisePaymentSummaryRows({report, amounts, isPayingUnheldOnly, translate, convertToDisplayString}) : []}
+                errors={quoteErrors}
+            />
+        );
+    }
 
     return (
         <View>
@@ -65,22 +71,11 @@ function WiseQuotePaymentSummary({reportID, searchReport, isPayingUnheldOnly, is
                     placeholderRowCount={getWisePaymentSummaryRowCount({report, isPayingUnheldOnly})}
                 />
             </View>
-            <View style={StyleSheet.absoluteFill}>
-                {isLoading ? (
-                    shouldShowLoadingIndicator && (
-                        <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                            <ActivityIndicator />
-                        </View>
-                    )
-                ) : (
-                    <WisePaymentSummary
-                        reportID={reportID}
-                        report={report}
-                        rows={rows}
-                        errors={quoteErrors}
-                    />
-                )}
-            </View>
+            {shouldShowLoadingIndicator && (
+                <View style={[StyleSheet.absoluteFill, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    <ActivityIndicator />
+                </View>
+            )}
         </View>
     );
 }

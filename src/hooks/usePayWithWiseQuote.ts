@@ -15,15 +15,16 @@ function usePayWithWiseQuote() {
     const {showWiseQuoteConfirmModal} = useWiseQuoteConfirmModal();
 
     const payWithWiseQuote = ({onPaymentSent, ...params}: PayWithWiseQuoteParams) => {
-        const reportID = params.iouReport?.reportID;
-        if (!reportID || !shouldConfirmWiseQuoteBeforePaying(params)) {
+        const iouReport = params.iouReport;
+        const reportID = iouReport?.reportID;
+        if (!iouReport || !reportID || !shouldConfirmWiseQuoteBeforePaying(params)) {
             payMoneyRequest(params);
             onPaymentSent?.();
             return;
         }
 
         const isPayingUnheldOnly = params.full === false;
-        getWiseQuote(reportID, !isPayingUnheldOnly);
+        getWiseQuote(iouReport, !isPayingUnheldOnly);
         showWiseQuoteConfirmModal({
             reportID,
             isPayingUnheldOnly,

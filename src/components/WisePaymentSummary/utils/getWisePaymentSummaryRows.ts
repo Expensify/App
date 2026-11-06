@@ -20,8 +20,8 @@ type GetWisePaymentSummaryRowsParams = {
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
-/** Rows every quote card shows, counting tax as if Wise always charged one: report total, debit amount, employee amount, fees, tax and FX rate */
-const QUOTE_ROW_COUNT = 6;
+/** Rows every card shows: report total, debit amount, employee amount, fees and FX rate. Wise adds a tax row in some corridors */
+const QUOTE_ROW_COUNT = 5;
 
 type PartialPaymentRowParams = Pick<GetWisePaymentSummaryRowsParams, 'report' | 'isPayingUnheldOnly'>;
 
@@ -30,7 +30,7 @@ function hasPartialPaymentRow({report, isPayingUnheldOnly}: PartialPaymentRowPar
     return isPayingUnheldOnly || Math.abs(getReimbursableTotal(report)) !== Math.abs(report.total ?? 0);
 }
 
-/** The most rows the card can show for this report, known before the quote loads */
+/** The rows the card shows for this report when Wise charges no tax, known before the quote loads */
 function getWisePaymentSummaryRowCount(params: PartialPaymentRowParams): number {
     return QUOTE_ROW_COUNT + (hasPartialPaymentRow(params) ? 1 : 0);
 }
@@ -40,6 +40,14 @@ function getAmountsWithoutQuote({report, isPayingUnheldOnly}: PartialPaymentRowP
     const amount = Math.abs(isPayingUnheldOnly ? getUnheldReimbursableTotal(report) : getReimbursableTotal(report));
     const currency = report.currency ?? CONST.CURRENCY.USD;
     return {fee: 0, rate: 1, debitedAmount: amount, creditedAmount: amount, currency, paymentCurrency: currency};
+}
+
+function getFXRate({rate, currency, paymentCurrency}: WisePaymentAmounts, translate: LocaleContextProps['translate']): string {
+    if (currency === paymentCurrency) {
+        return translate('common.na');
+    }
+    // The rate is a float, while convertAmountToDisplayString takes cents and keeps up to four decimals
+    return `${convertToShortDisplayString(100, currency)} = ${convertAmountToDisplayString(rate * 100, paymentCurrency)}`;
 }
 
 function getWisePaymentSummaryRows({report, amounts, isPayingUnheldOnly, translate, convertToDisplayString}: GetWisePaymentSummaryRowsParams): WisePaymentSummaryRow[] {
@@ -68,11 +76,7 @@ function getWisePaymentSummaryRows({report, amounts, isPayingUnheldOnly, transla
         rows.push({label: translate('common.tax'), value: convertToDisplayString(amounts.tax, amounts.currency)});
     }
 
-    if (amounts.currency !== amounts.paymentCurrency) {
-        // The rate is a float, while convertAmountToDisplayString takes cents and keeps up to four decimals
-        const rate = convertAmountToDisplayString(amounts.rate * 100, amounts.paymentCurrency);
-        rows.push({label: translate('iou.wisePaymentSummary.fxRate'), value: `${convertToShortDisplayString(100, amounts.currency)} = ${rate}`});
-    }
+    rows.push({label: translate('iou.wisePaymentSummary.fxRate'), value: getFXRate(amounts, translate)});
 
     return rows;
 }

@@ -1,9 +1,11 @@
 import {read} from '@libs/API';
 import {READ_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {canReuseWiseQuote, getWiseQuoteRequest} from '@libs/WiseQuoteUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 import Onyx from 'react-native-onyx';
@@ -37,15 +39,22 @@ function getWiseKYCReviewEmbeddedLink(bankAccountID: number, redirectURL: string
     read(READ_COMMANDS.GET_WISE_KYC_REVIEW_EMBEDDED_LINK, {bankAccountID, redirectURL}, onyxData);
 }
 
-/** Asks Wise for a fresh price for paying the report. The server merges it into `report.wiseQuote`, so the old quote is dropped first */
-function getWiseQuote(reportID: string, full: boolean) {
-    const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
+/**
+ * Asks Wise for a price for paying the report, unless the report holds a valid one for the same payment.
+ * The server merges the new quote into `report.wiseQuote`, so the old quote is dropped first.
+ */
+function getWiseQuote(report: Report, full: boolean) {
+    if (canReuseWiseQuote(report, full)) {
+        return;
+    }
+
+    const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}` as const;
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: reportKey,
-                value: {wiseQuote: null, errorFields: {wiseQuote: null}},
+                value: {wiseQuote: null, wiseQuoteRequest: getWiseQuoteRequest(report, full), errorFields: {wiseQuote: null}},
             },
         ],
         failureData: [
@@ -57,7 +66,7 @@ function getWiseQuote(reportID: string, full: boolean) {
         ],
     };
 
-    read(READ_COMMANDS.GET_WISE_QUOTE, {reportID, full}, onyxData);
+    read(READ_COMMANDS.GET_WISE_QUOTE, {reportID: report.reportID, full}, onyxData);
 }
 
 /** Drops the link, which carries a token */

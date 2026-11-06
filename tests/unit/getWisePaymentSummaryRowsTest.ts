@@ -91,13 +91,13 @@ describe('getWisePaymentSummaryRows', () => {
         expect(rowsWithoutTax.map(({label}) => label)).not.toContain('Tax');
     });
 
-    it('skips the FX rate when Wise pays in the same currency', () => {
+    it('shows N/A as the FX rate when Wise pays in the same currency', () => {
         // Given a quote where the employee receives the same currency the company is debited in
         // When the rows are built
         const rows = getRows({amounts: {...amounts, rate: 1, creditedAmount: 1000, paymentCurrency: CONST.CURRENCY.USD}});
 
-        // Then there is no FX rate row, since nothing is converted
-        expect(rows.map(({label}) => label)).not.toContain('FX rate');
+        // Then the FX rate row stays, so every card has the same rows, but shows N/A since nothing is converted
+        expect(rows.at(-1)).toEqual({label: 'FX rate', value: 'N/A'});
     });
 
     describe('getAmountsWithoutQuote', () => {
@@ -115,6 +115,7 @@ describe('getWisePaymentSummaryRows', () => {
                 {label: 'Debit amount', value: '$1.00'},
                 {label: 'Employee will receive', value: '$1.00'},
                 {label: 'Total fees', value: '$0.00'},
+                {label: 'FX rate', value: 'N/A'},
             ]);
         });
 
@@ -131,16 +132,13 @@ describe('getWisePaymentSummaryRows', () => {
     });
 
     describe('getWisePaymentSummaryRowCount', () => {
-        it('reserves a tax row even when the quote has no tax', () => {
-            // Given a fully reimbursable report whose quote has no tax
-            const rows = getRows({});
-
+        it('reserves the rows of a quote without tax', () => {
+            // Given a fully reimbursable report
             // When the card reserves its rows before the quote loads
             const reservedRowCount = getWisePaymentSummaryRowCount({report: fullyReimbursableReport, isPayingUnheldOnly: false});
 
-            // Then it keeps one row more than the quote fills, so the card doesn't grow if Wise charges a tax
-            expect(reservedRowCount).toBe(rows.length + 1);
-            expect(reservedRowCount).toBe(getRows({amounts: {...amounts, tax: 25}}).length);
+            // Then it matches a loaded quote with no tax, which most corridors have, so the card keeps its height when the quote arrives
+            expect(reservedRowCount).toBe(getRows({}).length);
         });
 
         it.each([
@@ -151,8 +149,8 @@ describe('getWisePaymentSummaryRows', () => {
             // When the card reserves its rows before the quote loads
             const reservedRowCount = getWisePaymentSummaryRowCount({report, isPayingUnheldOnly});
 
-            // Then the reserved space matches the loaded card with a tax, so it never jumps when the quote arrives
-            expect(reservedRowCount).toBe(getRows({report, isPayingUnheldOnly, amounts: {...amounts, tax: 25}}).length);
+            // Then the reserved space includes that row, so the card keeps its height when the quote arrives
+            expect(reservedRowCount).toBe(getRows({report, isPayingUnheldOnly}).length);
         });
     });
 });

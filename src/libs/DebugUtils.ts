@@ -602,6 +602,11 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 expiresAt: 'string',
                 tax: 'number',
             });
+        case 'wiseQuoteRequest':
+            return validateObject<ObjectElement<Report, 'wiseQuoteRequest'>>(value, {
+                full: 'boolean',
+                amount: 'number',
+            });
         case 'nextStep':
             return validateObject<ObjectElement<Report, 'nextStep'>>(value, {
                 messageKey: 'string',
@@ -660,6 +665,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 creditedCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 withdrawalIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 wiseQuote: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                wiseQuoteRequest: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 avatarUrl: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 chatType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasOutstandingChildRequest: CONST.RED_BRICK_ROAD_PENDING_ACTION,

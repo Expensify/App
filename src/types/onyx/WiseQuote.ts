@@ -31,4 +31,14 @@ type WiseQuote = {
     tax?: number;
 };
 
+/** The payment a quote was asked for, kept on the device so a saved quote is reused only for the same payment */
+type WiseQuoteRequest = {
+    /** False when the admin pays only the expenses that are not on hold */
+    full: boolean;
+
+    /** The amount being paid, in the report currency, in cents */
+    amount: number;
+};
+
 export default WiseQuote;
+export type {WiseQuoteRequest};
