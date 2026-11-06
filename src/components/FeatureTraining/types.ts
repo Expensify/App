@@ -1,3 +1,5 @@
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
+
 import type {ReactNode} from 'react';
 
 type FeatureTrainingProps = {
@@ -17,7 +19,7 @@ type FeatureTrainingProps = {
     width?: number;
 
     /** Sentry label for the confirm button; can also be set per-primitive on <ConfirmButton sentryLabel=... /> */
-    confirmSentryLabel?: string;
+    confirmSentryLabel?: SentryLabel;
 
     /** Composed content — Illustration, Body, DismissOption, HelpButton, ConfirmButton, etc. */
     children?: ReactNode;
