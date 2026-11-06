@@ -301,7 +301,9 @@ function usePolicyCopySettingsSelection(
             setSelectedFeatures([]);
             return;
         }
-        const nextSelection = Array.from(new Set([...selectedAvailableFeatures, ...selectableFeatures]));
+        // Select all adds Overview too, so evaluate Travel against that proposed selection, not the current one.
+        const bulkSelectableFeatures = availableFeatureRows.filter((row) => !isPartIncompatible(row.part)).map((row) => row.part);
+        const nextSelection = Array.from(new Set([...selectedAvailableFeatures, ...bulkSelectableFeatures]));
         // Copying members replaces the target workspace's existing members, so confirm when Select all adds it.
         const isAddingMembers = !isNewPolicy && selectableFeatures.some(isMembersPart) && !selectedAvailableFeatures.some(isMembersPart);
         if (!isAddingMembers) {

@@ -593,7 +593,15 @@ describe('actions/Policy', () => {
         it('duplicate workspace keeps copied categories after success without recreating defaults', async () => {
             // Given a source whose categories replace every creation default.
             const source = createRandomPolicy(30, CONST.POLICY.TYPE.TEAM);
-            const categories = {Custom: {name: 'Custom', enabled: true}};
+            const categories = {
+                Custom: {
+                    name: 'Custom',
+                    enabled: true,
+                    errors: {sourceError: 'Source edit failed'},
+                    pendingFields: {enabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            };
             const targetPolicyID = Policy.generatePolicyID();
             mockFetch.pause();
 
@@ -611,11 +619,16 @@ describe('actions/Policy', () => {
                 personalDetailsByLogins: {},
             });
             await waitForBatchedUpdates();
+            const pendingCategories = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyID}`);
+            expect(pendingCategories?.Custom?.errors).toBeFalsy();
+            expect(pendingCategories?.Custom?.pendingFields).toBeUndefined();
+            expect(pendingCategories?.Custom?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+            expect(categories.Custom.errors).toEqual({sourceError: 'Source edit failed'});
             await mockFetch.resume();
             await waitForBatchedUpdates();
 
-            // Then success feedback must not restore the deleted default names.
-            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyID}`)).toEqual(categories);
+            // Then only the duplicate's pending markers clear, without restoring defaults or source errors.
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyID}`)).toEqual({Custom: {name: 'Custom', enabled: true}});
             expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`))?.pendingFields?.name).toBeUndefined();
         });
 
@@ -699,7 +712,9 @@ describe('actions/Policy', () => {
             expect(duplicate?.employeeList?.[ESH_EMAIL]).toBeDefined();
             expect(duplicate?.fieldList).toEqual({});
             expect(duplicate?.taxRates?.taxes).toEqual({});
-            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyID}`)).toEqual({Kept: {name: 'Kept', enabled: true}});
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyID}`)).toEqual({
+                Kept: {name: 'Kept', enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+            });
             expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyID}`)).toEqual({
                 Kept: {name: 'Kept', required: false, orderWeight: 1, tags: {Kept: {name: 'Kept', enabled: true}}},
             });

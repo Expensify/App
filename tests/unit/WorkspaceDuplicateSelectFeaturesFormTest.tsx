@@ -275,6 +275,32 @@ describe('WorkspaceDuplicateSelectFeaturesForm Rules and Merchant rules', () => 
         expect(getSentParts()).not.toContain('travel');
     });
 
+    it.each(travelProvisioningMarkers)('selects Travel when Select all also adds Overview for provisioning marker %#', async (provisioningMarkers) => {
+        // Given a provisioned Travel source with an address and all features initially selected.
+        await renderForm(false, {
+            isTravelEnabled: true,
+            ...provisioningMarkers,
+            address: {addressStreet: '1 Main Street', city: 'Paris', country: 'FR', state: '', zipCode: '75001'},
+        });
+        fireEvent.press(screen.getByRole('checkbox', {checked: true}));
+        await waitForBatchedUpdates();
+        expect(getRow('overview')?.isSelected).toBe(false);
+        expect(getRow('travel')?.isDisabled).toBe(true);
+
+        // When Select all is pressed from the empty selection.
+        fireEvent.press(screen.getByRole('checkbox', {checked: false}));
+        await waitForBatchedUpdates();
+
+        // Then Overview and Travel are selected together, and Travel consent is still required.
+        expect(getRow('overview')?.isSelected).toBe(true);
+        expect(getRow('travel')?.isSelected).toBe(true);
+        expect(mockSelectionListProps?.confirmButtonOptions.isDisabled).toBe(true);
+        fireEvent.press(screen.getByRole('checkbox', {checked: false}));
+        await waitForBatchedUpdates();
+        pressContinue();
+        expect(getSentParts()).toContain('travel');
+    });
+
     it.each(travelProvisioningMarkers)('requires Travel consent before submitting for provisioning marker %#', async (provisioningMarkers) => {
         // Given a provisioned source that requires fresh consent for the duplicate.
         await renderForm(false, {

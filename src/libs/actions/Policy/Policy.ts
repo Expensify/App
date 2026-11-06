@@ -185,7 +185,7 @@ import type {Part} from './CopyPolicySettings';
 import type {PolicyOwner} from './PolicyDraft';
 
 import {buildCopyPolicySettingsData} from './CopyPolicySettings';
-import {buildOptimisticMccGroup, buildOptimisticPolicyCategories} from './OptimisticPolicyCategoriesAndMccGroups';
+import {buildOptimisticMccGroup, buildOptimisticPolicyCategories, buildOptimisticPolicyWithExistingCategories} from './OptimisticPolicyCategoriesAndMccGroups';
 import {
     buildOptimisticDistanceRateCustomUnits,
     createDraftInitialWorkspace,
@@ -3625,7 +3625,7 @@ function buildDuplicatePolicyData(sourcePolicy: Policy, options: DuplicatePolicy
         connections: filterPendingDeletes(sourcePolicy.connections),
         taxRates: sourcePolicy.taxRates ? {...sourcePolicy.taxRates, taxes: filterPendingDeletes(sourcePolicy.taxRates.taxes)} : undefined,
     };
-    const policyCategories = filterPendingDeletes(sourceCategories);
+    const policyCategories = Object.fromEntries(Object.entries(filterPendingDeletes(sourceCategories)).map(([name, category]) => [name, {...category, pendingFields: undefined}]));
     const policyTags = Object.fromEntries(Object.entries(filterPendingDeletes(sourceTags)).map(([name, tagList]) => [name, {...tagList, tags: filterPendingDeletes(tagList.tags)}]));
 
     const {
@@ -3916,6 +3916,12 @@ function buildDuplicatePolicyData(sourcePolicy: Policy, options: DuplicatePolicy
     optimisticData.push(...copyData.optimisticData);
     successData.push(...copyData.successData);
     failureData.push(...copyData.failureData);
+    if (parts.includes('categories')) {
+        // The duplicate owns category creation feedback; failed edits on the source must not follow it.
+        const copiedCategoriesData = buildOptimisticPolicyWithExistingCategories(targetPolicyID, policyCategories);
+        optimisticData.push(...(copiedCategoriesData.optimisticData ?? []));
+        successData.push(...(copiedCategoriesData.successData ?? []));
+    }
 
     // We need to clone the file to prevent non-indexable errors.
     const clonedFile = file ? createFile(file as File) : undefined;
