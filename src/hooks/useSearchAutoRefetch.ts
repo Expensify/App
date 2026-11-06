@@ -4,7 +4,9 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import {search} from '@libs/actions/Search';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import {isApprovedAction, isUnapprovedAction} from '@libs/ReportActionsUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
+import {shouldRefetchSearchOnReportActionChange} from '@libs/SearchQueryUtils';
 import {isReportActionEntry} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -77,6 +79,7 @@ function useSearchAutoRefetch({
     const searchTriggeredRef = useRef(false);
     const hasPendingSearchRef = useRef(false);
     const isChat = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
+    const shouldRefetchOnReportActionChange = shouldRefetchSearchOnReportActionChange(queryJSON);
     const shouldReturnTripRooms = useShouldReturnTripRooms(queryJSON.type);
 
     const searchResultsData = searchResults?.data;
@@ -114,14 +117,16 @@ function useSearchAutoRefetch({
             return;
         }
 
-        // Only chat searches are driven by report actions, so the rest skip walking that collection entirely.
-        const reportActionsIDs = isChat ? Object.values(reportActions ?? {}).flatMap((actions) => Object.keys(actions ?? {})) : [];
-        const previousReportActionsIDs = isChat ? Object.values(previousReportActions ?? {}).flatMap((actions) => Object.keys(actions ?? {})) : [];
+        const shouldCheckReportActions = isChat || shouldRefetchOnReportActionChange;
+        const reportActionEntries = shouldCheckReportActions ? Object.values(reportActions ?? {}).flatMap((actions) => Object.entries(actions ?? {})) : [];
+        const reportActionsIDs = reportActionEntries.map(([reportActionID]) => reportActionID);
+        const previousReportActionsIDs = shouldCheckReportActions ? Object.values(previousReportActions ?? {}).flatMap((actions) => Object.keys(actions ?? {})) : [];
 
         const previousTransactionsIDsSet = new Set(previousTransactionIDsLocal);
         const previousReportActionsIDsSet = new Set(previousReportActionsIDs);
         const hasTransactionsIDsChange = transactionsIDs.length !== previousTransactionIDsLocal.length || transactionsIDs.some((id) => !previousTransactionsIDsSet.has(id));
-        const hasReportActionsIDsChange = reportActionsIDs.some((id) => !previousReportActionsIDsSet.has(id));
+        const addedReportActions = reportActionEntries.filter(([reportActionID]) => !previousReportActionsIDsSet.has(reportActionID)).map(([, reportAction]) => reportAction);
+        const hasReportActionsIDsChange = addedReportActions.length > 0;
 
         // Editing an expense that the results already show changes no transaction ID, so the ID checks above miss it.
         // The rows and the footer total are served from the Search snapshot, and the footer total is computed by the
@@ -130,8 +135,15 @@ function useSearchAutoRefetch({
             !isChat && !hasTransactionsIDsChange && hasChangedTransactionInSearchResults(transactions, transactionsIDs, previousTransactions, previousTransactionsIDsSet, searchResultsData);
         const hasChangedResultMemberCustomField = !isChat && hasChangedMemberCustomField(memberCustomFields, previousMemberCustomFields);
 
+        // Approving or unapproving a report changes no transaction, but it can move the report's expenses in or out of the results.
+        const hasRelevantReportActionChange =
+            !isChat && shouldRefetchOnReportActionChange && addedReportActions.some((reportAction) => isApprovedAction(reportAction) || isUnapprovedAction(reportAction));
+
         // Check if there is a change in the transactions or report actions list
-        if ((isChat ? hasReportActionsIDsChange : hasTransactionsIDsChange || hasChangedResultTransaction || hasChangedResultMemberCustomField) || hasPendingSearchRef.current) {
+        if (
+            (isChat ? hasReportActionsIDsChange : hasTransactionsIDsChange || hasChangedResultTransaction || hasChangedResultMemberCustomField || hasRelevantReportActionChange) ||
+            hasPendingSearchRef.current
+        ) {
             // Skip if offline, or if the user has navigated to a different fullscreen page entirely.
             // An RHP layered on top of Search makes `isFocused` false but keeps Search as the topmost
             // fullscreen route, so we still want to refetch — otherwise the snapshot can't reflect
@@ -169,7 +181,14 @@ function useSearchAutoRefetch({
 
             // Only skip search if there are no new items AND search results aren't empty
             // This ensures deletions that result in empty data still trigger search
-            if (!hasAGenuinelyNewID && !hasChangedResultTransaction && !hasChangedResultMemberCustomField && !hadPendingSearch && currentSearchResultIDs.length > 0) {
+            if (
+                !hasAGenuinelyNewID &&
+                !hasChangedResultTransaction &&
+                !hasChangedResultMemberCustomField &&
+                !hasRelevantReportActionChange &&
+                !hadPendingSearch &&
+                currentSearchResultIDs.length > 0
+            ) {
                 const currentIDsSet = new Set(isChat ? reportActionsIDs : currentTransactionIDs);
                 const hasDeletedID = currentSearchResultIDs.some((id) => !currentIDsSet.has(id));
                 if (!hasDeletedID) {
@@ -200,6 +219,7 @@ function useSearchAutoRefetch({
         memberCustomFields,
         previousMemberCustomFields,
         isChat,
+        shouldRefetchOnReportActionChange,
         searchResultsData,
         isOffline,
         searchResults?.search?.isLoading,
