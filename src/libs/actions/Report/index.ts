@@ -1720,7 +1720,7 @@ function getGuidedSetupDataForOpenReport(
         engagementChoice: choice,
         onboardingMessage,
         conciergeChat,
-        companySize: introSelected?.companySize as OnboardingCompanySize,
+        companySize: introSelected?.companySize,
         isSelfTourViewed,
         wasInvited: isPendingInviteOnboarding && isOnboardingCompleted,
         currentUserAccountID,
@@ -9466,7 +9466,7 @@ function mergeReports({
                     ...sourceReport,
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     errors: null,
-                } as NullishDeep<Report>;
+                };
 
                 failureSnapshotData[`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`] = {...sourceReport, pendingAction: sourceReport.pendingAction ?? null};
             }

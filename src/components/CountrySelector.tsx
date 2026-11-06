@@ -2,11 +2,11 @@ import useGeographicalStateAndCountryFromRoute from '@hooks/useGeographicalState
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {translateCountry} from '@libs/Localize';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {ComponentRef, ForwardedRef} from 'react';
@@ -24,7 +24,8 @@ type CountrySelectorProps = {
     /** Callback called when the country changes. */
     onInputChange?: (value?: string) => void;
 
-    value?: Country | '';
+    /** Persisted defaults may contain country names or unknown strings before a finite route selection. */
+    value?: string;
 
     /** inputID used by the Form component */
     // eslint-disable-next-line react/no-unused-prop-types
@@ -38,10 +39,10 @@ type CountrySelectorProps = {
 
 function CountrySelector({errorText = '', value: countryCode, onInputChange = () => {}, onBlur, ref}: CountrySelectorProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {country: countryFromUrl} = useGeographicalStateAndCountryFromRoute();
 
-    const title = countryCode ? translate(`allCountries.${countryCode}`) : '';
+    const title = countryCode ? translateCountry(preferredLocale, countryCode) : '';
     const countryTitleDescStyle = title.length === 0 ? styles.textNormal : null;
 
     const didOpenCountrySelector = useRef(false);

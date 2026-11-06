@@ -11,7 +11,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {BackToParams} from '@libs/Navigation/types';
 
 import type {FormOnyxValues} from '@src/components/Form/types';
-import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/HomeAddressForm';
@@ -36,7 +35,8 @@ type AddressPageProps = {
      */
     shouldRequireZip?: boolean;
 
-    defaultCountry?: Country;
+    /** Raw IP-derived default used only when the saved country is nullish at mount. */
+    defaultCountry?: string;
 } & BackToParams;
 
 function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo, defaultCountry, shouldRequireZip}: AddressPageProps) {
@@ -72,7 +72,7 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
             return;
         }
         if (addressPartKey === INPUT_IDS.COUNTRY && addressPart !== currentCountry) {
-            setCurrentCountry(addressPart as Country | '');
+            setCurrentCountry(addressPart);
             setState('');
             setCity('');
             setZipcode('');
