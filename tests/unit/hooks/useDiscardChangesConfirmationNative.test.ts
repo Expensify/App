@@ -3,25 +3,35 @@ import {act, renderHook} from '@testing-library/react-native';
 import type {DiscardChangesConfirmation} from '@hooks/useDiscardChangesConfirmation/types';
 import type UseDiscardChangesConfirmationOptions from '@hooks/useDiscardChangesConfirmation/types';
 
+import {releaseFlowDiscardPromptSuppression, runWhileReplayingDiscardedNavigation, suppressFlowDiscardPrompt} from '@libs/Navigation/helpers/discardPromptState';
+
 import type {HardwareBackPressEvent} from 'react-native/Libraries/Utilities/BackHandler';
 
 import {BackHandler} from 'react-native';
 
-type MockBeforeRemoveEvent = {data: {action: {type: string}}};
+type MockBeforeRemoveEvent = {data: {action: {type: string; source?: string; target?: string; payload?: unknown}}};
 
 const mockHardwareBackPressEvent: HardwareBackPressEvent = {type: 'hardwareBackPress', timeStamp: 0};
 
 let mockPreventRemoveFlag: boolean | undefined;
 let mockPreventRemoveCallback: ((e: MockBeforeRemoveEvent) => void) | undefined;
 let mockIsFocused = true;
+let mockIsFlowFocused = true;
+let mockOwnNavigatorState = {key: 'flow-stack', index: 0, routes: [{key: 'test-route-key'}]};
+const mockNavigation = {
+    getState: () => mockOwnNavigatorState,
+    getParent: () => ({isFocused: () => mockIsFlowFocused}),
+    isFocused: () => mockIsFocused,
+};
 jest.mock('@react-navigation/native', () => ({
     usePreventRemove: (flag: boolean, callback: (e: MockBeforeRemoveEvent) => void) => {
         mockPreventRemoveFlag = flag;
         mockPreventRemoveCallback = callback;
     },
     useIsFocused: () => mockIsFocused,
+    useNavigation: () => mockNavigation,
     // The hook reads `route.name` to key its tab-switch guard
-    useRoute: () => ({name: 'test-route'}),
+    useRoute: () => ({name: 'test-route', key: 'test-route-key', params: {transactionID: '1'}}),
     // Focus effects behave like plain effects in these tests — the screen is always focused
     useFocusEffect: (callback: () => undefined | (() => void)) => {
         jest.requireActual<{useEffect: (effect: () => undefined | (() => void), deps: unknown[]) => void}>('react').useEffect(callback, [callback]);
@@ -56,6 +66,8 @@ jest.mock('@libs/Navigation/navigationRef', () => ({
         get current() {
             return {dispatch: mockNavigationDispatch, goBack: mockNavigationGoBack};
         },
+        isReady: () => true,
+        getRootState: () => ({key: 'root', routes: [{key: 'rhp-route'}]}),
     },
 }));
 
@@ -97,6 +109,9 @@ describe('useDiscardChangesConfirmation (native)', () => {
         mockPreventRemoveFlag = undefined;
         mockPreventRemoveCallback = undefined;
         mockIsFocused = true;
+        mockIsFlowFocused = true;
+        mockOwnNavigatorState = {key: 'flow-stack', index: 0, routes: [{key: 'test-route-key'}]};
+        releaseFlowDiscardPromptSuppression();
         hardwareBackCallback = undefined;
         resolveModal = undefined;
         backHandlerSpy = jest.spyOn(BackHandler, 'addEventListener').mockImplementation((event, handler) => {
@@ -290,6 +305,102 @@ describe('useDiscardChangesConfirmation (native)', () => {
 
             expect(mockNavigationDispatch).not.toHaveBeenCalled();
             expect(mockNavigationGoBack).toHaveBeenCalledTimes(1);
+        });
+    });
+    describe('while covered by a page opened from it', () => {
+        const invokeBeforeRemove = (type: string, action: Omit<MockBeforeRemoveEvent['data']['action'], 'type'> = {}) => {
+            act(() => {
+                mockPreventRemoveCallback?.({data: {action: {type, ...action}}});
+            });
+        };
+
+        const renderCoveredGuardHook = (options: Partial<UseDiscardChangesConfirmationOptions> = {}) =>
+            renderHook(() => useDiscardChangesConfirmation({getHasUnsavedChanges: () => true, shouldPromptWhenUnfocused: true, ...options}));
+
+        it('keeps prevention armed and prompts while a page opened from it covers it', () => {
+            // Given a dirty Confirmation covered by a page opened from it
+            mockIsFocused = false;
+            renderCoveredGuardHook();
+
+            // When closing the flow removes Confirmation
+            invokeBeforeRemove('POP', {target: 'rhp-stack'});
+
+            // Then Confirmation still blocks the removal and asks the user
+            expect(mockPreventRemoveFlag).toBe(true);
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+            expect(mockNavigationDispatch).not.toHaveBeenCalled();
+        });
+
+        it('lets the removal through when the flow itself is not visible', () => {
+            // Given a dirty Confirmation whose flow is covered by another screen
+            mockIsFocused = false;
+            mockIsFlowFocused = false;
+            renderCoveredGuardHook();
+
+            // When Confirmation is removed
+            invokeBeforeRemove('POP', {target: 'rhp-stack'});
+
+            // Then it isn't asked about and the removal proceeds
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+            expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'POP', target: 'rhp-stack'});
+        });
+
+        it('lets a back to an earlier step through when going back is allowed, and still asks on closing the RHP', () => {
+            // Given a dirty Confirmation above an earlier step that shows the same data
+            mockOwnNavigatorState = {key: 'flow-stack', index: 1, routes: [{key: 'start'}, {key: 'test-route-key'}]};
+            renderCoveredGuardHook({shouldPromptWhenGoingBackInFlow: false});
+
+            // When Android back is pressed, and an iOS swipe goes back
+            const isBackConsumed = pressHardwareBack();
+            invokeBeforeRemove('POP', {source: 'test-route-key', target: 'flow-stack'});
+
+            // Then react-navigation goes back without a prompt
+            expect(isBackConsumed).toBe(false);
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+            expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'POP', source: 'test-route-key', target: 'flow-stack'});
+
+            // When the RHP is closed instead
+            invokeBeforeRemove('GO_BACK', {source: 'rhp-route'});
+
+            // Then it asks
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        });
+
+        it('lets a submit from a later step through while the flow is suppressed', () => {
+            // Given a dirty Confirmation and a submit that muted the flow's guards
+            renderCoveredGuardHook();
+            suppressFlowDiscardPrompt();
+
+            // When the submit dismisses the flow
+            invokeBeforeRemove('DISMISS_MODAL');
+
+            // Then it isn't interrupted
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+            expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'DISMISS_MODAL'});
+        });
+
+        it('replays a root-level close at the root navigator on Discard', async () => {
+            // Given a dirty Confirmation
+            renderCoveredGuardHook();
+
+            // When a close sent from the root-level RHP route is blocked and the user confirms Discard
+            invokeBeforeRemove('GO_BACK', {source: 'rhp-route'});
+            await resolveModalWith('CONFIRM');
+
+            // Then the close is replayed where it was first handled, closing the whole RHP
+            expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'GO_BACK', source: 'rhp-route', target: 'root'});
+        });
+
+        it('discards without a second prompt when another guard already confirmed the navigation', () => {
+            // Given a dirty Confirmation under another guard of the same flow
+            renderCoveredGuardHook();
+
+            // When the other guard replays the navigation the user confirmed to discard
+            runWhileReplayingDiscardedNavigation(() => invokeBeforeRemove('DISMISS_MODAL'));
+
+            // Then Confirmation lets it through without asking again
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+            expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'DISMISS_MODAL'});
         });
     });
 });

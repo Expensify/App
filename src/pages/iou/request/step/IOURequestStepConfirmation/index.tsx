@@ -9,6 +9,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PrevNextButtons from '@components/PrevNextButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useCreateFlowDiscardGuard from '@hooks/useCreateFlowDiscardGuard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFetchRoute from '@hooks/useFetchRoute';
@@ -27,7 +28,7 @@ import useStableArrayReference from '@hooks/useStableArrayReference';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {setMoneyRequestBillable, setMoneyRequestReimbursable} from '@libs/actions/IOU/MoneyRequest';
+import {setMoneyRequestBillable, setMoneyRequestDraftHasUserEdits, setMoneyRequestReimbursable} from '@libs/actions/IOU/MoneyRequest';
 import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -41,6 +42,7 @@ import {
     shouldShowReceiptEmptyState,
     shouldUseTransactionDraft,
 } from '@libs/IOUUtils';
+import {isFlowDiscardPromptSuppressed} from '@libs/Navigation/helpers/discardPromptState';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
@@ -490,12 +492,33 @@ function IOURequestStepConfirmationContent({
         };
     }, []);
 
+    // The distance, time and invoice amount steps, and the Scan step while it shows the receipts captured with multi-scan, keep the
+    // draft and have their own guard, so going back to them doesn't ask. Closing the RHP still asks. Other flows start on a step
+    // that doesn't show the draft, such as the Scan camera, so going back asks.
+    const shouldPromptWhenGoingBack = !isDistanceRequest && !isTimeRequest && !hasMultipleTransactions && iouType !== CONST.IOU.TYPE.INVOICE;
+
+    // Leaving this page, or closing the RHP from a page opened from it, asks first when a draft has user input. When embedded,
+    // the start page asks instead. Per diem isn't covered yet, because https://github.com/Expensify/App/issues/105164 moves its
+    // steps into this page.
+    const {isFlowDirty} = useCreateFlowDiscardGuard({
+        isEnabled: !shouldHideHeader && action === CONST.IOU.ACTION.CREATE && !isPerDiemRequest,
+        shouldPromptWhenGoingBackInFlow: shouldPromptWhenGoingBack,
+        // Runs only after the user picks Discard, so Cancel keeps the tracking and the destination opened early under the RHP
+        onBeforeClose: () => {
+            cancelTracking();
+            cleanupPreMount();
+        },
+    });
+
     const navigateBack = () => {
-        // User is explicitly abandoning the flow - cancel any active telemetry span.
-        // The orchestrator never calls navigateBack (it uses dismissModal), so this
-        // reliably distinguishes user-initiated back from programmatic dismiss.
-        cancelTracking();
-        cleanupPreMount();
+        // When the guard asks first, it cleans up only if the user picks Discard. A submit in progress mutes it.
+        if (!isFlowDirty || !shouldPromptWhenGoingBack || isFlowDiscardPromptSuppressed()) {
+            // User is explicitly abandoning the flow - cancel any active telemetry span.
+            // The orchestrator never calls navigateBack (it uses dismissModal), so this
+            // reliably distinguishes user-initiated back from programmatic dismiss.
+            cancelTracking();
+            cleanupPreMount();
+        }
 
         if (backTo) {
             Navigation.goBack(backTo);
@@ -558,10 +581,12 @@ function IOURequestStepConfirmationContent({
 
     const setBillable = (billable: boolean) => {
         setMoneyRequestBillable(currentTransactionID, billable);
+        setMoneyRequestDraftHasUserEdits(currentTransactionID);
     };
 
     const setReimbursable = (reimbursable: boolean) => {
         setMoneyRequestReimbursable(currentTransactionID, reimbursable);
+        setMoneyRequestDraftHasUserEdits(currentTransactionID);
     };
 
     // This loading indicator is shown because the transaction originalCurrency is being updated later than the component mounts.

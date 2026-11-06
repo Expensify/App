@@ -1,3 +1,5 @@
+import {releaseFlowDiscardPromptSuppression} from '@libs/Navigation/helpers/discardPromptState';
+
 import type {RefObject} from 'react';
 
 import {useRef, useState} from 'react';
@@ -27,6 +29,8 @@ function useSubmitLock(): SubmitLock {
     const unlockSubmission = () => {
         formHasBeenSubmitted.current = false;
         setIsConfirmed(false);
+        // The submit didn't close the flow, so turn the prompt back on
+        releaseFlowDiscardPromptSuppression();
     };
 
     const lockSubmission = () => {

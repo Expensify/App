@@ -9,6 +9,7 @@ import type {SubmitExpenseContext} from '@libs/telemetry/submitFollowUpAction';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
+import {suppressFlowDiscardPrompt} from './discardPromptState';
 import getTopmostReportParams from './getTopmostReportParams';
 import isReportTopmostSplitNavigator from './isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';
@@ -69,6 +70,8 @@ function submitWithDismissFirst({
     isLookingAroundUser = false,
     isSelfDMDestination = false,
 }: SubmitWithDismissFirstParams): void {
+    // Every path below closes the flow after a submit, so don't ask to discard the expense that was just created
+    suppressFlowDiscardPrompt();
     const shouldStayOnSearch = isSearchTopmostFullScreenRoute();
 
     if (shouldStayOnSearch) {

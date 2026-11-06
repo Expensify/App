@@ -1159,6 +1159,17 @@ function setMoneyRequestReimbursable(transactionID: string, reimbursable: boolea
     });
 }
 
+/**
+ * Marks the draft as changed by the user, for fields that have no flag of their own (category, tag, tax, billable, ...).
+ * Call it only when the user picks a value. Code that fills in defaults writes the same fields and must not call it,
+ * or closing a draft the user didn't touch would ask to discard changes.
+ */
+function setMoneyRequestDraftHasUserEdits(transactionID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        hasUserEdits: true,
+    });
+}
+
 function clearMoneyRequestRateAutoUpdated(transactionID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
         comment: {
@@ -1303,6 +1314,7 @@ export {
     setMoneyRequestTag,
     setMoneyRequestBillable,
     setMoneyRequestReimbursable,
+    setMoneyRequestDraftHasUserEdits,
     setMoneyRequestReportID,
     setLastSelectedDistanceRate,
     copyScanResultsToMovedExpenseDraft,

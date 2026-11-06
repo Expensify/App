@@ -60,6 +60,8 @@ jest.mock('react-native-vision-camera', () => ({
     usePhotoOutput: jest.fn(() => ({capturePhoto: jest.fn()})),
 }));
 
+// These tests render the Scan step outside a navigator screen, where the multi-scan discard guard can't read its route
+jest.mock('@pages/iou/request/step/IOURequestStepScan/components/MultiScanDiscardGuard', () => () => null);
 jest.mock('@pages/iou/request/step/IOURequestStepScan/hooks/useScanRouteParams', () => ({
     __esModule: true,
     default: () => ({iouType: 'submit', routeName: 'Money_Request_Create'}),

@@ -4,6 +4,8 @@ import {
     getStringFieldHasUnsavedChanges,
     getWaypointsHasUnsavedChanges,
     handleNegativeAmountFlipping,
+    hasMoneyRequestDraftUserEdits,
+    haveMoneyRequestDraftsUserEdits,
     isConfirmationAmountMissing,
     isConfirmationDateMissing,
     isValidMerchant,
@@ -569,5 +571,144 @@ describe('isConfirmationDateMissing', () => {
 
     it('does not flag a read-only confirmation, where the date is populated server-side', () => {
         expect(isConfirmationDateMissing(transactionWithoutDate, true, true)).toBe(false);
+    });
+});
+
+describe('hasMoneyRequestDraftUserEdits', () => {
+    const PARTICIPANT_ACCOUNT_ID = 1;
+    const buildDraft = (fields: Partial<Transaction>) =>
+        createMock<Transaction>({transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID, iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL, amount: 0, comment: {}, ...fields});
+
+    it('treats a freshly seeded draft as clean', () => {
+        // Given a manual draft with only the values the flow seeds on its own (default category, billable)
+        const draft = buildDraft({category: 'Travel', billable: true, merchant: CONST.TRANSACTION.DEFAULT_MERCHANT});
+
+        // When checking it for user edits
+        // Then it's clean, so closing the flow doesn't prompt
+        expect(hasMoneyRequestDraftUserEdits(draft)).toBe(false);
+        expect(hasMoneyRequestDraftUserEdits(undefined)).toBe(false);
+    });
+
+    it.each([
+        ['an entered amount', {isAmountSet: true}],
+        ['an entered merchant', {isMerchantSet: true}],
+        ['a picked date', {isCreatedSet: true}],
+        ['a description', {comment: {comment: 'Team lunch'}}],
+        ['a field without its own flag, such as a category', {hasUserEdits: true}],
+        ['an attached receipt', {receipt: {source: 'blob:receipt'}}],
+        ['an edited split share', {splitShares: {[PARTICIPANT_ACCOUNT_ID]: {amount: 100, isModified: true}}}],
+    ])('treats %s as a user edit', (_, fields: Partial<Transaction>) => {
+        // Given a manual or scan draft the user edited
+        const draft = buildDraft(fields);
+
+        // When checking it for user edits
+        // Then it's dirty, because closing the flow would lose that input
+        expect(hasMoneyRequestDraftUserEdits(draft)).toBe(true);
+    });
+
+    it('ignores a receipt the flow attached on its own', () => {
+        // Given drafts holding a test receipt and a shared file the flow seeded
+        const testReceiptDraft = buildDraft({receipt: {source: 'test-receipt', isTestReceipt: true}});
+        const sharedFileDraft = buildDraft({iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN, receipt: {source: 'file://shared.jpg'}});
+
+        // When checking them for user edits
+        // Then neither counts, since the user didn't attach them
+        expect(hasMoneyRequestDraftUserEdits(testReceiptDraft)).toBe(false);
+        expect(hasMoneyRequestDraftUserEdits(sharedFileDraft, {seededReceiptSource: 'file://shared.jpg'})).toBe(false);
+        expect(hasMoneyRequestDraftUserEdits(sharedFileDraft, {seededReceiptSource: 'file://other.jpg'})).toBe(true);
+    });
+
+    it('ignores the amount and merchant a distance draft fills in on its own', () => {
+        // Given a map distance draft whose amount and merchant were computed, but with no entered waypoint
+        const draft = buildDraft({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, isAmountSet: true, isMerchantSet: true});
+
+        // When checking it for user edits
+        // Then it's clean, since only the waypoints carry the user's input
+        expect(hasMoneyRequestDraftUserEdits(draft)).toBe(false);
+
+        // When the user enters the waypoints
+        const draftWithWaypoint = buildDraft({
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            comment: {
+                waypoints: {
+                    waypoint0: {address: 'Q Mall, Doha', lat: 25.3272762, lng: 51.4659325},
+                    waypoint1: {address: 'Qatar', lat: 25.354826, lng: 51.183884},
+                },
+            },
+        });
+
+        // Then it's dirty
+        expect(hasMoneyRequestDraftUserEdits(draftWithWaypoint)).toBe(true);
+    });
+
+    it('detects input entered on the earlier steps of each request type', () => {
+        // Given drafts where the user entered a manual distance, picked a per diem destination, and entered hours
+        const manualDistanceDraft = buildDraft({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL, comment: {customUnit: {quantity: 12}}});
+        const perDiemDraft = buildDraft({iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM, comment: {customUnit: {customUnitRateID: 'rate'}}});
+        const timeDraft = buildDraft({iouRequestType: CONST.IOU.REQUEST_TYPE.TIME, comment: {units: {count: 3}}});
+
+        // When checking them for user edits
+        // Then each one is dirty
+        expect(hasMoneyRequestDraftUserEdits(manualDistanceDraft)).toBe(true);
+        expect(hasMoneyRequestDraftUserEdits(perDiemDraft)).toBe(true);
+        expect(hasMoneyRequestDraftUserEdits(timeDraft)).toBe(true);
+
+        // When nothing was entered yet on those steps
+        // Then they're clean
+        expect(hasMoneyRequestDraftUserEdits(buildDraft({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL, comment: {customUnit: {quantity: null}}}))).toBe(false);
+        expect(hasMoneyRequestDraftUserEdits(buildDraft({iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM}))).toBe(false);
+        expect(hasMoneyRequestDraftUserEdits(buildDraft({iouRequestType: CONST.IOU.REQUEST_TYPE.TIME}))).toBe(false);
+    });
+
+    it('treats a GPS draft as clean, since its trip survives the flow closing', () => {
+        // Given a GPS distance draft with a computed amount
+        const draft = buildDraft({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS, isAmountSet: true});
+
+        // When checking it for user edits
+        // Then it's clean
+        expect(hasMoneyRequestDraftUserEdits(draft)).toBe(false);
+    });
+
+    it('treats odometer readings that match the draft saved for later as clean', () => {
+        // Given an odometer draft holding readings
+        const draft = buildDraft({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER, comment: {odometerStart: 10, odometerEnd: 20}});
+
+        // When nothing was saved for later
+        // Then the readings would be lost, so it's dirty
+        expect(hasMoneyRequestDraftUserEdits(draft)).toBe(true);
+
+        // When the same readings were saved for later
+        // Then nothing is lost, so it's clean
+        expect(hasMoneyRequestDraftUserEdits(draft, {savedOdometerDraft: {odometerStartReading: 10, odometerEndReading: 20}})).toBe(false);
+
+        // When the user changed a reading after it was saved
+        // Then it's dirty again
+        expect(hasMoneyRequestDraftUserEdits(draft, {savedOdometerDraft: {odometerStartReading: 10, odometerEndReading: 25}})).toBe(true);
+    });
+});
+
+describe('haveMoneyRequestDraftsUserEdits', () => {
+    const SECOND_TRANSACTION_ID = '2';
+
+    it('checks every draft, since multi-scan keeps one draft per receipt', () => {
+        // Given a clean initial draft and a second draft holding a scanned receipt
+        const drafts = {
+            [`${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`]: createMock<Transaction>({
+                transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                comment: {},
+            }),
+            [SECOND_TRANSACTION_ID]: createMock<Transaction>({
+                transactionID: SECOND_TRANSACTION_ID,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                comment: {},
+                receipt: {source: 'blob:second'},
+            }),
+        };
+
+        // When checking the flow's drafts for user edits
+        // Then the scanned receipt makes the flow dirty
+        expect(haveMoneyRequestDraftsUserEdits(drafts)).toBe(true);
+        expect(haveMoneyRequestDraftsUserEdits(undefined)).toBe(false);
     });
 });
