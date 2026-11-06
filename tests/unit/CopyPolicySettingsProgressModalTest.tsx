@@ -22,6 +22,7 @@ type MockConfirmModalProps = {
     confirmText?: string;
     cancelText?: string;
     shouldShowCancelButton?: boolean;
+    shouldShowDismissIcon?: boolean;
     shouldHandleNavigationBack?: boolean;
     buttonVariant?: string;
 };
@@ -171,6 +172,12 @@ describe('CopyPolicySettingsProgressModal', () => {
             expect(lastModalProps?.shouldShowCancelButton).toBe(false);
         });
 
+        it('should show the dismiss icon so the modal can be closed while the copy runs', async () => {
+            await renderModal();
+
+            expect(lastModalProps?.shouldShowDismissIcon).toBe(true);
+        });
+
         it('should call requestCopyPolicySettingsNotification on confirm', async () => {
             await renderModal();
 
@@ -179,6 +186,20 @@ describe('CopyPolicySettingsProgressModal', () => {
             });
 
             expect(mockRequestNotification).toHaveBeenCalledTimes(1);
+            // "Let me know when it's done" asks to be notified either way, not only on failure
+            expect(mockRequestNotification).not.toHaveBeenCalledWith(true);
+        });
+
+        it('should request a failure-only Concierge notification on cancel (dismiss)', async () => {
+            await renderModal();
+
+            act(() => {
+                lastModalProps?.onCancel?.();
+            });
+
+            expect(mockRequestNotification).toHaveBeenCalledTimes(1);
+            expect(mockRequestNotification).toHaveBeenCalledWith(true);
+            expect(mockClearCopyPolicySettings).toHaveBeenCalledTimes(1);
         });
     });
 
@@ -374,6 +395,8 @@ describe('CopyPolicySettingsProgressModal', () => {
 
             expect(mockClearCopyPolicySettings).toHaveBeenCalledTimes(1);
             expect(mockNavigate).not.toHaveBeenCalled();
+            // The failure is already on screen, so there is nothing for Concierge to report
+            expect(mockRequestNotification).not.toHaveBeenCalled();
         });
 
         it('should not navigate when sourcePolicyID is not available', async () => {
