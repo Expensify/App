@@ -765,6 +765,9 @@ describe('useSearchBulkActions - bulk pay with reports that need global reimburs
         expect(payMoneyRequest).toHaveBeenCalledTimes(1);
         expect(payMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({iouReport: expect.objectContaining({reportID: '3'})}));
 
+        // And the selection is cleared, the same as after any bulk pay that paid at least one report
+        expect(mockClearSelectedTransactions).toHaveBeenCalledTimes(1);
+
         // And a single modal lists the skipped report, so the user knows which reports still need global reimbursements
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         expect(mockShowConfirmModal).toHaveBeenCalledWith(
