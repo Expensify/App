@@ -4,6 +4,7 @@ import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHead
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -62,6 +63,7 @@ function EnableTravelContent({policy, policyID, account, privatePersonalDetails,
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const route = useRoute();
+    const {isBetaEnabled} = usePermissions();
 
     const isProvisioned = isWorkspaceProvisionedForTravel(policy?.travelSettings);
     const adminDomains = getAdminsPrivateEmailDomains(policy);
@@ -70,8 +72,9 @@ function EnableTravelContent({policy, policyID, account, privatePersonalDetails,
     const needsAddress = !isProvisioned && isEmptyObject(policy?.address);
     const needsTaxID = isNonUSDPolicy(policy) && !isProvisioned && !policy?.travelSettings?.taxID;
 
-    // Admins enabling travel choose who gets it, which only matters when the workspace has members besides them
-    const needsTravelMembers = !isProvisioned && isPolicyAdmin(policy) && Object.keys(policy?.employeeList ?? {}).length > 1;
+    // Admins enabling travel choose who gets it, which only matters when the workspace has members besides them. Without
+    // the beta the step is skipped, so every member gets travel like before.
+    const needsTravelMembers = isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS) && !isProvisioned && isPolicyAdmin(policy) && Object.keys(policy?.employeeList ?? {}).length > 1;
 
     let resolvedDomain;
     if (isProvisioned) {

@@ -4,6 +4,7 @@ import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setPolicyTravelMemberAccess} from '@libs/actions/Policy/Travel';
@@ -42,11 +43,13 @@ function WorkspaceMemberTravelSettingPage({policy, personalDetails, route}: Work
     const accountID = Number(route.params.accountID);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
 
     const memberLogin = personalDetails?.[accountID]?.login ?? getMemberLoginByAccountID(policy, accountID);
     const member = {email: memberLogin, accountID};
     // A member still being added has an optimistic accountID the server doesn't know yet
     const canChangeTravelSetting =
+        isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS) &&
         isPolicyAdmin(policy) &&
         isWorkspaceProvisionedForTravel(policy?.travelSettings) &&
         !!policy?.employeeList?.[memberLogin] &&

@@ -150,7 +150,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const shouldShowOfficeLocation = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) && hasOfficeLocations(policy);
     const canWriteMembers = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MEMBERS);
     const canChangeOfficeLocation = shouldShowOfficeLocation && canWriteMembers;
-    const shouldShowTravelSettings = isWorkspaceProvisionedForTravel(policy?.travelSettings);
+    const shouldShowTravelSettings = isWorkspaceProvisionedForTravel(policy?.travelSettings) && isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS);
 
     // Travel access is changed through a command that only full workspace admins can call
     const canChangeTravelSettings = shouldShowTravelSettings && isPolicyAdmin(policy);

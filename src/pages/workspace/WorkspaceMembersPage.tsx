@@ -413,7 +413,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const shouldShowOfficeLocationColumn = !shouldUseNarrowLayout && shouldShowOfficeLocations;
     const officeLocations = getAssignableOfficeLocations(policy, translate, localeCompare);
     const shouldShowBankAccountColumn = !shouldUseNarrowLayout && !isMediumScreenWidth && shouldShowMemberBankAccounts;
-    const shouldShowTravelColumn = !shouldUseNarrowLayout && isProvisionedForTravel;
+    const shouldShowTravelColumn = !shouldUseNarrowLayout && isProvisionedForTravel && isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS);
 
     // Unlike the custom fields, this column applies to every workspace type, so it isn't gated on Control.
     const isApprovalsEnabled = areApprovalsEnabled(policy);
