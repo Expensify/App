@@ -6,6 +6,7 @@ type CameraPlatformConfig = {
     preparedPhotoSettings: CapturePhotoSettings[] | undefined;
     shouldHidePreviewUntilLive: boolean;
     reportsAutoFocusSystem: boolean;
+    canLightFlashWithTorch: boolean;
 };
 
 export default CameraPlatformConfig;
