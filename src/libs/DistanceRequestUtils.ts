@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 import type {IOURequestType} from '@src/CONST';
 import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@src/types/onyx';
 import type DefaultP2PMileageRate from '@src/types/onyx/DefaultP2PMileageRate';
-import type {RateAttributes, Unit} from '@src/types/onyx/Policy';
+import type {Rate, RateAttributes, Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -20,6 +20,7 @@ import {getDistanceUnitLabel, getFormattedDistanceInUnits} from './DistanceDispl
 import {convertDistanceUnit, convertToDistanceInMeters} from './DistanceUnitConversionUtils';
 import getStoredDefaultP2PMileageRate from './getStoredDefaultP2PMileageRate';
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getUnitRateValue} from './PolicyUtils/customUnits';
+import {isSelectableTaxCode} from './PolicyUtils/tax';
 import replaceAllDigits from './replaceAllDigits';
 import {getCurrency, getFormattedCreated, getRateID, isCustomUnitRateIDForP2P, isExpenseUnreported} from './TransactionUtils/fields';
 
@@ -804,6 +805,21 @@ function getRateIDForMovedTrackExpense({
     return getBestEligibleRateOrPolicyDefault(mileageRates, expenseDate, policy)?.customUnitRateID;
 }
 
+/** Taxes applied outside the distance rate cover the full amount when no reclaimable share was configured. */
+function getTaxClaimablePercentage(policy: OnyxEntry<Policy>, customUnitRate: Rate | undefined): number {
+    if (!customUnitRate) {
+        return CONST.DEFAULT_NUMBER_ID;
+    }
+    const taxClaimablePercentage = customUnitRate.attributes?.taxClaimablePercentage;
+    if (taxClaimablePercentage !== undefined) {
+        return taxClaimablePercentage;
+    }
+    const rateTaxCode = customUnitRate.attributes?.taxRateExternalID;
+    // Preserve the rate's existing reclaimable share until its tax collection has loaded.
+    const hasRateTax = !!rateTaxCode && (!policy?.taxRates?.taxes || isSelectableTaxCode(policy, rateTaxCode));
+    return hasRateTax ? CONST.DEFAULT_NUMBER_ID : 1;
+}
+
 /**
  * Get taxable amount from a specific distance rate, taking into consideration the tax claimable amount configured for the distance rate
  */
@@ -816,7 +832,7 @@ function getTaxableAmount(policy: OnyxEntry<Policy>, customUnitRateID: string, d
     const unit = distanceUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
     const rate = customUnitRate?.rate ?? CONST.DEFAULT_NUMBER_ID;
     const amount = getDistanceRequestAmount(distance, unit, rate);
-    const taxClaimablePercentage = customUnitRate.attributes?.taxClaimablePercentage ?? CONST.DEFAULT_NUMBER_ID;
+    const taxClaimablePercentage = getTaxClaimablePercentage(policy, customUnitRate);
     return amount * taxClaimablePercentage;
 }
 
@@ -1093,6 +1109,7 @@ export default {
     getRateIDForMovedTrackExpense,
     convertToDistanceInMeters,
     getTaxableAmount,
+    getTaxClaimablePercentage,
     getDistanceUnit,
     getDistanceUnitLabel,
     getUpdatedDistanceUnit,

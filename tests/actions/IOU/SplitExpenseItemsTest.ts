@@ -277,6 +277,23 @@ describe('initSplitExpenseItemData stale tax handling', () => {
             expect(splitExpense.taxAmount).toBe(455);
         });
 
+        it('applies category tax to the full split amount when the distance rate has no tax', () => {
+            // Given a distance rate without tax attributes and a category tax whose value changed
+            const policy = withDistanceRate(buildPolicy('10%'));
+            const rate = policy.customUnits?.distance.rates?.[RATE_ID];
+            if (rate) {
+                rate.attributes = {};
+            }
+
+            // When initializing the split with the updated category tax
+            const splitExpense = initSplitExpenseItemData(distanceTransaction, transactionReport, {policy, getCurrencyDecimals: () => 2});
+
+            // Then tax is calculated on the full amount, not an unset reclaimable share
+            expect(splitExpense.taxCode).toBe(TAX_CODE);
+            expect(splitExpense.taxValue).toBe('10%');
+            expect(splitExpense.taxAmount).toBe(909);
+        });
+
         it("clears the tax trio when the distance rate's tax and the policy default are both disabled", () => {
             // Given a distance expense whose rate points at a disabled tax rate that is also the policy default
             // When the split is seeded
