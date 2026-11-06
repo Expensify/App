@@ -961,6 +961,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserEmail,
                 currentUserAccountID,
                 report,
+                reportOwnerLogin: currentUserEmail,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {},
@@ -1010,6 +1011,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserEmail,
                 currentUserAccountID,
                 report,
+                reportOwnerLogin: currentUserEmail,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {},
@@ -1064,14 +1066,21 @@ describe('libs/NextStepUtils', () => {
             });
 
             const result = getReportNextStep({
-                rules: undefined,
-                moneyRequestReport: report,
-                moneyRequestReportOwnerLogin: currentUserEmail,
-                transactions: [],
-                policy,
-                transactionViolations: {},
+                currentUserLogin: currentUserEmail,
                 currentUserEmail,
                 currentUserAccountID,
+                report,
+                reportOwnerLogin: currentUserEmail,
+                reportMetadata: undefined,
+                reportActions: [],
+                transactions: {},
+                violations: {},
+                policy,
+                rules: undefined,
+                areStrictPolicyRulesEnabled: false,
+                isReportArchived: false,
+                theme: undefined,
+                isOffline: false,
             });
 
             expect(result).toEqual({
@@ -1112,14 +1121,21 @@ describe('libs/NextStepUtils', () => {
             });
 
             const result = getReportNextStep({
-                rules: undefined,
-                moneyRequestReport: report,
-                moneyRequestReportOwnerLogin: currentUserEmail,
-                transactions: [],
-                policy,
-                transactionViolations: {},
+                currentUserLogin: currentUserEmail,
                 currentUserEmail,
                 currentUserAccountID,
+                report,
+                reportOwnerLogin: currentUserEmail,
+                reportMetadata: undefined,
+                reportActions: [],
+                transactions: {},
+                violations: {},
+                policy,
+                rules: undefined,
+                areStrictPolicyRulesEnabled: false,
+                isReportArchived: false,
+                theme: undefined,
+                isOffline: false,
             });
 
             expect(result).toEqual({
@@ -1160,14 +1176,21 @@ describe('libs/NextStepUtils', () => {
             });
 
             const result = getReportNextStep({
-                rules: undefined,
-                moneyRequestReport: report,
-                moneyRequestReportOwnerLogin: 'owner@expensify.com',
-                transactions: [],
-                policy,
-                transactionViolations: {},
+                currentUserLogin: currentUserEmail,
                 currentUserEmail,
                 currentUserAccountID,
+                report,
+                reportOwnerLogin: 'owner@expensify.com',
+                reportMetadata: undefined,
+                reportActions: [],
+                transactions: {},
+                violations: {},
+                policy,
+                rules: undefined,
+                areStrictPolicyRulesEnabled: false,
+                isReportArchived: false,
+                theme: undefined,
+                isOffline: false,
             });
 
             expect(result).toBe(currentNextStep);
@@ -1213,6 +1236,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserEmail,
                 currentUserAccountID,
                 report,
+                reportOwnerLogin: currentUserEmail,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {[transaction.transactionID]: transaction},
@@ -1279,6 +1303,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserEmail,
                 currentUserAccountID,
                 report,
+                reportOwnerLogin: currentUserEmail,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {},
@@ -1356,6 +1381,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserEmail,
                 currentUserAccountID,
                 report,
+                reportOwnerLogin: currentUserEmail,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {[transaction.transactionID]: transaction},
