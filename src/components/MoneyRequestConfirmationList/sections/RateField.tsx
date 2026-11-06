@@ -85,7 +85,7 @@ function RateField({
 
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const rate = mileageRate.rate;
-    const isRateInteractive = !!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT;
+    const isRateInteractive = rate !== undefined && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT;
 
     const {isSearchRouterDisplayed} = useSearchRouterState();
 

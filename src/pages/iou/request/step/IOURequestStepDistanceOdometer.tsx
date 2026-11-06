@@ -418,6 +418,13 @@ function IOURequestStepDistanceOdometer({
         if (isEditing) {
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
             if (isEditingSplit && transaction) {
+                // A split keeps the readings of the whole trip while its distance is only its share of it, so readings
+                // saved unchanged must not replace the split's distance with the whole trip's distance
+                const hasReadingChanges = splitDraftTransaction?.comment?.odometerStart !== start || splitDraftTransaction?.comment?.odometerEnd !== end;
+                if (!hasReadingChanges) {
+                    Navigation.goBack();
+                    return;
+                }
                 setDraftSplitTransaction(
                     transaction.transactionID,
                     splitDraftTransaction,
