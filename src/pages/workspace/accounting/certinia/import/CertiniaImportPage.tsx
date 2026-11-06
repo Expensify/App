@@ -52,6 +52,7 @@ function CertiniaImportPage({policy}: WithPolicyConnectionsProps) {
                         isActive
                         disabled
                         switchAccessibilityLabel={translate('workspace.certinia.import.expenseTypeGlaMappings')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.EXPENSE_TYPE_GLA_MAPPINGS_SWITCH}
                         onToggle={() => {}}
                     />
                     <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CERTINIA_CONFIG.PARENT_TAG_MAPPING], config?.pendingFields)}>
@@ -77,6 +78,7 @@ function CertiniaImportPage({policy}: WithPolicyConnectionsProps) {
                         shouldPlaceSubtitleBelowSwitch
                         isActive={!!coding?.syncMilestones}
                         switchAccessibilityLabel={translate('workspace.certinia.import.milestones')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.MILESTONES_SWITCH}
                         onToggle={(isEnabled: boolean) => {
                             if (!policyID) {
                                 return;
@@ -98,6 +100,7 @@ function CertiniaImportPage({policy}: WithPolicyConnectionsProps) {
                         isActive
                         disabled
                         switchAccessibilityLabel={translate('workspace.certinia.import.chartOfAccounts')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.CHART_OF_ACCOUNTS_SWITCH}
                         onToggle={() => {}}
                     />
                     {CERTINIA_DIMENSION_PARAMS.map((dimension) => (
@@ -124,6 +127,7 @@ function CertiniaImportPage({policy}: WithPolicyConnectionsProps) {
                         title={translate('common.tax')}
                         isActive={!!coding?.syncTax}
                         switchAccessibilityLabel={translate('common.tax')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.TAX_SWITCH}
                         onToggle={(isEnabled: boolean) => {
                             if (!policyID) {
                                 return;

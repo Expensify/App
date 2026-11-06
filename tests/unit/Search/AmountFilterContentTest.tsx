@@ -10,6 +10,8 @@ import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 import useAmountFilterCurrency from '@hooks/useAmountFilterCurrency';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 
+import type * as CurrencyUtils from '@libs/CurrencyUtils';
+
 import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
 
 import CONST from '@src/CONST';
@@ -28,11 +30,17 @@ jest.mock('@hooks/useShouldFooterBeInsideList', () => () => false);
 jest.mock('@hooks/useDefaultExpensePolicy', () => jest.fn(() => undefined));
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key, preferredLocale: 'en'}));
 jest.mock('@hooks/useResponsiveLayout', () => () => ({shouldUseNarrowLayout: false}));
-jest.mock('@hooks/useCurrencyList', () => ({
-    useCurrencyListActions: () => ({
-        getCurrencyDecimals: (currency: string) => (currency === 'JPY' || currency === 'VND' ? 0 : 2),
-    }),
-}));
+jest.mock('@hooks/useCurrencyList', () => {
+    const {convertToDisplayStringWithoutCurrencyForLocale} = jest.requireActual<typeof CurrencyUtils>('@libs/CurrencyUtils');
+    const getCurrencyDecimals = (currency?: string) => (currency === 'JPY' || currency === 'VND' ? 0 : 2);
+
+    return {
+        useCurrencyListActions: () => ({
+            getCurrencyDecimals,
+            convertToDisplayStringWithoutCurrency: (amount: number, currency?: string) => convertToDisplayStringWithoutCurrencyForLocale('en', amount, currency, getCurrencyDecimals),
+        }),
+    };
+});
 
 beforeEach(() => {
     jest.clearAllMocks();
@@ -108,6 +116,39 @@ describe('AmountFilterContent currency selection', () => {
 
         // Then two-decimal precision becomes available again.
         expect(jest.mocked(NumberWithSymbolForm).mock.lastCall?.[0]).toMatchObject({currency: '', decimals: 2});
+    });
+
+    it.each([
+        {baseFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, label: 'Greater than ', amount: ''},
+        {baseFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, label: 'Less than ', amount: '12.00'},
+        {baseFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT, label: 'Greater than ', amount: ''},
+        {baseFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT, label: 'Less than ', amount: '12.00'},
+    ])('keeps $baseFilterKey input and button names in sync with currency for $label', ({baseFilterKey, label, amount}) => {
+        // Given a range label whose translation leaves space for an optional amount
+        const renderInput = (currency?: string) => (
+            <AmountFilterInput
+                baseFilterKey={baseFilterKey}
+                amount={amount}
+                currency={currency}
+                label={label}
+                onAmountChange={jest.fn()}
+                onCurrencyChange={jest.fn()}
+            />
+        );
+        const {rerender} = render(renderInput('USD'));
+
+        // When currency is selected, removed, or restored without remounting the input
+        for (const currency of ['USD', '', undefined, 'AED']) {
+            rerender(renderInput(currency));
+
+            // Then each independently focused control includes currency context without changing the amount
+            const currencyName = currency || 'common.anyCurrency';
+            expect(jest.mocked(NumberWithSymbolForm).mock.lastCall?.[0]).toMatchObject({
+                accessibilityLabel: `${label.trim()}, ${currencyName}`,
+                currencyButtonAccessibilityLabel: `${label.trim()}, common.selectCurrency, ${currencyName}`,
+                value: amount,
+            });
+        }
     });
 
     it.each(['Greater than ', 'Less than '])('trims the %s label in the currency button name', (label) => {

@@ -65,6 +65,7 @@ function QuickbooksDesktopAutoSyncPageBase({policy, navigateBackTo}: QuickbooksD
                 title={translate('workspace.accounting.autoSync')}
                 subtitle={translate('workspace.qbd.advancedConfig.autoSyncDescription')}
                 switchAccessibilityLabel={translate('workspace.qbd.advancedConfig.autoSyncDescription')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBD.AUTO_SYNC_SWITCH}
                 isActive={!!autoSync?.enabled}
                 wrapperStyle={[styles.pv2, styles.mh5]}
                 shouldPlaceSubtitleBelowSwitch

@@ -7,6 +7,8 @@ import usePressResponderProps from '@components/Pressable/PressResponder/usePres
 import useResponderRef from '@components/Pressable/PressResponder/useResponderRef';
 import Text from '@components/Text';
 
+import CONST from '@src/CONST';
+
 import type {ComponentRef, ReactNode, Ref} from 'react';
 import type {GestureResponderEvent, View as RNViewType} from 'react-native';
 
@@ -40,7 +42,7 @@ function Probe({consumerOnPress, consumerNativeID, consumerAccessibilityState, c
             nativeID={merged.nativeID}
             accessibilityState={merged.accessibilityState}
             accessibilityLabel="probe"
-            sentryLabel="probe"
+            sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
         >
             <Text>probe</Text>
         </PressableWithFeedback>

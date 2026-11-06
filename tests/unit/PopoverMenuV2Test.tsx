@@ -12,6 +12,8 @@ import PressableWithSecondaryInteraction from '@components/PressableWithSecondar
 
 import Log from '@libs/Log';
 
+import CONST from '@src/CONST';
+
 import type {EventListenerCallback, EventMapCore, NavigationProp, NavigationState, ParamListBase} from '@react-navigation/native';
 import type {ComponentRef, PropsWithChildren, ReactNode} from 'react';
 import type {GestureResponderEvent, View as RNViewType} from 'react-native';
@@ -429,7 +431,7 @@ describe('PopoverMenu V2', () => {
                             <PressableWithFeedback
                                 onPress={() => {}}
                                 accessibilityLabel="Open menu"
-                                sentryLabel="TriggerTest"
+                                sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
                                 testID="trigger"
                             >
                                 <View testID="trigger-icon" />
@@ -458,7 +460,7 @@ describe('PopoverMenu V2', () => {
                             <PressableWithFeedback
                                 onPress={consumerOnPress}
                                 accessibilityLabel="Open menu"
-                                sentryLabel="TriggerTest"
+                                sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
                                 testID="trigger"
                             >
                                 <View testID="trigger-icon" />
@@ -485,7 +487,7 @@ describe('PopoverMenu V2', () => {
                             <PressableWithFeedback
                                 onPress={consumerOnPress}
                                 accessibilityLabel="Open menu"
-                                sentryLabel="TriggerTest"
+                                sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
                                 testID="trigger"
                             >
                                 <View testID="trigger-icon" />
@@ -516,7 +518,7 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.Trigger>
                             <PressableWithFeedback
                                 accessibilityLabel="X"
-                                sentryLabel="X"
+                                sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
                                 testID="trigger"
                             >
                                 <View />
@@ -540,7 +542,7 @@ describe('PopoverMenu V2', () => {
                                 ref={consumerRef}
                                 onPress={() => {}}
                                 accessibilityLabel="Open menu"
-                                sentryLabel="TriggerTest"
+                                sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
                                 testID="trigger"
                             >
                                 <View testID="trigger-icon" />
@@ -565,7 +567,7 @@ describe('PopoverMenu V2', () => {
                                 ref={refA}
                                 onPress={consumerOnPressA}
                                 accessibilityLabel="Open A"
-                                sentryLabel="A"
+                                sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
                                 testID="trigger-a"
                             >
                                 <View />
@@ -576,7 +578,7 @@ describe('PopoverMenu V2', () => {
                                 ref={refB}
                                 onPress={consumerOnPressB}
                                 accessibilityLabel="Open B"
-                                sentryLabel="B"
+                                sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
                                 testID="trigger-b"
                             >
                                 <View />
@@ -605,7 +607,7 @@ describe('PopoverMenu V2', () => {
                                 <PassthroughWrapper>
                                     <PressableWithFeedback
                                         accessibilityLabel="Open menu"
-                                        sentryLabel="TriggerTest"
+                                        sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
                                         testID="trigger"
                                     >
                                         <View testID="trigger-icon" />
@@ -632,7 +634,7 @@ describe('PopoverMenu V2', () => {
                                 <View testID="trigger-sibling" />
                                 <PressableWithFeedback
                                     accessibilityLabel="Open menu"
-                                    sentryLabel="TriggerTest"
+                                    sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
                                     testID="trigger"
                                 >
                                     <View />
@@ -2161,7 +2163,7 @@ describe('PopoverMenu V2', () => {
                         <PressableWithFeedback
                             onPress={() => {}}
                             accessibilityLabel="X"
-                            sentryLabel="X"
+                            sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
                         >
                             <View />
                         </PressableWithFeedback>
