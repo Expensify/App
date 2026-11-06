@@ -122,7 +122,12 @@ function getUnsuppressibleBrokenConnectionTransactionID(
     cardList: OnyxEntry<CardList>,
 ): string | undefined {
     return transactions.find((transaction) => {
-        const brokenConnectionViolations = (transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? []).filter(isBrokenConnectionViolation);
+        const brokenConnectionViolations = (transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [])
+            .filter(isBrokenConnectionViolation)
+            // Past the grace period the connection is no longer described anywhere, so an expense that only has those
+            // must not be the one the report status quotes - otherwise a report kept visible by a recently broken feed
+            // would describe the expired one instead.
+            .filter((violation) => !isBrokenConnectionViolationPastDismissThresholdInList(violation, cardList));
         return brokenConnectionViolations.length > 0 && !shouldSuppressBrokenConnectionStatus(brokenConnectionViolations, cardList);
     })?.transactionID;
 }
@@ -667,6 +672,7 @@ export {
     hasWarningTypeViolation,
     isBrokenConnectionViolation,
     isBrokenConnectionViolationPastDismissThreshold,
+    isBrokenConnectionViolationPastDismissThresholdInList,
     isDuplicate,
     isPendingRTERViolation,
     isTransactionSubmittable,

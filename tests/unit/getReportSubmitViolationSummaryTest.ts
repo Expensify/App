@@ -10,7 +10,7 @@ import {
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Card, CardList, Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 
 import createMock from '../utils/createMock';
 
@@ -139,6 +139,52 @@ describe('getReportSubmitViolationSummary', () => {
         // here), and it must still be visible to the user as an informational "other" bullet instead of disappearing
         expect(summary.hasPendingCardMatch).toBe(false);
         expect(summary.hasRejectedExpense).toBe(false);
+        expect(summary.otherViolations).toEqual(new Map([[CONST.VIOLATIONS.RTER, rterViolation]]));
+    });
+
+    it('drops a broken-connection RTER violation once the feed is past the dismiss threshold', () => {
+        // Given an expense whose broken connection is old enough that the expense itself no longer shows the warning
+        const currentUserAccountID = 1;
+        const ownedReport = createMock<Report>({ownerAccountID: currentUserAccountID});
+        const cardID = 55501;
+        const rterViolation = createMockViolation(CONST.VIOLATIONS.RTER, {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH, cardID});
+        const cardList: CardList = {
+            [cardID]: createMock<Card>({
+                cardID,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                fundID: '88801',
+                lastScrapeResult: 438,
+                lastScrape: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000).toISOString().replace('T', ' ').slice(0, 19),
+            }),
+        };
+
+        // When the submit confirmation summary is built
+        const summary = getReportSubmitViolationSummary([createMockTransaction('1')], {[getViolationsKey('1')]: [rterViolation]}, ownedReport, undefined, '', currentUserAccountID, cardList);
+
+        // Then it must not resurface the warning the expense has already stopped showing
+        expect(summary.otherViolations.size).toBe(0);
+    });
+
+    it('keeps a broken-connection RTER violation while the feed is inside the dismiss threshold', () => {
+        // Given the same expense on a feed that broke recently, so the expense still shows the warning
+        const currentUserAccountID = 1;
+        const ownedReport = createMock<Report>({ownerAccountID: currentUserAccountID});
+        const cardID = 55501;
+        const rterViolation = createMockViolation(CONST.VIOLATIONS.RTER, {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH, cardID});
+        const cardList: CardList = {
+            [cardID]: createMock<Card>({
+                cardID,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                fundID: '88801',
+                lastScrapeResult: 438,
+                lastScrape: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString().replace('T', ' ').slice(0, 19),
+            }),
+        };
+
+        // When the submit confirmation summary is built
+        const summary = getReportSubmitViolationSummary([createMockTransaction('1')], {[getViolationsKey('1')]: [rterViolation]}, ownedReport, undefined, '', currentUserAccountID, cardList);
+
+        // Then the confirmation keeps warning about it, matching what the expense still shows
         expect(summary.otherViolations).toEqual(new Map([[CONST.VIOLATIONS.RTER, rterViolation]]));
     });
 

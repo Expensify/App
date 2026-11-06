@@ -9,6 +9,7 @@ import {
     hasMissingSmartscanFieldsForRBR,
     hasPendingRTERViolation,
     hasTransactionBeenRejected,
+    isBrokenConnectionViolationPastDismissThresholdInList,
     isFailedScanAmountPlaceholder,
     isMerchantMissing,
     isOnHold,
@@ -18,7 +19,7 @@ import {
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {CardList, Policy, Report, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -71,6 +72,9 @@ function getReportSubmitViolationSummary(
     policy: OnyxEntry<Policy>,
     currentUserEmail: string,
     currentUserAccountID: number,
+    /** Optional so existing callers keep today's behaviour: with no card we cannot tell how long a connection has
+     *  been broken, so the violation stays in the summary. */
+    cardList?: OnyxEntry<CardList>,
 ): ReportSubmitViolationSummary {
     let hasRejectedExpense = false;
     let hasPendingCardMatch = false;
@@ -110,6 +114,12 @@ function getReportSubmitViolationSummary(
             }
 
             if (isPendingRTERViolation(violation)) {
+                continue;
+            }
+
+            // The expense itself stops showing a broken connection past the grace period, so the submit confirmation
+            // must not resurface the same warning.
+            if (isBrokenConnectionViolationPastDismissThresholdInList(violation, cardList)) {
                 continue;
             }
 
