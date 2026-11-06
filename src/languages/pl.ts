@@ -7085,6 +7085,15 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 title: 'Nie można usunąć ani wyłączyć wszystkich kategorii',
                 description: `Co najmniej jedna kategoria musi pozostać włączona, ponieważ w Twoim workspace wymagane są kategorie.`,
             },
+            cannotDisableCategoryForMembers: {
+                title: ({categoryName}: {categoryName: string}) => `Nie można wyłączyć ${categoryName}`,
+                bulkTitle: 'Nie można wyłączyć tych kategorii',
+                description: ({count}: {count: number}) => ({
+                    one: '1 członek nie miałby żadnych kategorii do wyboru. Zaktualizuj widoczność kategorii dla tej osoby, a potem spróbuj ponownie:',
+                    other: `${count} członków nie będzie miało żadnych kategorii do wyboru. Zaktualizuj widoczność ich kategorii, a potem spróbuj ponownie:`,
+                }),
+                andMore: ({count}: {count: number}) => `i jeszcze ${count}`,
+            },
         },
         moreFeatures: {
             subtitle: 'Użyj poniższych przełączników, aby włączać kolejne funkcje w miarę rozwoju. Każda funkcja pojawi się w menu nawigacji, gdzie będzie można ją dalej dostosować.',
@@ -7797,6 +7806,16 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             },
             officeLocation: 'Lokalizacja biura',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            categoryVisibility: 'Widoczność kategorii',
+            allCategories: 'Wszystkie kategorie',
+            categoriesCount: ({count}: {count: number}) => ({
+                one: '1 kategoria',
+                other: `${count} kategorie`,
+            }),
+            categoryVisibilityRequiredModal: {
+                title: 'Członkowie muszą mieć co najmniej jedną kategorię',
+                description: 'Wybierz co najmniej jedną kategorię, z której ten członek może korzystać.',
+            },
             changeOfficeLocation: 'Zmień lokalizację biura',
             changeWorkArrangement: 'Zmień tryb pracy',
             changeRole: 'Zmień rolę',

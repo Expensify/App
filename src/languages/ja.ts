@@ -6966,6 +6966,15 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 title: 'すべてのカテゴリを削除または無効にすることはできません',
                 description: `ワークスペースでカテゴリが必須のため、少なくとも1つのカテゴリは有効のままにする必要があります。`,
             },
+            cannotDisableCategoryForMembers: {
+                title: ({categoryName}: {categoryName: string}) => `${categoryName}を無効にできません`,
+                bulkTitle: 'これらのカテゴリーは無効にできません',
+                description: ({count}: {count: number}) => ({
+                    one: '1人のメンバーが選択できるカテゴリがなくなってしまいます。該当メンバーのカテゴリの表示設定を更新してから、もう一度お試しください。',
+                    other: `${count} 人のメンバーが選択できるカテゴリがなくなります。これらのメンバーのカテゴリの表示設定を更新してから、もう一度お試しください。`,
+                }),
+                andMore: ({count}: {count: number}) => `ほか ${count} 件`,
+            },
         },
         moreFeatures: {
             subtitle: 'ビジネスの成長に合わせて、下の切り替えスイッチでさらに多くの機能を有効にしましょう。各機能はナビゲーションメニューに表示され、さらにカスタマイズできます。',
@@ -7518,7 +7527,6 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 title: 'メンバーをコピー',
                 prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
                     one: `${targetWorkspaceName}のメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`,
-                    // Japanese has no "one" plural category, so handle the single-workspace case here
                     other:
                         count === 1
                             ? `${targetWorkspaceName}のメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`
@@ -7671,6 +7679,13 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             },
             officeLocation: 'オフィス所在地',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name}（${address}）`,
+            categoryVisibility: 'カテゴリの表示',
+            allCategories: 'すべてのカテゴリ',
+            categoriesCount: ({count}: {count: number}) => ({
+                one: '1 件のカテゴリ',
+                other: `${count} 件のカテゴリ`,
+            }),
+            categoryVisibilityRequiredModal: {title: 'メンバーには少なくとも 1 つのカテゴリーが必要です', description: 'このメンバーが使用できるカテゴリを少なくとも 1 つ選択してください。'},
             changeOfficeLocation: 'オフィスの所在地を変更',
             changeWorkArrangement: '勤務形態を変更',
             changeRole: 'ロールを変更',

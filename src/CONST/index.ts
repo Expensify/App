@@ -1530,6 +1530,7 @@ const CONST = {
         RESIZABLE_RHP: 'resizableRHP',
         TRAVEL_APPROVAL: 'travelApproval',
         FLAT_NAV: 'flatNav',
+        CATEGORY_VISIBILITY: 'categoryVisibility',
         SCAN_FLASH_TORCH: 'scanFlashTorch',
         NEW_DOT_BILL_PAY: 'newDotBillPay',
         HYBRID_WEB: 'hybridWeb',
@@ -2849,6 +2850,7 @@ const CONST = {
         SEARCH_ROUTER_MAX_MEASURED_QUERIES_PER_OPEN: 5,
         SEARCH_ROUTER_QUERY_MAX_DURATION_MS: 10_000,
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
+        SPAN_OPEN_MEMBER_CATEGORY_VISIBILITY: 'ManualOpenMemberCategoryVisibility',
         SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW: 'ShareExtensionOpenSubmitFlow',
         SPAN_CAMERA_INIT: 'ManualCameraInit',
         SPAN_ENTRY_TO_SCAN: 'ManualEntryToScan',
@@ -11309,6 +11311,7 @@ const CONST = {
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceMembers-BulkActionsDropdown',
                 MORE_DROPDOWN: 'WorkspaceMembers-MoreDropdown',
                 LIST_ROW: 'WorkspaceMembers-ListRow',
+                CATEGORY_VISIBILITY: 'WorkspaceMemberDetails-CategoryVisibility',
             },
             CATEGORIES: {
                 ROW: 'WorkspaceCategories-Row',

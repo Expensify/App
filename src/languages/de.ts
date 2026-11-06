@@ -7118,6 +7118,15 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 title: 'Es können nicht alle Kategorien gelöscht oder deaktiviert werden',
                 description: `Mindestens eine Kategorie muss aktiviert bleiben, da dein Workspace Kategorien erfordert.`,
             },
+            cannotDisableCategoryForMembers: {
+                title: ({categoryName}: {categoryName: string}) => `${categoryName} kann nicht deaktiviert werden`,
+                bulkTitle: 'Diese Kategorien können nicht deaktiviert werden',
+                description: ({count}: {count: number}) => ({
+                    one: '1 Mitglied hätte keine Kategorien mehr zur Auswahl. Aktualisieren Sie die Kategorien-Sichtbarkeit dieser Person und versuchen Sie es dann erneut:',
+                    other: `${count} Mitgliedern blieben keine Kategorien zur Auswahl. Aktualisieren Sie deren Kategoriesichtbarkeit und versuchen Sie es dann erneut:`,
+                }),
+                andMore: ({count}: {count: number}) => `und ${count} weitere`,
+            },
         },
         moreFeatures: {
             subtitle: 'Verwende die Schalter unten, um beim Wachsen weitere Funktionen zu aktivieren. Jede Funktion wird im Navigationsmenü angezeigt, wo du sie weiter anpassen kannst.',
@@ -7831,6 +7840,16 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             },
             officeLocation: 'Bürostandort',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            categoryVisibility: 'Kategoriesichtbarkeit',
+            allCategories: 'Alle Kategorien',
+            categoriesCount: ({count}: {count: number}) => ({
+                one: '1 Kategorie',
+                other: `${count} Kategorien`,
+            }),
+            categoryVisibilityRequiredModal: {
+                title: 'Mitglieder müssen mindestens eine Kategorie haben',
+                description: 'Wählen Sie mindestens eine Kategorie aus, die dieses Mitglied verwenden kann.',
+            },
             changeOfficeLocation: 'Bürostandort ändern',
             changeWorkArrangement: 'Arbeitsvereinbarung ändern',
             changeRole: 'Rolle ändern',

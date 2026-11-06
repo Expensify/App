@@ -1006,6 +1006,7 @@ const SCREENS = {
         MEMBER_DETAILS: 'Workspace_Member_Details',
         DYNAMIC_MEMBER_DISPLAY_NAME: 'Dynamic_Workspace_Member_Display_Name',
         MEMBER_DETAILS_ROLE: 'Workspace_Member_Details_Role',
+        MEMBER_DETAILS_CATEGORY_VISIBILITY: 'Workspace_Member_Details_Category_Visibility',
         MEMBERS_ROLE: 'Workspace_Members_Role',
         MEMBER_WORK_ARRANGEMENT: 'Workspace_Member_Work_Arrangement',
         MEMBER_OFFICE_LOCATION: 'Workspace_Member_Office_Location',
