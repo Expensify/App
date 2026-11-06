@@ -10,6 +10,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import {isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
 import {getActionableMentionWhisperMessage, getOriginalMessage, isSystemUserMentioned} from '@libs/ReportActionsUtils';
+import {canInviteMembersToReport, isSupportTicket} from '@libs/ReportUtils';
 
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 
@@ -52,9 +53,14 @@ function MentionWhisperContent({action, actionOwnerReportStable, parentReport, o
 
     const isReportInPolicy = !!policyID && policyID !== CONST.POLICY.ID_FAKE && personalPolicyID !== policyID;
     const hasMentionedPolicyMembers = getOriginalMessage(action)?.inviteeEmails?.every((login) => isPolicyMember(policy, login));
+    const canInviteToChat = !isSupportTicket(actionOwnerReportStable) || canInviteMembersToReport(actionOwnerReport, policy, isOriginalReportArchived, currentUserAccountID);
 
     const canInviteToSubmitExpense =
-        (isPolicyAdmin(policy) || isPolicyOwner(policy, currentUserAccountID)) && isReportInPolicy && !isSystemUserMentioned(action) && !hasMentionedPolicyMembers;
+        !isSupportTicket(actionOwnerReportStable) &&
+        (isPolicyAdmin(policy) || isPolicyOwner(policy, currentUserAccountID)) &&
+        isReportInPolicy &&
+        !isSystemUserMentioned(action) &&
+        !hasMentionedPolicyMembers;
 
     return (
         <ReportActionItemBasicMessage>
@@ -75,13 +81,15 @@ function MentionWhisperContent({action, actionOwnerReportStable, parentReport, o
                         <Button.Text>{translate('actionableMentionWhisperOptions.inviteToSubmitExpense')}</Button.Text>
                     </Button>
                 )}
-                <Button
-                    onPress={() =>
-                        resolveActionableMentionWhisper(actionOwnerReport, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, isOriginalReportArchived, parentReport)
-                    }
-                >
-                    <Button.Text>{translate('actionableMentionWhisperOptions.inviteToChat')}</Button.Text>
-                </Button>
+                {canInviteToChat && (
+                    <Button
+                        onPress={() =>
+                            resolveActionableMentionWhisper(actionOwnerReport, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, isOriginalReportArchived, parentReport)
+                        }
+                    >
+                        <Button.Text>{translate('actionableMentionWhisperOptions.inviteToChat')}</Button.Text>
+                    </Button>
+                )}
                 <Button
                     onPress={() =>
                         resolveActionableMentionWhisper(actionOwnerReport, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, isOriginalReportArchived, parentReport)
