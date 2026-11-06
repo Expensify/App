@@ -7102,6 +7102,14 @@ const translations = {
                 label: 'Consolidated Travel Billing payable account',
             },
         },
+        digits: {
+            importDescription: 'Choose which Digits configurations to import.',
+            accountTypesDescription: 'Your Digits accounts will import as categories.',
+            enableNewAccountsTitle: 'Enable newly imported accounts',
+            enableNewAccountsDescription: 'New Digits accounts will be available as categories.',
+            dimensionsImport: 'All Digits dimensions import as tags.',
+            departments: 'Departments',
+        },
         zohoBooks: {
             organization: 'Zoho Books organization',
             organizationSelectDescription: "Choose the organization in Zoho Books that you'd like to import data from.",
