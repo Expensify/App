@@ -10809,6 +10809,8 @@ const CONST = {
             CATEGORY_FIELD: 'SearchEditMultiple-CategoryField',
             TAG_FIELD: 'SearchEditMultiple-TagField',
             TAX_RATE_FIELD: 'SearchEditMultiple-TaxRateField',
+            REIMBURSABLE_SWITCH: 'SearchEditMultiple-ReimbursableSwitch',
+            BILLABLE_SWITCH: 'SearchEditMultiple-BillableSwitch',
             ATTENDEES_FIELD: 'SearchEditMultiple-AttendeesField',
         },
         CALENDAR_PICKER: {

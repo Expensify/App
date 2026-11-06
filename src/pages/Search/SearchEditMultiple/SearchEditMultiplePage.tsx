@@ -585,6 +585,7 @@ function SearchEditMultiplePage() {
                         <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}>
                             <ToggleSettingOptionRow
                                 switchAccessibilityLabel={translate('common.reimbursable')}
+                                switchSentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.REIMBURSABLE_SWITCH}
                                 title={translate('common.reimbursable')}
                                 onToggle={saveDraftReimbursable}
                                 isActive={draftTransaction?.reimbursable ?? false}
@@ -597,6 +598,7 @@ function SearchEditMultiplePage() {
                         <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}>
                             <ToggleSettingOptionRow
                                 switchAccessibilityLabel={translate('common.billable')}
+                                switchSentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.BILLABLE_SWITCH}
                                 title={translate('common.billable')}
                                 onToggle={saveDraftBillable}
                                 isActive={draftTransaction?.billable ?? false}
