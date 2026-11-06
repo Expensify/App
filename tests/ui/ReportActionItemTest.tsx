@@ -3798,7 +3798,9 @@ describe('ReportActionItem', () => {
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText(/Jan 1-3/)).toBeOnTheScreen();
+            // A same-month range is joined the way the language writes it, which in English is an en dash. `\s` also
+            // matches the thin spaces `Intl` puts around it.
+            expect(screen.getByText(/Jan 1\s–\s3/)).toBeOnTheScreen();
         });
 
         it('isCreatedTaskReportAction renders TaskPreview', async () => {
