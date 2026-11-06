@@ -1,5 +1,4 @@
 import Badge from '@components/Badge';
-import Button from '@components/Button';
 import ConnectionStatusBadge from '@components/ConnectionStatusBadge';
 import ConnectionStatusMessage from '@components/ConnectionStatusMessage';
 import Hoverable from '@components/Hoverable';
@@ -44,7 +43,11 @@ import type {ValueOf} from 'type-fest';
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 
+import GlobalReimbursementsEnabledIcon from './GlobalReimbursementsEnabledIcon';
 import PendingDigitalWalletApprovalRow from './PendingDigitalWalletApprovalRow';
+import WalletPromptRow from './WalletPromptRow';
+import WiseMoreInfoNeededRow from './WiseMoreInfoNeededRow';
+import WiseSetupInProgressRow from './WiseSetupInProgressRow';
 
 type ConnectionStatusDetails = {
     statusText: string;
@@ -90,6 +93,25 @@ type PaymentMethodItem = PaymentMethod & {
 
     /** Wallet the addition was requested from, used to name it in the "Review" CTA row */
     digitalWalletProvider?: ValueOf<typeof CONST.EXPENSIFY_CARD.WALLET_PROVIDER>;
+
+    /** The bank account Wise asked for more info on, which shows the "More information needed" row */
+    wiseMoreInfoNeeded?: {
+        bankAccountID: number;
+    };
+
+    /** The bank account's Wise onboarding that is in progress, which shows the in-progress row */
+    wiseSetupInProgress?: {
+        bankAccountID: number;
+
+        /** Whether the admin has something to do, which shows Continue */
+        canContinue: boolean;
+
+        /** Whether the onboarding is already with Wise, so Continue opens the status page instead of the intro */
+        isOnboardingSubmitted: boolean;
+    };
+
+    /** Whether the bank account is set up for global reimbursements, which shows a globe next to its name */
+    isGlobalReimbursementsEnabled?: boolean;
 } & BankIcon;
 
 type PaymentMethodListItemProps = {
@@ -157,6 +179,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     const isNeedingAction = isAccountNeedingAction(item);
     const digitalWalletApprovalCardID = item.digitalWalletApprovalCardID;
     const connectionStatus = item.connectionStatus;
+    const hasStatusMessages = !!connectionStatus || !!item.wiseMoreInfoNeeded;
 
     // Check if this is a Chase personal bank account connected via Plaid
     const isChaseAccountConnectedViaPlaid =
@@ -254,6 +277,9 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     const menuItemProps: React.ComponentProps<typeof MenuItem> = {
         onPress: handleRowPress,
         title: item.title,
+        titleAddon: item.isGlobalReimbursementsEnabled ? <GlobalReimbursementsEnabledIcon onPress={handleRowPress} /> : undefined,
+        // The globe sits inside the row's button, so screen readers only hear it through the row's label
+        accessibilityLabel: item.isGlobalReimbursementsEnabled ? [item.title, item.description, translate('walletPage.globalReimbursementsEnabled')].filter(Boolean).join(', ') : undefined,
         description: item.description,
         descriptionAddon,
         icon: item.icon,
@@ -274,10 +300,10 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
         rightComponent,
         interactive: item.interactive,
         success: item.isMethodActive,
+        // The messages under the row share its hover background, so the row doesn't draw its own
+        ...(hasStatusMessages ? {shouldRemoveBackground: true, shouldRemoveHoverBackground: true} : {}),
         ...(connectionStatus
             ? {
-                  shouldRemoveBackground: true,
-                  shouldRemoveHoverBackground: true,
                   brickRoadIndicator: connectionStatus.message ? undefined : item.brickRoadIndicator,
               }
             : {
@@ -298,12 +324,12 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
             errorRowStyles={styles.paymentMethodErrorRow}
             shouldShowErrorMessages={!!item.errors && (item.shouldShowErrorMessages ?? true)}
         >
-            {connectionStatus ? (
+            {hasStatusMessages ? (
                 <Hoverable>
                     {(isHovered) => (
                         <View style={[isHovered && styles.hoveredComponentBG]}>
                             {menuItem}
-                            {!!connectionStatus.message && (
+                            {!!connectionStatus?.message && (
                                 <View style={styles.mb2}>
                                     <ConnectionStatusMessage
                                         message={connectionStatus.message}
@@ -316,6 +342,11 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                                     />
                                 </View>
                             )}
+                            {!!item.wiseMoreInfoNeeded && (
+                                <View style={styles.mb2}>
+                                    <WiseMoreInfoNeededRow bankAccountID={item.wiseMoreInfoNeeded.bankAccountID} />
+                                </View>
+                            )}
                         </View>
                     )}
                 </Hoverable>
@@ -323,29 +354,28 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 menuItem
             )}
             {!!item.shouldShowMissingPersonalDetailsAction && !!item.cardID && (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3, cardPaddingHorizontal]}>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1, styles.mr2]}>
-                        <Icon
-                            src={icons.DotIndicator}
-                            fill={theme.success}
-                            additionalStyles={[styles.mr2]}
-                        />
-                        <Text style={[styles.mutedNormalTextLabel, styles.label, styles.flexShrink1]}>{translate('walletPage.addVirtualCardPersonalDetails.subtitle')}</Text>
-                    </View>
-                    <Button
-                        size={CONST.BUTTON_SIZE.SMALL}
-                        variant={CONST.BUTTON_VARIANT.SUCCESS}
-                        onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS.getRoute(String(item.cardID))))}
-                    >
-                        <Button.Text>{translate('walletPage.addVirtualCardPersonalDetails.cta')}</Button.Text>
-                    </Button>
-                </View>
+                <WalletPromptRow
+                    message={translate('walletPage.addVirtualCardPersonalDetails.subtitle')}
+                    shouldShowSuccessMessage={false}
+                    buttonText={translate('walletPage.addVirtualCardPersonalDetails.cta')}
+                    onButtonPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS.getRoute(String(item.cardID))))}
+                    buttonSentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.MISSING_PERSONAL_DETAILS_ADD}
+                    style={[styles.pv3, cardPaddingHorizontal]}
+                />
             )}
             {!!digitalWalletApprovalCardID && (
                 <PendingDigitalWalletApprovalRow
                     cardID={digitalWalletApprovalCardID}
                     walletProvider={item.digitalWalletProvider}
                     style={[styles.pv3, cardPaddingHorizontal]}
+                />
+            )}
+            {!!item.wiseSetupInProgress && (
+                <WiseSetupInProgressRow
+                    bankAccountID={item.wiseSetupInProgress.bankAccountID}
+                    canContinue={item.wiseSetupInProgress.canContinue}
+                    isOnboardingSubmitted={item.wiseSetupInProgress.isOnboardingSubmitted}
+                    style={[styles.pt4, styles.pb3, cardPaddingHorizontal]}
                 />
             )}
             {isChaseAccountConnectedViaPlaid && (

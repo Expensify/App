@@ -138,7 +138,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const tableRef = useRef<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey, string>>(null);
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'Download', 'FallbackAvatar', 'Location', 'Plus', 'RemoveMembers', 'Sync', 'Table', 'UserPencil']);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
-    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, true);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
@@ -152,13 +151,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         openWorkspaceMembersPage(route.params.policyID, clientMemberEmails);
     };
     const {isOffline} = useNetwork({onReconnect: getWorkspaceMembers});
-    const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
     const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
     const {isBetaEnabled} = usePermissions();
-    const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
     const [membersSelectedForBulkEditCount = 0] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT, {selector: (selection) => selection?.accountIDs.length});
 
     // A bulk office location or work arrangement change clears the members it was given once it is applied, which
@@ -173,15 +170,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const {showDownloadErrorModal} = useAlertModals();
-    const currentUserLogin = currentUserPersonalDetails.login;
-    const canEditWorkspaceSettings = canEditWorkspaceSettingsUtil(policy, currentUserLogin);
-    const canWriteMembers = canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS);
-    const shouldShowMemberBankAccounts = isPolicyAdmin(policy) && arePaymentsEnabled(policy);
-
-    // Group policies (Collect/Control + Submit) allow member management.
-    const canManageMembers = isGroupPolicy(policy);
-    const isLoading = !isOfflineAndNoMemberDataAvailable && (!isPersonalDetailsReady(personalDetails) || isEmptyObject(policy?.employeeList));
-
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const isFocused = useIsFocused();
@@ -192,13 +180,81 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const privateIsArchivedMap = usePrivateIsArchivedMap();
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`);
     const [memberBankAccounts] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_BANK_ACCOUNTS}${policyID}`);
+    const {approvalWorkflows, enforcedApprovalWorkflows, approverPendingActionByMemberEmail, shouldUseApprovalWorkflowRules} = useApprovalWorkflows(policy);
 
-    const accountIDs = Object.values(policyMemberEmailsToAccountIDs ?? {}).map((accountID) => Number(accountID));
-    const prevAccountIDs = usePrevious(accountIDs);
+    const shouldShowMemberBankAccounts = isPolicyAdmin(policy) && arePaymentsEnabled(policy);
+    const getWorkspaceMembersEvent = useEffectEvent(() => getWorkspaceMembers());
+
+    // The bank accounts are only returned while the workspace shows them, so load the members again when that changes.
+    useEffect(() => {
+        getWorkspaceMembersEvent();
+    }, [shouldShowMemberBankAccounts]);
+
+    const filteredMembers = useWorkspaceMembers(policy);
+
+    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, true);
+    const prevPolicyMemberEmailsToAccountIDs = usePrevious(policyMemberEmailsToAccountIDs);
     const invitedEmails = Object.keys(invitedEmailsToAccountIDsDraft ?? {});
 
+    useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
+
+        if (isEmptyObject(invitedEmailsToAccountIDsDraft) || policyMemberEmailsToAccountIDs === prevPolicyMemberEmailsToAccountIDs) {
+            return;
+        }
+
+        const tableMembers = tableRef.current?.getProcessedData() ?? [];
+        if (!tableMembers.length) {
+            return;
+        }
+
+        const invitedMemberIndex = tableMembers.findIndex((member) => invitedEmails.includes(member.login));
+
+        if (invitedMemberIndex !== -1) {
+            tableRef.current?.scrollToIndex({
+                index: invitedMemberIndex,
+                animated: false,
+                viewPosition: 0.5,
+            });
+            tableRef.current?.highlightItems(invitedEmails);
+            clearInviteDraft(policyID);
+        }
+    }, [invitedEmailsToAccountIDsDraft, isFocused, policyMemberEmailsToAccountIDs, prevPolicyMemberEmailsToAccountIDs, invitedEmails, policyID]);
+
+    useMergeSyncResultsPage(policyID);
+
+    useSearchBackPress({
+        onClearSelection: () => setSelectedEmployees([]),
+        onNavigationCallBack: () => Navigation.goBack(),
+    });
+
+    // The role change happens on its own screen, which reports the change back by emptying the shared selection.
+    // Backing out of that screen drops the selection instead, so only a drop to zero clears the rows here.
+    const [membersSelectedForRoleChange] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE);
+    const isRoleChangeSaved = membersSelectedForRoleChange?.policyID === policyID && membersSelectedForRoleChange.logins.length === 0;
+    const [wasRoleChangeSaved, setWasRoleChangeSaved] = useState(isRoleChangeSaved);
+    if (wasRoleChangeSaved !== isRoleChangeSaved) {
+        setWasRoleChangeSaved(isRoleChangeSaved);
+
+        if (isRoleChangeSaved) {
+            setSelectedEmployees([]);
+        }
+    }
+
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
+
+    const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
+    const currentUserLogin = currentUserPersonalDetails.login;
+    const canEditWorkspaceSettings = canEditWorkspaceSettingsUtil(policy, currentUserLogin);
+    const canWriteMembers = canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS);
+
+    // Group policies (Collect/Control + Submit) allow member management.
+    const canManageMembers = isGroupPolicy(policy);
+    const isLoading = !isOfflineAndNoMemberDataAvailable && (!isPersonalDetailsReady(personalDetails) || isEmptyObject(policy?.employeeList));
+
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID];
-    const {approvalWorkflows, enforcedApprovalWorkflows, approverPendingActionByMemberEmail} = useApprovalWorkflows(policy);
 
     const canSelectMultiple = canWriteMembers && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
 
@@ -249,13 +305,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             });
         }
     }
-
-    const getWorkspaceMembersEvent = useEffectEvent(() => getWorkspaceMembers());
-
-    // The bank accounts are only returned while the workspace shows them, so load the members again when that changes.
-    useEffect(() => {
-        getWorkspaceMembersEvent();
-    }, [shouldShowMemberBankAccounts]);
 
     /**
      * Open the modal to invite a user
@@ -395,7 +444,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         updateMemberRoleInline(policy, login, accountID, currentRole, newRole);
     };
 
-    const filteredMembers = useWorkspaceMembers(policy);
     const invitedPrimaryToSecondaryLogins = invertObject(policy?.primaryLoginsInvited ?? {});
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
     const isWideTableLayout = !shouldUseNarrowLayout && !isMediumScreenWidth;
@@ -488,35 +536,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         };
     });
 
-    useEffect(() => {
-        if (!isFocused) {
-            return;
-        }
-
-        if (isEmptyObject(invitedEmailsToAccountIDsDraft) || accountIDs === prevAccountIDs) {
-            return;
-        }
-
-        const tableMembers = tableRef.current?.getProcessedData() ?? [];
-        if (!tableMembers.length) {
-            return;
-        }
-
-        const invitedMemberIndex = tableMembers.findIndex((member) => invitedEmails.includes(member.login));
-
-        if (invitedMemberIndex !== -1) {
-            tableRef.current?.scrollToIndex({
-                index: invitedMemberIndex,
-                animated: false,
-                viewPosition: 0.5,
-            });
-            tableRef.current?.highlightItems(invitedEmails);
-            clearInviteDraft(policyID);
-        }
-    }, [invitedEmailsToAccountIDsDraft, isFocused, accountIDs, prevAccountIDs, invitedEmails, policyID]);
-
-    useMergeSyncResultsPage(policyID);
-
     let headerMessage;
     if (isOfflineAndNoMemberDataAvailable) {
         headerMessage = translate('workspace.common.mustBeOnlineToViewMembers');
@@ -543,7 +562,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     {translate('workspace.people.workspaceMembersCount', memberCount)}
                     {shouldShowHRSyncLink && '. '}
                     {shouldShowHRSyncLink && (
-                        <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CONNECTIONS_HR.getRoute(policyID))}>
+                        <TextLink
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.PEOPLE))}
+                        >
                             {translate('workspace.people.configureHRSync', connectedHRProvider?.displayName ?? '')}
                         </TextLink>
                     )}
@@ -566,24 +587,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             )}
         </View>
     );
-
-    useSearchBackPress({
-        onClearSelection: () => setSelectedEmployees([]),
-        onNavigationCallBack: () => Navigation.goBack(),
-    });
-
-    // The role change happens on its own screen, which reports the change back by emptying the shared selection.
-    // Backing out of that screen drops the selection instead, so only a drop to zero clears the rows here.
-    const [membersSelectedForRoleChange] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE);
-    const isRoleChangeSaved = membersSelectedForRoleChange?.policyID === policyID && membersSelectedForRoleChange.logins.length === 0;
-    const [wasRoleChangeSaved, setWasRoleChangeSaved] = useState(isRoleChangeSaved);
-    if (wasRoleChangeSaved !== isRoleChangeSaved) {
-        setWasRoleChangeSaved(isRoleChangeSaved);
-
-        if (isRoleChangeSaved) {
-            setSelectedEmployees([]);
-        }
-    }
 
     const editSelectedEmployees = (bulkEditRoute: Route) => {
         setWorkspaceMembersSelectedForBulkEdit(
@@ -693,7 +696,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         return;
                     }
                     close(() => {
-                        downloadMembersCSV(policyID, isMultipleApproversBetaEnabled, showDownloadErrorModal, translate);
+                        downloadMembersCSV(policyID, shouldUseApprovalWorkflowRules, showDownloadErrorModal, translate);
                     });
                 },
                 value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,
@@ -720,8 +723,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         }
         secondaryActions = menuItems;
     }
-
-    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
     const getHeaderButtons = () => {
         if (!canWriteMembers) {

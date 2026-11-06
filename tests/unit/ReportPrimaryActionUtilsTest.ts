@@ -54,6 +54,7 @@ jest.mock('@libs/PolicyUtils', () => ({
     // This factory runs while PolicyUtils is still loading inside an import cycle, so the barrel's `export *` helpers
     // aren't on it yet. Spread them from their own modules, which load fully.
     ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/members'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/expensifyTeam'),
     isPolicyAdmin: jest.fn().mockImplementation((policy?: Policy) => policy?.role === 'admin'),
     getValidConnectedIntegration: jest.fn(),
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
@@ -111,6 +112,7 @@ describe('getPrimaryAction', () => {
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
         });
         const transaction = createMock<Transaction>({
@@ -144,6 +146,7 @@ describe('getPrimaryAction', () => {
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
         });
         const transaction = createMock<Transaction>({
@@ -246,6 +249,7 @@ describe('getPrimaryAction', () => {
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
         });
         const transaction = createMock<Transaction>({
@@ -280,6 +284,7 @@ describe('getPrimaryAction', () => {
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
         });
         const heldTransaction = createMock<Transaction>({
@@ -322,6 +327,7 @@ describe('getPrimaryAction', () => {
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
         });
         const transaction = createMock<Transaction>({
@@ -358,6 +364,7 @@ describe('getPrimaryAction', () => {
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
         });
         const transaction = createMock<Transaction>({
@@ -392,6 +399,7 @@ describe('getPrimaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL, // Submit & Close
             autoReporting: true,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT, // Instant submit
@@ -417,6 +425,45 @@ describe('getPrimaryAction', () => {
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
     });
+    it('should not return SUBMIT as the primary action for an approve-only member', async () => {
+        // Given an open expense report owned by the current user, who has the approve-only role on the policy
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.APPROVE_ONLY,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+        });
+        const transaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+        });
+
+        // When the primary action is resolved
+        const primaryAction = getReportPrimaryAction({
+            rules: undefined,
+            currentUserLogin: CURRENT_USER_EMAIL,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            report,
+            ownerLogin: '',
+            chatReport,
+            reportTransactions: [transaction],
+            violations: {},
+            bankAccountList: {},
+            policy,
+            isChatReportArchived: false,
+        });
+
+        // Then it is not SUBMIT
+        expect(primaryAction).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
+    });
+
     it('should not return SUBMIT as the primary action for a workflow approver who does not own the report', async () => {
         const SUBMITTER_ACCOUNT_ID = 2;
         const SUBMITTER_EMAIL = 'submitter@mail.com';
@@ -595,6 +642,7 @@ describe('getPrimaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
         });
         const transaction = createMock<Transaction>({
@@ -631,6 +679,7 @@ describe('getPrimaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
         });
         const transaction = createMock<Transaction>({
@@ -2158,6 +2207,7 @@ describe('getPrimaryAction', () => {
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
         });
         const TRANSACTION_ID = 'TRANSACTION_ID';
@@ -2199,6 +2249,7 @@ describe('getPrimaryAction', () => {
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
         });
         const TRANSACTION_ID = 'TRANSACTION_ID';
@@ -2237,6 +2288,7 @@ describe('getPrimaryAction', () => {
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
         });
         const VALID_TRANSACTION_ID = 'VALID_TRANSACTION_ID';

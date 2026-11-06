@@ -796,6 +796,10 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
+        navigationTabBarContainerLandscape: {
+            height: variables.floatingTabBarLandscapeHeight,
+        },
+
         // A grid item is otherwise never narrower than its label, so the label could not truncate.
         navigationTabBarSlot: {
             minWidth: 0,
@@ -2159,6 +2163,15 @@ const staticStyles = (theme: ThemeColors) =>
             marginTop: 8,
             justifyContent: 'center',
             alignItems: 'flex-start',
+        },
+
+        onboardingStickyHeaderContainer: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1,
+            backgroundColor: theme.componentBG,
         },
 
         createMenuContainer: {
@@ -5840,6 +5853,25 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.componentSizeSmall,
         },
 
+        reportHistoryIconContainer: {
+            width: variables.iconSizeXLarge,
+            height: variables.iconSizeXLarge,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        reportHistoryLabel: {
+            marginLeft: variables.reportHistoryLabelGap,
+        },
+
+        reportHistoryConnector: {
+            width: variables.borderTopWidth,
+            height: variables.reportHistoryConnectorHeight,
+            marginVertical: variables.reportHistoryConnectorMarginVertical,
+            marginLeft: variables.iconSizeXLarge / 2,
+            backgroundColor: theme.border,
+        },
+
         // The layer BulkActionBar floats in. It covers its container so the bar can center itself over the table, and
         // passes touches through everywhere except the bar itself.
         bulkActionBarLayer: {
@@ -7173,8 +7205,12 @@ const staticStyles = (theme: ThemeColors) =>
         },
         pieChartLegendDot: {
             borderRadius: '50%',
-            width: 12,
-            height: 12,
+            width: 8,
+            height: 8,
+        },
+        pieChartLegendLabel: {
+            fontSize: variables.iconSizeExtraSmall,
+            lineHeight: variables.lineHeightChartLabel,
         },
         // `getPieChartLoadingHeight` sizes the loading chart from the responsive legend styles below, so update it with them.
         pieChartResponsiveRow: {
@@ -7188,7 +7224,8 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
         pieChartLegendSide: {
-            width: VictoryTheme.pie.legendMinWidth,
+            minWidth: VictoryTheme.pie.legendMinWidth,
+            flexShrink: 1,
             justifyContent: 'center',
             rowGap: VictoryTheme.pie.legendRowGap,
         },
@@ -7203,7 +7240,7 @@ const staticStyles = (theme: ThemeColors) =>
             columnGap: 8,
         },
         pieChartLegendDotColumn: {
-            height: variables.lineHeightXLarge,
+            height: variables.lineHeightChartLabel,
             justifyContent: 'center',
         },
         chartInlineTable: {
@@ -7254,7 +7291,8 @@ const dynamicStyles = (theme: ThemeColors) =>
             }) satisfies ViewStyle,
 
         // Floats the offline indicator above a footer laid over the bottom of a tab root screen, without shrinking the
-        // content that runs under the footer.
+        // content that runs under the footer. Touches pass through to that content, so it still scrolls when the
+        // indicator covers all of it that is left on a short landscape screen.
         offlineIndicatorAboveFooter: (footerHeight: number) =>
             ({
                 position: 'absolute',
@@ -7263,10 +7301,11 @@ const dynamicStyles = (theme: ThemeColors) =>
                 left: 0,
                 zIndex: variables.searchFooterZIndex,
                 backgroundColor: theme.appBG,
+                ...pointerEventsNone,
             }) satisfies ViewStyle,
 
         // Fills the screen from the top of the tab bar down to the bottom edge, so no content shows between the
-        // offline indicator and the bar.
+        // offline indicator and the bar. Touches pass through to the content under it, as above a footer.
         tabBarOfflineIndicator: (tabBarCoveredHeight: number) =>
             ({
                 position: 'absolute',
@@ -7276,6 +7315,7 @@ const dynamicStyles = (theme: ThemeColors) =>
                 height: CONST.OFFLINE_INDICATOR_HEIGHT + tabBarCoveredHeight,
                 paddingBottom: tabBarCoveredHeight,
                 backgroundColor: theme.appBG,
+                ...pointerEventsNone,
             }) satisfies ViewStyle,
 
         // Runs a footer's background down under the tab bar that covers the bottom of a tab root screen, so the
