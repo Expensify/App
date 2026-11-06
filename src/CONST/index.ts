@@ -10836,6 +10836,8 @@ const CONST = {
                 GROUP_CURRENCY: 'Insights-ControlPopupReset-GroupCurrency',
                 COMPARE: 'Insights-ControlPopupReset-Compare',
             },
+            DETAILS_TOP_EXPENSE: 'Insights-DetailsTopExpense',
+            DETAILS_VIEW_ALL_TOP_EXPENSES: 'Insights-DetailsViewAll-TopExpenses',
         },
         EXPENSE_RULES: {
             TABLE_ROW: 'ExpenseRules-TableRow',

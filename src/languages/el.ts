@@ -1293,6 +1293,8 @@ const translations: TranslationDeepObject<typeof en> = {
         explainChartPrompt: (chartTitle: string) => `Εξηγήστε τα δεδομένα στο ${chartTitle}.`,
         viewDetails: 'Προβολή λεπτομερειών',
         viewAll: 'Προβολή όλων',
+        topExpenses: 'Κορυφαίες δαπάνες',
+        noExpensesInRange: 'Δεν υπάρχουν δαπάνες σε αυτό το εύρος',
     },
     allSettingsScreen: {
         subscription: 'Συνδρομή',

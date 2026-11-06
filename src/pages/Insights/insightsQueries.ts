@@ -1,6 +1,6 @@
 import type {SearchCompareMode, SearchGroupBy, SearchQueryJSON, SearchQueryString} from '@components/Search/types';
 
-import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON, getRangeQueryValue} from '@libs/SearchQueryUtils';
+import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString, getRangeQueryValue} from '@libs/SearchQueryUtils';
 import {hashText} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
@@ -15,6 +15,9 @@ import {getQueryGroupBy} from './insightsGroupByUtils';
 
 /** How many periods before the selected date range the Average mode spans */
 const COMPARE_AVERAGE_PERIOD_COUNT = 1;
+
+/** How many expenses the Details panel lists under Top expenses */
+const TOP_EXPENSES_LIMIT = 10;
 
 /** Builds the date filter in the shape a search query is built from. */
 function buildDateFormValues(date: InsightsFilters['date']): Partial<SearchAdvancedFiltersForm> {
@@ -173,6 +176,16 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
     };
 }
 
-export {applyInsightsFilters, buildDateFormValues, buildInsightsQueryString};
+/** Builds a Spend table query for its largest expenses, sorted by amount. */
+function buildTopExpensesQueryJSON(query: SearchQueryString): Readonly<SearchQueryJSON> | undefined {
+    const queryJSON = buildSearchQueryJSON(query);
+    if (!queryJSON) {
+        return undefined;
+    }
+
+    return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, sortBy: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, sortOrder: CONST.SEARCH.SORT_ORDER.DESC, limit: TOP_EXPENSES_LIMIT}));
+}
+
+export {applyInsightsFilters, buildDateFormValues, buildInsightsQueryString, buildTopExpensesQueryJSON, TOP_EXPENSES_LIMIT};
 export type {InsightsChartQuery, InsightsQuery};
 export default buildInsightsJsonQuery;

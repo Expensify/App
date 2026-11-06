@@ -5,7 +5,7 @@ import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import INSIGHTS_DASHBOARD_SPECS from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import type {InsightsQuery} from '@pages/Insights/insightsQueries';
-import buildInsightsJsonQuery, {applyInsightsFilters, buildInsightsQueryString} from '@pages/Insights/insightsQueries';
+import buildInsightsJsonQuery, {applyInsightsFilters, buildInsightsQueryString, buildTopExpensesQueryJSON} from '@pages/Insights/insightsQueries';
 
 import CONST from '@src/CONST';
 
@@ -363,6 +363,22 @@ describe('insightsQueries', () => {
 
             // Then its one point is grouped by day, so it's labeled with the date rather than the quarter
             expect(buildSearchQueryJSON(headlineQuery)?.groupBy).toBe(CONST.SEARCH.GROUP_BY.DAY);
+        });
+    });
+
+    describe('buildTopExpensesQueryJSON', () => {
+        it('lists the 10 largest expenses within the clicked point', () => {
+            // Given the Spend table query a point on a ranking chart opens
+            const query = 'type:expense sortBy:date sortOrder:desc date>=2026-01-01 date<=2026-03-31 groupCurrency:USD merchant="Anthropic"';
+
+            // When the Details panel builds its Top expenses query from it
+            const queryJSON = buildTopExpensesQueryJSON(query);
+
+            // Then it keeps the point's filters but sorts by amount, highest first, and adds a limit of 10, so the panel lists the largest expenses
+            expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
+            expect(queryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.DESC);
+            expect(queryJSON?.limit).toBe(10);
+            expect(queryJSON?.flatFilters).toEqual(buildSearchQueryJSON(query)?.flatFilters);
         });
     });
 });
