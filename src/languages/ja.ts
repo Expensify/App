@@ -3108,6 +3108,26 @@ const translations: TranslationDeepObject<typeof en> = {
                 description: '事業内容',
                 descriptionHint: '会社の事業内容を簡単に説明してください。',
             },
+            sourceOfWealth: {
+                label: '会社の資金はどこから来ていますか？',
+                description: '決済パートナーが資金源を確認する必要があります。',
+                options: {
+                    REVENUE: '事業収益',
+                    PERSONAL_FUNDING: '個人資金',
+                    BUSINESS_LOAN: '事業融資',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: '資金調達・株主からの投資',
+                    INVESTMENT_INCOME: '投資収益',
+                    DONATIONS: '寄付',
+                    GRANTS: '助成金',
+                    LEGAL: '法的和解',
+                },
+            },
+            sourceOfWealthProof: {
+                title: '資金源の証明書類',
+                description: '会社の主な資金源を示す書類をアップロードしてください。',
+                file: '資金源の証明書類',
+                fileDescription: '税務書類、監査済み財務諸表、または銀行取引明細書。',
+            },
             terms: {
                 title: '規約に同意',
                 subtitle: '以下の規約に同意してください。',

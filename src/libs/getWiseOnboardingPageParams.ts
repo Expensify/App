@@ -97,7 +97,8 @@ function getWiseOnboardingPageParams(bankAccountID: number, page: DynamicFormPag
     return {
         bankAccountID,
         step,
-        inputs: JSON.stringify(inputs),
+        // The server decodes `{}` as an object and rejects it, while `[]` reads as no answers
+        inputs: Object.keys(inputs).length > 0 ? JSON.stringify(inputs) : '[]',
         ...(fileFieldKeys.size > 0 ? {documents: JSON.stringify(documents)} : {}),
         ...newFiles,
     };

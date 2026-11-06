@@ -14,12 +14,14 @@ import WiseBusinessOnboardingPage from '@pages/settings/Wallet/EnableGlobalReimb
 
 import {openReimbursementAccountPage} from '@userActions/BankAccounts';
 import {saveDraftAnswers} from '@userActions/DynamicForm';
+import saveWiseOnboardingPage from '@userActions/WiseOnboarding';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {WiseBusinessOnboardingForm} from '@src/types/form';
-import type {BankAccount, PrivatePersonalDetails} from '@src/types/onyx';
+import type {BankAccount, DynamicFormPage, PrivatePersonalDetails} from '@src/types/onyx';
+import type {WiseKYCRequirement} from '@src/types/onyx/WiseKYCReview';
 
 import type ReactNative from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -61,6 +63,7 @@ jest.mock('@pages/ErrorPage/NotFoundPage', () => {
     return {__esModule: true, default: () => <reactNative.View testID="NotFoundPage" />};
 });
 jest.mock('@userActions/DynamicForm', () => ({...jest.requireActual<Record<string, unknown>>('@userActions/DynamicForm'), saveDraftAnswers: jest.fn()}));
+jest.mock('@userActions/WiseOnboarding', () => ({...jest.requireActual<Record<string, unknown>>('@userActions/WiseOnboarding'), __esModule: true, default: jest.fn()}));
 jest.mock('@userActions/BankAccounts', () => ({hideBankAccountErrors: jest.fn(), openReimbursementAccountPage: jest.fn()}));
 const INTRO_PATH = 'settings/wallet/global-reimbursements/1';
 
@@ -92,6 +95,21 @@ const PRIVATE_PERSONAL_DETAILS: PrivatePersonalDetails = {
     dob: '1985-04-12',
     addresses: [{street: '42 Oak Ave', city: 'Austin', state: 'TX', zip: '78704', country: CONST.COUNTRY.US, current: true}],
 };
+
+function getExpensifyRequirement(key: string): WiseKYCRequirement {
+    return {key, state: CONST.WISE.KYC_REQUIREMENT_STATE.NOT_PROVIDED, isHostedOnly: false, requestedBy: CONST.WISE.KYC_REQUIREMENT_REQUESTED_BY.EXPENSIFY};
+}
+
+/** What the business page's save returns for a high-risk industry */
+const ENHANCED_DUE_DILIGENCE: WiseKYCRequirement[] = [
+    getExpensifyRequirement(CONST.WISE.KYC_REQUIREMENT.BUSINESS_SOURCE_OF_WEALTH_INFO),
+    getExpensifyRequirement(CONST.WISE.KYC_REQUIREMENT.BUSINESS_SOURCE_OF_WEALTH_PROOF),
+];
+
+function getFlowPageKeys() {
+    const schema = mockFlowProps.mock.lastCall?.[0].schema;
+    return schema && 'pages' in schema ? schema.pages.map((page) => page.key) : [];
+}
 
 const {saveDraftAnswers: saveDraftAnswersToOnyx} = jest.requireActual<{saveDraftAnswers: typeof saveDraftAnswers}>('@userActions/DynamicForm');
 
@@ -568,5 +586,96 @@ describe('WiseBusinessOnboardingPage', () => {
         expect(flowProps?.isSavingPages).toBe(false);
         expect(navigateSpy).not.toHaveBeenCalled();
         expect(flowProps?.submitError).toBe('common.genericErrorMessage');
+    });
+    it('adds the enhanced due diligence pages after the business page once its save returns them', async () => {
+        // Given the flow open on the business page, with no requirements yet
+        await renderPage({reimbursementAccount: REIMBURSEMENT_ACCOUNT, subPage: 'business'});
+        expect(getFlowPageKeys()).toEqual(['representative', 'business']);
+
+        // When the business page's save answers for a high-risk industry
+        await act(() => Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}}}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the source of funds and its proof are asked before the confirmation page
+        expect(getFlowPageKeys()).toEqual([
+            'representative',
+            'business',
+            CONST.WISE.KYC_REQUIREMENT.BUSINESS_SOURCE_OF_WEALTH_INFO,
+            CONST.WISE.KYC_REQUIREMENT.BUSINESS_SOURCE_OF_WEALTH_PROOF,
+        ]);
+    });
+
+    it('ignores requirements saved on the reimbursement account for another bank account', async () => {
+        // Given requirements the device holds for another bank account
+        const otherAccount: BusinessReimbursementAccount = {achData: {...REIMBURSEMENT_ACCOUNT.achData, bankAccountID: 2, wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}}};
+
+        // When the page opens for this bank account and its read has not returned yet
+        await renderPage({reimbursementAccount: otherAccount, subPage: 'business', shouldLeaveReadRunning: true});
+
+        // Then only the profile pages are asked
+        expect(getFlowPageKeys()).toEqual(['representative', 'business']);
+    });
+
+    it('reads this bank account on a direct link to the confirmation page and takes the user to the requirement it returns', async () => {
+        // Given a device that holds another bank account's details, so a reload on the confirmation page has no requirements for this one
+        const otherAccount: BusinessReimbursementAccount = {achData: {...REIMBURSEMENT_ACCOUNT.achData, bankAccountID: 2}};
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        // When the confirmation page opens and the read returns this bank account with enhanced due diligence
+        await renderPage({
+            reimbursementAccount: otherAccount,
+            readResponse: {achData: {...REIMBURSEMENT_ACCOUNT.achData, wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}}},
+            subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY,
+        });
+
+        // Then the page reads this bank account and sends the user to the source of funds page, so Submit cannot skip it
+        expect(openReimbursementAccountPage).toHaveBeenCalledWith({bankAccountID: BANK_ACCOUNT_ID});
+        expect(navigateSpy).toHaveBeenCalledWith(expect.stringContaining('business-onboarding/business-source-of-wealth-info'), {forceReplace: true});
+    });
+
+    it('takes the user from the confirmation page to the source of funds page when the requirements arrive', async () => {
+        // Given the user moved on from the business page to the confirmation page before its save answered
+        await renderPage({reimbursementAccount: REIMBURSEMENT_ACCOUNT, subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY});
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        // When the save answers with the enhanced due diligence requirements
+        await act(() => Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}}}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the user lands on the first requirement page, replacing the confirmation page, since Submit needs the answers first
+        expect(navigateSpy).toHaveBeenCalledWith(expect.stringContaining('business-onboarding/business-source-of-wealth-info'), {forceReplace: true});
+    });
+
+    it('leaves the user on the confirmation page once every requirement page has an answer', async () => {
+        // Given both requirement pages answered on an earlier visit
+        await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {
+            bankAccountID: String(BANK_ACCOUNT_ID),
+            businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE],
+            proofFile: [toSavedFile('kyc/1/proof.pdf')],
+        });
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        // When the confirmation page opens with the requirements on the device
+        await renderPage({
+            reimbursementAccount: {achData: {...REIMBURSEMENT_ACCOUNT.achData, wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}}},
+            subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY,
+        });
+
+        // Then the user stays to review the answers
+        expect(navigateSpy).not.toHaveBeenCalled();
+    });
+
+    it('saves a requirement page under its requirement key, which the server accepts as the step', async () => {
+        // Given the flow with the enhanced due diligence pages
+        await renderPage({reimbursementAccount: {achData: {...REIMBURSEMENT_ACCOUNT.achData, wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}}}, subPage: 'business'});
+        const flowProps = mockFlowProps.mock.lastCall?.[0];
+        const sourceOfFundsPage: DynamicFormPage = {key: 'business-source-of-wealth-info', content: []};
+        const answers = {businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE, CONST.WISE.SOURCE_OF_WEALTH.GRANTS]};
+
+        // When the user leaves the source of funds page with Next, which the flow names by its URL key
+        act(() => flowProps?.onPageSubmit?.(sourceOfFundsPage, answers, {}));
+
+        // Then the page is saved under Wise's requirement key with every source picked
+        expect(saveWiseOnboardingPage).toHaveBeenCalledWith(BANK_ACCOUNT_ID, expect.objectContaining({key: CONST.WISE.KYC_REQUIREMENT.BUSINESS_SOURCE_OF_WEALTH_INFO}), answers, {});
     });
 });

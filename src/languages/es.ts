@@ -3044,6 +3044,26 @@ const translations: TranslationDeepObject<typeof en> = {
                 description: 'Descripción de la empresa',
                 descriptionHint: 'Describe brevemente a qué se dedica tu empresa.',
             },
+            sourceOfWealth: {
+                label: '¿De dónde proviene el dinero de tu empresa?',
+                description: 'Nuestro socio de pagos necesita verificar el origen de los fondos.',
+                options: {
+                    REVENUE: 'Ingresos del negocio',
+                    PERSONAL_FUNDING: 'Financiación personal',
+                    BUSINESS_LOAN: 'Préstamo empresarial',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: 'Financiación e inversiones de accionistas',
+                    INVESTMENT_INCOME: 'Ingresos por inversiones',
+                    DONATIONS: 'Donaciones',
+                    GRANTS: 'Subvenciones',
+                    LEGAL: 'Acuerdo legal',
+                },
+            },
+            sourceOfWealthProof: {
+                title: 'Documento del origen de los fondos',
+                description: 'Sube un documento que muestre el origen principal de los fondos de tu empresa.',
+                file: 'Documento del origen de los fondos',
+                fileDescription: 'Declaración de impuestos, estados financieros auditados o extracto bancario.',
+            },
             terms: {
                 title: 'Aceptar términos',
                 subtitle: 'Acepta los términos a continuación.',

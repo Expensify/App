@@ -3145,6 +3145,26 @@ const translations: TranslationDeepObject<typeof en> = {
                 description: 'Unternehmensbeschreibung',
                 descriptionHint: 'Beschreiben Sie kurz, was Ihr Unternehmen macht.',
             },
+            sourceOfWealth: {
+                label: 'Woher stammt das Geld Ihres Unternehmens?',
+                description: 'Unser Zahlungspartner muss die Herkunft der Mittel überprüfen.',
+                options: {
+                    REVENUE: 'Geschäftsumsatz',
+                    PERSONAL_FUNDING: 'Eigenfinanzierung',
+                    BUSINESS_LOAN: 'Geschäftskredit',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: 'Finanzierung und Investitionen von Anteilseignern',
+                    INVESTMENT_INCOME: 'Kapitalerträge',
+                    DONATIONS: 'Spenden',
+                    GRANTS: 'Fördermittel',
+                    LEGAL: 'Rechtlicher Vergleich',
+                },
+            },
+            sourceOfWealthProof: {
+                title: 'Nachweis der Mittelherkunft',
+                description: 'Laden Sie ein Dokument hoch, das die Hauptherkunft der Mittel Ihres Unternehmens belegt.',
+                file: 'Nachweis der Mittelherkunft',
+                fileDescription: 'Steuerdokument, geprüfter Jahresabschluss oder Kontoauszug.',
+            },
             terms: {
                 title: 'Bedingungen akzeptieren',
                 subtitle: 'Bitte akzeptieren Sie die folgenden Bedingungen.',

@@ -3172,6 +3172,26 @@ const translations: TranslationDeepObject<typeof en> = {
                 description: 'Opis działalności',
                 descriptionHint: 'Krótko opisz, czym zajmuje się Twoja firma.',
             },
+            sourceOfWealth: {
+                label: 'Skąd pochodzą pieniądze Twojej firmy?',
+                description: 'Nasz partner płatniczy musi zweryfikować źródło środków.',
+                options: {
+                    REVENUE: 'Przychody firmy',
+                    PERSONAL_FUNDING: 'Środki własne',
+                    BUSINESS_LOAN: 'Kredyt firmowy',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: 'Finansowanie i inwestycje udziałowców',
+                    INVESTMENT_INCOME: 'Dochody z inwestycji',
+                    DONATIONS: 'Darowizny',
+                    GRANTS: 'Dotacje',
+                    LEGAL: 'Ugoda sądowa',
+                },
+            },
+            sourceOfWealthProof: {
+                title: 'Dokument potwierdzający źródło środków',
+                description: 'Prześlij dokument pokazujący główne źródło środków Twojej firmy.',
+                file: 'Dokument potwierdzający źródło środków',
+                fileDescription: 'Dokument podatkowy, zbadane sprawozdanie finansowe lub wyciąg bankowy.',
+            },
             terms: {
                 title: 'Akceptacja warunków',
                 subtitle: 'Zaakceptuj poniższe warunki.',

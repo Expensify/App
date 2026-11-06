@@ -1124,6 +1124,19 @@ const CONST = {
         /** Wise's KYC requirement types we collect */
         KYC_REQUIREMENT: {
             ID_DOCUMENT: 'ID_DOCUMENT',
+            BUSINESS_SOURCE_OF_WEALTH_INFO: 'BUSINESS_SOURCE_OF_WEALTH_INFO',
+            BUSINESS_SOURCE_OF_WEALTH_PROOF: 'BUSINESS_SOURCE_OF_WEALTH_PROOF',
+        },
+        /** Wise's businessSourceOfWealthInfo values, in Wise's order */
+        SOURCE_OF_WEALTH: {
+            REVENUE: 'REVENUE',
+            PERSONAL_FUNDING: 'PERSONAL_FUNDING',
+            BUSINESS_LOAN: 'BUSINESS_LOAN',
+            FUNDING_AND_SHAREHOLDER_INVESTMENTS: 'FUNDING_AND_SHAREHOLDER_INVESTMENTS',
+            INVESTMENT_INCOME: 'INVESTMENT_INCOME',
+            DONATIONS: 'DONATIONS',
+            GRANTS: 'GRANTS',
+            LEGAL: 'LEGAL',
         },
         /** Wise's companyType values, the legal form */
         COMPANY_TYPE: {
