@@ -172,6 +172,18 @@ function WiseDepositAccountContent({backTo, subPage, isEditing}: WiseDepositAcco
         clearSuccessFromEarlierVisit();
     }, []);
 
+    // Escape and a swipe close the success screen without Continue, so what does not depend on where the user goes next runs as soon as the account exists
+    const hasSuccessThisVisit = !!formState?.isSuccess && !hasSuccessFromEarlierVisit;
+    useEffect(() => {
+        if (!hasSuccessThisVisit) {
+            return undefined;
+        }
+        // The wallet stays open under the flow and fetches its bank accounts only when it opens, so it would not show the new account otherwise
+        getPaymentMethods();
+        // Only Continue resumes a payment that asked for a bank account, so closing the screen another way drops where it would go on
+        return () => clearPersonalBankAccount();
+    }, [hasSuccessThisVisit]);
+
     const leaveFlow = () => {
         clearFlow();
         Navigation.goBack(exitRoute);
@@ -179,8 +191,6 @@ function WiseDepositAccountContent({backTo, subPage, isEditing}: WiseDepositAcco
 
     const finishFlow = () => {
         clearFlow();
-        // The wallet stays open under the flow and fetches its bank accounts only when it opens, so it would not show the new account otherwise
-        getPaymentMethods();
         // A payment that asked for a bank account saved where to go on, so it resumes now that the account exists
         if (onSuccessFallbackRoute) {
             continueSetup(kycWallRef, onSuccessFallbackRoute);
@@ -256,7 +266,7 @@ function WiseDepositAccountContent({backTo, subPage, isEditing}: WiseDepositAcco
     }
 
     // The form state is saved on the device, while the form is only kept in memory. A success left behind by a reload shows the country list instead.
-    if (formState?.isSuccess && schema && !hasSuccessFromEarlierVisit) {
+    if (hasSuccessThisVisit && schema) {
         return <WiseBankAccountAdded onContinue={finishFlow} />;
     }
 
