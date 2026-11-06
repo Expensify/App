@@ -21,7 +21,7 @@ import Log from '@libs/Log';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getDistanceRateCustomUnitRate, hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, getPolicyForDistanceRateID, hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
 import {getAllReportActions, getIOUActionForReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isModifiedExpenseAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticConciergeDistanceRateModifiedExpenseReportAction,
@@ -46,7 +46,10 @@ import {
     shouldEnableNegative,
 } from '@libs/ReportUtils';
 import {
+    getAmount as getTransactionAmount,
+    getCurrency,
     getDistanceInMeters,
+    getMerchant,
     hasSubmissionBlockingViolationInList,
     isDeletedTransaction,
     isDistanceRequest,
@@ -1311,7 +1314,8 @@ function getChangeTransactionsReportOnyxData({
                 currentRateID && currentRateID !== CONST.CUSTOM_UNITS.FAKE_P2P_ID
                     ? DistanceRequestUtils.getRateByCustomUnitRateIDAcrossPolicies({
                           customUnitRateID: currentRateID,
-                          policy: sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined,
+                          // Unreported expenses still need their original rate, including disabled rates, to find an equivalent destination rate.
+                          policy: sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : getPolicyForDistanceRateID(currentRateID, policies),
                           policies,
                       })
                     : undefined;
@@ -1406,7 +1410,12 @@ function getChangeTransactionsReportOnyxData({
                     ...updatedTransaction,
                     ...optimisticValue,
                 };
-                if (shouldReprice) {
+                if (
+                    shouldReprice &&
+                    (getTransactionAmount(transactionForViolations, true) !== getTransactionAmount(transaction, true) ||
+                        getMerchant(transactionForViolations) !== getMerchant(transaction) ||
+                        getCurrency(transactionForViolations) !== getCurrency(transaction))
+                ) {
                     repricedTransaction = transactionForViolations;
                 }
             }

@@ -2434,6 +2434,54 @@ describe('Transaction', () => {
                 expect(readProperty(threadData, 'modifiedExpenseReportActionID')).toBeUndefined();
             });
 
+            it.each([false, true])('should not announce an unchanged price after a deleted rate falls back to an equivalent default (edited expense: %s)', async (isEdited) => {
+                // Given a $7 expense whose original $0.70 rate was deleted, including expenses with previously edited values
+                const merchant = '10.00 mi @ $0.70 / mi';
+                const transaction = {
+                    ...createDistanceTransaction(FAKE_OLD_REPORT_ID, 'deletedRate'),
+                    amount: isEdited ? -500 : -700,
+                    merchant: isEdited ? '10.00 mi @ $0.50 / mi' : merchant,
+                    ...(isEdited ? {modifiedAmount: -700, modifiedMerchant: merchant} : {}),
+                };
+                const policies = {
+                    [SOURCE_POLICY_ID]: createDistancePolicy(SOURCE_POLICY_ID, {sourceDefault: {rate: 50}}),
+                    [DESTINATION_POLICY_ID]: createDistancePolicy(DESTINATION_POLICY_ID, {destinationDefault: {rate: 70}}),
+                };
+
+                // When it moves to another workspace whose default reproduces the expense's current price
+                const {threadData, modifiedExpenseActions, updatedTransaction} = await moveToDestinationReport(transaction, policies, SOURCE_POLICY_ID);
+
+                // Then the destination rate is assigned without a misleading message about unchanged values
+                expect(updatedTransaction?.comment?.customUnit?.customUnitRateID).toBe('destinationDefault');
+                expect(updatedTransaction?.comment?.customUnit?.quantity).toBe(10);
+                expect(updatedTransaction?.modifiedAmount).toBe(-700);
+                expect(updatedTransaction?.modifiedMerchant).toBe(merchant);
+                expect(modifiedExpenseActions).toHaveLength(0);
+                expect(readProperty(threadData, 'modifiedExpenseReportActionID')).toBeUndefined();
+            });
+
+            it('should match a disabled source rate when adding an unreported expense to another workspace', async () => {
+                // Given an unreported $8 expense with a disabled $0.80 rate still owned by its original workspace
+                const merchant = '10.00 mi @ $0.80 / mi';
+                const transaction = {...createDistanceTransaction(CONST.REPORT.UNREPORTED_REPORT_ID, 'disabledRate'), amount: -800, merchant};
+                const policies = {
+                    [SOURCE_POLICY_ID]: createDistancePolicy(SOURCE_POLICY_ID, {sourceDefault: {rate: 50}, disabledRate: {rate: 80, enabled: false}}),
+                    [DESTINATION_POLICY_ID]: createDistancePolicy(DESTINATION_POLICY_ID, {destinationDefault: {rate: 50}, matchingRate: {rate: 80}}),
+                };
+
+                // When it is added to a report on a workspace with a different default but an equivalent enabled rate
+                const {threadData, modifiedExpenseActions, updatedTransaction} = await moveToDestinationReport(transaction, policies);
+
+                // Then it uses the equivalent rate, preserving $8 without announcing the incorrect $5 fallback
+                expect(updatedTransaction?.comment?.customUnit?.customUnitRateID).toBe('matchingRate');
+                expect(updatedTransaction?.amount).toBe(-800);
+                expect(updatedTransaction?.merchant).toBe(merchant);
+                expect(updatedTransaction?.modifiedAmount).toBeUndefined();
+                expect(updatedTransaction?.modifiedMerchant).toBeUndefined();
+                expect(modifiedExpenseActions).toHaveLength(0);
+                expect(readProperty(threadData, 'modifiedExpenseReportActionID')).toBeUndefined();
+            });
+
             it('should reprice onto the default rate and add a Concierge rate change message when the destination workspace has no equivalent rate', async () => {
                 // Given an expense on a workspace rate of $0.50 / mi
                 const transaction = createDistanceTransaction(FAKE_OLD_REPORT_ID, 'sourceRate');
