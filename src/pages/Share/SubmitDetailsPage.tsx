@@ -585,7 +585,7 @@ function SubmitDetailsPage({
         // Use cached userLocation when available — avoids an extra getCurrentPosition round-trip.
         Onyx.get(ONYXKEYS.USER_LOCATION)
             .catch((error: unknown) => {
-                // The position is optional, so a failed cache read falls through to the capped device read instead of blocking the submit
+                // Location is optional. If the cache read fails, use the capped device read so submission can continue.
                 Log.warn('[SubmitDetailsPage] Failed to read the cached user location', {error});
                 return null;
             })
@@ -596,7 +596,7 @@ function SubmitDetailsPage({
                         long: userLocation.longitude,
                     };
                 }
-                // Wrapped in a promise so a throw in the submit that follows still reaches the catch below instead of escaping from the callback
+                // Resolve the position first, then submit in the promise chain so the catch below handles submission errors.
                 return new Promise((resolve) => {
                     getCurrentPositionWithinCap((gpsCoords) => resolve(gpsCoords));
                 });

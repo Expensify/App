@@ -49,7 +49,7 @@ jest.mock('@pages/Share/getFileSize', () => jest.fn(() => Promise.resolve(10000)
 
 jest.mock('@hooks/useFilesValidation', () => jest.fn(() => ({validateFiles: jest.fn()})));
 
-// Isolate the page from the tab contents and the screen chrome: these tests only cover what processing a shared file triggers.
+// Mock the tabs, header, and screen wrapper to test what happens when the page processes a shared file.
 jest.mock(
     '@components/ScreenWrapper',
     () =>
@@ -156,8 +156,7 @@ describe('ShareRootPage location snapshot', () => {
         // When the share root processes the file
         await renderShareRootPage();
 
-        // Then the position is cached before the user even picks a recipient, so the Submit details page never has to
-        // read the device on open, which would land inside the ShareExtensionOpenSubmitFlow span
+        // Then the device position is cached before a recipient is selected, ready for submission
         expect(getCurrentPosition).toHaveBeenCalledTimes(1);
         expect(await getUserLocationFromOnyx()).toEqual(DEVICE_POSITION);
     });
@@ -182,7 +181,7 @@ describe('ShareRootPage location snapshot', () => {
         // When the share root processes the file
         await renderShareRootPage();
 
-        // Then the device location is never read, because reading it would request the permission and show the system prompt
+        // Then getCurrentPosition is skipped so processing the share does not request location permission
         expect(getCurrentPosition).not.toHaveBeenCalled();
         expect(await getUserLocationFromOnyx()).toBeUndefined();
     });
@@ -225,14 +224,14 @@ describe('ShareRootPage location snapshot', () => {
         await renderShareRootPage();
         expect(await getUserLocationFromOnyx()).toEqual(DEVICE_POSITION);
 
-        // When the user moves, then shares another image that the native extension saves under the same path (iOS writes
-        // image data as shared_image.png, Android copies by display name) and the app returns to the foreground with it
+        // When the user moves and shares another image at the same path, then returns to the app
+        // (iOS saves image data as shared_image.png; Android uses the display name)
         mockPositionAnswer(NEW_DEVICE_POSITION);
         mockSharedFiles = [createSharedFile('file:///shared/shared_image.png', CONST.RECEIPT_ALLOWED_FILE_TYPES.PNG)];
         await returnToForeground(emitAppState);
 
-        // Then the cache holds the new position, because the file path cannot tell a new share from the same one and
-        // keeping the earlier position would attach a place the user has left to the new expense
+        // Then the cache contains the new position for this share. Reused file paths must still refresh the
+        // location so a new expense does not use coordinates from an earlier share.
         expect(getCurrentPosition).toHaveBeenCalledTimes(2);
         expect(await getUserLocationFromOnyx()).toEqual(NEW_DEVICE_POSITION);
     });

@@ -201,7 +201,7 @@ describe('scan screen location permission prompt', () => {
     });
 
     it('clears a previously cached position when permission is denied inside the prompt window', async () => {
-        // Given a position cached earlier (USER_LOCATION is shared with address search), a denied permission, and a recent denial inside the prompt window
+        // Given a cached USER_LOCATION, denied location permission, and a prompt timestamp within the seven-day cool-down
         mockLocationPermissionResult = 'denied';
         await act(async () => {
             await Onyx.merge(ONYXKEYS.USER_LOCATION, {latitude: 10, longitude: 20});
