@@ -2443,56 +2443,37 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('getPaymentMessageWithExpectedDate', () => {
-        it('should say when funds arrive, with the full month, for a Wise cross-border payment', () => {
-            // Given a Wise cross-border payment message and its delivery estimate
-            const paymentMessage = 'paid with bank account 1234';
-
-            // When the estimate is added to the message
-            const message = ReportActionsUtils.getPaymentMessageWithExpectedDate(translateLocal, undefined, paymentMessage, '2026-08-18', {});
-
-            // Then it uses the same "funds are expected to arrive" wording as the Wise delivery estimate actions
-            expect(message).toBe('paid with bank account 1234, funds are expected to arrive by August 18, 2026.');
-        });
-
-        it('should link to the payment details for a Wise cross-border payment', () => {
-            // Given a Wise cross-border payment message, its delivery estimate and the link to the Payment details screen
-            const paymentMessage = 'paid with bank account 1234';
-
-            // When the estimate is added to the message
-            const message = ReportActionsUtils.getPaymentMessageWithExpectedDate(translateLocal, undefined, paymentMessage, '2026-08-18', {detailsURL: 'https://new.expensify.com/details'});
-
-            // Then the message ends with the View details link, so the payer can see what Wise charged
-            expect(message).toBe('paid with bank account 1234, funds are expected to arrive by August 18, 2026. <a href="https://new.expensify.com/details">View details</a>');
-        });
-
-        it('should keep the next step wording for other bank account payments', () => {
-            // Given a bank account payment that does not go through Wise and its delivery estimate
+        it('should say when funds arrive, with the full month', () => {
+            // Given a bank account payment message and its delivery estimate
             const paymentMessage = 'paid with bank account 1234';
 
             // When the estimate is added to the message
             const message = ReportActionsUtils.getPaymentMessageWithExpectedDate(translateLocal, undefined, paymentMessage, '2026-08-18');
 
-            // Then the existing copy is unchanged, because the new wording is only for Wise
-            expect(message).toBe('paid with bank account 1234. Waiting for payment to complete by Aug 18, 2026.');
+            // Then it uses the same "funds are expected to arrive" wording as the delivery estimate actions, for every bank payment
+            expect(message).toBe('paid with bank account 1234, funds are expected to arrive by August 18, 2026.');
         });
 
-        it('should return the payment message alone for a Wise cross-border payment without an estimate', () => {
-            // Given a Wise cross-border payment message with no delivery estimate yet
+        it('should link to the payment details when a details URL is given', () => {
+            // Given a cross-border payment message, its delivery estimate and the link to the Payment details screen
             const paymentMessage = 'paid with bank account 1234';
 
             // When the estimate is added to the message
-            const message = ReportActionsUtils.getPaymentMessageWithExpectedDate(translateLocal, undefined, paymentMessage, undefined, {});
+            const message = ReportActionsUtils.getPaymentMessageWithExpectedDate(translateLocal, undefined, paymentMessage, '2026-08-18', 'https://new.expensify.com/details');
 
-            // Then nothing is appended, because there is no date to show
-            expect(message).toBe(paymentMessage);
+            // Then the message ends with the View details link, so the payer can see what was charged
+            expect(message).toBe('paid with bank account 1234, funds are expected to arrive by August 18, 2026. <a href="https://new.expensify.com/details">View details</a>');
         });
 
-        it('should return the payment message alone for a Wise cross-border payment whose estimate cannot be parsed', () => {
-            // Given a Wise cross-border payment message with a malformed delivery estimate
+        it.each([
+            ['no estimate', undefined],
+            ['an estimate that cannot be parsed', 'not a date'],
+        ])('should return the payment message alone for %s', (_description, expectedDate) => {
+            // Given a bank account payment message without a usable delivery estimate
             const paymentMessage = 'paid with bank account 1234';
 
             // When the estimate is added to the message
-            const message = ReportActionsUtils.getPaymentMessageWithExpectedDate(translateLocal, undefined, paymentMessage, 'not a date', {});
+            const message = ReportActionsUtils.getPaymentMessageWithExpectedDate(translateLocal, undefined, paymentMessage, expectedDate);
 
             // Then nothing is appended, so the message never ends with "arrive by ."
             expect(message).toBe(paymentMessage);

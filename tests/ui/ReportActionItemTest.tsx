@@ -2565,8 +2565,8 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the expected date is visible and included in the accessibility label
-            expect(screen.getByText(/Waiting for payment to complete by Jan 15, 2024/i)).toBeOnTheScreen();
-            expect(screen.getByLabelText(/Waiting for payment to complete by Jan 15, 2024/i)).toBeOnTheScreen();
+            expect(screen.getByText(/funds are expected to arrive by January 15, 2024/i)).toBeOnTheScreen();
+            expect(screen.getByLabelText(/funds are expected to arrive by January 15, 2024/i)).toBeOnTheScreen();
         });
 
         it('IOU PAY VBBA omits the payment status when the expected date is invalid', async () => {
@@ -2662,7 +2662,7 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the payment uses the preceding reimbursement date instead of an earlier or later action
-            expect(screen.getByText(/Waiting for payment to complete by Jan 15, 2024/i)).toBeOnTheScreen();
+            expect(screen.getByText(/funds are expected to arrive by January 15, 2024/i)).toBeOnTheScreen();
         });
 
         it('IOU PAY with no original message renders nothing', async () => {

@@ -896,16 +896,10 @@ function getCrossBorderReimbursedMessage(
     });
 }
 
-type WiseCrossBorderPaymentDetails = {
-    /** Link to the Payment details screen. The message has no "View details" link without it */
-    detailsURL?: string;
-};
-
 /**
- * Appends the delivery estimate to a bank account payment message. Wise cross-border payments read "funds are expected to
- * arrive by" with the full month, the same as the Wise delivery estimate actions, while other payments keep the next step wording.
+ * Appends the delivery estimate to a bank account payment message, e.g. "paid with bank account 1234, funds are expected to arrive by August 18, 2026."
  *
- * @param wiseCrossBorderPayment - set only for a Wise cross-border payment
+ * @param detailsURL - link to the Payment details screen, added as "View details" for cross-border payments
  * @returns HTML when the "View details" link is included, so callers render it with RenderHTML
  */
 function getPaymentMessageWithExpectedDate(
@@ -913,25 +907,14 @@ function getPaymentMessageWithExpectedDate(
     dateFnsLocale: DateFnsLocale | undefined,
     paymentMessage: string,
     expectedDate: string | undefined,
-    wiseCrossBorderPayment?: WiseCrossBorderPaymentDetails,
+    detailsURL?: string,
 ): string {
-    if (!expectedDate) {
+    const formattedArrivalDate = expectedDate ? DateUtils.formatWithUTCTimeZone(expectedDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale) : '';
+    if (!formattedArrivalDate) {
         return paymentMessage;
     }
 
-    if (wiseCrossBorderPayment) {
-        const formattedArrivalDate = DateUtils.formatWithUTCTimeZone(expectedDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale);
-        return formattedArrivalDate
-            ? translate('iou.paymentWithArrivalDate', {paymentMessage, expectedDate: formattedArrivalDate, detailsURL: wiseCrossBorderPayment.detailsURL})
-            : paymentMessage;
-    }
-
-    const formattedExpectedDate = DateUtils.formatWithUTCTimeZone(expectedDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, dateFnsLocale);
-    if (!formattedExpectedDate) {
-        return paymentMessage;
-    }
-    const expectedDateMessage = translate('nextStep.message.waitingForPayment', '', CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN, formattedExpectedDate, CONST.NEXT_STEP.ETA_TYPE.DATE_TIME);
-    return translate('iou.paymentWithExpectedDate', {paymentMessage, expectedDateMessage});
+    return translate('iou.paymentWithArrivalDate', {paymentMessage, expectedDate: formattedArrivalDate, detailsURL});
 }
 
 function getMarkedReimbursedMessage(translate: LocalizedTranslate, reportAction: OnyxInputOrEntry<ReportAction>): string {
