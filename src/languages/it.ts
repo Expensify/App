@@ -2022,6 +2022,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         undeletedExpense: 'ha ripristinato questa spesa',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `tariffe chilometriche aggiornate per il nuovo spazio di lavoro - ${policyName}`,
+        paymentWithArrivalDate: ({paymentMessage, expectedDate, detailsURL}: {paymentMessage: string; expectedDate: string; detailsURL?: string}) =>
+            `${paymentMessage}, i fondi dovrebbero arrivare entro il ${expectedDate}.${detailsURL ? `<a href="${detailsURL}">Vedi dettagli</a>` : ''}`,
+        waitingOnBankAccountCrossBorder: (submitterDisplayName: string) =>
+            `pagamento avviato. In attesa del conto bancario di ${submitterDisplayName}. Il tasso di cambio finale potrebbe modificare l’importo.`,
     },
     transactionMerge: {
         listPage: {
@@ -2151,7 +2155,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `Cambia lo spazio di lavoro del rendiconto per ulteriori azioni.`,
-
             [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -11281,6 +11284,54 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 },
                 autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
                     `I Rimborsi globali sono stati abilitati da ${adminName} sul conto ${bankName ? `${bankName} ` : ''} che termina con ${lastFour}. I tassi di cambio e le commissioni esatti non possono essere visualizzati in anteprima prima del pagamento quando i report transfrontalieri vengono pagati automaticamente. Consulta le tue <a href="${autoPaySettingsURL}">impostazioni di pagamento automatico</a> per maggiori informazioni su tassi e commissioni.`,
+                reimbursementEstimateUpdated: ({expectedDate}: {expectedDate: string}) => `L'arrivo dei fondi è ora previsto per il ${expectedDate}.`,
+                reimbursementEstimateSooner: ({expectedDate}: {expectedDate: string}) => `Ottime notizie, i fondi dovrebbero arrivare entro il ${expectedDate}.`,
+                reimbursementArrived: ({arrivalDate}: {arrivalDate: string}) => `I fondi sono arrivati il ${arrivalDate}.`,
+                reimbursementArrivedWithoutDate: 'Fondi arrivati.',
+                reimbursementDepositFailed: ({reason}: {reason: string}) =>
+                    `Pagamento non riuscito: ${reason}. È molto probabile che i fondi vengano restituiti, anche se il pagamento potrebbe comunque essere completato in ritardo. Attendi un nuovo aggiornamento. Chatta con il <concierge-link>Concierge</concierge-link>.`,
+                reimbursementDepositFailedReason: {
+                    reasonNotSpecified: "la banca del destinatario l'ha rifiutato",
+                    wrongAccountNumber: 'numero di conto non corretto',
+                    wrongAccountDetails: 'numero di conto o codice bancario non corretto',
+                    wrongBankCode: 'codice bancario non valido',
+                    wrongBranchCode: 'codice filiale non corretto',
+                    wrongAccountType: 'tipo di conto non corretto',
+                    wrongCardNumber: 'numero carta non valido',
+                    wrongCardType: 'la banca del destinatario non accetta questo tipo di carta',
+                    wrongName: "il nome del titolare dell'account non corrisponde",
+                    wrongPhoneNumber: 'numero di telefono del destinatario non corretto',
+                    wrongIdNumber: 'numero ID destinatario non corretto',
+                    wrongRutNumber: 'codice fiscale destinatario errato',
+                    taxIdNotMatching: 'il codice fiscale non corrisponde al nome del destinatario',
+                    wrongCurrency: 'il conto del destinatario è in una valuta diversa',
+                    accountDoesNotExist: 'il conto non esiste presso la banca del destinatario',
+                    externalIdentifierDetailsHaveChanged: 'i dati bancari del destinatario sono cambiati',
+                    accountClosed: 'il conto del destinatario è chiuso',
+                    accountFrozen: 'il conto del destinatario è bloccato',
+                    accountBlocked: 'il conto del destinatario è bloccato',
+                    accountLimitReached: 'il conto del destinatario ha raggiunto un limite',
+                    taxIdSuspended: 'il codice fiscale del destinatario è sospeso',
+                    cannotAcceptFrom3rdParty: 'la banca del destinatario non accetta pagamenti di terze parti',
+                    creditingAccountForbidden: 'non è possibile accreditare il conto del beneficiario',
+                    businessPaymentsForbidden: 'il conto del destinatario non accetta pagamenti business',
+                    returnRequestedByRecipient: 'il destinatario ha chiesto che fosse restituito',
+                    fundsNotExpectedReturned: 'la banca del destinatario non se lo aspettava e lo ha restituito',
+                    duplicateEntry: "la banca del destinatario l'ha considerato un pagamento duplicato",
+                    mandateNotFilledIn: 'il destinatario non ha compilato in tempo il modulo della sua banca',
+                    requestForInformationExpired: 'una richiesta di ulteriori informazioni è scaduta',
+                    wrongReference: 'il riferimento del pagamento è stato rifiutato',
+                    wrongPaymentPurpose: 'il motivo del pagamento è stato rifiutato',
+                    senderRequestedToCancel: 'il pagamento è stato annullato',
+                    technicalIssue: 'un problema tecnico con il nostro partner di pagamenti',
+                    technicalIssueRetryable: 'un problema tecnico presso il nostro partner di pagamenti, che ritenterà',
+                },
+                reimbursementRefunded: ({bankAccountLastFour}: {bankAccountLastFour: string}) =>
+                    `I fondi sono stati restituiti al conto bancario ${bankAccountLastFour}. Puoi riprovare a effettuare il pagamento.`,
+                reimbursementRefundedWithoutBankAccount: 'I fondi sono stati restituiti. Puoi riprovare a effettuare il pagamento.',
+                reimbursementHeld:
+                    'Pagamento in sospeso mentre il nostro partner completa una revisione. Attendi un nuovo aggiornamento. Chatta con <concierge-link>Concierge</concierge-link>.',
+                reimbursementReleased: "La revisione è completa e il tuo pagamento è in arrivo. Il tasso di cambio finale potrebbe modificare l'importo.",
             },
             error: {
                 invalidCredentials: 'Credenziali non valide, controlla la configurazione della tua connessione.',
