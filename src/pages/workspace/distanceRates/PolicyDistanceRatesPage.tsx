@@ -398,7 +398,7 @@ function PolicyDistanceRatesPage({
                     <ButtonWithDropdownMenu
                         onPress={() => {}}
                         shouldUseOptionIcon
-                        shouldAlwaysShowDropdownMenu
+                        shouldAlwaysShowDropdownMenu={!!taxErrorIndicator}
                         brickRoadIndicator={taxErrorIndicator}
                         customText={translate('common.more')}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.MORE_DROPDOWN}

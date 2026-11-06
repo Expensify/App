@@ -21,18 +21,12 @@ import type {ValueOf} from 'type-fest';
 import {getAccountingConnectionNames, getCurrentConnectionName} from './connections';
 import {getDistanceRateCustomUnit} from './customUnits';
 import {isPolicyAdmin} from './permissions';
-import {isSelectableTaxCode} from './tax';
+import {isPolicyTaxImported, isSelectableTaxCode, isTaxTrackingEnabled} from './tax';
 
 /** Returns enabled UK fuel bands whose VAT mapping needs an admin's attention. */
 function getUKFuelRatesWithInvalidTax(policy: OnyxEntry<Policy>) {
     const customUnit = getDistanceRateCustomUnit(policy);
-    if (
-        !isPolicyAdmin(policy) ||
-        !policy?.areDistanceRatesEnabled ||
-        !policy.tax?.trackingEnabled ||
-        !customUnit?.attributes?.taxEnabled ||
-        customUnit.attributes.isUKFuelRateTaxErrorDismissed
-    ) {
+    if (!isPolicyAdmin(policy) || !policy?.areDistanceRatesEnabled || !isTaxTrackingEnabled(true, policy, true) || !customUnit || customUnit.attributes?.isUKFuelRateTaxErrorDismissed) {
         return [];
     }
     return Object.values(customUnit.rates ?? {}).filter(
@@ -54,7 +48,7 @@ function shouldShowUKFuelRateTaxError(policy: OnyxEntry<Policy>): boolean {
 function getUKFuelRateTaxErrors(policy: OnyxEntry<Policy>, translate: LocaleContextProps['translate'], rateID?: string): Errors {
     const invalidRates = getUKFuelRatesWithInvalidTax(policy);
     const hasFuelRateTaxError = rateID === undefined ? invalidRates.length > 0 : invalidRates.some((rate) => rate.customUnitRateID === rateID);
-    const connectionName = getCurrentConnectionName(policy);
+    const connectionName = isPolicyTaxImported(policy) ? getCurrentConnectionName(policy) : undefined;
     const fuelRateTaxError = hasFuelRateTaxError
         ? {
               ukFuelRateTax: connectionName

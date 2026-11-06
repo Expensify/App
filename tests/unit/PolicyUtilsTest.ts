@@ -379,11 +379,36 @@ const policyTags = {
 
 describe('PolicyUtils', () => {
     describe('UK fuel rate VAT warnings', () => {
+        describe.each(['quickbooksOnline', 'xero', 'netsuite'] as const)('%s tax-import warning copy', (connection) => {
+            it.each([false, true])('uses integration copy only when tax import is enabled: %s', (isImported) => {
+                // Given local tax tracking is on, independently of the integration's tax-import setting
+                const policy = createUKFuelRateTaxPolicy();
+                const connections = createMock<Connections>({
+                    ...(connection === 'quickbooksOnline' ? {quickbooksOnline: createMock<Connections['quickbooksOnline']>({config: {syncTax: isImported}})} : {}),
+                    ...(connection === 'xero' ? {xero: createMock<Connections['xero']>({config: {importTaxRates: isImported}})} : {}),
+                    ...(connection === 'netsuite' ? {netsuite: createMock<Connections['netsuite']>({options: {config: {syncOptions: {syncTax: isImported}}}})} : {}),
+                });
+                policy.connections = connections;
+                const translate = TestHelper.translateLocal;
+                const message = isImported
+                    ? translate('workspace.distanceRates.ukFuelRateTaxErrorWithIntegration', {integrationName: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connection]})
+                    : translate('workspace.distanceRates.ukFuelRateTaxError');
+
+                // When both pages build their fuel warning
+                const settingsErrors = getUKFuelRateTaxErrors(policy, translate);
+                const detailsErrors = getUKFuelRateTaxErrors(policy, translate, 'fuel');
+
+                // Then a connection alone never directs the admin away from workspace-managed taxes
+                expect(settingsErrors).toEqual({ukFuelRateTax: message});
+                expect(detailsErrors).toEqual(settingsErrors);
+            });
+        });
+
         it.each([false, true])('shares the warning copy across settings and rate details with integration=%s', (hasIntegration) => {
             // Given an affected workspace, optionally connected to Xero
             const policy = createUKFuelRateTaxPolicy();
             if (hasIntegration) {
-                policy.connections = createMock<Connections>({xero: {}});
+                policy.connections = createMock<Connections>({xero: {config: {importTaxRates: true}}});
             }
             const translate = TestHelper.translateLocal;
             const message = hasIntegration
@@ -523,9 +548,8 @@ describe('PolicyUtils', () => {
                 }
                 // When the policy is checked
                 const shouldShow = shouldShowUKFuelRateTaxError(policy);
-                // Then it is excluded without hiding another workspace's warning
+                // Then it is excluded from the warning's eligibility rules
                 expect(shouldShow).toBe(false);
-                expect(shouldShowUKFuelRateTaxError(createUKFuelRateTaxPolicy())).toBe(true);
             },
         );
     });

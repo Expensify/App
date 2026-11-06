@@ -6311,6 +6311,48 @@ describe('actions/Policy', () => {
         });
     });
     describe('dismissUKFuelRateTaxError', () => {
+        it.each([false, true])('clears a dismissal failure locally before allowing retry, with warning already dismissed: %s', async (isDismissed) => {
+            // Given a failed dismissal plus unrelated workspace and rate-save errors
+            const policy = createUKFuelRateTaxPolicy();
+            const unit = policy.customUnits?.distance;
+            if (!unit?.attributes) {
+                throw new Error('Expected distance unit attributes');
+            }
+            unit.attributes.isUKFuelRateTaxErrorDismissed = isDismissed;
+            unit.errorFields = {isUKFuelRateTaxErrorDismissed: {dismissalFailure: 'Dismissal failed'}, taxEnabled: {taxSettingFailure: 'Tax setting failed'}};
+            unit.rates.fuel.errorFields = {taxRateExternalID: {rateSaveFailure: 'Rate-save failed'}};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await waitForBatchedUpdates();
+            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+
+            try {
+                // When the admin closes the error row
+                Policy.dismissUKFuelRateTaxError(policy.id, unit);
+                await waitForBatchedUpdates();
+                const updated = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+                const updatedUnit = updated?.customUnits?.distance;
+
+                // Then only the request error clears, without another API call or changes to the warning/save errors
+                expect(apiWriteSpy).not.toHaveBeenCalled();
+                expect(updatedUnit?.errorFields?.isUKFuelRateTaxErrorDismissed).toBeUndefined();
+                expect(updatedUnit?.attributes?.isUKFuelRateTaxErrorDismissed).toBe(isDismissed);
+                expect(shouldShowUKFuelRateTaxError(updated)).toBe(!isDismissed);
+                expect(updatedUnit?.errorFields?.taxEnabled).toEqual({taxSettingFailure: 'Tax setting failed'});
+                expect(updatedUnit?.rates.fuel.errorFields?.taxRateExternalID).toEqual({rateSaveFailure: 'Rate-save failed'});
+
+                // When the warning is closed again after clearing the failure
+                if (!updatedUnit) {
+                    throw new Error('Expected updated distance unit');
+                }
+                Policy.dismissUKFuelRateTaxError(policy.id, updatedUnit);
+
+                // Then a retry can reach the API normally
+                expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.DISMISS_UK_FUEL_RATE_TAX_ERROR, expect.anything(), expect.anything());
+            } finally {
+                apiWriteSpy.mockRestore();
+            }
+        });
+
         it.each([false, true])('hides the warning optimistically and handles failure: %s', async (shouldFail) => {
             // Given a workspace with an invalid UK fuel VAT mapping
             const policy = createUKFuelRateTaxPolicy();

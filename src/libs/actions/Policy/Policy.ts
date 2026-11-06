@@ -5777,10 +5777,17 @@ function enablePolicyRules(policy: OnyxEntry<Policy>, enabled: boolean, isVendor
     }
 }
 
-/** Dismisses the workspace-wide VAT warning without changing any rate's tax mapping. */
+/** Clears a failed dismissal first; otherwise dismisses the warning without changing any rate's tax mapping. */
 function dismissUKFuelRateTaxError(policyID: string, customUnit: CustomUnit) {
     const field = 'isUKFuelRateTaxErrorDismissed';
     const customUnitID = customUnit.customUnitID;
+    // The warning and request failure share an X. Let admins clear the failure without resubmitting it.
+    if (Object.keys(customUnit.errorFields?.[field] ?? {}).length > 0) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            customUnits: {[customUnitID]: {errorFields: {[field]: null}}},
+        });
+        return;
+    }
     const attributes = {...customUnit.attributes, isUKFuelRateTaxErrorDismissed: true};
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
