@@ -8,7 +8,6 @@ import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPop
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setMoneyRequestTaxAmount} from '@libs/actions/IOU/MoneyRequest';
@@ -62,7 +61,6 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {isEditingSplitBill, onTaxAmountEmptyChange} = useConfirmationFields();
-    const {isBetaEnabled} = usePermissions();
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -147,7 +145,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
 
     const canSaveFromThisForm = action !== CONST.IOU.ACTION.EDIT || isEditingSplitBill;
     const hasEnabledTaxRates = getEnabledTaxRateCount(taxRates?.taxes ?? {}) > 0;
-    const shouldOpenInDropdown = isBetaEnabled(CONST.BETAS.ANCHORED_FIELD_DROPDOWNS) && !!transactionID && !!taxRatesPolicy && canSaveFromThisForm && hasEnabledTaxRates;
+    const shouldOpenInDropdown = !!transactionID && !!taxRatesPolicy && canSaveFromThisForm && hasEnabledTaxRates;
 
     const openTaxRatePage = () => {
         if (!transactionID) {
