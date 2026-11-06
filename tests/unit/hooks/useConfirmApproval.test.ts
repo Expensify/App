@@ -24,6 +24,13 @@ jest.mock('@components/DelegateNoAccessModalProvider', () => ({
     useDelegateNoAccessState: () => ({isDelegateAccessRestricted: false}),
     useDelegateNoAccessActions: () => ({showDelegateNoAccessModal: jest.fn()}),
 }));
+let mockIsAccountLocked = false;
+const mockShowLockedAccountModal = jest.fn();
+jest.mock('@components/LockedAccountModalProvider', () => ({
+    __esModule: true,
+    useLockedAccountState: () => ({isAccountLocked: mockIsAccountLocked}),
+    useLockedAccountActions: () => ({showLockedAccountModal: mockShowLockedAccountModal}),
+}));
 jest.mock('@hooks/useCurrencyList', () => ({
     useCurrencyListActions: () => ({getCurrencyDecimals: () => 2}),
 }));
@@ -74,6 +81,7 @@ describe('useConfirmApproval', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockIsAccountLocked = false;
         mockLiveTransactions([]);
         return Onyx.clear().then(waitForBatchedUpdates);
     });
@@ -118,5 +126,23 @@ describe('useConfirmApproval', () => {
         // Then the button and the approval both use the snapshot report, so the shown options match what gets approved
         expect(result.current.moneyRequestReport).toEqual(snapshotReport);
         expect(mockedApproveMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({expenseReport: snapshotReport, full: false}));
+    });
+
+    it('shows the locked account modal and does not approve when the account is locked', async () => {
+        // Given a locked account viewing a report it can approve
+        mockIsAccountLocked = true;
+        const startApprovedAnimation = jest.fn();
+        const {result} = renderHook(() => useConfirmApproval(REPORT_ID, startApprovedAnimation, {fallbackReport: snapshotReport}));
+        await act(waitForBatchedUpdates);
+
+        // When the user approves the report
+        act(() => {
+            result.current.onApprove(true);
+        });
+
+        // Then the locked account modal explains why, instead of the server rejecting the approval with a generic error
+        expect(mockShowLockedAccountModal).toHaveBeenCalledTimes(1);
+        expect(startApprovedAnimation).not.toHaveBeenCalled();
+        expect(mockedApproveMoneyRequest).not.toHaveBeenCalled();
     });
 });
