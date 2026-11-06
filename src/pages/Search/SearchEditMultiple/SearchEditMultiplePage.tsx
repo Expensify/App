@@ -232,7 +232,7 @@ function SearchEditMultiplePage() {
 
     // A P2P expense can't be set to zero, as its own amount page rules.
     const hasP2PTransaction = selectedTransactionContexts.some(({report}) => isIOUReport(report));
-    const allowNegative = isBulkEditNegativeAmountAllowed(selectedTransactionContexts);
+    const allowNegative = isBulkEditNegativeAmountAllowed(selectedTransactionContexts, mergedReports, policies);
     const amountErrorText = hasP2PTransaction && draftAmount === 0 ? translate('common.error.invalidAmount') : '';
 
     const merchantErrorText = (() => {
@@ -344,8 +344,9 @@ function SearchEditMultiplePage() {
         if (draftTransaction.amount !== undefined) {
             changes.amount = draftTransaction.amount;
         }
-        if (draftTransaction.currency) {
-            changes.currency = draftTransaction.currency;
+        // Each expense keeps its own currency unless one is sent, so an amount goes with the currency the row shows.
+        if (draftTransaction.amount !== undefined || draftTransaction.currency) {
+            changes.currency = currency;
         }
         if (trimmedMerchant) {
             changes.merchant = trimmedMerchant;
@@ -551,6 +552,10 @@ function SearchEditMultiplePage() {
                                             {...dropdownProps}
                                             policyID={policyID}
                                             tagListIndex={tagListIndex}
+                                            transactionTag={draftTransaction?.tag ?? ''}
+                                            recordedTagChanges={draftTransaction?.bulkEditTagChanges ?? {}}
+                                            policyTags={policyTags}
+                                            hasMultipleTagLists={policy?.hasMultipleTagLists ?? false}
                                         />
                                     )}
                                     sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.TAG_FIELD}

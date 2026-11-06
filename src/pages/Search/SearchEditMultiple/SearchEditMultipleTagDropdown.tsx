@@ -1,14 +1,10 @@
 import type {ExpenseFieldDropdownRenderProps} from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
 import TagPickerModal from '@components/TagPicker/TagPickerModal';
 
-import useOnyx from '@hooks/useOnyx';
-
 import {updateBulkEditDraftTransaction} from '@libs/actions/IOU/BulkEdit';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {PolicyTagLists} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -16,14 +12,21 @@ import React from 'react';
 
 import {getBulkEditTagChange} from './SearchEditMultipleUtils';
 
-const hasMultipleTagListsSelector = (policy: OnyxEntry<Policy>) => policy?.hasMultipleTagLists ?? false;
-
 type SearchEditMultipleTagDropdownProps = ExpenseFieldDropdownRenderProps & {
     /** Workspace the tags belong to */
     policyID: string | undefined;
 
     /** Index of the tag list this row picks from */
     tagListIndex: number;
+
+    /** The whole multi-level tag the draft shows */
+    transactionTag: string;
+
+    /** The per-level tag changes already recorded on the draft, which drive the save */
+    recordedTagChanges: Record<string, string | null>;
+
+    policyTags: OnyxEntry<PolicyTagLists>;
+    hasMultipleTagLists: boolean;
 };
 
 /**
@@ -31,12 +34,16 @@ type SearchEditMultipleTagDropdownProps = ExpenseFieldDropdownRenderProps & {
  * records the pick on the draft the same way the full-page selector does. Dependent tags keep the full page, so the
  * draft's tag is read as-is here.
  */
-function SearchEditMultipleTagDropdown({policyID, tagListIndex, onClose, ...popoverProps}: SearchEditMultipleTagDropdownProps) {
-    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`);
-    const [hasMultipleTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: hasMultipleTagListsSelector});
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-
-    const transactionTag = draftTransaction?.tag ?? '';
+function SearchEditMultipleTagDropdown({
+    policyID,
+    tagListIndex,
+    transactionTag,
+    recordedTagChanges,
+    policyTags,
+    hasMultipleTagLists,
+    onClose,
+    ...popoverProps
+}: SearchEditMultipleTagDropdownProps) {
     const currentTag = getTagArrayFromName(transactionTag).at(tagListIndex) ?? '';
 
     const saveTag = (selectedTagName: string) => {
@@ -47,10 +54,10 @@ function SearchEditMultipleTagDropdown({policyID, tagListIndex, onClose, ...popo
                 currentTag,
                 tagListIndex,
                 transactionTag,
-                recordedTagChanges: draftTransaction?.bulkEditTagChanges ?? {},
+                recordedTagChanges,
                 policyTags,
                 hasDependentTags: false,
-                hasMultipleTagLists: hasMultipleTagLists ?? false,
+                hasMultipleTagLists,
             }),
         );
     };

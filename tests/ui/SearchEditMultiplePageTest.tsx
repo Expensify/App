@@ -337,6 +337,40 @@ describe('SearchEditMultiplePage', () => {
         expect(updateMultipleMoneyRequests).toHaveBeenCalledWith(expect.objectContaining({changes: {currency: CONST.CURRENCY.EUR}}));
     });
 
+    it('saves a typed amount in the currency the amount input shows', async () => {
+        // Given a selection on a workspace whose currency the amount input shows, and no currency picked
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {outputCurrency: CONST.CURRENCY.EUR});
+        await selectTransactions([OPEN_TRANSACTION_ID], {amount: 5000});
+
+        // When the Edit multiple page is opened and the changes are saved
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByText(CONST.CURRENCY.EUR)).toBeOnTheScreen();
+        fireEvent.press(screen.getByText('Save'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the amount goes with that currency, as each expense would otherwise keep its own and read as a different amount
+        expect(updateMultipleMoneyRequests).toHaveBeenCalledWith(expect.objectContaining({changes: {amount: 5000, currency: CONST.CURRENCY.EUR}}));
+    });
+
+    it('accepts a negative amount when every selected expense allows one', async () => {
+        // Given an expense on a workspace expense report, which can hold a negative amount
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When a minus sign and then an amount are typed, and the changes are saved
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.changeText(screen.getByLabelText('Amount'), '-');
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.changeText(screen.getByLabelText('Amount'), '-5');
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('Save'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the lone minus sign is kept while typing and the negative amount is what gets applied
+        expect(updateMultipleMoneyRequests).toHaveBeenCalledWith(expect.objectContaining({changes: expect.objectContaining({amount: -500})}));
+    });
+
     it('locks Merchant when a selected expense is a distance expense', async () => {
         // Given a selection with a distance expense, whose merchant is computed from the route
         const distanceTransactionID = 'distanceTransaction';

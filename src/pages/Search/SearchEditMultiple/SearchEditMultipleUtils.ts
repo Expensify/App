@@ -185,19 +185,25 @@ function withSnapshotReports(onyxReports: OnyxCollection<Report> | undefined, sn
  * Whether the amount typed on the bulk edit form may be negative: only when every selected expense allows it.
  * An unreported expense always does; a reported one follows its report and workspace.
  */
-function isBulkEditNegativeAmountAllowed(selectedTransactionContexts: Array<{transaction: Transaction; report: OnyxEntry<Report>; transactionPolicy: OnyxEntry<Policy>}>): boolean {
+function isBulkEditNegativeAmountAllowed(
+    selectedTransactionContexts: Array<{transaction: Transaction; report: OnyxEntry<Report>}>,
+    reports: OnyxCollection<Report>,
+    policies: OnyxCollection<Policy>,
+): boolean {
     if (selectedTransactionContexts.length === 0) {
         return false;
     }
-    return selectedTransactionContexts.every(({transaction, report, transactionPolicy}) => {
+    return selectedTransactionContexts.every(({transaction, report}) => {
         if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
             return true;
         }
-        if (!report) {
+        // A chat report stands in for the money request report it belongs to.
+        const iouReport = report?.type === CONST.REPORT.TYPE.CHAT && report.parentReportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] : report;
+        if (!iouReport) {
             return false;
         }
-        const iouType = isInvoiceReport(report) ? CONST.IOU.TYPE.INVOICE : CONST.IOU.TYPE.SUBMIT;
-        return shouldEnableNegative(report, transactionPolicy, iouType);
+        const iouType = isInvoiceReport(iouReport) ? CONST.IOU.TYPE.INVOICE : CONST.IOU.TYPE.SUBMIT;
+        return shouldEnableNegative(iouReport, policies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport.policyID}`], iouType);
     });
 }
 

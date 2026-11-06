@@ -343,31 +343,45 @@ describe('SearchEditMultipleUtils', () => {
     });
 
     describe('isBulkEditNegativeAmountAllowed', () => {
+        const THREAD_REPORT_ID = 'thread1';
         const unreportedTransaction = makeTransaction(TRANSACTION_ID_1, CONST.REPORT.UNREPORTED_REPORT_ID);
         const reportedTransaction = makeTransaction(TRANSACTION_ID_2, REPORT_ID);
         const expenseReport = makeReport(REPORT_ID, POLICY_A);
         const policy = createMock<Policy>({id: POLICY_A, type: CONST.POLICY.TYPE.TEAM});
+        const reports = {[`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`]: expenseReport};
+        const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${POLICY_A}`]: policy};
 
         it('allows a negative amount for unreported expenses', () => {
             // Given only unreported expenses, which can always go negative
             // When the selection is checked
             // Then the amount field may flip negative
-            expect(isBulkEditNegativeAmountAllowed([{transaction: unreportedTransaction, report: undefined, transactionPolicy: undefined}])).toBe(true);
+            expect(isBulkEditNegativeAmountAllowed([{transaction: unreportedTransaction, report: undefined}], reports, policies)).toBe(true);
         });
 
         it('follows the report and workspace of a reported expense', () => {
             // Given a reported expense on a workspace that allows negative expense amounts
             // When the selection is checked
             // Then the amount field follows that workspace, and a missing report rules it out
-            expect(isBulkEditNegativeAmountAllowed([{transaction: reportedTransaction, report: expenseReport, transactionPolicy: policy}])).toBe(true);
-            expect(isBulkEditNegativeAmountAllowed([{transaction: reportedTransaction, report: undefined, transactionPolicy: policy}])).toBe(false);
+            expect(isBulkEditNegativeAmountAllowed([{transaction: reportedTransaction, report: expenseReport}], reports, policies)).toBe(true);
+            expect(isBulkEditNegativeAmountAllowed([{transaction: reportedTransaction, report: undefined}], reports, policies)).toBe(false);
+        });
+
+        it('follows the money request report a chat report belongs to', () => {
+            // Given an expense whose report is a chat that hangs off an expense report
+            const threadReport = createMock<Report>({reportID: THREAD_REPORT_ID, type: CONST.REPORT.TYPE.CHAT, parentReportID: REPORT_ID});
+            const threadTransaction = makeTransaction(TRANSACTION_ID_3, THREAD_REPORT_ID);
+
+            // When the selection is checked
+            // Then the expense report decides, as a chat on its own never allows a negative amount
+            expect(isBulkEditNegativeAmountAllowed([{transaction: threadTransaction, report: threadReport}], reports, policies)).toBe(true);
+            expect(isBulkEditNegativeAmountAllowed([{transaction: threadTransaction, report: threadReport}], {}, policies)).toBe(false);
         });
 
         it('rules out a negative amount for an empty selection', () => {
             // Given nothing selected
             // When the selection is checked
             // Then there is nothing to flip
-            expect(isBulkEditNegativeAmountAllowed([])).toBe(false);
+            expect(isBulkEditNegativeAmountAllowed([], reports, policies)).toBe(false);
         });
     });
 });
