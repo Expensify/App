@@ -34,7 +34,7 @@ const CONTINUE_BUTTON_TEST_ID = 'confirmation-primary-button';
 const KYC_REVIEW_URL = 'https://sandbox.transferwise.tech/embedded-flows/kyc-review?token=abc';
 const WALLET_INTRO_PATH = createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(BANK_ACCOUNT_ID), ROUTES.SETTINGS_WALLET);
 
-jest.mock('@libs/openWiseKYCReview', () => jest.fn());
+jest.mock('@libs/openWiseKYCReview', () => ({...jest.requireActual<Record<string, unknown>>('@libs/openWiseKYCReview'), __esModule: true, default: jest.fn()}));
 jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => 'settings/wallet/global-reimbursements/9053192'));
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
 
