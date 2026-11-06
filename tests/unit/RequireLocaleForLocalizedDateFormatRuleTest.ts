@@ -45,6 +45,8 @@ describe('require-locale-for-localized-date-format', () => {
             `${IMPORT_FORMAT} format(date, \`\${CONST.DATE.FNS_FORMAT_STRING} \${CONST.DATE.SHORT_DATE_FORMAT}\`, {locale: dateFnsLocale});`,
             `${IMPORT_FORMAT} format(date, \`\${CONST.DATE.FNS_FORMAT_STRING}'T'\${CONST.DATE.FNS_TIMEZONE_FORMAT_STRING}\`);`,
             `${IMPORT_FORMAT} format(date, \`yyyy-MM-dd \${timePattern}\`);`,
+            // An unresolved separator must not join `M` and `MM` into the short month token `MMM`
+            `${IMPORT_FORMAT} format(date, \`M\${separator}MM\`);`,
         ],
         invalid: [
             {
@@ -58,6 +60,17 @@ describe('require-locale-for-localized-date-format', () => {
             {
                 code: `${IMPORT_FORMAT} format(date, \`\${CONST.DATE.FNS_FORMAT_STRING} MMM\`);`,
                 errors: [{messageId: 'missingLocale'}],
+            },
+            {
+                // A ternary inside the template carries the unknown-format marker, which is reported as such rather than
+                // scanned as date-fns text, where the `a` in its name would be reported as an AM/PM token
+                code: `${IMPORT_FORMAT} format(date, \`\${isShort ? CONST.DATE.SHORT_DATE_FORMAT : CONST.DATE.LOCAL_TIME_FORMAT} HH\`);`,
+                errors: [{messageId: 'missingLocale', data: {tokens: 'a format from CONST.DATE that may be localized'}}],
+            },
+            {
+                // A known token next to an unknown format reports both
+                code: `${IMPORT_FORMAT} format(date, \`\${CONST.DATE.SHORT_DATE_FORMAT} MMM\`);`,
+                errors: [{messageId: 'missingLocale', data: {tokens: 'MMM (short month), a format from CONST.DATE that may be localized'}}],
             },
         ],
     });

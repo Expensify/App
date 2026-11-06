@@ -143,13 +143,11 @@ function resolvePattern(node) {
         return `${consequent ?? ''} ${alternate ?? ''}`;
     }
     // `${CONST.DATE.SHORT_DATE_FORMAT} ${CONST.DATE.LOCAL_TIME_FORMAT}` — check the literal text and every interpolated
-    // format. An interpolated value that cannot be resolved adds nothing, so only what is known is checked.
+    // format. An interpolated value that cannot be resolved becomes a space, like a missing ternary branch above, so the
+    // text on either side of it is not joined into a token it never forms, such as `M${separator}MM` into `MMM`.
     if (node.type === 'TemplateLiteral') {
         const expressions = node.expressions.map(resolvePattern);
-        if (expressions.includes(UNKNOWN_LOCALIZED)) {
-            return UNKNOWN_LOCALIZED;
-        }
-        return node.quasis.map((quasi, index) => `${quasi.value.cooked ?? ''}${expressions.at(index) ?? ''}`).join('');
+        return node.quasis.map((quasi, index) => `${quasi.value.cooked ?? ''}${index < expressions.length ? (expressions.at(index) ?? ' ') : ''}`).join('');
     }
     return null;
 }
@@ -226,7 +224,12 @@ function create(context) {
                 return;
             }
 
-            const tokens = pattern === UNKNOWN_LOCALIZED ? ['a format from CONST.DATE that may be localized'] : findLocalizedTokens(pattern);
+            // A ternary or template literal can carry the unknown-format marker inside a longer pattern. The marker is not
+            // date-fns text, so it is reported on its own and replaced with a space before the rest is scanned for tokens.
+            const tokens = findLocalizedTokens(pattern.replaceAll(UNKNOWN_LOCALIZED, ' '));
+            if (pattern.includes(UNKNOWN_LOCALIZED)) {
+                tokens.push('a format from CONST.DATE that may be localized');
+            }
             if (tokens.length === 0) {
                 return;
             }
