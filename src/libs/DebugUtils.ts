@@ -495,7 +495,6 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'hasParentAccess':
         case 'isDeletedParentAction':
         case 'isWaitingOnBankAccount':
-        case 'requiresGlobalReimbursement':
         case 'canCancelReimbursement':
         case 'isWaitingForCancelledReimbursement':
         case 'hasReportBeenRetracted':
@@ -603,6 +602,11 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 expiresAt: 'string',
                 tax: 'number',
             });
+        case 'wiseQuoteRequest':
+            return validateObject<ObjectElement<Report, 'wiseQuoteRequest'>>(value, {
+                full: 'boolean',
+                amount: 'number',
+            });
         case 'nextStep':
             return validateObject<ObjectElement<Report, 'nextStep'>>(value, {
                 messageKey: 'string',
@@ -611,6 +615,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 eta: 'object',
                 iconFill: 'string',
                 requiredDepositCurrency: 'string',
+                requiresGlobalReimbursement: 'boolean',
+                depositCurrency: 'string',
             });
         case 'tripData':
             return validateObject<ObjectElement<ReportNameValuePairs, 'tripData'>>(value, {
@@ -618,6 +624,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 endDate: 'string',
                 tripID: 'string',
                 payload: 'object',
+                bookingApprovalState: 'object',
             });
         case 'calendlySchedule':
             return validateObject<ObjectElement<ReportNameValuePairs, 'calendlySchedule'>>(value, {
@@ -658,6 +665,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 creditedCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 withdrawalIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 wiseQuote: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                wiseQuoteRequest: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 avatarUrl: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 chatType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasOutstandingChildRequest: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -699,7 +707,6 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 reimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 unheldReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isWaitingOnBankAccount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                requiresGlobalReimbursement: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 canCancelReimbursement: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isWaitingForCancelledReimbursement: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isCancelledIOU: CONST.RED_BRICK_ROAD_PENDING_ACTION,

@@ -5,22 +5,33 @@ import {shouldConfirmWiseQuoteBeforePaying} from '@libs/BankAccountUtils';
 
 import useWiseQuoteConfirmModal from './useWiseQuoteConfirmModal';
 
+type PayWithWiseQuoteParams = PayMoneyRequestFunctionParams & {
+    /** Runs after the payment request is queued, so it is skipped when the admin cancels the quote */
+    onPaymentSent?: () => void;
+};
+
 /** Pays a report, first showing the Wise quote for the admin to confirm when an expense is in another currency than the bank account */
 function usePayWithWiseQuote() {
     const {showWiseQuoteConfirmModal} = useWiseQuoteConfirmModal();
 
-    const payWithWiseQuote = (params: PayMoneyRequestFunctionParams) => {
-        const reportID = params.iouReport?.reportID;
-        if (!reportID || !shouldConfirmWiseQuoteBeforePaying(params)) {
+    const payWithWiseQuote = ({onPaymentSent, ...params}: PayWithWiseQuoteParams) => {
+        const iouReport = params.iouReport;
+        const reportID = iouReport?.reportID;
+        if (!iouReport || !reportID || !shouldConfirmWiseQuoteBeforePaying(params)) {
             payMoneyRequest(params);
+            onPaymentSent?.();
             return;
         }
 
-        getWiseQuote(reportID);
+        const isPayingUnheldOnly = params.full === false;
+        getWiseQuote(iouReport, !isPayingUnheldOnly);
         showWiseQuoteConfirmModal({
             reportID,
-            isPayingUnheldOnly: params.full === false,
-            onConfirm: (wiseQuoteID) => payMoneyRequest({...params, wiseQuoteID}),
+            isPayingUnheldOnly,
+            onConfirm: (wiseQuoteID) => {
+                payMoneyRequest({...params, wiseQuoteID});
+                onPaymentSent?.();
+            },
         });
     };
 

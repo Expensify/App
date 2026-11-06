@@ -24,6 +24,7 @@ import {
     isUserDOBVerificationRequired,
     isWiseOnboardingAwaitingDecision,
     isWiseOnboardingMoreInfoNeeded,
+    isWiseEnabledOrOnboarding,
     PERSONAL_INFO_STEP,
     shouldSetUpGlobalReimbursementsBeforePaying,
 } from '@libs/BankAccountUtils';
@@ -421,6 +422,31 @@ describe('BankAccountUtils', () => {
             expect(isWiseOnboardingAwaitingDecision(bankAccount)).toBe(false);
             expect(isWiseOnboardingMoreInfoNeeded(bankAccount)).toBe(false);
         });
+
+        it.each([
+            ['the admin left the onboarding before Submit', buildBankAccount(undefined)],
+            ['Wise reviews the account', buildBankAccount({status: CONST.WISE.ONBOARDING_STATUS.IN_REVIEW})],
+            ['Wise needs more info', buildBankAccount({status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED})],
+            ['Wise approved the account', buildBankAccount({status: CONST.WISE.ONBOARDING_STATUS.APPROVED})],
+        ])('counts the account as Wise enabled or onboarding when %s', (_label, bankAccount) => {
+            // Given an account that pays through Wise, or will once its onboarding finishes
+            // When checking whether Wise's fees apply to its payments
+            // Then they do, so the auto-pay page discloses them
+            expect(isWiseEnabledOrOnboarding(bankAccount)).toBe(true);
+        });
+
+        it.each([
+            ['the onboarding has not started', buildBankAccount(undefined, {provider: undefined})],
+            ['the account goes through Corpay', buildBankAccount(undefined, {provider: CONST.GLOBAL_REIMBURSEMENT_PROVIDER.CORPAY})],
+            ['Wise rejected the account', buildBankAccount({status: CONST.WISE.ONBOARDING_STATUS.NOT_APPROVED})],
+            ['the account was deleted offline', buildBankAccount({status: CONST.WISE.ONBOARDING_STATUS.APPROVED}, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})],
+            ['the account is unknown', undefined],
+        ])('does not count the account as Wise enabled or onboarding when %s', (_label, bankAccount) => {
+            // Given an account that will not pay through Wise
+            // When checking whether Wise's fees apply to its payments
+            // Then they don't, so the auto-pay page shows no Wise disclosure
+            expect(isWiseEnabledOrOnboarding(bankAccount)).toBe(false);
+        });
     });
 
     describe('Wise quotes', () => {
@@ -435,17 +461,26 @@ describe('BankAccountUtils', () => {
             [wiseBankAccountID]: buildBankAccount(CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE),
             [corpayBankAccountID]: buildBankAccount(CONST.GLOBAL_REIMBURSEMENT_PROVIDER.CORPAY),
         };
+        const buildNextStep = (requiresGlobalReimbursement: boolean, depositCurrency?: string) => ({
+            messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
+            icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+            requiresGlobalReimbursement,
+            depositCurrency,
+        });
         const crossCurrencyPayment = {
             paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
             methodID: wiseBankAccountID,
             bankAccountList,
             isWiseReimbursementsBetaEnabled: true,
-            iouReport: {currency: CONST.CURRENCY.EUR, requiresGlobalReimbursement: true},
+            iouReport: {currency: CONST.CURRENCY.USD, nextStep: buildNextStep(true, CONST.CURRENCY.EUR)},
         };
-        const sameCurrencyPayment = {...crossCurrencyPayment, iouReport: {currency: CONST.CURRENCY.USD, requiresGlobalReimbursement: true}};
+        const sameCurrencyPayment = {
+            ...crossCurrencyPayment,
+            iouReport: {currency: CONST.CURRENCY.USD, nextStep: buildNextStep(true, CONST.CURRENCY.USD)},
+        };
 
         it('asks for a quote when Wise converts the report into another currency', () => {
-            // Given a EUR report paid through a global provider from a USD Wise account
+            // Given a report whose submitter is paid in EUR through a global provider, from a USD Wise account
             // When deciding whether to get and show the quote first
             // Then both hold, because Wise requires the admin to see its fees and rate before paying
             expect(shouldGetWiseQuote(crossCurrencyPayment)).toBe(true);
@@ -453,7 +488,7 @@ describe('BankAccountUtils', () => {
         });
 
         it('gets a quote without asking when the report is in the bank account currency', () => {
-            // Given a USD report paid through a global provider from a USD Wise account
+            // Given a report whose submitter is paid in USD through a global provider, from a USD Wise account
             // When deciding whether to get and show the quote first
             // Then it gets the quote for the fees, but pays without asking since nothing is converted
             expect(shouldGetWiseQuote(sameCurrencyPayment)).toBe(true);
@@ -465,7 +500,7 @@ describe('BankAccountUtils', () => {
             ['the payment is made elsewhere', {paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}],
             ['the account is set up through Corpay', {methodID: corpayBankAccountID}],
             ['the account is unknown', {methodID: 3}],
-            ['the report does not go through a global provider', {iouReport: {currency: CONST.CURRENCY.EUR, requiresGlobalReimbursement: false}}],
+            ['the report does not go through a global provider', {iouReport: {currency: CONST.CURRENCY.USD, nextStep: buildNextStep(false, CONST.CURRENCY.EUR)}}],
         ])('pays without a quote when %s', (_label, overrides) => {
             // Given a payment that Wise does not price
             // When deciding whether to get and show the quote first
@@ -488,22 +523,13 @@ describe('BankAccountUtils', () => {
             expect(shouldConfirmWiseQuoteBeforePaying(payment)).toBe(true);
         });
 
-        it('asks for a quote when an expense is in another currency than the bank account', () => {
-            // Given a USD report with a EUR expense, paid through a global provider from a USD Wise account
-            const payment = {...sameCurrencyPayment, iouReportTransactions: [{currency: CONST.CURRENCY.USD}, {currency: CONST.CURRENCY.EUR}]};
+        it('asks for a quote when the deposit currency is unknown', () => {
+            // Given a payment through a global provider whose next step does not name the deposit currency
+            const payment = {...sameCurrencyPayment, iouReport: {currency: CONST.CURRENCY.USD, nextStep: buildNextStep(true)}};
 
             // When deciding whether to show the quote first
-            // Then it does, because the report total in USD comes from converting that expense
+            // Then it asks, because the report currency is the workspace currency and can't tell whether Wise converts anything
             expect(shouldConfirmWiseQuoteBeforePaying(payment)).toBe(true);
-        });
-
-        it('pays without asking when every expense is in the bank account currency', () => {
-            // Given a USD report whose expenses are all in USD, paid from a USD Wise account
-            const payment = {...sameCurrencyPayment, iouReportTransactions: [{currency: CONST.CURRENCY.USD}, {currency: CONST.CURRENCY.EUR, modifiedCurrency: CONST.CURRENCY.USD}]};
-
-            // When deciding whether to show the quote first
-            // Then it pays without asking, counting the edited currency of an expense
-            expect(shouldConfirmWiseQuoteBeforePaying(payment)).toBe(false);
         });
 
         it('does not ask again once the admin confirmed a quote', () => {

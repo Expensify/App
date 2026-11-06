@@ -50,6 +50,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import {getIsOffline} from '@libs/NetworkState';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import type {KYCFlowEvent, TriggerKYCFlow, WorkspacePolicyPaymentOption} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
@@ -185,6 +186,21 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const getChatReportActions = usePayChatReportActions(chatReport, existingB2BInvoiceReport);
 
+    const refreshSearch = () => {
+        // Read at payment time, since the Wise quote can be confirmed after the network state changes
+        if (!currentSearchQueryJSON || getIsOffline()) {
+            return;
+        }
+        search({
+            searchKey: currentSearchKey,
+            shouldCalculateTotals,
+            offset: 0,
+            queryJSON: currentSearchQueryJSON,
+            isLoading: !!currentSearchResults?.search?.isLoading,
+            shouldReturnTripRooms,
+        });
+    };
+
     const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
         if (!type || !chatReport) {
             return;
@@ -260,22 +276,13 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 onPaid: () => {
                     startAnimation();
                 },
+                onPaymentSent: refreshSearch,
                 chatReportActions: getChatReportActions(false),
                 delegateAccountID,
                 isTrackIntentUser,
                 conciergeChat,
                 rules,
             });
-            if (currentSearchQueryJSON && !isOffline) {
-                search({
-                    searchKey: currentSearchKey,
-                    shouldCalculateTotals,
-                    offset: 0,
-                    queryJSON: currentSearchQueryJSON,
-                    isLoading: !!currentSearchResults?.search?.isLoading,
-                    shouldReturnTripRooms,
-                });
-            }
         }
     };
 

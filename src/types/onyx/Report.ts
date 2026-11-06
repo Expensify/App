@@ -7,6 +7,7 @@ import type {ValueOf} from 'type-fest';
 import type * as OnyxCommon from './OnyxCommon';
 import type {AutoReportingOffset, PolicyReportField} from './Policy';
 import type WiseQuote from './WiseQuote';
+import type {WiseQuoteRequest} from './WiseQuote';
 
 /** Preference that defines how regular the chat notifications are sent to the user */
 type NotificationPreference = ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>;
@@ -85,6 +86,12 @@ type ReportNextStep = {
 
     /** Currency the submitter's deposit account must use for direct reimbursement, named in the waitingForSubmitterAccount copy */
     requiredDepositCurrency?: string;
+
+    /** Whether paying from the workspace reimbursement account sends this report through a global provider */
+    requiresGlobalReimbursement?: boolean;
+
+    /** Currency the submitter receives the reimbursement in */
+    depositCurrency?: string;
 };
 
 /** Model of report data */
@@ -131,6 +138,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Wise's latest price for paying this cross-currency report, shown for the admin to confirm before Pay */
         wiseQuote?: WiseQuote;
+
+        /** The payment `wiseQuote` was asked for */
+        wiseQuoteRequest?: WiseQuoteRequest;
 
         chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 
@@ -246,9 +256,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         errors?: OnyxCommon.Errors;
 
         isWaitingOnBankAccount?: boolean;
-
-        /** Whether paying from the workspace reimbursement account sends this report through a global provider */
-        requiresGlobalReimbursement?: boolean;
 
         /** Whether Auth still allows the bank reimbursement to be cancelled, returned by OpenReport */
         canCancelReimbursement?: boolean;

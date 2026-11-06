@@ -13,10 +13,6 @@ import React, {useState} from 'react';
 
 import type {ModalProps} from './ModalContext';
 
-import {useModal} from './ModalContext';
-
-const HOLD_MENU_MODAL_ID = 'holdMenu';
-
 type HoldMenuModalWrapperProps = ModalProps & {
     reportID: string | undefined;
     chatReportID: string | undefined;
@@ -33,6 +29,7 @@ type HoldMenuModalWrapperProps = ModalProps & {
 };
 
 function HoldMenuModalWrapper({
+    closeModal,
     reportID,
     chatReportID,
     requestType,
@@ -45,7 +42,8 @@ function HoldMenuModalWrapper({
     onConfirm,
 }: HoldMenuModalWrapperProps) {
     const [isVisible, setIsVisible] = useState(true);
-    const modalContext = useModal();
+    // The choice runs once this modal has hidden, so a modal it opens, like the Wise quote, doesn't stack on top of it
+    const [chosenFull, setChosenFull] = useState<boolean | undefined>(undefined);
     const {translate} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -64,6 +62,11 @@ function HoldMenuModalWrapper({
         onConfirm,
     });
 
+    const choose = (full: boolean) => {
+        setChosenFull(full);
+        setIsVisible(false);
+    };
+
     let approvalPrompt: string;
     if (isApprove) {
         // Reuse the copy the approve dropdown shows, so both surfaces phrase the same choice identically.
@@ -81,20 +84,21 @@ function HoldMenuModalWrapper({
             // Callers pass undefined when there is no meaningful partial amount to offer.
             firstOptionText={nonHeldAmount !== undefined ? `${translate(isApprove ? 'iou.approveOnly' : 'iou.payOnly')} ${nonHeldAmount}` : undefined}
             secondOptionText={`${translate(isApprove ? 'iou.approve' : 'iou.pay')} ${fullAmount}`}
-            onFirstOptionSubmit={() => onSubmit(false)}
-            onSecondOptionSubmit={() => onSubmit(true)}
+            onFirstOptionSubmit={() => choose(false)}
+            onSecondOptionSubmit={() => choose(true)}
             isSmallScreenWidth={isSmallScreenWidth}
             onModalHide={() => {
                 if (isVisible) {
                     return;
                 }
-                // Paying can open the Wise quote modal on top of this one, so this closes itself rather than the top modal
-                modalContext.closeModalByID(HOLD_MENU_MODAL_ID);
+                closeModal({action: 'CLOSE'});
+                if (chosenFull !== undefined) {
+                    onSubmit(chosenFull);
+                }
             }}
         />
     );
 }
 
 export default HoldMenuModalWrapper;
-export {HOLD_MENU_MODAL_ID};
 export type {HoldMenuModalWrapperProps};

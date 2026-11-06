@@ -13,7 +13,7 @@ import {getReportStatusColorStyle, getReportStatusTooltipTranslation, getReportS
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {Report, ReportAttributesDerivedValue} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -23,13 +23,17 @@ import {View} from 'react-native';
 
 type WisePaymentSummaryHeaderProps = {
     reportID: string | undefined;
+
+    /** Used instead of the report in Onyx when the caller already has it */
+    report?: Report;
 };
 
-function WisePaymentSummaryHeader({reportID}: WisePaymentSummaryHeaderProps) {
+function WisePaymentSummaryHeader({reportID, report: reportFromProps}: WisePaymentSummaryHeaderProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
+    const [onyxReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
+    const report = reportFromProps ?? onyxReport;
     const selectReportName = (attributes: OnyxEntry<ReportAttributesDerivedValue>) => reportNameSelector(attributes, reportID);
     const [derivedReportName] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: selectReportName});
 
