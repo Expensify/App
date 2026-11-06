@@ -96,10 +96,10 @@ Once the shared bank account is verified by the new Workspace Admin, they can [r
 
 As the new Workspace Admin, check that all integrations are reconnected under your integration system login.
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting**.
-2. Select the three dots **(⋮)** next to the integration name.
-3. Choose **Disconnect**
-4. Choose **Connect** to reconnect the integration under your own login credentials.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**.
+2. Select **Configure** next to the integration name.
+3. Select **More (⋮)**, then select **Disconnect**.
+4. Select the integration again to reconnect it under your own login credentials.
 
 ---
 

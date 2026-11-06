@@ -23,11 +23,12 @@ function withAgentAccessDenied(getComponent: () => React.ComponentType): () => R
                 const isFocused = useIsFocused();
                 const [isSwitchingToDelegator] = useOnyx(ONYXKEYS.IS_SWITCHING_TO_DELEGATOR);
                 const isAlreadyOnRedirectTarget = Navigation.isActiveRoute(ROUTES.SETTINGS_PROFILE.route);
-                const shouldRedirect = isAgent === true && !isAlreadyOnRedirectTarget;
+                // While a copilot switch is in progress, the switch resets navigation itself, so redirecting here would race that reset
+                const shouldRedirect = isAgent === true && !isSwitchingToDelegator && !isAlreadyOnRedirectTarget;
                 const shouldShowNotFoundPage = !isSwitchingToDelegator && isAgent === true;
 
                 const redirectAgentAway = useCallback(() => {
-                    if (isAgent !== true) {
+                    if (isAgent !== true || isSwitchingToDelegator) {
                         return;
                     }
 
@@ -76,7 +77,7 @@ function withAgentAccessDenied(getComponent: () => React.ComponentType): () => R
 
                         redirectToProfile();
                     });
-                }, [isAgent]);
+                }, [isAgent, isSwitchingToDelegator]);
 
                 // Redirect on every focus (not just the initial transition from false to true) so navigating back
                 // onto a guarded screen that the split navigator keeps mounted (e.g. a stale agents route

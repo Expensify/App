@@ -52,8 +52,8 @@ If the web services user was deleted or can't be reactivated, create a new web s
 
 After reactivating the web services user:
 
-1. Go to **Workspaces > [Workspace Name] > Accounting**.
-2. Select **Sync Now**.
+1. Select **Workspaces > [workspace name] > Connections**, then select **Configure** next to Sage Intacct.
+2. Select **More (⋮)**, then select **Sync now**.
 3. Confirm the sync completes successfully.
 
 If the web services user is active, the sync should complete without errors.

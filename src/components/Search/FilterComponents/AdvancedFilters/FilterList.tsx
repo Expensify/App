@@ -99,7 +99,7 @@ function FilterItem({filterKey, isSelected, type, onPress, onHoverIn, onFocus}: 
             onHoverIn={() => onHoverIn?.(filterKey)}
             onFocus={() => onFocus?.(filterKey)}
             onPress={() => onPress?.(filterKey)}
-            sentryLabel={`Search-Advanced-Filter-${filterKey}`}
+            sentryLabel={FILTER_VIEW_MAP[filterKey].advancedFilterSentryLabel}
         >
             {({pressed}) => (
                 <>
