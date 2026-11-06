@@ -178,6 +178,7 @@ describe('travel benefit composition', () => {
 
     it('keeps the writable GetStartedTravel footer without creating benefit rows or an extra CTA', async () => {
         // Given a workspace that still needs travel access, whose footer intentionally skips the verification modal
+        jest.mocked(requestTravelAccess).mockResolvedValueOnce(false);
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {isTravelEnabled: false, travelSettings: null});
         });
@@ -192,6 +193,7 @@ describe('travel benefit composition', () => {
         );
         const footer = await screen.findByRole(CONST.ROLE.BUTTON, {name: translateLocal('travel.bookTravel')});
         fireEvent.press(footer, PRESS_EVENT);
+        await waitForBatchedUpdatesWithAct();
 
         // Then the introductory section and empty benefit spacing remain, with only the working footer action
         expectEmptyBenefits();
