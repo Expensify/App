@@ -10,6 +10,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import {isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
 import {getActionableMentionWhisperMessage, getOriginalMessage, isSystemUserMentioned} from '@libs/ReportActionsUtils';
+import {isSupportTicket} from '@libs/ReportUtils';
 
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 
@@ -54,7 +55,11 @@ function MentionWhisperContent({action, actionOwnerReportStable, parentReport, o
     const hasMentionedPolicyMembers = getOriginalMessage(action)?.inviteeEmails?.every((login) => isPolicyMember(policy, login));
 
     const canInviteToSubmitExpense =
-        (isPolicyAdmin(policy) || isPolicyOwner(policy, currentUserAccountID)) && isReportInPolicy && !isSystemUserMentioned(action) && !hasMentionedPolicyMembers;
+        !isSupportTicket(actionOwnerReportStable) &&
+        (isPolicyAdmin(policy) || isPolicyOwner(policy, currentUserAccountID)) &&
+        isReportInPolicy &&
+        !isSystemUserMentioned(action) &&
+        !hasMentionedPolicyMembers;
 
     return (
         <ReportActionItemBasicMessage>

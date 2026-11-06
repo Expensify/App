@@ -147,7 +147,7 @@ describe('ReportActionItem', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    function renderItemWithAction(action: ReportAction, isLatestConciergeFeedbackAction = false) {
+    function renderItemWithAction(action: ReportAction, isLatestConciergeFeedbackAction = false, report?: Report) {
         return render(
             <ComposeProviders
                 components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider, PlaybackContextProvider]}
@@ -157,7 +157,7 @@ describe('ReportActionItem', () => {
                         <ReportActionItem
                             reportsParentHierarchy={undefined}
                             chatReport={undefined}
-                            report={undefined}
+                            report={report}
                             transactionThreadReport={undefined}
                             parentReportAction={undefined}
                             action={action}
@@ -3116,6 +3116,26 @@ describe('ReportActionItem', () => {
     });
 
     describe('Actionable alerts, previews, and remaining action types', () => {
+        it.each([CONST.REPORT.TYPE.CHAT, CONST.REPORT.TYPE.SUPPORT_TICKET])('shows the appropriate mention invite options for %s', async (type) => {
+            // Given a workspace admin mentioning someone outside their workspace
+            const policyID = 'mention-invite-policy';
+            const report = createMock<Report>({reportID: '123', policyID, type});
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {id: policyID, role: CONST.POLICY.ROLE.ADMIN});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            });
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER, {inviteeAccountIDs: [999], inviteeEmails: ['stranger@test.com']});
+
+            // When the mention invite prompt appears
+            renderItemWithAction(action, false, report);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then tickets offer only chat invitations and dismissal
+            expect(screen.getByText(translateLocal('actionableMentionWhisperOptions.inviteToChat'))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('actionableMentionWhisperOptions.nothing'))).toBeOnTheScreen();
+            expect(!!screen.queryByText(translateLocal('actionableMentionWhisperOptions.inviteToSubmitExpense'))).toBe(type !== CONST.REPORT.TYPE.SUPPORT_TICKET);
+        });
+
         it('CHANGE_POLICY renders changed workspace message', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY, {fromPolicy: 'pA', toPolicy: 'pB'});
             renderItemWithAction(action);
