@@ -5,7 +5,7 @@ import {getPages} from '@components/DynamicForm/utils/paginate';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import * as API from '@libs/API';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
@@ -232,9 +232,6 @@ describe('WiseDepositAccountContent', () => {
             expect(await getOnyxValue(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT)).toBeUndefined();
             expect((await getOnyxValue(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM))?.isSuccess).toBeFalsy();
             expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS)).toBeUndefined();
-
-            // And the wallet asks for its bank accounts again, since it stays open under the flow and does not refetch by itself
-            TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_PAYMENTS_PAGE, 1);
         });
 
         it('returns to the report the user came from when they continue', async () => {

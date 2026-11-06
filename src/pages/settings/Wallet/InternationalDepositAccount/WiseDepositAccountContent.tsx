@@ -30,7 +30,7 @@ import {
 } from '@userActions/BankAccounts';
 import {clearSensitiveAnswers} from '@userActions/DynamicForm';
 import {clearDraftValues, clearErrors, setDraftValues} from '@userActions/FormActions';
-import {continueSetup, getPaymentMethods} from '@userActions/PaymentMethods';
+import {continueSetup} from '@userActions/PaymentMethods';
 
 import CONST, {COUNTRIES_US_BANK_FLOW} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -178,8 +178,6 @@ function WiseDepositAccountContent({backTo, subPage, isEditing}: WiseDepositAcco
         if (!hasSuccessThisVisit) {
             return undefined;
         }
-        // The wallet stays open under the flow and fetches its bank accounts only when it opens, so it would not show the new account otherwise
-        getPaymentMethods();
         // Only Continue resumes a payment that asked for a bank account, so closing the screen another way drops where it would go on
         return () => clearPersonalBankAccount();
     }, [hasSuccessThisVisit]);
