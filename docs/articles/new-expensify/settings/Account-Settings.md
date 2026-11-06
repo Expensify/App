@@ -1,13 +1,13 @@
 ---
 title: Account Settings
 description: Learn how to update your profile settings, preferences, and notifications in Expensify.
-keywords: [New Expensify, profile, account preferences, notifications, language, theme, high contrast mode, timezone, personal information, phone number, security code]
-internalScope: Audience is all members. Covers how to update profile, status, pronouns, timezone, language, theme, notification, and personal information settings in Account. Does not cover security, wallet, or subscription settings.
+keywords: [New Expensify, profile, account preferences, notifications, theme, high contrast mode, timezone, personal information, phone number, security code]
+internalScope: Audience is all members. Covers how to update profile, status, pronouns, timezone, theme, notification, and personal information settings in Account. Does not cover security, wallet, or subscription settings.
 ---
 
 # Account Settings
 
-Expensify allows you to personalize your experience by customizing your profile, preferences, and notifications. This guide shows you how to update your photo, language, timezone, notification settings, and more—all from **Account**.
+Expensify allows you to personalize your experience by customizing your profile, preferences, and notifications. This guide shows you how to update your photo, timezone, notification settings, and more—all from **Account**.
 
 On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 
@@ -21,7 +21,7 @@ You can update the following profile settings:
 - **Custom avatar** – Select an avatar instead of a profile photo.
 - **Status** – Add a custom message and emoji to show your current status.
 - **Pronouns** – Display your preferred pronouns on your profile.
-- **Language** – Update your account to your preferred language.
+- **Language** – Update your account to your preferred language. [Learn how to change your language](/articles/new-expensify/settings/Change-Your-Language).
 - **Timezone** – Set the correct timezone for expense and report timestamps.
 - **Theme** – Switch between light mode, dark mode, or your device settings, and enable high contrast mode.
 - **Notifications** – Customize how and when you receive email and app notifications.
@@ -62,38 +62,6 @@ To manually set or update your timezone:
 3. Disable **Automatically determine your location**.
 4. Choose your timezone from the list.
 5. Select **Save**.
-
----
-
-## How to set your language
-
-To set or change your language:
-
-1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
-2. Select **Preferences > Language**.
-3. Choose your preferred language from the list.
-
-A checkmark confirms the selected language, and your account updates automatically to the new language.
-
-**Note:** Language changes affect your personal account view only. Workspace members must update their own preferences individually.
-
----
-
-## What languages does Expensify support
-
-Expensify supports the following languages:
-
-   - English
-   - German (Deutsch)
-   - Spanish (Español)
-   - French (Français)
-   - Italian (Italiano)
-   - Dutch (Nederlands)
-   - Polish (Polski)
-   - Portuguese (Português – Brasil)
-   - Greek (Ελληνικά)
-   - Japanese (日本語)
-   - Chinese (中文 (简体))
 
 ---
 
@@ -198,9 +166,6 @@ To edit your legal name:
 
 ## Why should I upload a profile photo?
 Your photo helps teammates identify you easily in chats, reports, and notifications.
-
-## Will changing my language affect reports?
-No. It only changes the language of your user interface, not the content of your reports.
 
 ## Can I disable all Expensify app notifications?
 Yes. To mute notifications:
