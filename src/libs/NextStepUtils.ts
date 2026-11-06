@@ -171,7 +171,7 @@ function buildNextStepMessage(
 
     const requiredDepositCurrency = nextStep.requiredDepositCurrency ? Str.htmlEncode(nextStep.requiredDepositCurrency) : undefined;
     // Auth sends the same approve and pay next steps for bills and expense reports, so the report type picks the wording.
-    const isBill = reportType === CONST.REPORT.UNSUPPORTED_TYPE.BILL;
+    const isBill = reportType === CONST.REPORT.TYPE.BILL;
     let message: string;
     if (nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT) {
         message = translate('nextStep.message.waitingForSubmitterAccount', actor, actorType, eta, etaType, requiredDepositCurrency);

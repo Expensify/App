@@ -188,6 +188,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Invoice room receiver data */
         invoiceReceiver?: InvoiceReceiver;
 
+        /** Whether the receiver must not see this invoice, because they pay it through its linked bill */
+        isHiddenForBillReceiver?: boolean;
+
         /** Number of transactions in the report */
         transactionCount?: number;
 

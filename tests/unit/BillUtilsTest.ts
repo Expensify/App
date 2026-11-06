@@ -6,7 +6,7 @@ import type {Report} from '@src/types/onyx';
 describe('BillUtils', () => {
     describe('isBillReport', () => {
         it.each([
-            {type: CONST.REPORT.UNSUPPORTED_TYPE.BILL, expected: true},
+            {type: CONST.REPORT.TYPE.BILL, expected: true},
             {type: CONST.REPORT.TYPE.INVOICE, expected: false},
             {type: CONST.REPORT.TYPE.EXPENSE, expected: false},
         ])('returns $expected for a $type report', ({type, expected}) => {
@@ -28,8 +28,8 @@ describe('BillUtils', () => {
 
     describe('shouldHideBillReport', () => {
         it.each([
-            {reportType: CONST.REPORT.UNSUPPORTED_TYPE.BILL, isBillPayBetaEnabled: false, expected: true},
-            {reportType: CONST.REPORT.UNSUPPORTED_TYPE.BILL, isBillPayBetaEnabled: true, expected: false},
+            {reportType: CONST.REPORT.TYPE.BILL, isBillPayBetaEnabled: false, expected: true},
+            {reportType: CONST.REPORT.TYPE.BILL, isBillPayBetaEnabled: true, expected: false},
             {reportType: CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK, isBillPayBetaEnabled: false, expected: false},
             {reportType: CONST.REPORT.TYPE.INVOICE, isBillPayBetaEnabled: false, expected: false},
         ])('returns $expected for $reportType when isBillPayBetaEnabled is $isBillPayBetaEnabled', ({reportType, isBillPayBetaEnabled, expected}) => {

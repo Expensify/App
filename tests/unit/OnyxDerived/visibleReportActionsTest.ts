@@ -3,10 +3,12 @@ import visibleReportActionsConfig from '@libs/actions/OnyxDerived/configs/visibl
 import CONST from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportActions, ReportNameValuePairs} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions, ReportNameValuePairs} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 
 import type {OnyxCollection} from 'react-native-onyx';
+
+import createMock from '../../utils/createMock';
 
 describe('visibleReportActions', () => {
     describe('SESSION detected via triggeredKeys', () => {
@@ -79,5 +81,39 @@ describe('visibleReportActions', () => {
         // Then the shared visibility state hides the stale survey without recomputing unrelated reports
         expect(result[reportID]?.[surveyActionID]).toBe(false);
         expect(result[unrelatedReportID]).toBe(currentValue[unrelatedReportID]);
+    });
+
+    it('leaves invoice previews out of the cache, so the invoice decides at display time whether the bill receiver sees them', () => {
+        // Given an invoice room with a preview of an invoice the receiver pays through its linked bill, and a chat with an expense report preview
+        const roomReportID = 'invoiceRoomReportID';
+        const invoiceReportID = 'invoiceReportID';
+        const chatReportID = 'chatReportID';
+        const expenseReportID = 'expenseReportID';
+        const makePreview = (reportActionID: string, linkedReportID: string): ReportAction =>
+            createMock<ReportAction>({
+                reportActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                created: '2026-11-01 12:00:00.000',
+                message: {linkedReportID},
+            });
+        const allReportActions: OnyxCollection<ReportActions> = {
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${roomReportID}`]: {invoicePreviewID: makePreview('invoicePreviewID', invoiceReportID)},
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`]: {expensePreviewID: makePreview('expensePreviewID', expenseReportID)},
+        };
+        const allReports: OnyxCollection<Report> = {
+            [`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`]: {reportID: invoiceReportID, type: CONST.REPORT.TYPE.INVOICE, isHiddenForBillReceiver: true},
+            [`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`]: {reportID: expenseReportID, type: CONST.REPORT.TYPE.EXPENSE},
+        };
+
+        // When the derived value computes every report's visibility
+        const result = visibleReportActionsConfig.compute([allReportActions, undefined, allReports, {}], {
+            currentValue: undefined,
+            sourceValues: undefined,
+            triggeredKeys: new Set<OnyxKey>(),
+        });
+
+        // Then the invoice preview has no cached value, because the invoice's isHiddenForBillReceiver flag can change without the preview changing
+        expect(result[roomReportID]?.invoicePreviewID).toBeUndefined();
+        expect(result[chatReportID]?.expensePreviewID).toBe(true);
     });
 });

@@ -444,7 +444,7 @@ describe('ParentNavigationSubtitle', () => {
 
         it('shows the status and policy name without a parent link or connecting words', async () => {
             // Given a bill has no parent chat to open.
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${billReportID}`, createMock<Report>({reportID: billReportID, type: CONST.REPORT.UNSUPPORTED_TYPE.BILL}));
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${billReportID}`, createMock<Report>({reportID: billReportID, type: CONST.REPORT.TYPE.BILL}));
 
             // When the subtitle renders with only the policy name.
             render(

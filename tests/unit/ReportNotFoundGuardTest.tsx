@@ -156,7 +156,7 @@ describe('ReportNotFoundGuard', () => {
 
     it('shows the not-found page for a bill when the user does not have the newDotBillPay beta', async () => {
         // Given a loaded bill and a user without the newDotBillPay beta
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.UNSUPPORTED_TYPE.BILL});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.TYPE.BILL});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {isLoadingInitialReportActions: false});
         await waitForBatchedUpdates();
 
@@ -172,7 +172,7 @@ describe('ReportNotFoundGuard', () => {
     it('renders a bill when the user has the newDotBillPay beta', async () => {
         // Given a loaded bill and a user with the newDotBillPay beta
         await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.NEW_DOT_BILL_PAY]);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.UNSUPPORTED_TYPE.BILL});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.TYPE.BILL});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {isLoadingInitialReportActions: false});
         await waitForBatchedUpdates();
 

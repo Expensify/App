@@ -6,6 +6,7 @@ import type {ValueOf} from 'type-fest';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
 
+import {isBillReport} from './BillUtils';
 import {
     arePaymentsEnabled,
     canAdminPayReport,
@@ -142,6 +143,11 @@ function canPay(
     policy?: Policy,
     invoiceReceiverPolicy?: Policy,
 ) {
+    // Bills can't be paid in NewDot yet.
+    if (isBillReport(report)) {
+        return false;
+    }
+
     const isExpense = isExpenseReport(report);
 
     if (isPayBlocked(report, policy, isReportArchived)) {

@@ -117,6 +117,7 @@ import {startMoneyRequest} from './actions/IOU/MoneyRequest';
 import {createTransactionThreadReport} from './actions/Report';
 import {getReportActionsFromSearchSnapshot, setOptimisticDataForTransactionThreadPreview} from './actions/Search';
 import {convertAttendeesToArray} from './AttendeeUtils';
+import {isBillReport} from './BillUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescriptionForSearchTable, getFeedNameForDisplay, isPersonalCard} from './CardUtils';
 import {getCategoryGLCode, getDecodedCategoryName} from './CategoryUtils';
@@ -3940,7 +3941,7 @@ function omitBillReportActionRows(rows: ReportActionListItemType[], data: OnyxTy
         }
 
         const report = data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-        return report?.reportID === reportID && report.type === CONST.REPORT.UNSUPPORTED_TYPE.BILL;
+        return report?.reportID === reportID && isBillReport(report);
     };
 
     return rows.filter((row) => !isBill(row.reportID) && !isBill(getIOUReportIDFromReportActionPreview(row)));

@@ -1297,7 +1297,7 @@ describe('libs/NextStepUtils', () => {
 
     describe('buildNextStepMessage', () => {
         describe.each([
-            {reportType: CONST.REPORT.UNSUPPORTED_TYPE.BILL, approveTarget: 'approve the bill', payTarget: 'pay this bill'},
+            {reportType: CONST.REPORT.TYPE.BILL, approveTarget: 'approve the bill', payTarget: 'pay this bill'},
             {reportType: CONST.REPORT.TYPE.EXPENSE, approveTarget: 'approve expenses', payTarget: 'pay expenses'},
             {reportType: undefined, approveTarget: 'approve expenses', payTarget: 'pay expenses'},
         ])('approve and pay wording for report type $reportType', ({reportType, approveTarget, payTarget}) => {

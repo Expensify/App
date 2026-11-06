@@ -307,6 +307,68 @@ describe('ReportNameUtils', () => {
         });
     });
 
+    describe('computeReportName - Bills', () => {
+        const billPolicy: Policy = {
+            ...createRandomPolicy(300, CONST.POLICY.TYPE.CORPORATE),
+            id: 'billPolicy',
+            name: 'Receiver Policy',
+            fieldList: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                text_title: {
+                    defaultValue: '{report:type} {report:startdate}',
+                    deletable: false,
+                    externalIDs: [],
+                    fieldID: 'text_title',
+                    isTax: false,
+                    name: 'title',
+                    orderWeight: 0,
+                    type: 'formula',
+                    target: 'expense',
+                    values: [],
+                    disabledOptions: [],
+                    keys: [],
+                },
+            },
+        };
+        const bill: Report = {
+            reportID: '300',
+            type: CONST.REPORT.TYPE.BILL,
+            policyID: billPolicy.id,
+            ownerAccountID: currentUserAccountID,
+            managerID: currentUserAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            total: -12500,
+            currency: CONST.CURRENCY.USD,
+            reportName: 'Bill #R00000001upZ',
+        };
+
+        it.each([
+            ['the default name from Auth', 'Bill #R00000001upZ'],
+            ['a name the user gave it', 'Office chairs for the new floor'],
+        ])('shows the stored name of a bill with %s', (_, reportName) => {
+            // Given a bill with a stored name, on a policy whose title field is a formula
+            const namedBill: Report = {...bill, reportName};
+
+            // When the Inbox, the header, and the derived report attributes compute its name
+            const computedName = computeReportName(namedBill, {}, {[`${ONYXKEYS.COLLECTION.POLICY}${billPolicy.id}`]: billPolicy});
+            const moneyRequestReportName = getMoneyRequestReportName({
+                report: namedBill,
+                policy: billPolicy,
+                personalDetailsList: participantsPersonalDetails,
+                linkedTransactions: [],
+                translate: translateLocal,
+                formatPhoneNumber,
+                convertToDisplayString,
+            });
+
+            // Then they show the stored name, so neither the policy title formula nor the amount replaces it
+            expect(computedName).toBe(reportName);
+            expect(moneyRequestReportName).toBe(reportName);
+            expect(getReportName(namedBill, computedName)).toBe(reportName);
+        });
+    });
+
     describe('computeReportName - Policy expense chat', () => {
         test('Returns policy expense chat name when owner is set', async () => {
             const report: Report = {
