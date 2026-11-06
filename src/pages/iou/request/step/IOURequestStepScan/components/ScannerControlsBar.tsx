@@ -58,7 +58,6 @@ type ScannerControlsBarProps = {
     /** Toggles multi-scan mode on or off */
     toggleMultiScan?: () => void;
 
-    /** Whether receipt enhancements are currently on */
     isReceiptEnhancementEnabled?: boolean;
 
     /** Turns receipt enhancements on or off. When omitted the bar has no enhancement button and flash stays after the shutter */
@@ -180,6 +179,8 @@ function ScannerControlsBar({
                     sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.RECEIPT_ENHANCEMENT}
                     style={[styles.alignItemsCenter, isMultiScanEnabled && styles.opacity0]}
                     disabled={isMultiScanEnabled}
+                    accessible={!isMultiScanEnabled}
+                    aria-hidden={isMultiScanEnabled}
                     onPress={toggleReceiptEnhancement}
                 >
                     <Icon

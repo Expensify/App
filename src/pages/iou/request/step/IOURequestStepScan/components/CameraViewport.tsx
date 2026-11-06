@@ -99,9 +99,11 @@ type CameraViewportProps = {
 
     setFlash: (updater: (prev: boolean) => boolean) => void;
 
-    overlay?: ReactNode;
     /** Whether the torch is requested. VisionCamera applies it asynchronously, so it may not be lit yet */
     isTorchOn?: boolean;
+
+    /** Drawn over the live preview, and hidden while the preview is hidden */
+    overlay?: ReactNode;
 
     /** Extra content rendered below the viewfinder, inside the camera view */
     children?: ReactNode;
