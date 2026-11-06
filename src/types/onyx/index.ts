@@ -145,6 +145,7 @@ import type Logins from './Logins';
 import type MapboxAccessToken from './MapboxAccessToken';
 import type MarketingAttribution from './MarketingAttribution';
 import type {StoredMarketingAttribution} from './MarketingAttribution';
+import type MembersNeedCategoryModal from './MembersNeedCategoryModal';
 import type MerchantRuleSuggestion from './MerchantRuleSuggestion';
 import type MergeTransaction from './MergeTransaction';
 import type Modal from './Modal';
@@ -260,6 +261,7 @@ import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
+import type WiseBankAccountFields from './WiseBankAccountFields';
 import type {WiseKYCReviewEmbeddedLink} from './WiseKYCReview';
 import type WorkspaceMembersSelectedForBulkEdit from './WorkspaceMembersSelectedForBulkEdit';
 import type WorkspaceMembersSelectedForRoleChange from './WorkspaceMembersSelectedForRoleChange';
@@ -492,6 +494,7 @@ export type {
     VerifyValidateCodeAction,
     ShareTempFile,
     CorpayFields,
+    WiseBankAccountFields,
     WiseKYCReviewEmbeddedLink,
     CorpayFormField,
     DynamicFormAddressField,
@@ -515,6 +518,7 @@ export type {
     DismissedProductTraining,
     TravelProvisioning,
     EnableGlobalReimbursementsModal,
+    MembersNeedCategoryModal,
     SidePanel,
     SidePanelContext,
     InsightsScope,

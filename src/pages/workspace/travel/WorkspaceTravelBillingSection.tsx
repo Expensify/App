@@ -527,6 +527,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                 titleStyle={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle]}
                 subtitle={getTravelBillingSubtitle()}
                 switchAccessibilityLabel={translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subtitle')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.TRAVEL_BILLING_SWITCH}
                 onToggle={handleToggle}
                 isActive={isTravelBillingEnabled}
                 disabled={!canWriteMoreFeatures || isOnWaitlist}
