@@ -1543,6 +1543,7 @@ const translations: TranslationDeepObject<typeof en> = {
         businessBankAccount: (amount?: string, last4Digits?: string) => (amount ? `使用银行账户尾号为 ${last4Digits} 支付了 ${amount}` : `通过银行账户 ${last4Digits} 支付`),
         automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `已通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>使用尾号为 ${last4Digits} 的银行账户支付了 ${amount ? `${amount} ` : ''}`,
+        paymentWithExpectedDate: ({paymentMessage, expectedDateMessage}: {paymentMessage: string; expectedDateMessage: string}) => `${paymentMessage}。${expectedDateMessage}`,
         invoicePersonalBank: (lastFour: string) => `个人账户 • ${lastFour}`,
         invoiceBusinessBank: (lastFour: string) => `企业账户 • ${lastFour}`,
         nextStep: '后续步骤',
@@ -1939,7 +1940,6 @@ const translations: TranslationDeepObject<typeof en> = {
         tagDisabledAlert: {title: '标签已停用', prompt: '请在工作区中启用标签，以便编辑该报销的详细信息或从此报销中删除该标签。', confirmText: '删除标签'},
         undeletedExpense: '恢复了此报销单',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `已为新工作区更新里程报销标准 - ${policyName}`,
-        paymentWithArrivalDate: ({paymentMessage, expectedDate}: {paymentMessage: string; expectedDate: string}) => `${paymentMessage}，预计款项将在 ${expectedDate} 前到账。`,
     },
     transactionMerge: {
         listPage: {

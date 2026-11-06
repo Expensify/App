@@ -1640,6 +1640,7 @@ const translations: TranslationDeepObject<typeof en> = {
         businessBankAccount: (amount?: string, last4Digits?: string) => (amount ? `zapłacono ${amount} z konta bankowego ${last4Digits}` : `zapłacono z konta bankowego ${last4Digits}`),
         automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `zapłacono ${amount ? `${amount} ` : ''} z konta bankowego ${last4Digits} przez <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">zasady przestrzeni roboczej</a>`,
+        paymentWithExpectedDate: ({paymentMessage, expectedDateMessage}: {paymentMessage: string; expectedDateMessage: string}) => `${paymentMessage}. ${expectedDateMessage}`,
         invoicePersonalBank: (lastFour: string) => `Konto osobiste • ${lastFour}`,
         invoiceBusinessBank: (lastFour: string) => `Konto firmowe • ${lastFour}`,
         nextStep: 'Następne kroki',
@@ -2058,7 +2059,6 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         undeletedExpense: 'przywrócił ten wydatek',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `stawki za przejechany dystans zaktualizowane dla nowej przestrzeni roboczej – ${policyName}`,
-        paymentWithArrivalDate: ({paymentMessage, expectedDate}: {paymentMessage: string; expectedDate: string}) => `${paymentMessage}, środki powinny dotrzeć do ${expectedDate}.`,
     },
     transactionMerge: {
         listPage: {

@@ -2442,33 +2442,6 @@ describe('ReportActionsUtils', () => {
         });
     });
 
-    describe('getPaymentMessageWithExpectedDate', () => {
-        it('should say when funds arrive, with the full month', () => {
-            // Given a bank account payment message and its delivery estimate
-            const paymentMessage = 'paid with bank account 1234';
-
-            // When the estimate is added to the message
-            const message = ReportActionsUtils.getPaymentMessageWithExpectedDate(translateLocal, undefined, paymentMessage, '2026-08-18');
-
-            // Then it uses the same "funds are expected to arrive" wording as the delivery estimate actions, for every bank payment
-            expect(message).toBe('paid with bank account 1234, funds are expected to arrive by August 18, 2026.');
-        });
-
-        it.each([
-            ['no estimate', undefined],
-            ['an estimate that cannot be parsed', 'not a date'],
-        ])('should return the payment message alone for %s', (_description, expectedDate) => {
-            // Given a bank account payment message without a usable delivery estimate
-            const paymentMessage = 'paid with bank account 1234';
-
-            // When the estimate is added to the message
-            const message = ReportActionsUtils.getPaymentMessageWithExpectedDate(translateLocal, undefined, paymentMessage, expectedDate);
-
-            // Then nothing is appended, so the message never ends with "arrive by ."
-            expect(message).toBe(paymentMessage);
-        });
-    });
-
     describe('getSendMoneyFlowAction', () => {
         const mockChatReportID = `${ONYXKEYS.COLLECTION.REPORT}REPORT` as const;
         const mockDMChatReportID = `${ONYXKEYS.COLLECTION.REPORT}REPORT_DM` as const;

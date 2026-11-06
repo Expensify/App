@@ -1603,6 +1603,7 @@ const translations: TranslationDeepObject<typeof en> = {
         businessBankAccount: (amount?: string, last4Digits?: string) => (amount ? `${amount} mit Bankkonto ${last4Digits} bezahlt` : `bezahlt mit Bankkonto ${last4Digits}`),
         automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `${amount ? `${amount} ` : ''} mit Bankkonto ${last4Digits} über <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">Workspace-Regeln</a> bezahlt`,
+        paymentWithExpectedDate: ({paymentMessage, expectedDateMessage}: {paymentMessage: string; expectedDateMessage: string}) => `${paymentMessage}. ${expectedDateMessage}`,
         invoicePersonalBank: (lastFour: string) => `Persönliches Konto • ${lastFour}`,
         invoiceBusinessBank: (lastFour: string) => `Geschäftskonto • ${lastFour}`,
         nextStep: 'Nächste Schritte',
@@ -2026,8 +2027,6 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         undeletedExpense: 'Löschvorgang für diese Ausgabe rückgängig gemacht',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `Kilometersätze für den neuen Arbeitsbereich aktualisiert – ${policyName}`,
-        paymentWithArrivalDate: ({paymentMessage, expectedDate}: {paymentMessage: string; expectedDate: string}) =>
-            `${paymentMessage}, die Gelder werden voraussichtlich bis zum ${expectedDate} eingehen.`,
     },
     transactionMerge: {
         listPage: {

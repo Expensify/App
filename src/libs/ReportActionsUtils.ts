@@ -896,16 +896,17 @@ function getCrossBorderReimbursedMessage(
     });
 }
 
-/**
- * Appends the delivery estimate to a bank account payment message, e.g. "paid with bank account 1234, funds are expected to arrive by August 18, 2026."
- */
 function getPaymentMessageWithExpectedDate(translate: LocalizedTranslate, dateFnsLocale: DateFnsLocale | undefined, paymentMessage: string, expectedDate: string | undefined): string {
-    const formattedArrivalDate = expectedDate ? DateUtils.formatWithUTCTimeZone(expectedDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale) : '';
-    if (!formattedArrivalDate) {
+    if (!expectedDate) {
         return paymentMessage;
     }
 
-    return translate('iou.paymentWithArrivalDate', {paymentMessage, expectedDate: formattedArrivalDate});
+    const formattedExpectedDate = DateUtils.formatWithUTCTimeZone(expectedDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, dateFnsLocale);
+    if (!formattedExpectedDate) {
+        return paymentMessage;
+    }
+    const expectedDateMessage = translate('nextStep.message.waitingForPayment', '', CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN, formattedExpectedDate, CONST.NEXT_STEP.ETA_TYPE.DATE_TIME);
+    return translate('iou.paymentWithExpectedDate', {paymentMessage, expectedDateMessage});
 }
 
 function getMarkedReimbursedMessage(translate: LocalizedTranslate, reportAction: OnyxInputOrEntry<ReportAction>): string {

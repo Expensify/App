@@ -1600,6 +1600,7 @@ const translations: TranslationDeepObject<typeof en> = {
         businessBankAccount: (amount?: string, last4Digits?: string) => (amount ? `heeft ${amount} betaald met bankrekening ${last4Digits}` : `betaald met bankrekening ${last4Digits}`),
         automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `betaald ${amount ? `${amount} ` : ''} met bankrekening ${last4Digits} via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">werkruimteregels</a>`,
+        paymentWithExpectedDate: ({paymentMessage, expectedDateMessage}: {paymentMessage: string; expectedDateMessage: string}) => `${paymentMessage}. ${expectedDateMessage}`,
         invoicePersonalBank: (lastFour: string) => `Persoonlijke rekening • ${lastFour}`,
         invoiceBusinessBank: (lastFour: string) => `Zakelijke rekening • ${lastFour}`,
         nextStep: 'Volgende stappen',
@@ -2016,8 +2017,6 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         undeletedExpense: 'heeft deze uitgave teruggezet',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `kilometervergoedingen bijgewerkt voor de nieuwe workspace - ${policyName}`,
-        paymentWithArrivalDate: ({paymentMessage, expectedDate}: {paymentMessage: string; expectedDate: string}) =>
-            `${paymentMessage}, de middelen worden naar verwachting ontvangen vóór ${expectedDate}.`,
     },
     transactionMerge: {
         listPage: {
