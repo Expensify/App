@@ -514,7 +514,8 @@ function BasePopoverMenu({
     };
 
     const isRadioButtonMode = enteredSubMenuIndexes.length === 0 ? shouldShowRadioButton : !!getPreviousSubMenu().at(enteredSubMenuIndexes.at(-1) ?? -1)?.shouldShowRadioButton;
-
+    // Some radio menus let the focused control own Enter activation, but their logical focus must still follow native focus after keyboard navigation starts.
+    const shouldUpdateFocusedIndexOnRowFocus = shouldUpdateFocusedIndex || (isWeb && isRadioButtonMode && hasKeyBeenPressed);
     // In radio-button mode, suppress the visual highlight until the user starts navigating,
     // even though the selected item is already focused (for immediate Enter/arrow support).
     useEffect(() => {
@@ -522,6 +523,11 @@ function BasePopoverMenu({
             return;
         }
         const handleKeyDown = (e: KeyboardEvent) => {
+            // Native Tab focus must finish before a searchable menu updates its logical focus.
+            // Otherwise, focus synchronization moves to the selected row first and the browser advances past it.
+            if (isSearchEnabled && e.key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
+                return;
+            }
             const isNavigationKey = [
                 CONST.KEYBOARD_SHORTCUTS.ARROW_UP,
                 CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN,
@@ -536,7 +542,7 @@ function BasePopoverMenu({
         };
         addKeyDownPressListener(handleKeyDown);
         return () => removeKeyDownPressListener(handleKeyDown);
-    }, [isVisible, isRadioButtonMode]);
+    }, [isVisible, isRadioButtonMode, isSearchEnabled]);
 
     const selectItem = (index: number, event?: GestureResponderEvent | KeyboardEvent) => {
         const selectedItem = currentMenuItems.at(index);
@@ -644,7 +650,7 @@ function BasePopoverMenu({
                         shouldShowRightIcon={!!item.rightIcon}
                         brickRoadIndicator={item.brickRoadIndicator}
                         onFocus={() => {
-                            if (!shouldUpdateFocusedIndex) {
+                            if (!shouldUpdateFocusedIndexOnRowFocus) {
                                 return;
                             }
                             setFocusedIndex(menuIndex);
@@ -907,6 +913,8 @@ function BasePopoverMenu({
                                         setIsSearchInputFocused(true);
                                     }}
                                     onBlur={() => {
+                                        // Native focus becomes the source of truth after leaving search, so an earlier arrow highlight must not redirect Tab.
+                                        setHasKeyBeenPressed(false);
                                         setArrowFocusedItemAnnouncement((previousAnnouncement) => ({...previousAnnouncement, message: ''}));
                                         setIsSearchInputFocused(false);
                                     }}
