@@ -11,6 +11,12 @@ function getValueUsingPixelRatio(defaultValue: number, maxValue: number): number
     return PixelRatio.getFontScale() * defaultValue > maxValue ? maxValue : defaultValue * PixelRatio.getFontScale();
 }
 
+/** Rendered width of the Expensify wordmark in the flat navigation bar's header. */
+const flatNavigationBarLogoWidth = 92;
+
+/** expensify-wordmark.svg has a 78x19 viewBox, so deriving the height keeps the wordmark's proportions. */
+const flatNavigationBarLogoHeight = (flatNavigationBarLogoWidth * 19) / 78;
+
 const avatarSizes = {
     avatarSizeXxxxSmall: 12,
     avatarSizeXxxSmall: 16,
@@ -36,6 +42,8 @@ export default {
     floatingButtonGlassTintOpacity: 0.8,
     // Stronger than the other floating buttons, so the camera button's glass renders close to the solid green buttons in both themes.
     floatingCameraButtonGlassTintOpacity: 0.9,
+    /** A phone in landscape has little height to spare, so the bar lays each tab's label beside its icon and is shorter. */
+    floatingTabBarLandscapeHeight: 44,
     floatingTabBarHorizontalInset: 16,
     // How far the selected pill reaches past its tab on each side, whatever the label's length.
     floatingTabBarSelectedOverhang: 4,
@@ -186,6 +194,16 @@ export default {
     searchSidebarExpandedWidth: 260,
     searchSidebarCollapsedWidth: 76,
     navigationTabBarSize: 72,
+    flatNavigationBarWidth: 232,
+    flatNavigationBarItemHeight: 40,
+    flatNavigationBarAccountItemHeight: 56,
+    // Horizontal inset every row's background sits at, inside the bar's own width.
+    flatNavigationBarRowInset: 8,
+    // Space between a row's background edge and its icon. The header and dividers line up with the icon, at the inset plus this.
+    flatNavigationBarRowPadding: 12,
+    flatNavigationBarHeaderHeight: 72,
+    flatNavigationBarLogoWidth,
+    flatNavigationBarLogoHeight,
     popoverMargin: 18,
     pdfPageMaxWidth: 992,
     tooltipZIndex: 10050,
@@ -503,6 +521,12 @@ export default {
 
     searchAutocompleteInputSkeletonHeight: 8,
     searchAutocompleteInputSkeletonWidth: 145,
+
+    reportHistoryLabelGap: 12,
+    reportHistoryConnectorHeight: 12,
+    reportHistoryConnectorMarginVertical: 4,
+    reportHistorySkeletonLabelHeight: 8,
+    reportHistorySkeletonLabelWidth: 160,
 
     errorPageIconWidth: 116,
     errorPageIconHeight: 168,
