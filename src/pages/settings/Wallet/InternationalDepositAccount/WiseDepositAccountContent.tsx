@@ -276,7 +276,7 @@ function WiseDepositAccountContent({backTo, subPage, isEditing}: WiseDepositAcco
                 <CheckboxWithLabel
                     value={hasAcceptedTerms}
                     onInputChange={toggleTerms}
-                    accessibilityLabel={`${translate('common.iAcceptThe')}${translate('common.addCardTermsOfService')}`}
+                    accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.addCardTermsOfService')}`}
                     LabelComponent={TermsOfServiceLabel}
                     errorText={shouldShowTermsError ? translate('common.error.acceptTerms') : undefined}
                 />
