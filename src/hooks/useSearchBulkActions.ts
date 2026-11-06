@@ -2015,16 +2015,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 for (const reportID of quotedReportIDs) {
                     getWiseQuote(reportID);
                 }
-                showWiseQuoteCarouselModal({
-                    reports,
-                    quotedReportIDs,
-                    onConfirm: (wiseQuoteIDsByReportID) => {
-                        if (payExpenseReports(wiseQuoteIDsByReportID) === 0) {
-                            return;
-                        }
-                        playSound(SOUNDS.SUCCESS);
-                        clearSelectedTransactions();
-                    },
+                // Bulk pay runs while the pay popover is still dismissing, and iOS can't present a modal until it's gone
+                deferModalPresentationAfterPopoverDismiss(() => {
+                    showWiseQuoteCarouselModal({
+                        reports,
+                        quotedReportIDs,
+                        onConfirm: (wiseQuoteIDsByReportID) => {
+                            if (payExpenseReports(wiseQuoteIDsByReportID) === 0) {
+                                return;
+                            }
+                            playSound(SOUNDS.SUCCESS);
+                            clearSelectedTransactions();
+                        },
+                    });
                 });
             }
         },
