@@ -38,6 +38,8 @@ jobs:
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
+        with:
+          WORKSPACES: '["server/victory-chart-renderer", "web/cloudflare-worker"]'
 
       - name: Run Bun tests
         run: npm run test:bun

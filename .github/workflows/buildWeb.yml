@@ -64,6 +64,8 @@ jobs:
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
+        with:
+          WORKSPACES: ${{ inputs.build-preview-worker && '["web/cloudflare-worker"]' || '[]' }}
 
       - name: Build web
         run: |

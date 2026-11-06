@@ -7,6 +7,10 @@ inputs:
     description: 'Indicates if node is set up for hybrid app'
     required: false
     default: 'false'
+  WORKSPACES:
+    description: 'JSON array of npm workspace names or paths to install alongside the root project. Defaults to root dependencies only.'
+    required: false
+    default: '[]'
   SEED_STICKY_DISKS:
     description: |
       'true' only in the seedCache workflow, which installs dependencies and nothing else.
@@ -37,11 +41,21 @@ runs:
       shell: bash
       run: echo "use-sticky-disk=${{ runner.os == 'Linux' && contains(runner.name, 'blacksmith') }}" >> "$GITHUB_OUTPUT"
 
+    - id: workspace-config
+      shell: bash
+      env:
+        WORKSPACES: ${{ inputs.WORKSPACES }}
+      run: |
+        workspaces=$(jq -ce 'if type == "array" and all(.[]; type == "string" and length > 0) then sort | unique else error("WORKSPACES must be an array of nonempty workspace names") end' <<< "$WORKSPACES")
+        echo "workspaces=$workspaces" >> "$GITHUB_OUTPUT"
+        # Equivalent selections must share a cache even if callers list them in a different order.
+        echo "cache-key=$(printf '%s' "$workspaces" | shasum -a 256 | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
+
     - id: stickydisk-node-modules
       if: steps.runner-info.outputs.use-sticky-disk == 'true'
       uses: useblacksmith/stickydisk@74f3f01ab1392726dd6ee06904f0452b0ec1e151 # v1.6.0
       with:
-        key: ${{ format('{0}-{1}-{2}-node-modules-{3}', github.repository, runner.os, runner.arch, inputs.IS_HYBRID_BUILD == 'true' && hashFiles('normalized-package-lock.json', 'patches/**', 'Mobile-Expensify/patches/**') || hashFiles('normalized-package-lock.json', 'patches/**')) }}
+        key: ${{ format('{0}-{1}-{2}-node-modules-workspaces-{3}-{4}', github.repository, runner.os, runner.arch, steps.workspace-config.outputs.cache-key, inputs.IS_HYBRID_BUILD == 'true' && hashFiles('normalized-package-lock.json', 'patches/**', 'Mobile-Expensify/patches/**') || hashFiles('normalized-package-lock.json', 'patches/**')) }}
         path: node_modules
         commit: ${{ inputs.SEED_STICKY_DISKS == 'true' && 'if-missing' || 'false' }}
 
@@ -67,7 +81,7 @@ runs:
       uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
       with:
         path: node_modules
-        key: ${{ format('{0}-node-modules-{1}', runner.os, inputs.IS_HYBRID_BUILD == 'true' && hashFiles('package-lock.json', 'patches/**', 'Mobile-Expensify/patches/**') || hashFiles('package-lock.json', 'patches/**')) }}
+        key: ${{ format('{0}-node-modules-workspaces-{1}-{2}', runner.os, steps.workspace-config.outputs.cache-key, inputs.IS_HYBRID_BUILD == 'true' && hashFiles('package-lock.json', 'patches/**', 'Mobile-Expensify/patches/**') || hashFiles('package-lock.json', 'patches/**')) }}
 
     - id: cache-old-dot-node-modules
       if: steps.runner-info.outputs.use-sticky-disk != 'true' && inputs.IS_HYBRID_BUILD == 'true'
@@ -123,10 +137,21 @@ runs:
     - name: Install root project node packages
       if: steps.check-node-modules.outputs.cache-hit != 'true' || (inputs.IS_HYBRID_BUILD == 'true' && steps.check-old-dot-node-modules.outputs.cache-hit != 'true')
       uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4
+      env:
+        WORKSPACES: ${{ steps.workspace-config.outputs.workspaces }}
       with:
         timeout_minutes: 30
         max_attempts: 3
-        command: npm ci
+        command: |
+          args=(--workspaces=false)
+          if [[ "$WORKSPACES" != '[]' ]]; then
+            # Selecting workspaces excludes the root project unless it is explicitly included.
+            args=(--include-workspace-root)
+            while IFS= read -r workspace; do
+              args+=(--workspace="$workspace")
+            done < <(jq -r '.[]' <<< "$WORKSPACES")
+          fi
+          npm ci "${args[@]}"
 
     - name: Add project binaries to PATH
       shell: bash

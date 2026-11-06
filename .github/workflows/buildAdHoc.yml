@@ -127,6 +127,8 @@ jobs:
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
+        with:
+          WORKSPACES: '["web/cloudflare-worker"]'
 
       - name: Download the matching web assets
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
