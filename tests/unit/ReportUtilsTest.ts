@@ -4083,7 +4083,14 @@ describe('ReportUtils', () => {
             const billPolicy = hasPolicy ? createMock<Policy>({id: 'bill-policy', name: 'Current Bill Policy'}) : undefined;
 
             // When the header builds the bill subtitle.
-            const subtitle = getParentNavigationSubtitle(billReport, billPolicy, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
+            const subtitle = getParentNavigationSubtitle({
+                report: billReport,
+                policy: billPolicy,
+                invoiceReceiverPolicy: undefined,
+                translate: translateLocal,
+                formatPhoneNumber,
+                parentReportName: undefined,
+            });
 
             // Then it omits the owner's expense chat and uses the current policy name when available.
             expect(subtitle).toEqual({workspaceName: hasPolicy ? 'Current Bill Policy' : 'Bill Policy'});
