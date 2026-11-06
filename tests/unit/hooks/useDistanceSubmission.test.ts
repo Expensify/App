@@ -56,6 +56,15 @@ function submit(params: UseDistanceSubmissionParams) {
     return renderAndSubmit(() => useDistanceSubmission(params), true);
 }
 
+function buildCommuterExclusionTransaction(commuterExclusion: number) {
+    return buildTransaction({
+        iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+        modifiedAmount: 80,
+        modifiedMerchant: '8 mi @ $0.50 / mi',
+        comment: {comment: '', customUnit: {commuterExclusion, reimbursableDistance: 8, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}},
+    });
+}
+
 function getSubmittedTransactionParams() {
     return mockCreateDistanceRequestAction.mock.calls.at(-1)?.at(0)?.transactionParams;
 }
@@ -71,29 +80,28 @@ describe('useDistanceSubmission', () => {
         mockCreateDistanceRequestAction.mockReturnValue({iouReport: buildChatReport({reportID: 'distance-iou-1'}), chatReportID: 'distance-chat-1', transactionID: 'distance-transaction-1'});
     });
 
-    it.each([
-        ['omits stale', 0, false],
-        ['forwards commuter exclusion', 2, true],
-    ])('%s modified fields', async (_description, commuterExclusion, shouldForwardModifiedFields) => {
-        // Given a manual distance expense whose modified amount and merchant only stand for a commuter exclusion when one is applied
-        const distanceTransaction = buildTransaction({
-            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
-            modifiedAmount: 80,
-            modifiedMerchant: '8 mi @ $0.50 / mi',
-            comment: {comment: '', customUnit: {commuterExclusion, reimbursableDistance: 8, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}},
-        });
+    it('omits the modified fields when no commuter exclusion is applied', async () => {
+        // Given a distance expense with old modified values and no commuter exclusion
+        const distanceTransaction = buildCommuterExclusionTransaction(0);
 
-        // When the expense is submitted
+        // When it is submitted
         await submit(buildParams({transaction: distanceTransaction, transactions: [distanceTransaction], isManualDistanceRequest: true}));
 
-        // Then the modified fields are sent only with an applied exclusion, so stale values never override the server's math
+        // Then the old values are not sent, so they can't override the server's amount
         const transactionParams = getSubmittedTransactionParams();
-        if (shouldForwardModifiedFields) {
-            expect(transactionParams).toEqual(expect.objectContaining({modifiedAmount: 80, modifiedMerchant: '8 mi @ $0.50 / mi'}));
-        } else {
-            expect(transactionParams).not.toHaveProperty('modifiedAmount');
-            expect(transactionParams).not.toHaveProperty('modifiedMerchant');
-        }
+        expect(transactionParams).not.toHaveProperty('modifiedAmount');
+        expect(transactionParams).not.toHaveProperty('modifiedMerchant');
+    });
+
+    it('sends the modified fields when a commuter exclusion is applied', async () => {
+        // Given a distance expense whose modified values come from a commuter exclusion
+        const distanceTransaction = buildCommuterExclusionTransaction(2);
+
+        // When it is submitted
+        await submit(buildParams({transaction: distanceTransaction, transactions: [distanceTransaction], isManualDistanceRequest: true}));
+
+        // Then the modified values are sent
+        expect(getSubmittedTransactionParams()).toEqual(expect.objectContaining({modifiedAmount: 80, modifiedMerchant: '8 mi @ $0.50 / mi'}));
     });
 
     it('uses the transaction report ID for a brand-new P2P recipient even when a page-level report is still set', async () => {
