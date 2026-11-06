@@ -90,6 +90,7 @@
 "../../src/components/AutoCompleteSuggestions/AutoCompleteSuggestionsPortal/TransparentOverlay/TransparentOverlay.tsx"	"react-hooks/refs"	1
 "../../src/components/AutoCompleteSuggestions/BaseAutoCompleteSuggestions.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AutoCompleteSuggestions/index.tsx"	"react-hooks/set-state-in-effect"	1
+"../../src/components/AutoSubmitModal.tsx"	"no-restricted-syntax"	1
 "../../src/components/AutoUpdateTime.tsx"	"react-hooks/purity"	1
 "../../src/components/AvatarCropModal/AvatarCropView.tsx"	"no-restricted-imports"	1
 "../../src/components/AvatarCropModal/AvatarCropView.tsx"	"no-restricted-syntax"	2
@@ -195,6 +196,8 @@
 "../../src/components/HeaderWithBackButton/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/HighlightableMenuItem.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/components/HighlightableMenuItemWithTopDescription.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
+"../../src/components/HoldOrRejectEducationalModalContent.tsx"	"no-restricted-syntax"	1
+"../../src/components/HoldSubmitterEducationalModalContent.tsx"	"no-restricted-syntax"	1
 "../../src/components/Hoverable/ActiveHoverable.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Hoverable/ActiveHoverable.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/HTMLEngineProvider/BaseHTMLEngineProvider.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	5
@@ -251,7 +254,7 @@
 "../../src/components/MapView/ToggleDistanceUnitButton/index.android.tsx"	"no-restricted-syntax"	1
 "../../src/components/MenuItem/MenuItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/components/MenuItemList.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
-"../../src/components/MigratedUserWelcomeModal.tsx"	"no-restricted-syntax"	1
+"../../src/components/MigratedUserWelcomeModal.tsx"	"no-restricted-syntax"	2
 "../../src/components/Modal/BaseModal.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/Modal/FileDownloadModal.tsx"	"no-restricted-syntax"	1
 "../../src/components/Modal/Global/ConfirmModalWrapper.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
@@ -514,7 +517,7 @@
 "../../src/components/StatePicker/StateSelectorModal.tsx"	"no-restricted-imports"	1
 "../../src/components/StateSelector.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/components/StateSelector.tsx"	"no-restricted-syntax"	1
-"../../src/components/SubmitPlanWelcomeModal.tsx"	"no-restricted-syntax"	1
+"../../src/components/SubmitPlanWelcomeModal.tsx"	"no-restricted-syntax"	2
 "../../src/components/SubscriptionPlanDowngradeBlocked.tsx"	"no-restricted-syntax"	1
 "../../src/components/SubStepForms/AddressStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/components/SubStepForms/ConfirmationStep.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1

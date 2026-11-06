@@ -190,6 +190,7 @@ const SENTRY_LABEL_SELF_PRESS_WRAPPERS = [
     'BookTravelButton',
     'DropdownButton',
     'ExportWithDropdownMenu',
+    'FeatureTraining.ConfirmButton',
     'MerchantFilterContent',
     'PopoverMenu.Sub.Trigger',
     'TextInputFilterContent',
