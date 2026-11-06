@@ -2959,10 +2959,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         };
 
         // The same rules as Change workspace on a single report, so exported or settled reports stay put.
+        const transactionsByReportID = getTransactionsByReportID(searchResults?.data ?? {});
         const canChangeWorkspaceOfReport = (selectedReport: SelectedReports) =>
             canChangeWorkspaceOfSearchReport({
                 report: getReportFromSearchSnapshot(selectedReport.reportID, searchResults?.data, allReports),
                 liveReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`],
+                reportTransactions: selectedReport.reportID ? transactionsByReportID.get(selectedReport.reportID) : undefined,
                 currentSearchResults: searchResults?.data,
                 allReportActions,
                 policies,

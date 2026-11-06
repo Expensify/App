@@ -131,6 +131,7 @@ import Navigation from './Navigation/Navigation';
 import {hasKey} from './ObjectUtils';
 import Parser from './Parser';
 import {getLoginByAccountID, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {isMapOrGPSRequired} from './PolicyDistanceRatesUtils';
 import {
     arePaymentsEnabled,
     arePolicyRulesEnabled,
@@ -252,7 +253,10 @@ import {
     getMerchant as getTransactionMerchant,
     getTransactionViolations,
     hasDisplayableMCC,
+    hasAppliedCommuterExclusion,
     isDeletedTransaction,
+    isManualDistanceRequest,
+    isOdometerDistanceRequest,
     isOnHold,
     isPending,
     isScanning,
@@ -7951,6 +7955,7 @@ type CanChangeWorkspaceOfSearchReportParams = {
     report: OnyxEntry<OnyxTypes.Report>;
     /** The report in Onyx, which an export after the search updates while the search results keep the old flag */
     liveReport: OnyxEntry<OnyxTypes.Report>;
+    reportTransactions: OnyxTypes.Transaction[] | undefined;
     currentSearchResults: SearchResults['data'] | undefined;
     allReportActions: OnyxCollection<OnyxTypes.ReportActions>;
     policies: OnyxCollection<OnyxTypes.Policy>;
@@ -7962,13 +7967,14 @@ type CanChangeWorkspaceOfSearchReportParams = {
 function canChangeWorkspaceOfSearchReport({
     report,
     liveReport,
+    reportTransactions,
     currentSearchResults,
     allReportActions,
     policies,
     currentUserLogin,
     personalDetails,
 }: CanChangeWorkspaceOfSearchReportParams): boolean {
-    if (!report || !isExpenseReportUtil(report)) {
+    if (!report || !isExpenseReportUtil(report) || reportTransactions?.some(hasAppliedCommuterExclusion)) {
         return false;
     }
     const reportToCheck = liveReport?.isExportedToIntegration === undefined ? report : {...report, isExportedToIntegration: liveReport.isExportedToIntegration};
@@ -7977,15 +7983,30 @@ function canChangeWorkspaceOfSearchReport({
     const submitterLogin = getLoginByAccountID(report.ownerAccountID, personalDetails);
     return (
         isChangeWorkspaceAction(reportToCheck, policies, currentUserLogin ?? '', submitterLogin, reportActions) &&
-        Object.values(policies ?? {}).some((policy) => !!policy && policy.id !== report.policyID && canBulkMoveReportToPolicy(report, policy, submitterLogin, currentUserLogin))
+        Object.values(policies ?? {}).some(
+            (policy) => !!policy && policy.id !== report.policyID && canBulkMoveReportToPolicy(report, reportTransactions, policy, submitterLogin, currentUserLogin),
+        )
     );
 }
 
 /** Whether a bulk workspace change can move the report to the workspace, which needs the submitter there already since it can't invite them. */
-function canBulkMoveReportToPolicy(report: OnyxTypes.Report, policy: OnyxEntry<OnyxTypes.Policy>, submitterLogin: string | undefined, currentUserLogin: string | undefined): boolean {
+function canBulkMoveReportToPolicy(
+    report: OnyxTypes.Report,
+    reportTransactions: OnyxTypes.Transaction[] | undefined,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    submitterLogin: string | undefined,
+    currentUserLogin: string | undefined,
+): boolean {
     // The current user's own workspaces can come without an employee list, and their role already says they're on it
     const isSubmitterOnPolicy = submitterLogin === currentUserLogin ? !!policy?.role : !!getPolicyRole(policy, submitterLogin, false);
-    return isSubmitterOnPolicy && isWorkspaceEligibleForReportChange(submitterLogin, policy, report) && (!isSettled(report) || isPolicyAdmin(policy, currentUserLogin));
+    // Manual and odometer distances have no route, which a workspace that needs map or GPS rejects
+    const hasDistanceWithoutRoute = isMapOrGPSRequired(policy) && !!reportTransactions?.some((transaction) => isManualDistanceRequest(transaction) || isOdometerDistanceRequest(transaction));
+    return (
+        isSubmitterOnPolicy &&
+        !hasDistanceWithoutRoute &&
+        isWorkspaceEligibleForReportChange(submitterLogin, policy, report) &&
+        (!isSettled(report) || isPolicyAdmin(policy, currentUserLogin))
+    );
 }
 
 function shouldShowDeleteOption(

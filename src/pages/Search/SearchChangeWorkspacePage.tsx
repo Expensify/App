@@ -23,7 +23,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {buildSearchQueryJSON, getAllMatchingReportQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
-import {canBulkMoveReportToPolicy, canChangeWorkspaceOfSearchReport} from '@libs/SearchUIUtils';
+import {canBulkMoveReportToPolicy, canChangeWorkspaceOfSearchReport, getTransactionsByReportID} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
 import CONST from '@src/CONST';
@@ -61,6 +61,8 @@ function SearchChangeWorkspacePage() {
     const [selectedOnyxReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsByIDsSelector(selectedReportIDs)});
     const [selectedReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {selector: reportActionsByReportIDsSelector(selectedReportIDs)});
 
+    const transactionsByReportID = getTransactionsByReportID(currentSearchResults?.data ?? {});
+
     // The reports the Change workspace option counted, so an exported one doesn't add workspaces.
     const movableReports = selectedReportIDs
         .map((reportID) => getReportFromSearchSnapshot(reportID, currentSearchResults?.data, selectedOnyxReports))
@@ -70,6 +72,7 @@ function SearchChangeWorkspacePage() {
                 canChangeWorkspaceOfSearchReport({
                     report,
                     liveReport: selectedOnyxReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`],
+                    reportTransactions: transactionsByReportID.get(report.reportID),
                     currentSearchResults: currentSearchResults?.data,
                     allReportActions: selectedReportActions,
                     policies,
@@ -80,7 +83,15 @@ function SearchChangeWorkspacePage() {
 
     // The backend skips the reports that can't move to a workspace, so it's offered when one loaded report can.
     const canMoveAReportTo = (policy: OnyxEntry<Policy>) =>
-        movableReports.some((report) => canBulkMoveReportToPolicy(report, policy, getLoginByAccountID(report.ownerAccountID, personalDetails), currentUserPersonalDetails.login));
+        movableReports.some((report) =>
+            canBulkMoveReportToPolicy(
+                report,
+                transactionsByReportID.get(report.reportID),
+                policy,
+                getLoginByAccountID(report.ownerAccountID, personalDetails),
+                currentUserPersonalDetails.login,
+            ),
+        );
 
     const {data, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
         policies,

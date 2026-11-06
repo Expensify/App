@@ -303,6 +303,27 @@ describe('SearchChangeWorkspacePage', () => {
         expect(mockListData.map((item) => item.policyID)).toContain('policy3');
     });
 
+    it('leaves out a workspace that needs map or GPS for reports with a manual distance expense', async () => {
+        // Given both reports have a manual distance expense, and Workspace 3 needs map or GPS for distance
+        mockSearchData = {
+            ...mockSearchData,
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}tx1`]: {transactionID: 'tx1', reportID: 'report1', iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL},
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}tx2`]: {transactionID: 'tx2', reportID: 'report2', iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL},
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy3`, {...makePolicy('policy3', 'Workspace 3', CONST.POLICY.ROLE.USER), requireMapOrGPS: true});
+
+        // When the page lists the workspaces
+        render(
+            <OnyxListItemProvider>
+                <SearchChangeWorkspacePage />
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Workspace 3 isn't offered, since a manual distance has no route
+        expect(mockListData.map((item) => item.policyID)).toEqual(['policy2']);
+    });
+
     it('only lists workspaces for the reports Change workspace was offered for', async () => {
         // Given an exported draft, which can't change workspace, and a paid report that can move to an admin workspace
         mockSearchData = {
