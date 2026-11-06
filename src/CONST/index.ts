@@ -2988,6 +2988,8 @@ const CONST = {
         ATTRIBUTE_UPGRADE_OUTCOME: 'upgrade_outcome',
         ATTRIBUTE_PHOTO_WIDTH: 'photo_width',
         ATTRIBUTE_PHOTO_HEIGHT: 'photo_height',
+        ATTRIBUTE_CAPTURE_DURATION_MS: 'capture_duration_ms',
+        ATTRIBUTE_SAVE_DURATION_MS: 'save_duration_ms',
         ATTRIBUTE_SOURCE: 'source',
         ATTRIBUTE_SELECTED_FORMAT_AF_SYSTEM: 'selected_format_af_system',
         ATTRIBUTE_PHYSICAL_DEVICE_COUNT: 'physical_device_count',
