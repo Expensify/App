@@ -199,6 +199,9 @@ type ReimbursementDelayedOriginalMessage = {
      */
     expectedDate?: string;
 
+    /** Delivery estimate before this update, so an earlier `expectedDate` can be announced as good news */
+    previousExpectedDate?: string;
+
     /** True when a Wise deposit we reported as delayed or bounced completed after all */
     completed?: boolean;
 };
@@ -220,7 +223,7 @@ type OriginalMessageReimbursementDelayed = {
 /** Fields Auth sends on a failed Wise deposit */
 type ReimbursementDepositFailedOriginalMessage = {
     /**
-     * Wise payout `failure_reason_code`, see `CONST.WISE.PAYOUT_FAILURE_REASON_CATEGORY`. It can arrive after the action
+     * Wise payout `failure_reason_code`, see `CONST.WISE.PAYOUT_FAILURE_REASON`. It can arrive after the action
      * is created, because Auth fills it in when Wise's payout failure webhook lands.
      */
     reason?: string;
@@ -238,6 +241,60 @@ type OriginalMessageReimbursementDepositFailed = {
      *
      */
     originalMessage: Record<string, unknown> & ReimbursementDepositFailedOriginalMessage;
+};
+
+/**
+ *
+ */
+type OriginalMessageReimbursementHeld = {
+    /**
+     *
+     */
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_HELD;
+    /**
+     *
+     */
+    originalMessage: Record<string, unknown>;
+};
+
+/** Fields Auth sends when Wise returns a reimbursement to the payer */
+type ReimbursementRefundedOriginalMessage = {
+    /** Amount returned to the payer */
+    amount?: number;
+
+    /** ISO 4217 currency code of `amount` */
+    currency?: string;
+
+    /** Last four digits of the payer's bank account the funds went back to */
+    debitBankAccountLast4?: string;
+};
+
+/**
+ *
+ */
+type OriginalMessageReimbursementRefunded = {
+    /**
+     *
+     */
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REFUNDED;
+    /**
+     *
+     */
+    originalMessage: Record<string, unknown> & ReimbursementRefundedOriginalMessage;
+};
+
+/**
+ *
+ */
+type OriginalMessageReimbursementReleased = {
+    /**
+     *
+     */
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED;
+    /**
+     *
+     */
+    originalMessage: Record<string, unknown>;
 };
 
 /**
@@ -376,6 +433,18 @@ type OldDotOriginalMessageMap = {
      *
      */
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEPOSIT_FAILED]: OriginalMessageReimbursementDepositFailed;
+    /**
+     *
+     */
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_HELD]: OriginalMessageReimbursementHeld;
+    /**
+     *
+     */
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REFUNDED]: OriginalMessageReimbursementRefunded;
+    /**
+     *
+     */
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED]: OriginalMessageReimbursementReleased;
     /**
      *
      */

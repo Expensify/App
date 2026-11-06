@@ -1306,40 +1306,44 @@ const CONST = {
         ],
 
         /**
-         * Groups Wise's payout `failure_reason_code` values into the reasons we show on a failed deposit, so several codes
-         * that mean the same thing to the employee share one translation. Codes not listed here (including ones Wise adds
-         * later) fall back to the message without a reason.
+         * Maps Wise's payout `failure_reason_code` values to the translation key of the reason we show on a failed deposit.
+         * Codes not listed here, including `REASON_NOT_SPECIFIED` and ones Wise adds later, show the generic reason.
          * https://docs.wise.com/guides/product/send-money/tracking/payout-failures#failure-reason-codes
          */
-        PAYOUT_FAILURE_REASON_CATEGORY: {
-            WRONG_ACCOUNT_NUMBER: 'incorrectBankDetails',
-            WRONG_ACCOUNT_DETAILS: 'incorrectBankDetails',
-            WRONG_ACCOUNT_TYPE: 'incorrectBankDetails',
-            WRONG_BANK_CODE: 'incorrectBankDetails',
-            WRONG_BRANCH_CODE: 'incorrectBankDetails',
-            WRONG_CARD_NUMBER: 'incorrectBankDetails',
-            WRONG_CARD_TYPE: 'incorrectBankDetails',
-            WRONG_CURRENCY: 'incorrectBankDetails',
-            ACCOUNT_DOES_NOT_EXIST: 'incorrectBankDetails',
-            WRONG_NAME: 'nameMismatch',
-            WRONG_ID_NUMBER: 'incorrectRecipientDetails',
-            WRONG_RUT_NUMBER: 'incorrectRecipientDetails',
-            WRONG_PHONE_NUMBER: 'incorrectRecipientDetails',
-            TAX_ID_NOT_MATCHING: 'incorrectRecipientDetails',
-            TAX_ID_SUSPENDED: 'incorrectRecipientDetails',
-            ACCOUNT_CLOSED: 'accountUnavailable',
-            ACCOUNT_FROZEN: 'accountUnavailable',
-            ACCOUNT_BLOCKED: 'accountUnavailable',
+        PAYOUT_FAILURE_REASON: {
+            WRONG_ACCOUNT_NUMBER: 'wrongAccountNumber',
+            WRONG_ACCOUNT_DETAILS: 'wrongAccountDetails',
+            WRONG_BANK_CODE: 'wrongBankCode',
+            WRONG_BRANCH_CODE: 'wrongBranchCode',
+            WRONG_ACCOUNT_TYPE: 'wrongAccountType',
+            WRONG_CARD_NUMBER: 'wrongCardNumber',
+            WRONG_CARD_TYPE: 'wrongCardType',
+            WRONG_NAME: 'wrongName',
+            WRONG_PHONE_NUMBER: 'wrongPhoneNumber',
+            WRONG_ID_NUMBER: 'wrongIdNumber',
+            WRONG_RUT_NUMBER: 'wrongRutNumber',
+            TAX_ID_NOT_MATCHING: 'taxIdNotMatching',
+            WRONG_CURRENCY: 'wrongCurrency',
+            ACCOUNT_DOES_NOT_EXIST: 'accountDoesNotExist',
+            EXTERNAL_IDENTIFIER_DETAILS_HAVE_CHANGED: 'externalIdentifierDetailsHaveChanged',
+            ACCOUNT_CLOSED: 'accountClosed',
+            ACCOUNT_FROZEN: 'accountFrozen',
+            ACCOUNT_BLOCKED: 'accountBlocked',
             ACCOUNT_LIMIT_REACHED: 'accountLimitReached',
-            CANNOT_ACCEPT_FROM_3RD_PARTY: 'rejectedByRecipientBank',
-            CREDITING_ACCOUNT_FORBIDDEN: 'rejectedByRecipientBank',
-            BUSINESS_PAYMENTS_FORBIDDEN: 'rejectedByRecipientBank',
-            DUPLICATE_ENTRY: 'rejectedByRecipientBank',
-            MANDATE_NOT_FILLED_IN: 'rejectedByRecipientBank',
-            FUNDS_NOT_EXPECTED_RETURNED: 'returnedByRecipient',
-            RETURN_REQUESTED_BY_RECIPIENT: 'returnedByRecipient',
-            WRONG_REFERENCE: 'invalidPaymentDetails',
-            WRONG_PAYMENT_PURPOSE: 'invalidPaymentDetails',
+            TAX_ID_SUSPENDED: 'taxIdSuspended',
+            CANNOT_ACCEPT_FROM_3RD_PARTY: 'cannotAcceptFrom3rdParty',
+            CREDITING_ACCOUNT_FORBIDDEN: 'creditingAccountForbidden',
+            BUSINESS_PAYMENTS_FORBIDDEN: 'businessPaymentsForbidden',
+            RETURN_REQUESTED_BY_RECIPIENT: 'returnRequestedByRecipient',
+            FUNDS_NOT_EXPECTED_RETURNED: 'fundsNotExpectedReturned',
+            DUPLICATE_ENTRY: 'duplicateEntry',
+            MANDATE_NOT_FILLED_IN: 'mandateNotFilledIn',
+            REQUEST_FOR_INFORMATION_EXPIRED: 'requestForInformationExpired',
+            WRONG_REFERENCE: 'wrongReference',
+            WRONG_PAYMENT_PURPOSE: 'wrongPaymentPurpose',
+            SENDER_REQUESTED_TO_CANCEL: 'senderRequestedToCancel',
+            TECHNICAL_ISSUE: 'technicalIssue',
+            TECHNICAL_ISSUE_RETRYABLE: 'technicalIssueRetryable',
         },
     },
     NON_USD_BANK_ACCOUNT: {
@@ -2253,6 +2257,9 @@ const CONST = {
                 REIMBURSEMENT_ACCOUNT_CHANGED: 'REIMBURSEMENTACCOUNTCHANGED', // OldDot Action
                 REIMBURSEMENT_DELAYED: 'REIMBURSEMENTDELAYED', // OldDot Action
                 REIMBURSEMENT_DEPOSIT_FAILED: 'REIMBURSEMENTDEPOSITFAILED', // OldDot Action
+                REIMBURSEMENT_HELD: 'REIMBURSEMENTHELD', // OldDot Action
+                REIMBURSEMENT_REFUNDED: 'REIMBURSEMENTREFUNDED', // OldDot Action
+                REIMBURSEMENT_RELEASED: 'REIMBURSEMENTRELEASED', // OldDot Action
                 REIMBURSEMENT_QUEUED: 'REIMBURSEMENTQUEUED',
                 REIMBURSEMENT_DEQUEUED: 'REIMBURSEMENTDEQUEUED',
                 REIMBURSEMENT_REQUESTED: 'REIMBURSEMENTREQUESTED', // Deprecated OldDot Action

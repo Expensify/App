@@ -2108,8 +2108,72 @@ describe('ReportActionsUtils', () => {
             expect(message).toBe('Funds are now expected to arrive by August 20, 2026.');
         });
 
-        it('should say the payment completed late when a bounced deposit lands after all', () => {
-            // Given a REIMBURSEMENT_DELAYED action Wise posted when the deposit completed, which also carries the completion date
+        it('should announce an earlier delivery estimate as good news', () => {
+            // Given a REIMBURSEMENT_DELAYED action Wise posted when the estimate moved earlier
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED,
+                originalMessage: {expectedDate: '2026-08-17', previousExpectedDate: '2026-08-20'},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it uses the sooner copy, because the employee gets the money earlier than promised
+            expect(message).toBe('Great news, funds are now expected to arrive by August 17, 2026.');
+        });
+
+        it('should use the plain estimate copy when the delivery estimate moves later', () => {
+            // Given a REIMBURSEMENT_DELAYED action Wise posted when the estimate moved later
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED,
+                originalMessage: {expectedDate: '2026-08-20', previousExpectedDate: '2026-08-17'},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it states the new date without calling it good news
+            expect(message).toBe(translateLocal('report.actions.type.reimbursementEstimateUpdated', {expectedDate: 'August 20, 2026'}));
+        });
+
+        it('should compare delivery estimates sent in the Auth date-time format', () => {
+            // Given a REIMBURSEMENT_DELAYED action whose dates use Auth's "yyyy-MM-dd HH:mm:ss" format and moved earlier
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED,
+                originalMessage: {expectedDate: '2026-08-17 00:00:00', previousExpectedDate: '2026-08-20 00:00:00'},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it still recognizes the earlier date, because both dates are parsed in UTC
+            expect(message).toBe('Great news, funds are now expected to arrive by August 17, 2026.');
+        });
+
+        it('should keep the delay copy when the delivery estimate cannot be parsed', () => {
+            // Given a REIMBURSEMENT_DELAYED action with a malformed date
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED,
+                originalMessage: {expectedDate: 'not a date'},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it never shows "arrive by ." with an empty date
+            expect(message).toBe(translateLocal('report.actions.type.reimbursementDelayed'));
+        });
+
+        it('should say when the funds arrived once a delayed or failed deposit completes', () => {
+            // Given a REIMBURSEMENT_DELAYED action Wise posted when the deposit completed, carrying the arrival date
             const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
                 reportActionID: '1',
                 created: '2026-08-10 00:00:00.000',
@@ -2120,38 +2184,32 @@ describe('ReportActionsUtils', () => {
             // When the message is built
             const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
 
-            // Then it confirms completion, because a new estimate would be wrong for a payment that already landed
-            expect(message).toBe(translateLocal('report.actions.type.reimbursementCompletedLate'));
+            // Then it confirms the arrival, because a new estimate would be wrong for a payment that already landed
+            expect(message).toBe('Funds arrived on August 20, 2026.');
         });
 
-        it('should name the reason when a deposit fails with a known Wise failure code', () => {
-            // Given a REIMBURSEMENT_DEPOSIT_FAILED action whose reason is a Wise code we group under incorrect bank details
+        it('should confirm the funds arrived even without an arrival date', () => {
+            // Given a completed REIMBURSEMENT_DELAYED action that has no date
             const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
                 reportActionID: '1',
                 created: '2026-08-10 00:00:00.000',
-                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEPOSIT_FAILED,
-                originalMessage: {reason: 'WRONG_ACCOUNT_NUMBER'},
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED,
+                originalMessage: {completed: true},
             };
 
             // When the message is built
             const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
 
-            // Then it shows the translated reason, never Wise's raw code
-            expect(message).toBe(
-                translateLocal('report.actions.type.reimbursementDepositFailedWithReason', {
-                    reason: translateLocal('report.actions.type.reimbursementDepositFailedReason.incorrectBankDetails'),
-                }),
-            );
-            expect(message).not.toContain('WRONG_ACCOUNT_NUMBER');
+            // Then it still says the money landed instead of falling back to the fraud review delay copy
+            expect(message).toBe(translateLocal('report.actions.type.reimbursementArrivedWithoutDate'));
         });
 
         it.each([
-            ['the reason has not arrived yet', undefined],
-            ['the Wise code has no copy', 'TECHNICAL_ISSUE'],
-            ['the Wise code is unknown to the App', 'SOME_NEW_CODE'],
-            ['the code matches an Object prototype key', 'toString'],
-        ])('should show the failed deposit message without a reason when %s', (_, reason) => {
-            // Given a REIMBURSEMENT_DEPOSIT_FAILED action without a reason we can translate
+            ['WRONG_ACCOUNT_NUMBER', 'incorrect account number'],
+            ['ACCOUNT_CLOSED', 'the recipient account is closed'],
+            ['TECHNICAL_ISSUE_RETRYABLE', 'a technical issue at our payments partner, which will retry'],
+        ])('should name the reason when a deposit fails with Wise code %s', (reason, words) => {
+            // Given a REIMBURSEMENT_DEPOSIT_FAILED action with a Wise failure code we have words for
             const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
                 reportActionID: '1',
                 created: '2026-08-10 00:00:00.000',
@@ -2162,15 +2220,93 @@ describe('ReportActionsUtils', () => {
             // When the message is built
             const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
 
-            // Then it falls back to the generic copy, because Auth fills the reason in later and Wise can add new codes
-            expect(message).toBe(translateLocal('report.actions.type.reimbursementDepositFailedDefault'));
+            // Then it shows the translated reason, never Wise's raw code
+            expect(message).toBe(translateLocal('report.actions.type.reimbursementDepositFailed', {reason: words}));
+            expect(message).not.toContain(reason);
         });
 
-        it('should keep a failed deposit visible in the report', () => {
-            // Given a REIMBURSEMENT_DEPOSIT_FAILED action as Auth sends it, which the visibility filter drops unless the App knows its name
-            const authText = "Concierge couldn't deposit the reimbursement because the employee's bank rejected it.";
-            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEPOSIT_FAILED> = {
+        it.each([
+            ['the reason has not arrived yet', undefined],
+            ['Wise did not specify a reason', 'REASON_NOT_SPECIFIED'],
+            ['the Wise code is unknown to the App', 'SOME_NEW_CODE'],
+            ['the code matches an Object prototype key', 'toString'],
+        ])('should say the bank rejected the deposit when %s', (_, reason) => {
+            // Given a REIMBURSEMENT_DEPOSIT_FAILED action without a reason we have words for
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
                 actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEPOSIT_FAILED,
+                originalMessage: {reason},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it uses the generic reason, because Auth fills the reason in later and Wise can add new codes
+            expect(message).toBe(translateLocal('report.actions.type.reimbursementDepositFailed', {reason: "the recipient's bank rejected it"}));
+        });
+
+        it('should name the bank account the refund went back to', () => {
+            // Given a REIMBURSEMENT_REFUNDED action with the payer's bank account
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REFUNDED,
+                originalMessage: {amount: 1000, currency: 'USD', debitBankAccountLast4: '1234'},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then the payer knows which account to check before retrying
+            expect(message).toBe('Funds were returned to bank account 1234. You can retry the payment.');
+        });
+
+        it('should still offer a retry when the refund has no bank account', () => {
+            // Given a REIMBURSEMENT_REFUNDED action without the payer's bank account
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REFUNDED,
+                originalMessage: {},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it leaves the account out instead of showing an empty number
+            expect(message).toBe(translateLocal('report.actions.type.reimbursementRefundedWithoutBankAccount'));
+        });
+
+        it.each([
+            [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_HELD, 'report.actions.type.reimbursementHeld'],
+            [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED, 'report.actions.type.reimbursementReleased'],
+        ] as const)('should show the App copy for %s', (actionName, translationKey) => {
+            // Given a Wise hold or release action, which carries no fields
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName,
+                originalMessage: {},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it uses the translated copy instead of Auth's English fallback
+            expect(message).toBe(translateLocal(translationKey));
+        });
+
+        it.each([
+            CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEPOSIT_FAILED,
+            CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_HELD,
+            CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REFUNDED,
+            CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED,
+        ])('should keep %s visible in the report', (actionName) => {
+            // Given a new Wise action as Auth sends it, which the visibility filter drops unless the App knows its name
+            const authText = "Concierge couldn't deposit the reimbursement because the employee's bank rejected it.";
+            const reportAction: ReportAction = {
+                actionName,
                 reportActionID: '1',
                 created: '2026-08-10',
                 message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: authText, text: authText}],

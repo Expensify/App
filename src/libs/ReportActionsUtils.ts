@@ -47,7 +47,8 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from '
 import type {ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
-import {format, parseJSON} from 'date-fns';
+import {format, isBefore, isValid, parseJSON} from 'date-fns';
+import {toDate} from 'date-fns-tz';
 import {fastMerge, Str} from 'expensify-common';
 import clone from 'lodash/clone';
 import isEmpty from 'lodash/isEmpty';
@@ -404,6 +405,9 @@ const NON_COLLAPSIBLE_SYSTEM_MESSAGE_ACTION_TYPES = new Set<ReportActionName>([
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEPOSIT_FAILED,
+    CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_HELD,
+    CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REFUNDED,
+    CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED,
     CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP,
@@ -414,7 +418,7 @@ const NON_COLLAPSIBLE_SYSTEM_MESSAGE_ACTION_TYPES = new Set<ReportActionName>([
 ]);
 
 // A Map lookup only matches codes we list, so a reason like "toString" can't resolve to an Object prototype member
-const PAYOUT_FAILURE_REASON_CATEGORIES = new Map(Object.entries(CONST.WISE.PAYOUT_FAILURE_REASON_CATEGORY));
+const PAYOUT_FAILURE_REASONS = new Map(Object.entries(CONST.WISE.PAYOUT_FAILURE_REASON));
 
 const deprecatedOldDotReportActions = new Set<ReportActionName>([
     CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT,
@@ -2420,6 +2424,7 @@ function isPaymentAttemptBoundary(action: OnyxEntry<ReportAction>): boolean {
     return (
         isReimbursementDeQueuedOrCanceledAction(action) ||
         isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REFUNDED) ||
         isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RETRACTED) ||
         isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REOPENED) ||
         isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.UNAPPROVED)
@@ -2832,6 +2837,9 @@ function isOldDotReportAction(action: ReportAction | OldDotReportAction) {
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED,
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED,
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEPOSIT_FAILED,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_HELD,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REFUNDED,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED,
         CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT,
         CONST.REPORT.ACTIONS.TYPE.SHARE,
         CONST.REPORT.ACTIONS.TYPE.STRIPE_PAID,
@@ -2856,37 +2864,48 @@ function getMessageOfOldDotLegacyAction(legacyAction: PartialReportAction) {
     return '';
 }
 
-/**
- * Wise reuses the REIMBURSEMENT_DELAYED action for a changed delivery estimate and for a deposit that completed late, so only the
- * fraud review hold, which carries no date, keeps the original "delayed" copy.
- */
-function getReimbursementDelayedMessage(translate: LocalizedTranslate, expectedDate: string | undefined, isCompleted: boolean | undefined): string {
-    if (isCompleted) {
-        return translate('report.actions.type.reimbursementCompletedLate');
-    }
-
+/** Formats a Wise delivery date the same way in the report, LHN preview and thread title */
+function formatReimbursementDate(date: string): string {
     // getMessageOfOldDotReportAction is also called outside React (LHN text, report names), so the date-fns locale
     // comes from IntlStore instead of useLocalize
-    const formattedExpectedDate = expectedDate
-        ? DateUtils.formatWithUTCTimeZone(expectedDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT, IntlStore.getDateFnsLocale(IntlStore.getCurrentLocale()))
-        : '';
-    if (!formattedExpectedDate) {
-        return translate('report.actions.type.reimbursementDelayed');
-    }
-    return translate('report.actions.type.reimbursementEstimateUpdated', {expectedDate: formattedExpectedDate});
+    return DateUtils.formatWithUTCTimeZone(date, CONST.DATE.MONTH_DAY_YEAR_FORMAT, IntlStore.getDateFnsLocale(IntlStore.getCurrentLocale()));
 }
 
 /**
- * Builds the failed deposit message, naming the reason only for Wise failure codes we have copy for. The reason can be
- * missing at first, because Auth adds it when Wise's payout failure webhook arrives.
+ * Wise reuses the REIMBURSEMENT_DELAYED action for a changed delivery estimate and for a deposit that arrived after all, so only the
+ * fraud review hold, which carries no date, keeps the original "delayed" copy.
+ */
+function getReimbursementDelayedMessage(
+    translate: LocalizedTranslate,
+    {expectedDate, previousExpectedDate, completed}: {expectedDate?: string; previousExpectedDate?: string; completed?: boolean},
+): string {
+    const formattedExpectedDate = expectedDate ? formatReimbursementDate(expectedDate) : '';
+    if (completed) {
+        return formattedExpectedDate
+            ? translate('report.actions.type.reimbursementArrived', {arrivalDate: formattedExpectedDate})
+            : translate('report.actions.type.reimbursementArrivedWithoutDate');
+    }
+    if (!expectedDate || !formattedExpectedDate) {
+        return translate('report.actions.type.reimbursementDelayed');
+    }
+
+    // Parse both dates the way formatReimbursementDate does, so date-only and Auth's "yyyy-MM-dd HH:mm:ss" values compare in UTC
+    const expected = toDate(expectedDate, {timeZone: 'UTC'});
+    const previous = previousExpectedDate ? toDate(previousExpectedDate, {timeZone: 'UTC'}) : undefined;
+    const isSooner = !!previous && isValid(previous) && isBefore(expected, previous);
+    return isSooner
+        ? translate('report.actions.type.reimbursementEstimateSooner', {expectedDate: formattedExpectedDate})
+        : translate('report.actions.type.reimbursementEstimateUpdated', {expectedDate: formattedExpectedDate});
+}
+
+/**
+ * Builds the failed deposit message. Codes we have no words for, including ones Wise adds later, and a reason that hasn't
+ * arrived yet (Auth adds it when Wise's payout failure webhook lands) all read as the bank rejecting the payment.
  */
 function getReimbursementDepositFailedMessage(translate: LocalizedTranslate, reason: string | undefined): string {
-    const reasonCategory = reason ? PAYOUT_FAILURE_REASON_CATEGORIES.get(reason) : undefined;
-    if (!reasonCategory) {
-        return translate('report.actions.type.reimbursementDepositFailedDefault');
-    }
-    return translate('report.actions.type.reimbursementDepositFailedWithReason', {
-        reason: translate(`report.actions.type.reimbursementDepositFailedReason.${reasonCategory}`),
+    const reasonKey = (reason ? PAYOUT_FAILURE_REASONS.get(reason) : undefined) ?? 'reasonNotSpecified';
+    return translate('report.actions.type.reimbursementDepositFailed', {
+        reason: translate(`report.actions.type.reimbursementDepositFailedReason.${reasonKey}`),
     });
 }
 
@@ -2953,9 +2972,21 @@ function getMessageOfOldDotReportAction(translate: LocalizedTranslate, oldDotAct
         case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED:
             return translate('report.actions.type.reimbursementAccountChanged');
         case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED:
-            return getReimbursementDelayedMessage(translate, originalMessage?.expectedDate, originalMessage?.completed);
+            return getReimbursementDelayedMessage(translate, {
+                expectedDate: originalMessage?.expectedDate,
+                previousExpectedDate: originalMessage?.previousExpectedDate,
+                completed: originalMessage?.completed,
+            });
         case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEPOSIT_FAILED:
             return getReimbursementDepositFailedMessage(translate, originalMessage?.reason);
+        case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_HELD:
+            return translate('report.actions.type.reimbursementHeld');
+        case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REFUNDED:
+            return originalMessage?.debitBankAccountLast4
+                ? translate('report.actions.type.reimbursementRefunded', {bankAccountLastFour: originalMessage.debitBankAccountLast4})
+                : translate('report.actions.type.reimbursementRefundedWithoutBankAccount');
+        case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED:
+            return translate('report.actions.type.reimbursementReleased');
         case CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT:
             return translate(`report.actions.type.selectedForRandomAudit${withMarkdown ? 'Markdown' : ''}`);
         case CONST.REPORT.ACTIONS.TYPE.SHARE:
@@ -3151,7 +3182,7 @@ function getReportActionMessageFragments(translate: LocalizedTranslate, action: 
     if (isOldDotReportAction(action)) {
         const oldDotMessage = getMessageOfOldDotReportAction(translate, action);
         const html = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT) ? Parser.replace(oldDotMessage) : oldDotMessage;
-        return [{text: oldDotMessage, html: `<muted-text>${html}</muted-text>`, type: 'COMMENT'}];
+        return [{text: Parser.htmlToText(oldDotMessage), html: `<muted-text>${html}</muted-text>`, type: 'COMMENT'}];
     }
 
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION)) {
