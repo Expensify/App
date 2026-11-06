@@ -1,3 +1,4 @@
+import getHadTabNavigation from '@libs/hadTabNavigation';
 import isHTMLElement from '@libs/isHTMLElement';
 import {pickLauncher} from '@libs/LauncherStack';
 import {nominateTriggerFallback} from '@libs/NavigationFocusReturn';
@@ -7,18 +8,6 @@ import restoreFocusWithModality from '@libs/restoreFocusWithModality';
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 
 import type UseBulkActionBarFocus from './types';
-
-/**
- * Whether the browser is already drawing a focus ring on this element. Browsers that cannot be asked are assumed to be
- * drawing one, so a ring is never taken away from someone who navigated there with the keyboard.
- */
-function isShowingFocusRing(element: HTMLElement): boolean {
-    try {
-        return element.matches(':focus-visible');
-    } catch {
-        return true;
-    }
-}
 
 /** Tracks where focus is relative to the bar, and hands it back when the bar goes away holding it. */
 const useBulkActionBarFocus: UseBulkActionBarFocus = (barRef, isCoveredByScreen) => {
@@ -141,9 +130,11 @@ const useBulkActionBarFocus: UseBulkActionBarFocus = (barRef, isCoveredByScreen)
             return;
         }
 
-        // Esc makes whatever holds focus match `:focus-visible`, so a checkbox clicked with the mouse would light up
-        // with a focus ring just as the selection it belongs to disappears.
-        if (isShowingFocusRing(active)) {
+        // Esc is itself what makes whatever holds focus match `:focus-visible`, and the browser has already applied
+        // that by the time this runs, so the element cannot be asked whether it had a ring beforehand. How the focus
+        // arrived is the answer that survives. A ring belongs to someone who tabbed there, not to someone who clicked
+        // the checkbox and is now watching it light up as the selection it belongs to disappears.
+        if (getHadTabNavigation()) {
             return;
         }
 

@@ -1,3 +1,4 @@
+import type {DomainMemberBulkActionType, DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {FilterConfig, IsItemInFilterCallback} from '@components/Table';
@@ -48,6 +49,9 @@ type BaseDomainMembersPageProps = {
 
     /** Whether the group column should be shown in the table */
     shouldShowGroupColumn: boolean;
+
+    /** The actions the selected members support, offered in the floating bar the wide layout shows while rows are selected. */
+    bulkActionOptions?: Array<DropdownOption<DomainMemberBulkActionType>>;
 };
 
 function BaseDomainMembersPage({
@@ -63,6 +67,7 @@ function BaseDomainMembersPage({
     isItemInFilter,
     shouldShowGroupFilter,
     shouldShowGroupColumn,
+    bulkActionOptions,
 }: BaseDomainMembersPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -97,6 +102,7 @@ function BaseDomainMembersPage({
                     shouldShowGroupColumn={shouldShowGroupColumn}
                     filterConfig={shouldShowGroupFilter ? filterConfig : undefined}
                     isItemInFilter={shouldShowGroupFilter ? isItemInFilter : undefined}
+                    bulkActionOptions={bulkActionOptions}
                 />
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>

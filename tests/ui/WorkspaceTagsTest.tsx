@@ -44,6 +44,21 @@ jest.mock('react-native-render-html', () => {
 
 const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
 
+/**
+ * The wide layout offers the bulk actions in the floating bar over the table, which gives the first few an inline
+ * button and moves the rest behind "More". Opening that menu puts every action on screen at once, whichever half of
+ * the bar it landed in.
+ */
+const openBulkActions = async () => {
+    const moreButton = screen.queryByLabelText(TestHelper.translateLocal('common.more'));
+
+    if (moreButton) {
+        fireEvent.press(moreButton);
+    }
+
+    await waitForBatchedUpdatesWithAct();
+};
+
 const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.TAGS, initialParams: WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.TAGS]) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
@@ -259,18 +274,14 @@ describe('WorkspaceTags', () => {
 
         fireEvent.press(selectAll);
 
-        const dropdownMenuButtonTestID = 'WorkspaceTagsPage-header-dropdown-menu-button';
+        // Open the actions the bar moved behind "More"
+        await openBulkActions();
 
-        await waitFor(() => {
-            expect(screen.getByTestId(dropdownMenuButtonTestID)).toBeOnTheScreen();
-        });
-
-        fireEvent.press(screen.getByTestId(dropdownMenuButtonTestID));
         await waitFor(() => {
             expect(screen.getByText(TestHelper.translateLocal('workspace.tags.disableTags'))).toBeOnTheScreen();
         });
 
-        const disableMenuItem = screen.getByTestId('PopoverMenuItem-Disable tags');
+        const disableMenuItem = screen.getByText(TestHelper.translateLocal('workspace.tags.disableTags'));
         const mockEvent = {nativeEvent: {}, type: 'press', target: disableMenuItem, currentTarget: disableMenuItem};
         fireEvent.press(disableMenuItem, mockEvent);
 

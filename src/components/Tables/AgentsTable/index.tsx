@@ -1,3 +1,4 @@
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
 import RenderHTML from '@components/RenderHTML';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
@@ -18,6 +19,7 @@ import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AgentOwnerType} from '@src/types/onyx/Agent';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import type {ValueOf} from 'type-fest';
@@ -79,6 +81,9 @@ type AgentsTableProps = {
     shouldShowOwnerColumn?: boolean;
 
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+
+    /** The actions the selected agents support, offered in the floating bar the wide layout shows while rows are selected. */
+    bulkActionOptions?: Array<DropdownOption<DeepValueOf<typeof CONST.AGENTS.BULK_ACTION_TYPES>>>;
 };
 
 export default function AgentsTable({
@@ -91,6 +96,7 @@ export default function AgentsTable({
     shouldShowRoleColumn,
     shouldShowOwnerColumn,
     onRowSelectionChange,
+    bulkActionOptions,
 }: AgentsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -213,6 +219,7 @@ export default function AgentsTable({
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
+            {!!bulkActionOptions && <Table.BulkActionBar options={bulkActionOptions} />}
         </Table>
     );
 }

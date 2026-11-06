@@ -20,7 +20,19 @@ type MockButtonProps = {
 };
 
 const mockButtonProps: {current?: MockButtonProps} = {};
-let mockProcessedData: Array<Partial<WorkspaceCompanyCardTableItemData> & {selected?: boolean}> = [];
+
+/** Fills in the fields the actions never read, so each case states just what it is about. */
+function buildCard(card: Partial<WorkspaceCompanyCardTableItemData>): WorkspaceCompanyCardTableItemData {
+    return {
+        keyForList: 'card',
+        cardName: '',
+        encryptedCardNumber: '',
+        isCardDeleted: false,
+        isAssigned: false,
+        ...card,
+    };
+}
+let mockSelectedCards: WorkspaceCompanyCardTableItemData[] = [];
 let mockShouldUseNarrowLayout = true;
 
 jest.mock('@components/ButtonWithDropdownMenu', () => {
@@ -47,10 +59,7 @@ jest.mock('@components/Table', () => {
 });
 
 jest.mock('@components/Table/TableContext', () => ({
-    useTableContext: () => ({
-        processedData: mockProcessedData,
-        shouldUseNarrowTableLayout: true,
-    }),
+    useTableContext: () => ({shouldUseNarrowTableLayout: true}),
 }));
 
 jest.mock('@hooks/useConfirmModal', () => ({
@@ -105,6 +114,7 @@ function renderControls(isSelectionModeEnabled: boolean) {
             canWriteCompanyCards
             clearCardSelection={clearCardSelection}
             isSelectionModeEnabled={isSelectionModeEnabled}
+            selectedCards={mockSelectedCards}
         />,
     );
     return {clearCardSelection, ...renderResult};
@@ -114,7 +124,7 @@ describe('WorkspaceCompanyCardsTableControls narrow-layout selection mode', () =
     beforeEach(() => {
         jest.clearAllMocks();
         mockButtonProps.current = undefined;
-        mockProcessedData = [];
+        mockSelectedCards = [];
         mockShouldUseNarrowLayout = true;
     });
 
@@ -127,7 +137,7 @@ describe('WorkspaceCompanyCardsTableControls narrow-layout selection mode', () =
     });
 
     it('enables the action after a card is selected and keeps search mounted', () => {
-        mockProcessedData = [{selected: true, disabled: false, isAssigned: false}];
+        mockSelectedCards = [buildCard({isAssigned: false})];
 
         renderControls(true);
 
@@ -144,7 +154,7 @@ describe('WorkspaceCompanyCardsTableControls narrow-layout selection mode', () =
 
     it('exports formula-like card names as quoted text', async () => {
         // Given a selected company card with a formula-like custom name
-        mockProcessedData = [{selected: true, isAssigned: true, cardName: 'card123', customCardName: '=SUM(1,2)', cardholder: {accountID: 1, login: 'alex@example.com'}}];
+        mockSelectedCards = [buildCard({isAssigned: true, cardName: 'card123', customCardName: '=SUM(1,2)', cardholder: {accountID: 1, login: 'alex@example.com'}})];
         jest.mocked(formatMaskedCardName).mockReturnValue('1234');
         renderControls(true);
 
@@ -153,5 +163,17 @@ describe('WorkspaceCompanyCardsTableControls narrow-layout selection mode', () =
 
         // Then the existing export still uses one safe text cell for the card name
         expect(localFileDownload).toHaveBeenCalledWith('CompanyCards_policy123.csv', expect.stringContaining('\r\nalex@example.com,"\'=SUM(1,2)",1234,'), expect.any(Function));
+    });
+
+    it('clears the selection once the export has started', () => {
+        // Given a selected company card
+        mockSelectedCards = [buildCard({isAssigned: true, cardName: 'card123', cardholder: {accountID: 1, login: 'alex@example.com'}})];
+        const {clearCardSelection} = renderControls(true);
+
+        // When the CSV export action is selected
+        mockButtonProps.current?.options?.find((option) => option.value === 'exportCSV')?.onSelected?.();
+
+        // Then the selection goes with it, the same as it does in Search and the report view
+        expect(clearCardSelection).toHaveBeenCalled();
     });
 });

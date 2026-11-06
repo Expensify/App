@@ -46,6 +46,21 @@ TestHelper.setupGlobalFetchMock();
 
 const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
 
+/**
+ * The wide layout offers the bulk actions in the floating bar over the table, which gives the first few an inline
+ * button and moves the rest behind "More". Opening that menu puts every action on screen at once, whichever half of
+ * the bar it landed in.
+ */
+const openBulkActions = async () => {
+    const moreButton = screen.queryByLabelText(TestHelper.translateLocal('common.more'));
+
+    if (moreButton) {
+        fireEvent.press(moreButton);
+    }
+
+    await waitForBatchedUpdatesWithAct();
+};
+
 const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.CATEGORIES, initialParams: WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.CATEGORIES]) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
@@ -174,28 +189,15 @@ describe('WorkspaceCategories', () => {
 
         fireEvent.press(selectAll);
 
-        const dropdownMenuButtonTestID = 'WorkspaceCategoriesPage-header-dropdown-menu-button';
+        // Open the actions the bar moved behind "More"
+        await openBulkActions();
 
-        // Wait for selection mode to be active and click the dropdown menu button
-        await waitFor(() => {
-            expect(screen.getByTestId(dropdownMenuButtonTestID)).toBeOnTheScreen();
-        });
-
-        // Click the "2 selected" button to open the menu
-        const dropdownButton = screen.getByTestId(dropdownMenuButtonTestID);
-        fireEvent.press(dropdownButton);
-
-        await waitForBatchedUpdatesWithAct();
-
-        // Wait for menu items to be visible
         await waitFor(() => {
             const deleteText = TestHelper.translateLocal('workspace.categories.deleteCategories');
             expect(screen.getByText(deleteText)).toBeOnTheScreen();
         });
 
-        // Find and verify "Delete categories" dropdown menu item
-        const deleteMenuItem = screen.getByTestId('PopoverMenuItem-Delete categories');
-        expect(deleteMenuItem).toBeOnTheScreen();
+        const deleteMenuItem = screen.getByText(TestHelper.translateLocal('workspace.categories.deleteCategories'));
 
         // Create a mock event object that matches GestureResponderEvent. Needed for onPress in MenuItem to be called
         const mockEvent = {
@@ -285,28 +287,15 @@ describe('WorkspaceCategories', () => {
 
         fireEvent.press(selectAll);
 
-        const dropdownMenuButtonTestID = 'WorkspaceCategoriesPage-header-dropdown-menu-button';
+        // Open the actions the bar moved behind "More"
+        await openBulkActions();
 
-        // Wait for selection mode to be active and click the dropdown menu button
-        await waitFor(() => {
-            expect(screen.getByTestId(dropdownMenuButtonTestID)).toBeOnTheScreen();
-        });
-
-        // Click the "2 selected" button to open the menu
-        const dropdownButton = screen.getByTestId(dropdownMenuButtonTestID);
-        fireEvent.press(dropdownButton);
-
-        await waitForBatchedUpdatesWithAct();
-
-        // Wait for menu items to be visible
         await waitFor(() => {
             const disableText = TestHelper.translateLocal('workspace.categories.disableCategories');
             expect(screen.getByText(disableText)).toBeOnTheScreen();
         });
 
-        // Find and verify "Disable categories" dropdown menu item
-        const disableMenuItem = screen.getByTestId('PopoverMenuItem-Disable categories');
-        expect(disableMenuItem).toBeOnTheScreen();
+        const disableMenuItem = screen.getByText(TestHelper.translateLocal('workspace.categories.disableCategories'));
 
         // Create a mock event object that matches GestureResponderEvent. Needed for onPress in MenuItem to be called
         const mockEvent = {

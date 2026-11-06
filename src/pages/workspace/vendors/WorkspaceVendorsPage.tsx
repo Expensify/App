@@ -53,10 +53,8 @@ type VendorBulkActionsProps = {
     onClearSelection: () => void;
 };
 
-function VendorBulkActions({policyID, selectedVendorKeys, policyVendors, defaultVendorID, onClearSelection}: VendorBulkActionsProps) {
-    const styles = useThemeStyles();
+function useVendorBulkActionOptions({policyID, selectedVendorKeys, policyVendors, defaultVendorID, onClearSelection}: VendorBulkActionsProps) {
     const {translate} = useLocalize();
-    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close']);
     const policyData = usePolicyData(policyID);
     const {isBetaEnabled} = usePermissions();
@@ -102,6 +100,15 @@ function VendorBulkActions({policyID, selectedVendorKeys, policyVendors, default
             },
         });
     }
+
+    return options;
+}
+
+function VendorBulkActions({policyID, selectedVendorKeys, policyVendors, defaultVendorID, onClearSelection}: VendorBulkActionsProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
+    const options = useVendorBulkActionOptions({policyID, selectedVendorKeys, policyVendors, defaultVendorID, onClearSelection});
 
     return (
         <ButtonWithDropdownMenu
@@ -224,7 +231,10 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
     ) : undefined;
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
-    const canShowBulkActions = canWriteVendors && (selectedVendorKeys.length > 0 || selectionModeHeader);
+    // The wide layout offers these actions in the floating bar over the table instead, so its header keeps the
+    // page's own buttons no matter what is selected.
+    const canShowBulkActions = canWriteVendors && selectionModeHeader;
+    const vendorBulkActionOptions = useVendorBulkActionOptions({policyID, selectedVendorKeys, policyVendors, defaultVendorID, onClearSelection: clearTableSelection});
     const isLoading = !isOffline && policyVendors === undefined;
 
     return (
@@ -292,6 +302,7 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
                         selectedKeys={selectedVendorKeys}
                         onRowSelectionChange={setSelectedVendorKeys}
                         headerComponent={headerContent}
+                        bulkActionOptions={canWriteVendors ? vendorBulkActionOptions : undefined}
                     />
                 )}
             </ScreenWrapper>
