@@ -2108,6 +2108,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         // Keeps the footer's content clear of the floating (+) button, which sits over its right end on narrow layouts.
         searchPageFooterFABClearance: {
+            // The button's offset from the edge, its width and a 12px gap before the footer content.
             paddingRight: variables.floatingActionButtonRightOffset + variables.componentSizeLarge + 12,
         },
 
