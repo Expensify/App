@@ -28,12 +28,7 @@ function useContactPermissionModal({onDeny, onGrant, onFocusTextInput, isEnabled
     const isMountedRef = useRef(false);
 
     const runContactPermissionFlow = useEffectEvent(async () => {
-        if (!isEnabled) {
-            onFocusTextInput();
-            return;
-        }
-
-        if (hasDeniedContactImportPrompt) {
+        if (!isEnabled || hasDeniedContactImportPrompt) {
             onFocusTextInput();
             return;
         }

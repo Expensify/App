@@ -63,13 +63,17 @@ describe('useContactPermissionModal', () => {
     });
 
     it('shows the import contacts prompt when contacts permission has not been asked yet', async () => {
+        // Given the prompt is enabled (the default) and contacts permission hasn't been asked yet
+        // When the hook mounts
         renderContactPermissionModal();
 
+        // Then the import contacts prompt opens
         await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
     });
 
     it('does not show the prompt when it is disabled, and focuses the text input instead', async () => {
         // Given a picker that turned the prompt off, as the share flow does
+        // When the hook mounts
         const {params} = renderContactPermissionModal(false);
 
         // Then the text input is focused as if the prompt weren't needed

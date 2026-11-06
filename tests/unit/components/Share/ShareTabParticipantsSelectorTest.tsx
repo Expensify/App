@@ -56,7 +56,8 @@ describe('ShareTabParticipantsSelector', () => {
         ['Submit', ROUTES.SHARE_SUBMIT_DETAILS],
         ['Share', ROUTES.SHARE_DETAILS],
     ])('does not show the import contacts prompt in the %s tab', (_tabName, detailsPageRouteObject) => {
-        // When the share flow's participant picker renders
+        // Given the share flow is open on this tab
+        // When its participant picker renders
         render(<ShareTabParticipantsSelector detailsPageRouteObject={detailsPageRouteObject} />);
 
         // Then it turns the prompt off, so it can't open over the share flow's file error bottom sheet
@@ -65,17 +66,21 @@ describe('ShareTabParticipantsSelector', () => {
 
     it('waits to focus the search input until the shared file is known', () => {
         // Given the shared file hasn't been read yet
+        // When the picker renders
         renderSelector();
 
-        // Then the keyboard stays closed for now
+        // Then the keyboard stays closed for now, because the file may still need checking
         expect(lastSelectorProps?.shouldDeferTextInputAutoFocus).toBe(true);
     });
 
     it('focuses the search input right away for a shared file that needs no checking', () => {
+        // Given a shared JPEG, which skips the HEIC/image check
         mockOnyxValues[ONYXKEYS.SHARE_TEMP_FILE] = sharedJpeg;
 
+        // When the picker renders
         renderSelector();
 
+        // Then the search input can focus right away
         expect(lastSelectorProps?.shouldDeferTextInputAutoFocus).toBe(false);
     });
 

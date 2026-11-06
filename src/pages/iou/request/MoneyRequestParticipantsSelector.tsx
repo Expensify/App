@@ -99,7 +99,7 @@ function MoneyRequestParticipantsSelector({
     onRestrictedParticipantSelected,
     onCloseParticipantPicker,
     shouldBlockParticipantSelection,
-    shouldShowContactImportPrompt,
+    shouldShowContactImportPrompt = true,
     shouldDeferTextInputAutoFocus = false,
     ref,
 }: MoneyRequestParticipantsSelectorProps) {
