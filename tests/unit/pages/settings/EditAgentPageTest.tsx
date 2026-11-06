@@ -8,7 +8,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 
-import EditAgentPage from '@pages/settings/Agents/EditAgentPage';
+import DynamicEditAgentPage from '@pages/settings/Agents/DynamicEditAgentPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -148,20 +148,20 @@ const mockUseOnyx = jest.mocked(useOnyx);
 
 const TEST_ACCOUNT_ID = 12345;
 
-type EditAgentPageRoute = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT>['route'];
-type EditAgentPageNavigation = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT>['navigation'];
+type DynamicEditAgentPageRoute = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT>['route'];
+type DynamicEditAgentPageNavigation = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT>['navigation'];
 
-const mockRoute = createMock<EditAgentPageRoute>({params: {accountID: TEST_ACCOUNT_ID}});
-const mockNavigation = createMock<EditAgentPageNavigation>({});
+const mockRoute = createMock<DynamicEditAgentPageRoute>({params: {accountID: TEST_ACCOUNT_ID}});
+const mockNavigation = createMock<DynamicEditAgentPageNavigation>({});
 
-describe('EditAgentPage', () => {
+describe('DynamicEditAgentPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockUseOnyx.mockImplementation((key, options) => {
             if (key === ONYXKEYS.PERSONAL_DETAILS_LIST && options?.selector) {
                 return [{displayName: 'Default Agent'}, {status: 'loaded'}];
             }
-            if (typeof key === 'string' && key.startsWith(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT)) {
+            if (typeof key === 'string' && key.startsWith(ONYXKEYS.COLLECTION.AGENT)) {
                 return [{prompt: 'Default prompt'}, {status: 'loaded'}];
             }
             return [undefined, {status: 'loaded'}];
@@ -177,7 +177,7 @@ describe('EditAgentPage', () => {
         });
 
         const {toJSON} = render(
-            <EditAgentPage
+            <DynamicEditAgentPage
                 route={mockRoute}
                 navigation={mockNavigation}
             />,
@@ -188,14 +188,14 @@ describe('EditAgentPage', () => {
 
     it('renders prompt from agent Onyx key', () => {
         mockUseOnyx.mockImplementation((key) => {
-            if (key === `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${TEST_ACCOUNT_ID}`) {
+            if (key === `${ONYXKEYS.COLLECTION.AGENT}${TEST_ACCOUNT_ID}`) {
                 return [{prompt: 'Reject all gambling expenses.'}, {status: 'loaded'}];
             }
             return [undefined, {status: 'loaded'}];
         });
 
         const {toJSON} = render(
-            <EditAgentPage
+            <DynamicEditAgentPage
                 route={mockRoute}
                 navigation={mockNavigation}
             />,
@@ -206,7 +206,7 @@ describe('EditAgentPage', () => {
 
     it('renders delete agent menu item', () => {
         const {toJSON} = render(
-            <EditAgentPage
+            <DynamicEditAgentPage
                 route={mockRoute}
                 navigation={mockNavigation}
             />,
@@ -224,7 +224,7 @@ describe('EditAgentPage', () => {
         });
 
         render(
-            <EditAgentPage
+            <DynamicEditAgentPage
                 route={mockRoute}
                 navigation={mockNavigation}
             />,
@@ -241,14 +241,14 @@ describe('EditAgentPage', () => {
 
     it('shows error text when agent has nameErrors', () => {
         mockUseOnyx.mockImplementation((key) => {
-            if (key === `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${TEST_ACCOUNT_ID}`) {
+            if (key === `${ONYXKEYS.COLLECTION.AGENT}${TEST_ACCOUNT_ID}`) {
                 return [{prompt: 'Some prompt', nameErrors: {someKey: 'agentsPage.error.updateName'}}, {status: 'loaded'}];
             }
             return [undefined, {status: 'loaded'}];
         });
 
         const {toJSON} = render(
-            <EditAgentPage
+            <DynamicEditAgentPage
                 route={mockRoute}
                 navigation={mockNavigation}
             />,
@@ -259,14 +259,14 @@ describe('EditAgentPage', () => {
 
     it('shows error text when agent has promptErrors', () => {
         mockUseOnyx.mockImplementation((key) => {
-            if (key === `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${TEST_ACCOUNT_ID}`) {
+            if (key === `${ONYXKEYS.COLLECTION.AGENT}${TEST_ACCOUNT_ID}`) {
                 return [{prompt: 'Some prompt', promptErrors: {someKey: 'agentsPage.error.updatePrompt'}}, {status: 'loaded'}];
             }
             return [undefined, {status: 'loaded'}];
         });
 
         const {toJSON} = render(
-            <EditAgentPage
+            <DynamicEditAgentPage
                 route={mockRoute}
                 navigation={mockNavigation}
             />,
@@ -284,7 +284,7 @@ describe('EditAgentPage', () => {
         });
 
         const {toJSON} = render(
-            <EditAgentPage
+            <DynamicEditAgentPage
                 route={mockRoute}
                 navigation={mockNavigation}
             />,
@@ -299,7 +299,7 @@ describe('EditAgentPage', () => {
         mockUseOnyx.mockReturnValue([undefined, {status: 'loading'}]);
 
         const {toJSON} = render(
-            <EditAgentPage
+            <DynamicEditAgentPage
                 route={mockRoute}
                 navigation={mockNavigation}
             />,

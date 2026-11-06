@@ -8,12 +8,15 @@ import useGPSTripStateChecker from '@hooks/useGPSTripStateChecker/index.native';
 
 import type * as GPSDraftDetailsUtils from '@libs/GPSDraftDetailsUtils';
 
+import {BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {GpsDraftDetails} from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
 
+import {hasStartedLocationUpdatesAsync, stopLocationUpdatesAsync} from 'expo-location';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -98,6 +101,7 @@ describe('useGPSTripStateChecker', () => {
     beforeEach(async () => {
         resetMockConfirmModal();
         mockStopGpsTrip.mockClear();
+        jest.mocked(stopLocationUpdatesAsync).mockClear();
         mockSplashScreenState = CONST.BOOT_SPLASH_STATE.VISIBLE;
         await Onyx.clear();
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_ACCOUNT_ID});
@@ -132,6 +136,28 @@ describe('useGPSTripStateChecker', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(await getOnyxValue(ONYXKEYS.GPS_DRAFT_DETAILS)).toBeUndefined();
+    });
+
+    it('discards a trip stored in the old flat points format and stops its background tracking', async () => {
+        // Given a trip still tracking in the background, stored before gpsPoints became one array per segment
+        mockSplashScreenState = CONST.BOOT_SPLASH_STATE.HIDDEN;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only: the old flat format is no longer a valid GpsDraftDetails
+        await Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, {...trip, gpsPoints: [FIRST_POINT] as unknown as GpsDraftDetails['gpsPoints']});
+        await waitForBatchedUpdatesWithAct();
+        jest.mocked(hasStartedLocationUpdatesAsync).mockResolvedValueOnce(true);
+
+        // When the checker mounts
+        renderChecker();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the trip is cleared, because points in the old format can no longer be read
+        expect(await getOnyxValue(ONYXKEYS.GPS_DRAFT_DETAILS)).toBeUndefined();
+
+        // Then its background tracking is stopped too, because the restart check runs once and would not get another chance
+        expect(stopLocationUpdatesAsync).toHaveBeenCalledWith(BACKGROUND_LOCATION_TRACKING_TASK_NAME);
+
+        // Then the user is not asked to continue a trip that no longer exists
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
     });
 
     it('does not prompt while the splash screen is still up', async () => {

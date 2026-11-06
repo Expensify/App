@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 
-import {useEffect, useMemo, useState} from 'react';
+import {useEffect, useState} from 'react';
 
 type StepName = 'description' | 'merchant' | 'category' | 'billable' | 'tag' | 'taxCode' | 'reimbursable' | 'confirmation';
 
@@ -13,7 +13,7 @@ function useReviewDuplicatesNavigation(stepNames: string[], currentScreenName: S
     const [nextScreen, setNextScreen] = useState<StepName>();
     const [prevScreen, setPrevScreen] = useState<StepName>();
     const [currentScreenIndex, setCurrentScreenIndex] = useState(0);
-    const intersection = useMemo(() => CONST.REVIEW_DUPLICATES_ORDER.filter((element) => stepNames.includes(element)), [stepNames]);
+    const intersection = CONST.REVIEW_DUPLICATES_ORDER.filter((element) => stepNames.includes(element));
 
     useEffect(() => {
         if (currentScreenName === 'confirmation') {

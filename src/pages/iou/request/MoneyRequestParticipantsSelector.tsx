@@ -2,6 +2,7 @@ import AlwaysPaintedView from '@components/AlwaysPaintedView';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
 import useDeferVisibleUntilFocusTransitionEnd from '@hooks/useDeferVisibleUntilFocusTransitionEnd';
+import useOpenRecipientPicker from '@hooks/useOpenRecipientPicker';
 
 import getPlatform from '@libs/getPlatform';
 
@@ -56,11 +57,6 @@ type MoneyRequestParticipantsSelectorProps = {
     /** Whether to find the participant matching initiallySelectedReportID and move it to the top of the list */
     shouldMoveSelectedToTop?: boolean;
 
-    onRestrictedParticipantSelected?: () => void;
-
-    /** Callback to dismiss the participant picker overlay before the referral banner navigates, so the referral RHP isn't covered */
-    onCloseParticipantPicker?: () => void;
-
     /**
      * Called before committing a participant/workspace selection.
      * Return true to block the selection (e.g. manual/odometer distance into a commuter-exclusion workspace).
@@ -89,8 +85,6 @@ function MoneyRequestParticipantsSelector({
     shouldExcludeP2P = false,
     initiallySelectedReportID,
     shouldMoveSelectedToTop = false,
-    onRestrictedParticipantSelected,
-    onCloseParticipantPicker,
     shouldBlockParticipantSelection,
     ref,
 }: MoneyRequestParticipantsSelectorProps) {
@@ -100,6 +94,8 @@ function MoneyRequestParticipantsSelector({
     const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
     const selectionListRef = useRef<SelectionListWithSectionsHandle | null>(null);
+
+    useOpenRecipientPicker(shouldExcludeWorkspaces);
 
     useImperativeHandle(ref, () => ({
         focus: () => {
@@ -131,8 +127,6 @@ function MoneyRequestParticipantsSelector({
                     onFinish={onFinish}
                     initiallySelectedReportID={initiallySelectedReportID}
                     shouldMoveSelectedToTop={shouldMoveSelectedToTop}
-                    onRestrictedParticipantSelected={onRestrictedParticipantSelected}
-                    onCloseParticipantPicker={onCloseParticipantPicker}
                     shouldBlockParticipantSelection={shouldBlockParticipantSelection}
                 />
             </AlwaysPaintedView>

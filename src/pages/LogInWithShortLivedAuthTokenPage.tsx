@@ -46,12 +46,9 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
         }
 
         if (!account?.isLoading && authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT) {
+            // Do not navigate after a support sign-in. A navigation here replaces the /transition URL, and the
+            // signed-in screens read exitTo from that URL after the sign-in completes.
             signInWithSupportAuthToken(shortLivedAuthToken);
-            Navigation.isNavigationReady().then(() => {
-                // We must call goBack() to remove the /transition route from history
-                Navigation.goBack();
-                Navigation.navigate(ROUTES.HOME);
-            });
             return;
         }
 
@@ -89,7 +86,8 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
     }, [route, isLoadingSignInData]);
 
     if (account?.isLoading || isLoadingSignInData) {
-        return <FullScreenLoadingIndicator />;
+        // No "Go Back" button: this is a deep-link entry point, so there is usually no history to pop back to.
+        return <FullScreenLoadingIndicator shouldUseGoBackButton={false} />;
     }
 
     return <SessionExpiredPage />;

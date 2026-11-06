@@ -16,6 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Report, UserLocation} from '@src/types/onyx';
 
+import type * as ReactNavigation from '@react-navigation/native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {NavigationContainer} from '@react-navigation/native';
@@ -36,6 +37,12 @@ const POLICY_ID = 'policy-1';
 const TRANSACTION_ID = '101';
 
 let mockLocationPermissionResult = 'granted';
+let mockIsFocused = true;
+
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof ReactNavigation>('@react-navigation/native'),
+    useIsFocused: () => mockIsFocused,
+}));
 
 const mockCheck = jest.fn(() => Promise.resolve(mockLocationPermissionResult));
 
@@ -67,7 +74,7 @@ jest.mock('@components/Modal/Global/ModalContext', () => {
 jest.mock('react-native-vision-camera', () => ({
     useCameraDevice: jest.fn(() => null),
     useCameraDevices: jest.fn(() => []),
-    useCameraFormat: jest.fn(() => null),
+    usePhotoOutput: jest.fn(() => ({})),
 }));
 
 jest.mock('@pages/iou/request/step/IOURequestStepScan/hooks/useScanRouteParams', () => ({
@@ -97,7 +104,7 @@ function getUserLocationFromOnyx(): Promise<OnyxEntry<UserLocation>> {
             key: ONYXKEYS.USER_LOCATION,
             callback: (val) => {
                 resolve(val);
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
             },
         });
     });
@@ -155,6 +162,7 @@ describe('scan screen location permission prompt', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         resetMockConfirmModal();
+        mockIsFocused = true;
     });
 
     afterEach(async () => {
@@ -192,6 +200,23 @@ describe('scan screen location permission prompt', () => {
         expect(jest.mocked(getCurrentPosition)).not.toHaveBeenCalled();
     });
 
+    it('clears a previously cached position when permission is denied inside the prompt window', async () => {
+        // Given a cached USER_LOCATION, denied location permission, and a prompt timestamp within the seven-day cool-down
+        mockLocationPermissionResult = 'denied';
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.USER_LOCATION, {latitude: 10, longitude: 20});
+            await Onyx.merge(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, new Date().toISOString());
+        });
+
+        // When the scan screen opens and snapshots the user location
+        await renderScanScreen();
+        await waitForBatchedUpdates();
+
+        // Then the stale position is wiped rather than reused, and no location read that permission would refuse is spent
+        expect(jest.mocked(getCurrentPosition)).not.toHaveBeenCalled();
+        expect(await getUserLocationFromOnyx()).toBeUndefined();
+    });
+
     it('caches a position without prompting when permission was granted from the OS settings inside the prompt window', async () => {
         // Given a user who tapped "Not now" recently and later granted location from the OS settings, so the prompt flow will not run
         mockLocationPermissionResult = 'granted';
@@ -211,5 +236,34 @@ describe('scan screen location permission prompt', () => {
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
         expect(jest.mocked(getCurrentPosition)).toHaveBeenCalledTimes(1);
         expect(await getUserLocationFromOnyx()).toEqual({latitude: 10, longitude: 20});
+    });
+
+    it('does not ask for location permission while the scan tab is hidden behind another tab', async () => {
+        // Given a device that was never prompted, so the prompt would normally open
+        mockLocationPermissionResult = 'denied';
+        mockIsFocused = false;
+
+        // When the user switches to the Manual tab, which remounts the scan screen out of view
+        await renderScanScreen();
+        await waitForBatchedUpdates();
+
+        // Then no prompt opens over the tab the user is looking at
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+    });
+
+    it('does not read the position while the scan tab is hidden behind another tab', async () => {
+        // Given a user who granted location inside the prompt window, so a visible scan tab would read the position
+        mockLocationPermissionResult = 'granted';
+        mockIsFocused = false;
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, new Date().toISOString());
+        });
+
+        // When the user switches tabs, which remounts the scan screen out of view
+        await renderScanScreen();
+        await waitForBatchedUpdates();
+
+        // Then no location read runs, since only a submit from the visible scan tab uses the cached position
+        expect(jest.mocked(getCurrentPosition)).not.toHaveBeenCalled();
     });
 });

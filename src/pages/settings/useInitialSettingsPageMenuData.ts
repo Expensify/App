@@ -12,6 +12,7 @@ import useSignOut from '@hooks/useSignOut';
 
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
+import {hasAgentErrorsSelector} from '@libs/AgentUtils';
 import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {hasCardPendingDigitalWalletApproval, hasPendingExpensifyCardAction, hasVirtualExpensifyCardMissingPersonalDetails} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -21,6 +22,7 @@ import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 import {expensifyLoginsSelector, getProfilePageBrickRoadIndicator, hasDeviceManagementError} from '@libs/UserUtils';
 
 import useTimeSensitiveHomeAddress from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveHomeAddress';
+import useTimeSensitiveWiseMoreInfoNeeded from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveWiseMoreInfoNeeded';
 
 import {openExternalLink, openOldDotLink} from '@userActions/Link';
 import {hasPaymentMethodError} from '@userActions/PaymentMethods';
@@ -78,6 +80,7 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const hasLockedBankAccount = bankAccountList ? Object.values(bankAccountList).some((bankAccount) => bankAccount.accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED) : false;
     const {shouldShowAddHomeAddress} = useTimeSensitiveHomeAddress();
+    const {wiseMoreInfoNeededBankAccounts} = useTimeSensitiveWiseMoreInfoNeeded();
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {
         selector: isTrackingSelector,
@@ -86,9 +89,7 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
     const [unsharedBankAccount] = useOnyx(ONYXKEYS.UNSHARE_BANK_ACCOUNT);
     const [stashedCredentials] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
-    const [hasAgentErrors] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT, {
-        selector: (agents) => Object.values(agents ?? {}).some((agent) => !isEmptyObject(agent?.nameErrors) || !isEmptyObject(agent?.promptErrors) || !isEmptyObject(agent?.avatarErrors)),
-    });
+    const [hasAgentError] = useOnyx(ONYXKEYS.COLLECTION.AGENT, {selector: hasAgentErrorsSelector});
     const privateSubscription = usePrivateSubscription();
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
@@ -116,6 +117,7 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
     } else if (
         hasPartiallySetupBankAccount(bankAccountList) ||
         hasPersonalBankAccountMissingInfo(bankAccountList) ||
+        wiseMoreInfoNeededBankAccounts.length > 0 ||
         hasPendingCardAction ||
         hasVirtualCardMissingDetails ||
         hasCardPendingDigitalWalletApproval(allCards)
@@ -179,7 +181,7 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
             return {
                 ...item,
                 badgeText: translate('common.beta'),
-                brickRoadIndicator: hasAgentErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator: hasAgentError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             };
         }
         if (item.screenName === SCREENS.SETTINGS.SUBSCRIPTION.ROOT) {

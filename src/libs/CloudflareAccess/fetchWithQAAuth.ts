@@ -19,7 +19,7 @@ type QAAuthRequestOptions = {
 };
 
 /**
- * Attaches the bearer only for an exact match on the configured QA origin. On a 401 it refreshes once and
+ * Attaches the bearer only for an exact match on one of the configured QA origins. On a 401 it refreshes once and
  * retries once, and a second 401 rejects with CF_REAUTH_REQUIRED. Transient refresh failures reject as-is.
  */
 async function fetchWithQAAuth(url: string, options: QAAuthRequestOptions = {}, isRetry = false): Promise<Response> {

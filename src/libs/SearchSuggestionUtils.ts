@@ -51,6 +51,7 @@ const SEARCH_TYPE_MENU_ICON_NAMES = [
     'Pencil',
     'ThumbsUp',
     'CheckCircle',
+    'Plane',
 ] as const satisfies readonly ExpensifyIconName[];
 
 type SearchTypeMenuItem = {
@@ -486,6 +487,25 @@ function getSuggestedSearches(
                     sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
                 },
             ),
+            get searchQueryJSON() {
+                return buildSearchQueryJSON(this.searchQuery);
+            },
+            get hash() {
+                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get similarSearchHash() {
+                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get recentSearchHash() {
+                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+        [CONST.SEARCH.SEARCH_KEYS.TRIPS]: {
+            key: CONST.SEARCH.SEARCH_KEYS.TRIPS,
+            translationPath: 'search.tabs.trips',
+            type: CONST.SEARCH.DATA_TYPES.TRIP,
+            icon: 'Plane',
+            searchQuery: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.TRIP}),
             get searchQueryJSON() {
                 return buildSearchQueryJSON(this.searchQuery);
             },

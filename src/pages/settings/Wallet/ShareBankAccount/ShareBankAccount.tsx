@@ -1,5 +1,5 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
-import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -176,7 +176,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
         },
     ];
 
-    const headerMessage = getHeaderMessage(sections?.at(0)?.data.length !== 0, false, debouncedSearchValue, countryCode, false);
+    const headerMessage = getHeaderMessage(translate, sections?.at(0)?.data.length !== 0, false, debouncedSearchValue, countryCode, false);
 
     const onButtonPress = () => Navigation.goBack(ROUTES.SETTINGS_WALLET);
 
@@ -188,16 +188,14 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
             />
             {shouldShowSuccess ? (
                 <ScrollView contentContainerStyle={styles.flexGrow1}>
-                    <ConfirmationPage
+                    <ConfirmationPageDefault
                         heading={translate('walletPage.shareBankAccountSuccess')}
                         description={translate('walletPage.shareBankAccountSuccessDescription')}
                         illustration={illustrations.ShareBank}
-                        shouldShowButton
                         descriptionStyle={[styles.ph4, styles.textSupporting]}
                         illustrationStyle={styles.successBankSharedCardIllustration}
                         onButtonPress={onButtonPress}
                         buttonText={translate('common.buttonConfirm')}
-                        containerStyle={styles.h100}
                     />
                 </ScrollView>
             ) : (

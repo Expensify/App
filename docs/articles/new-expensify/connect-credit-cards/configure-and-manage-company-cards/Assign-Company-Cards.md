@@ -41,6 +41,7 @@ If you haven’t set up a company card feed yet, learn how to set one up:
 ## What happens after you assign company cards
 
 - Posted transactions from the assigned card import automatically into the member's account as expenses.
+- If the card is connected through Plaid, pending transactions also import and are marked as pending until they post. [Learn which connections import pending transactions](/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Direct-Connection-for-Company-Cards#do-pending-transactions-import-from-a-direct-connection).
 - Expensify imports transactions from the **Transaction start date** onward.
 - The imported company card expenses are added to reports and submitted according to workspace rules.
 
@@ -65,7 +66,7 @@ No. Only workspace admins, card admins, and their Copilots can assign or reassig
 
 ## Can I change the transaction start date on an assigned card?
 
-Yes. You can update the **Transaction start date** at any time from the assigned card's details. The **Transaction start date** determines the date from which Expensify imports transactions for the card.
+Yes. You can update the **Transaction start date** at any time from the assigned card's details. To update several cards at once, select the assigned cards on the **Company cards** page, then select **Update transaction start date** from the selection bar. The **Transaction start date** determines the date from which Expensify imports transactions for the card.
 
 ## Can I set the transaction start date to a future date?
 

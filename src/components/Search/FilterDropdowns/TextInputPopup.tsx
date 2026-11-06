@@ -18,9 +18,11 @@ type TextInputPopupProps = {
     onBackButtonPress?: () => void;
     closeOverlay: () => void;
     onChange: (value: string) => void;
+    applySentryLabel: string;
+    resetSentryLabel: string;
 };
 
-function TextInputPopup({style, defaultValue, label, placeholder, onBackButtonPress, closeOverlay, onChange}: TextInputPopupProps) {
+function TextInputPopup({style, defaultValue, label, placeholder, onBackButtonPress, closeOverlay, onChange, applySentryLabel, resetSentryLabel}: TextInputPopupProps) {
     const styles = useThemeStyles();
     const [value, setValue] = useState(defaultValue);
 
@@ -40,8 +42,8 @@ function TextInputPopup({style, defaultValue, label, placeholder, onBackButtonPr
             onReset={resetChanges}
             onApply={applyChanges}
             onBackButtonPress={onBackButtonPress}
-            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_TEXT_INPUT}
-            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_TEXT_INPUT}
+            resetSentryLabel={resetSentryLabel}
+            applySentryLabel={applySentryLabel}
             shouldSubmitOnEnter
             style={style}
         >

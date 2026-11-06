@@ -4,14 +4,13 @@ import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext'
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailsByLogin from '@hooks/usePersonalDetailsByLogin';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getNextApproverAccountID, hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, isReportOwner} from '@libs/ReportUtils';
-
-import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
+import {canIOUBePaid as canIOUBePaidAction, getNextApproverAccountID, hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, isReportOwner} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,6 +37,7 @@ function ApprovePrimaryAction({reportID, chatReportID, isDisabled}: ApprovePrima
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [expenseReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(iouReport?.policyID)}`);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const personalDetailsByLogins = usePersonalDetailsByLogin();
 
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
@@ -46,7 +46,7 @@ function ApprovePrimaryAction({reportID, chatReportID, isDisabled}: ApprovePrima
         `${ONYXKEYS.COLLECTION.POLICY}${iouReport?.invoiceReceiver && 'policyID' in iouReport.invoiceReceiver ? iouReport.invoiceReceiver.policyID : ''}`,
     );
 
-    const nextApproverAccountID = getNextApproverAccountID(iouReport, rules);
+    const nextApproverAccountID = getNextApproverAccountID(iouReport, rules, undefined, undefined, personalDetailsByLogins);
     const isSubmitterSameAsNextApprover = isReportOwner(iouReport) && (nextApproverAccountID === iouReport?.ownerAccountID || iouReport?.managerID === iouReport?.ownerAccountID);
     const isBlockSubmitDueToPreventSelfApproval = isSubmitterSameAsNextApprover && expenseReportPolicy?.preventSelfApproval;
 

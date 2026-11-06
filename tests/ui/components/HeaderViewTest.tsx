@@ -8,6 +8,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import type Navigation from '@libs/Navigation/Navigation';
+import NavigationActions from '@libs/Navigation/Navigation';
 import {buildOptimisticCreatedReportForUnapprovedAction} from '@libs/ReportUtils';
 
 import HeaderView from '@pages/inbox/HeaderView';
@@ -48,6 +49,8 @@ const mockUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDeta
 const currentUserAccountID = 1;
 
 describe('HeaderView', () => {
+    let navigateSpy: jest.SpyInstance | undefined;
+
     beforeEach(() => {
         // Set up default mock return value
         mockUseCurrentUserPersonalDetails.mockReturnValue({
@@ -56,6 +59,7 @@ describe('HeaderView', () => {
     });
 
     afterEach(async () => {
+        navigateSpy?.mockRestore();
         jest.clearAllMocks();
         await Onyx.clear();
     });
@@ -124,6 +128,46 @@ describe('HeaderView', () => {
         await waitFor(() => expect(screen.getByTestId('DisplayNames')).toHaveTextContent(displayName));
     });
 
+    it('should go back to the Concierge chat when New chat is pressed in a Concierge thread', async () => {
+        // Given the header of a thread that Concierge opened for a question
+        const conciergeReportID = '10';
+        const questionAction: ReportAction = {
+            reportActionID: '100',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            created: '2024-06-01 10:00:00.000',
+            actorAccountID: currentUserAccountID,
+            childReportID: '11',
+            message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: 'How do I submit an expense?', text: 'How do I submit an expense?'}],
+        };
+        const threadReport: Report = {
+            ...createRandomReport(11, undefined),
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID: conciergeReportID,
+            parentReportActionID: questionAction.reportActionID,
+        };
+        await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, conciergeReportID);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeReportID}`, {[questionAction.reportActionID]: questionAction});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${threadReport.reportID}`, threadReport);
+        await waitForBatchedUpdates();
+        navigateSpy = jest.spyOn(NavigationActions, 'navigate').mockImplementation(() => {});
+
+        render(
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <HeaderView
+                    onNavigationMenuButtonClicked={() => {}}
+                    reportID={threadReport.reportID}
+                />
+            </ComposeProviders>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user presses New chat
+        fireEvent.press(screen.getByText(translateLocal('common.concierge.newChat')));
+
+        // Then the user is taken back to the Concierge chat to ask another question
+        expect(navigateSpy).toHaveBeenCalledWith(expect.stringContaining(`r/${conciergeReportID}`));
+    });
+
     it('should display join button', async () => {
         // Given an policy room header
         const report = {
@@ -149,9 +193,18 @@ describe('HeaderView', () => {
         const joinButton = screen.getByText('Join');
         expect(joinButton).toBeTruthy();
 
-        // Then the joinRoom action should be called when the user presses the Join button
+        // Then the joinRoom action should be called with the fields it joins by. The header subscribes to a projection without
+        // the chat heartbeat fields (`last*`), so the call gets that projection rather than the stored object.
         fireEvent.press(joinButton);
-        expect(joinRoom).toHaveBeenCalledWith(report, currentUserAccountID);
+        expect(joinRoom).toHaveBeenCalledWith(
+            expect.objectContaining({
+                reportID: report.reportID,
+                parentReportID: report.parentReportID,
+                parentReportActionID: report.parentReportActionID,
+                participants: report.participants,
+            }),
+            currentUserAccountID,
+        );
     });
 
     it('should display correct title for report with CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS parent action', async () => {

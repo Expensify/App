@@ -90,6 +90,7 @@ function BaseTextInput({
     onClearInput,
     iconContainerStyle,
     clearButtonStyle,
+    clearButtonSentryLabel,
     clearButtonIconSize,
     shouldUseDefaultLineHeightForPrefix = true,
     ref,
@@ -112,7 +113,6 @@ function BaseTextInput({
 
     const {hasError = false} = inputProps;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const initialValue = value || defaultValue || '';
     const initialActiveLabel = !!forceActiveLabel || initialValue.length > 0 || !!prefixCharacter || !!suffixCharacter;
     const isMultiline = multiline || autoGrowHeight;
@@ -473,6 +473,7 @@ function BaseTextInput({
                                     }}
                                     iconSize={clearButtonIconSize}
                                     style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), clearButtonStyle]}
+                                    sentryLabel={clearButtonSentryLabel}
                                 />
                             )}
                             {!!inputProps.isLoading && !shouldShowClearButton && (

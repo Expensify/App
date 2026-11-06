@@ -4,12 +4,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
-import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import Navigation from '@libs/Navigation/Navigation';
-
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
@@ -17,6 +12,7 @@ import React from 'react';
 
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import TabBarItem from './TabBarItem';
+import useInsightsTabNavigation from './useInsightsTabNavigation';
 
 type InsightsTabButtonProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
@@ -28,16 +24,7 @@ function InsightsTabButton({selectedTab, isWideLayout}: InsightsTabButtonProps) 
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['PieChart']);
     const isSelected = selectedTab === NAVIGATION_TABS.INSIGHTS;
-
-    const navigateToInsights = () => {
-        if (isSelected) {
-            return;
-        }
-        clearSelectedText();
-        interceptAnonymousUser(() => {
-            Navigation.navigate(ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND));
-        });
-    };
+    const navigateToInsights = useInsightsTabNavigation(isSelected);
 
     if (isWideLayout) {
         return (
@@ -67,7 +54,7 @@ function InsightsTabButton({selectedTab, isWideLayout}: InsightsTabButtonProps) 
             role={CONST.ROLE.TAB}
             accessibilityLabel={translate('common.insights')}
             accessibilityState={{selected: isSelected}}
-            wrapperStyle={styles.flex1}
+            wrapperStyle={styles.navigationTabBarSlot}
             style={styles.navigationTabBarItem}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INSIGHTS}
         >

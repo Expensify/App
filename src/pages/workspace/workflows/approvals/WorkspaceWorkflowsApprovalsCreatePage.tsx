@@ -8,8 +8,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePressLoading from '@hooks/usePressLoading';
+import useShouldUseApprovalWorkflowRules from '@hooks/useShouldUseApprovalWorkflowRules';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -33,7 +33,7 @@ import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
 
-import React, {useCallback, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 import ApprovalWorkflowEditor from './ApprovalWorkflowEditor';
@@ -44,7 +44,7 @@ type WorkspaceWorkflowsApprovalsCreatePageProps = WithPolicyAndFullscreenLoading
 function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsCreatePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
+    const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules(policy);
     const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -62,12 +62,12 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
         isApprovalWorkflowLockedByIntegration(policy) ||
         shouldHideDynamicExternalWorkflowPeople(policy);
 
-    const createApprovalWorkflow = useCallback(() => {
+    const createApprovalWorkflow = () => {
         if (!approvalWorkflow) {
             return;
         }
 
-        if (!validateApprovalWorkflow(approvalWorkflow)) {
+        if (!validateApprovalWorkflow(approvalWorkflow, shouldUseApprovalWorkflowRules)) {
             return;
         }
 
@@ -75,14 +75,14 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
         const workflowToCreate = {...approvalWorkflow, isDefault: includesEveryWorkspaceMember(getWorkflowMemberEmails(approvalWorkflow.members), policy?.employeeList)};
 
         startWithLoading(() => {
-            if (isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS)) {
+            if (shouldUseApprovalWorkflowRules) {
                 createApprovalWorkflowRules({approvalWorkflow: workflowToCreate, policy, addExpenseApprovalsTaskReport, rules: rulesCollection});
             } else {
                 createApprovalWorkflowAction({approvalWorkflow: workflowToCreate, policy, addExpenseApprovalsTaskReport});
             }
             Navigation.dismissModal();
         });
-    }, [approvalWorkflow, policy, addExpenseApprovalsTaskReport, rulesCollection, isBetaEnabled, startWithLoading]);
+    };
 
     return (
         <AccessOrNotFoundWrapper

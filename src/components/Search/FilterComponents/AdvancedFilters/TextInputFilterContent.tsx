@@ -15,7 +15,7 @@ import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 
-import type {ComponentRef} from 'react';
+import type {ComponentRef, ReactNode} from 'react';
 import type {TextInput as RNTextInput, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -30,6 +30,12 @@ type TextInputFilterContentProps = {
     autoFocus?: boolean;
     style?: StyleProp<ViewStyle>;
     buttonText?: string;
+    buttonStyles?: StyleProp<ViewStyle>;
+    sentryLabel?: string;
+
+    /** Renders extra controls under the input, inside the scrollable area. Receives the current negation state, so the content can change when the user negates the filter. */
+    renderBelowInput?: (isNegated: boolean) => ReactNode;
+
     onChange: (value: string | undefined, isNegated: boolean) => void;
 };
 
@@ -37,7 +43,19 @@ function isTextInput(element: BaseTextInputRef | ComponentRef<typeof RNTextInput
     return !!element && 'isFocused' in element;
 }
 
-function TextInputFilterContent({baseFilterKey, value: initialValue, isNegated: initialIsNegated, autoFocus, size, style, buttonText, onChange}: TextInputFilterContentProps) {
+function TextInputFilterContent({
+    baseFilterKey,
+    value: initialValue,
+    isNegated: initialIsNegated,
+    autoFocus,
+    size,
+    style,
+    buttonText,
+    buttonStyles,
+    sentryLabel,
+    renderBelowInput,
+    onChange,
+}: TextInputFilterContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [value, setValue] = useState(initialValue);
@@ -50,7 +68,7 @@ function TextInputFilterContent({baseFilterKey, value: initialValue, isNegated: 
 
     const button = (
         <Button
-            style={[styles.ph5, styles.pb5]}
+            style={[styles.ph5, styles.pb5, buttonStyles]}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             size={size}
             onPress={() => {
@@ -59,6 +77,7 @@ function TextInputFilterContent({baseFilterKey, value: initialValue, isNegated: 
                 }
                 onChange(value, isNegated);
             }}
+            sentryLabel={sentryLabel}
         >
             <Button.KeyboardShortcut />
             <Button.Text>{buttonText ?? translate('common.confirm')}</Button.Text>
@@ -93,6 +112,7 @@ function TextInputFilterContent({baseFilterKey, value: initialValue, isNegated: 
                         containerStyles={[styles.ph5]}
                     />
                 </NegatableFilter>
+                {renderBelowInput?.(isNegated)}
                 {shouldButtonBeInScrollView && button}
             </ScrollView>
             {!shouldButtonBeInScrollView && button}

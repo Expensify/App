@@ -65,6 +65,7 @@ function MessagesRow({messages = {}, type, onDismiss, containerStyles, dismissEr
                 <Tooltip text={dismissText}>
                     <PressableWithoutFeedback
                         onPress={onDismiss}
+                        style={styles.touchableButtonImage}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={dismissText}
                         sentryLabel={CONST.SENTRY_LABEL.MESSAGES_ROW.DISMISS}

@@ -50,6 +50,7 @@ function TimezoneInitialPage({currentUserPersonalDetails}: TimezoneInitialPagePr
                         </Text>
                         <Switch
                             accessibilityLabel={translate('timezonePage.getLocationAutomatically')}
+                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.TIMEZONE_AUTOMATIC_SWITCH}
                             isOn={!!timezone.automatic}
                             onToggle={(isAutomatic: boolean) => {
                                 // Updates setting for automatic timezone selection.

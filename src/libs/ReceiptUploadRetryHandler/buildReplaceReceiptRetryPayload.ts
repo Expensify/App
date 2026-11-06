@@ -11,25 +11,15 @@ import type {ValueOf} from 'type-fest';
 
 import type {ReceiptRetryContext} from './types';
 
+import {parseRetryParams} from './buildRetryPayload';
 import isRetrySupported from './isRetrySupported';
 
-type StoredReplaceReceiptRetryParams = Pick<ReplaceReceiptRetryParams, 'transactionID' | 'state' | 'isSameReceipt' | 'receiptAddedReportActionID'>;
+type StoredReplaceReceiptRetryParams = Pick<ReplaceReceiptRetryParams, 'transactionID' | 'state' | 'isSameReceipt' | 'receiptAddedReportActionID' | 'receiptRemovedReportActionID'>;
 
 const RECEIPT_STATES = new Set<unknown>(Object.values(CONST.IOU.RECEIPT_STATE));
 
 function isReceiptState(value: unknown): value is ValueOf<typeof CONST.IOU.RECEIPT_STATE> {
     return RECEIPT_STATES.has(value);
-}
-
-function parseRetryParams(retryParams: ReceiptError['retryParams']): unknown {
-    if (typeof retryParams !== 'string') {
-        return retryParams;
-    }
-    try {
-        return JSON.parse(retryParams);
-    } catch {
-        return undefined;
-    }
 }
 
 function getReplaceReceiptRetryParams(receiptError: ReceiptError): StoredReplaceReceiptRetryParams | undefined {
@@ -47,6 +37,7 @@ function getReplaceReceiptRetryParams(receiptError: ReceiptError): StoredReplace
         state: 'state' in parsed && isReceiptState(parsed.state) ? parsed.state : undefined,
         isSameReceipt: 'isSameReceipt' in parsed && parsed.isSameReceipt === true ? true : undefined,
         receiptAddedReportActionID: 'receiptAddedReportActionID' in parsed && typeof parsed.receiptAddedReportActionID === 'string' ? parsed.receiptAddedReportActionID : undefined,
+        receiptRemovedReportActionID: 'receiptRemovedReportActionID' in parsed && typeof parsed.receiptRemovedReportActionID === 'string' ? parsed.receiptRemovedReportActionID : undefined,
     };
 }
 
@@ -85,6 +76,7 @@ function buildReplaceReceiptRetryPayload(context: ReceiptRetryContext, receiptFi
         state: retryParams.state,
         isSameReceipt: retryParams.isSameReceipt,
         receiptAddedReportActionID: retryParams.receiptAddedReportActionID,
+        receiptRemovedReportActionID: retryParams.receiptRemovedReportActionID,
         transactionPolicy: policyParams.policy,
         transactionPolicyCategories: policyParams.policyCategories,
         transactionPolicyTagList: policyParams.policyTagList,

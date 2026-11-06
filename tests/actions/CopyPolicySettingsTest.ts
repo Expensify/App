@@ -1,5 +1,8 @@
+import {write} from '@libs/API';
+import {WRITE_COMMANDS} from '@libs/API/types';
+
 import CONST from '@src/CONST';
-import {buildCopyPolicySettingsData} from '@src/libs/actions/Policy/CopyPolicySettings';
+import {buildCopyPolicySettingsData, copyPolicySettings} from '@src/libs/actions/Policy/CopyPolicySettings';
 import type {Part} from '@src/libs/actions/Policy/CopyPolicySettings';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
@@ -12,6 +15,10 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
+
+jest.mock('@libs/API', () => ({
+    write: jest.fn(),
+}));
 
 const SOURCE_POLICY_ID = 'SOURCE000000000A';
 const TARGET_POLICY_ID = 'TARGET000000000B';
@@ -58,6 +65,7 @@ function makeSourcePolicy(overrides: Partial<Policy> = {}): Policy {
         defaultBillable: true,
         eReceipts: true,
         preventSelfApproval: true,
+        preventPayoutNonReimbursableReports: true,
         ...overrides,
     };
 }
@@ -99,6 +107,7 @@ function makeTargetPolicy(overrides: Partial<Policy> = {}): Policy {
         defaultBillable: false,
         eReceipts: false,
         preventSelfApproval: false,
+        preventPayoutNonReimbursableReports: false,
         customUnits: {},
         ...overrides,
     };
@@ -169,6 +178,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
                         'eReceipts',
                         'isAttendeeTrackingEnabled',
                         'preventSelfApproval',
+                        'preventPayoutNonReimbursableReports',
                         'shouldShowAutoApprovalOptions',
                         'shouldShowAutoReimbursementLimitOption',
                     ],
@@ -716,6 +726,32 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 // Success leaves currentStep alone — the backend transitions it to 'complete' via NVP.
                 expect(successLifecycle).toBeUndefined();
             });
+
+            it("sets currentStep='complete' optimistically when offline and still patches the target", () => {
+                // Given the admin starts the copy while offline, so the copy request isn't processed until they reconnect
+                const sourcePolicy = makeSourcePolicy();
+                const targetPolicy = makeTargetPolicy();
+
+                // When the copy data is built for the offline case
+                const {optimisticData, failureData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['overview'], {}, {}, {}, true);
+                const policy = getOptimisticPolicy(optimisticData);
+
+                // Then the modal skips the endless spinner and opens on the Concierge notification step
+                expect(getCopyPolicySettingsStep(optimisticData.find((u) => u.key === ONYXKEYS.COPY_POLICY_SETTINGS))?.currentStep).toBe(CONST.POLICY.COPY_SETTINGS_MODAL_STEP.COMPLETE);
+                // Then the target is still updated optimistically and failure still resets the step
+                expect(policy?.description).toBe(sourcePolicy.description);
+                expect(policy?.pendingFields?.description).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                expect(getCopyPolicySettingsStep(failureData.find((u) => u.key === ONYXKEYS.COPY_POLICY_SETTINGS))?.currentStep).toBeNull();
+            });
+
+            it("keeps currentStep='loading' when online", () => {
+                // Given the admin starts the copy while online
+                // When the copy data is built for the online case
+                const {optimisticData} = buildCopyPolicySettingsData(makeSourcePolicy(), [makeTargetPolicy()], ['overview'], {}, {}, {}, false);
+
+                // Then the modal shows the progress spinner and waits for the server to report the result
+                expect(getCopyPolicySettingsStep(optimisticData.find((u) => u.key === ONYXKEYS.COPY_POLICY_SETTINGS))?.currentStep).toBe(CONST.POLICY.COPY_SETTINGS_MODAL_STEP.LOADING);
+            });
         });
 
         describe('simulated Onyx state transitions', () => {
@@ -823,6 +859,33 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 expect(successPatch?.pendingFields?.outputCurrency).toBeNull();
                 expect(successPatch?.pendingFields?.address).toBeNull();
             });
+        });
+    });
+
+    describe('copyPolicySettings', () => {
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
+        it('queues the Concierge notification after the copy request when offline', () => {
+            // Given the admin starts the copy while offline
+            // When the copy is requested
+            copyPolicySettings(makeSourcePolicy(), [makeTargetPolicy()], ['overview'], {}, {}, {}, true);
+
+            // Then the notification is queued after the copy, the same as choosing "Let me know when it's done", so Concierge reports the result after reconnecting
+            const commands = jest.mocked(write).mock.calls.map(([command]) => command);
+            expect(commands).toEqual([WRITE_COMMANDS.COPY_POLICY_SETTINGS, WRITE_COMMANDS.COPY_POLICY_SETTINGS_NOTIFY]);
+            expect(jest.mocked(write).mock.calls.at(1)?.at(1)).toEqual({shouldOnlyNotifyOnFailure: false});
+        });
+
+        it('does not queue the Concierge notification when online', () => {
+            // Given the admin starts the copy while online
+            // When the copy is requested
+            copyPolicySettings(makeSourcePolicy(), [makeTargetPolicy()], ['overview'], {}, {}, {}, false);
+
+            // Then only the copy request is sent, because the admin can still choose to wait or ask Concierge from the progress modal
+            const commands = jest.mocked(write).mock.calls.map(([command]) => command);
+            expect(commands).toEqual([WRITE_COMMANDS.COPY_POLICY_SETTINGS]);
         });
     });
 });

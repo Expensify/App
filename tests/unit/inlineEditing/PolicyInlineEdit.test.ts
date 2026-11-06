@@ -2,6 +2,7 @@ import type PolicyData from '@hooks/usePolicyData/types';
 
 import {
     canUpdateExpensifyCardLimitTypeInline,
+    getExpensifyCardLimitInlineEditError,
     getExpensifyCardLimitInlineUpdate,
     renameCategoryInline,
     renameExpensifyCardInline,
@@ -18,6 +19,7 @@ import {renamePolicyCategory} from '@userActions/Policy/Category';
 import {updateWorkspaceMembersRole} from '@userActions/Policy/Member';
 
 import CONST from '@src/CONST';
+import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import type {Card, Policy} from '@src/types/onyx';
 
 import type {PartialDeep} from 'type-fest';
@@ -64,6 +66,14 @@ function getOptimisticCardNameValuePairs(cardID: number): Record<string, unknown
     return requireRecord(cardUpdate.nameValuePairs, 'Missing nameValuePairs optimistic update');
 }
 
+/** Echoes the translation path and any interpolated values so assertions can lock the chosen message. */
+function translate<TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>): string {
+    if (parameters.length === 0) {
+        return path;
+    }
+    return `${path}|${parameters.map(String).join('|')}`;
+}
+
 const encodedFoodAndDrink = 'Food &amp; Drink';
 
 const policyData = createMock<PolicyData>({
@@ -104,39 +114,53 @@ describe('PolicyInlineEdit', () => {
 
     describe('renameCategoryInline', () => {
         it('does not persist when the sanitized name is unchanged', () => {
-            renameCategoryInline(policyData, 'Food', '  Food  ', true);
+            renameCategoryInline(translate, policyData, 'Food', '  Food  ', true);
 
             expect(mockRenamePolicyCategory).not.toHaveBeenCalled();
         });
 
         it('does not persist an invalid name', () => {
-            renameCategoryInline(policyData, 'Food', 'Travel', true);
+            // Given a category name that already exists on the policy
+            // When that name is saved from the table
+            const rejection = renameCategoryInline(translate, policyData, 'Food', 'Travel', true);
 
+            // Then the edit is dropped and the caller can toast the same duplicate-name error as the form
+            expect(rejection).toBe('workspace.categories.existingCategoryError');
+            expect(mockRenamePolicyCategory).not.toHaveBeenCalled();
+        });
+
+        it('does not persist an HTML-like name', () => {
+            // Given a category renamed from the table rather than the Name page
+            // When the new name contains an HTML-like token the Name page rejects
+            const rejection = renameCategoryInline(translate, policyData, 'Food', '</>', true);
+
+            // Then the edit is dropped with the invalid-name error, because that token must not be saved from the table either
+            expect(rejection).toBe('workspace.categories.invalidCategoryName');
             expect(mockRenamePolicyCategory).not.toHaveBeenCalled();
         });
 
         it('delegates a valid rename to the canonical action', () => {
-            renameCategoryInline(policyData, 'Food', '  Meals  ', true);
+            renameCategoryInline(translate, policyData, 'Food', '  Meals  ', true);
 
-            expect(mockRenamePolicyCategory).toHaveBeenCalledWith(policyData, {oldName: 'Food', newName: 'Meals'}, true);
+            expect(mockRenamePolicyCategory).toHaveBeenCalledWith(policyData, {oldName: 'Food', newName: 'Meals'}, true, {});
         });
 
         it('does not persist a name that matches an HTML-encoded category', () => {
-            renameCategoryInline(policyData, 'Food', 'Food & Drink', true);
+            renameCategoryInline(translate, policyData, 'Food', 'Food & Drink', true);
 
             expect(mockRenamePolicyCategory).not.toHaveBeenCalled();
         });
 
         it('does not persist when the sanitized name matches the decoded stored name', () => {
-            renameCategoryInline(policyData, encodedFoodAndDrink, '  Food & Drink  ', true);
+            renameCategoryInline(translate, policyData, encodedFoodAndDrink, '  Food & Drink  ', true);
 
             expect(mockRenamePolicyCategory).not.toHaveBeenCalled();
         });
 
         it('persists a rename of an HTML-encoded category using the raw stored name', () => {
-            renameCategoryInline(policyData, encodedFoodAndDrink, 'Snacks', true);
+            renameCategoryInline(translate, policyData, encodedFoodAndDrink, 'Snacks', true);
 
-            expect(mockRenamePolicyCategory).toHaveBeenCalledWith(policyData, {oldName: encodedFoodAndDrink, newName: 'Snacks'}, true);
+            expect(mockRenamePolicyCategory).toHaveBeenCalledWith(policyData, {oldName: encodedFoodAndDrink, newName: 'Snacks'}, true, {});
         });
     });
 
@@ -155,15 +179,55 @@ describe('PolicyInlineEdit', () => {
     });
 
     describe('renameExpensifyCardInline', () => {
-        it('does not persist an invalid name', () => {
-            renameExpensifyCardInline(1, 10, '   ', 'Travel');
+        it('does not persist a name the user never changed', () => {
+            // Given a card named "Travel"
+            // When the editor closes on blur with that same name
+            const rejection = renameExpensifyCardInline(translate, 1, 10, 'Travel', 'Travel');
 
+            // Then nothing is written and no toast is raised, so opening the editor and clicking away costs no request
+            expect(rejection).toBeUndefined();
+            expect(mockWrite).not.toHaveBeenCalled();
+        });
+
+        it('returns the required-field error for a name that sanitizes to nothing', () => {
+            // Given a card named "Travel"
+            // When the editor commits whitespace only
+            const rejection = renameExpensifyCardInline(translate, 1, 10, '   ', 'Travel');
+
+            // Then the page can toast the same required message as the card name form, and nothing is written
+            expect(rejection).toBe('common.error.fieldRequired');
+            expect(mockWrite).not.toHaveBeenCalled();
+        });
+
+        it('returns the invalid-character error for a name the card form rejects', () => {
+            // Given a card named "Travel"
+            // When the editor commits a name that contains an HTML-like tag
+            const rejection = renameExpensifyCardInline(translate, 1, 10, '</>', 'Travel');
+
+            // Then the page can toast the same invalid-character message as the card name form, and nothing is written
+            expect(rejection).toBe('common.error.invalidCharacter');
+            expect(mockWrite).not.toHaveBeenCalled();
+        });
+
+        it('returns the length error for a name past the card form limit', () => {
+            // Given a card named "Travel" and a name one byte past the shared length limit
+            const tooLongName = 'a'.repeat(CONST.STANDARD_LENGTH_LIMIT + 1);
+
+            // When the editor commits that name
+            const rejection = renameExpensifyCardInline(translate, 1, 10, tooLongName, 'Travel');
+
+            // Then the page can toast the same character-limit message as the card name form, and nothing is written
+            expect(rejection).toBe(`common.error.characterLimitExceedCounter|${CONST.STANDARD_LENGTH_LIMIT + 1}|${CONST.STANDARD_LENGTH_LIMIT}`);
             expect(mockWrite).not.toHaveBeenCalled();
         });
 
         it('persists the sanitized name', () => {
-            renameExpensifyCardInline(1, 10, '  Travel card  ', 'Travel');
+            // Given a card named "Travel"
+            // When the editor commits a new name padded with whitespace
+            const rejection = renameExpensifyCardInline(translate, 1, 10, '  Travel card  ', 'Travel');
 
+            // Then the trimmed name reaches the backend and no toast is raised, so a padded paste cannot be stored verbatim
+            expect(rejection).toBeUndefined();
             expect(mockWrite).toHaveBeenCalledWith(
                 WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_TITLE,
                 expect.objectContaining({
@@ -176,6 +240,15 @@ describe('PolicyInlineEdit', () => {
     });
 
     describe('getExpensifyCardLimitInlineUpdate', () => {
+        it('returns the field error for an invalid limit so the page can toast it', () => {
+            // Given a limit the card form rejects because it is not a whole dollar amount
+            // When the table asks whether that limit is an error
+            const rejection = getExpensifyCardLimitInlineEditError(translate, '10.5');
+
+            // Then the page can show the same whole-dollar message as the card form, and still skip the confirm modal
+            expect(rejection).toBe('iou.error.invalidIntegerAmount');
+        });
+
         it('returns undefined for an invalid limit so the confirm modal is not shown', () => {
             // Given a card with a current limit of $100
             const card = buildCard();

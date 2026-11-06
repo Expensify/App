@@ -58,16 +58,16 @@ You have two options:
 
 1. Go to the **Workspaces** navigation tab on the left.
 2. Select your Workspace.
-3. Click **Accounting**.
-4. Click **Connect to QuickBooks Online** or reconnect the existing connection.
+3. Select **Connections**.
+4. Select **QuickBooks Online**, or select **Fix** next to the existing connection to reconnect it.
 5. Log in using a QuickBooks Online admin account.
 
 #### On Mobile
 
 1. Tap the **Workspaces** navigation tab on the bottom.
 2. Select your Workspace.
-3. Tap **Accounting**.
-4. Tap **Connect to QuickBooks Online** or reconnect the existing connection.
+3. Select **Connections**.
+4. Select **QuickBooks Online**, or select **Fix** next to the existing connection to reconnect it.
 5. Log in using a QuickBooks Online admin account.
 
 Once connected by a QuickBooks Online admin, the integration should complete successfully.

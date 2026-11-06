@@ -9,6 +9,7 @@ import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
 import useAutoCreateTrackWorkspace from '@hooks/useAutoCreateTrackWorkspace';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
@@ -27,11 +28,12 @@ import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 import variables from '@styles/variables';
 
 import {completeOnboarding} from '@userActions/Report';
-import {setOnboardingErrorMessage, setOnboardingPurposeSelected} from '@userActions/Welcome';
+import {clearOnboardingMergeAccountBlocked, setOnboardingErrorMessage, setOnboardingPurposeSelected} from '@userActions/Welcome';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/OnboardingWorkEmailForm';
 import type {OnboardingPurpose} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -39,7 +41,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {useIsFocused} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {PUBLIC_DOMAINS_SET} from 'expensify-common';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
+import React, {useEffect, useImperativeHandle, useRef} from 'react';
 import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 
@@ -60,17 +62,14 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Abacus', 'Binoculars', 'BriefcaseHandshake', 'CalculatorMoney', 'ReceiptUpload', 'PiggyBank']);
 
-    const menuIcons = useMemo(
-        () => ({
-            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: illustrations.BriefcaseHandshake,
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: illustrations.ReceiptUpload,
-            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: illustrations.Abacus,
-            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: illustrations.CalculatorMoney,
-            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: illustrations.PiggyBank,
-            [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: illustrations.Binoculars,
-        }),
-        [illustrations.Abacus, illustrations.Binoculars, illustrations.BriefcaseHandshake, illustrations.CalculatorMoney, illustrations.ReceiptUpload, illustrations.PiggyBank],
-    );
+    const menuIcons = {
+        [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: illustrations.BriefcaseHandshake,
+        [CONST.ONBOARDING_CHOICES.EMPLOYER]: illustrations.ReceiptUpload,
+        [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: illustrations.Abacus,
+        [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: illustrations.CalculatorMoney,
+        [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: illustrations.PiggyBank,
+        [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: illustrations.Binoculars,
+    };
     const {onboardingIsMediumOrLargerScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const delegateAccountID = useDelegateAccountID();
@@ -78,6 +77,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const {onboardingMessages} = useOnboardingMessages();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const isAnonymousUser = useIsAnonymousUser();
 
     const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
 
@@ -86,6 +86,8 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
     const [adminsChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboardingAdminsChatReportID}`);
     const [personalDetailsForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
+    const [workEmailForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM);
+    const workEmail = workEmailForm?.[INPUT_IDS.ONBOARDING_WORK_EMAIL];
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -132,6 +134,9 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                 // validation, so it still needs to add one; an unvalidated private-domain one already has one and
                 // only needs to validate it.
                 if (choice === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE) {
+                    // A merge blocked earlier in onboarding leaves isMergingAccountBlocked set, which would make the work
+                    // email step reopen in its blocked state instead of showing the form.
+                    clearOnboardingMergeAccountBlocked();
                     const isCurrentPrimaryPublicDomain = PUBLIC_DOMAINS_SET.has(session?.email?.split('@').at(1)?.toLowerCase() ?? '');
                     if (isValidated && !isCurrentPrimaryPublicDomain) {
                         Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()));
@@ -188,6 +193,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                             isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                             conciergeReportID,
                             reportNameValuePairs,
+                            isAnonymousUser,
                             onboardingPolicyID,
                             onboardingAdminsChatReportID,
                             false,
@@ -210,12 +216,23 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
         isJoinWorkspaceNavigationPending.current = false;
     }, [isFocused]);
 
-    const handleOuterClick = useCallback(() => {
+    const handleOuterClick = () => {
         setOnboardingErrorMessage('onboarding.errorSelection');
-    }, []);
+    };
 
     const onboardingLocalRef = useRef<TOnboardingRef>(null);
     useImperativeHandle(isFocused ? OnboardingRefManager.ref : onboardingLocalRef, () => ({handleOuterClick}), [handleOuterClick]);
+
+    const getErrorMessage = () => {
+        if (!onboardingErrorMessage) {
+            return undefined;
+        }
+        // These merge-block messages interpolate the work email, so translate them with the email explicitly.
+        if (onboardingErrorMessage === 'onboarding.mergeBlockScreen.domainControlledSubtitle' || onboardingErrorMessage === 'onboarding.mergeBlockScreen.validatedPublicDomainSubtitle') {
+            return translate(onboardingErrorMessage, workEmail);
+        }
+        return translate(onboardingErrorMessage);
+    };
 
     if (isLoadingOnyxValue(onboardingErrorMessageResult)) {
         return null;
@@ -247,7 +264,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                 </View>
             </ScrollView>
             <View style={[styles.w100, styles.mb5, styles.mh0, paddingHorizontal]}>
-                <FormHelpMessage message={onboardingErrorMessage ? translate(onboardingErrorMessage) : undefined} />
+                <FormHelpMessage message={getErrorMessage()} />
             </View>
         </ScreenWrapper>
     );
