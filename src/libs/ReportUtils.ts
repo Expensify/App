@@ -3745,10 +3745,13 @@ function getIOUReportActionWithBadge({
 }): {
     reportAction: OnyxEntry<ReportAction>;
     actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
+    isBlockedOnlyByHeldReports: boolean;
 } {
     let actionBadge: ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined;
     let earliestAction: ReportAction | undefined;
     let earliestAddAction: ReportAction | undefined;
+    let hasHeldReport = false;
+    let hasUnresolvedOutstandingReport = false;
 
     for (const action of Object.values(chatReportActions ?? {})) {
         if (action?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW || isDeletedAction(action)) {
@@ -3772,11 +3775,23 @@ function getIOUReportActionWithBadge({
                     earliestAction = action;
                     actionBadge = CONST.REPORT.ACTION_BADGE.PAY;
                 }
+            } else if (action.childStatusNum !== CONST.REPORT.STATUS_NUM.REIMBURSED && action.childStatusNum !== CONST.REPORT.STATUS_NUM.CLOSED) {
+                // A preview whose report is not loaded yet may still need action. A missing status counts as unresolved.
+                // Reimbursed and closed previews are settled, so they must not keep the chat in To-do.
+                hasUnresolvedOutstandingReport = true;
             }
             continue;
         }
 
         const iouReportActions = allReportActionsParam?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`];
+        let childTransactions: Transaction[];
+        if (reportsTransactions) {
+            childTransactions = reportsTransactions[iouReport.reportID] ?? [];
+        } else {
+            // Callers that do not pass a transaction snapshot still resolve holds from the transaction cache.
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            childTransactions = getReportTransactions(iouReport.reportID);
+        }
 
         // An all-held report yields no badge, so it can't win the "oldest action" race and hide a sibling report that
         // still needs action from the current user.
@@ -3794,6 +3809,18 @@ function getIOUReportActionWithBadge({
             reportsTransactions,
         });
         if (!badge) {
+            // A missing badge is not enough: an empty open draft also has none. Only a held-excluded child counts.
+            if (isReportExcludedForHeldExpenses(iouReport, childTransactions, iouReportActions, currentUserAccountID)) {
+                hasHeldReport = true;
+            } else if (
+                childTransactions.length === 0 &&
+                iouReport.statusNum !== CONST.REPORT.STATUS_NUM.OPEN &&
+                iouReport.statusNum !== CONST.REPORT.STATUS_NUM.REIMBURSED &&
+                iouReport.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED
+            ) {
+                // A submitted or approved child with no transactions yet cannot be told apart from a held one.
+                hasUnresolvedOutstandingReport = true;
+            }
             continue;
         }
 
@@ -3811,11 +3838,12 @@ function getIOUReportActionWithBadge({
         }
     }
 
+    const isBlockedOnlyByHeldReports = !earliestAction && hasHeldReport && !hasUnresolvedOutstandingReport;
     if (!earliestAction && earliestAddAction) {
-        return {reportAction: earliestAddAction, actionBadge: CONST.REPORT.ACTION_BADGE.ADD};
+        return {reportAction: earliestAddAction, actionBadge: CONST.REPORT.ACTION_BADGE.ADD, isBlockedOnlyByHeldReports};
     }
 
-    return {reportAction: earliestAction, actionBadge};
+    return {reportAction: earliestAction, actionBadge, isBlockedOnlyByHeldReports};
 }
 
 function hasOutstandingChildRequest(
@@ -5390,7 +5418,11 @@ function getReasonAndReportActionThatRequiresAttention({
     const actionTypeForAssigneeToComplete = getActionTypeForAssigneeToComplete(optionOrReport, parentReportAction);
 
     // Compute IOU candidate upfront so we can compare timestamps with task candidate
-    const {reportAction: iouReportActionToApproveOrPay, actionBadge} = getIOUReportActionWithBadge({
+    const {
+        reportAction: iouReportActionToApproveOrPay,
+        actionBadge,
+        isBlockedOnlyByHeldReports,
+    } = getIOUReportActionWithBadge({
         chatReport: optionOrReport,
         policy,
         reportMetadata,
@@ -5417,8 +5449,11 @@ function getReasonAndReportActionThatRequiresAttention({
     const iouReportActions = allReportActionsParam?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`] ?? getAllReportActions(iouReportID);
     // This only has to run on the fallback path: when a candidate was found, getBadgeFromIOUReport has already applied
     // the same exclusion while picking it, so the chat is known to have an actionable child even when a sibling of that
-    // child is fully held.
-    const isFallbackReportExcludedForHeldExpenses = !dotCandidateAction && isReportExcludedForHeldExpenses(iouReport, transactions, iouReportActions, currentUserAccountID);
+    // child is fully held. The walk flag covers the case where that fallback id is a different report than the held child
+    // (the chat's open draft), so checking only that id would never see the held transactions. Add does not count as a
+    // selected candidate, so an empty report cannot hide that decision.
+    const isFallbackReportExcludedForHeldExpenses =
+        !dotCandidateAction && (isBlockedOnlyByHeldReports || isReportExcludedForHeldExpenses(iouReport, transactions, iouReportActions, currentUserAccountID));
 
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user.
     // A report whose only expenses are pending Expensify Card transactions can't be actioned until they post, so it
