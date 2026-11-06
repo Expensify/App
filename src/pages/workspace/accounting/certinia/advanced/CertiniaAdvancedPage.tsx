@@ -59,6 +59,7 @@ function CertiniaAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 subtitle={translate('workspace.certinia.autoSyncDescription')}
                 shouldPlaceSubtitleBelowSwitch
                 switchAccessibilityLabel={translate('workspace.accounting.autoSync')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.AUTO_SYNC_SWITCH}
                 isActive={!!config?.autoSync?.enabled}
                 onToggle={(enabled) => {
                     if (!policyID) {
@@ -78,6 +79,7 @@ function CertiniaAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         subtitle={translate('workspace.certinia.taxNonBillableDescription')}
                         shouldPlaceSubtitleBelowSwitch
                         switchAccessibilityLabel={translate('workspace.certinia.taxNonBillable')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.TAX_NON_BILLABLE_SWITCH}
                         isActive={!!advancedConfig?.taxNonBillable}
                         onToggle={(enabled) => {
                             if (!policyID) {
@@ -95,6 +97,7 @@ function CertiniaAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         subtitle={translate('workspace.certinia.foreignCurrencyAmountDescription')}
                         shouldPlaceSubtitleBelowSwitch
                         switchAccessibilityLabel={translate('workspace.certinia.foreignCurrencyAmount')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.FOREIGN_CURRENCY_AMOUNT_SWITCH}
                         isActive={!!advancedConfig?.exportForeignCurrency}
                         onToggle={(enabled) => {
                             if (!policyID) {
@@ -114,6 +117,7 @@ function CertiniaAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     subtitle={translate('workspace.certinia.syncReimbursedReportsDescription')}
                     shouldPlaceSubtitleBelowSwitch
                     switchAccessibilityLabel={translate('workspace.accounting.reimbursedReports')}
+                    switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.SYNC_REIMBURSED_REPORTS_SWITCH}
                     isActive={!!advancedConfig?.syncReimbursedReports}
                     onToggle={(enabled) => {
                         if (!policyID) {

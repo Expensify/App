@@ -75,6 +75,7 @@ type WorkspaceFieldsSectionProps = {
     policyFeature: PolicyFeature;
     syncErrorConnectionNames?: readonly PolicyConnectionName[];
     titleAccessibilityRole?: typeof CONST.ROLE.HEADER;
+    switchSentryLabel: string;
 };
 
 function keyExtractor(item: FieldListItem) {
@@ -103,6 +104,7 @@ function WorkspaceFieldsSection({
     policyFeature,
     syncErrorConnectionNames,
     titleAccessibilityRole,
+    switchSentryLabel,
 }: WorkspaceFieldsSectionProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -210,6 +212,7 @@ function WorkspaceFieldsSection({
                 pendingAction={pendingAction}
                 title={translate(titleKey)}
                 switchAccessibilityLabel={switchAccessibilityLabel}
+                switchSentryLabel={switchSentryLabel}
                 subtitle={headerText}
                 titleStyle={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
                 titleAccessibilityRole={titleAccessibilityRole}
