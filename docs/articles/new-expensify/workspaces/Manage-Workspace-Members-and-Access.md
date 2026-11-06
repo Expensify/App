@@ -13,7 +13,7 @@ Use the workspace **Members** page to update member roles and details, remove me
 
 To add a member to your workspace, see [Invite Members to a Workspace](/articles/new-expensify/workspaces/Invite-Members-to-a-Workspace). For a comparison of role permissions, see [Understand Workspace Roles and Permissions](/articles/new-expensify/workspaces/Understand-Workspace-Roles-and-Permissions).
 
-## Who can change roles or remove members?
+## Who can change roles or remove members
 
 **Workspace admins** can change members’ roles and remove members, including admins.
 
@@ -24,7 +24,7 @@ To add a member to your workspace, see [Invite Members to a Workspace](/articles
 - Auditor
 - Approve-only
 
-## How do I change a member’s role?
+## How to change a member’s role
 
 1. In the navigation tabs (on the left on web, at the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **Members**.
@@ -34,13 +34,13 @@ To add a member to your workspace, see [Invite Members to a Workspace](/articles
 
 On web, you can also hover over the member’s **Role** in the member list and select the pencil icon to change it.
 
-### Why can’t I change the authorized payer’s role?
+### Why the authorized payer’s role can't be changed
 
 You cannot change the role of the member designated as the workspace’s authorized **Payer**. Role-change options are hidden until a different payer is assigned.
 
 To change their role, first go to **Workspaces > [workspace name] > Workflows > Payments** and set a different admin as the **Payer**. Then return to **Members** to change the previous payer’s role.
 
-## How do I remove a workspace member
+## How to remove a workspace member
 
 1. In the navigation tabs (on the left on web, at the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **Members**.
@@ -50,7 +50,7 @@ To change their role, first go to **Workspaces > [workspace name] > Workflows > 
 
 If the removed member is an approver on an outstanding report, the workspace owner replaces them as the approver. Learn more about [automatic approver reassignment](/articles/new-expensify/workspaces/Add-Approvals).
 
-## How do I remove multiple members from a workspace
+## How to remove multiple members from a workspace
 
 On web:
 
@@ -72,7 +72,7 @@ On mobile:
 
 The same role restrictions and automatic approver reassignment apply when removing multiple members.
 
-## How do I filter the Members table
+## How to filter the Members table
 
 You can filter the Members table by workspace role or approver assignment. The **Approvers** filter shows members designated as approvers, while **Approve-only** shows members assigned the Approve-only role.
 
@@ -82,7 +82,7 @@ You can filter the Members table by workspace role or approver assignment. The *
 4. Select one or more role filters.
 5. Select **Apply**.
 
-## How do I set a member’s display name?
+## How to set a member’s display name
 
 Workspace admins can set a display name for a member who has not added a name of their own. If the member has already set their name, only they can edit it.
 
@@ -97,18 +97,18 @@ The name applies in every workspace the member belongs to. After it is saved, **
 
 **Note:** You can only set a display name if the member has not added a name of their own. If the member has already set their name, only they can edit it. [Learn how to update your display name on your account](/articles/new-expensify/settings/Account-Settings#how-to-update-your-display-name-or-legal-name).
 
-## How do I download a CSV of workspace members?
+## How todownload a CSV of workspace members
 
-Workspace admins, People admins, and Editors on Submit workspaces can download a CSV of workspace members.
+Workspace admins, people admins, and editors on Submit workspaces can download a CSV of workspace members.
 
 1. In the navigation tabs (on the left on web, at the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **Members**.
 3. Select **More**.
 4. Select **Download CSV**.
 
-The CSV file downloads to your device.
+The file downloads to your device.
 
-Members, Auditors, Card admins, and Payments admins cannot download the workspace member list.
+Members, auditors, card admins, and payments admins cannot download the workspace member list.
 
 # FAQ
 
