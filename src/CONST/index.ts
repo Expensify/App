@@ -10836,6 +10836,7 @@ const CONST = {
             FILTERS: 'Table-Filters',
             SETTINGS: 'Table-Settings',
             EDITABLE_CELL: 'Table-EditableCell',
+            SELECTION_MODE_MENU_ITEM: 'Table-SelectionModeMenuItem',
             FILTER_POPUP_APPLY: 'Table-FilterPopupApply',
             FILTER_POPUP_RESET: 'Table-FilterPopupReset',
             DISPLAY_SETTINGS_POPUP_APPLY: {
