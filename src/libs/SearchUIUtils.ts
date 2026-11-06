@@ -3445,12 +3445,7 @@ function getMemberSections(
     return [memberSectionsValues, memberSectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
-/**
- * @private
- * Organizes data into List Sections grouped by violation type for display, for the TransactionGroupListItemType of Search Results.
- *
- * Do not use directly, use only via `getSections()` facade.
- */
+/** Builds Search list sections grouped by violation type; call only via `getSections()`. */
 function getViolationSections(data: OnyxTypes.SearchResults['data'], translate: LocalizedTranslate): [TransactionViolationGroupListItemType[], number, boolean] {
     const violationSections: TransactionViolationGroupListItemType[] = [];
 
