@@ -1,4 +1,3 @@
-import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import type {DynamicFormSubPageProps} from '@components/DynamicForm/types';
 import getContentFields from '@components/DynamicForm/utils/getContentFields';
 import getDynamicFieldErrors from '@components/DynamicForm/utils/getDynamicFieldErrors';
@@ -7,9 +6,9 @@ import getPageTitle from '@components/DynamicForm/utils/getPageTitle';
 import isSensitiveField from '@components/DynamicForm/utils/isSensitiveField';
 import toDynamicFormValues from '@components/DynamicForm/utils/toDynamicFormValues';
 import FormProvider from '@components/Form/FormProvider';
+import FormHelpMessage from '@components/FormHelpMessage';
 import Text from '@components/Text';
 
-import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -44,9 +43,7 @@ function DynamicFormFieldsPage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const page = pages.find((candidate) => candidate.key === currentPageName);
-    // VoiceOver ignores the error's live region, so the error is announced as it appears, as on the confirmation page
     const pageError = (isLastPage ? submitError : undefined) ?? refreshError;
-    useAccessibilityAnnouncement(pageError, !!pageError, {shouldAnnounceOnNative: true});
     if (!page) {
         return null;
     }
@@ -76,11 +73,11 @@ function DynamicFormFieldsPage({
             // A refresh can change the fields on any page, so Next waits for it everywhere.
             isLoading={(isLastPage && !!isSubmitting) || !!isRefreshingRequirements}
             footerContent={
+                // Same message and spacing as the form's own alert, so an error from the server looks like one found locally. It announces itself.
                 pageError ? (
-                    <DotIndicatorMessage
-                        textStyles={[styles.formError]}
-                        type="error"
-                        messages={{error: pageError}}
+                    <FormHelpMessage
+                        message={pageError}
+                        style={styles.mb3}
                     />
                 ) : undefined
             }
