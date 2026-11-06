@@ -1,6 +1,5 @@
-import type {PinchGesture} from 'react-native-gesture-handler';
+import type {PinchGesture, PinchGestureConfig} from 'react-native-gesture-handler';
 
-import {useEffect, useState} from 'react';
 import {GestureStateManager, usePinchGesture} from 'react-native-gesture-handler';
 import {useAnimatedReaction, useSharedValue, withSpring} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
@@ -8,6 +7,7 @@ import {scheduleOnRN} from 'react-native-worklets';
 import type {MultiGestureCanvasVariables} from './types';
 
 import {SPRING_CONFIG, ZOOM_RANGE_BOUNCE_FACTORS} from './constants';
+import {clamp} from './utils';
 
 type UseCanvasPinchGestureProps = Pick<
     MultiGestureCanvasVariables,
@@ -23,7 +23,10 @@ type UseCanvasPinchGestureProps = Pick<
     | 'isTransformGestureActive'
     | 'stopAnimation'
     | 'onScaleChanged'
->;
+> & {
+    /** Allows the pager to share touches without cancelling a pinch at base scale. */
+    simultaneousWith: PinchGestureConfig['simultaneousWith'];
+};
 
 const useCanvasPinchGesture = ({
     canvasSize,
@@ -38,6 +41,7 @@ const useCanvasPinchGesture = ({
     isTransformGestureActive,
     stopAnimation,
     onScaleChanged,
+    simultaneousWith,
 }: UseCanvasPinchGestureProps): PinchGesture => {
     // The current pinch gesture event scale
     const currentPinchScale = useSharedValue(1);
@@ -100,18 +104,8 @@ const useCanvasPinchGesture = ({
         };
     };
 
-    // The pinch gesture is disabled when we release one of the fingers
-    // On the next render, we need to re-enable the pinch gesture
-    const [pinchEnabled, setPinchEnabled] = useState(true);
-    useEffect(() => {
-        if (pinchEnabled) {
-            return;
-        }
-        setPinchEnabled(true);
-    }, [pinchEnabled]);
-
     const pinchGesture = usePinchGesture({
-        enabled: pinchEnabled,
+        simultaneousWith,
         onTouchesDown: (evt) => {
             // We don't want to activate pinch gesture when we are swiping in the pager
             if (!shouldDisableTransformationGestures.get()) {
@@ -131,21 +125,17 @@ const useCanvasPinchGesture = ({
             pinchOrigin.y.set(adjustedFocal.y);
         },
         onUpdate: (evt) => {
-            // Disable the pinch gesture if one finger is released,
-            // to prevent the content from shaking/jumping
+            // Ignore incomplete pinches to prevent jumps without disabling the native detector.
             if (evt.numberOfPointers !== 2) {
-                scheduleOnRN(setPinchEnabled, false);
                 return;
             }
 
-            const newZoomScale = pinchScale.get() * evt.scale;
-            // Limit the zoom scale to zoom range including bounce range
-            if (zoomScale.get() >= zoomRange.min * ZOOM_RANGE_BOUNCE_FACTORS.min && zoomScale.get() <= zoomRange.max * ZOOM_RANGE_BOUNCE_FACTORS.max) {
-                zoomScale.set(newZoomScale);
-                currentPinchScale.set(evt.scale);
+            // Clamp the incoming scale so exceeding a bounce limit cannot block later updates.
+            const newZoomScale = clamp(pinchScale.get() * evt.scale, zoomRange.min * ZOOM_RANGE_BOUNCE_FACTORS.min, zoomRange.max * ZOOM_RANGE_BOUNCE_FACTORS.max);
+            zoomScale.set(newZoomScale);
+            currentPinchScale.set(newZoomScale / pinchScale.get());
 
-                triggerScaleChangedEvent();
-            }
+            triggerScaleChangedEvent();
 
             // Calculate new pinch translation
             const adjustedFocal = getAdjustedFocal(evt.focalX, evt.focalY);
