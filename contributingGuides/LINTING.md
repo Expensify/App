@@ -34,6 +34,7 @@ By default the wrapper only prints blocking errors — seatbelt-grandfathered vi
 
 ## How the rules run
 
+- **Where the rules come from:** most rules come from the [`eslint-config-expensify`](https://github.com/Expensify/eslint-config-expensify) presets listed in [`config/oxlint/presets.mjs`](../config/oxlint/presets.mjs). [`config/oxlint/derive.mjs`](../config/oxlint/derive.mjs) converts them to oxlint config with `@oxlint/migrate` each time oxlint loads `oxlint.config.mts`, so upgrading `eslint-config-expensify` needs no config edits. `oxlint.config.mts` only adds the App's own ignores, settings and rules, through `extendOxlintConfig`. If an upgrade brings a rule oxlint can't run, loading the config fails with a message saying where to handle it.
 - **Native rules** come from oxlint itself; type-aware ones run through `oxlint-tsgolint`.
 - **JS plugins** in [`config/oxlint/plugins/`](../config/oxlint/plugins/) run the rules oxlint has no native version of, using the ESLint plugins' own rule code (`eslint`, `eslint-config-expensify`, `eslint-plugin-react`, `typescript-eslint`, ...). That is why those packages stay in `devDependencies`. The repo's own rules live in [`eslint-plugin-local-rules/`](../eslint-plugin-local-rules/) and load under the `rulesdir/` prefix.
 - **React Compiler rules** (`react-hooks/refs`, `react-hooks/purity`, ...) come from the Rust React Compiler via [`config/oxlint/reactCompilerRust.mjs`](../config/oxlint/reactCompilerRust.mjs).
@@ -125,7 +126,7 @@ Commit the updated `config/oxlint/oxlint.seatbelt.tsv` alongside the rename. The
 
 ### "I'm enabling a new rule repo-wide"
 
-1. Add the rule to `oxlint.config.mts` in `'error'` mode. If oxlint has no native version, add it to the matching JS plugin in `config/oxlint/plugins/` and, for a hosted ESLint rule, to `config/oxlint/ruleNames.mjs`.
+1. Add the rule to an override in `oxlint.config.mts` in `'error'` mode. If oxlint has no native version of an ESLint plugin rule, add its ESLint ID to `APP_HOSTED_RULES` in `config/oxlint/derive.mjs` and set it as `hosted/<rule>`.
 2. Save the initial baseline:
 
     ```bash
