@@ -5,7 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItemWithTopDescription from '@components/HighlightableMenuItemWithTopDescription';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -59,6 +59,7 @@ import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getParsedComment, getReportOrDraftReport, getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
+import startOpenCategoryPickerSpan from '@libs/telemetry/startOpenCategoryPickerSpan';
 import {
     getDistanceInMeters,
     getRateID,
@@ -81,8 +82,10 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import {policyTypeSelector} from '@selectors/Policy';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
@@ -90,17 +93,19 @@ type DynamicSplitExpenseEditPageProps = PlatformStackScreenProps<RightModalNavig
 
 type SplitToggleRowProps = {
     label: string;
+    sentryLabel: SentryLabel;
     isOn: boolean;
     onToggle: (value: boolean) => void;
 };
 
-function SplitToggleRow({label, isOn, onToggle}: SplitToggleRowProps) {
+function SplitToggleRow({label, sentryLabel, isOn, onToggle}: SplitToggleRowProps) {
     const styles = useThemeStyles();
     return (
         <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mh5]}>
             <Text>{label}</Text>
             <Switch
                 accessibilityLabel={label}
+                sentryLabel={sentryLabel}
                 isOn={isOn}
                 onToggle={onToggle}
             />
@@ -109,6 +114,7 @@ function SplitToggleRow({label, isOn, onToggle}: SplitToggleRowProps) {
 }
 
 function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
@@ -122,7 +128,6 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     const [splitExpenseDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
     const [originalTransactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitExpenseDraftTransaction?.comment?.originalTransactionID}`);
 
-    const splitExpenseDraftTransactionDetails: Partial<TransactionDetails> = getTransactionDetails(splitExpenseDraftTransaction) ?? {};
     const allTransactions = useAllTransactions();
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -195,43 +200,24 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     const requiresExactSum = isManagedCardTransaction(transaction) || isPerDiemRequest(transaction);
     const otherSplitExpenses = splitExpensesList?.filter((item) => item.transactionID !== splitExpenseTransactionID) ?? [];
     const canRemoveSplit = !requiresExactSum || otherSplitExpenses.some((item) => !frozenSplitTransactionIDs.has(item.transactionID));
-    const currentDescription = getParsedComment(Parser.htmlToMarkdown(splitExpenseDraftTransactionDetails?.comment ?? ''));
 
-    const draftTransactionReport = getReportOrDraftReport(splitExpenseDraftTransaction?.reportID);
+    const draftTransactionReport = getReportOrDraftReport({reportID: splitExpenseDraftTransaction?.reportID});
     const isSelfDMSplit = isSelfDM(draftTransactionReport);
     const isExpenseUnreported = isSelfDMSplit;
     const [draftTransactionPolicyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${draftTransactionReport?.policyID}`, {
         selector: policyTypeSelector,
     });
     const isPolicyExpenseChat = isGroupPolicyByType(draftTransactionPolicyType);
+    const derivedCurrentReportName = useDerivedReportNameByReportID(currentReport?.reportID);
 
     const originalTransactionCategory = transaction?.category ?? '';
     const originalTransactionTag = transaction?.tag ?? '';
 
-    const transactionCategory = splitExpenseDraftTransactionDetails?.category ?? '';
-    const categoryForDisplay = isCategoryMissing(transactionCategory) ? '' : transactionCategory;
-    const hasOriginalCategory = !!originalTransactionCategory && !isCategoryMissing(originalTransactionCategory);
-    const shouldShowCategory =
-        hasOriginalCategory ||
-        (isPolicyExpenseChat && (!!categoryForDisplay || hasEnabledOptions(policyCategories ?? {}))) ||
-        (isExpenseUnreported && (!effectivePolicy || hasEnabledOptions(policyCategories ?? {})));
-
     const transactionTag = getTag(splitExpenseDraftTransaction);
     const policyTagLists = getTagLists(policyTags);
 
-    const isSplitAvailable =
-        report &&
-        transaction &&
-        isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, rules, currentReportOwnerLogin, effectivePolicy, parentReport);
-
-    const isCategoryRequired = !!effectivePolicy?.requiresCategory && !isSelfDMSplit;
-    const categoryValue = getDecodedLeafCategoryName(splitExpenseDraftTransactionDetails?.category ?? '');
-    const derivedCurrentReportName = useDerivedReportNameByReportID(currentReport?.reportID);
-    const reportName = getReportName(currentReport, derivedCurrentReportName) || parentReport?.reportName;
-    const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, arePolicyRulesEnabled(effectivePolicy, policyCategories));
-
     // Mirror MoneyRequestView's `shouldShowTag`, plus always surface the row when the original
-    // (parent) transaction carried a tag — same rationale as `shouldShowCategory` above: workspace
+    // (parent) transaction carried a tag, for the same reason as `shouldShowCategory` below: workspace
     // deletion leaves the gate flags false, but the preserved tag should still be re-selectable.
     const shouldShowTags = !!originalTransactionTag || ((isPolicyExpenseChat || isExpenseUnreported) && !!(transactionTag || hasEnabledTags(policyTagLists)));
     const tagVisibility = getTagVisibility({
@@ -241,7 +227,28 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
         transaction: splitExpenseDraftTransaction,
     });
 
-    const previousTagsVisibility = usePrevious(tagVisibility.map((v) => v.shouldShow)) ?? [];
+    const previousTagVisibility = usePrevious(tagVisibility);
+
+    const splitExpenseDraftTransactionDetails: Partial<TransactionDetails> = getTransactionDetails(splitExpenseDraftTransaction) ?? {};
+    const currentDescription = getParsedComment(Parser.htmlToMarkdown(splitExpenseDraftTransactionDetails?.comment ?? ''));
+
+    const transactionCategory = splitExpenseDraftTransactionDetails?.category ?? '';
+    const categoryForDisplay = isCategoryMissing(transactionCategory) ? '' : transactionCategory;
+    const hasOriginalCategory = !!originalTransactionCategory && !isCategoryMissing(originalTransactionCategory);
+    const shouldShowCategory =
+        hasOriginalCategory ||
+        (isPolicyExpenseChat && (!!categoryForDisplay || hasEnabledOptions(policyCategories ?? {}))) ||
+        (isExpenseUnreported && (!effectivePolicy || hasEnabledOptions(policyCategories ?? {})));
+
+    const isSplitAvailable =
+        report &&
+        transaction &&
+        isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, rules, currentReportOwnerLogin, effectivePolicy, parentReport);
+
+    const isCategoryRequired = !!effectivePolicy?.requiresCategory && !isSelfDMSplit;
+    const categoryValue = getDecodedLeafCategoryName(splitExpenseDraftTransactionDetails?.category ?? '');
+    const reportName = getReportName(currentReport, derivedCurrentReportName) || parentReport?.reportName;
+    const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, arePolicyRulesEnabled(effectivePolicy, policyCategories));
 
     const isSplitPerDiemRequest = isPerDiemRequest(transaction);
     const isSplitTimeRequest = isTimeRequest(transaction);
@@ -372,46 +379,50 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
             <MenuItem.Root
                 onPress={
                     isRateInteractive
-                        ? callFunctionIfActionIsAllowed(() => {
-                              const rateRoute = createDynamicRoute(
-                                  DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(
-                                      CONST.IOU.ACTION.EDIT,
-                                      CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                      CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                      reportID,
-                                  ),
-                              );
-
-                              // SelfDM split whose source workspace is gone and user has no other paid workspace:
-                              // mirror the selfDM track-expense Rate flow (MoneyRequestView) and route through the
-                              // IOU-level upgrade screen so the user can create a workspace, then a distance rate.
-                              // Use OPTIMISTIC_TRANSACTION_ID so the post-upgrade hop back into the rate step picks
-                              // up the same SPLIT_TRANSACTION_DRAFT this screen reads from (see line 57 above).
-                              if (isSelfDMSplit && !effectivePolicy && !hasAnyPaidWorkspace && reportID) {
-                                  Navigation.navigate(
-                                      createDynamicRoute(
-                                          DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                              action: CONST.IOU.ACTION.EDIT,
-                                              iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                              transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                              reportID,
-                                              upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
-                                          }),
+                        ? callFunctionIfActionIsAllowed(
+                              () => {
+                                  const rateRoute = createDynamicRoute(
+                                      DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(
+                                          CONST.IOU.ACTION.EDIT,
+                                          CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                          CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                          reportID,
                                       ),
                                   );
-                                  return;
-                              }
 
-                              // SelfDM split with paid workspaces but none is default/active paid (e.g. personal
-                              // is the active policy): open the workspace selector first — same UX as the parent
-                              // self-DM expense's Rate field in MoneyRequestView and the Category branch below.
-                              if (!effectivePolicy && shouldSelectPolicy) {
-                                  Navigation.navigate(ROUTES.SET_DEFAULT_WORKSPACE.getRoute(rateRoute));
-                                  return;
-                              }
+                                  // SelfDM split whose source workspace is gone and user has no other paid workspace:
+                                  // mirror the selfDM track-expense Rate flow (MoneyRequestView) and route through the
+                                  // IOU-level upgrade screen so the user can create a workspace, then a distance rate.
+                                  // Use OPTIMISTIC_TRANSACTION_ID so the post-upgrade hop back into the rate step picks
+                                  // up the same SPLIT_TRANSACTION_DRAFT this screen reads from (see line 57 above).
+                                  if (isSelfDMSplit && !effectivePolicy && !hasAnyPaidWorkspace && reportID) {
+                                      Navigation.navigate(
+                                          createDynamicRoute(
+                                              DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                                  action: CONST.IOU.ACTION.EDIT,
+                                                  iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                                  transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                                  reportID,
+                                                  upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
+                                              }),
+                                          ),
+                                      );
+                                      return;
+                                  }
 
-                              Navigation.navigate(rateRoute);
-                          })
+                                  // SelfDM split with paid workspaces but none is default/active paid (e.g. personal
+                                  // is the active policy): open the workspace selector first — same UX as the parent
+                                  // self-DM expense's Rate field in MoneyRequestView and the Category branch below.
+                                  if (!effectivePolicy && shouldSelectPolicy) {
+                                      Navigation.navigate(ROUTES.SET_DEFAULT_WORKSPACE.getRoute(rateRoute));
+                                      return;
+                                  }
+
+                                  Navigation.navigate(rateRoute);
+                              },
+                              false,
+                              session,
+                          )
                         : undefined
                 }
             >
@@ -441,12 +452,10 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                         onBackButtonPress={() => Navigation.goBack(backTo)}
                     />
                     <ScrollView>
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon
-                            shouldRenderAsHTML
+                        <MenuItemFieldHTML
                             key={translate('common.description')}
-                            description={translate('common.description')}
-                            title={currentDescription}
+                            name={translate('common.description')}
+                            value={currentDescription}
                             onPress={() => {
                                 Navigation.navigate(
                                     createDynamicRoute(
@@ -459,10 +468,9 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                     ),
                                 );
                             }}
-                            style={[styles.moneyRequestMenuItem]}
-                            numberOfLinesTitle={2}
-                            rightLabel={isDescriptionRequired ? translate('common.required') : ''}
-                        />
+                        >
+                            {!currentDescription && isDescriptionRequired && <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>}
+                        </MenuItemFieldHTML>
                         {distanceRequestFields}
                         {shouldShowCategory && (
                             <MenuItemField
@@ -498,6 +506,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                         Navigation.navigate(ROUTES.SET_DEFAULT_WORKSPACE.getRoute(categoryRoute));
                                         return;
                                     }
+                                    startOpenCategoryPickerSpan();
                                     Navigation.navigate(categoryRoute);
                                 }}
                             >
@@ -509,7 +518,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                 const tagVisibilityItem = tagVisibility.at(index);
                                 const shouldShow = tagVisibilityItem?.shouldShow ?? false;
                                 const isTagRequired = tagVisibilityItem?.isTagRequired ?? false;
-                                const prevShouldShow = previousTagsVisibility.at(index) ?? false;
+                                const prevShouldShow = previousTagVisibility.at(index)?.shouldShow ?? false;
 
                                 if (!shouldShow) {
                                     return null;
@@ -579,6 +588,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                         {shouldShowReimbursable && (
                             <SplitToggleRow
                                 label={translate('common.reimbursable')}
+                                sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.REIMBURSABLE_SWITCH}
                                 isOn={splitExpenseDraftTransaction?.reimbursable ?? true}
                                 onToggle={(value) => updateSplitExpenseDraftField({reimbursable: value})}
                             />
@@ -586,6 +596,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                         {shouldShowBillable && (
                             <SplitToggleRow
                                 label={translate('common.billable')}
+                                sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.BILLABLE_SWITCH}
                                 isOn={splitExpenseDraftTransaction?.billable ?? false}
                                 onToggle={(value) => updateSplitExpenseDraftField({billable: value})}
                             />

@@ -55,6 +55,7 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         lastActorAccountID: unknown;
         lastActionType: unknown;
         ownerAccountID: unknown;
+        billSenderAccountID: unknown;
         participants: unknown;
         total: unknown;
         unheldTotal: unknown;
@@ -93,6 +94,10 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
             eta: {
                 etaKey: unknown;
                 dateTime: unknown;
+                autoReportingFrequency: unknown;
+                autoReportingOffset: unknown;
+                autoReportingOffsetSecondSemiMonthly: unknown;
+                timeZone: unknown;
             };
         };
         transactionCount: unknown;

@@ -2,11 +2,16 @@ import {clearPolicyCategoriesLoadingState, getPolicyCategories} from '@libs/acti
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {PolicyCategories} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {useEffect, useRef} from 'react';
 
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+
+const hasPolicyCategoriesSelector = (policyCategories: OnyxEntry<PolicyCategories>) => policyCategories !== undefined;
 
 /**
  * Fetches a policy's categories on demand when a category picker mounts, so a lazy-loaded account does not show only
@@ -20,10 +25,9 @@ import useOnyx from './useOnyx';
  */
 function useLoadPolicyCategories(policyID: string | undefined) {
     const [loadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE}${getNonEmptyStringOnyxID(policyID)}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
+    const [hasCategories = false] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`, {selector: hasPolicyCategoriesSelector});
     const isLoading = !!loadingState?.isLoading;
     const hasOnceLoaded = !!loadingState?.hasOnceLoaded;
-    const hasCategories = policyCategories !== undefined;
 
     // The policyID this instance has already dispatched a read for. A failed read clears `isLoading` without setting
     // `hasOnceLoaded`, which would otherwise re-satisfy the effect's guard and retry in a tight loop. Scoping the
@@ -53,9 +57,10 @@ function useLoadPolicyCategories(policyID: string | undefined) {
     // True only while the read is unsettled and there is nothing to render yet, so the picker shows a skeleton instead
     // of an empty list. The `policyID` check mirrors the effect's guard: with no policyID no read is ever dispatched,
     // so the absent loading state would otherwise keep the skeleton up forever.
-    const isLoadingPolicyCategories = !!policyID && !isOffline && !hasOnceLoaded && !hasCategories && (isLoading || loadingState === undefined);
+    const isLoadingCompletePolicyCategories = !!policyID && !isOffline && !hasOnceLoaded && (isLoading || loadingState === undefined);
+    const isLoadingPolicyCategories = isLoadingCompletePolicyCategories && !hasCategories;
 
-    return {isLoadingPolicyCategories};
+    return {isLoadingPolicyCategories, isLoadingCompletePolicyCategories};
 }
 
 export default useLoadPolicyCategories;

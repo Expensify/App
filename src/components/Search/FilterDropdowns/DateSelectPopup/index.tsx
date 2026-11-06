@@ -8,6 +8,7 @@ import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -16,6 +17,7 @@ import {getDateModifierTitle, getDateRangeDisplayValueFromFormValue} from '@libs
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -38,14 +40,27 @@ type DateSelectPopupProps = {
 
     /** Function to set the popover width dynamically */
     setPopoverWidth?: (width: number | undefined) => void;
+
+    applySentryLabel: SentryLabel;
 };
 
-function DateSelectPopup({label, value, presets, allowedCustomDateModifiers = CONST.SEARCH.CUSTOM_DATE_MODIFIERS, style, closeOverlay, onChange, setPopoverWidth}: DateSelectPopupProps) {
+function DateSelectPopup({
+    label,
+    value,
+    presets,
+    allowedCustomDateModifiers = CONST.SEARCH.CUSTOM_DATE_MODIFIERS,
+    style,
+    closeOverlay,
+    onChange,
+    setPopoverWidth,
+    applySentryLabel,
+}: DateSelectPopupProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
 
     const {translate, dateFnsLocale} = useLocalize();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
     const searchDatePresetFilterBaseRef = useRef<SearchDatePresetFilterBaseHandle>(null);
     const scrollViewRef = useRef<ComponentRef<typeof ScrollView>>(null);
@@ -116,8 +131,10 @@ function DateSelectPopup({label, value, presets, allowedCustomDateModifiers = CO
     const useRangeLayout = selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE;
 
     if (!isSmallScreenWidth) {
+        const popoverMaxHeightStyle = selectedDateModifier ? StyleUtils.getMaximumHeight(maxPopupHeight) : styles.getPopoverMaxHeight(windowHeight, isInLandscapeMode);
+
         return (
-            <View style={[styles.pv4, styles.gap2, {maxHeight: maxPopupHeight}, style]}>
+            <View style={[styles.pv4, styles.gap2, popoverMaxHeightStyle, style]}>
                 <ScrollView>
                     {!!selectedDateModifier && (
                         <SelectedDateModifierHeader
@@ -213,7 +230,7 @@ function DateSelectPopup({label, value, presets, allowedCustomDateModifiers = CO
             )}
             <ActionButtons
                 containerStyle={mobileButtonRowStyle}
-                applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_DATE}
+                applySentryLabel={applySentryLabel}
                 onApply={applyChanges}
             />
         </View>

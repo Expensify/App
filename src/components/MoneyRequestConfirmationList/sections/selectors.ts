@@ -11,6 +11,7 @@ import {
     isCreatedMissing,
     isFailedScanAmountPlaceholder,
     isMerchantMissing,
+    isScanning,
     isScanRequest,
     willFieldBeAutomaticallyFilled,
 } from '@libs/TransactionUtils';
@@ -184,6 +185,7 @@ type AmountSlice = {
     isAmountMissing: boolean;
     isAmountSet: Transaction['isAmountSet'];
     isFailedScanAmountPlaceholder: boolean;
+    isScanning: boolean;
     taxCode: Transaction['taxCode'];
     // The Scan confirmation's amount / merchant / date are all-or-nothing, so the amount field reads the other two.
     isMerchantSet: boolean;
@@ -205,6 +207,7 @@ const amountSliceSelector = (t: OnyxEntry<Transaction>): AmountSlice | undefined
         isAmountMissing: isAmountMissing(t),
         isAmountSet: t.isAmountSet,
         isFailedScanAmountPlaceholder: isFailedScanAmountPlaceholder(t),
+        isScanning: isScanning(t),
         taxCode: t.taxCode,
         isMerchantSet: t.isMerchantSet ?? false,
         isCreatedSet: t.isCreatedSet ?? false,
@@ -370,6 +373,10 @@ const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportF
     };
 };
 
+function shouldReportFieldBeEditable(outstandingReports: Array<OnyxEntry<OnyxTypes.Report>>, currentReportID: string | undefined, isUnreportedOrNew: boolean): boolean {
+    return isUnreportedOrNew ? outstandingReports.length >= 1 : outstandingReports.some((report) => report?.reportID !== currentReportID);
+}
+
 // --- InvoiceSenderField ---
 
 type InvoiceSenderWorkspace = {id: string | undefined; name: string | undefined; avatarURL: string | undefined} | undefined;
@@ -405,6 +412,7 @@ export {
     perDiemSliceSelector,
     receiptSliceSelector,
     reportFieldTransactionStateSelector,
+    shouldReportFieldBeEditable,
     tagSliceSelector,
     taxSliceSelector,
     timeStateSelector,

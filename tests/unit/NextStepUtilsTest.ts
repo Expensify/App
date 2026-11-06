@@ -10,6 +10,7 @@ import {
 import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
@@ -1016,6 +1017,151 @@ describe('libs/NextStepUtils', () => {
             });
         });
 
+        it('returns the no further action next step for an open, empty report when the owner cannot create expenses on the workspace', () => {
+            // Given an open, empty report whose owner cannot create expenses on the workspace
+            // When the report next step is resolved
+            // Then it says no further action, because the owner can never add the expenses it waits for
+            const currentNextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: currentUserAccountID,
+            };
+
+            const report: Report = {
+                ...buildOptimisticExpenseReport({
+                    rules: undefined,
+                    chatReportID: 'chat-approve-only',
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    policyID,
+                    payeeAccountID: 1,
+                    total: 0,
+                    currency: CONST.CURRENCY.USD,
+                    isASAPSubmitBetaEnabled: true,
+                }),
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                transactionCount: 0,
+                nextStep: currentNextStep,
+            };
+
+            const policy = createMock<Policy>({
+                id: policyID,
+                role: CONST.POLICY.ROLE.APPROVE_ONLY,
+            });
+
+            const result = getReportNextStep({
+                rules: undefined,
+                moneyRequestReport: report,
+                moneyRequestReportOwnerLogin: currentUserEmail,
+                transactions: [],
+                policy,
+                transactionViolations: {},
+                currentUserEmail,
+                currentUserAccountID,
+            });
+
+            expect(result).toEqual({
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
+                icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+            });
+        });
+
+        it('returns the approve-only submit blocked next step when the owner cannot submit their own report', () => {
+            const currentNextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: currentUserAccountID,
+            };
+
+            const report: Report = {
+                ...buildOptimisticExpenseReport({
+                    rules: undefined,
+                    chatReportID: 'chat-approve-only',
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    policyID,
+                    payeeAccountID: 1,
+                    total: -500,
+                    currency: CONST.CURRENCY.USD,
+                    isASAPSubmitBetaEnabled: true,
+                }),
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                nextStep: currentNextStep,
+            };
+
+            const policy = createMock<Policy>({
+                id: policyID,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                role: CONST.POLICY.ROLE.APPROVE_ONLY,
+            });
+
+            const result = getReportNextStep({
+                rules: undefined,
+                moneyRequestReport: report,
+                moneyRequestReportOwnerLogin: currentUserEmail,
+                transactions: [],
+                policy,
+                transactionViolations: {},
+                currentUserEmail,
+                currentUserAccountID,
+            });
+
+            expect(result).toEqual({
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED,
+                icon: CONST.NEXT_STEP.ICONS.BOX,
+            });
+        });
+
+        it('returns the current next step when the approve-only member is not the report owner', () => {
+            const currentNextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: 99,
+            };
+
+            const report: Report = {
+                ...buildOptimisticExpenseReport({
+                    rules: undefined,
+                    chatReportID: 'chat-approve-only-other-owner',
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    policyID,
+                    payeeAccountID: 1,
+                    total: -500,
+                    currency: CONST.CURRENCY.USD,
+                    isASAPSubmitBetaEnabled: true,
+                }),
+                ownerAccountID: 99,
+                managerID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                nextStep: currentNextStep,
+            };
+
+            const policy = createMock<Policy>({
+                id: policyID,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                role: CONST.POLICY.ROLE.APPROVE_ONLY,
+            });
+
+            const result = getReportNextStep({
+                rules: undefined,
+                moneyRequestReport: report,
+                moneyRequestReportOwnerLogin: 'owner@expensify.com',
+                transactions: [],
+                policy,
+                transactionViolations: {},
+                currentUserEmail,
+                currentUserAccountID,
+            });
+
+            expect(result).toBe(currentNextStep);
+        });
+
         it('returns an optimistic fix issue next step when all transactions have submission-blocking violations', () => {
             const report: Report = {
                 ...buildOptimisticExpenseReport({
@@ -1202,6 +1348,39 @@ describe('libs/NextStepUtils', () => {
     });
 
     describe('buildNextStepMessage', () => {
+        describe.each([
+            {reportType: CONST.REPORT.UNSUPPORTED_TYPE.BILL, approveTarget: 'approve the bill', payTarget: 'pay this bill'},
+            {reportType: CONST.REPORT.TYPE.EXPENSE, approveTarget: 'approve expenses', payTarget: 'pay expenses'},
+            {reportType: undefined, approveTarget: 'approve expenses', payTarget: 'pay expenses'},
+        ])('approve and pay wording for report type $reportType', ({reportType, approveTarget, payTarget}) => {
+            it.each([
+                {messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE, actorAccountID: 780072, expectedActor: '<strong>you</strong>'},
+                {messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE, actorAccountID: 780073, expectedActor: '<strong>Approver</strong>'},
+                {messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE, actorAccountID: -1, expectedActor: 'an admin'},
+                {messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY, actorAccountID: 780072, expectedActor: '<strong>you</strong>'},
+                {messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY, actorAccountID: 780073, expectedActor: '<strong>Approver</strong>'},
+                {messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY, actorAccountID: -1, expectedActor: 'an admin'},
+            ])('names the target of $messageKey for actor $actorAccountID', async ({messageKey, actorAccountID, expectedActor}) => {
+                // Given bills and expense reports share the same approve and pay next steps from Auth.
+                const otherActorAccountID = 780073;
+                await IntlStore.load(CONST.LOCALES.EN);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[otherActorAccountID]: {accountID: otherActorAccountID, displayName: 'Approver'}});
+                await waitForBatchedUpdates();
+                const nextStep: ReportNextStep = {
+                    messageKey,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    actorAccountID,
+                };
+
+                // When the header renders that next step for this report type.
+                const message = buildNextStepMessage(nextStep, translateLocal, undefined, 780072, formatPhoneNumber, reportType);
+
+                // Then the message names the bill only for bills and keeps the actor's identity.
+                const target = messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE ? approveTarget : payTarget;
+                expect(message).toBe(`<next-step>Waiting for ${expectedActor} to ${target}.</next-step>`);
+            });
+        });
+
         it('resolves the actor name through the provided translate function', async () => {
             const hiddenActorAccountID = 780070;
             // The actor has no displayName/login, so its name resolves to the hidden label provided by translate.
@@ -1297,6 +1476,80 @@ describe('libs/NextStepUtils', () => {
 
             const message = buildNextStepMessage(nextStep, translateEta, undefined, 999999, formatPhoneNumber);
             expect(message).toBe('<next-step>15th</next-step>');
+        });
+
+        it.each([
+            {
+                name: 'weekly on a custom day',
+                eta: {etaKey: CONST.NEXT_STEP.ETA_KEY.END_OF_WEEK, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY, autoReportingOffset: 3},
+                expectedETA: 'on Wednesday',
+            },
+            {
+                name: 'weekly on the default day',
+                eta: {etaKey: CONST.NEXT_STEP.ETA_KEY.END_OF_WEEK, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY, autoReportingOffset: 7},
+                expectedETA: 'on Sunday',
+            },
+            {
+                name: 'twice a month on custom days',
+                eta: {
+                    etaKey: CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY,
+                    autoReportingOffset: 10,
+                    autoReportingOffsetSecondSemiMonthly: 20,
+                },
+                expectedETA: 'on the 10th and 20th of each month',
+            },
+            {
+                name: 'twice a month on a custom day and the last day',
+                eta: {
+                    etaKey: CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY,
+                    autoReportingOffset: 10,
+                    autoReportingOffsetSecondSemiMonthly: CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH,
+                },
+                expectedETA: 'on the 10th and the last day of each month',
+            },
+            {
+                name: 'twice a month on the default days',
+                eta: {
+                    etaKey: CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY,
+                    autoReportingOffset: 15,
+                    autoReportingOffsetSecondSemiMonthly: CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH,
+                },
+                expectedETA: 'on the 1st and 16th of each month',
+            },
+            {
+                name: 'monthly on the last weekday',
+                eta: {
+                    dateTime: '2026-10-30',
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
+                    autoReportingOffset: CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_FRIDAY_OF_MONTH,
+                },
+                expectedETA: 'on the last Friday of the month',
+            },
+        ])('renders the automatic-submit eta for $name from the schedule the backend sends', async ({eta, expectedETA}) => {
+            // Given English translations and a next step whose eta carries the workspace schedule next to the legacy etaKey or dateTime
+            IntlStore.load(CONST.LOCALES.EN);
+            await waitForBatchedUpdates();
+            const nextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: 999999,
+                eta,
+            };
+            const translateEta: LocalizedTranslate = (path, ...parameters) => {
+                if (path === 'nextStep.message.waitingForAutomaticSubmit') {
+                    return String(parameters.at(2));
+                }
+                return translateLocal(path, ...parameters);
+            };
+
+            // When the message is built
+            const message = buildNextStepMessage(nextStep, translateEta, undefined, 999999, formatPhoneNumber);
+
+            // Then custom schedules show their own day, and default schedules keep the legacy text
+            expect(message).toBe(`<next-step>${expectedETA}</next-step>`);
         });
 
         describe('renders a monthly automatic-submit eta on the encoded day of month in every timezone', () => {

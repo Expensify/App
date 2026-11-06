@@ -13,9 +13,10 @@ Connecting QuickBooks Online to Expensify helps streamline expense tracking and 
 
 To choose how data is imported from QuickBooks Online to Expensify:
 
-1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting > QuickBooks Online**
-2. Click **Import** under the QuickBooks Online connection
-3. Review and adjust each of the following:
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**
+2. Select **Configure** next to QuickBooks Online
+3. Select **Import**
+4. Review and adjust each of the following:
 
 - **Chart of accounts**: Automatically imported as categories. This setting cannot be changed.
 - **Classes**: Import as tags to allow expense-level coding.
@@ -36,12 +37,12 @@ To choose how data is imported from QuickBooks Online to Expensify:
 
 To choose how data is exported from Expensify to QuickBooks Online:
 
-1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting > QuickBooks Online**
-2. Click **Export** under the QuickBooks Online connection
-3. Configure the following settings:
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**
+2. Select **Configure** next to QuickBooks Online
+3. Select **Export**
+4. Configure the following settings:
 
 - **Preferred exporter**: Select a workspace admin for automatic exports
-  - Note: If card exports are controlled by domain settings, the preferred exporter must be a **Domain Admin**
 - **Export date**: Choose from:
   - Date of last expense
   - Submitted date
@@ -69,9 +70,10 @@ To choose how data is exported from Expensify to QuickBooks Online:
 
 To manage automation and other connection preferences:
 
-1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting > QuickBooks Online**
-2. Click **Advanced** under the QuickBooks Online connection
-3. Configure the following:
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**
+2. Select **Configure** next to QuickBooks Online
+3. Select **Advanced**
+4. Configure the following:
 
 - **Auto-sync**: Automatically updates data between QuickBooks Online and Expensify
 - **Invite employees**: Imports and invites employees from QuickBooks Online

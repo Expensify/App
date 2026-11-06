@@ -8,6 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ReactNode} from 'react';
 
@@ -33,7 +34,7 @@ type SelectionListPopoverHeaderProps = {
     onBackButtonPress: () => void;
 
     /** Sentry label for the back button, so each list's presses are attributed to it */
-    backButtonSentryLabel: string;
+    backButtonSentryLabel: SentryLabel;
 
     /** Actions shown at the right end of the header */
     children?: ReactNode;
