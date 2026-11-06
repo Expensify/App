@@ -234,7 +234,7 @@ function useReportSelectionActions({
                         getCurrencyDecimals,
                         getCurrencySymbol,
                     });
-                    removeTransaction(transaction.transactionID);
+                    removeTransaction(transaction.transactionID, {isDeleted: false});
                 } else {
                     setMoneyRequestDraftHasUserEdits(transaction.transactionID);
                 }
@@ -270,7 +270,7 @@ function useReportSelectionActions({
                     getCurrencyDecimals,
                     getCurrencySymbol,
                 });
-                removeTransaction(transaction.transactionID);
+                removeTransaction(transaction.transactionID, {isDeleted: false});
             },
         });
     };
