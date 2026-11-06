@@ -1,4 +1,3 @@
-import ActivityIndicator from '@components/ActivityIndicator';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 
@@ -6,27 +5,22 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubPageProps} from '@hooks/useSubPage/types';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getFieldRequiredErrors, isValidSSNLastFour} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React from 'react';
-import {View} from 'react-native';
 
 const PERSONAL_INFO_STEP_KEY = INPUT_IDS.PERSONAL_INFO_STEP;
 const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.SSN_LAST_4];
 
 function SocialSecurityNumber({onNext, onMove, isEditing}: SubPageProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
 
-    const [reimbursementAccount, reimbursementAccountResult] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const isLoadingReimbursementAccount = isLoadingOnyxValue(reimbursementAccountResult);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
     const defaultSsnLast4 = reimbursementAccount?.achData?.[PERSONAL_INFO_STEP_KEY.SSN_LAST_4] ?? '';
 
@@ -45,14 +39,6 @@ function SocialSecurityNumber({onNext, onMove, isEditing}: SubPageProps) {
         onNext,
         shouldSaveDraft: isEditing,
     });
-
-    if (isLoadingReimbursementAccount) {
-        return (
-            <View style={[styles.flex1, styles.fullScreenLoading]}>
-                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
-            </View>
-        );
-    }
 
     return (
         <SingleFieldStep<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>
