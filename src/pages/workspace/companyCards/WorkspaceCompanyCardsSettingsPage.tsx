@@ -187,6 +187,7 @@ function WorkspaceCompanyCardsSettingsPage({
                             <ToggleSettingOptionRow
                                 title={translate('workspace.moreFeatures.companyCards.personal')}
                                 switchAccessibilityLabel={translate('workspace.moreFeatures.companyCards.personal')}
+                                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.PERSONAL_LIABILITY_SWITCH}
                                 onToggle={onToggleLiability}
                                 isActive={isPersonal}
                                 disabled={isPending}

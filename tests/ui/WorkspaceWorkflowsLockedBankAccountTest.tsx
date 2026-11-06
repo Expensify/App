@@ -240,6 +240,10 @@ describe('WorkspaceWorkflowsPageRevamp - bank account row', () => {
         // When Payments is disabled and enabled again without refreshing or relinking the bank
         fireEvent.press(screen.getByRole('switch', {name: toggleName}));
         await waitForBatchedUpdatesWithAct();
+        expect(screen.getByText(TestHelper.translateLocal('workflowsPage.disablePaymentsPrompt'))).toBeOnTheScreen();
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.confirm')));
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.queryByText('Test Address')).not.toBeOnTheScreen();
         fireEvent.press(screen.getByRole('switch', {name: toggleName}));
         await waitForBatchedUpdatesWithAct();
 

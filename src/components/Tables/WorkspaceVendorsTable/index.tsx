@@ -112,6 +112,7 @@ function WorkspaceVendorsTable({vendors, selectionEnabled = false, selectedKeys 
                         showLockIcon={item.isLocked}
                         disabled={item.disabled}
                         accessibilityLabel={`${translate('workspace.vendors.enableVendor')}: ${item.name}`}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.VENDORS.ROW_ENABLE_SWITCH}
                         onToggle={item.onToggleEnabled}
                     />
                 </View>

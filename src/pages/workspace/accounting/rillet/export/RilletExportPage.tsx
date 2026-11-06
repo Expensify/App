@@ -155,6 +155,7 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
                     <ToggleSettingOptionRow
                         title={translate('workspace.rillet.exportToMultipleAccounts')}
                         switchAccessibilityLabel={translate('workspace.rillet.exportToMultipleAccounts')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.RILLET.EXPORT_TO_MULTIPLE_ACCOUNTS_SWITCH}
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={[styles.mv3, styles.mh5]}
                         isActive={exportToMultipleAccounts}
