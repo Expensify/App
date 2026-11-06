@@ -169,7 +169,6 @@
 "../../src/components/EmptySelectionListContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/EReceiptWithSizeCalculation.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ExportDownloadStatusModal.tsx"	"no-restricted-syntax"	6
-"../../src/components/FeatureList.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/components/FeatureTraining/FeatureTrainingCarousel.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/components/FeedbackSurvey.tsx"	"no-restricted-syntax"	1
 "../../src/components/FeedbackSurvey.tsx"	"react-hooks/set-state-in-effect"	1
@@ -2295,7 +2294,6 @@
 "../../src/pages/workspace/companyCards/WorkspaceCompanyCardFeedSelectorPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/companyCards/WorkspaceCompanyCardFeedSelectorPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/companyCards/WorkspaceCompanyCardFeedSelectorPage.tsx"	"no-restricted-syntax"	1
-"../../src/pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/pages/workspace/companyCards/WorkspaceCompanyCardsBulkEditTransactionStartDatePage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/workspace/companyCards/WorkspaceCompanyCardsErrorConfirmation.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/companyCards/WorkspaceCompanyCardsErrorConfirmation.tsx"	"no-restricted-syntax"	1
