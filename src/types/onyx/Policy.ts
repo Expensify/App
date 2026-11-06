@@ -163,6 +163,10 @@ type UberReceiptPartner = {
      * form data for uber partner
      */
     connectFormData?: string;
+
+    /** Query string for Uber's revoke page, without the organization. The client adds `organizationID` as `org_uuid` */
+    revokeFormData?: string;
+
     /**
      * auto invite for uber connection
      */
