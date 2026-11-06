@@ -11539,6 +11539,7 @@ const CONST = {
                     SYNC_REIMBURSED_REPORTS_SWITCH: 'WorkspaceAccountingZohoBooks-SyncReimbursedReportsSwitch',
                     SYNC_EXPENSIFY_CARD_SETTLEMENTS_SWITCH: 'WorkspaceAccountingZohoBooks-SyncExpensifyCardSettlementsSwitch',
                     SYNC_TRAVEL_BILLING_SETTLEMENTS_SWITCH: 'WorkspaceAccountingZohoBooks-SyncTravelBillingSettlementsSwitch',
+                    EXPORT_TO_MULTIPLE_ACCOUNTS_SWITCH: 'WorkspaceAccountingZohoBooks-ExportToMultipleAccountsSwitch',
                 },
             },
             ZOHO_BOOKS: {
