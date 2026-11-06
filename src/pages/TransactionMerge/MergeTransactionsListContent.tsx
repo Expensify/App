@@ -198,10 +198,12 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
               getCurrencySymbol,
               reportAction: undefined,
               linkedTransaction: targetTransaction,
+              // Only chats of a workspace being created are ever drafts, so an expense report has none to resolve
               report: getReportOrDraftReport({
                   reportID: targetTransaction?.reportID,
                   searchReports: targetTransactionReport ? [targetTransactionReport] : [],
                   report: targetTransactionReport,
+                  reportDraft: {},
               }),
           })
         : '';

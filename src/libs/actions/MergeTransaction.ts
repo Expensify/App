@@ -209,7 +209,8 @@ function getTransactionsForMergingLocally(
         // Resolve admin status against the candidate’s own workspace. If the policy is absent from
         // the local cache we cannot verify access, so we exclude the candidate rather than assuming
         // admin rights.
-        const candidateReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] ?? getReportOrDraftReport({reportID: transaction.reportID});
+        // REPORT_DRAFT only ever holds the chats of a workspace being created or an optimistic chat from the share flow, so an expense report never has a draft to resolve
+        const candidateReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] ?? getReportOrDraftReport({reportID: transaction.reportID, reportDraft: {}});
         if (!candidateReport) {
             return false;
         }
@@ -582,7 +583,7 @@ function mergeTransactionRequest({
 
         const transactionToDelete = mergeTransaction.reportID === targetTransaction.reportID ? sourceTransaction : targetTransaction;
         const transactionsOfDeletableReport = Object.values(transactionsOfDeletableReportCollection);
-        const deletableReport = getReportOrDraftReport({reportID: transactionToDelete.reportID});
+        const deletableReport = getReportOrDraftReport({reportID: transactionToDelete.reportID, reportDraft: {}});
         const reportPreviewActionIDOfDeletableReport = deletableReport?.parentReportActionID;
         const optimisticReportDeletionData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> =
             transactionsOfDeletableReport.length === 1
@@ -601,7 +602,7 @@ function mergeTransactionRequest({
                       {
                           onyxMethod: Onyx.METHOD.SET,
                           key: `${ONYXKEYS.COLLECTION.REPORT}${transactionToDelete.reportID}`,
-                          value: getReportOrDraftReport({reportID: transactionToDelete.reportID}) ?? null,
+                          value: getReportOrDraftReport({reportID: transactionToDelete.reportID, reportDraft: {}}) ?? null,
                       },
                   ]
                 : [];
