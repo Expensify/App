@@ -388,4 +388,30 @@ describe('useViolations', () => {
             expect(amountViolations.at(0)?.data).toEqual({amount: 100000, currency: CONST.CURRENCY.USD, category: 'Travel'});
         });
     });
+
+    describe('render stability', () => {
+        it('should keep getViolationsForField stable until the violations change', () => {
+            // Given a hook rendered with one category violation, because MoneyRequestView caches its field checks on the returned function
+            const initialViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}];
+            const {result, rerender} = renderHook(({violations}: {violations: TransactionViolation[]}) => useViolations(violations, false), {
+                initialProps: {violations: initialViolations},
+            });
+            const initialGetViolationsForField = result.current.getViolationsForField;
+
+            // When the parent renders again with the same violations
+            rerender({violations: initialViolations});
+
+            // Then the function and the grouped arrays keep their identity, so consumers do not render again
+            expect(result.current.getViolationsForField).toBe(initialGetViolationsForField);
+            expect(result.current.getViolationsForField('category')).toBe(initialGetViolationsForField('category'));
+
+            // When the violations change
+            rerender({violations: [{name: CONST.VIOLATIONS.MISSING_TAG, type: CONST.VIOLATION_TYPES.VIOLATION}]});
+
+            // Then a new function is returned with the new grouping, so consumers see the update
+            expect(result.current.getViolationsForField).not.toBe(initialGetViolationsForField);
+            expect(result.current.getViolationsForField('category')).toEqual([]);
+            expect(result.current.getViolationsForField('tag')).toHaveLength(1);
+        });
+    });
 });

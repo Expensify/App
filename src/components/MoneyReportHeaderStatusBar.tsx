@@ -9,6 +9,7 @@ import {buildNextStepMessage} from '@libs/NextStepUtils';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type Report from '@src/types/onyx/Report';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -17,17 +18,19 @@ import type {ValueOf} from 'type-fest';
 import React from 'react';
 import {View} from 'react-native';
 
+import CaretWrapper from './CaretWrapper';
 import Icon from './Icon';
 import RenderHTML from './RenderHTML';
 
 type MoneyReportHeaderStatusBarProps = {
     nextStep: ReportNextStep | undefined;
+    reportType: Report['type'];
 };
 
 type IconName = ValueOf<typeof CONST.NEXT_STEP.ICONS>;
 type IconMap = Record<IconName, IconAsset>;
 
-function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps) {
+function MoneyReportHeaderStatusBar({nextStep, reportType}: MoneyReportHeaderStatusBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
@@ -41,10 +44,10 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
 
-    const messageContent = !nextStep ? '' : buildNextStepMessage(nextStep, translate, dateFnsLocale, currentUserAccountID, formatPhoneNumber);
+    const messageContent = !nextStep ? '' : buildNextStepMessage(nextStep, translate, dateFnsLocale, currentUserAccountID, formatPhoneNumber, reportType);
 
     return (
-        <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100, styles.headerStatusBarContainer]}>
+        <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100]}>
             <View style={[styles.mr3]}>
                 <Icon
                     src={(nextStep?.icon && iconMap?.[nextStep.icon]) ?? icons.Hourglass}
@@ -53,9 +56,11 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
                     fill={nextStep?.iconFill ?? theme.icon}
                 />
             </View>
-            <View style={[styles.dFlex, styles.flexRow, styles.flexShrink1]}>
-                <RenderHTML html={messageContent} />
-            </View>
+            <CaretWrapper style={styles.flexShrink1}>
+                <View style={[styles.dFlex, styles.flexRow, styles.flexShrink1, styles.breakWord]}>
+                    <RenderHTML html={messageContent} />
+                </View>
+            </CaretWrapper>
         </View>
     );
 }

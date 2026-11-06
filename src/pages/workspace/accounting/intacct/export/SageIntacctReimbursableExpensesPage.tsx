@@ -83,6 +83,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
             shouldPlaceSubtitleBelowSwitch: true,
             isActive: !!config?.export.reimbursableExpenseReportDefaultVendor,
             switchAccessibilityLabel: translate('workspace.sageIntacct.defaultVendor'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.DEFAULT_VENDOR_SWITCH,
             onToggle: (enabled) => {
                 if (!policyID) {
                     return;
