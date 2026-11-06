@@ -170,6 +170,7 @@ function DynamicIOURequestStepUpgrade({
                 currentUserPersonalDetails,
                 newReport: optimisticReport,
                 policy: newPolicy,
+                policies: allPolicies,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`],
                 policyTagList,
                 transactions,

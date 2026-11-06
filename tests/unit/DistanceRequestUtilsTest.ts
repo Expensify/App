@@ -1183,6 +1183,55 @@ describe('DistanceRequestUtils', () => {
             // Then the rate valid for the modified date is matched
             expect(result?.customUnitRateID).toBe('MATCHING_2025_RATE_ID');
         });
+
+        describe('isMatchingRateForPolicyChange', () => {
+            it('returns true for a selected rate equivalent to the current rate', () => {
+                // Given a selected rate with the same value, currency and unit as the expense's current rate
+                const rate = {...currentRate, customUnitRateID: 'MATCHING_RATE_ID'};
+
+                // When checking whether the expense keeps its price
+                const result = DistanceRequestUtils.isMatchingRateForPolicyChange({transaction: buildTransaction(), currentRate, rate});
+
+                // Then it is a match, so the expense keeps its amount and merchant
+                expect(result).toBe(true);
+            });
+
+            it('returns false for the default rate when it differs from the current rate', () => {
+                // Given the selected rate is the destination's default rate with a different value
+                const rate = {...currentRate, customUnitRateID: 'DEFAULT_RATE_ID', rate: 67};
+
+                // When checking whether the expense keeps its price
+                const result = DistanceRequestUtils.isMatchingRateForPolicyChange({transaction: buildTransaction(), currentRate, rate});
+
+                // Then it is not a match, so the expense is repriced
+                expect(result).toBe(false);
+            });
+
+            it('matches a P2P expense against the rate saved on the transaction when no current rate is passed', () => {
+                // Given a P2P expense saved in kilometers at 70 and a selected kilometer rate at 70
+                const transaction = buildTransaction({
+                    comment: {customUnit: {customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID, defaultP2PRate: 70, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS}},
+                });
+                const rate = {customUnitRateID: 'MATCHING_RATE_ID', rate: 70, currency: 'USD', unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS};
+
+                // When checking whether the expense keeps its price
+                const result = DistanceRequestUtils.isMatchingRateForPolicyChange({transaction, rate});
+
+                // Then the P2P rate and unit on the transaction are what it is compared against
+                expect(result).toBe(true);
+            });
+
+            it('returns false when the current rate is unknown and the expense is not P2P', () => {
+                // Given a workspace expense whose current rate couldn't be resolved
+                const rate = {...currentRate, customUnitRateID: 'DEFAULT_RATE_ID'};
+
+                // When checking whether the expense keeps its price
+                const result = DistanceRequestUtils.isMatchingRateForPolicyChange({transaction: buildTransaction(), rate});
+
+                // Then nothing is known to match, so the expense is treated as repriced
+                expect(result).toBe(false);
+            });
+        });
     });
 
     describe('getRateDisplayName', () => {

@@ -7,6 +7,8 @@
  */
 type TransactionThreadInfo = {
     movedReportActionID?: string;
+    /** The Concierge MODIFIED_EXPENSE action for a distance expense repriced onto the destination workspace's default rate */
+    modifiedExpenseReportActionID?: string;
     moneyRequestPreviewReportActionID: string;
     transactionThreadReportID?: string;
     transactionThreadCreatedReportActionID?: string;

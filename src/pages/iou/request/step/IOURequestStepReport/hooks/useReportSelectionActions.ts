@@ -219,6 +219,7 @@ function useReportSelectionActions({
                         currentUserPersonalDetails,
                         newReport: report,
                         policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
+                        policies: allPolicies,
                         policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
                         policyTagList,
                         transactions: targetTransactions,
