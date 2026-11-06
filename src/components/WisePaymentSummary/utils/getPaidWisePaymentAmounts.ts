@@ -23,11 +23,6 @@ function getPaidWisePaymentAmounts(reportAction: OnyxInputOrEntry<ReportAction>)
     return {fee, rate, debitedAmount, creditedAmount, currency, paymentCurrency: creditedCurrency, tax};
 }
 
-/** Whether the employee is paid in another currency than the company's, the only Wise payments with a conversion to disclose */
-function isCrossBorderWisePayment(amounts: WisePaymentAmounts): boolean {
-    return amounts.currency !== amounts.paymentCurrency;
-}
-
 /** The amounts of the report's latest Wise payment, so a report paid again after a cancel shows the payment that stands */
 function getLatestPaidWisePaymentAmounts(reportActions: OnyxEntry<ReportActions>): WisePaymentAmounts | undefined {
     let latest: {created: string; amounts: WisePaymentAmounts} | undefined;
@@ -41,4 +36,4 @@ function getLatestPaidWisePaymentAmounts(reportActions: OnyxEntry<ReportActions>
 }
 
 export default getPaidWisePaymentAmounts;
-export {getLatestPaidWisePaymentAmounts, isCrossBorderWisePayment};
+export {getLatestPaidWisePaymentAmounts};

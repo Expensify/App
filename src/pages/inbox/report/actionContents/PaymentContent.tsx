@@ -1,5 +1,5 @@
 import RenderHTML from '@components/RenderHTML';
-import getPaidWisePaymentAmounts, {isCrossBorderWisePayment} from '@components/WisePaymentSummary/utils/getPaidWisePaymentAmounts';
+import getPaidWisePaymentAmounts from '@components/WisePaymentSummary/utils/getPaidWisePaymentAmounts';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -62,7 +62,7 @@ function PaymentContent({action, expectedDate, policyID, reportID}: PaymentConte
         const paymentMessage = crossBorderMessage ?? translate(wasAutoPaid ? 'iou.automaticallyPaidWithBusinessBankAccount' : 'iou.businessBankAccount', '', last4Digits);
         const translation = getPaymentMessageWithExpectedDate(translate, dateFnsLocale, paymentMessage, expectedDate);
         const wisePaymentAmounts = getPaidWisePaymentAmounts(action);
-        if (reportID && wisePaymentAmounts && isCrossBorderWisePayment(wisePaymentAmounts)) {
+        if (reportID && wisePaymentAmounts) {
             return (
                 <WisePaymentDetailsMessage
                     message={translation}

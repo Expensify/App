@@ -25,7 +25,7 @@ type WisePaymentDetailsMessageProps = {
     reportID: string;
 };
 
-/** The paid message of a cross-border Wise payment, followed by a link to its fees and FX rate */
+/** The paid message of a Wise payment, followed by a link to its final amounts, fees and FX rate */
 function WisePaymentDetailsMessage({message, reportID}: WisePaymentDetailsMessageProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();

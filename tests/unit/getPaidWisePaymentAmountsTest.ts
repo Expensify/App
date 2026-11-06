@@ -1,4 +1,4 @@
-import getPaidWisePaymentAmounts, {getLatestPaidWisePaymentAmounts, isCrossBorderWisePayment} from '@components/WisePaymentSummary/utils/getPaidWisePaymentAmounts';
+import getPaidWisePaymentAmounts, {getLatestPaidWisePaymentAmounts} from '@components/WisePaymentSummary/utils/getPaidWisePaymentAmounts';
 
 import CONST from '@src/CONST';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
@@ -45,6 +45,15 @@ describe('getPaidWisePaymentAmounts', () => {
         expect(getPaidWisePaymentAmounts(action)).toBeUndefined();
     });
 
+    it('reads a payment in the company currency too', () => {
+        // Given a Wise payment to an employee whose bank account is in the company currency
+        const action = buildPayAction('1', '2026-11-05 10:00:00.000', {...wisePayment, fee: 0, rate: 1, debitedAmount: 10000, creditedCurrency: CONST.CURRENCY.USD});
+
+        // When its amounts are read
+        // Then they are there, so View details shows the same card as the quote did, with no conversion
+        expect(getPaidWisePaymentAmounts(action)).toMatchObject({currency: CONST.CURRENCY.USD, paymentCurrency: CONST.CURRENCY.USD, rate: 1});
+    });
+
     it('ignores actions that are not payments', () => {
         // Given an expense created with the same amount fields
         const action = createMock<ReportAction>({
@@ -56,17 +65,6 @@ describe('getPaidWisePaymentAmounts', () => {
         // When its amounts are read
         // Then only a pay action can carry a Wise payment
         expect(getPaidWisePaymentAmounts(action)).toBeUndefined();
-    });
-
-    it('treats only a payment into another currency as cross-border', () => {
-        // Given one payment converted to GBP and one paid out in the company's own currency
-        const crossBorder = getPaidWisePaymentAmounts(buildPayAction('1', '2026-11-05 10:00:00.000', wisePayment));
-        const sameCurrency = getPaidWisePaymentAmounts(buildPayAction('2', '2026-11-05 10:00:00.000', {...wisePayment, rate: 1, creditedCurrency: CONST.CURRENCY.USD}));
-
-        // When each is checked
-        // Then only the converted one has fees and a rate to disclose behind View details
-        expect(crossBorder && isCrossBorderWisePayment(crossBorder)).toBe(true);
-        expect(sameCurrency && isCrossBorderWisePayment(sameCurrency)).toBe(false);
     });
 
     describe('getLatestPaidWisePaymentAmounts', () => {
