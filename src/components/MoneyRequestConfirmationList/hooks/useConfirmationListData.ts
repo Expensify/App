@@ -423,7 +423,7 @@ function useConfirmationListDataWithPolicy({
  * from it. The distance variant needs the policy before it can build its distance state, so it goes through
  * `useDistanceConfirmationListData` instead.
  */
-function useConfirmationListData(props: MoneyRequestConfirmationListProps) {
+function useConfirmationListData(props: MoneyRequestConfirmationListProps & Pick<UseConfirmationListDataParams, 'isScanRequest'>) {
     const {transaction, policyID, action, iouType, isPerDiemRequest} = props;
     const policyData = useConfirmationPolicyData({transaction, policyID, action, iouType, isPerDiemRequest});
 

@@ -71,13 +71,6 @@ type MoneyRequestConfirmationListProps = {
     /** Whether we're editing a split expense */
     isEditingSplitBill?: boolean;
 
-    /**
-     * Whether the caller knows the expense is a scan before its draft is initialized as one, like the share flow
-     * whose page seeds the draft in an effect. Picks the scan variant from the first render instead of mounting the
-     * manual one and remounting once the draft is written.
-     */
-    isScanRequest?: boolean;
-
     /** True for every non-scan expense. For a scan the page computes it from whether the fields can be entered by hand. */
     shouldShowSmartScanFields?: boolean;
 

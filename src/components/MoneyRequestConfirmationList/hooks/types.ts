@@ -35,6 +35,9 @@ type UseConfirmationListDataParams = MoneyRequestConfirmationListProps & {
     /** Not a page prop: the distance variant sets it for itself */
     isDistanceRequest?: boolean;
 
+    /** Not a page prop: the scan variant sets it for itself, so it holds before the draft is initialized as a scan */
+    isScanRequest?: boolean;
+
     /** Only a distance variant passes this */
     distanceState?: ConfirmationDistanceState;
 };
