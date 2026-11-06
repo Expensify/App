@@ -492,10 +492,10 @@ function IOURequestStepConfirmationContent({
         };
     }, []);
 
-    // The distance and time steps, and the Scan step while it shows the receipts captured with multi-scan, show the same data and
-    // have their own guard. Going back to them loses nothing, so it doesn't ask. Other steps, such as the Scan camera or choosing
-    // a recipient, don't show the draft, so going back to them asks.
-    const shouldPromptWhenGoingBack = !isDistanceRequest && !isTimeRequest && !hasMultipleTransactions;
+    // The distance, time and invoice amount steps, and the Scan step while it shows the receipts captured with multi-scan, keep the
+    // draft and have their own guard, so going back to them doesn't ask. Closing the RHP still asks. Other flows start on a step
+    // that doesn't show the draft, such as the Scan camera, so going back asks.
+    const shouldPromptWhenGoingBack = !isDistanceRequest && !isTimeRequest && !hasMultipleTransactions && iouType !== CONST.IOU.TYPE.INVOICE;
 
     // Leaving this page, or closing the RHP from a page opened from it, asks first when a draft has user input. When embedded,
     // the start page asks instead. Per diem isn't covered yet, because https://github.com/Expensify/App/issues/105164 moves its
