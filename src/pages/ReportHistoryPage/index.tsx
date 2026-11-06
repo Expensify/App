@@ -19,7 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportHistoryNavigatorParamList} from '@libs/Navigation/types';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
-import {isGroupPolicyExpenseReport, isOpenExpenseReport} from '@libs/ReportUtils';
+import {isGroupPolicyExpenseReport, isOpenExpenseReport, shouldShowMarkAsDone} from '@libs/ReportUtils';
 
 import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
 import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
@@ -29,6 +29,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {isLoadingReportStatusSelector} from '@selectors/ReportMetaData';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
@@ -50,6 +51,8 @@ function ReportHistoryPage({report}: ReportHistoryPageProps) {
     const [isLoadingReportStatus] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report.reportID}`, {selector: isLoadingReportStatusSelector});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report.policyID)}`);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const nextStep = useOptimisticNextStep(report.reportID);
     const {isOffline} = useNetwork({onReconnect: () => openReportStatusPage(report.reportID)});
 
@@ -69,6 +72,7 @@ function ReportHistoryPage({report}: ReportHistoryPageProps) {
         nextStep,
         isOpenReport: isOpenExpenseReport(report),
         isDEWPolicy: hasDynamicExternalWorkflow(policy),
+        shouldDisplayMarkAsDone: shouldShowMarkAsDone({isTrackIntentUser, report, policy, rules}),
         reportMetadata,
     });
 

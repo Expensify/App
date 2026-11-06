@@ -46,6 +46,8 @@ function VerticalBarChartCanvas({
     formatValue: formatValueOverride,
     shouldUseWholeNumberTicks = false,
     onBarPress,
+    onTooltipPress,
+    tooltipFooter,
     shouldShowLabels = true,
     shouldWrapLabels = false,
     chartWidth,
@@ -162,7 +164,7 @@ function VerticalBarChartCanvas({
         return isWithinX && args.cursorY >= plotTop.get() && args.cursorY <= plotBottom.get();
     };
 
-    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, onChartMoved, dismissTooltip, onChartTouchStart} =
+    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, onChartMoved, dismissTooltip, isTouchPinned, onChartTouchStart} =
         useChartInteractions({
             handlePress: onBarPress ? handleBarPress : undefined,
             checkIsOver: checkIsOverBar,
@@ -318,6 +320,8 @@ function VerticalBarChartCanvas({
                     initialTooltipPosition={initialTooltipPosition}
                     onChartMoved={onChartMoved}
                     onDismiss={dismissTooltip}
+                    onPress={isTouchPinned ? onTooltipPress : undefined}
+                    footer={isTouchPinned ? tooltipFooter : undefined}
                 />
             </Animated.View>
         </GestureDetector>

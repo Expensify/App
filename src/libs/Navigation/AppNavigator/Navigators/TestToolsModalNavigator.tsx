@@ -84,7 +84,7 @@ function TestToolsModalFrame({children, isPassThrough = false, isPortaled = fals
                     ref={outerViewRef}
                     onPress={showChrome ? handleOuterClick : undefined}
                     pointerEvents={showChrome ? 'auto' : 'box-none'}
-                    sentryLabel="TestToolsModalNavigator-Dismiss"
+                    sentryLabel={CONST.SENTRY_LABEL.TEST_TOOLS_MODAL_NAVIGATOR.DISMISS}
                     style={[styles.flex1, showChrome && styles.alignItemsCenter, showChrome && styles.getTestToolsNavigatorOuterView(shouldUseNarrowLayout)]}
                     accessible={false}
                 >

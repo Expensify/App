@@ -139,7 +139,6 @@
 "../../src/components/DynamicForm/index.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/components/EditableCell/usePopoverEditState.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/EmbeddedDemo/index.native.tsx"	"import/no-named-as-default"	1
-"../../src/components/EmojiPicker/EmojiPicker.tsx"	"react-hooks/refs"	3
 "../../src/components/EmojiPicker/EmojiPickerMenu/index.native.tsx"	"react-hooks/refs"	2
 "../../src/components/EmojiPicker/EmojiPickerMenu/index.tsx"	"react-hooks/refs"	2
 "../../src/components/EmojiPicker/EmojiPickerMenu/useEmojiPickerMenu.ts"	"react-hooks/set-state-in-effect"	2
@@ -258,7 +257,6 @@
 "../../src/components/OptionRow.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/components/OptionRow.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/ParentNavigationSubtitle.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/ParticipantPicker/BaseParticipantPicker.tsx"	"no-restricted-imports"	1
 "../../src/components/PDFView/index.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/PDFView/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/PDFView/index.tsx"	"react-hooks/set-state-in-effect"	1
@@ -1145,7 +1143,7 @@
 "../../src/pages/inbox/report/ContextMenu/ContextMenuActions.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/inbox/report/ContextMenu/PopoverReportActionContextMenu.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/inbox/report/ContextMenu/PopoverReportActionContextMenu.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/pages/inbox/report/ContextMenu/PopoverReportActionContextMenu.tsx"	"react-hooks/refs"	25
+"../../src/pages/inbox/report/ContextMenu/PopoverReportActionContextMenu.tsx"	"react-hooks/refs"	8
 "../../src/pages/inbox/report/DynamicReportDetailsExportPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/inbox/report/LinkPreviewer.tsx"	"@typescript-eslint/no-deprecated/fontSize"	3
 "../../src/pages/inbox/report/ReactionList/HeaderReactionList.tsx"	"no-restricted-syntax"	1
@@ -1969,13 +1967,11 @@
 "../../src/pages/workspace/rooms/WorkspaceRoomsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/rules/AgentRules/AddAgentRulePage.tsx"	"react/no-unstable-nested-components"	1
 "../../src/pages/workspace/rules/FlagForReviewRules/FlagForReviewRuleAmountPageBase.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
-"../../src/pages/workspace/rules/FlagForReviewRules/FlagForReviewRulePageBase.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/rules/IndividualExpenseRulesSectionRevamp.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/workspace/rules/MerchantRules/AddMerchantRulePage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/workspace/rules/MerchantRules/ExpenseDefaultTypePage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/workspace/rules/MerchantRules/ImportedMerchantRulesPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/workspace/rules/MerchantRules/MerchantRulePageBase.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
-"../../src/pages/workspace/rules/MerchantTypeRules/MerchantTypeRulePageBase.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/rules/RulesNewPage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/workspace/rules/SpendRules/SpendRulePageBase.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/tags/DynamicEditTagPage.tsx"	"no-restricted-imports"	1
@@ -2170,7 +2166,6 @@
 "../../tests/actions/IOU/SplitReportTotalsTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/IOUTest/GetUpdateMoneyRequestParamsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	4
 "../../tests/actions/IOUTest/HoldTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
-"../../tests/actions/IOUTest/HoldTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/IOUTest/PayMoneyRequestTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/actions/IOUTest/PayMoneyRequestTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/IOUTest/ReceiptTest.ts"	"no-restricted-imports"	1

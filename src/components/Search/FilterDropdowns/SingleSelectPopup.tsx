@@ -3,8 +3,6 @@ import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleS
 import SingleSelect from '@components/Search/FilterComponents/SingleSelect';
 import type {SelectionListStyle} from '@components/SelectionList/types';
 
-import CONST from '@src/CONST';
-
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React, {useState} from 'react';
@@ -43,6 +41,9 @@ type SingleSelectPopupProps<T> = {
 
     /** Whether the popover should keep a fixed height while filtering results. */
     shouldUseFixedPopoverHeight?: boolean;
+
+    applySentryLabel: string;
+    resetSentryLabel: string;
 };
 
 function SingleSelectPopup<T extends string>({
@@ -61,6 +62,8 @@ function SingleSelectPopup<T extends string>({
     showLabel,
     shouldShowList = true,
     shouldUseFixedPopoverHeight,
+    applySentryLabel,
+    resetSentryLabel,
 }: SingleSelectPopupProps<T>) {
     const [selectedItem, setSelectedItem] = useState(value);
 
@@ -81,8 +84,8 @@ function SingleSelectPopup<T extends string>({
             onReset={resetChanges}
             onApply={applyChanges}
             onBackButtonPress={onBackButtonPress}
-            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_SINGLE_SELECT}
-            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_SINGLE_SELECT}
+            resetSentryLabel={resetSentryLabel}
+            applySentryLabel={applySentryLabel}
             style={[style]}
         >
             <ListFilterHeightContextProvider>
