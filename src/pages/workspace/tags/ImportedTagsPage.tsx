@@ -24,7 +24,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useState} from 'react';
 
@@ -34,7 +33,7 @@ type ImportedTagsPageProps =
 
 function ImportedTagsPage({route}: ImportedTagsPageProps) {
     const {translate} = useLocalize();
-    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
+    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [isImportingTags, setIsImportingTags] = useState(false);
     const {containsHeader = true} = spreadsheet ?? {};
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
@@ -136,10 +135,6 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
             closeImportPageAndModal();
         }
     };
-
-    if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
-        return;
-    }
 
     const spreadsheetColumns = spreadsheet?.data;
     if (!spreadsheetColumns) {

@@ -7,7 +7,6 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useEffect} from 'react';
 
@@ -17,11 +16,11 @@ type AddMerchantRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamL
 
 function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
     const {policyID} = route.params;
-    const [form, formMetadata] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
+    const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
 
     // The editor is always scoped to one rule type, which the chooser puts in the draft. A deep link straight here
     // carries no draft, so send it to the chooser rather than render an editor offering both conditions at once.
-    const shouldRedirectToTypePicker = !isLoadingOnyxValue(formMetadata) && !form?.ruleType;
+    const shouldRedirectToTypePicker = !form?.ruleType;
 
     useEffect(() => {
         if (!shouldRedirectToTypePicker) {
