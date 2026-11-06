@@ -30,7 +30,7 @@ To add a member to your workspace, see [Invite Members to a Workspace](/articles
 2. Select **Members**.
 3. Select the member’s name.
 4. Select **Role**.
-5. Choosse the new role and select **Save**.
+5. Choose the new role and select **Save**.
 
 On web, you can also hover over the member’s **Role** in the member list and select the pencil icon to change it.
 
@@ -76,7 +76,7 @@ The same role restrictions and automatic approver reassignment apply when removi
 
 You can filter the Members table by workspace role or approver assignment. The **Approvers** filter shows members designated as approvers, while **Approve-only** shows members assigned the Approve-only role.
 
-1. In the navigation tabs (on the left on web, at the bottom on mobile), select **Workspaces > [Workspace name]**.
+1. In the navigation tabs (on the left on web, at the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **Members**.
 3. Select **Filters**.
 4. Select one or more role filters.
