@@ -4,7 +4,7 @@ import {getHiddenProvidedKeys} from '@components/DynamicForm/utils/hasProvidedAn
 import isCountryCode from '@components/DynamicForm/utils/isCountryCode';
 import {getAllFields, getPages} from '@components/DynamicForm/utils/paginate';
 
-import {getCountryCode} from '@libs/CountryUtils';
+import {getCountryCode, resolveStateCode} from '@libs/CountryUtils';
 import {toSavedFile} from '@libs/getWiseOnboardingPageParams';
 import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
 
@@ -40,7 +40,8 @@ function getStateCode(countryCode: string | undefined, state: string | undefined
     if (!stateOptions || !state) {
         return state;
     }
-    return Object.entries(stateOptions).find(([code, name]) => code === state || name.toLowerCase() === state.toLowerCase())?.[0];
+    const stateCode = resolveStateCode(state, stateOptions);
+    return Object.hasOwn(stateOptions, stateCode) ? stateCode : undefined;
 }
 
 /** The answers of every saved page, with each saved file as a draft entry the next save can tell apart from a new one. A key a later save dropped comes back as null and is left out. */
