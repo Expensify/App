@@ -192,6 +192,7 @@ function RulesRequireReceiptsPage({
                     <ToggleSettingOptionRow
                         title={translate('workspace.rules.requireReceipts.requireReceipt')}
                         switchAccessibilityLabel={translate('workspace.rules.requireReceipts.requireReceipt')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_RECEIPT_SWITCH}
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={styles.pv3}
                         isActive={receiptEnabled}
@@ -226,6 +227,7 @@ function RulesRequireReceiptsPage({
                     <ToggleSettingOptionRow
                         title={translate('workspace.rules.requireReceipts.requireItemizedReceipt')}
                         switchAccessibilityLabel={translate('workspace.rules.requireReceipts.requireItemizedReceipt')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_ITEMIZED_RECEIPT_SWITCH}
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={styles.pv3}
                         isActive={itemizedEnabled}

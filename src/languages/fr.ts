@@ -185,6 +185,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dob: 'Date de naissance',
         currentYear: 'Année en cours',
         currentMonth: 'Mois en cours',
+        todayDateLabel: (date: string) => `${date}, aujourd’hui`,
         ssnLast4: '4 derniers chiffres du N° de sécu',
         ssnFull9: '9 chiffres complets du SSN',
         addressLine: (lineNumber: number) => `Adresse ligne ${lineNumber}`,
@@ -1071,6 +1072,10 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             emailDeliveryFailure: {title: 'Nous ne pouvons pas vous envoyer de notifications par e-mail', subtitle: 'Compte'},
             upgradeNetSuiteConnection: {title: 'Mettre à niveau votre connexion NetSuite'},
+            verifyWiseBankAccount: {
+                title: 'Vérifier le compte bancaire',
+                subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Compte bancaire se terminant par ${bankAccountLastFour}`,
+            },
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -1246,6 +1251,8 @@ const translations: TranslationDeepObject<typeof en> = {
         runningTotal: 'Total cumulé',
         explain: 'Expliquer',
         explainChartPrompt: (chartTitle: string) => `Expliquez les données dans ${chartTitle}.`,
+        viewDetails: 'Afficher les détails',
+        viewAll: 'Tout afficher',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -2157,6 +2164,13 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `Modifiez l’espace de travail de la note de frais pour effectuer d’autres actions.`,
+
+            [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `Vous ne pouvez qu’approuver dans cet espace de travail. Déplacez cette note de frais vers un autre espace pour la soumettre.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -3146,7 +3160,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `J’accepte les <a href="${CONST.WISE.TERMS_URL}">conditions générales</a> et la <a href="${CONST.WISE.PRIVACY_URL}">politique de confidentialité</a> de Wise.`,
                 wiseTermsAccessibilityLabel: 'J’accepte les conditions générales et la politique de confidentialité de Wise.',
                 error: 'Veuillez accepter toutes les conditions pour continuer.',
-                alreadySubmitted: 'Cette entreprise a déjà été envoyée à Wise pour examen.',
             },
             moreInfoNeeded: {
                 headerTitle: 'Plus d’informations nécessaires',
@@ -3171,6 +3184,7 @@ const translations: TranslationDeepObject<typeof en> = {
             payingReportSubtitle: 'Les comptes bancaires de l’entreprise et de l’employé utilisent des devises différentes.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Payer des personnes dans le monde entier', subtitle: 'Activez les remboursements globaux sur votre compte en USD.'},
+        wiseMoreInfoNeeded: 'Informations supplémentaires requises pour activer les remboursements globaux',
         globalReimbursementsEnabled: 'Remboursements globaux activés',
     },
     addCardToDigitalWallet: {
@@ -3329,8 +3343,10 @@ ${amount} pour ${merchant} - ${date}`,
         addApprovalsDescription: 'Exiger une approbation supplémentaire avant d’autoriser un paiement.',
         makeOrTrackPaymentsTitle: 'Paiements',
         makeOrTrackPaymentsDescription: 'Ajoutez un payeur autorisé pour les paiements effectués dans Expensify ou suivez les paiements effectués ailleurs.',
-        collectEmployeeBankDetails: 'Collecter les coordonnées bancaires des employés',
-        collectEmployeeBankDetailsDescription: 'Recueillez les coordonnées bancaires des employés afin de pouvoir les rembourser en dehors d’Expensify.',
+        collectEmployeeBankDetails: 'Collecter les coordonnées bancaires',
+        collectEmployeeBankDetailsDescription: 'Collectez les coordonnées bancaires des membres de l’espace de travail afin de pouvoir les rembourser en dehors d’Expensify.',
+        disablePaymentsTitle: 'Désactiver les paiements ?',
+        disablePaymentsPrompt: 'Cela supprimera tous vos paramètres de paiement.',
         businessBankAccountCountries: 'Pays des comptes bancaires professionnels',
         businessBankAccountCountriesDescription:
             'Les employés de ces pays fournissent des coordonnées de virement local. Tous les autres fournissent des coordonnées de virement international.',
@@ -5251,6 +5267,13 @@ ${amount} pour ${merchant} - ${date}`,
             message:
                 'Vous êtes membre d’un espace de travail avec voyage activé, mais ce n’est pas votre espace de travail par défaut. Pour réserver, veuillez activer le voyage sur votre espace de travail par défaut ou définir comme espace de travail par défaut un espace de travail avec voyage activé.',
         },
+        approval: {
+            status: {outstanding: 'En souffrance', approved: 'Approuvé', rejected: 'Rejeté', canceled: 'Annulé'},
+            deadline: {
+                softApproval: (time: string) => `Approbation automatique dans ${time}. Annulation gratuite jusqu’à cette heure.`,
+                hardApproval: (time: string) => `Annulation automatique dans ${time} si non approuvé.`,
+            },
+        },
     },
     workspace: {
         common: {
@@ -7107,6 +7130,15 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 title: 'Impossible de supprimer ou de désactiver toutes les catégories',
                 description: `Au moins une catégorie doit rester activée, car votre espace de travail exige des catégories.`,
             },
+            cannotDisableCategoryForMembers: {
+                title: ({categoryName}: {categoryName: string}) => `Impossible de désactiver ${categoryName}`,
+                bulkTitle: 'Impossible de désactiver ces catégories',
+                description: ({count}: {count: number}) => ({
+                    one: '1 membre n’aurait plus aucune catégorie à sélectionner. Mettez à jour la visibilité de ses catégories, puis réessayez :',
+                    other: `${count} membres se retrouveraient sans aucune catégorie à choisir. Mettez à jour la visibilité de leurs catégories, puis réessayez :`,
+                }),
+                andMore: ({count}: {count: number}) => `et ${count} de plus`,
+            },
         },
         moreFeatures: {
             subtitle:
@@ -7833,6 +7865,13 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             },
             officeLocation: 'Lieu de bureau',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            categoryVisibility: 'Visibilité de la catégorie',
+            allCategories: 'Toutes les catégories',
+            categoriesCount: ({count}: {count: number}) => ({
+                one: '1 catégorie',
+                other: `${count} catégories`,
+            }),
+            categoryVisibilityRequiredModal: {title: 'Les membres doivent avoir au moins une catégorie', description: 'Sélectionnez au moins une catégorie que ce membre peut utiliser.'},
             changeOfficeLocation: 'Modifier le lieu de travail',
             changeWorkArrangement: 'Modifier l’organisation du travail',
             changeRole: 'Modifier le rôle',
@@ -10996,6 +11035,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         display: {
             label: 'Affichage',
+            labelWithCount: ({count}: {count: number}) => (count > 0 ? `Affichage (${count})` : 'Affichage'),
             sortBy: 'Trier par',
             sortOrder: 'Ordre de tri',
             groupBy: 'Regrouper par',
@@ -11076,11 +11116,14 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 upcoming: 'À venir',
                 done: 'Terminé',
                 canceled: 'Annulé',
+                outstanding: 'En souffrance',
+                rejected: 'Rejeté',
             },
         },
         tabs: {
             expenseReports: 'Notes de frais',
             reports: 'Notes de frais',
+            myReports: 'Mes rapports',
             expenses: 'Dépenses',
             submit: 'Brouillons',
             approve: 'Nécessite une approbation',
@@ -12962,6 +13005,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             other: (count: number) => `il y a ${count} j`,
         }),
         offlineMessage: 'Vous êtes hors ligne. L’historique des notes de frais peut être obsolète.',
+        toMarkAsDone: 'marquer comme terminé',
     },
 };
 export default translations;

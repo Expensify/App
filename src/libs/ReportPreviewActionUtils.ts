@@ -9,6 +9,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import {
     arePaymentsEnabled,
     canAdminPayReport,
+    canSubmitOwnReportOnPolicy,
     getIntegrationAccountingMethod,
     getSubmitToAccountID,
     getValidConnectedIntegration,
@@ -60,6 +61,11 @@ function canSubmit(
     const isExpense = isExpenseReport(report);
     const isSubmitter = isCurrentUserSubmitter(report);
     const isOpen = isOpenReport(report);
+
+    // A role that cannot create expenses cannot submit its own report.
+    if (isSubmitter && !canSubmitOwnReportOnPolicy(policy, currentUserEmail)) {
+        return false;
+    }
 
     const isAnyReceiptBeingScanned = transactions?.some((transaction) => isScanning(transaction));
 

@@ -437,10 +437,18 @@ type WorkspaceSettingsParamList = {
         policyID: string;
         accountID: string;
     };
+    [SCREENS.WORKSPACE.DYNAMIC_MEMBER_DISPLAY_NAME]: {
+        policyID: string;
+        accountID: string;
+    };
     [SCREENS.WORKSPACE.ROOM_CREATE]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE]: {
+        policyID: string;
+        accountID: string;
+    };
+    [SCREENS.WORKSPACE.MEMBER_DETAILS_CATEGORY_VISIBILITY]: {
         policyID: string;
         accountID: string;
     };

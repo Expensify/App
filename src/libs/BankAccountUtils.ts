@@ -246,6 +246,13 @@ function isGlobalReimbursementsEnabled(bankAccount: OnyxEntry<OnyxTypes.BankAcco
 }
 
 /**
+ * Whether the business was already submitted to Wise. Wise has a status for the business only once it was submitted.
+ */
+function isWiseOnboardingSubmitted(accountData: AccountData | undefined): boolean {
+    return !!accountData?.additionalData?.wise?.status;
+}
+
+/**
  * Picks the bank account the Wallet global reimbursements banner points to: the most recently added eligible account.
  */
 function getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): number | undefined {
@@ -318,7 +325,7 @@ function isWiseOnboardingAwaitingDecision(bankAccount: OnyxEntry<OnyxTypes.BankA
 }
 
 /** Whether Wise needs more info from the admin on its own form before it can decide on the submitted business */
-function isWiseOnboardingMoreInfoNeeded(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
+function isWiseOnboardingMoreInfoNeeded(bankAccount: OnyxEntry<Pick<OnyxTypes.BankAccount, 'accountData' | 'pendingAction'>>): boolean {
     return (
         bankAccount?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && bankAccount?.accountData?.additionalData?.wise?.status === CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED
     );
@@ -495,6 +502,7 @@ export {
     isBankAccountEligibleForGlobalReimbursements,
     shouldSetUpGlobalReimbursementsBeforePaying,
     isGlobalReimbursementsEnabled,
+    isWiseOnboardingSubmitted,
     getWiseGlobalReimbursementsBannerBankAccountID,
     getWorkspaceWiseGlobalReimbursementsBannerBankAccountID,
     isWiseOnboardingPendingSubmit,
