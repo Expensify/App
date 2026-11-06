@@ -19,7 +19,7 @@ import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {TextStyle} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 
 import isEmpty from 'lodash/isEmpty';
@@ -42,6 +42,11 @@ function mentionedReportSelector(htmlAttributeReportID: string) {
     };
 }
 
+/** The renderer only reads the policy of the report it is shown in, so the other fields of that report must not wake it up */
+function currentReportSelector(report: OnyxEntry<Report>): OnyxEntry<Pick<Report, 'reportID' | 'policyID'>> {
+    return report && {reportID: report.reportID, policyID: report.policyID};
+}
+
 function MentionReportRenderer({style, tnode, TDefaultRenderer, ...defaultRendererProps}: MentionReportRendererProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -52,7 +57,7 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, ...defaultRender
 
     const {currentReportID} = useCurrentReportIDState();
     const currentReportIDValue = currentReportIDContext || currentReportID;
-    const [currentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentReportIDValue}`);
+    const [currentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentReportIDValue}`, {selector: currentReportSelector});
 
     // When we invite someone to a room they don't have the policy object, but we still want them to be able to see and click on report mentions, so we only check if the policyID in the report is from a workspace
     const isGroupPolicyReport = (!!currentReport && !isEmptyObject(currentReport) && !!currentReport.policyID && currentReport.policyID !== CONST.POLICY.ID_FAKE) || !!policyID;

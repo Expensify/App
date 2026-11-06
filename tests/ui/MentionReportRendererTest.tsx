@@ -160,6 +160,49 @@ describe('MentionReportRenderer', () => {
         expect(onRender).toHaveBeenCalledTimes(renderCountBeforeChange);
     });
 
+    it('does not re-render the mentions when an unused field of the report they are shown in changes', async () => {
+        // Given mentions of other rooms shown in a chat, which the renderer also reads as the current report
+        const mentions = Array.from({length: MENTION_COUNT}, (_, index) => ({
+            reportID: String(100 + index),
+            data: `#room${index}`,
+        }));
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}500`, getRoom('500', '#current-chat'));
+            await Promise.all(mentions.map(({reportID}) => Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, getRoom(reportID, `#room-${reportID}`))));
+        });
+        const onRender = jest.fn();
+        render(
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <MentionReportContext.Provider value={{currentReportID: '500', exactlyMatch: true}}>
+                    <Profiler
+                        id="Mentions"
+                        onRender={onRender}
+                    >
+                        {mentions.map(({reportID, data}) => (
+                            <Mention
+                                key={reportID}
+                                reportID={reportID}
+                                data={data}
+                            />
+                        ))}
+                    </Profiler>
+                </MentionReportContext.Provider>
+            </ComposeProviders>,
+        );
+        await waitForBatchedUpdatesWithAct();
+        const renderCountBeforeChange = onRender.mock.calls.length;
+
+        // When fields the mentions don't read change on that chat, as they do with every new message
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}500`, {lastReadTime: '2026-11-06 10:00:00.000', lastMessageText: 'new message'});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then no mention re-renders, so a new message in the chat doesn't wake the mentions in it
+        expect(renderCountBeforeChange).toBeGreaterThan(0);
+        expect(onRender).toHaveBeenCalledTimes(renderCountBeforeChange);
+    });
+
     it('shows Hidden for a mentioned report that is not loaded yet and the name once it arrives', async () => {
         // Given a mention of a report that is not in Onyx yet, as on a first load or a deeplink
         const onRender = jest.fn();
