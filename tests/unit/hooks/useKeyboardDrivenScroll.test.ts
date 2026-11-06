@@ -234,8 +234,10 @@ describe('useKeyboardDrivenScroll', () => {
         jest.advanceTimersByTime(100);
         runFrame();
 
-        // Then it waits for the native scroll to finish
-        expect(mockScrollTo).not.toHaveBeenCalled();
+        // Then it follows the resize at once, without animation, and waits for the native scroll before settling
+        expect(mockScrollTo).toHaveBeenCalledTimes(1);
+        expect(mockScrollTo).toHaveBeenCalledWith(mockAnimatedRef, 0, 120, false);
+        mockScrollTo.mockClear();
         jest.advanceTimersByTime(399);
         runFrame();
         expect(mockScrollTo).not.toHaveBeenCalled();

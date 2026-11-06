@@ -77,7 +77,8 @@ const useKeyboardDrivenScroll: UseKeyboardDrivenScroll = (scrollableRef) => {
 
         const height = measure(animatedScrollableRef)?.height ?? 0;
         if (Math.abs(height - scrolledAtHeight.get()) > RESIZE_THRESHOLD) {
-            scrolledAtHeight.set(height);
+            // Follow the resize at once, and again after Android's own scroll
+            scrollToTarget(target, false);
             scheduleSettle();
             return;
         }
