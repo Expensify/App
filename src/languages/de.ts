@@ -122,6 +122,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pay: 'Bezahlen',
             fix: 'Beheben',
             task: 'Aufgabe',
+            add: 'Hinzufügen',
         },
         success: 'Erfolgreich',
         group: 'Gruppe',
@@ -184,6 +185,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dob: 'Geburtsdatum',
         currentYear: 'Laufendes Jahr',
         currentMonth: 'Aktueller Monat',
+        todayDateLabel: (date: string) => `${date}, heute`,
         ssnLast4: 'Letzte 4 Ziffern der Sozialversicherungsnummer',
         ssnFull9: 'Vollständige 9-stellige SSN',
         addressLine: (lineNumber: number) => `Adresszeile ${lineNumber}`,
@@ -1069,6 +1071,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             emailDeliveryFailure: {title: 'Wir können Ihnen keine E-Mail-Benachrichtigungen senden', subtitle: 'Konto'},
             upgradeNetSuiteConnection: {title: 'Aktualisieren Sie Ihre NetSuite-Verbindung'},
+            verifyWiseBankAccount: {title: 'Bankkonto verifizieren', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bankkonto endet auf ${bankAccountLastFour}`},
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -1241,6 +1244,8 @@ const translations: TranslationDeepObject<typeof en> = {
         runningTotal: 'Laufende Summe',
         explain: 'Erklären',
         explainChartPrompt: (chartTitle: string) => `Erklären Sie die Daten in ${chartTitle}.`,
+        viewDetails: 'Details anzeigen',
+        viewAll: 'Alle anzeigen',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -2151,6 +2156,13 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `Ändere den Workspace des Berichts für weitere Aktionen.`,
+
+            [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `In diesem Workspace können Sie nur genehmigen. Verschieben Sie diesen Bericht in einen anderen, um ihn einzureichen.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -3142,7 +3154,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `Ich stimme den <a href="${CONST.WISE.TERMS_URL}">Allgemeinen Geschäftsbedingungen</a> und der <a href="${CONST.WISE.PRIVACY_URL}">Datenschutzerklärung</a> von Wise zu.`,
                 wiseTermsAccessibilityLabel: 'Ich stimme den Allgemeinen Geschäftsbedingungen und der Datenschutzerklärung von Wise zu.',
                 error: 'Bitte akzeptieren Sie alle Bedingungen, um fortzufahren.',
-                alreadySubmitted: 'Dieses Unternehmen wurde bereits zur Prüfung an Wise übermittelt.',
             },
             moreInfoNeeded: {
                 headerTitle: 'Weitere Informationen erforderlich',
@@ -3167,6 +3178,7 @@ const translations: TranslationDeepObject<typeof en> = {
             payingReportSubtitle: 'Die Bankkonten des Unternehmens und der Mitarbeitenden verwenden unterschiedliche Währungen.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Weltweit bezahlen', subtitle: 'Aktivieren Sie globale Erstattungen auf Ihrem USD-Konto.'},
+        wiseMoreInfoNeeded: 'Weitere Informationen erforderlich, um globale Rückerstattungen zu aktivieren',
         globalReimbursementsEnabled: 'Globale Rückerstattungen aktiviert',
     },
     addCardToDigitalWallet: {
@@ -3325,8 +3337,10 @@ ${amount} für ${merchant} – ${date}`,
         makeOrTrackPaymentsTitle: 'Zahlungen',
         makeOrTrackPaymentsDescription:
             'Fügen Sie eine bevollmächtigte zahlende Person für in Expensify getätigte Zahlungen hinzu oder verfolgen Sie Zahlungen, die andernorts getätigt wurden.',
-        collectEmployeeBankDetails: 'Bankdaten der Mitarbeitenden erfassen',
-        collectEmployeeBankDetailsDescription: 'Erfassen Sie die Bankdaten Ihrer Mitarbeitenden, damit Sie ihnen Auslagen außerhalb von Expensify erstatten können.',
+        collectEmployeeBankDetails: 'Bankkontodaten erfassen',
+        collectEmployeeBankDetailsDescription: 'Bankdaten von Arbeitsbereichsmitgliedern erfassen, damit Sie sie außerhalb von Expensify erstatten können.',
+        disablePaymentsTitle: 'Zahlungen deaktivieren?',
+        disablePaymentsPrompt: 'Dadurch werden alle Ihre Zahlungseinstellungen entfernt.',
         businessBankAccountCountries: 'Länder für Geschäftskonten',
         businessBankAccountCountriesDescription: 'Mitarbeitende in diesen Ländern geben lokale Überweisungsdaten an. Alle anderen geben internationale Überweisungsdaten an.',
         customApprovalWorkflowEnabled:
@@ -5243,6 +5257,13 @@ ${amount} für ${merchant} – ${date}`,
             title: 'Sie können noch keine Reisen buchen',
             message:
                 'Sie sind Mitglied eines Reise-fähigen Arbeitsbereichs, aber er ist nicht Ihr Standardarbeitsbereich. Um zu buchen, aktivieren Sie bitte Reisen in Ihrem Standardarbeitsbereich oder ändern Sie Ihren Standardarbeitsbereich auf einen, der Reisen aktiviert hat.',
+        },
+        approval: {
+            status: {outstanding: 'Ausstehend', approved: 'Genehmigt', rejected: 'Abgelehnt', canceled: 'Storniert'},
+            deadline: {
+                softApproval: (time: string) => `Wird in ${time} automatisch genehmigt. Kostenlose Stornierung bis dahin.`,
+                hardApproval: (time: string) => `Wird automatisch in ${time} storniert, wenn nicht genehmigt.`,
+            },
         },
     },
     workspace: {
@@ -9750,6 +9771,30 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             noVendorsFoundDescription: 'Bitte fügen Sie Lieferanten in Zoho Books hinzu und synchronisieren Sie die Verbindung erneut',
             noAccountsFound: 'Keine Konten gefunden',
             noAccountsFoundDescription: 'Bitte fügen Sie Konten in Zoho Books hinzu und synchronisieren Sie die Verbindung erneut',
+            autoSyncDescription: 'Zoho Books und Expensify automatisch jeden Tag synchronisieren. Berichte werden in Echtzeit synchronisiert.',
+            accountingMethods: {
+                label: 'Exportmethode',
+                description: 'Wählen Sie, wann Ausgaben exportiert werden sollen.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Periodenabgrenzung',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Bargeld',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Auslagen werden nach endgültiger Genehmigung exportiert',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Auslagen aus eigener Tasche werden beim Bezahlen exportiert',
+                },
+            },
+            syncReimbursedReports: 'Erstattete Berichte synchronisieren',
+            syncReimbursedReportsDescription: 'Wenn ein Bericht per ACH bezahlt wird, wird in diesem Konto eine Rechnungsauszahlung erzeugt.',
+            billPaymentAccount: {label: 'Rechnungskonto', description: 'Wählen Sie das Verrechnungskonto, das Zoho Books gutschreibt, wenn Expensify eine Rechnung als bezahlt markiert.'},
+            syncExpensifyCardSettlements: 'Abgleiche Expensify Karte-Abrechnungen',
+            settlementAccount: {label: 'Expensify Karte-Verrechnungskonto', description: 'Wählen Sie Ihr Verrechnungskonto, und wir erstellen die Zahlung in Zoho Books.'},
+            syncTravelBillingSettlements: 'Konsolidierte Travel-Billing-Abrechnungen synchronisieren',
+            travelBillingSettlementAccount: {
+                label: 'Konsolidiertes Abrechnungs­konto für Reiseabrechnungen',
+                description: 'Wählen Sie Ihr Verrechnungskonto, und wir erstellen die Zahlung in Zoho Books.',
+            },
+            travelBillingPayableAccount: {label: 'Konsolidiertes Reisekosten-Abrechnungskreditorenkonto'},
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central-Einrichtung',
@@ -10939,6 +10984,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         display: {
             label: 'Anzeige',
+            labelWithCount: ({count}: {count: number}) => (count > 0 ? `Anzeige (${count})` : 'Anzeige'),
             sortBy: 'Sortieren nach',
             sortOrder: 'Sortierreihenfolge',
             groupBy: 'Gruppieren nach',
@@ -11019,11 +11065,14 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 upcoming: 'Bevorstehend',
                 done: 'Abgeschlossen',
                 canceled: 'Storniert',
+                outstanding: 'Ausstehend',
+                rejected: 'Abgelehnt',
             },
         },
         tabs: {
             expenseReports: 'Spesenabrechnungen',
             reports: 'Berichte',
+            myReports: 'Meine Berichte',
             expenses: 'Ausgaben',
             submit: 'Entwürfe',
             approve: 'Genehmigung erforderlich',
@@ -12902,6 +12951,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             other: (count: number) => `vor ${count} Tagen`,
         }),
         offlineMessage: 'Sie sind offline. Der Berichtsverlauf ist möglicherweise veraltet.',
+        toMarkAsDone: 'als erledigt markieren',
     },
 };
 export default translations;
