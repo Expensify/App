@@ -53,12 +53,12 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
 
     const validatedPDFs = useRef<FileObject[]>([]);
     const validFiles = useRef<FileObject[]>([]);
-    const filesToValidate = useRef<FileObject[]>([]);
+    const filesToValidate = useRef<Array<FileObject | null>>([]);
     const dataTransferItemList = useRef<DataTransferItem[]>([]);
     const collectedErrors = useRef<FileValidationError[]>([]);
     const originalFileOrder = useRef<Map<string, number>>(new Map());
     const pendingAfterHide = useRef<() => void>(() => {});
-    const loaderTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+    const loaderTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const validFilesToUploadRef = useRef<FileObject[]>([]);
     const currentValidationState = useRef<ValidationState>({
         isValidatingReceipts: false,
@@ -235,7 +235,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         }
     };
 
-    const validateAndResizeFiles = async (files: FileObject[], items: DataTransferItem[], validationState: ValidationState) => {
+    const validateAndResizeFiles = async (files: Array<FileObject | null>, items: DataTransferItem[], validationState: ValidationState) => {
         if (files.length === 0) {
             return;
         }
@@ -252,6 +252,9 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         collectedErrors.current = [];
 
         for (const [index, file] of files.entries()) {
+            if (file === null) {
+                throw new TypeError('Cannot record URI order for a null attachment');
+            }
             originalFileOrder.current.set(file.uri ?? '', index);
         }
 
@@ -265,35 +268,41 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         // decodes the full-resolution image), which can kill the WebContent process on memory-constrained
         // mobile Safari when 3+ photos are selected — the tab reloads and the attachments are lost.
         for (const [index, file] of files.entries()) {
-            // eslint-disable-next-line no-await-in-loop
-            const result = await validateAttachmentFile(file, items.at(index), validationState.isValidatingReceipts);
+            if (file === null) {
+                // The array can change while an earlier file is awaited. Keep the real validator's async failure here.
+                // eslint-disable-next-line no-await-in-loop -- Validation must retain the original sequential order.
+                await validateAttachmentFile(file, items.at(index), validationState.isValidatingReceipts);
+            } else {
+                // eslint-disable-next-line no-await-in-loop -- Validation must retain the original sequential order.
+                const result = await validateAttachmentFile(file, items.at(index), validationState.isValidatingReceipts);
 
-            if (result.isValid) {
-                if (Str.isPDF(result.file.name ?? '')) {
-                    pdfsToLoad.push(result.file);
-                } else {
-                    validNonPdfFiles.push(result.file);
+                if (result.isValid) {
+                    if (Str.isPDF(result.file.name ?? '')) {
+                        pdfsToLoad.push(result.file);
+                    } else {
+                        validNonPdfFiles.push(result.file);
+                    }
+                    continue;
                 }
-                continue;
-            }
 
-            if (result.error === CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE && isImageFile(file)) {
-                filesToResize.push(file);
-                continue;
-            }
+                if (result.error === CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE && isImageFile(file)) {
+                    filesToResize.push(file);
+                    continue;
+                }
 
-            // HEIC and (on native) DNG are converted to JPEG before upload, see validateAttachmentFile
-            if (result.error === CONST.FILE_VALIDATION_ERRORS.HEIC_OR_HEIF_IMAGE || result.error === CONST.FILE_VALIDATION_ERRORS.DNG_IMAGE) {
-                filesToConvert.push(file);
-                continue;
-            }
+                // HEIC and (on native) DNG are converted to JPEG before upload, see validateAttachmentFile
+                if (result.error === CONST.FILE_VALIDATION_ERRORS.HEIC_OR_HEIF_IMAGE || result.error === CONST.FILE_VALIDATION_ERRORS.DNG_IMAGE) {
+                    filesToConvert.push(file);
+                    continue;
+                }
 
-            const errorData = {
-                error: result.error,
-                isValidatingMultipleFiles: validationState.isValidatingMultipleFiles,
-                fileType: result.error === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE ? splitExtensionFromFileName(file.name ?? '').fileExtension : undefined,
-            } satisfies FileValidationError;
-            collectedErrors.current.push(errorData);
+                const errorData = {
+                    error: result.error,
+                    isValidatingMultipleFiles: validationState.isValidatingMultipleFiles,
+                    fileType: result.error === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE ? splitExtensionFromFileName(file.name ?? '').fileExtension : undefined,
+                } satisfies FileValidationError;
+                collectedErrors.current.push(errorData);
+            }
         }
 
         if (filesToConvert.length > 0) {
@@ -426,7 +435,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         extendLoaderIfNeeded();
     };
 
-    const validateFiles = (files: FileObject[], items?: DataTransferItem[], validationOptions?: ValidationOptions) => {
+    const validateFiles = (files: Array<FileObject | null>, items?: DataTransferItem[], validationOptions?: ValidationOptions) => {
         if (isValidatingFiles) {
             Log.warn('Files are already being validated. Please wait for the current validation to complete before calling `validateFiles` again.');
             return;
