@@ -35,7 +35,7 @@ function ZohoBooksPreferredExporterPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id;
     const policyOwner = policy?.owner;
     const zohoBooksConfig = policy?.connections?.zohoBooks?.config;
-    const exporter = zohoBooksConfig?.export?.exporter ?? policyOwner;
+    const exporter = zohoBooksConfig?.export?.exporter || policyOwner;
     const exporters = getAdminEmployees(policy);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_EXPORT.getRoute(policyID) : undefined;

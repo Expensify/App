@@ -35,7 +35,7 @@ To fix the ONL038 error, update your export settings for reimbursable expenses.
 
 1. Go to the **Workspaces** navigation tab on the left.
 2. Select your Workspace.
-3. Click **Accounting**.
+3. Select **Connections**, then select **Configure** next to QuickBooks Online.
 4. Click **Export**.
 5. Under reimbursable expenses, select **Vendor Bill** as the export option.
 6. Click **Save**.
@@ -44,7 +44,7 @@ To fix the ONL038 error, update your export settings for reimbursable expenses.
 
 1. Tap the **Workspaces** navigation tab on the bottom.
 2. Select your Workspace.
-3. Tap **Accounting**.
+3. Select **Connections**, then select **Configure** next to QuickBooks Online.
 4. Tap **Export**.
 5. Under reimbursable expenses, select **Vendor Bill** as the export option.
 6. Tap **Save**.

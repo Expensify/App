@@ -1,5 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
@@ -58,6 +59,7 @@ function CertiniaAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 subtitle={translate('workspace.certinia.autoSyncDescription')}
                 shouldPlaceSubtitleBelowSwitch
                 switchAccessibilityLabel={translate('workspace.accounting.autoSync')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.AUTO_SYNC_SWITCH}
                 isActive={!!config?.autoSync?.enabled}
                 onToggle={(enabled) => {
                     if (!policyID) {
@@ -77,6 +79,7 @@ function CertiniaAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         subtitle={translate('workspace.certinia.taxNonBillableDescription')}
                         shouldPlaceSubtitleBelowSwitch
                         switchAccessibilityLabel={translate('workspace.certinia.taxNonBillable')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.TAX_NON_BILLABLE_SWITCH}
                         isActive={!!advancedConfig?.taxNonBillable}
                         onToggle={(enabled) => {
                             if (!policyID) {
@@ -94,6 +97,7 @@ function CertiniaAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         subtitle={translate('workspace.certinia.foreignCurrencyAmountDescription')}
                         shouldPlaceSubtitleBelowSwitch
                         switchAccessibilityLabel={translate('workspace.certinia.foreignCurrencyAmount')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.FOREIGN_CURRENCY_AMOUNT_SWITCH}
                         isActive={!!advancedConfig?.exportForeignCurrency}
                         onToggle={(enabled) => {
                             if (!policyID) {
@@ -113,6 +117,7 @@ function CertiniaAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     subtitle={translate('workspace.certinia.syncReimbursedReportsDescription')}
                     shouldPlaceSubtitleBelowSwitch
                     switchAccessibilityLabel={translate('workspace.accounting.reimbursedReports')}
+                    switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.SYNC_REIMBURSED_REPORTS_SWITCH}
                     isActive={!!advancedConfig?.syncReimbursedReports}
                     onToggle={(enabled) => {
                         if (!policyID) {
@@ -128,14 +133,15 @@ function CertiniaAdvancedPage({policy}: WithPolicyConnectionsProps) {
             )}
             {isCertiniaFFAConnection(config) && canConfigureCurrencyConversionFees && (
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CERTINIA_CONFIG.FX_EXPENSE_ACCOUNT], config?.pendingFields)}>
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon
-                        title={selectedFxExpenseAccountName}
-                        description={translate('workspace.certinia.fxExpenseAccount')}
-                        wrapperStyle={[styles.ph5, styles.pv3]}
+                    <MenuItemField
+                        name={translate('workspace.certinia.fxExpenseAccount')}
+                        value={selectedFxExpenseAccountName}
                         onPress={!policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_FX_EXPENSE_ACCOUNT.path))}
-                        brickRoadIndicator={areSettingsInErrorFields([CONST.CERTINIA_CONFIG.FX_EXPENSE_ACCOUNT], config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    />
+                    >
+                        {areSettingsInErrorFields([CONST.CERTINIA_CONFIG.FX_EXPENSE_ACCOUNT], config?.errorFields) && (
+                            <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                        )}
+                    </MenuItemField>
                 </OfflineWithFeedback>
             )}
         </ConnectionLayout>
