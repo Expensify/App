@@ -23,6 +23,7 @@ import {
     isUserDOBVerificationRequired,
     isWiseOnboardingAwaitingDecision,
     isWiseOnboardingMoreInfoNeeded,
+    isWiseEnabledOrOnboarding,
     PERSONAL_INFO_STEP,
     shouldSetUpGlobalReimbursementsBeforePaying,
 } from '@libs/BankAccountUtils';
@@ -419,6 +420,31 @@ describe('BankAccountUtils', () => {
             expect(isWiseOnboardingPendingSubmit(bankAccount)).toBe(false);
             expect(isWiseOnboardingAwaitingDecision(bankAccount)).toBe(false);
             expect(isWiseOnboardingMoreInfoNeeded(bankAccount)).toBe(false);
+        });
+
+        it.each([
+            ['the admin left the onboarding before Submit', buildBankAccount(undefined)],
+            ['Wise reviews the account', buildBankAccount({status: CONST.WISE.ONBOARDING_STATUS.IN_REVIEW})],
+            ['Wise needs more info', buildBankAccount({status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED})],
+            ['Wise approved the account', buildBankAccount({status: CONST.WISE.ONBOARDING_STATUS.APPROVED})],
+        ])('counts the account as Wise enabled or onboarding when %s', (_label, bankAccount) => {
+            // Given an account that pays through Wise, or will once its onboarding finishes
+            // When checking whether Wise's fees apply to its payments
+            // Then they do, so the auto-pay page discloses them
+            expect(isWiseEnabledOrOnboarding(bankAccount)).toBe(true);
+        });
+
+        it.each([
+            ['the onboarding has not started', buildBankAccount(undefined, {provider: undefined})],
+            ['the account goes through Corpay', buildBankAccount(undefined, {provider: CONST.GLOBAL_REIMBURSEMENT_PROVIDER.CORPAY})],
+            ['Wise rejected the account', buildBankAccount({status: CONST.WISE.ONBOARDING_STATUS.NOT_APPROVED})],
+            ['the account was deleted offline', buildBankAccount({status: CONST.WISE.ONBOARDING_STATUS.APPROVED}, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})],
+            ['the account is unknown', undefined],
+        ])('does not count the account as Wise enabled or onboarding when %s', (_label, bankAccount) => {
+            // Given an account that will not pay through Wise
+            // When checking whether Wise's fees apply to its payments
+            // Then they don't, so the auto-pay page shows no Wise disclosure
+            expect(isWiseEnabledOrOnboarding(bankAccount)).toBe(false);
         });
     });
 

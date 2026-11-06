@@ -185,6 +185,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dob: 'Data di nascita',
         currentYear: 'Anno corrente',
         currentMonth: 'Mese corrente',
+        todayDateLabel: (date: string) => `${date}, oggi`,
         ssnLast4: 'Ultime 4 cifre del SSN',
         ssnFull9: 'Tutte le 9 cifre del SSN',
         addressLine: (lineNumber: number) => `Riga indirizzo ${lineNumber}`,
@@ -2164,6 +2165,13 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `Cambia lo spazio di lavoro del rendiconto per ulteriori azioni.`,
+
+            [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `In questo spazio di lavoro puoi solo approvare. Sposta questo report in un altro per inviarlo.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -3147,7 +3155,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `Accetto i <a href="${CONST.WISE.TERMS_URL}">termini e condizioni</a> e l’<a href="${CONST.WISE.PRIVACY_URL}">informativa sulla privacy</a> di Wise.`,
                 wiseTermsAccessibilityLabel: 'Accetto i termini e condizioni e l’informativa sulla privacy di Wise.',
                 error: 'Accetta tutti i termini per continuare.',
-                alreadySubmitted: 'Questa azienda è già stata inviata a Wise per la revisione.',
             },
             moreInfoNeeded: {
                 headerTitle: 'Ulteriori informazioni necessarie',
@@ -3328,8 +3335,10 @@ ${amount} per ${merchant} - ${date}`,
         addApprovalsDescription: 'Richiedi un’approvazione aggiuntiva prima di autorizzare un pagamento.',
         makeOrTrackPaymentsTitle: 'Pagamenti',
         makeOrTrackPaymentsDescription: 'Aggiungi un pagatore autorizzato per i pagamenti effettuati in Expensify o tieni traccia dei pagamenti effettuati altrove.',
-        collectEmployeeBankDetails: 'Raccogli i dati bancari dei dipendenti',
-        collectEmployeeBankDetailsDescription: 'Raccogli i dati bancari dei dipendenti per poterli rimborsare al di fuori di Expensify.',
+        collectEmployeeBankDetails: 'Raccogli i dati del conto bancario',
+        collectEmployeeBankDetailsDescription: 'Raccogli i dati bancari dei membri dello spazio di lavoro, così puoi rimborsarli al di fuori di Expensify.',
+        disablePaymentsTitle: 'Disattivare i pagamenti?',
+        disablePaymentsPrompt: 'Questo rimuoverà tutte le tue impostazioni di pagamento.',
         businessBankAccountCountries: 'Paesi del conto bancario aziendale',
         businessBankAccountCountriesDescription: 'I dipendenti in questi paesi forniscono i dati per i bonifici locali. Tutti gli altri forniscono i dati per i bonifici internazionali.',
         customApprovalWorkflowEnabled:
@@ -5229,6 +5238,13 @@ ${amount} per ${merchant} - ${date}`,
             message:
                 'Sei membro di uno spazio di lavoro con viaggi abilitati, ma non è il tuo spazio di lavoro predefinito. Per prenotare, abilita i viaggi sul tuo spazio di lavoro predefinito oppure imposta come predefinito uno spazio di lavoro con viaggi abilitati.',
         },
+        approval: {
+            status: {outstanding: 'In sospeso', approved: 'Approvato', rejected: 'Rifiutato', canceled: 'Annullata'},
+            deadline: {
+                softApproval: (time: string) => `Approvazione automatica tra ${time}. Cancellazione gratuita fino ad allora.`,
+                hardApproval: (time: string) => `Annullamento automatico tra ${time} se non approvata.`,
+            },
+        },
     },
     workspace: {
         common: {
@@ -6227,7 +6243,11 @@ ${amount} per ${merchant} - ${date}`,
             noSubsidiariesFoundDescription: 'Aggiungi una consociata in NetSuite e sincronizza di nuovo la connessione',
             tokenInput: {
                 title: 'Configurazione NetSuite',
-                connectWithTokenAuthentication: 'Connettiti invece con autenticazione basata su token (SOAP)',
+                tokenAuthenticationPrompt: {
+                    beforeLink: 'Oppure connettiti con',
+                    link: 'autenticazione basata su token',
+                    afterLink: '(SOAP).',
+                },
                 formSteps: {
                     installBundle: {
                         title: 'Installa il pacchetto Expensify',
@@ -7062,6 +7082,15 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 title: 'Impossibile eliminare o disattivare tutte le categorie',
                 description: `Almeno una categoria deve rimanere abilitata perché il tuo spazio di lavoro richiede le categorie.`,
             },
+            cannotDisableCategoryForMembers: {
+                title: ({categoryName}: {categoryName: string}) => `Impossibile disabilitare ${categoryName}`,
+                bulkTitle: 'Impossibile disattivare queste categorie',
+                description: ({count}: {count: number}) => ({
+                    one: '1 membro resterebbe senza categorie tra cui scegliere. Aggiorna la visibilità delle sue categorie, quindi riprova:',
+                    other: `A ${count} membri non rimarrebbe alcuna categoria tra cui scegliere. Aggiorna la visibilità delle loro categorie, poi riprova:`,
+                }),
+                andMore: ({count}: {count: number}) => `e altri ${count}`,
+            },
         },
         moreFeatures: {
             subtitle:
@@ -7783,6 +7812,13 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             },
             officeLocation: 'Sede ufficio',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            categoryVisibility: 'Visibilità categoria',
+            allCategories: 'Tutte le categorie',
+            categoriesCount: ({count}: {count: number}) => ({
+                one: '1 categoria',
+                other: `${count} categorie`,
+            }),
+            categoryVisibilityRequiredModal: {title: 'I membri devono avere almeno una categoria', description: 'Seleziona almeno una categoria che questo membro può usare.'},
             changeOfficeLocation: 'Cambia sede dell’ufficio',
             changeWorkArrangement: 'Modifica modalità di lavoro',
             changeRole: 'Cambia ruolo',
@@ -8923,6 +8959,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                     `Il pagamento automatico è disponibile solo con il piano Control. [Esegui l’upgrade](${upgradeLink}) per sbloccare questa funzione.`,
                 autoPayReportsUnderTitle: 'Paga automaticamente i report sotto',
                 autoPayReportsUnderDescription: 'Le note spese pienamente conformi inferiori a questo importo verranno rimborsate automaticamente.',
+                autoPayCrossBorderFeesDisclosure:
+                    'I pagamenti internazionali utilizzano il tasso di cambio medio di mercato al momento del pagamento. Su tutti i pagamenti internazionali si applica una commissione variabile dell’1%, tranne per le seguenti valute: CRC (1,32%), KES (1,01%), MAD (1,60%), NPR (1,05%), UGX (1,47%), UYU (1,12%).\n\nTassi e commissioni esatti non possono essere visualizzati prima del pagamento quando un report viene pagato automaticamente. Un riepilogo dettagliato completo (inclusi il tasso di cambio esatto, le commissioni e l’importo finale) è disponibile nel report subito dopo il pagamento.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Aggiungi ${featureName} per sbloccare questa funzione.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Vai su [altre funzionalità](${moreFeaturesLink}) e abilita ${featureName} per sbloccare questa funzione.`,
@@ -9708,6 +9746,35 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 description: 'Scegli un fornitore Zoho Books predefinito per le spese che non vengono abbinate automaticamente.',
             },
             companyCardAccount: {label: 'Conto carta aziendale', description: 'Scegli dove esportare le transazioni della carta aziendale.'},
+            exportToMultipleAccounts: 'Configura l’esportazione su più conti',
+            cardProgramAccount: {
+                label: 'Conto del programma carta',
+                description: 'Ignora il conto spazio di lavoro per questi programmi di carta.',
+                descriptionLevel2: 'Ignora il conto dello spazio di lavoro per questo programma di carte.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Tutti i programmi usano il conto predefinito';
+                    }
+                    return {
+                        one: `${count} programma con conto personalizzato`,
+                        other: `${count} programmi con conti personalizzati`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'Conto per carta',
+                description: 'Sostituisci il conto del programma per le singole carte.',
+                descriptionLevel2: 'Sostituisci il conto del programma per queste carte.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Tutte le carte usano conti di programma';
+                    }
+                    return {
+                        one: `${count} carta con conto personalizzato`,
+                        other: `${count} carte con conti personalizzati`,
+                    };
+                },
+            },
             noVendorsFound: 'Nessun fornitore trovato',
             noVendorsFoundDescription: 'Aggiungi fornitori in Zoho Books e sincronizza di nuovo la connessione',
             noAccountsFound: 'Nessun account trovato',
@@ -11014,11 +11081,14 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 upcoming: 'In arrivo',
                 done: 'Completato',
                 canceled: 'Annullato',
+                outstanding: 'In sospeso',
+                rejected: 'Rifiutato',
             },
         },
         tabs: {
             expenseReports: 'Note spese',
             reports: 'Report',
+            myReports: 'I miei report',
             expenses: 'Spese',
             submit: 'Bozze',
             approve: 'Richiede approvazione',
@@ -11603,6 +11673,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         autoReportedRejectedExpense: 'Questa spesa è stata rifiutata.',
         billableExpense: 'Addebitabile non più valido',
         cashExpenseWithNoReceipt: (formattedLimit?: string) => `Ricevuta obbligatoria${formattedLimit ? `oltre ${formattedLimit}` : ''}`,
+        categoryNotAllowed: 'Categoria non consentita',
         categoryOutOfPolicy: 'Categoria non più valida',
         conversionSurcharge: (surcharge: number) => `Applicato un sovrapprezzo di conversione del ${surcharge}%`,
         customUnitOutOfPolicy: 'Tariffa non valida per questo spazio di lavoro',
@@ -11789,6 +11860,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             autoReportedRejectedExpense: 'Spesa rifiutata',
             billableExpense: 'Fatturabile non più valido',
             cashExpenseWithNoReceipt: 'Ricevuta obbligatoria',
+            categoryNotAllowed: 'Categoria non consentita',
             categoryOutOfPolicy: 'Categoria non più valida',
             companyCardRequired: 'Carta aziendale richiesta',
             conversionSurcharge: 'Sovrapprezzo di conversione applicato',
@@ -12895,6 +12967,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             other: (count: number) => `${count} g fa`,
         }),
         offlineMessage: 'Sei offline. La cronologia dei report potrebbe non essere aggiornata.',
+        toMarkAsDone: 'segnare come completato',
     },
 };
 export default translations;

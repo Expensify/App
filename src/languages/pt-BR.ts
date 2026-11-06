@@ -185,6 +185,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dob: 'Data de nascimento',
         currentYear: 'Ano atual',
         currentMonth: 'Mês atual',
+        todayDateLabel: (date: string) => `${date}, hoje`,
         ssnLast4: 'Últimos 4 dígitos do SSN',
         ssnFull9: '9 dígitos completos do SSN',
         addressLine: (lineNumber: number) => `Linha de endereço ${lineNumber}`,
@@ -2155,6 +2156,13 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `Altere o espaço de trabalho do relatório para realizar outras ações.`,
+
+            [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `Você só pode aprovar neste workspace. Mova este relatório para outro para enviar.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -3150,7 +3158,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `Concordo com os <a href="${CONST.WISE.TERMS_URL}">termos e condições</a> e a <a href="${CONST.WISE.PRIVACY_URL}">política de privacidade</a> da Wise.`,
                 wiseTermsAccessibilityLabel: 'Concordo com os termos e condições e a política de privacidade da Wise.',
                 error: 'Aceite todos os termos para continuar.',
-                alreadySubmitted: 'Esta empresa já foi enviada à Wise para análise.',
             },
             moreInfoNeeded: {
                 headerTitle: 'Mais informações necessárias',
@@ -3329,8 +3336,10 @@ ${amount} para ${merchant} - ${date}`,
         addApprovalsDescription: 'Exigir aprovação adicional antes de autorizar um pagamento.',
         makeOrTrackPaymentsTitle: 'Pagamentos',
         makeOrTrackPaymentsDescription: 'Adicione um pagador autorizado para pagamentos feitos no Expensify ou acompanhe pagamentos feitos em outros lugares.',
-        collectEmployeeBankDetails: 'Coletar dados bancários dos funcionários',
-        collectEmployeeBankDetailsDescription: 'Colete os dados bancários dos funcionários para poder reembolsá-los fora do Expensify.',
+        collectEmployeeBankDetails: 'Coletar dados bancários',
+        collectEmployeeBankDetailsDescription: 'Colete os dados bancários dos membros do workspace para que você possa reembolsá-los fora do Expensify.',
+        disablePaymentsTitle: 'Desativar pagamentos?',
+        disablePaymentsPrompt: 'Isso vai remover todas as suas configurações de pagamento.',
         businessBankAccountCountries: 'Países de contas bancárias empresariais',
         businessBankAccountCountriesDescription:
             'Funcionários nesses países fornecem dados para transferência local. Todos os demais fornecem dados para transferência internacional via wire.',
@@ -5231,6 +5240,13 @@ ${amount} para ${merchant} - ${date}`,
             message:
                 'Você é membro de um workspace com viagens ativadas, mas ele não é o seu workspace padrão. Para fazer reservas, ative viagens no seu workspace padrão ou altere o seu workspace padrão para um que tenha viagens ativadas.',
         },
+        approval: {
+            status: {outstanding: 'Pendente', approved: 'Aprovado', rejected: 'Rejeitado', canceled: 'Cancelado'},
+            deadline: {
+                softApproval: (time: string) => `Será aprovado automaticamente em ${time}. Cancelamento gratuito até lá.`,
+                hardApproval: (time: string) => `Cancela automaticamente em ${time} se não for aprovado.`,
+            },
+        },
     },
     workspace: {
         common: {
@@ -6227,7 +6243,11 @@ ${amount} para ${merchant} - ${date}`,
             noSubsidiariesFoundDescription: 'Adicione uma subsidiária no NetSuite e sincronize a conexão novamente',
             tokenInput: {
                 title: 'Configuração do NetSuite',
-                connectWithTokenAuthentication: 'Conectar com autenticação baseada em token (SOAP) em vez disso',
+                tokenAuthenticationPrompt: {
+                    beforeLink: 'Ou conecte-se com',
+                    link: 'autenticação baseada em token',
+                    afterLink: '(SOAP) em vez disso.',
+                },
                 formSteps: {
                     installBundle: {
                         title: 'Instale o pacote do Expensify',
@@ -7064,6 +7084,15 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 title: 'Não é possível excluir ou desativar todas as categorias',
                 description: `Pelo menos uma categoria deve permanecer ativada porque seu workspace exige categorias.`,
             },
+            cannotDisableCategoryForMembers: {
+                title: ({categoryName}: {categoryName: string}) => `Não é possível desativar ${categoryName}`,
+                bulkTitle: 'Não é possível desativar estas categorias',
+                description: ({count}: {count: number}) => ({
+                    one: '1 membro ficaria sem categorias para escolher. Atualize a visibilidade das categorias dele e tente novamente:',
+                    other: `${count} membros ficariam sem categorias para escolher. Atualize a visibilidade das categorias para eles e tente novamente:`,
+                }),
+                andMore: ({count}: {count: number}) => `e mais ${count}`,
+            },
         },
         moreFeatures: {
             subtitle: 'Use as chaves abaixo para ativar mais recursos conforme você cresce. Cada recurso aparecerá no menu de navegação para personalização adicional.',
@@ -7779,6 +7808,13 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             },
             officeLocation: 'Local do escritório',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            categoryVisibility: 'Visibilidade da categoria',
+            allCategories: 'Todas as categorias',
+            categoriesCount: ({count}: {count: number}) => ({
+                one: '1 categoria',
+                other: `${count} categorias`,
+            }),
+            categoryVisibilityRequiredModal: {title: 'Membros devem ter pelo menos uma categoria', description: 'Selecione pelo menos uma categoria que este membro possa usar.'},
             changeOfficeLocation: 'Alterar local do escritório',
             changeWorkArrangement: 'Alterar regime de trabalho',
             changeRole: 'Alterar função',
@@ -8917,6 +8953,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                     `O pagamento automático está disponível apenas no plano Control. [Faça upgrade](${upgradeLink}) para desbloquear este recurso.`,
                 autoPayReportsUnderTitle: 'Relatórios com pagamento automático em',
                 autoPayReportsUnderDescription: 'Relatórios de despesas totalmente compatíveis abaixo deste valor serão pagos automaticamente.',
+                autoPayCrossBorderFeesDisclosure:
+                    'Pagamentos internacionais usam a taxa de câmbio média de mercado no momento do pagamento. Uma tarifa variável de 1% se aplica a todos os pagamentos internacionais, exceto para as seguintes moedas: CRC (1,32%), KES (1,01%), MAD (1,60%), NPR (1,05%), UGX (1,47%), UYU (1,12%).\n\nTaxas de câmbio e tarifas exatas não podem ser visualizadas antes do pagamento quando um relatório é pago automaticamente. Um detalhamento completo (incluindo a taxa de câmbio exata, as tarifas e o valor final) fica disponível no relatório imediatamente após o pagamento.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Adicione ${featureName} para desbloquear este recurso.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Vá para [mais recursos](${moreFeaturesLink}) e ative ${featureName} para desbloquear este recurso.`,
@@ -9697,6 +9735,35 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 description: 'Escolha um fornecedor padrão do Zoho Books para despesas que não sejam correspondidas automaticamente.',
             },
             companyCardAccount: {label: 'Conta de cartão corporativo', description: 'Escolha para onde exportar as transações do cartão corporativo.'},
+            exportToMultipleAccounts: 'Configurar exportação para várias contas',
+            cardProgramAccount: {
+                label: 'Conta do programa de cartão',
+                description: 'Substituir a conta do workspace para estes programas de cartão.',
+                descriptionLevel2: 'Substituir a conta do workspace para este programa de cartão.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Todos os programas usam a conta padrão';
+                    }
+                    return {
+                        one: `${count} programa com conta personalizada`,
+                        other: `${count} programas com contas personalizadas`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'Conta por cartão',
+                description: 'Substitua a conta do programa para cartões individuais.',
+                descriptionLevel2: 'Substituir a conta do programa para estes cartões.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'Todos os cartões usam contas do programa';
+                    }
+                    return {
+                        one: `${count} cartão com conta personalizada`,
+                        other: `${count} cartões com contas personalizadas`,
+                    };
+                },
+            },
             noVendorsFound: 'Nenhum fornecedor encontrado',
             noVendorsFoundDescription: 'Adicione fornecedores no Zoho Books e sincronize a conexão novamente',
             noAccountsFound: 'Nenhuma conta encontrada',
@@ -10990,11 +11057,14 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 upcoming: 'Próxima',
                 done: 'Concluída',
                 canceled: 'Cancelada',
+                outstanding: 'Pendente',
+                rejected: 'Rejeitado',
             },
         },
         tabs: {
             expenseReports: 'Relatórios de despesas',
             reports: 'Relatórios',
+            myReports: 'Meus relatórios',
             expenses: 'Despesas',
             submit: 'Rascunhos',
             approve: 'Precisa de aprovação',
@@ -11576,6 +11646,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         autoReportedRejectedExpense: 'Esta despesa foi rejeitada.',
         billableExpense: 'Faturável não é mais válido',
         cashExpenseWithNoReceipt: (formattedLimit?: string) => `Recibo obrigatório${formattedLimit ? `acima de ${formattedLimit}` : ''}`,
+        categoryNotAllowed: 'Categoria não permitida',
         categoryOutOfPolicy: 'Categoria não é mais válida',
         conversionSurcharge: (surcharge: number) => `Aplicado sobretaxa de conversão de ${surcharge}%`,
         customUnitOutOfPolicy: 'Tarifa inválida para este espaço de trabalho',
@@ -11760,6 +11831,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             autoReportedRejectedExpense: 'Despesa rejeitada',
             billableExpense: 'Faturável não é mais válido',
             cashExpenseWithNoReceipt: 'Recibo obrigatório',
+            categoryNotAllowed: 'Categoria não permitida',
             categoryOutOfPolicy: 'Categoria não é mais válida',
             companyCardRequired: 'Cartão corporativo obrigatório',
             conversionSurcharge: 'Taxa de conversão aplicada',
@@ -12860,6 +12932,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             other: (count: number) => `${count}d atrás`,
         }),
         offlineMessage: 'Você está offline. O histórico de relatórios pode estar desatualizado.',
+        toMarkAsDone: 'marcar como concluída',
     },
 };
 export default translations;

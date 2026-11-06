@@ -59,8 +59,8 @@ function TableDisplaySettingsSortByPopup({columns, pendingSorting, setPendingSor
             onReset={onReset}
             onApply={onApply}
             onBackButtonPress={onBackButtonPress}
-            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_SINGLE_SELECT}
-            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_SINGLE_SELECT}
+            resetSentryLabel={CONST.SENTRY_LABEL.TABLE.DISPLAY_SETTINGS_POPUP_RESET.SORT_BY}
+            applySentryLabel={CONST.SENTRY_LABEL.TABLE.DISPLAY_SETTINGS_POPUP_APPLY.SORT_BY}
         >
             <ListFilterWrapper
                 itemCount={columns.length}
@@ -178,6 +178,8 @@ export default function TableDisplaySettingsPopoverComponent({closeOverlay}: Tab
                     // Only commit the order — a column picked in the Sort by list but never applied must stay pending
                     updateSorting({columnKey: activeSorting.columnKey ?? defaultSorting.columnKey, order});
                 }}
+                applySentryLabel={CONST.SENTRY_LABEL.TABLE.DISPLAY_SETTINGS_POPUP_APPLY.SORT_ORDER}
+                resetSentryLabel={CONST.SENTRY_LABEL.TABLE.DISPLAY_SETTINGS_POPUP_RESET.SORT_ORDER}
             />
         );
     }

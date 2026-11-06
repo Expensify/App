@@ -373,6 +373,16 @@ function isWiseOnboardingMoreInfoNeeded(bankAccount: OnyxEntry<Pick<OnyxTypes.Ba
     );
 }
 
+/** Whether the account pays cross-border reports through Wise, or will once its Wise onboarding finishes */
+function isWiseEnabledOrOnboarding(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
+    const additionalData = bankAccount?.accountData?.additionalData;
+    return (
+        bankAccount?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+        additionalData?.globalReimbursementProvider === CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE &&
+        additionalData.wise?.status !== CONST.WISE.ONBOARDING_STATUS.NOT_APPROVED
+    );
+}
+
 function doesPolicyHavePartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>, policyID: string) {
     if (!bankAccountList) {
         return false;
@@ -552,6 +562,7 @@ export {
     isWiseOnboardingPendingSubmit,
     isWiseOnboardingAwaitingDecision,
     isWiseOnboardingMoreInfoNeeded,
+    isWiseEnabledOrOnboarding,
     getDefaultCompanyWebsite,
     getBankAccountState,
     hasBankAccountAllowDebit,

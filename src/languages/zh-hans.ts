@@ -185,6 +185,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dob: '出生日期',
         currentYear: '本年度',
         currentMonth: '本月',
+        todayDateLabel: (date: string) => `${date}，今天`,
         ssnLast4: '社保号后四位',
         ssnFull9: '社会安全号码的完整 9 位数字',
         addressLine: (lineNumber: number) => `地址第 ${lineNumber} 行`,
@@ -2082,6 +2083,13 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `请更改报告的工作区以执行进一步操作。`,
+
+            [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `您只能在此工作区执行批准操作。将此报表移动到其他工作区后即可提交。`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -3047,7 +3055,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `我同意 Wise 的<a href="${CONST.WISE.TERMS_URL}">条款和条件</a>以及<a href="${CONST.WISE.PRIVACY_URL}">隐私政策</a>。`,
                 wiseTermsAccessibilityLabel: '我同意 Wise 的条款和条件以及隐私政策。',
                 error: '请接受所有条款以继续。',
-                alreadySubmitted: '该企业已提交给 Wise 进行审核。',
             },
             moreInfoNeeded: {headerTitle: '需要更多信息', title: '验证其他信息', subtitle: '我们的支付合作伙伴需要直接向你获取更多信息。这只需要几分钟时间。'},
             inReview: {
@@ -3220,8 +3227,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         addApprovalsDescription: '在付款前需要额外审批。',
         makeOrTrackPaymentsTitle: '付款',
         makeOrTrackPaymentsDescription: '为在 Expensify 中进行的付款添加授权付款人，或跟踪在其他地方进行的付款。',
-        collectEmployeeBankDetails: '收集员工银行账户信息',
-        collectEmployeeBankDetailsDescription: '收集员工的银行账户信息，以便在 Expensify 之外向他们报销。',
+        collectEmployeeBankDetails: '收集银行账户详细信息',
+        collectEmployeeBankDetailsDescription: '从工作区成员处收集银行账户信息，以便在 Expensify 之外向他们报销。',
+        disablePaymentsTitle: '要禁用付款吗？',
+        disablePaymentsPrompt: '这将删除您的所有付款设置。',
         businessBankAccountCountries: '企业银行账户国家',
         businessBankAccountCountriesDescription: '这些国家的员工需提供本地转账信息，其他员工需提供国际电汇信息。',
         customApprovalWorkflowEnabled:
@@ -5065,6 +5074,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             title: '你目前还不能预订行程',
             message: '您是已启用差旅功能的工作区成员，但该工作区不是您的默认工作区。要预订，请在您的默认工作区启用差旅功能，或将默认工作区切换为已启用差旅功能的工作区。',
         },
+        approval: {
+            status: {outstanding: '未结', approved: '已批准', rejected: '已拒绝', canceled: '已取消'},
+            deadline: {softApproval: (time: string) => `将在 ${time} 后自动批准。在此之前可免费取消。`, hardApproval: (time: string) => `若未获批准，将在 ${time} 后自动取消。`},
+        },
     },
     workspace: {
         common: {
@@ -6008,7 +6021,11 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             noSubsidiariesFoundDescription: '请在 NetSuite 中添加一个子公司，然后再次同步连接',
             tokenInput: {
                 title: 'NetSuite 设置',
-                connectWithTokenAuthentication: '改为使用基于令牌的身份验证（SOAP）连接',
+                tokenAuthenticationPrompt: {
+                    beforeLink: '或改为使用',
+                    link: '基于令牌的身份验证',
+                    afterLink: '（SOAP）连接。',
+                },
                 formSteps: {
                     installBundle: {
                         title: '安装 Expensify 插件包',
@@ -6810,6 +6827,15 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 title: '无法删除或停用所有类别',
                 description: `由于您的工作区需要类别，必须至少保留一个已启用的类别。`,
             },
+            cannotDisableCategoryForMembers: {
+                title: ({categoryName}: {categoryName: string}) => `无法禁用 ${categoryName}`,
+                bulkTitle: '无法禁用这些类别',
+                description: ({count}: {count: number}) => ({
+                    one: '将会有 1 名成员没有可选择的类别。请先更新 TA 的类别可见性，然后再试一次：',
+                    other: `将有 ${count} 名成员将没有可选择的类别。请先更新他们的类别可见性，然后重试：`,
+                }),
+                andMore: ({count}: {count: number}) => `和另外 ${count} 个`,
+            },
         },
         moreFeatures: {
             subtitle: '使用下方切换按钮，在业务成长过程中启用更多功能。每个功能都会出现在导航菜单中，供你进一步自定义。',
@@ -7343,7 +7369,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 title: '复制成员',
                 prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
                     one: `确定要用此工作区的成员替换 ${targetWorkspaceName} 的成员吗？`,
-                    // Chinese has no "one" plural category, so handle the single-workspace case here
                     other: count === 1 ? `确定要用此工作区的成员替换 ${targetWorkspaceName} 的成员吗？` : `确定要用此工作区的成员替换 ${count} 个工作区的成员吗？`,
                 }),
             },
@@ -7486,6 +7511,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             },
             officeLocation: '办公室地点',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name}（${address}）`,
+            categoryVisibility: '类别可见性',
+            allCategories: '所有类别',
+            categoriesCount: ({count}: {count: number}) => ({
+                one: '1 个类别',
+                other: `${count} 个类别`,
+            }),
+            categoryVisibilityRequiredModal: {title: '成员必须至少有一个类别', description: '请选择该成员可使用的至少一个类别。'},
             changeOfficeLocation: '更改办公室位置',
             changeWorkArrangement: '更改工作安排',
             changeRole: '更改角色',
@@ -8592,6 +8624,8 @@ ${reportName}`,
                 autoPayApprovedReportsControlPlanSubtitle: (upgradeLink: string) => `自动付款仅适用于 Control 方案。[升级](${upgradeLink})以解锁此功能。`,
                 autoPayReportsUnderTitle: '自动支付报销单于',
                 autoPayReportsUnderDescription: '在此金额以下且完全合规的报销单将被自动支付。',
+                autoPayCrossBorderFeesDisclosure:
+                    '跨境付款采用付款时的中间市场汇率。所有跨境付款均收取1%的浮动费用，但以下货币除外：CRC（1.32%）、KES（1.01%）、MAD（1.60%）、NPR（1.05%）、UGX（1.47%）、UYU（1.12%）。\n\n报销单自动支付时，无法在付款前预览确切的汇率和费用。付款后，报销单上会立即提供完整的明细（包括确切的汇率、费用和最终金额）。',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `添加 ${featureName} 以解锁此功能。`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) => `前往[更多功能](${moreFeaturesLink})并启用 ${featureName} 以解锁此功能。`,
                 preventPayoutNonReimbursableReportsTitle: '防止将不可报销的报告标记为已支付',
@@ -9310,6 +9344,35 @@ ${reportName}`,
             exportNonReimbursable: {label: '导出公司卡消费为', values: {EXPENSE: {label: '费用'}}},
             defaultCompanyCardVendor: {label: '所有公司卡的默认供应商', description: '为未自动匹配的报销选择一个默认的 Zoho Books 供应商。'},
             companyCardAccount: {label: '公司信用卡账户', description: '选择公司卡交易的导出位置。'},
+            exportToMultipleAccounts: '配置导出到多个账户',
+            cardProgramAccount: {
+                label: '卡计划账户',
+                description: '为这些卡计划覆盖工作区账户。',
+                descriptionLevel2: '覆盖此卡计划的工作区账户。',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return '所有方案使用默认账户';
+                    }
+                    return {
+                        one: `${count} 个自定义账户的项目`,
+                        other: `${count} 个具有自定义科目的项目`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: '按卡计费账户',
+                description: '为单张卡片覆盖默认项目账户。',
+                descriptionLevel2: '为这些卡片覆盖默认项目账户。',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return '所有卡都使用项目账户';
+                    }
+                    return {
+                        one: `${count} 张带有自定义账户的卡`,
+                        other: `${count} 张带有自定义账户的卡`,
+                    };
+                },
+            },
             noVendorsFound: '未找到供应商',
             noVendorsFoundDescription: '请在 Zoho Books 中添加供应商，然后再次同步连接',
             noAccountsFound: '未找到账户',
@@ -10555,11 +10618,14 @@ ${reportName}`,
                 upcoming: '即将开始',
                 done: '已完成',
                 canceled: '已取消',
+                outstanding: '未结',
+                rejected: '已拒绝',
             },
         },
         tabs: {
             expenseReports: '报销报告',
             reports: '报表',
+            myReports: '我的报告',
             expenses: '报销费用',
             submit: '草稿',
             approve: '待审批',
@@ -11119,6 +11185,7 @@ ${reportName}`,
         autoReportedRejectedExpense: '此报销已被拒绝。',
         billableExpense: '可计费项不再有效',
         cashExpenseWithNoReceipt: (formattedLimit?: string) => `需要收据${formattedLimit ? `超过 ${formattedLimit}` : ''}`,
+        categoryNotAllowed: '类别不被允许',
         categoryOutOfPolicy: '类别不再有效',
         conversionSurcharge: (surcharge: number) => `已应用 ${surcharge}% 的转换附加费`,
         customUnitOutOfPolicy: '此工作区的费率无效',
@@ -11305,6 +11372,7 @@ ${reportName}`,
             autoReportedRejectedExpense: '报销已被拒绝',
             billableExpense: '可计费已不再有效',
             cashExpenseWithNoReceipt: '需要收据',
+            categoryNotAllowed: '类别不被允许',
             categoryOutOfPolicy: '类别已失效',
             companyCardRequired: '需要公司卡',
             conversionSurcharge: '已收取兑换附加费',
@@ -12376,6 +12444,7 @@ ${reportName}`,
             other: (count: number) => `${count} 天前`,
         }),
         offlineMessage: '您已离线。报表历史可能不是最新的。',
+        toMarkAsDone: '标记为已完成',
     },
 };
 export default translations;
