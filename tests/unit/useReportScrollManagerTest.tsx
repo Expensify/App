@@ -8,6 +8,8 @@ import {ActionListContext, useActionListContext} from '@pages/inbox/ActionListCo
 
 import type {ReactNode} from 'react';
 
+import {makeMutable} from 'react-native-reanimated';
+
 /**
  * `useReportScrollManager` resolves the list ref via `getListRef()` at call time (never captured at
  * init). `scrollToIndex` takes an options object — ReportActionItemMessageEdit's Android Chrome
@@ -33,6 +35,9 @@ function buildContextValue() {
     let held: FlatListRefType = null;
     return {
         scrollOffsetRef: {current: 0},
+        scrollMetricsSV: makeMutable({offset: 0, distanceToOldestEnd: 0, distanceToNewestEnd: 0, viewportHeight: 0}),
+        syncScrollSharedValues: () => {},
+        collapsedHeaderHeightSV: makeMutable(0),
         getScrollOffset: () => 0,
         registerListRef: (ref: FlatListRefType) => {
             held = ref;

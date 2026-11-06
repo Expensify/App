@@ -1,8 +1,11 @@
 import FlashList from '@components/FlashList';
 
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import type ActionListRefType from '@pages/inbox/ActionListTypes';
+import CollapsedReportHeaderSpacer from '@pages/inbox/report/CollapsibleReportHeader/CollapsedReportHeaderSpacer';
 import useScrollToEditingReportAction from '@pages/inbox/report/useScrollToEditingReportAction';
 
 import variables from '@styles/variables';
@@ -216,7 +219,9 @@ function MoneyRequestReportUnifiedList({
     // tableOffsetTop is the height of everything above the table region (the report-fields header).
     // Seed with the window height (a safe over-estimate) so the nested list windows against a non-zero viewport on the
     // first paint — otherwise a height of 0 renders the transactions area blank until onLayout corrects it next frame.
+    const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
+    const isMobileWebLandscape = useIsMobileWebLandscape();
     const [viewportHeight, setViewportHeight] = useState(windowHeight);
     const [tableOffsetTop, setTableOffsetTop] = useState(0);
 
@@ -380,7 +385,9 @@ function MoneyRequestReportUnifiedList({
             keyExtractor={unifiedListKeyExtractor}
             getItemType={unifiedListItemType}
             initialScrollIndex={initialScrollIndex}
-            maintainVisibleContentPosition={{autoscrollToBottomThreshold: undefined}}
+            // In mobile web landscape the report header collapses on scroll and CollapsedReportHeaderSpacer pads the list
+            // to keep its rows still, which this would scroll straight back out of view.
+            maintainVisibleContentPosition={{autoscrollToBottomThreshold: undefined, disabled: isMobileWebLandscape}}
             onViewableItemsChanged={onViewableItemsChangedAdjusted}
             onLayout={handleLayout}
             onCommitLayoutEffect={onCommitLayoutEffect}
@@ -394,6 +401,7 @@ function MoneyRequestReportUnifiedList({
                         {/* Report fields + group-by/columns controls stay pinned to the page; only the column header and
                             rows scroll horizontally. Measured together so the table's offset into the page is exact. */}
                         <View onLayout={(event: LayoutChangeEvent) => setTableOffsetTop(event.nativeEvent.layout.height)}>
+                            <CollapsedReportHeaderSpacer />
                             {reportFieldsHeader}
                             {controller.beforeListContent}
                         </View>
@@ -415,6 +423,7 @@ function MoneyRequestReportUnifiedList({
                     </>
                 ) : (
                     <>
+                        <CollapsedReportHeaderSpacer />
                         {reportFieldsHeader}
                         {controller.beforeListContent}
                         {controller.tableColumnHeader}
@@ -425,7 +434,9 @@ function MoneyRequestReportUnifiedList({
             onScroll={handleScroll}
             onScrollBeginDrag={onScrollBeginDrag}
             onContentSizeChange={onContentSizeChange}
-            contentContainerStyle={contentContainerStyle}
+            // Chrome's scroll anchoring would scroll by the height CollapsedReportHeaderSpacer adds above the rows, undoing the
+            // header hand-over. It doesn't help with rows above the viewport, which FlashList moves by rewriting their top.
+            contentContainerStyle={[contentContainerStyle, isMobileWebLandscape && styles.overflowAnchorNone]}
             ListEmptyComponent={shouldShowActionsLoadingSkeleton ? <ReportActionsListLoadingSkeleton /> : undefined}
             ListFooterComponent={
                 <>

@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useUnreadMarker from '@hooks/useUnreadMarker';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {isMobilePhoneWeb} from '@libs/isInLandscapeMode';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {shouldHidePayAction} from '@libs/ReportActionsUtils';
@@ -26,6 +27,7 @@ import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import {useActionListContext} from '@pages/inbox/ActionListContext';
 import {useConciergeChatHistoryActions} from '@pages/inbox/ConciergeChatHistoryContext';
 import AskConciergeWelcome from '@pages/inbox/report/AskConciergeWelcome';
+import CollapsedReportHeaderSpacer from '@pages/inbox/report/CollapsibleReportHeader/CollapsedReportHeaderSpacer';
 import ConciergeChatHistoryToggle from '@pages/inbox/report/ConciergeChatHistoryToggle';
 import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
 import {useReportActionsListActions, useReportActionsListState} from '@pages/inbox/report/ReportActionsListContext';
@@ -214,7 +216,13 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
 
     const shouldShowOfflineSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 
-    const listFooterComponent = shouldShowOfflineSkeleton ? <ReportActionsSkeletonView shouldAnimate={false} /> : undefined;
+    const listFooterComponent =
+        isMobilePhoneWeb || shouldShowOfflineSkeleton ? (
+            <>
+                <CollapsedReportHeaderSpacer />
+                {shouldShowOfflineSkeleton && <ReportActionsSkeletonView shouldAnimate={false} />}
+            </>
+        ) : undefined;
 
     const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy,
