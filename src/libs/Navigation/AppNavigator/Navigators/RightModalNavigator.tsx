@@ -568,6 +568,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 component={ModalStackNavigators.SearchColumnsModalStackNavigator}
                             />
                             <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.INSIGHTS_DETAILS}
+                                component={ModalStackNavigators.InsightsDetailsModalStackNavigator}
+                            />
+                            <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.MULTIFACTOR_AUTHENTICATION}
                                 component={ModalStackNavigators.MultifactorAuthenticationStackNavigator}
                             />
