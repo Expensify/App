@@ -1,5 +1,6 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import usePolicy from '@hooks/usePolicy';
 
 import * as API from '@libs/API';
@@ -49,6 +50,7 @@ jest.mock('@hooks/useThemeStyles', () =>
 );
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: mockIsOffline})));
 jest.mock('@hooks/usePolicy', () => jest.fn());
+jest.mock('@hooks/useAccessibilityAnnouncement', () => jest.fn());
 jest.mock('@pages/workspace/rules/AgentRules/useAgentPromptInputStyles', () => jest.fn(() => ({})));
 jest.mock('@pages/workspace/rules/useRuleDeleteHeaderProps', () => jest.fn(() => ({deleteIconButtonProps: undefined})));
 jest.mock(
@@ -259,6 +261,35 @@ describe('Agent rule prompt check', () => {
         // Then the rule saves without another check, because the check only warns
         expect(onSave).toHaveBeenCalledWith({prompt: TYPED_PROMPT});
         expect(getGenerateRuleRequests(writeSpy)).toHaveLength(1);
+    });
+
+    it('announces the check and the warning to screen readers', async () => {
+        // Given an admin who typed a rule, and an API that applies the loading state of the check
+        writeSpy.mockImplementation((_command, _parameters, onyxData) => {
+            Onyx.update(onyxData?.optimisticData ?? []);
+            return Promise.resolve();
+        });
+        await renderWriteTab(jest.fn());
+
+        // When the admin taps Create rule
+        await submit(TYPED_PROMPT);
+
+        // Then a screen reader hears that the check runs, because the save waits for it without a visible page change
+        expect(useAccessibilityAnnouncement).toHaveBeenCalledWith('workspace.rules.agentRules.checkingRule', true, {
+            shouldAnnounceOnWeb: true,
+            shouldAnnounceOnNative: true,
+            politeness: 'polite',
+        });
+
+        // When Concierge answers that the rule is impossible
+        await answerCheck(buildImpossibleAnswer(getLastGenerationID(writeSpy)));
+
+        // Then a screen reader hears why and the suggested rule, because the warning stops the save
+        expect(useAccessibilityAnnouncement).toHaveBeenCalledWith(
+            `workspace.rules.newRule.impossible.explanationWithSuggestion Agents can't send text messages. workspace.rules.newRule.impossible.quotedSuggestion ${SUGGESTED_PROMPT}`,
+            true,
+            {shouldAnnounceOnWeb: true, shouldAnnounceOnNative: true},
+        );
     });
 
     it('checks the suggested rule when the admin taps Use suggestion', async () => {

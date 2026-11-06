@@ -4,6 +4,8 @@
  */
 import type {FormRef} from '@components/Form/types';
 
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
@@ -45,9 +47,11 @@ type PendingCheck = {
 };
 
 function useAgentRulePromptCheck({policyID, formID, formRef, checkedPrompt, savePrompt}: UseAgentRulePromptCheckParams) {
+    const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const [generatedRule] = useOnyx(ONYXKEYS.GENERATED_RULE);
     const [isChecking = false] = useOnyx(formID, {selector: (form) => !!form?.isLoading});
+    useAccessibilityAnnouncement(translate('workspace.rules.agentRules.checkingRule'), isChecking, {shouldAnnounceOnWeb: true, shouldAnnounceOnNative: true, politeness: 'polite'});
     const pendingCheckRef = useRef<PendingCheck>(undefined);
     const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
     const [checkGenerationID, setCheckGenerationID] = useState<string>();

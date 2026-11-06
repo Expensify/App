@@ -3,6 +3,7 @@
  */
 import Text from '@components/Text';
 
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -35,11 +36,14 @@ function ImpossibleRuleNotice({refusal}: ImpossibleRuleNoticeProps) {
 
     // An answer without an explanation still says why, with the general text for its reason
     const explanation = refusal.explanation ? refusal.explanation : translate(IMPOSSIBLE_TITLE_BY_REASON[refusal.reason ?? ''] ?? 'workspace.rules.newRule.impossible.noCapability');
+    const detail = suggestedPrompt ? translate('workspace.rules.newRule.impossible.explanationWithSuggestion', explanation) : explanation;
+    const quotedSuggestion = suggestedPrompt ? translate('workspace.rules.newRule.impossible.quotedSuggestion', suggestedPrompt) : '';
+    useAccessibilityAnnouncement(quotedSuggestion ? `${detail} ${quotedSuggestion}` : detail, true, {shouldAnnounceOnWeb: true, shouldAnnounceOnNative: true});
 
     return (
         <View style={styles.mt4}>
-            <Text style={styles.textSupporting}>{suggestedPrompt ? translate('workspace.rules.newRule.impossible.explanationWithSuggestion', explanation) : explanation}</Text>
-            {!!suggestedPrompt && <Text style={styles.mt3}>{translate('workspace.rules.newRule.impossible.quotedSuggestion', suggestedPrompt)}</Text>}
+            <Text style={styles.textSupporting}>{detail}</Text>
+            {!!quotedSuggestion && <Text style={styles.mt3}>{quotedSuggestion}</Text>}
         </View>
     );
 }
