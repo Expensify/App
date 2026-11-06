@@ -145,7 +145,7 @@ function WorkspaceInviteMessageComponent({
     // Invitees have no office of their own yet, so office-based ones commute to the primary office
     const defaultOfficeLabel = selectedHasOfficeWorkArrangement && officeLocations.length > 1 ? getMemberOfficeLocation(officeLocations, undefined)?.name : undefined;
 
-    const shouldShowTravelCheckbox = isWorkspaceProvisionedForTravel(policy?.travelSettings) && isPolicyAdmin(policy, currentUserLogin);
+    const shouldShowTravelCheckbox = isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS) && isWorkspaceProvisionedForTravel(policy?.travelSettings) && isPolicyAdmin(policy, currentUserLogin);
     const [shouldTurnOnTravel, setShouldTurnOnTravel] = useState(policy?.travelSettings?.autoEnableNewMembers ?? false);
 
     const isApproverValid = !!workspaceInviteApproverDraft && workspaceInviteApproverDraft in (policy?.employeeList ?? {});
