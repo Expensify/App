@@ -19,6 +19,7 @@ import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
+import {hasAnyCategoryRulesSelector} from '@selectors/PolicyCategories';
 import React from 'react';
 
 import BankAccountSelector from './BankAccountSelector';
@@ -64,6 +65,7 @@ type MultiSelectFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.IS
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_STATUS
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS;
@@ -113,13 +115,13 @@ function SingleSelectListFilterContent({baseFilterKey, value, selectionListStyle
 function HasMultiSelectListFilterContent({value = [], type = CONST.SEARCH.DATA_TYPES.EXPENSE, selectionListStyle, footer, onChange}: HasMultiSelectListFilterContentProps) {
     const {translate} = useLocalize();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [hasCategoryRules = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: hasAnyCategoryRulesSelector});
     const selectedValues = value as string[];
     // Include already-selected values even when the matching workspace feature is off, otherwise
     // toggling another option would call onChange without them and clear the saved/query selection.
     const items = getHasOptions(translate, type, {
         policies: policies ?? {},
-        policyCategories,
+        hasCategoryRules,
         selectedValues,
     });
     const multiSelectValues = items.filter((item) => selectedValues.includes(item.value));
@@ -282,6 +284,7 @@ function ListFilterContent({
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IS:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_STATUS:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS: {

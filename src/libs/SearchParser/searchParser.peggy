@@ -303,6 +303,7 @@ key "key"
       / exporter
       / expenseType
       / receiptType
+      / violationName
       / transactionStatus
       / withdrawalType
       / withdrawalStatus
