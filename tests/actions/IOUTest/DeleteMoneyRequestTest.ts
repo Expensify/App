@@ -2451,6 +2451,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 transactionThreadID,
                 shouldDeleteTransactionThread: true,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                isArchivedIOUReport: false,
                 transactionThreadReportActionsParam: passedInReportActions,
             });
 
@@ -2470,6 +2471,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 transactionThreadID,
                 shouldDeleteTransactionThread: true,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                isArchivedIOUReport: false,
                 transactionThreadReportActionsParam: passedInReportActions,
             });
 
@@ -2482,6 +2484,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             const result = getCleanUpTransactionThreadReportOnyxData({
                 shouldDeleteTransactionThread: false,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                isArchivedIOUReport: false,
                 transactionThreadReportActionsParam: {action1: createRandomReportAction(3)},
             });
 
@@ -2556,6 +2559,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     iouReport,
                     chatReport,
                     currentUserAccountID,
+                    isArchivedIOUReport: false,
                 });
                 const entry = result.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHAT_REPORT_ID}`);
                 const value: unknown = entry && 'value' in entry ? entry.value : undefined;

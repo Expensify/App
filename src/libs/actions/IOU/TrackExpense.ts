@@ -780,6 +780,8 @@ function getDeleteTrackExpenseInformation({
         shouldDeleteTransactionThread,
         transactionThread,
         currentUserAccountID,
+        // isArchivedIOUReport is only read when reportAction is passed, and this call updates the transaction thread without one.
+        isArchivedIOUReport: false,
         transactionThreadReportActionsParam: transactionThreadReportActions,
     });
     optimisticData.push(...cleanUpTransactionThreadReportOnyxData.optimisticData);

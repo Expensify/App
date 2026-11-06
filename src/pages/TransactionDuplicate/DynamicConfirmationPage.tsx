@@ -68,6 +68,7 @@ function DynamicConfirmationPage() {
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newTransaction?.reportID}`);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const reportAction = Object.values(reportActions ?? {}).find(
         (action) => ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID === reviewDuplicates?.transactionID,
     );
@@ -121,6 +122,7 @@ function DynamicConfirmationPage() {
             allTransactionViolations,
             allReportActionsList: allReportActions,
             allReportsList: allReports,
+            allReportNameValuePairsList: allReportNameValuePairs,
         });
         if (isSuperWideRHPDisplayed) {
             Navigation.dismissToSuperWideRHP();
@@ -135,7 +137,18 @@ function DynamicConfirmationPage() {
         Navigation.dismissModal({
             afterTransition: () => Navigation.navigate(keptReportRoute, {forceReplace: true}),
         });
-    }, [childReportID, transactionsMergeParams, taxData, currentUserAccountID, currentUserLogin, isSuperWideRHPDisplayed, allTransactionViolations, allReportActions, allReports]);
+    }, [
+        childReportID,
+        transactionsMergeParams,
+        taxData,
+        currentUserAccountID,
+        currentUserLogin,
+        isSuperWideRHPDisplayed,
+        allTransactionViolations,
+        allReportActions,
+        allReports,
+        allReportNameValuePairs,
+    ]);
 
     const handleResolveDuplicates = useCallback(() => {
         resolveDuplicates({...transactionsMergeParams, ...taxData, transactionThreadReportIDMap, allTransactionViolations, allReportActionsList: allReportActions, delegateAccountID});
