@@ -1578,9 +1578,9 @@ describe('PolicyUtils', () => {
             });
 
             it('lets only full admins of Control workspaces assign the travel admin role', () => {
-                // Given a workspace admin and a People Admin of a Control workspace, and a workspace admin of a Team workspace
-                const adminPolicy = buildPolicy(CONST.POLICY.ROLE.ADMIN);
-                const peopleAdminPolicy = buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN);
+                // Given a workspace admin and a People Admin of a Control workspace with travel, and a workspace admin of a Team workspace
+                const adminPolicy = {...buildPolicy(CONST.POLICY.ROLE.ADMIN), isTravelEnabled: true};
+                const peopleAdminPolicy = {...buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN), isTravelEnabled: true};
                 const teamAdminPolicy = {...buildPolicy(CONST.POLICY.ROLE.ADMIN), type: CONST.POLICY.TYPE.TEAM};
 
                 // When we check who can assign the travel admin role
@@ -1590,6 +1590,16 @@ describe('PolicyUtils', () => {
                 expect(canMemberAssignRole(peopleAdminPolicy, memberLogin, CONST.POLICY.ROLE.TRAVEL_ADMIN)).toBe(false);
                 expect(getSelectableRoles(peopleAdminPolicy, memberLogin)).not.toContain(CONST.POLICY.ROLE.TRAVEL_ADMIN);
                 expect(canMemberAssignRole(teamAdminPolicy, memberLogin, CONST.POLICY.ROLE.TRAVEL_ADMIN)).toBe(false);
+            });
+
+            it('only offers the travel admin role once the workspace has travel turned on', () => {
+                // Given a workspace admin of a Control workspace that hasn't turned on travel
+                const policy = {...buildPolicy(CONST.POLICY.ROLE.ADMIN), isTravelEnabled: false};
+
+                // When we list the roles they can pick from
+                // Then travel admin isn't offered, since it would grant nothing on this workspace, but the admin could still move an existing travel admin to another role
+                expect(getSelectableRoles(policy, memberLogin)).not.toContain(CONST.POLICY.ROLE.TRAVEL_ADMIN);
+                expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.TRAVEL_ADMIN)).toBe(true);
             });
 
             it('ranks travel admins below People Admins and above auditors', () => {
