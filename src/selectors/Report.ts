@@ -448,21 +448,6 @@ const reportsByIDsSelector =
         return result;
     };
 
-/** The id and the name of a report, for consumers that only display the report by name */
-type ReportIDAndName = Pick<Report, 'reportID' | 'reportName'>;
-
-/**
- * Creates a selector returning only the id and name of the given report, so a consumer that only needs those doesn't
- * re-render when any other report, or an unrelated field of that report, changes.
- */
-function reportIDAndNameSelector(reportID: string) {
-    return function selectReportIDAndName(reports: OnyxCollection<Report>): OnyxCollection<ReportIDAndName> {
-        const key = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
-        const report = reports?.[key];
-        return {[key]: report && {reportID: report.reportID, reportName: report.reportName}};
-    };
-}
-
 export {
     getArchiveReason,
     getReportChatType,
@@ -488,7 +473,6 @@ export {
     reportParentChainSelector,
     policyExpenseChatSelector,
     reportsByIDsSelector,
-    reportIDAndNameSelector,
 };
 
-export type {ReportAvatarFields, ReportIDAndName, RoomAvatarFields, StableReport};
+export type {ReportAvatarFields, RoomAvatarFields, StableReport};
