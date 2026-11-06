@@ -112,6 +112,7 @@ function WorkspaceVendorsTable({vendors, selectionEnabled = false, selectedKeys 
                         showLockIcon={item.isLocked}
                         disabled={item.disabled}
                         accessibilityLabel={`${translate('workspace.vendors.enableVendor')}: ${item.name}`}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.VENDORS.ROW_ENABLE_SWITCH}
                         onToggle={item.onToggleEnabled}
                     />
                 </View>
@@ -138,7 +139,7 @@ function WorkspaceVendorsTable({vendors, selectionEnabled = false, selectedKeys 
             <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.EmptyState
                 title={translate('workspace.vendors.emptyTitle')}
-                subtitleText={translate('workspace.vendors.emptySubtitle')}
+                subtitle={translate('workspace.vendors.emptySubtitle')}
             />
             <Table.NoResultsState />
             <Table.Header />

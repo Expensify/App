@@ -221,7 +221,9 @@ function isBankAccountEligibleForGlobalReimbursements(accountData: AccountData |
         // `||` not `??`: bankCurrency can be an empty string, which should fall through to additionalData.
         (bankCurrency || accountData?.additionalData?.currency) === CONST.CURRENCY.USD &&
         accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+        // Corpay accounts are marked by their verification, Wise accounts by the flag the backend sets once Wise approves the business
         !accountData.additionalData?.verifications?.corpay &&
+        accountData.additionalData?.isGlobalReimbursementEnabled !== true &&
         accountData.state === CONST.BANK_ACCOUNT.STATE.OPEN
     );
 }
@@ -234,6 +236,20 @@ function shouldSetUpGlobalReimbursementsBeforePaying(bankAccount: OnyxEntry<Onyx
     return (
         bankAccount?.accountData?.additionalData?.isGlobalReimbursementEnabled === false && isBankAccountEligibleForGlobalReimbursements(bankAccount.accountData, bankAccount.bankCurrency)
     );
+}
+
+/**
+ * Whether the bank account row shows that global reimbursements are enabled. Only an explicit `true` counts, the same flag the backend checks before paying.
+ */
+function isGlobalReimbursementsEnabled(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
+    return bankAccount?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && bankAccount?.accountData?.additionalData?.isGlobalReimbursementEnabled === true;
+}
+
+/**
+ * Whether the business was already submitted to Wise. Wise has a status for the business only once it was submitted.
+ */
+function isWiseOnboardingSubmitted(accountData: AccountData | undefined): boolean {
+    return !!accountData?.additionalData?.wise?.status;
 }
 
 /**
@@ -287,6 +303,32 @@ function getWorkspaceWiseGlobalReimbursementsBannerBankAccountID(policy: OnyxEnt
     }
 
     return bankAccountID;
+}
+
+/**
+ * Whether the admin saved part of the account's Wise onboarding and has not submitted it yet. The server sets Wise as the provider on the first saved page,
+ * and the onboarding opens only for an eligible account.
+ */
+function isWiseOnboardingPendingSubmit(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
+    const additionalData = bankAccount?.accountData?.additionalData;
+    return (
+        bankAccount?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+        additionalData?.globalReimbursementProvider === CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE &&
+        !additionalData.wise?.status &&
+        isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData, bankAccount?.bankCurrency)
+    );
+}
+
+/** Whether the account's Wise onboarding is submitted and Wise is reviewing it, with nothing for the admin to do */
+function isWiseOnboardingAwaitingDecision(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
+    return bankAccount?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && bankAccount?.accountData?.additionalData?.wise?.status === CONST.WISE.ONBOARDING_STATUS.IN_REVIEW;
+}
+
+/** Whether Wise needs more info from the admin on its own form before it can decide on the submitted business */
+function isWiseOnboardingMoreInfoNeeded(bankAccount: OnyxEntry<Pick<OnyxTypes.BankAccount, 'accountData' | 'pendingAction'>>): boolean {
+    return (
+        bankAccount?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && bankAccount?.accountData?.additionalData?.wise?.status === CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED
+    );
 }
 
 function doesPolicyHavePartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>, policyID: string) {
@@ -459,8 +501,13 @@ export {
     isFilterableBankAccount,
     isBankAccountEligibleForGlobalReimbursements,
     shouldSetUpGlobalReimbursementsBeforePaying,
+    isGlobalReimbursementsEnabled,
+    isWiseOnboardingSubmitted,
     getWiseGlobalReimbursementsBannerBankAccountID,
     getWorkspaceWiseGlobalReimbursementsBannerBankAccountID,
+    isWiseOnboardingPendingSubmit,
+    isWiseOnboardingAwaitingDecision,
+    isWiseOnboardingMoreInfoNeeded,
     getDefaultCompanyWebsite,
     getBankAccountState,
     hasBankAccountAllowDebit,

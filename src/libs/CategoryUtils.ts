@@ -114,6 +114,53 @@ function getEnabledCategoriesCount(policyCategories: PolicyCategories | undefine
     return Object.values(policyCategories).filter((policyCategory) => policyCategory.enabled).length;
 }
 
+/**
+ * Returns the names of the enabled categories the member can use: those visible to everyone, or to the member explicitly.
+ */
+function getMemberVisibleCategoryNames(policyCategories: PolicyCategories | undefined, accountID: number): string[] {
+    return Object.values(policyCategories ?? {})
+        .filter((policyCategory) => policyCategory.enabled && (!policyCategory.visibleTo || !!policyCategory.visibleTo[accountID]))
+        .map((policyCategory) => policyCategory.name);
+}
+
+/**
+ * Returns the members who can use at least one of the categories being disabled but no other enabled category, so
+ * disabling them would leave these members with nothing to choose from.
+ */
+function getMembersWithoutVisibleCategories(policyCategories: PolicyCategories | undefined, categoryNamesToDisable: string[], memberAccountIDs: number[]): number[] {
+    const categoriesToDisable = new Set(categoryNamesToDisable);
+    // Members who can use a category that stays enabled, and members who can use one being disabled. A category open
+    // to everyone covers every member, so it's tracked as a flag rather than by adding every member to a set.
+    const membersKeepingACategory = new Set<string>();
+    const membersLosingACategory = new Set<string>();
+    let isEveryoneLosingACategory = false;
+
+    for (const category of Object.values(policyCategories ?? {})) {
+        if (!category.enabled) {
+            continue;
+        }
+        const isBeingDisabled = categoriesToDisable.has(category.name);
+        if (!category.visibleTo) {
+            if (!isBeingDisabled) {
+                return [];
+            }
+            isEveryoneLosingACategory = true;
+            continue;
+        }
+        const members = isBeingDisabled ? membersLosingACategory : membersKeepingACategory;
+        for (const [accountID, isVisible] of Object.entries(category.visibleTo)) {
+            if (isVisible) {
+                members.add(accountID);
+            }
+        }
+    }
+
+    return memberAccountIDs.filter((accountID) => {
+        const key = String(accountID);
+        return !membersKeepingACategory.has(key) && (isEveryoneLosingACategory || membersLosingACategory.has(key));
+    });
+}
+
 function isCategoryMissing(category: string | undefined): boolean {
     if (!category) {
         return true;
@@ -218,6 +265,28 @@ function getCategoryNameErrorMessage(translate: LocaleContextProps['translate'],
 }
 
 /**
+ * Finds the stored key of a disabled category whose decoded name is `name`. Pickers hide disabled categories, so a
+ * search can come up empty even though creating the name would fail as a duplicate. A category being deleted is also
+ * stored as disabled until the server confirms, so it is skipped rather than offered back.
+ */
+function getDisabledCategoryKey(policyCategories: PolicyCategories | undefined, name: string): string | undefined {
+    return Object.entries(policyCategories ?? {}).find(
+        ([categoryKey, category]) => !category?.enabled && category?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && getDecodedCategoryName(categoryKey) === name,
+    )?.[0];
+}
+
+/**
+ * Whether a category picker search for `name` can be turned into a category in one tap: either a valid new name, or
+ * the name of a disabled category that can be turned back on. Reserved names, HTML and over-long names never qualify.
+ */
+function canCreateCategoryFromSearch(policyCategories: PolicyCategories | undefined, name: string): boolean {
+    const disabledCategoryKey = getDisabledCategoryKey(policyCategories, name);
+
+    // Passing the name as `currentName` skips only the duplicate check, so a disabled match still has to pass every other rule.
+    return !getCategoryNameError(policyCategories, name, disabledCategoryKey ? name : undefined);
+}
+
+/**
  * Splits a category name on the colon separator, removes empty middle segments,
  * and merges a trailing empty segment into the previous part (preserving trailing colons).
  *
@@ -309,6 +378,8 @@ export {
     getCategoryDefaultTaxRate,
     updateCategoryInMccGroup,
     getEnabledCategoriesCount,
+    getMemberVisibleCategoryNames,
+    getMembersWithoutVisibleCategories,
     isCategoryMissing,
     isCategoryDescriptionRequired,
     getCategoryDescriptionHint,
@@ -322,4 +393,6 @@ export {
     hasAnyCategoryRules,
     getCategoryNameError,
     getCategoryNameErrorMessage,
+    getDisabledCategoryKey,
+    canCreateCategoryFromSearch,
 };

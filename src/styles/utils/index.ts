@@ -47,6 +47,7 @@ import createModalStyleUtils from './generators/ModalStyleUtils';
 import createReportActionContextMenuStyleUtils from './generators/ReportActionContextMenuStyleUtils';
 import createTooltipStyleUtils from './generators/TooltipStyleUtils';
 import getContextMenuItemStyles from './getContextMenuItemStyles';
+import getFloatingTabBarHeight from './getFloatingTabBarHeight';
 import getHiddenChatContentStyle from './getHiddenChatContentStyle';
 import getHighResolutionInfoWrapperStyle from './getHighResolutionInfoWrapperStyle';
 import getMoneyRequestReportPreviewStyle from './getMoneyRequestReportPreviewStyle';
@@ -1557,6 +1558,7 @@ const staticStyleUtils = {
     getNavigationBarType,
     getSuccessReportCardLostIllustrationStyle,
     getOptionMargin,
+    getFloatingTabBarHeight,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
@@ -2169,6 +2171,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER:
             case CONST.SEARCH.TABLE_COLUMNS.FEED:
             case CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT:
             case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
@@ -2542,9 +2545,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         }
     },
 
-    getTabBarNarrowStyle: (safeAreaPaddingBottom: number): ViewStyle => ({
+    getTabBarNarrowStyle: (safeAreaPaddingBottom: number, isInLandscapeMode: boolean): ViewStyle => ({
         overflow: 'visible',
-        marginTop: -(variables.floatingTabBarHeight + variables.floatingTabBarBottomInset + safeAreaPaddingBottom),
+        marginTop: -(getFloatingTabBarHeight(isInLandscapeMode) + variables.floatingTabBarBottomInset + safeAreaPaddingBottom),
         paddingBottom: variables.floatingTabBarBottomInset + safeAreaPaddingBottom,
     }),
 
