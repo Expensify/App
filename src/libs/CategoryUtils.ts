@@ -114,11 +114,6 @@ function getEnabledCategoriesCount(policyCategories: PolicyCategories | undefine
     return Object.values(policyCategories).filter((policyCategory) => policyCategory.enabled).length;
 }
 
-/** Whether the member can use the category: it's visible to everyone, or to the member explicitly. */
-function isCategoryVisibleToMember(category: PolicyCategory, accountID: number): boolean {
-    return !category.visibleTo || !!category.visibleTo[accountID];
-}
-
 /**
  * Returns the names of the enabled categories the member can use: those visible to everyone, or to the member explicitly.
  */

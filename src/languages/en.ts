@@ -4644,7 +4644,7 @@ const translations = {
         bankAccountPurposeTitle: 'What do you want to do with your bank account?',
         getReimbursed: 'Get reimbursed',
         getReimbursedDescription: 'By employer or others',
-        makePayments: 'Make payments',
+        makePayments: 'Make business payments',
         makePaymentsDescription: 'Pay expenses or issue Expensify Cards',
         hasPhoneLoginError: (contactMethodRoute: string) =>
             `To connect a bank account, please <a href="${contactMethodRoute}">add an email as your primary login</a> and try again. You can add your phone number as a secondary login.`,
@@ -4734,6 +4734,8 @@ const translations = {
         accountTypeStepHeader: 'What type of account is this?',
         bankInformationStepHeader: 'What are your bank details?',
         accountHolderInformationStepHeader: 'What are the account holder details?',
+        bankDetails: 'Bank details',
+        accountHolderDetails: 'Account holder details',
         howDoWeProtectYourData: 'How do we protect your data?',
         currencyHeader: "What's your bank account's currency?",
         confirmationStepHeader: 'Check your info.',
@@ -4751,6 +4753,8 @@ const translations = {
         chooseAccountLabel: 'Account',
         successTitle: 'Personal bank account added!',
         successMessage: 'Congrats, your bank account is set up and ready to receive reimbursements.',
+        bankAccountAddedTitle: 'Bank account added!',
+        bankAccountAddedMessage: 'Congrats, your personal bank account is set up and ready to receive reimbursements.',
     },
     attachmentView: {
         unknownFilename: 'Unknown filename',
