@@ -120,10 +120,8 @@ function FormWrapper({
     const {getErrorAnnouncementKey, getFallbackAnnouncementMessage} = useContext(FormContext);
     const errorAnnouncementKey = getErrorAnnouncementKey();
     const fallbackAnnouncementMessage = getFallbackAnnouncementMessage();
-    const platform = getPlatform();
-    const isWeb = platform === CONST.PLATFORM.WEB;
-    // Android's exact layout already excludes the keyboard, so it can bound the form like web. iOS relies on intrinsic scrolling for keyboard-reduced layouts.
-    const shouldConstrainContentHeight = (isWeb || platform === CONST.PLATFORM.ANDROID) && shouldConstrainWebContentHeight;
+    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
+    const shouldConstrainContentHeight = isWeb && shouldConstrainWebContentHeight;
 
     const onFixTheErrorsLinkPressed = () => {
         const errorFields = !isEmptyObject(errors) ? errors : (serverErrorFields ?? {});

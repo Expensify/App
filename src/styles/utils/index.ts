@@ -40,6 +40,7 @@ import type {
 } from './types';
 
 import shouldPreventScrollOnAutoCompleteSuggestion from './autoCompleteSuggestion';
+import getAutoGrowHeightInputContainerStyles from './autoGrowHeightInputContainerStyles';
 import getCardStyles from './cardStyles';
 import containerComposeStyles from './containerComposeStyles';
 import createModalStyleUtils from './generators/ModalStyleUtils';
@@ -1538,6 +1539,7 @@ const staticStyleUtils = {
     getNavigationModalCardStyle,
     getCardStyles,
     getSearchPageNarrowHeaderStyles,
+    getAutoGrowHeightInputContainerStyles,
     splitPercentageInputStyles,
     getOpacityStyle,
     getMultiGestureCanvasContainerStyle,

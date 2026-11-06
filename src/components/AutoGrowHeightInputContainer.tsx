@@ -3,7 +3,7 @@
  */
 import useKeyboardState from '@hooks/useKeyboardState';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
-import useThemeStyles from '@hooks/useThemeStyles';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import getKeyboardHeight from '@libs/getKeyboardHeight';
@@ -56,7 +56,7 @@ function AutoGrowHeightInputContainer({
     shouldKeepMinimumHeight = false,
     shouldUseWebViewportHeightFallback = true,
 }: AutoGrowHeightInputContainerProps) {
-    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
     const {isKeyboardActive, isKeyboardShown, isKeyboardAnimatingRef, keyboardActiveHeight, keyboardHeight} = useKeyboardState();
     const {bottom} = useSafeAreaInsets();
@@ -162,7 +162,7 @@ function AutoGrowHeightInputContainer({
 
     return (
         <ScrollView
-            style={[styles.flex1, Platform.OS === 'web' && shouldKeepMinimumHeight && {minHeight: variables.componentSizeLarge}, style]}
+            style={[StyleUtils.getAutoGrowHeightInputContainerStyles(shouldKeepMinimumHeight), style]}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             nestedScrollEnabled
