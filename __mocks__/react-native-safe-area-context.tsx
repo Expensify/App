@@ -1,7 +1,7 @@
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 import type {ForwardedRef, ReactNode} from 'react';
-import type {EdgeInsets, useSafeAreaFrame as LibUseSafeAreaFrame, WithSafeAreaInsetsProps} from 'react-native-safe-area-context';
+import type {EdgeInsets, useSafeAreaFrame as LibUseSafeAreaFrame, SafeAreaListenerProps, WithSafeAreaInsetsProps} from 'react-native-safe-area-context';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -47,6 +47,7 @@ function withSafeAreaInsets(WrappedComponent: React.ComponentType<WithSafeAreaIn
 const SafeAreaView = View;
 const SafeAreaProvider = (props: SafeAreaProviderProps) => props.children;
 const SafeAreaConsumer = (props: SafeAreaConsumerProps) => props.children?.(insets);
+const SafeAreaListener = (props: SafeAreaListenerProps) => props.children;
 const SafeAreaInsetsContext: SafeAreaInsetsContextValue = {
     Consumer: SafeAreaConsumer,
 };
@@ -59,4 +60,4 @@ const useSafeAreaFrame: jest.Mock<ReturnType<typeof LibUseSafeAreaFrame>> = jest
 }));
 const useSafeAreaInsets: jest.Mock<EdgeInsets> = jest.fn(() => insets);
 
-export {SafeAreaProvider, SafeAreaConsumer, SafeAreaInsetsContext, withSafeAreaInsets, SafeAreaView, useSafeAreaFrame, useSafeAreaInsets};
+export {SafeAreaProvider, SafeAreaConsumer, SafeAreaListener, SafeAreaInsetsContext, withSafeAreaInsets, SafeAreaView, useSafeAreaFrame, useSafeAreaInsets};

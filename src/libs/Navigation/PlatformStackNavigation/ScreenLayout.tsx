@@ -1,3 +1,5 @@
+import HorizontalSafeArea from '@components/HorizontalSafeArea';
+
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {TransitionHandle} from '@libs/Navigation/TransitionTracker';
 
@@ -14,17 +16,29 @@ import type {PlatformSpecificNavigationOptions, PlatformStackNavigationOptions} 
 // bottomTabScreenLayoutWrapper below - needs no unsafe cast, since every navigator's `addListener` structurally satisfies it.
 type TransitionAwareNavigation = {
     addListener(type: 'transitionStart' | 'transitionEnd', callback: () => void): () => void;
+    getParent(): unknown;
 };
 
 // screenLayout is invoked as a render function (not JSX), so we need this wrapper to create a proper React component boundary for hooks.
-function screenLayoutWrapper({navigation, ...rest}: ScreenLayoutArgs<ParamListBase, string, PlatformSpecificNavigationOptions | PlatformStackNavigationOptions, string>) {
-    return (
+function screenLayoutWrapper({
+    navigation,
+    ...rest
+}: ScreenLayoutArgs<ParamListBase, string, PlatformSpecificNavigationOptions & Pick<PlatformStackNavigationOptions, 'hasOwnHorizontalSafeArea'>, string>) {
+    // The type cast is needed because useNavigationBuilder hardcodes the Navigation generic to `string`.
+    const transitionAwareNavigation = navigation as unknown as TransitionAwareNavigation;
+    const screen = (
         <ScreenLayout
             {...rest}
-            // The type cast is needed because useNavigationBuilder hardcodes the Navigation generic to `string`.
-            navigation={navigation as unknown as TransitionAwareNavigation}
+            navigation={transitionAwareNavigation}
         />
     );
+
+    // Root screens keep out of the horizontal safe area, and the screens nested in them sit inside it already.
+    const isRootScreen = !transitionAwareNavigation.getParent();
+    if (!isRootScreen || rest.options.hasOwnHorizontalSafeArea) {
+        return screen;
+    }
+    return <HorizontalSafeArea>{screen}</HorizontalSafeArea>;
 }
 
 // Same as screenLayoutWrapper above, but for bottom-tab navigators, JS and native. No cast needed here - their
@@ -83,3 +97,4 @@ function ScreenLayout({children, navigation}: ScreenLayoutProps) {
 
 export default screenLayoutWrapper;
 export {bottomTabScreenLayoutWrapper};
+export type {ScreenLayoutProps};

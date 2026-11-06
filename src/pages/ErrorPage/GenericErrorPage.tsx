@@ -1,4 +1,5 @@
 import Button from '@components/Button';
+import HorizontalSafeArea from '@components/HorizontalSafeArea';
 import Icon from '@components/Icon';
 import ImageSVG from '@components/ImageSVG';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
@@ -37,76 +38,78 @@ function GenericErrorPage({error}: {error?: Error}) {
     const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark', 'Bug']);
 
     return (
-        <SafeAreaConsumer>
-            {({paddingBottom}) => (
-                <View style={[styles.flex1, styles.pt10, styles.ph5, StyleUtils.getErrorPageContainerStyle(Number(paddingBottom))]}>
-                    <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                        <View>
-                            <View style={styles.mb5}>
-                                <Icon
-                                    src={icons.Bug}
-                                    height={variables.componentSizeNormal}
-                                    width={variables.componentSizeNormal}
-                                    fill={theme.iconSuccessFill}
-                                />
-                            </View>
-                            <View style={styles.mb5}>
-                                <Text
-                                    accessibilityRole={CONST.ROLE.HEADER}
-                                    style={[styles.textHeadline]}
-                                >
-                                    {translate('genericErrorPage.title')}
-                                </Text>
-                            </View>
-                            <View style={styles.mb5}>
-                                <ErrorBodyText />
-                                <Text>
-                                    {`${translate('genericErrorPage.body.helpTextConcierge')} `}
-                                    <TextLink
-                                        href={`mailto:${CONST.EMAIL.CONCIERGE}`}
-                                        style={[styles.link]}
+        <HorizontalSafeArea>
+            <SafeAreaConsumer>
+                {({paddingBottom}) => (
+                    <View style={[styles.flex1, styles.pt10, styles.ph5, StyleUtils.getErrorPageContainerStyle(Number(paddingBottom))]}>
+                        <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                            <View>
+                                <View style={styles.mb5}>
+                                    <Icon
+                                        src={icons.Bug}
+                                        height={variables.componentSizeNormal}
+                                        width={variables.componentSizeNormal}
+                                        fill={theme.iconSuccessFill}
+                                    />
+                                </View>
+                                <View style={styles.mb5}>
+                                    <Text
+                                        accessibilityRole={CONST.ROLE.HEADER}
+                                        style={[styles.textHeadline]}
                                     >
-                                        {CONST.EMAIL.CONCIERGE}
-                                    </TextLink>
-                                </Text>
-                            </View>
-                            <View style={[styles.flexRow]}>
-                                <View style={[styles.flex1, styles.flexRow]}>
-                                    <Button
-                                        variant={CONST.BUTTON_VARIANT.SUCCESS}
-                                        style={styles.mr3}
-                                        onPress={() => refreshPage(chunkLoadError)}
-                                    >
-                                        <Button.Text>{translate('genericErrorPage.refresh')}</Button.Text>
-                                    </Button>
-                                    {isAuthenticated && (
-                                        <Button
-                                            onPress={() => {
-                                                signOutAndRedirectToSignIn();
-                                                refreshPage();
-                                            }}
+                                        {translate('genericErrorPage.title')}
+                                    </Text>
+                                </View>
+                                <View style={styles.mb5}>
+                                    <ErrorBodyText />
+                                    <Text>
+                                        {`${translate('genericErrorPage.body.helpTextConcierge')} `}
+                                        <TextLink
+                                            href={`mailto:${CONST.EMAIL.CONCIERGE}`}
+                                            style={[styles.link]}
                                         >
-                                            <Button.Text>{translate('initialSettingsPage.signOut')}</Button.Text>
+                                            {CONST.EMAIL.CONCIERGE}
+                                        </TextLink>
+                                    </Text>
+                                </View>
+                                <View style={[styles.flexRow]}>
+                                    <View style={[styles.flex1, styles.flexRow]}>
+                                        <Button
+                                            variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                            style={styles.mr3}
+                                            onPress={() => refreshPage(chunkLoadError)}
+                                        >
+                                            <Button.Text>{translate('genericErrorPage.refresh')}</Button.Text>
                                         </Button>
-                                    )}
+                                        {isAuthenticated && (
+                                            <Button
+                                                onPress={() => {
+                                                    signOutAndRedirectToSignIn();
+                                                    refreshPage();
+                                                }}
+                                            >
+                                                <Button.Text>{translate('initialSettingsPage.signOut')}</Button.Text>
+                                            </Button>
+                                        )}
+                                    </View>
                                 </View>
                             </View>
                         </View>
-                    </View>
-                    <View>
-                        <View style={[styles.flex1, styles.flexRow, styles.justifyContentCenter]}>
-                            <ImageSVG
-                                contentFit="contain"
-                                src={icons.ExpensifyWordmark}
-                                height={30}
-                                width={80}
-                                fill={theme.text}
-                            />
+                        <View>
+                            <View style={[styles.flex1, styles.flexRow, styles.justifyContentCenter]}>
+                                <ImageSVG
+                                    contentFit="contain"
+                                    src={icons.ExpensifyWordmark}
+                                    height={30}
+                                    width={80}
+                                    fill={theme.text}
+                                />
+                            </View>
                         </View>
                     </View>
-                </View>
-            )}
-        </SafeAreaConsumer>
+                )}
+            </SafeAreaConsumer>
+        </HorizontalSafeArea>
     );
 }
 

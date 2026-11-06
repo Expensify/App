@@ -203,14 +203,7 @@ function DynamicNewTaskPage() {
                         message={translate('quickAction.noLongerHaveReportAccess')}
                     />
                 )}
-                <ScrollView
-                    contentContainerStyle={styles.flexGrow1}
-                    // on iOS, navigation animation sometimes cause the scrollbar to appear
-                    // on middle/left side of ScrollView. scrollIndicatorInsets with right
-                    // to closest value to 0 fixes this issue, 0 (default) doesn't work
-                    // See: https://github.com/Expensify/App/issues/31441
-                    scrollIndicatorInsets={{right: Number.MIN_VALUE}}
-                >
+                <ScrollView contentContainerStyle={styles.flexGrow1}>
                     <View style={styles.flex1}>
                         <View style={styles.mb5}>
                             <MenuItemFieldHTML

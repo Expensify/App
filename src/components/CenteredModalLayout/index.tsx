@@ -10,8 +10,6 @@ import type {DimensionValue, StyleProp, ViewStyle} from 'react-native';
 import React from 'react';
 import {View} from 'react-native';
 
-import useSafeAreaHorizontalPadding from './useSafeAreaHorizontalPadding';
-
 type CenteredModalLayoutProps = {
     children: React.ReactNode;
 
@@ -42,10 +40,9 @@ function CenteredModalLayout({children, width, height, onBackdropPress, contentS
 
     const shouldDockToBottom = !onboardingIsMediumOrLargerScreenWidth;
 
-    const safeAreaHorizontalPadding = useSafeAreaHorizontalPadding();
     const safeAreaStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: addBottomSafeAreaPadding && !isInLandscapeMode && shouldDockToBottom,
-        style: [shouldDockToBottom && styles.pt2, !isInLandscapeMode && styles.pb5, safeAreaHorizontalPadding, contentStyle],
+        style: [shouldDockToBottom && styles.pt2, !isInLandscapeMode && styles.pb5, contentStyle],
     });
 
     return (
