@@ -64,11 +64,11 @@ function SearchChangeWorkspacePage() {
     // The reports the Change workspace option counted, so an exported one doesn't add workspaces.
     const movableReports = selectedReportIDs
         .map((reportID) => getReportFromSearchSnapshot(reportID, currentSearchResults?.data, selectedOnyxReports))
-        .filter((report) => canChangeWorkspaceOfSearchReport(report, currentSearchResults?.data, selectedReportActions, policies, session?.email, personalDetails));
+        .filter((report) => canChangeWorkspaceOfSearchReport(report, currentSearchResults?.data, selectedReportActions, policies, currentUserPersonalDetails.login, personalDetails));
 
     // The backend skips the reports that can't move to a workspace, so it's offered when one loaded report can.
     const canMoveAReportTo = (policy: OnyxEntry<Policy>) =>
-        movableReports.some((report) => canBulkMoveReportToPolicy(report, policy, getLoginByAccountID(report.ownerAccountID, personalDetails), session?.email));
+        movableReports.some((report) => canBulkMoveReportToPolicy(report, policy, getLoginByAccountID(report.ownerAccountID, personalDetails), currentUserPersonalDetails.login));
 
     const {data, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
         policies,

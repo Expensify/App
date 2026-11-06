@@ -1,5 +1,6 @@
 import {act, render} from '@testing-library/react-native';
 
+import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 
@@ -267,12 +268,38 @@ describe('SearchChangeWorkspacePage', () => {
         // When the page lists the workspaces
         render(
             <OnyxListItemProvider>
-                <SearchChangeWorkspacePage />
+                <CurrentUserPersonalDetailsProvider>
+                    <SearchChangeWorkspacePage />
+                </CurrentUserPersonalDetailsProvider>
             </OnyxListItemProvider>,
         );
         await waitForBatchedUpdatesWithAct();
 
         // Then Workspace 3 is offered
+        expect(mockListData.map((item) => item.policyID)).toContain('policy3');
+    });
+
+    it("lists the user's own workspace when their login is in a different case from the session", async () => {
+        // Given the user moves their own draft, their login has capitals, and Workspace 3 has no member list
+        mockSearchData = {
+            [`${ONYXKEYS.COLLECTION.REPORT}report1`]: {...makeReport('report1', CONST.REPORT.STATUS_NUM.OPEN), stateNum: CONST.REPORT.STATE_NUM.OPEN},
+        };
+        mockSelectedReports = [{reportID: 'report1'}];
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[SUBMITTER_ACCOUNT_ID]: {login: 'Submitter@Example.com'}});
+        await Onyx.merge(ONYXKEYS.SESSION, {email: SUBMITTER_EMAIL, accountID: SUBMITTER_ACCOUNT_ID});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy3`, {id: 'policy3', name: 'Workspace 3', type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.USER});
+
+        // When the page lists the workspaces
+        render(
+            <OnyxListItemProvider>
+                <CurrentUserPersonalDetailsProvider>
+                    <SearchChangeWorkspacePage />
+                </CurrentUserPersonalDetailsProvider>
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Workspace 3 is offered, the same as the Change workspace option counted it
         expect(mockListData.map((item) => item.policyID)).toContain('policy3');
     });
 
