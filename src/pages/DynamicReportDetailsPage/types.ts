@@ -23,6 +23,7 @@ type ReportDetailsRequestData = {
     iouReport: OnyxEntry<Report>;
     chatIOUReport: OnyxEntry<Report>;
     isChatIOUReportArchived: boolean;
+    isArchivedIOUReport: boolean;
     iouPolicy: OnyxEntry<Policy>;
     iouReportTransactions: Transaction[];
     requestParentReportActionChildReport: OnyxEntry<Report>;

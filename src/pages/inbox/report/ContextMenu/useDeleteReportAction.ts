@@ -54,6 +54,7 @@ function useDeleteReportAction({reportID, reportAction, onConfirm, onClose, dele
     const [originalReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(reportAction);
+    const isArchivedIOUReport = useReportIsArchived(iouReport?.reportID);
     const {email, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -113,6 +114,7 @@ function useDeleteReportAction({reportID, reportAction, onConfirm, onClose, dele
                     isSingleTransactionView: undefined,
                     isChatReportArchived: isReportArchived,
                     isChatIOUReportArchived,
+                    isArchivedIOUReport,
                     allTransactionViolationsParam: allTransactionViolations,
                     currentUserAccountID,
                     currentUserEmail: email ?? '',

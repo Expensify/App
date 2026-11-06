@@ -236,6 +236,7 @@ type DeleteTrackExpenseParams = {
     isSingleTransactionView: boolean | undefined;
     isChatReportArchived: boolean | undefined;
     isChatIOUReportArchived: boolean | undefined;
+    isArchivedIOUReport: boolean;
     allTransactionViolationsParam: OnyxCollection<OnyxTypes.TransactionViolations>;
     currentUserAccountID: number;
     currentUserEmail: string;
@@ -3116,6 +3117,7 @@ function deleteTrackExpense({
     isSingleTransactionView = false,
     isChatReportArchived,
     isChatIOUReportArchived,
+    isArchivedIOUReport,
     allTransactionViolationsParam,
     currentUserAccountID,
     currentUserEmail,
@@ -3155,6 +3157,7 @@ function deleteTrackExpense({
             iouReportTransactions,
             chatReport: chatIOUReport,
             isChatIOUReportArchived,
+            isArchivedIOUReport,
             isSingleTransactionView,
             allTransactionViolationsParam,
             currentUserAccountID,

@@ -2968,6 +2968,7 @@ describe('actions/IOU/TrackExpense', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             const result = deleteTrackExpense({
+                isArchivedIOUReport: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionThreadReportActions: undefined,
                 chatReportID: selfDMReport.reportID,
