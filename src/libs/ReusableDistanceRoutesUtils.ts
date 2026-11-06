@@ -1,10 +1,13 @@
 import CONST from '@src/CONST';
-import type {ReusableDistanceRoute} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReusableDistanceRoute, Transaction} from '@src/types/onyx';
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import DateUtils from './DateUtils';
 import tokenizedSearch from './tokenizedSearch';
-import {getWaypointIndex} from './TransactionUtils';
+import {getWaypointIndex, hasPendingDistanceReceiptRegeneration} from './TransactionUtils';
 import tryResolveUrlFromApiRoot from './tryResolveUrlFromApiRoot';
 
 /**
@@ -58,6 +61,18 @@ function formatLastUsed(inserted: string): string {
 }
 
 /**
+ * Resolves the reusable routes that can be shown. While online, routes whose source expense still has a pending map
+ * receipt (just created, or its waypoints/distance edited) are left out until the server generates the new map image,
+ * the same check the report preview uses before loading a distance receipt.
+ */
+function getAvailableReusableDistanceRoutes(routes: ReusableDistanceRoute[] | undefined, transactions: OnyxCollection<Transaction> | undefined, isOffline: boolean): ReusableDistanceRoute[] {
+    if (!routes?.length || isOffline) {
+        return routes ?? [];
+    }
+    return routes.filter((route) => !hasPendingDistanceReceiptRegeneration(transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${route.transactionID}`]));
+}
+
+/**
  * Builds the large thumbnail URL for the source expense receipt.
  */
 function getRouteThumbnailSource(receiptSource: string | undefined): string | undefined {
@@ -71,4 +86,4 @@ function getRouteThumbnailSource(receiptSource: string | undefined): string | un
     return `${resolvedSource}.1024.jpg`;
 }
 
-export {getOrderedWaypoints, getRouteEndpoints, filterRoutes, formatLastUsed, getRouteThumbnailSource, normalizeRouteWaypoints};
+export {filterRoutes, formatLastUsed, getAvailableReusableDistanceRoutes, getOrderedWaypoints, getRouteEndpoints, getRouteThumbnailSource, normalizeRouteWaypoints};

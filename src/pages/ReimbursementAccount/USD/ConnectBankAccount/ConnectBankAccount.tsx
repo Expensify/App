@@ -1,4 +1,4 @@
-import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ReimbursementAccountLoadingIndicator from '@components/ReimbursementAccountLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -25,7 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -58,11 +58,13 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const handleNavigateToConciergeChat = () => {
-        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, conciergePersonalDetails, shouldDismissModal: true});
+        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, conciergePersonalDetails, shouldDismissModal: true});
     };
     const bankAccountState = reimbursementAccount?.achData?.state ?? '';
     const pendingAction = reimbursementAccount?.pendingAction;
@@ -91,10 +93,9 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
                         title={translate('bankAccount.addBankAccount')}
                         onBackButtonPress={() => Navigation.dismissModal()}
                     />
-                    <ConfirmationPage
+                    <ConfirmationPageDefault
                         heading={translate('bankAccount.bbaAdded')}
                         description={translate('bankAccount.bbaAddedDescription')}
-                        shouldShowButton
                         headingStyle={styles.mh5}
                         buttonText={translate('common.confirm')}
                         onButtonPress={() => Navigation.dismissModal()}

@@ -1,4 +1,5 @@
 import {
+    MembersNeedCategoryError,
     FailureTracking,
     FraudMonitoring,
     GlobalReimbursementPayError,
@@ -11,6 +12,7 @@ import {
     Pagination,
     Reauthentication,
     RecordFullReconnectTime,
+    ReconcileBulkEditReportAction,
     ReplaceOptimisticAgentAccountID,
     SaveResponseInOnyx,
     SentryServerTiming,
@@ -19,6 +21,8 @@ import {
 import registerMiddlewares from '@libs/Middleware/register';
 import type * as RequestModule from '@libs/Request';
 import {addMiddleware} from '@libs/Request';
+
+jest.mock('@expensify/react-native-hybrid-app', () => ({isHybridApp: () => false}));
 
 jest.mock('@libs/Request', () => ({
     ...jest.requireActual<typeof RequestModule>('@libs/Request'),
@@ -33,6 +37,7 @@ const EXPECTED_ORDER: RequestModule.Middleware[] = [
     handleDeletedAccount,
     SupportalPermission,
     GlobalReimbursementPayError,
+    MembersNeedCategoryError,
     HandleUnusedOptimisticID,
     ReplaceOptimisticAgentAccountID,
     Pagination,
@@ -40,6 +45,7 @@ const EXPECTED_ORDER: RequestModule.Middleware[] = [
     RecordFullReconnectTime,
     LoadPostDataForOpenOrReconnect,
     HandleMovedScanFailedExpenses,
+    ReconcileBulkEditReportAction,
     SaveResponseInOnyx,
     FraudMonitoring,
 ];
@@ -56,9 +62,9 @@ describe('Middleware registration', () => {
         expect(registered).toEqual(EXPECTED_ORDER);
     });
 
-    it('registers all 16 middlewares with no duplicates', () => {
-        expect(registered).toHaveLength(16);
-        expect(new Set(registered).size).toBe(16);
+    it('registers all 18 middlewares with no duplicates', () => {
+        expect(registered).toHaveLength(18);
+        expect(new Set(registered).size).toBe(18);
     });
 
     it('keeps SaveResponseInOnyx after every other Onyx-writing middleware and before FraudMonitoring', () => {
@@ -68,6 +74,7 @@ describe('Middleware registration', () => {
         expect(indexOf(RecordFullReconnectTime)).toBeLessThan(indexOf(SaveResponseInOnyx));
         expect(indexOf(LoadPostDataForOpenOrReconnect)).toBeLessThan(indexOf(SaveResponseInOnyx));
         expect(indexOf(HandleMovedScanFailedExpenses)).toBeLessThan(indexOf(SaveResponseInOnyx));
+        expect(indexOf(ReconcileBulkEditReportAction)).toBeLessThan(indexOf(SaveResponseInOnyx));
         expect(indexOf(FraudMonitoring)).toBeGreaterThan(indexOf(SaveResponseInOnyx));
     });
 });

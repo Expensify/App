@@ -12,18 +12,22 @@ import React from 'react';
 
 import useBrokenDirectCompanyCardFeedsForAdmin from './hooks/useBrokenDirectCompanyCardFeedsForAdmin';
 import useTimeSensitiveAddBankAccount from './hooks/useTimeSensitiveAddBankAccount';
+import useTimeSensitiveAddDepositAccount from './hooks/useTimeSensitiveAddDepositAccount';
 import useTimeSensitiveAddPaymentCard from './hooks/useTimeSensitiveAddPaymentCard';
 import useTimeSensitiveBankAccountAddress from './hooks/useTimeSensitiveBankAccountAddress';
 import useTimeSensitiveBilling from './hooks/useTimeSensitiveBilling';
 import useTimeSensitiveCards from './hooks/useTimeSensitiveCards';
 import useTimeSensitiveHomeAddress from './hooks/useTimeSensitiveHomeAddress';
 import useTimeSensitiveLockedBankAccount from './hooks/useTimeSensitiveLockedBankAccount';
+import useTimeSensitiveNetSuiteMigration from './hooks/useTimeSensitiveNetSuiteMigration';
 import useTimeSensitiveOverdueInvoice from './hooks/useTimeSensitiveOverdueInvoice';
 import useTimeSensitiveSignerInfo from './hooks/useTimeSensitiveSignerInfo';
 import useTimeSensitiveSubscriptionExpiring from './hooks/useTimeSensitiveSubscriptionExpiring';
+import useTimeSensitiveWiseMoreInfoNeeded from './hooks/useTimeSensitiveWiseMoreInfoNeeded';
 import ActivateCard from './items/ActivateCard';
 import AddBankAccount from './items/AddBankAccount';
 import AddBankAccountAddress from './items/AddBankAccountAddress';
+import AddDepositAccount from './items/AddDepositAccount';
 import AddHomeAddress from './items/AddHomeAddress';
 import AddPaymentCard from './items/AddPaymentCard';
 import AddShippingAddress from './items/AddShippingAddress';
@@ -39,6 +43,8 @@ import PayOverdueInvoice from './items/PayOverdueInvoice';
 import RenewSubscription from './items/RenewSubscription';
 import ReviewCardFraud from './items/ReviewCardFraud';
 import UnlockBankAccount from './items/UnlockBankAccount';
+import UpgradeNetSuiteConnection from './items/UpgradeNetSuiteConnection';
+import VerifyWiseBankAccount from './items/VerifyWiseBankAccount';
 
 type BrokenPersonalCardConnection = {
     /** The card ID associated with this connection */
@@ -55,6 +61,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
     // Use custom hooks for offers and cards (Release 3)
     const {shouldShowAddPaymentCard} = useTimeSensitiveAddPaymentCard();
     const {shouldShowAddBankAccount} = useTimeSensitiveAddBankAccount();
+    const {shouldShowAddDepositAccount} = useTimeSensitiveAddDepositAccount();
     const {
         shouldShowAddShippingAddress,
         shouldShowActivateCard,
@@ -86,6 +93,8 @@ function useTimeSensitiveItems(): React.ReactNode[] {
     const {lockedBankAccounts} = useTimeSensitiveLockedBankAccount(adminPolicies);
     const {bankAccountsMissingAddress} = useTimeSensitiveBankAccountAddress(adminPolicies);
     const {pendingSignerInfo} = useTimeSensitiveSignerInfo();
+    const {wiseMoreInfoNeededBankAccounts} = useTimeSensitiveWiseMoreInfoNeeded();
+    const {netSuiteMigrationPolicies} = useTimeSensitiveNetSuiteMigration();
 
     // Get card feed errors for company card connections (Release 4)
     const cardFeedErrors = useCardFeedErrors();
@@ -116,14 +125,16 @@ function useTimeSensitiveItems(): React.ReactNode[] {
     // 8. Locked bank accounts (workspace VBAs and personal)
     // 9. Bank accounts missing an address (MTL compliance)
     // 10. Broken policy connections (accounting + HR)
-    // 11. Add home address (commuter exclusions, homeAndOffice method)
-    // 12. Add payment card (trial ended, no payment card)
-    // 13. Add bank account for a queued reimbursement
-    // 14. Enter signer info for global bank accounts
-    // 15. Expensify card shipping
-    // 16. Expensify card activation
-    // 17. Virtual Expensify card needs personal details
-    // 18. Digital wallet addition needs confirming
+    // 11. NetSuite connections requiring OAuth 2.0 migration
+    // 12. Add home address (commuter exclusions, homeAndOffice method)
+    // 13. Add payment card (trial ended, no payment card)
+    // 14. Add bank account for a queued reimbursement, or a deposit account for a workspace collecting details
+    // 15. Enter signer info for global bank accounts
+    // 16. Send Wise the info it asked for to enable global reimbursements
+    // 17. Expensify card shipping
+    // 18. Expensify card activation
+    // 19. Virtual Expensify card needs personal details
+    // 20. Digital wallet addition needs confirming
     const items: React.ReactNode[] = [];
 
     // Priority 1: Failed billing for existing customers
@@ -230,19 +241,32 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             />,
         );
     }
-    // Priority 11: Add home address (commuter exclusions, homeAndOffice method)
+    // Priority 11: NetSuite connections requiring OAuth 2.0 migration (deadline: February 2027)
+    for (const item of netSuiteMigrationPolicies) {
+        items.push(
+            <UpgradeNetSuiteConnection
+                key={`netsuite-oauth-migration-${item.policyID}`}
+                policyID={item.policyID}
+                policyName={item.policyName}
+            />,
+        );
+    }
+    // Priority 12: Add home address (commuter exclusions, homeAndOffice method)
     if (shouldShowAddHomeAddress) {
         items.push(<AddHomeAddress key="add-home-address" />);
     }
-    // Priority 12: Add payment card (trial ended, no payment card)
+    // Priority 13: Add payment card (trial ended, no payment card)
     if (shouldShowAddPaymentCard) {
         items.push(<AddPaymentCard key="add-payment-card" />);
     }
-    // Priority 13: Add bank account for a queued reimbursement
+    // Priority 14: Add bank account for a queued reimbursement
     if (shouldShowAddBankAccount) {
         items.push(<AddBankAccount key="add-bank-account" />);
+    } else if (shouldShowAddDepositAccount) {
+        // Priority 13: Add a deposit account so a workspace with reimbursements enabled can pay the user.
+        items.push(<AddDepositAccount key="add-deposit-account" />);
     }
-    // Priority 14: Enter signer info for global bank accounts
+    // Priority 15: Enter signer info for global bank accounts
     for (const item of pendingSignerInfo) {
         items.push(
             <EnterSignerInfo
@@ -253,7 +277,17 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             />,
         );
     }
-    // Priority 15: Expensify card shipping
+    // Priority 16: Send Wise the info it asked for to enable global reimbursements
+    for (const bankAccount of wiseMoreInfoNeededBankAccounts) {
+        items.push(
+            <VerifyWiseBankAccount
+                key={`verify-wise-bank-account-${bankAccount.bankAccountID}`}
+                bankAccountID={bankAccount.bankAccountID}
+                bankAccountLastFour={bankAccount.bankAccountLastFour}
+            />,
+        );
+    }
+    // Priority 17: Expensify card shipping
     if (shouldShowAddShippingAddress) {
         for (const card of cardsNeedingShippingAddress) {
             items.push(
@@ -264,7 +298,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             );
         }
     }
-    // Priority 16: Expensify card activation
+    // Priority 18: Expensify card activation
     if (shouldShowActivateCard) {
         for (const card of cardsNeedingActivation) {
             items.push(
@@ -275,7 +309,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             );
         }
     }
-    // Priority 17: Virtual Expensify card needs personal details before reveal
+    // Priority 19: Virtual Expensify card needs personal details before reveal
     if (shouldShowAddVirtualCardPersonalDetails) {
         for (const card of virtualCardsNeedingPersonalDetails) {
             items.push(
@@ -286,7 +320,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             );
         }
     }
-    // Priority 18: Confirm a digital wallet addition
+    // Priority 20: Confirm a digital wallet addition
     if (shouldShowConfirmDigitalWalletAddition) {
         for (const card of cardsPendingDigitalWalletApproval) {
             items.push(

@@ -11,14 +11,14 @@ import type {
     UpdateZohoBooksExporterParams,
     UpdateZohoBooksExportToMultipleAccountsParams,
     UpdateZohoBooksFieldMappingParams,
-    UpdateZohoBooksOrganizationParams,
     UpdateZohoBooksSettlementsAccountParams,
+    UpdateZohoBooksSubsidiaryParams,
     UpdateZohoBooksSyncExpensifyCardSettlementsParams,
     UpdateZohoBooksSyncReimbursedReportsParams,
     UpdateZohoBooksSyncTaxRatesParams,
-    UpdateZohoBooksSyncTravelInvoicingSettlementsParams,
-    UpdateZohoBooksTravelInvoicingPayableAccountParams,
-    UpdateZohoBooksTravelInvoicingSettlementsAccountParams,
+    UpdateZohoBooksSyncTravelBillingSettlementsParams,
+    UpdateZohoBooksTravelBillingPayableAccountParams,
+    UpdateZohoBooksTravelBillingSettlementsAccountParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
@@ -579,13 +579,13 @@ function prepareZohoBooksCardProgramAccountOnyxData(
     return {optimisticData, successData, failureData};
 }
 
-function updateZohoBooksOrganization(policyID: string, organizationID: ZohoBooksConnectionsConfig['organizationID'], oldSubsidiaryID?: ZohoBooksConnectionsConfig['organizationID']) {
-    const onyxData = prepareZohoBooksOnyxData(policyID, CONST.ZOHO_BOOKS_CONFIG.ORGANIZATION_ID, organizationID, oldSubsidiaryID ?? null);
-    const params: UpdateZohoBooksOrganizationParams = {
+function updateZohoBooksSubsidiary(policyID: string, subsidiaryID: ZohoBooksConnectionsConfig['subsidiaryID'], oldSubsidiaryID?: ZohoBooksConnectionsConfig['subsidiaryID']) {
+    const onyxData = prepareZohoBooksOnyxData(policyID, CONST.ZOHO_BOOKS_CONFIG.SUBSIDIARY_ID, subsidiaryID, oldSubsidiaryID ?? null);
+    const params: UpdateZohoBooksSubsidiaryParams = {
         policyID,
-        organizationID,
+        subsidiaryID,
     };
-    write(WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_ORGANIZATION, params, onyxData);
+    write(WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_SUBSIDIARY, params, onyxData);
 }
 
 function updateZohoBooksEnableNewCategories(policyID: string, enabled: ZohoBooksConnectionsConfig['enableNewCategories'], oldEnabled?: ZohoBooksConnectionsConfig['enableNewCategories']) {
@@ -715,53 +715,53 @@ function updateZohoBooksSettlementsAccount(
     write(WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_SETTLEMENTS_ACCOUNT, parameters, onyxData);
 }
 
-function updateZohoBooksSyncTravelInvoicingSettlements(
+function updateZohoBooksSyncTravelBillingSettlements(
     policyID: string,
     enabled: ZohoBooksSync['syncTravelInvoicingSettlements'],
     oldEnabled?: ZohoBooksSync['syncTravelInvoicingSettlements'],
 ) {
     const onyxData = prepareZohoBooksSyncOnyxData(policyID, CONST.ZOHO_BOOKS_CONFIG.SYNC_TRAVEL_BILLING_SETTLEMENTS, enabled, oldEnabled ?? null);
-    const parameters: UpdateZohoBooksSyncTravelInvoicingSettlementsParams = {
+    const parameters: UpdateZohoBooksSyncTravelBillingSettlementsParams = {
         policyID,
         enabled,
     };
-    write(WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_SYNC_TRAVEL_INVOICING_SETTLEMENTS, parameters, onyxData);
+    write(WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_SYNC_TRAVEL_BILLING_SETTLEMENTS, parameters, onyxData);
 }
 
-function updateZohoBooksTravelInvoicingSettlementsAccount(
+function updateZohoBooksTravelBillingSettlementsAccount(
     policyID: string,
-    travelInvoicingSettlementsBankAccountID: ZohoBooksSync['travelInvoicingSettlementsBankAccountID'],
-    oldTravelInvoicingSettlementsBankAccountID?: ZohoBooksSync['travelInvoicingSettlementsBankAccountID'],
+    travelBillingSettlementsBankAccountID: ZohoBooksSync['travelInvoicingSettlementsBankAccountID'],
+    oldTravelBillingSettlementsBankAccountID?: ZohoBooksSync['travelInvoicingSettlementsBankAccountID'],
 ) {
     const onyxData = prepareZohoBooksSyncOnyxData(
         policyID,
         CONST.ZOHO_BOOKS_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID,
-        travelInvoicingSettlementsBankAccountID,
-        oldTravelInvoicingSettlementsBankAccountID ?? null,
+        travelBillingSettlementsBankAccountID,
+        oldTravelBillingSettlementsBankAccountID ?? null,
     );
-    const parameters: UpdateZohoBooksTravelInvoicingSettlementsAccountParams = {
+    const parameters: UpdateZohoBooksTravelBillingSettlementsAccountParams = {
         policyID,
-        travelInvoicingSettlementsBankAccountID,
+        travelBillingSettlementsBankAccountID,
     };
-    write(WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT, parameters, onyxData);
+    write(WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_TRAVEL_BILLING_SETTLEMENTS_ACCOUNT, parameters, onyxData);
 }
 
-function updateZohoBooksTravelInvoicingPayableAccount(
+function updateZohoBooksTravelBillingPayableAccount(
     policyID: string,
-    travelInvoicingPayableAccountID: ZohoBooksExport['travelInvoicingPayableAccountID'],
-    oldTravelInvoicingPayableAccountID?: ZohoBooksExport['travelInvoicingPayableAccountID'],
+    travelBillingPayableAccountID: ZohoBooksExport['travelInvoicingPayableAccountID'],
+    oldTravelBillingPayableAccountID?: ZohoBooksExport['travelInvoicingPayableAccountID'],
 ) {
     const onyxData = prepareZohoBooksExportOnyxData(
         policyID,
         CONST.ZOHO_BOOKS_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT_ID,
-        travelInvoicingPayableAccountID,
-        oldTravelInvoicingPayableAccountID ?? null,
+        travelBillingPayableAccountID,
+        oldTravelBillingPayableAccountID ?? null,
     );
-    const parameters: UpdateZohoBooksTravelInvoicingPayableAccountParams = {
+    const parameters: UpdateZohoBooksTravelBillingPayableAccountParams = {
         policyID,
-        travelInvoicingPayableAccountID,
+        travelBillingPayableAccountID,
     };
-    write(WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_TRAVEL_INVOICING_PAYABLE_ACCOUNT, parameters, onyxData);
+    write(WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_TRAVEL_BILLING_PAYABLE_ACCOUNT, parameters, onyxData);
 }
 
 function updateZohoBooksExportToMultipleAccounts(policyID: string, enabled: ZohoBooksExport['exportToMultipleAccounts'], oldEnabled?: ZohoBooksExport['exportToMultipleAccounts']) {
@@ -791,7 +791,7 @@ function updateZohoBooksCardProgramAccount(
 export {
     getZohoBooksSetupLink,
     clearZohoBooksErrorField,
-    updateZohoBooksOrganization,
+    updateZohoBooksSubsidiary,
     updateZohoBooksEnableNewCategories,
     updateZohoBooksSyncTaxRates,
     updateZohoBooksFieldMapping,
@@ -805,9 +805,9 @@ export {
     updateZohoBooksBillPaymentAccount,
     updateZohoBooksSyncExpensifyCardSettlements,
     updateZohoBooksSettlementsAccount,
-    updateZohoBooksSyncTravelInvoicingSettlements,
-    updateZohoBooksTravelInvoicingSettlementsAccount,
-    updateZohoBooksTravelInvoicingPayableAccount,
+    updateZohoBooksSyncTravelBillingSettlements,
+    updateZohoBooksTravelBillingSettlementsAccount,
+    updateZohoBooksTravelBillingPayableAccount,
     updateZohoBooksExportToMultipleAccounts,
     updateZohoBooksCardProgramAccount,
 };

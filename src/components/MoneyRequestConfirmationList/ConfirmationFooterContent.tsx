@@ -156,7 +156,7 @@ function ConfirmationFooterContent({
             }}
             enterKeyEventListenerPriority={1}
             useKeyboardShortcuts
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Using || because we want undefined and false to both be treated as falsy for isLoading
+            // Using || because we want undefined and false to both be treated as falsy for isLoading
             isLoading={isConfirmed || isConfirming}
             sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.CONFIRMATION_PAY_BUTTON}
         />
@@ -192,7 +192,7 @@ function ConfirmationFooterContent({
                         size={CONST.BUTTON_SIZE.LARGE}
                         enterKeyEventListenerPriority={1}
                         useKeyboardShortcuts
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Using || because we want undefined and false to both be treated as falsy for isLoading
+                        // Using || because we want undefined and false to both be treated as falsy for isLoading
                         isLoading={isConfirmed || isConfirming || isLoadingReceipt}
                         sentryLabel={CONFIRMATION_SENTRY_LABEL_BY_IOU_TYPE[iouType] ?? CONST.SENTRY_LABEL.MONEY_REQUEST.CONFIRMATION_SUBMIT_BUTTON}
                     />

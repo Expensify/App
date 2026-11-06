@@ -1,6 +1,6 @@
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, getReimbursableTotal, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
-import {isGroupedItemArray, isGroupEntry, isTransactionGroupListItemType, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
+import {isGroupedItemArray, isGroupEntry, isTransactionGroupListItemType, isTransactionListItemType, isTransactionReportGroupListItemType, isTripListItemType} from '@libs/SearchUIUtils';
 import type {ShiftRangeBatch} from '@libs/shiftRangeSelection';
 import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isExpenseUnreported, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
@@ -153,7 +153,9 @@ function mapTransactionItemToSelectedEntry({
     parentReport,
     rules,
 }: MapTransactionItemToSelectedEntryParams): [string, SelectedTransactionInfo] {
-    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy, currentUserAccountID, rules);
+    // TODO: Pass reportOwnerLogin in Part 8. This runs once per search result, so it needs a precomputed map of accountID to login rather than a hook.
+    // canModifyHoldStatus falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
+    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy, currentUserAccountID, rules, undefined);
     const canRejectRequest = item.report ? canRejectReportAction(item.report, currentUserAccountID, item.policy) : false;
     const amount = hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : item.amount;
     const isUnreported = isExpenseUnreported(item);
@@ -168,7 +170,7 @@ function mapTransactionItemToSelectedEntry({
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
             canUnhold: canUnholdRequest,
-            // TODO: Pass reportOwnerLogin in PR 4d. This runs once per search result, so it needs a precomputed map of accountID to login rather than a hook.
+            // TODO: Pass reportOwnerLogin in Part 8. This runs once per search result, so it needs the personal details list and a per row lookup rather than a hook.
             // isAwaitingFirstLevelApproval falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
             canSplit: isSplitAction(reportForSplit, [itemTransaction], originalItemTransaction, currentUserLogin, currentUserAccountID, rules, undefined, item.policy, parentReport),
             hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
@@ -489,7 +491,7 @@ function resolveGroupChildren(group: TransactionGroupListItemType, openGroupKeys
 
 type ShiftRangeSource = {
     /** Each group header followed by the rows it carries, in visual order */
-    items: SearchListItem[];
+    items: Array<SearchData[number]>;
 
     childrenByGroupKey: Map<string, TransactionListItemType[]>;
 
@@ -497,15 +499,23 @@ type ShiftRangeSource = {
     groupKeyByChildKey: Map<string, string>;
 };
 
+const NO_SELECTABLE_ROWS: Array<SearchData[number]> = [];
+
+/** The rows selection can act on. Trip rows can't be selected, so a trip list has none. */
+function getSelectableRows(data: SearchListItem[]): Array<SearchData[number]> {
+    const isSelectable = (rows: SearchListItem[]): rows is Array<SearchData[number]> => !rows.some(isTripListItemType);
+    return isSelectable(data) ? data : NO_SELECTABLE_ROWS;
+}
+
 /** One pass, so what a range spans and who owns each row cannot disagree. Flattens only in group-by views. */
-function buildShiftRangeSource(sortedData: SearchListItem[], openGroupKeys: OpenGroupKeys, groupsAreHeaders: boolean): ShiftRangeSource {
+function buildShiftRangeSource(sortedData: Array<SearchData[number]>, openGroupKeys: OpenGroupKeys, groupsAreHeaders: boolean): ShiftRangeSource {
     const childrenByGroupKey = new Map<string, TransactionListItemType[]>();
     const groupKeyByChildKey = new Map<string, string>();
     if (!groupsAreHeaders || !isGroupedItemArray(sortedData)) {
         return {items: sortedData, childrenByGroupKey, groupKeyByChildKey};
     }
 
-    const items: SearchListItem[] = [];
+    const items: Array<SearchData[number]> = [];
     for (const group of sortedData) {
         items.push(group);
         if (!group.keyForList) {
@@ -729,6 +739,7 @@ export {
     prepareTransactionsList,
     deriveSelectedReports,
     buildShiftRangeSource,
+    getSelectableRows,
     applyShiftRangeBatchToSelection,
     spellOutGroupSelection,
     isGroupSelected,

@@ -21,7 +21,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ValueOf} from 'type-fest';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type MenuListItem = ListItem & {
@@ -46,24 +46,18 @@ function DynamicXeroAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
 
     const pendingAction = settingsPendingAction([CONST.XERO_CONFIG.AUTO_SYNC], config?.pendingFields) ?? settingsPendingAction([CONST.XERO_CONFIG.ACCOUNTING_METHOD], config?.pendingFields);
 
-    const headerContent = useMemo(
-        () => (
-            <View>
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.xero.accountingMethods.description')}</Text>
-            </View>
-        ),
-        [translate, styles.pb5, styles.ph5],
+    const headerContent = (
+        <View>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.xero.accountingMethods.description')}</Text>
+        </View>
     );
 
-    const selectExpenseReportApprovalLevel = useCallback(
-        (row: MenuListItem) => {
-            if (row.value !== accountingMethod) {
-                updateXeroAccountingMethod(policyID, row.value, accountingMethod);
-            }
-            Navigation.goBack(backPath);
-        },
-        [accountingMethod, policyID, backPath],
-    );
+    const selectExpenseReportApprovalLevel = (row: MenuListItem) => {
+        if (row.value !== accountingMethod) {
+            updateXeroAccountingMethod(policyID, row.value, accountingMethod);
+        }
+        Navigation.goBack(backPath);
+    };
 
     return (
         <SelectionScreen

@@ -108,8 +108,13 @@ function updateOnboardingValuesAndNavigation(onboardingValues: Onboarding | unde
     });
 }
 
-async function clearOnboardingShouldValidate(onboardingValues: Onboarding | undefined) {
-    await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {...onboardingValues, shouldValidate: undefined});
+async function resetOnboardingWorkEmailValidation(onboardingValues: Onboarding | undefined) {
+    await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {
+        ...onboardingValues,
+        shouldValidate: undefined,
+        isMergeAccountStepCompleted: undefined,
+        isMergeAccountStepSkipped: undefined,
+    });
 }
 
 function setOnboardingShouldValidate(shouldValidate: boolean) {
@@ -249,10 +254,17 @@ Onyx.connectWithoutView({
     },
 });
 
-function resetAllChecks() {
+/**
+ * @param shouldKeepPendingCallers - Pass true when the same user stays signed in (e.g. a cache clear), so code that already waits continues after the next OpenApp. Sign-out drops it, so it never runs for another account.
+ */
+function resetAllChecks(shouldKeepPendingCallers = false) {
+    const resolvePreviousPromise = resolveIsReadyPromise;
     isServerDataReadyPromise = new Promise((resolve) => {
         resolveIsReadyPromise = resolve;
     });
+    if (shouldKeepPendingCallers) {
+        resolvePreviousPromise?.(isServerDataReadyPromise);
+    }
     isLoadingReportData = true;
     hasStartedLoading = false;
 }
@@ -312,7 +324,7 @@ export {
     createJoinWorkspaceOnboardingContent,
     setOnboardingShouldValidate,
     updateOnboardingValuesAndNavigation,
-    clearOnboardingShouldValidate,
+    resetOnboardingWorkEmailValidation,
     setOnboardingUserReportedIntegration,
     setOnboardingAccountingEnabled,
     setOnboardingInterestedFeaturesMap,

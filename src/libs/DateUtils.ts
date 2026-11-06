@@ -33,7 +33,9 @@ import {
     isSameYear,
     isThisYear,
     isValid,
+    isWithinInterval,
     parse,
+    parseISO,
     set,
     startOfDay,
     startOfWeek,
@@ -64,6 +66,21 @@ const TIMEZONE_UPDATE_THROTTLE_MINUTES = 5;
 
 function isDate(arg: unknown): arg is Date {
     return Object.prototype.toString.call(arg) === '[object Date]';
+}
+
+/**
+ * Copies a date's wall-clock fields in the device's timezone onto the same fields in UTC.
+ *
+ * An `Intl.DateTimeFormat` created without a `timeZone` keeps the device's timezone from when it was created, so a
+ * cached one would keep showing the old day after the device moves to another timezone. Cached formatters are created
+ * with `timeZone: 'UTC'` instead and given the result of this function, which reads the device's timezone on every call.
+ */
+function toUTCWallClockDate(date: Date): Date {
+    const utcDate = new Date(0);
+    // `setUTCFullYear` rather than `Date.UTC`, which treats the years 0 to 99 as 1900 to 1999
+    utcDate.setUTCFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+    utcDate.setUTCHours(date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds());
+    return utcDate;
 }
 
 /**
@@ -252,16 +269,38 @@ function getZoneAbbreviation(datetime: string | Date, selectedTimezone: Selected
 }
 
 /**
- * Format date to a long date format with weekday
- *
- * @returns Sunday, July 9, 2023
+ * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language. They
+ * format in UTC, so pass dates through `toUTCWallClockDate` to show them in the device's current timezone.
  */
-function formatToLongDateWithWeekday(datetime: string | Date, dateFnsLocale: DateFnsLocale | undefined): string {
+const memoizedCreateLongDateWithWeekdayFormatter = memoize(
+    (localeCode: string, shouldIncludeYear: boolean) =>
+        new Intl.DateTimeFormat(localeCode, {weekday: 'long', year: shouldIncludeYear ? 'numeric' : undefined, month: 'long', day: 'numeric', timeZone: 'UTC'}),
+);
+
+/**
+ * Formats a full date with a weekday, with or without the year, for the two public helpers below.
+ */
+function formatLongDateWithWeekday(datetime: string | Date, dateFnsLocale: DateFnsLocale | undefined, shouldIncludeYear: boolean): string {
     const date = new Date(datetime);
     if (!isValid(date)) {
         return '';
     }
-    return format(date, CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY, {locale: dateFnsLocale});
+    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
+    return memoizedCreateLongDateWithWeekdayFormatter(dateFnsLocale?.code ?? 'en-US', shouldIncludeYear).format(toUTCWallClockDate(date));
+}
+
+/**
+ * Format date to a long date format with weekday
+ *
+ * A hand-written date-fns pattern fixes the US component order, so every language rendered its own month name in an
+ * English shape. Japanese and Chinese put the weekday last with no comma, Spanish and Portuguese need a `de` between
+ * the day and the month, and German needs the period its ordinal day takes. date-fns' own full date (`PPPP`) would get
+ * the order right but adds an ordinal day in English, so `Intl` is used to keep the English output unchanged.
+ *
+ * @returns Sunday, July 9, 2023
+ */
+function formatToLongDateWithWeekday(datetime: string | Date, dateFnsLocale: DateFnsLocale | undefined): string {
+    return formatLongDateWithWeekday(datetime, dateFnsLocale, true);
 }
 
 /**
@@ -270,7 +309,7 @@ function formatToLongDateWithWeekday(datetime: string | Date, dateFnsLocale: Dat
  * @returns Sunday, July 9
  */
 function formatToLongDateWithWeekdayWithoutYear(datetime: string | Date, dateFnsLocale: DateFnsLocale | undefined): string {
-    return format(new Date(datetime), CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY_WITHOUT_YEAR, {locale: dateFnsLocale});
+    return formatLongDateWithWeekday(datetime, dateFnsLocale, false);
 }
 
 /**
@@ -333,6 +372,31 @@ function getCurrentTimezone(timezone: Timezone): Required<Timezone> {
 }
 
 /**
+ * Parses a stored `yyyy-MM-dd` date at local midnight, with leading zeros optional as in ValidationUtils.isValidDate.
+ * Other values, such as a date with a time, are read as ISO. Returns undefined for an empty value or one neither format can read.
+ */
+function parseCalendarDate(value?: string): Date | undefined {
+    if (!value) {
+        return undefined;
+    }
+    const date = parse(value, CONST.DATE.FNS_FORMAT_STRING, new Date());
+    if (isValid(date)) {
+        return date;
+    }
+    const dateTime = parseISO(value);
+    return isValid(dateTime) ? dateTime : undefined;
+}
+
+const CALENDAR_PICKER_RANGE = {start: startOfDay(CONST.CALENDAR_PICKER.MIN_DATE), end: endOfDay(CONST.CALENDAR_PICKER.MAX_DATE)};
+
+/**
+ * Whether a day falls between CONST.CALENDAR_PICKER.MIN_DATE and MAX_DATE, both days included.
+ */
+function isWithinCalendarPickerRange(date: Date): boolean {
+    return isWithinInterval(date, CALENDAR_PICKER_RANGE);
+}
+
+/**
  * @returns [January, February, March, April, May, June, July, August, ...]
  */
 function getMonthNames(dateFnsLocale: DateFnsLocale | undefined): string[] {
@@ -343,18 +407,6 @@ function getMonthNames(dateFnsLocale: DateFnsLocale | undefined): string[] {
     });
 
     return monthsArray.map((monthDate) => format(monthDate, CONST.DATE.MONTH_FORMAT, {locale: dateFnsLocale}));
-}
-
-/**
- * Returns month list items for SelectionList.
- */
-function getFilteredMonthItems(monthNames: string[], currentMonth: number) {
-    return monthNames.map((month, index) => ({
-        text: month.charAt(0).toUpperCase() + month.slice(1),
-        value: index,
-        keyForList: index.toString(),
-        isSelected: index === currentMonth,
-    }));
 }
 
 /**
@@ -950,18 +1002,26 @@ function getCancellationDateTimezoneLabel(venueTimezone: string): string {
  * Dates are formatted as follows:
  * 1. When the date refers to the current year: Wednesday, Mar 17 8:00 AM, GMT+7
  * 2. When the date refers not to the current year: Wednesday, Mar 17, 2023 8:00 AM, GMT+7
+ * When the string has no offset, `localTimeLabel` (e.g. "hotel's local time") is appended instead of a timezone label, if passed.
  */
-function getFormattedCancellationDate(isoDateString: string, dateFnsLocale: DateFnsLocale | undefined): string {
+function getFormattedCancellationDate(isoDateString: string, dateFnsLocale: DateFnsLocale | undefined, localTimeLabel?: string): string {
     if (!isoDateString) {
         return '';
     }
-    const offsetMatch = isoDateString.match(/([+-]\d{2}:\d{2})$/);
+    const offsetMatch = isoDateString.match(CONST.REGEX.ISO_8601_UTC_OFFSET_SUFFIX);
     const venueTimezone = offsetMatch ? offsetMatch[1] : 'UTC';
-    const date = new Date(isoDateString);
+    // A string with no offset and no `Z` is the venue's wall-clock time in an unknown timezone. `new Date` would read it
+    // in the device's timezone, so read it as-is and leave out the timezone label instead of guessing one.
+    const isWallClockTime = !offsetMatch && !isoDateString.endsWith('Z');
+    const date = isWallClockTime ? fromZonedTime(isoDateString, venueTimezone) : new Date(isoDateString);
     const pattern = isThisYear(date) ? `EEEE, MMM d ${CONST.DATE.LOCAL_TIME_FORMAT}` : `EEEE, MMM d, yyyy ${CONST.DATE.LOCAL_TIME_FORMAT}`;
+    const formattedDate = formatInTimeZone(date, venueTimezone, pattern, {locale: dateFnsLocale});
+    if (isWallClockTime) {
+        return localTimeLabel ? `${formattedDate}, ${localTimeLabel}` : formattedDate;
+    }
     // `formatInTimeZone`'s `zzz` token relies on `Intl.DateTimeFormat`, which rejects raw offset strings like
     // `+07:00`, so the timezone label is derived from the offset and appended manually.
-    return `${formatInTimeZone(date, venueTimezone, pattern, {locale: dateFnsLocale})}, ${getCancellationDateTimezoneLabel(venueTimezone)}`;
+    return `${formattedDate}, ${getCancellationDateTimezoneLabel(venueTimezone)}`;
 }
 
 /**
@@ -1075,12 +1135,45 @@ const formatInTimeZoneWithFallback: typeof formatInTimeZone = (date, timeZone, f
 };
 
 /**
+ * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language,
+ * timezone and whether the weekday is shown.
+ */
+const memoizedCreateLongDateInTimeZoneFormatter = memoize(
+    (localeCode: string, timeZone: string, shouldIncludeWeekday: boolean) =>
+        new Intl.DateTimeFormat(localeCode, {weekday: shouldIncludeWeekday ? 'long' : undefined, year: 'numeric', month: 'long', day: 'numeric', timeZone}),
+);
+
+/**
+ * Formats a date as a long date in the given timezone.
+ *
+ * A hand-written `MMMM d, yyyy` fixes the US component order, so German showed its month name before the day and
+ * Spanish lost the `de` it writes between the parts of a date. `Intl` orders the date the way each language does, and
+ * its English output matches the old pattern.
+ *
+ * @returns June 20, 2026, or Saturday, June 20, 2026 with the weekday
+ */
+function formatToLongDateInTimeZone(date: string | Date, timeZone: SelectedTimezone, dateFnsLocale: DateFnsLocale | undefined, shouldIncludeWeekday = false): string {
+    // A date-only string, such as the day picked for a call, is already a calendar day in the user's timezone, so it is
+    // shown exactly as stored by reading and formatting it in UTC. Reading it as midnight in the user's timezone would
+    // show the day before where that midnight does not exist, such as when daylight saving time starts in Santiago.
+    const isDateOnly = typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date);
+    // Some native platforms only know older timezone names, and `Intl` throws on a name it does not know.
+    const supportedTimeZone = isDateOnly ? 'UTC' : fallbackToSupportedTimezone(timeZone);
+    const parsedDate = toDate(date, {timeZone: supportedTimeZone});
+    if (!isValid(parsedDate)) {
+        return '';
+    }
+    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
+    return memoizedCreateLongDateInTimeZoneFormatter(dateFnsLocale?.code ?? 'en-US', supportedTimeZone, shouldIncludeWeekday).format(parsedDate);
+}
+
+/**
  * Converts a UTC datetime string to a date string (yyyy-MM-dd) in the target timezone.
  * @param utcDateTime - Datetime string in UTC format (yyyy-MM-dd HH:mm:ss or yyyy-MM-dd HH:mm:ss.SSS)
  * @param timeZone - Target timezone to display the date in
  * @returns Date string in yyyy-MM-dd format, or empty string if invalid
  */
-function formatUTCDateTimeToDateInTimezone(utcDateTime: string, timeZone: SelectedTimezone | undefined, formatStr = CONST.DATE.FNS_FORMAT_STRING): string {
+function formatUTCDateTimeToDateInTimezone(utcDateTime: string, timeZone: SelectedTimezone | undefined, formatStr: string = CONST.DATE.FNS_FORMAT_STRING): string {
     if (!utcDateTime || !timeZone) {
         return '';
     }
@@ -1181,7 +1274,7 @@ function isDateStringInMonth(dateString: string, year: number, month: number): b
     return datePart >= monthStart && datePart <= monthEnd;
 }
 
-/** Returns a compact day label, e.g. "Sep 15, ’26". */
+/** Returns a compact date label, e.g. "Sep 15, ’26", or "Sep 15" when the year is left out. */
 function getShortFormattedDayForSearch(day: string, dateFnsLocale: DateFnsLocale | undefined, shouldShowYear = true): string {
     return format(parse(day, 'yyyy-MM-dd', new Date()), shouldShowYear ? 'MMM d, ’yy' : 'MMM d', {locale: dateFnsLocale});
 }
@@ -1320,8 +1413,9 @@ const DateUtils = {
     isToday,
     isTomorrow,
     isYesterday,
+    parseCalendarDate,
+    isWithinCalendarPickerRange,
     getMonthNames,
-    getFilteredMonthItems,
     getDaysOfWeek,
     formatWithUTCTimeZone,
     formatMachineDateWithUTCTimeZone,
@@ -1347,10 +1441,12 @@ const DateUtils = {
     getFormattedDateRangeForPerDiem,
     getFormattedSplitDateRange,
     formatInTimeZoneWithFallback,
+    formatToLongDateInTimeZone,
     formatUTCDateTimeToDateInTimezone,
     formatViolationSnapshotStartedAtDate,
     normalizeDateToStartOfDay,
     normalizeDateToEndOfDay,
+    formatDBTimeWithoutMilliseconds,
     getMonthDateRange,
     getWeekDateRange,
     isDateStringInMonth,

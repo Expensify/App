@@ -135,7 +135,7 @@ function AccountValidatePage() {
                 }
 
                 Navigation.navigate(
-                    ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(currentUserPersonalDetails.login ?? '', CONST.MERGE_ACCOUNT_RESULTS.ERR_INVOICING, ROUTES.SETTINGS_SECURITY),
+                    ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(currentUserPersonalDetails.login ?? '', CONST.MERGE_ACCOUNT_RESULTS.ERR_INVOICING, ROUTES.SETTINGS_SECURITY.getRoute()),
                 );
             },
         });
@@ -178,7 +178,7 @@ function AccountValidatePage() {
                     descriptionSecondary={
                         <View style={[styles.w100]}>
                             <View style={[styles.mb8, styles.renderHTML, styles.flexRow]}>
-                                <RenderHTML html={translate('mergeAccountsPage.accountValidate.lossOfUnsubmittedData', email)} />
+                                <RenderHTML html={translate('mergeAccountsPage.accountValidate.mergeIsIrreversible', email)} />
                             </View>
                             <View style={[styles.renderHTML, styles.flexRow]}>
                                 <RenderHTML html={translate('mergeAccountsPage.accountValidate.enterSecurityCode', email)} />

@@ -2,7 +2,7 @@
 import Log from '@libs/Log';
 
 import {replaceReceipt} from '@userActions/IOU/Receipt';
-import {requestMoney} from '@userActions/IOU/TrackExpense';
+import {requestMoney, trackExpense} from '@userActions/IOU/TrackExpense';
 
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -11,6 +11,7 @@ import type {ReceiptRetryContext, RetryOutcome} from './types';
 
 import buildReplaceReceiptRetryPayload, {canBuildReplaceReceiptRetryPayload} from './buildReplaceReceiptRetryPayload';
 import buildRetryPayload, {canBuildRetryPayload} from './buildRetryPayload';
+import buildTrackExpenseRetryPayload, {canBuildTrackExpenseRetryPayload} from './buildTrackExpenseRetryPayload';
 import resolveReceiptFile from './resolveReceiptFile';
 
 type RetryFlow = {
@@ -38,6 +39,17 @@ const RETRY_FLOWS: Partial<Record<string, RetryFlow>> = {
                 return false;
             }
             replaceReceipt(payload);
+            return true;
+        },
+    },
+    [CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE]: {
+        canBuild: canBuildTrackExpenseRetryPayload,
+        dispatch: (context, receiptFile) => {
+            const payload = buildTrackExpenseRetryPayload(context, receiptFile);
+            if (!payload) {
+                return false;
+            }
+            trackExpense({...payload, isRetry: true, shouldPlaySound: false});
             return true;
         },
     },

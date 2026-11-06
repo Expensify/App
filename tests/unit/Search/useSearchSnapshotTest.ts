@@ -38,12 +38,14 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
     default: () => ({accountID: 1, email: 'test@test.com'}),
 }));
+const mockCurrencyListActions = {convertToDisplayString: () => ''};
 jest.mock('@hooks/useCurrencyList', () => ({
-    useCurrencyListActions: () => ({convertToDisplayString: () => ''}),
+    useCurrencyListActions: () => mockCurrencyListActions,
 }));
+const mockActionLoadingSet = new Set<string>();
 jest.mock('@hooks/useActionLoadingReportIDs', () => ({
     __esModule: true,
-    default: () => new Set(),
+    default: () => mockActionLoadingSet,
 }));
 jest.mock('@hooks/useReportAttributes', () => ({
     __esModule: true,
@@ -55,6 +57,11 @@ jest.mock('@hooks/usePolicyForMovingExpenses', () => ({
         policyForMovingExpensesID: undefined,
         policyForMovingExpenses: undefined,
     }),
+}));
+let mockShouldReturnTripRooms = false;
+jest.mock('@hooks/useShouldReturnTripRooms', () => ({
+    __esModule: true,
+    default: () => mockShouldReturnTripRooms,
 }));
 jest.mock('@hooks/useMultipleSnapshots', () => ({
     __esModule: true,
@@ -157,6 +164,7 @@ function trackingReturn(searchDataWithOptimisticTransaction: unknown, optimistic
 describe('useSearchSnapshot', () => {
     beforeEach(() => {
         mockIsOffline = false;
+        mockShouldReturnTripRooms = false;
         for (const key of Object.keys(onyxData)) {
             delete onyxData[key];
         }
@@ -378,16 +386,34 @@ describe('useSearchSnapshot', () => {
         }
     });
 
+    it('tells getSortedSections when a trip search returns trip rooms', () => {
+        // Given a trip search with the TravelApproval beta, whose rows are trip rooms with their own sort keys
+        mockShouldReturnTripRooms = true;
+        const searchResults = makeSearchResults({type: CONST.SEARCH.DATA_TYPES.TRIP});
+        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
+
+        // When the snapshot is projected
+        renderHook(() =>
+            useSearchSnapshot({
+                queryJSON: makeQueryJSON({type: CONST.SEARCH.DATA_TYPES.TRIP}),
+                searchResults,
+                transactions: undefined,
+                reportActions: undefined,
+            }),
+        );
+
+        // Then the trip rooms flag reaches the sort, or trip rows keep the server order whatever column is sorted
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        expect(mockGetSortedSections.mock.calls.at(-1)?.[7]).toEqual(expect.objectContaining({shouldReturnTripRooms: true}));
+    });
+
     it('keeps the projected data referentially stable across re-renders with unchanged inputs', () => {
-        // Regression guard for the "Maximum update depth exceeded" crash: the projection stages used to be
-        // bare IIFEs, which React Compiler does not memoize (it only caches the inline .map callbacks), so
-        // they allocated a fresh array every render. An unstable `data` reference drove
-        // useStableOptimisticSortedData's setState effect into an infinite loop on the optimistic-create
-        // path. The stages must be memoized so the reference only changes when inputs change.
+        // Given stable inputs and projections that allocate new rows whenever they are evaluated.
+        // Their compiler-managed references must stay stable for the optimistic-state effect.
         const searchResults = makeSearchResults();
         mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
-        mockGetSections.mockReturnValue([[{transactionID: '1'}], 1, false]);
-        mockGetSortedSections.mockReturnValue([{transactionID: '1', keyForList: '1'}]);
+        mockGetSections.mockImplementation(() => [[{transactionID: '1'}], 1, false]);
+        mockGetSortedSections.mockImplementation(() => [{transactionID: '1', keyForList: '1'}]);
 
         // Stable props captured from closure so the re-render below passes identical inputs.
         const props = {
@@ -402,10 +428,14 @@ describe('useSearchSnapshot', () => {
         const firstChartData = result.current.chartData;
         const firstData = result.current.data;
 
+        // When the compiled hook renders again without any input changes.
         rerender({});
 
+        // Then both projection stages and their output references are reused.
         expect(result.current.chartData).toBe(firstChartData);
         expect(result.current.data).toBe(firstData);
+        expect(mockGetSections).toHaveBeenCalledTimes(1);
+        expect(mockGetSortedSections).toHaveBeenCalledTimes(1);
     });
 
     it('caps data at visibleRowLimit while leaving chartData and the row count untouched', () => {

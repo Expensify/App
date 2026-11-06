@@ -9,7 +9,7 @@ import variables from '@styles/variables';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import Icon from './Icon';
@@ -33,7 +33,7 @@ function OfflineIndicator({style, containerStyles: containerStylesProp, addBotto
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
 
-    const fallbackStyle = useMemo(() => [styles.offlineIndicatorContainer, containerStylesProp], [styles.offlineIndicatorContainer, containerStylesProp]);
+    const fallbackStyle = [styles.offlineIndicatorContainer, containerStylesProp];
     const containerStyles = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding,
         addOfflineIndicatorBottomSafeAreaPadding: false,

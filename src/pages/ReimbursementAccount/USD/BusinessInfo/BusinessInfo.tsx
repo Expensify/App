@@ -72,13 +72,10 @@ function BusinessInfo({onBackButtonPress, onSubmit, backTo}: BusinessInfoProps) 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
-    const getBankAccountFields = useCallback(
-        (fieldNames: string[]) => ({
-            ...lodashPick(reimbursementAccount?.achData, ...fieldNames),
-            ...lodashPick(reimbursementAccountDraft, ...fieldNames),
-        }),
-        [reimbursementAccount?.achData, reimbursementAccountDraft],
-    );
+    const getBankAccountFields = (fieldNames: string[]) => ({
+        ...lodashPick(reimbursementAccount?.achData, ...fieldNames),
+        ...lodashPick(reimbursementAccountDraft, ...fieldNames),
+    });
 
     const policyID = reimbursementAccount?.achData?.policyID;
     const bankAccountID = getBankAccountIDAsNumber(reimbursementAccount?.achData);
@@ -86,32 +83,26 @@ function BusinessInfo({onBackButtonPress, onSubmit, backTo}: BusinessInfoProps) 
 
     const values = useMemo(() => getSubStepValues(BUSINESS_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
 
-    const submit = useCallback(
-        (isConfirmPage: boolean) => {
-            const companyWebsite = Str.sanitizeURL(values.website, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
-            updateCompanyInformationForBankAccount(
-                bankAccountID,
-                {
-                    ...values,
-                    ...getBankAccountFields(['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings']),
-                    companyTaxID: values.companyTaxID?.replaceAll(CONST.REGEX.NON_NUMERIC, ''),
-                    companyPhone: parsePhoneNumber(values.companyPhone ?? '', {regionCode: CONST.COUNTRY.US}).number?.significant,
-                    website: isValidWebsite(companyWebsite) ? companyWebsite : undefined,
-                },
-                policyID,
-                isConfirmPage,
-            );
-        },
-        [bankAccountID, values, getBankAccountFields, policyID],
-    );
+    const submit = (isConfirmPage: boolean) => {
+        const companyWebsite = Str.sanitizeURL(values.website, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
+        updateCompanyInformationForBankAccount(
+            bankAccountID,
+            {
+                ...values,
+                ...getBankAccountFields(['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings']),
+                companyTaxID: values.companyTaxID?.replaceAll(CONST.REGEX.NON_NUMERIC, ''),
+                companyPhone: parsePhoneNumber(values.companyPhone ?? '', {regionCode: CONST.COUNTRY.US}).number?.significant,
+                website: isValidWebsite(companyWebsite) ? companyWebsite : undefined,
+            },
+            policyID,
+            isConfirmPage,
+        );
+    };
 
     const isBankAccountVerifying = reimbursementAccount?.achData?.state === CONST.BANK_ACCOUNT.STATE.VERIFYING;
-    const startFrom = useMemo(() => (isBankAccountVerifying ? 0 : getInitialSubStepForBusinessInfo(values)), [values, isBankAccountVerifying]);
+    const startFrom = isBankAccountVerifying ? 0 : getInitialSubStepForBusinessInfo(values);
 
-    const buildRoute = useCallback(
-        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.COMPANY, subPage: pageName, action, backTo}),
-        [policyID, backTo],
-    );
+    const buildRoute = (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.COMPANY, subPage: pageName, action, backTo});
 
     const exitAfterAddressSave = useCallback(() => {
         if (backTo) {

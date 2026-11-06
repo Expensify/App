@@ -38,6 +38,9 @@ type TextInputProps = {
     /** Callback function called when the text input is submitted */
     onSubmit?: () => void;
 
+    /** Lets a list clear its focused row on press, so plain Enter in the search input reaches the confirm button instead of toggling a row */
+    onPress?: () => void;
+
     onKeyPress?: (event: TextInputKeyPressEvent) => void;
 
     /** Function called when the text input focus changes */
@@ -59,6 +62,7 @@ function TextInput({
     isLoading = false,
     dataLength,
     onSubmit,
+    onPress,
     onKeyPress,
     onFocusChange,
     shouldShowLoadingPlaceholder,
@@ -111,12 +115,9 @@ function TextInput({
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const mergedRef = mergeRefs<BaseTextInputRef>(ref, optionsRef);
 
-    const handleTextInputChange = useCallback(
-        (text: string) => {
-            onChangeText?.(text);
-        },
-        [onChangeText],
-    );
+    const handleTextInputChange = (text: string) => {
+        onChangeText?.(text);
+    };
 
     useFocusEffect(
         useCallback(() => {
@@ -136,13 +137,13 @@ function TextInput({
         }, [shouldShowTextInput, disableAutoFocus, focusTextInput, isInLandscapeMode, isScreenReaderEnabled]),
     );
 
-    const handleFocus = useCallback(() => {
+    const handleFocus = () => {
         onFocusChange(true);
-    }, [onFocusChange]);
+    };
 
-    const handleBlur = useCallback(() => {
+    const handleBlur = () => {
         onFocusChange(false);
-    }, [onFocusChange]);
+    };
 
     if (!shouldShowTextInput) {
         return null;
@@ -170,6 +171,7 @@ function TextInput({
                     selectTextOnFocus
                     spellCheck={false}
                     onSubmitEditing={onSubmit}
+                    onPress={onPress}
                     submitBehavior={dataLength ? 'blurAndSubmit' : 'submit'}
                     isLoading={isLoading}
                     shouldHideClearButton={false}

@@ -189,8 +189,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoicing.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.id:
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.id:
                 return Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.id:
+                // Connections upgrades for HR and passes itself as the page to return to
+                return Navigation.goBack(route.params.backTo ?? ROUTES.WORKSPACE_CONNECTIONS_HR.getRoute(policyID));
             default:
                 return route.params.backTo ? Navigation.goBack(route.params.backTo) : Navigation.goBack();
         }
@@ -307,17 +309,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.governmentDistanceRates.id: {
                 const storedGovernmentRateCountry = getAutoUpdateGovernmentRateCountry(policy);
                 const isSharedCurrency = isSharedGovernmentRateCurrency(policy?.outputCurrency);
-                if (!distanceRateCustomUnit || (isSharedCurrency && !storedGovernmentRateCountry)) {
+                if (!policy || !distanceRateCustomUnit || (isSharedCurrency && !storedGovernmentRateCountry)) {
                     break;
                 }
-                setWorkspaceDistanceAutoUpdate(
-                    policyID,
-                    distanceRateCustomUnit,
-                    true,
-                    governmentMileageRates ?? [],
-                    policy?.outputCurrency,
-                    isSharedCurrency ? storedGovernmentRateCountry : undefined,
-                );
+                setWorkspaceDistanceAutoUpdate(policy, true, governmentMileageRates ?? [], isSharedCurrency ? storedGovernmentRateCountry : undefined);
                 break;
             }
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.publicReceiptVisibility.id:
@@ -331,10 +326,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 enablePerDiem(policyID, true, perDiemCustomUnit?.customUnitID, false);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.id:
-                enablePolicyHR(policyID, true);
+                enablePolicyHR(policyID, true, false);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.recruiting.id:
-                enablePolicyRecruiting(policyID, true);
+                enablePolicyRecruiting(policyID, true, false);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id:

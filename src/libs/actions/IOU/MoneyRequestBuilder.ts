@@ -84,7 +84,7 @@ import type {ReplaceReceiptRetryParams} from './Receipt';
 import type {StartSplitBilActionParams} from './Split';
 import type BasePolicyParams from './types/BasePolicyParams';
 import type BaseTransactionParams from './types/BaseTransactionParams';
-import type {CreateTrackExpenseParams} from './types/CreateTrackExpenseParams';
+import type {CreateTrackExpenseParams, TrackExpenseRetryParams} from './types/CreateTrackExpenseParams';
 import type RequestMoneyParticipantParams from './types/RequestMoneyParticipantParams';
 import type {GPSPoint} from './types/TrackExpenseTransactionParams';
 
@@ -108,7 +108,8 @@ type BuildOnyxDataForMoneyRequestKeys =
     | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
     | typeof ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING
     | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE
-    | typeof ONYXKEYS.COLLECTION.SNAPSHOT;
+    | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+    | typeof ONYXKEYS.REUSABLE_DISTANCE_ROUTES;
 
 type MoneyRequestInformation = {
     payerAccountID: number;
@@ -191,6 +192,7 @@ type RequestMoneyInformation = {
     draftTransactionIDs?: string[];
     optimisticChatReportID?: string;
     optimisticCreatedReportActionID?: string;
+    optimisticIOUCreatedReportActionID?: string;
     optimisticIOUReportID?: string;
     optimisticReportPreviewActionID?: string;
     optimisticTransactionID?: string;
@@ -237,9 +239,13 @@ type MoneyRequestInformationParams = {
     newReimbursableTotal?: number;
     newNonReimbursableTotal?: number;
     newUnheldReimbursableTotal?: number;
+
+    /** The change in the report total belongs to held expenses, so the unheld totals stay the same. */
+    isReportTotalChangeOnHold?: boolean;
     testDriveCommentReportActionID?: string;
     optimisticChatReportID?: string;
     optimisticCreatedReportActionID?: string;
+    optimisticIOUCreatedReportActionID?: string;
     optimisticIOUReportID?: string;
     optimisticReportPreviewActionID?: string;
     shouldGenerateTransactionThreadReport?: boolean;
@@ -266,6 +272,10 @@ type MoneyRequestInformationParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    /** Report actions of `parentChatReport` */
+    parentChatReportActions?: OnyxEntry<OnyxTypes.ReportActions>;
+    /** Report actions of the participant's existing chat, which is their policy expense chat or the 1:1 chat found by `getChatByParticipants` */
+    participantChatReportActions?: OnyxEntry<OnyxTypes.ReportActions>;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -379,7 +389,7 @@ function getReceiptError(
     isScanRequest = true,
     errorKey?: number,
     action?: IOUActionParams,
-    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams,
+    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams | TrackExpenseRetryParams,
 ): Errors | ErrorFields {
     const formattedRetryParams = typeof retryParams === 'string' ? retryParams : JSON.stringify(retryParams);
 
@@ -686,6 +696,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 value: {
                     ...transactionThreadReport,
                     pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                    errorFields: {createChat: null},
                 },
             },
             {
@@ -1305,9 +1316,11 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         newReimbursableTotal,
         newNonReimbursableTotal,
         newUnheldReimbursableTotal,
+        isReportTotalChangeOnHold = false,
         testDriveCommentReportActionID,
         optimisticChatReportID,
         optimisticCreatedReportActionID,
+        optimisticIOUCreatedReportActionID,
         optimisticIOUReportID,
         optimisticReportPreviewActionID,
         shouldGenerateTransactionThreadReport = true,
@@ -1330,6 +1343,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         getCurrencyDecimals,
         rules,
         isVendorMatchingBetaEnabled,
+        parentChatReportActions,
+        participantChatReportActions,
     } = moneyRequestInformation;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -1484,6 +1499,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         // precisely why an expense in another currency otherwise never reaches the total.
         // Compared with `!== undefined` so a legitimate total of 0 is applied instead of being read as "no override".
         const hasReportTotalOverride = newReportTotal !== undefined;
+        // The override is the full report total, which also counts held expenses, so the unheld totals only move by the change in total
+        const reportTotalChange = hasReportTotalOverride ? newReportTotal - (iouReport.total ?? 0) : -reportAmount;
         // Because of the Expense reports are stored as negative values, we subtract the total from the amount
         if (isCurrencyMatching || hasReportTotalOverride) {
             if (!Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
@@ -1502,7 +1519,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                     }
                 } else if (isCurrencyMatching) {
                     // Reimbursable transaction: reflect the change in the freshly tracked reimbursableTotal too.
-                    iouReport.reimbursableTotal = previousReimbursableTotal - reportAmount;
+                    iouReport.reimbursableTotal = previousReimbursableTotal + reportTotalChange;
                 }
 
                 // The reimbursable totals are what the report preview and details actually read, so they are
@@ -1515,15 +1532,10 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                 }
                 didUpdateOptimisticTotal = true;
             }
-            if (typeof iouReport.unheldTotal === 'number') {
-                // Use newReportTotal in scenarios where the total is based on more than just the current transaction amount, and we need to override it manually
-                if (hasReportTotalOverride) {
-                    iouReport.unheldTotal = newReportTotal;
-                } else {
-                    iouReport.unheldTotal -= reportAmount;
-                }
+            if (typeof iouReport.unheldTotal === 'number' && !isReportTotalChangeOnHold) {
+                iouReport.unheldTotal += reportTotalChange;
                 if (reimbursable && newUnheldReimbursableTotal === undefined && isCurrencyMatching) {
-                    iouReport.unheldReimbursableTotal = previousUnheldReimbursableTotal - reportAmount;
+                    iouReport.unheldReimbursableTotal = previousUnheldReimbursableTotal + reportTotalChange;
                 }
             }
         }
@@ -1689,6 +1701,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             paymentType: transactionParams.receipt?.isTestDriveReceipt ? CONST.IOU.PAYMENT_TYPE.ELSEWHERE : undefined,
             existingTransactionThreadReportID: existingTransactionThreadReportID ?? linkedTrackedExpenseReportAction?.childReportID,
             optimisticCreatedReportActionID,
+            optimisticIOUCreatedReportActionID,
             linkedTrackedExpenseReportAction,
             isPersonalTrackingExpense: isSelfDMSplit,
             ...(shouldGenerateTransactionThreadReport !== undefined ? {shouldGenerateTransactionThreadReport} : {}),
@@ -1697,7 +1710,13 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             delegateAccountIDParam: delegateAccountID,
         });
 
-    let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewReportAction(chatReport.reportID, iouReport.reportID);
+    // An existing chat report is either the parent chat report or the participant's chat. A new optimistic chat report has no actions yet.
+    let chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
+    if (!isNewChatReport) {
+        chatReportActions = chatReport.reportID === parentChatReport?.reportID ? parentChatReportActions : participantChatReportActions;
+    }
+
+    let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewReportAction(chatReport.reportID, iouReport.reportID, chatReportActions);
 
     if (reportPreviewAction) {
         reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, getCurrencyDecimals, false, comment, optimisticTransaction);

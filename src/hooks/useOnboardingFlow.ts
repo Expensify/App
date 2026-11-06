@@ -18,9 +18,10 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
 import {emailSelector} from '@selectors/Session';
-import {useCallback, useEffect} from 'react';
+import {useEffect} from 'react';
 
 import useOnyx from './useOnyx';
+import useRootNavigationState from './useRootNavigationState';
 import useShouldSuppressPromotionalUI from './useShouldSuppressPromotionalUI';
 
 /**
@@ -31,6 +32,7 @@ import useShouldSuppressPromotionalUI from './useShouldSuppressPromotionalUI';
 function useOnboardingFlowRouter() {
     const currentUrl = getCurrentUrl();
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const isValidateLoginFlow = useRootNavigationState(Navigation.isValidateLoginFlow);
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
     const [onboardingValues, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -41,7 +43,7 @@ function useOnboardingFlowRouter() {
     // (set on cold launch and on warm url events for secure links) alongside the web URL and the active route. getCurrentUrl()
     // is empty on native, and getActiveRoute() serializes the secureKey query param on every platform via getPathFromState.
     const {initialURL} = useInitialURLState();
-    const getIsVisitingSecureLink = useCallback(() => hasSecureLinkKey(getCurrentUrl()) || hasSecureLinkKey(Navigation.getActiveRoute()) || hasSecureLinkKey(initialURL), [initialURL]);
+    const getIsVisitingSecureLink = () => hasSecureLinkKey(getCurrentUrl()) || hasSecureLinkKey(Navigation.getActiveRoute()) || hasSecureLinkKey(initialURL);
     const isVisitingSecureLink = getIsVisitingSecureLink();
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
         selector: tryNewDotOnyxSelector,
@@ -83,6 +85,12 @@ function useOnboardingFlowRouter() {
                     return;
                 }
 
+                // Keep the onboarding navigator registered throughout sign-in, but do not open it over Validate Login.
+                // This navigation-state subscription reruns the effect after Validate Login is dismissed.
+                if (isValidateLoginFlow) {
+                    return;
+                }
+
                 if (isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotMetadata, dismissedProductTrainingMetadata)) {
                     return;
                 }
@@ -105,7 +113,6 @@ function useOnboardingFlowRouter() {
                 }
 
                 const isMigratedUser = hasBeenAddedToNudgeMigration ?? false;
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 const isInvitedOrGroupMember = (hasNonPersonalPolicy || wasInvitedToNewDot) ?? false;
                 if (isMigratedUser || isInvitedOrGroupMember || shouldSuppressPromotionalUI) {
                     return;
@@ -145,6 +152,7 @@ function useOnboardingFlowRouter() {
         };
     }, [
         isLoadingApp,
+        isValidateLoginFlow,
         isHybridAppOnboardingCompleted,
         isOnboardingCompletedMetadata,
         tryNewDotMetadata,

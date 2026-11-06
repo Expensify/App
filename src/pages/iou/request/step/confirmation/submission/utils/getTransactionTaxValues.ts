@@ -1,6 +1,8 @@
 import {isTaxTrackingEnabled, resolveCurrentTaxCode} from '@libs/PolicyUtils';
-import {getDefaultTaxCode, getTaxValue} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, getRequestType, getTaxValue, isDistanceExpenseType, isExpenseUnreported} from '@libs/TransactionUtils';
 
+import CONST from '@src/CONST';
+import type {IOUType} from '@src/CONST';
 import type Policy from '@src/types/onyx/Policy';
 import type Transaction from '@src/types/onyx/Transaction';
 
@@ -15,29 +17,23 @@ type TransactionTaxValues = {
 type GetTransactionTaxValuesParams = {
     transaction: OnyxEntry<Transaction>;
     policy: OnyxEntry<Policy>;
+    iouType: IOUType;
     isPolicyExpenseChat: boolean;
-    isUnreported: boolean;
-    isTrackExpense: boolean;
     isSelfDMDestination: boolean;
-    isDistanceRequest: boolean;
-    isPerDiemRequest: boolean;
-    isTimeRequest: boolean;
 };
 
-function getTransactionTaxValues({
-    transaction,
-    policy,
-    isPolicyExpenseChat,
-    isUnreported,
-    isTrackExpense,
-    isSelfDMDestination,
-    isDistanceRequest,
-    isPerDiemRequest,
-    isTimeRequest,
-}: GetTransactionTaxValuesParams): TransactionTaxValues {
+function getTransactionTaxValues({transaction, policy, iouType, isPolicyExpenseChat, isSelfDMDestination}: GetTransactionTaxValuesParams): TransactionTaxValues {
+    const requestType = getRequestType(transaction);
+    const isTaxApplicable = isPolicyExpenseChat || isExpenseUnreported(transaction) || iouType === CONST.IOU.TYPE.TRACK || isSelfDMDestination;
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const taxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
-    const transactionTaxCode = isTaxTrackingEnabled(isPolicyExpenseChat || isUnreported || isTrackExpense || isSelfDMDestination, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest)
+    const transactionTaxCode = isTaxTrackingEnabled(
+        isTaxApplicable,
+        policy,
+        isDistanceExpenseType(requestType),
+        requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM,
+        requestType === CONST.IOU.REQUEST_TYPE.TIME,
+    )
         ? resolveCurrentTaxCode(policy, taxCode)
         : '';
 
