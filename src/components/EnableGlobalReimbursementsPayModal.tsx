@@ -37,7 +37,9 @@ function EnableGlobalReimbursementsPayModal() {
             if (isAccountLocked) {
                 showLockedAccountModal();
             } else {
-                Navigation.navigate(getWiseGlobalReimbursementsIntroNavigationRoute(modalData.bankAccountID, navigationPathAtSignal), {skipMatchingFullScreenRoute: true});
+                Navigation.navigate(getWiseGlobalReimbursementsIntroNavigationRoute(modalData.bankAccountID, navigationPathAtSignal, modalData.isPayingMultipleReports), {
+                    skipMatchingFullScreenRoute: true,
+                });
             }
             clearEnableGlobalReimbursementsModal();
             return;

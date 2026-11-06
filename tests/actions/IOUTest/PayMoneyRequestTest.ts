@@ -2991,6 +2991,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
     describe('global reimbursements onboarding before paying', () => {
         const BANK_ACCOUNT_ID = 9053192;
+        const OTHER_WORKSPACE_BANK_ACCOUNT_ID = 9053193;
 
         function buildBankAccountList(isGlobalReimbursementEnabled: boolean): BankAccountList {
             return {
@@ -3007,7 +3008,12 @@ describe('actions/IOU/PayMoneyRequest', () => {
             };
         }
 
-        function payWithBusinessBankAccount(bankAccountList: BankAccountList, isWiseReimbursementsBetaEnabled: boolean) {
+        function payWithBusinessBankAccount(
+            bankAccountList: BankAccountList,
+            isWiseReimbursementsBetaEnabled: boolean,
+            requiresGlobalReimbursement = true,
+            workspaceBankAccountID = BANK_ACCOUNT_ID,
+        ) {
             const chatReport = {
                 ...createRandomReport(0, undefined),
                 type: CONST.REPORT.TYPE.CHAT,
@@ -3019,6 +3025,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 chatReportID: chatReport.reportID,
                 total: -100,
                 currency: CONST.CURRENCY.USD,
+                nextStep: {messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY, icon: CONST.NEXT_STEP.ICONS.HOURGLASS, requiresGlobalReimbursement},
             };
 
             payMoneyRequest({
@@ -3036,6 +3043,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 isSelfTourViewed: false,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
+                policy: {...createRandomPolicy(2), achAccount: {bankAccountID: workspaceBankAccountID, accountNumber: '', routingNumber: '', addressName: '', bankName: '', reimburser: ''}},
                 chatReportPolicy: undefined,
                 methodID: BANK_ACCOUNT_ID,
                 chatReportActions: undefined,
@@ -3047,7 +3055,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
         }
 
         it('opens the onboarding instead of paying when the business bank account is not set up for global reimbursements', async () => {
-            // Given an admin in the Wise beta paying from a USD business account that has not enabled global reimbursements
+            // Given an admin in the Wise beta paying a report the backend flags for global reimbursements from a USD business account that has not enabled them
             const writeSpy = jest.spyOn(APIActions, 'write');
 
             // When they pay a report with it
@@ -3064,17 +3072,31 @@ describe('actions/IOU/PayMoneyRequest', () => {
         });
 
         it.each([
-            ['the admin is not in the Wise beta', false, false],
-            ['the account already has global reimbursements enabled', true, true],
-        ])('pays as usual when %s', async (_label, isWiseReimbursementsBetaEnabled, isGlobalReimbursementEnabled) => {
+            ['the admin is not in the Wise beta', false, false, true],
+            ['the account already has global reimbursements enabled', true, true, true],
+            ['the backend does not flag the report for global reimbursements', true, false, false],
+        ])('pays as usual when %s', async (_label, isWiseReimbursementsBetaEnabled, isGlobalReimbursementEnabled, requiresGlobalReimbursement) => {
             // Given an admin whose payment the backend accepts from this account
             const writeSpy = jest.spyOn(APIActions, 'write');
 
             // When they pay a report with it
-            payWithBusinessBankAccount(buildBankAccountList(isGlobalReimbursementEnabled), isWiseReimbursementsBetaEnabled);
+            payWithBusinessBankAccount(buildBankAccountList(isGlobalReimbursementEnabled), isWiseReimbursementsBetaEnabled, requiresGlobalReimbursement);
             await waitForBatchedUpdates();
 
             // Then the payment is sent and no onboarding opens
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.PAY_MONEY_REQUEST, expect.anything(), expect.anything());
+            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL)).toBeUndefined();
+        });
+
+        it('sends the payment when the report is flagged but the admin pays from an account other than the workspace one', async () => {
+            // Given a report the backend flags for global reimbursements, which describes a payment from the workspace account only
+            const writeSpy = jest.spyOn(APIActions, 'write');
+
+            // When the admin pays it from another account that has not enabled global reimbursements
+            payWithBusinessBankAccount(buildBankAccountList(false), true, true, OTHER_WORKSPACE_BANK_ACCOUNT_ID);
+            await waitForBatchedUpdates();
+
+            // Then the payment is sent and the backend decides, because the flag says nothing about this account
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.PAY_MONEY_REQUEST, expect.anything(), expect.anything());
             expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL)).toBeUndefined();
         });
