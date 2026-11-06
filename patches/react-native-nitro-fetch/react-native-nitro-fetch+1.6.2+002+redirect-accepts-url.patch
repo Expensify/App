@@ -1,0 +1,48 @@
+diff --git a/node_modules/react-native-nitro-fetch/lib/module/Response.js b/node_modules/react-native-nitro-fetch/lib/module/Response.js
+index 5c2fa6c..893e7b7 100644
+--- a/node_modules/react-native-nitro-fetch/lib/module/Response.js
++++ b/node_modules/react-native-nitro-fetch/lib/module/Response.js
+@@ -252,7 +252,7 @@ export class NitroResponse {
+       throw new RangeError(`Invalid redirect status: ${status}. Must be one of ${validStatuses.join(', ')}`);
+     }
+     const headers = new NitroHeaders();
+-    headers.set('location', url);
++    headers.set('location', String(url));
+     return new NitroResponse({
+       url: '',
+       status,
+diff --git a/node_modules/react-native-nitro-fetch/lib/typescript/src/Response.d.ts b/node_modules/react-native-nitro-fetch/lib/typescript/src/Response.d.ts
+index 3ec41b1..9f0ec15 100644
+--- a/node_modules/react-native-nitro-fetch/lib/typescript/src/Response.d.ts
++++ b/node_modules/react-native-nitro-fetch/lib/typescript/src/Response.d.ts
+@@ -46,6 +46,6 @@ export declare class NitroResponse {
+         statusText?: string;
+         headers?: Record<string, string> | [string, string][];
+     }): NitroResponse;
+-    static redirect(url: string, status?: number): NitroResponse;
++    static redirect(url: string | URL, status?: number): NitroResponse;
+ }
+ //# sourceMappingURL=Response.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/react-native-nitro-fetch/src/Response.ts b/node_modules/react-native-nitro-fetch/src/Response.ts
+index 9601775..35dc82e 100644
+--- a/node_modules/react-native-nitro-fetch/src/Response.ts
++++ b/node_modules/react-native-nitro-fetch/src/Response.ts
+@@ -329,7 +329,7 @@ export class NitroResponse {
+     });
+   }
+ 
+-  static redirect(url: string, status: number = 302): NitroResponse {
++  static redirect(url: string | URL, status: number = 302): NitroResponse {
+     const validStatuses = [301, 302, 303, 307, 308];
+     if (!validStatuses.includes(status)) {
+       throw new RangeError(
+@@ -337,7 +337,7 @@ export class NitroResponse {
+       );
+     }
+     const headers = new NitroHeaders();
+-    headers.set('location', url);
++    headers.set('location', String(url));
+     return new NitroResponse({
+       url: '',
+       status,

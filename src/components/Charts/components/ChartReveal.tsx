@@ -1,4 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import {useReportChartCaptureLoading} from '@components/Charts/context/ChartCaptureContext';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,7 +30,7 @@ const ChartLoadingContext = createContext<((loadState: ChartLoadState) => void) 
 function useReportChartLoading(isLoading: boolean, isDrawnBySkia = true) {
     const setLoadState = useContext(ChartLoadingContext);
 
-    // Before paint, so no frame shows the chart and the in-flow spinner stacked, or neither of them
+    // Before paint, so no frame shows the chart and the in-flow spinner stacked
     useLayoutEffect(() => {
         setLoadState?.({isLoading, isDrawnBySkia});
     }, [setLoadState, isLoading, isDrawnBySkia]);
@@ -40,6 +41,9 @@ function useIsInsideChartReveal() {
 }
 
 type ChartRevealProps = {
+    /** Brings the spinner back in the same render, since the chart's own report lands a commit later and leaves the card empty until then. */
+    isLoading?: boolean;
+
     /** Must match the loaded chart's height, or the card jumps at the reveal. */
     loadingHeight: number;
 
@@ -50,12 +54,13 @@ type ChartRevealProps = {
     children: ReactNode;
 };
 
-function ChartReveal({loadingHeight, isCardMeasured, children}: ChartRevealProps) {
+function ChartReveal({isLoading = false, loadingHeight, isCardMeasured, children}: ChartRevealProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [loadState, setLoadState] = useState<ChartLoadState | null>(null);
     const [hasReportedLoading, setHasReportedLoading] = useState(false);
     const [isRevealed, setIsRevealed] = useState(false);
+    const [isFullyVisible, setIsFullyVisible] = useState(false);
     const opacity = useSharedValue(0);
     const fadeStyle = useAnimatedStyle(() => ({opacity: opacity.get()}));
 
@@ -65,7 +70,9 @@ function ChartReveal({loadingHeight, isCardMeasured, children}: ChartRevealProps
     // Written on the UI thread, which counts the hold, so that the cleanup there can cancel the hold's next frame
     const holdFrameID = useSharedValue(0);
 
-    const isReady = !!loadState && !loadState.isLoading && isCardMeasured;
+    const isChartLoading = isLoading || !!loadState?.isLoading;
+    const isReady = !!loadState && !isChartLoading && isCardMeasured;
+    const isCaptureTracked = useReportChartCaptureLoading(!isReady || !isFullyVisible);
 
     // A chart that mounts with everything in memory waits only for its card's first layout to report the width,
     // so it shows no spinner and fades in at once. Only a chart that has shown the spinner holds it until Skia has drawn.
@@ -73,11 +80,14 @@ function ChartReveal({loadingHeight, isCardMeasured, children}: ChartRevealProps
     const shouldHold = hasReportedLoading && !!loadState?.isDrawnBySkia;
 
     // Adjusted during render, not in the effect below, so the spinner changes in the same commit as what the chart reports
-    if (loadState?.isLoading && !hasReportedLoading) {
+    if (isChartLoading && !hasReportedLoading) {
         setHasReportedLoading(true);
     }
     if (!isReady && isRevealed) {
         setIsRevealed(false);
+    }
+    if (!isReady && isFullyVisible) {
+        setIsFullyVisible(false);
     }
     if (isReady && !shouldHold && !isRevealed) {
         setIsRevealed(true);
@@ -91,8 +101,16 @@ function ChartReveal({loadingHeight, isCardMeasured, children}: ChartRevealProps
 
         // Read here so that the worklet below captures a number rather than all of CONST
         const duration = CONST.ANIMATED_TRANSITION;
+        const markChartFullyVisible = (finished?: boolean) => {
+            'worklet';
+
+            if (!finished) {
+                return;
+            }
+            scheduleOnRN(setIsFullyVisible, true);
+        };
         if (!shouldHold) {
-            opacity.set(withTiming(1, {duration}));
+            opacity.set(withTiming(1, {duration}, isCaptureTracked ? markChartFullyVisible : undefined));
             return;
         }
 
@@ -106,7 +124,7 @@ function ChartReveal({loadingHeight, isCardMeasured, children}: ChartRevealProps
                     holdFrameID.set(requestAnimationFrame(countFrame));
                     return;
                 }
-                opacity.set(withTiming(1, {duration}));
+                opacity.set(withTiming(1, {duration}, isCaptureTracked ? markChartFullyVisible : undefined));
                 scheduleOnRN(setIsRevealed, true);
             };
             holdFrameID.set(requestAnimationFrame(countFrame));
@@ -119,7 +137,7 @@ function ChartReveal({loadingHeight, isCardMeasured, children}: ChartRevealProps
                 cancelAnimationFrame(holdFrameID.get());
             });
         };
-    }, [isReady, shouldHold, opacity, holdFrameID]);
+    }, [isReady, shouldHold, opacity, holdFrameID, isCaptureTracked]);
 
     return (
         <ChartLoadingContext.Provider value={setLoadState}>

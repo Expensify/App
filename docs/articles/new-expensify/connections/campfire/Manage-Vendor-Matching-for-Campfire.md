@@ -42,6 +42,7 @@ The **Vendor** field appears only on non-reimbursable expenses. It isn't shown o
 2. Select **Vendor**.
 3. Search for the vendor by name.
 4. Select the vendor you want to assign.
+5. Select **Save**.
 
 Once a vendor is selected manually, Expensify preserves that selection and won't overwrite it with automatic matching.
 
@@ -56,8 +57,8 @@ Vendors are managed in Campfire, and the list refreshes when the connection sync
 ## How to set a default vendor for all company cards in Campfire
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [workspace name]**.
-2. Select **Accounting**.
-3. On the Campfire connection, select **Export**.
+2. Select **Connections**, then select **Configure** next to Campfire.
+3. Select **Export**.
 4. Select **Default vendor for all company cards**.
 5. Select a vendor from your imported Campfire vendor list.
 

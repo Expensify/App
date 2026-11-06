@@ -444,7 +444,7 @@ jobs:
   iosUploadTestflight:
     name: Upload iOS to TestFlight
     needs: [prep, iosBuild]
-    runs-on: blacksmith-12vcpu-macos-latest
+    runs-on: blacksmith-12vcpu-macos-27
     if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     steps:
       - name: Checkout
@@ -526,7 +526,7 @@ jobs:
   iosSubmit:
     name: Submit iOS for production rollout
     needs: [prep, iosBuild, iosUploadTestflight]
-    runs-on: blacksmith-12vcpu-macos-latest
+    runs-on: blacksmith-12vcpu-macos-27
     if: ${{ always() && !cancelled() && needs.prep.outputs.DEPLOY_ENV == 'production' && needs.iosBuild.result != 'failure' && needs.iosUploadTestflight.result != 'failure' }}
     steps:
       - name: Checkout
@@ -702,64 +702,6 @@ jobs:
       ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
       release-tag: ${{ needs.prep.outputs.TAG }}
     secrets: inherit
-
-  webDeployTestStaging:
-    name: Deploy Web to test-staging.new.expensify.com
-    needs: [prep, webBuild, buildStorybook]
-    if: ${{ always() && needs.webBuild.result == 'success' && needs.prep.outputs.DEPLOY_ENV == 'staging' }}
-    # Trial hosting for the web build, so a failure here must not fail the staging deploy.
-    continue-on-error: true
-    runs-on: blacksmith-2vcpu-ubuntu-2404
-    steps:
-      - name: Checkout
-        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
-        with:
-          ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
-
-      - name: Setup Node
-        # v6.1.0
-        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f
-        with:
-          node-version-file: '.nvmrc'
-          cache: npm
-          cache-dependency-path: web/cloudflare-worker/package-lock.json
-
-      - name: Download web build artifact
-        # v7
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
-        with:
-          name: web-build-tar-gz-artifact
-          path: ./
-
-      - name: Extract web build
-        run: tar -xzf "${{ needs.webBuild.outputs.TAR_FILENAME }}"
-
-      - name: Download storybook docs artifact
-        continue-on-error: true
-        # v7
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
-        with:
-          name: storybook-docs-artifact
-          path: ./dist/docs
-
-      - name: Install Cloudflare Worker dependencies
-        working-directory: web/cloudflare-worker
-        run: npm ci
-
-      - name: Deploy to Cloudflare Workers
-        working-directory: web/cloudflare-worker
-        run: npx wrangler deploy --env test-staging
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_WORKERS_DEPLOY_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          WRANGLER_SEND_METRICS: false
-
-      - name: Verify deploy
-        run: |
-          APP_VERSION=$(jq -r .version < package.json)
-          ./.github/scripts/verifyDeploy.sh "$HOST" "$APP_VERSION"
-        env:
-          HOST: https://test-staging.new.expensify.com
 
   webDeploy:
     name: Deploy Web to the Cloudflare Worker
@@ -1019,10 +961,10 @@ jobs:
   autoRetestRequestForCP:
     name: File retest request for cherry-picked deploy-blocker fixes
     runs-on: blacksmith-2vcpu-ubuntu-2404
-    # androidSubmit/iosSubmit always skip on staging (they're prod-only), so the implicit
-    # success() check would skip this job too unless we override it with always().
-    if: ${{ always() && github.repository == 'Expensify/App' && needs.prep.outputs.DEPLOY_ENV == 'staging' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
-    needs: [prep, checkDeploymentSuccess]
+    # A later staging deploy can supersede a cherry-pick, even if it was not itself a cherry-pick.
+    # always() lets this run when production-only submit jobs are skipped on staging.
+    if: ${{ always() && !cancelled() && github.repository == 'Expensify/App' && needs.prep.outputs.DEPLOY_ENV == 'staging' && needs.deployChecklist.result == 'success' && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
+    needs: [prep, deployChecklist, checkDeploymentSuccess]
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0

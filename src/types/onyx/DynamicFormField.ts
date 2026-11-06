@@ -179,13 +179,22 @@ type DynamicFormCountryField = DynamicFormFieldBase & {
     type: 'country' | 'countryMultiselect';
 };
 
-/** A Yes/No question, where No is an answer too, or a checkbox that must be ticked when required */
+/** A Yes/No question, where No is an answer too, a checkbox that must be ticked when required, or a link that turns the answer on and off */
 type DynamicFormBooleanField = DynamicFormFieldBase & {
     /** Tells the field types apart */
     type: 'boolean';
 
-    /** `yesNo`, the default, asks a question that No answers. `checkbox` asks for consent, such as accepting terms, which only a tick gives. */
-    presentation?: 'yesNo' | 'checkbox';
+    /**
+     * `yesNo`, the default, asks a question that No answers. `checkbox` asks for consent, such as accepting terms, which only a tick gives.
+     * `link` is an opt-out the user taps, such as "I don't have a social security number", and taps again to undo.
+     */
+    presentation?: 'yesNo' | 'checkbox' | 'link';
+
+    /** The schema author's wording of a `link` while the answer is on, shown when there is no toggledLabelKey */
+    toggledLabel?: string;
+
+    /** Translation of `toggledLabel`, used instead of it when set */
+    toggledLabelKey?: TranslationPaths;
 };
 
 /** Repeated entries, such as a company's owners, each answered with its own fields on an editor page */
@@ -263,6 +272,12 @@ type DynamicFormSchema = {pages: DynamicFormPage[]} | {fields: DynamicFormSchema
 /** Answers to sensitive fields, keyed by form ID, then by field key. Kept in memory only, never in a draft. */
 type DynamicFormSensitiveAnswers = Partial<Record<OnyxFormKey, Partial<Record<string, FormValue>>>>;
 
+/**
+ * A page's answers as the server saved them: the draft's values after a JSON round trip, under the same keys.
+ * A sensitive answer is never sent back. `<key>Provided: true` stands in for it, and counts as answered.
+ */
+type DynamicFormSavedValues = Partial<Record<string, string | string[] | boolean | null>>;
+
 /** Every type the renderer and validator handle */
 type DynamicFormFieldType = DynamicFormField['type'];
 
@@ -281,6 +296,7 @@ export type {
     DynamicFormNumberField,
     DynamicFormPage,
     DynamicFormSchema,
+    DynamicFormSavedValues,
     DynamicFormSchemaField,
     DynamicFormSensitiveAnswers,
     DynamicFormTextField,

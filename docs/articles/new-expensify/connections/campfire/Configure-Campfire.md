@@ -25,8 +25,8 @@ Once configured, you can:
 Each workspace has its own Campfire connection. To view or update its settings:
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
-2. Select **Accounting**.
-3. On the Campfire connection, select **Import**, **Export**, or **Advanced**.
+2. Select **Connections**, then select **Configure** next to Campfire.
+3. Select **Import**, **Export**, or **Advanced**.
 
 ---
 
