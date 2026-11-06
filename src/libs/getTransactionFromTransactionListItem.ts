@@ -23,6 +23,7 @@ const SEARCH_TRANSACTION_ROW_ONLY_FIELDS: Record<Exclude<keyof TransactionListIt
     login: true,
     leftElement: true,
     rightElement: true,
+    titleRightElement: true,
     actionElement: true,
     icons: true,
     invitedSecondaryLogin: true,
