@@ -254,10 +254,17 @@ Onyx.connectWithoutView({
     },
 });
 
-function resetAllChecks() {
+/**
+ * @param shouldKeepPendingCallers - Pass true when the same user stays signed in (e.g. a cache clear), so code that already waits continues after the next OpenApp. Sign-out drops it, so it never runs for another account.
+ */
+function resetAllChecks(shouldKeepPendingCallers = false) {
+    const resolvePreviousPromise = resolveIsReadyPromise;
     isServerDataReadyPromise = new Promise((resolve) => {
         resolveIsReadyPromise = resolve;
     });
+    if (shouldKeepPendingCallers) {
+        resolvePreviousPromise?.(isServerDataReadyPromise);
+    }
     isLoadingReportData = true;
     hasStartedLoading = false;
 }

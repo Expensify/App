@@ -24,8 +24,8 @@ Once configured, you can:
 Each Workspace has its own Rillet integration. To view or update the configuration settings: 
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile) go to **Workspaces > [workspace name]**.
-2. Select **Accounting**. 
-3. On the Rillet connection, select **Import**, **Export**, or **Advanced**.
+2. Select **Connections**, then select **Configure** next to Rillet.
+3. Select **Import**, **Export**, or **Advanced**.
 
 ---
 

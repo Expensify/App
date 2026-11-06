@@ -200,6 +200,7 @@ function WalletPage() {
                 isSelfTourViewed,
                 hasCompletedGuidedSetupFlow,
                 conciergePersonalDetails,
+                delegateAccountID,
             });
             return;
         }
@@ -747,6 +748,7 @@ function WalletPage() {
                                 listItemStyle={cardPaddingHorizontal}
                                 shouldShowBankAccountSections
                                 shouldShowConnectionStatus
+                                shouldShowWiseSetupInProgress={isWiseGlobalReimbursementsEnabled}
                                 threeDotsMenuItems={threeDotMenuItems}
                             />
                         </Section>

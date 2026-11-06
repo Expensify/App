@@ -151,6 +151,17 @@ describe('TravelApprovalUtils', () => {
             expect(getTripDeadlineText(translateLocal, hardTrip, NOW)).toBe('Auto-cancels in 2h 0m if not approved.');
         });
 
+        it('counts days and hours, not minutes, when the deadline is a day or more away', () => {
+            // Given bookings due in two days and two hours, and in exactly one day
+            const twoDaysTrip = buildTripData({[HOTEL_PNR_ID]: buildBooking({deadline: {iso8601: '2026-12-12T12:00:00', zoneId: 'Europe/Oslo'}})});
+            const oneDayTrip = buildTripData({[HOTEL_PNR_ID]: buildBooking({deadline: {iso8601: '2026-12-11T10:00:00', zoneId: 'Europe/Oslo'}})});
+
+            // When the deadline line is built
+            // Then it reads in days, since "50h 0m" is hard to take in at a glance
+            expect(getTripDeadlineText(translateLocal, twoDaysTrip, NOW)).toBe('Auto-approves in 2 days 2 hours. Free cancellation until then.');
+            expect(getTripDeadlineText(translateLocal, oneDayTrip, NOW)).toBe('Auto-approves in 1 day. Free cancellation until then.');
+        });
+
         it('shows the earliest deadline when several bookings are outstanding', () => {
             // Given a hotel due in two hours and a flight due in thirty minutes
             const flight = buildBooking({approvalType: CONST.TRAVEL.BOOKING_APPROVAL.TYPE.HARD, deadline: {iso8601: '2026-12-10T10:30:00', zoneId: 'Europe/Oslo'}});
@@ -196,6 +207,16 @@ describe('TravelApprovalUtils', () => {
             // Then neither shows one, since there's no approval for the traveler to follow
             expect(getBookingStatusBadge(translateLocal, BADGE_COLORS, skippedApproval)).toBeUndefined();
             expect(getBookingStatusBadge(translateLocal, BADGE_COLORS, passive)).toBeUndefined();
+        });
+
+        it('shows no badge for a status it does not know', () => {
+            // Given a booking whose status is outside the known ones, like a new status from Spotnana
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Onyx can hold a status the type doesn't list yet
+            const unknownStatus = buildBooking({status: 'onHold' as unknown as BookingApproval['status']});
+
+            // When its badge is built
+            // Then no badge shows, so the trip row renders instead of crashing on missing colors
+            expect(getBookingStatusBadge(translateLocal, BADGE_COLORS, unknownStatus)).toBeUndefined();
         });
     });
 });

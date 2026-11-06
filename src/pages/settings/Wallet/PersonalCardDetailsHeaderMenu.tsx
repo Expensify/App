@@ -93,6 +93,7 @@ function PersonalCardDetailsHeaderMenu({
                 subtitle={translate('cardPage.markTransactionsDescription')}
                 shouldPlaceSubtitleBelowSwitch
                 switchAccessibilityLabel={translate('cardPage.markTransactionsAsReimbursable')}
+                switchSentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.PERSONAL_CARD_REIMBURSABLE_SWITCH}
                 isActive={reimbursableSetting}
                 onToggle={(isOn) => card && setPersonalCardReimbursable(card.cardID, isOn, reimbursableSetting)}
                 pendingAction={card?.pendingFields?.reimbursable}
