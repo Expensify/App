@@ -8,7 +8,7 @@ import type {Policy, PolicyTagLists, Rule} from '@src/types/onyx';
 import type {ExpenseDefaultAction} from '@src/types/onyx/ExpenseDefaultRules';
 
 import createRandomPolicy from '../utils/collections/policies';
-import {translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const {FIELD} = CONST.RULES.EXPENSE_DEFAULT;
@@ -46,6 +46,7 @@ describe('Merchant rule tag summary', () => {
             rules: {[`${ONYXKEYS.COLLECTION.RULE}rule1`]: rule},
             policyTags,
             translate: translateLocal,
+            convertToDisplayString,
             isOffline: false,
             onNavigate: () => {},
         }).at(0);

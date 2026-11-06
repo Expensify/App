@@ -1084,7 +1084,7 @@ const ONYXKEYS = {
         SPLIT_TRANSACTION_DRAFT: 'splitTransactionDraft_',
         MERGE_TRANSACTION: 'mergeTransaction_',
         PRIVATE_NOTES_DRAFT: 'privateNotesDraft_',
-        CODING_RULE_MATCHING_TRANSACTION: 'codingRuleMatchingTransactions_',
+        RULE_MATCHING_TRANSACTION: 'ruleMatchingTransactions_',
         // Manual expense tab selector
         SELECTED_TAB: 'selectedTab_',
 
@@ -1755,7 +1755,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS]: OnyxTypes.DomainPendingActions;
     [ONYXKEYS.COLLECTION.DOMAIN_ERRORS]: OnyxTypes.DomainErrors;
     [ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS]: OnyxTypes.DomainHighlightItems;
-    [ONYXKEYS.COLLECTION.CODING_RULE_MATCHING_TRANSACTION]: OnyxTypes.CodingRuleMatchingTransaction;
+    [ONYXKEYS.COLLECTION.RULE_MATCHING_TRANSACTION]: OnyxTypes.RuleMatchingTransaction;
     [ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS]: OnyxTypes.LocalPasskeyCredentialsEntry;
     [ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS]: OnyxTypes.DeviceBiometrics;
 };
