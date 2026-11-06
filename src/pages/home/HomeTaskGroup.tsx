@@ -25,6 +25,9 @@ type HomeTaskGroupProps = {
     /** Rows in the order they should render (urgent/error rows first) */
     rows: React.ReactNode[];
 
+    /** Label for Sentry tracking of the expand toggle, from `CONST.SENTRY_LABEL` */
+    expandToggleSentryLabel: string;
+
     /** Rendered below the rows, for the loading skeleton and the empty state */
     children?: React.ReactNode;
 
@@ -32,7 +35,7 @@ type HomeTaskGroupProps = {
     reducedTopGap?: boolean;
 };
 
-function HomeTaskGroup({title, rows, children, reducedTopGap = false}: HomeTaskGroupProps) {
+function HomeTaskGroup({title, rows, expandToggleSentryLabel, children, reducedTopGap = false}: HomeTaskGroupProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -62,6 +65,7 @@ function HomeTaskGroup({title, rows, children, reducedTopGap = false}: HomeTaskG
                             isExpanded={isExpanded}
                             onPress={() => setIsExpanded((prev) => !prev)}
                             collapsedLabel={translate('homePage.seeMore', {count: hiddenCount})}
+                            sentryLabel={expandToggleSentryLabel}
                         />
                     )}
                 </View>

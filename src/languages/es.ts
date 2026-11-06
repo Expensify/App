@@ -178,6 +178,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dob: 'Fecha de nacimiento',
         currentYear: 'Año actual',
         currentMonth: 'Mes actual',
+        todayDateLabel: (date: string) => `${date}, hoy`,
         ssnLast4: 'Últimos 4 dígitos de tu SSN',
         ssnFull9: 'Los 9 dígitos del SSN',
         addressLine: (lineNumber) => `Dirección línea ${lineNumber}`,
@@ -3052,7 +3053,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `Acepto los <a href="${CONST.WISE.TERMS_URL}">términos y condiciones</a> y la <a href="${CONST.WISE.PRIVACY_URL}">política de privacidad</a> de Wise.`,
                 wiseTermsAccessibilityLabel: 'Acepto los términos y condiciones y la política de privacidad de Wise.',
                 error: 'Acepta todos los términos para continuar.',
-                alreadySubmitted: 'Esta empresa ya se envió a Wise para su revisión.',
             },
             moreInfoNeeded: {
                 headerTitle: 'Se necesita más información',
@@ -5145,6 +5145,13 @@ ${amount} para ${merchant} - ${date}`,
             title: 'Aún no puedes reservar viajes',
             message:
                 'Eres miembro de un espacio de trabajo con viajes habilitados, pero no es tu espacio de trabajo predeterminado. Para reservar, habilita los viajes en tu espacio de trabajo predeterminado o cambia tu espacio de trabajo predeterminado a uno que tenga los viajes habilitados.',
+        },
+        approval: {
+            status: {outstanding: 'Pendiente', approved: 'Aprobado', rejected: 'Rechazado', canceled: 'Cancelado'},
+            deadline: {
+                softApproval: (time: string) => `Se aprueba automáticamente en ${time}. Cancelación gratuita hasta entonces.`,
+                hardApproval: (time: string) => `Se cancela automáticamente en ${time} si no se aprueba.`,
+            },
         },
     },
     proactiveAppReview: {
@@ -10582,11 +10589,14 @@ ${reportName}`,
                 upcoming: 'Próximo',
                 done: 'Finalizado',
                 canceled: 'Cancelado',
+                outstanding: 'Pendiente',
+                rejected: 'Rechazado',
             },
         },
         tabs: {
             expenseReports: 'Informes de gastos',
             reports: 'Informes',
+            myReports: 'Mis informes',
             expenses: 'Gastos',
             submit: 'Borradores',
             approve: 'Necesita aprobación',
@@ -13207,6 +13217,7 @@ ${reportName}`,
             }
             return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `enviar automáticamente el día ${eta} de cada mes` : `enviar automáticamente ${eta}`;
         },
+        toMarkAsDone: 'marcar como listo',
         toApprove: 'aprobar',
         toPay: 'pagar',
         minutesAgo: (count: number) => `hace ${count} min`,

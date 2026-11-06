@@ -189,6 +189,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dob: 'Ημερομηνία γέννησης',
         currentYear: 'Τρέχον έτος',
         currentMonth: 'Τρέχων μήνας',
+        todayDateLabel: (date: string) => `${date}, σήμερα`,
         ssnLast4: 'Τελευταία 4 ψηφία του SSN',
         ssnFull9: 'Ολόκληροι οι 9 αριθμοί του SSN',
         addressLine: (lineNumber: number) => `Γραμμή διεύθυνσης ${lineNumber}`,
@@ -3206,7 +3207,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `Αποδέχομαι τους <a href="${CONST.WISE.TERMS_URL}">όρους και προϋποθέσεις</a> και την <a href="${CONST.WISE.PRIVACY_URL}">πολιτική απορρήτου</a> της Wise.`,
                 wiseTermsAccessibilityLabel: 'Αποδέχομαι τους όρους και προϋποθέσεις και την πολιτική απορρήτου της Wise.',
                 error: 'Αποδεχτείτε όλους τους όρους για να συνεχίσετε.',
-                alreadySubmitted: 'Αυτή η επιχείρηση έχει ήδη υποβληθεί στη Wise για έλεγχο.',
             },
             moreInfoNeeded: {
                 headerTitle: 'Απαιτούνται περισσότερες πληροφορίες',
@@ -5316,6 +5316,13 @@ ${amount} για ${merchant} - ${date}`,
             title: 'Δεν μπορείτε ακόμη να κάνετε κράτηση ταξιδιού',
             message:
                 'Είστε μέλος ενός χώρου εργασίας με ενεργοποιημένα ταξίδια, αλλά δεν είναι ο προεπιλεγμένος χώρος εργασίας σας. Για να κάνετε κράτηση, ενεργοποιήστε τα ταξίδια στον προεπιλεγμένο χώρο εργασίας σας ή αλλάξτε τον προεπιλεγμένο χώρο εργασίας σας σε έναν με ενεργοποιημένα ταξίδια.',
+        },
+        approval: {
+            status: {outstanding: 'Εκκρεμές', approved: 'Εγκρίθηκε', rejected: 'Απορρίφθηκε', canceled: 'Ακυρώθηκε'},
+            deadline: {
+                softApproval: (time: string) => `Αυτόματη έγκριση σε ${time}. Δυνατή η δωρεάν ακύρωση μέχρι τότε.`,
+                hardApproval: (time: string) => `Ακυρώνεται αυτόματα σε ${time} αν δεν εγκριθεί.`,
+            },
         },
     },
     proactiveAppReview: {
@@ -10943,11 +10950,14 @@ ${reportName}`,
                 upcoming: 'Επερχόμενο',
                 done: 'Ολοκληρώθηκε',
                 canceled: 'Ακυρώθηκε',
+                outstanding: 'Εκκρεμές',
+                rejected: 'Απορρίφθηκε',
             },
         },
         tabs: {
             expenseReports: 'Αναφορές εξόδων',
             reports: 'Αναφορές',
+            myReports: 'Οι αναφορές μου',
             expenses: 'Έξοδα',
             submit: 'Πρόχειρα',
             approve: 'Χρειάζεται έγκριση',
@@ -13190,6 +13200,7 @@ ${reportName}`,
             other: (count: number) => `πριν από ${count} ημ.`,
         }),
         offlineMessage: 'Είστε εκτός σύνδεσης. Το ιστορικό αναφορών μπορεί να είναι παρωχημένο.',
+        toMarkAsDone: 'να επισημάνετε ως ολοκληρωμένο',
     },
 };
 export default translations;

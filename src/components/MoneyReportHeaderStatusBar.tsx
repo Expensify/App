@@ -57,7 +57,7 @@ function MoneyReportHeaderStatusBar({nextStep, reportType}: MoneyReportHeaderSta
                 />
             </View>
             <CaretWrapper style={styles.flexShrink1}>
-                <View style={[styles.renderHTML, styles.dFlex, styles.flexShrink1]}>
+                <View style={[styles.dFlex, styles.flexRow, styles.flexShrink1, styles.breakWord]}>
                     <RenderHTML html={messageContent} />
                 </View>
             </CaretWrapper>

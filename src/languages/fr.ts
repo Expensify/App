@@ -185,6 +185,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dob: 'Date de naissance',
         currentYear: 'Année en cours',
         currentMonth: 'Mois en cours',
+        todayDateLabel: (date: string) => `${date}, aujourd’hui`,
         ssnLast4: '4 derniers chiffres du N° de sécu',
         ssnFull9: '9 chiffres complets du SSN',
         addressLine: (lineNumber: number) => `Adresse ligne ${lineNumber}`,
@@ -3159,7 +3160,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `J’accepte les <a href="${CONST.WISE.TERMS_URL}">conditions générales</a> et la <a href="${CONST.WISE.PRIVACY_URL}">politique de confidentialité</a> de Wise.`,
                 wiseTermsAccessibilityLabel: 'J’accepte les conditions générales et la politique de confidentialité de Wise.',
                 error: 'Veuillez accepter toutes les conditions pour continuer.',
-                alreadySubmitted: 'Cette entreprise a déjà été envoyée à Wise pour examen.',
             },
             moreInfoNeeded: {
                 headerTitle: 'Plus d’informations nécessaires',
@@ -5266,6 +5266,13 @@ ${amount} pour ${merchant} - ${date}`,
             title: 'Vous ne pouvez pas encore réserver de voyage',
             message:
                 'Vous êtes membre d’un espace de travail avec voyage activé, mais ce n’est pas votre espace de travail par défaut. Pour réserver, veuillez activer le voyage sur votre espace de travail par défaut ou définir comme espace de travail par défaut un espace de travail avec voyage activé.',
+        },
+        approval: {
+            status: {outstanding: 'En souffrance', approved: 'Approuvé', rejected: 'Rejeté', canceled: 'Annulé'},
+            deadline: {
+                softApproval: (time: string) => `Approbation automatique dans ${time}. Annulation gratuite jusqu’à cette heure.`,
+                hardApproval: (time: string) => `Annulation automatique dans ${time} si non approuvé.`,
+            },
         },
     },
     workspace: {
@@ -11109,11 +11116,14 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 upcoming: 'À venir',
                 done: 'Terminé',
                 canceled: 'Annulé',
+                outstanding: 'En souffrance',
+                rejected: 'Rejeté',
             },
         },
         tabs: {
             expenseReports: 'Notes de frais',
             reports: 'Notes de frais',
+            myReports: 'Mes rapports',
             expenses: 'Dépenses',
             submit: 'Brouillons',
             approve: 'Nécessite une approbation',
@@ -12995,6 +13005,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             other: (count: number) => `il y a ${count} j`,
         }),
         offlineMessage: 'Vous êtes hors ligne. L’historique des notes de frais peut être obsolète.',
+        toMarkAsDone: 'marquer comme terminé',
     },
 };
 export default translations;

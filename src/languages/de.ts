@@ -185,6 +185,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dob: 'Geburtsdatum',
         currentYear: 'Laufendes Jahr',
         currentMonth: 'Aktueller Monat',
+        todayDateLabel: (date: string) => `${date}, heute`,
         ssnLast4: 'Letzte 4 Ziffern der Sozialversicherungsnummer',
         ssnFull9: 'Vollständige 9-stellige SSN',
         addressLine: (lineNumber: number) => `Adresszeile ${lineNumber}`,
@@ -3153,7 +3154,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `Ich stimme den <a href="${CONST.WISE.TERMS_URL}">Allgemeinen Geschäftsbedingungen</a> und der <a href="${CONST.WISE.PRIVACY_URL}">Datenschutzerklärung</a> von Wise zu.`,
                 wiseTermsAccessibilityLabel: 'Ich stimme den Allgemeinen Geschäftsbedingungen und der Datenschutzerklärung von Wise zu.',
                 error: 'Bitte akzeptieren Sie alle Bedingungen, um fortzufahren.',
-                alreadySubmitted: 'Dieses Unternehmen wurde bereits zur Prüfung an Wise übermittelt.',
             },
             moreInfoNeeded: {
                 headerTitle: 'Weitere Informationen erforderlich',
@@ -5257,6 +5257,13 @@ ${amount} für ${merchant} – ${date}`,
             title: 'Sie können noch keine Reisen buchen',
             message:
                 'Sie sind Mitglied eines Reise-fähigen Arbeitsbereichs, aber er ist nicht Ihr Standardarbeitsbereich. Um zu buchen, aktivieren Sie bitte Reisen in Ihrem Standardarbeitsbereich oder ändern Sie Ihren Standardarbeitsbereich auf einen, der Reisen aktiviert hat.',
+        },
+        approval: {
+            status: {outstanding: 'Ausstehend', approved: 'Genehmigt', rejected: 'Abgelehnt', canceled: 'Storniert'},
+            deadline: {
+                softApproval: (time: string) => `Wird in ${time} automatisch genehmigt. Kostenlose Stornierung bis dahin.`,
+                hardApproval: (time: string) => `Wird automatisch in ${time} storniert, wenn nicht genehmigt.`,
+            },
         },
     },
     workspace: {
@@ -11077,11 +11084,14 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 upcoming: 'Bevorstehend',
                 done: 'Abgeschlossen',
                 canceled: 'Storniert',
+                outstanding: 'Ausstehend',
+                rejected: 'Abgelehnt',
             },
         },
         tabs: {
             expenseReports: 'Spesenabrechnungen',
             reports: 'Berichte',
+            myReports: 'Meine Berichte',
             expenses: 'Ausgaben',
             submit: 'Entwürfe',
             approve: 'Genehmigung erforderlich',
@@ -12960,6 +12970,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             other: (count: number) => `vor ${count} Tagen`,
         }),
         offlineMessage: 'Sie sind offline. Der Berichtsverlauf ist möglicherweise veraltet.',
+        toMarkAsDone: 'als erledigt markieren',
     },
 };
 export default translations;

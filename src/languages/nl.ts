@@ -185,6 +185,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dob: 'Geboortedatum',
         currentYear: 'Huidig jaar',
         currentMonth: 'Huidige maand',
+        todayDateLabel: (date: string) => `${date}, vandaag`,
         ssnLast4: 'Laatste 4 cijfers van SSN',
         ssnFull9: 'Volledige 9 cijfers van SSN',
         addressLine: (lineNumber: number) => `Adresregel ${lineNumber}`,
@@ -3140,7 +3141,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `Ik ga akkoord met de <a href="${CONST.WISE.TERMS_URL}">algemene voorwaarden</a> en het <a href="${CONST.WISE.PRIVACY_URL}">privacybeleid</a> van Wise.`,
                 wiseTermsAccessibilityLabel: 'Ik ga akkoord met de algemene voorwaarden en het privacybeleid van Wise.',
                 error: 'Accepteer alle voorwaarden om door te gaan.',
-                alreadySubmitted: 'Dit bedrijf is al ter beoordeling naar Wise verstuurd.',
             },
             moreInfoNeeded: {
                 headerTitle: 'Meer info nodig',
@@ -5220,6 +5220,13 @@ ${amount} voor ${merchant} - ${date}`,
             title: 'Je kunt nog geen reizen boeken',
             message:
                 'Je bent lid van een werkruimte met reizen ingeschakeld, maar dit is niet je standaardwerkruimte. Schakel reizen in op je standaardwerkruimte of stel een werkruimte met reizen als standaardwerkruimte in om te boeken.',
+        },
+        approval: {
+            status: {outstanding: 'Uitstaand', approved: 'Goedgekeurd', rejected: 'Afgewezen', canceled: 'Geannuleerd'},
+            deadline: {
+                softApproval: (time: string) => `Wordt automatisch goedgekeurd over ${time}. Gratis annuleren tot die tijd.`,
+                hardApproval: (time: string) => `Wordt automatisch geannuleerd over ${time} als deze niet is goedgekeurd.`,
+            },
         },
     },
     workspace: {
@@ -10995,11 +11002,14 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 upcoming: 'Gepland',
                 done: 'Afgerond',
                 canceled: 'Geannuleerd',
+                outstanding: 'Uitstaand',
+                rejected: 'Afgewezen',
             },
         },
         tabs: {
             expenseReports: 'Declaraties',
             reports: 'Rapporten',
+            myReports: 'Mijn rapporten',
             expenses: 'Declaraties',
             submit: 'Concepten',
             approve: 'Moet worden goedgekeurd',
@@ -12872,6 +12882,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             other: (count: number) => `${count} d geleden`,
         }),
         offlineMessage: 'Je bent offline. Rapportgeschiedenis is mogelijk verouderd.',
+        toMarkAsDone: 'markeren als voltooid',
     },
 };
 export default translations;

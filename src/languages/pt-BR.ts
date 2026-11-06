@@ -185,6 +185,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dob: 'Data de nascimento',
         currentYear: 'Ano atual',
         currentMonth: 'Mês atual',
+        todayDateLabel: (date: string) => `${date}, hoje`,
         ssnLast4: 'Últimos 4 dígitos do SSN',
         ssnFull9: '9 dígitos completos do SSN',
         addressLine: (lineNumber: number) => `Linha de endereço ${lineNumber}`,
@@ -3143,7 +3144,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `Concordo com os <a href="${CONST.WISE.TERMS_URL}">termos e condições</a> e a <a href="${CONST.WISE.PRIVACY_URL}">política de privacidade</a> da Wise.`,
                 wiseTermsAccessibilityLabel: 'Concordo com os termos e condições e a política de privacidade da Wise.',
                 error: 'Aceite todos os termos para continuar.',
-                alreadySubmitted: 'Esta empresa já foi enviada à Wise para análise.',
             },
             moreInfoNeeded: {
                 headerTitle: 'Mais informações necessárias',
@@ -5225,6 +5225,13 @@ ${amount} para ${merchant} - ${date}`,
             title: 'Você ainda não pode reservar viagens',
             message:
                 'Você é membro de um workspace com viagens ativadas, mas ele não é o seu workspace padrão. Para fazer reservas, ative viagens no seu workspace padrão ou altere o seu workspace padrão para um que tenha viagens ativadas.',
+        },
+        approval: {
+            status: {outstanding: 'Pendente', approved: 'Aprovado', rejected: 'Rejeitado', canceled: 'Cancelado'},
+            deadline: {
+                softApproval: (time: string) => `Será aprovado automaticamente em ${time}. Cancelamento gratuito até lá.`,
+                hardApproval: (time: string) => `Cancela automaticamente em ${time} se não for aprovado.`,
+            },
         },
     },
     workspace: {
@@ -11001,11 +11008,14 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 upcoming: 'Próxima',
                 done: 'Concluída',
                 canceled: 'Cancelada',
+                outstanding: 'Pendente',
+                rejected: 'Rejeitado',
             },
         },
         tabs: {
             expenseReports: 'Relatórios de despesas',
             reports: 'Relatórios',
+            myReports: 'Meus relatórios',
             expenses: 'Despesas',
             submit: 'Rascunhos',
             approve: 'Precisa de aprovação',
@@ -12871,6 +12881,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             other: (count: number) => `${count}d atrás`,
         }),
         offlineMessage: 'Você está offline. O histórico de relatórios pode estar desatualizado.',
+        toMarkAsDone: 'marcar como concluída',
     },
 };
 export default translations;

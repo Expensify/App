@@ -30,8 +30,8 @@ To connect DualEntry, you must:
 ## How to connect DualEntry to Expensify
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
-2. Select **Accounting**.
-3. In the **Connections** section next to **DualEntry**, select **Connect**.
+2. Select **Connections**.
+3. Select **DualEntry**.
 4. In the **DualEntry setup** pages, follow the on-screen instructions to generate an API key in DualEntry.
 5. Paste the key into the **API key** field and select **Confirm**.
 
@@ -45,7 +45,7 @@ Expensify validates the API key, connects to your DualEntry organization, and re
 
 ## What happens after you connect to DualEntry
 
-After the connection is established, the **Connections** section updates to show your connected DualEntry integration, including:
+After the connection is established, DualEntry appears as connected on the **Connections** page. Select **Configure** next to DualEntry to see:
 
 - The connection status and last sync timestamp.
 - The selected company.
@@ -62,8 +62,8 @@ After the initial sync completes, you can configure your import, export, and adv
 If the saved API key becomes invalid, Expensify displays an error on the DualEntry connection. To reconnect to DualEntry:
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
-2. Select **Accounting**.
-3. Next to the DualEntry connection, select the three dots **(⋮)**.
+2. Select **Connections**, then select **Fix** next to DualEntry.
+3. Select **More (⋮)**.
 4. Select **Reconnect**.
 5. Enter a valid DualEntry API key and select **Confirm**.
 
@@ -89,8 +89,8 @@ Tax rates are only available when DualEntry returns active VAT or GST rates for 
 
 ## Can I change which company is used?
 
-Yes. If your DualEntry organization has multiple companies, you can select a different company at any time from the **Connections** section. Expensify will sync data from the newly selected company, including its accounts, dimensions, and tax rates.
+Yes. If your DualEntry organization has multiple companies, you can select a different company at any time by selecting **Configure** next to DualEntry on the **Connections** page. Expensify will sync data from the newly selected company, including its accounts, dimensions, and tax rates.
 
 ## How can I disconnect DualEntry from a workspace?
 
-You can disconnect DualEntry from the **Accounting** page. Select the three dots **(⋮)** next to DualEntry and select **Disconnect**. Disconnecting DualEntry stops future synchronization and removes the connection from the workspace.
+You can disconnect DualEntry from the **Connections** page. Select **Configure** next to DualEntry, select **More (⋮)**, then select **Disconnect**. Disconnecting DualEntry stops future synchronization and removes the connection from the workspace.

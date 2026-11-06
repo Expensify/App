@@ -191,6 +191,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dob: 'Data urodzenia',
         currentYear: 'Bieżący rok',
         currentMonth: 'Bieżący miesiąc',
+        todayDateLabel: (date: string) => `${date}, dzisiaj`,
         ssnLast4: 'Ostatnie 4 cyfry numeru SSN',
         ssnFull9: 'Pełne 9 cyfr numeru SSN',
         addressLine: (lineNumber: number) => `Wiersz adresu ${lineNumber}`,
@@ -3180,7 +3181,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `Akceptuję <a href="${CONST.WISE.TERMS_URL}">regulamin</a> i <a href="${CONST.WISE.PRIVACY_URL}">politykę prywatności</a> Wise.`,
                 wiseTermsAccessibilityLabel: 'Akceptuję regulamin i politykę prywatności Wise.',
                 error: 'Zaakceptuj wszystkie warunki, aby kontynuować.',
-                alreadySubmitted: 'Ta firma została już wysłana do Wise do weryfikacji.',
             },
             moreInfoNeeded: {
                 headerTitle: 'Potrzebne są dodatkowe informacje',
@@ -5258,6 +5258,13 @@ ${amount} dla ${merchant} - ${date}`,
             title: 'Nie możesz jeszcze rezerwować podróży',
             message:
                 'Jesteś członkiem przestrzeni roboczej z włączonymi podróżami, ale nie jest to twoja domyślna przestrzeń robocza. Aby dokonać rezerwacji, włącz podróże w swojej domyślnej przestrzeni roboczej albo zmień domyślną przestrzeń roboczą na taką, która ma włączone podróże.',
+        },
+        approval: {
+            status: {outstanding: 'Nierozliczone', approved: 'Zatwierdzone', rejected: 'Odrzucono', canceled: 'Anulowano'},
+            deadline: {
+                softApproval: (time: string) => `Zostanie automatycznie zatwierdzone za ${time}. Do tego czasu możesz bezpłatnie anulować.`,
+                hardApproval: (time: string) => `Automatycznie anuluje się za ${time}, jeśli nie zostanie zatwierdzone.`,
+            },
         },
     },
     workspace: {
@@ -11019,11 +11026,14 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 upcoming: 'Nadchodząca',
                 done: 'Zakończona',
                 canceled: 'Anulowana',
+                outstanding: 'Nierozliczone',
+                rejected: 'Odrzucono',
             },
         },
         tabs: {
             expenseReports: 'Raporty wydatków',
             reports: 'Raporty',
+            myReports: 'Moje raporty',
             expenses: 'Wydatki',
             submit: 'Szkice',
             approve: 'Wymaga zatwierdzenia',
@@ -12903,6 +12913,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             other: (count: number) => `${count} dni temu`,
         }),
         offlineMessage: 'Jesteś offline. Historia raportów może być nieaktualna.',
+        toMarkAsDone: 'oznacz jako wykonane',
     },
 };
 export default translations;

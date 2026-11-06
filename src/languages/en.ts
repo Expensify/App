@@ -253,6 +253,7 @@ const translations = {
         dob: 'Date of birth',
         currentYear: 'Current year',
         currentMonth: 'Current month',
+        todayDateLabel: (date: string) => `${date}, today`,
         ssnLast4: 'Last 4 digits of SSN',
         ssnFull9: 'Full 9 digits of SSN',
         addressLine: (lineNumber: number) => `Address line ${lineNumber}`,
@@ -3225,7 +3226,6 @@ const translations = {
                 wiseTerms: `I agree to the Wise <a href="${CONST.WISE.TERMS_URL}">terms and conditions</a> and <a href="${CONST.WISE.PRIVACY_URL}">privacy policy</a>.`,
                 wiseTermsAccessibilityLabel: 'I agree to the Wise terms and conditions and privacy policy.',
                 error: 'Please accept all of the terms to continue.',
-                alreadySubmitted: 'This business is already submitted to Wise for review.',
             },
             moreInfoNeeded: {
                 headerTitle: 'More info needed',
@@ -3943,6 +3943,7 @@ const translations = {
             }
             return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `to automatically submit on the ${eta} of each month` : `to automatically submit ${eta}`;
         },
+        toMarkAsDone: 'to mark as done',
         toApprove: 'to approve',
         toPay: 'to pay',
         minutesAgo: (count: number) => `${count}m ago`,
@@ -5298,6 +5299,18 @@ const translations = {
         bookDemo: 'Book demo',
         bookADemo: 'Book a demo',
         toLearnMore: ' to learn more.',
+        approval: {
+            status: {
+                outstanding: 'Outstanding',
+                approved: 'Approved',
+                rejected: 'Rejected',
+                canceled: 'Canceled',
+            },
+            deadline: {
+                softApproval: (time: string) => `Auto-approves in ${time}. Free cancellation until then.`,
+                hardApproval: (time: string) => `Auto-cancels in ${time} if not approved.`,
+            },
+        },
         termsAndConditions: {
             header: 'Before we continue...',
             title: 'Review terms & conditions',
@@ -11047,11 +11060,14 @@ const translations = {
                 upcoming: 'Upcoming',
                 done: 'Done',
                 canceled: 'Canceled',
+                outstanding: 'Outstanding',
+                rejected: 'Rejected',
             },
         },
         tabs: {
             expenseReports: 'Expense reports',
             reports: 'Reports',
+            myReports: 'My reports',
             expenses: 'Expenses',
             submit: 'Drafts',
             approve: 'Needs approval',

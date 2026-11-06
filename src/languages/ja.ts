@@ -185,6 +185,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dob: '生年月日',
         currentYear: '今年',
         currentMonth: '今月',
+        todayDateLabel: (date: string) => `${date}（本日）`,
         ssnLast4: 'SSN の下4桁',
         ssnFull9: 'SSN の9桁すべて',
         addressLine: (lineNumber: number) => `住所 ${lineNumber} 行目`,
@@ -3116,7 +3117,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `Wiseの<a href="${CONST.WISE.TERMS_URL}">利用規約</a>および<a href="${CONST.WISE.PRIVACY_URL}">プライバシーポリシー</a>に同意します。`,
                 wiseTermsAccessibilityLabel: 'Wiseの利用規約およびプライバシーポリシーに同意します。',
                 error: '続行するにはすべての規約に同意してください。',
-                alreadySubmitted: 'このビジネスはすでに審査のためにWiseに送信されています。',
             },
             moreInfoNeeded: {headerTitle: '詳細情報が必要です', title: '追加情報を確認', subtitle: '決済パートナーが直接、追加情報を必要としています。数分で完了します。'},
             inReview: {
@@ -5173,6 +5173,13 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             title: 'まだ旅行を予約できません',
             message:
                 '現在、出張機能が有効なワークスペースのメンバーですが、そのワークスペースはデフォルトではありません。予約するには、デフォルトのワークスペースで出張機能を有効にするか、デフォルトのワークスペースを出張機能が有効なワークスペースに変更してください。',
+        },
+        approval: {
+            status: {outstanding: '未払い', approved: '承認済み', rejected: '却下されました', canceled: 'キャンセルされました'},
+            deadline: {
+                softApproval: (time: string) => `${time}後に自動承認されます。そこまでは無料でキャンセルできます。`,
+                hardApproval: (time: string) => `承認されない場合は ${time} で自動的にキャンセルされます。`,
+            },
         },
     },
     workspace: {
@@ -10835,11 +10842,14 @@ ${reportName}`,
                 upcoming: '予定',
                 done: '完了',
                 canceled: 'キャンセル済み',
+                outstanding: '未払い',
+                rejected: '却下されました',
             },
         },
         tabs: {
             expenseReports: '経費精算書',
             reports: 'レポート',
+            myReports: '自分のレポート',
             expenses: '経費',
             submit: '下書き',
             approve: '承認が必要',
@@ -12696,6 +12706,7 @@ ${reportName}`,
             other: (count: number) => `${count}日前`,
         }),
         offlineMessage: 'オフラインです。レポート履歴が最新ではない可能性があります。',
+        toMarkAsDone: '完了としてマークする',
     },
 };
 export default translations;
