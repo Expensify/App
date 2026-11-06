@@ -57,14 +57,15 @@ If the credentials appear correct but the error persists:
 4. Copy the new token ID and token secret.
 5. Update the credentials in the Workspace.
 6. Click **Save**.
-7. Click **Sync Now** under **Settings > Workspaces > Accounting**.
+7. Select **Workspaces > [workspace name] > Connections**, select **Configure** next to NetSuite, select **More (⋮)**, then select **Sync now**.
 
 ### Retry the Sync
 
 1. Go to **Settings > Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
-4. Click **Sync Now**.
+3. Select **Connections**, then select **Configure** next to NetSuite.
+4. Select **More (⋮)**.
+5. Select **Sync now**.
 
 If the credentials are valid, syncing should resume successfully.
 
