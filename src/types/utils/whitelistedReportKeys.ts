@@ -67,7 +67,6 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         errorFields: unknown;
         errors: unknown;
         isWaitingOnBankAccount: unknown;
-        requiresGlobalReimbursement: unknown;
         canCancelReimbursement: unknown;
         isWaitingForCancelledReimbursement: unknown;
         isCancelledIOU: unknown;

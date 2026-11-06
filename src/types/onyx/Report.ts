@@ -85,6 +85,12 @@ type ReportNextStep = {
 
     /** Currency the submitter's deposit account must use for direct reimbursement, named in the waitingForSubmitterAccount copy */
     requiredDepositCurrency?: string;
+
+    /** Whether paying from the workspace reimbursement account sends this report through a global provider */
+    requiresGlobalReimbursement?: boolean;
+
+    /** Currency the submitter receives the reimbursement in */
+    depositCurrency?: string;
 };
 
 /** Model of report data */
@@ -246,9 +252,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         errors?: OnyxCommon.Errors;
 
         isWaitingOnBankAccount?: boolean;
-
-        /** Whether paying from the workspace reimbursement account sends this report through a global provider */
-        requiresGlobalReimbursement?: boolean;
 
         /** Whether Auth still allows the bank reimbursement to be cancelled, returned by OpenReport */
         canCancelReimbursement?: boolean;

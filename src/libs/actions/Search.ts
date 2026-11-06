@@ -717,7 +717,6 @@ function getPayActionCallback({
             bankAccountList,
             isWiseReimbursementsBetaEnabled,
             iouReport: snapshotReport,
-            iouReportTransactions,
             policy: paymentPolicy,
         })
     ) {
