@@ -8,6 +8,13 @@ import {getIsMuted, SOUNDS, withMinimalExecutionTime} from './BaseSound';
 
 const config = {prefix: '/sounds/'};
 
+function getErrorMessage(error: unknown) {
+    if (error !== null && (typeof error === 'object' || typeof error === 'function') && 'message' in error) {
+        return error.message;
+    }
+    return undefined;
+}
+
 function cacheSoundAssets() {
     // Exit early if the Cache API is not available in the current browser.
     if (!('caches' in window)) {
@@ -36,10 +43,10 @@ const initializeAndPlaySound = (src: string) => {
         src: [src],
         format: ['mp3'],
         onloaderror: (_id: number, error: unknown) => {
-            Log.alert('[sound] Load error:', {message: (error as Error).message});
+            Log.alert('[sound] Load error:', {message: getErrorMessage(error)});
         },
         onplayerror: (_id: number, error: unknown) => {
-            Log.alert('[sound] Play error:', {message: (error as Error).message});
+            Log.alert('[sound] Play error:', {message: getErrorMessage(error)});
         },
     });
     sound.play();
@@ -87,7 +94,7 @@ function clearSoundAssetsCache() {
             Log.alert('[sound] Failed to clear sound assets cache.');
         })
         .catch((error) => {
-            Log.alert('[sound] Error clearing sound assets cache:', {message: (error as Error).message});
+            Log.alert('[sound] Error clearing sound assets cache:', {message: getErrorMessage(error)});
         });
 }
 
