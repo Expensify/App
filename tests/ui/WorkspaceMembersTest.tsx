@@ -242,6 +242,7 @@ describe('WorkspaceMembers', () => {
     describe('Travel admins', () => {
         const makeSelfTravelAdmin = async () => {
             await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.TRAVEL_MEMBER_ACCESS]);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
                     role: CONST.POLICY.ROLE.TRAVEL_ADMIN,
                     travelSettings: {spotnanaCompanyID: 'spotnanaCompanyID', hasAcceptedTerms: true},
