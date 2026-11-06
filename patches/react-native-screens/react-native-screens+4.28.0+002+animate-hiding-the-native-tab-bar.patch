@@ -148,12 +148,10 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponen
    }
    return self;
  }
-@@ -119,8 +245,219 @@
-       strongSelf->_controller = nil;
-     }
+@@ -121,6 +247,224 @@
    });
-+}
-+
+ }
+ 
 +#pragma mark - Tab bar visibility
 +
 +static UIView *_Nullable RNSDirectChildAncestor(UIView *_Nullable view, UIView *container)
@@ -259,6 +257,8 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponen
 +        } else if (!hiding) {
 +          [tabController setTabBarHidden:NO animated:NO];
 +        }
++        // The screen sliding over the bar has the display's rounded corners, which UIKit exposes only through this
++        // private key. Without it the picture is cut along a square edge.
 +        NSString *radiusKey = @"_displayCornerRadius";
 +        CGFloat cornerRadius = [window.screen respondsToSelector:NSSelectorFromString(radiusKey)]
 +            ? [[window.screen valueForKey:radiusKey] doubleValue]
@@ -292,11 +292,16 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponen
 +        auto strongSelf = weakSelf;
 +        if (strongSelf != nil) {
 +          strongSelf->_tabBarTransitionCoordinator = nil;
-+          [strongSelf->_controller setTabBarHidden:context.isCancelled ? !hiding : hiding animated:NO];
++          BOOL endsHidden = context.isCancelled ? !hiding : hiding;
++          [strongSelf->_controller setTabBarHidden:endsHidden animated:NO];
++          // The prop may have changed while the transition owned the bar, as with a back tap during a push.
++          if (endsHidden != strongSelf->_tabBarHidden) {
++            [strongSelf applyTabBarHiddenWithFade];
++          }
 +        }
 +      }];
- }
- 
++}
++
 +/**
 + * UIKit's hide animation on iOS 26 clears the tab items before it fades the glass, while its show animation brings both
 + * in together. When no stack transition moves the bar, it fades out as a whole instead and is hidden without animation
@@ -368,7 +373,7 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponen
  #pragma mark - UIView methods
  
  - (void)didMoveToWindow
-@@ -242,9 +579,16 @@
+@@ -242,9 +586,16 @@
  
    if (newComponentProps.tabBarHidden != oldComponentProps.tabBarHidden) {
      _tabBarHidden = newComponentProps.tabBarHidden;
