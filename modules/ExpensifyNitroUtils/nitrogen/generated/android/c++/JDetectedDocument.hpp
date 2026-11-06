@@ -12,6 +12,7 @@
 
 #include "DocumentCorner.hpp"
 #include "JDocumentCorner.hpp"
+#include <optional>
 #include <vector>
 
 namespace margelo::nitro::utils {
@@ -37,6 +38,8 @@ namespace margelo::nitro::utils {
       jni::local_ref<jni::JArrayClass<JDocumentCorner>> corners = this->getFieldValue(fieldCorners);
       static const auto fieldConfidence = clazz->getField<double>("confidence");
       double confidence = this->getFieldValue(fieldConfidence);
+      static const auto fieldOutline = clazz->getField<jni::JArrayClass<JDocumentCorner>>("outline");
+      jni::local_ref<jni::JArrayClass<JDocumentCorner>> outline = this->getFieldValue(fieldOutline);
       return DetectedDocument(
         [&](auto&& __input) {
           size_t __size = __input->size();
@@ -48,7 +51,17 @@ namespace margelo::nitro::utils {
           }
           return __vector;
         }(corners),
-        confidence
+        confidence,
+        outline != nullptr ? std::make_optional([&](auto&& __input) {
+          size_t __size = __input->size();
+          std::vector<DocumentCorner> __vector;
+          __vector.reserve(__size);
+          for (size_t __i = 0; __i < __size; __i++) {
+            auto __element = __input->getElement(__i);
+            __vector.push_back(__element->toCpp());
+          }
+          return __vector;
+        }(outline)) : std::nullopt
       );
     }
 
@@ -58,7 +71,7 @@ namespace margelo::nitro::utils {
      */
     [[maybe_unused]]
     static jni::local_ref<JDetectedDocument::javaobject> fromCpp(const DetectedDocument& value) {
-      using JSignature = JDetectedDocument(jni::alias_ref<jni::JArrayClass<JDocumentCorner>>, double);
+      using JSignature = JDetectedDocument(jni::alias_ref<jni::JArrayClass<JDocumentCorner>>, double, jni::alias_ref<jni::JArrayClass<JDocumentCorner>>);
       static const auto clazz = javaClassStatic();
       static const auto create = clazz->getStaticMethod<JSignature>("fromCpp");
       return create(
@@ -73,7 +86,17 @@ namespace margelo::nitro::utils {
           }
           return __array;
         }(value.corners),
-        value.confidence
+        value.confidence,
+        value.outline.has_value() ? [&](auto&& __input) {
+          size_t __size = __input.size();
+          jni::local_ref<jni::JArrayClass<JDocumentCorner>> __array = jni::JArrayClass<JDocumentCorner>::newArray(__size);
+          for (size_t __i = 0; __i < __size; __i++) {
+            const auto& __element = __input[__i];
+            auto __elementJni = JDocumentCorner::fromCpp(__element);
+            __array->setElement(__i, *__elementJni);
+          }
+          return __array;
+        }(value.outline.value()) : nullptr
       );
     }
   };

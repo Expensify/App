@@ -58,9 +58,10 @@ type ScannerControlsBarProps = {
     /** Toggles multi-scan mode on or off */
     toggleMultiScan?: () => void;
 
+    /** Whether receipt enhancements are currently on */
     isReceiptEnhancementEnabled?: boolean;
 
-    /** Turns receipt enhancements on or off. Leave it out to keep the bar without the button, with flash after the shutter as before */
+    /** Turns receipt enhancements on or off. When omitted the bar has no enhancement button and flash stays after the shutter */
     toggleReceiptEnhancement?: () => void;
 
     /** Sentry label for the gallery button. Defaults to the scan labels */
@@ -97,6 +98,7 @@ function ScannerControlsBar({
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'Gallery', 'ReceiptMultiple', 'Sparkles', 'boltSlash']);
     const hasReceiptEnhancementButton = !!toggleReceiptEnhancement;
 
+    // Empty View matching the gallery icon size so justifyContentAround keeps the shutter exactly centered
     const spacer = <View style={StyleUtils.getWidthAndHeightStyle(variables.iconSizeMenuItem)} />;
 
     const flashButton = setFlash ? (

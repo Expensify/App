@@ -13,6 +13,8 @@ function getDocumentDetectorNitroModule(): DocumentDetectorModule | null {
         try {
             documentDetectorNitroModule = NitroModules.createHybridObject<DocumentDetectorModule>('DocumentDetectorModule');
         } catch {
+            // Builds whose native code predates the detector don't register it. Detection is then unavailable rather than
+            // breaking the scan screen.
             documentDetectorNitroModule = null;
         }
     }

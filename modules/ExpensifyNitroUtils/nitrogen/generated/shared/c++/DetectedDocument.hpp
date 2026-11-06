@@ -33,6 +33,7 @@ namespace margelo::nitro::utils { struct DocumentCorner; }
 
 #include "DocumentCorner.hpp"
 #include <vector>
+#include <optional>
 
 namespace margelo::nitro::utils {
 
@@ -43,10 +44,11 @@ namespace margelo::nitro::utils {
   public:
     std::vector<DocumentCorner> corners     SWIFT_PRIVATE;
     double confidence     SWIFT_PRIVATE;
+    std::optional<std::vector<DocumentCorner>> outline     SWIFT_PRIVATE;
 
   public:
     DetectedDocument() = default;
-    explicit DetectedDocument(std::vector<DocumentCorner> corners, double confidence): corners(corners), confidence(confidence) {}
+    explicit DetectedDocument(std::vector<DocumentCorner> corners, double confidence, std::optional<std::vector<DocumentCorner>> outline): corners(corners), confidence(confidence), outline(outline) {}
 
   public:
     friend bool operator==(const DetectedDocument& lhs, const DetectedDocument& rhs) = default;
@@ -63,13 +65,15 @@ namespace margelo::nitro {
       jsi::Object obj = arg.asObject(runtime);
       return margelo::nitro::utils::DetectedDocument(
         JSIConverter<std::vector<margelo::nitro::utils::DocumentCorner>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "corners"))),
-        JSIConverter<double>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "confidence")))
+        JSIConverter<double>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "confidence"))),
+        JSIConverter<std::optional<std::vector<margelo::nitro::utils::DocumentCorner>>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "outline")))
       );
     }
     static inline jsi::Value toJSI(jsi::Runtime& runtime, const margelo::nitro::utils::DetectedDocument& arg) {
       jsi::Object obj(runtime);
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "corners"), JSIConverter<std::vector<margelo::nitro::utils::DocumentCorner>>::toJSI(runtime, arg.corners));
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "confidence"), JSIConverter<double>::toJSI(runtime, arg.confidence));
+      obj.setProperty(runtime, PropNameIDCache::get(runtime, "outline"), JSIConverter<std::optional<std::vector<margelo::nitro::utils::DocumentCorner>>>::toJSI(runtime, arg.outline));
       return obj;
     }
     static inline bool canConvert(jsi::Runtime& runtime, const jsi::Value& value) {
@@ -82,6 +86,7 @@ namespace margelo::nitro {
       }
       if (!JSIConverter<std::vector<margelo::nitro::utils::DocumentCorner>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "corners")))) return false;
       if (!JSIConverter<double>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "confidence")))) return false;
+      if (!JSIConverter<std::optional<std::vector<margelo::nitro::utils::DocumentCorner>>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "outline")))) return false;
       return true;
     }
   };

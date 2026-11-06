@@ -1,4 +1,4 @@
-/** Draws the detected receipt as a four-sided outline over the camera viewfinder, gliding toward each new detection. */
+/** Draws the detected receipt's edge as an outline over the camera viewfinder, gliding toward each new detection. */
 import useTheme from '@hooks/useTheme';
 
 import type {SharedValue} from 'react-native-reanimated';
@@ -8,7 +8,12 @@ import React from 'react';
 import {StyleSheet} from 'react-native';
 import {useDerivedValue, useFrameCallback, useSharedValue} from 'react-native-reanimated';
 
-import type DocumentQuad from './types';
+import type {DocumentEdge} from './types';
+
+import {EDGE_POINTS_PER_SIDE} from './edgeGeometry';
+
+// A module-level value, not the import: under Worklets Bundle Mode a worklet must not capture an import.
+const POINTS_PER_SIDE = EDGE_POINTS_PER_SIDE;
 
 const STROKE_WIDTH = 2;
 const FILL_OPACITY = 0.3;
@@ -19,26 +24,27 @@ const FILL_GRADIENT_END = 0.9958;
 
 const ALPHA_CHANNEL_INDEX = 3;
 
-const GLIDE_TIME_CONSTANT_MS = 40;
+// Detections arrive about every 90 ms, so a shorter glide snaps to each one and the outline moves in steps.
+const GLIDE_TIME_CONSTANT_MS = 60;
 
 const SETTLED_DISTANCE = 0.25;
 
 const DEFAULT_FRAME_MS = 16;
 
 type DocumentOutlineProps = {
-    quad: SharedValue<DocumentQuad | null>;
+    edge: SharedValue<DocumentEdge | null>;
 };
 
-function DocumentOutline({quad}: DocumentOutlineProps) {
+function DocumentOutline({edge}: DocumentOutlineProps) {
     const theme = useTheme();
 
-    const shownQuad = useSharedValue<DocumentQuad | null>(null);
+    const shownEdge = useSharedValue<DocumentEdge | null>(null);
     useFrameCallback((frameInfo) => {
-        const target = quad.get();
-        const current = shownQuad.get();
+        const target = edge.get();
+        const current = shownEdge.get();
         if (!target || !current || current.length !== target.length) {
             if (current !== target) {
-                shownQuad.set(target);
+                shownEdge.set(target);
             }
             return;
         }
@@ -51,7 +57,7 @@ function DocumentOutline({quad}: DocumentOutlineProps) {
             return;
         }
         const progress = 1 - Math.exp(-(frameInfo.timeSincePreviousFrame ?? DEFAULT_FRAME_MS) / GLIDE_TIME_CONSTANT_MS);
-        shownQuad.set(
+        shownEdge.set(
             target.map((point, index) => {
                 const from = current.at(index) ?? point;
                 return {
@@ -64,14 +70,41 @@ function DocumentOutline({quad}: DocumentOutlineProps) {
 
     const path = useDerivedValue(() => {
         const outline = Skia.Path.Make();
-        const corners = shownQuad.get();
-        const [first, ...rest] = corners ?? [];
+        const points = shownEdge.get() ?? [];
+        const first = points.at(0);
         if (!first) {
             return outline;
         }
         outline.moveTo(first.x, first.y);
-        for (const corner of rest) {
-            outline.lineTo(corner.x, corner.y);
+        if (points.length % POINTS_PER_SIDE !== 0) {
+            for (let index = 1; index < points.length; index++) {
+                const point = points.at(index);
+                if (point) {
+                    outline.lineTo(point.x, point.y);
+                }
+            }
+            outline.close();
+            return outline;
+        }
+        for (let side = 0; side < points.length; side += POINTS_PER_SIDE) {
+            const corner = points.at(side);
+            const nextCorner = points.at((side + POINTS_PER_SIDE) % points.length);
+            const firstPoint = points.at(side + 1);
+            if (!corner || !nextCorner || !firstPoint) {
+                continue;
+            }
+            // Curves through the midpoints between points draw the paper's edge as one smooth line, while the straight runs
+            // into and out of each corner keep the corners sharp.
+            outline.lineTo((corner.x + firstPoint.x) / 2, (corner.y + firstPoint.y) / 2);
+            for (let index = side + 1; index < side + POINTS_PER_SIDE; index++) {
+                const point = points.at(index);
+                const following = index + 1 < side + POINTS_PER_SIDE ? points.at(index + 1) : nextCorner;
+                if (!point || !following) {
+                    continue;
+                }
+                outline.quadTo(point.x, point.y, (point.x + following.x) / 2, (point.y + following.y) / 2);
+            }
+            outline.lineTo(nextCorner.x, nextCorner.y);
         }
         outline.close();
         return outline;
@@ -79,8 +112,8 @@ function DocumentOutline({quad}: DocumentOutlineProps) {
 
     // Skia only takes stops between 0 and 1, so the CSS stops outside that range move the ends of the gradient line instead.
     const fillGradient = useDerivedValue(() => {
-        const corners = shownQuad.get() ?? [];
-        if (corners.length === 0) {
+        const points = shownEdge.get() ?? [];
+        if (points.length === 0) {
             return {start: vec(0, 0), end: vec(0, 0)};
         }
         // A loop, not map callbacks: React Compiler hoists callbacks that capture nothing out of the worklet, and the UI
@@ -89,7 +122,7 @@ function DocumentOutline({quad}: DocumentOutlineProps) {
         let top = Infinity;
         let right = -Infinity;
         let bottom = -Infinity;
-        for (const point of corners) {
+        for (const point of points) {
             left = Math.min(left, point.x);
             top = Math.min(top, point.y);
             right = Math.max(right, point.x);

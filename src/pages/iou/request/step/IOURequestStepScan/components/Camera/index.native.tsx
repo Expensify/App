@@ -28,7 +28,7 @@ import MultiScanEducationalModal from '@pages/iou/request/step/IOURequestStepSca
 import ReceiptPreviews from '@pages/iou/request/step/IOURequestStepScan/components/ReceiptPreviews';
 import ScannerControlsBar from '@pages/iou/request/step/IOURequestStepScan/components/ScannerControlsBar';
 import DocumentOutline from '@pages/iou/request/step/IOURequestStepScan/documentDetection/DocumentOutline';
-import IS_DOCUMENT_DETECTION_SUPPORTED from '@pages/iou/request/step/IOURequestStepScan/documentDetection/isDocumentDetectionSupported';
+import isDocumentDetectionSupported from '@pages/iou/request/step/IOURequestStepScan/documentDetection/isDocumentDetectionSupported';
 import ReceiptEnhancementToast from '@pages/iou/request/step/IOURequestStepScan/documentDetection/ReceiptEnhancementToast';
 import useDocumentEdgeDetection from '@pages/iou/request/step/IOURequestStepScan/documentDetection/useDocumentEdgeDetection';
 import useCameraInitTelemetry from '@pages/iou/request/step/IOURequestStepScan/hooks/useCameraInitTelemetry';
@@ -96,7 +96,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         cameraFocusIndicatorAnimatedStyle,
     } = useNativeCamera({onFocusStart, onFocusCleanup});
 
-    const canUseReceiptEnhancement = IS_DOCUMENT_DETECTION_SUPPORTED && isBetaEnabled(CONST.BETAS.RECEIPT_ENHANCEMENT);
+    const canUseReceiptEnhancement = isDocumentDetectionSupported() && isBetaEnabled(CONST.BETAS.RECEIPT_ENHANCEMENT);
     const [isReceiptEnhancementEnabled = false] = useOnyx(ONYXKEYS.IS_RECEIPT_ENHANCEMENT_ENABLED);
     const [isReceiptEnhancementToastVisible, setIsReceiptEnhancementToastVisible] = useState(false);
     const shouldDetectDocument = canUseReceiptEnhancement && isReceiptEnhancementEnabled && !isMultiScanEnabled;
@@ -143,7 +143,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
 
     // VisionCamera restarts the session, blanking the preview, whenever an output or the photo size changes.
     const {photoOutput, cameraAspectRatio, updatePhotoResolution} = useReceiptPhotoOutput(cameraPlatformConfig.scanQualityPrioritization, isInLandscapeMode, canUseReceiptEnhancement);
-    const {frameOutput, quad: documentQuad} = useDocumentEdgeDetection({cameraRef: camera, isEnabled: shouldDetectDocument});
+    const {frameOutput, edge: documentEdge} = useDocumentEdgeDetection({cameraRef: camera, isEnabled: shouldDetectDocument});
     const outputs = canUseReceiptEnhancement ? [photoOutput, frameOutput] : [photoOutput];
 
     // Blink animation for shutter feedback
@@ -350,6 +350,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                             onConfigured={finishCameraSetup}
                             onStarted={relightTorchAfterRestart}
                             onSessionConfigSelected={handleSessionConfigSelected}
+                            // With receipt enhancement, the controls bar shows flash next to the shutter, so the viewport doesn't show it too.
                             shouldShowFlashButton={canUseMultiScan && !canUseReceiptEnhancement}
                             cameraPermissionStatus={cameraPermissionStatus}
                             flash={flash}
@@ -358,7 +359,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                             overlay={
                                 shouldDetectDocument && !didCapturePhoto ? (
                                     <>
-                                        <DocumentOutline quad={documentQuad} />
+                                        <DocumentOutline edge={documentEdge} />
                                         {isReceiptEnhancementToastVisible && <ReceiptEnhancementToast onHide={hideReceiptEnhancementToast} />}
                                     </>
                                 ) : null

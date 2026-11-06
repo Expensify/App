@@ -23,7 +23,10 @@ data class DetectedDocument(
   val corners: Array<DocumentCorner>,
   @DoNotStrip
   @Keep
-  val confidence: Double
+  val confidence: Double,
+  @DoNotStrip
+  @Keep
+  val outline: Array<DocumentCorner>?
 ) {
   /* primary constructor */
 
@@ -32,12 +35,14 @@ data class DetectedDocument(
     if (other !is DetectedDocument) return false
     return Objects.deepEquals(this.corners, other.corners)
       && Objects.deepEquals(this.confidence, other.confidence)
+      && Objects.deepEquals(this.outline, other.outline)
   }
 
   override fun hashCode(): Int {
     return arrayOf<Any?>(
       corners,
-      confidence
+      confidence,
+      outline
     ).contentDeepHashCode()
   }
 
@@ -49,8 +54,8 @@ data class DetectedDocument(
     @Keep
     @Suppress("unused")
     @JvmStatic
-    private fun fromCpp(corners: Array<DocumentCorner>, confidence: Double): DetectedDocument {
-      return DetectedDocument(corners, confidence)
+    private fun fromCpp(corners: Array<DocumentCorner>, confidence: Double, outline: Array<DocumentCorner>?): DetectedDocument {
+      return DetectedDocument(corners, confidence, outline)
     }
   }
 }

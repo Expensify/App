@@ -18,14 +18,26 @@ public extension DetectedDocument {
   /**
    * Create a new instance of `DetectedDocument`.
    */
-  init(corners: [DocumentCorner], confidence: Double) {
+  init(corners: [DocumentCorner], confidence: Double, outline: [DocumentCorner]?) {
     self.init({ () -> bridge.std__vector_DocumentCorner_ in
       var __vector = bridge.create_std__vector_DocumentCorner_(corners.count)
       for __item in corners {
         __vector.push_back(__item)
       }
       return __vector
-    }(), confidence)
+    }(), confidence, { () -> bridge.std__optional_std__vector_DocumentCorner__ in
+      if let __unwrappedValue = outline {
+        return bridge.create_std__optional_std__vector_DocumentCorner__({ () -> bridge.std__vector_DocumentCorner_ in
+          var __vector = bridge.create_std__vector_DocumentCorner_(__unwrappedValue.count)
+          for __item in __unwrappedValue {
+            __vector.push_back(__item)
+          }
+          return __vector
+        }())
+      } else {
+        return .init()
+      }
+    }())
   }
 
   @inline(__always)
@@ -36,5 +48,17 @@ public extension DetectedDocument {
   @inline(__always)
   var confidence: Double {
     return self.__confidence
+  }
+  
+  @inline(__always)
+  var outline: [DocumentCorner]? {
+    return { () -> [DocumentCorner]? in
+      if bridge.has_value_std__optional_std__vector_DocumentCorner__(self.__outline) {
+        let __unwrapped = bridge.get_std__optional_std__vector_DocumentCorner__(self.__outline)
+        return __unwrapped.map({ __item in __item })
+      } else {
+        return nil
+      }
+    }()
   }
 }

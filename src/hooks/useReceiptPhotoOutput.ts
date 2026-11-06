@@ -18,7 +18,9 @@ import {usePhotoOutput} from 'react-native-vision-camera';
 
 const PHOTO_TARGET_RESOLUTION = {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT};
 
-// On the iPhone 14 Pro's main lens, the ~5 MP format shows ~1.41x less in the preview than in the frames.
+// Receipt enhancement draws the outline from the detection frames over the preview. With the ~5 MP format the preview
+// shows a narrower view than the frames (~1.41x on the iPhone 14 Pro's main lens), so the outline wouldn't line up with
+// the receipt. The full-sensor format gives both the same view.
 const FULL_SENSOR_PHOTO_TARGET_RESOLUTION = {width: 4032, height: 3024};
 
 function useReceiptPhotoOutput(qualityPrioritization: QualityPrioritization, isInLandscapeMode: boolean, shouldUseFullSensorResolution = false) {

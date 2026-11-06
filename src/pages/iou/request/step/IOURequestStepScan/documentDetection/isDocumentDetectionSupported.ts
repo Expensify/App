@@ -1,5 +1,7 @@
 import {getDocumentDetectorNitroModule} from '@expensify/nitro-utils';
 
-const IS_DOCUMENT_DETECTION_SUPPORTED = getDocumentDetectorNitroModule()?.isSupported === true;
+function isDocumentDetectionSupported(): boolean {
+    return getDocumentDetectorNitroModule()?.isSupported === true;
+}
 
-export default IS_DOCUMENT_DETECTION_SUPPORTED;
+export default isDocumentDetectionSupported;

@@ -9,6 +9,8 @@ type DetectedDocument = {
     corners: DocumentCorner[];
 
     confidence: number;
+
+    outline?: DocumentCorner[];
 };
 
 type YuvFrame = {

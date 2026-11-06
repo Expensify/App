@@ -11,13 +11,19 @@ import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import kotlin.math.abs
 import kotlin.math.atan2
+import kotlin.math.ceil
 import kotlin.math.exp
+import kotlin.math.floor
 import kotlin.math.hypot
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
-// DocQuadNet-256 is from MakeACopy (https://github.com/egdels/makeacopy), Apache-2.0.
+/**
+ * Finds the receipt in the scan camera's frames on Android. Runs the DocQuadNet-256 model on each YUV frame, follows the
+ * receipt from frame to frame, and bends the four-cornered shape onto the paper's real edge for the outline drawn in JS.
+ * DocQuadNet-256 is from MakeACopy (https://github.com/egdels/makeacopy), Apache-2.0.
+ */
 class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
     override val memorySize: Long = 0L
 
@@ -42,9 +48,9 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
     private var session: OrtSession? = null
     private var didFailToLoad = false
     private val input: FloatBuffer =
-        ByteBuffer.allocateDirect(3 * INPUT_SIZE * INPUT_SIZE * 4).order(ByteOrder.nativeOrder()).asFloatBuffer()
+        ByteBuffer.allocateDirect(INPUT_CHANNELS * INPUT_SIZE * INPUT_SIZE * Float.SIZE_BYTES).order(ByteOrder.nativeOrder()).asFloatBuffer()
     private var heatmaps = FloatArray(4 * HEATMAP_SIZE * HEATMAP_SIZE)
-    private val inputValues = FloatArray(3 * INPUT_SIZE * INPUT_SIZE)
+    private val inputValues = FloatArray(INPUT_CHANNELS * INPUT_SIZE * INPUT_SIZE)
     private val columnAxis = IntArray(INPUT_SIZE * AXIS_FIELDS)
     private val rowAxis = IntArray(INPUT_SIZE * AXIS_FIELDS)
     private val mask = FloatArray(HEATMAP_SIZE * HEATMAP_SIZE)
@@ -100,10 +106,12 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
         val isRectangle = rectangle != null
         val iou = if (isRectangle) computeMaskIou(corners, first) else 0.0
 
+        var isSnapped = false
         if (isRectangle && iou >= MIN_MASK_IOU) {
             val snapped = snapToEdges(corners, width, height, frame.yRowStride.toInt(), rotation, uprightWidth, uprightHeight)
             if (snapped != null && computeRectangleShapeError(snapped.first, getMaxAngleDeviation(rebuiltCorner)) <= 1.0) {
                 corners = snapped.first
+                isSnapped = true
             }
         }
         val finishedAt = SystemClock.uptimeMillis()
@@ -131,11 +139,289 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
         pendingCorners = null
         isPendingFromFullFrame = false
 
-        val result =
-            corners.map { point ->
-                DocumentCorner(toBufferX(point[0], point[1], width, rotation) / width, toBufferY(point[0], point[1], height, rotation) / height)
+        val toDocumentCorner = { point: DoubleArray ->
+            DocumentCorner(toBufferX(point[0], point[1], width, rotation) / width, toBufferY(point[0], point[1], height, rotation) / height)
+        }
+        val rowStride = frame.yRowStride.toInt()
+        val readLuma = LumaReader(width, height, rowStride, rotation, uprightWidth, uprightHeight)
+        val outline = bendOutline(corners, first, uprightWidth, uprightHeight, readLuma, isSnapped)
+        return DetectedDocument(corners.map(toDocumentCorner).toTypedArray(), confidence, outline?.map(toDocumentCorner)?.toTypedArray())
+    }
+
+    private fun bendOutline(corners: Array<DoubleArray>, pass: Pass, uprightWidth: Int, uprightHeight: Int, readLuma: LumaReader, isSnapped: Boolean): Array<DoubleArray>? {
+        val shorterSide = (0 until 4).minOf { side -> hypot(corners[(side + 1) % 4][0] - corners[side][0], corners[(side + 1) % 4][1] - corners[side][1]) }
+        val band = BEND_BAND * shorterSide
+        val margin = FRAME_MARGIN * min(uprightWidth, uprightHeight)
+        if (corners.any { it[0] < margin || it[1] < margin || it[0] > uprightWidth - margin || it[1] > uprightHeight - margin }) {
+            return null
+        }
+        val step = HEATMAP_STRIDE / pass.scale / 2
+        val lumaSearch = LUMA_SEARCH_CELLS * 2 * step
+        val edgeHits = IntArray(2)
+        val centreX = corners.sumOf { it[0] } / 4
+        val centreY = corners.sumOf { it[1] } / 4
+        val bentCorners = Array(4) { corner ->
+            val point = corners[corner]
+            // At its tip the paper is only a sliver, too thin for a clear brightness step, so the step search below stops
+            // short of it and the corner is drawn rounded.
+            findPaperTip(point, corners[(corner + 3) % 4], corners[(corner + 1) % 4], band, readLuma)?.let { return@Array it }
+            val diagonal = hypot(point[0] - centreX, point[1] - centreY)
+            val directionX = (point[0] - centreX) / diagonal
+            val directionY = (point[1] - centreY) / diagonal
+            val found = findMaskBorder(point[0], point[1], directionX, directionY, band, step, pass) ?: 0.0
+            val edge = findLumaEdge(point[0], point[1], directionX, directionY, -band, max(found, 0.0) + lumaSearch, readLuma, shouldPreferOutermost = true)
+            val offset = (edge ?: if (found < 0) min(0.0, found + 2 * step) else found).coerceIn(-band, 2 * step)
+            doubleArrayOf(point[0] + directionX * offset, point[1] + directionY * offset)
+        }
+        val outline = ArrayList<DoubleArray>(4 * OUTLINE_POINTS_PER_SIDE)
+        for (side in 0 until 4) {
+            val a = bentCorners[side]
+            val b = bentCorners[(side + 1) % 4]
+            val length = hypot(b[0] - a[0], b[1] - a[1])
+            var normalX = (b[1] - a[1]) / length
+            var normalY = -(b[0] - a[0]) / length
+            if (normalX * ((a[0] + b[0]) / 2 - centreX) + normalY * ((a[1] + b[1]) / 2 - centreY) < 0) {
+                normalX = -normalX
+                normalY = -normalY
             }
-        return DetectedDocument(result.toTypedArray(), confidence)
+            val offsets = bendSide(a, b, normalX, normalY, band, step, pass, readLuma, edgeHits, isSnapped) ?: return null
+            for (point in 0 until OUTLINE_POINTS_PER_SIDE) {
+                val t = point.toDouble() / OUTLINE_POINTS_PER_SIDE
+                outline.add(
+                    doubleArrayOf(
+                        a[0] + (b[0] - a[0]) * t + normalX * offsets[point],
+                        a[1] + (b[1] - a[1]) * t + normalY * offsets[point],
+                    ),
+                )
+            }
+        }
+        if (outline.any { it[0] < 0 || it[1] < 0 || it[0] > uprightWidth || it[1] > uprightHeight } || isSelfIntersecting(outline)) {
+            return null
+        }
+        if (edgeHits[0] < MIN_EDGE_HIT_SHARE * edgeHits[1]) {
+            return null
+        }
+        return outline.toTypedArray()
+    }
+
+    private fun bendSide(a: DoubleArray, b: DoubleArray, normalX: Double, normalY: Double, band: Double, step: Double, pass: Pass, readLuma: LumaReader, edgeHits: IntArray, isSnapped: Boolean): DoubleArray? {
+        val found = arrayOfNulls<Double>(OUTLINE_POINTS_PER_SIDE)
+        for (point in 1 until OUTLINE_POINTS_PER_SIDE) {
+            val t = point.toDouble() / OUTLINE_POINTS_PER_SIDE
+            found[point] = findMaskBorder(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, normalX, normalY, band, step, pass)
+        }
+        val foundOffsets = found.filterNotNull().sorted()
+        val pointsBetweenCorners = OUTLINE_POINTS_PER_SIDE - 1
+        if (foundOffsets.size * 2 <= pointsBetweenCorners) {
+            return null
+        }
+        val maskCell = 2 * step
+        val median = foundOffsets[foundOffsets.size / 2]
+        // A snapped side already sits on the paper's brightness edge, so a push shared by the whole side is the mask's own
+        // error and is removed, all but one cell: snapping lands a little inside a curled side.
+        val removedShift = if (isSnapped) median - median.coerceIn(-maskCell, maskCell) else 0.0
+        val offsets = DoubleArray(OUTLINE_POINTS_PER_SIDE)
+        var clamped = 0
+        for (point in 1 until OUTLINE_POINTS_PER_SIDE) {
+            val offset = (found[point] ?: median) - removedShift
+            if (abs(offset) > band) {
+                clamped++
+            }
+            offsets[point] = offset.coerceIn(-band, band)
+        }
+        if (clamped * 2 > pointsBetweenCorners) {
+            return null
+        }
+        val lumaSearch = LUMA_SEARCH_CELLS * maskCell
+        val isOnPaper = BooleanArray(OUTLINE_POINTS_PER_SIDE)
+        for (point in 1 until OUTLINE_POINTS_PER_SIDE) {
+            val t = point.toDouble() / OUTLINE_POINTS_PER_SIDE
+            val x = a[0] + (b[0] - a[0]) * t
+            val y = a[1] + (b[1] - a[1]) * t
+            val edge = findLumaEdge(x, y, normalX, normalY, offsets[point] - lumaSearch, offsets[point] + lumaSearch, readLuma)
+            edgeHits[1]++
+            if (edge != null) {
+                offsets[point] = edge.coerceIn(-band, band)
+                edgeHits[0]++
+            }
+            // Paper the mask stopped short of, like a strip below a fold, is still paper-bright. A shadow is darker, so it can't
+            // pull the point onto the table. Without that, points next to a corner only move out by a cell: a curled
+            // corner's shadow runs along both sides there.
+            val paperEdge = findPaperBoundary(x, y, normalX, normalY, band, readLuma)
+            if (paperEdge != null && paperEdge > offsets[point]) {
+                offsets[point] = paperEdge
+                isOnPaper[point] = true
+            } else if (min(point, OUTLINE_POINTS_PER_SIDE - point) <= CORNER_POINTS) {
+                offsets[point] = min(offsets[point], maskCell)
+            }
+        }
+        // A point far from both neighbors caught something that isn't the paper. Points confirmed over paper stay: next to a
+        // corner, a curled flap is only a point or two wide.
+        val filtered = offsets.copyOf()
+        for (point in 1 until OUTLINE_POINTS_PER_SIDE) {
+            if (isOnPaper[point]) {
+                continue
+            }
+            val next = if (point + 1 < OUTLINE_POINTS_PER_SIDE) offsets[point + 1] else 0.0
+            val median = getMedianOfThree(offsets[point - 1], offsets[point], next)
+            if (abs(offsets[point] - median) > maskCell) {
+                filtered[point] = median
+            }
+        }
+        val smooth = filtered.copyOf()
+        for (point in 1 until OUTLINE_POINTS_PER_SIDE) {
+            val next = if (point + 1 < OUTLINE_POINTS_PER_SIDE) filtered[point + 1] else 0.0
+            smooth[point] = (filtered[point - 1] + 2 * filtered[point] + next) / 4
+        }
+        return smooth
+    }
+
+    // The paper spot reaching furthest along the corner's bisector. A walk along the line from the receipt's centre missed
+    // the tip on a long receipt, where that line runs steeply.
+    private fun findPaperTip(corner: DoubleArray, previous: DoubleArray, next: DoubleArray, radius: Double, readLuma: LumaReader): DoubleArray? {
+        val toPreviousLength = hypot(previous[0] - corner[0], previous[1] - corner[1])
+        val toNextLength = hypot(next[0] - corner[0], next[1] - corner[1])
+        if (toPreviousLength <= 0 || toNextLength <= 0 || radius < 1) {
+            return null
+        }
+        var outwardX = -((previous[0] - corner[0]) / toPreviousLength + (next[0] - corner[0]) / toNextLength)
+        var outwardY = -((previous[1] - corner[1]) / toPreviousLength + (next[1] - corner[1]) / toNextLength)
+        val outwardLength = hypot(outwardX, outwardY)
+        if (outwardLength < 1e-6) {
+            return null
+        }
+        outwardX /= outwardLength
+        outwardY /= outwardLength
+        fun read(offsetX: Double, offsetY: Double): Int = readLuma.read(corner[0] + offsetX, corner[1] + offsetY)
+        val insideSamples = doubleArrayOf(0.3, 0.45, 0.6, 0.75, 0.9).map { read(-outwardX * radius * it, -outwardY * radius * it) }.sorted()
+        val paper = insideSamples[insideSamples.size - 2]
+        val outsideSamples = doubleArrayOf(1.6, 1.8, 2.0).map { read(outwardX * radius * it, outwardY * radius * it) }.sorted()
+        val background = outsideSamples[1]
+        if (paper - background < MIN_TIP_CONTRAST) {
+            return null
+        }
+        val threshold = background + TIP_PAPER_SHARE * (paper - background)
+        val steps = ceil(radius).toInt()
+        var bestX = 0.0
+        var bestY = 0.0
+        var bestReach = Double.NEGATIVE_INFINITY
+        for (row in -steps..steps) {
+            for (column in -steps..steps) {
+                val offsetX = column.toDouble()
+                val offsetY = row.toDouble()
+                if (offsetX * offsetX + offsetY * offsetY > radius * radius) {
+                    continue
+                }
+                val reach = offsetX * outwardX + offsetY * outwardY
+                if (reach <= bestReach) {
+                    continue
+                }
+                if (read(offsetX, offsetY) < threshold ||
+                    read(offsetX - outwardX * TIP_BACKING_PIXELS / 4, offsetY - outwardY * TIP_BACKING_PIXELS / 4) < threshold ||
+                    read(offsetX - outwardX * TIP_BACKING_PIXELS / 2, offsetY - outwardY * TIP_BACKING_PIXELS / 2) < threshold ||
+                    read(offsetX - outwardX * TIP_BACKING_PIXELS, offsetY - outwardY * TIP_BACKING_PIXELS) < threshold
+                ) {
+                    continue
+                }
+                bestX = offsetX
+                bestY = offsetY
+                bestReach = reach
+            }
+        }
+        if (bestReach == Double.NEGATIVE_INFINITY) {
+            return null
+        }
+        return doubleArrayOf(corner[0] + bestX, corner[1] + bestY)
+    }
+
+    private fun findPaperBoundary(x: Double, y: Double, normalX: Double, normalY: Double, limit: Double, readLuma: LumaReader): Double? {
+        fun read(distance: Double): Int = readLuma.read(x + normalX * distance, y + normalY * distance)
+        val insideSamples = doubleArrayOf(0.5, 0.75, 1.0, 1.25, 1.5).map { read(-limit * it) }.sorted()
+        val paper = insideSamples[insideSamples.size - 2]
+        val outsideSamples = doubleArrayOf(1.6, 1.8, 2.0).map { read(limit * it) }.sorted()
+        val background = outsideSamples[1]
+        if (paper - background < MIN_TIP_CONTRAST) {
+            return null
+        }
+        val threshold = background + TIP_PAPER_SHARE * (paper - background)
+        var distance = limit
+        while (distance >= -limit) {
+            if (read(distance) >= threshold &&
+                read(distance - TIP_BACKING_PIXELS / 4) >= threshold &&
+                read(distance - TIP_BACKING_PIXELS / 2) >= threshold &&
+                read(distance - TIP_BACKING_PIXELS) >= threshold
+            ) {
+                return distance
+            }
+            distance -= 1.0
+        }
+        return null
+    }
+
+    private fun findLumaEdge(x: Double, y: Double, normalX: Double, normalY: Double, from: Double, to: Double, readLuma: LumaReader, shouldPreferOutermost: Boolean = false): Double? {
+        var best: Double? = null
+        var bestContrast = MIN_EDGE_CONTRAST
+        var outermost: Double? = null
+        var outermostContrast = 0.0
+        var distance = from
+        while (distance <= to) {
+            val inside = readLuma.read(x + normalX * (distance - EDGE_PROBE), y + normalY * (distance - EDGE_PROBE))
+            val outside = readLuma.read(x + normalX * (distance + EDGE_PROBE), y + normalY * (distance + EDGE_PROBE))
+            val contrast = (inside - outside).toDouble()
+            if (contrast > bestContrast) {
+                bestContrast = contrast
+                best = distance
+            }
+            if (contrast >= MIN_EDGE_CONTRAST) {
+                outermost = distance
+                outermostContrast = contrast
+            }
+            distance += 1.0
+        }
+        if (shouldPreferOutermost && outermost != null && outermostContrast >= OUTERMOST_EDGE_SHARE * bestContrast) {
+            return outermost
+        }
+        return best
+    }
+
+    private fun findMaskBorder(x: Double, y: Double, normalX: Double, normalY: Double, band: Double, step: Double, pass: Pass): Double? {
+        val stepsPerSide = max(1, ceil(band / step).toInt())
+        var nearest: Double? = null
+        var previousDistance = 0.0
+        var previousValue = 0.0
+        for (index in 0..2 * stepsPerSide) {
+            val distance = -band + index * band / stepsPerSide
+            val value = getMaskLogitAt(x + normalX * distance, y + normalY * distance, pass)
+            if (value.isNaN()) {
+                return null
+            }
+            if (index > 0 && previousValue > 0 && value <= 0) {
+                val crossing = previousDistance + (distance - previousDistance) * previousValue / (previousValue - value)
+                if (nearest == null || abs(crossing) < abs(nearest)) {
+                    nearest = crossing
+                }
+            }
+            previousDistance = distance
+            previousValue = value
+        }
+        return nearest
+    }
+
+    private fun getMaskLogitAt(x: Double, y: Double, pass: Pass): Double {
+        val cellX = ((x - pass.region.x) * pass.scale + pass.offsetX) / HEATMAP_STRIDE - 0.5
+        val cellY = ((y - pass.region.y) * pass.scale + pass.offsetY) / HEATMAP_STRIDE - 0.5
+        val left = floor(cellX).toInt()
+        val top = floor(cellY).toInt()
+        if (left < 0 || top < 0 || left + 1 >= HEATMAP_SIZE || top + 1 >= HEATMAP_SIZE) {
+            return Double.NaN
+        }
+        val shareX = cellX - left
+        val shareY = cellY - top
+        val upperIndex = top * HEATMAP_SIZE + left
+        val lowerIndex = upperIndex + HEATMAP_SIZE
+        val upper = pass.mask[upperIndex] * (1 - shareX) + pass.mask[upperIndex + 1] * shareX
+        val lower = pass.mask[lowerIndex] * (1 - shareX) + pass.mask[lowerIndex + 1] * shareX
+        return upper * (1 - shareY) + lower * shareY
     }
 
     private fun toRectangle(corners: Array<DoubleArray>, peaks: DoubleArray): Rectangle? {
@@ -152,8 +438,8 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
             val previous = corners[(rebuilt + 3) % 4]
             val next = corners[(rebuilt + 1) % 4]
             val opposite = corners[(rebuilt + 2) % 4]
-            // A receipt seen from above is close to a parallelogram, so a missing corner is the sum of its neighbors
-            // minus the opposite corner.
+            // A receipt seen from above is close to a parallelogram, so a missing corner is the sum of its neighbors minus the
+            // opposite corner.
             val candidate = Array(4) { if (it == rebuilt) doubleArrayOf(previous[0] + next[0] - opposite[0], previous[1] + next[1] - opposite[1]) else corners[it] }
             if (!isClockwiseConvex(candidate)) {
                 continue
@@ -301,6 +587,11 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
             }
         }
         return if (isClockwiseConvex(snapped)) Pair(snapped, movedSides) else null
+    }
+
+    // A class, not a lambda: a lambda taking and returning numbers boxes every argument and result, thousands per frame.
+    private inner class LumaReader(val width: Int, val height: Int, val rowStride: Int, val rotation: Int, val uprightWidth: Int, val uprightHeight: Int) {
+        fun read(x: Double, y: Double): Int = readLumaAt(x, y, width, height, rowStride, rotation, uprightWidth, uprightHeight)
     }
 
     private fun readLumaAt(x: Double, y: Double, width: Int, height: Int, rowStride: Int, rotation: Int, uprightWidth: Int, uprightHeight: Int): Int {
@@ -539,11 +830,15 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
 
     companion object {
         private const val TAG = "DocumentDetector"
+
+        private fun getMedianOfThree(a: Double, b: Double, c: Double): Double = max(min(a, b), min(max(a, b), c))
         private const val MODEL_ASSET_PATH = "docquad/docquadnet256_trained_opset17.ort"
         private const val INPUT_NAME = "input"
         private const val CORNERS_OUTPUT_NAME = "corner_heatmaps"
         private const val MASK_OUTPUT_NAME = "mask_logits"
         private const val INPUT_SIZE = 256
+
+        private const val INPUT_CHANNELS = 3
         private const val HEATMAP_SIZE = 64
         private const val HEATMAP_STRIDE = INPUT_SIZE.toDouble() / HEATMAP_SIZE
 
@@ -574,7 +869,7 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
 
         private const val MAX_AREA_CHANGE = 1.4
 
-        private const val MAX_CENTRE_SHIFT = 0.33
+        private const val MAX_CENTRE_SHIFT = 0.5
 
         private const val CONFIRM_WINDOW_MS = 300L
 
@@ -596,6 +891,31 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
         private const val MIN_EDGE_CONTRAST = 6.0
 
         private const val SNAP_MAX_CORNER_SHIFT = 2.0
+
+        // Same as the iOS detector and EDGE_POINTS_PER_SIDE in JS.
+        private const val OUTLINE_POINTS_PER_SIDE = 24
+
+        private const val LUMA_SEARCH_CELLS = 1.5
+
+        private const val EDGE_PROBE = 2.0
+
+        private const val FRAME_MARGIN = 0.02
+
+        private const val CORNER_POINTS = 3
+
+        private const val MIN_TIP_CONTRAST = 30
+
+        private const val TIP_BACKING_PIXELS = 8.0
+
+        // Halfway between background and paper brightness let a pale streak in a light wooden table pass, and a corner
+        // jumped onto it.
+        private const val TIP_PAPER_SHARE = 0.75
+
+        private const val OUTERMOST_EDGE_SHARE = 0.5
+
+        private const val MIN_EDGE_HIT_SHARE = 0.7
+
+        private const val BEND_BAND = 0.15
 
         private fun applySigmoid(value: Double) = 1 / (1 + exp(-value))
 
@@ -670,6 +990,27 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
             }
             return true
         }
+
+        private fun isSelfIntersecting(points: List<DoubleArray>): Boolean {
+            val count = points.size
+            for (first in 0 until count) {
+                for (second in first + 2 until count) {
+                    if (first == 0 && second == count - 1) {
+                        continue
+                    }
+                    if (doSegmentsCross(points[first], points[(first + 1) % count], points[second], points[(second + 1) % count])) {
+                        return true
+                    }
+                }
+            }
+            return false
+        }
+
+        private fun doSegmentsCross(a: DoubleArray, b: DoubleArray, c: DoubleArray, d: DoubleArray): Boolean =
+            computeTurn(c, d, a) * computeTurn(c, d, b) < 0 && computeTurn(a, b, c) * computeTurn(a, b, d) < 0
+
+        private fun computeTurn(from: DoubleArray, to: DoubleArray, point: DoubleArray): Double =
+            (to[0] - from[0]) * (point[1] - from[1]) - (to[1] - from[1]) * (point[0] - from[0])
 
         private fun isClockwiseConvex(corners: Array<DoubleArray>): Boolean {
             for (index in 0 until 4) {

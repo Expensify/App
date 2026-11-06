@@ -247,6 +247,21 @@ namespace margelo::nitro::utils::bridge::swift {
     return vector;
   }
   
+  // pragma MARK: std::optional<std::vector<DocumentCorner>>
+  /**
+   * Specialized version of `std::optional<std::vector<DocumentCorner>>`.
+   */
+  using std__optional_std__vector_DocumentCorner__ = std::optional<std::vector<DocumentCorner>>;
+  inline std::optional<std::vector<DocumentCorner>> create_std__optional_std__vector_DocumentCorner__(const std::vector<DocumentCorner>& value) noexcept {
+    return std::optional<std::vector<DocumentCorner>>(value);
+  }
+  inline bool has_value_std__optional_std__vector_DocumentCorner__(const std::optional<std::vector<DocumentCorner>>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline std::vector<DocumentCorner> get_std__optional_std__vector_DocumentCorner__(const std::optional<std::vector<DocumentCorner>>& optional) noexcept {
+    return optional.value();
+  }
+  
   // pragma MARK: std::optional<DetectedDocument>
   /**
    * Specialized version of `std::optional<DetectedDocument>`.
