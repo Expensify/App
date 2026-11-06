@@ -17,7 +17,7 @@ type ExpenseReportListItemRowNarrowProps = {
 type ExpenseReportListItemRowWideProps = ExpenseReportListItemRowNarrowProps & {
     reportActions?: ReportAction[];
     isActionLoading?: boolean;
-    onButtonPress?: () => void;
+    onButtonPress?: () => void | Promise<void>;
     chatReport?: OnyxEntry<Report>;
     shouldDisableActionPointerEvents?: boolean;
     columns?: SearchColumnType[];

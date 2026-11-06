@@ -203,7 +203,7 @@ function SearchStaticList({
 
         return (
             <PressableWithoutFeedback
-                sentryLabel="SearchStaticList-item"
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.STATIC_LIST_ITEM}
                 accessibilityRole="button"
                 accessibilityLabel=""
                 onPress={() => onPressItem(item)}
@@ -284,7 +284,7 @@ function SearchStaticList({
                 ]}
             >
                 <PressableWithoutFeedback
-                    sentryLabel="SearchStaticList-wide-item"
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.STATIC_LIST_WIDE_ITEM}
                     accessibilityRole="button"
                     accessibilityLabel=""
                     onPress={() => onPressItem(item)}

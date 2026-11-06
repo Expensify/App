@@ -119,7 +119,7 @@ function RecentlyAddedSection() {
     const overflowMenu = hasExpenses ? (
         <WidgetHeaderMenu
             testID="recentlyAddedOverflowMenu"
-            sentryLabel="RecentlyAddedOverflowMenu"
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.RECENTLY_ADDED_OVERFLOW_MENU}
             menuItems={[
                 {
                     text: translate('homePage.recentlyAddedSection.viewAll'),

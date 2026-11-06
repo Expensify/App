@@ -9,7 +9,7 @@ internalScope: Audience is all members. Covers how to update profile, status, pr
 
 Expensify allows you to personalize your experience by customizing your profile, preferences, and notifications. This guide shows you how to update your photo, language, timezone, notification settings, and more—all from **Account**.
 
-You can access **Account** in the navigation tabs (on the left on web, on the bottom on mobile).
+On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 
 ---
 
@@ -33,7 +33,7 @@ You can update the following profile settings:
 
 To upload or update a profile photo:
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Profile**.
 3. Select the edit icon next to your profile image.
 4. Select **Upload photo** and choose a new photo.
@@ -44,7 +44,7 @@ To upload or update a profile photo:
 
 To use an avatar instead of a profile photo:
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Profile**.
 3. Select the edit icon next to your profile image.
 4. Scroll down to **Or choose a custom avatar**.
@@ -57,7 +57,7 @@ To use an avatar instead of a profile photo:
 
 To manually set or update your timezone:
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Profile > Time zone**.
 3. Disable **Automatically determine your location**.
 4. Choose your timezone from the list.
@@ -70,7 +70,7 @@ To manually set or update your timezone:
 To set or change your language:
 
 1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
-2.  Select **Preferences > Language**.
+2. Select **Preferences > Language**.
 3. Choose your preferred language from the list.
 
 A checkmark confirms the selected language, and your account updates automatically to the new language.
@@ -101,7 +101,7 @@ Expensify supports the following languages:
 
 To manage notification settings:
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Preferences**.
 3. Under **App preferences**, enable or disable these toggles:
    - **Receive relevant feature updates and Expensify news**
@@ -113,7 +113,7 @@ To manage notification settings:
 
 Set your profile status with an emoji and optional message.
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Profile > Status**.
 3. Enter your custom message.
 4. (Optional) Add an emoji.
@@ -126,7 +126,7 @@ Set your profile status with an emoji and optional message.
 
 To set or update your pronouns:
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Profile > Pronouns**.
 3. Type a word or letters into the **Search to see options** field. No pronouns are listed until you type a search term.
 4. Select your pronouns from the search results.
@@ -138,7 +138,7 @@ To set or update your pronouns:
 
 To change the app’s appearance:
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Preferences > Theme**.
 3. Choose **Light**, **Dark**, or **Use device settings**.
 4. Select **Save**.
@@ -149,7 +149,7 @@ To change the app’s appearance:
 
 High contrast mode increases the visual contrast of UI elements, making text and controls easier to distinguish.
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Preferences > Theme**.
 3. Enable **High contrast mode**.
 4. Select **Save**.
@@ -162,7 +162,7 @@ You can also enable high contrast mode from the [login page](https://new.expensi
 
 To update your legal name, date of birth, phone number, or address:
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Profile**.
 3. Scroll to the **Private** section.
 4. Select **Legal name**, **Date of birth**, **Phone number**, or **Address**.
@@ -180,13 +180,13 @@ If no address is saved, the **Country** field is pre-filled based on your curren
 
 To edit your display name:
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Profile > Display name**.
 3. Enter your preferred name and select **Save**.
 
 To edit your legal name:
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Profile**.
 3. Scroll to **Private** and select **Legal name**.
 4. Enter the updated information and select **Save**.
@@ -205,7 +205,7 @@ No. It only changes the language of your user interface, not the content of your
 ## Can I disable all Expensify app notifications?
 Yes. To mute notifications:
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Preferences**.
 3. Disable **Receive relevant feature updates and Expensify news** and enable **Mute all sounds from Expensify**.
 

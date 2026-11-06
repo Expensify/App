@@ -7,6 +7,7 @@ import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 
 import Onyx from 'react-native-onyx';
@@ -56,7 +57,7 @@ function useSwitchToDelegator() {
         switchAccount();
     };
 
-    const switchToDelegator = async (email: string) => {
+    const switchToDelegator = async (email: string, routeAfterSwitch?: Route) => {
         if (isOffline) {
             modalClose(() => showOfflineModal());
             return;
@@ -86,7 +87,7 @@ function useSwitchToDelegator() {
         }
         const switchAccount = isReturningToOriginalUser
             ? () => disconnect({stashedCredentials: stashedCredentials ?? CONST.EMPTY_OBJECT, stashedSession})
-            : () => connect({email, delegatedAccess, credentials, session, activePolicyID});
+            : () => connect({email, delegatedAccess, credentials, session, activePolicyID, routeAfterSwitch});
         if (isTrackingSelector(gpsDraftDetails)) {
             await menuClosed;
             showGpsInProgressModal(switchAccount);
