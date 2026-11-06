@@ -10843,6 +10843,7 @@ const CONST = {
             DASHBOARD_TAB: 'Insights-DashboardTab',
             CHART_MENU: 'Insights-ChartMenu',
             TABLE_ROW: 'Insights-TableRow',
+            DETAILS_VIEW_ALL: 'Insights-DetailsViewAll',
             CONTROL_POPUP_APPLY: {
                 DATE: 'Insights-ControlPopupApply-Date',
                 WORKSPACE: 'Insights-ControlPopupApply-Workspace',

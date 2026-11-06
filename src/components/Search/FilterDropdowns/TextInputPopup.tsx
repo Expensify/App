@@ -3,6 +3,7 @@ import TextInput from '@components/TextInput';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
@@ -18,8 +19,8 @@ type TextInputPopupProps = {
     onBackButtonPress?: () => void;
     closeOverlay: () => void;
     onChange: (value: string) => void;
-    applySentryLabel: string;
-    resetSentryLabel: string;
+    applySentryLabel: SentryLabel;
+    resetSentryLabel: SentryLabel;
 };
 
 function TextInputPopup({style, defaultValue, label, placeholder, onBackButtonPress, closeOverlay, onChange, applySentryLabel, resetSentryLabel}: TextInputPopupProps) {
