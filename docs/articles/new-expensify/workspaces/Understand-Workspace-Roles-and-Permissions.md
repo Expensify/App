@@ -15,7 +15,7 @@ A **workspace member** is anyone added to a workspace, regardless of their role.
 
 ## What each workspace role can do
 
-The roles available depend on your workspace plan. [Learn how to change your workspace plan](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Change-Your-Workspace-Plan#how-to-switch-between-the-collect-and-control-plans).
+The roles available depend on your workspace plan. 
 
 | Role | Permissions | Availability |
 |---|---|---|
