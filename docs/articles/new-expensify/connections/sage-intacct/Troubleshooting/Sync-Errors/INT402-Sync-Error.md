@@ -60,7 +60,7 @@ Ensure the integration user has access to view and retrieve values for the dimen
 
 1. Go to **Settings > Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
+3. Select **Connections**, then select **Configure** next to Sage Intacct.
 4. Open the coding or dimension settings section.
 5. Disable the affected user-defined dimension.
 6. Save your changes.
@@ -75,8 +75,9 @@ Reconfiguring ensures the Workspace is aligned with the current Sage Intacct dim
 
 1. Go to **Settings > Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
-4. Click **Sync Now**.
+3. Select **Connections**, then select **Configure** next to Sage Intacct.
+4. Select **More (⋮)**.
+5. Select **Sync now**.
 
 If the dimension is properly configured and permissions are correct, the sync should complete successfully.
 

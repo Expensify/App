@@ -1,6 +1,5 @@
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
 import RenderHTML from '@components/RenderHTML';
@@ -18,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isWiseOnboardingSubmitted} from '@libs/BankAccountUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import {isWiseGlobalReimbursementsIntroPath} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import Navigation from '@navigation/Navigation';
@@ -140,16 +140,18 @@ function WiseAcceptTermsPage({route}: WiseAcceptTermsPageProps) {
     const hasSubmitFinished = hasSubmitStarted && !isSubmitting;
     const isSubmitSuccessful = hasSubmitFinished && !!submission?.isSuccess;
     const pageToFix = hasSubmitFinished && !isSubmitSuccessful ? getPageWithServerError(serverErrorFields) : undefined;
-    const submitError = hasSubmitFinished && !isSubmitSuccessful && !isAlreadySubmitted ? submission?.error : undefined;
+    const submitError = hasSubmitFinished && !isSubmitSuccessful ? submission?.error : undefined;
+    // Once this submission or an earlier one sent the business to Wise, these pages have nothing left to submit
+    const hasWiseBusiness = isSubmitSuccessful || isAlreadySubmitted;
 
     // The back path follows the focused route, so once this page is replaced it no longer ends in the terms and must not navigate again
-    const leaveTermsAfterSubmission = useEffectEvent(() => {
-        if (isSubmitSuccessful) {
+    const leaveTerms = useEffectEvent(() => {
+        if (hasWiseBusiness) {
             clearDraftValues(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
             clearSensitiveAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
             clearWiseOnboardingUnsavedPages();
-            // Wise's hosted form still has to collect the owners and directors, so a submitted business always needs more info at launch
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path, introPath), {forceReplace: true});
+            // Wise's hosted form still has to collect the owners and directors, which the status page asks for while Wise needs more info
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path, introPath), {forceReplace: true});
             return;
         }
         if (!pageToFix) {
@@ -159,17 +161,16 @@ function WiseAcceptTermsPage({route}: WiseAcceptTermsPageProps) {
         openOnboardingPage(pageToFix.key);
     });
 
+    // A deep link renders this page before the root state holds it, so the back path is not this account's intro until then
+    const isIntroPathReady = isWiseGlobalReimbursementsIntroPath(introPath, bankAccountID);
     useEffect(() => {
-        leaveTermsAfterSubmission();
-    }, [isSubmitSuccessful, pageToFix]);
-
-    const confirm = () => {
-        if (isAlreadySubmitted) {
-            clearDraftValues(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
-            clearSensitiveAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
-            Navigation.dismissModal();
+        if (!isIntroPathReady) {
             return;
         }
+        leaveTerms();
+    }, [hasWiseBusiness, pageToFix, isIntroPathReady]);
+
+    const confirm = () => {
         if (!TERM_KEYS.every((key) => accepted[key])) {
             setShouldShowError(true);
             return;
@@ -212,14 +213,6 @@ function WiseAcceptTermsPage({route}: WiseAcceptTermsPageProps) {
                 ))}
                 <View style={styles.flexGrow1} />
                 <View style={styles.mt5}>
-                    {isAlreadySubmitted && (
-                        <FormHelpMessage
-                            style={styles.mb3}
-                            isError={false}
-                            isInfo
-                            message={translate('walletPage.wiseOnboarding.terms.alreadySubmitted')}
-                        />
-                    )}
                     <FormAlertWithSubmitButton
                         buttonText={translate('common.confirm')}
                         onSubmit={confirm}

@@ -316,6 +316,8 @@ function DescribeRuleForm({
             style={style}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
             shouldUseScrollView={shouldUseScrollView}
+            // scrollToInput moves the whole box above the keyboard. If Android also moves the box, the page moves two times.
+            shouldScrollChildToFocus={false}
             submitFlexEnabled={submitFlexEnabled}
             shouldHideFixErrorsAlert
             isSubmitButtonNeutral={!!refusalSuggestedPrompt}

@@ -1754,6 +1754,83 @@ describe('Transaction', () => {
             expect(updatedTransaction?.convertedAmount).toBeFalsy();
         });
 
+        describe('category restrictions when moving expenses', () => {
+            const sourceOwnerAccountID = 2;
+            const destinationOwnerAccountID = 3;
+
+            it.each<{
+                description: string;
+                visibleTo: Record<string, boolean> | undefined;
+                shouldClearViolation: boolean;
+                isDestinationCached: boolean;
+            }>([
+                {description: 'unrestricted category', visibleTo: undefined, shouldClearViolation: true, isDestinationCached: true},
+                {description: 'category restricted to the destination owner', visibleTo: {[destinationOwnerAccountID]: true}, shouldClearViolation: true, isDestinationCached: false},
+                {description: 'category restricted to the source owner', visibleTo: {[sourceOwnerAccountID]: true}, shouldClearViolation: false, isDestinationCached: true},
+                {description: 'category restricted to the editor', visibleTo: {[CURRENT_USER_ID]: true}, shouldClearViolation: false, isDestinationCached: false},
+            ])('recalculates categoryNotAllowed for $description', async ({visibleTo, shouldClearViolation, isDestinationCached}) => {
+                // Given a restricted expense whose source owner, destination owner, and editor are different people
+                const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+                const policy = createRandomPolicy(77, CONST.POLICY.TYPE.TEAM);
+                const transaction = generateTransaction({reportID: FAKE_OLD_REPORT_ID, category: 'Food'});
+                const oldIOUAction = createIOUAction(transaction);
+                const destinationReport = {...newReport, ownerAccountID: destinationOwnerAccountID, policyID: policy.id};
+                const sourceReport = {...newReport, reportID: FAKE_OLD_REPORT_ID, ownerAccountID: sourceOwnerAccountID};
+                const restrictedCategoryViolation: TransactionViolation = {
+                    name: CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                };
+                const violationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}` as const;
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+
+                // When moving the expense, an optimistic destination may not yet be in the report collection
+                changeTransactionsReport({
+                    isVendorMatchingBetaEnabled: false,
+                    transactionIDs: [transaction.transactionID],
+                    isASAPSubmitBetaEnabled: false,
+                    accountID: CURRENT_USER_ID,
+                    email: 'test@example.com',
+                    currentUserPersonalDetails,
+                    newReport: destinationReport,
+                    policy,
+                    policyCategories: {Food: {name: 'Food', enabled: true, visibleTo}},
+                    allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction},
+                    policyTagList: undefined,
+                    reports: {
+                        [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`]: sourceReport,
+                        ...(isDestinationCached ? {[`${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`]: destinationReport} : {}),
+                    },
+                    transactionViolations: {[violationsKey]: [restrictedCategoryViolation]},
+                    isTrackIntentUser: false,
+                    cardList: undefined,
+                });
+                await waitForBatchedUpdates();
+
+                // Then the destination owner's access determines the warning before any server response, with rollback preserved
+                expect(mockAPIWrite).toHaveBeenCalledTimes(1);
+                const onyxData = mockAPIWrite.mock.calls.at(0)?.[2];
+                const optimisticViolations = onyxData?.optimisticData?.find((data) => data.key === violationsKey)?.value;
+                expect(optimisticViolations).toEqual(expect.any(Array));
+                if (shouldClearViolation) {
+                    expect(optimisticViolations).not.toContainEqual(restrictedCategoryViolation);
+                } else {
+                    expect(optimisticViolations).toContainEqual(restrictedCategoryViolation);
+                }
+                expect(onyxData?.optimisticData).toEqual(
+                    expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                            value: expect.objectContaining({reportID: destinationReport.reportID}),
+                        }),
+                    ]),
+                );
+                expect(onyxData?.failureData?.find((data) => data.key === violationsKey)?.value).toEqual([restrictedCategoryViolation]);
+            });
+        });
+
         it('should add missingTag violation when moving to a paid policy with a single-level required tag and the transaction has no tag', async () => {
             const policyID = '77';
             const transaction = generateTransaction({reportID: FAKE_OLD_REPORT_ID});
