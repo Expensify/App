@@ -50,10 +50,10 @@ const TEST_CASES = {
         indicatorColor: defaultTheme.danger,
         status: CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS,
     },
-    hasQBOExportError: {
-        name: 'has QBO export error',
+    hasReimbursementExportError: {
+        name: 'has reimbursement export error',
         indicatorColor: defaultTheme.danger,
-        status: CONST.INDICATOR_STATUS.HAS_QBO_EXPORT_ERROR,
+        status: CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_EXPORT_ERROR,
     },
     hasUberCredentialsError: {
         name: 'has Uber credentials error',
@@ -110,7 +110,7 @@ const getMockForTestCase = ({name}: IndicatorTestCase) =>
                           }),
                       }
                     : {}),
-                ...(name === TEST_CASES.hasQBOExportError.name
+                ...(name === TEST_CASES.hasReimbursementExportError.name
                     ? {
                           quickbooksOnline: createMock<NonNullable<Connections[typeof CONST.POLICY.CONNECTIONS.NAME.QBO]>>({
                               config: {

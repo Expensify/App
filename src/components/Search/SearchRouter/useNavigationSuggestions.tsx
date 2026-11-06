@@ -10,7 +10,6 @@ import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -61,7 +60,7 @@ import {View} from 'react-native';
 
 import type {NavigationSuggestionSourceItem} from './SearchRouterHelpers';
 
-import {buildNavigationSuggestions, getGoToText} from './SearchRouterHelpers';
+import {buildNavigationSuggestions, canQueryMatchNavigationSuggestions, getGoToText} from './SearchRouterHelpers';
 import useCreateNavigationSuggestions from './useCreateNavigationSuggestions';
 
 type TopLevelNavigationIcons = Record<'Home' | 'Inbox' | 'ReceiptMultiple' | 'PieChart' | 'Building' | 'Globe' | 'Gear', IconAsset>;
@@ -99,6 +98,8 @@ const SEARCH_ROUTER_ICON_NAMES = [
 // Saved searches are user-defined searches, not canned destinations, so they are excluded from go-to navigation suggestions.
 const SAVED_SEARCHES_SECTION_PATH = 'search.savedSearchesMenuItemTitle';
 const SECURITY_MATCH_TERMS = ['password', '2fa', 'two factor', 'two-factor'];
+const NO_NAVIGATION_SUGGESTIONS: SearchQueryItem[] = [];
+const NO_NAVIGATION_SUGGESTION_SOURCES: NavigationSuggestionSourceItem[][] = [];
 
 type BuildTopLevelNavigationItemsParams = {
     labels: {
@@ -144,12 +145,6 @@ type BuildWorkspaceNavigationItemsParams = {
     isOffline: boolean;
 
     isVendorMatchingBetaEnabled: boolean;
-
-    /** Whether the Merge ATS beta gating the Recruiting feature is enabled. */
-    isRecruitingBetaEnabled: boolean;
-
-    /** Whether the unified Connections beta replaces the separate connection pages. */
-    isUnifiedConnectionsBetaEnabled: boolean;
 
     /** Whether navigation should use the narrow-layout Workspace flow. */
     shouldUseNarrowLayout: boolean;
@@ -295,8 +290,6 @@ function buildWorkspaceNavigationItems({
     icons,
     isOffline,
     isVendorMatchingBetaEnabled,
-    isRecruitingBetaEnabled,
-    isUnifiedConnectionsBetaEnabled,
     shouldUseNarrowLayout,
     convertToDisplayString,
     getItemText,
@@ -316,8 +309,6 @@ function buildWorkspaceNavigationItems({
                 icons,
                 policyCategories: policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`],
                 isVendorMatchingBetaEnabled,
-                isRecruitingBetaEnabled,
-                isUnifiedConnectionsBetaEnabled,
                 convertToDisplayString,
             });
 
@@ -392,26 +383,30 @@ function buildAccountNavigationItems({sections, rightElement, getItemText, getDe
     );
 }
 
-function useNavigationSuggestions(query: string, shouldWatchForApprovals = true): SearchQueryItem[] {
-    const {translate, localeCompare} = useLocalize();
+// Own hook so React Compiler caches the sources independently of the query.
+function useNavigationSuggestionSources(shouldBuildSources: boolean, shouldWatchForApprovals: boolean): NavigationSuggestionSourceItem[][] {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
-    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(SEARCH_ROUTER_ICON_NAMES);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
     const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
-    const createItems = useCreateNavigationSuggestions(query);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const typeMenuSections = useSearchTypeMenuSectionsForNavigation(shouldWatchForApprovals);
     const {accountMenuItemsData, generalMenuItemsData} = useSettingsNavigationMenuData();
+
+    // A blank query matches nothing, so skip building the sources; workspace menu items are the costliest.
+    if (!shouldBuildSources) {
+        return NO_NAVIGATION_SUGGESTION_SOURCES;
+    }
 
     const topLevelItems = buildTopLevelNavigationItems({
         labels: {
@@ -453,8 +448,6 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
         icons,
         isOffline: !!isOffline,
         isVendorMatchingBetaEnabled: isBetaEnabled(CONST.BETAS.VENDOR_MATCHING),
-        isRecruitingBetaEnabled: isBetaEnabled(CONST.BETAS.MERGE_ATS),
-        isUnifiedConnectionsBetaEnabled,
         shouldUseNarrowLayout,
         convertToDisplayString,
         getItemText: (item) => translate(item.translationKey),
@@ -494,7 +487,20 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
         getDestinationText: (destination) => getGoToText(translate, destination),
     });
 
-    return buildNavigationSuggestions(query, [topLevelItems, spendItems, workspaceItems, domainItems, accountItems, createItems], localeCompare);
+    return [topLevelItems, spendItems, workspaceItems, domainItems, accountItems];
+}
+
+function useNavigationSuggestions(query: string, shouldWatchForApprovals = true): SearchQueryItem[] {
+    const {localeCompare} = useLocalize();
+    const canQueryMatch = canQueryMatchNavigationSuggestions(query);
+    const sources = useNavigationSuggestionSources(canQueryMatch, shouldWatchForApprovals);
+    const createItems = useCreateNavigationSuggestions(query, canQueryMatch);
+
+    if (!canQueryMatch) {
+        return NO_NAVIGATION_SUGGESTIONS;
+    }
+
+    return buildNavigationSuggestions(query, [...sources, createItems], localeCompare);
 }
 
 export default useNavigationSuggestions;

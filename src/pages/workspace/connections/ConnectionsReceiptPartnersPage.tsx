@@ -8,7 +8,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
-import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
@@ -40,7 +39,6 @@ function ConnectionsReceiptPartnersPage({route}: ConnectionsReceiptPartnersPageP
     const buildDynamicRoute = useScreenBoundDynamicRoute();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const {
         policy,
         integrations,
@@ -70,7 +68,7 @@ function ConnectionsReceiptPartnersPage({route}: ConnectionsReceiptPartnersPageP
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
-            shouldBeBlocked={!isUnifiedConnectionsBetaEnabled || (!isLoading && !isUberConnected && !shouldShowEnterCredentialsError)}
+            shouldBeBlocked={!isLoading && !isUberConnected && !shouldShowEnterCredentialsError}
             fullPageNotFoundViewProps={{onBackButtonPress: () => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID))}}
         >
             {isLoading ? (
@@ -119,6 +117,7 @@ function ConnectionsReceiptPartnersPage({route}: ConnectionsReceiptPartnersPageP
                                         titleStyle={styles.pr3}
                                         title={translate('workspace.receiptPartners.uber.autoInvite')}
                                         switchAccessibilityLabel={translate('workspace.receiptPartners.uber.autoInvite')}
+                                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.UBER_AUTO_INVITE_SWITCH}
                                         onToggle={toggleUberAutoInvite}
                                         isActive={isAutoInvite}
                                         disabled={!canWriteMoreFeatures}
@@ -132,6 +131,7 @@ function ConnectionsReceiptPartnersPage({route}: ConnectionsReceiptPartnersPageP
                                         titleStyle={styles.pr3}
                                         title={translate('workspace.receiptPartners.uber.autoRemove')}
                                         switchAccessibilityLabel={translate('workspace.receiptPartners.uber.autoRemove')}
+                                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.UBER_AUTO_REMOVE_SWITCH}
                                         onToggle={toggleUberAutoRemove}
                                         isActive={isAutoRemove}
                                         disabled={!canWriteMoreFeatures}
