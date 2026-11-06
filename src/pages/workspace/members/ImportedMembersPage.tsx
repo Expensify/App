@@ -9,8 +9,8 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import useShouldUseApprovalWorkflowRules from '@hooks/useShouldUseApprovalWorkflowRules';
 
 import {importPolicyMembers, setImportedSpreadsheetMemberData} from '@libs/actions/Policy/Member';
 import Tab from '@libs/actions/Tab';
@@ -62,7 +62,6 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: (rulesCollection) => filterRulesForPolicy(rulesCollection, policyID)});
-    const {isBetaEnabled} = usePermissions();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const canAssignElevatedRoles = canMemberAssignElevatedRole(policy, currentUserLogin);
@@ -77,12 +76,12 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const {containsHeader = true} = spreadsheet ?? {};
     const isControlPolicy = isControlPolicyUtil(policy);
 
-    // With multiple approvers, each row lists every approver of the member's workflow, each with their own limit, instead of
+    // With rules, each row lists every approver of the member's workflow, each with their own limit, instead of
     // the member's own submitsTo, forwardsTo and limit
-    const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
+    const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules(policy);
 
     // Approval workflows don't route any report while approvals are off, so their approvers are only imported while approvals are on
-    const canImportApprovers = isMultipleApproversBetaEnabled && getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    const canImportApprovers = shouldUseApprovalWorkflowRules && getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 
     const columnRoles: ColumnRole[] = [
         {text: translate('common.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
@@ -91,7 +90,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     if (canAssignElevatedRoles) {
         columnRoles.push({text: translate('common.role'), value: CONST.CSV_IMPORT_COLUMNS.ROLE});
     }
-    if (isMultipleApproversBetaEnabled) {
+    if (shouldUseApprovalWorkflowRules) {
         columnRoles.push(
             {text: translate('workspace.common.customField1'), value: CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_1},
             {text: translate('workspace.common.customField2'), value: CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_2},
@@ -145,7 +144,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         const duplicate = findDuplicate(columns);
         if (duplicate) {
             // Approver columns have internal names like approverLimit2, so the error names them by their label instead
-            const duplicateName = isMultipleApproversBetaEnabled ? (columnRoles.find((role) => role.value === duplicate)?.text ?? duplicate) : duplicate;
+            const duplicateName = shouldUseApprovalWorkflowRules ? (columnRoles.find((role) => role.value === duplicate)?.text ?? duplicate) : duplicate;
             return {duplicates: translate('spreadsheet.singleFieldMultipleColumns', duplicateName)};
         }
 
@@ -233,7 +232,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         const membersEmailsColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.EMAIL);
 
         // Approvers are matched against members by email, so both are read the way the backend stores logins
-        const membersEmails = spreadsheet?.data[membersEmailsColumn].map((email) => (isMultipleApproversBetaEnabled ? email.trim().toLowerCase() : email));
+        const membersEmails = spreadsheet?.data[membersEmailsColumn].map((email) => (shouldUseApprovalWorkflowRules ? email.trim().toLowerCase() : email));
         const {approversByRow} = canImportApprovers ? getApprovers() : {approversByRow: []};
         const membersRoles = membersRolesColumn !== -1 ? spreadsheet?.data[membersRolesColumn].map((role) => role) : [];
         const membersSubmitsToColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO);
@@ -270,7 +269,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             }
             const customField1 = membersCustomField1Column !== -1 ? (membersCustomField1?.[containsHeader ? index + 1 : index] ?? '') : undefined;
             const customField2 = membersCustomField2Column !== -1 ? (membersCustomField2?.[containsHeader ? index + 1 : index] ?? '') : undefined;
-            if (isMultipleApproversBetaEnabled) {
+            if (shouldUseApprovalWorkflowRules) {
                 const approvers = approversByRow.at(index) ?? [];
                 return {email, role, customField1, customField2, approvers: approvers.length > 0 ? approvers : undefined};
             }

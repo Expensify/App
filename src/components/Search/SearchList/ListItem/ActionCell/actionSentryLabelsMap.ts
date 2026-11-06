@@ -1,8 +1,9 @@
 import CONST from '@src/CONST';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 // Each action gets its own label, so Sentry can tell their INP apart while the `inp.category` of the action button still groups them.
-const actionSentryLabelsMap: Record<SearchTransactionAction, string> = {
+const actionSentryLabelsMap: Record<SearchTransactionAction, SentryLabel> = {
     [CONST.SEARCH.ACTION_TYPES.VIEW]: CONST.SENTRY_LABEL.SEARCH.ACTION_CELL_VIEW,
     [CONST.SEARCH.ACTION_TYPES.SUBMIT]: CONST.SENTRY_LABEL.SEARCH.ACTION_CELL_ACTION.SUBMIT,
     [CONST.SEARCH.ACTION_TYPES.APPROVE]: CONST.SENTRY_LABEL.SEARCH.ACTION_CELL_ACTION.APPROVE,

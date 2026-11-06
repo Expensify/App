@@ -92,6 +92,7 @@ function BaseTextInput({
     onClearInput,
     iconContainerStyle,
     clearButtonStyle,
+    clearButtonSentryLabel,
     clearButtonIconSize,
     shouldUseDefaultLineHeightForPrefix = true,
     ref,
@@ -251,12 +252,14 @@ function BaseTextInput({
     const inputValue = value ?? '';
     const hasValue = inputValue.length > 0 || hasValueRef.current;
 
-    // Activate or deactivate the label when either focus changes, or for controlled
-    // components when the value prop changes:
+    // Keep the label clear of values and adornments, including changes while the input is blurred.
     useEffect(() => {
         if (
             hasValue ||
             isFocused ||
+            forceActiveLabel ||
+            !!prefixCharacter ||
+            !!suffixCharacter ||
             // If the text has been supplied by Chrome autofill, the value state is not synced with the value
             // as Chrome doesn't trigger a change event. When there is autofill text, keep the label activated.
             isInputAutoFilled(input.current)
@@ -265,7 +268,7 @@ function BaseTextInput({
         } else {
             deactivateLabel();
         }
-    }, [activateLabel, deactivateLabel, hasValue, isFocused]);
+    }, [activateLabel, deactivateLabel, forceActiveLabel, hasValue, isFocused, prefixCharacter, suffixCharacter]);
 
     // When the value prop gets cleared externally, we need to keep the ref in sync:
     useEffect(() => {
@@ -581,7 +584,7 @@ function BaseTextInput({
                                             }}
                                             iconSize={clearButtonIconSize}
                                             style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), clearButtonStyle]}
-                                            sentryLabel={sentryLabel ? `${sentryLabel}-ClearButton` : undefined}
+                                            sentryLabel={clearButtonSentryLabel}
                                         />
                                     </View>
                                 )}

@@ -109,7 +109,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                             onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: viewAllQuery}))}
                             accessibilityRole={CONST.ROLE.LINK}
                             accessibilityLabel={translate('insightsPage.viewAll')}
-                            sentryLabel="Insights-DetailsViewAll"
+                            sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.DETAILS_VIEW_ALL}
                             style={[styles.flexRow, styles.alignItemsCenter, styles.alignSelfStart, styles.gap1]}
                         >
                             <Text style={styles.link}>{translate('insightsPage.viewAll')}</Text>
