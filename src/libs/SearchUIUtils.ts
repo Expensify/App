@@ -7746,7 +7746,8 @@ function canChangeWorkspaceOfSearchReport(
     if (!report || !isExpenseReportUtil(report)) {
         return false;
     }
-    const reportActions = Object.values(getReportActionsFromSearchSnapshot(report.reportID, currentSearchResults, allReportActions) ?? {});
+    // The export check falls back to the report's whole history, which the snapshot may only hold part of
+    const reportActions = Object.values(getReportActionsFromSearchSnapshot(report.reportID, currentSearchResults, allReportActions, true) ?? {});
     return isChangeWorkspaceAction(report, policies, currentUserLogin ?? '', getLoginByAccountID(report.ownerAccountID, personalDetails), reportActions);
 }
 

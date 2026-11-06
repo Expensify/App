@@ -18,6 +18,7 @@ import {
 } from '@libs/actions/Search';
 import type * as SearchActions from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {buildOptimisticExportIntegrationAction} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1218,6 +1219,33 @@ describe('useSearchBulkActions - Change workspace', () => {
         });
 
         // Then Change workspace is not offered, the same as the exported report's own menu
+        expect(hasChangeWorkspaceOption(result.current.headerButtonsOptions)).toBe(false);
+    });
+
+    it('hides Change workspace for a report whose export is only in its Onyx history', async () => {
+        // Given an older draft with no export flag, whose export is in Onyx but not in the actions the search returned
+        mockAreAllMatchingItemsSelected = false;
+        mockSelectedReports = [makeSelectedReport({reportID: 'report2'})];
+        await addDraftReport('report2', CURRENT_USER_ACCOUNT_ID);
+        const exportAction = buildOptimisticExportIntegrationAction(CONST.POLICY.CONNECTIONS.NAME.QBO, true);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}report2`, {[exportAction.reportActionID]: exportAction});
+        mockCurrentSearchResults = {
+            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
+            data: {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}report2`]: {
+                    comment1: {reportActionID: 'comment1', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '2025-01-02 00:00:00.000'},
+                },
+            },
+        };
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        // Then Change workspace is not offered, the same as the report's own menu
         expect(hasChangeWorkspaceOption(result.current.headerButtonsOptions)).toBe(false);
     });
 
