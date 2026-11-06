@@ -183,7 +183,6 @@ import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
 import {useAllPersonalDetails} from './usePersonalDetails';
 import usePersonalPolicy from './usePersonalPolicy';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
-import {useDerivedReportNamesByReportIDs} from './useReportAttributes';
 import useReportPDFDownloadModal from './useReportPDFDownloadModal';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
@@ -822,9 +821,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const payableSelectedReports = useMemo(() => selectedReports.filter((report) => report.canPay), [selectedReports]);
     const payableSelectedReportIDs = useMemo(() => payableSelectedReports.map((report) => report.reportID).filter((reportID) => reportID !== undefined), [payableSelectedReports]);
     const payScopedReports = useMemo(() => (payableSelectedReports.length > 0 ? payableSelectedReports : selectedReports), [payableSelectedReports, selectedReports]);
-    // Names of the reports bulk pay goes through, picked the same way as its items, so it can list the reports it skipped the same way Search shows them
-    const selectedReportNames = useDerivedReportNamesByReportIDs(selectedReports.length > 0 ? payableSelectedReportIDs : selectedTransactionReportIDs);
-
     const payScopedReportIDs = useMemo(() => payScopedReports.map((report) => report.reportID).filter((reportID) => reportID !== undefined), [payScopedReports]);
 
     const isCurrencySupportedBulkWallet = isCurrencySupportWalletBulkPay(selectedReports, selectedTransactions);
@@ -1931,7 +1927,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 if (methodID && bankAccountToSetUp) {
                     const skippedReports = reportsNeedingGlobalReimbursementsByBankAccount.get(methodID) ?? {bankAccount: bankAccountToSetUp, reportNames: new Map<string, string>()};
                     // Keyed by reportID because selecting several expenses of one report yields one item per expense
-                    skippedReports.reportNames.set(item.reportID, getReportName(iouReport, selectedReportNames?.[item.reportID]) || translate('common.report'));
+                    skippedReports.reportNames.set(item.reportID, getReportName(iouReport) || translate('common.report'));
                     reportsNeedingGlobalReimbursementsByBankAccount.set(methodID, skippedReports);
                     continue;
                 }
@@ -2060,7 +2056,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             rules,
             showConfirmModal,
             translate,
-            selectedReportNames,
         ],
     );
 
