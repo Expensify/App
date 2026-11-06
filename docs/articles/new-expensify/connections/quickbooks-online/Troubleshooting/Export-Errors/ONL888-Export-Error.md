@@ -44,16 +44,16 @@ After reopening the period, refresh the connection in Expensify.
 
 1. Go to the **Workspaces** navigation tab on the left.
 2. Select your Workspace.
-3. Click **Accounting**.
-4. Click the **three-dot icon** next to the QuickBooks Online connection.
+3. Select **Connections**, then select **Configure** next to QuickBooks Online.
+4. Select **More (⋮)**.
 5. Select **Sync now**.
 
 #### On Mobile
 
 1. Tap the **Workspaces** navigation tab on the bottom.
 2. Select your Workspace.
-3. Tap **Accounting**.
-4. Tap the **three-dot icon** next to the QuickBooks Online connection.
+3. Select **Connections**, then select **Configure** next to QuickBooks Online.
+4. Select **More (⋮)**.
 5. Tap **Sync now**.
 
 Retry exporting the report after the sync completes.
@@ -68,7 +68,7 @@ If you prefer not to reopen the accounting period, change the export date.
 
 1. Go to the **Workspaces** navigation tab on the left.
 2. Select your Workspace.
-3. Click **Accounting**.
+3. Select **Connections**, then select **Configure** next to QuickBooks Online.
 4. Click **Export**.
 5. Select a different export date option that falls outside the closed reporting period:
    - Date of last expense
@@ -80,7 +80,7 @@ If you prefer not to reopen the accounting period, change the export date.
 
 1. Tap the **Workspaces** navigation tab on the bottom.
 2. Select your Workspace.
-3. Tap **Accounting**.
+3. Select **Connections**, then select **Configure** next to QuickBooks Online.
 4. Tap **Export**.
 5. Select a different export date option that falls outside the closed reporting period:
    - Date of last expense

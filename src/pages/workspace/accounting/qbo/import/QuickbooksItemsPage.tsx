@@ -43,6 +43,7 @@ function QuickbooksItemsPage({policy}: WithPolicyProps) {
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}
                 switchAccessibilityLabel={translate('workspace.qbo.items')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.IMPORT_ITEMS_SWITCH}
                 isActive={!!qboConfig?.syncItems}
                 onToggle={(isEnabled) => updateQuickbooksOnlineSyncItems(policyID, isEnabled)}
                 pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_ITEMS], qboConfig?.pendingFields)}

@@ -32,13 +32,28 @@ type CurrencyPopupProps = {
 
     /** Whether the popover keeps a fixed height instead of growing with its content */
     shouldUseFixedPopoverHeight?: boolean;
+
+    applySentryLabel: string;
+    resetSentryLabel: string;
 };
 
 /**
  * Searchable single-select currency picker popup, used by the Search footer's total-spend currency selector
  * and the Display filter's group-currency picker.
  */
-function CurrencyPopup({label, onBackButtonPress, onChange, closeOverlay, value, defaultValue, searchPlaceholder, shouldShowList, shouldUseFixedPopoverHeight}: CurrencyPopupProps) {
+function CurrencyPopup({
+    label,
+    onBackButtonPress,
+    onChange,
+    closeOverlay,
+    value,
+    defaultValue,
+    searchPlaceholder,
+    shouldShowList,
+    shouldUseFixedPopoverHeight,
+    applySentryLabel,
+    resetSentryLabel,
+}: CurrencyPopupProps) {
     const {currencyList} = useCurrencyListState();
     const {getCurrencySymbol} = useCurrencyListActions();
 
@@ -58,6 +73,8 @@ function CurrencyPopup({label, onBackButtonPress, onChange, closeOverlay, value,
             defaultValue={defaultValue}
             shouldShowList={shouldShowList}
             shouldUseFixedPopoverHeight={shouldUseFixedPopoverHeight}
+            applySentryLabel={applySentryLabel}
+            resetSentryLabel={resetSentryLabel}
         />
     );
 }

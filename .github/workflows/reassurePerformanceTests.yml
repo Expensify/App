@@ -3,7 +3,6 @@ name: Reassure Performance Tests
 on:
   pull_request:
     types: [opened, synchronize]
-    branches-ignore: [production]
     # Ordered: the last matching pattern wins.
     paths:
       - '**'
@@ -28,8 +27,8 @@ on:
       - '!config/certificatePinning/**'
       # Lint, format and repo tooling config.
       - '!eslint-plugin-local-rules/**'
-      - '!config/eslint/**'
-      - '!eslint.config.mjs'
+      - '!config/oxlint/**'
+      - '!oxlint.config.mts'
       - '!.oxfmtrc.json'
       - '!cspell.json'
       - '!codecov.yml'

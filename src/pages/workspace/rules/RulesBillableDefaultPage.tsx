@@ -112,6 +112,7 @@ function RulesBillableDefaultPage({
                 <ToggleSettingOptionRow
                     title={translate('workspace.tags.trackBillable')}
                     switchAccessibilityLabel={translate('workspace.tags.trackBillable')}
+                    switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.TRACK_BILLABLE_SWITCH}
                     shouldPlaceSubtitleBelowSwitch
                     wrapperStyle={[styles.mh5, styles.mv4]}
                     isActive={isBillableTrackingEnabled}
