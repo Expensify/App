@@ -6,6 +6,8 @@ import {getAllFields} from '@components/DynamicForm/utils/paginate';
 import type {SummaryGroup} from '@components/SubStepForms/ConfirmationStep';
 import Text from '@components/Text';
 
+import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {DynamicFormPage} from '@src/types/onyx';
@@ -13,6 +15,9 @@ import type {DynamicFormPage} from '@src/types/onyx';
 import type {ReactNode} from 'react';
 
 import React from 'react';
+import Onyx from 'react-native-onyx';
+
+import waitForBatchedUpdatesWithAct from '../../../utils/waitForBatchedUpdatesWithAct';
 
 type CapturedConfirmationStepProps = {
     isLoading?: boolean;
@@ -21,6 +26,7 @@ type CapturedConfirmationStepProps = {
     onFixTheErrorsLinkPressed?: () => void;
     pageSubtitle?: string;
     onNext: () => void;
+    error?: string;
     children?: ReactNode;
 };
 
@@ -59,8 +65,13 @@ function pressConfirm() {
 }
 
 describe('DynamicFormConfirmationPage', () => {
-    beforeEach(() => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
         jest.clearAllMocks();
+        await Onyx.clear();
     });
 
     it('shows Confirm loading while a page saved on the way is still saving', () => {
@@ -146,6 +157,50 @@ describe('DynamicFormConfirmationPage', () => {
 
             // Then nothing is red yet, so a page the user is still reading does not start with errors
             expect(getSortCodeRow()).toEqual(expect.objectContaining({errorText: undefined}));
+            expect(getConfirmationStepProps()?.isFixErrorsAlertVisible).toBe(false);
+        });
+    });
+    describe('answers the server rejected', () => {
+        const pages: DynamicFormPage[] = [
+            {key: 'bank', title: 'Bank', content: [{key: 'swiftCode', type: 'text', required: true, label: 'SWIFT code'}]},
+            {key: 'holder', title: 'Holder', content: [{key: 'fullName', type: 'text', required: true, label: 'Full name'}]},
+        ];
+        const values = {swiftCode: 'AAAAGR22', fullName: 'Todd Clyde'};
+        const getSwiftCodeRow = () =>
+            getConfirmationStepProps()
+                ?.groups?.at(0)
+                ?.rows.find((row) => row.id === 'swiftCode');
+
+        it('marks the rejected row and opens its page from the alert', async () => {
+            // Given a submit the server turned down because of the SWIFT code, as it does for a country it does not pay to, next to the generic failure the screen adds to every failed submit
+            await Onyx.merge(ONYXKEYS.FORMS.DISPLAY_NAME_FORM, {errorFields: {swiftCode: getMicroSecondOnyxErrorWithMessage("Sorry, we don't support payments to this country.")}});
+            const onMove = jest.fn();
+            renderPage({formID: ONYXKEYS.FORMS.DISPLAY_NAME_FORM, pages, allFields: getAllFields(pages), values, onMove, submitError: 'walletPage.addBankAccountFailure'});
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user presses the "fix the errors" link
+            act(() => {
+                getConfirmationStepProps()?.onFixTheErrorsLinkPressed?.();
+            });
+
+            // Then the SWIFT code row says why the server refused it, the generic failure is left out since it says less, and the link opens the bank page
+            expect(getSwiftCodeRow()).toEqual(
+                expect.objectContaining({brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, errorText: "Sorry, we don't support payments to this country."}),
+            );
+            expect(getConfirmationStepProps()?.isFixErrorsAlertVisible).toBe(true);
+            expect(getConfirmationStepProps()?.error).toBeUndefined();
+            expect(onMove).toHaveBeenCalledWith(0);
+        });
+
+        it('keeps the generic failure when the server named no answer', async () => {
+            // Given a failed submit with no error for any single answer
+            // When the confirmation page renders
+            renderPage({pages, allFields: getAllFields(pages), values, submitError: 'walletPage.addBankAccountFailure'});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the generic failure shows and no row is red, since nothing points at one
+            expect(getConfirmationStepProps()?.error).toBe('walletPage.addBankAccountFailure');
+            expect(getSwiftCodeRow()).toEqual(expect.objectContaining({errorText: undefined}));
             expect(getConfirmationStepProps()?.isFixErrorsAlertVisible).toBe(false);
         });
     });
