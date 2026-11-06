@@ -1,7 +1,7 @@
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {ContinueActionParams} from '@components/KYCWall/types';
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
@@ -59,6 +59,7 @@ type SelectPaymentTypeParams = {
     isTrackIntentUser: boolean | undefined;
     ownerLogin: string | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
@@ -141,7 +142,11 @@ function formatPaymentMethods(bankAccountList: Record<string, BankAccount>, fund
     }
 
     for (const card of Object.values(fundList)) {
-        const {icon, iconSize, iconHeight, iconWidth, iconStyles} = getBankIcon({bankName: card?.accountData?.bank, isCard: true, styles});
+        const {icon, iconSize, iconHeight, iconWidth, iconStyles} = getBankIcon({
+            bankName: card?.accountData?.bank,
+            isCard: true,
+            styles,
+        });
         combinedPaymentMethods.push({
             ...card,
             description: getPaymentMethodDescription(card?.accountType, card.accountData, translate),
@@ -244,6 +249,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         isTrackIntentUser,
         ownerLogin,
         getCurrencyDecimals,
+        formatPhoneNumber,
         personalDetailsByLogins,
     } = params;
     if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentAccountID)) {
@@ -266,6 +272,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
             confirmApproval();
         } else {
             approveMoneyRequest({
+                formatPhoneNumber,
                 expenseReport: iouReport,
                 expenseReportPolicy,
                 rules,
@@ -295,7 +302,9 @@ type ApproveActionType = Extract<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>, '
 type PaymentOption = PopoverMenuItem & DropdownOption<ValueOf<typeof CONST.IOU.PAYMENT_TYPE>>;
 type PaymentOrApproveOption = Merge<PaymentOption, {value?: PaymentOption['value'] | ApproveActionType}>;
 type SecondaryActionOption = DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>>;
-type WorkspacePolicyPaymentOption = PopoverMenuItem & {workspacePolicy: Policy};
+type WorkspacePolicyPaymentOption = PopoverMenuItem & {
+    workspacePolicy: Policy;
+};
 
 const isSecondaryActionAPaymentOption = (item: PopoverMenuItem): item is PaymentOption => {
     if (!('value' in item)) {

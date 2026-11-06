@@ -7,6 +7,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
@@ -24,13 +25,16 @@ import {useReportPreviewActions} from './MoneyRequestReportPreviewContext';
 
 function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useReportPreviewActionButtonData>, hasViolations: boolean) {
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const {formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const {isBetaEnabled} = usePermissions();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {startApprovedAnimation} = useReportPreviewActions();
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
+        selector: isTrackIntentUserSelector,
+    });
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const {iouReport, policy, ownerLogin, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd, delegateEmail, delegateAccountID} = actionButtonData;
@@ -41,6 +45,7 @@ function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useRe
         } else {
             approveMoneyRequest({
                 personalDetailsByLogins: getPersonalDetailsByLogin(),
+                formatPhoneNumber,
                 getCurrencyDecimals,
                 expenseReport: iouReport,
                 expenseReportPolicy: policy,

@@ -110,7 +110,7 @@ function useCreateNavigationMatchTerms() {
 
 function useCreateNavigationSuggestions(query = '', shouldBuildItems = true): NavigationSuggestionSourceItem[] {
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Coins', 'Receipt', 'Cash', 'Transfer', 'MoneyCircle', 'Location', 'Document', 'ChatBubble', 'InvoiceGeneric', 'Suitcase', 'NewWorkspace']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -120,15 +120,21 @@ function useCreateNavigationSuggestions(query = '', shouldBuildItems = true): Na
     const isSupportalSession = useIsSupportalSession();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [reportID] = useState(() => generateReportID());
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+        selector: validTransactionDraftIDsSelector,
+    });
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
-    const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: primaryLoginSelector});
+    const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: primaryLoginSelector,
+    });
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
 
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
+        selector: isTrackIntentUserSelector,
+    });
     const [isLoading = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
@@ -158,19 +164,24 @@ function useCreateNavigationSuggestions(query = '', shouldBuildItems = true): Na
                 isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                 policy,
                 isTrackIntentUser,
-                getCurrencyDecimals,
+                {getCurrencyDecimals, formatPhoneNumber},
                 rules,
                 false,
                 shouldDismissEmptyReportsConfirmation,
             );
             // Navigate to the Reports page first so getCreateReportRoute() resolves against
             // the Search/Reports fullscreen context before opening the created report modal.
-            Navigation.navigate(getReportsRootRoute(), {forceReplace: isReportInSearch});
+            Navigation.navigate(getReportsRootRoute(), {
+                forceReplace: isReportInSearch,
+            });
             Navigation.setNavigationActionToMicrotaskQueue(() => {
                 Navigation.navigate(getCreateReportRoute({reportID: createdReportID}), {forceReplace: isReportInSearch});
             });
         },
-        onNavigateToWorkspaceSelection: () => navigateToCreateReportWorkspaceSelection({forceReplace: isOnSearchMoneyRequestReportPage()}),
+        onNavigateToWorkspaceSelection: () =>
+            navigateToCreateReportWorkspaceSelection({
+                forceReplace: isOnSearchMoneyRequestReportPage(),
+            }),
         shouldHandleNavigationBack: false,
         shouldSkipEmptyReportConfirmation: !shouldPrepareCreateReport,
     });
@@ -237,7 +248,9 @@ function useCreateNavigationSuggestions(query = '', shouldBuildItems = true): Na
                 replaceTopmostModalWithAction(() => {
                     // Support agents cannot create chats on a user's behalf, so block before the selector opens.
                     if (isSupportalSession) {
-                        showSupportalPermissionDenied({command: WRITE_COMMANDS.OPEN_REPORT});
+                        showSupportalPermissionDenied({
+                            command: WRITE_COMMANDS.OPEN_REPORT,
+                        });
                         return;
                     }
                     interceptAnonymousUser(startNewChat, session);

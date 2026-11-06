@@ -14,6 +14,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import {formatPhoneNumber} from 'tests/utils/TestHelper';
+
 type MockUseCreateReportParams = {
     onCreateReport: (policy: unknown, shouldDismissEmptyReportsConfirmation?: boolean) => void;
     onNavigateToWorkspaceSelection: () => void;
@@ -41,6 +43,7 @@ const mockHasAcceptedTravelTerms = jest.fn(() => false);
 const mockIsPaidGroupPolicy = jest.fn(() => false);
 const mockIsOnSearchMoneyRequestReportPage = jest.fn(() => false);
 const mockGetCurrencyDecimals = jest.fn();
+const mockFormatPhoneNumber = jest.fn(formatPhoneNumber);
 let mockIsRestrictedPolicyCreation = false;
 let mockOnyxValues = new Map<string, unknown>();
 const mockIcon = () => null;
@@ -56,7 +59,9 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
 }));
 
 jest.mock('@hooks/useCurrencyList', () => ({
-    useCurrencyListActions: () => ({getCurrencyDecimals: mockGetCurrencyDecimals}),
+    useCurrencyListActions: () => ({
+        getCurrencyDecimals: mockGetCurrencyDecimals,
+    }),
 }));
 
 // Stable references across renders, like the real hooks.
@@ -83,8 +88,14 @@ const mockTranslations = new Map([
     ['workspace.invoices.sendInvoice', 'Send invoice'],
     ['workspace.new.newWorkspace', 'New workspace'],
 ]);
-const mockLocalize = {translate: (key: string) => mockTranslations.get(key) ?? key};
-const mockPermissions = {isBetaEnabled: mockIsBetaEnabled, isBetaEnabledOrUnknown: mockIsBetaEnabled};
+const mockLocalize = {
+    formatPhoneNumber: mockFormatPhoneNumber,
+    translate: (key: string) => mockTranslations.get(key) ?? key,
+};
+const mockPermissions = {
+    isBetaEnabled: mockIsBetaEnabled,
+    isBetaEnabledOrUnknown: mockIsBetaEnabled,
+};
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: () => mockIcons,
@@ -112,7 +123,9 @@ jest.mock('@hooks/usePermissions', () => ({
 
 jest.mock('@hooks/usePreferredPolicy', () => ({
     __esModule: true,
-    default: () => ({isRestrictedPolicyCreation: mockIsRestrictedPolicyCreation}),
+    default: () => ({
+        isRestrictedPolicyCreation: mockIsRestrictedPolicyCreation,
+    }),
 }));
 
 jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
@@ -182,7 +195,9 @@ jest.mock('@userActions/ReportNavigation', () => ({
 }));
 
 const submitPolicy = {id: 'submit-policy', type: CONST.POLICY.TYPE.SUBMIT};
-const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`]: submitPolicy};
+const policies = {
+    [`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`]: submitPolicy,
+};
 const session = {accountID: 1, email: 'test@example.com'};
 
 function setupUseOnyx() {
@@ -347,7 +362,11 @@ describe('useCreateNavigationSuggestions', () => {
     });
 
     it('uses only the active workspace to control Book travel visibility', () => {
-        const otherTravelPolicy = {id: 'other-travel-policy', type: CONST.POLICY.TYPE.TEAM, isTravelEnabled: true};
+        const otherTravelPolicy = {
+            id: 'other-travel-policy',
+            type: CONST.POLICY.TYPE.TEAM,
+            isTravelEnabled: true,
+        };
         mockOnyxValues.set(ONYXKEYS.COLLECTION.POLICY, {
             ...policies,
             [`${ONYXKEYS.COLLECTION.POLICY}${otherTravelPolicy.id}`]: otherTravelPolicy,
@@ -359,15 +378,25 @@ describe('useCreateNavigationSuggestions', () => {
     });
 
     it('shows Book travel when Travel is enabled on the active workspace', () => {
-        mockOnyxValues.set(`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`, {...submitPolicy, isTravelEnabled: true});
+        mockOnyxValues.set(`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`, {
+            ...submitPolicy,
+            isTravelEnabled: true,
+        });
 
         const {result} = renderHook(() => useCreateNavigationSuggestions());
 
-        expect(result.current.find((item) => item.keyForList === 'create_travel')).toMatchObject({text: 'Book travel', singleIcon: mockIcon, matchTerms: ['Book travel']});
+        expect(result.current.find((item) => item.keyForList === 'create_travel')).toMatchObject({
+            text: 'Book travel',
+            singleIcon: mockIcon,
+            matchTerms: ['Book travel'],
+        });
     });
 
     it('opens TravelDot when the active workspace is ready for travel', () => {
-        mockOnyxValues.set(`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`, {...submitPolicy, isTravelEnabled: true});
+        mockOnyxValues.set(`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`, {
+            ...submitPolicy,
+            isTravelEnabled: true,
+        });
         mockIsPaidGroupPolicy.mockReturnValue(true);
         mockHasAcceptedTravelTerms.mockReturnValue(true);
         const {result} = renderHook(() => useCreateNavigationSuggestions());
@@ -379,7 +408,10 @@ describe('useCreateNavigationSuggestions', () => {
     });
 
     it('uses the session email when the primary login is unavailable', () => {
-        mockOnyxValues.set(`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`, {...submitPolicy, isTravelEnabled: true});
+        mockOnyxValues.set(`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`, {
+            ...submitPolicy,
+            isTravelEnabled: true,
+        });
         mockOnyxValues.set(ONYXKEYS.ACCOUNT, {primaryLogin: undefined});
         mockIsPaidGroupPolicy.mockReturnValue(true);
         mockHasAcceptedTravelTerms.mockReturnValue(true);
@@ -398,7 +430,10 @@ describe('useCreateNavigationSuggestions', () => {
         ['Travel terms are not accepted', false, session.email, session.email, true, false],
         ['there is no primary contact method', false, '', '', true, true],
     ])('opens the Travel page when %s', (_condition, isBlocked, primaryLogin, sessionEmail, isPaid, hasAcceptedTerms) => {
-        mockOnyxValues.set(`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`, {...submitPolicy, isTravelEnabled: true});
+        mockOnyxValues.set(`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`, {
+            ...submitPolicy,
+            isTravelEnabled: true,
+        });
         mockOnyxValues.set(ONYXKEYS.ACCOUNT, {primaryLogin});
         mockOnyxValues.set(ONYXKEYS.SESSION, {...session, email: sessionEmail});
         mockIsBetaEnabled.mockImplementation((beta: string) => (beta === CONST.BETAS.PREVENT_SPOTNANA_TRAVEL ? isBlocked : true));
@@ -460,9 +495,24 @@ describe('useCreateNavigationSuggestions', () => {
         act(() => onCreateReport?.(submitPolicy, true));
 
         // Then the report is created on that workspace, and the Reports root is pushed first so back returns to the list
-        expect(createNewReport).toHaveBeenCalledWith(expect.anything(), false, true, submitPolicy, false, mockGetCurrencyDecimals, undefined, false, true);
+        expect(createNewReport).toHaveBeenCalledWith(
+            expect.anything(),
+            false,
+            true,
+            submitPolicy,
+            false,
+            {
+                getCurrencyDecimals: mockGetCurrencyDecimals,
+                formatPhoneNumber: mockFormatPhoneNumber,
+            },
+            undefined,
+            false,
+            true,
+        );
         expect(clearLastSearchParams).not.toHaveBeenCalled();
-        expect(Navigation.navigate).toHaveBeenNthCalledWith(1, 'reports', {forceReplace: false});
+        expect(Navigation.navigate).toHaveBeenNthCalledWith(1, 'reports', {
+            forceReplace: false,
+        });
         expect(Navigation.navigate).toHaveBeenNthCalledWith(2, 'report/created-report', {forceReplace: false});
     });
 
@@ -479,8 +529,12 @@ describe('useCreateNavigationSuggestions', () => {
 
         // Then the route is read at action time, so both replace the Search report page instead of stacking on it
         expect(clearLastSearchParams).toHaveBeenCalledTimes(1);
-        expect(Navigation.navigate).toHaveBeenNthCalledWith(1, 'reports', {forceReplace: true});
+        expect(Navigation.navigate).toHaveBeenNthCalledWith(1, 'reports', {
+            forceReplace: true,
+        });
         expect(Navigation.navigate).toHaveBeenNthCalledWith(2, 'report/created-report', {forceReplace: true});
-        expect(navigateToCreateReportWorkspaceSelection).toHaveBeenCalledWith({forceReplace: true});
+        expect(navigateToCreateReportWorkspaceSelection).toHaveBeenCalledWith({
+            forceReplace: true,
+        });
     });
 });

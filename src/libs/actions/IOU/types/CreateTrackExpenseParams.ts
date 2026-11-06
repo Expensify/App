@@ -65,6 +65,7 @@ type CreateTrackExpenseParams = {
 
     /** Current "Reuse route" list value, so the just used route can be saved locally */
     reusableDistanceRoutes?: OnyxTypes.ReusableDistanceRoute[];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 /** Saved with a failed track's receipt error, because the failure deletes the whisper and a retry needs its ID to rebuild it. */

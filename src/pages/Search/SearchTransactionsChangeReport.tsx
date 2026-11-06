@@ -11,6 +11,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
 import useHydrateReportsFromSnapshot from '@hooks/useHydrateReportsFromSnapshot';
 import useLoadSearchCardData from '@hooks/useLoadSearchCardData';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -91,7 +92,9 @@ function SearchTransactionsChangeReport() {
     // Asked for here too, so opening this screen retries a fetch that failed earlier.
     const {areCardsLoaded: isSearchCardListComplete} = useLoadSearchCardData();
     const reports = useChangeTransactionsReportReports(transactions, undefined);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
+        selector: isTrackIntentUserSelector,
+    });
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
@@ -99,6 +102,7 @@ function SearchTransactionsChangeReport() {
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const personalDetails = usePersonalDetails();
+    const {formatPhoneNumber} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
@@ -166,7 +170,7 @@ function SearchTransactionsChangeReport() {
             isASAPSubmitBetaEnabled,
             policyForMovingExpenses,
             isTrackIntentUser,
-            getCurrencyDecimals,
+            {getCurrencyDecimals, formatPhoneNumber},
             rules,
             false,
             shouldDismissEmptyReportsConfirmation,
@@ -175,7 +179,11 @@ function SearchTransactionsChangeReport() {
         const policyTagList = policyForMovingExpenses?.id ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyForMovingExpenses.id}`] : {};
         const reportsForCall = {
             ...reports,
-            [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`]: {...optimisticReport, transactionCount: 0, unheldNonReimbursableTotal: 0},
+            [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`]: {
+                ...optimisticReport,
+                transactionCount: 0,
+                unheldNonReimbursableTotal: 0,
+            },
         };
         setNavigationActionToMicrotaskQueue(() => {
             changeTransactionsReport({
@@ -312,7 +320,9 @@ function SearchTransactionsChangeReport() {
             getCurrencySymbol,
             ...allMatchingQueryParams,
         });
-        Navigation.goBack(undefined, {afterTransition: clearSelectedTransactions});
+        Navigation.goBack(undefined, {
+            afterTransition: clearSelectedTransactions,
+        });
     };
 
     const autoReport = () => {
@@ -320,7 +330,9 @@ function SearchTransactionsChangeReport() {
             return;
         }
         autoReportTransactions(selectedTransactionsKeys);
-        Navigation.goBack(undefined, {afterTransition: clearSelectedTransactions});
+        Navigation.goBack(undefined, {
+            afterTransition: clearSelectedTransactions,
+        });
     };
 
     const removeFromReport = () => {

@@ -115,7 +115,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         groupKey: item.keyForList,
         groupTransactions: reportItem.transactions ?? [],
     });
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey} = useSearchQueryContext();
@@ -258,6 +258,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             return;
         }
         handleActionButtonPress({
+            formatPhoneNumber,
             isASAPSubmitBetaEnabled,
             isWiseReimbursementsBetaEnabled,
             getCurrencyDecimals,

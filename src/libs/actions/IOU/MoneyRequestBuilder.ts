@@ -1719,12 +1719,13 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewReportAction(chatReport.reportID, iouReport.reportID, chatReportActions);
 
     if (reportPreviewAction) {
-        reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, getCurrencyDecimals, false, comment, optimisticTransaction);
+        reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, getCurrencyDecimals, formatPhoneNumber, false, comment, optimisticTransaction);
     } else {
         reportPreviewAction = buildOptimisticReportPreview(
             chatReport,
             iouReport,
             getCurrencyDecimals,
+            formatPhoneNumber,
             delegateAccountID,
             comment,
             optimisticTransaction,

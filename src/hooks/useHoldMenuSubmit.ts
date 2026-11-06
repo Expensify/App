@@ -21,6 +21,7 @@ import {loginSelector} from '@selectors/PersonalDetails';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
+import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePayChatReportActions from './usePayChatReportActions';
 import usePermissions from './usePermissions';
@@ -53,8 +54,12 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const moneyRequestReportTransactions = useReportTransactions(moneyRequestReport?.reportID);
     const getChatReportActions = usePayChatReportActions(chatReport, undefined);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: delegateEmailSelector,
+    });
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: hasSeenTourSelector,
+    });
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [ownerLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
@@ -64,6 +69,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const {formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const delegateAccountID = useDelegateAccountID();
@@ -92,6 +98,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
         if (isApprove) {
             approveMoneyRequest({
                 personalDetailsByLogins: getPersonalDetailsByLogin(),
+                formatPhoneNumber,
                 getCurrencyDecimals,
                 expenseReport: currentMoneyRequestReport,
                 rules,
@@ -112,6 +119,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
             });
         } else if (currentChatReport && paymentType) {
             payMoneyRequest({
+                formatPhoneNumber,
                 bankAccountList,
                 isASAPSubmitBetaEnabled,
                 getCurrencyDecimals,

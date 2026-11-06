@@ -1,5 +1,6 @@
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportTransactions from '@hooks/useReportTransactions';
 
@@ -33,6 +34,7 @@ type UseSendMoneySubmissionParams = {
 
 /** Hook implementing the send-money (pay) submission path for the expense confirmation screen. */
 function useSendMoneySubmission({transaction, receiptFiles, report, participants, currentUserPersonalDetails, setIsConfirmed, onExpenseWriteWillStart}: UseSendMoneySubmissionParams) {
+    const {formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
     const reportTransactions = useReportTransactions(report?.reportID);
@@ -56,6 +58,7 @@ function useSendMoneySubmission({transaction, receiptFiles, report, participants
         const sendMoneyReport = optimisticChatReportID ? undefined : report;
         const sendMoneyParams = {
             getCurrencyDecimals,
+            formatPhoneNumber,
             report: sendMoneyReport,
             quickAction,
             amount: transaction.amount,

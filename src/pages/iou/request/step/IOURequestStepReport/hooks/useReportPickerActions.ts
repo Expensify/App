@@ -5,6 +5,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useHydrateReportsFromSnapshot from '@hooks/useHydrateReportsFromSnapshot';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import usePermissions from '@hooks/usePermissions';
@@ -120,6 +121,7 @@ function useReportPickerActions({
     onNavigateAway,
     shouldWriteAfterTransition = true,
 }: UseReportPickerActionsParams): UseReportPickerActionsResult {
+    const {formatPhoneNumber} = useLocalize();
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
     const [reportNameValuePair] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
@@ -229,7 +231,7 @@ function useReportPickerActions({
             isASAPSubmitBetaEnabled,
             policyForNewReport,
             isTrackIntentUser,
-            getCurrencyDecimals,
+            {getCurrencyDecimals, formatPhoneNumber},
             rules,
             false,
             shouldDismissEmptyReportsConfirmation,

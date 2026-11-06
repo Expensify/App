@@ -133,7 +133,7 @@ function EmptySearchViewContent({
     contentContainerStyle,
 }: EmptySearchViewContentProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const timezone = useCurrentTimezone();
     const styles = useThemeStyles();
     const isInLandscapeMode = useIsInLandscapeMode();
@@ -150,14 +150,18 @@ function EmptySearchViewContent({
     const {getCurrencyDecimals} = useCurrencyListActions();
     // A new report has no expenses yet, so it can't have violations.
     const hasViolations = false;
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+        selector: validTransactionDraftIDsSelector,
+    });
     const [hasTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: hasTransactionsSelector,
     });
     const [hasExpenseReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: hasExpenseReportsSelector,
     });
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
+        selector: isTrackIntentUserSelector,
+    });
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const filteredPolicyID = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
@@ -179,7 +183,7 @@ function EmptySearchViewContent({
             isASAPSubmitBetaEnabled,
             policy,
             isTrackIntentUser,
-            getCurrencyDecimals,
+            {getCurrencyDecimals, formatPhoneNumber},
             rules,
             false,
             shouldDismissEmptyReportsConfirmation,

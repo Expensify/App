@@ -35,23 +35,30 @@ import {View} from 'react-native';
 
 function SearchActionsBarCreateButton() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'Location', 'Document', 'Receipt', 'Coins', 'Cash', 'Transfer', 'MoneyCircle']);
 
     const createButtonRef = useRef<ComponentRef<typeof View>>(null);
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
-    const [createMenuPosition, setCreateMenuPosition] = useState<{horizontal: number; vertical: number}>({horizontal: 0, vertical: 0});
+    const [createMenuPosition, setCreateMenuPosition] = useState<{
+        horizontal: number;
+        vertical: number;
+    }>({horizontal: 0, vertical: 0});
     const {calculatePopoverPosition} = usePopoverPosition();
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+        selector: validTransactionDraftIDsSelector,
+    });
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
     // A new report has no expenses yet, so it can't have violations.
     const hasViolations = false;
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
+        selector: isTrackIntentUserSelector,
+    });
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const handleCreateWorkspaceReport = (policy: OnyxEntry<OnyxTypes.Policy>, shouldDismissEmptyReportsConfirmation?: boolean) => {
@@ -65,7 +72,7 @@ function SearchActionsBarCreateButton() {
             isASAPSubmitBetaEnabled,
             policy,
             isTrackIntentUser,
-            getCurrencyDecimals,
+            {getCurrencyDecimals, formatPhoneNumber},
             rules,
             false,
             shouldDismissEmptyReportsConfirmation,
@@ -73,7 +80,10 @@ function SearchActionsBarCreateButton() {
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.navigate(
                 isSearchTopmostFullScreenRoute()
-                    ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()})
+                    ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({
+                          reportID: createdReportID,
+                          backTo: Navigation.getActiveRoute(),
+                      })
                     : ROUTES.REPORT_WITH_ID.getRoute(createdReportID, undefined, undefined, Navigation.getActiveRoute()),
             );
         });

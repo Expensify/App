@@ -306,6 +306,7 @@ function handleMoneyRequestStepDistanceNavigation({
                     isSelfDMDestination,
                     executeWrite: (overrides) => {
                         trackExpense({
+                            formatPhoneNumber,
                             report,
                             isDraftPolicy: false,
                             isDraftChatReport,

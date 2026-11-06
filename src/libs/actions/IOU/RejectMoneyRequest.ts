@@ -1,3 +1,5 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import * as API from '@libs/API';
@@ -125,6 +127,7 @@ type PrepareRejectMoneyRequestDataParams = {
     options?: RejectMoneyRequestOptions;
     shouldUseBulkAction?: boolean;
     reportTransactionsCollection: Record<string, OnyxTypes.Transaction>;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 function prepareRejectMoneyRequestData({
@@ -141,6 +144,7 @@ function prepareRejectMoneyRequestData({
     options,
     shouldUseBulkAction,
     reportTransactionsCollection,
+    formatPhoneNumber,
 }: PrepareRejectMoneyRequestDataParams): RejectMoneyRequestData | undefined {
     const allTransactions = getAllTransactions();
     const allReports = getAllReports();
@@ -530,7 +534,7 @@ function prepareRejectMoneyRequestData({
                 delegateAccountIDParam: delegateAccountID,
             });
 
-            reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, getCurrencyDecimals, delegateAccountID, undefined, transaction);
+            reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, getCurrencyDecimals, formatPhoneNumber, delegateAccountID, undefined, transaction);
             // The reject action posted below already tells the user this expense left the report,
             // so a MOVED_TRANSACTION action in the same thread would repeat it
             createdIOUReportActionID = iouAction.reportActionID;

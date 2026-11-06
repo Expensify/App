@@ -1,4 +1,5 @@
 import type {PaymentMethodType} from '@components/KYCWall/types';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
@@ -86,6 +87,7 @@ function getSendMoneyParams({
     currentUserAccountID,
     delegateAccountID,
     getCurrencyDecimals,
+    formatPhoneNumber,
 }: {
     report: OnyxEntry<OnyxTypes.Report>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
@@ -102,6 +104,7 @@ function getSendMoneyParams({
     currentUserAccountID: number;
     delegateAccountID: number | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }): SendMoneyParamsData {
     const recipientEmail = addSMSDomainIfPhoneNumber(recipient.login ?? '');
     const recipientAccountID = Number(recipient.accountID);
@@ -163,7 +166,7 @@ function getSendMoneyParams({
             delegateAccountIDParam: delegateAccountID,
         });
 
-    const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticIOUReport, getCurrencyDecimals, delegateAccountID);
+    const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticIOUReport, getCurrencyDecimals, formatPhoneNumber, delegateAccountID);
 
     // Change the method to set for new reports because it doesn't exist yet, is faster,
     // and we need the data to be available when we navigate to the chat page
@@ -174,7 +177,9 @@ function getSendMoneyParams({
               value: {
                   ...chatReport,
                   // Set and clear pending fields on the chat report
-                  pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                  pendingFields: {
+                      createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                  },
                   lastReadTime: DateUtils.getDBTime(),
                   lastVisibleActionCreated: reportPreviewAction.created,
               },
@@ -236,7 +241,9 @@ function getSendMoneyParams({
         ? {
               onyxMethod: Onyx.METHOD.MERGE,
               key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTransactionThread.reportID}`,
-              value: {[optimisticCreatedActionForTransactionThread?.reportActionID]: optimisticCreatedActionForTransactionThread},
+              value: {
+                  [optimisticCreatedActionForTransactionThread?.reportActionID]: optimisticCreatedActionForTransactionThread,
+              },
           }
         : undefined;
 
@@ -324,7 +331,9 @@ function getSendMoneyParams({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
             value: {
-                [optimisticCreatedActionForIOUReport.reportActionID]: {pendingAction: null},
+                [optimisticCreatedActionForIOUReport.reportActionID]: {
+                    pendingAction: null,
+                },
                 [optimisticIOUReportAction.reportActionID]: {
                     pendingAction: null,
                 },
@@ -385,12 +394,20 @@ function getSendMoneyParams({
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTransactionThread.reportID}`,
-            value: {[optimisticCreatedActionForTransactionThread?.reportActionID]: {pendingAction: null}},
+            value: {
+                [optimisticCreatedActionForTransactionThread?.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTransactionThread.reportID}`,
-            value: {[optimisticCreatedActionForTransactionThread?.reportActionID]: {errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage')}},
+            value: {
+                [optimisticCreatedActionForTransactionThread?.reportActionID]: {
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
+                },
+            },
         });
     }
 
@@ -504,6 +521,7 @@ type SendMoneyActionParams = {
     shouldStartTracking: boolean;
     delegateAccountID: number | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 function executeSendMoney(
@@ -526,6 +544,7 @@ function executeSendMoney(
         delegateAccountID,
         getCurrencyDecimals,
         shouldStartTracking,
+        formatPhoneNumber,
     } = actionParams;
 
     const {params, optimisticData, successData, failureData} = getSendMoneyParams({
@@ -544,6 +563,7 @@ function executeSendMoney(
         currentUserAccountID,
         delegateAccountID,
         getCurrencyDecimals,
+        formatPhoneNumber,
     });
     if (shouldStartTracking) {
         startTracking(
@@ -564,8 +584,12 @@ function executeSendMoney(
         writeCommand,
         params,
         {optimisticData, successData, failureData},
-        resolveWriteBarrier({optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`}),
-        {onWriteStarted: () => notifyNewAction(chatReportIDForNotification, undefined, true)},
+        resolveWriteBarrier({
+            optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
+        }),
+        {
+            onWriteStarted: () => notifyNewAction(chatReportIDForNotification, undefined, true),
+        },
     );
 }
 
