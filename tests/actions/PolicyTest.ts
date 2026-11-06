@@ -649,7 +649,16 @@ describe('actions/Policy', () => {
                 welcomeNote: '',
                 localCurrency: 'USD',
                 parts: ['rules'],
-                policyCategories: {[categoryName]: {name: categoryName, enabled: true, areCommentsRequired: true, maxExpenseAmount: 5000}},
+                policyCategories: {
+                    [categoryName]: {name: categoryName, enabled: true, areCommentsRequired: true, maxExpenseAmount: 5000},
+                    [CONST.POLICY.DEFAULT_CATEGORIES.BENEFITS]: {
+                        name: CONST.POLICY.DEFAULT_CATEGORIES.BENEFITS,
+                        enabled: true,
+                        areCommentsRequired: true,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        pendingFields: {areCommentsRequired: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    },
+                },
                 personalDetailsByLogins: {},
             });
             await waitForBatchedUpdates();
@@ -657,6 +666,7 @@ describe('actions/Policy', () => {
             // Then matching rules are visible before the server responds.
             const categories = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyID}`);
             expect(categories?.[categoryName]).toEqual(expect.objectContaining({name: categoryName, enabled: true, areCommentsRequired: true, maxExpenseAmount: 5000}));
+            expect(categories?.[CONST.POLICY.DEFAULT_CATEGORIES.BENEFITS]?.areCommentsRequired).toBeFalsy();
         });
 
         it('duplicate workspace omits pending deletions from copied settings while offline', async () => {
@@ -700,7 +710,24 @@ describe('actions/Policy', () => {
                 policyCategories: {Deleted: {name: 'Deleted', enabled: true, pendingAction}, Kept: {name: 'Kept', enabled: true}},
                 policyTags: {
                     Deleted: {name: 'Deleted', required: false, orderWeight: 0, tags: {}, pendingAction},
-                    Kept: {name: 'Kept', required: false, orderWeight: 1, tags: {Deleted: {name: 'Deleted', enabled: true, pendingAction}, Kept: {name: 'Kept', enabled: true}}},
+                    Kept: {
+                        name: 'Kept',
+                        required: false,
+                        orderWeight: 1,
+                        errors: {sourceError: 'Tag list edit failed'},
+                        errorFields: {name: {sourceError: 'Tag list name edit failed'}},
+                        pendingFields: {name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                        tags: {
+                            Deleted: {name: 'Deleted', enabled: true, pendingAction},
+                            Kept: {
+                                name: 'Kept',
+                                enabled: true,
+                                errors: {sourceError: 'Tag edit failed'},
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                pendingFields: {enabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                            },
+                        },
+                    },
                 },
                 personalDetailsByLogins: {},
             });

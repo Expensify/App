@@ -3602,6 +3602,23 @@ function filterPendingDeletes<T>(data: Record<string, T> | undefined): Record<st
     );
 }
 
+/** Applies queued field deletions before removing feedback belonging to the source workspace. */
+function buildDuplicateSettingSnapshot<T extends {pendingFields?: Partial<Record<string, PendingAction>>; pendingAction?: PendingAction; errors?: unknown; errorFields?: unknown}>(
+    setting: T,
+): T {
+    const snapshot = {...setting};
+    for (const [field, pendingAction] of Object.entries(setting.pendingFields ?? {})) {
+        if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            Reflect.deleteProperty(snapshot, field);
+        }
+    }
+    delete snapshot.pendingFields;
+    delete snapshot.pendingAction;
+    delete snapshot.errors;
+    delete snapshot.errorFields;
+    return snapshot;
+}
+
 function buildDuplicatePolicyData(sourcePolicy: Policy, options: DuplicatePolicyDataOptions) {
     const {
         policyName = '',
@@ -3625,8 +3642,16 @@ function buildDuplicatePolicyData(sourcePolicy: Policy, options: DuplicatePolicy
         connections: filterPendingDeletes(sourcePolicy.connections),
         taxRates: sourcePolicy.taxRates ? {...sourcePolicy.taxRates, taxes: filterPendingDeletes(sourcePolicy.taxRates.taxes)} : undefined,
     };
-    const policyCategories = Object.fromEntries(Object.entries(filterPendingDeletes(sourceCategories)).map(([name, category]) => [name, {...category, pendingFields: undefined}]));
-    const policyTags = Object.fromEntries(Object.entries(filterPendingDeletes(sourceTags)).map(([name, tagList]) => [name, {...tagList, tags: filterPendingDeletes(tagList.tags)}]));
+    const policyCategories = Object.fromEntries(Object.entries(filterPendingDeletes(sourceCategories)).map(([name, category]) => [name, buildDuplicateSettingSnapshot(category)]));
+    const policyTags = Object.fromEntries(
+        Object.entries(filterPendingDeletes(sourceTags)).map(([name, tagList]) => [
+            name,
+            {
+                ...buildDuplicateSettingSnapshot(tagList),
+                tags: Object.fromEntries(Object.entries(filterPendingDeletes(tagList.tags)).map(([tagName, tag]) => [tagName, buildDuplicateSettingSnapshot(tag)])),
+            },
+        ]),
+    );
 
     const {
         adminsChatReportID,
