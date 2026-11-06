@@ -269,16 +269,38 @@ function getZoneAbbreviation(datetime: string | Date, selectedTimezone: Selected
 }
 
 /**
- * Format date to a long date format with weekday
- *
- * @returns Sunday, July 9, 2023
+ * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language. They
+ * format in UTC, so pass dates through `toUTCWallClockDate` to show them in the device's current timezone.
  */
-function formatToLongDateWithWeekday(datetime: string | Date, dateFnsLocale: DateFnsLocale | undefined): string {
+const memoizedCreateLongDateWithWeekdayFormatter = memoize(
+    (localeCode: string, shouldIncludeYear: boolean) =>
+        new Intl.DateTimeFormat(localeCode, {weekday: 'long', year: shouldIncludeYear ? 'numeric' : undefined, month: 'long', day: 'numeric', timeZone: 'UTC'}),
+);
+
+/**
+ * Formats a full date with a weekday, with or without the year, for the two public helpers below.
+ */
+function formatLongDateWithWeekday(datetime: string | Date, dateFnsLocale: DateFnsLocale | undefined, shouldIncludeYear: boolean): string {
     const date = new Date(datetime);
     if (!isValid(date)) {
         return '';
     }
-    return format(date, CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY, {locale: dateFnsLocale});
+    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
+    return memoizedCreateLongDateWithWeekdayFormatter(dateFnsLocale?.code ?? 'en-US', shouldIncludeYear).format(toUTCWallClockDate(date));
+}
+
+/**
+ * Format date to a long date format with weekday
+ *
+ * A hand-written date-fns pattern fixes the US component order, so every language rendered its own month name in an
+ * English shape. Japanese and Chinese put the weekday last with no comma, Spanish and Portuguese need a `de` between
+ * the day and the month, and German needs the period its ordinal day takes. date-fns' own full date (`PPPP`) would get
+ * the order right but adds an ordinal day in English, so `Intl` is used to keep the English output unchanged.
+ *
+ * @returns Sunday, July 9, 2023
+ */
+function formatToLongDateWithWeekday(datetime: string | Date, dateFnsLocale: DateFnsLocale | undefined): string {
+    return formatLongDateWithWeekday(datetime, dateFnsLocale, true);
 }
 
 /**
@@ -287,7 +309,7 @@ function formatToLongDateWithWeekday(datetime: string | Date, dateFnsLocale: Dat
  * @returns Sunday, July 9
  */
 function formatToLongDateWithWeekdayWithoutYear(datetime: string | Date, dateFnsLocale: DateFnsLocale | undefined): string {
-    return format(new Date(datetime), CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY_WITHOUT_YEAR, {locale: dateFnsLocale});
+    return formatLongDateWithWeekday(datetime, dateFnsLocale, false);
 }
 
 /**
@@ -1137,6 +1159,39 @@ const formatInTimeZoneWithFallback: typeof formatInTimeZone = (date, timeZone, f
 };
 
 /**
+ * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language,
+ * timezone and whether the weekday is shown.
+ */
+const memoizedCreateLongDateInTimeZoneFormatter = memoize(
+    (localeCode: string, timeZone: string, shouldIncludeWeekday: boolean) =>
+        new Intl.DateTimeFormat(localeCode, {weekday: shouldIncludeWeekday ? 'long' : undefined, year: 'numeric', month: 'long', day: 'numeric', timeZone}),
+);
+
+/**
+ * Formats a date as a long date in the given timezone.
+ *
+ * A hand-written `MMMM d, yyyy` fixes the US component order, so German showed its month name before the day and
+ * Spanish lost the `de` it writes between the parts of a date. `Intl` orders the date the way each language does, and
+ * its English output matches the old pattern.
+ *
+ * @returns June 20, 2026, or Saturday, June 20, 2026 with the weekday
+ */
+function formatToLongDateInTimeZone(date: string | Date, timeZone: SelectedTimezone, dateFnsLocale: DateFnsLocale | undefined, shouldIncludeWeekday = false): string {
+    // A date-only string, such as the day picked for a call, is already a calendar day in the user's timezone, so it is
+    // shown exactly as stored by reading and formatting it in UTC. Reading it as midnight in the user's timezone would
+    // show the day before where that midnight does not exist, such as when daylight saving time starts in Santiago.
+    const isDateOnly = typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date);
+    // Some native platforms only know older timezone names, and `Intl` throws on a name it does not know.
+    const supportedTimeZone = isDateOnly ? 'UTC' : fallbackToSupportedTimezone(timeZone);
+    const parsedDate = toDate(date, {timeZone: supportedTimeZone});
+    if (!isValid(parsedDate)) {
+        return '';
+    }
+    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
+    return memoizedCreateLongDateInTimeZoneFormatter(dateFnsLocale?.code ?? 'en-US', supportedTimeZone, shouldIncludeWeekday).format(parsedDate);
+}
+
+/**
  * Converts a UTC datetime string to a date string (yyyy-MM-dd) in the target timezone.
  * @param utcDateTime - Datetime string in UTC format (yyyy-MM-dd HH:mm:ss or yyyy-MM-dd HH:mm:ss.SSS)
  * @param timeZone - Target timezone to display the date in
@@ -1410,6 +1465,7 @@ const DateUtils = {
     getFormattedDateRangeForPerDiem,
     getFormattedSplitDateRange,
     formatInTimeZoneWithFallback,
+    formatToLongDateInTimeZone,
     formatUTCDateTimeToDateInTimezone,
     formatViolationSnapshotStartedAtDate,
     normalizeDateToStartOfDay,

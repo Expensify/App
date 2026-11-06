@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearContactMethodErrors, clearUnvalidatedNewContactMethodAction, requestValidateCodeAction, validateSecondaryLogin} from '@libs/actions/User';
 import {getEarliestErrorField, getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
@@ -18,7 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import {CONST as COMMON_CONST} from 'expensify-common';
+import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -41,9 +42,9 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    // sometimes primaryLogin can be empty string
-    const contactMethod = (account?.primaryLogin || currentUserPersonalDetails.email) ?? '';
-    const {translate} = useLocalize();
+    const {formatPhoneNumber, translate} = useLocalize();
+    const contactMethod = addSMSDomainIfPhoneNumber((account?.primaryLogin || currentUserPersonalDetails.email) ?? '');
+    const formattedContactMethod = Str.isSMSLogin(contactMethod) ? formatPhoneNumber(contactMethod) : contactMethod;
     const loginData = loginList?.[contactMethod];
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
     const isUserValidated = account?.validated ?? false;
@@ -107,7 +108,7 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
         <ValidateCodeActionContent
             title={translate('contacts.validateAccount')}
             descriptionPrimary={translate('contacts.featureRequiresValidate')}
-            descriptionSecondary={translate('contacts.enterSecurityCode', contactMethod)}
+            descriptionSecondary={translate('contacts.enterSecurityCode', formattedContactMethod)}
             sendValidateCode={sendValidateCode}
             validateCodeReasonCode={COMMON_CONST.VALIDATE_CODE_REASONS.VALIDATE_ACCOUNT}
             validateCodeActionErrorField="validateLogin"
