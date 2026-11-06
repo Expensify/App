@@ -10,6 +10,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useRedirectOnWorkspaceMemberRemoval from '@hooks/useRedirectOnWorkspaceMemberRemoval';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceMemberFromRoute from '@hooks/useWorkspaceMemberFromRoute';
 
@@ -70,10 +71,11 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
     const routeAccountID = route.name === SCREENS.WORKSPACE.MEMBER_WORK_ARRANGEMENT ? Number(route.params.accountID) : CONST.DEFAULT_NUMBER_ID;
     const {memberLogin, accountID} = useWorkspaceMemberFromRoute(policy, personalDetails, routeAccountID);
     const member = policy?.employeeList?.[memberLogin];
+    const shouldRedirectToMembers = useRedirectOnWorkspaceMemberRemoval(policyID, routeAccountID, isInviteFlow || !!member?.role);
     const canWriteMembers = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MEMBERS);
     const isHomeAndOfficeWorkspace = policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
     const canAccessWorkArrangementPage =
-        canWriteMembers && isWorkArrangementBetaEnabled && isHomeAndOfficeWorkspace && (isInviteFlow || isMemberInHomeAndOfficeWorkspace(policy, memberLogin));
+        canWriteMembers && isWorkArrangementBetaEnabled && isHomeAndOfficeWorkspace && (isInviteFlow || (!!member?.role && isMemberInHomeAndOfficeWorkspace(policy, memberLogin)));
 
     // The member-level setting wins; otherwise use the workspace default and the server's office-based fallback.
     const currentIsOffice = getEffectiveWorkArrangement(isInviteFlow ? inviteWorkArrangementDraft : member?.hasOfficeWorkArrangement, policy?.commuterExclusions?.isOfficeWorkArrangement);
@@ -116,6 +118,10 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
             keyForList: 'no-regular-workspace',
         },
     ];
+
+    if (shouldRedirectToMembers) {
+        return null;
+    }
 
     return (
         <AccessOrNotFoundWrapper

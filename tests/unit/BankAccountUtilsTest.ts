@@ -15,6 +15,7 @@ import {
     isBankAccountPartiallySetup,
     isBankAccountEligibleForGlobalReimbursements,
     isGlobalReimbursementsEnabled,
+    isWiseOnboardingSubmitted,
     isPersonalBankAccountMissingInfo,
     isUserAddressVerificationRequired,
     isUserDOBVerificationRequired,
@@ -448,6 +449,22 @@ describe('BankAccountUtils', () => {
             // When deciding whether its row shows the globe
             // Then it doesn't, so the row never claims more than the backend allows
             expect(isGlobalReimbursementsEnabled(bankAccount)).toBe(false);
+        });
+    });
+
+    describe('isWiseOnboardingSubmitted', () => {
+        it('returns true once Wise has a status for the business', () => {
+            // Given an account whose business Wise already reviews
+            // When checking whether its onboarding was submitted
+            // Then it was, because Wise only has a status for a submitted business
+            expect(isWiseOnboardingSubmitted({additionalData: {wise: {status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED}}})).toBe(true);
+        });
+
+        it('returns false when Wise has no status for the business', () => {
+            // Given an account whose business was never sent to Wise
+            // When checking whether its onboarding was submitted
+            // Then it wasn't, so the intro still starts the business onboarding
+            expect(isWiseOnboardingSubmitted({additionalData: {}})).toBe(false);
         });
     });
 
@@ -1245,6 +1262,44 @@ describe('BankAccountUtils', () => {
             // When picking the account for the Workspace banner
             // Then nothing is returned, so the banner never points to an account queued for removal
             expect(getWorkspaceWiseGlobalReimbursementsBannerBankAccountID(policy, bankAccountList)).toBeUndefined();
+        });
+    });
+
+    describe('isWiseOnboardingMoreInfoNeeded', () => {
+        const createBankAccount = (status?: ValueOf<typeof CONST.WISE.ONBOARDING_STATUS>, pendingAction?: BankAccount['pendingAction']) =>
+            createMock<BankAccount>({
+                accountData: {bankAccountID: 1, additionalData: {wise: {status}}},
+                pendingAction,
+            });
+
+        it('returns true when Wise asked for more info', () => {
+            // Given an account whose Wise onboarding is waiting on more info Wise asked for
+            const bankAccount = createBankAccount(CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED);
+
+            // When checking whether the admin has to send Wise more info
+            // Then it does, so the Wallet row and the Home task prompt the admin
+            expect(isWiseOnboardingMoreInfoNeeded(bankAccount)).toBe(true);
+        });
+
+        it.each([CONST.WISE.ONBOARDING_STATUS.IN_REVIEW, CONST.WISE.ONBOARDING_STATUS.APPROVED, CONST.WISE.ONBOARDING_STATUS.NOT_APPROVED, undefined])(
+            'returns false when the onboarding status is %s',
+            (status) => {
+                // Given an account whose Wise onboarding is not waiting on the admin
+                const bankAccount = createBankAccount(status);
+
+                // When checking whether the admin has to send Wise more info
+                // Then it does not, so the prompts go away once the admin sends the info
+                expect(isWiseOnboardingMoreInfoNeeded(bankAccount)).toBe(false);
+            },
+        );
+
+        it('returns false when the account is pending deletion', () => {
+            // Given an account Wise asked for more info on, deleted while offline
+            const bankAccount = createBankAccount(CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+
+            // When checking whether the admin has to send Wise more info
+            // Then it does not, so nothing points to an account queued for removal
+            expect(isWiseOnboardingMoreInfoNeeded(bankAccount)).toBe(false);
         });
     });
 });

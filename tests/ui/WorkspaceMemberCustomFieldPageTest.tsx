@@ -11,9 +11,14 @@ import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
+import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
+import {addMembersToWorkspace} from '@libs/actions/Policy/Member';
 import {updateMemberCustomField} from '@libs/actions/Policy/Policy';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+import {flush as flushSequentialQueue} from '@libs/Network/SequentialQueue';
+import {getPersonalDetailsOnyxDataForOptimisticUsers} from '@libs/PersonalDetailsUtils';
 import {generateAccountID} from '@libs/UserUtils';
 
 import type * as PolicyActions from '@libs/actions/Policy/Policy';
@@ -33,6 +38,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -44,7 +50,8 @@ jest.mock('@libs/actions/Policy/Policy', () => {
     };
 });
 
-TestHelper.setupGlobalFetchMock();
+const mockFetch = TestHelper.setupGlobalFetchMock();
+OnyxUpdateManager();
 
 const updateMemberCustomFieldMock = jest.mocked(updateMemberCustomField);
 
@@ -169,6 +176,99 @@ describe('WorkspaceMemberCustomFieldPage', () => {
         expect(updateMemberCustomFieldMock).toHaveBeenCalledWith(policy.id, invitedEmail, 'customField1', 'EMP-43', invitedEmployeeUserID);
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policy.id, staleOptimisticAccountID));
 
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it.each(['mapped', 'unmapped', 'failed'])('handles an offline secondary-login invite with a %s response while a custom field draft is open', async (responseType) => {
+        // Given a secondary login invited offline, with a draft entered before the invite response arrives
+        const secondaryEmail = 'secondary@example.com';
+        const primaryEmail = 'primary@example.com';
+        const primaryAccountID = 7777;
+        const optimisticAccountID = generateAccountID(secondaryEmail);
+        mockFetch.pause();
+        mockFetch.mockAPICommand(WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE, () => ({
+            jsonCode: responseType === 'failed' ? 400 : 200,
+            onyxData: responseType === 'failed'
+                ? []
+                : [
+                      {
+                          onyxMethod: Onyx.METHOD.MERGE,
+                          key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                          value: {
+                              employeeList: {[secondaryEmail]: null, [primaryEmail]: {email: primaryEmail, role: CONST.POLICY.ROLE.USER}},
+                              ...(responseType === 'mapped' ? {primaryLoginsInvited: {[secondaryEmail]: primaryEmail}} : {}),
+                          },
+                      },
+                      {
+                          onyxMethod: Onyx.METHOD.MERGE,
+                          key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                          value: {[primaryAccountID]: TestHelper.buildPersonalDetails(primaryEmail, primaryAccountID, 'Primary')},
+                      },
+                  ],
+        }));
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+            addMembersToWorkspace(
+                {[secondaryEmail]: optimisticAccountID},
+                getPersonalDetailsOnyxDataForOptimisticUsers([secondaryEmail], [optimisticAccountID], (login) => login),
+                '',
+                policy,
+                [ownerAccountID, selfAccountID],
+                CONST.POLICY.ROLE.USER,
+                {accountID: selfAccountID, email: selfEmail, displayName: 'Self'},
+                {},
+            );
+        });
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(optimisticAccountID), customFieldType: 'customField1'});
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.changeText(screen.getByDisplayValue(''), 'TEST-123');
+        expect(Navigation.goBack).not.toHaveBeenCalled();
+
+        // When reconnecting applies the actual invite response and optimistic cleanup while the editor stays mounted
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: false});
+            await mockFetch.resume();
+            flushSequentialQueue();
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then mapped members keep the unsaved draft, unresolved members return to Members, and failures remain editable
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE, 1);
+        expect(screen.queryByTestId('NotFoundPage')).not.toBeOnTheScreen();
+        expect(updateMemberCustomFieldMock).not.toHaveBeenCalled();
+        if (responseType === 'unmapped') {
+            expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBERS.getRoute(policy.id));
+            expect(screen.queryByTestId('WorkspaceMemberCustomFieldPage')).not.toBeOnTheScreen();
+        } else {
+            expect(screen.getByDisplayValue('TEST-123')).toBeOnTheScreen();
+            expect(Navigation.goBack).not.toHaveBeenCalled();
+            if (responseType === 'mapped') {
+                fireEvent.press(screen.getByText('Save'));
+                await waitForBatchedUpdatesWithAct();
+                expect(updateMemberCustomFieldMock).toHaveBeenCalledWith(policy.id, primaryEmail, 'customField1', 'TEST-123', undefined);
+                expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policy.id, optimisticAccountID));
+            } else {
+                const syncedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+                expect(syncedPolicy?.employeeList?.[secondaryEmail]?.errors).toBeTruthy();
+            }
+        }
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('does not redirect a direct link to an unknown member', async () => {
+        // Given a direct link that never resolved to a member
+        const unknownAccountID = generateAccountID('unknown@example.com');
+
+        // When opening the editor
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(unknownAccountID), customFieldType: 'customField1'});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then not found remains appropriate and no mutation or redirect occurs
+        expect(screen.getByTestId('NotFoundPage')).toBeOnTheScreen();
+        expect(Navigation.goBack).not.toHaveBeenCalled();
+        expect(updateMemberCustomFieldMock).not.toHaveBeenCalled();
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
