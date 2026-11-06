@@ -513,6 +513,18 @@ function getReportNextStep({
         return buildChangeWorkspaceNextStep();
     }
 
+    const isBlockSubmitDueToStrictPolicyRules = shouldBlockSubmitDueToStrictPolicyRules(
+        report?.reportID,
+        violations,
+        areStrictPolicyRulesEnabled,
+        currentUserAccountID,
+        currentUserEmail,
+        Object.values(transactions),
+    );
+    if (isBlockSubmitDueToStrictPolicyRules && isReportOwner(report) && isOpenExpenseReport(report)) {
+        return buildOptimisticNextStepForStrictPolicyRuleViolations();
+    }
+
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
     if (isDEWPolicy && (report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN || report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED)) {
         if (report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
@@ -546,18 +558,6 @@ function getReportNextStep({
                 return buildOptimisticNextStepForDEWOffline();
             }
         }
-    }
-
-    const isBlockSubmitDueToStrictPolicyRules = shouldBlockSubmitDueToStrictPolicyRules(
-        report?.reportID,
-        violations,
-        areStrictPolicyRulesEnabled,
-        currentUserAccountID,
-        currentUserEmail,
-        Object.values(transactions),
-    );
-    if (isBlockSubmitDueToStrictPolicyRules && isReportOwner(report) && isOpenExpenseReport(report)) {
-        return buildOptimisticNextStepForStrictPolicyRuleViolations();
     }
 
     // The member can never submit their own report on this workspace, so the report has to be moved elsewhere to submit.
