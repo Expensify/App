@@ -4,8 +4,10 @@ import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import type {SearchQueryJSON} from '@components/Search/types';
 
 import {search} from '@libs/actions/Search';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import useInsightsTopExpenses, {TOP_EXPENSES_STATE} from '@pages/Insights/details/useInsightsTopExpenses';
 import {buildTopExpensesQueryJSON} from '@pages/Insights/insightsQueries';
@@ -22,6 +24,11 @@ import currencyList from './currencyList.json';
 
 let mockIsOffline = false;
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: mockIsOffline})));
+let mockCurrentSearchQueryJSON: SearchQueryJSON | undefined;
+jest.mock('@libs/SearchQueryUtils', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/SearchQueryUtils'),
+    getCurrentSearchQueryJSON: jest.fn(() => mockCurrentSearchQueryJSON),
+}));
 jest.mock('@libs/actions/Search', () => ({...jest.requireActual<Record<string, unknown>>('@libs/actions/Search'), search: jest.fn()}));
 
 const QUERY = 'type:expense view:table date>=2026-01-01 date<=2026-03-31';
@@ -97,6 +104,7 @@ describe('useInsightsTopExpenses', () => {
 
     beforeEach(async () => {
         mockIsOffline = false;
+        mockCurrentSearchQueryJSON = undefined;
         jest.clearAllMocks();
         await Onyx.set(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID, email: 'submitter@expensify.com'});
         await Onyx.set(ONYXKEYS.CURRENCY_LIST, currencyList);
@@ -188,6 +196,19 @@ describe('useInsightsTopExpenses', () => {
             // Then it lists the 10 largest remaining expenses in order, since optimistic writes can add rows beyond the limit
             expect(result.current.state).toBe(TOP_EXPENSES_STATE.READY);
             expect(result.current.expenses.map((expense) => expense.transactionID)).toEqual(['12', '10', '9', '8', '7', '6', '5', '4', '3', '2']);
+        });
+
+        it('lists expenses the Spend tab filters out, since it filters by its own query', async () => {
+            // Given the Spend tab last showed paid expenses only, and a response holding unpaid ones
+            mockCurrentSearchQueryJSON = buildSearchQueryJSON('type:expense status:paid');
+            await Onyx.set(SNAPSHOT_KEY, {data: buildSnapshotData(2), search: buildSearchMetadata()});
+
+            // When the panel renders
+            const {result} = renderTopExpenses(QUERY);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it still lists them, since the Spend tab's filters don't apply to this query
+            expect(result.current.expenses.map((expense) => expense.transactionID)).toEqual(['2', '1']);
         });
 
         it('is stale when the request got no response', async () => {

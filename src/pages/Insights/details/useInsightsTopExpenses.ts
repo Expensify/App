@@ -89,6 +89,7 @@ function useInsightsTopExpenses(query: SearchQueryString | undefined): TopExpens
         conciergeReportID,
         convertToDisplayString,
         reportAttributesDerivedValue: undefined,
+        queryJSON,
     });
     const expenses = getSortedSections(queryJSON.type, sections, localeCompare, translate, queryJSON.sortBy, queryJSON.sortOrder)
         .filter((item): item is TransactionListItemType => 'transactionID' in item && item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
