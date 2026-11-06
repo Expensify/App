@@ -1923,6 +1923,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 const bankAccountToSetUp = getBankAccountToSetUpBeforePaying({
                     paymentType: paymentItem.paymentType as PaymentMethodType,
                     iouReport,
+                    policy: reportPolicy,
                     methodID,
                     bankAccountList,
                     isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),

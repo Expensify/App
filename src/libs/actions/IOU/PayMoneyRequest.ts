@@ -882,15 +882,20 @@ function completePaymentOnboarding(
 /**
  * Returns the paying bank account when the payment must wait for global reimbursements onboarding, so payMoneyRequest opens the onboarding instead of paying.
  * The backend flags the reports that go through global reimbursements on their waiting-to-pay next step, because only it knows the submitter's deposit account.
+ * The flag describes a payment from the workspace reimbursement account only, so a payment from any other account is left to the backend.
  */
 function getBankAccountToSetUpBeforePaying({
     paymentType,
     iouReport,
+    policy,
     methodID,
     bankAccountList,
     isWiseReimbursementsBetaEnabled,
-}: Pick<PayMoneyRequestFunctionParams, 'paymentType' | 'iouReport' | 'methodID' | 'bankAccountList' | 'isWiseReimbursementsBetaEnabled'>): OnyxTypes.BankAccount | undefined {
+}: Pick<PayMoneyRequestFunctionParams, 'paymentType' | 'iouReport' | 'policy' | 'methodID' | 'bankAccountList' | 'isWiseReimbursementsBetaEnabled'>): OnyxTypes.BankAccount | undefined {
     if (!isWiseReimbursementsBetaEnabled || paymentType !== CONST.IOU.PAYMENT_TYPE.VBBA || !methodID || !iouReport?.nextStep?.requiresGlobalReimbursement) {
+        return undefined;
+    }
+    if (methodID !== policy?.achAccount?.bankAccountID) {
         return undefined;
     }
     const bankAccount = bankAccountList?.[methodID];
@@ -941,7 +946,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     }
 
     // The backend rejects this payment until the account is set up for global reimbursements, so open the onboarding right away instead of showing an optimistic payment
-    const bankAccountToSetUp = getBankAccountToSetUpBeforePaying({paymentType, iouReport, methodID, bankAccountList, isWiseReimbursementsBetaEnabled});
+    const bankAccountToSetUp = getBankAccountToSetUpBeforePaying({paymentType, iouReport, policy, methodID, bankAccountList, isWiseReimbursementsBetaEnabled});
     if (methodID && bankAccountToSetUp) {
         showEnableGlobalReimbursementsModal({bankAccountID: methodID, bankCountry: bankAccountToSetUp.bankCountry, bankCurrency: bankAccountToSetUp.bankCurrency});
         return;

@@ -807,6 +807,43 @@ describe('useSearchBulkActions - bulk pay with reports that need global reimburs
         expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({prompt: `${CONST.DOT_SEPARATOR} Report needing GR`}));
     });
 
+    async function payWithBankAccount(bankAccountID: number) {
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+        await waitFor(() => {
+            expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
+        });
+        await act(async () => {
+            result.current.confirmPayment?.(CONST.IOU.PAYMENT_TYPE.VBBA, {bankAccountID, paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT});
+        });
+    }
+
+    it('pays a flagged report from a bank account other than the workspace one and leaves the decision to the backend', async () => {
+        // Given a flagged report of policy1, whose flag describes a payment from the policy1 account only
+        mockSelectedReports = [makeSelectedReport({reportID: '1', chatReportID: '2'})];
+
+        // When the user picks another account without global reimbursements in the bulk Pay menu
+        await payWithBankAccount(OTHER_BANK_ACCOUNT_ID);
+
+        // Then the report is paid from that account and no modal opens, because the flag says nothing about it
+        expect(payMoneyRequest).toHaveBeenCalledTimes(1);
+        expect(payMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({iouReport: expect.objectContaining({reportID: '1'}), methodID: OTHER_BANK_ACCOUNT_ID}));
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL)).toBeUndefined();
+    });
+
+    it('skips a flagged report when the user picks the workspace bank account in the bulk Pay menu', async () => {
+        // Given a flagged report of policy1 and a domestic one
+        mockSelectedReports = [makeSelectedReport({reportID: '1', chatReportID: '2'}), makeSelectedReport({reportID: '9', chatReportID: '10'})];
+
+        // When the user picks the policy1 account, which has not enabled global reimbursements
+        await payWithBankAccount(BANK_ACCOUNT_ID);
+
+        // Then only the domestic report is paid, because the flag describes exactly this account
+        expect(payMoneyRequest).toHaveBeenCalledTimes(1);
+        expect(payMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({iouReport: expect.objectContaining({reportID: '9'})}));
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({prompt: `${CONST.DOT_SEPARATOR} Report needing GR`}));
+    });
+
     it('opens the global reimbursements onboarding when the user picks Get started', async () => {
         // Given a mixed selection and a user who confirms the modal
         mockShowConfirmModal.mockReturnValueOnce(Promise.resolve({action: ModalActions.CONFIRM}));
