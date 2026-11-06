@@ -15,6 +15,7 @@ import {getExpensifyCardStatementPDF} from '@libs/actions/CompanyCards';
 import {exportReceiptsToZip, exportReportsToPDF} from '@libs/actions/Export';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {getBankAccountToSetUpBeforePaying, payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
+import type {PayMoneyRequestFunctionParams} from '@libs/actions/IOU/PayMoneyRequest';
 import {approveMoneyRequest} from '@libs/actions/IOU/ReportWorkflow';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {deleteAppReport, exportReportToPDF, markAsManuallyExported, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
@@ -47,7 +48,8 @@ import {
 } from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
-import {getLastFourDigits} from '@libs/BankAccountUtils';
+import {getWiseQuote} from '@libs/actions/Wise';
+import {getLastFourDigits, shouldConfirmWiseQuoteBeforePaying, shouldGetWiseQuote} from '@libs/BankAccountUtils';
 import {canResolveTransactionCard} from '@libs/CardUtils';
 import {getConnectionCompanyID} from '@libs/CopyPolicySettingsUtils';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
@@ -195,6 +197,7 @@ import useSplitEffectivePolicy from './useSplitEffectivePolicy';
 import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
 import useUndeleteTransactions from './useUndeleteTransactions';
+import useWiseQuoteConfirmModal from './useWiseQuoteConfirmModal';
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
@@ -713,6 +716,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResultsRef.current;
 
     const {showConfirmModal} = useConfirmModal();
+    const {showWiseQuoteCarouselModal} = useWiseQuoteConfirmModal();
     const {showDecisionModal} = useDecisionModal();
 
     const showOfflineModal = useCallback(() => {
@@ -1843,6 +1847,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                       });
 
             let paidReportCount = 0;
+            const expensePayments: PayMoneyRequestFunctionParams[] = [];
             // Reports skipped because their bank account needs global reimbursements, grouped by that bank account
             const reportsNeedingGlobalReimbursementsByBankAccount = new Map<number, {bankAccount: BankAccount; reportNames: Map<string, string>}>();
             for (const item of itemsToPay) {
@@ -1971,7 +1976,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     continue;
                 }
 
-                payMoneyRequest({
+                const payMoneyRequestParams: PayMoneyRequestFunctionParams = {
                     bankAccountList,
                     isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                     getCurrencyDecimals,
@@ -2000,12 +2005,26 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     conciergeChat,
                     isFallbackChatReport,
                     rules,
-                });
+                };
 
-                paidReportCount += 1;
+                expensePayments.push(payMoneyRequestParams);
             }
 
-            if (paidReportCount < itemsToPay.length) {
+            const payExpenseReports = (wiseQuoteIDsByReportID: Record<string, string> = {}) => {
+                for (const params of expensePayments) {
+                    const reportID = params.iouReport?.reportID;
+                    payMoneyRequest({...params, wiseQuoteID: reportID ? wiseQuoteIDsByReportID[reportID] : undefined});
+                }
+            };
+
+            // One report with an expense in another currency than the bank account is enough to show every report with its quote before paying
+            const shouldConfirmWiseQuotes = expensePayments.some((params) => shouldConfirmWiseQuoteBeforePaying(params));
+            if (!shouldConfirmWiseQuotes) {
+                payExpenseReports();
+                paidReportCount += expensePayments.length;
+            }
+
+            if (paidReportCount + (shouldConfirmWiseQuotes ? expensePayments.length : 0) < itemsToPay.length) {
                 Log.info('[BulkPay] Bulk pay finished with skipped reports', false, {paidReportCount, selectedCount: itemsToPay.length});
             }
 
@@ -2015,18 +2034,21 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
 
             // The modal sets up one bank account, so it lists only the reports paid from that account
-            const [firstSkippedBankAccount, ...otherSkippedBankAccounts] = reportsNeedingGlobalReimbursementsByBankAccount.entries();
-            if (otherSkippedBankAccounts.length > 0) {
-                Log.info('[BulkPay] Reports from more than one bank account need global reimbursements, prompting for the first one only', false, {
-                    bankAccountIDs: [...reportsNeedingGlobalReimbursementsByBankAccount.keys()],
-                });
-            }
-            if (firstSkippedBankAccount) {
+            const promptToSetUpGlobalReimbursements = (hasPaidReports: boolean) => {
+                const [firstSkippedBankAccount, ...otherSkippedBankAccounts] = reportsNeedingGlobalReimbursementsByBankAccount.entries();
+                if (otherSkippedBankAccounts.length > 0) {
+                    Log.info('[BulkPay] Reports from more than one bank account need global reimbursements, prompting for the first one only', false, {
+                        bankAccountIDs: [...reportsNeedingGlobalReimbursementsByBankAccount.keys()],
+                    });
+                }
+                if (!firstSkippedBankAccount) {
+                    return;
+                }
                 const [bankAccountID, {bankAccount, reportNames}] = firstSkippedBankAccount;
                 const globalReimbursementsModalData = {bankAccountID, bankCountry: bankAccount.bankCountry, bankCurrency: bankAccount.bankCurrency};
 
                 // Nothing was paid, so there is nothing to list next to the skipped reports. Open the intro directly, the same way paying a single report does
-                if (paidReportCount === 0 && otherSkippedBankAccounts.length === 0) {
+                if (!hasPaidReports && otherSkippedBankAccounts.length === 0) {
                     showEnableGlobalReimbursementsModal({...globalReimbursementsModalData, isPayingMultipleReports: reportNames.size > 1});
                     return;
                 }
@@ -2046,10 +2068,40 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         showEnableGlobalReimbursementsModal(globalReimbursementsModalData);
                     });
                 });
+            };
+
+            if (!shouldConfirmWiseQuotes) {
+                promptToSetUpGlobalReimbursements(paidReportCount > 0);
+                return;
             }
+
+            const reports = expensePayments.flatMap((params) => (params.iouReport?.reportID ? [params.iouReport] : []));
+            const quotedReports = expensePayments.flatMap((params) => (params.iouReport?.reportID && shouldGetWiseQuote(params) ? [params.iouReport] : []));
+            for (const report of quotedReports) {
+                // Search results don't hold the quote, which the server merges into the report in Onyx
+                getWiseQuote({...report, ...allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]}, true);
+            }
+            const quotedReportIDs = quotedReports.map((report) => report.reportID);
+            let hasConfirmedWiseQuotes = false;
+            // Bulk pay runs while the pay popover is still dismissing, and iOS can't present a modal until it's gone
+            deferModalPresentationAfterPopoverDismiss(() => {
+                showWiseQuoteCarouselModal({
+                    reports,
+                    quotedReportIDs,
+                    onConfirm: (wiseQuoteIDsByReportID) => {
+                        hasConfirmedWiseQuotes = true;
+                        payExpenseReports(wiseQuoteIDsByReportID);
+                        playSound(SOUNDS.SUCCESS);
+                        clearSelectedTransactions();
+                    },
+                })
+                    // The skipped reports wait for the carousel to close, so the two modals never stack
+                    .then(() => promptToSetUpGlobalReimbursements(paidReportCount > 0 || hasConfirmedWiseQuotes));
+            });
         },
         [
             hash,
+            showWiseQuoteCarouselModal,
             showOfflineModal,
             areAllMatchingItemsSelected,
             queryJSON,

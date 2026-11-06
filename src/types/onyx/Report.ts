@@ -6,6 +6,8 @@ import type {ValueOf} from 'type-fest';
 
 import type * as OnyxCommon from './OnyxCommon';
 import type {AutoReportingOffset, PolicyReportField} from './Policy';
+import type WiseQuote from './WiseQuote';
+import type {WiseQuoteRequest} from './WiseQuote';
 
 /** Preference that defines how regular the chat notifications are sent to the user */
 type NotificationPreference = ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>;
@@ -85,10 +87,10 @@ type ReportNextStep = {
     /** Currency the submitter's deposit account must use for direct reimbursement, named in the waitingForSubmitterAccount copy */
     requiredDepositCurrency?: string;
 
-    /** Whether paying this report goes through global reimbursements, sent only on a waiting-to-pay step */
+    /** Whether paying from the workspace reimbursement account sends this report through a global provider */
     requiresGlobalReimbursement?: boolean;
 
-    /** Currency of the submitter's deposit account, sent only on a waiting-to-pay step */
+    /** Currency the submitter receives the reimbursement in */
     depositCurrency?: string;
 };
 
@@ -133,6 +135,12 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Comma separated IDs of the report's settled withdrawals, in ascending order */
         withdrawalIDs?: string;
+
+        /** Wise's latest price for paying this cross-currency report, shown for the admin to confirm before Pay */
+        wiseQuote?: WiseQuote;
+
+        /** The payment `wiseQuote` was asked for */
+        wiseQuoteRequest?: WiseQuoteRequest;
 
         chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 

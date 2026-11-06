@@ -132,6 +132,9 @@ type PayMoneyRequestFunctionParams = {
     isFallbackChatReport?: boolean;
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     rules: OnyxCollection<OnyxTypes.Rule>;
+
+    /** The Wise quote the admin confirmed */
+    wiseQuoteID?: string;
 };
 
 function getPayMoneyRequestParams({
@@ -945,6 +948,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         isFallbackChatReport,
         rules,
         bankAccountList,
+        wiseQuoteID,
     } = params;
     const policyForBillingRestriction = chatReportPolicy ?? (policy?.id === chatReport.policyID ? policy : undefined);
     if (
@@ -994,6 +998,15 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         rules,
     });
 
+    // Wise takes a quote for one transfer only, so a payment retried after a failure asks for a new quote
+    if (wiseQuoteID && iouReport?.reportID) {
+        onyxData.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {wiseQuote: null, wiseQuoteRequest: null},
+        });
+    }
+
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
     // Expensify Wallets.
     const apiCommand = paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET : WRITE_COMMANDS.PAY_MONEY_REQUEST;
@@ -1002,7 +1015,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     if (shouldPlaySuccessSound) {
         playSound(SOUNDS.SUCCESS);
     }
-    API.write(apiCommand, payMoneyRequestParams, mergeAdditionalPayOnyxData(onyxData, additionalOnyxData));
+    API.write(apiCommand, {...payMoneyRequestParams, wiseQuoteID}, mergeAdditionalPayOnyxData(onyxData, additionalOnyxData));
     notifyNewAction(!full ? (Navigation.getTopmostReportId() ?? iouReport?.reportID) : iouReport?.reportID, undefined, true);
     return payMoneyRequestParams.optimisticHoldReportID;
 }
@@ -1309,3 +1322,4 @@ function savePreferredPaymentMethod(
 }
 
 export {cancelPayment, completePaymentOnboarding, getBankAccountToSetUpBeforePaying, markReportPaymentReceived, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
+export type {PayMoneyRequestFunctionParams};
