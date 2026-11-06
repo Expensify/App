@@ -10337,6 +10337,9 @@ const CONST = {
         DATE_PICKER: {
             CLEAR_BUTTON: 'DatePicker-ClearButton',
         },
+        DATE_SEGMENTS_INPUT: {
+            EMPTY_SPACE: 'DateSegmentsInput-EmptySpace',
+        },
         COUNTRY_PICKER: {
             OPEN: 'CountryPicker-Open',
         },
@@ -10436,6 +10439,10 @@ const CONST = {
         },
         WISE_ONBOARDING_APPROVED: {
             DONE: 'WiseOnboardingApproved-Done',
+        },
+        WISE_QUOTE_CAROUSEL: {
+            PREVIOUS: 'WiseQuoteCarousel-Previous',
+            NEXT: 'WiseQuoteCarousel-Next',
         },
         PRODUCT_MARKETING_WINDOW: {
             CTA: 'ProductMarketingWindow-CTA',
@@ -10848,6 +10855,7 @@ const CONST = {
             DASHBOARD_TAB: 'Insights-DashboardTab',
             CHART_MENU: 'Insights-ChartMenu',
             TABLE_ROW: 'Insights-TableRow',
+            DETAILS_VIEW_ALL: 'Insights-DetailsViewAll',
             CONTROL_POPUP_APPLY: {
                 DATE: 'Insights-ControlPopupApply-Date',
                 WORKSPACE: 'Insights-ControlPopupApply-Workspace',
@@ -11763,6 +11771,7 @@ const CONST = {
         },
         CONFIRM_CONTENT: {
             DISMISS_BUTTON: 'ConfirmContent-DismissButton',
+            CONFIRM_BUTTON: 'ConfirmContent-ConfirmButton',
         },
         COPY_TEXT_TO_CLIPBOARD: {
             COPY_BUTTON: 'CopyTextToClipboard-CopyButton',
