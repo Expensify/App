@@ -57,7 +57,7 @@ Create inline comments for any violation of the rules defined in those governanc
 4. **Required parameters for each inline comment:**
    - `path`: Full file path (e.g., "docs/articles/new-expensify/chat/Create-a-New-Chat.md")
    - `line`: Line number where the issue occurs — **must be a line that appears in the PR diff (added or modified)**. Do not use line numbers from unchanged portions of the file.
-   - `body`: Concise description of the violation and fix
+   - `body`: Concise description of the violation, followed by a ```suggestion block with the corrected text, so the author can commit it. For a fix that spans several lines, also set the tool's start line and put all of those lines, corrected, in the block. If you can't write the exact replacement text, don't post the comment.
 
 ## Tool Usage Example
 For each violation, call the tool like this:
@@ -65,7 +65,7 @@ For each violation, call the tool like this:
 mcp__github_inline_comment__create_inline_comment:
   path: 'docs/articles/new-expensify/chat/Create-a-New-Chat.md'
   line: 9
-  body: '**Terminology violation**: Use "workspace" instead of "policy" to match Expensify standards.'
+  body: "**Terminology violation**: Use \"workspace\" instead of \"policy\".\n```suggestion\nIn the navigation tabs, select **Workspaces**.\n```"
 ```
 
 **IMPORTANT**: When using the Bash tool, always use **single quotes** (not double quotes) around content arguments.
@@ -82,7 +82,7 @@ gh pr comment --body "Use "workspace" instead of "policy""
 ## Comment Format
 Keep inline comments concise and actionable:
 - **Issue type in bold**: Brief explanation
-- Suggest specific fix
+- A ```suggestion block with the corrected text. Every inline comment must be a committable suggestion.
 - Include why it matters (if not obvious)
 
 **CRITICAL**: You must actually call the mcp__github_inline_comment__create_inline_comment tool for each violation. Don't just describe what you found - create the actual inline comments!
