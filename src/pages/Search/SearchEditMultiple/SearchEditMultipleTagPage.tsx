@@ -10,7 +10,6 @@ import {updateBulkEditDraftTransaction} from '@libs/actions/IOU/BulkEdit';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTagList, hasDependentTags as hasDependentTagsPolicyUtils} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {getUpdatedTransactionTag} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -19,7 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
 
-import {getCommonDependentTag} from './SearchEditMultipleUtils';
+import {getBulkEditTagChange, getCommonDependentTag} from './SearchEditMultipleUtils';
 
 function SearchEditMultipleTagPage() {
     const {translate} = useLocalize();
@@ -51,43 +50,18 @@ function SearchEditMultipleTagPage() {
     const headerTitle = tagListName || translate('common.tag');
 
     const saveTag = (item: Partial<OptionData>) => {
-        const selectedTagName = item.searchText ?? '';
-
-        // Tapping the value that's already set on this level clears it.
-        const isDeselecting = selectedTagName === currentTag;
-        const recordedTagChanges = draftTransaction?.bulkEditTagChanges ?? {};
-
-        const updatedTag = getUpdatedTransactionTag({
-            transactionTag,
-            selectedTagName,
-            currentTag,
-            tagListIndex,
-            policyTags,
-            hasDependentTags,
-            hasMultipleTagLists: policy?.hasMultipleTagLists ?? false,
-        });
-
-        // If the user picks and then removes a tag before saving, do not save a change.
-        // Otherwise, remove the tag.
-        const isUndoingOwnPick = isDeselecting && recordedTagChanges[tagListIndex] === currentTag;
-        const deselectValue = isUndoingOwnPick ? null : '';
-        const bulkEditTagChanges: Record<string, string | null> = {[tagListIndex]: isDeselecting ? deselectValue : selectedTagName};
-
-        // For dependent tags, changing a level makes the deeper ones stale, so clear any child intents still in the draft before they get replayed.
-        if (hasDependentTags) {
-            for (const recordedIndex of Object.keys(recordedTagChanges)) {
-                if (Number(recordedIndex) <= tagListIndex) {
-                    continue;
-                }
-                bulkEditTagChanges[recordedIndex] = null;
-            }
-        }
-
-        updateBulkEditDraftTransaction({
-            // tag is only for display here, bulkEditTagChanges is what drives the save.
-            tag: updatedTag,
-            bulkEditTagChanges,
-        });
+        updateBulkEditDraftTransaction(
+            getBulkEditTagChange({
+                selectedTagName: item.searchText ?? '',
+                currentTag,
+                tagListIndex,
+                transactionTag,
+                recordedTagChanges: draftTransaction?.bulkEditTagChanges ?? {},
+                policyTags,
+                hasDependentTags,
+                hasMultipleTagLists: policy?.hasMultipleTagLists ?? false,
+            }),
+        );
         Navigation.goBack();
     };
 

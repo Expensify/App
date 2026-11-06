@@ -11119,6 +11119,17 @@ const CONST = {
         ATTENDEE_PICKER_MODAL: {
             BACK_BUTTON: 'AttendeePickerModal-BackButton',
         },
+        SEARCH_EDIT_MULTIPLE: {
+            AMOUNT_FIELD: 'SearchEditMultiple-AmountField',
+            MERCHANT_FIELD: 'SearchEditMultiple-MerchantField',
+            DATE_FIELD: 'SearchEditMultiple-DateField',
+            CATEGORY_FIELD: 'SearchEditMultiple-CategoryField',
+            TAG_FIELD: 'SearchEditMultiple-TagField',
+            TAX_RATE_FIELD: 'SearchEditMultiple-TaxRateField',
+            REIMBURSABLE_SWITCH: 'SearchEditMultiple-ReimbursableSwitch',
+            BILLABLE_SWITCH: 'SearchEditMultiple-BillableSwitch',
+            ATTENDEES_FIELD: 'SearchEditMultiple-AttendeesField',
+        },
         CALENDAR_PICKER: {
             YEAR_PICKER: 'CalendarPicker-YearPicker',
             MONTH_PICKER: 'CalendarPicker-MonthPicker',

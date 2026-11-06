@@ -1,11 +1,12 @@
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {isInvoiceReport, isIOUReport} from '@libs/ReportUtils';
+import {isInvoiceReport, isIOUReport, shouldEnableNegative} from '@libs/ReportUtils';
+import {getUpdatedTransactionTag} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName, isDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportActions, SearchResults, Transaction} from '@src/types/onyx';
+import type {Policy, PolicyTagLists, Report, ReportActions, SearchResults, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -180,6 +181,99 @@ function withSnapshotReports(onyxReports: OnyxCollection<Report> | undefined, sn
     return merged;
 }
 
+/**
+ * Whether the amount typed on the bulk edit form may be negative: only when every selected expense allows it.
+ * An unreported expense always does; a reported one follows its report and workspace.
+ */
+function isBulkEditNegativeAmountAllowed(
+    selectedTransactionContexts: Array<{transaction: Transaction; report: OnyxEntry<Report>}>,
+    reports: OnyxCollection<Report>,
+    policies: OnyxCollection<Policy>,
+): boolean {
+    if (selectedTransactionContexts.length === 0) {
+        return false;
+    }
+    return selectedTransactionContexts.every(({transaction, report}) => {
+        if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+            return true;
+        }
+        // A chat report stands in for the money request report it belongs to.
+        const iouReport = report?.type === CONST.REPORT.TYPE.CHAT && report.parentReportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] : report;
+        if (!iouReport) {
+            return false;
+        }
+        const iouType = isInvoiceReport(iouReport) ? CONST.IOU.TYPE.INVOICE : CONST.IOU.TYPE.SUBMIT;
+        return shouldEnableNegative(iouReport, policies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport.policyID}`], iouType);
+    });
+}
+
+/** The draft change for a picked category. Picking nothing, or the category already picked, drops the pending change. */
+function getBulkEditCategoryChange(nextCategory: string, currentCategory: string): {category: string | null} {
+    return {category: !nextCategory || nextCategory === currentCategory ? null : nextCategory};
+}
+
+/** The draft change for a picked tax rate. Picking the rate already picked drops the pending change. */
+function getBulkEditTaxCodeChange(nextTaxCode: string, currentTaxCode: string): {taxCode: string | null} {
+    return {taxCode: nextTaxCode === currentTaxCode ? null : nextTaxCode};
+}
+
+type BulkEditTagChangeParams = {
+    /** The tag picked on this level. Picking the level's current tag again clears it. */
+    selectedTagName: string;
+
+    /** The tag the level holds before the pick */
+    currentTag: string;
+
+    tagListIndex: number;
+
+    /** The whole multi-level tag the draft shows */
+    transactionTag: string;
+
+    /** The per-level intents already recorded on the draft, which drive the save */
+    recordedTagChanges: Record<string, string | null>;
+
+    policyTags: OnyxEntry<PolicyTagLists>;
+    hasDependentTags: boolean;
+    hasMultipleTagLists: boolean;
+};
+
+/**
+ * The draft change for a tag picked on one level: the multi-level tag to show, and the per-level intents to save.
+ * Clearing a level the user picked in this session drops its intent; clearing one the expenses already hold records a clear.
+ */
+function getBulkEditTagChange({selectedTagName, currentTag, tagListIndex, transactionTag, recordedTagChanges, policyTags, hasDependentTags, hasMultipleTagLists}: BulkEditTagChangeParams): {
+    tag: string;
+    bulkEditTagChanges: Record<string, string | null>;
+} {
+    const isDeselecting = selectedTagName === currentTag;
+
+    const tag = getUpdatedTransactionTag({
+        transactionTag,
+        selectedTagName,
+        currentTag,
+        tagListIndex,
+        policyTags,
+        hasDependentTags,
+        hasMultipleTagLists,
+    });
+
+    const isUndoingOwnPick = isDeselecting && recordedTagChanges[tagListIndex] === currentTag;
+    const deselectValue = isUndoingOwnPick ? null : '';
+    const bulkEditTagChanges: Record<string, string | null> = {[tagListIndex]: isDeselecting ? deselectValue : selectedTagName};
+
+    // Changing a dependent level makes the deeper ones stale, so their intents are dropped before they get replayed.
+    if (hasDependentTags) {
+        for (const recordedIndex of Object.keys(recordedTagChanges)) {
+            if (Number(recordedIndex) <= tagListIndex) {
+                continue;
+            }
+            bulkEditTagChanges[recordedIndex] = null;
+        }
+    }
+
+    return {tag, bulkEditTagChanges};
+}
+
 export {
     getCommonDependentTag,
     getTransactionEditContext,
@@ -187,6 +281,10 @@ export {
     areAllTransactionsExpenseCompatible,
     isBulkEditTaxTrackingEnabled,
     isBulkEditAttendeeTrackingEnabled,
+    isBulkEditNegativeAmountAllowed,
+    getBulkEditCategoryChange,
+    getBulkEditTaxCodeChange,
+    getBulkEditTagChange,
     withSnapshotTransactions,
     withSnapshotReportActions,
     withSnapshotReports,
