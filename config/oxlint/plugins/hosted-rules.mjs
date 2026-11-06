@@ -1,7 +1,7 @@
 /**
  * ESLint plugin rules run from their own code under `hosted/`, because oxlint has no version of them or its version
- * reports differently. config/oxlint/derive.mjs decides which ones. oxlint reserves these plugin names, so they all
- * share the `hosted` name.
+ * reports differently. config/oxlint/derive.mjs decides which ones. They all load under the one `hosted` name because
+ * oxlint keeps most of their plugin names for its own rules.
  */
 import {EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN} from '../../reactCompiler/suppressedRules.mjs';
 import {STUBBED_PARSER_SERVICES, hostedRuleIDs, getPluginRules, splitRuleID} from '../derive.mjs';
@@ -12,7 +12,7 @@ import {withFullGating, withMessageGating} from '../reactCompilerGate.mjs';
 // naming-convention requires parser services, which oxlint's JS plugins lack.
 // getParserServices(context, true) tolerates a missing `program` but fails on missing node maps and
 // reads context.languageOptions first, so both are stubbed. The presets' selectors never reach the
-// type checker (no `types` selector).
+// type checker (no option sets `types`).
 const STUB_PARSER_SERVICES = {
     esTreeNodeToTSNodeMap: new Map(),
     tsNodeToESTreeNodeMap: new Map(),

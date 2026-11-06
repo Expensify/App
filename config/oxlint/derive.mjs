@@ -1,8 +1,8 @@
 /**
  * Turns the eslint-config-expensify presets (presets.mjs) into oxlint config each time oxlint loads oxlint.config.mts,
  * so upgrading the presets needs no config edits. Rules oxlint can't run itself run from ESLint's code through the
- * `core` and `hosted` plugins in ./plugins. If a preset rule can't run at all, loading fails until it is listed in
- * DROPPED_RULES or STAND_INS.
+ * `core` and `hosted` plugins in ./plugins. If a preset rule can't run, loading fails until its plugin is added to
+ * HOSTED_PLUGIN_PACKAGES or the rule is listed in DROPPED_RULES or STAND_INS.
  */
 import migrate from '@oxlint/migrate';
 import {builtinRules} from 'eslint/use-at-your-own-risk';
@@ -22,8 +22,8 @@ function resolvePackage(request) {
     return require.resolve(request, {paths: [expensifyConfigDirectory, repoRoot]});
 }
 
-// ESLint plugins whose rules can run as `hosted/<rule>`. oxlint reserves the first five plugin names for its own
-// versions, so the ESLint rules need a different name.
+// ESLint plugins whose rules can run as `hosted/<rule>`. oxlint keeps the names react, import, jsdoc,
+// @typescript-eslint and react-hooks for its own rules, so a JS plugin can't use them.
 const HOSTED_PLUGIN_PACKAGES = {
     react: 'eslint-plugin-react',
     import: 'eslint-plugin-import',
@@ -46,12 +46,10 @@ const ALWAYS_HOSTED = new Set([
     'react-hooks/exhaustive-deps',
 ]);
 
-// Hosted rules that no preset turns on but oxlint.config.mts does.
+// Hosted rules that no preset turns on but oxlint.config.mts does. oxlint has no native version of any of them.
 const APP_HOSTED_RULES = [
     'jsdoc/require-jsdoc',
-    // oxlint has no native version.
     'react/no-unused-prop-types',
-    // oxlint has no storybook plugin.
     'storybook/await-interactions',
     'storybook/context-in-play-function',
     'storybook/default-exports',
@@ -71,8 +69,8 @@ const LOCAL_HOSTED_RULES = {
     'no-deprecated-self-closing-jsx': '@typescript-eslint/no-deprecated',
 };
 
-// naming-convention wants type information, which oxlint JS plugins don't get. It still works with empty stand-ins
-// (plugins/hosted-rules.mjs) as long as no option uses the `types` selector.
+// naming-convention is marked as needing type information, which oxlint JS plugins don't get. It only uses types for
+// options that set `types`, which the presets don't, so plugins/hosted-rules.mjs gives it empty parser services.
 const STUBBED_PARSER_SERVICES = new Set(['@typescript-eslint/naming-convention']);
 
 const DROPPED_RULES = {
@@ -98,9 +96,9 @@ const ESLINT_RULE_RENAMES = {
     'no-new-symbol': 'no-new-native-nonconstructor',
 };
 
-// React Compiler rules run as `rc/<name>` (plugins/rc-rules.mjs). oxlint's own react/<name> versions are not used,
-// because disabling react/exhaustive-deps or react/rules-of-hooks there also hides every compiler error in that
-// component (https://github.com/oxc-project/oxc/issues/26277).
+// React Compiler rules run as `rc/<name>` (plugins/rc-rules.mjs). oxlint's built-in react/<name> versions are not used:
+// an `eslint-disable` comment for react-hooks/exhaustive-deps or react-hooks/rules-of-hooks also hides every compiler
+// error in that component (https://github.com/oxc-project/oxc/issues/26277).
 const REACT_COMPILER_RULES = new Set(Object.values(RULE_BY_CATEGORY));
 
 // @oxlint/migrate warnings that are safe to ignore: dropped settings this file restores or that keep their defaults,
@@ -161,8 +159,8 @@ async function runMigrate() {
 const {config: migrated, skipped} = await runMigrate();
 
 /**
- * Returns the rule that runs a preset rule @oxlint/migrate skipped: `core/<name>`, `hosted/<name>`, or oxlint's name
- * for a renamed core rule.
+ * Returns the rule that runs a preset rule @oxlint/migrate skipped, or an ALWAYS_HOSTED one: `core/<name>`,
+ * `hosted/<name>`, or oxlint's name for a renamed core rule.
  * @param {string} ruleID an ESLint rule ID
  * @returns {string | undefined} undefined for rules in DROPPED_RULES or STAND_INS
  */
@@ -171,6 +169,9 @@ function getReplayTarget(ruleID) {
         return undefined;
     }
     const {prefix, name} = splitRuleID(ruleID);
+    if (prefix === 'react-hooks' && !ALWAYS_HOSTED.has(ruleID)) {
+        throw new Error(`${ruleID} has no rc/ version. Add it to RULE_BY_CATEGORY in config/oxlint/reactCompilerRust.mjs, or to DROPPED_RULES in config/oxlint/derive.mjs.`);
+    }
     if (!prefix && ESLINT_RULE_RENAMES[name]) {
         return ESLINT_RULE_RENAMES[name];
     }
@@ -181,7 +182,9 @@ function getReplayTarget(ruleID) {
     if (rule && (!rule.meta?.docs?.requiresTypeChecking || STUBBED_PARSER_SERVICES.has(ruleID))) {
         return `hosted/${name}`;
     }
-    throw new Error(`oxlint cannot run ${ruleID} natively or as a JS plugin. Add it to DROPPED_RULES or STAND_INS in config/oxlint/derive.mjs.`);
+    throw new Error(
+        `oxlint cannot run ${ruleID} natively or as a JS plugin. If its ESLint plugin can run it, add the plugin to HOSTED_PLUGIN_PACKAGES; otherwise add the rule to DROPPED_RULES or STAND_INS in config/oxlint/derive.mjs.`,
+    );
 }
 
 const replayedRuleIDs = new Map(
@@ -192,8 +195,8 @@ const replayedRuleIDs = new Map(
 );
 
 /**
- * Adds back the preset rules @oxlint/migrate skipped, on the same files as in the preset. When a later block sets only
- * a severity, the earlier options are kept, as ESLint does.
+ * Adds back the preset rules @oxlint/migrate skipped, and the ALWAYS_HOSTED ones, on the same files as in the preset.
+ * When a later block sets only a severity, the earlier options are kept, as ESLint does.
  * @returns {{rules: Record<string, unknown>, overrides: Array<{files: string[], rules: Record<string, unknown>}>}}
  */
 function replaySkippedRules() {
@@ -257,7 +260,7 @@ const dropUnneededRules = (rules) => Object.fromEntries(Object.entries(rules).fi
 const coreRuleNames = [...replayedRuleIDs.values()].filter((target) => target.startsWith('core/') && isNeeded(target)).map((target) => target.slice('core/'.length));
 const hostedRuleIDs = [...new Set([...[...replayedRuleIDs].filter(([, target]) => target.startsWith('hosted/') && isNeeded(target)).map(([ruleID]) => ruleID), ...APP_HOSTED_RULES])];
 
-// All hosted rules share the `hosted/` prefix, so two plugins cannot both bring a rule with the same name.
+// All hosted rules share the `hosted/` prefix, so loading fails if two plugins bring a rule with the same name.
 const hostedNames = [...hostedRuleIDs.map((ruleID) => splitRuleID(ruleID).name), ...Object.keys(LOCAL_HOSTED_RULES)];
 const duplicateName = hostedNames.find((name, index) => hostedNames.indexOf(name) !== index);
 if (duplicateName) {
@@ -279,6 +282,7 @@ function translateRules(rules = {}) {
         }
         // @oxlint/migrate writes react-hooks rules under the `react/` prefix.
         const hooksRuleID = prefix === 'react' && REACT_HOOKS_RULE_NAMES.has(name) ? `react-hooks/${name}` : undefined;
+        // ALWAYS_HOSTED rules come back as `hosted/` through replaySkippedRules, and DROPPED_RULES don't run at all.
         if (ALWAYS_HOSTED.has(ruleID) || ALWAYS_HOSTED.has(hooksRuleID) || DROPPED_RULES[ruleID] || DROPPED_RULES[hooksRuleID]) {
             continue;
         }
@@ -326,15 +330,11 @@ function getImportSettings() {
 }
 
 /**
- * The name a JS plugin is given when an override lists it by package: `eslint-plugin-lodash` is `lodash`,
- * `@dword-design/eslint-plugin-import-alias` is `@dword-design/import-alias`.
- * @param {string | {name: string}} jsPlugin
+ * The name oxlint gives a JS plugin package: `eslint-plugin-es` is `es`, `@scope/eslint-plugin-x` is `@scope/x`.
+ * @param {string} jsPlugin
  * @returns {string}
  */
 function getJsPluginName(jsPlugin) {
-    if (typeof jsPlugin !== 'string') {
-        return jsPlugin.name;
-    }
     const scoped = /^(@[^/]+)\/eslint-plugin(?:-(.+))?$/.exec(jsPlugin);
     if (scoped) {
         return scoped[2] ? `${scoped[1]}/${scoped[2]}` : scoped[1];
@@ -342,7 +342,7 @@ function getJsPluginName(jsPlugin) {
     return jsPlugin.replace(/^eslint-plugin-/, '');
 }
 
-// Loads ESLint plugins the presets need that oxlint has no version of (today only eslint-plugin-es).
+// Lists the ESLint plugins the presets need that oxlint has no version of (today only eslint-plugin-es).
 // eslint-plugin-rulesdir is skipped because plugins/expensify-rules.mjs loads those rules.
 function getPresetJsPlugins() {
     const specifiers = new Set([migrated, ...(migrated.overrides ?? [])].flatMap((block) => block.jsPlugins ?? []));
@@ -377,6 +377,7 @@ const presetConfig = {
     },
     rules: {...translateRules(migrated.rules), ...dropUnneededRules(replayed.rules)},
     overrides: [
+        // jsPlugins are left out here; getPresetJsPlugins lists them once at the root.
         ...(migrated.overrides ?? []).map(({files, plugins, env, globals, rules}) => ({
             files,
             ...(plugins ? {plugins} : {}),
@@ -388,34 +389,17 @@ const presetConfig = {
     ],
 };
 
-// oxlint has no API that lists its built-in rules, so the list comes from the config schema it ships.
-const oxlintSchema = require(path.join(path.dirname(require.resolve('oxlint/package.json')), 'configuration_schema.json'));
-const BUILT_IN_RULES = new Set(Object.keys(oxlintSchema.definitions.DummyRuleMap.properties));
-
 /**
- * Throws when oxlint.config.mts names a rule oxlint doesn't run here, like `react/x` when the rule runs as `hosted/x`.
- * Without this, a preset update could silently turn off a rule the App sets.
+ * Throws when oxlint.config.mts sets a rule by its built-in name while it runs as hosted/, core/ or rc/ (like
+ * `import/prefer-default-export`). That setting would do nothing or run a second copy. oxlint itself rejects names it
+ * doesn't know.
  * @param {string} rule
- * @param {Set<string>} jsPluginNames
  */
-function checkRuleName(rule, jsPluginNames) {
+function checkRuleName(rule) {
     const {prefix: plugin, name} = splitRuleID(rule);
-    let isKnown;
-    if (plugin === 'core') {
-        isKnown = coreRuleNames.includes(name);
-    } else if (plugin === 'hosted') {
-        isKnown = hostedNames.includes(name);
-    } else if (plugin === 'rc') {
-        isKnown = REACT_COMPILER_RULES.has(name);
-    } else if (jsPluginNames.has(plugin)) {
-        isKnown = true;
-    } else {
-        // A built-in name does nothing, or runs a second copy, when the rule runs as hosted/, core/ or rc/ instead.
-        const runsElsewhere = ALWAYS_HOSTED.has(rule) || coreRuleNames.includes(rule) || (plugin === 'react' && (REACT_COMPILER_RULES.has(name) || ALWAYS_HOSTED.has(`react-hooks/${name}`)));
-        isKnown = BUILT_IN_RULES.has(rule) && !runsElsewhere;
-    }
-    if (!isKnown) {
-        throw new Error(`oxlint.config.mts sets "${rule}", which is not a rule oxlint runs here. Check whether it runs as hosted/, core/ or built in.`);
+    const runsElsewhere = ALWAYS_HOSTED.has(rule) || coreRuleNames.includes(rule) || (plugin === 'react' && (REACT_COMPILER_RULES.has(name) || ALWAYS_HOSTED.has(`react-hooks/${name}`)));
+    if (runsElsewhere) {
+        throw new Error(`oxlint.config.mts sets "${rule}", but that rule runs as hosted/, core/ or rc/ here. Use that name instead.`);
     }
 }
 
@@ -426,16 +410,14 @@ function checkRuleName(rule, jsPluginNames) {
  * @returns {import('oxlint').OxlintConfig}
  */
 function extendOxlintConfig({ignorePatterns = [], env = {}, globals = {}, settings = {}, jsPlugins = [], overrides = []}) {
-    const rootJsPlugins = [...(presetConfig.jsPlugins ?? []), ...jsPlugins];
     for (const override of overrides) {
-        const jsPluginNames = new Set([...rootJsPlugins, ...(override.jsPlugins ?? [])].map(getJsPluginName));
         for (const rule of Object.keys(override.rules ?? {})) {
-            checkRuleName(rule, jsPluginNames);
+            checkRuleName(rule);
         }
     }
     return {
         ...presetConfig,
-        jsPlugins: rootJsPlugins,
+        jsPlugins: [...(presetConfig.jsPlugins ?? []), ...jsPlugins],
         env: {...presetConfig.env, ...env},
         globals: {...presetConfig.globals, ...globals},
         settings: mergeSettings(presetConfig.settings, settings),

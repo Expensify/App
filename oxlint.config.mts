@@ -194,7 +194,8 @@ export default extendOxlintConfig({
                 // `interface ArrayBuffer` in src/types/global.d.ts.
                 'no-redeclare': ['error', {builtinGlobals: false}],
                 'hosted/no-unused-prop-types': ['error', {customValidators: [], skipShapeProps: true}],
-                // This list replaces the preset's, so it repeats the preset's `LabeledStatement` and `WithStatement` bans.
+                // This list replaces the preset's. It keeps the preset's `LabeledStatement` and `WithStatement` bans but not
+                // `ForInStatement`, which only the scripts/tests block below bans.
                 'core/no-restricted-syntax': [
                     'error',
                     {selector: 'TSEnumDeclaration', message: "Please don't declare enums, use union types instead."},

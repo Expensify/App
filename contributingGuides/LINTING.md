@@ -126,7 +126,7 @@ Commit the updated `config/oxlint/oxlint.seatbelt.tsv` alongside the rename. The
 
 ### "I'm enabling a new rule repo-wide"
 
-1. Add the rule to an override in `oxlint.config.mts` in `'error'` mode. If oxlint has no native version of an ESLint plugin rule, add its ESLint ID to `APP_HOSTED_RULES` in `config/oxlint/derive.mjs` and set it as `hosted/<rule>`.
+1. Add the rule to an override in `oxlint.config.mts` in `'error'` mode. If oxlint has no native version and the rule comes from react, import, jsdoc, @typescript-eslint, react-hooks or storybook, add its ESLint ID to `APP_HOSTED_RULES` in `config/oxlint/derive.mjs` and set it as `hosted/<rule>`. For any other ESLint plugin, list the package in the override's `jsPlugins` and use the rule's own name.
 2. Save the initial baseline:
 
     ```bash
