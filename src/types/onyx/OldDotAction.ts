@@ -229,31 +229,15 @@ type ReimbursementDepositFailedOriginalMessage = {
     reason?: string;
 };
 
-/**
- *
- */
+/** Wise could not deposit a reimbursement into the recipient's bank account */
 type OriginalMessageReimbursementDepositFailed = {
-    /**
-     *
-     */
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEPOSIT_FAILED;
-    /**
-     *
-     */
     originalMessage: Record<string, unknown> & ReimbursementDepositFailedOriginalMessage;
 };
 
-/**
- *
- */
+/** Wise is holding a reimbursement for review before sending it */
 type OriginalMessageReimbursementHeld = {
-    /**
-     *
-     */
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_HELD;
-    /**
-     *
-     */
     originalMessage: Record<string, unknown>;
 };
 
@@ -269,31 +253,15 @@ type ReimbursementRefundedOriginalMessage = {
     debitBankAccountLast4?: string;
 };
 
-/**
- *
- */
+/** Wise returned a reimbursement to the payer's bank account */
 type OriginalMessageReimbursementRefunded = {
-    /**
-     *
-     */
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REFUNDED;
-    /**
-     *
-     */
     originalMessage: Record<string, unknown> & ReimbursementRefundedOriginalMessage;
 };
 
-/**
- *
- */
+/** Wise released a held reimbursement and resumed the payment */
 type OriginalMessageReimbursementReleased = {
-    /**
-     *
-     */
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED;
-    /**
-     *
-     */
     originalMessage: Record<string, unknown>;
 };
 
@@ -429,21 +397,9 @@ type OldDotOriginalMessageMap = {
      *
      */
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED]: OriginalMessageReimbursementDelayed;
-    /**
-     *
-     */
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEPOSIT_FAILED]: OriginalMessageReimbursementDepositFailed;
-    /**
-     *
-     */
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_HELD]: OriginalMessageReimbursementHeld;
-    /**
-     *
-     */
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REFUNDED]: OriginalMessageReimbursementRefunded;
-    /**
-     *
-     */
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED]: OriginalMessageReimbursementReleased;
     /**
      *
