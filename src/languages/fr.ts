@@ -185,6 +185,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dob: 'Date de naissance',
         currentYear: 'Année en cours',
         currentMonth: 'Mois en cours',
+        todayDateLabel: (date: string) => `${date}, aujourd’hui`,
         ssnLast4: '4 derniers chiffres du N° de sécu',
         ssnFull9: '9 chiffres complets du SSN',
         addressLine: (lineNumber: number) => `Adresse ligne ${lineNumber}`,
@@ -2163,6 +2164,13 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `Modifiez l’espace de travail de la note de frais pour effectuer d’autres actions.`,
+
+            [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `Vous ne pouvez qu’approuver dans cet espace de travail. Déplacez cette note de frais vers un autre espace pour la soumettre.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -3152,7 +3160,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `J’accepte les <a href="${CONST.WISE.TERMS_URL}">conditions générales</a> et la <a href="${CONST.WISE.PRIVACY_URL}">politique de confidentialité</a> de Wise.`,
                 wiseTermsAccessibilityLabel: 'J’accepte les conditions générales et la politique de confidentialité de Wise.',
                 error: 'Veuillez accepter toutes les conditions pour continuer.',
-                alreadySubmitted: 'Cette entreprise a déjà été envoyée à Wise pour examen.',
             },
             moreInfoNeeded: {
                 headerTitle: 'Plus d’informations nécessaires',
@@ -3336,8 +3343,10 @@ ${amount} pour ${merchant} - ${date}`,
         addApprovalsDescription: 'Exiger une approbation supplémentaire avant d’autoriser un paiement.',
         makeOrTrackPaymentsTitle: 'Paiements',
         makeOrTrackPaymentsDescription: 'Ajoutez un payeur autorisé pour les paiements effectués dans Expensify ou suivez les paiements effectués ailleurs.',
-        collectEmployeeBankDetails: 'Collecter les coordonnées bancaires des employés',
-        collectEmployeeBankDetailsDescription: 'Recueillez les coordonnées bancaires des employés afin de pouvoir les rembourser en dehors d’Expensify.',
+        collectEmployeeBankDetails: 'Collecter les coordonnées bancaires',
+        collectEmployeeBankDetailsDescription: 'Collectez les coordonnées bancaires des membres de l’espace de travail afin de pouvoir les rembourser en dehors d’Expensify.',
+        disablePaymentsTitle: 'Désactiver les paiements ?',
+        disablePaymentsPrompt: 'Cela supprimera tous vos paramètres de paiement.',
         businessBankAccountCountries: 'Pays des comptes bancaires professionnels',
         businessBankAccountCountriesDescription:
             'Les employés de ces pays fournissent des coordonnées de virement local. Tous les autres fournissent des coordonnées de virement international.',
@@ -5257,6 +5266,13 @@ ${amount} pour ${merchant} - ${date}`,
             title: 'Vous ne pouvez pas encore réserver de voyage',
             message:
                 'Vous êtes membre d’un espace de travail avec voyage activé, mais ce n’est pas votre espace de travail par défaut. Pour réserver, veuillez activer le voyage sur votre espace de travail par défaut ou définir comme espace de travail par défaut un espace de travail avec voyage activé.',
+        },
+        approval: {
+            status: {outstanding: 'En souffrance', approved: 'Approuvé', rejected: 'Rejeté', canceled: 'Annulé'},
+            deadline: {
+                softApproval: (time: string) => `Approbation automatique dans ${time}. Annulation gratuite jusqu’à cette heure.`,
+                hardApproval: (time: string) => `Annulation automatique dans ${time} si non approuvé.`,
+            },
         },
     },
     workspace: {
@@ -11094,11 +11110,14 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 upcoming: 'À venir',
                 done: 'Terminé',
                 canceled: 'Annulé',
+                outstanding: 'En souffrance',
+                rejected: 'Rejeté',
             },
         },
         tabs: {
             expenseReports: 'Notes de frais',
             reports: 'Notes de frais',
+            myReports: 'Mes rapports',
             expenses: 'Dépenses',
             submit: 'Brouillons',
             approve: 'Nécessite une approbation',
@@ -12980,6 +12999,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             other: (count: number) => `il y a ${count} j`,
         }),
         offlineMessage: 'Vous êtes hors ligne. L’historique des notes de frais peut être obsolète.',
+        toMarkAsDone: 'marquer comme terminé',
     },
 };
 export default translations;

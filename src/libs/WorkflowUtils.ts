@@ -31,7 +31,16 @@ import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {getConnectedHRProvider, getHRAdvancedModeFinalApprover, getHRFinalApprover, isAnyHRConnected, isHRAdvancedMode, isAnyHRReadOnlyWorkflowMode} from './merge/HRUtils';
 import {getConnectedATSProvider, isAnyRecruitingReadOnlyWorkflowMode} from './merge/RecruitingUtils';
 import {rand64} from './NumberUtils';
-import {canMemberWrite, getDefaultApprover, isExpensifyTeam, isNonMemberApprover, isSubmitPolicy, shouldFilterExpensifyTeam, shouldHideDynamicExternalWorkflowPeople} from './PolicyUtils';
+import {
+    canMemberWrite,
+    getApprovalWorkflow,
+    getDefaultApprover,
+    isExpensifyTeam,
+    isNonMemberApprover,
+    isSubmitPolicy,
+    shouldFilterExpensifyTeam,
+    shouldHideDynamicExternalWorkflowPeople,
+} from './PolicyUtils';
 import {fromIndexMap, getApprovalWorkflowRulesForPolicy, isApprovalWorkflowRule, isRuleFilterComparison, toIndexMap} from './RuleUtils';
 
 const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
@@ -354,17 +363,13 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
 }
 
 /**
- * The workflows a workspace actually enforces. Only the advanced approval modes run more than one workflow, so under
- * every other mode the default workflow is the only one in force and the rest are inert. They can still be derived
- * from `employeeList`, because downgrading a workspace leaves each member's `submitsTo` in place.
+ * The workflows a workspace actually enforces. Approval workflow rules route every workflow whatever the approval mode.
+ * On `employeeList` only the advanced approval modes run more than one workflow, so under every other mode the default
+ * workflow is the only one in force and the rest are inert. They can still be derived from `employeeList`, because
+ * downgrading a workspace leaves each member's `submitsTo` in place.
  */
-function getEnforcedApprovalWorkflows(approvalWorkflows: ApprovalWorkflow[], policy: OnyxEntry<Policy>, isMultipleApproversBetaEnabled: boolean): ApprovalWorkflow[] {
-    if (
-        isMultipleApproversBetaEnabled ||
-        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED ||
-        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL ||
-        isHRAdvancedMode(policy)
-    ) {
+function getEnforcedApprovalWorkflows(approvalWorkflows: ApprovalWorkflow[], policy: OnyxEntry<Policy>, shouldUseRules: boolean): ApprovalWorkflow[] {
+    if (shouldUseRules || policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED || policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL || isHRAdvancedMode(policy)) {
         return approvalWorkflows;
     }
 
@@ -375,8 +380,8 @@ function getEnforcedApprovalWorkflows(approvalWorkflows: ApprovalWorkflow[], pol
  * The enforced workflows seen from a member's side. A member left on an inert workflow by a downgrade submits to the
  * default approver like everyone else, so they move onto the default workflow rather than ending up on no workflow.
  */
-function getEnforcedApprovalWorkflowsForMembers(approvalWorkflows: ApprovalWorkflow[], policy: OnyxEntry<Policy>, isMultipleApproversBetaEnabled: boolean): ApprovalWorkflow[] {
-    const enforcedApprovalWorkflows = getEnforcedApprovalWorkflows(approvalWorkflows, policy, isMultipleApproversBetaEnabled);
+function getEnforcedApprovalWorkflowsForMembers(approvalWorkflows: ApprovalWorkflow[], policy: OnyxEntry<Policy>, shouldUseRules: boolean): ApprovalWorkflow[] {
+    const enforcedApprovalWorkflows = getEnforcedApprovalWorkflows(approvalWorkflows, policy, shouldUseRules);
     if (enforcedApprovalWorkflows.length === approvalWorkflows.length) {
         return enforcedApprovalWorkflows;
     }
@@ -1567,13 +1572,54 @@ function hasApprovalWorkflowRules(rulesCollection: OnyxCollection<Rule> | undefi
 }
 
 /**
+ * Whether the policy's approval workflows are read from and saved as approval workflow rules.
+ *
+ * Under the `MULTIPLE_APPROVERS` beta, saving a workflow writes rules, and from then on the rules route the policy's
+ * reports instead of `employeeList`. A policy without rules stays on `employeeList` while its reports reach an over-limit
+ * approver: `employeeList` sends a report over the approval limit on down the over-limit approver's own chain, while
+ * rules bring it back to the workflow after them, so writing rules would change where those reports go.
+ *
+ * Only the advanced approval chain sends reports over the limit, and only from an approver a member's reports reach.
+ * Turning approvals off resets `submitsTo` and `forwardsTo` but leaves `approvalLimit` and `overLimitForwardsTo` behind,
+ * so those leftovers don't keep a policy off rules.
+ *
+ * @param hasRules whether approval workflow rules route the policy's reports, see `hasApprovalWorkflowRules`
+ */
+function shouldUseApprovalWorkflowRules(policy: OnyxEntry<Policy>, hasRules: boolean, isMultipleApproversBetaEnabled: boolean): boolean {
+    if (!isMultipleApproversBetaEnabled) {
+        return false;
+    }
+
+    const approvalMode = getApprovalWorkflow(policy);
+    if (hasRules || approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL || approvalMode === CONST.POLICY.APPROVAL_MODE.BASIC) {
+        return true;
+    }
+
+    // A member without a submitsTo submits to the default approver. `employeeList` can hold a null entry at runtime, so read it optionally
+    const employees = policy?.employeeList ?? {};
+    const reachedApproverEmails = new Set<string>();
+    for (const firstApproverEmail of [getDefaultApprover(policy), ...Object.values(employees).map((employee) => employee?.submitsTo)]) {
+        let approverEmail = firstApproverEmail;
+        while (approverEmail && !reachedApproverEmails.has(approverEmail)) {
+            if (employees[approverEmail]?.overLimitForwardsTo) {
+                return false;
+            }
+            reachedApproverEmails.add(approverEmail);
+            approverEmail = employees[approverEmail]?.forwardsTo;
+        }
+    }
+
+    return true;
+}
+
+/**
  * Map every member whose approver is mid-change to that change's pending state.
  *
- * A change lands on the policy's employee list or, under the `MULTIPLE_APPROVERS` beta, on the approval workflow
- * rules, so a surface showing a member's approver has to read whichever one the save went to.
+ * A change lands on the policy's employee list or, when the policy uses them, on the approval workflow rules, so a
+ * surface showing a member's approver has to read whichever one the save went to.
  *
  * @param approvalWorkflows the workflows being shown, used to reach the first approver each member submits to.
- * @param rules the policy's rules, or nothing when the beta is off and the employee list holds the approver.
+ * @param rules the policy's rules, or nothing when the employee list holds the approver.
  */
 function getApproverPendingActionByMemberEmail(
     policy: OnyxEntry<Policy>,
@@ -1917,7 +1963,7 @@ type HasApprovalWorkflowWithNonMemberApproverParams = {
     /** The policy's approval-workflow rules keyed by ruleID, which route the workflows under the `MULTIPLE_APPROVERS` beta */
     rules?: Record<string, ApprovalWorkflowRule>;
 
-    /** Whether the `MULTIPLE_APPROVERS` beta is enabled, which builds the workflows from rules */
+    /** Whether the `MULTIPLE_APPROVERS` beta is enabled, which builds the workflows from rules, see `shouldUseApprovalWorkflowRules` */
     isMultipleApproversBetaEnabled: boolean;
 };
 
@@ -1939,9 +1985,11 @@ function hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin, rul
         return false;
     }
 
-    // Without the beta, an approver is only flagged when the default approver or some employee's `submitsTo`,
+    const shouldUseRules = shouldUseApprovalWorkflowRules(policy, !isEmptyObject(rules), isMultipleApproversBetaEnabled);
+
+    // Without rules, an approver is only flagged when the default approver or some employee's `submitsTo`,
     // `forwardsTo` or `overLimitForwardsTo` points at a non-member, so skip building the workflows when none does
-    if (!isMultipleApproversBetaEnabled) {
+    if (!shouldUseRules) {
         const hasNonMemberRoute =
             isNonMemberApprover(policy, getHRFinalApprover(policy) ?? getDefaultApprover(policy)) ||
             Object.values(policy?.employeeList ?? {}).some(
@@ -1956,15 +2004,8 @@ function hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin, rul
 
     // Only the approver flags are read, so personal details and sorting are skipped
     const params = {policy, personalDetails: {}, localeCompare: () => 0, currentUserLogin, rules};
-    const {approvalWorkflows} = isMultipleApproversBetaEnabled ? convertApprovalWorkflowRulesToWorkflows(params) : convertPolicyEmployeesToApprovalWorkflows(params);
-
-    // Same approval-mode filter as the Approvals tab: only the advanced modes show workflows beyond the default one
-    const showsAllWorkflows =
-        isMultipleApproversBetaEnabled ||
-        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED ||
-        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL ||
-        isHRAdvancedMode(policy);
-    const shownApprovalWorkflows = showsAllWorkflows ? approvalWorkflows : approvalWorkflows.filter((workflow) => workflow.isDefault);
+    const {approvalWorkflows} = shouldUseRules ? convertApprovalWorkflowRulesToWorkflows(params) : convertPolicyEmployeesToApprovalWorkflows(params);
+    const shownApprovalWorkflows = getEnforcedApprovalWorkflows(approvalWorkflows, policy, shouldUseRules);
 
     return shownApprovalWorkflows.some((workflow) => workflow.approvers.some((approver) => !!getNonMemberApproverError(approver, workflow.isDefault)));
 }
@@ -2021,5 +2062,6 @@ export {
     reconcileApprovalWorkflowRulesForEdit,
     reconcileApprovalWorkflowRulesForMembersChange,
     reconcileApprovalWorkflowRulesForRemove,
+    shouldUseApprovalWorkflowRules,
     updateWorkflowDataOnApproverRemoval,
 };

@@ -39,9 +39,21 @@ type DateSelectPopupProps = {
 
     /** Function to set the popover width dynamically */
     setPopoverWidth?: (width: number | undefined) => void;
+
+    applySentryLabel: string;
 };
 
-function DateSelectPopup({label, value, presets, allowedCustomDateModifiers = CONST.SEARCH.CUSTOM_DATE_MODIFIERS, style, closeOverlay, onChange, setPopoverWidth}: DateSelectPopupProps) {
+function DateSelectPopup({
+    label,
+    value,
+    presets,
+    allowedCustomDateModifiers = CONST.SEARCH.CUSTOM_DATE_MODIFIERS,
+    style,
+    closeOverlay,
+    onChange,
+    setPopoverWidth,
+    applySentryLabel,
+}: DateSelectPopupProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
 
@@ -217,7 +229,7 @@ function DateSelectPopup({label, value, presets, allowedCustomDateModifiers = CO
             )}
             <ActionButtons
                 containerStyle={mobileButtonRowStyle}
-                applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_DATE}
+                applySentryLabel={applySentryLabel}
                 onApply={applyChanges}
             />
         </View>
