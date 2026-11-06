@@ -6,6 +6,7 @@ import type {TextInputWithSymbolProps} from './types';
 
 import BaseTextInputWithSymbol from './BaseTextInputWithSymbol';
 
+/** @deprecated Use AmountFormField or KeypadAmountEditor instead. See contributingGuides/NUMBER_WITH_SYMBOL_FORM_MIGRATION.md. */
 function TextInputWithSymbol({onSelectionChange = () => {}, ref, ...props}: TextInputWithSymbolProps) {
     const [acknowledgedAmount, setAcknowledgedAmount] = useState(props.formattedAmount);
     const skipNextSelectionChange = acknowledgedAmount !== props.formattedAmount;
