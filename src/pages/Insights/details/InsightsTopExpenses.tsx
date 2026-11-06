@@ -180,7 +180,7 @@ function InsightsTopExpenses({viewAllQuery}: InsightsTopExpensesProps) {
                         shouldUseNarrowLayout
                         isSelected={false}
                         shouldShowTooltip
-                        violations={item.violations}
+                        shouldShowErrors={false}
                         dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                         amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                         taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
