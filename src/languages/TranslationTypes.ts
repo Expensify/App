@@ -81,6 +81,15 @@ type SageIntacctMappingName = ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPINGS>
 type DelegateRole = ValueOf<typeof CONST.DELEGATE_ROLE>;
 type ViolationDataType = ValueOf<typeof CONST.MODIFIED_AMOUNT_VIOLATION_DATA>;
 
+type ReportNextStepMessageParams = {
+    actor?: string;
+    actorType?: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;
+    eta?: string;
+    etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>;
+    requiredDepositCurrency?: string;
+    isBill?: boolean;
+};
+
 export type {
     AllConnectionName,
     ConnectionName,
@@ -96,4 +105,5 @@ export type {
     ReportAction,
     SageIntacctMappingName,
     ViolationDataType,
+    ReportNextStepMessageParams,
 };

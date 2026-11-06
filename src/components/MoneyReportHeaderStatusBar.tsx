@@ -34,12 +34,13 @@ function MoneyReportHeaderStatusBar({nextStep, reportType}: MoneyReportHeaderSta
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Hourglass', 'Checkmark', 'Stopwatch', 'Box']);
+    const icons = useMemoizedLazyExpensifyIcons(['Hourglass', 'Checkmark', 'Stopwatch', 'Box', 'DotIndicator']);
     const iconMap: IconMap = {
         [CONST.NEXT_STEP.ICONS.HOURGLASS]: icons.Hourglass,
         [CONST.NEXT_STEP.ICONS.CHECKMARK]: icons.Checkmark,
         [CONST.NEXT_STEP.ICONS.STOPWATCH]: icons.Stopwatch,
         [CONST.NEXT_STEP.ICONS.BOX]: icons.Box,
+        [CONST.NEXT_STEP.ICONS.DOT_INDICATOR]: icons.DotIndicator,
     };
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
