@@ -29,7 +29,7 @@ import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -64,7 +64,19 @@ function SearchChangeWorkspacePage() {
     // The reports the Change workspace option counted, so an exported one doesn't add workspaces.
     const movableReports = selectedReportIDs
         .map((reportID) => getReportFromSearchSnapshot(reportID, currentSearchResults?.data, selectedOnyxReports))
-        .filter((report) => canChangeWorkspaceOfSearchReport(report, currentSearchResults?.data, selectedReportActions, policies, currentUserPersonalDetails.login, personalDetails));
+        .filter(
+            (report): report is Report =>
+                !!report &&
+                canChangeWorkspaceOfSearchReport({
+                    report,
+                    liveReport: selectedOnyxReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`],
+                    currentSearchResults: currentSearchResults?.data,
+                    allReportActions: selectedReportActions,
+                    policies,
+                    currentUserLogin: currentUserPersonalDetails.login,
+                    personalDetails,
+                }),
+        );
 
     // The backend skips the reports that can't move to a workspace, so it's offered when one loaded report can.
     const canMoveAReportTo = (policy: OnyxEntry<Policy>) =>

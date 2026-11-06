@@ -7947,23 +7947,36 @@ function navigateToSearchRHP(route: {route: string; getRoute: (backTo?: string) 
     }
 }
 
+type CanChangeWorkspaceOfSearchReportParams = {
+    report: OnyxEntry<OnyxTypes.Report>;
+    /** The report in Onyx, which an export after the search updates while the search results keep the old flag */
+    liveReport: OnyxEntry<OnyxTypes.Report>;
+    currentSearchResults: SearchResults['data'] | undefined;
+    allReportActions: OnyxCollection<OnyxTypes.ReportActions>;
+    policies: OnyxCollection<OnyxTypes.Policy>;
+    currentUserLogin: string | undefined;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+};
+
 /** Whether a report on Search can change workspace, by the same rules as Change workspace on the report itself. */
-function canChangeWorkspaceOfSearchReport(
-    report: OnyxEntry<OnyxTypes.Report>,
-    currentSearchResults: SearchResults['data'] | undefined,
-    allReportActions: OnyxCollection<OnyxTypes.ReportActions>,
-    policies: OnyxCollection<OnyxTypes.Policy>,
-    currentUserLogin: string | undefined,
-    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
-): report is OnyxTypes.Report {
+function canChangeWorkspaceOfSearchReport({
+    report,
+    liveReport,
+    currentSearchResults,
+    allReportActions,
+    policies,
+    currentUserLogin,
+    personalDetails,
+}: CanChangeWorkspaceOfSearchReportParams): boolean {
     if (!report || !isExpenseReportUtil(report)) {
         return false;
     }
+    const reportToCheck = liveReport?.isExportedToIntegration === undefined ? report : {...report, isExportedToIntegration: liveReport.isExportedToIntegration};
     // The export check falls back to the report's whole history, which the snapshot may only hold part of
     const reportActions = Object.values(getReportActionsFromSearchSnapshot(report.reportID, currentSearchResults, allReportActions, true) ?? {});
     const submitterLogin = getLoginByAccountID(report.ownerAccountID, personalDetails);
     return (
-        isChangeWorkspaceAction(report, policies, currentUserLogin ?? '', submitterLogin, reportActions) &&
+        isChangeWorkspaceAction(reportToCheck, policies, currentUserLogin ?? '', submitterLogin, reportActions) &&
         Object.values(policies ?? {}).some((policy) => !!policy && policy.id !== report.policyID && canBulkMoveReportToPolicy(report, policy, submitterLogin, currentUserLogin))
     );
 }
