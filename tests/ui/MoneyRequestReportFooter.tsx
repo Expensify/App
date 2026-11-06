@@ -234,7 +234,8 @@ describe('MoneyRequestConfirmationListFooter', () => {
         expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
     });
 
-    it('should disable report field when there are no reports available', async () => {
+    it('should allow editing report field when there are no reports available', async () => {
+        // Given an expense being created on a workspace with no outstanding report
         const mockTransactionReport: Transaction = {
             ...mockTransaction,
             isFromGlobalCreate: false,
@@ -248,12 +249,14 @@ describe('MoneyRequestConfirmationListFooter', () => {
         });
         initOnyxDerivedValues();
 
+        // When the confirmation footer renders the report field
         await renderMoneyRequestConfirmationListFooter(mockTransactionReport);
 
         await waitForBatchedUpdatesWithAct();
 
+        // Then the field can be changed, since the list offers a new report or no report at all
         const reportItem = screen.getByTestId('menu-item-Report');
-        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
+        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
     });
 
     it('should allow editing report field when transaction has reportID and creating from FAB with only 1 outstanding report', async () => {

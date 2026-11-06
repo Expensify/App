@@ -12,7 +12,7 @@ import {isParticipantP2P} from '@libs/IOUUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import {generateReportID, getReportOrDraftReport} from '@libs/ReportUtils';
 
-import {setCustomUnitRateID, setMoneyRequestCategory, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport, setMoneyRequestTag} from '@userActions/IOU/MoneyRequest';
+import {moveMoneyRequestDraftToSelfDM, setCustomUnitRateID, setMoneyRequestCategory, setMoneyRequestParticipants, setMoneyRequestTag} from '@userActions/IOU/MoneyRequest';
 
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
@@ -160,33 +160,14 @@ function useParticipantPickerState({
         const transactionsToUpdate = transactions.length > 1 ? transactions : [transaction];
         if (shouldKeepOnSelfDM) {
             for (const transactionToUpdate of transactionsToUpdate) {
-                if (!transactionToUpdate?.transactionID) {
-                    continue;
-                }
-                setMoneyRequestParticipantsFromReport(transactionToUpdate.transactionID, selfDMReport, currentUserPersonalDetails.accountID);
-                setTransactionReport(transactionToUpdate.transactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
-
-                // The rate the expense picked up from a workspace does not exist outside it, so leaving it in place
-                // makes the Rate field read "Pending..." and the amount go blank once the expense is back on the self
-                // DM. Re-resolve the rate the self DM itself uses, the same way starting a track distance expense does.
-                if (isDistanceRequest) {
-                    const selfDMRateID = DistanceRequestUtils.getCustomUnitRateID({
-                        reportID: selfDMReport?.reportID,
-                        isPolicyExpenseChat: false,
-                        isTrackDistanceExpense: true,
-                        policy: policyForMovingExpenses,
-                        lastSelectedDistanceRates,
-                        expenseDate: transactionToUpdate.created,
-                    });
-                    setCustomUnitRateID(
-                        transactionToUpdate.transactionID,
-                        selfDMRateID,
-                        transactionToUpdate,
-                        policyForMovingExpenses,
-                        false,
-                        policyForMovingExpenses?.outputCurrency ?? personalPolicy?.outputCurrency,
-                    );
-                }
+                moveMoneyRequestDraftToSelfDM({
+                    transaction: transactionToUpdate,
+                    selfDMReport,
+                    currentUserAccountID: currentUserPersonalDetails.accountID,
+                    policyForMovingExpenses,
+                    lastSelectedDistanceRates,
+                    personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                });
             }
 
             if (iouType !== CONST.IOU.TYPE.TRACK) {
