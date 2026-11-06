@@ -153,10 +153,9 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const virtualCards = cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && !isTravelCard(card));
     const travelCards = cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && isTravelCard(card));
     const physicalCards = cardsToShow?.filter((card) => !card?.nameValuePairs?.isVirtual);
-    const cardToAdd = virtualCards?.at(0);
-
     const isCardDetailsLoading = useAllVirtualCardDetailsLoading();
     const currentPhysicalCard = physicalCards?.find((card) => String(card?.cardID) === cardID) ?? physicalCards?.at(0);
+    const cardToAdd = virtualCards?.at(0) ?? currentPhysicalCard;
     const revealedPIN = useRevealedPhysicalCardPin(String(currentPhysicalCard?.cardID));
     const revealedCardDetails = useAllRevealedVirtualCardDetails();
 
