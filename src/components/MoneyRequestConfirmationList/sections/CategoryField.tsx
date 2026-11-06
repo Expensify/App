@@ -1,3 +1,4 @@
+import startOpenCategoryPickerSpan from '@components/CategoryPicker/startOpenCategoryPickerSpan';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import usePolicyCategoriesForConfirmation from '@components/MoneyRequestConfirmationList/hooks/usePolicyCategoriesForConfirmation';
@@ -150,6 +151,7 @@ function CategoryField({
             const categoryStepRoute = canOpenInDropdownAfterWorkspaceStep ? undefined : getCategoryStepRoute(transactionID);
             Navigation.navigate(ROUTES.SET_DEFAULT_WORKSPACE.getRoute(categoryStepRoute));
         } else {
+            startOpenCategoryPickerSpan();
             Navigation.navigate(getCategoryStepRoute(transactionID));
         }
     };

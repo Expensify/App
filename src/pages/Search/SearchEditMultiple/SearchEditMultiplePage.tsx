@@ -1,4 +1,5 @@
 import Button from '@components/Button';
+import startOpenCategoryPickerSpan from '@components/CategoryPicker/startOpenCategoryPickerSpan';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
@@ -348,7 +349,10 @@ function SearchEditMultiplePage() {
                         <MenuItemField
                             name={translate('common.category')}
                             value={draftTransaction?.category}
-                            onPress={() => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_CATEGORY_RHP)}
+                            onPress={() => {
+                                startOpenCategoryPickerSpan();
+                                Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_CATEGORY_RHP);
+                            }}
                         />
                     )}
                     {areTagsEnabled &&

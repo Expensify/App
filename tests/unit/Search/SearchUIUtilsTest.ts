@@ -14948,6 +14948,47 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    describe('isEverySearchBulkEditExpenseOwnedBy', () => {
+        const ownReport: OnyxTypes.Report = {reportID: 'r1', ownerAccountID: 1};
+        const otherReport: OnyxTypes.Report = {reportID: 'r2', ownerAccountID: 2};
+        const reports: OnyxCollection<OnyxTypes.Report> = {
+            [`${ONYXKEYS.COLLECTION.REPORT}${ownReport.reportID}`]: ownReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}${otherReport.reportID}`]: otherReport,
+        };
+        const transactions: OnyxCollection<OnyxTypes.Transaction> = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}t1`]: createMock<OnyxTypes.Transaction>({transactionID: 't1', reportID: 'r1'}),
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}t2`]: createMock<OnyxTypes.Transaction>({transactionID: 't2', reportID: 'r2'}),
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}t3`]: createMock<OnyxTypes.Transaction>({transactionID: 't3', reportID: CONST.REPORT.UNREPORTED_REPORT_ID}),
+        };
+
+        it("is true when every selected expense is on the member's report or not on a report yet", () => {
+            // Given one expense on the member's own report and one unreported, which only its owner can see
+            // When checking whether bulk editing should limit the categories to theirs
+            const result = SearchUIUtils.isEverySearchBulkEditExpenseOwnedBy(['t1', 't3'], 1, transactions, reports);
+
+            // Then it should, since every expense is theirs
+            expect(result).toBe(true);
+        });
+
+        it("is false when any selected expense is on someone else's report", () => {
+            // Given an admin who selected their own expense and a member's
+            // When checking whether bulk editing should limit the categories to theirs
+            const result = SearchUIUtils.isEverySearchBulkEditExpenseOwnedBy(['t1', 't2'], 1, transactions, reports);
+
+            // Then it shouldn't, so they see every category as when recoding another member's expense
+            expect(result).toBe(false);
+        });
+
+        it('is false when nothing is selected', () => {
+            // Given no selected expenses
+            // When checking ownership
+            const result = SearchUIUtils.isEverySearchBulkEditExpenseOwnedBy([], 1, transactions, reports);
+
+            // Then nothing is filtered, since there's no owner to filter for
+            expect(result).toBe(false);
+        });
+    });
+
     describe('shouldShowDeleteOption', () => {
         it('should use the data from selectedTransactions when the data is not available from search result with group-by filter', async () => {
             const TEST_GROUP_KEY = 'group_123456';

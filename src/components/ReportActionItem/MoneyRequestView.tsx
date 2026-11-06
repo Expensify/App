@@ -1,3 +1,4 @@
+import startOpenCategoryPickerSpan from '@components/CategoryPicker/startOpenCategoryPickerSpan';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import HighlightableMenuItemWithTopDescription from '@components/HighlightableMenuItemWithTopDescription';
 import Icon from '@components/Icon';
@@ -1535,6 +1536,7 @@ function MoneyRequestView({
                                                       ),
                                                   );
                                               } else {
+                                                  startOpenCategoryPickerSpan();
                                                   Navigation.navigate(
                                                       createDynamicRoute(
                                                           DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({

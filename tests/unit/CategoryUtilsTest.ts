@@ -9,6 +9,7 @@ import {
     getDecodedLeafCategoryName,
     getMemberVisibleCategoryNames,
     getMembersWithoutVisibleCategories,
+    getVisibleCategories,
     hasAnyCategoryGLCode,
     hasAnyCategoryRules,
     isCategoryDescriptionRequired,
@@ -729,5 +730,32 @@ describe('getMembersWithoutVisibleCategories', () => {
 
         // Then no one is blocked, so the check needs no beta
         expect(members).toEqual([]);
+    });
+});
+
+describe('getVisibleCategories', () => {
+    const policyCategories: PolicyCategories = {
+        Travel: {name: 'Travel', enabled: true, visibleTo: null},
+        Meals: {name: 'Meals', enabled: true, visibleTo: buildVisibleTo(1, 2)},
+        Software: {name: 'Software', enabled: true, visibleTo: buildVisibleTo(2)},
+        Office: {name: 'Office', enabled: false, visibleTo: buildVisibleTo(2)},
+    };
+
+    it("keeps only the categories the expense's owner can use", () => {
+        // Given an owner who is on Meals' list but not on Software's or Office's
+        // When the picker's categories are filtered for them
+        const visibleCategories = getVisibleCategories(policyCategories, 1);
+
+        // Then the category open to everyone and the one listing them are kept, keyed as before
+        expect(Object.keys(visibleCategories)).toEqual(['Travel', 'Meals']);
+    });
+
+    it('keeps disabled categories the owner can use, since the picker filters those out itself', () => {
+        // Given an owner who is on the list of a disabled category
+        // When the picker's categories are filtered for them
+        const visibleCategories = getVisibleCategories(policyCategories, 2);
+
+        // Then the disabled one is still there, so filtering doesn't change how disabled categories are handled
+        expect(Object.keys(visibleCategories)).toEqual(['Travel', 'Meals', 'Software', 'Office']);
     });
 });
