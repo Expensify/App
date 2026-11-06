@@ -47,6 +47,19 @@ describe('require-locale-for-localized-date-format', () => {
             `${IMPORT_FORMAT} format(date, \`yyyy-MM-dd \${timePattern}\`);`,
             // An unresolved separator must not join `M` and `MM` into the short month token `MMM`
             `${IMPORT_FORMAT} format(date, \`M\${separator}MM\`);`,
+            // An escaped literal must not join `M` and `MM` into `MMM` either
+            `${IMPORT_FORMAT} format(date, "M'-'MM");`,
+            // Letters inside a quote, including one left open, are literal text
+            `${IMPORT_FORMAT} format(date, "h 'o''clock'");`,
+            `${IMPORT_FORMAT} format(date, "yyyy 'at");`,
+            // Numeric tokens that read the same in every language
+            `${IMPORT_FORMAT} format(date, 'yyyy-MM-dd HH:mm:ss i II R u x');`,
+            // A locale wrapped in a TypeScript type assertion or written as a string key still counts
+            `${IMPORT_FORMAT} format(date, 'MMMM', {locale: dateFnsLocale} as FormatOptions);`,
+            `${IMPORT_FORMAT} format(date, 'MMMM', {locale: dateFnsLocale} satisfies FormatOptions);`,
+            `${IMPORT_FORMAT} format(date, 'MMMM', {'locale': dateFnsLocale});`,
+            // Only the date-fns format functions are followed
+            "import {formatDistance} from 'date-fns/formatDistance'; formatDistance(date, 'MMMM');",
         ],
         invalid: [
             {
@@ -66,6 +79,38 @@ describe('require-locale-for-localized-date-format', () => {
                 // scanned as date-fns text, where the `a` in its name would be reported as an AM/PM token
                 code: `${IMPORT_FORMAT} format(date, \`\${isShort ? CONST.DATE.SHORT_DATE_FORMAT : CONST.DATE.LOCAL_TIME_FORMAT} HH\`);`,
                 errors: [{messageId: 'missingLocale', data: {tokens: 'a format from CONST.DATE that may be localized'}}],
+            },
+            ...['E', 'EE', 'EEEEE', 'e', 'eeeee', 'c', 'cccc', 'iii', 'w', 'Y', 'G', 'B', 'b', 'Mo', 'yo', 'wo', 'Do', 'ho'].map((token) => ({
+                // Weekday names, week-based numbers, eras, day periods and ordinals all change with the language
+                code: `${IMPORT_FORMAT} format(date, '${token}');`,
+                errors: [{messageId: 'missingLocale'}],
+            })),
+            {
+                // A single-function import of date-fns is followed like the package itself
+                code: "import {format} from 'date-fns/format'; format(date, 'MMMM');",
+                errors: [{messageId: 'missingLocale'}],
+            },
+            {
+                code: "import {formatInTimeZone} from 'date-fns-tz/formatInTimeZone'; formatInTimeZone(date, timeZone, 'MMMM');",
+                errors: [{messageId: 'missingLocale'}],
+            },
+            {
+                // A format behind a TypeScript type assertion or built with `+` is still checked
+                code: `${IMPORT_FORMAT} format(date, 'MMMM' as const);`,
+                errors: [{messageId: 'missingLocale'}],
+            },
+            {
+                code: `${IMPORT_FORMAT} format(date, CONST.DATE.MONTH_DAY_YEAR_FORMAT as string);`,
+                errors: [{messageId: 'missingLocale'}],
+            },
+            {
+                code: `${IMPORT_FORMAT} format(date, 'MMMM ' + 'd');`,
+                errors: [{messageId: 'missingLocale', data: {tokens: 'MMMM (month name)'}}],
+            },
+            {
+                // `{locale: undefined}` leaves date-fns on its global default language
+                code: `${IMPORT_FORMAT} format(date, 'MMMM', {locale: undefined});`,
+                errors: [{messageId: 'missingLocale'}],
             },
             {
                 // A known token next to an unknown format reports both

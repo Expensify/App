@@ -21,17 +21,34 @@ const meta = {
     },
 };
 
-/** date-fns tokens whose output differs between languages. */
+/**
+ * date-fns tokens whose output differs between languages. An entry is either a literal token or a `pattern` for a whole
+ * family of tokens. Longer tokens come first, so a narrower one is not reported for a wider token that contains it.
+ */
 const LOCALIZED_TOKENS = [
     {token: 'MMMMM', label: 'MMMMM (narrow month)'},
     {token: 'MMMM', label: 'MMMM (month name)'},
     {token: 'MMM', label: 'MMM (short month)'},
     {token: 'LLLL', label: 'LLLL (standalone month)'},
     {token: 'LLL', label: 'LLL (standalone short month)'},
+    {token: 'EEEEEE', label: 'EEEEEE (shortest weekday)'},
+    {token: 'EEEEE', label: 'EEEEE (narrow weekday)'},
     {token: 'EEEE', label: 'EEEE (weekday name)'},
     {token: 'EEE', label: 'EEE (short weekday)'},
+    // `E` and `EE` are the short weekday too, not a number
+    {token: 'E', label: 'E (short weekday)'},
+    {token: 'eeeeee', label: 'eeeeee (shortest weekday)'},
+    {token: 'eeeee', label: 'eeeee (narrow weekday)'},
     {token: 'eeee', label: 'eeee (weekday name)'},
     {token: 'eee', label: 'eee (short weekday)'},
+    {token: 'cccccc', label: 'cccccc (standalone shortest weekday)'},
+    {token: 'ccccc', label: 'ccccc (standalone narrow weekday)'},
+    {token: 'cccc', label: 'cccc (standalone weekday name)'},
+    {token: 'ccc', label: 'ccc (standalone short weekday)'},
+    {token: 'iiiiii', label: 'iiiiii (ISO shortest weekday)'},
+    {token: 'iiiii', label: 'iiiii (ISO narrow weekday)'},
+    {token: 'iiii', label: 'iiii (ISO weekday name)'},
+    {token: 'iii', label: 'iii (ISO short weekday)'},
     {token: 'do', label: 'do (ordinal day)'},
     // Quarters. `Q` and `QQ` are plain numbers, but everything wider is a locale's own label such as `Q1`, `T1`,
     // `K1` or `I kw.`
@@ -43,6 +60,16 @@ const LOCALIZED_TOKENS = [
     {token: 'qqqq', label: 'qqqq (standalone quarter name)'},
     {token: 'qqq', label: 'qqq (standalone short quarter)'},
     {token: 'qo', label: 'qo (standalone ordinal quarter)'},
+    // Every other ordinal, such as `Mo`, `yo` or `wo`: `1st` in English, `1.` in German and `1er` in French
+    {pattern: /[A-Za-z]o/, label: 'an ordinal number such as Mo'},
+    // Numbers that count from the locale's first day of the week, which is Sunday in English and Monday in German
+    {token: 'e', label: 'e (local day of week)'},
+    {token: 'c', label: 'c (standalone local day of week)'},
+    {token: 'w', label: 'w (local week of year)'},
+    {token: 'Y', label: 'Y (local week-numbering year)'},
+    {token: 'G', label: 'G (era)'},
+    {token: 'B', label: 'B (day period)'},
+    {token: 'b', label: 'b (AM, PM, noon or midnight)'},
     // date-fns' localized date/time formats. These exist precisely to defer the clock convention, ordering and
     // separators to the locale, so they are meaningless without one.
     {token: 'PPPP', label: 'PPPP (localized long date with weekday)'},
@@ -68,8 +95,25 @@ const FORMATTER_FORMAT_ARG_INDEX = {format: 1, formatInTimeZone: 2};
 /** Local wrappers around those exports, which keep the same argument order. */
 const LOCAL_FORMATTER_FORMAT_ARG_INDEX = {formatInTimeZoneWithFallback: 2};
 
-/** date-fns modules whose `format` exports this rule follows through import aliases. */
-const DATE_FNS_MODULES = new Set(['date-fns', 'date-fns-tz']);
+/**
+ * date-fns modules whose `format` exports this rule follows through import aliases, including the single-function
+ * imports date-fns supports, such as `date-fns/format` and `date-fns-tz/formatInTimeZone`.
+ */
+const DATE_FNS_MODULE_PATTERN = /^date-fns(?:-tz)?(?:\/(?:format|formatInTimeZone))?$/;
+
+/**
+ * Returns the expression inside TypeScript-only wrappers such as `as`, `satisfies` and `!`, which do not change the value.
+ *
+ * @param {import('estree').Node} node
+ * @returns {import('estree').Node}
+ */
+function unwrapTypeScriptExpression(node) {
+    let unwrapped = node;
+    while (unwrapped && ['TSAsExpression', 'TSSatisfiesExpression', 'TSNonNullExpression', 'TSTypeAssertion'].includes(unwrapped.type)) {
+        unwrapped = unwrapped.expression;
+    }
+    return unwrapped;
+}
 
 /**
  * `CONST.DATE.*` machine formats with no language-dependent tokens. Anything else in `CONST.DATE` is treated as localized,
@@ -80,14 +124,15 @@ const DATE_FNS_MODULES = new Set(['date-fns', 'date-fns-tz']);
 const MACHINE_DATE_CONSTANTS = new Set(['FNS_FORMAT_STRING', 'FNS_DATE_TIME_FORMAT_STRING', 'FNS_DB_FORMAT_STRING', 'FNS_TIMEZONE_FORMAT_STRING', 'YEAR_MONTH_FORMAT']);
 
 /**
- * Strips the single-quoted escaped literals date-fns supports (e.g. the "T" in `yyyy-MM-dd'T'HH:mm`)
- * so that letters inside them are not mistaken for tokens.
+ * Replaces the single-quoted escaped literals date-fns supports (e.g. the "T" in `yyyy-MM-dd'T'HH:mm`) with a space, so
+ * that letters inside them are not mistaken for tokens and the text on either side is not joined into a token it never
+ * forms, such as `M'-'MM` into `MMM`. `''` inside a literal is an escaped quote, and a literal left open runs to the end.
  *
  * @param {string} pattern
  * @returns {string}
  */
 function stripEscapedLiterals(pattern) {
-    return pattern.replaceAll(/'[^']*'/g, '');
+    return pattern.replaceAll(/'(?:[^']|'')*(?:'|$)/g, ' ');
 }
 
 /**
@@ -98,14 +143,21 @@ function findLocalizedTokens(pattern) {
     let remaining = stripEscapedLiterals(pattern);
     const found = [];
 
-    // Longest tokens first so that MMMM is not reported as MMM. Consuming each match keeps
-    // overlapping tokens (MMM inside MMMM) from being counted twice.
-    for (const {token, label} of LOCALIZED_TOKENS) {
-        if (!remaining.includes(token)) {
-            continue;
+    // Longest tokens first so that MMMM is not reported as MMM. Consuming each match keeps overlapping tokens (MMM inside
+    // MMMM) from being counted twice. A consumed token becomes a space, so what is left on either side stays apart.
+    for (const {token, pattern: tokenPattern, label} of LOCALIZED_TOKENS) {
+        if (tokenPattern) {
+            if (!tokenPattern.test(remaining)) {
+                continue;
+            }
+            remaining = remaining.replaceAll(new RegExp(tokenPattern.source, 'g'), ' ');
+        } else {
+            if (!remaining.includes(token)) {
+                continue;
+            }
+            remaining = remaining.split(token).join(' ');
         }
         found.push(label);
-        remaining = remaining.split(token).join('');
     }
 
     return found;
@@ -118,7 +170,8 @@ function findLocalizedTokens(pattern) {
  * @param {import('estree').Node} node
  * @returns {string | null}
  */
-function resolvePattern(node) {
+function resolvePattern(maybeWrappedNode) {
+    const node = unwrapTypeScriptExpression(maybeWrappedNode);
     if (!node) {
         return null;
     }
@@ -149,6 +202,15 @@ function resolvePattern(node) {
         const expressions = node.expressions.map(resolvePattern);
         return node.quasis.map((quasi, index) => `${quasi.value.cooked ?? ''}${index < expressions.length ? (expressions.at(index) ?? ' ') : ''}`).join('');
     }
+    // `'MMMM ' + 'd'` — joined like a template literal, with a side that cannot be resolved becoming a space.
+    if (node.type === 'BinaryExpression' && node.operator === '+') {
+        const left = resolvePattern(node.left);
+        const right = resolvePattern(node.right);
+        if (left === null && right === null) {
+            return null;
+        }
+        return `${left ?? ' '}${right ?? ' '}`;
+    }
     return null;
 }
 
@@ -161,12 +223,21 @@ function resolvePattern(node) {
  * @returns {boolean}
  */
 function hasLocaleOption(args, formatArgIndex) {
-    return args.slice(formatArgIndex + 1).some((arg) => {
+    return args.slice(formatArgIndex + 1).some((maybeWrappedArg) => {
+        const arg = unwrapTypeScriptExpression(maybeWrappedArg);
         if (arg.type === 'ObjectExpression') {
-            return arg.properties.some(
-                (property) =>
-                    (property.type === 'Property' && !property.computed && property.key.type === 'Identifier' && property.key.name === 'locale') || property.type === 'SpreadElement',
-            );
+            return arg.properties.some((property) => {
+                if (property.type === 'SpreadElement') {
+                    return true;
+                }
+                if (property.type !== 'Property' || property.computed) {
+                    return false;
+                }
+                const isLocaleKey = (property.key.type === 'Identifier' && property.key.name === 'locale') || (property.key.type === 'Literal' && property.key.value === 'locale');
+                // `{locale: undefined}` leaves date-fns on its global default language, which is what this rule guards against
+                const isUndefined = property.value.type === 'Identifier' && property.value.name === 'undefined';
+                return isLocaleKey && !isUndefined;
+            });
         }
         // A DateUtils helper takes the locale positionally, e.g. formatWithUTCTimeZone(date, format, dateFnsLocale).
         return arg.type === 'Identifier' && /locale/i.test(arg.name);
@@ -186,7 +257,7 @@ function create(context) {
 
     return {
         ImportDeclaration(node) {
-            if (!DATE_FNS_MODULES.has(node.source.value)) {
+            if (typeof node.source.value !== 'string' || !DATE_FNS_MODULE_PATTERN.test(node.source.value)) {
                 return;
             }
             for (const specifier of node.specifiers) {
