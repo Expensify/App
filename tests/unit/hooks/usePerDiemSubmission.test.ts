@@ -1,6 +1,7 @@
 import Log from '@libs/Log';
 import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
 import dismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
+import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 
 import usePerDiemSubmission from '@pages/iou/request/step/confirmation/submission/usePerDiemSubmission';
@@ -24,7 +25,12 @@ jest.mock('@userActions/IOU/PerDiem', () => ({
 }));
 jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => ({__esModule: true, default: jest.fn()}));
 jest.mock('@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab', () => ({__esModule: true, default: jest.fn()}));
+jest.mock('@libs/Navigation/helpers/navigateAfterExpenseCreate', () => ({__esModule: true, default: jest.fn()}));
 
+const EXPENSE_REPORT_ID = 'expense-1';
+const PER_DIEM_TRANSACTION_ID = 'per-diem-transaction';
+
+const mockNavigateAfterExpenseCreate = jest.mocked(navigateAfterExpenseCreate);
 const mockSubmitPerDiemExpenseAction = jest.mocked(submitPerDiemExpense);
 const mockSubmitPerDiemExpenseForSelfDMAction = jest.mocked(submitPerDiemExpenseForSelfDM);
 const mockHasCompletePerDiemCustomUnit = jest.mocked(hasCompletePerDiemCustomUnit);
@@ -72,6 +78,7 @@ describe('usePerDiemSubmission', () => {
         beforeEach(() => {
             // The expense report path reads the topmost report, and no navigator is mounted here
             getTopmostReportIdSpy = jest.spyOn(Navigation, 'getTopmostReportId').mockReturnValue(undefined);
+            mockSubmitPerDiemExpenseAction.mockReturnValue({iouReport: buildChatReport({reportID: EXPENSE_REPORT_ID}), transactionID: PER_DIEM_TRANSACTION_ID});
         });
 
         afterEach(() => {
@@ -80,7 +87,7 @@ describe('usePerDiemSubmission', () => {
 
         function buildExpenseReportParams(reportDrafts: UsePerDiemSubmissionParams['reportDrafts']) {
             return buildParams({
-                report: {reportID: 'expense-1', type: CONST.REPORT.TYPE.EXPENSE, chatReportID: 'draft-chat-1'},
+                report: {reportID: EXPENSE_REPORT_ID, type: CONST.REPORT.TYPE.EXPENSE, chatReportID: 'draft-chat-1'},
                 reportDrafts,
             });
         }
@@ -106,9 +113,38 @@ describe('usePerDiemSubmission', () => {
             // When the per diem expense is submitted
             await submit(buildExpenseReportParams({}), true);
 
-            // Then the param wins, so nothing resolved the destination chat and an optimistic chat report had to be generated for it
-            expect(mockSubmitPerDiemExpenseAction).toHaveBeenCalled();
-            expect(mockSubmitPerDiemExpenseAction).not.toHaveBeenCalledWith(expect.objectContaining({optimisticChatReportID: undefined}));
+            // Then the chat is not found, so a new chat ID is generated
+            const optimisticChatReportID = mockSubmitPerDiemExpenseAction.mock.calls.at(0)?.at(0)?.optimisticChatReportID;
+            expect(typeof optimisticChatReportID).toBe('string');
+            expect(optimisticChatReportID).not.toBe('');
+        });
+
+        it('removes the draft and opens the expense report when shouldHandleNavigation=true', async () => {
+            // Given a per diem expense sent to a workspace
+            const params = buildExpenseReportParams({});
+
+            // When it is submitted and the hook handles navigation
+            await submit(params, true);
+
+            // Then the draft is removed after the transition and the expense report is opened
+            expect(mockCleanupAfterExpenseCreate).toHaveBeenCalledWith({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});
+            expect(mockNavigateAfterExpenseCreate).toHaveBeenCalledWith(
+                expect.objectContaining({activeReportID: EXPENSE_REPORT_ID, transactionID: PER_DIEM_TRANSACTION_ID, shouldNavigate: true}),
+            );
+        });
+
+        it('removes the draft without navigating when shouldHandleNavigation=false', async () => {
+            // Given a per diem expense sent to a workspace, after the orchestrator already navigated
+            const params = buildExpenseReportParams({});
+
+            // When it is submitted
+            await submit(params, false);
+
+            // Then the draft is removed right away and there is no second navigation
+            expect(mockCleanupAfterExpenseCreate).toHaveBeenCalledWith({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: false});
+            expect(mockNavigateAfterExpenseCreate).toHaveBeenCalledWith(
+                expect.objectContaining({activeReportID: EXPENSE_REPORT_ID, transactionID: PER_DIEM_TRANSACTION_ID, shouldNavigate: false}),
+            );
         });
     });
 
