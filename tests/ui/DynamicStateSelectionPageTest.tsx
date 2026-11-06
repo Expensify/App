@@ -2,6 +2,7 @@ import {act, render} from '@testing-library/react-native';
 
 import SelectionList from '@components/SelectionList';
 
+import Navigation from '@libs/Navigation/Navigation';
 import searchOptions from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
 
@@ -134,5 +135,32 @@ describe('DynamicStateSelectionPage', () => {
         const selectionListProps = mockedSelectionList.mock.lastCall?.[0];
         expect(selectionListProps?.initiallyFocusedItemKey).toBeUndefined();
         expect(selectionListProps?.data.every((item) => !item.isSelected)).toBe(true);
+    });
+
+    it('maps every state in source order and returns the selected ISO', () => {
+        // Given every state in the installed producer and no saved selection.
+
+        // When the page builds the choices, the full producer list must reach the selection UI.
+        render(
+            <DynamicStateSelectionPage
+                route={createMock<DynamicStateSelectionPageProps['route']>({})}
+                navigation={createMock<DynamicStateSelectionPageProps['navigation']>({})}
+            />,
+        );
+        const props = mockedSelectionList.mock.lastCall?.[0];
+        const expected = Object.values(mockStates).map(({stateISO, stateName}) => ({value: stateISO, keyForList: stateISO, text: stateName}));
+
+        // Then names, ISO values, and order come from the real constant through the page's translation calls.
+        expect(props?.data.map((item) => ({value: 'value' in item ? item.value : undefined, keyForList: item.keyForList, text: item.text}))).toEqual(expected);
+
+        // When a state is chosen, the dynamic back path receives that ISO.
+        const ny = props?.data.find((item) => item.keyForList === 'NY');
+        expect(ny).toBeDefined();
+        if (ny) {
+            act(() => props?.onSelectRow(ny));
+        }
+
+        // Then navigation keeps the selected ISO in the dynamic back path.
+        expect(Navigation.goBack).toHaveBeenCalledWith('settings/profile/address?state=NY', {compareParams: false});
     });
 });
