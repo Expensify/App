@@ -1135,6 +1135,39 @@ const formatInTimeZoneWithFallback: typeof formatInTimeZone = (date, timeZone, f
 };
 
 /**
+ * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language,
+ * timezone and whether the weekday is shown.
+ */
+const memoizedCreateLongDateInTimeZoneFormatter = memoize(
+    (localeCode: string, timeZone: string, shouldIncludeWeekday: boolean) =>
+        new Intl.DateTimeFormat(localeCode, {weekday: shouldIncludeWeekday ? 'long' : undefined, year: 'numeric', month: 'long', day: 'numeric', timeZone}),
+);
+
+/**
+ * Formats a date as a long date in the given timezone.
+ *
+ * A hand-written `MMMM d, yyyy` fixes the US component order, so German showed its month name before the day and
+ * Spanish lost the `de` it writes between the parts of a date. `Intl` orders the date the way each language does, and
+ * its English output matches the old pattern.
+ *
+ * @returns June 20, 2026, or Saturday, June 20, 2026 with the weekday
+ */
+function formatToLongDateInTimeZone(date: string | Date, timeZone: SelectedTimezone, dateFnsLocale: DateFnsLocale | undefined, shouldIncludeWeekday = false): string {
+    // A date-only string, such as the day picked for a call, is already a calendar day in the user's timezone, so it is
+    // shown exactly as stored by reading and formatting it in UTC. Reading it as midnight in the user's timezone would
+    // show the day before where that midnight does not exist, such as when daylight saving time starts in Santiago.
+    const isDateOnly = typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date);
+    // Some native platforms only know older timezone names, and `Intl` throws on a name it does not know.
+    const supportedTimeZone = isDateOnly ? 'UTC' : fallbackToSupportedTimezone(timeZone);
+    const parsedDate = toDate(date, {timeZone: supportedTimeZone});
+    if (!isValid(parsedDate)) {
+        return '';
+    }
+    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
+    return memoizedCreateLongDateInTimeZoneFormatter(dateFnsLocale?.code ?? 'en-US', supportedTimeZone, shouldIncludeWeekday).format(parsedDate);
+}
+
+/**
  * Converts a UTC datetime string to a date string (yyyy-MM-dd) in the target timezone.
  * @param utcDateTime - Datetime string in UTC format (yyyy-MM-dd HH:mm:ss or yyyy-MM-dd HH:mm:ss.SSS)
  * @param timeZone - Target timezone to display the date in
@@ -1408,6 +1441,7 @@ const DateUtils = {
     getFormattedDateRangeForPerDiem,
     getFormattedSplitDateRange,
     formatInTimeZoneWithFallback,
+    formatToLongDateInTimeZone,
     formatUTCDateTimeToDateInTimezone,
     formatViolationSnapshotStartedAtDate,
     normalizeDateToStartOfDay,

@@ -262,6 +262,17 @@ describe('useCreateNavigationSuggestions', () => {
         expect(result.current).toBe(firstItems);
     });
 
+    it('builds no Create items and skips the policy scans when they are not needed', () => {
+        // Given the Search Router has a query that can't match any navigation suggestion
+        // When it asks for the Create suggestions without building them
+        const {result} = renderHook(() => useCreateNavigationSuggestions('', false));
+
+        // Then no items are returned and the policies are not scanned
+        expect(result.current).toEqual([]);
+        expect(mockCanSendInvoice).not.toHaveBeenCalled();
+        expect(mockShouldShowPolicy).not.toHaveBeenCalled();
+    });
+
     it('uses localized aliases for Create action matching', () => {
         mockCanSendInvoice.mockReturnValue(true);
         mockShouldShowPolicy.mockReturnValue(false);

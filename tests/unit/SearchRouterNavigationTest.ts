@@ -56,6 +56,43 @@ const mockUseNetwork = jest.fn<{isOffline: boolean}, []>(() => ({isOffline: fals
 const mockIsBetaEnabled = jest.fn<boolean, [beta: string]>(() => false);
 const mockIsBetaEnabledOrUnknown = jest.fn<boolean | undefined, [beta: string]>(() => false);
 const currentUserAccountID = 1;
+// Same references on every render, like the real hooks, so React Compiler caches survive re-renders.
+const mockCurrencyListActions = {convertToDisplayString: () => '$0.00'};
+const mockCurrentUserPersonalDetails = {accountID: 1};
+const mockTranslations = new Map([
+    ['common.home', 'Home'],
+    ['common.inbox', 'Inbox'],
+    ['common.spend', 'Spend'],
+    ['common.insights', 'Insights'],
+    ['common.workspacesTabTitle', 'Workspaces'],
+    ['common.domains', 'Domains'],
+    ['initialSettingsPage.account', 'Account'],
+    ['domain.domainMembers', 'Domain members'],
+    ['domain.domainAdmins', 'Domain admins'],
+    ['domain.groups.title', 'Groups'],
+    ['domain.saml', 'SAML'],
+    ['common.profile', 'Profile'],
+    ['initialSettingsPage.security', 'Security'],
+    ['initialSettingsPage.help', 'Help'],
+    ['search.tabs.reports', 'Reports'],
+    ['search.tabs.expenses', 'Expenses'],
+    ['search.tabs.topSpenders', 'Top spenders'],
+    ['workspace.common.profile', 'Overview'],
+]);
+const mockLocalize = {
+    localeCompare: (firstValue: string, secondValue: string) => firstValue.localeCompare(secondValue),
+    translate: (key: string, params?: {destination?: string}) => {
+        if (key === 'search.goTo') {
+            return `Go to ${params?.destination}`;
+        }
+
+        return mockTranslations.get(key) ?? key;
+    },
+};
+const mockPermissions = {
+    isBetaEnabled: (beta: string) => mockIsBetaEnabled(beta),
+    isBetaEnabledOrUnknown: (beta: string) => mockIsBetaEnabledOrUnknown(beta),
+};
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionActions: () => ({clearSelectedTransactions: mockClearSelectedTransactions}),
@@ -74,46 +111,17 @@ jest.mock('@hooks/useLazyAsset', () => ({
 }));
 
 jest.mock('@hooks/useCurrencyList', () => ({
-    useCurrencyListActions: () => ({convertToDisplayString: jest.fn(() => '$0.00')}),
+    useCurrencyListActions: () => mockCurrencyListActions,
 }));
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
-    default: () => ({accountID: 1}),
+    default: () => mockCurrentUserPersonalDetails,
 }));
 
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
-    default: () => ({
-        localeCompare: (firstValue: string, secondValue: string) => firstValue.localeCompare(secondValue),
-        translate: (key: string, params?: {destination?: string}) => {
-            if (key === 'search.goTo') {
-                return `Go to ${params?.destination}`;
-            }
-
-            const translations = new Map([
-                ['common.home', 'Home'],
-                ['common.inbox', 'Inbox'],
-                ['common.spend', 'Spend'],
-                ['common.insights', 'Insights'],
-                ['common.workspacesTabTitle', 'Workspaces'],
-                ['common.domains', 'Domains'],
-                ['initialSettingsPage.account', 'Account'],
-                ['domain.domainMembers', 'Domain members'],
-                ['domain.domainAdmins', 'Domain admins'],
-                ['domain.groups.title', 'Groups'],
-                ['domain.saml', 'SAML'],
-                ['common.profile', 'Profile'],
-                ['initialSettingsPage.security', 'Security'],
-                ['initialSettingsPage.help', 'Help'],
-                ['search.tabs.reports', 'Reports'],
-                ['search.tabs.expenses', 'Expenses'],
-                ['search.tabs.topSpenders', 'Top spenders'],
-                ['workspace.common.profile', 'Overview'],
-            ]);
-            return translations.get(key) ?? key;
-        },
-    }),
+    default: () => mockLocalize,
 }));
 
 jest.mock('@hooks/useOnyx', () => ({
@@ -128,7 +136,7 @@ jest.mock('@hooks/useNetwork', () => ({
 
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
-    default: () => ({isBetaEnabled: (beta: string) => mockIsBetaEnabled(beta), isBetaEnabledOrUnknown: (beta: string) => mockIsBetaEnabledOrUnknown(beta)}),
+    default: () => mockPermissions,
 }));
 
 jest.mock('@hooks/useResponsiveLayout', () => ({
@@ -262,7 +270,7 @@ function createSettingsMenuItem(translationKey: MenuData['translationKey'], scre
         translationKey,
         icon: mockIcon,
         screenName,
-        sentryLabel: translationKey,
+        sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.PROFILE,
         action,
     };
 }
@@ -784,6 +792,33 @@ describe('Workspace Search Router navigation source', () => {
         // Then nothing is suggested and the Workspace menu items are never built
         expect(result.current).toEqual([]);
         expect(getWorkspaceMenuItems).not.toHaveBeenCalled();
+    });
+
+    it('builds Workspace menu items once while the query is typed', () => {
+        // Given an account with a Workspace
+        const policy = createWorkspacePolicy('1', 'Spend Workspace');
+        const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy};
+        mockUseOnyx.mockImplementation((key) => {
+            if (key === ONYXKEYS.COLLECTION.POLICY) {
+                return [policies];
+            }
+            if (key === ONYXKEYS.SESSION) {
+                return [workspaceCurrentUserLogin];
+            }
+            return [undefined];
+        });
+        mockUseMemoizedLazyExpensifyIcons.mockReturnValue({...spendIcons, ...workspaceIcons});
+        mockUseSearchTypeMenuSections.mockReturnValue([]);
+
+        // When the user types a query one character at a time
+        const {result, rerender} = renderHook(({query}: {query: string}) => useNavigationSuggestions(query), {initialProps: {query: 'w'}});
+        for (const query of ['wo', 'wor', 'work']) {
+            rerender({query});
+        }
+
+        // Then the menu items are built once and the suggestions still follow the query
+        expect(getWorkspaceMenuItems).toHaveBeenCalledTimes(1);
+        expect(result.current.length).toBeGreaterThan(0);
     });
 
     it('composes localized Workspace suggestions after top-level and Spend rows with hook-level filtering and beta flags', () => {
