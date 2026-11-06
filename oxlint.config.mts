@@ -135,7 +135,6 @@ const SENTRY_LABEL_PRESS_HANDLER_WRAPPERS = [
     'Button',
     'ButtonDisabledWhenOffline',
     'ButtonWithDropdownMenu',
-    'CameraPermissionPrompt',
     'CardDetailsActionButton',
     'CardSectionButton',
     'Checkbox',

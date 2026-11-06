@@ -1470,7 +1470,6 @@
 "../../src/pages/iou/request/step/IOURequestStepDistanceOdometer.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/iou/request/step/IOURequestStepOdometerImage/index.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	2
 "../../src/pages/iou/request/step/IOURequestStepOdometerImage/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/iou/request/step/IOURequestStepScan/components/Camera/index.native.tsx"	"no-restricted-syntax"	1
 "../../src/pages/iou/request/step/IOURequestStepScan/components/MultiScanEducationalModal.tsx"	"no-restricted-syntax"	1
 "../../src/pages/iou/request/step/IOURequestStepScan/components/NavigationAwareCamera/WebCamera.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/iou/request/step/IOURequestStepScan/components/ScanEditReceipt.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
