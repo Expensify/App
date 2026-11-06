@@ -222,11 +222,13 @@ type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
     resetFormFieldError: (fieldID: keyof Form) => void;
     submit: () => void;
     scrollToEnd: () => void;
+    /** Scrolls to y for a focused input. On native it moves with the keyboard and re-applies y for 2 s, so don't use it for non-focus scrolls. */
     scrollTo: (y: number) => void;
 };
 
 type FormWrapperRef = {
     scrollToEnd: () => void;
+    /** Scrolls to y for a focused input. On native it moves with the keyboard and re-applies y for 2 s, so don't use it for non-focus scrolls. */
     scrollTo: (y: number) => void;
 };
 

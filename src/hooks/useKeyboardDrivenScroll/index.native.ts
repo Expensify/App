@@ -2,6 +2,7 @@
  * Scrolls a scroll view on every keyboard frame, on the UI thread, so content moves together with the keyboard.
  * A JS timer or keyboard event scrolls late when JS is busy, which makes the content jump a second time.
  */
+import {useRef} from 'react';
 import {KeyboardController, useKeyboardHandler} from 'react-native-keyboard-controller';
 import {measure, scrollTo, useAnimatedReaction, useAnimatedRef, useFrameCallback, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN, scheduleOnUI} from 'react-native-worklets';
@@ -28,10 +29,12 @@ const useKeyboardDrivenScroll: UseKeyboardDrivenScroll = (scrollableRef) => {
     const settleAt = useSharedValue<number | null>(null);
     const noKeyboardAt = useSharedValue<number | null>(null);
     const isWatchingTarget = useSharedValue(false);
+    const watchedRequest = useSharedValue(0);
+    const latestRequest = useRef(0);
 
     // Tracked on the UI thread because the keyboard often starts, or even finishes, before the focus event reaches JS
     const isKeyboardFullyOpen = useSharedValue(KeyboardController.isVisible());
-    const isKeyboardMoving = useSharedValue(false);
+    const isKeyboardOpening = useSharedValue(false);
 
     function scrollToTarget(target: KeyboardScrollTarget, isAnimated: boolean) {
         'worklet';
@@ -84,7 +87,13 @@ const useKeyboardDrivenScroll: UseKeyboardDrivenScroll = (scrollableRef) => {
         }
     }, false);
 
-    const stopTargetWatcher = () => targetWatcher.setActive(false);
+    const stopTargetWatcher = (request: number) => {
+        // A newer target started the watcher again
+        if (request !== latestRequest.current) {
+            return;
+        }
+        targetWatcher.setActive(false);
+    };
 
     // Frame callbacks can only be stopped from JS
     useAnimatedReaction(
@@ -93,7 +102,7 @@ const useKeyboardDrivenScroll: UseKeyboardDrivenScroll = (scrollableRef) => {
             if (isWatching || !wasWatching) {
                 return;
             }
-            scheduleOnRN(stopTargetWatcher);
+            scheduleOnRN(stopTargetWatcher, watchedRequest.get());
         },
     );
 
@@ -103,7 +112,7 @@ const useKeyboardDrivenScroll: UseKeyboardDrivenScroll = (scrollableRef) => {
                 'worklet';
 
                 isKeyboardFullyOpen.set(false);
-                isKeyboardMoving.set(true);
+                isKeyboardOpening.set(event.height > 0);
                 noKeyboardAt.set(null);
                 if (event.height === 0) {
                     pendingTarget.set(null);
@@ -113,7 +122,7 @@ const useKeyboardDrivenScroll: UseKeyboardDrivenScroll = (scrollableRef) => {
                 'worklet';
 
                 const target = pendingTarget.get();
-                if (!target) {
+                if (!target || !isKeyboardOpening.get()) {
                     return;
                 }
                 // The end of the content grows as the view shrinks, so the content follows the keyboard
@@ -122,10 +131,10 @@ const useKeyboardDrivenScroll: UseKeyboardDrivenScroll = (scrollableRef) => {
             onEnd: (event) => {
                 'worklet';
 
-                isKeyboardMoving.set(false);
+                isKeyboardOpening.set(false);
                 isKeyboardFullyOpen.set(event.height > 0);
                 const target = pendingTarget.get();
-                if (!target) {
+                if (!target || event.height === 0) {
                     return;
                 }
                 scrollToTarget(target, false);
@@ -143,11 +152,14 @@ const useKeyboardDrivenScroll: UseKeyboardDrivenScroll = (scrollableRef) => {
         }
         // Callers don't have to attach a second ref
         animatedScrollableRef(scrollable);
+        latestRequest.current += 1;
+        const request = latestRequest.current;
 
         scheduleOnUI(() => {
             'worklet';
 
             pendingTarget.set(target);
+            watchedRequest.set(request);
             targetSetAt.set(Date.now());
             settleAt.set(null);
             noKeyboardAt.set(null);
@@ -158,7 +170,8 @@ const useKeyboardDrivenScroll: UseKeyboardDrivenScroll = (scrollableRef) => {
                 scheduleSettle();
                 return;
             }
-            if (!isKeyboardMoving.get()) {
+            // Also covers focus while the keyboard is closing
+            if (!isKeyboardOpening.get()) {
                 noKeyboardAt.set(Date.now() + NO_KEYBOARD_DELAY_MS);
             }
         });

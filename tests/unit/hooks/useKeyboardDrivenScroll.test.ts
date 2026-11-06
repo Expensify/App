@@ -14,6 +14,8 @@ let mockVisibleHeight = 0;
 const mockAnimatedRef = jest.fn();
 const mockSetFrameCallbackActive = jest.fn();
 let mockFrameCallback: (() => void) | undefined;
+let mockReaction: {prepare: () => unknown; react: (current: unknown, previous: unknown) => void; previous: unknown} | undefined;
+let mockJSQueue: Array<() => void> = [];
 
 jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual<Record<string, unknown>>('react-native-reanimated/mock'),
@@ -26,13 +28,18 @@ jest.mock('react-native-reanimated', () => ({
         mockFrameCallback = callback;
         return {callbackId: 1, isActive: false, setActive: mockSetFrameCallbackActive};
     },
+    useAnimatedReaction: (prepare: () => unknown, react: (current: unknown, previous: unknown) => void) => {
+        mockReaction = {prepare, react, previous: mockReaction?.previous ?? null};
+    },
 }));
 
-// Run UI thread work synchronously, without flushing timers
+// UI thread work runs synchronously, without flushing timers. JS work is queued, so tests control when it runs.
 jest.mock('react-native-worklets', () => ({
     ...jest.requireActual<Record<string, unknown>>('react-native-worklets/src/mock'),
     scheduleOnUI: (worklet: () => void) => worklet(),
-    scheduleOnRN: (callback: () => void) => callback(),
+    scheduleOnRN: (callback: (...args: unknown[]) => void, ...args: unknown[]) => {
+        mockJSQueue.push(() => callback(...args));
+    },
 }));
 
 type HookModule = {default: UseKeyboardDrivenScroll};
@@ -62,6 +69,21 @@ function renderKeyboardDrivenScroll(scrollableRef: RefObject<KeyboardScrollable 
         moveKeyboard: (height: number) => handlers.onMove?.(createKeyboardEvent(height)),
         endKeyboard: (height: number) => handlers.onEnd?.(createKeyboardEvent(height)),
         runFrame: () => mockFrameCallback?.(),
+        runReaction: () => {
+            if (!mockReaction) {
+                return;
+            }
+            const current = mockReaction.prepare();
+            mockReaction.react(current, mockReaction.previous);
+            mockReaction.previous = current;
+        },
+        flushJS: () => {
+            const queue = mockJSQueue;
+            mockJSQueue = [];
+            for (const callback of queue) {
+                callback();
+            }
+        },
     };
 }
 
@@ -72,6 +94,8 @@ describe('useKeyboardDrivenScroll', () => {
         jest.clearAllMocks();
         mockVisibleHeight = 600;
         mockFrameCallback = undefined;
+        mockReaction = undefined;
+        mockJSQueue = [];
         jest.mocked(KeyboardController.isVisible).mockReturnValue(false);
     });
 
@@ -116,10 +140,11 @@ describe('useKeyboardDrivenScroll', () => {
 
     it('does not scroll past the top for a negative offset', () => {
         // Given a negative offset
-        const {scrollWithKeyboard, moveKeyboard} = renderKeyboardDrivenScroll();
+        const {scrollWithKeyboard, startKeyboard, moveKeyboard} = renderKeyboardDrivenScroll();
         scrollWithKeyboard({offset: -50});
 
-        // When the keyboard moves
+        // When the keyboard opens
+        startKeyboard(KEYBOARD_HEIGHT);
         moveKeyboard(100);
 
         // Then it stops at the top
@@ -316,6 +341,63 @@ describe('useKeyboardDrivenScroll', () => {
 
         // Then only keyboard frames scroll
         expect(mockScrollTo).not.toHaveBeenCalled();
+    });
+
+    it('does not follow a closing keyboard, and scrolls without it if no keyboard opens', () => {
+        // Given focus while the previous keyboard is still closing
+        const {scrollWithKeyboard, startKeyboard, moveKeyboard, endKeyboard, runFrame} = renderKeyboardDrivenScroll();
+        startKeyboard(0);
+        scrollWithKeyboard({offset: 120});
+
+        // When the keyboard finishes closing
+        moveKeyboard(100);
+        endKeyboard(0);
+
+        // Then nothing scrolls, as content shouldn't follow a closing keyboard
+        expect(mockScrollTo).not.toHaveBeenCalled();
+
+        // When no keyboard opens before the wait is over
+        jest.advanceTimersByTime(500);
+        runFrame();
+
+        // Then the target is applied once, animated
+        expect(mockScrollTo).toHaveBeenCalledTimes(1);
+        expect(mockScrollTo).toHaveBeenCalledWith(mockAnimatedRef, 0, 120, true);
+    });
+
+    it('stops the watcher once the target is dropped', () => {
+        // Given a target that expires
+        const {scrollWithKeyboard, startKeyboard, runFrame, runReaction, flushJS} = renderKeyboardDrivenScroll();
+        scrollWithKeyboard({offset: 120});
+        startKeyboard(KEYBOARD_HEIGHT);
+        runReaction();
+        jest.advanceTimersByTime(2001);
+        runFrame();
+
+        // When the stop reaches JS
+        runReaction();
+        flushJS();
+
+        // Then the watcher stops
+        expect(mockSetFrameCallbackActive).toHaveBeenLastCalledWith(false);
+    });
+
+    it('keeps the watcher running when a new target is set before an old stop reaches JS', () => {
+        // Given an expired target whose stop is still queued for JS
+        const {scrollWithKeyboard, startKeyboard, runFrame, runReaction, flushJS} = renderKeyboardDrivenScroll();
+        scrollWithKeyboard({offset: 120});
+        startKeyboard(KEYBOARD_HEIGHT);
+        runReaction();
+        jest.advanceTimersByTime(2001);
+        runFrame();
+        runReaction();
+
+        // When a new target is set, then the old stop runs
+        scrollWithKeyboard({offset: 200});
+        flushJS();
+
+        // Then the watcher keeps running for the new target
+        expect(mockSetFrameCallbackActive).toHaveBeenLastCalledWith(true);
     });
 
     it('does nothing but reports the scroll as handled when the scrollable is not mounted', () => {
