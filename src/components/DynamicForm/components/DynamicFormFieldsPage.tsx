@@ -64,7 +64,7 @@ function DynamicFormFieldsPage({
                 onPageSubmit(page, pageValues);
                 onNext(pageValues);
             }}
-            style={[styles.mh5, styles.flexGrow1]}
+            style={[styles.mh5, styles.flexGrow1, styles.mt3]}
             submitButtonStyles={styles.mb0}
             keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
             // An offline request is saved to disk, so the last page submits only online, as the confirmation page does. A flow that saves each page asks for it on every page.
@@ -92,14 +92,14 @@ function DynamicFormFieldsPage({
                     <>
                         {!!title && (
                             <Text
-                                style={[styles.textHeadlineLineHeightXXL, styles.mb3]}
+                                style={[styles.textHeadlineLineHeightXXL, description ? styles.mb3 : styles.mb6]}
                                 accessibilityRole={CONST.ROLE.HEADER}
                                 aria-level={2}
                             >
                                 {title}
                             </Text>
                         )}
-                        {!!description && <Text style={[styles.textSupporting, styles.mb3]}>{description}</Text>}
+                        {!!description && <Text style={[styles.textSupporting, styles.mb6]}>{description}</Text>}
                         <DynamicFormFields
                             content={page.content}
                             allFields={allFields}
