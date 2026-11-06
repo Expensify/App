@@ -57,6 +57,7 @@ function SageIntacctImportTaxPage({route}: SageIntacctImportTaxPageProps) {
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}
                 switchAccessibilityLabel={translate('workspace.intacct.importTaxDescription')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.IMPORT_TAX_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive={sageIntacctConfig?.tax?.syncTax ?? false}

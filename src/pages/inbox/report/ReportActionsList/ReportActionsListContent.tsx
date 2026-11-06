@@ -45,6 +45,7 @@ import React, {useState} from 'react';
 
 import type {ReportActionsListProps} from './types';
 
+import filterHiddenSupportTicketSurveys from './filterHiddenSupportTicketSurveys';
 import useReportActionsListData from './useReportActionsListData';
 import useReportActionsListRenderItem from './useReportActionsListRenderItem';
 import useReportActionsListScroll from './useReportActionsListScroll';
@@ -66,6 +67,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         hasNewerActions,
         oldestUnreadReportAction,
         transactionThreadReport,
+        sortedAllReportActions,
         sortedReportActions: unfilteredReportActions,
         sortedVisibleReportActions: unfilteredVisibleReportActions,
         isConciergeHiddenHistory,
@@ -74,8 +76,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     } = useReportActionsListState();
 
     // Remove rows hidden by the renderer before calculating summary counts, headers, and scroll positions.
-    const sortedReportActions = report?.isWaitingOnBankAccount ? unfilteredReportActions.filter((action) => !shouldHidePayAction(action, true)) : unfilteredReportActions;
-    const sortedVisibleReportActions = report?.isWaitingOnBankAccount
+    const paymentFilteredReportActions = report?.isWaitingOnBankAccount ? unfilteredReportActions.filter((action) => !shouldHidePayAction(action, true)) : unfilteredReportActions;
+    const paymentFilteredVisibleReportActions = report?.isWaitingOnBankAccount
         ? unfilteredVisibleReportActions.filter((action) => !shouldHidePayAction(action, true))
         : unfilteredVisibleReportActions;
 
@@ -95,6 +97,19 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     useRetireMerchantRuleSuggestionOnLeave(reportID);
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
+    // Hidden surveys must not become unread targets that have no rendered row.
+    const sortedReportActions = filterHiddenSupportTicketSurveys({
+        reportActions: paymentFilteredReportActions,
+        sortedAllReportActions,
+        report,
+        reportNameValuePairs,
+    });
+    const sortedVisibleReportActions = filterHiddenSupportTicketSurveys({
+        reportActions: paymentFilteredVisibleReportActions,
+        sortedAllReportActions,
+        report,
+        reportNameValuePairs,
+    });
     const isReportArchived = !!isArchivedReport(reportNameValuePairs);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
@@ -139,7 +154,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
 
     const reportActionsListData = useReportActionsListData({
         sortedVisibleReportActions,
-        reportNameValuePairs,
         sessionStartTime,
         linkedReportActionID,
         unreadMarkerReportActionID,
@@ -149,7 +163,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     const {listID, listProps, shouldBeAlignedToTop, isFloatingMessageCounterVisible, isActionBadgeAboveViewport, scrollToBottomAndMarkReportAsRead, scrollToActionBadgeTarget} =
         useReportActionsListScroll({
             reportID,
-            sortedVisibleReportActions,
+            // Hidden surveys still prove that the selected page contains the newest action.
+            sortedVisibleReportActions: paymentFilteredVisibleReportActions,
             renderedVisibleReportActions: listData,
             reportActionIDToDisplayIndex,
             hasScrolledOverThreshold,
