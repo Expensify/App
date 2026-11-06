@@ -174,7 +174,7 @@ function WorkspaceMemberRoleList({
         sectionIndex: index,
         customHeader: (
             <>
-                {index > 0 && <View style={styles.dividerLine} />}
+                {index > 0 && <View style={[styles.dividerLine, styles.mv2]} />}
                 <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
                     <Text style={[styles.ph5, styles.textLabelSupporting]}>{group.title}</Text>
                 </View>
@@ -184,7 +184,7 @@ function WorkspaceMemberRoleList({
 
     const footerContent = (
         <>
-            <View style={[styles.renderHTML, styles.alignItemsCenter, styles.mb4]}>
+            <View style={[styles.renderHTML, styles.alignItemsCenter, styles.pt3, styles.mb4]}>
                 <RenderHTML html={translate('workspace.common.roleSelectorFeedback')} />
             </View>
             {!!errorMessage && (
@@ -228,7 +228,7 @@ function WorkspaceMemberRoleList({
                         confirmButtonOptions={confirmButtonOptions}
                         footerContent={footerContent}
                         customListHeaderContent={
-                            <View style={[styles.renderHTML, styles.ph5, styles.pb2]}>
+                            <View style={[styles.renderHTML, styles.ph5, styles.pv3]}>
                                 <RenderHTML html={translate('workspace.common.roleSelectorDescription')} />
                             </View>
                         }
