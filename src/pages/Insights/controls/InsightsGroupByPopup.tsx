@@ -8,8 +8,6 @@ import type {ListItem} from '@components/SelectionList/types';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import CONST from '@src/CONST';
-
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -18,11 +16,22 @@ type InsightsGroupByPopupProps<T extends string> = {
     selectedValue: T;
     defaultValue: T;
     label: string;
+    resetSentryLabel: string;
+    applySentryLabel: string;
     closeOverlay: () => void;
     onChange: (value: T) => void;
 };
 
-function InsightsGroupByPopup<T extends string>({optionGroups, selectedValue, defaultValue, label, closeOverlay, onChange}: InsightsGroupByPopupProps<T>) {
+function InsightsGroupByPopup<T extends string>({
+    optionGroups,
+    selectedValue,
+    defaultValue,
+    label,
+    resetSentryLabel,
+    applySentryLabel,
+    closeOverlay,
+    onChange,
+}: InsightsGroupByPopupProps<T>) {
     const styles = useThemeStyles();
     const [selected, setSelected] = useState(selectedValue);
     const sections = optionGroups.map((options, sectionIndex) => ({
@@ -46,8 +55,8 @@ function InsightsGroupByPopup<T extends string>({optionGroups, selectedValue, de
             onApply={applyChanges}
             label={label}
             showLabel={false}
-            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_SINGLE_SELECT}
-            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_SINGLE_SELECT}
+            resetSentryLabel={resetSentryLabel}
+            applySentryLabel={applySentryLabel}
         >
             <ListFilterHeightContextProvider>
                 <ListFilterWrapper

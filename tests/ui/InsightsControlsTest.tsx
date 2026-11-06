@@ -5,6 +5,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import BasePopup from '@components/Search/FilterDropdowns/BasePopup';
 
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 
@@ -211,12 +212,17 @@ describe('Insights controls', () => {
 
         // When the user picks Quarter and applies it
         await openPill(/^(Month|search\.filters\.groupBy\.month)$/);
+        const popupProps = screen.UNSAFE_getByType(BasePopup).props;
         fireEvent.press(screen.getByText(/^(Quarter|search\.filters\.groupBy\.quarter)$/));
         fireEvent.press(screen.getByText(APPLY));
         await waitForBatchedUpdatesWithAct();
 
-        // Then the chart is asked to regroup by quarter
+        // Then Group by keeps its own telemetry while updating the chart.
         expect(onChange).toHaveBeenCalledWith({groupBy: CONST.SEARCH.GROUP_BY.QUARTER});
+        expect(popupProps).toMatchObject({
+            resetSentryLabel: CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_RESET.GROUP_BY,
+            applySentryLabel: CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_APPLY.GROUP_BY,
+        });
     });
 
     it('applies a configured tag position only after Apply', async () => {
@@ -235,13 +241,18 @@ describe('Insights controls', () => {
 
         // When the user selects Location without applying it yet
         await openPill(/^Department$/);
+        const popupProps = screen.UNSAFE_getByType(BasePopup).props;
         fireEvent.press(screen.getByText('Location'));
         expect(onChange).not.toHaveBeenCalled();
         fireEvent.press(screen.getByText(APPLY));
         await waitForBatchedUpdatesWithAct();
 
-        // Then only the tag level changes, leaving date and time grouping intact
+        // Then only the tag level changes, and its telemetry stays separate from Group by.
         expect(onChange).toHaveBeenCalledWith({tagLevel: 2});
+        expect(popupProps).toMatchObject({
+            resetSentryLabel: CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_RESET.TAG_LEVEL,
+            applySentryLabel: CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_APPLY.TAG_LEVEL,
+        });
     });
 
     it('resets the tag position to level one', async () => {

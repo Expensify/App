@@ -48,6 +48,8 @@ function InsightsGroupByDropdown({groupBy, options, onChange}: InsightsGroupByDr
             selectedValue={selectedValue}
             defaultValue={DEFAULT_INSIGHTS_FILTERS.groupBy}
             label={label}
+            resetSentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_RESET.GROUP_BY}
+            applySentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_APPLY.GROUP_BY}
             closeOverlay={closeOverlay}
             onChange={(value: GroupByValue) => onChange({groupBy: value})}
         />

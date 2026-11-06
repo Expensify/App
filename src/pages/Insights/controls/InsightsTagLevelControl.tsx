@@ -40,6 +40,8 @@ function InsightsTagLevelControl({tagLevel, options, onChange}: InsightsTagLevel
             selectedValue={String(tagLevel)}
             defaultValue={String(CONST.INSIGHTS.DEFAULT_TAG_LEVEL)}
             label={translate('insightsPage.tagLevelLabel')}
+            resetSentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_RESET.TAG_LEVEL}
+            applySentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_APPLY.TAG_LEVEL}
             closeOverlay={closeOverlay}
             onChange={selectLevel}
         />

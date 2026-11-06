@@ -35,6 +35,7 @@ function InsightsDateControl({value, onChange}: InsightsControlProps<InsightsFil
             onChange={(dateValues) => onChange(fromSearchDateValues(dateValues) ?? value)}
             closeOverlay={closeOverlay}
             setPopoverWidth={setPopoverWidth}
+            applySentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_APPLY.DATE}
         />
     );
 
