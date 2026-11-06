@@ -2017,11 +2017,21 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     OPEN_SEARCH_TAG_FILTERS_PAGE: 'OpenSearchTagFiltersPage',
     // A Wise onboarding page that carries a sensitive answer, such as the SSN, is sent without the request queue so the answer is never written to disk
     UPDATE_WISE_ONBOARDING_ADDITIONAL_DATA: 'UpdateWiseOnboardingAdditionalData',
+    SEARCH_TRAVEL_AIRPORTS: 'SearchTravelAirports',
+    GET_FLIGHT_FARE_RULES: 'GetFlightFareRules',
+    SEARCH_FLIGHTS: 'SearchFlights',
+    SEARCH_FLIGHT_SCHEDULES: 'SearchFlightSchedules',
+    START_FLIGHT_CHECKOUT: 'StartFlightCheckout',
 } as const;
 
 type SideEffectRequestCommand = ValueOf<typeof SIDE_EFFECT_REQUEST_COMMANDS>;
 
 type SideEffectRequestCommandParameters = {
+    [SIDE_EFFECT_REQUEST_COMMANDS.SEARCH_TRAVEL_AIRPORTS]: Parameters.SearchTravelAirportsParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.GET_FLIGHT_FARE_RULES]: Parameters.GetFlightFareRulesParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.SEARCH_FLIGHTS]: Parameters.SearchFlightsParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.SEARCH_FLIGHT_SCHEDULES]: Parameters.SearchFlightsParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.START_FLIGHT_CHECKOUT]: Parameters.StartFlightCheckoutParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.AUTHENTICATE_PUSHER]: Parameters.AuthenticatePusherParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_SUPPORTAL_REASON]: Parameters.GetSupportalReasonParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET]: Parameters.CreateSupportTicketParams;

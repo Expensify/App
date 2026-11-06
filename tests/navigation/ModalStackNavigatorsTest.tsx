@@ -89,6 +89,7 @@ describe('modal screen registrations', () => {
             SCREENS.TRAVEL.DYNAMIC_WORKSPACE_CONFIRMATION,
             SCREENS.TRAVEL.DYNAMIC_VERIFY_ACCOUNT,
             SCREENS.TRAVEL.ENABLE,
+            SCREENS.TRAVEL.FLIGHT_BOOKING_DEV,
         ]);
         expect(mockScreenRegistrations.every(({isLazyLoaderDefined}) => isLazyLoaderDefined)).toBe(true);
         expect(getCommonOptions).not.toHaveBeenCalled();

@@ -1007,6 +1007,7 @@ type TravelNavigatorParamList = {
         policyID?: string;
     };
     [SCREENS.TRAVEL.ENABLE]: {policyID: string; subPage?: string; action?: 'edit'};
+    [SCREENS.TRAVEL.FLIGHT_BOOKING_DEV]: {policyID: string};
 };
 
 type ReportsSplitNavigatorParamList = {

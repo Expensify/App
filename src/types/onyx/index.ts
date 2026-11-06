@@ -243,6 +243,8 @@ import type TransactionsPending3DSReview from './TransactionsPending3DSReview';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
 import type TransactionViolations from './TransactionViolation';
 import type TravelBillingStatement from './TravelBillingStatement';
+import type TravelFlightCheckout from './TravelFlightCheckout';
+import type TravelFlightSearch from './TravelFlightSearch';
 import type TravelProvisioning from './TravelProvisioning';
 import type {TravelSettings, WorkspaceTravelSettings} from './TravelSettings';
 import type TryNewDot from './TryNewDot';
@@ -516,6 +518,8 @@ export type {
     DynamicFormTextField,
     JoinablePolicies,
     DismissedProductTraining,
+    TravelFlightCheckout,
+    TravelFlightSearch,
     TravelProvisioning,
     EnableGlobalReimbursementsModal,
     MembersNeedCategoryModal,

@@ -1,9 +1,12 @@
 import * as API from '@libs/API';
 import type {AcceptSpotnanaTermsParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+import type {FlightFareRules, FlightSearchFilters, FlightSearchLeg, TravelAirport} from '@src/types/onyx/TravelFlightSearch';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 
@@ -105,6 +108,123 @@ function setTravelProvisioningEnabledSteps(enabledSteps: string[]) {
     Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, {enabledSteps});
 }
 
+/**
+ * Returns the airports matching what the traveler typed in a flight search's From or To field
+ */
+function searchTravelAirports(policyID: string, query: string): Promise<TravelAirport[]> {
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method -- suggestions change with every keystroke and only the open picker reads them, so they are not stored in Onyx
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SEARCH_TRAVEL_AIRPORTS, {policyID, query}).then((response) => response?.airports ?? []);
+}
+
+// Each search gets a number so responses from a search the traveler has since replaced are ignored
+let latestFlightSearchNumber = 0;
+
+/**
+ * Searches one leg of a flight search. The first leg is searched with an empty searchID; each later leg passes the
+ * previous leg's searchID and the fare picked from it. The results replace travelFlightSearch.
+ *
+ * The priced search takes over ten seconds, so the flight schedules for the same leg are fetched alongside it and
+ * shown, without prices, until the priced results arrive.
+ */
+function searchFlights(policyID: string, legs: FlightSearchLeg[], filters: FlightSearchFilters = {}, legIndex = 0, searchID = '', selectedFareID = '', shouldShowAllFlights = false) {
+    latestFlightSearchNumber += 1;
+    const flightSearchNumber = latestFlightSearchNumber;
+    const isCurrentSearch = () => flightSearchNumber === latestFlightSearchNumber;
+    let isPricedSearchFinished = false;
+    Onyx.set(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH, {query: {policyID, legs, filters, shouldShowAllFlights}, legIndex, isLoading: true});
+
+    const parameters = {policyID, legs: JSON.stringify(legs), filters: JSON.stringify(filters), searchID, selectedFareID, legIndex, shouldShowAllFlights};
+
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method -- the server returns the schedules instead of writing Onyx, so they are stored here
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SEARCH_FLIGHT_SCHEDULES, parameters)
+        .then((response) => {
+            if (!isCurrentSearch() || isPricedSearchFinished || response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                return;
+            }
+            Onyx.merge(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH, {scheduleItineraries: response.itineraries});
+        })
+        .catch(() => {
+            // The priced search shows its own error, and schedules are only a preview of it
+        });
+
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method, rulesdir/no-multiple-api-calls -- the schedules and the priced results come from separate searches that run in parallel, and the server returns them instead of writing Onyx
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SEARCH_FLIGHTS, parameters)
+        .then((response) => {
+            if (!isCurrentSearch()) {
+                return;
+            }
+            isPricedSearchFinished = true;
+            if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                throw new Error(response?.message ?? 'Flight search failed');
+            }
+            Onyx.merge(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH, {
+                searchID: response.searchID,
+                legIndex: response.legIndex,
+                itineraries: response.itineraries,
+                scheduleItineraries: null,
+                filterOptions: response.filterOptions,
+                isExpressSearch: response.isExpressSearch,
+                isLoading: false,
+            });
+        })
+        .catch(() => {
+            if (!isCurrentSearch()) {
+                return;
+            }
+            isPricedSearchFinished = true;
+            Onyx.merge(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH, {
+                scheduleItineraries: null,
+                isLoading: false,
+                errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+            });
+        });
+}
+
+/**
+ * Returns the airline's full fare rule text for a fare from a flight search
+ */
+function getFlightFareRules(policyID: string, searchID: string, fareID: string): Promise<FlightFareRules[]> {
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method -- the full rule text is only shown on the fare rules screen that requests it, so it is not stored in Onyx
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_FLIGHT_FARE_RULES, {policyID, searchID, fareID}).then((response) => response?.fareRules ?? []);
+}
+
+/**
+ * Starts checkout for the fare picked on the last leg of the search, replacing travelFlightCheckout
+ */
+function startFlightCheckout(policyID: string, searchID: string, fareID: string) {
+    Onyx.set(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_CHECKOUT, {policyID, searchID, fareID, isLoading: true});
+
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method -- the server returns the checkout instead of writing Onyx, so it is stored here
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.START_FLIGHT_CHECKOUT, {policyID, searchID, fareID})
+        .then((response) => {
+            if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                throw new Error(response?.message ?? 'Flight checkout failed');
+            }
+            Onyx.merge(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_CHECKOUT, {
+                checkoutResponseID: response.checkoutResponseID,
+                seatMapResponseID: response.seatMapResponseID,
+                itinerary: response.itinerary,
+                priceSummary: response.priceSummary,
+                requiredTravelerFields: response.requiredTravelerFields,
+                seatMaps: response.seatMaps,
+                selectedSeats: {},
+                paymentSources: response.paymentSources,
+                isLoading: false,
+            });
+        })
+        .catch(() => {
+            Onyx.merge(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_CHECKOUT, {isLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
+        });
+}
+
+/**
+ * Clears the flight search and checkout when the traveler leaves the booking flow
+ */
+function clearFlightBooking() {
+    Onyx.set(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH, null);
+    Onyx.set(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_CHECKOUT, null);
+}
+
 function cleanupTravelProvisioningSession() {
     Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, null);
 }
@@ -112,6 +232,11 @@ function cleanupTravelProvisioningSession() {
 export {
     acceptSpotnanaTerms,
     cleanupTravelProvisioningSession,
+    clearFlightBooking,
+    getFlightFareRules,
+    searchFlights,
+    searchTravelAirports,
+    startFlightCheckout,
     requestTravelAccess,
     setTravelProvisioningDomain,
     setTravelProvisioningEnabledSteps,
