@@ -5,7 +5,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 
-import useAgentAccountID from '@hooks/useAgentAccountID';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
@@ -27,10 +26,10 @@ import React from 'react';
 
 type DynamicEditNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_NAME>;
 
-function DynamicEditNamePage({route, navigation}: DynamicEditNamePageProps) {
+function DynamicEditNamePage({route}: DynamicEditNamePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [accountID] = useAgentAccountID(route.params.accountID, navigation);
+    const accountID = route.params.accountID;
     const [personalDetails] = usePersonalDetail(accountID);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.AGENT_EDIT_NAME.path);
 

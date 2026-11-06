@@ -37,6 +37,9 @@ type ToggleSettingOptionRowProps = {
     subtitle?: string | ReactNode;
     switchAccessibilityLabel: string;
 
+    /** Label for Sentry tracking of the switch, from `CONST.SENTRY_LABEL`. Each feature passes its own so their interactions aren't grouped together. */
+    switchSentryLabel: string;
+
     /** subtitle should show below switch and title */
     shouldPlaceSubtitleBelowSwitch?: boolean;
 
@@ -113,6 +116,7 @@ function ToggleSettingOptionRow({
     parsedSubtitleContainerStyle,
     accordionStyle,
     switchAccessibilityLabel,
+    switchSentryLabel,
     shouldPlaceSubtitleBelowSwitch,
     shouldUseCompactSubtitleSpacing = false,
     shouldAnchorSwitchToTop = false,
@@ -229,6 +233,7 @@ function ToggleSettingOptionRow({
             accessibilityLabel={
                 typeof subtitle === 'string' && subtitle && !areSubtitleAndSwitchAccessibilityLabelEqual ? `${switchAccessibilityLabel}, ${subtitle}` : switchAccessibilityLabel
             }
+            sentryLabel={switchSentryLabel}
             onToggle={(isOn) => {
                 shouldAnimateAccordionSection.set(true);
                 onToggle(isOn);
