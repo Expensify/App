@@ -54,7 +54,11 @@ export default function useExportedToFilterOptions(policyIDsOverride?: Filter): 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: exportedToPoliciesSelector});
 
     // When search is scoped to workspaces, use only those policies otherwise use all.
-    const policiesToUse = getAllPolicyValues(policyIDsOverride ?? getFilterFromQuery(currentSearchQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID), ONYXKEYS.COLLECTION.POLICY, policies);
+    const policiesToUse = getAllPolicyValues(
+        policyIDsOverride ?? getFilterFromQuery(currentSearchQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID),
+        ONYXKEYS.COLLECTION.POLICY,
+        policies,
+    );
     const combinedExportTemplates = useCombinedExportTemplates(policiesToUse);
 
     const integrationConnectionNamesSet = new Set<string>(CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES);
