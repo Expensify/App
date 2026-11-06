@@ -1229,6 +1229,10 @@ const translations: TranslationDeepObject<typeof en> = {
         runningTotal: '累計合計',
         explain: '説明',
         explainChartPrompt: (chartTitle: string) => `${chartTitle} のデータを説明します。`,
+        violationsOverTime: '違反の推移',
+        topViolations: '違反の多い項目',
+        violationsBySubmitter: '申請者による違反事項',
+        violationsByApprover: '承認者による違反',
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -7486,7 +7490,6 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 title: 'メンバーをコピー',
                 prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
                     one: `${targetWorkspaceName}のメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`,
-                    // Japanese has no "one" plural category, so handle the single-workspace case here
                     other:
                         count === 1
                             ? `${targetWorkspaceName}のメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`
@@ -10658,7 +10661,7 @@ ${reportName}`,
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: '差出人',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'カード',
-                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '出金ID',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '出金 ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'カテゴリ',
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: '加盟店',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'タグ',
@@ -10668,6 +10671,7 @@ ${reportName}`,
                 [CONST.SEARCH.GROUP_BY.YEAR]: '年',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: '四半期',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: '承認者',
+                [CONST.SEARCH.GROUP_BY.VIOLATION]: '違反',
             },
             feed: 'フィード',
             withdrawalType: {
@@ -10722,6 +10726,7 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.YEAR]: '年数',
             [CONST.SEARCH.GROUP_BY.QUARTER]: '四半期',
             [CONST.SEARCH.GROUP_BY.APPROVER]: '承認者',
+            [CONST.SEARCH.GROUP_BY.VIOLATION]: '違反',
         },
         moneyRequestReport: {emptyStateTitle: 'まだ経費がありません', accessPlaceHolder: '詳細を開く'},
         noCategory: 'カテゴリなし',
