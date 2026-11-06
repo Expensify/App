@@ -3,6 +3,7 @@ import Icon from '@components/Icon';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import {buildViewOnSpendQuery} from '@components/Search/chartDrillDown';
 import ChartOfflineState from '@components/Search/ChartOfflineState';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchQueryString} from '@components/Search/types';
@@ -44,17 +45,17 @@ import {View} from 'react-native';
 import useInsightsTopExpenses, {TOP_EXPENSES_STATE} from './useInsightsTopExpenses';
 
 type InsightsTopExpensesProps = {
-    /** Spend table query whose largest expenses the section lists, and that View all opens */
-    viewAllQuery: SearchQueryString;
+    /** Spend table query whose largest expenses the section lists */
+    query: SearchQueryString;
 };
 
 /** Lists the largest expenses behind the clicked item, each opening in the RHP. */
-function InsightsTopExpenses({viewAllQuery}: InsightsTopExpensesProps) {
+function InsightsTopExpenses({query}: InsightsTopExpensesProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
-    const {expenses, state, retry} = useInsightsTopExpenses(viewAllQuery);
+    const {expenses, queryJSON, state, retry} = useInsightsTopExpenses(query);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowUpRight']);
     const {markReportRHPWidth} = useWideRHPActions();
@@ -141,9 +142,9 @@ function InsightsTopExpenses({viewAllQuery}: InsightsTopExpensesProps) {
                 >
                     {translate('insightsPage.topExpenses')}
                 </Text>
-                {expenses.length > 0 && (
+                {!!queryJSON && expenses.length > 0 && (
                     <PressableWithoutFeedback
-                        onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: viewAllQuery}))}
+                        onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildViewOnSpendQuery(queryJSON)}))}
                         accessibilityRole={CONST.ROLE.LINK}
                         accessibilityLabel={translate('insightsPage.viewAll')}
                         sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.DETAILS_VIEW_ALL_TOP_EXPENSES}

@@ -1,6 +1,6 @@
 import {useSession} from '@components/OnyxListItemProvider';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
-import type {SearchQueryString} from '@components/Search/types';
+import type {SearchQueryJSON, SearchQueryString} from '@components/Search/types';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -31,6 +31,7 @@ type TopExpensesState = ValueOf<typeof TOP_EXPENSES_STATE>;
 
 type TopExpenses = {
     expenses: TransactionListItemType[];
+    queryJSON: Readonly<SearchQueryJSON> | undefined;
     state: TopExpensesState;
     retry: () => void;
 };
@@ -72,7 +73,7 @@ function useInsightsTopExpenses(query: SearchQueryString | undefined): TopExpens
     }
 
     if (!queryJSON || !snapshot?.data || state !== TOP_EXPENSES_STATE.READY) {
-        return {expenses: [], state, retry};
+        return {expenses: [], queryJSON, state, retry};
     }
 
     const [sections] = getSections({
@@ -93,7 +94,7 @@ function useInsightsTopExpenses(query: SearchQueryString | undefined): TopExpens
         .filter((item): item is TransactionListItemType => 'transactionID' in item && item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
         .slice(0, queryJSON.limit);
 
-    return {expenses, state, retry};
+    return {expenses, queryJSON, state, retry};
 }
 
 export {TOP_EXPENSES_STATE};

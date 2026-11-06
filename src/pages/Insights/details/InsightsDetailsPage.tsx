@@ -61,7 +61,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                   translate,
               })
             : undefined;
-    const viewAllQuery = chartQueryJSON && item ? buildChartDrillDownQuery(chartQueryJSON, item.filterQuery) : undefined;
+    const drillDownQuery = chartQueryJSON && item ? buildChartDrillDownQuery(chartQueryJSON, item.filterQuery) : undefined;
 
     if (!isBetaEnabled(CONST.BETAS.INSIGHTS_AI) || !chartSpec || (isResolved && !item)) {
         return (
@@ -81,7 +81,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                 <Header.BackButton />
                 <Header.Title title={translate('common.details')} />
             </Header>
-            {!!item && !!viewAllQuery && (
+            {!!item && !!drillDownQuery && (
                 <ScrollView
                     contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb5, styles.gap5]}
                     addBottomSafeAreaPadding
@@ -95,7 +95,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                         </Text>
                         <Text variant="h1">{item.title}</Text>
                     </View>
-                    <InsightsTopExpenses viewAllQuery={viewAllQuery} />
+                    <InsightsTopExpenses query={drillDownQuery} />
                 </ScrollView>
             )}
         </ScreenWrapper>
