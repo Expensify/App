@@ -36,7 +36,7 @@ function InsightsAICardSkeleton() {
         <View style={[styles.pl3, styles.gap5]}>
             <SkeletonViewContentLoader
                 animate
-                width={variables.insightsAICardWidth}
+                width="100%"
                 height={CONTENT_HEIGHT}
                 backgroundColor={theme.skeletonLHNIn}
                 foregroundColor={theme.skeletonLHNOut}

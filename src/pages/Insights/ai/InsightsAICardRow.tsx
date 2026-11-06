@@ -2,6 +2,8 @@ import ScrollView from '@components/ScrollView';
 
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
@@ -16,7 +18,8 @@ import {View} from 'react-native';
 import InsightsAICard from './InsightsAICard';
 import InsightsAICardSkeleton from './InsightsAICardSkeleton';
 
-const SKELETON_CARD_COUNT = 4;
+const MAX_CARD_COUNT = 4;
+const CARDS_PER_ROW_ON_MEDIUM_SCREEN = 2;
 
 type InsightsAICardRowProps = {
     insights: AIInsight[] | undefined;
@@ -28,45 +31,66 @@ type InsightsAICardRowProps = {
     isLoading: boolean;
 };
 
-/** Shows the AI insights in a sideways-scrolling row, with placeholders while the dashboard loads. */
+/** Shows the AI insights, with placeholders while the dashboard loads. */
 function InsightsAICardRow({insights, insightsScope, isLoading}: InsightsAICardRowProps) {
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const theme = useTheme();
+    const StyleUtils = useStyleUtils();
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const {pageGutter, pageGutterEdgeToEdge} = useLayoutSpacing();
 
-    // Responses cached before the backend added chips have only text, which the card can't show
-    const displayableInsights = insights?.filter((insight) => !!insight.chip);
+    const cards = isLoading
+        ? Array.from({length: MAX_CARD_COUNT}, (item, index) => <InsightsAICardSkeleton key={index} />)
+        : (insights ?? [])
+              .filter((insight) => !!insight.chip)
+              .map((insight) => (
+                  <InsightsAICard
+                      key={insight.id}
+                      insight={insight}
+                      insightsScope={insightsScope}
+                  />
+              ));
 
-    if (!isLoading && !displayableInsights?.length) {
+    if (!cards.length) {
         return null;
     }
 
-    const renderWithDivider = (content: ReactNode, index: number) => (
+    const renderWithDivider = (content: ReactNode, index: number, isEmptySlot = false) => (
         <Fragment key={index}>
-            {index > 0 && <View style={[styles.borderLeft, shouldUseNarrowLayout ? styles.mh8 : [styles.ml6, styles.mr6]]} />}
+            {index > 0 && (
+                <View style={[styles.borderLeft, shouldUseNarrowLayout ? styles.mh8 : [styles.ml6, styles.mr6], isEmptySlot && StyleUtils.getBorderColorStyle(theme.transparent)]} />
+            )}
             {content}
         </Fragment>
     );
 
+    if (shouldUseNarrowLayout) {
+        return (
+            <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={hasHoverSupport()}
+                style={[pageGutterEdgeToEdge, styles.pv5]}
+                contentContainerStyle={pageGutter}
+            >
+                {cards.map((card, index) => renderWithDivider(<View style={styles.insightsAICard}>{card}</View>, index))}
+            </ScrollView>
+        );
+    }
+
+    const cardsPerRow = isMediumScreenWidth ? CARDS_PER_ROW_ON_MEDIUM_SCREEN : MAX_CARD_COUNT;
+    const rows = Array.from({length: Math.ceil(cards.length / cardsPerRow)}, (row, rowIndex) => cards.slice(rowIndex * cardsPerRow, (rowIndex + 1) * cardsPerRow));
+
     return (
-        <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={hasHoverSupport()}
-            style={[pageGutterEdgeToEdge, shouldUseNarrowLayout ? styles.pv5 : styles.pv10]}
-            contentContainerStyle={pageGutter}
-        >
-            {isLoading
-                ? Array.from({length: SKELETON_CARD_COUNT}, (item, index) => renderWithDivider(<InsightsAICardSkeleton />, index))
-                : displayableInsights?.map((insight, index) =>
-                      renderWithDivider(
-                          <InsightsAICard
-                              insight={insight}
-                              insightsScope={insightsScope}
-                          />,
-                          index,
-                      ),
-                  )}
-        </ScrollView>
+        <View style={[styles.pv10, styles.gap8]}>
+            {rows.map((row) => (
+                <View
+                    key={row.at(0)?.key}
+                    style={styles.flexRow}
+                >
+                    {Array.from({length: cardsPerRow}, (slot, index) => renderWithDivider(<View style={[styles.flex1, styles.mnw0]}>{row.at(index)}</View>, index, !row.at(index)))}
+                </View>
+            ))}
+        </View>
     );
 }
 
