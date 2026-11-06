@@ -24,7 +24,7 @@ import CONST from '@src/CONST';
 
 import type {GestureResponderEvent, PressableStateCallbackType, ViewStyle} from 'react-native';
 
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
@@ -32,7 +32,7 @@ import {rendersColumnHeader} from './buildTableListData';
 import {TABLE_ROW_DATA_SET} from './columnResize/columnWidthExpressions';
 import getGridTemplateColumns from './getGridTemplateColumns';
 import {assignCellColumnIndexes, getCellAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
-import {useTableContext, useTableRowSemanticID} from './TableContext';
+import {TableActionsContext, useTableContext, useTableRowSemanticID} from './TableContext';
 
 type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible' | 'accessibilityLabel'> & {
     /** When true, indicates that the view is an accessibility element.  By default, all the rows are accessible. */
@@ -105,6 +105,7 @@ export default function TableRow({
         shouldFooterRenderAsLastRow,
         rowWidth,
     } = useTableContext();
+    const {showSelectionMenu} = useContext(TableActionsContext);
     const {handleCopyableTextRowPress, markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowLongPress} = useCopyableTextRowPress();
     const semanticRowID = useTableRowSemanticID();
 
@@ -315,7 +316,7 @@ export default function TableRow({
             return;
         }
 
-        tableMethods.setMobileSelectionModalRowKey(item.keyForList);
+        showSelectionMenu(item.keyForList);
     };
 
     // Snapshot at pointer down because blur clears isEditingCell before onPress.
