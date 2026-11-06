@@ -47,11 +47,13 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
             (TOP_TAB_SCREENS.find((screen) => screen === route.name) ? isFocused : !(WIDE_LAYOUT_INACTIVE_SCREENS.includes(route.name) && !shouldUseNarrowLayout) && isFocused);
     }
 
-    let containerElements = focusTrapSettings?.containerElements?.length ? focusTrapSettings.containerElements : undefined;
+    const customContainerElements = focusTrapSettings?.containerElements?.length ? focusTrapSettings.containerElements : undefined;
+    let containerElements = customContainerElements && extraContainerElements.length > 0 ? [...customContainerElements, ...extraContainerElements] : customContainerElements;
     let trappedChildren = children;
 
     // Passing containers replaces the trap's own child, so the screen is listed along with the extra elements.
-    const child = !containerElements && extraContainerElements.length > 0 ? React.Children.only(children) : undefined;
+    // Once listed it stays listed: dropping back to no containers would leave the trap with none, since it only reads its child on creation.
+    const child = !customContainerElements && (extraContainerElements.length > 0 || screenElement) ? React.Children.only(children) : undefined;
     if (React.isValidElement<{ref?: Ref<HTMLElement>}>(child)) {
         trappedChildren = React.cloneElement(child, {ref: mergeRefs(child.props.ref, captureScreenElement)});
         containerElements = screenElement ? [screenElement, ...extraContainerElements] : undefined;

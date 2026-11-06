@@ -144,7 +144,7 @@ function RHPResizeHandle({ref}: RHPResizeHandleProps) {
             // eslint-disable-next-line no-param-reassign -- the drag is the ref's own object, read back when the drag ends
             drag.liveWidth = liveWidth;
         },
-        onEnd: ({hasMovedPointer, liveWidth}, event, isRelease) => {
+        onEnd: ({hasMovedPointer, liveWidth, startWidth}, event, isRelease) => {
             setIsDragging(false);
 
             // A cancelled press or reclaimed capture isn't a click, so only a release resets.
@@ -153,7 +153,7 @@ function RHPResizeHandle({ref}: RHPResizeHandleProps) {
                 return;
             }
 
-            settleWidth(liveWidth);
+            settleWidth(liveWidth ?? startWidth);
         },
     });
 
@@ -181,9 +181,12 @@ function RHPResizeHandle({ref}: RHPResizeHandleProps) {
                 onPointerEnter={() => setIsHovered(true)}
                 onPointerLeave={() => setIsHovered(false)}
                 onPointerDown={(event) => {
-                    if (!pointerDrag.startDrag(event, () => ({startClientX: event.clientX, startWidth: width, hasMovedPointer: false}))) {
+                    // A held arrow's width is painted but not saved yet, so the drag starts from it and saves it in its place.
+                    const pendingKeyboardWidth = keyboardResizeRef.current?.size;
+                    if (!pointerDrag.startDrag(event, () => ({startClientX: event.clientX, startWidth: pendingKeyboardWidth ?? width, hasMovedPointer: false}))) {
                         return;
                     }
+                    keyboardResizeRef.current = null;
                     setLastResizingHandle({dragRef, keyboardResizeRef});
                     setIsDragging(true);
                 }}
