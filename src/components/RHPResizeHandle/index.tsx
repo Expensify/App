@@ -1,7 +1,10 @@
 import getDraggedSize from '@components/ResizeHandle/getDraggedSize';
 import type {DraggedSizeSnap} from '@components/ResizeHandle/getDraggedSize';
+import useKeyboardResize from '@components/ResizeHandle/useKeyboardResize';
+import type {KeyboardResize} from '@components/ResizeHandle/useKeyboardResize';
 import usePointerDrag from '@components/ResizeHandle/usePointerDrag';
 
+import useLocalize from '@hooks/useLocalize';
 import useSingleRHPWidth from '@hooks/useSingleRHPWidth';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -17,6 +20,8 @@ import type {RefObject} from 'react';
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import type RHPResizeHandleProps from './types';
+
 type Drag = {
     startClientX: number;
 
@@ -31,8 +36,17 @@ type Drag = {
 
 const SNAP: DraggedSizeSnap = {to: variables.rhpWidth, threshold: CONST.RHP_RESIZE.SNAP_THRESHOLD};
 
-/** The RHP and a modal stacked on it each mount a handle over the one live width, so an idle handle must not clear it while the other drags. */
-let lastDragRef: RefObject<Drag | null> | null = null;
+type ResizingHandle = {
+    dragRef: RefObject<unknown>;
+    keyboardResizeRef: RefObject<unknown>;
+};
+
+/** The RHP and a modal stacked on it each mount a handle over the one live width, so an idle handle must not clear it while the other resizes. */
+let lastResizingHandle: ResizingHandle | null = null;
+
+function setLastResizingHandle(handle: ResizingHandle) {
+    lastResizingHandle = handle;
+}
 
 // DOM `div` styles, which the React Native style system can't type.
 const HANDLE_STYLE: React.CSSProperties = {
@@ -55,19 +69,54 @@ const LINE_STYLE: React.CSSProperties = {
  * Drags the single RHP card's left edge. A sibling of the card rather than a child, because the card clips its overflow,
  * and rendered after the overlay so it wins hit-testing over the scrim that closes the RHP.
  */
-function RHPResizeHandle() {
+function RHPResizeHandle({ref}: RHPResizeHandleProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const {width, min, max} = useSingleRHPWidth();
     const [isHovered, setIsHovered] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
+    const [isFocusVisible, setIsFocusVisible] = useState(false);
 
     const dragRef = useRef<Drag | null>(null);
+    const keyboardResizeRef = useRef<KeyboardResize<null> | null>(null);
     const lineRef = useRef<HTMLDivElement>(null);
 
     /** Thickens the line while a drag is held on the default width. Set on the DOM, so a drag stays free of React renders. */
     const setLineSnapped = (isSnapped: boolean) => {
         lineRef.current?.style.setProperty('width', `${isSnapped ? CONST.RHP_RESIZE.SNAPPED_INDICATOR_WIDTH : CONST.RHP_RESIZE.ACTIVE_INDICATOR_WIDTH}px`);
     };
+
+    /** Stores a width painted by a drag or the arrow keys. Shared, so both save the same way. */
+    const settleWidth = (liveWidth: number | undefined) => {
+        // Nothing gets saved, so no render follows to clear the live width.
+        if (liveWidth === undefined || liveWidth === width) {
+            clearLiveSingleRHPWidth();
+            return;
+        }
+
+        if (liveWidth === SNAP.to) {
+            resetSingleRHPWidth();
+            return;
+        }
+
+        setSingleRHPWidth(liveWidth);
+    };
+
+    const {getKeyboardHandleProps} = useKeyboardResize<null>({
+        keyboardResizeRef,
+        isDragging: () => !!dragRef.current,
+        readSize: () => width,
+        isLeftEdge: true,
+        getBounds: () => ({min, max}),
+        paintSize: (_, liveWidth) => writeLiveSingleRHPWidth(liveWidth),
+        settleSize: ({size}) => settleWidth(size),
+        onActivate: resetSingleRHPWidth,
+        onShowFocus: () => {
+            setLastResizingHandle({dragRef, keyboardResizeRef});
+            setIsFocusVisible(true);
+        },
+        onBlur: () => setIsFocusVisible(false),
+    });
 
     const pointerDrag = usePointerDrag<Drag>({
         dragRef,
@@ -95,7 +144,7 @@ function RHPResizeHandle() {
             // eslint-disable-next-line no-param-reassign -- the drag is the ref's own object, read back when the drag ends
             drag.liveWidth = liveWidth;
         },
-        onEnd: ({hasMovedPointer, liveWidth}, event, isRelease) => {
+        onEnd: ({hasMovedPointer, liveWidth, startWidth}, event, isRelease) => {
             setIsDragging(false);
 
             // A cancelled press or reclaimed capture isn't a click, so only a release resets.
@@ -104,24 +153,13 @@ function RHPResizeHandle() {
                 return;
             }
 
-            // Nothing gets saved, so no render follows to clear the live width.
-            if (liveWidth === undefined || liveWidth === width) {
-                clearLiveSingleRHPWidth();
-                return;
-            }
-
-            if (liveWidth === SNAP.to) {
-                resetSingleRHPWidth();
-                return;
-            }
-
-            setSingleRHPWidth(liveWidth);
+            settleWidth(liveWidth ?? startWidth);
         },
     });
 
-    // React now renders the saved width as the fallback, so drop the live one before paint. A window resize mid-drag leaves it to the drag.
+    // React now renders the saved width as the fallback, so drop the live one before paint. A window resize mid-drag or mid-hold leaves it to the resize.
     useLayoutEffect(() => {
-        if (lastDragRef?.current) {
+        if (lastResizingHandle?.dragRef.current || lastResizingHandle?.keyboardResizeRef.current) {
             return;
         }
 
@@ -134,20 +172,27 @@ function RHPResizeHandle() {
     return (
         <View style={styles.rhpResizeHandle(width)}>
             {/* A plain `div` because it relies on DOM pointer capture. */}
+            {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions -- the separator role comes from getKeyboardHandleProps */}
             <div
+                ref={ref}
+                {...getKeyboardHandleProps(null, {size: width, min, max})}
+                aria-label={translate('common.resizePanel')}
                 style={{...HANDLE_STYLE, ...styles.cursorColResize}}
                 onPointerEnter={() => setIsHovered(true)}
                 onPointerLeave={() => setIsHovered(false)}
                 onPointerDown={(event) => {
-                    if (!pointerDrag.startDrag(event, () => ({startClientX: event.clientX, startWidth: width, hasMovedPointer: false}))) {
+                    // A held arrow's width is painted but not saved yet, so the drag starts from it and saves it in its place.
+                    const pendingKeyboardWidth = keyboardResizeRef.current?.size;
+                    if (!pointerDrag.startDrag(event, () => ({startClientX: event.clientX, startWidth: pendingKeyboardWidth ?? width, hasMovedPointer: false}))) {
                         return;
                     }
-                    lastDragRef = dragRef;
+                    keyboardResizeRef.current = null;
+                    setLastResizingHandle({dragRef, keyboardResizeRef});
                     setIsDragging(true);
                 }}
                 {...pointerDrag.handlers}
             >
-                {(isHovered || isDragging) && (
+                {(isHovered || isDragging || isFocusVisible) && (
                     <div
                         ref={lineRef}
                         aria-hidden

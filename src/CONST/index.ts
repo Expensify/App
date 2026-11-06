@@ -10226,6 +10226,9 @@ const CONST = {
 
         /** Pointer travel, in px, under which pressing a handle counts as a click rather than a drag. */
         DRAG_SLOP: 3,
+
+        /** How far, in px, one arrow key press on a focused handle moves its edge. */
+        KEYBOARD_STEP: 8,
     },
 
     RHP_RESIZE: {
@@ -10297,9 +10300,6 @@ const CONST = {
         COLUMN_RESIZE: {
             /** Narrowest drag width. Low enough to hide most content, but wide enough to keep the column's edge reachable. */
             MIN_WIDTH: 48,
-
-            /** How far, in px, one arrow key press on a focused column edge moves it. */
-            KEYBOARD_STEP: 8,
 
             /** Share of the heading's height the grip spans, centred vertically. The heading spans the header row, padding included. */
             GRIP_HEIGHT_RATIO: 0.4,
