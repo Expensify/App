@@ -11,6 +11,7 @@ import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -20,9 +21,12 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {CAROUSEL_SOURCE, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getTransactionDisplayAmount} from '@libs/ReportUtils';
 import type {TransactionThreadNavigationDescriptor} from '@libs/TransactionThreadNavigationUtils';
 import {getReportIDToOpenForExpense} from '@libs/TransactionThreadNavigationUtils';
+import {getCreated, getCurrency, isScanning} from '@libs/TransactionUtils';
 
 import {TOP_EXPENSES_LIMIT} from '@pages/Insights/insightsQueries';
 
@@ -48,7 +52,8 @@ type InsightsTopExpensesProps = {
 function InsightsTopExpenses({viewAllQuery}: InsightsTopExpensesProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {expenses, state, retry} = useInsightsTopExpenses(viewAllQuery);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowUpRight']);
@@ -61,6 +66,19 @@ function InsightsTopExpenses({viewAllQuery}: InsightsTopExpensesProps) {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT, {selector: fullPolicySnapshotLastModifiedByPolicyIDSelector});
     const isEmpty = state === TOP_EXPENSES_STATE.READY && expenses.length === 0;
+
+    const getRowAccessibilityLabel = (expense: TransactionListItemType) => {
+        const amount = isScanning(expense)
+            ? translate('iou.receiptStatusTitle')
+            : convertToDisplayString(getTransactionDisplayAmount(expense, expense.report, expense.policy), getCurrency(expense));
+        const created = getCreated(expense);
+        const date = DateUtils.formatWithUTCTimeZone(
+            created,
+            DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
+            dateFnsLocale,
+        );
+        return [expense.formattedMerchant ?? expense.merchant, amount, date].filter(Boolean).join(', ');
+    };
 
     const openExpense = (expense: TransactionListItemType) => {
         const descriptors = Object.fromEntries(
@@ -167,7 +185,7 @@ function InsightsTopExpenses({viewAllQuery}: InsightsTopExpensesProps) {
                     key={item.keyForList}
                     onPress={() => openExpense(item)}
                     accessibilityRole={CONST.ROLE.BUTTON}
-                    accessibilityLabel={item.formattedMerchant ?? item.merchant}
+                    accessibilityLabel={getRowAccessibilityLabel(item)}
                     sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.DETAILS_TOP_EXPENSE}
                     wrapperStyle={styles.w100}
                     hoverStyle={styles.hoveredComponentBG}
