@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import useAccountIDToNameMap, {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
+import useAccountIDToNameMap, {getAccountIDToNameMapForMentionsInHTML, useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
@@ -150,5 +150,65 @@ describe('useMentionedAccountIDToNameMap', () => {
         // Given the HTML contains no mention-user tags
         // Then the map should be empty
         expect(hook.result.current).toEqual({});
+    });
+});
+
+describe('getAccountIDToNameMapForMentionsInHTML', () => {
+    const ALICE_ID = '1001';
+    const BOB_ID = '1002';
+    const CAROL_ID = '1003';
+
+    const fullMap = {
+        [ALICE_ID]: 'alice@expensify.com',
+        [BOB_ID]: 'bob@expensify.com',
+        [CAROL_ID]: 'Carol',
+    };
+
+    it('returns undefined when accountIDToName is undefined', () => {
+        // Given accountIDToName is undefined
+        // When filtering by HTML with mentions
+        // Then it should return undefined
+        expect(getAccountIDToNameMapForMentionsInHTML(undefined, '<mention-user accountID="1001"/>')).toBeUndefined();
+    });
+
+    it('returns undefined when HTML has no mention-user tags', () => {
+        // Given a full accountIDToName map
+        // When the HTML contains no mention-user tags
+        // Then it should return undefined
+        expect(getAccountIDToNameMapForMentionsInHTML(fullMap, 'Plain text with no mentions')).toBeUndefined();
+    });
+
+    it('returns only entries for mentioned accountIDs', () => {
+        // Given a full accountIDToName map with three entries
+        const html = 'Hello <mention-user accountID="1001"></mention-user> and <mention-user accountID="1003"/>';
+
+        // When filtering by HTML that mentions only accountIDs 1001 and 1003
+        const result = getAccountIDToNameMapForMentionsInHTML(fullMap, html);
+
+        // Then the result should contain only those two entries
+        expect(result).toEqual({
+            [ALICE_ID]: 'alice@expensify.com',
+            [CAROL_ID]: 'Carol',
+        });
+    });
+
+    it('returns undefined when mentioned accountIDs are not in the map', () => {
+        // Given a map that does not contain accountID 9999
+        const html = '<mention-user accountID="9999"/>';
+
+        // When filtering by HTML that mentions only accountID 9999
+        // Then it should return undefined since no matching entry exists
+        expect(getAccountIDToNameMapForMentionsInHTML(fullMap, html)).toBeUndefined();
+    });
+
+    it('deduplicates when the same accountID is mentioned multiple times', () => {
+        // Given HTML that mentions accountID 1002 twice
+        const html = '<mention-user accountID="1002"></mention-user> said hi to <mention-user accountID="1002"/>';
+
+        // When filtering the map
+        const result = getAccountIDToNameMapForMentionsInHTML(fullMap, html);
+
+        // Then the result should contain a single entry for 1002
+        expect(result).toEqual({[BOB_ID]: 'bob@expensify.com'});
     });
 });

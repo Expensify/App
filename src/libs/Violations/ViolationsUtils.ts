@@ -1387,6 +1387,7 @@ const ViolationsUtils = {
         isMarkAsCash,
         canEdit = true,
         policyVendors,
+        accountIDToName,
     }: {
         transaction: Transaction;
         transactionViolations: TransactionViolation[];
@@ -1402,6 +1403,7 @@ const ViolationsUtils = {
         isMarkAsCash?: boolean;
         canEdit?: boolean;
         policyVendors?: PolicyVendors;
+        accountIDToName?: Record<string, string>;
     }): string {
         const errorMessages = extractErrorMessages(transaction?.errors ?? {}, transactionThreadActions?.filter((e) => !!e.errors) ?? [], translate);
         const filteredViolations = filterReceiptViolations(transactionViolations);
@@ -1433,7 +1435,7 @@ const ViolationsUtils = {
                 if (!message) {
                     return;
                 }
-                const textMessage = Parser.htmlToText(message);
+                const textMessage = Parser.htmlToText(message, {accountIDToName});
                 return textMessage.endsWith('.') ? message : `${message}.`;
             }),
         ]
