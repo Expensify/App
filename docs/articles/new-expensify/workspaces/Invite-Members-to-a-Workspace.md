@@ -11,7 +11,7 @@ platform: new-expensify
 
 You can invite members to your workspace by name, email, or phone number. To invite members in bulk and configure their roles or approval workflows at the same time, import them from a spreadsheet.
 
-## Who can invite workspace members?
+## Who can invite workspace members
 
 **Workspace admins** can invite members with any available workspace role.
 
@@ -22,11 +22,11 @@ You can invite members to your workspace by name, email, or phone number. To inv
 - Auditor
 - Approve-only
 
-People admins cannot invite someone as a Workspace admin, Card admin, People admin, or Payments admin. [Learn what each workspace role can do](/articles/new-expensify/workspaces/Understand-Workspace Roles-and-Permissions#what-each-workspace-role-can-do).
+People admins cannot invite someone as a Workspace admin, Card admin, People admin, or Payments admin. [Learn what each workspace role can do](/articles/new-expensify/workspaces/Understand-Workspace-Roles-and-Permissions#what-each-workspace-role-can-do).
 
-## How do I invite a members directly?
+## How to invite members directly
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name],
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **Members**.
 3. Select **Invite member**.
 4. Search for and select the people you want to invite by name, email, or phone number.
@@ -38,9 +38,9 @@ You can select multiple people before sending the invitation.
 
 If you are inviting an agent, search results include only agents you can manage, such as your personal agents and company agents owned by a workspace or domain you administer. To create an agent that belongs to the workspace, see [Create and Manage Company Agents](/articles/new-expensify/ai-agents/Create-and-Manage-Company-Agents).
 
-## How do I import members from a spreadsheet?
+## How to import members from a spreadsheet
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name],
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **Members**.
 3. Select **More**.
 4. Choose **Import via Spreadsheet**.
@@ -67,9 +67,9 @@ Mapping the approval fields configures each member’s approval workflow. You ca
 
 **Note:** If your spreadsheet maps a field or assigns a role that requires the Control plan, you may see a prompt to upgrade. [Learn about the available plans in Expensify](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Compare-Collect-and-Control-Plans#common-feature-differences-between-collect-and-control).
 
-For details about configuring approvals using the **Submit to**, **Forward to**, **Over limit forward to** and **Approval limit**, see [Add Approvals](/articles/new-expensify/workspaces/Add-Approvals.md).
+For details about configuring approvals using the **Submit to**, **Forward to**, **Over limit forward to** and **Approval limit**, see [Add Approvals](/articles/new-expensify/workspaces/Add-Approvals).
 
 ## Related articles
 
  - [Manage Workspace Members and Access](/articles/new-expensify/workspaces/Manage-Workspace-Members-and-Access)
- - [Understand Workspace Roles and Permissions](/articles/new-expensify/workspaces/Understand-Workspace Roles-and-Permissions)
+ - [Understand Workspace Roles and Permissions](/articles/new-expensify/workspaces/Understand-Workspace-Roles-and-Permissions)
