@@ -164,10 +164,10 @@ function findLocalizedTokens(pattern) {
 }
 
 /**
- * Resolves a format argument to a literal pattern, following `CONST.DATE.*` references, ternaries and template literals.
- * Returns null when the pattern cannot be determined statically.
+ * Resolves a format argument to a literal pattern, following `CONST.DATE.*` references, ternaries, template literals and
+ * `+` concatenation, through TypeScript-only wrappers. Returns null when the pattern cannot be determined statically.
  *
- * @param {import('estree').Node} node
+ * @param {import('estree').Node} maybeWrappedNode
  * @returns {string | null}
  */
 function resolvePattern(maybeWrappedNode) {
@@ -186,14 +186,15 @@ function resolvePattern(maybeWrappedNode) {
             return MACHINE_DATE_CONSTANTS.has(node.property.name) ? '' : UNKNOWN_LOCALIZED;
         }
     }
-    // `isPastYear ? A : B` — flag if either branch is localized.
+    // `isPastYear ? A : B` — flag if either branch is localized. The branches are separate strings at runtime, so each
+    // has its escaped text stripped on its own, and an unclosed quote in one cannot hide the tokens of the other.
     if (node.type === 'ConditionalExpression') {
         const consequent = resolvePattern(node.consequent);
         const alternate = resolvePattern(node.alternate);
         if (consequent === null && alternate === null) {
             return null;
         }
-        return `${consequent ?? ''} ${alternate ?? ''}`;
+        return `${stripEscapedLiterals(consequent ?? '')} ${stripEscapedLiterals(alternate ?? '')}`;
     }
     // `${CONST.DATE.SHORT_DATE_FORMAT} ${CONST.DATE.LOCAL_TIME_FORMAT}` — check the literal text and every interpolated
     // format. An interpolated value that cannot be resolved becomes a space, like a missing ternary branch above, so the

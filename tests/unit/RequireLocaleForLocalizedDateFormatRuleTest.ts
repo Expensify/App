@@ -80,6 +80,11 @@ describe('require-locale-for-localized-date-format', () => {
                 code: `${IMPORT_FORMAT} format(date, \`\${isShort ? CONST.DATE.SHORT_DATE_FORMAT : CONST.DATE.LOCAL_TIME_FORMAT} HH\`);`,
                 errors: [{messageId: 'missingLocale', data: {tokens: 'a format from CONST.DATE that may be localized'}}],
             },
+            {
+                // Each ternary branch is its own string at runtime, so an unclosed quote in one does not hide the other
+                code: `${IMPORT_FORMAT} format(date, isPastYear ? "yyyy 'at" : 'MMM');`,
+                errors: [{messageId: 'missingLocale'}],
+            },
             ...['E', 'EE', 'EEEEE', 'e', 'eeeee', 'c', 'cccc', 'iii', 'w', 'Y', 'G', 'B', 'b', 'Mo', 'yo', 'wo', 'Do', 'ho'].map((token) => ({
                 // Weekday names, week-based numbers, eras, day periods and ordinals all change with the language
                 code: `${IMPORT_FORMAT} format(date, '${token}');`,
