@@ -275,6 +275,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                     <Switch
                                         isOn={!!policy?.shouldAutoUpdateGovernmentDistanceRates}
                                         accessibilityLabel={translate('workspace.distanceRates.autoUpdateGovernmentRate')}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.AUTO_UPDATE_GOVERNMENT_RATE_SWITCH}
                                         onToggle={toggleAutoUpdateGovernmentRate}
                                         disabled={!canWriteDistanceRates}
                                         disabledAction={withReadOnlyFallback()}
@@ -309,6 +310,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                         title={translate('distance.error.mapOrGpsDistanceRequired.title')}
                         subtitle={translate('workspace.distanceRates.requireMapOrGPSDescription')}
                         switchAccessibilityLabel={translate('distance.error.mapOrGpsDistanceRequired.title')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.REQUIRE_MAP_OR_GPS_SWITCH}
                         shouldPlaceSubtitleBelowSwitch
                         shouldUseCompactSubtitleSpacing
                         wrapperStyle={[styles.mt2, styles.mh5]}
@@ -354,6 +356,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                 <Switch
                                     isOn={isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled}
                                     accessibilityLabel={translate('workspace.distanceRates.trackTax')}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.TRACK_TAX_SWITCH}
                                     onToggle={onToggleTrackTax}
                                     disabled={!canWriteDistanceRates || !isPolicyTrackTaxEnabled}
                                     disabledAction={withReadOnlyFallback()}

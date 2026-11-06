@@ -46,8 +46,8 @@ function InsightsWorkspacePopup({label, value, onChange, closeOverlay}: Insights
             label={label}
             onApply={applyChanges}
             onReset={resetChanges}
-            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_MULTI_SELECT}
-            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_MULTI_SELECT}
+            applySentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_APPLY.WORKSPACE}
+            resetSentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_RESET.WORKSPACE}
         >
             <ListFilterHeightContextProvider>
                 <WorkspaceSelector

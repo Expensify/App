@@ -36,7 +36,7 @@ If you do not want to use vendor records, change the export type for reimbursabl
 
 1. Go to the **Workspaces** navigation tab on the left.
 2. Select your Workspace.
-3. Click **Accounting**.
+3. Select **Connections**, then select **Configure** next to QuickBooks Online.
 4. Click **Export**.
 5. Under reimbursable expenses, change the export type to **Check**.
 6. Click **Save**.
@@ -45,7 +45,7 @@ If you do not want to use vendor records, change the export type for reimbursabl
 
 1. Tap the **Workspaces** navigation tab on the bottom.
 2. Select your Workspace.
-3. Tap **Accounting**.
+3. Select **Connections**, then select **Configure** next to QuickBooks Online.
 4. Tap **Export**.
 5. Under reimbursable expenses, change the export type to **Check**.
 6. Tap **Save**.
@@ -62,7 +62,7 @@ If you want Expensify to create vendor records automatically during export:
 
 1. Go to the **Workspaces** navigation tab on the left.
 2. Select your Workspace.
-3. Click **Accounting**.
+3. Select **Connections**, then select **Configure** next to QuickBooks Online.
 4. Click **Advanced**.
 5. Turn on **Automatically create entities**.
 6. Click **Save**.
@@ -71,7 +71,7 @@ If you want Expensify to create vendor records automatically during export:
 
 1. Tap the **Workspaces** navigation tab on the bottom.
 2. Select your Workspace.
-3. Tap **Accounting**.
+3. Select **Connections**, then select **Configure** next to QuickBooks Online.
 4. Tap **Advanced**.
 5. Turn on **Automatically create entities**.
 6. Tap **Save**.
@@ -100,16 +100,16 @@ After creating the vendor, resync your connection in Expensify.
 
 1. Go to the **Workspaces** navigation tab on the left.
 2. Select your Workspace.
-3. Click **Accounting**.
-4. Click the **three-dot icon** next to the QuickBooks Online connection.
+3. Select **Connections**, then select **Configure** next to QuickBooks Online.
+4. Select **More (⋮)**.
 5. Select **Sync now**.
 
 #### On Mobile
 
 1. Tap the **Workspaces** navigation tab on the bottom.
 2. Select your Workspace.
-3. Tap **Accounting**.
-4. Tap the **three-dot icon** next to the QuickBooks Online connection.
+3. Select **Connections**, then select **Configure** next to QuickBooks Online.
+4. Select **More (⋮)**.
 5. Tap **Sync now**.
 
 Retry exporting the report after the sync completes.

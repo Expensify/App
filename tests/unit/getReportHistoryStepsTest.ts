@@ -43,6 +43,7 @@ const SNAPSHOT: ReportUpcomingStep[] = [
 type ReportState = {
     isOpenReport?: boolean;
     isDEWPolicy?: boolean;
+    shouldDisplayMarkAsDone?: boolean;
     reportMetadata?: ReportMetadata;
 };
 
@@ -50,7 +51,7 @@ function getUpcoming(
     reportActions: ReportAction[],
     upcomingSteps: ReportUpcomingStep[],
     nextStep: ReportNextStep | undefined,
-    {isOpenReport = false, isDEWPolicy = false, reportMetadata}: ReportState = {},
+    {isOpenReport = false, isDEWPolicy = false, shouldDisplayMarkAsDone = false, reportMetadata}: ReportState = {},
 ) {
     return getReportHistorySteps({
         translate: translateLocal,
@@ -64,10 +65,30 @@ function getUpcoming(
         nextStep,
         isOpenReport,
         isDEWPolicy,
-        shouldDisplayMarkAsDone: false,
+        shouldDisplayMarkAsDone,
         reportMetadata,
     })
         .filter((step) => step.isUpcoming)
+        .map((step) => [step.label, step.accountID]);
+}
+
+function getCompletedSteps(reportActions: ReportAction[]) {
+    return getReportHistorySteps({
+        translate: translateLocal,
+        dateFnsLocale: undefined,
+        currentUserEmail: undefined,
+        currentUserAccountID: FIRST_APPROVER_ACCOUNT_ID,
+        reportID: REPORT_ID,
+        reportOwnerAccountID: OWNER_ACCOUNT_ID,
+        reportActions: toReportActions(reportActions),
+        upcomingSteps: [],
+        nextStep: undefined,
+        isOpenReport: false,
+        isDEWPolicy: false,
+        shouldDisplayMarkAsDone: false,
+        reportMetadata: undefined,
+    })
+        .filter((step) => !step.isUpcoming)
         .map((step) => [step.label, step.accountID]);
 }
 
@@ -250,6 +271,25 @@ describe('getReportHistorySteps', () => {
         expect(upcoming).toEqual([[translateLocal('reportHistoryPage.toSubmit'), OWNER_ACCOUNT_ID]]);
     });
 
+    it.each([
+        [true, false, 'reportHistoryPage.toMarkAsDone'],
+        [true, true, 'reportHistoryPage.toSubmit'],
+        [false, false, 'reportHistoryPage.toSubmit'],
+    ] as const)('labels the upcoming submit step with Mark as done %s and DEW %s as %s', (shouldDisplayMarkAsDone, isDEWPolicy, expectedLabel) => {
+        // Given an open report waiting on its owner, in a workflow that may submit to the owner themselves
+        const nextStep = buildNextStep(CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE, OWNER_ACCOUNT_ID);
+
+        // When the steps are built
+        const upcoming = getUpcoming([], [{action: CONST.REPORT.UPCOMING_STEP_ACTION.SUBMIT, actorAccountID: OWNER_ACCOUNT_ID}], nextStep, {
+            isOpenReport: true,
+            isDEWPolicy,
+            shouldDisplayMarkAsDone,
+        });
+
+        // Then the step uses the same wording as the report's Mark as done button
+        expect(upcoming).toEqual([[translateLocal(expectedLabel), OWNER_ACCOUNT_ID]]);
+    });
+
     it('treats fixing issues on an open report as the submit step', () => {
         // Given an open report whose violations must be fixed before it can be submitted again, and a snapshot that starts at the approval
         const nextStep = buildNextStep(CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES, OWNER_ACCOUNT_ID);
@@ -351,5 +391,33 @@ describe('getReportHistorySteps', () => {
 
         // Then they fall back to the report action ID order, like the report itself
         expect(steps.map((step) => step.key)).toEqual(['10', '20']);
+    });
+
+    it('shows the admin as the submitter when an admin submits for the report owner', () => {
+        // Given a submit action written under the owner's account by an admin, like the backend does
+        const submittedAction: ReportAction = {
+            ...buildAction('2', CONST.REPORT.ACTIONS.TYPE.SUBMITTED, OWNER_ACCOUNT_ID, '2026-01-01 10:00:00.000'),
+            adminAccountID: FIRST_APPROVER_ACCOUNT_ID,
+        };
+
+        // When the steps are built
+        const steps = getCompletedSteps([submittedAction]);
+
+        // Then the history credits the admin, like the report conversation does
+        expect(steps).toEqual([[translateLocal('reportHistoryPage.submitted'), FIRST_APPROVER_ACCOUNT_ID]]);
+    });
+
+    it('shows Concierge as the submitter of a delayed submission', () => {
+        // Given a submit action the delayed submission job made for the owner
+        const submittedAction: ReportAction = {
+            ...buildAction('2', CONST.REPORT.ACTIONS.TYPE.SUBMITTED, OWNER_ACCOUNT_ID, '2026-01-01 10:00:00.000'),
+            message: {type: 'COMMENT', html: 'submitted', text: 'submitted', amount: 100, currency: CONST.CURRENCY.USD, harvesting: true},
+        };
+
+        // When the steps are built
+        const steps = getCompletedSteps([submittedAction]);
+
+        // Then the history credits Concierge, like the report conversation does
+        expect(steps).toEqual([[translateLocal('reportHistoryPage.submitted'), CONST.ACCOUNT_ID.CONCIERGE]]);
     });
 });
