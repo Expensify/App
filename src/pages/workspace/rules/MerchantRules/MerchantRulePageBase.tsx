@@ -784,7 +784,12 @@ function MerchantRulePageBase({
                         switch condition type, which the two storage shapes can't express as one edit. A locked category
                         isn't the admin's to clear. */}
                     {canWriteRules && !isEditingSavedRule && !isCategoryLocked && (hasMerchantCondition || hasCategoryCondition) && (
-                        <TextLink onPress={resetRule}>{translate('common.reset')}</TextLink>
+                        <TextLink
+                            onPress={resetRule}
+                            style={styles.p2}
+                        >
+                            {translate('common.reset')}
+                        </TextLink>
                     )}
                     {!!deleteIconButtonProps && <Header.IconButton {...deleteIconButtonProps} />}
                 </HeaderWithBackButtonAndTitle>

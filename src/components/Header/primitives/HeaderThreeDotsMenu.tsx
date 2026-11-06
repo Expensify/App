@@ -1,6 +1,8 @@
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 
@@ -27,9 +29,13 @@ type HeaderThreeDotsMenuProps = {
 };
 
 function HeaderThreeDotsMenu({items, onIconPress = () => {}, shouldOverlay = false, anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT, shouldSetModalVisibility = true}: HeaderThreeDotsMenuProps) {
+    const styles = useThemeStyles();
+
     return (
         <ThreeDotsMenu
             shouldSelfPosition
+            // ThreeDotsMenu narrows the button to the icon width by default; the Header keeps the full 40px touch target
+            iconStyles={{width: styles.touchableButtonImage.width}}
             disabled={false}
             menuItems={items}
             onIconPress={onIconPress}
