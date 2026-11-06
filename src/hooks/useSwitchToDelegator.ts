@@ -7,6 +7,7 @@ import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type {Account} from '@src/types/onyx';
 
@@ -64,7 +65,7 @@ function useSwitchToDelegator() {
         switchAccount();
     };
 
-    const switchToDelegator = (email: string) => {
+    const switchToDelegator = (email: string, routeAfterSwitch?: Route) => {
         if (isOffline) {
             modalClose(() => showOfflineModal());
             return;
@@ -78,7 +79,7 @@ function useSwitchToDelegator() {
         }
         const switchAction = isReturningToOriginalUser
             ? () => disconnect({stashedCredentials, stashedSession})
-            : () => connect({email, delegatedAccess, credentials, session, activePolicyID});
+            : () => connect({email, delegatedAccess, credentials, session, activePolicyID, routeAfterSwitch});
         if (isTrackingGPS) {
             modalClose(() => showGpsInProgressModal(switchAction));
             return;
