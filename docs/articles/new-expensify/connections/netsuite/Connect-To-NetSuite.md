@@ -1,8 +1,8 @@
 ---
 title: Connect to NetSuite
-description: Connect NetSuite to New Expensify for streamlined expense reporting and accounting sync.
-keywords: [New Expensify, NetSuite integration, connect NetSuite, NetSuite OAuth 2.0, NetSuite REST web services, NetSuite token-based authentication, NetSuite bundle, accounting sync]
-internalScope: Audience is Workspace admins on the Control plan who are also NetSuite administrators, covers setting up a new NetSuite connection using OAuth 2.0 and REST web services plus the legacy token-based authentication steps that are still supported, does not cover configuring import/export settings after connecting or troubleshooting a broken connection
+description: Connect NetSuite to New Expensify for streamlined expense reporting and accounting sync, and upgrade an existing token-based connection to OAuth 2.0.
+keywords: [New Expensify, NetSuite integration, connect NetSuite, NetSuite OAuth 2.0, NetSuite REST web services, NetSuite token-based authentication, NetSuite bundle, accounting sync, upgrade NetSuite connection, migrate NetSuite to OAuth 2.0, Upgrade now]
+internalScope: Audience is Workspace admins on the Control plan who are also NetSuite administrators, covers setting up a new NetSuite connection using OAuth 2.0 and REST web services, upgrading an existing token-based connection to OAuth 2.0, plus the legacy token-based authentication steps that are still supported, does not cover configuring import/export settings after connecting or troubleshooting a broken connection
 order: 1
 ---
 
@@ -11,6 +11,8 @@ order: 1
 Connect your Expensify Workspace to NetSuite to streamline expense syncing, reporting, and accounting. New connections use OAuth 2.0 and NetSuite's REST web services, so you approve access on a NetSuite consent screen instead of creating and copying access tokens.
 
 This guide walks you through preparing NetSuite, connecting Expensify, and confirming the connection. Token-based authentication is still supported and documented below, but OAuth 2.0 is the recommended way to set up a new connection.
+
+If your workspace already connects to NetSuite using token-based authentication, upgrade it to OAuth 2.0 by February 2027. Follow the steps in **How to upgrade an existing NetSuite connection to OAuth 2.0** below.
 
 ---
 
@@ -202,9 +204,54 @@ Purpose: Members expect to stay in Expensify and may abandon the flow when NetSu
 
 ---
 
+## How to upgrade an existing NetSuite connection to OAuth 2.0
+
+NetSuite is retiring token-based authentication, so every workspace that connects to NetSuite with access tokens needs to switch to OAuth 2.0 by February 2027. The upgrade takes about 10 minutes. You'll need a NetSuite administrator for the NetSuite steps.
+
+Until you upgrade, workspace admins see this message under **NetSuite** on the **Accounting** page: "Upgrade your NetSuite connection to OAuth 2.0 by February 2027." You may also see an **Upgrade your NetSuite connection** card on the **Home** tab.
+
+**In NetSuite:**
+
+1. Go to **Customization > SuiteBundler > Search & Install Bundles > List** and update the **Expensify Connect** bundle (Bundle ID `283395`) to the latest version.
+2. Go to **Setup > Company > Enable Features > SuiteCloud**.
+3. Under **Manage Authentication**, enable **OAuth 2.0**.
+4. Under **SuiteTalk (Web Services)**, enable **REST Web Services**.
+5. Select **Save**.
+
+**In Expensify:**
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Accounting**.
+2. Under **NetSuite**, select **Upgrade now**.
+3. Select **Next** through the NetSuite setup steps.
+4. Enter your Account ID in the **NetSuite Account ID** field.
+5. Select **Connect**.
+6. On the NetSuite consent screen, sign in if prompted and approve access for Expensify.
+7. When you see **Connection complete**, close the window and go back to Expensify.
+
+On web, the NetSuite consent screen opens in a new browser tab.
+
+If you use Expensify Classic, select **Take action now** on the NetSuite upgrade banner. This opens the same upgrade steps in New Expensify. When you're done, you can go back to Expensify Classic.
+
+<!-- SCREENSHOT:
+Suggestion: The New Expensify Workspaces > [workspace name] > Accounting page for a token-based NetSuite connection, showing the "Upgrade your NetSuite connection to OAuth 2.0 by February 2027." message and the Upgrade now link under the NetSuite row.
+Location: Immediately after the In Expensify steps above.
+Purpose: Upgrade now is a small text link under the connection row rather than a button, so admins coming from the email or banner may not spot it; showing it confirms where to start.
+-->
+
+---
+
+## What happens after you upgrade your NetSuite connection to OAuth 2.0
+
+- Your import, export, and advanced settings stay the same. You don't need to set up your NetSuite configuration again.
+- Expensify starts a sync with NetSuite using the new OAuth 2.0 connection.
+- The upgrade message on the **Accounting** page and the card on the **Home** tab disappear.
+- If the first sync on OAuth 2.0 doesn't succeed, Expensify switches the workspace back to your existing token-based connection so exports keep working. Fix the issue in NetSuite and select **Upgrade now** again.
+
+---
+
 ## How to connect to NetSuite using token-based authentication
 
-**Note:** Token-based authentication still works, but we're deprecating it. We'll remove it as soon as every customer with an existing connection has migrated to the new OAuth 2.0 connection, and we'll let you know well before that happens. If you're setting up a new connection, use OAuth 2.0 instead.
+**Note:** Token-based authentication still works, but we're deprecating it. Existing token-based connections need to upgrade to OAuth 2.0 by February 2027. If you're setting up a new connection, use OAuth 2.0 instead.
 
 Complete these steps in order. Steps 1 and 5–11 are the same as for an OAuth 2.0 connection. Steps 2–4 and 12 have their own sections below.
 
@@ -270,13 +317,25 @@ If you're connecting to a Sandbox environment, capitalize the "s" and "b" in the
 
 Not if you connect with OAuth 2.0. You approve access on a NetSuite consent screen instead, so there are no token IDs or token secrets to create, copy, or store. You only create access tokens if you connect with token-based authentication, which we're deprecating.
 
-## How are existing NetSuite connections affected by the new OAuth connection option?
+## Do I need to upgrade my existing NetSuite connection?
 
-Workspaces that already connect to NetSuite using token-based authentication keep working exactly as they do today. You don't need to reinstall the bundle, create new tokens, or reconnect. Expensify will let you know before anything changes for existing connections.
+Yes, if your workspace connects to NetSuite using token-based authentication. Upgrade to OAuth 2.0 by February 2027. Your connection keeps working until you upgrade, so you can choose a time that suits you.
 
 ## When is token-based authentication going away?
 
-We'll remove token-based authentication once every customer with an existing connection has migrated to OAuth 2.0. We'll give you notice and migration steps before that happens, so you don't need to do anything yet.
+Upgrade your connection to OAuth 2.0 by February 2027. NetSuite is retiring token-based authentication, and we're moving every connection to OAuth 2.0 ahead of NetSuite's timeline.
+
+## Will I lose my NetSuite settings when I upgrade to OAuth 2.0?
+
+No. Your import, export, and advanced settings stay the same. Only the way Expensify signs in to NetSuite changes.
+
+## What happens if my NetSuite upgrade doesn't work?
+
+Your existing token-based connection keeps working, so expenses keep exporting to NetSuite. Check that the Expensify Connect bundle is up to date and that **OAuth 2.0** and **REST Web Services** are enabled in NetSuite, then select **Upgrade now** again. If you're still stuck, message Concierge.
+
+## Can I upgrade my NetSuite connection from Expensify Classic?
+
+The upgrade happens in New Expensify. Select **Take action now** on the NetSuite upgrade banner in Expensify Classic to open the upgrade steps. When you're done, you can go back to Expensify Classic.
 
 ## How do I ensure smooth import of customer and vendor data from NetSuite?
 
