@@ -9,6 +9,7 @@ import {payInvoice} from '@libs/actions/IOU/PayMoneyRequest';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getIsOffline} from '@libs/NetworkState';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import type {KYCFlowEvent, TriggerKYCFlow, WorkspacePolicyPaymentOption} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
@@ -37,7 +38,6 @@ import useDelegateAccountID from './useDelegateAccountID';
 import useLastWorkspaceNumber from './useLastWorkspaceNumber';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
-import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import useParticipantsInvoiceReport from './useParticipantsInvoiceReport';
 import usePayChatReportActions from './usePayChatReportActions';
@@ -87,7 +87,6 @@ function useSelectionModePayment({
     const {translate, localeCompare} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
-    const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
     const {payWithWiseQuote} = usePayWithWiseQuote();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -242,19 +241,21 @@ function useSelectionModePayment({
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
                 isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
                 onPaid,
+                onPaymentSent: () =>
+                    refreshSearchAfterReportAction({
+                        currentSearchQueryJSON,
+                        currentSearchKey,
+                        shouldCalculateTotals,
+                        // Read at payment time, since the Wise quote can be confirmed after the network state changes
+                        isOffline: getIsOffline(),
+                        isLoading: !!currentSearchResults?.search?.isLoading,
+                        shouldReturnTripRooms,
+                    }),
                 chatReportActions: getChatReportActions(false),
                 delegateAccountID,
                 isTrackIntentUser,
                 conciergeChat,
                 rules,
-            });
-            refreshSearchAfterReportAction({
-                currentSearchQueryJSON,
-                currentSearchKey,
-                shouldCalculateTotals,
-                isOffline,
-                isLoading: !!currentSearchResults?.search?.isLoading,
-                shouldReturnTripRooms,
             });
         }
 

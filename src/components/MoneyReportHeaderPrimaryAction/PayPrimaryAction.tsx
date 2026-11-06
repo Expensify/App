@@ -26,6 +26,7 @@ import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+import {getIsOffline} from '@libs/NetworkState';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {canIOUBePaid as canIOUBePaidAction, hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasUpdatedTotal, isInvoiceReport as isInvoiceReportUtil} from '@libs/ReportUtils';
@@ -121,6 +122,21 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
 
     const {openHoldMenu} = useMoneyReportHeaderModals();
 
+    const refreshSearch = () => {
+        // Read at payment time, since the Wise quote can be confirmed after the network state changes
+        if (!currentSearchQueryJSON || getIsOffline()) {
+            return;
+        }
+        search({
+            searchKey: currentSearchKey,
+            shouldCalculateTotals,
+            offset: 0,
+            queryJSON: currentSearchQueryJSON,
+            isLoading: !!currentSearchResults?.search?.isLoading,
+            shouldReturnTripRooms,
+        });
+    };
+
     const runPayment = async ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
         if (!type || !chatReport) {
             return;
@@ -203,22 +219,13 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
             methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
             isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
             onPaid: startAnimation,
+            onPaymentSent: refreshSearch,
             chatReportActions: getChatReportActions(false),
             delegateAccountID,
             isTrackIntentUser,
             conciergeChat,
             rules,
         });
-        if (currentSearchQueryJSON && !isOffline) {
-            search({
-                searchKey: currentSearchKey,
-                shouldCalculateTotals,
-                offset: 0,
-                queryJSON: currentSearchQueryJSON,
-                isLoading: !!currentSearchResults?.search?.isLoading,
-                shouldReturnTripRooms,
-            });
-        }
     };
 
     return (
