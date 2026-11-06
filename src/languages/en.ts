@@ -1364,7 +1364,16 @@ const translations = {
         viewDetails: 'View details',
         viewAll: 'View all',
         compliance: 'Compliance',
+        violationsOverTime: 'Violations over time',
+        topViolations: 'Top violations',
+        violationsBySubmitter: 'Violations by submitter',
+        violationsByApprover: 'Violations by approver',
         runningTotal: 'Running total',
+        violationStage: {
+            label: 'Violations of',
+            [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTERS]: 'Submitters',
+            [CONST.INSIGHTS.VIOLATION_STAGE.APPROVERS]: 'Approvers',
+        },
         compare: {
             label: 'Compare',
             previousPeriod: 'Previous period',
@@ -11352,6 +11361,7 @@ const translations = {
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Year',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quarter',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approver',
+                [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Violation',
             },
             feed: 'Feed',
             transactionStatus: {
@@ -11417,6 +11427,7 @@ const translations = {
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Years',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quarters',
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approvers',
+            [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Violations',
         },
         moneyRequestReport: {
             emptyStateTitle: 'No expenses yet',

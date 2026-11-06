@@ -209,6 +209,14 @@ function isFooterTotal(value: string): value is SearchFooterTotal {
 }
 
 const VALID_GROUP_BYS = new Set<string>(Object.values(CONST.SEARCH.GROUP_BY));
+
+/** Group-bys only Insights queries use. The Search command doesn't return data for them yet (see https://github.com/Expensify/App/issues/105303) */
+const INSIGHTS_ONLY_GROUP_BYS = new Set<string>([CONST.SEARCH.GROUP_BY.VIOLATION]);
+
+function isGroupBySupportedBySearch(groupBy: string | undefined): boolean {
+    return !groupBy || !INSIGHTS_ONLY_GROUP_BYS.has(groupBy);
+}
+
 // Create reverse lookup maps for O(1) performance
 const createKeyToUserFriendlyMap = () => {
     const map = new Map<string, string>();
@@ -1816,10 +1824,10 @@ type DateFilterRange = {
 };
 
 /**
- * Extracts the effective start and end dates from date filters in a search query.
+ * Extracts the effective start and end dates from a search query's filters on the given date, the expense date by default.
  */
-function getDateFilterRange(queryJSON: SearchQueryJSON): DateFilterRange {
-    const dateFilters = queryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE).flatMap((filter) => filter.filters);
+function getDateFilterRange(queryJSON: SearchQueryJSON, dateFilterKey: SearchDateFilterKeys = CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE): DateFilterRange {
+    const dateFilters = queryJSON.flatFilters.filter((filter) => filter.key === dateFilterKey).flatMap((filter) => filter.filters);
     let start: string | undefined;
     let end: string | undefined;
 
@@ -3390,6 +3398,7 @@ export {
     getFooterSelectionFromQuery,
     getQueryWithFooterSelection,
     getQueryWithoutGroupBy,
+    isGroupBySupportedBySearch,
     hasFiltersChangedFromDefault,
     isSearchQuerySavable,
     getChangedDisplayOptionsCount,

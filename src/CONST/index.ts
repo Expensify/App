@@ -8346,6 +8346,8 @@ const CONST = {
             YEAR: 'year',
             QUARTER: 'quarter',
             APPROVER: 'approver',
+            // Groups by violation type. Only Insights queries use it until the Search command supports it (see https://github.com/Expensify/App/issues/105303)
+            VIOLATION: 'violation',
         },
         /**
          * Single source of truth for which transaction-level columns are available in each column-picker surface:
@@ -8700,6 +8702,11 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
+                // Search never lists violation groups, so they get only the columns every group has
+                VIOLATION: {
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
             };
         },
         get TYPE_DEFAULT_COLUMNS() {
@@ -8762,6 +8769,7 @@ const CONST = {
                 YEAR: [this.TABLE_COLUMNS.GROUP_YEAR, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 QUARTER: [this.TABLE_COLUMNS.GROUP_QUARTER, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 APPROVER: [this.TABLE_COLUMNS.AVATAR, this.TABLE_COLUMNS.GROUP_APPROVER, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                VIOLATION: [this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
             };
         },
         BOOLEAN: {
@@ -10819,6 +10827,7 @@ const CONST = {
             CONTROL_GROUP_CURRENCY: 'Insights-ControlGroupCurrency',
             CONTROL_GROUP_BY: 'Insights-ControlGroupBy',
             CONTROL_COMPARE: 'Insights-ControlCompare',
+            CONTROL_VIOLATION_STAGE: 'Insights-ControlViolationStage',
             AI_EXPLAIN: 'Insights-AIExplain',
             DASHBOARD_TAB: 'Insights-DashboardTab',
             CHART_MENU: 'Insights-ChartMenu',
@@ -10829,12 +10838,14 @@ const CONST = {
                 GROUP_BY: 'Insights-ControlPopupApply-GroupBy',
                 GROUP_CURRENCY: 'Insights-ControlPopupApply-GroupCurrency',
                 COMPARE: 'Insights-ControlPopupApply-Compare',
+                VIOLATION_STAGE: 'Insights-ControlPopupApply-ViolationStage',
             },
             CONTROL_POPUP_RESET: {
                 WORKSPACE: 'Insights-ControlPopupReset-Workspace',
                 GROUP_BY: 'Insights-ControlPopupReset-GroupBy',
                 GROUP_CURRENCY: 'Insights-ControlPopupReset-GroupCurrency',
                 COMPARE: 'Insights-ControlPopupReset-Compare',
+                VIOLATION_STAGE: 'Insights-ControlPopupReset-ViolationStage',
             },
         },
         EXPENSE_RULES: {
@@ -12072,6 +12083,13 @@ const CONST = {
             TOP_MERCHANTS: 'topMerchants',
             TOP_CATEGORIES: 'topCategories',
             TOP_SPENDERS: 'topSpenders',
+            TOP_VIOLATIONS: 'topViolations',
+            VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
+            VIOLATIONS_BY_APPROVER: 'violationsByApprover',
+        },
+        VIOLATION_STAGE: {
+            SUBMITTERS: 'submitters',
+            APPROVERS: 'approvers',
         },
     },
 

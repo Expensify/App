@@ -15,6 +15,7 @@ import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {Policy} from '@src/types/onyx';
 import viewRef from '@src/types/utils/viewRef';
 
 import React from 'react';
@@ -33,13 +34,16 @@ type InsightsPageControlsProps = {
     defaultFilters: InsightsFilters;
 
     onChange: (update: Partial<InsightsFilters>) => void;
+
+    /** Limits the workspace control to the workspaces the dashboard reports on, or lists every workspace when absent */
+    isPolicyAvailable?: (policy: Policy) => boolean;
     onExport: () => Promise<void>;
     isExportDisabled?: boolean;
     isExporting?: boolean;
     captureRef?: InsightsCaptureRef;
 };
 
-function InsightsPageControls({filters, defaultFilters, onChange, onExport, isExportDisabled = false, isExporting = false, captureRef}: InsightsPageControlsProps) {
+function InsightsPageControls({filters, defaultFilters, onChange, isPolicyAvailable, onExport, isExportDisabled = false, isExporting = false, captureRef}: InsightsPageControlsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {pageGutter} = useLayoutSpacing();
@@ -60,6 +64,7 @@ function InsightsPageControls({filters, defaultFilters, onChange, onExport, isEx
             <InsightsWorkspaceControl
                 value={filters.policyIDs}
                 onChange={(policyIDs) => onChange({policyIDs})}
+                isPolicyAvailable={isPolicyAvailable}
             />
             <InsightsGroupCurrencyControl
                 value={filters.groupCurrency}

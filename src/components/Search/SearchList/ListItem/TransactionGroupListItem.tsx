@@ -505,6 +505,8 @@ function TransactionGroupListItemImpl({
                     />
                 );
             })(),
+            // Only Insights charts group by violation, so Search never lists these groups
+            [CONST.SEARCH.GROUP_BY.VIOLATION]: null,
         };
 
         if (searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
