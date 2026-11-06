@@ -27,7 +27,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {canMemberAssignElevatedRole, canMemberAssignRole, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
-import {filterRulesForPolicy} from '@libs/WorkflowUtils';
+import {filterRulesForPolicy} from '@libs/RuleUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 

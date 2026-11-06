@@ -29,7 +29,7 @@ function ZohoBooksExportPage({policy}: WithPolicyConnectionsProps) {
     const policyOwner = policy?.owner;
     const zohoBooksConfig = policy?.connections?.zohoBooks?.config;
     const zohoBooksData = policy?.connections?.zohoBooks?.data;
-    const exporter = zohoBooksConfig?.export?.exporter ?? policyOwner;
+    const exporter = zohoBooksConfig?.export?.exporter || policyOwner;
     const exportReimbursable = zohoBooksConfig?.export?.reimbursable ?? CONST.ZOHO_BOOKS_EXPORT_REIMBURSABLE.VENDOR_BILL;
     const exportDate = zohoBooksConfig?.export?.exportDate ?? CONST.ZOHO_BOOKS_EXPORT_DATE.LAST_EXPENSE;
     const exportNonReimbursable = zohoBooksConfig?.export?.nonReimbursable ?? CONST.ZOHO_BOOKS_EXPORT_NON_REIMBURSABLE.EXPENSE;

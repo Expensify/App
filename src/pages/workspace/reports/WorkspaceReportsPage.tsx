@@ -157,6 +157,7 @@ function WorkspaceReportFieldsPage({
                                 pendingAction={reportTitlePendingFields.deletable ?? policy?.pendingAction}
                                 title={translate('workspace.reports.preventMembersFromChangingCustomNamesTitle')}
                                 switchAccessibilityLabel={translate('workspace.reports.preventMembersFromChangingCustomNamesTitle')}
+                                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORTS.PREVENT_MEMBERS_CHANGING_CUSTOM_NAMES_SWITCH}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
                                 titleStyle={toggleTitleStyle}
                                 isActive={titleField?.deletable === false}
@@ -205,6 +206,7 @@ function WorkspaceReportFieldsPage({
                             policyFeature={CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS}
                             syncErrorConnectionNames={CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES}
                             titleAccessibilityRole={CONST.ROLE.HEADER}
+                            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.ENABLE_SWITCH}
                         />
                     </ScrollView>
                 )}
