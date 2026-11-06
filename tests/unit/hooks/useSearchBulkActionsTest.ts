@@ -1204,8 +1204,9 @@ describe('useSearchBulkActions - Change workspace', () => {
     });
 
     it('hides Change workspace for a hand-picked report that was exported', async () => {
-        // Given a hand-picked selection of the user's own drafts, one of which was exported, so its own menu has no Change workspace
+        // Given a hand-picked draft of the user's that was exported, so its own menu has no Change workspace
         mockAreAllMatchingItemsSelected = false;
+        mockSelectedReports = [makeSelectedReport({reportID: 'report2'})];
         await addDraftReport('report2', CURRENT_USER_ACCOUNT_ID);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}report2`, {isExportedToIntegration: true});
 
@@ -1220,9 +1221,23 @@ describe('useSearchBulkActions - Change workspace', () => {
         expect(hasChangeWorkspaceOption(result.current.headerButtonsOptions)).toBe(false);
     });
 
-    it('hides Change workspace for hand-picked reports when one of them cannot be moved', async () => {
-        // Given a hand-picked selection that includes a draft the user doesn't own
+    it('offers Change workspace for hand-picked reports when one of them can be moved', async () => {
+        // Given a hand-picked selection of the user's draft and a draft they don't own
         mockAreAllMatchingItemsSelected = false;
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        // Then Change workspace is offered, the same as Select all, since the backend skips the draft the user can't move
+        await waitFor(() => {
+            expect(hasChangeWorkspaceOption(result.current.headerButtonsOptions)).toBe(true);
+        });
+    });
+
+    it('hides Change workspace when none of the hand-picked reports can be moved', async () => {
+        // Given a hand-picked draft the user doesn't own
+        mockAreAllMatchingItemsSelected = false;
+        mockSelectedReports = [makeSelectedReport({reportID: 'report2'})];
 
         // When the bulk actions are built
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
@@ -1231,7 +1246,7 @@ describe('useSearchBulkActions - Change workspace', () => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
         });
 
-        // Then Change workspace is not offered, the same as each report's own menu
+        // Then Change workspace is not offered, the same as the report's own menu
         expect(hasChangeWorkspaceOption(result.current.headerButtonsOptions)).toBe(false);
     });
 

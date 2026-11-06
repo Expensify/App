@@ -3143,7 +3143,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         }
 
-        if (!isOffline && isExpenseReportType && selectedReports.length > 0 && selectedReports.every(canChangeWorkspaceOfReport)) {
+        // The same as Select all, the reports that can't move are skipped and listed in the status modal.
+        if (!isOffline && isExpenseReportType && selectedReports.some(canChangeWorkspaceOfReport)) {
             options.push(changeWorkspaceOption);
         }
 
