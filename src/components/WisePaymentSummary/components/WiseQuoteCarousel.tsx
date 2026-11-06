@@ -1,18 +1,9 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Icon from '@components/Icon';
-import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-
-import variables from '@styles/variables';
-
-import CONST from '@src/CONST';
 
 import type {ComponentRef} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
@@ -20,6 +11,7 @@ import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import React, {useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
+import WiseQuoteCarouselArrow from './WiseQuoteCarouselArrow';
 import WiseQuotePaymentSummary from './WiseQuotePaymentSummary';
 
 /** How much of the next card shows at the edge, so the admin sees there is more to review */
@@ -38,10 +30,7 @@ type WiseQuoteCarouselProps = {
 /** One Wise quote card per report, swiped or stepped through with the arrows */
 function WiseQuoteCarousel({reportIDs, quotedReportIDs, isLoading}: WiseQuoteCarouselProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    const theme = useTheme();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'BackArrow']);
     const scrollViewRef = useRef<ComponentRef<typeof ScrollView>>(null);
     const [containerWidth, setContainerWidth] = useState(0);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -72,30 +61,6 @@ function WiseQuoteCarousel({reportIDs, quotedReportIDs, isLoading}: WiseQuoteCar
         }
     };
 
-    const renderArrow = (direction: 'previous' | 'next') => {
-        const isPrevious = direction === 'previous';
-        const isDisabled = isPrevious ? shownIndex === 0 : shownIndex === lastIndex;
-        return (
-            <PressableWithFeedback
-                accessibilityRole="button"
-                accessible
-                accessibilityLabel={translate(isPrevious ? 'common.previous' : 'common.next')}
-                style={[styles.reportPreviewArrowButton, StyleUtils.getBackgroundColorStyle(theme.buttonDefaultBG)]}
-                onPress={() => scrollToIndex(isPrevious ? shownIndex - 1 : shownIndex + 1)}
-                disabled={isDisabled}
-                disabledStyle={[styles.cursorDefault, styles.buttonOpacityDisabled]}
-                sentryLabel={isPrevious ? CONST.SENTRY_LABEL.WISE_QUOTE_CAROUSEL.PREVIOUS : CONST.SENTRY_LABEL.WISE_QUOTE_CAROUSEL.NEXT}
-            >
-                <Icon
-                    src={isPrevious ? icons.BackArrow : icons.ArrowRight}
-                    fill={theme.icon}
-                    width={variables.iconSizeExtraSmall}
-                    height={variables.iconSizeExtraSmall}
-                />
-            </PressableWithFeedback>
-        );
-    };
-
     return (
         <View
             style={styles.gap3}
@@ -105,8 +70,16 @@ function WiseQuoteCarousel({reportIDs, quotedReportIDs, isLoading}: WiseQuoteCar
                 <Text style={styles.textLabelSupporting}>{translate('iou.wisePaymentSummary.reportCount', {count: reportIDs.length})}</Text>
                 {hasMultipleReports && (
                     <View style={styles.flexRow}>
-                        {renderArrow('previous')}
-                        {renderArrow('next')}
+                        <WiseQuoteCarouselArrow
+                            direction="previous"
+                            isDisabled={shownIndex === 0}
+                            onPress={() => scrollToIndex(shownIndex - 1)}
+                        />
+                        <WiseQuoteCarouselArrow
+                            direction="next"
+                            isDisabled={shownIndex === lastIndex}
+                            onPress={() => scrollToIndex(shownIndex + 1)}
+                        />
                     </View>
                 )}
             </View>
