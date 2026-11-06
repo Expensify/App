@@ -318,7 +318,6 @@ export {
     getStraightEdge,
     isEdgeCorner,
     getExactAffineTransform,
-    applyAffineTransform,
     getViewEdge,
     getViewEdgeAndCorners,
     getEdgeShape,
@@ -326,4 +325,4 @@ export {
     filterOneEuro,
     hasLocalBendChange,
 };
-export type {AffineTransform, EdgeShape, OneEuroState, ViewEdge};
+export type {OneEuroState, ViewEdge};
