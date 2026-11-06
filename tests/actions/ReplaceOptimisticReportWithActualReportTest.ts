@@ -1,5 +1,6 @@
 import {beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
 
+import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import type * as NavigationModule from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
@@ -207,6 +208,49 @@ describe('replaceOptimisticReportWithActualReport', () => {
         expect(updatedReport?.reportID).toBe(preexistingReportID);
         expect(updatedReport?.preexistingReportID).toBeFalsy();
         expect(updatedReport?.participants).toEqual(existingReport.participants);
+    });
+
+    it('should keep the preexisting report fields and errors when the optimistic report is sparse and has its own errors', async () => {
+        // Given a preexisting Concierge chat loaded from the server
+        const reportID = '1';
+        const preexistingReportID = '2';
+
+        const existingErrors = getMicroSecondOnyxErrorWithMessage('Comment failed');
+        const existingErrorFields = {createChat: getMicroSecondOnyxErrorWithMessage('Create chat failed')};
+        const existingReport = createRandomReport(Number(preexistingReportID), undefined);
+        existingReport.reportID = preexistingReportID;
+        existingReport.type = CONST.REPORT.TYPE.CHAT;
+        existingReport.reportName = 'Concierge';
+        existingReport.errors = existingErrors;
+        existingReport.errorFields = existingErrorFields;
+        existingReport.pendingFields = undefined;
+
+        // And a leftover optimistic report that only carries a "Report not found" error, as a cache clear can leave behind
+        const optimisticReport = {
+            reportID,
+            preexistingReportID,
+            participants: existingReport.participants,
+            errors: getMicroSecondOnyxErrorWithMessage('Optimistic error'),
+            errorFields: {notFound: getMicroSecondOnyxErrorWithMessage('Report not found')},
+            pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, existingReport);
+        await waitForBatchedUpdates();
+
+        // When replaceOptimisticReportWithActualReport is called
+        replaceOptimisticReportWithActualReport(optimisticReport, undefined, 1);
+        await waitForBatchedUpdates();
+
+        // Then the preexisting report keeps the server fields the optimistic report did not have
+        const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`);
+        expect(updatedReport?.type).toBe(CONST.REPORT.TYPE.CHAT);
+        expect(updatedReport?.reportName).toBe('Concierge');
+
+        // And it keeps its own errors and doesn't pick up the optimistic ones, so it shows no Fix badge
+        expect(updatedReport?.errors).toEqual(existingErrors);
+        expect(updatedReport?.errorFields).toEqual(existingErrorFields);
+        expect(updatedReport?.pendingFields).toBeUndefined();
     });
 
     it('should handle preexisting report when participants is undefined in existing report', async () => {

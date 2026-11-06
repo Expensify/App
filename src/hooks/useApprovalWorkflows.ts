@@ -3,14 +3,14 @@
  * actually has a custom (advanced) approval workflow, so callers don't trust the stale `policy.approvalMode` flag.
  */
 import {isControlPolicy} from '@libs/PolicyUtils';
+import {filterRulesForPolicy, getApprovalWorkflowRulesForPolicy} from '@libs/RuleUtils';
 import {
     convertApprovalWorkflowRulesToWorkflows,
     convertPolicyEmployeesToApprovalWorkflows,
-    filterRulesForPolicy,
-    getApprovalWorkflowRulesForPolicy,
     getApproverPendingActionByMemberEmail,
     getEnforcedApprovalWorkflows,
     getEnforcedApprovalWorkflowsForMembers,
+    shouldUseApprovalWorkflowRules,
 } from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
@@ -20,6 +20,7 @@ import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {Member} from '@src/types/onyx/ApprovalWorkflow';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type Rule from '@src/types/onyx/Rule';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -54,9 +55,13 @@ type UseApprovalWorkflowsResult = {
 
     /**
      * The pending state of each member's approver while a change to it is in flight, keyed by member email. Read this
-     * alongside the approver itself, since the change lands in a different place depending on the beta.
+     * alongside the approver itself, since the change lands in a different place depending on whether the workspace uses
+     * approval workflow rules.
      */
     approverPendingActionByMemberEmail: Record<string, PendingAction>;
+
+    /** Whether the workspace's approval workflows are read from and saved as approval workflow rules rather than `employeeList` */
+    shouldUseApprovalWorkflowRules: boolean;
 
     /** The workspace's approval-workflow rules, exposed so consumers don't need a second `RULE` subscription */
     rulesCollection: OnyxCollection<Rule>;
@@ -66,7 +71,7 @@ type UseApprovalWorkflowsResult = {
 };
 
 /**
- * Derives approval workflows from policy employees or approval rules when `MULTIPLE_APPROVERS` is enabled.
+ * Derives approval workflows from policy employees, or from approval rules when the policy uses them.
  *
  * Prefer `isAdvanceApproval` over `policy.approvalMode`: the stored value is updated optimistically and can drift from the actual workflow structure.
  */
@@ -78,7 +83,6 @@ function useApprovalWorkflows(policy: OnyxEntry<Policy>): UseApprovalWorkflowsRe
     const [personalDetails] = useAllPersonalDetails();
     const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: (rules: OnyxCollection<Rule>) => filterRulesForPolicy(rules, policyID)});
 
-    const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
     const params = {
         policy,
         personalDetails: personalDetails ?? {},
@@ -86,14 +90,13 @@ function useApprovalWorkflows(policy: OnyxEntry<Policy>): UseApprovalWorkflowsRe
         currentUserLogin,
         rules: getApprovalWorkflowRulesForPolicy(rulesCollection, policyID),
     };
-    const {approvalWorkflows, availableMembers, usedApproverEmails} = isMultipleApproversBetaEnabled
-        ? convertApprovalWorkflowRulesToWorkflows(params)
-        : convertPolicyEmployeesToApprovalWorkflows(params);
+    const shouldUseRules = shouldUseApprovalWorkflowRules(policy, !isEmptyObject(params.rules), isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS));
+    const {approvalWorkflows, availableMembers, usedApproverEmails} = shouldUseRules ? convertApprovalWorkflowRulesToWorkflows(params) : convertPolicyEmployeesToApprovalWorkflows(params);
 
     const isAdvanceApproval = (approvalWorkflows.length > 1 || (approvalWorkflows?.at(0)?.approvers ?? []).length > 1) && isControlPolicy(policy);
 
-    const filteredApprovalWorkflows = getEnforcedApprovalWorkflows(approvalWorkflows, policy, isMultipleApproversBetaEnabled);
-    const enforcedApprovalWorkflows = getEnforcedApprovalWorkflowsForMembers(approvalWorkflows, policy, isMultipleApproversBetaEnabled);
+    const filteredApprovalWorkflows = getEnforcedApprovalWorkflows(approvalWorkflows, policy, shouldUseRules);
+    const enforcedApprovalWorkflows = getEnforcedApprovalWorkflowsForMembers(approvalWorkflows, policy, shouldUseRules);
 
     return {
         approvalWorkflows,
@@ -102,7 +105,8 @@ function useApprovalWorkflows(policy: OnyxEntry<Policy>): UseApprovalWorkflowsRe
         availableMembers,
         usedApproverEmails,
         isAdvanceApproval,
-        approverPendingActionByMemberEmail: getApproverPendingActionByMemberEmail(policy, enforcedApprovalWorkflows, isMultipleApproversBetaEnabled ? rulesCollection : undefined),
+        approverPendingActionByMemberEmail: getApproverPendingActionByMemberEmail(policy, enforcedApprovalWorkflows, shouldUseRules ? rulesCollection : undefined),
+        shouldUseApprovalWorkflowRules: shouldUseRules,
         rulesCollection,
         personalDetails,
     };

@@ -3,7 +3,6 @@ import Header from '@components/Header';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -330,13 +329,14 @@ function FlagForReviewRulePageBase({
                     </MenuItem.Root>
                     <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
                     <Text style={[styles.textLabel, styles.textStrong, styles.lh16, styles.ph5, styles.pv3]}>{translate('workspace.rules.flagForReviewRule.thenDoTheFollowing')}</Text>
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.rules.flagForReviewRule.flagType')}
-                        title={translate('workspace.rules.flagForReviewRule.flagTypeWarning')}
-                        furtherDetails={translate('workspace.rules.flagForReviewRule.flagTypeWarningDescription')}
-                        interactive={false}
-                        shouldShowRightIcon={false}
-                    />
+                    <MenuItem.Root accessibilityLabel={`${translate('workspace.rules.flagForReviewRule.flagType')}, ${translate('workspace.rules.flagForReviewRule.flagTypeWarning')}`}>
+                        <MenuItem.Row>
+                            <MenuItemField.Content name={translate('workspace.rules.flagForReviewRule.flagType')}>
+                                <MenuItem.FieldValue>{translate('workspace.rules.flagForReviewRule.flagTypeWarning')}</MenuItem.FieldValue>
+                                <MenuItem.Description>{translate('workspace.rules.flagForReviewRule.flagTypeWarningDescription')}</MenuItem.Description>
+                            </MenuItemField.Content>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
                 </ScrollView>
                 {footer}
             </ScreenWrapper>

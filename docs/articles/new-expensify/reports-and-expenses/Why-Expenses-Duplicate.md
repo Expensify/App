@@ -66,6 +66,24 @@ Each upload creates a separate expense, even if the receipt details are identica
 
 ---
 
+## What Awaiting card match means
+
+**Awaiting card match** and **Receipt pending match with card transaction. Mark as cash to cancel** appear on SmartScanned receipt expenses when you have a credit card connected to Expensify and the receipt appears to be from a credit card purchase.
+
+Expensify waits seven days for the matching card transaction to import and merge with the receipt expense. The seven-day period starts from the expense date, not the receipt upload date. If you edit the expense date, the seven-day period is based on the updated date.
+
+## When Awaiting card match clears
+
+The status clears when any of the following happens:
+
+- The receipt expense merges with the matching card transaction.
+- The expense is more than seven days old.
+- You select **Mark as cash** to indicate that you paid with cash or a card that isn't connected to Expensify.
+
+**Note:** If your connected credit card has a connection issue, the expense may keep the **Awaiting card match** status even after seven days. [Learn how to fix a card connection issue](https://help.expensify.com/new-expensify/hubs/connect-credit-cards/fix-card-connection-issues).
+
+---
+
 ## Why card transactions import more than once
 
 In some cases, duplicate expenses occur when the same card transaction is imported more than once. 

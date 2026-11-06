@@ -1,11 +1,4 @@
-import Button from '@components/Button';
-import Icon from '@components/Icon';
-import Text from '@components/Text';
-
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import {navigateToAddCardToDigitalWallet} from '@libs/actions/Card';
 import {getWalletProviderNameKey} from '@libs/CardUtils';
@@ -16,7 +9,8 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import React from 'react';
-import {View} from 'react-native';
+
+import WalletPromptRow from './WalletPromptRow';
 
 type PendingDigitalWalletApprovalRowProps = {
     /** cardID of the card waiting for the cardholder to confirm or deny the wallet addition */
@@ -31,33 +25,20 @@ type PendingDigitalWalletApprovalRowProps = {
 
 /**
  * Prompts the cardholder to review a wallet addition. Rendered on the Wallet page's card row and on the card details
- * page, and laid out like the other call-to-action rows in the Wallet list so the two read as the same kind of prompt.
+ * page.
  */
 function PendingDigitalWalletApprovalRow({cardID, walletProvider, style}: PendingDigitalWalletApprovalRowProps) {
-    const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const walletName = translate(`addCardToDigitalWallet.${getWalletProviderNameKey(walletProvider, true)}`);
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, style]}>
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1, styles.mr2]}>
-                <Icon
-                    src={icons.DotIndicator}
-                    fill={theme.success}
-                    additionalStyles={[styles.mr2]}
-                />
-                <Text style={[styles.mutedNormalTextLabel, styles.label, styles.textSuccess, styles.flexShrink1]}>{translate('addCardToDigitalWallet.approvalNeeded', {walletName})}</Text>
-            </View>
-            <Button
-                size={CONST.BUTTON_SIZE.SMALL}
-                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                onPress={() => navigateToAddCardToDigitalWallet(cardID)}
-            >
-                <Button.Text>{translate('addCardToDigitalWallet.review')}</Button.Text>
-            </Button>
-        </View>
+        <WalletPromptRow
+            message={translate('addCardToDigitalWallet.approvalNeeded', {walletName})}
+            buttonText={translate('addCardToDigitalWallet.review')}
+            onButtonPress={() => navigateToAddCardToDigitalWallet(cardID)}
+            buttonSentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.DIGITAL_WALLET_APPROVAL_REVIEW}
+            style={style}
+        />
     );
 }
 
