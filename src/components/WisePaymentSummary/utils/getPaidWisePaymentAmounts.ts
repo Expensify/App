@@ -16,11 +16,11 @@ function getPaidWisePaymentAmounts(reportAction: OnyxInputOrEntry<ReportAction>)
     if (originalMessage?.type !== CONST.IOU.REPORT_ACTION_TYPE.PAY) {
         return undefined;
     }
-    const {fee, rate, debitedAmount, creditedAmount, currency, paymentCurrency, tax} = originalMessage;
-    if (fee === undefined || rate === undefined || debitedAmount === undefined || creditedAmount === undefined || !currency || !paymentCurrency) {
+    const {fee, rate, debitedAmount, creditedAmount, currency, creditedCurrency, tax} = originalMessage;
+    if (fee === undefined || rate === undefined || debitedAmount === undefined || creditedAmount === undefined || !currency || !creditedCurrency) {
         return undefined;
     }
-    return {fee, rate, debitedAmount, creditedAmount, currency, paymentCurrency, tax};
+    return {fee, rate, debitedAmount, creditedAmount, currency, paymentCurrency: creditedCurrency, tax};
 }
 
 /** Whether the employee is paid in another currency than the company's, the only Wise payments with a conversion to disclose */

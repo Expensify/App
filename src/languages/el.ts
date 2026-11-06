@@ -1876,8 +1876,6 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmApprovalWithHeldAmount: 'Η αναφορά περιέχει δαπάνες σε αναμονή. Θέλετε να εγκρίνετε μόνο τις σύμφωνες δαπάνες ή ολόκληρη την αναφορά;',
         confirmApprovalAllHoldAmount: 'Όλες οι δαπάνες είναι σε αναμονή. Θέλετε να εγκρίνετε ούτως ή άλλως;',
         confirmPay: 'Επιβεβαιώστε το ποσό πληρωμής',
-        wisePaymentArrival: ({paymentMessage, expectedDate}: {paymentMessage: string; expectedDate: string}) => `${paymentMessage}, τα χρήματα αναμένεται να φτάσουν έως ${expectedDate}`,
-        wisePaymentDetailsLink: ({paymentMessage, href}: {paymentMessage: string; href: string}) => `${paymentMessage}. <a href="${href}">Προβολή λεπτομερειών</a>.`,
         wisePaymentSummary: {
             confirmPayment: 'Επιβεβαίωση πληρωμής',
             reportTotal: 'Σύνολο αναφοράς',

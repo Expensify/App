@@ -1852,8 +1852,6 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmApprovalWithHeldAmount: 'Raport zawiera wstrzymane wydatki. Zatwierdzić tylko zgodne wydatki, czy zatwierdzić cały raport?',
         confirmApprovalAllHoldAmount: 'Wszystkie wydatki są wstrzymane. Zatwierdzić mimo to?',
         confirmPay: 'Potwierdź kwotę płatności',
-        wisePaymentArrival: ({paymentMessage, expectedDate}: {paymentMessage: string; expectedDate: string}) => `${paymentMessage}, środki powinny dotrzeć do ${expectedDate}`,
-        wisePaymentDetailsLink: ({paymentMessage, href}: {paymentMessage: string; href: string}) => `${paymentMessage}. <a href="${href}">Zobacz szczegóły</a>.`,
         wisePaymentSummary: {
             confirmPayment: 'Potwierdź płatność',
             reportTotal: 'Suma raportu',

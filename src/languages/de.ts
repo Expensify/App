@@ -1821,8 +1821,6 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmApprovalWithHeldAmount: 'Der Bericht enthält zurückgestellte Ausgaben. Nur konforme Ausgaben genehmigen oder den gesamten Bericht genehmigen?',
         confirmApprovalAllHoldAmount: 'Alle Ausgaben sind zurückgestellt. Trotzdem genehmigen?',
         confirmPay: 'Zahlungsbetrag bestätigen',
-        wisePaymentArrival: ({paymentMessage, expectedDate}: {paymentMessage: string; expectedDate: string}) => `${paymentMessage}, das Geld trifft voraussichtlich bis ${expectedDate} ein`,
-        wisePaymentDetailsLink: ({paymentMessage, href}: {paymentMessage: string; href: string}) => `${paymentMessage}. <a href="${href}">Details anzeigen</a>.`,
         wisePaymentSummary: {
             confirmPayment: 'Zahlung bestätigen',
             reportTotal: 'Berichtssumme',

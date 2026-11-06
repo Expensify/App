@@ -1818,8 +1818,6 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmApprovalWithHeldAmount: "Il rapporto contiene spese in sospeso. Approvare solo le spese conformi o approvare l'intero rapporto?",
         confirmApprovalAllHoldAmount: 'Tutte le spese sono in sospeso. Approvare comunque?',
         confirmPay: 'Conferma l’importo del pagamento',
-        wisePaymentArrival: ({paymentMessage, expectedDate}: {paymentMessage: string; expectedDate: string}) => `${paymentMessage}, i fondi dovrebbero arrivare entro il ${expectedDate}`,
-        wisePaymentDetailsLink: ({paymentMessage, href}: {paymentMessage: string; href: string}) => `${paymentMessage}. <a href="${href}">Visualizza dettagli</a>.`,
         wisePaymentSummary: {
             confirmPayment: 'Conferma pagamento',
             reportTotal: 'Totale del resoconto',

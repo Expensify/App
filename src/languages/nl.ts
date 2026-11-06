@@ -1814,9 +1814,6 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmApprovalWithHeldAmount: 'Het rapport bevat uitgaven in de wacht. Alleen conforme uitgaven goedkeuren, of het hele rapport goedkeuren?',
         confirmApprovalAllHoldAmount: 'Alle uitgaven staan in de wacht. Toch goedkeuren?',
         confirmPay: 'Bevestig betalingsbedrag',
-        wisePaymentArrival: ({paymentMessage, expectedDate}: {paymentMessage: string; expectedDate: string}) =>
-            `${paymentMessage}, het geld komt naar verwachting uiterlijk ${expectedDate} aan`,
-        wisePaymentDetailsLink: ({paymentMessage, href}: {paymentMessage: string; href: string}) => `${paymentMessage}. <a href="${href}">Details bekijken</a>.`,
         wisePaymentSummary: {
             confirmPayment: 'Betaling bevestigen',
             reportTotal: 'Rapporttotaal',

@@ -246,11 +246,6 @@ function isGlobalReimbursementsEnabled(bankAccount: OnyxEntry<OnyxTypes.BankAcco
     return bankAccount?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && bankAccount?.accountData?.additionalData?.isGlobalReimbursementEnabled === true;
 }
 
-/** Whether the account pays global reimbursements through Wise. Corpay accounts also have global reimbursements enabled */
-function isWiseGlobalReimbursementsAccount(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
-    return isGlobalReimbursementsEnabled(bankAccount) && bankAccount?.accountData?.additionalData?.globalReimbursementProvider === CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE;
-}
-
 type WiseQuotePaymentParams = {
     paymentType: PaymentMethodType;
     methodID?: number;
@@ -268,7 +263,8 @@ function getWiseBankAccountForPayment({paymentType, methodID, bankAccountList, i
         return undefined;
     }
     const bankAccount = bankAccountList?.[bankAccountID];
-    return isWiseGlobalReimbursementsAccount(bankAccount) ? bankAccount : undefined;
+    const isWiseAccount = isGlobalReimbursementsEnabled(bankAccount) && bankAccount?.accountData?.additionalData?.globalReimbursementProvider === CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE;
+    return isWiseAccount ? bankAccount : undefined;
 }
 
 /** Whether Wise sends this report to the employee through a global provider, which it prices with a quote */
@@ -556,7 +552,6 @@ export {
     shouldGetWiseQuote,
     shouldSetUpGlobalReimbursementsBeforePaying,
     isGlobalReimbursementsEnabled,
-    isWiseGlobalReimbursementsAccount,
     isWiseOnboardingSubmitted,
     getWiseGlobalReimbursementsBannerBankAccountID,
     getWorkspaceWiseGlobalReimbursementsBannerBankAccountID,

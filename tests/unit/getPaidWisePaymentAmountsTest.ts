@@ -12,7 +12,7 @@ const wisePayment: Partial<OriginalMessageIOU> = {
     debitedAmount: 13044,
     creditedAmount: 10000,
     currency: CONST.CURRENCY.USD,
-    paymentCurrency: CONST.CURRENCY.GBP,
+    creditedCurrency: CONST.CURRENCY.GBP,
 };
 
 function buildPayAction(reportActionID: string, created: string, payment: Partial<OriginalMessageIOU>): ReportAction {
@@ -32,7 +32,7 @@ describe('getPaidWisePaymentAmounts', () => {
         // When its amounts are read
         const amounts = getPaidWisePaymentAmounts(action);
 
-        // Then the payment details get every amount Wise reported, in the shape the summary card takes
+        // Then the payment details get every amount Wise reported, in the shape the summary card takes, with the employee's currency as the payment currency
         expect(amounts).toEqual({fee: 129, rate: 0.7743, debitedAmount: 13044, creditedAmount: 10000, currency: CONST.CURRENCY.USD, paymentCurrency: CONST.CURRENCY.GBP, tax: 25});
     });
 
@@ -61,7 +61,7 @@ describe('getPaidWisePaymentAmounts', () => {
     it('treats only a payment into another currency as cross-border', () => {
         // Given one payment converted to GBP and one paid out in the company's own currency
         const crossBorder = getPaidWisePaymentAmounts(buildPayAction('1', '2026-11-05 10:00:00.000', wisePayment));
-        const sameCurrency = getPaidWisePaymentAmounts(buildPayAction('2', '2026-11-05 10:00:00.000', {...wisePayment, rate: 1, paymentCurrency: CONST.CURRENCY.USD}));
+        const sameCurrency = getPaidWisePaymentAmounts(buildPayAction('2', '2026-11-05 10:00:00.000', {...wisePayment, rate: 1, creditedCurrency: CONST.CURRENCY.USD}));
 
         // When each is checked
         // Then only the converted one has fees and a rate to disclose behind View details

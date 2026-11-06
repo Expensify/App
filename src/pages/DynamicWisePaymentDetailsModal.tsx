@@ -2,6 +2,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import Button from '@components/Button';
 import CenteredModalLayout from '@components/CenteredModalLayout';
 import HeaderTitle from '@components/HeaderTitle';
+import ScrollView from '@components/ScrollView';
 import WisePaymentSummary from '@components/WisePaymentSummary';
 import {getLatestPaidWisePaymentAmounts} from '@components/WisePaymentSummary/utils/getPaidWisePaymentAmounts';
 import getWisePaymentSummaryRows from '@components/WisePaymentSummary/utils/getWisePaymentSummaryRows';
@@ -25,7 +26,6 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type DynamicWisePaymentDetailsModalProps = PlatformStackScreenProps<FeatureTrainingNavigatorParamList, typeof SCREENS.DYNAMIC_PAYMENT_DETAILS_ROOT>;
 
@@ -49,9 +49,13 @@ function DynamicWisePaymentDetailsModal({route}: DynamicWisePaymentDetailsModalP
             <CenteredModalLayout
                 onBackdropPress={close}
                 width={variables.sideBarWidth}
-                contentStyle={styles.pb0}
+                contentStyle={[styles.pb0, styles.flexShrink1]}
             >
-                <View style={styles.m5}>
+                {/* The rows can outgrow a short window, so they scroll while Got it stays in view */}
+                <ScrollView
+                    style={styles.flexShrink1}
+                    contentContainerStyle={[styles.ph5, styles.pt5]}
+                >
                     <HeaderTitle style={styles.mb5}>
                         <HeaderTitle.Text>{translate('iou.wisePaymentSummary.paymentDetails')}</HeaderTitle.Text>
                     </HeaderTitle>
@@ -61,14 +65,15 @@ function DynamicWisePaymentDetailsModal({route}: DynamicWisePaymentDetailsModalP
                             rows={getWisePaymentSummaryRows({report, amounts, isPayingUnheldOnly: false, isPaid: true, translate, convertToDisplayString})}
                         />
                     )}
-                    <Button
-                        style={styles.mt5}
-                        onPress={close}
-                        size={CONST.BUTTON_SIZE.LARGE}
-                    >
-                        <Button.Text>{translate('common.buttonConfirm')}</Button.Text>
-                    </Button>
-                </View>
+                </ScrollView>
+                <Button
+                    style={styles.m5}
+                    onPress={close}
+                    size={CONST.BUTTON_SIZE.LARGE}
+                    sentryLabel={CONST.SENTRY_LABEL.WISE_PAYMENT_DETAILS.GOT_IT}
+                >
+                    <Button.Text>{translate('common.buttonConfirm')}</Button.Text>
+                </Button>
             </CenteredModalLayout>
         </FullPageNotFoundView>
     );

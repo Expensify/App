@@ -1964,8 +1964,6 @@ const translations = {
         confirmApprovalWithHeldAmount: 'Report contains held expenses. Approve only compliant expenses, or approve the entire report?',
         confirmApprovalAllHoldAmount: 'All expenses are on hold. Approve anyway?',
         confirmPay: 'Confirm payment amount',
-        wisePaymentArrival: ({paymentMessage, expectedDate}: {paymentMessage: string; expectedDate: string}) => `${paymentMessage}, funds are expected to arrive by ${expectedDate}`,
-        wisePaymentDetailsLink: ({paymentMessage, href}: {paymentMessage: string; href: string}) => `${paymentMessage}. <a href="${href}">View details</a>.`,
         wisePaymentSummary: {
             confirmPayment: 'Confirm payment',
             reportTotal: 'Report total',

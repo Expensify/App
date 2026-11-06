@@ -18,7 +18,6 @@ import {
     isBankAccountEligibleForGlobalReimbursements,
     isGlobalReimbursementsEnabled,
     isWiseOnboardingSubmitted,
-    isWiseGlobalReimbursementsAccount,
     isPersonalBankAccountMissingInfo,
     isUserAddressVerificationRequired,
     isUserDOBVerificationRequired,
@@ -569,26 +568,6 @@ describe('BankAccountUtils', () => {
             // When deciding whether its row shows the globe
             // Then it doesn't, so the row never claims more than the backend allows
             expect(isGlobalReimbursementsEnabled(bankAccount)).toBe(false);
-        });
-
-        it('tells a Wise account apart from a Corpay one', () => {
-            // Given two accounts set up for global reimbursements, one through Wise and one through Corpay
-            const wiseAccount = buildBankAccount({isGlobalReimbursementEnabled: true, globalReimbursementProvider: CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE});
-            const corpayAccount = buildBankAccount({isGlobalReimbursementEnabled: true, globalReimbursementProvider: CONST.GLOBAL_REIMBURSEMENT_PROVIDER.CORPAY});
-
-            // When deciding whether a payment from each went through Wise
-            // Then only the Wise one does, so only its paid message names the arrival date
-            expect(isWiseGlobalReimbursementsAccount(wiseAccount)).toBe(true);
-            expect(isWiseGlobalReimbursementsAccount(corpayAccount)).toBe(false);
-        });
-
-        it('stops treating a Wise account as Wise once global reimbursements are off', () => {
-            // Given a Wise account whose global reimbursements were turned off
-            const account = buildBankAccount({isGlobalReimbursementEnabled: false, globalReimbursementProvider: CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE});
-
-            // When deciding whether a payment from it went through Wise
-            // Then it doesn't, since Wise only pays while global reimbursements are on
-            expect(isWiseGlobalReimbursementsAccount(account)).toBe(false);
         });
     });
 
