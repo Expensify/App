@@ -5,7 +5,7 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import useDateSegmentInput from '@hooks/useDateSegmentInput';
 
 import Clipboard from '@libs/Clipboard';
-import {DATE_SEGMENT_NAMES} from '@libs/DateInputMaskUtils';
+import {DATE_SEGMENT_NAMES, getSegmentsFromISODate} from '@libs/DateInputMaskUtils';
 import type {DateSegmentName} from '@libs/DateInputMaskUtils';
 
 import CONST from '@src/CONST';
@@ -32,14 +32,14 @@ type SegmentElement = {
     selectionEnd: number | null;
 };
 
-function createElement(): SegmentElement {
-    return {focus: jest.fn(), setSelectionRange: jest.fn(), value: '', selectionStart: null, selectionEnd: null};
+function createElement(value = ''): SegmentElement {
+    return {focus: jest.fn(), setSelectionRange: jest.fn(), value, selectionStart: null, selectionEnd: null};
 }
 
-function createKeyEvent(key: string, modifiers: {metaKey?: boolean; shiftKey?: boolean} = {}) {
+function createKeyEvent(key: string, modifiers: {metaKey?: boolean; shiftKey?: boolean; altKey?: boolean} = {}) {
     const event = {
         preventDefault: jest.fn(),
-        nativeEvent: {key, metaKey: modifiers.metaKey ?? false, ctrlKey: false, shiftKey: modifiers.shiftKey ?? false},
+        nativeEvent: {key, metaKey: modifiers.metaKey ?? false, ctrlKey: false, shiftKey: modifiers.shiftKey ?? false, altKey: modifiers.altKey ?? false},
     };
 
     // The hook reads a handful of fields off the event and prevents it, which is all this has to carry
@@ -52,7 +52,8 @@ type SetupOptions = {value?: string; isEnabled?: boolean};
 function setup({value = '', isEnabled = true}: SetupOptions = {}) {
     const onCommit = jest.fn();
     const onLeaveByKeyboard = jest.fn();
-    const elements: Record<DateSegmentName, SegmentElement> = {year: createElement(), month: createElement(), day: createElement()};
+    const shownSegments = getSegmentsFromISODate(value);
+    const elements: Record<DateSegmentName, SegmentElement> = {year: createElement(shownSegments.year), month: createElement(shownSegments.month), day: createElement(shownSegments.day)};
 
     const {result, rerender} = renderHook(
         (props: SetupOptions) => useDateSegmentInput({value: props.value ?? '', isEnabled: props.isEnabled ?? true, minDate: MIN_DATE, maxDate: MAX_DATE, onCommit, onLeaveByKeyboard}),
@@ -74,7 +75,7 @@ function setup({value = '', isEnabled = true}: SetupOptions = {}) {
 
     const focusSegment = (name: DateSegmentName) => act(() => result.current.getSegmentProps(name).onFocus());
 
-    const press = (name: DateSegmentName, key: string, modifiers?: {metaKey?: boolean; shiftKey?: boolean}) => {
+    const press = (name: DateSegmentName, key: string, modifiers?: {metaKey?: boolean; shiftKey?: boolean; altKey?: boolean}) => {
         const event = createKeyEvent(key, modifiers);
         act(() => result.current.getSegmentProps(name).onKeyPress(event));
         return event;
@@ -557,6 +558,74 @@ describe('useDateSegmentInput', () => {
             rerender({value: '1990-02-15', isEnabled: true});
             expect(result.current.isEditing).toBe(false);
             expect(DATE_SEGMENT_NAMES.map((name) => result.current.getSegmentProps(name).value).join('-')).toBe('1990-02-15');
+        });
+    });
+
+    describe('arrow keys held with a modifier', () => {
+        it('carries the caret to the start of the date rather than one segment back', () => {
+            // Given a field holding a whole date, which the user is at the end of
+            const {press, elements} = setup({value: '1990-05-15'});
+
+            // When the caret is sent left the way a text field is asked for the start of the line
+            press('day', CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey, {altKey: true});
+
+            // Then it reaches the year, rather than stopping at the month as an unmodified arrow would
+            expect(elements.year.focus).toHaveBeenCalled();
+            expect(elements.month.focus).not.toHaveBeenCalled();
+
+            // Then it rests before the first digit, which is where the start of the line is
+            expect(elements.year.setSelectionRange).toHaveBeenCalledWith(0, 0);
+        });
+
+        it('carries the caret to the end of the date', () => {
+            // Given the same date, which the user is at the start of
+            const {press, elements} = setup({value: '1990-05-15'});
+
+            // When the caret is sent the other way, which a modifier the browser answers alone would otherwise swallow
+            press('year', CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey, {metaKey: true});
+
+            // Then it reaches the day, resting after its digits the way the end of a line does
+            expect(elements.day.focus).toHaveBeenCalled();
+            expect(elements.month.focus).not.toHaveBeenCalled();
+            expect(elements.day.setSelectionRange).toHaveBeenCalledWith(2, 2);
+        });
+    });
+
+    describe('restoring focus', () => {
+        it('gives focus back to the segment the user was last in', () => {
+            // Given a field holding a whole date, which the user has entered at the month
+            const {result, elements, focusSegment} = setup({value: '1990-05-15'});
+            focusSegment('month');
+
+            // When a modal has taken focus away and hands it back, as the month and year pickers do
+            act(() => result.current.restoreFocus());
+
+            // Then the caret returns to the month rather than being moved somewhere the user did not ask about
+            expect(elements.month.focus).toHaveBeenCalled();
+            expect(elements.day.focus).not.toHaveBeenCalled();
+        });
+
+        it('starts at the beginning of the date when the user has not been in it yet', () => {
+            // Given a field holding a whole date that nothing has been focused in, so there is no caret to return
+            const {result, elements} = setup({value: '1990-05-15'});
+
+            // When focus is handed back anyway
+            act(() => result.current.restoreFocus());
+
+            // Then it lands where an untouched field starts, since a whole date stops short nowhere
+            expect(elements.year.focus).toHaveBeenCalled();
+            expect(elements.day.focus).not.toHaveBeenCalled();
+        });
+
+        it('stops at the digits the date is still missing when the user has not been in it yet', () => {
+            // Given an empty field, which the user has to fill in from the first segment on
+            const {result, elements} = setup();
+
+            // When focus is handed back
+            act(() => result.current.restoreFocus());
+
+            // Then it lands on the segment typing would start at
+            expect(elements.year.focus).toHaveBeenCalled();
         });
     });
 });
