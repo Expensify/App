@@ -103,6 +103,7 @@ type TransactionItemRowProps = {
     radioButtonContainerStyle?: StyleProp<ViewStyle>;
     radioButtonWrapperStyle?: StyleProp<ViewStyle>;
     shouldShowErrors?: boolean;
+    shouldShowCategoryOnNarrowLayout?: boolean;
     shouldHighlightItemWhenSelected?: boolean;
     isDisabled?: boolean;
     shouldDisableActionPointerEvents?: boolean;
