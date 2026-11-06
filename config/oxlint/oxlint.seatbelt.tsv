@@ -1406,7 +1406,6 @@
 "../../src/pages/settings/Profile/CustomStatus/SetDatePage.tsx"	"react-hooks/purity"	1
 "../../src/pages/settings/Profile/CustomStatus/SetDatePage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/settings/Profile/CustomStatus/SetTimePage.tsx"	"no-restricted-imports"	1
-"../../src/pages/settings/Profile/CustomStatus/StatusClearAfterPage.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	2
 "../../src/pages/settings/Profile/CustomStatus/StatusClearAfterPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Profile/CustomStatus/StatusClearAfterPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/settings/Profile/CustomStatus/StatusPage.tsx"	"no-restricted-imports"	1
