@@ -5,6 +5,7 @@ import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
+import type {IOUType} from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -21,7 +22,7 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 type DynamicIOURequestStepReportProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_REPORT> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_REPORT>;
 
-function DynamicIOURequestStepReport({route, transaction}: DynamicIOURequestStepReportProps) {
+function DynamicIOURequestStepReport({route, navigation, transaction}: DynamicIOURequestStepReportProps) {
     const {action, iouType, transactionID, reportID: reportIDFromRoute, reportActionID} = route.params;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_REPORT.path);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -36,7 +37,17 @@ function DynamicIOURequestStepReport({route, transaction}: DynamicIOURequestStep
         }
     };
 
-    const {listProps, reportOrDraftReport} = useReportPickerActions({transaction, transactionID, action, iouType, reportIDFromRoute, goBack: handleGoBack});
+    // The form this page was opened from sits right below it in the stack and reads the expense type from its own route.
+    const setFormIOUType = (formIOUType: IOUType) => {
+        const {routes} = navigation.getState();
+        const formRoute = routes.at(routes.findIndex((stackRoute) => stackRoute.key === route.key) - 1);
+        if (!formRoute || formRoute.key === route.key) {
+            return;
+        }
+        Navigation.setParams({iouType: formIOUType}, formRoute.key);
+    };
+
+    const {listProps, reportOrDraftReport} = useReportPickerActions({transaction, transactionID, action, iouType, reportIDFromRoute, goBack: handleGoBack, setFormIOUType});
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, reportOrDraftReport, transaction);
 
