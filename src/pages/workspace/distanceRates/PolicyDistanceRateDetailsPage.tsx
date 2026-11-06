@@ -1,5 +1,4 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -24,7 +23,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getTaxReclaimableAmount} from '@libs/PolicyDistanceRatesUtils';
-import {getCurrentConnectionName, getDistanceRateCustomUnit, getUKFuelRatesWithInvalidTax} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, getUKFuelRateTaxErrors} from '@libs/PolicyUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -32,6 +31,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import {clearPolicyDistanceRateErrorFields, deletePolicyDistanceRates, setPolicyDistanceRatesEnabled} from '@userActions/Policy/DistanceRate';
+import {dismissUKFuelRateTaxError} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -106,11 +106,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
         (distanceRate: Rate) => distanceRate?.enabled && rateID !== distanceRate?.customUnitRateID && distanceRate?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
     const errorFields = rate?.errorFields;
-    const hasFuelRateTaxError = getUKFuelRatesWithInvalidTax(policy).some((invalidRate) => invalidRate.customUnitRateID === rateID);
-    const connectionName = getCurrentConnectionName(policy);
-    const fuelRateTaxError = connectionName
-        ? translate('workspace.distanceRates.ukFuelRateTaxErrorWithIntegration', {integrationName: connectionName})
-        : translate('workspace.distanceRates.ukFuelRateTaxError');
+    const fuelRateTaxErrors = getUKFuelRateTaxErrors(policy, translate, rateID);
 
     if (!rate) {
         return <NotFoundPage />;
@@ -264,33 +260,27 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                         />
                     </OfflineWithFeedback>
                     {isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled && (
-                        <OfflineWithFeedback
-                            errors={getLatestErrorField(rate, 'taxRateExternalID')}
-                            pendingAction={rate?.pendingFields?.taxRateExternalID}
-                            errorRowStyles={styles.mh5}
-                            onClose={() => clearErrorFields('taxRateExternalID')}
-                        >
-                            <View style={styles.w100}>
-                                <MenuItem.Root
+                        <>
+                            <OfflineWithFeedback
+                                errors={getLatestErrorField(rate, 'taxRateExternalID')}
+                                pendingAction={rate?.pendingFields?.taxRateExternalID}
+                                errorRowStyles={styles.mh5}
+                                onClose={() => clearErrorFields('taxRateExternalID')}
+                            >
+                                <MenuItemField
+                                    name={translate('workspace.taxes.taxRate')}
+                                    value={taxRate}
                                     onPress={canWriteDistanceRates ? editTaxRateValue : undefined}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.TAX_RATE}
-                                >
-                                    <MenuItemField.Row
-                                        name={translate('workspace.taxes.taxRate')}
-                                        value={taxRate}
-                                    >
-                                        {hasFuelRateTaxError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
-                                        <MenuItem.Chevron />
-                                    </MenuItemField.Row>
-                                    {hasFuelRateTaxError && (
-                                        <MenuItem.HelpText
-                                            isError
-                                            message={fuelRateTaxError}
-                                        />
-                                    )}
-                                </MenuItem.Root>
-                            </View>
-                        </OfflineWithFeedback>
+                                />
+                            </OfflineWithFeedback>
+                            <OfflineWithFeedback
+                                errors={fuelRateTaxErrors}
+                                errorRowStyles={styles.mh5}
+                                pendingAction={customUnit?.pendingFields?.isUKFuelRateTaxErrorDismissed}
+                                onClose={canWriteDistanceRates && customUnit ? () => dismissUKFuelRateTaxError(policyID, customUnit) : undefined}
+                            />
+                        </>
                     )}
                     {/* Expenses use the percentage even without a valid tax rate. The tax rate check lets admins add an amount to a rate that has none. */}
                     {isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled && (!!taxRate || !!taxClaimablePercentage) && (

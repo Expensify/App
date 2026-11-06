@@ -2,20 +2,23 @@
  * Policy error flags, the brick-road indicator, and settings error and pending-action helpers.
  * Extracted from PolicyUtils/index.ts to keep that file smaller.
  */
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import {isQBORefreshTokenExpiringSoon} from '@libs/AccountingUtils';
 import {hasSynchronizationErrorMessage} from '@libs/actions/connections';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import {isFuelBandGovernmentRate} from '@libs/GovernmentRateUtils';
 import {isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/merge/HRUtils';
 
 import CONST from '@src/CONST';
 import type {Policy, PolicyCategories} from '@src/types/onyx';
-import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields, Errors, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {getAccountingConnectionNames} from './connections';
+import {getAccountingConnectionNames, getCurrentConnectionName} from './connections';
 import {getDistanceRateCustomUnit} from './customUnits';
 import {isPolicyAdmin} from './permissions';
 import {isSelectableTaxCode} from './tax';
@@ -45,6 +48,22 @@ function getUKFuelRatesWithInvalidTax(policy: OnyxEntry<Policy>) {
 /** Whether the workspace has a UK advisory fuel rate without a valid VAT mapping. */
 function shouldShowUKFuelRateTaxError(policy: OnyxEntry<Policy>): boolean {
     return getUKFuelRatesWithInvalidTax(policy).length > 0;
+}
+
+/** Omitting rateID includes any affected rate; dismissal failures stay visible even when no warning applies. */
+function getUKFuelRateTaxErrors(policy: OnyxEntry<Policy>, translate: LocaleContextProps['translate'], rateID?: string): Errors {
+    const invalidRates = getUKFuelRatesWithInvalidTax(policy);
+    const hasFuelRateTaxError = rateID === undefined ? invalidRates.length > 0 : invalidRates.some((rate) => rate.customUnitRateID === rateID);
+    const connectionName = getCurrentConnectionName(policy);
+    const fuelRateTaxError = hasFuelRateTaxError
+        ? {
+              ukFuelRateTax: connectionName
+                  ? translate('workspace.distanceRates.ukFuelRateTaxErrorWithIntegration', {integrationName: connectionName})
+                  : translate('workspace.distanceRates.ukFuelRateTaxError'),
+          }
+        : undefined;
+
+    return {...fuelRateTaxError, ...getLatestErrorField(getDistanceRateCustomUnit(policy) ?? {}, 'isUKFuelRateTaxErrorDismissed')};
 }
 
 /**
@@ -189,6 +208,7 @@ function settingsPendingAction(settings?: string[], pendingFields?: PendingField
 export {
     getUKFuelRatesWithInvalidTax,
     shouldShowUKFuelRateTaxError,
+    getUKFuelRateTaxErrors,
     shouldShowEmployeeListError,
     shouldShowTaxRateError,
     hasPolicyCategoriesError,

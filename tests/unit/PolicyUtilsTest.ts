@@ -6,7 +6,7 @@ import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginPro
 import useDefaultFundID from '@hooks/useDefaultFundID';
 
 import DateUtils from '@libs/DateUtils';
-import {getUKFuelRatesWithInvalidTax, shouldShowUKFuelRateTaxError} from '@libs/PolicyUtils/errors';
+import {getUKFuelRateTaxErrors, getUKFuelRatesWithInvalidTax, shouldShowUKFuelRateTaxError} from '@libs/PolicyUtils/errors';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     areApprovalsEnabled,
@@ -379,6 +379,85 @@ const policyTags = {
 
 describe('PolicyUtils', () => {
     describe('UK fuel rate VAT warnings', () => {
+        it.each([false, true])('shares the warning copy across settings and rate details with integration=%s', (hasIntegration) => {
+            // Given an affected workspace, optionally connected to Xero
+            const policy = createUKFuelRateTaxPolicy();
+            if (hasIntegration) {
+                policy.connections = createMock<Connections>({xero: {}});
+            }
+            const translate = TestHelper.translateLocal;
+            const message = hasIntegration
+                ? translate('workspace.distanceRates.ukFuelRateTaxErrorWithIntegration', {integrationName: 'Xero'})
+                : translate('workspace.distanceRates.ukFuelRateTaxError');
+
+            // When building errors for either page
+            const settingsErrors = getUKFuelRateTaxErrors(policy, translate);
+            const detailsErrors = getUKFuelRateTaxErrors(policy, translate, 'fuel');
+
+            // Then both pages display the same localized warning
+            expect(settingsErrors).toEqual({ukFuelRateTax: message});
+            expect(detailsErrors).toEqual(settingsErrors);
+        });
+
+        it('does not warn on another rate when a fuel band is invalid', () => {
+            // Given a workspace with an invalid fuel band and a separate valid rate
+            const policy = createUKFuelRateTaxPolicy();
+            const unit = policy.customUnits?.distance;
+            if (!unit) {
+                throw new Error('Expected distance unit');
+            }
+            unit.rates.other = {...unit.rates.fuel, customUnitRateID: 'other', attributes: {taxRateExternalID: 'valid'}};
+            policy.taxRates = createMock<Policy['taxRates']>({taxes: {valid: {name: 'VAT', value: '20%'}}});
+
+            // When viewing the valid rate or a rate no longer present
+            const otherErrors = getUKFuelRateTaxErrors(policy, TestHelper.translateLocal, 'other');
+            const missingErrors = getUKFuelRateTaxErrors(policy, TestHelper.translateLocal, 'missing');
+
+            // Then only settings and the affected rate show the warning
+            expect(otherErrors).toEqual({});
+            expect(missingErrors).toEqual({});
+            expect(getUKFuelRateTaxErrors(policy, TestHelper.translateLocal)).toHaveProperty('ukFuelRateTax');
+        });
+
+        it.each([false, true])('retains only the latest workspace dismissal failure with dismissed=%s', (isDismissed) => {
+            // Given a failed workspace-wide dismissal and a separate rate-save error
+            const policy = createUKFuelRateTaxPolicy();
+            const unit = policy.customUnits?.distance;
+            if (!unit?.attributes) {
+                throw new Error('Expected distance unit attributes');
+            }
+            unit.attributes.isUKFuelRateTaxErrorDismissed = isDismissed;
+            unit.errorFields = {isUKFuelRateTaxErrorDismissed: {'100': 'Old dismissal failure', '200': 'Latest dismissal failure'}};
+            unit.rates.fuel.errorFields = {taxRateExternalID: {'300': 'Rate-save failure'}};
+
+            // When building the independent fuel-warning row for either page
+            const settingsErrors = getUKFuelRateTaxErrors(policy, TestHelper.translateLocal);
+            const detailsErrors = getUKFuelRateTaxErrors(policy, TestHelper.translateLocal, 'fuel');
+
+            // Then the latest dismissal failure survives even without a warning, and save errors stay separate
+            const expectedErrors = {
+                ...(!isDismissed ? {ukFuelRateTax: TestHelper.translateLocal('workspace.distanceRates.ukFuelRateTaxError')} : {}),
+                '200': 'Latest dismissal failure',
+            };
+            expect(settingsErrors).toEqual(expectedErrors);
+            expect(detailsErrors).toEqual(expectedErrors);
+            expect(unit.rates.fuel.errorFields.taxRateExternalID).toEqual({'300': 'Rate-save failure'});
+        });
+
+        it('returns no errors before the policy or distance unit loads', () => {
+            // Given no policy, or a policy whose distance unit has not loaded
+            const policy = createUKFuelRateTaxPolicy();
+            policy.customUnits = {};
+
+            // When building errors during loading
+            const missingPolicyErrors = getUKFuelRateTaxErrors(undefined, TestHelper.translateLocal);
+            const missingUnitErrors = getUKFuelRateTaxErrors(policy, TestHelper.translateLocal, 'fuel');
+
+            // Then neither page receives an error
+            expect(missingPolicyErrors).toEqual({});
+            expect(missingUnitErrors).toEqual({});
+        });
+
         it.each(['', 'deleted', 'disabled', 'pendingDelete', 'valid'])('checks the %s tax code', (taxCode) => {
             // Given a fuel band mapped to each possible tax code state
             const policy = createUKFuelRateTaxPolicy();
