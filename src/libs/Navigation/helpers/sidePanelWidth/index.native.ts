@@ -14,8 +14,12 @@ const getSidePanelWidthStyleValue = sidePanelWidthVariable.getStyleValue;
 
 function writeSidePanelDockProgress() {}
 
+function subscribeToLiveSidePanelWidth(): () => void {
+    return () => {};
+}
+
 function getSidePanelInsetStyleValue(): DimensionValue {
     return 0;
 }
 
-export {getSidePanelInsetStyleValue, getSidePanelWidthStyleValue, sidePanelWidthVariable, writeSidePanelDockProgress};
+export {getSidePanelInsetStyleValue, getSidePanelWidthStyleValue, sidePanelWidthVariable, subscribeToLiveSidePanelWidth, writeSidePanelDockProgress};
