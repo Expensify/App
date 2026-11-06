@@ -630,6 +630,10 @@ function getChatReportForBulkPay(
     return getReportFromSearchSnapshot(resolvedChatReportID, searchData, allReports) ?? getReportOrDraftReport(resolvedChatReportID);
 }
 
+function formatReportNamesAsBulletList(reportNames: Iterable<string>): string {
+    return Array.from(reportNames, (reportName) => `${CONST.DOT_SEPARATOR} ${reportName}`).join('\n');
+}
+
 /**
  * A single export option. It is typed as a dropdown option rather than a plain menu item because it is rendered at
  * either level of the bulk-action dropdown: nested inside the Export submenu, or directly at the top level when
@@ -1996,7 +2000,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     showConfirmModal({
                         title: translate('walletPage.wiseGlobalReimbursementsBulkPayModal.title', getLastFourDigits(bankAccount.accountData?.accountNumber ?? '')),
                         subtitle: translate('walletPage.wiseGlobalReimbursementsBulkPayModal.description'),
-                        prompt: [...reportNames.values()].map((reportName) => `${CONST.DOT_SEPARATOR} ${reportName}`).join('\n'),
+                        prompt: formatReportNamesAsBulletList(reportNames.values()),
                         confirmText: translate('walletPage.wiseGlobalReimbursementsIntro.getStarted'),
                         cancelText: translate('common.notNow'),
                         shouldEnablePromptScroll: true,
@@ -2436,7 +2440,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                                 connectionNameFriendly,
                                 reportName: '',
                             }).trim(),
-                            prompt: exportedReportNames.map((reportName) => `${CONST.DOT_SEPARATOR} ${reportName}`).join('\n'),
+                            prompt: formatReportNamesAsBulletList(exportedReportNames),
                             confirmText: translate('workspace.exportAgainModal.confirmText'),
                             cancelText: translate('workspace.exportAgainModal.cancelText'),
                             shouldEnablePromptScroll: true,
@@ -2469,7 +2473,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             integrationReportIDs.length < integrationGroupSize,
                             connectionNameFriendly,
                         ),
-                        prompt: exportableReportNames.map((reportName) => `${CONST.DOT_SEPARATOR} ${reportName}`).join('\n'),
+                        prompt: formatReportNamesAsBulletList(exportableReportNames),
                         confirmText: translate('workspace.exportPartialModal.confirmText', {count: integrationReportIDs.length}),
                         cancelText: translate('workspace.exportPartialModal.cancelText'),
                         shouldEnablePromptScroll: true,
@@ -3120,7 +3124,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                                 title: translate(allReportsShouldMarkAsDone ? 'iou.error.reportsNotMarkedAsDoneTitle' : 'iou.error.reportsNotSubmittedTitle'),
                                 subtitle: translate(allReportsShouldMarkAsDone ? 'iou.error.reportsNotMarkedAsDoneDescription' : 'iou.error.reportsNotSubmittedDescription'),
-                                prompt: blockedReportNames.map((reportName) => `${CONST.DOT_SEPARATOR} ${reportName}`).join('\n'),
+                                prompt: formatReportNamesAsBulletList(blockedReportNames),
                                 confirmText: translate('common.buttonConfirm'),
                                 shouldShowCancelButton: false,
                                 shouldEnablePromptScroll: true,
