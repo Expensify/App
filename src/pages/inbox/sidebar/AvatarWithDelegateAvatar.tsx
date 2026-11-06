@@ -12,6 +12,8 @@ import type {AvatarSizeName} from '@styles/utils/types';
 
 import CONST from '@src/CONST';
 
+import type {ColorValue} from 'react-native';
+
 import React from 'react';
 import {View} from 'react-native';
 
@@ -23,10 +25,13 @@ type AvatarWithDelegateAvatarProps = {
 
     isHovered?: boolean;
     isSelected?: boolean;
+
+    /** Stroke of the delegate badge in place of the default one */
+    badgeBorderColor?: ColorValue;
     size?: AvatarSizeName;
 };
 
-function AvatarWithDelegateAvatar({delegateEmail, isHovered = false, isSelected = false, size = CONST.AVATAR_SIZE.SMALL}: AvatarWithDelegateAvatarProps) {
+function AvatarWithDelegateAvatar({delegateEmail, isHovered = false, isSelected = false, size = CONST.AVATAR_SIZE.SMALL, badgeBorderColor}: AvatarWithDelegateAvatarProps) {
     const defaultAvatars = useDefaultAvatars();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -43,7 +48,7 @@ function AvatarWithDelegateAvatar({delegateEmail, isHovered = false, isSelected 
                 isSelected={isSelected}
                 size={size}
             />
-            <View style={[styles.sidebarStatusAvatar, isHovered && styles.sidebarStatusAvatarHovered]}>
+            <View style={[styles.sidebarStatusAvatar, isHovered && styles.sidebarStatusAvatarHovered, !!badgeBorderColor && StyleUtils.getBorderColorStyle(badgeBorderColor)]}>
                 <View style={styles.emojiStatusLHN}>
                     <UserAvatar
                         size={isSmallScreenWidth ? CONST.AVATAR_SIZE.XXX_SMALL : CONST.AVATAR_SIZE.SMALL}

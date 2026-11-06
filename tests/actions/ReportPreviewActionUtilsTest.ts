@@ -143,6 +143,55 @@ describe('getReportPreviewAction', () => {
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
     });
 
+    it('canSubmit should return false for an approve-only member', async () => {
+        // Given an open expense report owned by the current user, who has the approve-only role on the policy
+        const report: Report = {
+            ...createRandomReport(REPORT_ID, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            isWaitingOnBankAccount: false,
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        policy.role = CONST.POLICY.ROLE.APPROVE_ONLY;
+        if (policy.harvesting) {
+            policy.harvesting.enabled = false;
+        }
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const transaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+            amount: 100,
+            merchant: 'Test Merchant',
+            created: '2025-01-01',
+        });
+
+        // Simulate how components use a hook to pass the isReportArchived parameter
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+
+        await waitForBatchedUpdatesWithAct();
+
+        // When the preview action is resolved
+        const previewAction = getReportPreviewAction({
+            isReportArchived: isReportArchived.current,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            currentUserLogin: CURRENT_USER_EMAIL,
+            report,
+            policy,
+            transactions: [transaction],
+            bankAccountList: {},
+            reportMetadata: undefined,
+            ownerLogin: CURRENT_USER_EMAIL,
+            rules: undefined,
+        });
+
+        // Then it is not SUBMIT
+        expect(previewAction).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
+    });
+
     // The submitter keeps the SUBMIT action on a prevent-self-approval workspace, matching isSubmitAction in
     // ReportPrimaryActionUtils. SubmitActionButton then mounts and renders itself disabled. Returning VIEW here instead
     // would hide the preview's Submit button entirely while the report header still shows a disabled one.
@@ -1777,5 +1826,50 @@ describe('getReportPreviewAction', () => {
             // Then it should return APPROVE because DEW approval is not pending
             expect(result).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
         });
+    });
+
+    it('canExport returns true on a cash-basis policy when every expense is non-reimbursable', async () => {
+        // Given an approved report whose expenses are all non-reimbursable, on a cash-basis NetSuite policy. Cash-basis
+        // reports normally wait until they are paid, but a card-only report has nothing to reimburse so it is never paid
+        const report = {
+            ...createRandomReport(REPORT_ID, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            isWaitingOnBankAccount: false,
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        policy.connections = {
+            [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: createMock<NetSuiteConnection>({
+                options: {config: {accountingMethod: 'CASH'}},
+            }),
+        };
+        policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const transaction = createMock<Transaction>({reportID: `${REPORT_ID}`, reimbursable: false});
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the exporter views the report preview
+        // Then Export is offered right away, so the report is not stuck waiting for a payment that never comes
+        expect(
+            getReportPreviewAction({
+                isReportArchived: isReportArchived.current,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_EMAIL,
+                report,
+                policy,
+                transactions: [transaction],
+                bankAccountList: {},
+                reportMetadata: undefined,
+                ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
+            }),
+        ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING);
     });
 });

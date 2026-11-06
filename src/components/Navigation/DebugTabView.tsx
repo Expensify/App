@@ -41,6 +41,7 @@ import type {ValueOf} from 'type-fest';
 import React from 'react';
 import {View} from 'react-native';
 
+import useNavigationBarWidth from './FlatNavigationBar/useNavigationBarWidth';
 import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
 
 const FULL_WIDTH_TAB_ROOT_SCREENS = new Set<string>([SCREENS.WORKSPACES_LIST, SCREENS.DOMAINS_LIST]);
@@ -75,8 +76,8 @@ function getSettingsMessage(status: IndicatorStatus | undefined): TranslationPat
             return 'debug.indicatorStatus.theresAWorkspaceWithCustomUnitsErrors';
         case CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR:
             return 'debug.indicatorStatus.theresAProblemWithAWorkspaceMember';
-        case CONST.INDICATOR_STATUS.HAS_QBO_EXPORT_ERROR:
-            return 'debug.indicatorStatus.theresAProblemWithAWorkspaceQBOExport';
+        case CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_EXPORT_ERROR:
+            return 'debug.indicatorStatus.theresAProblemWithAWorkspaceReimbursementExport';
         case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR:
             return 'debug.indicatorStatus.theresAProblemWithAContactMethod';
         case CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO:
@@ -131,7 +132,7 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
         case CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO:
             return ROUTES.SETTINGS_SUBSCRIPTION.route;
         case CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS:
-            return ROUTES.WORKSPACE_ACCOUNTING.getRoute(indicatorPolicyID);
+            return ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(indicatorPolicyID);
         case CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS:
             return ROUTES.SETTINGS_WALLET;
         case CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS:
@@ -140,7 +141,7 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
             return ROUTES.SETTINGS_WALLET;
         case CONST.INDICATOR_STATUS.HAS_MERGE_HR_SETUP_NEEDED:
         case CONST.INDICATOR_STATUS.HAS_HR_CONNECTION_ERROR:
-            return ROUTES.WORKSPACE_HR.getRoute(indicatorPolicyID);
+            return ROUTES.WORKSPACE_CONNECTIONS_HR.getRoute(indicatorPolicyID);
         case CONST.INDICATOR_STATUS.HAS_AGENT_ERRORS:
             return ROUTES.SETTINGS_AGENTS;
         default:
@@ -160,6 +161,7 @@ function DebugTabView({selectedTab}: Props) {
     const {shouldUseNarrowLayout, isExtraLargeScreenWidth} = useResponsiveLayout();
     const {shouldHideSidePanel} = useSidePanelDisplayStatus();
     const {windowWidth} = useWindowDimensions();
+    const navigationBarWidth = useNavigationBarWidth();
     const sidePanelOffset = isExtraLargeScreenWidth && !shouldHideSidePanel ? variables.sidePanelWidth : 0;
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const reportAttributes = useReportAttributes();
@@ -228,10 +230,10 @@ function DebugTabView({selectedTab}: Props) {
     if (shouldUseNarrowLayout) {
         positionStyle = {bottom: 0, left: 0, right: 0};
     } else if (isOnFullWidthTabRoot) {
-        positionStyle = {...verticalAnchor, left: variables.navigationTabBarSize, width: windowWidth - variables.navigationTabBarSize - sidePanelOffset};
+        positionStyle = {...verticalAnchor, left: navigationBarWidth, width: windowWidth - navigationBarWidth - sidePanelOffset};
     } else {
         const lhnWidth = selectedTab === NAVIGATION_TABS.INBOX ? variables.inboxSideBarWidth : variables.sideBarWithLHBWidth;
-        positionStyle = {...verticalAnchor, left: variables.navigationTabBarSize, width: lhnWidth - variables.cropBorderWidth};
+        positionStyle = {...verticalAnchor, left: navigationBarWidth, width: lhnWidth - variables.cropBorderWidth};
     }
 
     // pAbsolute is only applied on wide layouts. On narrow layout the bar is placed by its parent
