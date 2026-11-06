@@ -1,7 +1,7 @@
 ---
 title: Travel Event Management
-description: Learn how to create and manage Travel Events in Expensify Classic, including trip templates, attendee invitations, group bookings, and edits. 
-keywords: [Expensify Classic travel, travel events, event management, group travel, trip template, itinerary, travel dashboard, booking, multi-traveler, flight booking]
+description: Learn how to create and manage Travel Events in Expensify Classic, with or without a trip template, including attendee invitations, group bookings, and edits.
+keywords: [Expensify Classic travel, travel events, event management, group travel, trip template, event without a template, allow coordinators to create events without a template, itinerary, travel dashboard, booking, multi-traveler, flight booking]
 ---
 <div id="expensify-classic" markdown="1">
 
@@ -20,7 +20,7 @@ Plan and coordinate group travel in one place with Expensify Classic Events. Thi
 
 ## What is an event?
 
-An **event** is a coordinated trip created by a Travel Admin for multiple members traveling to the same destination.  
+An **event** is a coordinated trip for multiple members traveling to the same destination. Event coordinators create events from a trip template. If your organization allows it, coordinators can also create one-off events without a template.
 
 Each event includes:  
 - Event name and description  
@@ -36,7 +36,9 @@ Admins can pay for all bookings at once using a central card.
 
 ## How to create an event
 
-## Step 1: Create a trip template
+You can create an event from a trip template. If your organization allows it, you can also create a one-off event without a template.
+
+## How to create a trip template
 
 1. Click on Travel from your Expensify account
 2. When in the **Travel dashboard**, click **Program > Company > Expand > Configuration > Trip Template**.
@@ -68,7 +70,19 @@ Select **Save** to finish.
 
 ---
 
-## Step 2: Create an event from the template
+## How to allow coordinators to create events without a template
+
+By default, event coordinators must use a trip template to create an event. To let coordinators create one-off events without a template:
+
+1. In the Travel dashboard, select **Program**.
+2. Expand **Travel Administration**, then select **Trip templates**.
+3. At the top of the **Trip templates** page, enable **Allow coordinators to create events without a template**.
+
+When this setting is enabled, coordinators choose whether an event uses **Invite** or **No invite**.
+
+---
+
+## How to create an event from a trip template
 
 While in the Travel dashboard, 
 
@@ -93,7 +107,7 @@ Policy Admins and arrangers can invite attendees to an event:
 **Notes:**  
 - Members see the trip in **My Trips**.  
 - Admins see all events in **Events**.  
-- With **No invite**, attendees do not receive an email. To invite later, update the template to **Invite** and create a new event.  
+- With **No invite**, attendees do not receive an email. A template's invite setting can't be changed. To send invitations, create a new event from an **Invite** template.  
 - Invitations are finalized when the **Publish trips** button appears.  
 
 ---
@@ -126,8 +140,12 @@ See also: [How to invite attendees](#how-to-invite-attendees).
 ## Can I add children or infants to a booking?  
 Not yet. Children and infants must be booked separately.  
 
+## Can I create an event without a trip template?
+Yes, if your organization enables **Allow coordinators to create events without a template**. If this setting is disabled, coordinators must use a trip template.
+See also: [How to allow coordinators to create events without a template](#how-to-allow-coordinators-to-create-events-without-a-template).
+
 ## Who decides the travel policy and payment method?  
-The admin who created the Trip Template and Event determines the policy and payment method.  
+For events created from a trip template, the template sets the travel policy and the payment methods for each booking type.
 See also: [How to create an event](#how-to-create-an-event).  
 
 ## Will all travelers see the trip in their account?  

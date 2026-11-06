@@ -52,7 +52,6 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
         setPolicyTravelSettings(policy, {autoAddTripName: enabled});
     };
 
-    const isCodingSyncBetaEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_CODING_SYNC);
     const isCodingSyncEnabled = policy?.travelSettings?.isCodingSyncEnabled ?? false;
 
     const toggleCodingSync = (enabled: boolean) => {
@@ -114,6 +113,7 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
                     subtitle={translate('workspace.moreFeatures.travel.settings.autoAddTripName.subtitle')}
                     shouldPlaceSubtitleBelowSwitch
                     switchAccessibilityLabel={translate('workspace.moreFeatures.travel.settings.autoAddTripName.title')}
+                    switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.AUTO_ADD_TRIP_NAME_SWITCH}
                     isActive={autoAddTripName}
                     onToggle={toggleAutoAddTripName}
                     disabled={!canWriteMoreFeatures}
@@ -124,23 +124,22 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
                     onCloseError={() => clearPolicyErrorField(policyID, 'autoAddTripName')}
                     wrapperStyle={styles.mt3}
                 />
-                {isCodingSyncBetaEnabled && (
-                    <ToggleSettingOptionRow
-                        title={translate('workspace.moreFeatures.travel.settings.codingSync.title')}
-                        subtitle={translate('workspace.moreFeatures.travel.settings.codingSync.subtitle')}
-                        shouldPlaceSubtitleBelowSwitch
-                        switchAccessibilityLabel={translate('workspace.moreFeatures.travel.settings.codingSync.title')}
-                        isActive={isCodingSyncEnabled}
-                        onToggle={toggleCodingSync}
-                        disabled={!canWriteMoreFeatures}
-                        disabledAction={withReadOnlyFallback()}
-                        showLockIcon={!canWriteMoreFeatures}
-                        pendingAction={policy?.pendingFields?.isCodingSyncEnabled}
-                        errors={policy?.errorFields?.isCodingSyncEnabled ?? undefined}
-                        onCloseError={() => clearPolicyErrorField(policyID, 'isCodingSyncEnabled')}
-                        wrapperStyle={styles.mt3}
-                    />
-                )}
+                <ToggleSettingOptionRow
+                    title={translate('workspace.moreFeatures.travel.settings.codingSync.title')}
+                    subtitle={translate('workspace.moreFeatures.travel.settings.codingSync.subtitle')}
+                    shouldPlaceSubtitleBelowSwitch
+                    switchAccessibilityLabel={translate('workspace.moreFeatures.travel.settings.codingSync.title')}
+                    switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.CODING_SYNC_SWITCH}
+                    isActive={isCodingSyncEnabled}
+                    onToggle={toggleCodingSync}
+                    disabled={!canWriteMoreFeatures}
+                    disabledAction={withReadOnlyFallback()}
+                    showLockIcon={!canWriteMoreFeatures}
+                    pendingAction={policy?.pendingFields?.isCodingSyncEnabled}
+                    errors={policy?.errorFields?.isCodingSyncEnabled ?? undefined}
+                    onCloseError={() => clearPolicyErrorField(policyID, 'isCodingSyncEnabled')}
+                    wrapperStyle={styles.mt3}
+                />
             </Section>
             <WorkspaceTravelBillingSection policyID={policyID} />
         </>

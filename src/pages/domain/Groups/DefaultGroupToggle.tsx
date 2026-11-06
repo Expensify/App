@@ -9,6 +9,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 
 import {clearDomainSecurityGroupSettingError, setDefaultSecurityGroup} from '@userActions/Domain';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {defaultSecurityGroupIDSelector, domainSecurityGroupSettingErrorsSelector, domainSecurityGroupSettingPendingActionSelector, selectGroupByID} from '@selectors/Domain';
@@ -67,6 +68,7 @@ function DefaultGroupToggle({domainAccountID, groupID, groupName}: DefaultGroupT
             <ToggleSettingOptionRow
                 title={translate('domain.groups.defaultGroup')}
                 switchAccessibilityLabel={translate('domain.groups.defaultGroup')}
+                switchSentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.DEFAULT_GROUP_SWITCH}
                 isActive={isDefault}
                 disabled={isDefault}
                 onToggle={() => {

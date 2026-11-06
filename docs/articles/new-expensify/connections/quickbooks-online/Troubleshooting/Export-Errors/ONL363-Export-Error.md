@@ -48,7 +48,7 @@ Update your export settings in Expensify to use Vendor Bill for all expense type
 
 1. Go to the **Workspaces** navigation tab on the left.
 2. Select your Workspace.
-3. Click **Accounting**.
+3. Select **Connections**, then select **Configure** next to QuickBooks Online.
 4. Click **Export**.
 5. Set both reimbursable and non-reimbursable expenses to **Vendor Bill**.
 6. Click **Save**.
@@ -57,7 +57,7 @@ Update your export settings in Expensify to use Vendor Bill for all expense type
 
 1. Tap the **Workspaces** navigation tab on the bottom.
 2. Select your Workspace.
-3. Tap **Accounting**.
+3. Select **Connections**, then select **Configure** next to QuickBooks Online.
 4. Tap **Export**.
 5. Set both reimbursable and non-reimbursable expenses to **Vendor Bill**.
 6. Tap **Save**.

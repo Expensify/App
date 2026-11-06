@@ -44,6 +44,7 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}
                 switchAccessibilityLabel={translate('workspace.accounting.taxes')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.IMPORT_TAXES_SWITCH}
                 isActive={!!qboConfig?.syncTax}
                 onToggle={() => QuickbooksOnline.updateQuickbooksOnlineSyncTax(policyID, !qboConfig?.syncTax)}
                 pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_TAX], qboConfig?.pendingFields)}

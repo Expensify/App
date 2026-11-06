@@ -5,7 +5,6 @@ import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
-import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,7 +31,6 @@ import {
     shouldHideReimbursedReportsSection,
     shouldHideReportsExportTo,
 } from '@pages/workspace/accounting/netsuite/utils';
-import {getAccountingSettingsRoute} from '@pages/workspace/connections/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -56,7 +54,6 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
-    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
 
     const config = policy?.connections?.netsuite?.options?.config;
     const autoSyncConfig = policy?.connections?.netsuite?.config;
@@ -126,6 +123,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             subtitle: translate('workspace.netsuite.advancedConfig.reimbursedReportsDescription'),
             isActive: !!config?.syncOptions.syncReimbursedReports,
             switchAccessibilityLabel: translate('workspace.netsuite.advancedConfig.reimbursedReportsDescription'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.SYNC_REIMBURSED_REPORTS_SWITCH,
             shouldPlaceSubtitleBelowSwitch: true,
             onCloseError: () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_REIMBURSED_REPORTS),
             onToggle: (isEnabled) => updateNetSuiteSyncReimbursedReports(policyID, isEnabled),
@@ -169,6 +167,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             subtitle: translate('workspace.netsuite.advancedConfig.inviteEmployeesDescription'),
             isActive: !!config?.syncOptions.syncPeople,
             switchAccessibilityLabel: translate('workspace.netsuite.advancedConfig.inviteEmployeesDescription'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.INVITE_EMPLOYEES_SWITCH,
             shouldPlaceSubtitleBelowSwitch: true,
             shouldParseSubtitle: true,
             onCloseError: () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_PEOPLE),
@@ -181,6 +180,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             title: translate('workspace.netsuite.advancedConfig.autoCreateEntities'),
             isActive: !!config?.autoCreateEntities,
             switchAccessibilityLabel: translate('workspace.netsuite.advancedConfig.autoCreateEntities'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.AUTO_CREATE_ENTITIES_SWITCH,
             onCloseError: () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.AUTO_CREATE_ENTITIES),
             onToggle: (isEnabled) => updateNetSuiteAutoCreateEntities(policyID, isEnabled),
             pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.AUTO_CREATE_ENTITIES], config?.pendingFields),
@@ -195,6 +195,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             title: translate('workspace.netsuite.advancedConfig.enableCategories'),
             isActive: !!config?.syncOptions.enableNewCategories,
             switchAccessibilityLabel: translate('workspace.netsuite.advancedConfig.enableCategories'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.ENABLE_NEW_CATEGORIES_SWITCH,
             onCloseError: () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.ENABLE_NEW_CATEGORIES),
             onToggle: (isEnabled) => updateNetSuiteEnableNewCategories(policyID, isEnabled),
             pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.SYNC_OPTIONS.ENABLE_NEW_CATEGORIES], config?.pendingFields),
@@ -245,6 +246,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             subtitle: translate('workspace.netsuite.advancedConfig.customFormIDDescription'),
             isActive: !!config?.customFormIDOptions?.enabled,
             switchAccessibilityLabel: translate('workspace.netsuite.advancedConfig.customFormIDDescription'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CUSTOM_FORM_ID_SWITCH,
             shouldPlaceSubtitleBelowSwitch: true,
             onCloseError: () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_ENABLED),
             onToggle: (isEnabled) => {
@@ -283,7 +285,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
-            onBackButtonPress={() => Navigation.goBack(getAccountingSettingsRoute(isUnifiedConnectionsBetaEnabled, policyID))}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))}
             displayName="NetSuiteAdvancedPage"
             headerTitle="workspace.accounting.advanced"
             headerSubtitle={config?.subsidiary ?? ''}

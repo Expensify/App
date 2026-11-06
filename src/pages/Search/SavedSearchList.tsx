@@ -13,13 +13,12 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShareSavedSearch from '@hooks/useShareSavedSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
-import {getValidLastQuery} from '@libs/SearchQueryUtils';
+import {navigateToSearch} from '@libs/SearchNavigationUtils';
+import {getValidLastQuery, normalizeDatePresetsInQuery} from '@libs/SearchQueryUtils';
 import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
 import {createBaseSavedSearchMenuItem, getLastSearchQuery, getOverflowMenu as getOverflowMenuUtil, SAVED_SEARCH_FALLBACK_ICON_NAME, SAVED_SEARCH_ICON_NAMES} from '@libs/SearchUIUtils';
 
@@ -27,7 +26,6 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -74,8 +72,7 @@ function buildSavedSearchMenuItem({
         role: CONST.ROLE.TAB,
         sentryLabel: CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_MENU_ITEM,
         onPress: () => {
-            setSearchContext(false);
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: itemQuery, name: item?.name, searchKey: savedSearchKey}));
+            navigateToSearch({query: itemQuery, name: item?.name, searchKey: savedSearchKey});
         },
         rightComponent: (
             <SavedSearchItemThreeDotMenu
@@ -146,7 +143,7 @@ function SavedSearchList() {
     const savedSearchesMenuItems = savedSearches
         ? Object.entries(savedSearches)
               .map(([key, item], index) => {
-                  const itemQuery = getValidLastQuery(getLastSearchQuery(searchFilters, savedSearchIDToSearchKey(key)), item.query);
+                  const itemQuery = normalizeDatePresetsInQuery(getValidLastQuery(getLastSearchQuery(searchFilters, savedSearchIDToSearchKey(key)), item.query));
                   return buildSavedSearchMenuItem({
                       item,
                       itemQuery,

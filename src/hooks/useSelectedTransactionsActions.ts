@@ -23,7 +23,6 @@ import {
     canHoldUnholdReportAction,
     canRejectReportAction,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    getPolicyExpenseChat,
     getReportOrDraftReport,
     isInvoiceReport,
     isMoneyRequestReport as isMoneyRequestReportUtils,
@@ -40,6 +39,7 @@ import type {Route} from '@src/ROUTES';
 import type {ExportTemplate, Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {policyExpenseChatSelector} from '@selectors/Report';
 import {useCallback, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 
@@ -165,7 +165,7 @@ function useSelectedTransactionsActions({
             continue;
         }
 
-        const parentReport = getReportOrDraftReport(reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
+        const parentReport = getReportOrDraftReport({reportID, report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]});
         const ownerAccountID = parentReport?.ownerAccountID;
 
         if (typeof ownerAccountID === 'number') {
@@ -209,7 +209,8 @@ function useSelectedTransactionsActions({
         return map;
     }, [selectedTransactionIDs, allTransactions]);
 
-    const activePolicyExpenseChat = useMemo(() => getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id), [currentUserAccountID, defaultExpensePolicy?.id]);
+    const activePolicyExpenseChatSelector = useMemo(() => policyExpenseChatSelector(currentUserAccountID, defaultExpensePolicy?.id), [currentUserAccountID, defaultExpensePolicy?.id]);
+    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: activePolicyExpenseChatSelector});
 
     const isDuplicateOptionVisible = useMemo(
         () =>
@@ -343,7 +344,16 @@ function useSelectedTransactionsActions({
             }
             const iouReportAction = getTransactionIOUAction(selectedTransaction, selectedTransaction.transactionID);
             const holdReportAction = getReportAction(iouReportAction?.childReportID, `${selectedTransaction?.comment?.hold ?? ''}`);
-            const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(report, iouReportAction, holdReportAction, selectedTransaction, policy, currentUserAccountID, rules);
+            const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(
+                report,
+                iouReportAction,
+                holdReportAction,
+                selectedTransaction,
+                policy,
+                currentUserAccountID,
+                rules,
+                getLoginByAccountID(report?.ownerAccountID, personalDetails),
+            );
 
             canHoldTransactions = canHoldTransactions && canHoldRequest;
             canUnholdTransactions = canUnholdTransactions && canUnholdRequest;
@@ -390,6 +400,8 @@ function useSelectedTransactionsActions({
                             transactionID,
                             transaction,
                             reportID: action.childReportID,
+                            transactionReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`],
+                            report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action.childReportID}`],
                             policy,
                             isOffline,
                             currentUserLogin: login ?? '',
