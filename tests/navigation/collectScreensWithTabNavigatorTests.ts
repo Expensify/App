@@ -208,3 +208,47 @@ describe('collectScreensWithTabNavigator — dynamicTabScreensByHost', () => {
         expect(result.dynamicTabScreensByHost.get('TagScreen')).toEqual(new Map([['expenses', 'WithPath']]));
     });
 });
+
+describe('sparse tab config traversal', () => {
+    it('skips absent and empty children and keeps the last duplicate tab name', () => {
+        // Given optional native config entries and duplicate emitted tab paths
+        const screens: Record<string, ScreenConfigEntry> = {
+            Missing: undefined,
+            CentralPaneNavigator: {
+                path: 'report/:reportID',
+                screens: {
+                    MissingNested: undefined,
+                    TagScreen: {
+                        path: 'tag/:tagID',
+                        screens: {
+                            MissingTab: undefined,
+                            EmptyString: '',
+                            EmptyObject: {path: ''},
+                            First: 'expenses',
+                            Reports: {path: 'reports'},
+                            Last: {path: 'expenses'},
+                        },
+                    },
+                },
+            },
+        };
+
+        // When the real collector walks the sparse nested config
+        const result = collectScreensWithTabNavigator(screens);
+
+        // Then navigator hosts stay excluded and later duplicate children win
+        expect(result.screensWithTabNavigator).toEqual(new Set(['TagScreen']));
+        expect(result.dynamicTabPatternToTabPaths).toEqual(new Map([['tag/:tagID', new Set(['expenses', 'reports'])]]));
+        expect(result.dynamicTabScreensByHost).toEqual(
+            new Map([
+                [
+                    'TagScreen',
+                    new Map([
+                        ['expenses', 'Last'],
+                        ['reports', 'Reports'],
+                    ]),
+                ],
+            ]),
+        );
+    });
+});
