@@ -17,7 +17,12 @@ const require = createRequire(import.meta.url);
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const expensifyConfigDirectory = path.dirname(require.resolve('eslint-config-expensify', {paths: [repoRoot]}));
 
-// The presets' ESLint plugins are dependencies of eslint-config-expensify, so they are looked up there first.
+/**
+ * Resolves a package the presets use. Their ESLint plugins are dependencies of eslint-config-expensify, so they are
+ * looked up there first.
+ * @param {string} request a package name, like `eslint-plugin-react`
+ * @returns {string} the resolved file path
+ */
 function resolvePackage(request) {
     return require.resolve(request, {paths: [expensifyConfigDirectory, repoRoot]});
 }
@@ -105,15 +110,31 @@ const REACT_COMPILER_RULES = new Set(Object.values(RULE_BY_CATEGORY));
 // the parser, and globals. Any other warning may mean a rule was lost or changed scope, so loading stops.
 const EXPECTED_WARNINGS = [/^Settings not migrated/, /^Settings found under a 'files' pattern/, /^special parser detected/, /^react\.version "detect"/, /^Added \d+ globals/];
 
+/**
+ * @param {unknown} entry a rule setting, like `'error'` or `['error', {...}]`
+ * @returns {unknown} its severity, like `'error'` or `2`
+ */
 const getSeverity = (entry) => (Array.isArray(entry) ? entry[0] : entry);
+
+/**
+ * @param {unknown} entry a rule setting
+ * @returns {boolean} whether the setting turns the rule off
+ */
 const isOff = (entry) => ['off', 0].includes(getSeverity(entry));
 
+/**
+ * Splits a rule ID into its plugin prefix and rule name: `react/jsx-no-bind` is `react` and `jsx-no-bind`, and a core
+ * rule like `curly` has an empty prefix.
+ * @param {string} ruleID
+ * @returns {{prefix: string, name: string}}
+ */
 function splitRuleID(ruleID) {
     const slash = ruleID.lastIndexOf('/');
     return slash === -1 ? {prefix: '', name: ruleID} : {prefix: ruleID.slice(0, slash), name: ruleID.slice(slash + 1)};
 }
 
 /**
+ * Loads the rules of one ESLint plugin from HOSTED_PLUGIN_PACKAGES, so oxlint runs the same rule code as ESLint.
  * @param {string} prefix an ESLint plugin prefix from HOSTED_PLUGIN_PACKAGES, like `react`
  * @returns {Record<string, import('eslint').Rule.RuleModule>}
  */
@@ -124,9 +145,13 @@ function getPluginRules(prefix) {
 
 const REACT_HOOKS_RULE_NAMES = new Set(Object.keys(getPluginRules('react-hooks')));
 
-// @oxlint/migrate runs twice. With type information it swaps some core rules (like dot-notation) for typescript-eslint
-// versions, which the presets turn off on JS files. The run without type information finds those core rules so they
-// still run on JS files.
+/**
+ * Converts the presets with @oxlint/migrate. It runs twice. With type information it swaps some core rules (like
+ * dot-notation) for typescript-eslint versions, which the presets turn off on JS files. The run without type
+ * information finds those core rules so they still run on JS files.
+ * @returns {Promise<{config: import('oxlint').OxlintConfig, skipped: Set<string>}>} the converted config, and the
+ * ESLint IDs of the preset rules it could not convert
+ */
 async function runMigrate() {
     const skipped = new Set();
     const run = async (typeAware) => {
@@ -254,7 +279,17 @@ const replayed = replaySkippedRules();
 
 // A rule the presets only ever turn off is left out of the `core` and `hosted` plugins.
 const enabledReplayTargets = new Set([replayed.rules, ...replayed.overrides.map((override) => override.rules)].flatMap((rules) => Object.keys(rules).filter((rule) => !isOff(rules[rule]))));
+
+/**
+ * @param {string} target a rule name as the App's config uses it, like `hosted/jsx-no-bind`
+ * @returns {boolean} false for a `core/` or `hosted/` rule the presets only turn off
+ */
 const isNeeded = (target) => !/^(core|hosted)\//.test(target) || enabledReplayTargets.has(target);
+
+/**
+ * @param {Record<string, unknown>} rules
+ * @returns {Record<string, unknown>} the rules without the `core/` and `hosted/` ones the presets only turn off
+ */
 const dropUnneededRules = (rules) => Object.fromEntries(Object.entries(rules).filter(([rule]) => isNeeded(rule)));
 
 const coreRuleNames = [...replayedRuleIDs.values()].filter((target) => target.startsWith('core/') && isNeeded(target)).map((target) => target.slice('core/'.length));
@@ -309,7 +344,18 @@ function translateRules(rules = {}) {
     return out;
 }
 
+/**
+ * @param {unknown} value
+ * @returns {boolean} whether the value is a plain object, not an array
+ */
 const isObject = (value) => value && typeof value === 'object' && !Array.isArray(value);
+
+/**
+ * Merges oxlint settings. Nested objects are merged key by key; any other value in `extra` replaces the one in `base`.
+ * @param {Record<string, unknown>} base
+ * @param {Record<string, unknown>} extra
+ * @returns {Record<string, unknown>} a new object; neither argument is changed
+ */
 const mergeSettings = (base, extra) => {
     const merged = {...base};
     for (const [key, value] of Object.entries(extra)) {
@@ -318,8 +364,11 @@ const mergeSettings = (base, extra) => {
     return merged;
 };
 
-// Settings ESLint's import rules read. oxlint has no per-file settings, so all blocks are merged. `import/parsers` is
-// skipped because oxlint parses files itself.
+/**
+ * Collects the presets' `import/*` settings, which ESLint's import rules read. oxlint has no per-file settings, so all
+ * blocks are merged. `import/parsers` is skipped because oxlint parses files itself.
+ * @returns {Record<string, unknown>}
+ */
 function getImportSettings() {
     let settings = {};
     for (const block of presets) {
@@ -342,8 +391,11 @@ function getJsPluginName(jsPlugin) {
     return jsPlugin.replace(/^eslint-plugin-/, '');
 }
 
-// Lists the ESLint plugins the presets need that oxlint has no version of (today only eslint-plugin-es).
-// eslint-plugin-rulesdir is skipped because plugins/expensify-rules.mjs loads those rules.
+/**
+ * Lists the ESLint plugins the presets need that oxlint has no version of (today only eslint-plugin-es).
+ * eslint-plugin-rulesdir is skipped because plugins/expensify-rules.mjs loads those rules.
+ * @returns {Array<{name: string, specifier: string}>} oxlint `jsPlugins` entries
+ */
 function getPresetJsPlugins() {
     const specifiers = new Set([migrated, ...(migrated.overrides ?? [])].flatMap((block) => block.jsPlugins ?? []));
     specifiers.delete('eslint-plugin-rulesdir');
