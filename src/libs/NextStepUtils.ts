@@ -13,7 +13,15 @@ import {addMonths, format, isPast, parseISO, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
 
 import DateUtils from './DateUtils';
-import {canSubmitOwnReportOnPolicy, getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimbursementChoice, getReimburserAccountID, isArchivedPolicy} from './PolicyUtils';
+import {
+    canCreateExpensesOnPolicy,
+    canSubmitOwnReportOnPolicy,
+    getApprovalWorkflow,
+    getCorrectedAutoReportingFrequency,
+    getReimbursementChoice,
+    getReimburserAccountID,
+    isArchivedPolicy,
+} from './PolicyUtils';
 import {getOriginalMessage} from './ReportActionMessageUtils';
 import {isDynamicExternalWorkflowApproveFailedAction} from './ReportActionTypeGuards';
 import {
@@ -446,6 +454,21 @@ function getReportNextStep({
     // The member can never submit their own report on this workspace, so the report has to be moved elsewhere to submit.
     if (isOpenExpenseReport(moneyRequestReport) && moneyRequestReport?.ownerAccountID === currentUserAccountID && !canSubmitOwnReportOnPolicy(policy, currentUserEmail)) {
         return buildApproveOnlySubmitBlockedNextStep();
+    }
+
+    // An open, empty report only waits for its owner to add expenses, which a member without the create-expense permission, such as approve-only, cannot do.
+    // The viewer's policy role stands in for the owner's role only when the viewer owns the report, so the check is limited to that case.
+    if (
+        moneyRequestReport?.ownerAccountID === currentUserAccountID &&
+        policy &&
+        isOpenExpenseReport(moneyRequestReport) &&
+        !doesReportContainTransactions(moneyRequestReport) &&
+        !canCreateExpensesOnPolicy(policy, moneyRequestReportOwnerLogin)
+    ) {
+        return {
+            messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
+            icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+        };
     }
 
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(moneyRequestReport);
