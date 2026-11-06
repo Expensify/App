@@ -13,8 +13,8 @@ const Base64URL = {
      * Converts a string into a URL-safe base64 representation.
      */
     encode: (value: string | Uint8Array): Base64URLString => {
-        // `Buffer.from` only has separate overloads for strings and byte arrays, so the union has to be narrowed first.
-        const bytes = typeof value === 'string' ? Buffer.from(value) : Buffer.from(value);
+        // `Buffer.from` has separate overloads for strings and byte arrays, so each type needs its own call.
+        const bytes = typeof value === 'string' ? Buffer.from(value, 'utf8') : Buffer.from(value);
         return bytes.toString('base64').replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '');
     },
     /**
