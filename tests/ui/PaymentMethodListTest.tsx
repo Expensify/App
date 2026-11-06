@@ -313,34 +313,21 @@ describe('PaymentMethodList', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(`settings/wallet/global-reimbursements/${WISE_BANK_ACCOUNT_ID}`);
     });
 
-    it('offers Continue when Wise needs more info', async () => {
-        // Given a business bank account whose submitted Wise onboarding Wise sent back for more info
-        await act(async () => {
-            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[WISE_BANK_ACCOUNT_ID]: createWiseBusinessBankAccount({status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED})});
-        });
-
-        // When the Wallet's bank accounts list renders and the admin presses Continue
-        renderBankAccountsList();
-        await waitForBatchedUpdatesWithAct();
-        fireEvent.press(screen.getByText('Continue.'), {preventDefault: jest.fn()});
-
-        // Then Continue opens the status page, since the onboarding is already with Wise and only waits on the admin's answers
-        expect(Navigation.navigate).toHaveBeenCalledWith(`settings/wallet/global-reimbursements/${WISE_BANK_ACCOUNT_ID}/status`);
-    });
-
-    it('shows a submitted Wise onboarding as in progress without Continue', async () => {
+    it('shows a submitted Wise onboarding as in review, with Check status opening the status page', async () => {
         // Given a business bank account whose Wise onboarding is in review
         await act(async () => {
             await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[WISE_BANK_ACCOUNT_ID]: createWiseBusinessBankAccount({status: CONST.WISE.ONBOARDING_STATUS.IN_REVIEW})});
         });
 
-        // When the Wallet's bank accounts list renders
+        // When the Wallet's bank accounts list renders and the admin presses Check status
         renderBankAccountsList();
         await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('Check status'), {preventDefault: jest.fn()});
 
-        // Then the row shows the setup is in progress, with nothing to continue, since the answers are already with Wise
-        expect(screen.getByText('Global reimbursements setup in progress.', {exact: false})).toBeOnTheScreen();
+        // Then the row says the setup is in review instead of offering to continue it, since the answers are already with Wise, and Check status opens its status page
+        expect(screen.getByText('Global reimbursements setup in review.', {exact: false})).toBeOnTheScreen();
         expect(screen.queryByText('Continue.')).not.toBeOnTheScreen();
+        expect(Navigation.navigate).toHaveBeenCalledWith(`settings/wallet/global-reimbursements/${WISE_BANK_ACCOUNT_ID}/status`);
     });
 
     it('hides the Wise onboarding row without the Wise beta', async () => {
