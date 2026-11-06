@@ -446,6 +446,7 @@ type SearchAutocompleteResult = {
 
 type SearchAutocompleteQueryRange = {
     key: SearchFilterKey;
+    negated?: boolean;
     length: number;
     start: number;
     value: string;

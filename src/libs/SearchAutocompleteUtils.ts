@@ -22,7 +22,7 @@ const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS: SearchFilterKey[] = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
 ];
 
-type AutocompleteParserRange = Pick<SearchAutocompleteQueryRange, 'value' | 'start' | 'length'> & {key: string};
+type AutocompleteParserRange = Pick<SearchAutocompleteQueryRange, 'value' | 'start' | 'length' | 'negated'> & {key: string};
 type AutocompleteParserResult = {autocomplete: AutocompleteParserRange | null; ranges: AutocompleteParserRange[]};
 type KnownFilterValues = {
     userLogins: ReadonlySet<string>;
