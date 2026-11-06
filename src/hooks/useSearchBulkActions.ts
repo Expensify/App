@@ -38,6 +38,7 @@ import {
     queueBulkApproveReports,
     queueBulkMarkAsExported,
     queueBulkPayReports,
+    queueBulkUnholdExpenses,
     queueBulkSubmitReports,
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
@@ -461,6 +462,21 @@ function getAllMatchingReportQuery(queryJSON: SearchQueryJSON, excludedTransacti
     });
 
     return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, flatFilters}));
+}
+
+/** Builds the query and the deselected expenses to send to the backend for a "Select all" bulk action on expenses. */
+function getAllMatchingExpenseActionQuery(
+    queryJSON: SearchQueryJSON,
+    excludedTransactions: SelectedTransactions,
+    searchData: SearchResultDataType | undefined,
+): {jsonQuery: string; excludedTransactionIDList: string[]} | undefined {
+    if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+        const reportQuery = getAllMatchingReportQuery(queryJSON, excludedTransactions);
+        return reportQuery ? {jsonQuery: serializeQueryJSONForBackend(reportQuery), excludedTransactionIDList: []} : undefined;
+    }
+
+    const expenseQuery = getAllMatchingExportQueryAndExclusions(queryJSON, excludedTransactions, searchData);
+    return expenseQuery ? {jsonQuery: serializeQueryJSONForBackend(expenseQuery.queryJSON), excludedTransactionIDList: expenseQuery.excludedTransactionIDList} : undefined;
 }
 
 /**
@@ -2919,6 +2935,109 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             },
         };
 
+        const rejectOption: DropdownOption<SearchHeaderOptionValue> = {
+            icon: expensifyIcons.ThumbsDown,
+            text: translate('search.bulkActions.reject'),
+            value: CONST.SEARCH.BULK_ACTION_TYPES.REJECT,
+            shouldCloseModalOnSelect: true,
+            onSelected: () => {
+                if (isOffline) {
+                    showOfflineModal();
+                    return;
+                }
+
+                if (isDelegateAccessRestricted) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+
+                if (dismissedRejectUseExplanation) {
+                    Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
+                } else {
+                    showHoldOrRejectEducationalModal().finally(() => dismissRejectModalBasedOnAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT));
+                }
+            },
+        };
+
+        const holdOption: DropdownOption<SearchHeaderOptionValue> = {
+            icon: expensifyIcons.Stopwatch,
+            text: translate('search.bulkActions.hold'),
+            value: CONST.SEARCH.BULK_ACTION_TYPES.HOLD,
+            shouldCloseModalOnSelect: true,
+            onSelected: () => {
+                if (isOffline) {
+                    showOfflineModal();
+                    return;
+                }
+
+                if (isDelegateAccessRestricted) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+
+                const shouldShowHoldEducationalModal = areAllTransactionsFromSubmitter || areAllTransactionsFromDMReports;
+                const isDismissed = shouldShowHoldEducationalModal ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
+
+                if (isDismissed) {
+                    navigateToSearchRHP(ROUTES.TRANSACTION_HOLD_REASON_SEARCH, ROUTES.TRANSACTION_HOLD_REASON_RHP);
+                } else if (shouldShowHoldEducationalModal) {
+                    showHoldSubmitterEducationalModal({isDM: areAllTransactionsFromDMReports}).finally(dismissModalAndUpdateUseHold);
+                } else {
+                    showHoldOrRejectEducationalModal().finally(() => dismissRejectModalBasedOnAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD));
+                }
+            },
+        };
+
+        const unholdOption: DropdownOption<SearchHeaderOptionValue> = {
+            icon: expensifyIcons.Stopwatch,
+            text: translate('search.bulkActions.unhold'),
+            value: CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD,
+            shouldCloseModalOnSelect: true,
+            onSelected: () => {
+                if (isDelegateAccessRestricted) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+
+                if (areAllMatchingItemsSelected) {
+                    const allMatchingQuery = queryJSON ? getAllMatchingExpenseActionQuery(queryJSON, excludedTransactions, currentSearchResults?.data) : undefined;
+                    if (!allMatchingQuery) {
+                        Log.info('[BulkUnhold] Dropping bulk unhold: an excluded row could not be resolved');
+                        return;
+                    }
+                    queueBulkUnholdExpenses(allMatchingQuery.jsonQuery, allMatchingQuery.excludedTransactionIDList);
+                    clearSelectedTransactions();
+                    return;
+                }
+
+                for (const transactionID of selectedTransactionsKeys) {
+                    const childReportID = selectedTransactions[transactionID].reportAction?.childReportID;
+                    if (!childReportID) {
+                        Log.info('[BulkUnhold] Skipping transaction: report action has no childReportID', false, {transactionID});
+                        continue;
+                    }
+                    const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+                    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? selectedTransactions[transactionID].transaction;
+                    unholdRequest({
+                        transactionID,
+                        reportID: childReportID,
+                        transaction,
+                        transactionReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`],
+                        report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`],
+                        policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedTransactions[transactionID].policyID}`],
+                        isOffline,
+                        currentUserLogin: currentUserLogin ?? '',
+                        currentUserAccountID: accountID,
+                        transactionViolations,
+                        isTrackIntentUser,
+                        delegateAccountID,
+                        rules,
+                    });
+                }
+                clearSelectedTransactions();
+            },
+        };
+
         const isExpenseReportSearch = isExpenseReportType || searchResults?.search.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
         const downloadPDFOption: DropdownOption<SearchHeaderOptionValue> = {
@@ -2988,6 +3107,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
             if (shouldShowPayOption) {
                 allMatchingOptions.push(payButtonOption);
+            }
+            // A deselected group that can't be turned into a filter, like a date group, can't be left out of the query.
+            const canQueueExpenseAction = !isOffline && !!queryJSON && !!getAllMatchingExpenseActionQuery(queryJSON, excludedTransactions, currentSearchResults?.data);
+            // The backend only rejects expenses on reports the user can reject, so one loaded item is enough to offer it.
+            if (isExpenseType && canQueueExpenseAction && selectedTransactionsKeys.some((id) => selectedTransactions[id].canReject)) {
+                allMatchingOptions.push(rejectOption);
+            }
+            // The backend only acts on the matching expenses the user can hold or unhold, so one loaded item is enough to offer it.
+            if ((isExpenseType || isExpenseReportType) && canQueueExpenseAction && selectedTransactionsKeys.some((id) => selectedTransactions[id].canHold)) {
+                allMatchingOptions.push(holdOption);
+            }
+            if ((isExpenseType || isExpenseReportType) && canQueueExpenseAction && selectedTransactionsKeys.some((id) => selectedTransactions[id].canUnhold)) {
+                allMatchingOptions.push(unholdOption);
             }
             allMatchingOptions.push(exportButtonOption);
             if (isExpenseReportSearch) {
@@ -3088,29 +3220,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             hasNoRejectedTransaction;
 
         if (shouldShowRejectOption) {
-            options.push({
-                icon: expensifyIcons.ThumbsDown,
-                text: translate('search.bulkActions.reject'),
-                value: CONST.SEARCH.BULK_ACTION_TYPES.REJECT,
-                shouldCloseModalOnSelect: true,
-                onSelected: () => {
-                    if (isOffline) {
-                        showOfflineModal();
-                        return;
-                    }
-
-                    if (isDelegateAccessRestricted) {
-                        showDelegateNoAccessModal();
-                        return;
-                    }
-
-                    if (dismissedRejectUseExplanation) {
-                        Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
-                    } else {
-                        showHoldOrRejectEducationalModal().finally(() => dismissRejectModalBasedOnAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT));
-                    }
-                },
-            });
+            options.push(rejectOption);
         }
 
         const shouldShowChangeApproverOption =
@@ -3260,77 +3370,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         const shouldShowHoldOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canHold);
 
         if (shouldShowHoldOption) {
-            options.push({
-                icon: expensifyIcons.Stopwatch,
-                text: translate('search.bulkActions.hold'),
-                value: CONST.SEARCH.BULK_ACTION_TYPES.HOLD,
-                shouldCloseModalOnSelect: true,
-                onSelected: () => {
-                    if (isOffline) {
-                        showOfflineModal();
-                        return;
-                    }
-
-                    if (isDelegateAccessRestricted) {
-                        showDelegateNoAccessModal();
-                        return;
-                    }
-
-                    const shouldShowHoldEducationalModal = areAllTransactionsFromSubmitter || areAllTransactionsFromDMReports;
-                    const isDismissed = shouldShowHoldEducationalModal ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
-
-                    if (isDismissed) {
-                        navigateToSearchRHP(ROUTES.TRANSACTION_HOLD_REASON_SEARCH, ROUTES.TRANSACTION_HOLD_REASON_RHP);
-                    } else if (shouldShowHoldEducationalModal) {
-                        showHoldSubmitterEducationalModal({isDM: areAllTransactionsFromDMReports}).finally(dismissModalAndUpdateUseHold);
-                    } else {
-                        showHoldOrRejectEducationalModal().finally(() => dismissRejectModalBasedOnAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD));
-                    }
-                },
-            });
+            options.push(holdOption);
         }
 
         const shouldShowUnholdOption = selectedTransactionsKeys.every((id) => selectedTransactions[id].canUnhold);
 
         if (shouldShowUnholdOption) {
-            options.push({
-                icon: expensifyIcons.Stopwatch,
-                text: translate('search.bulkActions.unhold'),
-                value: CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD,
-                shouldCloseModalOnSelect: true,
-                onSelected: () => {
-                    if (isDelegateAccessRestricted) {
-                        showDelegateNoAccessModal();
-                        return;
-                    }
-
-                    for (const transactionID of selectedTransactionsKeys) {
-                        const childReportID = selectedTransactions[transactionID].reportAction?.childReportID;
-                        if (!childReportID) {
-                            Log.info('[BulkUnhold] Skipping transaction: report action has no childReportID', false, {transactionID});
-                            continue;
-                        }
-                        const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-                        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? selectedTransactions[transactionID].transaction;
-                        unholdRequest({
-                            transactionID,
-                            reportID: childReportID,
-                            transaction,
-                            transactionReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`],
-                            report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`],
-                            policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedTransactions[transactionID].policyID}`],
-                            isOffline,
-                            currentUserLogin: currentUserLogin ?? '',
-                            currentUserAccountID: accountID,
-                            transactionViolations,
-                            isTrackIntentUser,
-                            delegateAccountID,
-                            rules,
-                        });
-                    }
-                    clearSelectedTransactions();
-                },
-            });
+            options.push(unholdOption);
         }
 
         if (selectedTransactionsKeys.length < 3 && searchResults?.search.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && searchResults?.data) {
@@ -3600,5 +3646,5 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 }
 
 export default useSearchBulkActions;
-export {getFullyDeletedGroupKeysByTransactionID, getGroupKeysSelectedViaGroup, getSelectedGroupKeys, shouldShowBulkDuplicateOption};
+export {getAllMatchingExpenseActionQuery, getFullyDeletedGroupKeysByTransactionID, getGroupKeysSelectedViaGroup, getSelectedGroupKeys, shouldShowBulkDuplicateOption};
 export type {SearchHeaderOptionValue};
