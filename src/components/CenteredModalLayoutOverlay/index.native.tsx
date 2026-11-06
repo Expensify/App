@@ -22,7 +22,7 @@ function CenteredModalLayoutOverlay({onBackdropPress}: CenteredModalLayoutOverla
             role={CONST.ROLE.BUTTON}
             id={CONST.OVERLAY.TOP_BUTTON_NATIVE_ID}
             tabIndex={-1}
-            sentryLabel="CenteredModalLayout-backdrop"
+            sentryLabel={CONST.SENTRY_LABEL.CENTERED_MODAL_LAYOUT.BACKDROP}
         />
     );
 }
