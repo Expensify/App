@@ -5,6 +5,7 @@ import type {Country} from '@src/CONST';
 import {
     containsHtmlTag,
     getCountryZipRegexDetails,
+    getDateRangeError,
     getFieldRequiredErrors,
     isValidZipCodeForCountry,
     isValidNameOnCard,
@@ -351,6 +352,59 @@ describe('ValidationUtils', () => {
             const invalidDate = '2023-07-32'; // Invalid date
             const error = getAgeRequirementError(translateLocal, invalidDate, 18, 150);
             expect(error).toBe(translateLocal('common.error.dateInvalid'));
+        });
+    });
+
+    describe('getDateRangeError', () => {
+        const minimumDate = new Date(2008, 0, 10);
+        const maximumDate = new Date(2008, 9, 16);
+
+        test('Should return an empty string for a date inside the range', () => {
+            // Given a date the calendar would have offered
+            // When it is validated against that calendar's bounds
+            // Then nothing is reported, since there is no problem to tell the user about
+            expect(getDateRangeError(translateLocal, '2008-05-20', minimumDate, maximumDate)).toBe('');
+        });
+
+        test('Should accept the bounds themselves', () => {
+            // Given a date on either bound
+            // When it is validated
+            // Then it passes, because a calendar offers the first and last dates it shows
+            expect(getDateRangeError(translateLocal, '2008-01-10', minimumDate, maximumDate)).toBe('');
+            expect(getDateRangeError(translateLocal, '2008-10-16', minimumDate, maximumDate)).toBe('');
+        });
+
+        test('Should return an error message for a date after the maximum', () => {
+            // Given a date past the newest the calendar offers, which only typing can reach
+            // When it is validated
+            // Then the error names the bound, so the user knows what to correct it to
+            expect(getDateRangeError(translateLocal, '2008-12-25', minimumDate, maximumDate)).toBe(
+                translateLocal('privatePersonalDetails.error.dateShouldBeBefore', format(maximumDate, CONST.DATE.FNS_FORMAT_STRING)),
+            );
+        });
+
+        test('Should return an error message for a date before the minimum', () => {
+            // Given a date before the oldest the calendar offers
+            // When it is validated
+            // Then the error names the bound it fell short of
+            expect(getDateRangeError(translateLocal, '2007-12-31', minimumDate, maximumDate)).toBe(
+                translateLocal('privatePersonalDetails.error.dateShouldBeAfter', format(minimumDate, CONST.DATE.FNS_FORMAT_STRING)),
+            );
+        });
+
+        test('Should ignore the time of day on the bounds', () => {
+            // Given bounds carrying a time, which a date field never shows
+            // When a date on the same day as the maximum is validated
+            // Then it passes, since the comparison is by day and not by the hour the bound happens to hold
+            expect(getDateRangeError(translateLocal, '2008-10-16', new Date(2008, 0, 10, 23, 59), new Date(2008, 9, 16, 1, 0))).toBe('');
+        });
+
+        test('Should return an error message for a date that does not exist', () => {
+            // Given digits that read as a date but name a day the month does not have
+            // When they are validated
+            // Then they are reported as invalid rather than as out of range, since there is no range to place them in
+            expect(getDateRangeError(translateLocal, '2008-02-31', minimumDate, maximumDate)).toBe(translateLocal('common.error.dateInvalid'));
+            expect(getDateRangeError(translateLocal, '', minimumDate, maximumDate)).toBe(translateLocal('common.error.dateInvalid'));
         });
     });
 

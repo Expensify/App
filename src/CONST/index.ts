@@ -1746,6 +1746,11 @@ const CONST = {
             shortcutKey: 'Backspace',
             modifiers: [],
         },
+        DELETE: {
+            descriptionKey: null,
+            shortcutKey: 'Delete',
+            modifiers: [],
+        },
         SPACE: {
             descriptionKey: null,
             shortcutKey: 'Space',
@@ -10331,6 +10336,9 @@ const CONST = {
         },
         DATE_PICKER: {
             CLEAR_BUTTON: 'DatePicker-ClearButton',
+        },
+        DATE_SEGMENTS_INPUT: {
+            EMPTY_SPACE: 'DateSegmentsInput-EmptySpace',
         },
         COUNTRY_PICKER: {
             OPEN: 'CountryPicker-Open',

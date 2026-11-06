@@ -67,6 +67,7 @@ const darkTheme = {
     textDark: colors.productDark100,
     textReversed: colors.productLight900,
     textBackground: colors.productDark200,
+    textSelectionBackground: colors.blue700,
     textMutedReversed: colors.productDark700,
     textError: colors.tangerine300,
     textSuccess: colors.green300,
