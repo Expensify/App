@@ -1,6 +1,7 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import ReportAvatar from '@components/Avatar/connected/ReportAvatar';
+import type {AvatarCommonProps} from '@components/Avatar/types';
 import UserAvatar from '@components/Avatar/UserAvatar';
 import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import Badge from '@components/Badge';
@@ -63,7 +64,7 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {ImageContentFit} from 'expo-image';
 import type {ComponentRef, ReactElement, ReactNode, Ref} from 'react';
-import type {AccessibilityState, GestureResponderEvent, ImageStyle, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {AccessibilityState, GestureResponderEvent, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 
@@ -253,7 +254,7 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
         /** Additional styles for the avatar image when the icon type is an avatar */
-        avatarImageStyles?: StyleProp<ViewStyle & ImageStyle>;
+        avatarImageStyles?: AvatarCommonProps['imageStyles'];
 
         /** Affects avatar size  */
         viewMode?: ValueOf<typeof CONST.OPTION_MODE>;
@@ -653,32 +654,30 @@ function MenuItem({
         iconLeftPadding = {};
     }
 
-    const combinedTitleTextStyle = StyleUtils.combineStyles<TextStyle>(
-        [
-            styles.flexShrink1,
-            styles.popoverMenuText,
-            iconLeftPadding,
-            shouldShowBasicTitle ? {} : styles.textStrong,
-            numberOfLinesTitle !== 1 ? styles.preWrap : styles.pre,
-            interactive && disabled ? {...styles.userSelectNone} : {},
-            styles.ltr,
-            isDeleted ? styles.offlineFeedbackDeleted : {},
-            shouldBreakWord ? styles.breakWord : {},
-            styles.mw100,
-        ],
-        (titleStyle ?? {}) as TextStyle,
-    );
+    const titleTextStyles: Array<StyleProp<TextStyle>> = [
+        styles.flexShrink1,
+        styles.popoverMenuText,
+        iconLeftPadding,
+        shouldShowBasicTitle ? {} : styles.textStrong,
+        numberOfLinesTitle !== 1 ? styles.preWrap : styles.pre,
+        interactive && disabled ? {...styles.userSelectNone} : {},
+        styles.ltr,
+        isDeleted ? styles.offlineFeedbackDeleted : {},
+        shouldBreakWord ? styles.breakWord : {},
+        styles.mw100,
+    ];
+    const combinedTitleTextStyle = titleTextStyles.concat(titleStyle ?? {});
 
-    const descriptionTextStyles = StyleUtils.combineStyles<TextStyle>([
+    const descriptionTextStyles: StyleProp<TextStyle> = [
         styles.textLabelSupporting,
         styles.flex1,
         title ? {} : StyleUtils.getFontSizeStyle(fontScale.text),
         title ? styles.textLineHeightNormal : StyleUtils.getLineHeightStyle(lineHeightScale.text),
         !descriptionAddon && hasIcon ? styles.ml3 : {},
         descriptionAddon ? styles.ml2 : {},
-        (descriptionTextStyle as TextStyle) || styles.breakWord,
+        descriptionTextStyle || styles.breakWord,
         isDeleted ? styles.offlineFeedbackDeleted : {},
-    ]);
+    ];
 
     const descriptionContainerStyle = StyleUtils.combineStyles<ViewStyle>([
         styles.flexRow,
@@ -791,7 +790,10 @@ function MenuItem({
         }
 
         if (event?.type === 'click') {
-            (event.currentTarget as HTMLElement).blur();
+            const target = event.currentTarget;
+            if (target && typeof target === 'object' && 'blur' in target && typeof target.blur === 'function') {
+                target.blur();
+            }
         }
 
         if (onPress && event) {

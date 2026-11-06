@@ -18,8 +18,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route as Routes} from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import type {TupleToUnion} from 'type-fest';
-
 import {format, isValid} from 'date-fns';
 import React, {useRef, useState} from 'react';
 import {PanResponder, PixelRatio, Platform, View} from 'react-native';
@@ -121,12 +119,13 @@ function ImportSpreadsheet({
         return true;
     };
 
-    const readFile = (file: File) => {
-        if (!validateFile(file)) {
+    const readFile = (file: FileObject) => {
+        if (!validateFile(file) || typeof file.name !== 'string') {
             return;
         }
 
-        const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
+        const fileName = file.name;
+        const {fileExtension} = splitExtensionFromFileName(fileName);
         const statementExtensions: readonly string[] = CONST.OFX_STATEMENT_EXTENSIONS;
 
         // A statement carries its own columns, so the backend parses it and the column mapping step is skipped.
@@ -142,14 +141,14 @@ function ImportSpreadsheet({
             return;
         }
 
-        let fileURI = file.uri ?? URL.createObjectURL(file);
+        let fileURI = file.uri ?? (file instanceof Blob ? URL.createObjectURL(file) : undefined);
         if (!fileURI) {
             return;
         }
         if (Platform.OS === 'ios') {
             fileURI = fileURI.replaceAll(/^.*\/Documents\//g, `${RNFetchBlob.fs.dirs.DocumentDir}/`);
         }
-        const shouldReadAsText = CONST.TEXT_SPREADSHEET_EXTENSIONS.includes(fileExtension as TupleToUnion<typeof CONST.TEXT_SPREADSHEET_EXTENSIONS>);
+        const shouldReadAsText = CONST.TEXT_SPREADSHEET_EXTENSIONS.some((extension) => extension === fileExtension);
 
         setIsReadingFile(true);
 
@@ -175,7 +174,11 @@ function ImportSpreadsheet({
                     .then((workbook) => {
                         const worksheet = workbook.Sheets[workbook.SheetNames[0]];
                         // Use raw: true to preserve original string values from CSV (especially dates)
-                        const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false, raw: true}) as string[][] | unknown[][];
+                        const data = XLSX.utils.sheet_to_json<unknown[]>(worksheet, {
+                            header: 1,
+                            blankrows: false,
+                            raw: true,
+                        });
                         const formattedSpreadsheetData = data.map((row) =>
                             row.map((cell) => {
                                 if (cell == null) {
@@ -197,7 +200,7 @@ function ImportSpreadsheet({
                             formattedSpreadsheetData,
                             fileURI,
                             file.type,
-                            file.name,
+                            fileName,
                             isImportingMultiLevelTags ?? false,
                             importedSpreadsheet?.importTransactionSettings,
                             isAppendingToExistingLists,
@@ -238,7 +241,14 @@ function ImportSpreadsheet({
 
     const desktopView = (
         <>
-            <View onLayout={({nativeEvent}) => setFileTopPosition(PixelRatio.roundToNearestPixel((nativeEvent.layout as DOMRect).top))}>
+            <View
+                onLayout={({nativeEvent}) => {
+                    const {layout} = nativeEvent;
+                    if ('top' in layout && typeof layout.top === 'number') {
+                        setFileTopPosition(PixelRatio.roundToNearestPixel(layout.top));
+                    }
+                }}
+            >
                 <ImageSVG
                     src={icons.SpreadsheetComputer}
                     contentFit="contain"
@@ -266,7 +276,7 @@ function ImportSpreadsheet({
                         onPress={() => {
                             openPicker({
                                 onPicked: (file) => {
-                                    readFile(file as File);
+                                    readFile(file);
                                 },
                             });
                         }}
