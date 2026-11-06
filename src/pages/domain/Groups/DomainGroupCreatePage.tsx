@@ -166,6 +166,7 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                     <ToggleSettingOptionRow
                         title={translate('domain.groups.defaultGroup')}
                         switchAccessibilityLabel={translate('domain.groups.defaultGroup')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.CREATE_DEFAULT_GROUP_SWITCH}
                         isActive={defaultGroupForNewMembers}
                         onToggle={setDefaultGroupForNewMembers}
                         wrapperStyle={[styles.ph5, styles.mv3]}
@@ -176,6 +177,7 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                         title={translate('domain.groups.strictlyEnforceWorkspaceRules')}
                         subtitle={translate('domain.groups.strictlyEnforceWorkspaceRulesDescription')}
                         switchAccessibilityLabel={translate('domain.groups.strictlyEnforceWorkspaceRules')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.CREATE_STRICTLY_ENFORCE_WORKSPACE_RULES_SWITCH}
                         isActive={strictlyEnforceWorkspaceRules}
                         onToggle={setStrictlyEnforceWorkspaceRules}
                         wrapperStyle={[styles.ph5, styles.mv3]}
@@ -185,6 +187,7 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                         title={translate('domain.groups.restrictDefaultLoginSelection')}
                         subtitle={translate('domain.groups.restrictDefaultLoginSelectionDescription')}
                         switchAccessibilityLabel={translate('domain.groups.restrictDefaultLoginSelection')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.CREATE_RESTRICT_DEFAULT_LOGIN_SELECTION_SWITCH}
                         isActive={restrictDefaultLoginSelection}
                         onToggle={setRestrictDefaultLoginSelection}
                         wrapperStyle={[styles.ph5, styles.mv3]}
@@ -194,6 +197,7 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                         title={translate('domain.groups.restrictExpenseWorkspaceCreation')}
                         subtitle={translate('domain.groups.restrictExpenseWorkspaceCreationDescription')}
                         switchAccessibilityLabel={translate('domain.groups.restrictExpenseWorkspaceCreation')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.CREATE_RESTRICT_EXPENSE_WORKSPACE_CREATION_SWITCH}
                         isActive={restrictExpenseWorkspaceCreation}
                         onToggle={setRestrictExpenseWorkspaceCreation}
                         wrapperStyle={[styles.ph5, styles.mv3]}
@@ -203,6 +207,7 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                         title={translate('domain.groups.preferredWorkspace')}
                         subtitle={translate('domain.groups.preferredWorkspaceDescription', preferredWorkspace)}
                         switchAccessibilityLabel={translate('domain.groups.preferredWorkspace')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.CREATE_PREFERRED_WORKSPACE_SWITCH}
                         isActive={preferredWorkspace}
                         disabled={!canEnablePreferredWorkspace && !preferredWorkspace}
                         disabledAction={() => {
@@ -239,6 +244,7 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                         title={translate('domain.groups.expensifyCardPreferredWorkspace')}
                         subtitle={translate('domain.groups.expensifyCardPreferredWorkspaceDescription')}
                         switchAccessibilityLabel={translate('domain.groups.expensifyCardPreferredWorkspace')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.CREATE_EXPENSIFY_CARD_PREFERRED_WORKSPACE_SWITCH}
                         isActive={expensifyCardPreferredWorkspace}
                         disabled={!canEnableCardPreferredWorkspace && !expensifyCardPreferredWorkspace}
                         disabledAction={() => {
