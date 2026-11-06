@@ -140,6 +140,8 @@ describe('SearchChangeWorkspacePage', () => {
             [`${ONYXKEYS.COLLECTION.REPORT}report2`]: makeReport('report2', CONST.REPORT.STATUS_NUM.OPEN),
         };
         await Onyx.clear();
+        // ReportUtils keeps the last signed-in user until the session is replaced
+        await Onyx.set(ONYXKEYS.SESSION, {});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[SUBMITTER_ACCOUNT_ID]: {accountID: SUBMITTER_ACCOUNT_ID, login: SUBMITTER_EMAIL}});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy2`, makePolicy('policy2', 'Workspace 2', CONST.POLICY.ROLE.USER));
     });
@@ -235,6 +237,43 @@ describe('SearchChangeWorkspacePage', () => {
 
         // Then it isn't offered, since a bulk move doesn't invite the submitter like a single report does
         expect(mockListData.map((item) => item.policyID)).toEqual(['policy2']);
+    });
+
+    it('lists a workspace the submitter is on when their login is in a different case', async () => {
+        // Given the submitter's login has capitals, while the workspace members are stored in lowercase
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[SUBMITTER_ACCOUNT_ID]: {login: 'Submitter@Example.com'}});
+
+        // When the page lists the workspaces
+        render(
+            <OnyxListItemProvider>
+                <SearchChangeWorkspacePage />
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the workspace is still offered
+        expect(mockListData.map((item) => item.policyID)).toEqual(['policy2']);
+    });
+
+    it("lists the user's own workspace when it has no member list", async () => {
+        // Given the user moves their own drafts, and Workspace 3 only says they're a member through its role
+        mockSearchData = {
+            [`${ONYXKEYS.COLLECTION.REPORT}report1`]: {...makeReport('report1', CONST.REPORT.STATUS_NUM.OPEN), stateNum: CONST.REPORT.STATE_NUM.OPEN},
+        };
+        mockSelectedReports = [{reportID: 'report1'}];
+        await Onyx.merge(ONYXKEYS.SESSION, {email: SUBMITTER_EMAIL, accountID: SUBMITTER_ACCOUNT_ID});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy3`, {id: 'policy3', name: 'Workspace 3', type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.USER});
+
+        // When the page lists the workspaces
+        render(
+            <OnyxListItemProvider>
+                <SearchChangeWorkspacePage />
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Workspace 3 is offered
+        expect(mockListData.map((item) => item.policyID)).toContain('policy3');
     });
 
     it('only lists workspaces for the reports Change workspace was offered for', async () => {

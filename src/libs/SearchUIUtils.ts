@@ -143,6 +143,7 @@ import {
     isControlPolicy,
     isGroupPolicy,
     isPaidGroupPolicy,
+    getPolicyRole,
     isPolicyAdmin,
     isPolicyApprover,
     isPolicyPayer,
@@ -206,6 +207,7 @@ import {
     isPayOptional,
     isProcessingReport,
     isSettled,
+    isWorkspaceEligibleForReportChange,
     shouldReportShowSubscript,
 } from './ReportUtils';
 import {getAmountFilterDisplayValue} from './SearchAmountFilterUtils';
@@ -7748,7 +7750,18 @@ function canChangeWorkspaceOfSearchReport(
     }
     // The export check falls back to the report's whole history, which the snapshot may only hold part of
     const reportActions = Object.values(getReportActionsFromSearchSnapshot(report.reportID, currentSearchResults, allReportActions, true) ?? {});
-    return isChangeWorkspaceAction(report, policies, currentUserLogin ?? '', getLoginByAccountID(report.ownerAccountID, personalDetails), reportActions);
+    const submitterLogin = getLoginByAccountID(report.ownerAccountID, personalDetails);
+    return (
+        isChangeWorkspaceAction(report, policies, currentUserLogin ?? '', submitterLogin, reportActions) &&
+        Object.values(policies ?? {}).some((policy) => !!policy && policy.id !== report.policyID && canBulkMoveReportToPolicy(report, policy, submitterLogin, currentUserLogin))
+    );
+}
+
+/** Whether a bulk workspace change can move the report to the workspace, which needs the submitter there already since it can't invite them. */
+function canBulkMoveReportToPolicy(report: OnyxTypes.Report, policy: OnyxEntry<OnyxTypes.Policy>, submitterLogin: string | undefined, currentUserLogin: string | undefined): boolean {
+    // The current user's own workspaces can come without an employee list, and their role already says they're on it
+    const isSubmitterOnPolicy = submitterLogin === currentUserLogin ? !!policy?.role : !!getPolicyRole(policy, submitterLogin, false);
+    return isSubmitterOnPolicy && isWorkspaceEligibleForReportChange(submitterLogin, policy, report) && (!isSettled(report) || isPolicyAdmin(policy, currentUserLogin));
 }
 
 function shouldShowDeleteOption(
@@ -7920,6 +7933,7 @@ function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, gro
 }
 
 export {
+    canBulkMoveReportToPolicy,
     canChangeWorkspaceOfSearchReport,
     doesTransactionMatchFooterTotal,
     getSnapshotFooterTotal,
