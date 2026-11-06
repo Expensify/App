@@ -161,6 +161,8 @@ export default {
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
     sidePanelWidth: 375,
+    // A resizable side panel opens as wide as an RHP and can still be dragged down to sidePanelWidth.
+    resizableSidePanelDefaultWidth: 440,
     rhpFloatingCardMargin: 12,
     // The frame width compensates for this border.
     rhpFloatingCardBorderWidth: 1,

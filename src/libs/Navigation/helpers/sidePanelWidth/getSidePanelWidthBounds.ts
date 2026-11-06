@@ -8,7 +8,7 @@ import variables from '@styles/variables';
 import type PaneWidthBounds from '@src/types/utils/PaneWidthBounds';
 
 /**
- * Never narrower than the default, and never wider than a single RHP can be dragged in the same window, so the two panes resize alike.
+ * Never narrower than the fixed panel, and never wider than a single RHP can be dragged in the same window, so the two panes resize alike.
  * A docked panel shifts the RHP left by its width, so beside a wide RHP it also leaves room for the wide card to stay on screen.
  * The super wide RHP gives up width to the panel down to the wide width, so the same room keeps it on screen too.
  */

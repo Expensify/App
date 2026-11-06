@@ -27,7 +27,7 @@ function SidePanelResizeHandle() {
             onyxKey={ONYXKEYS.SIDE_PANEL_WIDTH}
             width={sidePanelWidth}
             bounds={sidePanelWidthBounds}
-            defaultWidth={variables.sidePanelWidth}
+            defaultWidth={variables.resizableSidePanelDefaultWidth}
             liveWidth={sidePanelWidthVariable}
             style={styles.sidePanelResizeHandle}
         />

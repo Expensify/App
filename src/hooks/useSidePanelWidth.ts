@@ -26,9 +26,10 @@ function useSidePanelWidth(): SidePanelWidth {
 
     // Only a docked panel shifts the RHP. One floating over the page leaves it where it is.
     const bounds = getSidePanelWidthBounds(windowWidth, isExtraLargeScreenWidth && isWideRHPDisplayed);
-    const {width, isResizable} = usePaneWidth(ONYXKEYS.SIDE_PANEL_WIDTH, CONST.BETAS.RESIZABLE_SIDE_PANEL, variables.sidePanelWidth, bounds);
+    const {width, isResizable} = usePaneWidth(ONYXKEYS.SIDE_PANEL_WIDTH, CONST.BETAS.RESIZABLE_SIDE_PANEL, variables.resizableSidePanelDefaultWidth, bounds);
 
-    return {width, bounds, isResizable};
+    // Outside the beta the panel keeps its fixed width.
+    return {width: isResizable ? width : variables.sidePanelWidth, bounds, isResizable};
 }
 
 export default useSidePanelWidth;
