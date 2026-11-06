@@ -27,7 +27,6 @@ import startCase from 'lodash/startCase';
 
 import type en from './en';
 import type {CompanyCardBalanceParams} from './params';
-import type {ReportNextStepMessageParams} from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;
@@ -2090,156 +2089,214 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     nextStep: {
         message: {
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: ({actor, actorType}: ReportNextStepMessageParams) => {
-                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
-                    return `Wacht tot <strong>jij</strong> onkosten toevoegt.`;
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Wacht tot <strong>jij</strong> uitgaven toevoegt.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Wachten tot <strong>${actor}</strong> uitgaven toevoegt.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Wachten tot een beheerder uitgaven toevoegt.`;
                 }
-                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
-                    return `Wachten tot <strong>${actor}</strong> uitgaven toevoegt.`;
-                }
-                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
-                    return `Wachten tot een beheerder uitgaven toevoegt.`;
-                }
-                return '';
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: ({actor, actorType}: ReportNextStepMessageParams) => {
-                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
-                    return `Wachten tot <strong>jij</strong> declaraties indient.`;
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Er wordt gewacht tot <strong>jij</strong> declaraties indient.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Wachten tot <strong>${actor}</strong> de onkosten indient.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Wachten tot een beheerder de onkosten indient.`;
                 }
-                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
-                    return `Wachten tot <strong>${actor}</strong> onkosten indient.`;
-                }
-                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
-                    return `Wachten tot een beheerder onkosten indient.`;
-                }
-                return '';
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: ({actor, actorType}: ReportNextStepMessageParams) => {
-                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
-                    return `Wachten tot <strong>jij</strong> dit als voltooid markeert.`;
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Er wordt gewacht tot <strong>jij</strong> dit als voltooid markeert.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Wachten tot <strong>${actor}</strong> dit als voltooid markeert.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Wachten tot een beheerder dit als voltooid markeert.`;
                 }
-                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
-                    return `Wachten tot <strong>${actor}</strong> dit als voltooid markeert.`;
-                }
-                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
-                    return `Wachten tot een beheerder dit als voltooid markeert.`;
-                }
-                return '';
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (params: ReportNextStepMessageParams) => `Geen verdere actie vereist!`,
-            [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (params: ReportNextStepMessageParams) => `Wijzig de werkruimte van het rapport voor verdere acties.`,
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType, requiredDepositCurrency}: ReportNextStepMessageParams) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `Geen verdere actie vereist!`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `Wijzig de werkruimte van het rapport voor verdere acties.`,
+
+            [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `Je kunt in deze workspace alleen goedkeuren. Verplaats dit rapport naar een andere om het in te dienen.`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                requiredDepositCurrency?: string,
+            ) => {
                 const account = requiredDepositCurrency ? `${requiredDepositCurrency} bankrekening` : 'bankrekening';
-                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
-                    return `We wachten op <strong>jou</strong> om een ${account} toe te voegen.`;
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Er wordt gewacht tot <strong>jij</strong> een ${account} toevoegt.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Wachten tot <strong>${actor}</strong> een ${account} toevoegt.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Wachten tot een beheerder een ${account} toevoegt.`;
                 }
-                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
-                    return `Wachten tot <strong>${actor}</strong> een ${account} toevoegt.`;
-                }
-                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
-                    return `Wachten tot een beheerder een ${account} toevoegt.`;
-                }
-                return '';
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta, etaType}: ReportNextStepMessageParams) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                eta?: string,
+                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
                 let formattedETA = '';
                 if (eta) {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `op de ${eta} van elke maand` : ` ${eta}`;
                 }
-                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
-                    return `We wachten tot je uitgaven automatisch worden ingediend${formattedETA}.`;
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Wachten tot <strong>jouw</strong> uitgaven automatisch worden ingediend${formattedETA}.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Wachten tot de onkosten van <strong>${actor}</strong> automatisch worden ingediend${formattedETA}.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Wachten tot de onkostendeclaraties van een beheerder automatisch worden ingediend${formattedETA}.`;
                 }
-                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
-                    return `Wachten tot de uitgaven van <strong>${actor}</strong> automatisch worden ingediend${formattedETA}.`;
-                }
-                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
-                    return `Wachten tot de onkostendeclaraties van een beheerder automatisch worden ingediend${formattedETA}.`;
-                }
-                return '';
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}: ReportNextStepMessageParams) => {
-                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
-                    return `We wachten op <strong>jou</strong> om de problemen op te lossen.`;
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `We wachten op <strong>jou</strong> om de problemen op te lossen.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Wachten tot <strong>${actor}</strong> de problemen oplost.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Wachten tot een beheerder de problemen oplost.`;
                 }
-                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
-                    return `Wachten tot <strong>${actor}</strong> de problemen oplost.`;
-                }
-                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
-                    return `Wachten tot een beheerder de problemen oplost.`;
-                }
-                return '';
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: ReportNextStepMessageParams) => {
-                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
-                    return `Wacht tot <strong>jij</strong> de onkosten goedkeurt.`;
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
+            ) => {
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return isBill ? `Wacht tot <strong>jij</strong> de factuur goedkeurt.` : `Wacht tot <strong>jij</strong> de onkosten goedkeurt.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return isBill ? `Wachten tot <strong>${actor}</strong> de factuur goedkeurt.` : `Wachten tot <strong>${actor}</strong> de uitgaven goedkeurt.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return isBill ? `Wachten op goedkeuring van de factuur door een beheerder.` : `Wachten op goedkeuring van uitgaven door een beheerder.`;
                 }
-                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
-                    return `Wachten tot <strong>${actor}</strong> de declaraties heeft goedgekeurd.`;
-                }
-                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
-                    return `Wachten tot een beheerder de onkosten goedkeurt.`;
-                }
-                return '';
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
-                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
-                    return `Wacht tot <strong>jij</strong> dit rapport exporteert.`;
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `We wachten op <strong>jou</strong> om dit rapport te exporteren.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Wachten tot <strong>${actor}</strong> dit rapport exporteert.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Wachten tot een beheerder dit rapport exporteert.`;
                 }
-                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
-                    return `Wachten tot <strong>${actor}</strong> dit rapport exporteert.`;
-                }
-                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
-                    return `Wachten tot een beheerder dit rapport exporteert.`;
-                }
-                return '';
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: ReportNextStepMessageParams) => {
-                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
-                    return `In afwachting dat <strong>jij</strong> onkosten betaalt.`;
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                isBill = false,
+            ) => {
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return isBill ? `Wacht tot <strong>jij</strong> deze factuur betaalt.` : `Wacht tot <strong>jij</strong> onkosten betaalt.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return isBill ? `Wachten tot <strong>${actor}</strong> deze factuur betaalt.` : `Wachten tot <strong>${actor}</strong> de declaraties betaalt.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return isBill ? `Wachten tot een beheerder deze factuur betaalt.` : `Wachten tot een beheerder de onkosten betaalt.`;
                 }
-                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
-                    return `Wachten tot <strong>${actor}</strong> de onkosten betaalt.`;
-                }
-                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
-                    return `Wachten tot een beheerder de onkosten betaalt.`;
-                }
-                return '';
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}: ReportNextStepMessageParams) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                eta?: string,
+                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
                 let formattedETA = '';
                 if (eta) {
-                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `voor ${eta}` : ` ${eta}`;
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `vóór ${eta}` : ` ${eta}`;
                 }
                 return `Wachten tot de betaling is voltooid${formattedETA}.`;
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: ({eta, etaType}: ReportNextStepMessageParams) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                eta?: string,
+                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
                 let formattedETA = '';
                 if (eta) {
-                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `voor ${eta}` : ` ${eta}`;
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` vóór ${eta}` : ` ${eta}`;
                 }
                 return `Wachten tot de geannuleerde betaling is verwerkt${formattedETA}.`;
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
-                `Oeps! Het lijkt erop dat je deze declaratie bij <strong>jezelf</strong> indient. Het goedkeuren van je eigen rapporten is <strong>verboden</strong> door je werkruimte. Dien dit rapport in bij iemand anders of neem contact op met je beheerder om de persoon te wijzigen bij wie je indient.`,
-            [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
-                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
-                    return `Dit rapport is afgekeurd. We wachten op <strong>jou</strong> om de problemen op te lossen en het handmatig opnieuw in te dienen.`;
+            [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) =>
+                `Oeps! Het lijkt erop dat je deze rapportage naar <strong>jezelf</strong> indient. Het goedkeuren van je eigen rapporten is <strong>verboden</strong> door je werkruimte. Dien dit rapport in bij iemand anders of neem contact op met je admin om de persoon te wijzigen bij wie je indient.`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Dit rapport is afgewezen. We wachten op <strong>jou</strong> om de problemen op te lossen en het handmatig opnieuw in te dienen.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Dit rapport is afgewezen. Wachten op <strong>${actor}</strong> om de problemen op te lossen en het handmatig opnieuw in te dienen.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Dit rapport is afgewezen. Wacht tot een beheerder de problemen oplost en het handmatig opnieuw indient.`;
                 }
-                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
-                    return `Dit rapport is afgewezen. Wachten tot <strong>${actor}</strong> de problemen oplost en het handmatig opnieuw indient.`;
-                }
-                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
-                    return `Dit rapport is afgewezen. Wachten tot een admin de problemen oplost en het handmatig opnieuw indient.`;
-                }
-                return '';
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.STRICT_POLICY_RULE_VIOLATIONS]: (params: ReportNextStepMessageParams) =>
-                `We wachten tot jij de problemen oplost. Je beheerders hebben het indienen van onkostendeclaraties met overtredingen beperkt.`,
-            [CONST.NEXT_STEP.MESSAGE_KEY.DYNAMIC_EXTERNAL_WORKFLOW_SUBMIT_ERROR]: (params: ReportNextStepMessageParams) =>
-                `<alert-text>Dit rapport kan niet worden ingediend. Bekijk de opmerkingen om dit op te lossen.</alert-text>`,
-            [CONST.NEXT_STEP.MESSAGE_KEY.DYNAMIC_EXTERNAL_WORKFLOW_APPROVE_ERROR]: (params: ReportNextStepMessageParams) =>
-                `<alert-text>Dit rapport kan niet worden goedgekeurd. Controleer de opmerkingen om dit op te lossen.</alert-text>`,
-            [CONST.NEXT_STEP.MESSAGE_KEY.DYNAMIC_EXTERNAL_WORKFLOW_OFFLINE]: (params: ReportNextStepMessageParams) => `We wachten tot je weer online bent om de volgende stappen te bepalen.`,
         },
         eta: {
             [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'binnenkort',
@@ -8864,6 +8921,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                     `Automatisch betalen is alleen beschikbaar met het Control-abonnement. [Upgrade](${upgradeLink}) om deze functie te ontgrendelen.`,
                 autoPayReportsUnderTitle: 'Automatisch rapporten betalen onder',
                 autoPayReportsUnderDescription: 'Volledig conforme onkostendeclaraties onder dit bedrag worden automatisch betaald.',
+                autoPayCrossBorderFeesDisclosure:
+                    'Internationale betalingen gebruiken de middenkoers op het moment van betaling. Op alle internationale betalingen geldt een variabele vergoeding van 1%, behalve voor de volgende valuta: CRC (1,32%), KES (1,01%), MAD (1,60%), NPR (1,05%), UGX (1,47%), UYU (1,12%).\n\nExacte koersen en kosten kunnen niet vooraf worden bekeken wanneer een rapport automatisch wordt betaald. Een volledig gespecificeerd overzicht (inclusief de exacte wisselkoers, kosten en het uiteindelijke bedrag) is direct na betaling beschikbaar in het rapport.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Voeg ${featureName} toe om deze functie te ontgrendelen.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `Ga naar [meer functies](${moreFeaturesLink}) en schakel ${featureName} in om deze functie te ontgrendelen.`,
@@ -11571,6 +11630,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         autoReportedRejectedExpense: 'Deze uitgave is afgewezen.',
         billableExpense: 'Factureerbaar niet langer geldig',
         cashExpenseWithNoReceipt: (formattedLimit?: string) => `Bon vereist${formattedLimit ? `boven ${formattedLimit}` : ''}`,
+        categoryNotAllowed: 'Categorie niet toegestaan',
         categoryOutOfPolicy: 'Categorie niet meer geldig',
         conversionSurcharge: (surcharge: number) => `${surcharge}% omrekeningsopslag toegepast`,
         customUnitOutOfPolicy: 'Tarief niet geldig voor deze werkruimte',
@@ -11756,6 +11816,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             autoReportedRejectedExpense: 'Uitgave afgekeurd',
             billableExpense: 'Doorbelastbaar niet langer geldig',
             cashExpenseWithNoReceipt: 'Bon nodig',
+            categoryNotAllowed: 'Categorie niet toegestaan',
             categoryOutOfPolicy: 'Categorie niet meer geldig',
             companyCardRequired: 'Bedrijfskaart vereist',
             conversionSurcharge: 'Toeslag voor omrekening toegepast',
