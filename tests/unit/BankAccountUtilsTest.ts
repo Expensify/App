@@ -22,7 +22,6 @@ import {
     isWiseOnboardingAwaitingDecision,
     isWiseOnboardingMoreInfoNeeded,
     isWiseEnabledOrOnboarding,
-    mayConnectedBankAccountPayThroughWise,
     PERSONAL_INFO_STEP,
     shouldSetUpGlobalReimbursementsBeforePaying,
 } from '@libs/BankAccountUtils';
@@ -1289,37 +1288,6 @@ describe('BankAccountUtils', () => {
             // When picking the account for the Workspace banner
             // Then nothing is returned, so the banner never points to an account queued for removal
             expect(getWorkspaceWiseGlobalReimbursementsBannerBankAccountID(policy, bankAccountList)).toBeUndefined();
-        });
-    });
-
-    describe('mayConnectedBankAccountPayThroughWise', () => {
-        const bankAccountID = 1;
-        const buildBankAccountList = (additionalData: AccountData['additionalData']) =>
-            createMock<BankAccountList>({[bankAccountID]: {accountData: {bankAccountID, type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, additionalData}}});
-
-        it.each([
-            [
-                'the account pays through Wise',
-                buildBankAccountList({globalReimbursementProvider: CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE, wise: {status: CONST.WISE.ONBOARDING_STATUS.APPROVED}}),
-            ],
-            ['the admin does not hold a copy of the account', createMock<BankAccountList>({})],
-            ['the account copy has no additional data', createMock<BankAccountList>({[bankAccountID]: {accountData: {bankAccountID}}})],
-        ])('returns true when %s', (_label, bankAccountList) => {
-            // Given a connected account whose payments go through Wise, or whose provider the admin can't see
-            // When checking whether its payments may go through Wise
-            // Then they may, so the auto-pay page discloses Wise's fees rather than risk hiding them
-            expect(mayConnectedBankAccountPayThroughWise(bankAccountID, bankAccountList)).toBe(true);
-        });
-
-        it.each([
-            ['the workspace has no connected account', undefined, createMock<BankAccountList>({})],
-            ['the account goes through Corpay', bankAccountID, buildBankAccountList({globalReimbursementProvider: CONST.GLOBAL_REIMBURSEMENT_PROVIDER.CORPAY})],
-            ['the account has no global reimbursement provider', bankAccountID, buildBankAccountList({currency: CONST.CURRENCY.USD})],
-        ])('returns false when %s', (_label, connectedBankAccountID, bankAccountList) => {
-            // Given a workspace whose connected account the admin can see does not pay through Wise
-            // When checking whether its payments may go through Wise
-            // Then they don't, so the auto-pay page shows no Wise disclosure
-            expect(mayConnectedBankAccountPayThroughWise(connectedBankAccountID, bankAccountList)).toBe(false);
         });
     });
 
