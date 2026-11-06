@@ -20,7 +20,14 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import CountrySelectionList from '@pages/settings/Wallet/CountrySelectionList';
 
-import {clearPersonalBankAccount, clearWiseBankAccountFields, clearWiseBankAccountForm, createWiseBankAccount, getWiseBankAccountFields} from '@userActions/BankAccounts';
+import {
+    clearPersonalBankAccount,
+    clearWiseBankAccountFields,
+    clearWiseBankAccountFieldsKeepingCountry,
+    clearWiseBankAccountForm,
+    createWiseBankAccount,
+    getWiseBankAccountFields,
+} from '@userActions/BankAccounts';
 import {clearSensitiveAnswers} from '@userActions/DynamicForm';
 import {clearDraftValues, clearErrors, setDraftValues} from '@userActions/FormActions';
 import {continueSetup, getPaymentMethods} from '@userActions/PaymentMethods';
@@ -138,7 +145,7 @@ function WiseDepositAccountContent({backTo, subPage, isEditing}: WiseDepositAcco
 
     // Back from the first form page shows the country list again, so the URL drops the form page to match it
     const returnToCountryList = () => {
-        clearWiseBankAccountFields();
+        clearWiseBankAccountFieldsKeepingCountry(selectedCountry);
         Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(backTo), {forceReplace: true});
     };
 
