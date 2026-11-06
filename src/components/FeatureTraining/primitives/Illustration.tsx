@@ -23,6 +23,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {ImageContentFit} from 'expo-image';
 import type {SourceLoadEventPayload} from 'expo-video';
 import type LottieView from 'lottie-react-native';
+import type {ComponentRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {MergeExclusive} from 'type-fest';
 
@@ -92,7 +93,7 @@ function Illustration({
     const {windowHeight} = useWindowDimensions();
     const [measuredAspectRatio, setMeasuredAspectRatio] = useState(aspectRatioProp ?? VIDEO_ASPECT_RATIO);
 
-    const animationRef = useRef<LottieView | null>(null);
+    const animationRef = useRef<ComponentRef<typeof LottieView> | null>(null);
     useEffect(() => {
         if (isMobile() || !animationRef.current || isReduceMotionEnabled) {
             return;

@@ -91,17 +91,19 @@ type DynamicSplitExpenseEditPageProps = PlatformStackScreenProps<RightModalNavig
 
 type SplitToggleRowProps = {
     label: string;
+    sentryLabel: string;
     isOn: boolean;
     onToggle: (value: boolean) => void;
 };
 
-function SplitToggleRow({label, isOn, onToggle}: SplitToggleRowProps) {
+function SplitToggleRow({label, sentryLabel, isOn, onToggle}: SplitToggleRowProps) {
     const styles = useThemeStyles();
     return (
         <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mh5]}>
             <Text>{label}</Text>
             <Switch
                 accessibilityLabel={label}
+                sentryLabel={sentryLabel}
                 isOn={isOn}
                 onToggle={onToggle}
             />
@@ -583,6 +585,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                         {shouldShowReimbursable && (
                             <SplitToggleRow
                                 label={translate('common.reimbursable')}
+                                sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.REIMBURSABLE_SWITCH}
                                 isOn={splitExpenseDraftTransaction?.reimbursable ?? true}
                                 onToggle={(value) => updateSplitExpenseDraftField({reimbursable: value})}
                             />
@@ -590,6 +593,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                         {shouldShowBillable && (
                             <SplitToggleRow
                                 label={translate('common.billable')}
+                                sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.BILLABLE_SWITCH}
                                 isOn={splitExpenseDraftTransaction?.billable ?? false}
                                 onToggle={(value) => updateSplitExpenseDraftField({billable: value})}
                             />

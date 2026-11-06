@@ -42,6 +42,7 @@ import type {ValueOf} from 'type-fest';
 import React from 'react';
 import {View} from 'react-native';
 
+import useNavigationBarWidth from './FlatNavigationBar/useNavigationBarWidth';
 import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
 
 const FULL_WIDTH_TAB_ROOT_SCREENS = new Set<string>([SCREENS.WORKSPACES_LIST, SCREENS.DOMAINS_LIST]);
@@ -162,6 +163,7 @@ function DebugTabView({selectedTab}: Props) {
     const {shouldHideSidePanel} = useSidePanelDisplayStatus();
     const {windowWidth} = useWindowDimensions();
     const {sidePanelWidth} = useSidePanelState();
+    const navigationBarWidth = useNavigationBarWidth();
     const sidePanelOffset = isExtraLargeScreenWidth && !shouldHideSidePanel ? sidePanelWidth : 0;
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const reportAttributes = useReportAttributes();
@@ -230,10 +232,10 @@ function DebugTabView({selectedTab}: Props) {
     if (shouldUseNarrowLayout) {
         positionStyle = {bottom: 0, left: 0, right: 0};
     } else if (isOnFullWidthTabRoot) {
-        positionStyle = {...verticalAnchor, left: variables.navigationTabBarSize, width: windowWidth - variables.navigationTabBarSize - sidePanelOffset};
+        positionStyle = {...verticalAnchor, left: navigationBarWidth, width: windowWidth - navigationBarWidth - sidePanelOffset};
     } else {
         const lhnWidth = selectedTab === NAVIGATION_TABS.INBOX ? variables.inboxSideBarWidth : variables.sideBarWithLHBWidth;
-        positionStyle = {...verticalAnchor, left: variables.navigationTabBarSize, width: lhnWidth - variables.cropBorderWidth};
+        positionStyle = {...verticalAnchor, left: navigationBarWidth, width: lhnWidth - variables.cropBorderWidth};
     }
 
     // pAbsolute is only applied on wide layouts. On narrow layout the bar is placed by its parent
