@@ -19,7 +19,7 @@ function ApproveActionButton() {
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
-    const {shouldShowPayButton} = useReportPreviewActionState();
+    const {shouldShowPayButton, reportPreviewAction} = useReportPreviewActionState();
 
     const {iouReportID} = useReportPreviewData();
 
@@ -37,6 +37,7 @@ function ApproveActionButton() {
 
     return (
         <ExpenseHeaderApprovalButton
+            isSecondary={reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE_WITH_VIOLATIONS}
             isAnyTransactionOnHold={isAnyTransactionOnHold}
             isDelegateAccessRestricted={isDelegateAccessRestricted}
             onApprove={confirmApproval}

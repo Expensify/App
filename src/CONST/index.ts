@@ -2088,6 +2088,7 @@ const CONST = {
             ADD_EXPENSE: 'addExpense',
             SUBMIT: 'submit',
             APPROVE: 'approve',
+            APPROVE_WITH_VIOLATIONS: 'approveWithViolations',
             PAY: 'pay',
             EXPORT_TO_ACCOUNTING: 'exportToAccounting',
         },
