@@ -2,8 +2,6 @@ import {ListFilterHeightContextProvider} from '@components/Search/FilterComponen
 import MultiSelect from '@components/Search/FilterComponents/MultiSelect';
 import type {MultiSelectItem} from '@components/Search/FilterComponents/MultiSelect';
 
-import CONST from '@src/CONST';
-
 import React, {useState} from 'react';
 
 import BasePopup from './BasePopup';
@@ -27,9 +25,24 @@ type MultiSelectPopupProps<T> = {
 
     /** Whether the data for the popover is loading */
     loading?: boolean;
+
+    applySentryLabel: string;
+    resetSentryLabel: string;
 };
 
-function MultiSelectPopup<T extends string>({showLabel, label, loading, value, items, closeOverlay, onChange, isSearchable, searchPlaceholder}: MultiSelectPopupProps<T>) {
+function MultiSelectPopup<T extends string>({
+    showLabel,
+    label,
+    loading,
+    value,
+    items,
+    closeOverlay,
+    onChange,
+    isSearchable,
+    searchPlaceholder,
+    applySentryLabel,
+    resetSentryLabel,
+}: MultiSelectPopupProps<T>) {
     const [selectedItems, setSelectedItems] = useState(value);
 
     const applyChanges = () => {
@@ -48,8 +61,8 @@ function MultiSelectPopup<T extends string>({showLabel, label, loading, value, i
             showLabel={showLabel}
             onReset={resetChanges}
             onApply={applyChanges}
-            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_MULTI_SELECT}
-            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_MULTI_SELECT}
+            resetSentryLabel={resetSentryLabel}
+            applySentryLabel={applySentryLabel}
         >
             <ListFilterHeightContextProvider>
                 <MultiSelect

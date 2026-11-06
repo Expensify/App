@@ -27,6 +27,8 @@ type ConnectionStatusMessageProps = {
      * Accessible name for the action button
      */
     actionAccessibilityLabel?: string;
+
+    actionSentryLabel?: string;
 };
 
 function ConnectionStatusMessage({
@@ -38,6 +40,7 @@ function ConnectionStatusMessage({
     onLinkPress,
     shouldIncludeHorizontalPadding = true,
     actionAccessibilityLabel,
+    actionSentryLabel,
 }: ConnectionStatusMessageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const theme = useTheme();
@@ -91,6 +94,7 @@ function ConnectionStatusMessage({
             onPress={onActionPress}
             isDisabled={isActionDisabled}
             accessibilityLabel={actionAccessibilityLabel}
+            sentryLabel={actionSentryLabel}
         >
             <Button.Text>{actionText}</Button.Text>
         </Button>
