@@ -12,6 +12,7 @@ import useTheme from '@hooks/useTheme';
 
 import {getEnabledCategoriesCount, getVisibleCategories} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import startOpenCategoryPickerSpan from '@libs/telemetry/startOpenCategoryPickerSpan';
 
 import variables from '@styles/variables';
 
@@ -22,7 +23,6 @@ import policyCategoriesVisibilitySelector from '@selectors/PolicyCategories';
 import React, {useLayoutEffect, useState} from 'react';
 
 import CategoryPicker from '.';
-import startOpenCategoryPickerSpan from './startOpenCategoryPickerSpan';
 
 type CategoryPickerModalProps = {
     /** The policy whose categories should be shown */
