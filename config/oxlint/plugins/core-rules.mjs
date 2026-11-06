@@ -1,7 +1,6 @@
 /**
- * ESLint core rules that oxlint has no native version of. They run inside oxlint as a JS plugin under the `core/`
- * prefix, using ESLint's own rule code, so each one behaves as it does under ESLint. config/oxlint/derive.mjs lists
- * them from what the eslint-config-expensify presets turn on, and sets their files and options.
+ * ESLint core rules oxlint has no version of, run from ESLint's own code under `core/`. config/oxlint/derive.mjs
+ * decides which ones and where they apply.
  */
 import {builtinRules} from 'eslint/use-at-your-own-risk';
 

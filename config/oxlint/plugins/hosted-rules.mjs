@@ -1,8 +1,7 @@
 /**
- * Runs rules from ESLint plugins (react, import, jsdoc, storybook, react-hooks, typescript-eslint) inside oxlint,
- * using the plugins' own code. config/oxlint/derive.mjs lists them: the preset rules oxlint has no native version
- * of, or whose oxlint version reports differently, plus the ones only oxlint.config.mts turns on. oxlint already
- * uses most of these plugin names for its own versions, so all of them load under `hosted`.
+ * ESLint plugin rules run from their own code under `hosted/`, because oxlint has no version of them or its version
+ * reports differently. config/oxlint/derive.mjs decides which ones. oxlint reserves these plugin names, so they all
+ * share the `hosted` name.
  */
 import {EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN} from '../../reactCompiler/suppressedRules.mjs';
 import {STUBBED_PARSER_SERVICES, hostedRuleIDs, getPluginRules, splitRuleID} from '../derive.mjs';
@@ -47,7 +46,8 @@ function withStubbedParserServices(rule) {
     };
 }
 
-// React Compiler memoizes most files, so these rules' reports are dropped where it does (reactCompilerGate.mjs).
+// In files React Compiler memoizes, reactCompilerGate.mjs drops all jsx-no-constructed-context-values reports and the
+// useCallback/useMemo reports of exhaustive-deps.
 const GATES = {
     'react/jsx-no-constructed-context-values': withFullGating,
     'react-hooks/exhaustive-deps': (rule) => withMessageGating(rule, EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN),

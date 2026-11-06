@@ -6,8 +6,7 @@ import {ESLINT_RULE_RENAMES, LOCAL_HOSTED_RULES, hostedRuleIDs, splitRuleID} fro
 
 const OXLINT_RULE_RENAMES = Object.fromEntries(Object.entries(ESLINT_RULE_RENAMES).map(([eslintName, oxlintName]) => [oxlintName, eslintName]));
 
-// oxlint reserves native plugin prefixes (`react`, `import`, `react-hooks`, `@typescript-eslint`), so
-// hosted rules register under `hosted` and this maps each back to its ESLint plugin.
+// oxlint reserves its own plugin names, so hosted rules all use `hosted`. This maps each back to its ESLint plugin.
 const HOSTED_RULE_ORIGIN = Object.fromEntries(
     hostedRuleIDs.map((ruleID) => {
         const {prefix, name} = splitRuleID(ruleID);
@@ -47,7 +46,7 @@ function oxlintCodeToESLintRuleID(code) {
         }
         const origin = HOSTED_RULE_ORIGIN[rule];
         if (!origin) {
-            throw new Error(`No HOSTED_RULE_ORIGIN entry for hosted rule "${rule}". Add it to config/oxlint/derive.mjs.`);
+            throw new Error(`Hosted rule "${rule}" has no ESLint ID. Add it to LOCAL_HOSTED_RULES (an App rule) or APP_HOSTED_RULES (an ESLint plugin rule) in config/oxlint/derive.mjs.`);
         }
         return `${origin}/${rule}`;
     }

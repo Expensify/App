@@ -159,7 +159,7 @@ export default extendOxlintConfig({
     ],
     overrides: [
         {
-            // The App's additions to the presets, and the preset rules it changes or turns off, for every file.
+            // The App's own rules and changes to the presets, for every file.
             files: ['**/*.{js,jsx,mjs,cjs,ts,tsx,cts,mts}'],
             rules: {
                 'rulesdir/no-beta-handler': 'error',
@@ -270,7 +270,6 @@ export default extendOxlintConfig({
                         },
                     },
                 ],
-                'no-unexpected-multiline': 'off',
                 'arrow-body-style': 'off',
                 'no-empty': ['error', {allowEmptyCatch: true}],
                 'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
