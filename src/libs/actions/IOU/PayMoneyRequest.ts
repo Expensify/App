@@ -908,6 +908,11 @@ function getBankAccountToSetUpBeforePaying({
     return shouldSetUpGlobalReimbursementsBeforePaying(bankAccount) ? bankAccount : undefined;
 }
 
+/** The withdrawal account the payment debits. Only a business bank account payment carries one, and without it the server pays from the workspace account */
+function getPaymentBankAccountID({paymentType, methodID}: Pick<PayMoneyRequestFunctionParams, 'paymentType' | 'methodID'>): number | undefined {
+    return paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined;
+}
+
 function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     const {
         paymentType,
@@ -984,7 +989,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         conciergeChat: undefined,
         isASAPSubmitBetaEnabled,
         isSelfTourViewed,
-        bankAccountID: paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+        bankAccountID: getPaymentBankAccountID({paymentType, methodID}),
         bankAccountList,
         delegateAccountID,
         chatReportActions,
@@ -1308,5 +1313,14 @@ function savePreferredPaymentMethod(
     });
 }
 
-export {cancelPayment, completePaymentOnboarding, getBankAccountToSetUpBeforePaying, markReportPaymentReceived, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
+export {
+    cancelPayment,
+    completePaymentOnboarding,
+    getBankAccountToSetUpBeforePaying,
+    getPaymentBankAccountID,
+    markReportPaymentReceived,
+    payInvoice,
+    payMoneyRequest,
+    savePreferredPaymentMethod,
+};
 export type {PayMoneyRequestFunctionParams};

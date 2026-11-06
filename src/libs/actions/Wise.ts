@@ -7,6 +7,10 @@ import type {OnyxData} from '@src/types/onyx/Request';
 
 import Onyx from 'react-native-onyx';
 
+import type {PayMoneyRequestFunctionParams} from './IOU/PayMoneyRequest';
+
+import {getPaymentBankAccountID} from './IOU/PayMoneyRequest';
+
 /** Fetches a fresh link to Wise's hosted KYC form for the bank account. The server puts the link in `wiseKYCReviewEmbeddedLink`. */
 function getWiseKYCReviewEmbeddedLink(bankAccountID: number) {
     const onyxData: OnyxData<typeof ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK> = {
@@ -36,8 +40,13 @@ function getWiseKYCReviewEmbeddedLink(bankAccountID: number) {
     read(READ_COMMANDS.GET_WISE_KYC_REVIEW_EMBEDDED_LINK, {bankAccountID}, onyxData);
 }
 
-/** Asks Wise for a fresh price for paying the report. The server merges it into `report.wiseQuote`, so the old quote is dropped first */
-function getWiseQuote(reportID: string) {
+type WiseQuotePayment = Pick<PayMoneyRequestFunctionParams, 'full' | 'paymentType' | 'methodID'>;
+
+/**
+ * Asks Wise for a fresh price for paying the report the way PayMoneyRequest will: held expenses are left out when full is false, and the money comes from the
+ * chosen bank account. The server merges the quote into `report.wiseQuote`, so the old quote is dropped first
+ */
+function getWiseQuote(reportID: string, {full = true, paymentType, methodID}: WiseQuotePayment) {
     const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT> = {
         optimisticData: [
@@ -56,7 +65,7 @@ function getWiseQuote(reportID: string) {
         ],
     };
 
-    read(READ_COMMANDS.GET_WISE_QUOTE, {reportID}, onyxData);
+    read(READ_COMMANDS.GET_WISE_QUOTE, {reportID, full, bankAccountID: getPaymentBankAccountID({paymentType, methodID})}, onyxData);
 }
 
 /** Drops the link, which carries a token */

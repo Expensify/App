@@ -2000,9 +2000,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             if (shouldConfirmWiseQuotes) {
                 const reportIDs = expensePayments.flatMap((params) => (params.iouReport?.reportID ? [params.iouReport.reportID] : []));
-                const quotedReportIDs = expensePayments.flatMap((params) => (params.iouReport?.reportID && shouldGetWiseQuote(params) ? [params.iouReport.reportID] : []));
-                for (const reportID of quotedReportIDs) {
-                    getWiseQuote(reportID);
+                const quotedReportIDs: string[] = [];
+                for (const params of expensePayments) {
+                    const reportID = params.iouReport?.reportID;
+                    if (!reportID || !shouldGetWiseQuote(params)) {
+                        continue;
+                    }
+                    getWiseQuote(reportID, params);
+                    quotedReportIDs.push(reportID);
                 }
                 showWiseQuoteCarouselModal({
                     reportIDs,

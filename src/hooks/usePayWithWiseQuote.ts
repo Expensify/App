@@ -16,7 +16,7 @@ function usePayWithWiseQuote() {
             return;
         }
 
-        getWiseQuote(reportID);
+        getWiseQuote(reportID, params);
         showWiseQuoteConfirmModal({
             reportID,
             isPayingUnheldOnly: params.full === false,
