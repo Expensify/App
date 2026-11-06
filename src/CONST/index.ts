@@ -11706,6 +11706,10 @@ const CONST = {
         REPORT_HEADER_SKELETON: {
             GO_BACK: 'ReportHeaderSkeleton-GoBack',
         },
+        CUSTOM_STATUS: {
+            CLEAR_AFTER_DATE: 'CustomStatus-OpenClearAfter-Date',
+            CLEAR_AFTER_TIME: 'CustomStatus-OpenClearAfter-Time',
+        },
         TWO_FACTOR_AUTH: {
             RESEND_CODE: 'TwoFactorAuth-ResendCode',
             SWITCH_BETWEEN_METHODS: 'TwoFactorAuth-SwitchBetweenMethods',
