@@ -52,6 +52,7 @@ function CountryPicker({value, errorText, onInputChange = () => {}, label, disab
             <MenuItem.Root
                 onPress={callFunctionIfActionIsAllowed(() => setIsPickerVisible(true), false, session)}
                 isDisabled={disabled}
+                sentryLabel={CONST.SENTRY_LABEL.COUNTRY_PICKER.OPEN}
             >
                 <MenuItemField.Row
                     name={label ?? translate('common.country')}

@@ -250,6 +250,7 @@ function ConfirmationStep({
                 onPress={onPress}
                 interactive={interactive}
                 disabled={disabled}
+                sentryLabel={CONST.SENTRY_LABEL.CONFIRMATION_STEP.EDIT}
                 brickRoadIndicator={brickRoadIndicator}
                 errorText={errorText}
                 accessibilityLabel={accessibilityLabel}
@@ -317,6 +318,7 @@ function ConfirmationStep({
                             accessibilityState={shouldAnnounceSubmitState ? {busy: !!isLoading} : undefined}
                             style={[styles.w100]}
                             onPress={onNext}
+                            sentryLabel={CONST.SENTRY_LABEL.CONFIRMATION_STEP.CONFIRM}
                         >
                             <Button.Text>{translate('common.confirm')}</Button.Text>
                         </ButtonDisabledWhenOffline>

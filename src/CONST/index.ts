@@ -10328,6 +10328,19 @@ const CONST = {
         DATE_PICKER: {
             CLEAR_BUTTON: 'DatePicker-ClearButton',
         },
+        COUNTRY_PICKER: {
+            OPEN: 'CountryPicker-Open',
+        },
+        PUSH_ROW_WITH_MODAL: {
+            OPEN: 'PushRowWithModal-Open',
+        },
+        VALUE_PICKER: {
+            OPEN: 'ValuePicker-Open',
+        },
+        CONFIRMATION_STEP: {
+            EDIT: 'ConfirmationStep-Edit',
+            CONFIRM: 'ConfirmationStep-Confirm',
+        },
         NUMBER_WITH_SYMBOL_FORM: {
             INPUT: 'NumberWithSymbolForm-Input',
         },

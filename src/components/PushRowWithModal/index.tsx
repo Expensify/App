@@ -122,6 +122,7 @@ function PushRowWithModal(props: PushRowWithModalProps) {
                 wrapperStyle={wrapperStyles}
                 interactive={shouldAllowChange}
                 disabled={disabled}
+                sentryLabel={CONST.SENTRY_LABEL.PUSH_ROW_WITH_MODAL.OPEN}
                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 errorText={errorText}
             />
