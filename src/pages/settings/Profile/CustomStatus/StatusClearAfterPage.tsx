@@ -2,6 +2,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemRootProps} from '@components/MenuItem/layout/MenuItemRoot';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';

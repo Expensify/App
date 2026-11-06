@@ -296,8 +296,8 @@ describe('StatusClearAfterPage', () => {
             [timeRow, TIME_ERROR, timeHasError],
         ] as const) {
             const layout = within(row).UNSAFE_getByType(MenuItem.Row);
-            const content = within(layout).UNSAFE_getByType(MenuItem.Content);
-            expect(!!within(content).queryByText(error)).toBe(hasError);
+            expect(within(layout).queryByText(error)).not.toBeOnTheScreen();
+            expect(!!within(row).queryByText(error)).toBe(hasError);
             expect(within(layout).UNSAFE_getByType(MenuItem.Trailing)).toBeDefined();
         }
         expect(getRowIconProps(dateRow).map((icon) => icon.src)).toEqual(dateHasError ? [dotIndicator, arrowRight] : [arrowRight]);
