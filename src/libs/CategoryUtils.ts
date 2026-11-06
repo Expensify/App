@@ -4,7 +4,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, TaxRate, TaxRatesWithDefault} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyCategory, TaxRate, TaxRatesWithDefault} from '@src/types/onyx';
 import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -114,13 +114,32 @@ function getEnabledCategoriesCount(policyCategories: PolicyCategories | undefine
     return Object.values(policyCategories).filter((policyCategory) => policyCategory.enabled).length;
 }
 
+/** Whether the member can use the category: it's visible to everyone, or to the member explicitly. */
+function isCategoryVisibleToMember(category: PolicyCategory, accountID: number): boolean {
+    return !category.visibleTo || !!category.visibleTo[accountID];
+}
+
 /**
  * Returns the names of the enabled categories the member can use: those visible to everyone, or to the member explicitly.
  */
 function getMemberVisibleCategoryNames(policyCategories: PolicyCategories | undefined, accountID: number): string[] {
     return Object.values(policyCategories ?? {})
-        .filter((policyCategory) => policyCategory.enabled && (!policyCategory.visibleTo || !!policyCategory.visibleTo[accountID]))
+        .filter((policyCategory) => policyCategory.enabled && isCategoryVisibleToMember(policyCategory, accountID))
         .map((policyCategory) => policyCategory.name);
+}
+
+/**
+ * Returns the categories the expense's owner can use, keyed like the input. Disabled ones are kept, since the picker
+ * filters those out itself.
+ */
+function getVisibleCategories(policyCategories: PolicyCategories, ownerAccountID: number): PolicyCategories {
+    const visibleCategories: PolicyCategories = {};
+    for (const [categoryName, category] of Object.entries(policyCategories)) {
+        if (isCategoryVisibleToMember(category, ownerAccountID)) {
+            visibleCategories[categoryName] = category;
+        }
+    }
+    return visibleCategories;
 }
 
 /**
@@ -167,6 +186,13 @@ function isCategoryMissing(category: string | undefined): boolean {
     }
 
     return category === CONST.SEARCH.CATEGORY_EMPTY_VALUE || category === CONST.SEARCH.CATEGORY_DEFAULT_VALUE;
+}
+
+/**
+ * Returns true when the category is visible to everyone or to this member.
+ */
+function isCategoryVisibleToMember(policyCategory: PolicyCategory | undefined, accountID: number): boolean {
+    return !!policyCategory && (!policyCategory.visibleTo || !!policyCategory.visibleTo[accountID]);
 }
 
 function isCategoryDescriptionRequired(policyCategories: PolicyCategories | undefined, category: string | undefined, areRulesEnabled: boolean | undefined): boolean {
@@ -379,6 +405,7 @@ export {
     updateCategoryInMccGroup,
     getEnabledCategoriesCount,
     getMemberVisibleCategoryNames,
+    getVisibleCategories,
     getMembersWithoutVisibleCategories,
     isCategoryMissing,
     isCategoryDescriptionRequired,
@@ -395,4 +422,5 @@ export {
     getCategoryNameErrorMessage,
     getDisabledCategoryKey,
     canCreateCategoryFromSearch,
+    isCategoryVisibleToMember,
 };
