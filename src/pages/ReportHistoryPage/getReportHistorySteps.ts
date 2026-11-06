@@ -117,6 +117,7 @@ function getUpcomingStep(
     upcomingStep: ReportUpcomingStep,
     index: number,
     nextStep: ReportNextStep | undefined,
+    shouldDisplayMarkAsDone: boolean,
 ): ReportHistoryStep | undefined {
     const step = {key: `${upcomingStep.action}_${upcomingStep.actorAccountID}_${index}`, accountID: upcomingStep.actorAccountID, isUpcoming: true};
 
@@ -125,6 +126,9 @@ function getUpcomingStep(
         if (nextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT) {
             const {eta, etaType} = getNextStepETA(nextStep, translate, dateFnsLocale);
             return {...step, icon: 'Send', label: translate('reportHistoryPage.toSubmitAutomatically', eta, etaType)};
+        }
+        if (shouldDisplayMarkAsDone) {
+            return {...step, icon: 'Send', label: translate('reportHistoryPage.toMarkAsDone')};
         }
         return {...step, icon: 'Send', label: translate('reportHistoryPage.toSubmit')};
     }
@@ -201,6 +205,7 @@ function getReportHistorySteps({
     shouldDisplayMarkAsDone,
     reportMetadata,
 }: GetReportHistoryStepsParams): ReportHistoryStep[] {
+    const isMarkAsDoneWorkflow = shouldDisplayMarkAsDone && !isDEWPolicy;
     const completedSteps: ReportHistoryStep[] = [];
     let lastStepAction: ReportAction | undefined;
     for (const reportAction of getSortedReportActions(Object.values(reportActions ?? {}))) {
@@ -211,7 +216,7 @@ function getReportHistorySteps({
         ) {
             continue;
         }
-        const step = getCompletedStep(translate, reportAction, currentUserEmail, reportOwnerAccountID, shouldDisplayMarkAsDone && !isDEWPolicy);
+        const step = getCompletedStep(translate, reportAction, currentUserEmail, reportOwnerAccountID, isMarkAsDoneWorkflow);
         if (step) {
             completedSteps.push(step);
             lastStepAction = reportAction;
@@ -225,7 +230,7 @@ function getReportHistorySteps({
             (hasPendingDEWApprove(reportMetadata, isDEWPolicy) && (isApprovedAction(lastStepAction) || isForwardedAction(lastStepAction))));
 
     const currentUpcomingSteps = getCurrentUpcomingSteps(upcomingSteps, nextStep, isOpenReport, isLastStepQueuedForDEW ? lastStepAction : undefined)
-        .map((upcomingStep, index) => getUpcomingStep(translate, dateFnsLocale, upcomingStep, index, nextStep))
+        .map((upcomingStep, index) => getUpcomingStep(translate, dateFnsLocale, upcomingStep, index, nextStep, isMarkAsDoneWorkflow))
         .filter((step): step is ReportHistoryStep => !!step);
 
     return [...completedSteps, ...currentUpcomingSteps];

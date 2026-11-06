@@ -3,6 +3,7 @@ import type {ChartDataPoint, ChartValueFormatter} from '@components/Charts/types
 import {formatChangePercentage} from '@components/Charts/utils/formatTooltipComparison';
 import formatValueWithNote from '@components/Charts/utils/formatValueWithNote';
 import Icon from '@components/Icon';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import {CHART_SERIES_KEY} from '@components/Search/buildChartSeries';
 import type {TransactionCardGroupListItemType, TransactionMemberGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {GroupedItem, SearchChartDataRow} from '@components/Search/types';
@@ -36,6 +37,9 @@ type InsightsDataTableProps = {
     formatValue?: ChartValueFormatter;
 
     isLoading?: boolean;
+
+    /** Called with the group whose row is pressed */
+    onRowPress?: (item: GroupedItem) => void;
 };
 
 /** Narrows a group to the member-based variants, the ones carrying the person's avatar and account ID. */
@@ -43,7 +47,7 @@ function isMemberGroup(item: GroupedItem): item is TransactionMemberGroupListIte
     return item.groupedBy === CONST.SEARCH.GROUP_BY.FROM || item.groupedBy === CONST.SEARCH.GROUP_BY.CARD;
 }
 
-function InsightsDataTable({rows, formatValue, isLoading}: InsightsDataTableProps) {
+function InsightsDataTable({rows, formatValue, isLoading, onRowPress}: InsightsDataTableProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -79,11 +83,8 @@ function InsightsDataTable({rows, formatValue, isLoading}: InsightsDataTableProp
                 const isNewSpend = comparedValue === 0;
                 const changeColor = StyleUtils.getSpendChangeColor(isIncrease);
 
-                return (
-                    <View
-                        key={item.keyForList}
-                        style={[styles.flexRow, styles.alignItemsStart, styles.gap5]}
-                    >
+                const rowContent = (
+                    <>
                         <View style={[styles.flex1, styles.mnw0, styles.flexRow, styles.alignItemsStart, styles.gap5]}>
                             {isMemberGroup(item) ? (
                                 <View style={[styles.chartInlineTableAvatarBorder, !!point.color && StyleUtils.getBorderColorStyle(point.color)]}>
@@ -124,7 +125,32 @@ function InsightsDataTable({rows, formatValue, isLoading}: InsightsDataTableProp
                                 </View>
                             )}
                         </View>
-                    </View>
+                    </>
+                );
+                const rowStyle = [styles.flexRow, styles.alignItemsStart, styles.gap5];
+
+                if (!onRowPress) {
+                    return (
+                        <View
+                            key={item.keyForList}
+                            style={rowStyle}
+                        >
+                            {rowContent}
+                        </View>
+                    );
+                }
+
+                return (
+                    <PressableWithFeedback
+                        key={item.keyForList}
+                        onPress={() => onRowPress(item)}
+                        accessibilityRole={CONST.ROLE.BUTTON}
+                        accessibilityLabel={point.label}
+                        sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.TABLE_ROW}
+                        style={rowStyle}
+                    >
+                        {rowContent}
+                    </PressableWithFeedback>
                 );
             })}
         </View>
