@@ -33,6 +33,8 @@ import type {Policy} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {reportsByIDsSelector} from '@selectors/Report';
+import {reportActionsByReportIDsSelector} from '@selectors/ReportAction';
 import React, {useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -55,13 +57,14 @@ function SearchChangeWorkspacePage() {
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentSearchResults} = useSearchResultsContext();
     const [personalDetails] = useAllPersonalDetails();
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    const selectedReportIDs = selectedReports.map((selectedReport) => selectedReport.reportID).filter((reportID): reportID is string => !!reportID);
+    const [selectedOnyxReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsByIDsSelector(selectedReportIDs)});
+    const [selectedReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {selector: reportActionsByReportIDsSelector(selectedReportIDs)});
 
     // The reports the Change workspace option counted, so an exported one doesn't add workspaces.
-    const movableReports = selectedReports
-        .map((selectedReport) => getReportFromSearchSnapshot(selectedReport.reportID, currentSearchResults?.data, allReports))
-        .filter((report) => canChangeWorkspaceOfSearchReport(report, currentSearchResults?.data, allReportActions, policies, session?.email, personalDetails));
+    const movableReports = selectedReportIDs
+        .map((reportID) => getReportFromSearchSnapshot(reportID, currentSearchResults?.data, selectedOnyxReports))
+        .filter((report) => canChangeWorkspaceOfSearchReport(report, currentSearchResults?.data, selectedReportActions, policies, session?.email, personalDetails));
 
     // The backend skips the reports that can't move to a workspace, so it's offered when one loaded report can.
     const canMoveAReportTo = (policy: OnyxEntry<Policy>) =>
