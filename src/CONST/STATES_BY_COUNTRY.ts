@@ -1,10 +1,18 @@
+import {CONST as COMMON_CONST} from 'expensify-common';
+
 import CONST from '.';
 
+const US_STATES = Object.fromEntries(Object.values(COMMON_CONST.STATES).map(({stateISO, stateName}) => [stateISO, stateName]));
+
+const CANADIAN_PROVINCES = Object.fromEntries(Object.values(COMMON_CONST.PROVINCES).map(({provinceISO, provinceName}) => [provinceISO, provinceName]));
+
 /**
- * The states of countries other than the US and Canada, whose lists live in expensify-common, keyed by their ISO 3166-2 code.
- * These lists belong in expensify-common next to STATES and PROVINCES.
+ * The states of each country with a state picker, keyed by their ISO 3166-2 code.
+ * The Australian and Brazilian lists belong in expensify-common next to STATES and PROVINCES.
  */
 const STATES_BY_COUNTRY: Partial<Record<string, Record<string, string>>> = {
+    [CONST.COUNTRY.US]: US_STATES,
+    [CONST.COUNTRY.CA]: CANADIAN_PROVINCES,
     [CONST.COUNTRY.AU]: {
         ACT: 'Australian Capital Territory',
         NSW: 'New South Wales',
@@ -49,3 +57,4 @@ const STATES_BY_COUNTRY: Partial<Record<string, Record<string, string>>> = {
 };
 
 export default STATES_BY_COUNTRY;
+export {US_STATES, CANADIAN_PROVINCES};

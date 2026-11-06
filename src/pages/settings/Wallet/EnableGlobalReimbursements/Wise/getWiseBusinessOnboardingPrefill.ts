@@ -16,8 +16,6 @@ import type {ACHDataReimbursementAccount} from '@src/types/onyx/ReimbursementAcc
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
-import {CONST as COMMON_CONST} from 'expensify-common';
-
 import US from './forms/US';
 
 /** The bank account's company details the business page shows, under the same keys, and the onboarding pages already saved to Wise */
@@ -38,15 +36,12 @@ const READONLY_KEYS = new Set(ALL_FIELDS.filter((field) => field.readonly).map((
 
 /** The state picker lists states by code, so a state that is not one is left out. Only US state names are turned into codes. */
 function getStateCode(countryCode: string | undefined, state: string | undefined): string | undefined {
-    if (countryCode === CONST.COUNTRY.US) {
-        const stateCode = resolveStateCode(state ?? '');
-        return stateCode in COMMON_CONST.STATES ? stateCode : undefined;
-    }
-    const stateOptions = countryCode === CONST.COUNTRY.CA ? COMMON_CONST.PROVINCES : STATES_BY_COUNTRY[countryCode ?? ''];
-    if (!stateOptions) {
+    const stateOptions = STATES_BY_COUNTRY[countryCode ?? ''];
+    if (!stateOptions || !state) {
         return state;
     }
-    return state && state in stateOptions ? state : undefined;
+    const stateCode = countryCode === CONST.COUNTRY.US ? resolveStateCode(state) : state;
+    return Object.hasOwn(stateOptions, stateCode) ? stateCode : undefined;
 }
 
 /** The answers of every saved page, with each saved file as a draft entry the next save can tell apart from a new one. A key a later save dropped comes back as null and is left out. */

@@ -1,9 +1,7 @@
-import getAddressInputKeys, {getAddressCountry, isStateAsked} from '@components/DynamicForm/utils/getAddressInputKeys';
+import getAddressInputKeys, {getAddressCountry, getStateOptions, isStateAsked} from '@components/DynamicForm/utils/getAddressInputKeys';
 import isSensitiveField from '@components/DynamicForm/utils/isSensitiveField';
 
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
-
-import STATES_BY_COUNTRY from '@src/CONST/STATES_BY_COUNTRY';
 
 import React from 'react';
 
@@ -38,7 +36,7 @@ const renderAddress: DynamicFieldRenderer<'address'> = (field, {values, styles},
                 shouldSaveDraft={shouldSaveDraft}
                 shouldDisplayCountrySelector
                 shouldDisplayStateSelector={isStateAsked(country)}
-                stateOptions={STATES_BY_COUNTRY[country]}
+                stateOptions={getStateOptions(country)}
                 forwardedFSClass={forwardedFSClass}
                 onCountryChange={(pickedCountry) => {
                     // AddressSearch reports the country on every pick and the state reset arrives as '', so only a new country refreshes

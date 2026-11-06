@@ -11,12 +11,12 @@ import {getCountryZipRegexDetails} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
+import {CANADIAN_PROVINCES, US_STATES} from '@src/CONST/STATES_BY_COUNTRY';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -72,22 +72,6 @@ type AddressFormProps = ForwardedFSClassProps & {
     onCountryChange?: (country: unknown) => void;
     shouldAllowCountryChange?: boolean;
 };
-
-const PROVINCES_LIST_OPTIONS = (Object.keys(COMMON_CONST.PROVINCES) as Array<keyof typeof COMMON_CONST.PROVINCES>).reduce(
-    (acc, key) => {
-        acc[COMMON_CONST.PROVINCES[key].provinceISO] = COMMON_CONST.PROVINCES[key].provinceName;
-        return acc;
-    },
-    {} as Record<string, string>,
-);
-
-const STATES_LIST_OPTIONS = (Object.keys(COMMON_CONST.STATES) as Array<keyof typeof COMMON_CONST.STATES>).reduce(
-    (acc, key) => {
-        acc[COMMON_CONST.STATES[key].stateISO] = COMMON_CONST.STATES[key].stateName;
-        return acc;
-    },
-    {} as Record<string, string>,
-);
 
 function isCountry(country: string): country is Country {
     return country in CONST.ALL_COUNTRIES;
@@ -165,7 +149,7 @@ function AddressFormFields({
                 <View style={[styles.mt3, styles.mhn5]}>
                     <InputWrapper
                         InputComponent={PushRowWithModal}
-                        optionsList={stateOptions ?? (shouldDisplayCountrySelector && currentlySelectedCountry === CONST.COUNTRY.CA ? PROVINCES_LIST_OPTIONS : STATES_LIST_OPTIONS)}
+                        optionsList={stateOptions ?? (shouldDisplayCountrySelector && currentlySelectedCountry === CONST.COUNTRY.CA ? CANADIAN_PROVINCES : US_STATES)}
                         shouldSaveDraft={shouldSaveDraft}
                         description={stateSelectorLabel ?? translate('common.state')}
                         modalHeaderTitle={stateSelectorModalHeaderTitle ?? translate('common.state')}
