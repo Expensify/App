@@ -25,6 +25,10 @@ const REPORT = {
     },
 } as Report;
 
+const PARENT_REPORT_ID = '2';
+const PARENT_REPORT_ACTION_ID = '3';
+const THREAD = {...REPORT, parentReportID: PARENT_REPORT_ID, parentReportActionID: PARENT_REPORT_ACTION_ID};
+
 const RECIPIENT_PERSONAL_DETAILS: PersonalDetailsList = {
     [RECIPIENT_ACCOUNT_ID]: {
         accountID: RECIPIENT_ACCOUNT_ID,
@@ -53,6 +57,41 @@ describe('useReportRecipientLocalTime', () => {
 
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, RECIPIENT_PERSONAL_DETAILS);
 
+        await waitFor(() => {
+            expect(result.current).toBe(true);
+        });
+    });
+
+    it.each([CONST.IOU.REPORT_ACTION_TYPE.TRACK, CONST.IOU.REPORT_ACTION_TYPE.CREATE])('hides the local time once the parent action of the thread is a %s expense', async (type) => {
+        // Given a thread with one other participant, whose parent action has not loaded yet
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, RECIPIENT_PERSONAL_DETAILS);
+        const {result} = renderHook(() => useReportRecipientLocalTime({report: THREAD}));
+        await waitFor(() => {
+            expect(result.current).toBe(true);
+        });
+
+        // When the parent expense action arrives, as it does when a thread is opened from Search
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT_ID}`, {
+            [PARENT_REPORT_ACTION_ID]: {reportActionID: PARENT_REPORT_ACTION_ID, actionName: CONST.REPORT.ACTIONS.TYPE.IOU, message: {type}},
+        });
+
+        // Then the row goes away, because an expense thread is about the expense and not a conversation with that person
+        await waitFor(() => {
+            expect(result.current).toBe(false);
+        });
+    });
+
+    it('keeps the local time in a comment thread', async () => {
+        // Given a thread with one other participant, whose parent action is a comment
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, RECIPIENT_PERSONAL_DETAILS);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT_ID}`, {
+            [PARENT_REPORT_ACTION_ID]: {reportActionID: PARENT_REPORT_ACTION_ID, actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT},
+        });
+
+        // When reading whether to show the local time
+        const {result} = renderHook(() => useReportRecipientLocalTime({report: THREAD}));
+
+        // Then it stays visible, because only expense threads hide it
         await waitFor(() => {
             expect(result.current).toBe(true);
         });

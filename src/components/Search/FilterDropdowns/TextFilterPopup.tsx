@@ -6,7 +6,7 @@ import TextInput from '@components/TextInput';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getFilterFormValues} from '@libs/SearchQueryUtils';
-import {getFilterNegatableValue} from '@libs/SearchUIUtils';
+import {FILTER_VIEW_MAP, getFilterNegatableValue} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
@@ -46,7 +46,7 @@ function TextFilterPopup({baseFilterKey, values, label, updateFilterForm, closeO
         <BasePopup
             label={label}
             onApply={applyChanges}
-            applySentryLabel={`Search-FilterPopupApply-${baseFilterKey}`}
+            applySentryLabel={FILTER_VIEW_MAP[baseFilterKey].applySentryLabel}
             shouldSubmitOnEnter
         >
             <NegatableFilter

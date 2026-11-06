@@ -243,6 +243,8 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                     onBackButtonPress={goBack}
                     closeOverlay={closeOverlay}
                     searchPlaceholder={translate('common.groupCurrency')}
+                    applySentryLabel={CONST.SENTRY_LABEL.SEARCH.DISPLAY_POPUP_APPLY.GROUP_CURRENCY}
+                    resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.DISPLAY_POPUP_RESET.GROUP_CURRENCY}
                 />
             );
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW:
@@ -254,6 +256,8 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                     onBackButtonPress={goBack}
                     closeOverlay={closeOverlay}
                     onChange={(item) => updateFilterForm({view: item?.value ?? CONST.SEARCH.VIEW.TABLE})}
+                    applySentryLabel={CONST.SENTRY_LABEL.SEARCH.DISPLAY_POPUP_APPLY.VIEW}
+                    resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.DISPLAY_POPUP_RESET.VIEW}
                 />
             );
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT:
@@ -265,6 +269,8 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                     onBackButtonPress={goBack}
                     closeOverlay={closeOverlay}
                     onChange={(value) => updateFilterForm({limit: value})}
+                    applySentryLabel={CONST.SENTRY_LABEL.SEARCH.DISPLAY_POPUP_APPLY.LIMIT}
+                    resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.DISPLAY_POPUP_RESET.LIMIT}
                 />
             );
         default:
