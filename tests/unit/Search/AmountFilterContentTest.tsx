@@ -118,6 +118,39 @@ describe('AmountFilterContent currency selection', () => {
         expect(jest.mocked(NumberWithSymbolForm).mock.lastCall?.[0]).toMatchObject({currency: '', decimals: 2});
     });
 
+    it.each([
+        {baseFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, label: 'Greater than ', amount: ''},
+        {baseFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, label: 'Less than ', amount: '12.00'},
+        {baseFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT, label: 'Greater than ', amount: ''},
+        {baseFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT, label: 'Less than ', amount: '12.00'},
+    ])('keeps $baseFilterKey input and button names in sync with currency for $label', ({baseFilterKey, label, amount}) => {
+        // Given a range label whose translation leaves space for an optional amount
+        const renderInput = (currency?: string) => (
+            <AmountFilterInput
+                baseFilterKey={baseFilterKey}
+                amount={amount}
+                currency={currency}
+                label={label}
+                onAmountChange={jest.fn()}
+                onCurrencyChange={jest.fn()}
+            />
+        );
+        const {rerender} = render(renderInput('USD'));
+
+        // When currency is selected, removed, or restored without remounting the input
+        for (const currency of ['USD', '', undefined, 'AED']) {
+            rerender(renderInput(currency));
+
+            // Then each independently focused control includes currency context without changing the amount
+            const currencyName = currency || 'common.anyCurrency';
+            expect(jest.mocked(NumberWithSymbolForm).mock.lastCall?.[0]).toMatchObject({
+                accessibilityLabel: `${label.trim()}, ${currencyName}`,
+                currencyButtonAccessibilityLabel: `${label.trim()}, common.selectCurrency, ${currencyName}`,
+                value: amount,
+            });
+        }
+    });
+
     it.each(['Greater than ', 'Less than '])('trims the %s label in the currency button name', (label) => {
         // Given a range label whose translation leaves space for an optional amount.
         render(

@@ -27,10 +27,12 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useIsSupportalSession from '@hooks/useIsSupportalSession';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLoadPolicyCategories from '@hooks/useLoadPolicyCategories';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailByLogin, {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePrevious from '@hooks/usePrevious';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
@@ -42,6 +44,7 @@ import {setPolicyPreventSelfApproval} from '@libs/actions/Policy/Policy';
 import {clearApprovalWorkflow, removeApprovalWorkflow as removeApprovalWorkflowAction, setApprovalWorkflow, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {isRuleBotEnforcingRules} from '@libs/AgentRulesUtils';
 import {getAllCardsForWorkspace, getCardFeedIcon, getCardFeedWithDomainID, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {getEnabledCategoriesCount, getMemberVisibleCategoryNames} from '@libs/CategoryUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getAssignableOfficeLocations, getMemberOfficeLocation, hasOfficeLocations} from '@libs/OfficeLocationUtils';
@@ -65,6 +68,7 @@ import {
 import {getChatHistoryTranslationKey, navigateToChatHistory, shouldShowLocalTime as shouldShowLocalTimeUtil} from '@libs/ProfileUtils';
 import {getChatByParticipants, isApproverOfOutstandingPolicyReports} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
+import {startSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import {getEffectiveWorkArrangement, getMemberLoginByAccountID, getWorkArrangementLabel} from '@libs/WorkArrangementUtils';
 import {getFirstApproverLabel, INITIAL_APPROVAL_WORKFLOW, isApprovalWorkflowLockedByIntegration, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
@@ -80,6 +84,7 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 import variables from '@styles/variables';
 
 import {openPublicProfilePage} from '@userActions/PersonalDetails';
+import {clearPolicyMemberCategoryVisibilityError} from '@userActions/Policy/Category';
 import {clearWorkspaceOwnerChangeFlow, openPolicyMemberProfilePage, removeMembers} from '@userActions/Policy/Member';
 import {isAnonymousUser as isAnonymousUserSession} from '@userActions/Session';
 
@@ -93,6 +98,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import policyCategoriesVisibilitySelector from '@selectors/PolicyCategories';
 import {createOutstandingReportsForPolicySelector} from '@selectors/Report';
 import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
@@ -166,6 +172,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const isCurrentUserOwner = policy?.owner === currentUserLogin;
     const shouldShowOfficeLocation = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) && hasOfficeLocations(policy);
     const canWriteMembers = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MEMBERS);
+    const {canWrite: canWriteCategories} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
     const canChangeOfficeLocation = shouldShowOfficeLocation && canWriteMembers;
     const canManageSelectedMemberRole = canMemberAssignRole(policy, currentUserLogin, member?.role);
     const canRemoveSelectedMember = canWriteMembers && !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canMemberManageMemberWithRole(policy, currentUserLogin, member?.role);
@@ -181,6 +188,19 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const assignablePayerRoles = PAYER_ROLES.filter((payerRole) => canMemberAssignRole(policy, currentUserLogin, payerRole));
     const canReimburserChangeRole = assignablePayerRoles.some((payerRole) => payerRole !== member?.role);
     const canEditSelectedMemberRole = !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canManageSelectedMemberRole && (!isReimburser || canReimburserChangeRole);
+    const shouldShowCategoryVisibility = isBetaEnabled(CONST.BETAS.CATEGORY_VISIBILITY) && isControlPolicy(policy) && !!policy?.areCategoriesEnabled;
+    const [policyCategoriesVisibility] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {selector: policyCategoriesVisibilitySelector});
+
+    const {isLoadingCompletePolicyCategories} = useLoadPolicyCategories(shouldShowCategoryVisibility ? policyID : undefined);
+    let categoryVisibilityTitle = '';
+    if (!isLoadingCompletePolicyCategories && policyCategoriesVisibility) {
+        const visibleCategoriesCount = getMemberVisibleCategoryNames(policyCategoriesVisibility, accountID).length;
+        categoryVisibilityTitle =
+            visibleCategoriesCount === getEnabledCategoriesCount(policyCategoriesVisibility)
+                ? translate('workspace.people.allCategories')
+                : translate('workspace.people.categoriesCount', {count: visibleCategoriesCount});
+    }
+    const canEditCategoryVisibility = canWriteMembers && canWriteCategories && !!memberPersonalDetails?.accountID;
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
     const isCustomAgent = !!details.isCustomAgent;
@@ -401,6 +421,14 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         showRemoveMemberModal();
     };
 
+    const navigateToCategoryVisibility = () => {
+        startSpan(CONST.TELEMETRY.SPAN_OPEN_MEMBER_CATEGORY_VISIBILITY, {
+            name: CONST.TELEMETRY.SPAN_OPEN_MEMBER_CATEGORY_VISIBILITY,
+            op: CONST.TELEMETRY.SPAN_OPEN_MEMBER_CATEGORY_VISIBILITY,
+        });
+        Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS_CATEGORY_VISIBILITY.getRoute(policyID, accountID));
+    };
+
     const navigateToDetails = (card: MemberCard) => {
         if (card.bank === CONST.EXPENSIFY_CARD.BANK) {
             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(card.cardID.toString())));
@@ -526,6 +554,22 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.getRoute(policyID, accountID));
                                 }}
                             />
+                            {shouldShowCategoryVisibility && (
+                                <OfflineWithFeedback
+                                    pendingAction={member?.pendingFields?.categoryVisibility}
+                                    errors={member?.errorFields?.categoryVisibility}
+                                    errorRowStyles={styles.ph5}
+                                    onClose={() => clearPolicyMemberCategoryVisibilityError(policyID, memberLogin)}
+                                >
+                                    <MenuItemField
+                                        name={translate('workspace.people.categoryVisibility')}
+                                        onPress={canEditCategoryVisibility ? navigateToCategoryVisibility : undefined}
+                                        testID="member-category-visibility-menu-item"
+                                        value={categoryVisibilityTitle}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.CATEGORY_VISIBILITY}
+                                    />
+                                </OfflineWithFeedback>
+                            )}
                             {isApprovalsEnabled && !shouldHideApprovalWorkflows && (
                                 <OfflineWithFeedback pendingAction={approverPendingActionByMemberEmail[memberLogin]}>
                                     <MenuItem.Root

@@ -59,6 +59,7 @@ import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getParsedComment, getReportOrDraftReport, getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
+import startOpenCategoryPickerSpan from '@libs/telemetry/startOpenCategoryPickerSpan';
 import {
     getDistanceInMeters,
     getRateID,
@@ -504,6 +505,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                         Navigation.navigate(ROUTES.SET_DEFAULT_WORKSPACE.getRoute(categoryRoute));
                                         return;
                                     }
+                                    startOpenCategoryPickerSpan();
                                     Navigation.navigate(categoryRoute);
                                 }}
                             >

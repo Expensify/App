@@ -105,6 +105,9 @@ type PaymentMethodItem = PaymentMethod & {
 
         /** Whether the admin has something to do, which shows Continue */
         canContinue: boolean;
+
+        /** Whether the onboarding is already with Wise, so Continue opens the status page instead of the intro */
+        isOnboardingSubmitted: boolean;
     };
 
     /** Whether the bank account is set up for global reimbursements, which shows a globe next to its name */
@@ -371,6 +374,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 <WiseSetupInProgressRow
                     bankAccountID={item.wiseSetupInProgress.bankAccountID}
                     canContinue={item.wiseSetupInProgress.canContinue}
+                    isOnboardingSubmitted={item.wiseSetupInProgress.isOnboardingSubmitted}
                     style={[styles.pt4, styles.pb3, cardPaddingHorizontal]}
                 />
             )}
