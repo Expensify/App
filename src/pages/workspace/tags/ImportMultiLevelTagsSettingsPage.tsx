@@ -115,6 +115,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                         <Switch
                             isOn={spreadsheet?.containsHeader ?? true}
                             accessibilityLabel={translate('workspace.tags.importMultiLevelTags.firstRowTitle')}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.IMPORT_FIRST_ROW_TITLE_SWITCH}
                             onToggle={(value) => {
                                 setImportedSpreadsheetIsFirstLineHeader(value);
                             }}
@@ -134,6 +135,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                             <Switch
                                 isOn={spreadsheet?.isImportingIndependentMultiLevelTags ?? true}
                                 accessibilityLabel={translate('workspace.tags.importMultiLevelTags.independentTags')}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.IMPORT_INDEPENDENT_TAGS_SWITCH}
                                 onToggle={(value) => {
                                     setImportedSpreadsheetIsImportingIndependentMultiLevelTags(value);
                                 }}
@@ -152,6 +154,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                         <Switch
                             isOn={spreadsheet?.isGLAdjacent ?? false}
                             accessibilityLabel={translate('workspace.tags.importMultiLevelTags.glAdjacentColumn')}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.IMPORT_GL_ADJACENT_COLUMN_SWITCH}
                             onToggle={(value) => {
                                 setImportedSpreadsheetIsGLAdjacent(value);
                             }}

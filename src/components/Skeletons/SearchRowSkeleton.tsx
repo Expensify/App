@@ -1,3 +1,4 @@
+import useNavigationBarWidth from '@components/Navigation/FlatNavigationBar/useNavigationBarWidth';
 import SkeletonRect from '@components/SkeletonRect';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -31,7 +32,7 @@ type SearchRowSkeletonProps = {
 
 const barHeight = 8;
 const longBarWidth = 120;
-const leftPaneWidth = variables.sideBarWithLHBWidth + (getPlatform() === CONST.PLATFORM.WEB ? variables.navigationTabBarSize : 0);
+const shouldOffsetByNavigationBar = getPlatform() === CONST.PLATFORM.WEB;
 
 // 12 is the gap between the element and the right button
 const gapWidth = 12;
@@ -58,12 +59,14 @@ function SearchRowSkeleton({
 }: SearchRowSkeletonProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
+    const navigationBarWidth = useNavigationBarWidth();
     const {shouldUseNarrowLayout: shouldUseNarrowLayoutResponsive, isLargeScreenWidth} = useResponsiveLayout();
     // The prop lets callers (e.g. SearchStaticList) pin the layout independently of the
     // global responsive breakpoint - useful when the skeleton is rendered in a context
     // whose container width doesn't match the window (e.g. inside a split pane).
     const shouldUseNarrowLayout = shouldUseNarrowLayoutProp ?? shouldUseNarrowLayoutResponsive;
     const {values, pageGutterMargin} = resolveLayoutSpacing(shouldUseNarrowLayout);
+    const leftPaneWidth = variables.sideBarWithLHBWidth + (shouldOffsetByNavigationBar ? navigationBarWidth : 0);
 
     if (shouldUseNarrowLayout) {
         const containerWidth = windowWidth - values.pageGutter * 2;
