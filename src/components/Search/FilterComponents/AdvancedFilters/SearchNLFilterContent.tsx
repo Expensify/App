@@ -10,6 +10,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -42,10 +43,14 @@ type SearchNLFilterContentProps = {
 
     /** Size of the submit button */
     size?: Exclude<ValueOf<typeof CONST.BUTTON_SIZE>, typeof CONST.BUTTON_SIZE.SMALL>;
+
+    /** Whether the input takes the focus once it is shown */
+    autoFocus?: boolean;
 };
 
-function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle, size = CONST.BUTTON_SIZE.MEDIUM}: SearchNLFilterContentProps) {
+function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle, size = CONST.BUTTON_SIZE.MEDIUM, autoFocus}: SearchNLFilterContentProps) {
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const [nlQuery, setNlQuery] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -62,7 +67,7 @@ function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle,
     );
 
     const handleSubmit = () => {
-        if (isLoading) {
+        if (isLoading || isOffline) {
             return;
         }
         const trimmedQuery = nlQuery.trim();
@@ -129,7 +134,7 @@ function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle,
                         e.preventDefault();
                         handleSubmit();
                     }}
-                    autoFocus
+                    autoFocus={autoFocus}
                     autoGrowHeight
                     maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                 />
@@ -143,7 +148,7 @@ function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle,
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={size}
                     isLoading={isLoading}
-                    isDisabled={isLoading || !nlQuery.trim()}
+                    isDisabled={isLoading || isOffline || !nlQuery.trim()}
                     onPress={handleSubmit}
                 >
                     <Button.KeyboardShortcut />

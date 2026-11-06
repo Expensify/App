@@ -72,7 +72,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import {showErrorAlert} from './ShareRootPage';
@@ -290,13 +290,13 @@ function SubmitDetailsPage({
         setMoneyRequestReimbursable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, defaultReimbursable);
     }, [policy, isPolicyExpenseChat, isCreatingTrackExpense]);
 
-    const setBillable = useCallback((billable: boolean) => {
+    const setBillable = (billable: boolean) => {
         setMoneyRequestBillable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, billable);
-    }, []);
+    };
 
-    const setReimbursable = useCallback((reimbursable: boolean) => {
+    const setReimbursable = (reimbursable: boolean) => {
         setMoneyRequestReimbursable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reimbursable);
-    }, []);
+    };
 
     const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
     const transactionAmount = transaction?.amount ?? 0;
@@ -322,7 +322,7 @@ function SubmitDetailsPage({
 
     const hasNavigationDestination = !!transaction && !!postSubmitNavigationReportID;
     // Empty draft skips REPORT_DRAFT fallback — report must be in COLLECTION.REPORT to render behind the share modal.
-    const destinationReportInCollection = hasNavigationDestination ? getReportOrDraftReport(postSubmitNavigationReportID, undefined, undefined, {}) : undefined;
+    const destinationReportInCollection = hasNavigationDestination ? getReportOrDraftReport({reportID: postSubmitNavigationReportID, reportDraft: {}}) : undefined;
     // Destination report isn't in COLLECTION.REPORT yet (e.g. a recipient with no existing chat) — it will only
     // exist after the expense create writes it optimistically, so pre-mounting is impossible.
     const isDestinationReportMissing = hasNavigationDestination && !destinationReportInCollection?.reportID;

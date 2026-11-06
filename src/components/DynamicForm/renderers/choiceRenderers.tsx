@@ -4,9 +4,10 @@ import CurrencyPicker from '@components/CurrencyPicker';
 import CurrencyInlineListAdapter from '@components/DynamicForm/adapters/CurrencyInlineListAdapter';
 import InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
 import TabsAdapter from '@components/DynamicForm/adapters/TabsAdapter';
+import ToggleLinkAdapter from '@components/DynamicForm/adapters/ToggleLinkAdapter';
 import YesNoAdapter from '@components/DynamicForm/adapters/YesNoAdapter';
 import {getFieldChoices} from '@components/DynamicForm/utils/getFieldOptions';
-import {getFieldLabel, getInputLabel} from '@components/DynamicForm/utils/getLocalizedText';
+import getLocalizedText, {getFieldLabel, getInputLabel} from '@components/DynamicForm/utils/getLocalizedText';
 import InputWrapper from '@components/Form/InputWrapper';
 import PushRowWithModal from '@components/PushRowWithModal';
 import type {Choice} from '@components/RadioButtons';
@@ -196,6 +197,20 @@ const CHOICE_RENDERERS: Pick<DynamicFieldRendererMap, 'select' | 'radio' | 'mult
         };
     },
     boolean: (field, {translate, isLoneField}, inputProps) => {
+        if (field.presentation === 'link') {
+            return {
+                isMenuRow: false,
+                input: (
+                    <InputWrapper
+                        InputComponent={ToggleLinkAdapter}
+                        {...inputProps}
+                        valueType="boolean"
+                        label={getFieldLabel(field, translate)}
+                        toggledLabel={getLocalizedText(translate, field.toggledLabelKey, field.toggledLabel)}
+                    />
+                ),
+            };
+        }
         if (field.presentation !== 'checkbox') {
             return {
                 isMenuRow: true,

@@ -33,6 +33,7 @@ function assertSecurityHeaders(response: Response) {
     assert.equal(response.headers.get('X-Frame-Options'), 'SAMEORIGIN');
     assert.equal(response.headers.get('X-Content-Type-Options'), 'nosniff');
     assert.equal(response.headers.get('Referrer-Policy'), 'origin-when-cross-origin');
+    assert.equal(response.headers.get('Cross-Origin-Opener-Policy'), 'same-origin-allow-popups');
     assert.equal(response.headers.get('Document-Policy'), 'js-profiling');
     assert.match(response.headers.get('Content-Security-Policy') ?? '', /^default-src 'self'/);
 }
@@ -105,6 +106,27 @@ describe('staging worker', () => {
             // Then the app shell is served at the URL as typed
             assert.equal(response.status, 200, path);
             assert.match(await response.text(), /New Expensify fixture/, path);
+        }
+    });
+
+    test('sends a form POST to the same page as a GET', async () => {
+        // Given a form the browser submits instead of the app, as it does when a password manager submits a login form
+        for (const path of ['/', '/home', '/r/123?referrer=search', '//attacker.example/phish']) {
+            // When the browser POSTs it as a page load, with the full URL so the harness keeps a path starting with `//`
+            const response = await server.fetch(`https://new.expensify.com${path}`, {
+                method: 'POST',
+                headers: {...NAVIGATION_HEADERS, 'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'login=a%40b.com',
+                redirect: 'manual',
+            });
+
+            // Then it is redirected to load the same page, instead of getting a blank 405
+            assert.equal(response.status, 303, path);
+            // An absolute URL on the same host, so a path starting with `//` can't send the browser to another host
+            assert.equal(response.headers.get('Location'), `https://new.expensify.com${path}`, path);
+            assert.equal(response.headers.get('Cache-Control'), 'no-store', path);
+            assert.equal(await response.text(), '', path);
+            assertSecurityHeaders(response);
         }
     });
 
@@ -478,7 +500,7 @@ describe('test-staging worker', () => {
 });
 
 describe('production worker', () => {
-    const {server, addPreviousBuildFiles, cleanup} = createWorkerHarness('production');
+    const {server, addPreviousBuildFiles, cleanup} = createWorkerHarness('production', {vars: {DEV_UPSTREAM: 'http://127.0.0.1:1', DEV_CONNECT_ORIGINS: '["https://dev-only.invalid"]'}});
     const PREVIOUS_CHUNK_PATH = '/main-aaaaaaaaaaaaaaaa.bundle.js';
 
     before(async () => {
@@ -499,6 +521,7 @@ describe('production worker', () => {
         assert.match(csp, /new-expensify:\/\/new\.expensify\.com/);
         assert.match(csp, /font-src data: 'self' https:\/\/www\.expensify\.com/);
         assert.doesNotMatch(csp, /new-expensify:\/\/staging/);
+        assert.doesNotMatch(csp, /localhost|127\.0\.0\.1|expensify\.com\.dev|dev-only\.invalid/);
         assertTemplateInlineScriptsAllowed(csp);
     });
 

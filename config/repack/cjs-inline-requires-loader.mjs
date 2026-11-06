@@ -1,7 +1,7 @@
 /**
  * Lowers ES modules to CommonJS and defers each `require()` to its first use site. This gives the
- * same import-cycle tolerance Metro gets from `inlineRequires` (see metro.config.js), which this
- * app relies on to boot.
+ * same import-cycle tolerance Metro used to get from its `inlineRequires` serializer option,
+ * which this app relies on to boot.
  *
  * Uses Metro's own `inlineRequiresPlugin` rather than SWC's `module.lazy`. Both defer ~100% of
  * imports, but SWC's lazy mode emits a memoizing wrapper function per imported module. That is

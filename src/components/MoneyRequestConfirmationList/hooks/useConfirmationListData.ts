@@ -18,7 +18,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
 import {useIsFocused} from '@react-navigation/native';
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 
 import type {ConfirmationDistanceState, ConfirmationListData, UseConfirmationListDataParams} from './types';
 
@@ -58,7 +58,6 @@ function useConfirmationListDataWithPolicy({
     isEditingSplitBill,
     expensesNumber = 0,
     receiptOptions,
-    isParticipantPickerVisible = false,
     onToggleBillable,
     onToggleReimbursable,
     isConfirmed,
@@ -100,9 +99,9 @@ function useConfirmationListDataWithPolicy({
 
     // In the new manual expense flow the inline fields live in the list footer, so they can be hidden behind the keyboard.
     // We let those fields ask the list to scroll them into view when focused.
-    const scrollFocusedInputIntoView = useCallback((input: MeasurableInput) => {
+    const scrollFocusedInputIntoView = (input: MeasurableInput) => {
         listRef.current?.scrollInputIntoView(input);
-    }, []);
+    };
 
     const iouAmount = hasValidModifiedAmount(transaction) ? Number(transaction?.modifiedAmount) : (transaction?.amount ?? 0);
     const iouCurrencyCode = getCurrency(transaction);
@@ -293,7 +292,6 @@ function useConfirmationListDataWithPolicy({
         shouldShowCategories,
         shouldShowTax,
         hasParticipantSection: sections.length > 0,
-        isParticipantPickerVisible,
     };
     const errorState = {shouldDisplayFieldError, formError, clearFormErrors, setFormError};
 

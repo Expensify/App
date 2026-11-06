@@ -13,7 +13,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 
 const PERSONAL_INFO_STEP_KEY = INPUT_IDS.PERSONAL_INFO_STEP;
 const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.PHONE_NUMBER];
@@ -25,23 +25,20 @@ function PhoneNumberStep({onNext, onMove, isEditing}: SubPageProps) {
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const defaultPhoneNumber = walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.PHONE_NUMBER] ?? '';
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
+        const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
-            if (values.phoneNumber) {
-                const phoneNumberWithCountryCode = appendCountryCode(values.phoneNumber, countryCode);
-                const e164FormattedPhoneNumber = formatE164PhoneNumber(values.phoneNumber, countryCode);
+        if (values.phoneNumber) {
+            const phoneNumberWithCountryCode = appendCountryCode(values.phoneNumber, countryCode);
+            const e164FormattedPhoneNumber = formatE164PhoneNumber(values.phoneNumber, countryCode);
 
-                if (!isValidPhoneNumber(phoneNumberWithCountryCode) || !isValidUSPhone(e164FormattedPhoneNumber)) {
-                    errors.phoneNumber = translate('common.error.phoneNumber');
-                }
+            if (!isValidPhoneNumber(phoneNumberWithCountryCode) || !isValidUSPhone(e164FormattedPhoneNumber)) {
+                errors.phoneNumber = translate('common.error.phoneNumber');
             }
+        }
 
-            return errors;
-        },
-        [countryCode, translate],
-    );
+        return errors;
+    };
 
     const handleSubmit = useWalletAdditionalDetailsStepFormSubmit({
         fieldIds: STEP_FIELDS,

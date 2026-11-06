@@ -55,7 +55,7 @@ function RilletTravelBillingSettlementAccountPage({policy}: WithPolicyConnection
 
     const headerContent = (
         <View>
-            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.rillet.travelInvoicingSettlementAccount.description')}</Text>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.rillet.travelBillingSettlementAccount.description')}</Text>
         </View>
     );
 
@@ -84,7 +84,7 @@ function RilletTravelBillingSettlementAccountPage({policy}: WithPolicyConnection
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             shouldBeBlocked={shouldBeBlocked}
             displayName="RilletTravelBillingSettlementAccountPage"
-            title="workspace.rillet.travelInvoicingSettlementAccount.label"
+            title="workspace.rillet.travelBillingSettlementAccount.label"
             data={filteredData}
             textInputOptions={textInputOptions}
             headerContent={headerContent}

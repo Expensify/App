@@ -24,7 +24,6 @@ To connect TriNet, you must be a **Workspace Admin** on a workspace with the Con
 
 - Be an admin in TriNet.
 - Ensure every employee record in TriNet includes their work email address.
-- Have **HR** integrations enabled on your workspace. Enable **HR** under **More features** in the **Integrate** section.
 
 TriNet syncs all employees to **one** Expensify workspace. If your company uses multiple workspaces, choose which one to connect during setup.
 
@@ -34,8 +33,8 @@ TriNet syncs all employees to **one** Expensify workspace. If your company uses 
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces**.
 2. Click the name of the workspace you want to connect to TriNet.
-3. In the left menu, select **HR**.
-4. Next to **TriNet**, click **Connect**.
+3. Select **Connections**.
+4. Select **TriNet**.
 5. When prompted, enter your TriNet admin credentials and authorize Expensify to access your TriNet account.
 6. Wait for the sync to complete and for the message **Successfully synced your TriNet connection** to appear.
 
@@ -46,7 +45,7 @@ TriNet syncs all employees to **one** Expensify workspace. If your company uses 
 After the initial sync completes:
 
 - The **TriNet sync complete** screen opens with the **Added**, **Removed**, and **Skipped** employee counts. Click **Skipped** to see each skipped employee and the reason they were skipped, then click **Got it** to close the screen.
-- If you leave the **HR** or **Members** tab before the sync finishes, the **TriNet sync complete** screen doesn't open, and the sync results are emailed to the workspace's technical contact instead.
+- If you leave the **Connections** page or the **Members** tab before the sync finishes, the **TriNet sync complete** screen doesn't open, and the sync results are emailed to the workspace's technical contact instead.
 - The **Members** tab displays employees synced from TriNet.
 - Full-time active employees in TriNet are added to the Expensify workspace automatically.
 - Employees receive a welcome email with instructions to finish setting up their Expensify account.
@@ -71,16 +70,15 @@ To change the approval mode or final approver on your workspace:
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces**.
 2. Click the name of the workspace connected to TriNet.
-3. In the left menu, click **HR**.
-4. Click **TriNet**.
-5. Click **Approval mode** or **Final approver** to update the settings.
-6. Click **Save**.
+3. Select **Connections**, then select **Configure** next to TriNet.
+4. Select **Approval mode** or **Final approver** to update the settings.
+5. Select **Save**.
 
 When **Manager Approval** is selected, approval workflows are automatically built from the manager relationships in TriNet. These approval workflows appear on the **Workflows** tab with a TriNet indicator. The **Approvals** toggle on the **Workflows** tab is locked on and cannot be turned off while TriNet is connected.
 
 When **Custom Approval** is selected, the **Workflows** tab remains fully editable. Workspace members are synced from TriNet, but approval workflows are configured manually by a Workspace Admin.
 
-To change approval settings, use the **HR** tab rather than the **Workflows** tab.
+To change approval settings, use the TriNet settings on the **Connections** page rather than the **Workflows** tab.
 
 ---
 
@@ -92,8 +90,8 @@ To refresh the sync manually:
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces**.
 2. Click the name of the workspace connected to TriNet.
-3. In the left menu, click **HR**.
-4. Next to **TriNet**, select the three dots **(⋮)**, then click **Sync now**.
+3. Select **Connections**, then select **Configure** next to TriNet.
+4. Select **More (⋮)**, then select **Sync now**.
 5. Stay on the page and wait for the sync to complete. The **TriNet sync complete** screen then opens with the **Added**, **Removed**, and **Skipped** employee counts.
 
 You can also start a manual sync from the **Members** tab:
@@ -108,10 +106,9 @@ You can also start a manual sync from the **Members** tab:
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces**.
 2. Click the name of the workspace connected to TriNet.
-3. In the left menu, click **HR**.
-4. Click **TriNet**.
-5. Click **Disconnect**.
-6. Confirm by clicking **Disconnect** again.
+3. Select **Connections**, then select **Configure** next to TriNet.
+4. Select **More (⋮)**, then select **Disconnect**.
+5. Confirm by selecting **Disconnect** again.
 
 Disconnecting TriNet unlocks the **Approvals** toggle on the **Workflows** tab, allowing you to manage approval workflows manually again. Disconnecting TriNet also stops future employee syncs and automatic removals. Existing workspace members are not removed.
 
@@ -137,8 +134,8 @@ No. Expensify supports one HR platform connection per workspace at a time. If yo
 
 ## Can I change the approval mode after connecting?
 
-Yes. Go to the **HR** tab, click **TriNet**, and update the approval mode or final approver at any time.
+Yes. On the **Connections** page, select **Configure** next to TriNet, and update the approval mode or final approver at any time.
 
 ## Why can't I turn off Approvals on the Workflows tab?
 
-When TriNet is connected, the **Approvals** toggle is locked on because approval workflows are managed by the TriNet integration. To change approval settings, go to the **HR** tab. To unlock the toggle, disconnect TriNet.
+When TriNet is connected, the **Approvals** toggle is locked on because approval workflows are managed by the TriNet integration. To change approval settings, select **Configure** next to TriNet on the **Connections** page. To unlock the toggle, disconnect TriNet.
