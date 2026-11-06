@@ -678,15 +678,7 @@ function getSendInvoiceInformation({
     }
 
     // STEP 2: Create a new optimistic invoice report.
-    const optimisticInvoiceReport = buildOptimisticInvoiceReport(
-        chatReport.reportID,
-        senderWorkspaceID,
-        receiverAccountID,
-        receiver.displayName ?? (receiverParticipant as Participant)?.login ?? '',
-        amount,
-        currency,
-        getCurrencyDecimals,
-    );
+    const optimisticInvoiceReport = buildOptimisticInvoiceReport(chatReport.reportID, senderWorkspaceID, receiverAccountID, amount, currency);
 
     // STEP 3: Build optimistic receipt and transaction
     const optimisticTransaction = buildOptimisticTransaction({
