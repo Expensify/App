@@ -42,7 +42,7 @@ Follow the steps below to confirm the connection and retry the export.
 
 1. Go to **Settings > Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
+3. Select **Connections**.
 4. Confirm the Sage Intacct integration shows as connected.
 
 If the connection appears disconnected or requires reauthorization, reconnect the integration.
@@ -53,8 +53,9 @@ If the connection appears disconnected or requires reauthorization, reconnect th
 
 1. Go to **Settings > Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
-4. Click **Sync Now**.
+3. Select **Connections**, then select **Configure** next to Sage Intacct.
+4. Select **More (⋮)**.
+5. Select **Sync now**.
 
 This refreshes the integration session and confirms connectivity.
 

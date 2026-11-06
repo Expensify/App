@@ -3,6 +3,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {Policy, Report, ReportAction, Rule, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
+import type {ReportUpcomingStepAction} from '@src/types/onyx/ReportUpcomingSteps';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -11,7 +12,8 @@ import type {ValueOf} from 'type-fest';
 import {addMonths, format, isPast, parseISO, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
 
-import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimbursementChoice, getReimburserAccountID, isArchivedPolicy} from './PolicyUtils';
+import DateUtils from './DateUtils';
+import {canSubmitOwnReportOnPolicy, getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimbursementChoice, getReimburserAccountID, isArchivedPolicy} from './PolicyUtils';
 import {getOriginalMessage} from './ReportActionMessageUtils';
 import {isDynamicExternalWorkflowApproveFailedAction} from './ReportActionTypeGuards';
 import {
@@ -120,12 +122,39 @@ function getScheduleETAFields(policy: OnyxEntry<Policy>): NonNullable<ReportNext
     };
 }
 
+function getNextStepETA(
+    nextStep: ReportNextStep,
+    translate: LocaleContextProps['translate'],
+    dateFnsLocale: DateFnsLocale | undefined,
+): {eta?: string; etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>} {
+    const scheduleETA = getScheduleETA(nextStep.eta, translate, dateFnsLocale);
+    if (scheduleETA) {
+        return {eta: scheduleETA, etaType: CONST.NEXT_STEP.ETA_TYPE.KEY};
+    }
+    if (nextStep.eta?.etaKey) {
+        return {eta: translate(`nextStep.eta.${nextStep.eta.etaKey}`), etaType: CONST.NEXT_STEP.ETA_TYPE.KEY};
+    }
+    if (nextStep.eta?.dateTime) {
+        // `eta.dateTime` is a date-only string (yyyy-MM-dd). Native `new Date(...)` parses it as UTC midnight,
+        // which shifts the day back by one when formatted in a UTC-negative timezone. `parseISO` parses it as
+        // local midnight so the rendered day matches the day set in the workspace settings.
+        const etaDate = parseISO(nextStep.eta.dateTime);
+        const eta =
+            nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT
+                ? format(etaDate, CONST.DATE.ORDINAL_DAY_OF_MONTH, {locale: dateFnsLocale})
+                : DateUtils.formatToLongDateWithWeekday(etaDate, dateFnsLocale);
+        return {eta, etaType: CONST.NEXT_STEP.ETA_TYPE.DATE_TIME};
+    }
+    return {};
+}
+
 function buildNextStepMessage(
     nextStep: ReportNextStep,
     translate: LocaleContextProps['translate'],
     dateFnsLocale: DateFnsLocale | undefined,
     currentUserAccountID: number,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    reportType?: Report['type'],
 ): string {
     // Escape actor name to prevent HTML injection since this will be rendered as HTML
     const actor = Str.safeEscape(getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber, hiddenTranslation: translate('common.hidden')}) ?? '');
@@ -138,29 +167,21 @@ function buildNextStepMessage(
         actorType = CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER;
     }
 
-    let eta: string | undefined;
-    let etaType: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE> | undefined;
-    const scheduleETA = getScheduleETA(nextStep.eta, translate, dateFnsLocale);
-    if (scheduleETA) {
-        eta = scheduleETA;
-        etaType = CONST.NEXT_STEP.ETA_TYPE.KEY;
-    } else if (nextStep.eta?.etaKey) {
-        eta = translate(`nextStep.eta.${nextStep.eta.etaKey}`);
-        etaType = CONST.NEXT_STEP.ETA_TYPE.KEY;
-    } else if (nextStep.eta?.dateTime) {
-        const formatString = nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT ? CONST.DATE.ORDINAL_DAY_OF_MONTH : CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY;
-        // `eta.dateTime` is a date-only string (yyyy-MM-dd). Native `new Date(...)` parses it as UTC midnight,
-        // which shifts the day back by one when formatted in a UTC-negative timezone. `parseISO` parses it as
-        // local midnight so the rendered day matches the day set in the workspace settings.
-        eta = format(parseISO(nextStep.eta.dateTime), formatString, {locale: dateFnsLocale});
-        etaType = CONST.NEXT_STEP.ETA_TYPE.DATE_TIME;
-    }
+    const {eta, etaType} = getNextStepETA(nextStep, translate, dateFnsLocale);
 
     const requiredDepositCurrency = nextStep.requiredDepositCurrency ? Str.htmlEncode(nextStep.requiredDepositCurrency) : undefined;
-    const message =
-        nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT
-            ? translate('nextStep.message.waitingForSubmitterAccount', actor, actorType, eta, etaType, requiredDepositCurrency)
-            : translate(`nextStep.message.${nextStep.messageKey}`, actor, actorType, eta, etaType);
+    // Auth sends the same approve and pay next steps for bills and expense reports, so the report type picks the wording.
+    const isBill = reportType === CONST.REPORT.UNSUPPORTED_TYPE.BILL;
+    let message: string;
+    if (nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT) {
+        message = translate('nextStep.message.waitingForSubmitterAccount', actor, actorType, eta, etaType, requiredDepositCurrency);
+    } else if (nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE) {
+        message = translate('nextStep.message.waitingToApprove', actor, actorType, eta, etaType, isBill);
+    } else if (nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY) {
+        message = translate('nextStep.message.waitingToPay', actor, actorType, eta, etaType, isBill);
+    } else {
+        message = translate(`nextStep.message.${nextStep.messageKey}`, actor, actorType, eta, etaType);
+    }
     return `<next-step>${message}</next-step>`;
 }
 
@@ -400,6 +421,13 @@ function buildChangeWorkspaceNextStep(): ReportNextStep {
     };
 }
 
+function buildApproveOnlySubmitBlockedNextStep(): ReportNextStep {
+    return {
+        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED,
+        icon: CONST.NEXT_STEP.ICONS.BOX,
+    };
+}
+
 function getReportNextStep({
     moneyRequestReport,
     moneyRequestReportOwnerLogin,
@@ -413,6 +441,11 @@ function getReportNextStep({
     // Reports on an archived workspace can't be acted on until they're moved to another workspace
     if (isArchivedPolicy(policy)) {
         return buildChangeWorkspaceNextStep();
+    }
+
+    // The member can never submit their own report on this workspace, so the report has to be moved elsewhere to submit.
+    if (isOpenExpenseReport(moneyRequestReport) && moneyRequestReport?.ownerAccountID === currentUserAccountID && !canSubmitOwnReportOnPolicy(policy, currentUserEmail)) {
+        return buildApproveOnlySubmitBlockedNextStep();
     }
 
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(moneyRequestReport);
@@ -451,6 +484,38 @@ function getReportNextStep({
     return moneyRequestReport?.nextStep;
 }
 
+/** The workflow step each next step waits on. Typed as a full record so a new message key has to pick one. */
+const UPCOMING_STEP_ACTION_BY_MESSAGE_KEY: Record<ValueOf<typeof CONST.NEXT_STEP.MESSAGE_KEY>, ReportUpcomingStepAction | undefined> = {
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: CONST.REPORT.UPCOMING_STEP_ACTION.SUBMIT,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: CONST.REPORT.UPCOMING_STEP_ACTION.SUBMIT,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: CONST.REPORT.UPCOMING_STEP_ACTION.SUBMIT,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: CONST.REPORT.UPCOMING_STEP_ACTION.SUBMIT,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: CONST.REPORT.UPCOMING_STEP_ACTION.SUBMIT,
+    [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: CONST.REPORT.UPCOMING_STEP_ACTION.SUBMIT,
+    [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: CONST.REPORT.UPCOMING_STEP_ACTION.SUBMIT,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: CONST.REPORT.UPCOMING_STEP_ACTION.APPROVE,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: CONST.REPORT.UPCOMING_STEP_ACTION.PAY,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: CONST.REPORT.UPCOMING_STEP_ACTION.PAY,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: undefined,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: undefined,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: undefined,
+    [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: undefined,
+    [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: undefined,
+    [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: undefined,
+};
+
+function getUpcomingStepActionForNextStep(nextStep: ReportNextStep | undefined, isOpenReport: boolean): ReportUpcomingStepAction | undefined {
+    if (!nextStep) {
+        return undefined;
+    }
+
+    // A failed DEW approval also asks the submitter to fix issues, but the report is still waiting on its approver
+    if (nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES && !isOpenReport) {
+        return undefined;
+    }
+    return UPCOMING_STEP_ACTION_BY_MESSAGE_KEY[nextStep.messageKey];
+}
+
 /**
  * Whether to show the DEW approve-error next step.
  * Only manual approve failures (`automaticAction` false/absent) should show it. Auto-approval blocks keep the normal
@@ -469,8 +534,10 @@ function shouldShowDynamicExternalWorkflowApproveErrorNextStep(reportAction: Ony
 export {
     getReportNextStep,
     buildNextStepMessage,
+    getNextStepETA,
     buildOptimisticNextStep,
     buildOptimisticFixIssueNextStep,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
     shouldShowDynamicExternalWorkflowApproveErrorNextStep,
+    getUpcomingStepActionForNextStep,
 };
