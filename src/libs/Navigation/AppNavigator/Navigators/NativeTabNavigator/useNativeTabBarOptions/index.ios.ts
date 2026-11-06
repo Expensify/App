@@ -27,6 +27,7 @@ const LANDSCAPE_TAB_ICON_LAYOUT: TabIconLayout = {
     glyphSize: variables.iconNativeTabBarIOSLandscape,
     iconBoxSize: variables.nativeTabIconBoxIOSLandscape,
     direction: 'inline',
+    trailingInset: variables.nativeTabIconTrailingInsetIOSLandscape,
 };
 
 /**
@@ -41,8 +42,8 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels}: 
     const tabIconLayout = isInLandscapeMode ? LANDSCAPE_TAB_ICON_LAYOUT : TAB_ICON_LAYOUT;
     const barItemCount = Object.keys(tabLabels).length;
     const itemWidth = (windowWidth - 2 * variables.iosNativeTabBarHorizontalInset) / barItemCount - variables.iosNativeTabBarLabelInset;
-    // In landscape the label shares the item's width with the glyph's box beside it.
-    const labelMaxWidth = isInLandscapeMode ? itemWidth - tabIconLayout.iconBoxSize - variables.nativeTabIconLabelGap : itemWidth;
+    // In landscape the label shares the item's width with the glyph's box beside it and the space after it.
+    const labelMaxWidth = isInLandscapeMode ? itemWidth - tabIconLayout.iconBoxSize - variables.nativeTabIconLabelGap - (tabIconLayout.trailingInset ?? 0) : itemWidth;
 
     const screenOptions: NativeBottomTabNavigationOptions = {
         // The labels are drawn into the icons.
