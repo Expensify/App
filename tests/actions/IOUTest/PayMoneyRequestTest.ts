@@ -3006,7 +3006,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             };
         }
 
-        function payWithBusinessBankAccount(bankAccountList: BankAccountList, isWiseReimbursementsBetaEnabled: boolean) {
+        function payWithBusinessBankAccount(bankAccountList: BankAccountList, isWiseReimbursementsBetaEnabled: boolean, requiresGlobalReimbursement = true) {
             const chatReport = {
                 ...createRandomReport(0, undefined),
                 type: CONST.REPORT.TYPE.CHAT,
@@ -3018,6 +3018,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 chatReportID: chatReport.reportID,
                 total: -100,
                 currency: CONST.CURRENCY.USD,
+                nextStep: {messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY, icon: CONST.NEXT_STEP.ICONS.HOURGLASS, requiresGlobalReimbursement},
             };
 
             payMoneyRequest({
@@ -3046,7 +3047,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
         }
 
         it('opens the onboarding instead of paying when the business bank account is not set up for global reimbursements', async () => {
-            // Given an admin in the Wise beta paying from a USD business account that has not enabled global reimbursements
+            // Given an admin in the Wise beta paying a report the backend flags for global reimbursements from a USD business account that has not enabled them
             const writeSpy = jest.spyOn(APIActions, 'write');
 
             // When they pay a report with it
@@ -3063,14 +3064,15 @@ describe('actions/IOU/PayMoneyRequest', () => {
         });
 
         it.each([
-            ['the admin is not in the Wise beta', false, false],
-            ['the account already has global reimbursements enabled', true, true],
-        ])('pays as usual when %s', async (_label, isWiseReimbursementsBetaEnabled, isGlobalReimbursementEnabled) => {
+            ['the admin is not in the Wise beta', false, false, true],
+            ['the account already has global reimbursements enabled', true, true, true],
+            ['the backend does not flag the report for global reimbursements', true, false, false],
+        ])('pays as usual when %s', async (_label, isWiseReimbursementsBetaEnabled, isGlobalReimbursementEnabled, requiresGlobalReimbursement) => {
             // Given an admin whose payment the backend accepts from this account
             const writeSpy = jest.spyOn(APIActions, 'write');
 
             // When they pay a report with it
-            payWithBusinessBankAccount(buildBankAccountList(isGlobalReimbursementEnabled), isWiseReimbursementsBetaEnabled);
+            payWithBusinessBankAccount(buildBankAccountList(isGlobalReimbursementEnabled), isWiseReimbursementsBetaEnabled, requiresGlobalReimbursement);
             await waitForBatchedUpdates();
 
             // Then the payment is sent and no onboarding opens

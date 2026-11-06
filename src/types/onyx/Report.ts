@@ -72,6 +72,12 @@ type ReportNextStep = {
 
     /** Currency the submitter's deposit account must use for direct reimbursement, named in the waitingForSubmitterAccount copy */
     requiredDepositCurrency?: string;
+
+    /** Whether paying this report goes through global reimbursements, sent only on a waiting-to-pay step */
+    requiresGlobalReimbursement?: boolean;
+
+    /** Currency of the submitter's deposit account, sent only on a waiting-to-pay step */
+    depositCurrency?: string;
 };
 
 /** Model of report data */

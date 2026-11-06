@@ -695,8 +695,15 @@ describe('useSearchBulkActions - bulk pay with reports that need global reimburs
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {id: policyID, role: CONST.POLICY.ROLE.ADMIN, achAccount: {bankAccountID}});
     }
 
-    async function seedReport(reportID: string, chatReportID: string, policyID: string, reportName: string) {
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, type: CONST.REPORT.TYPE.EXPENSE, chatReportID, policyID, reportName});
+    async function seedReport(reportID: string, chatReportID: string, policyID: string, reportName: string, requiresGlobalReimbursement: boolean) {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+            reportID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            chatReportID,
+            policyID,
+            reportName,
+            nextStep: {messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY, icon: CONST.NEXT_STEP.ICONS.HOURGLASS, requiresGlobalReimbursement},
+        });
     }
 
     beforeAll(() => {
@@ -724,10 +731,12 @@ describe('useSearchBulkActions - bulk pay with reports that need global reimburs
         await seedPolicy('policy1', BANK_ACCOUNT_ID);
         await seedPolicy('policy2', ENABLED_BANK_ACCOUNT_ID);
         await seedPolicy('policy3', OTHER_BANK_ACCOUNT_ID);
-        await seedReport('1', '2', 'policy1', 'Report needing GR');
-        await seedReport('3', '4', 'policy2', 'Payable report');
-        await seedReport('5', '6', 'policy3', 'Other report needing GR');
-        await seedReport('7', '8', 'policy1', 'Second report needing GR');
+        // The backend flags the reports whose submitters are paid through global reimbursements, report 9 goes to a domestic account
+        await seedReport('1', '2', 'policy1', 'Report needing GR', true);
+        await seedReport('3', '4', 'policy2', 'Payable report', true);
+        await seedReport('5', '6', 'policy3', 'Other report needing GR', true);
+        await seedReport('7', '8', 'policy1', 'Second report needing GR', true);
+        await seedReport('9', '10', 'policy1', 'Domestic report', false);
     });
 
     afterEach(async () => {
@@ -778,6 +787,21 @@ describe('useSearchBulkActions - bulk pay with reports that need global reimburs
         expect(payMoneyRequest).toHaveBeenCalledTimes(2);
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
         expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL)).toBeUndefined();
+    });
+
+    it('pays a report the backend does not flag for global reimbursements, even from an account without them', async () => {
+        // Given two reports paid from the same account without global reimbursements, where only the first one goes to a submitter abroad
+        mockSelectedReports = [makeSelectedReport({reportID: '1', chatReportID: '2'}), makeSelectedReport({reportID: '9', chatReportID: '10'})];
+
+        // When the user selects bulk Pay
+        await selectBulkPay();
+
+        // Then the domestic report is paid, because only the flagged report would be rejected by the backend
+        expect(payMoneyRequest).toHaveBeenCalledTimes(1);
+        expect(payMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({iouReport: expect.objectContaining({reportID: '9'})}));
+
+        // And the modal lists only the flagged report
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({prompt: `${CONST.DOT_SEPARATOR} Report needing GR`}));
     });
 
     it('opens the global reimbursements onboarding when the user picks Get started', async () => {

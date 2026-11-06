@@ -880,14 +880,16 @@ function completePaymentOnboarding(
 
 /**
  * Returns the paying bank account when the payment must wait for global reimbursements onboarding, so payMoneyRequest opens the onboarding instead of paying.
+ * The backend flags the reports that go through global reimbursements on their waiting-to-pay next step, because only it knows the submitter's deposit account.
  */
 function getBankAccountToSetUpBeforePaying({
     paymentType,
+    iouReport,
     methodID,
     bankAccountList,
     isWiseReimbursementsBetaEnabled,
-}: Pick<PayMoneyRequestFunctionParams, 'paymentType' | 'methodID' | 'bankAccountList' | 'isWiseReimbursementsBetaEnabled'>): OnyxTypes.BankAccount | undefined {
-    if (!isWiseReimbursementsBetaEnabled || paymentType !== CONST.IOU.PAYMENT_TYPE.VBBA || !methodID) {
+}: Pick<PayMoneyRequestFunctionParams, 'paymentType' | 'iouReport' | 'methodID' | 'bankAccountList' | 'isWiseReimbursementsBetaEnabled'>): OnyxTypes.BankAccount | undefined {
+    if (!isWiseReimbursementsBetaEnabled || paymentType !== CONST.IOU.PAYMENT_TYPE.VBBA || !methodID || !iouReport?.nextStep?.requiresGlobalReimbursement) {
         return undefined;
     }
     const bankAccount = bankAccountList?.[methodID];
@@ -938,7 +940,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     }
 
     // The backend rejects this payment until the account is set up for global reimbursements, so open the onboarding right away instead of showing an optimistic payment
-    const bankAccountToSetUp = getBankAccountToSetUpBeforePaying({paymentType, methodID, bankAccountList, isWiseReimbursementsBetaEnabled});
+    const bankAccountToSetUp = getBankAccountToSetUpBeforePaying({paymentType, iouReport, methodID, bankAccountList, isWiseReimbursementsBetaEnabled});
     if (methodID && bankAccountToSetUp) {
         Onyx.set(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL, {
             bankAccountID: methodID,

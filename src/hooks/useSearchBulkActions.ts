@@ -1922,6 +1922,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 // The backend rejects this payment until the account is set up for global reimbursements, so keep the report unpaid and list it in the modal after the loop
                 const bankAccountToSetUp = getBankAccountToSetUpBeforePaying({
                     paymentType: paymentItem.paymentType as PaymentMethodType,
+                    iouReport,
                     methodID,
                     bankAccountList,
                     isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
