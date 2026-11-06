@@ -72,7 +72,7 @@ describe('actions/Travel', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.NVP_TRAVEL_SETTINGS,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
