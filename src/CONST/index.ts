@@ -6280,6 +6280,11 @@ const CONST = {
             NVP_CAMPFIRE_EXPORT_ACCOUNT: 'campfire_export_account',
 
             /**
+             * Name of Card NVP for Zoho Books custom export accounts
+             */
+            NVP_ZOHO_BOOKS_EXPORT_ACCOUNT: 'zohobooks_export_account',
+
+            /**
              * Name of Card NVP for Business Central custom vendors
              */
             NVP_BUSINESS_CENTRAL_EXPORT_VENDOR: 'business_central_export_vendor',
@@ -6350,6 +6355,11 @@ const CONST = {
              * Name of Card NVP for Campfire custom export accounts
              */
             NVP_CAMPFIRE_EXPORT_ACCOUNT_POLICY_ID: 'campfire_export_account_policy_id',
+
+            /**
+             * Name of Card NVP for Zoho Books custom export accounts
+             */
+            NVP_ZOHO_BOOKS_EXPORT_ACCOUNT_POLICY_ID: 'zohobooks_export_account_policy_id',
 
             /**
              * Name of Card NVP for Business Central custom vendors
@@ -11530,6 +11540,13 @@ const CONST = {
                     SYNC_EXPENSIFY_CARD_SETTLEMENTS_SWITCH: 'WorkspaceAccountingZohoBooks-SyncExpensifyCardSettlementsSwitch',
                     SYNC_TRAVEL_BILLING_SETTLEMENTS_SWITCH: 'WorkspaceAccountingZohoBooks-SyncTravelBillingSettlementsSwitch',
                 },
+            },
+            ZOHO_BOOKS: {
+                CARD_PROGRAM_ACCOUNT: 'WorkspaceZohoBooks-CardProgramAccount',
+                CARD_ACCOUNT: 'WorkspaceZohoBooks-CardAccount',
+                CARD_PROGRAM_ACCOUNT_FEED: 'WorkspaceZohoBooks-CardProgramAccountFeed',
+                CARD_ACCOUNT_FEED: 'WorkspaceZohoBooks-CardAccountFeed',
+                CARD_ACCOUNT_CARD: 'WorkspaceZohoBooks-CardAccountCard',
             },
             CONNECTIONS: {
                 CARD: 'WorkspaceConnections-Card',

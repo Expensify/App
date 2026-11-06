@@ -9570,6 +9570,35 @@ ${reportName}`,
             exportNonReimbursable: {label: '会社カード経費のエクスポート形式', values: {EXPENSE: {label: '経費'}}},
             defaultCompanyCardVendor: {label: '全社カードのデフォルトベンダー', description: '自動で一致しない経費に使用するデフォルトの Zoho Books ベンダーを選択してください。'},
             companyCardAccount: {label: '法人カード口座', description: '会社カード取引のエクスポート先を選択します。'},
+            exportToMultipleAccounts: '複数の勘定科目へのエクスポートを設定する',
+            cardProgramAccount: {
+                label: 'カードプログラム口座',
+                description: 'これらのカードプログラムのワークスペースアカウントを上書きします。',
+                descriptionLevel2: 'このカードプログラムのワークスペース口座を上書きします。',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'すべてのプログラムはデフォルトアカウントを使用します';
+                    }
+                    return {
+                        one: `カスタム勘定科目を使用するプログラム：${count} 件`,
+                        other: `${count} 件のプログラム（カスタムアカウントあり）`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'カード単位の口座',
+                description: '個々のカードに対してプログラム口座を上書きします。',
+                descriptionLevel2: 'これらのカードのプログラム口座を上書きします。',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'すべてのカードはプログラムアカウントを使用します';
+                    }
+                    return {
+                        one: `カスタム口座付きカード ${count} 枚`,
+                        other: `カスタム口座のあるカードが ${count} 枚`,
+                    };
+                },
+            },
             noVendorsFound: '取引先が見つかりません',
             noVendorsFoundDescription: 'Zoho Books にベンダーを追加して、もう一度接続を同期してください',
             noAccountsFound: 'アカウントが見つかりません',
