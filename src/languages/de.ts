@@ -5265,6 +5265,10 @@ ${amount} für ${merchant} – ${date}`,
                 hardApproval: (time: string) => `Wird automatisch in ${time} storniert, wenn nicht genehmigt.`,
             },
         },
+        bookingCount: ({count}: {count: number}) => ({
+            one: '1 Buchung',
+            other: `${count} Buchungen`,
+        }),
     },
     workspace: {
         common: {

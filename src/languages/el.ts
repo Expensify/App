@@ -5324,6 +5324,10 @@ ${amount} για ${merchant} - ${date}`,
                 hardApproval: (time: string) => `Ακυρώνεται αυτόματα σε ${time} αν δεν εγκριθεί.`,
             },
         },
+        bookingCount: ({count}: {count: number}) => ({
+            one: '1 κράτηση',
+            other: `${count} κρατήσεις`,
+        }),
     },
     proactiveAppReview: {
         title: 'Σας αρέσει το νέο Expensify;',

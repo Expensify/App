@@ -1,3 +1,5 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 import type ReportNameValuePairs from '@src/types/onyx/ReportNameValuePairs';
@@ -8,8 +10,10 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ArrayValues} from 'type-fest';
 
-import {SafeString} from 'expensify-common';
+import {differenceInCalendarDays} from 'date-fns';
+import {SafeString, Str} from 'expensify-common';
 
+import DateUtils from './DateUtils';
 import {getMoneyRequestSpendBreakdown} from './ReportUtils';
 
 type TripReservationIcons = Record<'Plane' | 'PlaneCircleSlash' | 'Bed' | 'BedCircleSlash' | 'CarWithKey' | 'CarCircleSlash' | 'Train' | 'TrainCircleSlash' | 'Luggage', IconAsset>;
@@ -584,6 +588,50 @@ function formatCancelledDescription(cancelledLabel: string, description: string,
     return `${cancelledLabel} ${CONST.DOT_SEPARATOR} ${description}`;
 }
 
+/** The title of a booking, as its section in the trip room shows it: "Flight to Oslo", "2 nights in Hanoi" */
+function getBookingTitle(translate: LocalizedTranslate, reservations: ReservationData[]): string {
+    if (reservations.length === 0) {
+        return '';
+    }
+
+    const firstReservation = reservations.at(0)?.reservation;
+    const lastReservation = reservations.at(reservations.length - 1)?.reservation;
+
+    if (!lastReservation || !firstReservation) {
+        return '';
+    }
+
+    switch (firstReservation?.type) {
+        case CONST.RESERVATION_TYPE.FLIGHT: {
+            const destinationReservation = reservations.findLast((reservation) => reservation.reservation.legId === firstReservation.legId);
+            if (!destinationReservation) {
+                return '';
+            }
+            return `${translate('travel.flightTo')} ${formatTransitLocationLabel(destinationReservation.reservation.end, true)}`;
+        }
+        case CONST.RESERVATION_TYPE.TRAIN:
+            if (reservations.length === 2 && firstReservation.start.shortName === lastReservation.end.shortName) {
+                return `${translate('travel.trainTo')} ${Str.recapitalize(lastReservation.start.longName ?? '')}`;
+            }
+            return `${translate('travel.trainTo')} ${Str.recapitalize(lastReservation.end.longName ?? '')}`;
+        case CONST.RESERVATION_TYPE.HOTEL: {
+            const nights = differenceInCalendarDays(new Date(lastReservation?.end.date), new Date(firstReservation.start.date));
+            return `${nights} ${nights > 1 ? translate('travel.nightsIn') : translate('travel.nightIn')} ${Str.recapitalize(firstReservation.start.longName ?? '')}`;
+        }
+        case CONST.RESERVATION_TYPE.CAR: {
+            const days = differenceInCalendarDays(new Date(lastReservation.end.date), new Date(firstReservation.start.date));
+
+            if (days > 0) {
+                return `${days} ${days > 1 ? translate('common.days') : translate('common.day')}${translate('travel.carRental')}`;
+            }
+
+            return `${DateUtils.getFormattedDurationBetweenDates(translate, new Date(firstReservation.start.date), new Date(lastReservation.end.date))}${translate('travel.carRental')}`;
+        }
+        default:
+            return '';
+    }
+}
+
 export {
     getTripReservationIcon,
     getTripEReceiptIcon,
@@ -592,9 +640,10 @@ export {
     getTripTotal,
     getReservationDetailsFromSequence,
     formatTransitLocationLabel,
+    getBookingTitle,
     getPNRReservationDataFromTripReport,
     getAirReservations,
     isPnrCancelled,
     formatCancelledDescription,
 };
-export type {ReservationData};
+export type {ReservationData, ReservationPNRData};

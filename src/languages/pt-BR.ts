@@ -5233,6 +5233,10 @@ ${amount} para ${merchant} - ${date}`,
                 hardApproval: (time: string) => `Cancela automaticamente em ${time} se não for aprovado.`,
             },
         },
+        bookingCount: ({count}: {count: number}) => ({
+            one: '1 reserva',
+            other: `${count} reservas`,
+        }),
     },
     workspace: {
         common: {
