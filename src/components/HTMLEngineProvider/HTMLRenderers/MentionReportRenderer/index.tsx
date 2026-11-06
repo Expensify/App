@@ -15,13 +15,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {TextStyle} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 
+import {reportIDAndNameSelector} from '@selectors/Report';
 import isEmpty from 'lodash/isEmpty';
 import React, {useContext} from 'react';
 import {StyleSheet} from 'react-native';
@@ -30,23 +29,13 @@ import MentionReportContext from './MentionReportContext';
 
 type MentionReportRendererProps = CustomRendererProps<TText | TPhrasing>;
 
-/**
- * Creates a selector that keeps only the mentioned report, so the renderer doesn't re-render when other reports change.
- */
-function mentionedReportSelector(htmlAttributeReportID: string) {
-    return function selectMentionedReport(reports: OnyxCollection<Report>): OnyxCollection<Report> {
-        const key = `${ONYXKEYS.COLLECTION.REPORT}${htmlAttributeReportID}` as const;
-        return {[key]: reports?.[key]};
-    };
-}
-
 function MentionReportRenderer({style, tnode, TDefaultRenderer, ...defaultRendererProps}: MentionReportRendererProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const htmlAttributeReportID = tnode.attributes.reportid;
     const {currentReportID: currentReportIDContext, exactlyMatch, policyID} = useContext(MentionReportContext);
     // Old mentions without a reportid are matched by room name, so they need the whole collection. Without a selector useOnyx compares by reference, which is cheaper than deep-comparing the collection.
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, isEmpty(htmlAttributeReportID) ? undefined : {selector: mentionedReportSelector(htmlAttributeReportID)});
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, isEmpty(htmlAttributeReportID) ? undefined : {selector: reportIDAndNameSelector(htmlAttributeReportID)});
 
     const {currentReportID} = useCurrentReportIDState();
     const currentReportIDValue = currentReportIDContext || currentReportID;

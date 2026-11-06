@@ -3,11 +3,13 @@ import {act, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import MentionReportRenderer from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer';
+import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 import type {ComponentProps} from 'react';
 
@@ -100,6 +102,7 @@ describe('MentionReportRenderer', () => {
 
         // When many reports that no mention points to change, which used to wake every mention
         for (let index = 0; index < UNRELATED_UPDATES; index++) {
+            // Each write gets its own act so it notifies subscribers separately, like separate server pushes. Promise.all would batch them into one update and hide the extra renders.
             // eslint-disable-next-line no-await-in-loop
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${900 + index}`, getRoom(String(900 + index), `#other-${index}`));
@@ -136,21 +139,62 @@ describe('MentionReportRenderer', () => {
         expect(onRender.mock.calls.length).toBeGreaterThan(renderCountBeforeRename);
     });
 
+    it('does not re-render the mention when an unused field of the mentioned report changes', async () => {
+        // Given a mention of a room that is rendered with its id and name
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}100`, getRoom('100', '#room-100'));
+        });
+        const onRender = jest.fn();
+        renderMentions(onRender, [{reportID: '100', data: '#room-100'}]);
+        await waitForBatchedUpdatesWithAct();
+        const renderCountBeforeChange = onRender.mock.calls.length;
+
+        // When a field the mention doesn't read changes on that room, as it does with every new message
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}100`, {lastReadTime: '2026-11-06 10:00:00.000', lastMessageText: 'new message'});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the mention doesn't re-render, so only the id and name wake it up
+        expect(renderCountBeforeChange).toBeGreaterThan(0);
+        expect(onRender).toHaveBeenCalledTimes(renderCountBeforeChange);
+    });
+
+    it('shows Hidden for a mentioned report that is not loaded yet and the name once it arrives', async () => {
+        // Given a mention of a report that is not in Onyx yet, as on a first load or a deeplink
+        const onRender = jest.fn();
+        renderMentions(onRender, [{reportID: '300', data: '#ignored'}]);
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByText('#Hidden')).toBeOnTheScreen();
+
+        // When the report arrives
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}300`, getRoom('300', '#arrived-room'));
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the mention switches from the placeholder to the room name, so a missing report doesn't freeze the mention
+        expect(screen.getByText('#arrived-room')).toBeOnTheScreen();
+    });
+
     it('still resolves an old mention without a reportid by its name', async () => {
         // Given a workspace room and a legacy mention that only carries the room name
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}200`, getRoom('200', '#legacy-room'));
         });
 
-        // When the mention is rendered with the workspace policy and no reportid attribute
+        // When the mention is rendered in the context of the same workspace and has no reportid attribute
         render(
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-                <Mention data="#legacy-room" />
+                <MentionReportContext.Provider value={{currentReportID: undefined, policyID: POLICY_ID}}>
+                    <Mention data="#legacy-room" />
+                </MentionReportContext.Provider>
             </ComposeProviders>,
         );
         await waitForBatchedUpdatesWithAct();
 
-        // Then it still shows the room name, so the full collection scan keeps working for old messages
+        // Then the mention links to the room found by name, so the full collection scan keeps working for old messages
         expect(screen.getByText('#legacy-room')).toBeOnTheScreen();
+        expect(screen.getByLabelText(`/${ROUTES.REPORT_WITH_ID.getRoute('200')}`)).toBeOnTheScreen();
     });
 });
