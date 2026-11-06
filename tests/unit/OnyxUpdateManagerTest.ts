@@ -43,6 +43,7 @@ jest.mock('@libs/ActiveClientManager', () => ({
     isClientTheLeader: jest.fn(() => true),
     isReady: jest.fn(() => Promise.resolve()),
     init: jest.fn(),
+    getLogTab: jest.fn(),
 }));
 const mockedIsClientTheLeader = jest.mocked(isClientTheLeader);
 

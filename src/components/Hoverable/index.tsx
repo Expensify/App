@@ -2,8 +2,6 @@ import {hasHoverSupport} from '@libs/DeviceCapabilities';
 import getReturnValue from '@libs/getReturnValue';
 import mergeRefs from '@libs/mergeRefs';
 
-import React, {cloneElement} from 'react';
-
 import type HoverableProps from './types';
 
 import ActiveHoverable from './ActiveHoverable';
@@ -18,7 +16,13 @@ function Hoverable({isDisabled, ref, ...props}: HoverableProps) {
 
     if (isDisabled || !hasHoverSupport()) {
         const child = getReturnValue(props.children, false);
-        return cloneElement(child, {ref: mergeRefs(ref, child.props.ref)} as React.HTMLAttributes<HTMLElement>);
+        return (
+            <child.type
+                {...child.props}
+                key={child.key}
+                ref={mergeRefs(ref, child.props.ref)}
+            />
+        );
     }
 
     return (

@@ -176,6 +176,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                 <ToggleSettingOptionRow
                     wrapperStyle={[styles.mv3, styles.ph5]}
                     switchAccessibilityLabel={translate('domain.common.forceTwoFactorAuth')}
+                    switchSentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.MEMBER_FORCE_TWO_FACTOR_AUTH_SWITCH}
                     isActive={!domainSettings?.twoFactorAuthExemptEmails?.includes(memberLogin)}
                     onToggle={(value) => {
                         if (!personalDetails?.login) {

@@ -92,6 +92,7 @@ function YourSpendSection() {
                         isExpanded={isExpanded}
                         onPress={() => setIsExpanded((prev) => !prev)}
                         collapsedLabel={translate('homePage.seeMore', {count: hiddenCount})}
+                        sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.SECTION_EXPAND_TOGGLE_YOUR_SPEND}
                     />
                 )}
             </WidgetContainer>
