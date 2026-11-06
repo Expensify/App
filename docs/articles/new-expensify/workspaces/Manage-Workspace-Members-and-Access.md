@@ -97,7 +97,7 @@ The name applies in every workspace the member belongs to. After it is saved, **
 
 **Note:** You can only set a display name if the member has not added a name of their own. If the member has already set their name, only they can edit it. [Learn how to update your display name on your account](/articles/new-expensify/settings/Account-Settings#how-to-update-your-display-name-or-legal-name).
 
-## How todownload a CSV of workspace members
+## How to download a CSV of workspace members
 
 Workspace admins, people admins, and editors on Submit workspaces can download a CSV of workspace members.
 
