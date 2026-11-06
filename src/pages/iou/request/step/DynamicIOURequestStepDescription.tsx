@@ -10,6 +10,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useExpenseFieldDraft from '@hooks/useExpenseFieldDraft';
 import useLocalize from '@hooks/useLocalize';
 import useNavigateBackOnSave from '@hooks/useNavigateBackOnSave';
 import useOnyx from '@hooks/useOnyx';
@@ -104,7 +105,7 @@ function DynamicIOURequestStepDescription({
         currentDescriptionInMarkdown = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? (splitDraftTransaction?.comment?.comment ?? '') : (transaction?.comment?.comment ?? '');
     }
 
-    const [currentDescription, setCurrentDescription] = useState(currentDescriptionInMarkdown);
+    const [currentDescription, updateDescriptionDraft] = useExpenseFieldDraft(transactionID, currentDescriptionInMarkdown);
     const [isSaved, setIsSaved] = useState(false);
     const [isDiscardModalVisible, setIsDiscardModalVisible] = useState(false);
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
@@ -130,10 +131,6 @@ function DynamicIOURequestStepDescription({
     };
 
     const {navigateBack, armNavigateBack} = useNavigateBackOnSave(isSaved, backPath);
-
-    const updateDescriptionRef = (value: string) => {
-        setCurrentDescription(value);
-    };
 
     const updateComment = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM>) => {
         if (!transaction?.transactionID) {
@@ -229,8 +226,8 @@ function DynamicIOURequestStepDescription({
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.MONEY_REQUEST_COMMENT}
                         name={INPUT_IDS.MONEY_REQUEST_COMMENT}
-                        defaultValue={currentDescriptionInMarkdown}
-                        onValueChange={updateDescriptionRef}
+                        value={currentDescription}
+                        onValueChange={updateDescriptionDraft}
                         label={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
                         role={CONST.ROLE.PRESENTATION}

@@ -1,4 +1,5 @@
 import ReportOrNotFoundGuard from '@components/ReportOrNotFoundGuard';
+import ReportReplacementGuard from '@components/ReportReplacementGuard';
 
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
@@ -15,9 +16,11 @@ function DynamicReportDetailsPage({route}: DynamicReportDetailsPageProps) {
     const reportID = route.params.reportID;
 
     return (
-        <ReportOrNotFoundGuard reportID={reportID}>
-            <ReportDetailsContent reportID={reportID} />
-        </ReportOrNotFoundGuard>
+        <ReportReplacementGuard reportID={reportID}>
+            <ReportOrNotFoundGuard reportID={reportID}>
+                <ReportDetailsContent reportID={reportID} />
+            </ReportOrNotFoundGuard>
+        </ReportReplacementGuard>
     );
 }
 

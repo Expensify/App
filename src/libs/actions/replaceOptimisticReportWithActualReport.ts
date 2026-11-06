@@ -1,5 +1,7 @@
+import redirectReplacedReport from '@libs/Navigation/helpers/redirectReplacedReport';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import {isRecord} from '@libs/ObjectUtils';
 import {isMoneyRequest, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -101,18 +103,28 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
             // In this case, the API will let us know by returning a preexistingReportID.
             // We should clear out the optimistically created report and re-route the user to the preexisting report.
             const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
+            const currentRouteInfo = navigationRef.isReady() ? navigationRef.getCurrentRoute() : undefined;
+            const screenName = currentRouteInfo?.name;
+            const editorParams: Record<string, unknown> | undefined = isRecord(currentRouteInfo?.params) ? currentRouteInfo.params : undefined;
+            // Every expense field editor uses this route contract. Do not limit replacement
+            // recovery to individual fields or apply it to unrelated report/settings screens.
+            const isExpenseEditor =
+                Object.values(SCREENS.MONEY_REQUEST).some((name) => name === screenName) && typeof editorParams?.transactionID === 'string' && !!editorParams.transactionID;
+            const isEditingReplacedReport = isExpenseEditor && editorParams?.action === CONST.IOU.ACTION.EDIT && editorParams.reportID === reportID;
             let callback = () => {
-                // Read at call time, since this callback can run after the draft is saved
+                // Read at call time, since this callback can run after the draft is saved.
                 const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`];
-                // Keep the existing report's server fields (e.g. type) and its own errors, so an optimistic "Report not found" error never lands on it
+                // Keep the existing report's server fields and its own errors so optimistic report errors do not overwrite them.
                 const mergedReport = {
-                    ...existingReport,
-                    ...report,
+                    ...(isEditingReplacedReport ? report : existingReport),
+                    ...(isEditingReplacedReport ? existingReport : report),
                     reportID: preexistingReportID,
                     preexistingReportID: null,
                     errors: existingReport?.errors,
                     errorFields: existingReport?.errorFields,
                     pendingFields: existingReport?.pendingFields,
+                    parentReportID: existingReport?.parentReportID ?? parentReportID,
+                    parentReportActionID: existingReport?.parentReportActionID ?? parentReportActionID,
                 };
                 Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
                 Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, null);
@@ -152,9 +164,22 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
             // getCurrentRoute().path can be undefined during first navigation.
             // We still need getCurrentRoute() for params and screen name as getActiveRoute() only returns the path string.
             const activeRoute = Navigation.getActiveRoute();
-            const currentRouteInfo = navigationRef.getCurrentRoute();
             const backTo = (currentRouteInfo?.params as {backTo?: Route})?.backTo;
-            const screenName = currentRouteInfo?.name;
+
+            if (isEditingReplacedReport) {
+                // Editors do not listen for the report-screen draft-transfer event. Update their
+                // existing route instead of remounting it, so unsaved form state survives.
+                const replaceEditor = () => {
+                    redirectReplacedReport(reportID, preexistingReportID);
+                    callback();
+                };
+                if (draftReportComment) {
+                    saveReportDraftComment(reportToCopyDraftTo, draftReportComment, replaceEditor);
+                } else {
+                    replaceEditor();
+                }
+                return;
+            }
 
             // Besides the central-pane report route (/r/:reportID), the optimistic report can also be focused
             // in the RHP transaction-thread carousel (search/view/:reportID) used by the "Review X expenses"

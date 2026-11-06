@@ -10,7 +10,13 @@ import Onyx from 'react-native-onyx';
 
 // In this file we manage a queue of Onyx updates while the SequentialQueue is processing. There are functions to get the updates and clear the queue after saving the updates in Onyx.
 
-let queuedOnyxUpdates: AnyOnyxUpdate[] = [];
+type QueuedUpdateBatch = {
+    updates: AnyOnyxUpdate[];
+    /** Optional flush-time freshness check for responses overtaken by immediate/live updates. */
+    shouldApply?: () => boolean;
+};
+
+let queuedOnyxUpdates: QueuedUpdateBatch[] = [];
 let currentAccountID: number | undefined;
 
 // Queued WRITE updates only land in Onyx when flushQueue() runs, so we track a promise that settles with that
@@ -30,8 +36,8 @@ Onyx.connectWithoutView({
 /**
  * @param updates Onyx updates to queue for later
  */
-function queueOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdate<TKey>>): Promise<void> {
-    queuedOnyxUpdates = queuedOnyxUpdates.concat(updates);
+function queueOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdate<TKey>>, shouldApply?: () => boolean): Promise<void> {
+    queuedOnyxUpdates.push({updates: [...updates], shouldApply});
 
     if (!flushPromise) {
         flushPromise = new Promise<void>((resolve, reject) => {
@@ -54,7 +60,12 @@ function getCurrentFlushPromise(): Promise<void> {
 }
 
 function flushQueue(): Promise<void> {
-    let copyUpdates = [...queuedOnyxUpdates];
+    let copyUpdates = queuedOnyxUpdates.flatMap((batch) => {
+        if (batch.shouldApply && !batch.shouldApply()) {
+            return [];
+        }
+        return batch.updates;
+    });
     const resolveCurrentFlush = resolveFlushPromise;
     const rejectCurrentFlush = rejectFlushPromise;
 
@@ -99,7 +110,7 @@ function flushQueue(): Promise<void> {
 }
 
 function isEmpty() {
-    return queuedOnyxUpdates.length === 0;
+    return queuedOnyxUpdates.every((batch) => batch.updates.length === 0);
 }
 
 export {queueOnyxUpdates, flushQueue, getCurrentFlushPromise, isEmpty};

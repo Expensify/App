@@ -61,7 +61,7 @@ type LiveTailJumpStage = 'idle' | 'open_report' | 'await_scroll' | 'await_prune'
 /**
  * Owns subscribe-to-new-action scrolling, live-tail jump (openReport → scroll → prune), and the
  * deferred scroll + pagination prune after layout. Uses useEffectEvent for the Pusher subscription handler so it
- * always sees the latest props without mirror refs. The layout-time prune step uses useCallback so callers can invoke
+ * always sees the latest props without mirror refs. The layout-time prune step is exposed so callers can invoke
  * it from list `onLayout` outside this hook.
  */
 function useReportActionsNewActionLiveTail({
@@ -86,6 +86,7 @@ function useReportActionsNewActionLiveTail({
     const navigation = useNavigation<PlatformStackNavigationProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const isInSidePanel = useIsInSidePanel();
     const liveTailJumpRef = useRef<{stage: LiveTailJumpStage}>({stage: 'idle'});
+    const pendingPreviewScrollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
 
     const openReportAtLiveTail = async () => {
@@ -111,6 +112,32 @@ function useReportActionsNewActionLiveTail({
         });
     };
 
+    const cancelPendingPreviewScroll = () => {
+        if (pendingPreviewScrollRef.current === null) {
+            return;
+        }
+        clearTimeout(pendingPreviewScrollRef.current);
+        pendingPreviewScrollRef.current = null;
+    };
+
+    const scrollToCurrentPreviewPosition = useEffectEvent((actionID: string, targetReportID: string) => {
+        if (reportID !== targetReportID || (!isReportTopmostSplitNavigator() && !Navigation.getReportRHPActiveRoute())) {
+            return;
+        }
+
+        // Reconciliation can remove or move a preview while its layout-time scroll is pending.
+        const index = sortedVisibleReportActions.findIndex((item) => item.reportActionID === actionID);
+        if (index < 0) {
+            return;
+        }
+        if (index === 0) {
+            setIsFloatingMessageCounterVisible(false);
+            reportScrollManager.scrollToBottom();
+            return;
+        }
+        reportScrollManager.scrollToIndex(index);
+    });
+
     const scrollToBottomForCurrentUserAction = useEffectEvent((isFromCurrentUser: boolean, action?: OnyxTypes.ReportAction) => {
         TransitionTracker.runAfterTransitions({
             callback: () => {
@@ -119,6 +146,8 @@ function useReportActionsNewActionLiveTail({
                 if (!isFromCurrentUser || (!isReportTopmostSplitNavigator() && !Navigation.getReportRHPActiveRoute())) {
                     return;
                 }
+                // A newer current-user action takes over the scroll target for this chat.
+                cancelPendingPreviewScroll();
 
                 // An unread marker only needs openReport when the newest actions are not loaded yet. When they are, they are
                 // just off-screen, so scroll to them directly instead of waiting on a network round trip.
@@ -144,8 +173,10 @@ function useReportActionsNewActionLiveTail({
                 const index = sortedVisibleReportActions.findIndex((item) => item.reportActionID === action?.reportActionID);
                 if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                     if (index > 0) {
-                        setTimeout(() => {
-                            reportScrollManager.scrollToIndex(index);
+                        const actionID = action.reportActionID;
+                        pendingPreviewScrollRef.current = setTimeout(() => {
+                            pendingPreviewScrollRef.current = null;
+                            scrollToCurrentPreviewPosition(actionID, reportID);
                         }, 100);
                     } else {
                         setIsFloatingMessageCounterVisible(false);
@@ -236,6 +267,7 @@ function useReportActionsNewActionLiveTail({
         const unsubscribe = subscribeToNewActionEvent(reportID, scrollToBottomForCurrentUserAction);
 
         const cleanup = () => {
+            cancelPendingPreviewScroll();
             if (!unsubscribe) {
                 return;
             }
@@ -245,7 +277,7 @@ function useReportActionsNewActionLiveTail({
         newActionUnsubscribeMap[reportID] = cleanup;
 
         return cleanup;
-    }, [reportID]);
+    }, [reportID, cancelPendingPreviewScroll]);
 
     return {
         isScrollToBottomEnabled,

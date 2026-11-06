@@ -6,6 +6,7 @@ import type {PolicyTagLists, Report, ReportAction, Transaction} from '@src/types
 
 import Onyx from 'react-native-onyx';
 
+import getOnyxValue from '../../utils/getOnyxValue';
 import {formatPhoneNumber, getCurrencyDecimalsLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -26,6 +27,7 @@ const PAYER_ACCOUNT_ID = 200;
 const TAG_LIST = 'Department';
 const EMPTY_TAG_LIST = '';
 const TAG_NAME = 'Engineering';
+const OPTIMISTIC_REPORT_PREVIEW_ACTION_ID = 'preview-action-id';
 
 const parentChatReport: Report = {
     reportID: CHAT_REPORT_ID,
@@ -247,6 +249,177 @@ describe('getMoneyRequestInformation', () => {
             expect(result.onyxData.optimisticData ?? []).not.toEqual(
                 expect.arrayContaining([expect.objectContaining({key: expectedKey, value: expect.objectContaining({pendingNewTransactionIDs: expect.objectContaining({[newTxID]: true})})})]),
             );
+        });
+    });
+
+    describe('report preview action ID', () => {
+        const buildScanExpense = (transactionID: string): Transaction => ({
+            transactionID,
+            reportID: CHAT_REPORT_ID,
+            amount: 0,
+            currency: CONST.CURRENCY.USD,
+            created: '2024-01-01',
+            merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+        });
+
+        const buildRequest = (transactionID: string, isASAPSubmitBetaEnabled: boolean, existingIOUReport?: Report, optimisticIOUReportID?: string) =>
+            getMoneyRequestInformation({
+                ...baseParams,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                action: CONST.IOU.ACTION.CREATE,
+                existingTransaction: buildScanExpense(transactionID),
+                existingIOUReport,
+                optimisticIOUReportID,
+                optimisticReportPreviewActionID: OPTIMISTIC_REPORT_PREVIEW_ACTION_ID,
+                isASAPSubmitBetaEnabled,
+            });
+
+        beforeEach(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: PAYEE_ACCOUNT_ID, email: 'payee@example.com'});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+                id: POLICY_ID,
+                type: CONST.POLICY.TYPE.TEAM,
+                role: CONST.POLICY.ROLE.USER,
+            });
+            await waitForBatchedUpdates();
+        });
+
+        it('generates a different preview action ID when ASAP Submit creates another report', () => {
+            // Given an ASAP scan that already created an optimistic expense report with the batch preview ID
+            const firstRequest = buildRequest('scan-1', true);
+
+            // When another scan is submitted and the builder creates a different expense report
+            const secondRequest = buildRequest('scan-2', true, firstRequest.iouReport);
+
+            // Then each expense report has its own preview action ID
+            expect(secondRequest.iouReport.reportID).not.toBe(firstRequest.iouReport.reportID);
+            expect(firstRequest.reportPreviewAction.reportActionID).toBe(OPTIMISTIC_REPORT_PREVIEW_ACTION_ID);
+            expect(secondRequest.reportPreviewAction.reportActionID).not.toBe(firstRequest.reportPreviewAction.reportActionID);
+            expect(secondRequest.iouReport.parentReportActionID).toBe(secondRequest.reportPreviewAction.reportActionID);
+        });
+
+        it('reuses the existing report preview action ID when another expense joins the report', () => {
+            // Given a scan that created an optimistic expense report with the batch preview ID
+            const firstRequest = buildRequest('scan-1', false);
+
+            // When another expense is added to that same report
+            const secondRequest = buildRequest('scan-2', false, firstRequest.iouReport);
+
+            // Then it keeps one preview action for the report, even when the preview is not in the Onyx cache yet
+            expect(secondRequest.iouReport.reportID).toBe(firstRequest.iouReport.reportID);
+            expect(secondRequest.reportPreviewAction.reportActionID).toBe(firstRequest.reportPreviewAction.reportActionID);
+        });
+
+        it('reuses the new report preview action ID when an expense joins after a split', () => {
+            // Given a batch where the second scan was split from report A into report B
+            const firstRequest = buildRequest('scan-1', false);
+            const secondRequest = buildRequest('scan-2', true, firstRequest.iouReport);
+
+            // When a third expense joins report B
+            const thirdRequest = buildRequest('scan-3', false, secondRequest.iouReport);
+
+            // Then it reuses report B's preview instead of falling back to report A's batch preview ID
+            expect(secondRequest.iouReport.reportID).not.toBe(firstRequest.iouReport.reportID);
+            expect(thirdRequest.iouReport.reportID).toBe(secondRequest.iouReport.reportID);
+            expect(thirdRequest.reportPreviewAction.reportActionID).toBe(secondRequest.reportPreviewAction.reportActionID);
+            expect(thirdRequest.reportPreviewAction.reportActionID).not.toBe(firstRequest.reportPreviewAction.reportActionID);
+        });
+
+        it('keeps the reserved preview action ID when the caller pins the same report ID', () => {
+            // Given an existing report whose ID and preview action ID are pinned by the caller
+            const firstRequest = buildRequest('scan-1', false);
+
+            // When the builder rebuilds the report under that same ID even though the new-report condition is true
+            const secondRequest = buildRequest('scan-2', true, firstRequest.iouReport, firstRequest.iouReport.reportID);
+
+            // Then it keeps the caller's reserved preview instead of creating another preview for the same report
+            expect(secondRequest.iouReport.reportID).toBe(firstRequest.iouReport.reportID);
+            expect(secondRequest.reportPreviewAction.reportActionID).toBe(firstRequest.reportPreviewAction.reportActionID);
+        });
+    });
+
+    describe('deferred scans into a new P2P chat', () => {
+        const newChatID = '7000';
+        const sharedCreatedActionID = '7001';
+        const buildP2PScan = (transactionID: string, existingIOUReport?: Report, chatID = newChatID) =>
+            getMoneyRequestInformation({
+                ...baseParams,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                parentChatReport: undefined,
+                participantParams: {
+                    ...baseParams.participantParams,
+                    participant: {accountID: PAYER_ACCOUNT_ID, login: 'payer@example.com', isPolicyExpenseChat: false},
+                },
+                action: CONST.IOU.ACTION.CREATE,
+                existingTransaction: {
+                    transactionID,
+                    reportID: chatID,
+                    amount: 0,
+                    currency: CONST.CURRENCY.USD,
+                    created: '2026-10-14',
+                    merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                },
+                optimisticTransactionID: transactionID,
+                optimisticChatReportID: chatID,
+                optimisticCreatedReportActionID: sharedCreatedActionID,
+                optimisticReportPreviewActionID: OPTIMISTIC_REPORT_PREVIEW_ACTION_ID,
+                existingIOUReport,
+                isASAPSubmitBetaEnabled: true,
+            });
+
+        it.each([2, 3])('preserves all %i receipt previews when each iteration sees a new chat', async (receiptCount) => {
+            // Given the batch builds all requests before any optimistic writes reach the Onyx cache
+            const first = buildP2PScan('8000');
+            const requests = [first];
+            let previousReport = first.iouReport;
+            for (let index = 1; index < receiptCount; index++) {
+                const next = buildP2PScan(String(8000 + index), previousReport);
+                requests.push(next);
+                previousReport = next.iouReport;
+            }
+            const actionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newChatID}` as const;
+            expect(first.onyxData.optimisticData?.find((update) => update.key === actionsKey)?.onyxMethod).toBe(Onyx.METHOD.SET);
+            for (const request of requests.slice(1)) {
+                expect(request.chatReport.reportID).toBe(newChatID);
+                expect(request.createdChatReportActionID).toBe(sharedCreatedActionID);
+                expect(request.onyxData.optimisticData?.find((update) => update.key === actionsKey)?.onyxMethod).toBe(Onyx.METHOD.MERGE);
+            }
+
+            // When the offline-first optimistic writes are applied in submission order
+            for (const request of requests) {
+                await Onyx.update(request.onyxData.optimisticData ?? []);
+            }
+            await waitForBatchedUpdates();
+
+            // Then every independent report has its own complete preview and the chat has one CREATED action
+            const actions = await getOnyxValue(actionsKey);
+            const previews = Object.values(actions ?? {}).filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW);
+            expect(previews).toHaveLength(receiptCount);
+            expect(previews.map((action) => action?.reportActionID).sort()).toEqual(requests.map((request) => request.reportPreviewAction.reportActionID).sort());
+            expect(Object.values(actions ?? {}).filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED)).toHaveLength(1);
+
+            // When reconciliation only partially updates the first preview and removes later previews
+            await Onyx.merge(actionsKey, {
+                [first.reportPreviewAction.reportActionID]: {pendingAction: null},
+                ...Object.fromEntries(requests.slice(1).map((request) => [request.reportPreviewAction.reportActionID, null])),
+            });
+            await waitForBatchedUpdates();
+
+            // Then the surviving preview still has the fields needed to render, without refreshing the chat
+            const reconciledActions = await getOnyxValue(actionsKey);
+            expect(reconciledActions?.[first.reportPreviewAction.reportActionID]?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW);
+            expect(reconciledActions?.[first.reportPreviewAction.reportActionID]?.created).toBe(first.reportPreviewAction.created);
+        });
+
+        it('still initializes a different destination chat with SET', () => {
+            // Given a prior batch item created an expense report under another chat
+            const first = buildP2PScan('8000');
+            // When a later call resolves to a different, uncached destination chat
+            const second = buildP2PScan('8001', first.iouReport, '9000');
+            // Then data from the old destination does not suppress initialization of the new chat
+            expect(second.onyxData.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}9000`)?.onyxMethod).toBe(Onyx.METHOD.SET);
         });
     });
 
