@@ -4360,7 +4360,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         bankAccountPurposeTitle: '銀行口座で何をしたいですか？',
         getReimbursed: '払い戻しを受ける',
         getReimbursedDescription: '雇用主または他の人から',
-        makePayments: '支払いを行う',
+        makePayments: 'ビジネス支払いを行う',
         makePaymentsDescription: '経費の支払いまたは Expensify カードの発行',
         hasPhoneLoginError: (contactMethodRoute: string) =>
             `銀行口座を連携するには、まず<a href="${contactMethodRoute}">メールアドレスをプライマリログインとして追加</a>してから、もう一度お試しください。電話番号はセカンダリログインとして追加できます。`,
@@ -4459,6 +4459,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         updateSuccessTitle: '銀行口座が更新されました!',
         updateSuccessHeader: '銀行口座が更新されました',
         updateSuccessMessage: 'おめでとうございます。銀行口座の設定が完了し、精算の受け取りができるようになりました。',
+        bankDetails: '銀行口座情報',
+        accountHolderDetails: '口座名義人の詳細',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Expensify のパスワードを入力',
@@ -4466,6 +4468,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         chooseAccountLabel: 'アカウント',
         successTitle: '個人の銀行口座を追加しました！',
         successMessage: 'おめでとうございます。銀行口座の設定が完了し、払い戻しを受け取る準備が整いました。',
+        bankAccountAddedTitle: '銀行口座を追加しました！',
+        bankAccountAddedMessage: '個人の銀行口座の設定が完了し、精算の受け取り準備が整いました。',
     },
     attachmentView: {
         unknownFilename: '不明なファイル名',

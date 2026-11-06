@@ -1037,6 +1037,9 @@ const CONST = {
 
         /** Route segment of the confirmation page, which no page may take */
         CONFIRMATION_PAGE_KEY: 'confirm',
+
+        /** Links a schema may show: https only, on expensify.com or one of its subdomains, since a link opens outside the form */
+        ALLOWED_LINK_URL: /^https:\/\/([a-z0-9-]+\.)*expensify\.com(\/|$)/i,
     },
     GLOBAL_REIMBURSEMENT_PROVIDER: {
         WISE: 'WISE',
@@ -10329,6 +10332,19 @@ const CONST = {
         DATE_PICKER: {
             CLEAR_BUTTON: 'DatePicker-ClearButton',
         },
+        COUNTRY_PICKER: {
+            OPEN: 'CountryPicker-Open',
+        },
+        PUSH_ROW_WITH_MODAL: {
+            OPEN: 'PushRowWithModal-Open',
+        },
+        VALUE_PICKER: {
+            OPEN: 'ValuePicker-Open',
+        },
+        CONFIRMATION_STEP: {
+            EDIT: 'ConfirmationStep-Edit',
+            CONFIRM: 'ConfirmationStep-Confirm',
+        },
         NUMBER_WITH_SYMBOL_FORM: {
             INPUT: 'NumberWithSymbolForm-Input',
         },
@@ -10831,6 +10847,7 @@ const CONST = {
             DASHBOARD_TAB: 'Insights-DashboardTab',
             CHART_MENU: 'Insights-ChartMenu',
             TABLE_ROW: 'Insights-TableRow',
+            DETAILS_VIEW_ALL: 'Insights-DetailsViewAll',
             CONTROL_POPUP_APPLY: {
                 DATE: 'Insights-ControlPopupApply-Date',
                 WORKSPACE: 'Insights-ControlPopupApply-Workspace',
@@ -11889,6 +11906,7 @@ const CONST = {
             IMPORT_TRANSACTIONS_FLIP_AMOUNT_SIGN_SWITCH: 'SettingsWallet-ImportTransactionsFlipAmountSignSwitch',
             PERSONAL_CARD_REIMBURSABLE_SWITCH: 'SettingsWallet-PersonalCardReimbursableSwitch',
             WISE_MORE_INFO_NEEDED_REVIEW: 'SettingsWallet-WiseMoreInfoNeededReview',
+            WISE_BANK_ACCOUNT_ADDED_CONTINUE: 'SettingsWallet-WiseBankAccountAddedContinue',
             DIGITAL_WALLET_APPROVAL_REVIEW: 'SettingsWallet-DigitalWalletApprovalReview',
             MISSING_PERSONAL_DETAILS_ADD: 'SettingsWallet-MissingPersonalDetailsAdd',
         },
