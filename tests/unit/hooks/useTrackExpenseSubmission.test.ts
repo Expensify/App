@@ -1,3 +1,4 @@
+import {isSelfDMSoleDestination} from '@libs/IOUUtils';
 import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 
@@ -16,6 +17,8 @@ import {
     buildChatReport,
     buildOverriddenMapDistanceTransaction,
     buildTransaction,
+    CURRENT_USER_ACCOUNT_ID,
+    CURRENT_USER_PARTICIPANT,
     CURRENT_USER_PERSONAL_DETAILS,
     DRAFT_ID,
     NO_TAX_VALUES,
@@ -137,14 +140,16 @@ describe('useTrackExpenseSubmission', () => {
         );
     });
 
-    it('tracks against the self DM by clearing the route report when the destination is the self DM', async () => {
-        // Given an expense whose only recipient is the current user, while the route still points at another report
-        const params = buildParams({isSelfDMDestination: true});
+    it('tracks against the self DM when the current user is the only participant', async () => {
+        // Given a manual expense where the user picked themselves
+        const selectedParticipants = [CURRENT_USER_PARTICIPANT];
+        const isSelfDMDestination = isSelfDMSoleDestination(selectedParticipants, CONST.IOU.TYPE.CREATE, CURRENT_USER_ACCOUNT_ID);
 
         // When it is submitted
-        await submit(params, true);
+        await submit(buildParams({iouType: CONST.IOU.TYPE.CREATE, selectedParticipants, isSelfDMDestination}), true);
 
-        // Then no route report is passed, so trackExpense defaults to the self DM instead of the route report
+        // Then it is tracked in the self DM, not in the route report
+        expect(isSelfDMDestination).toBe(true);
         expect(mockTrackExpenseAction).toHaveBeenCalledTimes(1);
         expect(mockTrackExpenseAction).toHaveBeenCalledWith(expect.objectContaining({report: undefined}));
     });

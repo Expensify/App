@@ -22,6 +22,8 @@ const CURRENT_USER_PERSONAL_DETAILS: CurrentUserPersonalDetails = {accountID: CU
 
 const OTHER_USER_PARTICIPANT: Participant = {accountID: OTHER_USER_ACCOUNT_ID, login: 'them@test.com', selected: true};
 
+const CURRENT_USER_PARTICIPANT: Participant = {accountID: CURRENT_USER_ACCOUNT_ID, login: 'me@test.com', selected: true};
+
 const NO_TAX_VALUES = {transactionTaxCode: '', transactionTaxAmount: 0, transactionTaxValue: ''};
 
 function buildTransaction(overrides: Partial<Transaction> = {}): Transaction {
@@ -116,6 +118,7 @@ export {
     DRAFT_ID,
     CURRENT_USER_PERSONAL_DETAILS,
     OTHER_USER_PARTICIPANT,
+    CURRENT_USER_PARTICIPANT,
     NO_TAX_VALUES,
     buildTransaction,
     buildChatReport,
