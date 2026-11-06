@@ -6,6 +6,8 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
+import useKeyboardDrivenScroll from '@hooks/useKeyboardDrivenScroll';
+import type {ScrollWithKeyboard} from '@hooks/useKeyboardDrivenScroll/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -37,21 +39,13 @@ type AgentAIPromptSectionProps = {
     parentScrollViewRef?: RefObject<ComponentRef<typeof RNScrollView> | null>;
 };
 
-function scrollInputIntoView(parentScrollViewRef: RefObject<ComponentRef<typeof RNScrollView> | null>) {
+function scrollInputIntoView(scrollWithKeyboard: ScrollWithKeyboard) {
     if (getPlatform() !== CONST.PLATFORM.IOS) {
         return;
     }
 
-    const scrollView = parentScrollViewRef.current;
-    if (!scrollView) {
-        return;
-    }
-
-    requestAnimationFrame(() => {
-        setTimeout(() => {
-            scrollView.scrollToEnd({animated: true});
-        }, CONST.ANIMATED_TRANSITION);
-    });
+    // Same as scrollToEnd: the scroll view stops at the end of the content
+    scrollWithKeyboard({offset: Number.MAX_SAFE_INTEGER});
 }
 
 function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSectionProps) {
@@ -67,6 +61,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
     const [showSavedConfirmation, setShowSavedConfirmation] = useState(false);
     const [isUserInitiatedSave, setIsUserInitiatedSave] = useState(false);
     const inputRef = useRef<BaseTextInputRef>(null);
+    const scrollWithKeyboard = useKeyboardDrivenScroll(parentScrollViewRef);
     const wasSavingRef = useRef(false);
     const savedConfirmationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const isSaving = agentPrompt?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
@@ -156,10 +151,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
     };
 
     const handleInputFocus = () => {
-        if (!parentScrollViewRef) {
-            return;
-        }
-        scrollInputIntoView(parentScrollViewRef);
+        scrollInputIntoView(scrollWithKeyboard);
     };
 
     const handleSave = () => {

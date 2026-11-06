@@ -5,6 +5,7 @@ import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import Text from '@components/Text';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useKeyboardDrivenScroll from '@hooks/useKeyboardDrivenScroll';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -117,6 +118,7 @@ function FormWrapper({
 }: FormWrapperProps) {
     const styles = useThemeStyles();
     const formRef = useRef<ComponentRef<typeof RNScrollView>>(null);
+    const scrollWithKeyboard = useKeyboardDrivenScroll(formRef);
     const formContentRef = useRef<ComponentRef<typeof View>>(null);
     const {getErrorAnnouncementKey, getFallbackAnnouncementMessage} = useContext(FormContext);
     const errorAnnouncementKey = getErrorAnnouncementKey();
@@ -164,6 +166,9 @@ function FormWrapper({
     };
 
     const scrollTo = (y: number) => {
+        if (scrollWithKeyboard({offset: y})) {
+            return;
+        }
         // Wait for the keyboard animation to complete
         setTimeout(() => {
             formRef.current?.scrollTo({y: Math.max(y, 0), animated: true});
