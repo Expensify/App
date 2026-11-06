@@ -1964,6 +1964,20 @@ const translations = {
         confirmApprovalWithHeldAmount: 'Report contains held expenses. Approve only compliant expenses, or approve the entire report?',
         confirmApprovalAllHoldAmount: 'All expenses are on hold. Approve anyway?',
         confirmPay: 'Confirm payment amount',
+        wisePaymentSummary: {
+            confirmPayment: 'Confirm payment',
+            reportTotal: 'Report total',
+            unheldAmountBeingPaid: 'Unheld amount being paid',
+            debitAmount: 'Debit amount',
+            employeeWillReceive: 'Employee will receive',
+            totalFees: 'Total fees',
+            fxRate: 'FX rate',
+            payAll: 'Pay all',
+            reportCount: ({count}: {count: number}) => ({
+                one: '1 report',
+                other: `${count} reports`,
+            }),
+        },
         confirmPayAmount: "Pay what's not on hold, or pay the entire report.",
         confirmPayAllHoldAmount: () => ({
             one: 'This expense is on hold. Do you want to pay anyway?',
@@ -4639,7 +4653,7 @@ const translations = {
         bankAccountPurposeTitle: 'What do you want to do with your bank account?',
         getReimbursed: 'Get reimbursed',
         getReimbursedDescription: 'By employer or others',
-        makePayments: 'Make payments',
+        makePayments: 'Make business payments',
         makePaymentsDescription: 'Pay expenses or issue Expensify Cards',
         hasPhoneLoginError: (contactMethodRoute: string) =>
             `To connect a bank account, please <a href="${contactMethodRoute}">add an email as your primary login</a> and try again. You can add your phone number as a secondary login.`,
@@ -4729,6 +4743,8 @@ const translations = {
         accountTypeStepHeader: 'What type of account is this?',
         bankInformationStepHeader: 'What are your bank details?',
         accountHolderInformationStepHeader: 'What are the account holder details?',
+        bankDetails: 'Bank details',
+        accountHolderDetails: 'Account holder details',
         howDoWeProtectYourData: 'How do we protect your data?',
         currencyHeader: "What's your bank account's currency?",
         confirmationStepHeader: 'Check your info.',
@@ -4746,6 +4762,8 @@ const translations = {
         chooseAccountLabel: 'Account',
         successTitle: 'Personal bank account added!',
         successMessage: 'Congrats, your bank account is set up and ready to receive reimbursements.',
+        bankAccountAddedTitle: 'Bank account added!',
+        bankAccountAddedMessage: 'Congrats, your personal bank account is set up and ready to receive reimbursements.',
     },
     attachmentView: {
         unknownFilename: 'Unknown filename',

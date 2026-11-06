@@ -11,6 +11,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ColorValue} from 'react-native';
 
@@ -40,7 +41,7 @@ type FlatNavItemProps = {
     /** Spoken name of the row, defaults to label */
     accessibilityLabel?: string;
 
-    sentryLabel: string;
+    sentryLabel: SentryLabel;
 
     onPress: () => void;
 };
