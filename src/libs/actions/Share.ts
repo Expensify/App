@@ -1,3 +1,4 @@
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {registerSessionCleanupCallback} from '@libs/SessionCleanup';
@@ -17,6 +18,7 @@ import Onyx from 'react-native-onyx';
  * is known whether onboarding will open first:
  * - `pending`: captured; opened by useOnboardingFlowRouter as soon as it decides onboarding is not needed.
  * - `deferredUntilOnboardingExit`: the user needs onboarding; opened by the onboarding exit on top of the landing screen.
+ * - `opening`: the share flow has been pushed; consumed once ShareModalNavigator is actually in the root state.
  * Kept in memory on purpose: the staged file does not survive a process restart, and the intent must never replay for
  * the next account that signs in (it is cleared on sign-out below).
  *
@@ -26,9 +28,16 @@ import Onyx from 'react-native-onyx';
  * and parking it before the replay keeps it off the replay's timing (a share replayed before OpenApp lands is evicted
  * by the onboarding redirect).
  */
-type PendingNativeShare = 'none' | 'pending' | 'deferredUntilOnboardingExit';
+type PendingNativeShare = 'none' | 'pending' | 'deferredUntilOnboardingExit' | 'opening';
+
+/** Root modals a navigation guard redirects the share push into, or blocks it behind, until the user dismisses them. */
+const WELCOME_MODAL_NAVIGATORS = new Set<string>([NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR, NAVIGATORS.SUBMIT_PLAN_MODAL_NAVIGATOR]);
+
+/** One push plus one retry per welcome modal the guards can chain; anything beyond that is a loop, not a modal. */
+const MAX_SHARE_FLOW_PUSH_ATTEMPTS = 3;
 
 let pendingNativeShare: PendingNativeShare = 'none';
+let stopWatchingNavigationState: (() => void) | undefined;
 
 function setPendingNativeShare() {
     pendingNativeShare = 'pending';
@@ -36,6 +45,8 @@ function setPendingNativeShare() {
 
 function clearPendingNativeShare() {
     pendingNativeShare = 'none';
+    stopWatchingNavigationState?.();
+    stopWatchingNavigationState = undefined;
 }
 
 /**
@@ -50,31 +61,90 @@ function deferPendingNativeShareUntilOnboardingExit() {
 }
 
 function isShareFlowInRootState(): boolean {
-    if (!navigationRef.isReady()) {
-        return false;
-    }
     return navigationRef.getRootState().routes.some((route) => route.name === NAVIGATORS.SHARE_MODAL_NAVIGATOR);
 }
 
+function isWelcomeModalFocused(): boolean {
+    return WELCOME_MODAL_NAVIGATORS.has(navigationRef.getRootState().routes.at(-1)?.name ?? '');
+}
+
+function pushShareFlow() {
+    Navigation.navigate(ROUTES.SHARE_ROOT, {waitForTransition: true});
+}
+
 /**
- * Opens the Share flow for a parked native share, at most once. The plain call consumes only a share that was never
- * deferred; `afterOnboarding` consumes only a share deferred by onboarding, so the two consumers cannot race each other.
+ * Pushes the share flow and consumes the intent only once ShareModalNavigator is actually in the root state. A navigation
+ * guard can redirect the push into the migrated-user or Submit-plan welcome modal, or block it while one is open; the
+ * intent then stays parked and the push is retried when that modal closes, so the staged file is not silently lost.
+ */
+function openShareFlowOnceAccepted() {
+    pendingNativeShare = 'opening';
+    let attempts = 1;
+    let shouldRetryAfterWelcomeModal = isWelcomeModalFocused();
+
+    stopWatchingNavigationState?.();
+    stopWatchingNavigationState = navigationRef.addListener('state', () => {
+        // Cleared on sign-out, or re-parked by a newer share that will be opened on its own.
+        if (pendingNativeShare !== 'opening') {
+            stopWatchingNavigationState?.();
+            stopWatchingNavigationState = undefined;
+            return;
+        }
+
+        if (isShareFlowInRootState()) {
+            clearPendingNativeShare();
+            return;
+        }
+
+        if (isWelcomeModalFocused()) {
+            shouldRetryAfterWelcomeModal = true;
+            return;
+        }
+
+        // An unrelated state change while the push is still in flight (e.g. the landing screen it waits for).
+        if (!shouldRetryAfterWelcomeModal) {
+            return;
+        }
+
+        shouldRetryAfterWelcomeModal = false;
+        if (attempts >= MAX_SHARE_FLOW_PUSH_ATTEMPTS) {
+            Log.hmmm('[Share] Giving up on a pending native share that navigation guards kept redirecting');
+            clearPendingNativeShare();
+            return;
+        }
+        attempts++;
+        pushShareFlow();
+    });
+
+    pushShareFlow();
+}
+
+/**
+ * Opens the Share flow for a parked native share, at most once. The plain call takes only a share that was never
+ * deferred; `afterOnboarding` takes only a share deferred by onboarding, so the two consumers cannot race each other.
  *
- * @returns whether a parked share was consumed
+ * @returns whether a parked share was taken up
  */
 function openPendingNativeShare({afterOnboarding = false}: {afterOnboarding?: boolean} = {}): boolean {
     const consumableState: PendingNativeShare = afterOnboarding ? 'deferredUntilOnboardingExit' : 'pending';
     if (pendingNativeShare !== consumableState) {
         return false;
     }
-    pendingNativeShare = 'none';
 
-    // The share flow re-reads the staged file on mount, so a second instance would only duplicate the modal.
-    if (isShareFlowInRootState()) {
+    // Before the container is ready there is no state to watch; Navigation.navigate replays the push once it is.
+    if (!navigationRef.isReady()) {
+        pendingNativeShare = 'none';
+        pushShareFlow();
         return true;
     }
 
-    Navigation.navigate(ROUTES.SHARE_ROOT, {waitForTransition: true});
+    // The share flow re-reads the staged file on mount, so a second instance would only duplicate the modal.
+    if (isShareFlowInRootState()) {
+        clearPendingNativeShare();
+        return true;
+    }
+
+    openShareFlowOnceAccepted();
     return true;
 }
 
