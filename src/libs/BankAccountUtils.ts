@@ -341,6 +341,23 @@ function isWiseEnabledOrOnboarding(bankAccount: OnyxEntry<OnyxTypes.BankAccount>
     );
 }
 
+/**
+ * Whether payments from the workspace's connected account may go through Wise. Admins without a copy of the account can't see its provider,
+ * so for them the account may pay through Wise.
+ */
+function mayConnectedBankAccountPayThroughWise(bankAccountID: number | undefined, bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): boolean {
+    if (!bankAccountID) {
+        return false;
+    }
+
+    const bankAccount = bankAccountList?.[bankAccountID];
+    if (!bankAccount?.accountData?.additionalData) {
+        return true;
+    }
+
+    return isWiseEnabledOrOnboarding(bankAccount);
+}
+
 function doesPolicyHavePartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>, policyID: string) {
     if (!bankAccountList) {
         return false;
@@ -519,6 +536,7 @@ export {
     isWiseOnboardingAwaitingDecision,
     isWiseOnboardingMoreInfoNeeded,
     isWiseEnabledOrOnboarding,
+    mayConnectedBankAccountPayThroughWise,
     getDefaultCompanyWebsite,
     getBankAccountState,
     hasBankAccountAllowDebit,

@@ -14,7 +14,7 @@ import usePolicy from '@hooks/usePolicy';
 import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isWiseEnabledOrOnboarding} from '@libs/BankAccountUtils';
+import {mayConnectedBankAccountPayThroughWise} from '@libs/BankAccountUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -59,7 +59,7 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
 
     // Auto-pay skips the confirmation modal that shows Wise's fees before a payment, so Wise requires them disclosed here
     const bankAccountID = policy?.achAccount?.bankAccountID;
-    const shouldShowWiseFeesSelector = (bankAccountList: OnyxEntry<BankAccountList>) => !!bankAccountID && isWiseEnabledOrOnboarding(bankAccountList?.[bankAccountID]);
+    const shouldShowWiseFeesSelector = (bankAccountList: OnyxEntry<BankAccountList>) => mayConnectedBankAccountPayThroughWise(bankAccountID, bankAccountList);
     const [shouldShowWiseFees = false] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: shouldShowWiseFeesSelector});
 
     const validateLimit = ({maxExpenseAutoPayAmount}: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM>) => {
@@ -102,12 +102,7 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
-                    shouldRenderFooterAboveSubmit
-                    footerContent={
-                        shouldShowWiseFees ? (
-                            <Text style={[styles.mutedNormalTextLabel, styles.mb5]}>{translate('workspace.rules.expenseReportRules.autoPayCrossBorderFeesDisclosure')}</Text>
-                        ) : undefined
-                    }
+                    submitFlexEnabled={false}
                 >
                     <View style={styles.mb4}>
                         <InputWrapper
@@ -121,6 +116,10 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
                             displayAsTextInput
                         />
                         <Text style={[styles.mutedNormalTextLabel, styles.mt2]}>{translate('workspace.rules.expenseReportRules.autoPayReportsUnderDescription')}</Text>
+                    </View>
+                    {/* Takes the free space instead of the submit container, so the disclosure sits right above Save */}
+                    <View style={[styles.flexGrow1, styles.justifyContentEnd]}>
+                        {shouldShowWiseFees && <Text style={styles.mutedNormalTextLabel}>{translate('workspace.rules.expenseReportRules.autoPayCrossBorderFeesDisclosure')}</Text>}
                     </View>
                 </FormProvider>
             </ScreenWrapper>
