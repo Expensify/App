@@ -34,7 +34,7 @@ The roles available depend on your workspace plan. [Learn how to change your wor
 Card admins, People admins, and Payments admins have access to the workspace settings needed for their responsibilities.
 
 | Role | Sections they can edit | Settings they can view without editing |
-|---|---|---|---|
+|---|---|---|
 | **Workspace admin** | All workspace sections | All workspace settings | 
 | **Card admin** | Expensify Card and Company cards | Overview and Members |
 | **People admin** | Members and the **Approvals** section of **Workflows** | Overview |
@@ -59,7 +59,7 @@ People admins cannot add or remove Workspace admins, Card admins, People admins,
 
 **Editors** on Submit workspaces cannot add admins or change other members’ roles.
 
-## Related articles: 
+## Related articles
 
  - [Invite Members to a Workspace](/articles/new-expensify/workspaces/Invite-Members-to-a-Workspace)
  - [Manage Workspace Members and Access](/articles/new-expensify/workspaces/Manage-Workspace-Members-and-Access)
