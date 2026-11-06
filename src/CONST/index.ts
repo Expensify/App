@@ -1304,6 +1304,43 @@ const CONST = {
             'RESIDENTS_PROPERTY_MANAGEMENT',
             'DIPLOMATIC_BODIES',
         ],
+
+        /**
+         * Groups Wise's payout `failure_reason_code` values into the reasons we show on a failed deposit, so several codes
+         * that mean the same thing to the employee share one translation. Codes not listed here (including ones Wise adds
+         * later) fall back to the message without a reason.
+         * https://docs.wise.com/guides/product/send-money/tracking/payout-failures#failure-reason-codes
+         */
+        PAYOUT_FAILURE_REASON_CATEGORY: {
+            WRONG_ACCOUNT_NUMBER: 'incorrectBankDetails',
+            WRONG_ACCOUNT_DETAILS: 'incorrectBankDetails',
+            WRONG_ACCOUNT_TYPE: 'incorrectBankDetails',
+            WRONG_BANK_CODE: 'incorrectBankDetails',
+            WRONG_BRANCH_CODE: 'incorrectBankDetails',
+            WRONG_CARD_NUMBER: 'incorrectBankDetails',
+            WRONG_CARD_TYPE: 'incorrectBankDetails',
+            WRONG_CURRENCY: 'incorrectBankDetails',
+            ACCOUNT_DOES_NOT_EXIST: 'incorrectBankDetails',
+            WRONG_NAME: 'nameMismatch',
+            WRONG_ID_NUMBER: 'incorrectRecipientDetails',
+            WRONG_RUT_NUMBER: 'incorrectRecipientDetails',
+            WRONG_PHONE_NUMBER: 'incorrectRecipientDetails',
+            TAX_ID_NOT_MATCHING: 'incorrectRecipientDetails',
+            TAX_ID_SUSPENDED: 'incorrectRecipientDetails',
+            ACCOUNT_CLOSED: 'accountUnavailable',
+            ACCOUNT_FROZEN: 'accountUnavailable',
+            ACCOUNT_BLOCKED: 'accountUnavailable',
+            ACCOUNT_LIMIT_REACHED: 'accountLimitReached',
+            CANNOT_ACCEPT_FROM_3RD_PARTY: 'rejectedByRecipientBank',
+            CREDITING_ACCOUNT_FORBIDDEN: 'rejectedByRecipientBank',
+            BUSINESS_PAYMENTS_FORBIDDEN: 'rejectedByRecipientBank',
+            DUPLICATE_ENTRY: 'rejectedByRecipientBank',
+            MANDATE_NOT_FILLED_IN: 'rejectedByRecipientBank',
+            FUNDS_NOT_EXPECTED_RETURNED: 'returnedByRecipient',
+            RETURN_REQUESTED_BY_RECIPIENT: 'returnedByRecipient',
+            WRONG_REFERENCE: 'invalidPaymentDetails',
+            WRONG_PAYMENT_PURPOSE: 'invalidPaymentDetails',
+        },
     },
     NON_USD_BANK_ACCOUNT: {
         PURPOSE_OF_TRANSACTION_ID: 'Intercompany_Payment',
@@ -2215,6 +2252,7 @@ const CONST = {
                 REIMBURSEMENT_ACH_CANCELED: 'REIMBURSEMENTACHCANCELED', // OldDot Action
                 REIMBURSEMENT_ACCOUNT_CHANGED: 'REIMBURSEMENTACCOUNTCHANGED', // OldDot Action
                 REIMBURSEMENT_DELAYED: 'REIMBURSEMENTDELAYED', // OldDot Action
+                REIMBURSEMENT_DEPOSIT_FAILED: 'REIMBURSEMENTDEPOSITFAILED', // OldDot Action
                 REIMBURSEMENT_QUEUED: 'REIMBURSEMENTQUEUED',
                 REIMBURSEMENT_DEQUEUED: 'REIMBURSEMENTDEQUEUED',
                 REIMBURSEMENT_REQUESTED: 'REIMBURSEMENTREQUESTED', // Deprecated OldDot Action

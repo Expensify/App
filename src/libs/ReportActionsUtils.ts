@@ -403,6 +403,7 @@ const NON_COLLAPSIBLE_SYSTEM_MESSAGE_ACTION_TYPES = new Set<ReportActionName>([
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED,
+    CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEPOSIT_FAILED,
     CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP,
@@ -411,6 +412,9 @@ const NON_COLLAPSIBLE_SYSTEM_MESSAGE_ACTION_TYPES = new Set<ReportActionName>([
     CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
     CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
 ]);
+
+// A Map lookup only matches codes we list, so a reason like "toString" can't resolve to an Object prototype member
+const PAYOUT_FAILURE_REASON_CATEGORIES = new Map(Object.entries(CONST.WISE.PAYOUT_FAILURE_REASON_CATEGORY));
 
 const deprecatedOldDotReportActions = new Set<ReportActionName>([
     CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT,
@@ -2827,6 +2831,7 @@ function isOldDotReportAction(action: ReportAction | OldDotReportAction) {
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED,
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED,
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEPOSIT_FAILED,
         CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT,
         CONST.REPORT.ACTIONS.TYPE.SHARE,
         CONST.REPORT.ACTIONS.TYPE.STRIPE_PAID,
@@ -2849,6 +2854,40 @@ function getMessageOfOldDotLegacyAction(legacyAction: PartialReportAction) {
         return legacyAction?.message?.map((element) => getTextFromHtml(element?.html || element?.text)).join('') ?? '';
     }
     return '';
+}
+
+/**
+ * Wise reuses the REIMBURSEMENT_DELAYED action for a changed delivery estimate and for a deposit that completed late, so only the
+ * fraud review hold, which carries no date, keeps the original "delayed" copy.
+ */
+function getReimbursementDelayedMessage(translate: LocalizedTranslate, expectedDate: string | undefined, isCompleted: boolean | undefined): string {
+    if (isCompleted) {
+        return translate('report.actions.type.reimbursementCompletedLate');
+    }
+
+    // getMessageOfOldDotReportAction is also called outside React (LHN text, report names), so the date-fns locale
+    // comes from IntlStore instead of useLocalize
+    const formattedExpectedDate = expectedDate
+        ? DateUtils.formatWithUTCTimeZone(expectedDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT, IntlStore.getDateFnsLocale(IntlStore.getCurrentLocale()))
+        : '';
+    if (!formattedExpectedDate) {
+        return translate('report.actions.type.reimbursementDelayed');
+    }
+    return translate('report.actions.type.reimbursementEstimateUpdated', {expectedDate: formattedExpectedDate});
+}
+
+/**
+ * Builds the failed deposit message, naming the reason only for Wise failure codes we have copy for. The reason can be
+ * missing at first, because Auth adds it when Wise's payout failure webhook arrives.
+ */
+function getReimbursementDepositFailedMessage(translate: LocalizedTranslate, reason: string | undefined): string {
+    const reasonCategory = reason ? PAYOUT_FAILURE_REASON_CATEGORIES.get(reason) : undefined;
+    if (!reasonCategory) {
+        return translate('report.actions.type.reimbursementDepositFailedDefault');
+    }
+    return translate('report.actions.type.reimbursementDepositFailedWithReason', {
+        reason: translate(`report.actions.type.reimbursementDepositFailedReason.${reasonCategory}`),
+    });
 }
 
 /**
@@ -2914,7 +2953,9 @@ function getMessageOfOldDotReportAction(translate: LocalizedTranslate, oldDotAct
         case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED:
             return translate('report.actions.type.reimbursementAccountChanged');
         case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED:
-            return translate('report.actions.type.reimbursementDelayed');
+            return getReimbursementDelayedMessage(translate, originalMessage?.expectedDate, originalMessage?.completed);
+        case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEPOSIT_FAILED:
+            return getReimbursementDepositFailedMessage(translate, originalMessage?.reason);
         case CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT:
             return translate(`report.actions.type.selectedForRandomAudit${withMarkdown ? 'Markdown' : ''}`);
         case CONST.REPORT.ACTIONS.TYPE.SHARE:

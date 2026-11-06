@@ -1025,7 +1025,7 @@ function computeReportNameBasedOnReportAction({
     }
 
     if (isOldDotReportAction(parentReportAction)) {
-        return getMessageOfOldDotReportAction(translate, parentReportAction);
+        return Parser.htmlToText(getMessageOfOldDotReportAction(translate, parentReportAction));
     }
 
     if (isRenamedAction(parentReportAction)) {

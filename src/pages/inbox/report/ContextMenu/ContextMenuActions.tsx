@@ -1454,7 +1454,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(translate('iou.retracted'));
                 } else if (isOldDotReportAction(reportAction)) {
                     const oldDotActionMessage = getMessageOfOldDotReportAction(translate, reportAction);
-                    Clipboard.setString(oldDotActionMessage);
+                    Clipboard.setString(Parser.htmlToText(oldDotActionMessage));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION) {
                     const originalMessage = getOriginalMessage(reportAction) as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION>['originalMessage'];
                     Clipboard.setString(getDismissedViolationMessageText(translate, originalMessage));

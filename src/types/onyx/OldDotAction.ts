@@ -191,6 +191,18 @@ type OriginalMessageReimbursementAccountChanged = {
     originalMessage: Record<string, unknown>;
 };
 
+/** Fields Wise adds to REIMBURSEMENT_DELAYED for estimate changes and late completions */
+type ReimbursementDelayedOriginalMessage = {
+    /**
+     * New delivery estimate of a Wise reimbursement, or the date it landed when `completed` is true. Absent when the
+     * delay comes from our fraud review hold, which has no estimate.
+     */
+    expectedDate?: string;
+
+    /** True when a Wise deposit we reported as delayed or bounced completed after all */
+    completed?: boolean;
+};
+
 /**
  *
  */
@@ -202,7 +214,30 @@ type OriginalMessageReimbursementDelayed = {
     /**
      *
      */
-    originalMessage: Record<string, unknown>;
+    originalMessage: Record<string, unknown> & ReimbursementDelayedOriginalMessage;
+};
+
+/** Fields Auth sends on a failed Wise deposit */
+type ReimbursementDepositFailedOriginalMessage = {
+    /**
+     * Wise payout `failure_reason_code`, see `CONST.WISE.PAYOUT_FAILURE_REASON_CATEGORY`. It can arrive after the action
+     * is created, because Auth fills it in when Wise's payout failure webhook lands.
+     */
+    reason?: string;
+};
+
+/**
+ *
+ */
+type OriginalMessageReimbursementDepositFailed = {
+    /**
+     *
+     */
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEPOSIT_FAILED;
+    /**
+     *
+     */
+    originalMessage: Record<string, unknown> & ReimbursementDepositFailedOriginalMessage;
 };
 
 /**
@@ -337,6 +372,10 @@ type OldDotOriginalMessageMap = {
      *
      */
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED]: OriginalMessageReimbursementDelayed;
+    /**
+     *
+     */
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEPOSIT_FAILED]: OriginalMessageReimbursementDepositFailed;
     /**
      *
      */
