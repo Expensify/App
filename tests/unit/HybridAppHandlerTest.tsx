@@ -3,15 +3,17 @@ import {render, waitFor} from '@testing-library/react-native';
 import CONST from '@src/CONST';
 import HybridAppHandler from '@src/HybridAppHandler';
 import type HybridAppSettings from '@src/libs/actions/HybridApp/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
 
 const mockGetHybridAppSettings = jest.fn<Promise<HybridAppSettings | null>, []>(() => Promise.resolve(null));
 const mockSetSplashScreenState = jest.fn();
 let mockOnyxValue: boolean | undefined;
-const mockUseOnyx = jest.fn(() => [mockOnyxValue, {status: 'loaded'}]);
+let mockLoadingKey: string | undefined;
+const mockUseOnyx = jest.fn((key: string) => [mockOnyxValue, {status: key === mockLoadingKey ? 'loading' : 'loaded'}]);
 
-jest.mock('@hooks/useOnyx', () => () => mockUseOnyx());
+jest.mock('@hooks/useOnyx', () => (key: string) => mockUseOnyx(key));
 jest.mock('@libs/actions/HybridApp', () => ({
     getHybridAppSettings: () => mockGetHybridAppSettings(),
 }));
@@ -43,6 +45,7 @@ jest.mock('@src/SplashScreenStateContext', () => ({
 describe('HybridAppHandler', () => {
     beforeEach(() => {
         mockOnyxValue = undefined;
+        mockLoadingKey = undefined;
         jest.clearAllMocks();
     });
 
@@ -63,8 +66,26 @@ describe('HybridAppHandler', () => {
         mockOnyxValue = true;
         rerender(<HybridAppHandler />);
 
-        await waitFor(() => expect(mockUseOnyx).toHaveBeenCalledTimes(4));
+        await waitFor(() => expect(mockUseOnyx).toHaveBeenCalledTimes(6));
         expect(mockGetHybridAppSettings).toHaveBeenCalledTimes(1);
         expect(mockSetSplashScreenState).not.toHaveBeenCalledWith(CONST.BOOT_SPLASH_STATE.HIDDEN);
+    });
+
+    it('waits for the session to load before requesting native settings', async () => {
+        // Given the session still loading on a cold start, which would otherwise be stashed as empty for a delegate handoff
+        mockLoadingKey = ONYXKEYS.SESSION;
+        mockGetHybridAppSettings.mockResolvedValueOnce({hybridApp: {}});
+        const {rerender} = render(<HybridAppHandler />);
+
+        // When the first render happens before the session loads
+        // Then the native settings are not requested yet
+        expect(mockGetHybridAppSettings).not.toHaveBeenCalled();
+
+        // When the session finishes loading
+        mockLoadingKey = undefined;
+        rerender(<HybridAppHandler />);
+
+        // Then the native settings are requested
+        await waitFor(() => expect(mockGetHybridAppSettings).toHaveBeenCalledTimes(1));
     });
 });

@@ -724,7 +724,12 @@ function signUpUser(
     });
 }
 
-function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettings, tryNewDot: TryNewDot | undefined, credentialsParam: Credentials | undefined) {
+function setupNewDotAfterTransitionFromOldDot(
+    hybridAppSettings: HybridAppSettings,
+    tryNewDot: TryNewDot | undefined,
+    credentialsParam: Credentials | undefined,
+    session: OnyxEntry<Session>,
+) {
     // eslint-disable-next-line @typescript-eslint/no-deprecated -- OldDot's handoff payload still carries the boolean, and this is where it gets converted to ACTIVE_SERVER
     const {hybridApp, [ONYXKEYS.SHOULD_USE_STAGING_SERVER]: shouldUseStagingServer, ...newDotOnyxValues} = hybridAppSettings;
 
@@ -766,7 +771,7 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
             const stashedData = hybridApp?.delegateAccessData?.isDelegateAccess
                 ? {
                       [ONYXKEYS.STASHED_CREDENTIALS]: credentialsParam,
-                      [ONYXKEYS.STASHED_SESSION]: deprecatedSession,
+                      [ONYXKEYS.STASHED_SESSION]: session ?? {},
                   }
                 : {
                       [ONYXKEYS.STASHED_CREDENTIALS]: {},
