@@ -56,6 +56,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, ReactNode} from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -125,7 +126,7 @@ function ProfilePage() {
         onPress?: () => void;
         brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
         testID?: string;
-        sentryLabel?: string;
+        sentryLabel?: SentryLabel;
 
         /** Replaces the default name and value line, for a value that is not plain text */
         content?: ReactNode;
@@ -218,7 +219,7 @@ function ProfilePage() {
         description: string;
         title: string;
         testID: string;
-        sentryLabel: string;
+        sentryLabel: SentryLabel;
         action: () => void;
         brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
         furtherDetails?: string;

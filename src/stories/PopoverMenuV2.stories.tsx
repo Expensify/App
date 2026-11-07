@@ -43,7 +43,6 @@ function StoryTrigger({iconSrc, label, accessibilityLabel}: {iconSrc: React.Comp
                 style={triggerStyle}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={accessibilityLabel}
-                sentryLabel="PopoverMenuV2.Story.Trigger"
             >
                 <Icon
                     src={iconSrc}

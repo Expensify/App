@@ -3,6 +3,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 
@@ -28,7 +29,7 @@ type WidgetHeaderMenuProps = {
     size?: typeof CONST.BUTTON_SIZE.SMALL | typeof CONST.BUTTON_SIZE.MEDIUM;
 
     testID?: string;
-    sentryLabel?: string;
+    sentryLabel?: SentryLabel;
 };
 
 /**
