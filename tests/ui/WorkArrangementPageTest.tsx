@@ -22,6 +22,7 @@ import SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PersonalDetailsList, Policy} from '@src/types/onyx';
 
 import type React from 'react';
+import type * as ReactNavigation from '@react-navigation/native';
 import type {PropsWithChildren} from 'react';
 
 import Onyx from 'react-native-onyx';
@@ -31,6 +32,11 @@ import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 let mockIsWorkArrangementBetaEnabled = true;
+
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof ReactNavigation>('@react-navigation/native'),
+    useIsFocused: () => true,
+}));
 
 jest.mock('@components/Header', () => {
     const ComposedHeader = jest.fn(({children}: PropsWithChildren) => children);
@@ -54,7 +60,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({goBack: jest.fn()}));
 jest.mock('@libs/actions/Policy/DistanceRate', () => ({setEmployeeWorkArrangement: jest.fn()}));
 jest.mock('@libs/PolicyUtils', () => ({
     canMemberWrite: jest.fn(() => true),
-    isMemberInHomeAndOfficeWorkspace: jest.fn((_policy: Policy, login: string) => login === 'member@example.com'),
+    isMemberInHomeAndOfficeWorkspace: jest.fn((memberPolicy: Policy, login: string) => !!memberPolicy.employeeList?.[login]?.role),
 }));
 jest.mock('@pages/workspace/AccessOrNotFoundWrapper', () => ({
     __esModule: true,
@@ -83,7 +89,7 @@ describe('WorkArrangementPage', () => {
     const mockedHeaderBackButton = jest.mocked(Header.BackButton);
     const policy = {
         id: policyID,
-        employeeList: {[memberLogin]: {email: memberLogin}},
+        employeeList: {[memberLogin]: {email: memberLogin, role: CONST.POLICY.ROLE.USER}},
         commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE, isOfficeWorkArrangement: false},
     };
     const mockedSelectionList = jest.mocked(SelectionList);
@@ -261,7 +267,7 @@ describe('WorkArrangementPage', () => {
         };
         const pendingInvitePolicy = createMock<Policy>({
             ...policy,
-            employeeList: {[memberLogin]: {email: memberLogin, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}},
+            employeeList: {[memberLogin]: {email: memberLogin, role: CONST.POLICY.ROLE.USER, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}},
         });
         await act(async () => {
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, optimisticPersonalDetails);
@@ -272,7 +278,7 @@ describe('WorkArrangementPage', () => {
         const syncedAccountID = 67890;
         const syncedPersonalDetail = createMock<PersonalDetails>({accountID: syncedAccountID, login: memberLogin});
         const syncedPersonalDetails: PersonalDetailsList = {[syncedAccountID]: syncedPersonalDetail};
-        const syncedPolicy = createMock<Policy>({...pendingInvitePolicy, employeeList: {[memberLogin]: {email: memberLogin, pendingAction: null}}});
+        const syncedPolicy = createMock<Policy>({...pendingInvitePolicy, employeeList: {[memberLogin]: {email: memberLogin, role: CONST.POLICY.ROLE.USER, pendingAction: null}}});
         await act(async () => {
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, syncedPersonalDetails);
         });
@@ -287,7 +293,7 @@ describe('WorkArrangementPage', () => {
         expect(setEmployeeWorkArrangement).toHaveBeenCalledWith(syncedPolicy, [syncedAccountID], true, syncedPersonalDetails);
     });
 
-    it('keeps the member profile as the back destination after an offline invite syncs', async () => {
+    it('goes back to the details route that holds the optimistic account ID after an offline invite syncs', async () => {
         // Given the arrangement page was opened while the invite had only an optimistic account ID
         const optimisticAccountID = generateAccountID(memberLogin);
         const optimisticPersonalDetails: PersonalDetailsList = {
@@ -295,7 +301,7 @@ describe('WorkArrangementPage', () => {
         };
         const pendingInvitePolicy = createMock<Policy>({
             ...policy,
-            employeeList: {[memberLogin]: {email: memberLogin, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}},
+            employeeList: {[memberLogin]: {email: memberLogin, role: CONST.POLICY.ROLE.USER, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}},
         });
         await act(async () => {
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, optimisticPersonalDetails);
@@ -306,7 +312,7 @@ describe('WorkArrangementPage', () => {
         const syncedAccountID = 67890;
         const syncedPersonalDetail = createMock<PersonalDetails>({accountID: syncedAccountID, login: memberLogin});
         const syncedPersonalDetails: PersonalDetailsList = {[syncedAccountID]: syncedPersonalDetail};
-        const syncedPolicy = createMock<Policy>({...pendingInvitePolicy, employeeList: {[memberLogin]: {email: memberLogin, pendingAction: null}}});
+        const syncedPolicy = createMock<Policy>({...pendingInvitePolicy, employeeList: {[memberLogin]: {email: memberLogin, role: CONST.POLICY.ROLE.USER, pendingAction: null}}});
         await act(async () => {
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, syncedPersonalDetails);
         });
@@ -320,7 +326,71 @@ describe('WorkArrangementPage', () => {
             headerProps?.onPress?.();
         });
 
-        // Then navigation targets the member profile with the synced account ID
-        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, syncedAccountID));
+        // Then navigation targets the details route with the optimistic account ID, so it pops to the details screen below that was
+        // opened with it instead of replacing this page with a second details screen for the synced account ID
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, optimisticAccountID));
+    });
+    it.each([true, false])('handles a secondary-login swap with a primary login mapping of %s', async (hasMapping) => {
+        // Given the existing-member arrangement page is open on an offline secondary-login invite
+        const secondaryLogin = 'secondary@example.com';
+        const optimisticAccountID = generateAccountID(secondaryLogin);
+        const optimisticDetails: PersonalDetailsList = {
+            [optimisticAccountID]: createMock<PersonalDetails>({accountID: optimisticAccountID, login: secondaryLogin, isOptimisticPersonalDetail: true}),
+        };
+        const pendingPolicy = createMock<Policy>({
+            ...policy,
+            employeeList: {[secondaryLogin]: {email: secondaryLogin, role: CONST.POLICY.ROLE.USER, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}},
+        });
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, optimisticDetails);
+        });
+        const renderedPage = renderPage(optimisticAccountID, optimisticDetails, pendingPolicy);
+        expect(getSelectionListProps()?.data).toHaveLength(2);
+
+        // When sync replaces the secondary login, leaving only a pendingAction tombstone and optionally a primary mapping
+        const syncedPolicy = createMock<Policy>({
+            ...policy,
+            employeeList: {...policy.employeeList, [secondaryLogin]: {pendingAction: null}},
+            ...(hasMapping ? {primaryLoginsInvited: {[secondaryLogin]: memberLogin}} : {}),
+        });
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        });
+        renderedPage.rerender(getPage(optimisticAccountID, personalDetails, syncedPolicy));
+
+        // Then a resolvable member stays editable with the real account ID, otherwise the page safely returns to Members
+        if (hasMapping) {
+            expect(Navigation.goBack).not.toHaveBeenCalled();
+            act(() => {
+                getSelectionListProps()?.onSelectRow?.({value: true});
+            });
+            expect(setEmployeeWorkArrangement).toHaveBeenCalledWith(syncedPolicy, [accountID], true, personalDetails);
+            expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, optimisticAccountID));
+        } else {
+            expect(renderedPage.toJSON()).toBeNull();
+            expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
+            expect(setEmployeeWorkArrangement).not.toHaveBeenCalled();
+        }
+    });
+
+    it('keeps a failed secondary-login invite editable', async () => {
+        // Given an existing-member arrangement page opened before the secondary-login invite finishes
+        const pendingPolicy = createMock<Policy>({
+            ...policy,
+            employeeList: {[memberLogin]: {...policy.employeeList[memberLogin], pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}},
+        });
+        const renderedPage = renderPage(accountID, personalDetails, pendingPolicy);
+
+        // When the invite fails, keeping the optimistic member and its error
+        const failedPolicy = createMock<Policy>({
+            ...policy,
+            employeeList: {[memberLogin]: {...policy.employeeList[memberLogin], pendingAction: null, errors: {[Date.now()]: 'Invite failed'}}},
+        });
+        renderedPage.rerender(getPage(accountID, personalDetails, failedPolicy));
+
+        // Then no removal redirect or automatic arrangement change occurs
+        expect(getSelectionListProps()?.data).toHaveLength(2);
+        expect(Navigation.goBack).not.toHaveBeenCalled();
+        expect(setEmployeeWorkArrangement).not.toHaveBeenCalled();
     });
 });

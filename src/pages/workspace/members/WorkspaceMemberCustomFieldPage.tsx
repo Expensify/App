@@ -7,13 +7,14 @@ import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useRedirectOnWorkspaceMemberRemoval from '@hooks/useRedirectOnWorkspaceMemberRemoval';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceMemberFromRoute from '@hooks/useWorkspaceMemberFromRoute';
 
 import {updateMemberCustomField} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getMemberLoginByAccountID} from '@libs/WorkArrangementUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -44,15 +45,21 @@ function WorkspaceMemberCustomFieldPage({policy, route, personalDetails}: Worksp
     const params = route.params;
     const customFieldType = params.customFieldType;
     const accountID = Number(params.accountID);
-    const memberLogin = personalDetails?.[accountID]?.login ?? getMemberLoginByAccountID(policy, accountID);
+    const policyID = params.policyID;
+    const {memberLogin} = useWorkspaceMemberFromRoute(policy, personalDetails, accountID);
     const member = policy?.employeeList?.[memberLogin];
+    const shouldRedirectToMembers = useRedirectOnWorkspaceMemberRemoval(policyID, accountID, !!member?.role);
     const customFieldKey = CONST.CUSTOM_FIELD_KEYS[customFieldType];
     const [customField, setCustomField] = useState(member?.[customFieldKey ?? ''] ?? '');
     const customFieldText = translate(`workspace.common.${customFieldType}`);
-    const policyID = params.policyID;
+    // Go back with the route's accountID, even if it is a stale optimistic one, so it matches the details screen below that was opened with it.
     const goBack = () => {
         Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
     };
+
+    if (shouldRedirectToMembers) {
+        return null;
+    }
 
     return (
         <AccessOrNotFoundWrapper
@@ -60,7 +67,7 @@ function WorkspaceMemberCustomFieldPage({policy, route, personalDetails}: Worksp
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
-            shouldBeBlocked={!member}
+            shouldBeBlocked={!member?.role}
         >
             <ScreenWrapper
                 testID="WorkspaceMemberCustomFieldPage"
@@ -79,6 +86,9 @@ function WorkspaceMemberCustomFieldPage({policy, route, personalDetails}: Worksp
                     enabledWhenOffline
                     submitButtonText={translate('common.save')}
                     onSubmit={() => {
+                        if (!member?.role) {
+                            return;
+                        }
                         updateMemberCustomField(params.policyID, memberLogin, customFieldType, customField.trim(), member?.[customFieldKey]);
                         goBack();
                     }}

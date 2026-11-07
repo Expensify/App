@@ -181,6 +181,53 @@ describe('WorkspaceMemberDetailsPage', () => {
         jest.clearAllMocks();
     });
 
+    it('returns to Members when a secondary login disappears without a primary login mapping', async () => {
+        // Given member details opened for an optimistic secondary login while the invite is pending
+        const optimisticAccountID = generateAccountID(secondaryEmail);
+        const goBack = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                primaryLoginsInvited: null,
+                employeeList: {[secondaryEmail]: {email: secondaryEmail, role: CONST.POLICY.ROLE.USER, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}},
+            });
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [optimisticAccountID]: TestHelper.buildPersonalDetails(secondaryEmail, optimisticAccountID, 'Secondary'),
+            });
+        });
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(optimisticAccountID)});
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByTestId('WorkspaceMemberDetailsPage')).toBeOnTheScreen();
+
+        // When the invite replaces the secondary member with the primary member and clears optimistic details
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {employeeList: {[secondaryEmail]: null}});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[optimisticAccountID]: null});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {employeeList: {[secondaryEmail]: {pendingAction: null}}});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the page returns to the list where the primary member can be selected without showing not found
+        expect(goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBERS.getRoute(policy.id));
+        expect(screen.queryByTestId('NotFoundPage')).not.toBeOnTheScreen();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('shows not found when member details never resolved', async () => {
+        // Given a direct link to an unknown member
+        const goBack = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
+
+        // When opening the details page without any prior successful lookup
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(generateAccountID('unknown@example.com'))});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the invalid link remains a not found page
+        expect(screen.getByTestId('NotFoundPage')).toBeOnTheScreen();
+        expect(goBack).not.toHaveBeenCalled();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     const setupWorkArrangement = async ({
         isOfficeWorkArrangement,
         memberArrangement,
@@ -391,6 +438,27 @@ describe('WorkspaceMemberDetailsPage', () => {
         });
         expect(screen.getAllByText('Invited User').length).toBeGreaterThan(0);
         expect(screen.queryByTestId('NotFoundPage')).not.toBeOnTheScreen();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should open the Role page with the stale optimistic accountID from its own route', async () => {
+        // Given a details page whose route still holds the member's optimistic accountID after the invite swapped in the real one
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+        const staleOptimisticAccountID = generateAccountID(invitedEmail);
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(staleOptimisticAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the admin opens the member's Role page
+        const roleItem = await screen.findByTestId('member-role-menu-item');
+        fireEvent.press(roleItem, {nativeEvent: {}, type: 'press', target: roleItem, currentTarget: roleItem});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Role route keeps the stale accountID, so going back from it pops to this details screen instead of
+        // stacking a second details screen for the real accountID
+        expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.getRoute(policy.id, staleOptimisticAccountID));
+        expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.getRoute(policy.id, invitedAccountID));
 
         unmount();
         await waitForBatchedUpdatesWithAct();

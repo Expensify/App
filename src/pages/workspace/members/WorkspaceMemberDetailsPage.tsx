@@ -31,14 +31,16 @@ import useLoadPolicyCategories from '@hooks/useLoadPolicyCategories';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import usePersonalDetailByLogin, {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePrevious from '@hooks/usePrevious';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
+import useRedirectOnWorkspaceMemberRemoval from '@hooks/useRedirectOnWorkspaceMemberRemoval';
 import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceMemberFromRoute from '@hooks/useWorkspaceMemberFromRoute';
 
 import {setPolicyPreventSelfApproval} from '@libs/actions/Policy/Policy';
 import {clearApprovalWorkflow, removeApprovalWorkflow as removeApprovalWorkflowAction, setApprovalWorkflow, updateApprovalWorkflow} from '@libs/actions/Workflow';
@@ -70,7 +72,7 @@ import {getChatByParticipants, isApproverOfOutstandingPolicyReports} from '@libs
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
-import {getEffectiveWorkArrangement, getMemberLoginByAccountID, getWorkArrangementLabel} from '@libs/WorkArrangementUtils';
+import {getEffectiveWorkArrangement, getWorkArrangementLabel} from '@libs/WorkArrangementUtils';
 import {getFirstApproverLabel, INITIAL_APPROVAL_WORKFLOW, isApprovalWorkflowLockedByIntegration, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -150,15 +152,17 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const isSupportalSession = useIsSupportalSession();
 
     const routeAccountID = Number(route.params.accountID);
-    const memberLogin = personalDetails?.[routeAccountID]?.login ?? getMemberLoginByAccountID(policy, routeAccountID);
-    const memberPersonalDetails = usePersonalDetailByLogin(memberLogin);
+    const {memberLogin, memberPersonalDetails, accountID} = useWorkspaceMemberFromRoute(policy, personalDetails, routeAccountID);
+    // Open the member's sub-pages with the route's accountID, even if it is a stale optimistic one, so they go back to this
+    // screen instead of stacking a second details screen for the real accountID. The sub-pages resolve the real accountID themselves.
+    const memberDetailsRoute = ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, routeAccountID);
     const memberPersonalDetailsByLogin = usePersonalDetailsByLogins([memberLogin]);
-    const accountID = memberPersonalDetails?.accountID ?? routeAccountID;
     const [memberChatReportID] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: createMemberChatReportIDSelector(accountID, currentUserAccountID)});
     const [hasMemberChatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${memberChatReportID}`, {selector: Boolean});
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [hasSelfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {selector: Boolean});
     const member = policy?.employeeList?.[memberLogin];
+    const shouldRedirectToMembers = useRedirectOnWorkspaceMemberRemoval(policyID, routeAccountID, !!member?.role);
     const memberWorkArrangement = getEffectiveWorkArrangement(member?.hasOfficeWorkArrangement, policy?.commuterExclusions?.isOfficeWorkArrangement);
     const memberOfficeLocation = getMemberOfficeLocation(getAssignableOfficeLocations(policy, translate, localeCompare), member?.officeID);
     const prevMember = usePrevious(member);
@@ -452,6 +456,10 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const shouldShowNotFoundPage =
         !member || (member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && prevMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
+    if (shouldRedirectToMembers) {
+        return null;
+    }
+
     if (shouldShowNotFoundPage) {
         return <NotFoundPage />;
     }
@@ -541,17 +549,10 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 shouldUseDefaultCursorWhenDisabled
                                 pressableTestID="member-role-menu-item"
                                 onPress={() => {
-                                    if (
-                                        tryNavigateToSubmitWorkspaceUpgrade(
-                                            policy,
-                                            true,
-                                            CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias,
-                                            ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID),
-                                        )
-                                    ) {
+                                    if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias, memberDetailsRoute)) {
                                         return;
                                     }
-                                    Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.getRoute(policyID, accountID));
+                                    Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.getRoute(policyID, routeAccountID));
                                 }}
                             />
                             {shouldShowCategoryVisibility && (
@@ -620,7 +621,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     shouldGreyOutWhenDisabled={false}
                                     shouldUseDefaultCursorWhenDisabled
                                     pressableTestID="member-work-arrangement-menu-item"
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_WORK_ARRANGEMENT.getRoute(policyID, accountID))}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_WORK_ARRANGEMENT.getRoute(policyID, routeAccountID))}
                                 />
                             )}
                             {isControlPolicy(policy) && (
@@ -628,7 +629,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     <OfflineWithFeedback pendingAction={member?.pendingFields?.employeeUserID}>
                                         <MenuItemField
                                             name={translate('workspace.common.customField1')}
-                                            onPress={canWriteMembers ? () => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField1')) : undefined}
+                                            onPress={
+                                                canWriteMembers ? () => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, routeAccountID, 'customField1')) : undefined
+                                            }
                                             testID="member-customField1-menu-item"
                                             value={member.employeeUserID}
                                         />
@@ -636,7 +639,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     <OfflineWithFeedback pendingAction={member?.pendingFields?.employeePayrollID}>
                                         <MenuItemField
                                             name={translate('workspace.common.customField2')}
-                                            onPress={canWriteMembers ? () => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField2')) : undefined}
+                                            onPress={
+                                                canWriteMembers ? () => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, routeAccountID, 'customField2')) : undefined
+                                            }
                                             testID="member-customField2-menu-item"
                                             value={member.employeePayrollID}
                                         />
