@@ -18,6 +18,9 @@ import {expensifyLoginsSelector, getContactMethod} from '@libs/UserUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect} from 'react';
@@ -32,6 +35,26 @@ function SetDefaultContactMethodConfirmValidateCodePage({route}: SetDefaultConta
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: (allPolicies) => {
+            const contactMethodPolicies: OnyxCollection<Pick<Policy, 'id' | 'ownerAccountID' | 'employeeList'>> = {};
+            const login = currentUserPersonalDetails.login;
+            for (const [key, policy] of Object.entries(allPolicies ?? {})) {
+                const employee = login ? policy?.employeeList?.[login] : undefined;
+                if (!policy || (!employee && policy.ownerAccountID !== currentUserPersonalDetails.accountID)) {
+                    continue;
+                }
+
+                // Only this user's membership changes; other members need not trigger a re-render.
+                contactMethodPolicies[key] = {
+                    id: policy.id,
+                    ownerAccountID: policy.ownerAccountID,
+                    employeeList: employee && login ? {[login]: employee} : undefined,
+                };
+            }
+            return contactMethodPolicies;
+        },
+    });
     const primaryContactMethod = getContactMethod(account?.primaryLogin, session?.email);
 
     const loginData = loginList?.[contactMethod];
@@ -74,7 +97,7 @@ function SetDefaultContactMethodConfirmValidateCodePage({route}: SetDefaultConta
             descriptionPrimary={translate('contacts.enterSecurityCode', primaryContactMethod)}
             validateCodeActionErrorField="defaultLogin"
             validateError={defaultLoginError}
-            handleSubmitForm={(validateCode) => setContactMethodAsDefault(currentUserPersonalDetails, contactMethod, formatPhoneNumber, backTo, true, validateCode)}
+            handleSubmitForm={(validateCode) => setContactMethodAsDefault(currentUserPersonalDetails, policies, contactMethod, formatPhoneNumber, backTo, true, validateCode)}
             isLoading={!!loginData?.pendingFields?.defaultLogin}
             clearError={() => {
                 clearContactMethodErrors(contactMethod, 'defaultLogin');

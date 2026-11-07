@@ -46,7 +46,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ExpenseRuleForm, FlagForReviewRuleForm, MerchantRuleForm, MerchantTypeRuleForm, RequireFieldsRuleForm, SpendRuleForm} from '@src/types/form';
-import type {AppReview, Beta, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, NewLogin, ReportAttributesDerivedValue, Session} from '@src/types/onyx';
+import type {AppReview, Beta, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, NewLogin, Policy, ReportAttributesDerivedValue, Session} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {AnyOnyxServerUpdate, OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
@@ -1101,6 +1101,7 @@ function generateStatementPDF(period: string) {
  */
 function setContactMethodAsDefault(
     currentUserPersonalDetails: CurrentUserPersonalDetails,
+    policies: OnyxCollection<Pick<Policy, 'id' | 'ownerAccountID' | 'employeeList'>>,
     newDefaultContactMethod: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     backTo: string | undefined,
@@ -1127,7 +1128,10 @@ function setContactMethodAsDefault(
     ];
 
     // Pattern C: apply all actual data changes only after server confirms success
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.LOGINS> | PersonalDetailsUtils.PersonalDetailsOnyxUpdate> = [
+    const successData: Array<
+        | OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.LOGINS | `${typeof ONYXKEYS.COLLECTION.POLICY}${string}`>
+        | PersonalDetailsUtils.PersonalDetailsOnyxUpdate
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1160,6 +1164,29 @@ function setContactMethodAsDefault(
             },
         }),
     ];
+
+    // Keep workspace membership keyed by the new login so the old email cannot appear as a second member.
+    const oldDefaultContactMethod = currentUserPersonalDetails.login;
+    for (const policy of Object.values(policies ?? {})) {
+        if (!policy?.id) {
+            continue;
+        }
+
+        const employee = oldDefaultContactMethod ? policy.employeeList?.[oldDefaultContactMethod] : undefined;
+        const isOwner = policy.ownerAccountID === currentUserPersonalDetails.accountID;
+        if (!employee && !isOwner) {
+            continue;
+        }
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+            value: {
+                ...(employee && oldDefaultContactMethod ? {employeeList: {[oldDefaultContactMethod]: null, [newDefaultContactMethod]: employee}} : {}),
+                ...(isOwner ? {owner: newDefaultContactMethod} : {}),
+            },
+        });
+    }
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS>> = [
         {

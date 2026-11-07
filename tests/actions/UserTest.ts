@@ -13,7 +13,9 @@ import * as RequestModule from '@libs/Request';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {NewLogin} from '@src/types/onyx';
+import type {NewLogin, Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
 import Onyx from 'react-native-onyx';
@@ -122,6 +124,103 @@ describe('actions/User', () => {
                     ],
                 },
             );
+        });
+    });
+
+    describe('setContactMethodAsDefault', () => {
+        const oldLogin = 'old@example.com';
+        const newLogin = 'new@example.com';
+        const otherLogin = 'other@example.com';
+        const currentUserPersonalDetails = {accountID: 1, login: oldLogin};
+        const ownerEmployee = {role: CONST.POLICY.ROLE.ADMIN, submitsTo: 'approver@example.com'};
+        const memberEmployee = {role: CONST.POLICY.ROLE.USER};
+        const otherMember = {role: CONST.POLICY.ROLE.USER};
+        const policies: Record<`${typeof ONYXKEYS.COLLECTION.POLICY}${string}`, Pick<Policy, 'id' | 'ownerAccountID' | 'owner' | 'employeeList'>> = {
+            [`${ONYXKEYS.COLLECTION.POLICY}owned`]: {
+                id: 'owned',
+                ownerAccountID: 1,
+                owner: oldLogin,
+                employeeList: {[oldLogin]: ownerEmployee, [otherLogin]: otherMember},
+            },
+            [`${ONYXKEYS.COLLECTION.POLICY}member`]: {
+                id: 'member',
+                ownerAccountID: 2,
+                owner: otherLogin,
+                employeeList: {[oldLogin]: memberEmployee, [otherLogin]: otherMember},
+            },
+            [`${ONYXKEYS.COLLECTION.POLICY}unrelated`]: {
+                id: 'unrelated',
+                ownerAccountID: 2,
+                owner: otherLogin,
+                employeeList: {[otherLogin]: otherMember},
+            },
+            [`${ONYXKEYS.COLLECTION.POLICY}ownerOnly`]: {id: 'ownerOnly', ownerAccountID: 1, owner: oldLogin},
+        };
+
+        beforeEach(async () => {
+            await Onyx.multiSet(policies);
+            await waitForBatchedUpdates();
+        });
+
+        it('renames the membership in every workspace and updates only owned workspace owners after success', async () => {
+            // Given the user owns one workspace and belongs to another, with different roles and an approval setting
+            UserActions.setContactMethodAsDefault(currentUserPersonalDetails, policies, newLogin, formatPhoneNumber, undefined, true, '123456');
+            const onyxData = mockAPI.write.mock.calls.at(0)?.[2];
+            expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.SET_CONTACT_METHOD_AS_DEFAULT, {partnerUserID: newLogin, validateCode: '123456'}, expect.anything());
+
+            // When the server confirms the login change
+            await Onyx.update(onyxData?.successData ?? []);
+            await waitForBatchedUpdates();
+
+            // Then only the new login remains, with the user's existing roles and approval settings preserved
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}owned`)).toEqual({
+                ...policies.policy_owned,
+                owner: newLogin,
+                employeeList: {[newLogin]: ownerEmployee, [otherLogin]: otherMember},
+            });
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}member`)).toEqual({
+                ...policies.policy_member,
+                employeeList: {[newLogin]: memberEmployee, [otherLogin]: otherMember},
+            });
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}unrelated`)).toEqual(policies.policy_unrelated);
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}ownerOnly`)).toEqual({...policies.policy_ownerOnly, owner: newLogin});
+        });
+
+        it('leaves workspace data unchanged while pending and after failure', async () => {
+            // Given changing the default contact method requires server confirmation
+            UserActions.setContactMethodAsDefault(currentUserPersonalDetails, policies, newLogin, formatPhoneNumber, undefined, true, '123456');
+            const onyxData = mockAPI.write.mock.calls.at(0)?.[2];
+
+            // When the request is pending and then fails, no workspace migration should be applied
+            await Onyx.update(onyxData?.optimisticData ?? []);
+            await waitForBatchedUpdates();
+            for (const policy of Object.values(policies)) {
+                expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`)).toEqual(policy);
+            }
+            await Onyx.update(onyxData?.failureData ?? []);
+            await waitForBatchedUpdates();
+
+            // Then the original member keys and owners remain intact in every workspace
+            for (const policy of Object.values(policies)) {
+                expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`)).toEqual(policy);
+            }
+            expect(onyxData?.optimisticData?.every((update) => update.key === ONYXKEYS.LOGINS)).toBe(true);
+            expect(onyxData?.failureData?.every((update) => update.key === ONYXKEYS.LOGINS)).toBe(true);
+        });
+
+        it('skips missing and incomplete policies', () => {
+            // Given the collection has not loaded completely
+            const incompletePolicies: OnyxCollection<Pick<Policy, 'id' | 'ownerAccountID' | 'employeeList'>> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}missing`]: undefined,
+                [`${ONYXKEYS.COLLECTION.POLICY}incomplete`]: {id: '', ownerAccountID: 1},
+            };
+
+            // When the default login is changed before any usable policies have loaded
+            UserActions.setContactMethodAsDefault(currentUserPersonalDetails, incompletePolicies, newLogin, formatPhoneNumber, undefined, true, '123456');
+
+            // Then the request still updates the login without creating incomplete workspace records
+            const successData = mockAPI.write.mock.calls.at(0)?.[2]?.successData ?? [];
+            expect(successData.some((update) => update.key.startsWith(ONYXKEYS.COLLECTION.POLICY))).toBe(false);
         });
     });
 
