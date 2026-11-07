@@ -915,6 +915,27 @@ function getFormattedDateRange(translate: LocalizedTranslate, dateFnsLocale: Dat
 }
 
 /**
+ * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language and
+ * whether the year is shown.
+ * They format in UTC, so pass dates through `toUTCWallClockDate` to show them in the device's current timezone.
+ */
+const memoizedCreateWeekdayDateFormatter = memoize(
+    (localeCode: string, shouldIncludeYear: boolean) =>
+        new Intl.DateTimeFormat(localeCode, {weekday: 'long', year: shouldIncludeYear ? 'numeric' : undefined, month: 'short', day: 'numeric', timeZone: 'UTC'}),
+);
+
+/**
+ * Formats a date as a weekday with an abbreviated month and day, e.g. Sunday, Mar 17, or Sunday, Mar 17, 2023.
+ *
+ * Travel dates used hand-written `EEEE, MMM d` patterns, which fix the US order, so German put the month before the day
+ * and Japanese kept the comma after the weekday. `Intl` orders the date the way each language does.
+ */
+function formatToWeekdayDate(date: Date, dateFnsLocale: DateFnsLocale | undefined, shouldIncludeYear: boolean): string {
+    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
+    return memoizedCreateWeekdayDateFormatter(dateFnsLocale?.code ?? 'en-US', shouldIncludeYear).format(toUTCWallClockDate(date));
+}
+
+/**
  * Returns a formatted date range from date 1 to date 2 of a reservation.
  * Dates are formatted as follows:
  * 1. When both dates refer to the same day and the current year: Sunday, Mar 17
@@ -928,18 +949,18 @@ function getFormattedReservationRangeDate(translate: LocalizedTranslate, dateFns
     }
     if (isSameDay(date1, date2) && isThisYear(date1)) {
         // Dates are from the same day
-        return format(date1, 'EEEE, MMM d', {locale: dateFnsLocale});
+        return formatToWeekdayDate(date1, dateFnsLocale, false);
     }
     if (isSameDay(date1, date2)) {
         // Dates are from the same day but not this year
-        return format(date1, 'EEEE, MMM d, yyyy', {locale: dateFnsLocale});
+        return formatToWeekdayDate(date1, dateFnsLocale, true);
     }
     if (isSameYear(date1, date2) && isThisYear(date1)) {
         // Dates are in the current year, differ by months
-        return `${format(date1, 'EEEE, MMM d', {locale: dateFnsLocale})} ${translate('common.conjunctionTo')} ${format(date2, 'EEEE, MMM d', {locale: dateFnsLocale})}`;
+        return `${formatToWeekdayDate(date1, dateFnsLocale, false)} ${translate('common.conjunctionTo')} ${formatToWeekdayDate(date2, dateFnsLocale, false)}`;
     }
     // Dates differ by years, months, days or only by months but the year is not current
-    return `${format(date1, 'EEEE, MMM d, yyyy', {locale: dateFnsLocale})} ${translate('common.conjunctionTo')} ${format(date2, 'EEEE, MMM d, yyyy', {locale: dateFnsLocale})}`;
+    return `${formatToWeekdayDate(date1, dateFnsLocale, true)} ${translate('common.conjunctionTo')} ${formatToWeekdayDate(date2, dateFnsLocale, true)}`;
 }
 
 /**
@@ -953,9 +974,9 @@ function getFormattedTransportDate(translate: LocalizedTranslate, dateFnsLocale:
         return '';
     }
     if (isThisYear(date)) {
-        return `${translate('travel.departs')} ${format(date, 'EEEE, MMM d', {locale: dateFnsLocale})} ${translate('common.conjunctionAt')} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}`;
+        return `${translate('travel.departs')} ${formatToWeekdayDate(date, dateFnsLocale, false)} ${translate('common.conjunctionAt')} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}`;
     }
-    return `${translate('travel.departs')} ${format(date, 'EEEE, MMM d, yyyy', {locale: dateFnsLocale})} ${translate('common.conjunctionAt')} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}`;
+    return `${translate('travel.departs')} ${formatToWeekdayDate(date, dateFnsLocale, true)} ${translate('common.conjunctionAt')} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}`;
 }
 
 /**
@@ -970,12 +991,12 @@ function getFormattedTransportDateAndHour(date: Date, dateFnsLocale: DateFnsLoca
     }
     if (isThisYear(date)) {
         return {
-            date: format(date, 'EEEE, MMM d', {locale: dateFnsLocale}),
+            date: formatToWeekdayDate(date, dateFnsLocale, false),
             hour: format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale}),
         };
     }
     return {
-        date: format(date, 'EEEE, MMM d, yyyy', {locale: dateFnsLocale}),
+        date: formatToWeekdayDate(date, dateFnsLocale, true),
         hour: format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale}),
     };
 }
