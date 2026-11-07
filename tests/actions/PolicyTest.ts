@@ -13,6 +13,7 @@ import {askToJoinPolicy, joinAccessiblePolicy} from '@src/libs/actions/Policy/Me
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
+    BankAccountList,
     GovernmentMileageRate,
     Onboarding,
     PolicyJoinMember,
@@ -5719,6 +5720,9 @@ describe('actions/Policy', () => {
         const FAKE_POLICY_ID = 'FAKE_POLICY';
         const FAKE_REIMBURSER_EMAIL = 'admin@example.com';
         const FAKE_BANK_ACCOUNT_ID = 12345;
+        const SHARED_BANK_ACCOUNT_ID = 23456;
+        const INCOMPLETE_BANK_ACCOUNT_ID = 34567;
+        const OTHER_BANK_ACCOUNT_ID = 45678;
         const FAKE_ACCOUNT_NUMBER = '****1234';
         const FAKE_ADDRESS_NAME = 'Test Bank Account';
         const FAKE_BANK_NAME = 'Test Bank';
@@ -6026,6 +6030,186 @@ describe('actions/Policy', () => {
 
             // Then no request is sent
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.SET_WORKSPACE_REIMBURSEMENT, 0);
+        });
+
+        it.each([true, false])('detaches workspace bank accounts before the disable request completes (has ACH account: %s)', async (hasAchAccount) => {
+            // Given bank accounts with both association forms, including accounts shared with another workspace
+            mockFetch.pause();
+            const otherPolicyID = 'OTHER_POLICY';
+            const bankAccountList = createMock<BankAccountList>({
+                [FAKE_BANK_ACCOUNT_ID]: {
+                    methodID: FAKE_BANK_ACCOUNT_ID,
+                    accountData: {
+                        policyIDs: [FAKE_POLICY_ID, otherPolicyID],
+                        additionalData: {policyID: FAKE_POLICY_ID, currency: CONST.CURRENCY.USD},
+                    },
+                },
+                [SHARED_BANK_ACCOUNT_ID]: {
+                    accountData: {policyIDs: [FAKE_POLICY_ID, otherPolicyID], additionalData: {policyID: otherPolicyID}},
+                },
+                [INCOMPLETE_BANK_ACCOUNT_ID]: {
+                    accountData: {state: CONST.BANK_ACCOUNT.STATE.SETUP, additionalData: {policyID: FAKE_POLICY_ID}},
+                },
+                [OTHER_BANK_ACCOUNT_ID]: {
+                    accountData: {policyIDs: [otherPolicyID], additionalData: {policyID: otherPolicyID}},
+                },
+            });
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.id = FAKE_POLICY_ID;
+            fakePolicy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+            fakePolicy.achAccount = hasAchAccount
+                ? {
+                      bankAccountID: FAKE_BANK_ACCOUNT_ID,
+                      accountNumber: FAKE_ACCOUNT_NUMBER,
+                      routingNumber: '111000025',
+                      addressName: FAKE_ADDRESS_NAME,
+                      bankName: FAKE_BANK_NAME,
+                      reimburser: FAKE_REIMBURSER_EMAIL,
+                      state: FAKE_BANK_STATE,
+                  }
+                : undefined;
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`, fakePolicy);
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, bankAccountList);
+
+            // When Payments is disabled, the pending request must not leave a bank available for automatic reconnection
+            Policy.setWorkspaceReimbursement({
+                policyID: FAKE_POLICY_ID,
+                currentAchAccount: fakePolicy.achAccount,
+                currentReimbursementChoice: fakePolicy.reimbursementChoice,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                bankAccountID: fakePolicy.achAccount?.bankAccountID,
+                reimburserEmail: FAKE_REIMBURSER_EMAIL,
+                bankAccountList,
+            });
+            await waitForBatchedUpdates();
+
+            // Then only this workspace is detached, even when the bank is already selected or there is no ACH account
+            const disabledPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`);
+            const detachedBankAccountList = await getOnyxValue(ONYXKEYS.BANK_ACCOUNT_LIST);
+            expect(disabledPolicy?.reimbursementChoice).toBe(CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO);
+            expect(disabledPolicy?.achAccount).toBeUndefined();
+            expect(detachedBankAccountList?.[FAKE_BANK_ACCOUNT_ID]?.accountData).toEqual({
+                policyIDs: [otherPolicyID],
+                additionalData: {currency: CONST.CURRENCY.USD},
+            });
+            expect(detachedBankAccountList?.[SHARED_BANK_ACCOUNT_ID]?.accountData).toEqual({policyIDs: [otherPolicyID], additionalData: {policyID: otherPolicyID}});
+            expect(detachedBankAccountList?.[INCOMPLETE_BANK_ACCOUNT_ID]?.accountData).toEqual({state: CONST.BANK_ACCOUNT.STATE.SETUP, additionalData: {}});
+            expect(detachedBankAccountList?.[OTHER_BANK_ACCOUNT_ID]).toEqual(bankAccountList[OTHER_BANK_ACCOUNT_ID]);
+            expect(Object.keys(detachedBankAccountList ?? {})).toHaveLength(4);
+
+            // When Payments is enabled again while the disable request is still pending
+            Policy.setWorkspaceReimbursement({
+                policyID: FAKE_POLICY_ID,
+                currentAchAccount: disabledPolicy?.achAccount,
+                currentReimbursementChoice: disabledPolicy?.reimbursementChoice,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                reimburserEmail: FAKE_REIMBURSER_EMAIL,
+                bankAccountList: detachedBankAccountList,
+            });
+            await waitForBatchedUpdates();
+
+            // Then neither the optimistic enable nor successful responses reconnects the previous bank
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`))?.achAccount?.bankAccountID).toBeUndefined();
+            expect(await getOnyxValue(ONYXKEYS.BANK_ACCOUNT_LIST)).toEqual(detachedBankAccountList);
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`))?.achAccount?.bankAccountID).toBeUndefined();
+            expect(await getOnyxValue(ONYXKEYS.BANK_ACCOUNT_LIST)).toEqual(detachedBankAccountList);
+            const calls = TestHelper.getFetchMockCalls(WRITE_COMMANDS.SET_WORKSPACE_REIMBURSEMENT);
+            expect(calls).toHaveLength(2);
+            const body = readProperty(requireCallArgument(calls.at(0), 1), 'body');
+            expect(body instanceof FormData ? body.get('bankAccountID') : undefined).toBe('0');
+        });
+
+        it.each([true, false])('restores bank associations and the complete ACH account after a failed disable (has ACH account: %s)', async (hasAchAccount) => {
+            // Given a bank with ACH fields that must survive clearing the entire connection, and an incomplete setup on another bank
+            mockFetch.pause();
+            const bankAccountList = createMock<BankAccountList>({
+                [FAKE_BANK_ACCOUNT_ID]: {
+                    accountData: {policyIDs: [FAKE_POLICY_ID, 'OTHER_POLICY'], additionalData: {policyID: FAKE_POLICY_ID, currency: CONST.CURRENCY.USD}},
+                },
+                [SHARED_BANK_ACCOUNT_ID]: {accountData: {state: CONST.BANK_ACCOUNT.STATE.SETUP, additionalData: {policyID: FAKE_POLICY_ID}}},
+            });
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.id = FAKE_POLICY_ID;
+            fakePolicy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+            fakePolicy.isCollectDepositAccountsEnabled = true;
+            fakePolicy.reimbursement = {countries: {US: {}}} as PolicyType['reimbursement'];
+            fakePolicy.achAccount = hasAchAccount
+                ? {
+                      bankAccountID: FAKE_BANK_ACCOUNT_ID,
+                      accountNumber: FAKE_ACCOUNT_NUMBER,
+                      routingNumber: '111000025',
+                      addressName: FAKE_ADDRESS_NAME,
+                      bankName: FAKE_BANK_NAME,
+                      reimburser: FAKE_REIMBURSER_EMAIL,
+                      state: FAKE_BANK_STATE,
+                  }
+                : undefined;
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`, fakePolicy);
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, bankAccountList);
+
+            // When the optimistic disconnect is applied and then rejected by the server
+            Policy.setWorkspaceReimbursement({
+                policyID: FAKE_POLICY_ID,
+                currentAchAccount: fakePolicy.achAccount,
+                currentReimbursementChoice: fakePolicy.reimbursementChoice,
+                currentIsCollectDepositAccountsEnabled: fakePolicy.isCollectDepositAccountsEnabled,
+                currentReimbursementCountries: fakePolicy.reimbursement?.countries,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                bankAccountID: fakePolicy.achAccount?.bankAccountID,
+                reimburserEmail: FAKE_REIMBURSER_EMAIL,
+                bankAccountList,
+            });
+            await waitForBatchedUpdates();
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`))?.achAccount).toBeUndefined();
+            mockFetch.fail();
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Then rollback restores the original state, including routing details and previously absent fields
+            const restoredPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`);
+            expect(restoredPolicy?.achAccount).toEqual(fakePolicy.achAccount);
+            expect(restoredPolicy?.reimbursementChoice).toBe(fakePolicy.reimbursementChoice);
+            expect(restoredPolicy?.isCollectDepositAccountsEnabled).toBe(true);
+            expect(restoredPolicy?.reimbursement?.countries).toEqual(fakePolicy.reimbursement?.countries);
+            expect(restoredPolicy?.pendingFields?.reimbursementChoice).toBeFalsy();
+            expect(restoredPolicy?.errorFields?.reimbursementChoice).toBeDefined();
+            expect(await getOnyxValue(ONYXKEYS.BANK_ACCOUNT_LIST)).toEqual(bankAccountList);
+            mockFetch.succeed();
+        });
+
+        it('does not skip a reimbursement choice change when the bank account stays the same', async () => {
+            // Given an account already linked to a workspace that uses indirect reimbursement
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.id = FAKE_POLICY_ID;
+            fakePolicy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+            fakePolicy.achAccount = {
+                bankAccountID: FAKE_BANK_ACCOUNT_ID,
+                accountNumber: FAKE_ACCOUNT_NUMBER,
+                routingNumber: '111000025',
+                addressName: FAKE_ADDRESS_NAME,
+                bankName: FAKE_BANK_NAME,
+                reimburser: FAKE_REIMBURSER_EMAIL,
+                state: FAKE_BANK_STATE,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`, fakePolicy);
+
+            // When direct reimbursement is enabled without selecting a different account
+            Policy.setWorkspaceReimbursement({
+                policyID: FAKE_POLICY_ID,
+                currentAchAccount: fakePolicy.achAccount,
+                currentReimbursementChoice: fakePolicy.reimbursementChoice,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                bankAccountID: FAKE_BANK_ACCOUNT_ID,
+                reimburserEmail: FAKE_REIMBURSER_EMAIL,
+                bankAccountList: createMock<BankAccountList>({[FAKE_BANK_ACCOUNT_ID]: {accountData: {policyIDs: [FAKE_POLICY_ID]}}}),
+            });
+            await waitForBatchedUpdates();
+
+            // Then the choice change is still sent rather than treated as a redundant bank selection
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.SET_WORKSPACE_REIMBURSEMENT, 1);
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`))?.reimbursementChoice).toBe(CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES);
         });
 
         it('turns off deposit account collection and clears countries when switching to None', async () => {

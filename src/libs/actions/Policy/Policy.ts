@@ -1501,6 +1501,7 @@ function setWorkspaceReimbursement({
     bankAccountList = {},
 }: SetWorkspaceReimbursementActionParams) {
     const lastUsedPaymentMethod = typeof lastPaymentMethod === 'string' ? lastPaymentMethod : lastPaymentMethod?.expense?.name;
+    const shouldClearBankAccountID = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 
     const oldBankAccountID = Object.keys(bankAccountList ?? {}).find((accountID) => {
         const account = bankAccountList?.[accountID];
@@ -1509,7 +1510,13 @@ function setWorkspaceReimbursement({
 
     // A bank account can list the workspace in its policyIDs while the workspace itself points at another account,
     // so the selection is only redundant when the workspace's own bank account is the selected one too.
-    if (oldBankAccountID !== undefined && String(bankAccountID) === oldBankAccountID && currentAchAccount?.bankAccountID === bankAccountID) {
+    if (
+        !shouldClearBankAccountID &&
+        reimbursementChoice === currentReimbursementChoice &&
+        oldBankAccountID !== undefined &&
+        String(bankAccountID) === oldBankAccountID &&
+        currentAchAccount?.bankAccountID === bankAccountID
+    ) {
         return;
     }
 
@@ -1521,14 +1528,14 @@ function setWorkspaceReimbursement({
                 reimbursementChoice,
                 isLoadingWorkspaceReimbursement: true,
                 reimburser: reimburserEmail,
-                achAccount: {reimburser: reimburserEmail, bankAccountID, accountNumber, addressName, bankName, state},
+                achAccount: shouldClearBankAccountID ? null : {reimburser: reimburserEmail, bankAccountID, accountNumber, addressName, bankName, state},
                 errorFields: {reimbursementChoice: null},
                 pendingFields: {reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
             },
         },
     ];
 
-    if (bankAccountID !== undefined && bankAccountList !== undefined) {
+    if (!shouldClearBankAccountID && bankAccountID !== undefined && bankAccountList !== undefined) {
         const optimisticBankAccountList: NullishDeep<BankAccountList> = {};
         if (oldBankAccountID) {
             optimisticBankAccountList[oldBankAccountID] = {
@@ -1594,21 +1601,23 @@ function setWorkspaceReimbursement({
             value: {
                 isLoadingWorkspaceReimbursement: false,
                 reimbursementChoice: currentReimbursementChoice ?? null,
-                achAccount: {
-                    reimburser: currentAchAccount?.reimburser ?? null,
-                    bankAccountID: currentAchAccount?.bankAccountID ?? null,
-                    accountNumber: currentAchAccount?.accountNumber ?? null,
-                    addressName: currentAchAccount?.addressName ?? null,
-                    bankName: currentAchAccount?.bankName ?? null,
-                    state: currentAchAccount?.state ?? null,
-                },
+                achAccount: shouldClearBankAccountID
+                    ? (currentAchAccount ?? null)
+                    : {
+                          reimburser: currentAchAccount?.reimburser ?? null,
+                          bankAccountID: currentAchAccount?.bankAccountID ?? null,
+                          accountNumber: currentAchAccount?.accountNumber ?? null,
+                          addressName: currentAchAccount?.addressName ?? null,
+                          bankName: currentAchAccount?.bankName ?? null,
+                          state: currentAchAccount?.state ?? null,
+                      },
                 errorFields: {reimbursementChoice: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                 pendingFields: {reimbursementChoice: null},
             },
         },
     ];
 
-    if (bankAccountID !== undefined && bankAccountList !== undefined) {
+    if (!shouldClearBankAccountID && bankAccountID !== undefined && bankAccountList !== undefined) {
         const failureBankAccountList: NullishDeep<BankAccountList> = {};
         if (oldBankAccountID) {
             failureBankAccountList[oldBankAccountID] = {
@@ -1634,7 +1643,47 @@ function setWorkspaceReimbursement({
     }
 
     // Turning payments off also stops collecting employee bank details and clears the reimbursement countries
-    if (reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
+    if (shouldClearBankAccountID) {
+        const optimisticBankAccountList: NullishDeep<BankAccountList> = {};
+        const failureBankAccountList: NullishDeep<BankAccountList> = {};
+
+        // Incomplete setups can link a workspace without an ACH account or a policyIDs entry.
+        // Clear both association forms without detaching other workspaces that use the same account.
+        for (const [accountID, account] of Object.entries(bankAccountList ?? {})) {
+            const policyIDs = account?.accountData?.policyIDs;
+            const isLinkedToWorkspace = policyIDs?.includes(policyID);
+            const isSetupForWorkspace = account?.accountData?.additionalData?.policyID === policyID;
+            if (!isLinkedToWorkspace && !isSetupForWorkspace) {
+                continue;
+            }
+
+            optimisticBankAccountList[accountID] = {
+                accountData: {
+                    ...(isLinkedToWorkspace ? {policyIDs: policyIDs?.filter((id) => id !== policyID)} : {}),
+                    ...(isSetupForWorkspace ? {additionalData: {policyID: null}} : {}),
+                },
+            };
+            failureBankAccountList[accountID] = {
+                accountData: {
+                    ...(isLinkedToWorkspace ? {policyIDs} : {}),
+                    ...(isSetupForWorkspace ? {additionalData: {policyID}} : {}),
+                },
+            };
+        }
+
+        if (Object.keys(optimisticBankAccountList).length > 0) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: optimisticBankAccountList,
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: failureBankAccountList,
+            });
+        }
+
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -1650,7 +1699,6 @@ function setWorkspaceReimbursement({
         });
     }
 
-    const shouldClearBankAccountID = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
     const params: SetWorkspaceReimbursementParams = {
         policyID,
         reimbursementChoice,
