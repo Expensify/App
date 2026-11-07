@@ -136,6 +136,7 @@ import type {LastPaymentMethod, LastPaymentMethodType} from './LastPaymentMethod
 import type LastSelectedDistanceRates from './LastSelectedDistanceRates';
 import type Locale from './Locale';
 import type LocallyProcessed3DSChallengeReviews from './LocallyProcessed3DSChallengeReviews';
+import type LocallyProcessedFraudTransactionReviews from './LocallyProcessedFraudTransactionReviews';
 import type LocalPasskeyCredentialsEntry from './LocalPasskeyCredentialsEntry';
 import type {PasskeyCredential, PasskeyTransport} from './LocalPasskeyCredentialsEntry';
 import type LockAccountDetails from './LockAccountDetails';
@@ -241,6 +242,7 @@ import type Task from './Task';
 import type Transaction from './Transaction';
 import type TransactionPending3DSReview from './TransactionPending3DSReview';
 import type TransactionsPending3DSReview from './TransactionsPending3DSReview';
+import type TransactionsPendingFraudReview from './TransactionsPendingFraudReview';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
 import type TransactionViolations from './TransactionViolation';
 import type TravelBillingStatement from './TravelBillingStatement';
@@ -280,6 +282,7 @@ export type {
     AssignCard,
     TransactionPending3DSReview,
     TransactionsPending3DSReview,
+    TransactionsPendingFraudReview,
     BankAccount,
     BankAccountList,
     Beta,
@@ -560,6 +563,7 @@ export type {
     UserSecurityGroupData,
     DeviceBiometrics,
     LocallyProcessed3DSChallengeReviews,
+    LocallyProcessedFraudTransactionReviews,
     InitiatingBankAccountUnlock,
     AgentNewAvatarDraft,
     Agent,
