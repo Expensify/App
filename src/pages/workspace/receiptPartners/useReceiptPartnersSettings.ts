@@ -74,6 +74,8 @@ function useReceiptPartnersSettings(policyID: string, {onDisconnectConfirmed}: U
     };
 
     const getOverflowMenu = (integration: string): PopoverMenuItem[] => {
+        const uberOrganizationID = integrations?.uber?.organizationID;
+        const uberRevokeFormData = integrations?.uber?.revokeFormData;
         switch (integration) {
             case CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER:
                 if (shouldShowEnterCredentialsError) {
@@ -87,6 +89,22 @@ function useReceiptPartnersSettings(policyID: string, {onDisconnectConfirmed}: U
                                 }),
                             shouldCallAfterModalHide: true,
                             disabled: isOffline,
+                            iconRight: icons.NewWindow,
+                        },
+                    ];
+                }
+
+                if (uberOrganizationID) {
+                    // Uber requires one of its org admins to confirm the revoke on its own page, which also shows the confirmation. We disconnect
+                    // on our side when Uber sends the REVOKED webhook, so nothing changes if the admin closes the page without confirming.
+                    // The item stays disabled until the server sends the revoke query, so a connected workspace never skips the revoke on Uber's side.
+                    return [
+                        {
+                            icon: icons.Trashcan,
+                            text: translate('workspace.accounting.disconnect'),
+                            onSelected: () => openExternalLink(`${CONST.UBER_REVOKE_URL}?${uberRevokeFormData}&org_uuid=${encodeURIComponent(uberOrganizationID)}`),
+                            shouldCallAfterModalHide: true,
+                            disabled: isOffline || !uberRevokeFormData,
                             iconRight: icons.NewWindow,
                         },
                     ];

@@ -56,6 +56,7 @@ const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const EXPENSIFY_MOBILE_URL = 'https://expensify.com/mobile';
 const EXPENSIFY_URL = 'https://www.expensify.com';
 const UBER_CONNECT_URL = 'https://business-integrations.uber.com/connect';
+const UBER_REVOKE_URL = 'https://business.uber.com/revoke';
 const CHATGPT_CONNECT_URL = 'https://chatgpt.com/plugins/plugin_asdk_app_6a56a498be548191bdf3743878810456?q=expensify';
 const MCP_HELP_URL = 'https://help.expensify.com/articles/new-expensify/connections/connect-ai-assistants/Use-the-Expensify-MCP-Server-With-AI-Assistants';
 const CLAUDE_CONNECT_URL = 'https://claude.ai/directory/connectors/expensify';
@@ -794,6 +795,7 @@ const CONST = {
 
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     UBER_CONNECT_URL,
+    UBER_REVOKE_URL,
     CHATGPT_CONNECT_URL,
     MCP_HELP_URL,
     CLAUDE_CONNECT_URL,
