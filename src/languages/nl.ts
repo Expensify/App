@@ -7255,6 +7255,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 allCards: 'Alle kaarten',
                 assignedCards: 'Toegewezen',
                 unassignedCards: 'Niet toegewezen',
+                matchesLastFourDigitsOnly: 'Komt alleen overeen met de laatste 4 cijfers',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `${integration} ${type.toLowerCase()}-export` : `${integration}-export`),
                 integrationExportTitle: (integration: string, exportPageLink?: string) =>
                     `Kies de ${integration}-rekening waarnaar transacties moeten worden geëxporteerd.${exportPageLink ? ` Selecteer een andere <a href="${exportPageLink}">exportoptie</a> om de beschikbare rekeningen te wijzigen.` : ''}`,

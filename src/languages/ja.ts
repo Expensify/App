@@ -7155,6 +7155,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 allCards: 'すべてのカード',
                 assignedCards: '割り当て済み',
                 unassignedCards: '未割り当て',
+                matchesLastFourDigitsOnly: '下4桁のみ一致',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `${integration} ${type.toLowerCase()} エクスポート` : `${integration} エクスポート`),
                 integrationExportTitle: (integration: string, exportPageLink?: string) =>
                     `取引をエクスポートする${integration}アカウントを選択してください。${exportPageLink ? `利用可能なアカウントを変更するには、別の<a href="${exportPageLink}">エクスポートオプション</a>を選択してください。` : ''}`,

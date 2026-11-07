@@ -7425,6 +7425,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 allCards: 'Όλες οι κάρτες',
                 assignedCards: 'Έχει ανατεθεί',
                 unassignedCards: 'Μη εκχωρημένο',
+                matchesLastFourDigitsOnly: 'Ταιριάζει μόνο στα τελευταία 4 ψηφία',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `εξαγωγή ${integration} ${type.toLowerCase()}` : `εξαγωγή ${integration}`),
                 integrationExportTitle: (integration: string, exportPageLink?: string) =>
                     `Επιλέξτε τον λογαριασμό ${integration} στον οποίο θα εξαχθούν οι συναλλαγές.${exportPageLink ? `Επιλέξτε μια διαφορετική <a href="${exportPageLink}">επιλογή εξαγωγής</a> για να αλλάξετε τους διαθέσιμους λογαριασμούς.` : ''}`,
