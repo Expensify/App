@@ -13450,7 +13450,8 @@ function canLeaveChat(
         return false;
     }
 
-    // Anyone viewing these chat types is already a participant and therefore cannot leave
+    // Self DMs and tracked expenses keep their participants, who cannot rejoin after leaving.
+    // Leaving a tracked expense can also send an admin to the owner's inaccessible private self DM.
     if (isSelfDM(report) || isTrackExpenseAction(parentReportAction)) {
         return false;
     }
