@@ -3725,6 +3725,35 @@ describe('ReportUtils', () => {
                     );
                 });
 
+                test('should name a company card feed without a custom name by its bank name', () => {
+                    // Given a broken connection message for a feed with no custom name, so the saved feed name is the bank itself
+                    const companyCardConnectionBrokenAction: ReportAction = {
+                        ...baseParentReportAction,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN,
+                        originalMessage: {
+                            feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE,
+                            bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE,
+                            policyID: '1',
+                        },
+                    };
+                    const threadReport: Report = {
+                        ...baseExpenseReport,
+                        parentReportID: baseChatReport.reportID,
+                        parentReportActionID: companyCardConnectionBrokenAction.reportActionID,
+                    };
+                    const reportActions = {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReport.parentReportID}`]: {
+                            [companyCardConnectionBrokenAction.reportActionID]: companyCardConnectionBrokenAction,
+                        },
+                    };
+
+                    // When the thread name is computed
+                    const reportName = computeReportName(threadReport, undefined, undefined, undefined, undefined, participantsPersonalDetails, reportActions);
+
+                    // Then it uses the bank name the company cards page shows instead of the bank
+                    expect(reportName).toBe('The Capital One connection is broken. To restore card imports, log into your bank.');
+                });
+
                 test('should handle automatically paid with Expensify action', () => {
                     const expensifyPayAction: ReportAction = {
                         ...baseParentReportAction,
