@@ -14,7 +14,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {dismissProductTraining} from '@libs/actions/Welcome';
-import {isBankAccountEligibleForGlobalReimbursements} from '@libs/BankAccountUtils';
+import {isBankAccountEligibleForGlobalReimbursements, isWiseOnboardingPendingSubmit, isWiseOnboardingSubmitted} from '@libs/BankAccountUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {isWiseGlobalReimbursementsIntroOverPayReportScreen} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -41,6 +41,7 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
     const [bankAccountList, bankAccountListMetadata] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS);
     const bankAccount = bankAccountList?.[bankAccountID];
+    const isOnboardingSubmitted = isWiseOnboardingSubmitted(bankAccount?.accountData);
 
     const {translate} = useLocalize();
     const {isBetaEnabledOrUnknown} = usePermissions();
@@ -93,12 +94,15 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
                             onPress={goBackToEntryPoint}
                         />
                         <ConfirmationPage.PrimaryButton
-                            text={translate('walletPage.wiseGlobalReimbursementsIntro.getStarted')}
+                            text={translate(isOnboardingSubmitted || isWiseOnboardingPendingSubmit(bankAccount) ? 'common.continue' : 'walletPage.wiseGlobalReimbursementsIntro.getStarted')}
                             onPress={() => {
                                 // Starting onboarding for any account retires both banners for good
                                 dismissProductTraining(CONST.WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER);
                                 dismissProductTraining(CONST.WISE_GLOBAL_REIMBURSEMENTS_WORKSPACE_BANNER);
-                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute()));
+                                // A submitted business has nothing left to submit, so it sees where its onboarding stands instead of ending on the terms
+                                Navigation.navigate(
+                                    createDynamicRoute(isOnboardingSubmitted ? DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path : DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute()),
+                                );
                             }}
                         />
                     </FixedFooter>

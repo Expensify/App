@@ -39,6 +39,7 @@ function WorkspaceInvoiceFieldsSection({policyID}: WorkspaceInvoiceFieldsSection
             enableFields={enablePolicyInvoiceFields}
             openFieldsPage={openPolicyInvoicesPage}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
+            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.INVOICES.INVOICE_FIELDS_ENABLE_SWITCH}
         />
     );
 }

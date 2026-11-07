@@ -17,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {isBillPayHistoryAction} from '@libs/BillPayReportActionUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     getChangedApproverActionMessage,
@@ -56,7 +57,7 @@ import {
     isTaskAction,
     isTripPreview,
 } from '@libs/ReportActionsUtils';
-import {getMovedActionMessage, isExpenseReport} from '@libs/ReportUtils';
+import {getMovedActionMessage, isExpenseReport, isInvoiceReport} from '@libs/ReportUtils';
 
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 
@@ -64,6 +65,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {policyRoleSelector} from '@src/selectors/Policy';
 import {getStableReportSelector} from '@src/selectors/Report';
+import {isLinkedToBillSelector} from '@src/selectors/ReportNameValuePairs';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -73,6 +75,7 @@ import React from 'react';
 
 import ApprovalFlowContent from './ApprovalFlowContent';
 import AutoPayFeeDisclosureContent from './AutoPayFeeDisclosureContent';
+import BillPayHistoryContent from './BillPayHistoryContent';
 import CardBrokenConnectionContent from './CardBrokenConnectionContent';
 import ChatMessageContent from './ChatMessageContent';
 import ChatTransactionPreview from './ChatTransactionPreview';
@@ -181,9 +184,22 @@ function ActionContentRouter({
     const actionOwnerReportStable = originalReport ?? report;
 
     const actionOwnerReportID = originalReportID ?? reportID;
+    const [isInvoiceLinkedToBill = false] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(isInvoiceReport(actionOwnerReportStable) ? actionOwnerReportID : undefined)}`,
+        {selector: isLinkedToBillSelector},
+    );
     const policyID = report?.policyID;
     const reportOwnerAccountID = report?.ownerAccountID;
     const isSupportTicketReport = report?.type === CONST.REPORT.TYPE.SUPPORT_TICKET;
+
+    if (isBillPayHistoryAction(action, actionOwnerReportStable, isInvoiceLinkedToBill)) {
+        return (
+            <BillPayHistoryContent
+                reportID={actionOwnerReportID}
+                reportActionID={action.reportActionID}
+            />
+        );
+    }
 
     if (isIOURequestReportAction(action)) {
         const moneyRequestOriginalMessage = isMoneyRequestAction(action) ? getOriginalMessage(action) : undefined;
@@ -321,6 +337,7 @@ function ActionContentRouter({
         return (
             <PaymentContent
                 action={action}
+                reportID={actionOwnerReportID}
                 expectedDate={paymentExpectedDate}
                 policyID={policyID}
             />
