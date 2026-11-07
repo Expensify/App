@@ -1760,6 +1760,9 @@ const translations: TranslationDeepObject<typeof en> = {
             employeeWillReceive: '员工将收到',
             totalFees: '总费用',
             fxRate: '汇率',
+            paymentDetails: '付款详情',
+            debitedAmount: '扣款金额',
+            employeeReceived: '员工已收到',
             payAll: '全部支付',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 份报告',
