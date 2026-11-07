@@ -92,10 +92,19 @@ function useUnreadMarker({
         const readNewestActionSubscription = DeviceEventEmitter.addListener(`readNewestAction_${reportID}`, (newLastReadTime: string) => {
             setUnreadMarkerTime(newLastReadTime);
         });
+        // "Mark all as read" only moves the marker forward, so a message that arrives later still shows the "New" line.
+        const markAllAsReadSubscription = DeviceEventEmitter.addListener(CONST.EVENTS.MARK_ALL_AS_READ, (readUpToTimes: Record<string, string>) => {
+            const readUpToTime = readUpToTimes[reportID];
+            if (!readUpToTime) {
+                return;
+            }
+            setUnreadMarkerTime((currentTime) => (readUpToTime > currentTime ? readUpToTime : currentTime));
+        });
 
         return () => {
             unreadActionSubscription.remove();
             readNewestActionSubscription.remove();
+            markAllAsReadSubscription.remove();
         };
     }, [reportID, isAnonymousUser]);
 
