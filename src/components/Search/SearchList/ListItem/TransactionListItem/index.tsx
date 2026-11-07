@@ -11,7 +11,6 @@ import type {TransactionListItemProps, TransactionListItemType} from '@component
 import useLiveRowCapabilities from '@components/Search/SearchList/ListItem/useLiveRowCapabilities';
 import type {ListItem} from '@components/SelectionList/types';
 
-import useConfirmApproveReportViolations from '@hooks/useConfirmApproveReportViolations';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -225,7 +224,6 @@ function TransactionListItemInner<TItem extends ListItem>({
     const transactionViolations = mergeProhibitedViolations(rateOnyxViolations);
 
     const filteredViolationsCollection: OnyxCollection<TransactionViolations> = {[transactionViolationsKey]: transactionViolations};
-    const confirmApproveReportViolations = useConfirmApproveReportViolations({report: reportForViolations, policy: policyForViolations});
     const confirmSubmitReportViolations = useConfirmSubmitReportViolations({
         reportID: transactionItem.reportID,
         report: reportForViolations,
@@ -272,7 +270,6 @@ function TransactionListItemInner<TItem extends ListItem>({
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             confirmSubmitReportViolations,
-            confirmApproveReportViolations,
             currentUserAccountID,
             currentUserLogin,
             activePolicy,

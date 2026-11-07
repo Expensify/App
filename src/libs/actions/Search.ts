@@ -277,7 +277,7 @@ type HandleActionButtonPressParams = {
     onAllHeldExpensesBlock?: () => void;
     /** Confirms any unacknowledged report violations before proceeding with the SUBMIT action. */
     confirmSubmitReportViolations: (onProceed: ConfirmSubmitReportViolationsOnProceed) => void;
-    confirmApproveReportViolations: (onProceed: () => void) => void;
+    confirmApproveReportViolations?: (onProceed: () => void) => void;
     openReportSubmitToPopover?: (options?: ReportSubmitToPopoverOpenOptions) => void;
     currentUserAccountID: number;
     currentUserLogin?: string;
@@ -410,7 +410,7 @@ function handleActionButtonPress({
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
                 return;
             }
-            confirmApproveReportViolations(() =>
+            confirmApproveReportViolations?.(() =>
                 getApproveActionCallback({
                     hash,
                     item,
