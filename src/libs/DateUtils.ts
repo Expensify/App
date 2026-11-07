@@ -1150,12 +1150,32 @@ function getFormattedSplitDateRange(
 }
 
 /**
- * Converts a date to a string in the format MMMM d, yyyy
+ * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language.
+ * They format in UTC, so pass dates through `toUTCWallClockDate` to show them in the device's current timezone.
  */
-const formatToReadableString = (date: string, dateFnsLocale: DateFnsLocale | undefined): string => {
-    const parsedDate = parse(date, 'yyyy-MM-dd', new Date());
-    return format(parsedDate, 'MMMM d, yyyy', {locale: dateFnsLocale});
-};
+const memoizedCreateLongDateFormatter = memoize((localeCode: string) => new Intl.DateTimeFormat(localeCode, {year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC'}));
+
+/**
+ * Formats a date's local calendar fields as a long date.
+ *
+ * A hand-written `MMMM d, yyyy` fixes the US component order, so German showed its month name before the day and
+ * Spanish lost the `de` it writes between the parts of a date. `Intl` orders the date the way each language does, and
+ * its English output matches the old pattern.
+ *
+ * @returns June 20, 2026
+ */
+function formatToLongDate(date: Date, dateFnsLocale: DateFnsLocale | undefined): string {
+    if (!isValid(date)) {
+        return '';
+    }
+    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
+    return memoizedCreateLongDateFormatter(dateFnsLocale?.code ?? 'en-US').format(toUTCWallClockDate(date));
+}
+
+/**
+ * Converts a yyyy-MM-dd date to a long date, e.g. June 20, 2026
+ */
+const formatToReadableString = (date: string, dateFnsLocale: DateFnsLocale | undefined): string => formatToLongDate(parse(date, CONST.DATE.FNS_FORMAT_STRING, new Date()), dateFnsLocale);
 
 const formatInTimeZoneWithFallback: typeof formatInTimeZone = (date, timeZone, formatStr, options?) => {
     try {
@@ -1417,6 +1437,7 @@ const DateUtils = {
     getTimeOfDayGreetingKey,
     formatToLocalTime,
     formatToReadableString,
+    formatToLongDate,
     getZoneAbbreviation,
     datetimeToRelative,
     datetimeToCalendarTime,
