@@ -72,6 +72,7 @@ import ReportActionComposeUtils from './ReportActionComposeUtils';
 import shouldYieldFocusToSidePanelComposer from './shouldYieldFocusToSidePanelComposer';
 import SilentCommentUpdater from './SilentCommentUpdater';
 import Suggestions from './Suggestions';
+import useComposerHeight from './useComposerHeight';
 import useComposerSuggestions from './useComposerSuggestions';
 import useEditComposerToggle from './useEditComposerToggle';
 import useLastEditableAction from './useLastEditableAction';
@@ -366,9 +367,8 @@ function ComposerWithSuggestions({
     const shouldAutoFocus = !shouldSkipAutoFocus && (shouldFocusInputOnScreenFocus || !!text) && areAllModalsHidden() && isFocused;
     const delayedAutoFocusRouteKeyRef = useRef<string | null>(null);
 
-    const [composerHeightAfterClear, setComposerHeightAfterClear] = useState<number | null>(null);
+    const {composerHeightAfterClear, clearComposerHeight, resetHeight, updateEmptyComposerHeight} = useComposerHeight();
     const [isComposerFocused, setIsComposerFocused] = useState(false);
-    const emptyComposerHeightRef = useRef<number | null>(null);
 
     const syncSelectionWithOnChangeTextRef = useRef<SyncSelection | null>(null);
 
@@ -617,17 +617,6 @@ function ComposerWithSuggestions({
         }
     };
 
-    /**
-     * Once we cleared the input and the composer finished rendering, we need to reset the manual height value.
-     * After that, the composer will adjust it's height based on it's parent flex layout.
-     */
-    const clearComposerHeight = () => {
-        if (composerHeightAfterClear == null) {
-            return;
-        }
-        setComposerHeightAfterClear(null);
-    };
-
     const onChangeText = (commentValue: string) => {
         setIsComposerFocused(!!composerRef.current?.isFocused());
 
@@ -783,13 +772,6 @@ function ComposerWithSuggestions({
         forceClearInput(animatedRef);
     };
 
-    const resetHeight = () => {
-        if (!emptyComposerHeightRef.current) {
-            return;
-        }
-        setComposerHeightAfterClear(emptyComposerHeightRef.current);
-    };
-
     const getCurrentText = () => {
         return commentRef.current;
     };
@@ -925,10 +907,7 @@ function ComposerWithSuggestions({
         // Upon any content size change, we can reset the height to allow flex layout to adjust the height.
         clearComposerHeight();
 
-        // Store the default collapsed composer height, so we can later reset the height when we clear the input.
-        if (emptyComposerHeightRef.current === null && inputHeight > 0 && !text.includes('\n')) {
-            emptyComposerHeightRef.current = inputHeight;
-        }
+        updateEmptyComposerHeight(inputHeight, commentRef.current);
 
         const isFullComposerAvailable = totalHeight >= CONST.COMPOSER.FULL_COMPOSER_MIN_HEIGHT;
         setIsFullComposerAvailable?.(isFullComposerAvailable);
