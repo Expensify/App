@@ -265,6 +265,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             hash: currentSearchHash,
             item: liveReportItem,
             goToItem: () => onSelectRow(reportItem as unknown as TItem),
+            policyID: snapshotReport?.policyID || reportItem.policyID,
             snapshotReport,
             snapshotPolicy,
             submitterLogin,
