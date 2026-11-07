@@ -9,6 +9,11 @@ on:
       - 'web/index.html'
       - '.nvmrc'
       - '.github/workflows/cloudflareWorkerTests.yml'
+      - '.github/workflows/buildWeb.yml'
+      - '.github/workflows/buildAdHoc.yml'
+      - 'scripts/deployAdhocCloudflareWorker.ts'
+      - 'scripts/extractPRTestingAssets.ts'
+      - '.bun-version'
 
 concurrency:
   group: ${{ github.ref }}-cloudflare-worker-tests
@@ -41,7 +46,12 @@ jobs:
           cache-dependency-path: web/cloudflare-worker/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --workspaces=false
+
+      - name: Setup Bun for preview archive integration tests
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version-file: '.bun-version'
 
       - name: Type check
         run: npm run typecheck
