@@ -75,7 +75,7 @@ Location: After step 5 of "How to choose which Greenhouse candidates to import".
 Purpose: Clarifies the difference between turning on a filter (which selects every value) and opening the filter row to pick specific values, a common source of importing too many candidates.
 -->
 
-If you click **Save** without turning on **Job stages** or **Tags**, you'll see **Enable Job stages or Tags to continue**. Turning on **Offices** by itself isn't enough.
+If you click **Save** without turning on **Job stages** or **Tags**, you'll see **Select at least one Job stage or Tag to continue**. Turning on **Offices** by itself isn't enough.
 
 Saving your import settings starts a sync. If a candidate has more than one application in Greenhouse, they're imported as long as any one of their applications matches your filters. Candidates without an email address in Greenhouse are skipped.
 
