@@ -188,7 +188,7 @@ describe('WorkspaceWorkflowsPageRevamp - Payer row visibility', () => {
                                   reimburser: 'test@user.com',
                               }
                             : undefined,
-                    reimbursement: {countries: source === 'reimbursement countries' ? {US: []} : {}},
+                    reimbursement: {countries: source === 'reimbursement countries' ? {US: {}} : {}},
                 }),
             );
             if (source === 'bank account list') {

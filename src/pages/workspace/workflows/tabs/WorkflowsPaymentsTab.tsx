@@ -520,7 +520,9 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                                                                     <Text
                                                                         style={[
                                                                             isOffline && !!country.pendingAction && styles.colorMuted,
-                                                                            isOffline && country.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && styles.offlineFeedbackDeleted,
+                                                                            isOffline &&
+                                                                                country.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+                                                                                styles.offlineFeedbackDeleted,
                                                                         ]}
                                                                     >
                                                                         {country.name}

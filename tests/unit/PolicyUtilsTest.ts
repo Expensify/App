@@ -4481,6 +4481,7 @@ describe('PolicyUtils', () => {
 
             it('returns false when every country has a falsy value', () => {
                 // Given a workspace whose countries are all deselected
+                // @ts-expect-error - Defensively handles malformed country entries that violate the object type.
                 const policy = createMock<Policy>({id: '1', reimbursement: {countries: {US: false, GB: null}}});
 
                 // When we check countries that retain deselected entries in Onyx
@@ -4492,6 +4493,7 @@ describe('PolicyUtils', () => {
 
             it('returns true when a country has a truthy value', () => {
                 // Given a workspace with a selected business bank account country
+                // @ts-expect-error - Defensively handles malformed country entries that violate the object type.
                 const policy = createMock<Policy>({id: '1', reimbursement: {countries: {US: false, GB: []}}});
 
                 // When we check a mixture of selected and deselected countries
