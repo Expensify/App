@@ -3221,6 +3221,47 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('hasViolation', () => {
+        const futureDateViolations: TransactionViolation[] = [
+            {
+                name: CONST.VIOLATIONS.FUTURE_DATE,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                showInReview: true,
+            },
+        ];
+        const policy: Policy = createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE);
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        it('should return true for a futureDate violation when the date and time are beyond the +14 hour window', () => {
+            // Given a futureDate violation on an expense that SmartScan dated today at UTC+14, with a time that hasn't happened yet at UTC+14
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2026-10-27T17:18:00Z'));
+            const transaction = generateTransaction({created: '2026-10-28', modifiedCreated: '2026-10-28 18:11:40'});
+
+            // When checking whether the expense has a violation
+            const result = TransactionUtils.hasViolation(transaction, futureDateViolations, CURRENT_USER_EMAIL, CURRENT_USER_ID, openReport, CURRENT_USER_EMAIL, policy);
+
+            // Then the violation counts, because the backend still returns it and it is shown on the expense
+            expect(result).toBe(true);
+        });
+
+        it('should return false for a stale futureDate violation once the date is within the +14 hour window', () => {
+            // Given a futureDate violation saved earlier on an expense dated today at UTC+14
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2026-10-27T17:18:00Z'));
+            const transaction = generateTransaction({created: '2026-10-28'});
+
+            // When checking whether the expense has a violation
+            const result = TransactionUtils.hasViolation(transaction, futureDateViolations, CURRENT_USER_EMAIL, CURRENT_USER_ID, openReport, CURRENT_USER_EMAIL, policy);
+
+            // Then the violation doesn't count, because it is hidden and can't block Submit under strict rules
+            expect(result).toBe(false);
+        });
+    });
+
     describe('hasNoticeTypeViolation', () => {
         const noticeViolations: TransactionViolation[] = [
             {

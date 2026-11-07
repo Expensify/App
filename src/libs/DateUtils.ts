@@ -799,9 +799,7 @@ const isTransactionDateFuture = (transactionDate: string): boolean => {
         return false;
     }
 
-    const thresholdDate = formatMachineDateWithUTCTimeZone(addHours(new Date(), 14).toISOString());
-
-    return formatMachineDateWithUTCTimeZone(transactionDate) > thresholdDate;
+    return isAfter(toDate(transactionDate, {timeZone: 'UTC'}), addHours(new Date(), 14));
 };
 
 /**
