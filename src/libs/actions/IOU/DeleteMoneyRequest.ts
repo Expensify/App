@@ -673,20 +673,21 @@ function getCleanUpTransactionThreadReportOnyxData({
     shouldAddUpdatedReportPreviewActionToOnyxData?: boolean;
     currentUserAccountID: number;
     transactionThread?: OnyxEntry<OnyxTypes.Report>;
-    isArchivedIOUReport: boolean;
     transactionThreadReportActionsParam?: OnyxEntry<OnyxTypes.ReportActions>;
 } &
-    // IouReport and chatReport is required when reportAction is passed. As reportAction can be optional, this union gives better type check
+    // IouReport, chatReport and isArchivedIOUReport are required when reportAction is passed. As reportAction can be optional, this union gives better type check
     (
         | {
               reportAction: ReportAction;
               iouReport: OnyxEntry<OnyxTypes.Report>;
               chatReport: OnyxEntry<OnyxTypes.Report>;
+              isArchivedIOUReport: boolean;
           }
         | {
               reportAction?: undefined;
               iouReport?: OnyxEntry<OnyxTypes.Report>;
               chatReport?: OnyxEntry<OnyxTypes.Report>;
+              isArchivedIOUReport?: boolean;
           }
     )) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];

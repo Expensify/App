@@ -461,7 +461,7 @@ type MergeTransactionRequestParams = {
     sourceActionChatReport: OnyxEntry<Report>;
     rules: OnyxCollection<Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
-    isSourceActionIOUReportArchived?: boolean;
+    isSourceActionIOUReportArchived: boolean;
 };
 /**
  * Merges two transactions by updating the target transaction with selected fields and deleting the source transaction.
@@ -678,7 +678,7 @@ function mergeTransactionRequest({
                 currentUserAccountID: currentUserAccountIDParam,
                 iouReport: sourceActionIOUReport,
                 chatReport: sourceActionChatReport,
-                isArchivedIOUReport: isSourceActionIOUReportArchived ?? false,
+                isArchivedIOUReport: isSourceActionIOUReportArchived,
                 transactionThread: sourceIOUActionThreadReport,
                 transactionThreadReportActionsParam: sourceTransactionThreadReportActions,
             });

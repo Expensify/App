@@ -188,7 +188,7 @@ type MergeDuplicatesFuncParams = MergeDuplicatesTransactionParams & {
     allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
     allReportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
     allReportsList: OnyxCollection<OnyxTypes.Report>;
-    allReportNameValuePairsList?: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
+    allReportNameValuePairsList: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
 };
 
 type ResolveDuplicatesFuncParams = MergeDuplicatesTransactionParams & {
