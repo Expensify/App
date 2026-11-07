@@ -3,7 +3,6 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import {isCategoryMissing} from '@libs/CategoryUtils';
-import containsHtmlTag from '@libs/containsHtmlTag';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {isMerchantRequired, isValidMoneyRequestAmount} from '@libs/MoneyRequestUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
@@ -23,7 +22,7 @@ import {
     isPerDiemRequest,
     isScanning,
 } from '@libs/TransactionUtils';
-import {getMerchantError, getMerchantErrorMessage} from '@libs/ValidationUtils';
+import {getInlineDescriptionErrorMessage, getInlineMerchantErrorMessage} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -281,15 +280,9 @@ function editTransactionDateInline(params: TransactionInlineEditParams, newDate:
 
 /** Updates the merchant of an expense from the Search results table or the Expense Report page. */
 function editTransactionMerchantInline(translate: LocalizedTranslate, params: TransactionInlineEditParams, newMerchant: string): string | undefined {
-    // The merchant form uses strict HTML validation, which also rejects values like <✓>. FormProvider runs that
-    // check after validate and overwrites any length error, so a value that fails both must show invalid character.
-    if (containsHtmlTag(newMerchant, true)) {
-        return translate('common.error.invalidCharacter');
-    }
-
-    const merchantError = getMerchantError(newMerchant, isMerchantRequired(params.parentReport, params.transaction));
-    if (merchantError) {
-        return getMerchantErrorMessage(translate, merchantError);
+    const merchantErrorMessage = getInlineMerchantErrorMessage(translate, newMerchant, isMerchantRequired(params.parentReport, params.transaction));
+    if (merchantErrorMessage) {
+        return merchantErrorMessage;
     }
 
     // Building params can create a transaction thread, so do it only once the merchant is valid.
@@ -308,13 +301,10 @@ function editTransactionMerchantInline(translate: LocalizedTranslate, params: Tr
 function editTransactionDescriptionInline(translate: LocalizedTranslate, params: TransactionInlineEditParams, newDescription: string): string | undefined {
     // The description step validates and saves the value after FormProvider strips invisible characters and trims it.
     // The cell passes the raw text, so prepare it the same way. Otherwise trailing spaces past the limit toast a value the step would save.
-    // HTML is checked first so a value that fails both shows the invalid character error.
     const description = StringUtils.removeInvisibleCharacters(newDescription);
-    if (containsHtmlTag(description)) {
-        return translate('common.error.invalidCharacter');
-    }
-    if (description.length > CONST.DESCRIPTION_LIMIT) {
-        return translate('common.error.characterLimitExceedCounter', description.length, CONST.DESCRIPTION_LIMIT);
+    const descriptionErrorMessage = getInlineDescriptionErrorMessage(translate, description);
+    if (descriptionErrorMessage) {
+        return descriptionErrorMessage;
     }
 
     const iouParams = getIouParamsForTransaction(params);

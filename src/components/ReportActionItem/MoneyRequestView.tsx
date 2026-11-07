@@ -172,6 +172,8 @@ import {View} from 'react-native';
 import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import MoneyRequestReceiptView from './MoneyRequestReceiptView';
+import DescriptionInputField from './MoneyRequestViewFields/DescriptionInputField';
+import MerchantInputField from './MoneyRequestViewFields/MerchantInputField';
 
 type MoneyRequestViewProps = {
     transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
@@ -468,6 +470,12 @@ function MoneyRequestView({
             policy,
             rules,
         });
+
+    // Users on the beta edit the saved expense's text fields in place. A value shown for review, from the duplicates
+    // or merge flows, is not saved yet, so those keep the rows that open their page.
+    const canUseInlineFields = isBetaEnabled(CONST.BETAS.EXPENSE_VIEW_INLINE_FIELDS) && !isFromReviewDuplicates && !isFromMergeTransaction;
+    const shouldUseInlineDescriptionInput = canUseInlineFields && canEdit;
+    const shouldUseInlineMerchantInput = canUseInlineFields && canEditMerchant && !isTransactionScanning;
 
     const canEditDate =
         isEditable &&
@@ -1391,60 +1399,83 @@ function MoneyRequestView({
                 </OfflineWithFeedback>
                 {!shouldHideEmptyDescription && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('comment')}>
-                        <MenuItemWithTopDescription
-                            description={translate('common.description')}
-                            descriptionTextStyle={[styles.breakWord, styles.userSelectNone]}
-                            shouldRenderAsHTML
-                            title={updatedTransactionDescription ?? transactionDescription}
-                            interactive={canEdit}
-                            shouldShowRightIcon={canEdit}
-                            titleStyle={styles.flex1}
-                            onPress={() => {
-                                Navigation.navigate(
-                                    createDynamicRoute(
-                                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID),
-                                    ),
-                                );
-                            }}
-                            wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
-                            brickRoadIndicator={getErrorForField('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            errorText={getErrorForField('comment')}
-                            errorTextStyle={styles.userSelectNone}
-                            numberOfLinesTitle={0}
-                            copyValue={descriptionCopyValue}
-                            copyable={!canEdit && !!descriptionCopyValue}
-                            isTitleSelectable={!!descriptionCopyValue}
-                        />
+                        {shouldUseInlineDescriptionInput ? (
+                            <DescriptionInputField
+                                transaction={transaction}
+                                transactionThreadReport={transactionThreadReport}
+                                isReportInGroupPolicy={isPolicyExpenseChat}
+                                errorText={getErrorForField('comment')}
+                            />
+                        ) : (
+                            <MenuItemWithTopDescription
+                                description={translate('common.description')}
+                                descriptionTextStyle={[styles.breakWord, styles.userSelectNone]}
+                                shouldRenderAsHTML
+                                title={updatedTransactionDescription ?? transactionDescription}
+                                interactive={canEdit}
+                                shouldShowRightIcon={canEdit}
+                                titleStyle={styles.flex1}
+                                onPress={() => {
+                                    Navigation.navigate(
+                                        createDynamicRoute(
+                                            DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(
+                                                CONST.IOU.ACTION.EDIT,
+                                                iouType,
+                                                transaction.transactionID,
+                                                transactionThreadReport?.reportID,
+                                            ),
+                                        ),
+                                    );
+                                }}
+                                wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
+                                brickRoadIndicator={getErrorForField('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                errorText={getErrorForField('comment')}
+                                errorTextStyle={styles.userSelectNone}
+                                numberOfLinesTitle={0}
+                                copyValue={descriptionCopyValue}
+                                copyable={!canEdit && !!descriptionCopyValue}
+                                isTitleSelectable={!!descriptionCopyValue}
+                            />
+                        )}
                     </OfflineWithFeedback>
                 )}
                 {isManualDistanceRequest || isGPSDistanceRequest || isOdometerDistanceRequest || (isMapDistanceRequest && transaction?.comment?.waypoints) ? (
                     distanceRequestFields
                 ) : (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('merchant')}>
-                        <MenuItemWithTopDescription
-                            description={translate('common.merchant')}
-                            descriptionTextStyle={[styles.breakWord, styles.userSelectNone]}
-                            title={updatedMerchantTitle}
-                            interactive={canEditMerchant}
-                            shouldShowRightIcon={canEditMerchant}
-                            titleStyle={styles.flex1}
-                            onPress={() => {
-                                Navigation.navigate(
-                                    createDynamicRoute(
-                                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID),
-                                    ),
-                                );
-                            }}
-                            wrapperStyle={[styles.taskDescriptionMenuItem]}
-                            furtherDetailsComponent={shouldShowGoogleMerchantSearchLink ? renderGoogleMerchantSearchLink() : undefined}
-                            brickRoadIndicator={getErrorForField('merchant') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            errorText={getErrorForField('merchant')}
-                            errorTextStyle={styles.userSelectNone}
-                            numberOfLinesTitle={0}
-                            copyValue={merchantCopyValue}
-                            copyable={!canEditMerchant && !!merchantCopyValue}
-                            isTitleSelectable={!!merchantCopyValue}
-                        />
+                        {shouldUseInlineMerchantInput ? (
+                            <MerchantInputField
+                                transaction={transaction}
+                                transactionThreadReport={transactionThreadReport}
+                                errorText={getErrorForField('merchant')}
+                                footer={shouldShowGoogleMerchantSearchLink ? renderGoogleMerchantSearchLink() : undefined}
+                            />
+                        ) : (
+                            <MenuItemWithTopDescription
+                                description={translate('common.merchant')}
+                                descriptionTextStyle={[styles.breakWord, styles.userSelectNone]}
+                                title={updatedMerchantTitle}
+                                interactive={canEditMerchant}
+                                shouldShowRightIcon={canEditMerchant}
+                                titleStyle={styles.flex1}
+                                onPress={() => {
+                                    Navigation.navigate(
+                                        createDynamicRoute(
+                                            DYNAMIC_ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID),
+                                        ),
+                                    );
+                                }}
+                                wrapperStyle={[styles.taskDescriptionMenuItem]}
+                                furtherDetailsComponent={shouldShowGoogleMerchantSearchLink ? renderGoogleMerchantSearchLink() : undefined}
+                                brickRoadIndicator={getErrorForField('merchant') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                errorText={getErrorForField('merchant')}
+                                errorTextStyle={styles.userSelectNone}
+                                numberOfLinesTitle={0}
+                                copyValue={merchantCopyValue}
+                                copyable={!canEditMerchant && !!merchantCopyValue}
+                                isTitleSelectable={!!merchantCopyValue}
+                            />
+                        )}
                     </OfflineWithFeedback>
                 )}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('created')}>

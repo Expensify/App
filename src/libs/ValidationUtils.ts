@@ -891,6 +891,34 @@ function getMerchantError(merchant: string | undefined, isMerchantRequired: bool
 }
 
 /**
+ * The error for a merchant edited outside the merchant form, checked the way the form checks it, or `undefined` when
+ * the merchant can be saved.
+ */
+function getInlineMerchantErrorMessage(translate: LocalizedTranslate, merchant: string, isMerchantRequired: boolean): string | undefined {
+    // The merchant form uses strict HTML validation, which also rejects values like <✓>. FormProvider runs that
+    // check after validate and overwrites any length error, so a value that fails both must show invalid character.
+    if (containsHtmlTag(merchant, true)) {
+        return translate('common.error.invalidCharacter');
+    }
+    const merchantError = getMerchantError(merchant, isMerchantRequired);
+    return merchantError ? getMerchantErrorMessage(translate, merchantError) : undefined;
+}
+
+/**
+ * The error for a description edited outside the description form, checked the way the form checks it, or `undefined`
+ * when the description can be saved. HTML is checked first so a value that fails both shows the invalid character error.
+ */
+function getInlineDescriptionErrorMessage(translate: LocalizedTranslate, description: string): string | undefined {
+    if (containsHtmlTag(description)) {
+        return translate('common.error.invalidCharacter');
+    }
+    if (description.length > CONST.DESCRIPTION_LIMIT) {
+        return translate('common.error.characterLimitExceedCounter', description.length, CONST.DESCRIPTION_LIMIT);
+    }
+    return undefined;
+}
+
+/**
  * Checks if a merchant is a placeholder the user never typed: the flow seeded the "Expense" / "(none)" value,
  * so it should be treated as empty rather than as an invalid entry the user is responsible for.
  */
@@ -971,6 +999,8 @@ export {
     isInvalidMerchantValue,
     getMerchantError,
     getMerchantErrorMessage,
+    getInlineMerchantErrorMessage,
+    getInlineDescriptionErrorMessage,
     isUntypedPlaceholderMerchant,
     isValidPIN,
     containsHtmlTag,

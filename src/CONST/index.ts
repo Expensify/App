@@ -1528,6 +1528,7 @@ const CONST = {
         NL_FILTERS: 'nlFilters',
         SUPPORT_TICKET: 'supportTicket',
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
+        EXPENSE_VIEW_INLINE_FIELDS: 'expenseViewInlineFields',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
         COLLECT_DEPOSIT_ACCOUNTS: 'collectDepositAccounts',
         RESIZABLE_RHP: 'resizableRHP',
@@ -11204,6 +11205,8 @@ const CONST = {
             GOOGLE_MERCHANT_SEARCH_BUTTON: 'MoneyRequest-GoogleMerchantSearchButton',
             REIMBURSABLE_SWITCH: 'MoneyRequest-ReimbursableSwitch',
             BILLABLE_SWITCH: 'MoneyRequest-BillableSwitch',
+            MERCHANT_INPUT: 'MoneyRequest-MerchantInput',
+            DESCRIPTION_INPUT: 'MoneyRequest-DescriptionInput',
         },
         SPLIT_EXPENSE: {
             ADD_SPLIT_BUTTON: 'SplitExpense-AddSplitButton',
