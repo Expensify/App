@@ -221,10 +221,10 @@ index 06c1957..3c2acf0 100644
    RCTAssert(self.selectedViewController == viewController,
              @"[RNScreens] Expected UIKit to update selectedViewController");
 diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
-index 60c9ab2..fa2afb9 100644
+index 44567be..2b5b857 100644
 --- a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
 +++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
-@@ -254,6 +254,10 @@ - (void)updateProps:(const facebook::react::Props::Shared &)props
+@@ -603,6 +603,10 @@ - (void)updateProps:(const facebook::react::Props::Shared &)props
      }
    }
  
