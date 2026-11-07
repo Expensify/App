@@ -30,6 +30,7 @@ function useReportPrimaryAction(reportID: string | undefined): ValueOf<typeof CO
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(moneyRequestReport?.reportID)}`);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(moneyRequestReport?.reportID)}`);
     const [ownerLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
@@ -65,6 +66,7 @@ function useReportPrimaryAction(reportID: string | undefined): ValueOf<typeof CO
         reportTransactions: nonPendingDeleteTransactions,
         violations,
         bankAccountList,
+        cardList,
         policy,
         reportNameValuePairs,
         reportActions,

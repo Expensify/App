@@ -10,7 +10,7 @@ import {
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Card, CardList, Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 
 import createMock from '../utils/createMock';
 
@@ -72,7 +72,7 @@ function createMockRejectedReport(): Report {
 describe('getReportSubmitViolationSummary', () => {
     it('returns all-false/empty when there are no violations', () => {
         // Given a transaction with an empty violations array (the shape Onyx reports once violations have been computed and none apply)
-        const summary = getReportSubmitViolationSummary([createMockTransaction('1')], {[getViolationsKey('1')]: []}, undefined, undefined, '', 0);
+        const summary = getReportSubmitViolationSummary([createMockTransaction('1')], {[getViolationsKey('1')]: []}, undefined, undefined, '', 0, undefined);
 
         // When the summary is built
         // Then the "Submit report?" modal has nothing to show, so every bucket must be empty
@@ -88,6 +88,7 @@ describe('getReportSubmitViolationSummary', () => {
             undefined,
             '',
             0,
+            undefined,
         );
 
         // When the summary is built
@@ -107,6 +108,7 @@ describe('getReportSubmitViolationSummary', () => {
             undefined,
             '',
             0,
+            undefined,
         );
 
         // When the summary is built
@@ -132,6 +134,7 @@ describe('getReportSubmitViolationSummary', () => {
             undefined,
             '',
             currentUserAccountID,
+            undefined,
         );
 
         // When the summary is built
@@ -142,10 +145,56 @@ describe('getReportSubmitViolationSummary', () => {
         expect(summary.otherViolations).toEqual(new Map([[CONST.VIOLATIONS.RTER, rterViolation]]));
     });
 
+    it('drops a broken-connection RTER violation once the feed is past the dismiss threshold', () => {
+        // Given an expense whose broken connection is old enough that the expense itself no longer shows the warning
+        const currentUserAccountID = 1;
+        const ownedReport = createMock<Report>({ownerAccountID: currentUserAccountID});
+        const cardID = 55501;
+        const rterViolation = createMockViolation(CONST.VIOLATIONS.RTER, {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH, cardID});
+        const cardList: CardList = {
+            [cardID]: createMock<Card>({
+                cardID,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                fundID: '88801',
+                lastScrapeResult: 438,
+                lastScrape: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000).toISOString().replace('T', ' ').slice(0, 19),
+            }),
+        };
+
+        // When the submit confirmation summary is built
+        const summary = getReportSubmitViolationSummary([createMockTransaction('1')], {[getViolationsKey('1')]: [rterViolation]}, ownedReport, undefined, '', currentUserAccountID, cardList);
+
+        // Then it must not resurface the warning the expense has already stopped showing
+        expect(summary.otherViolations.size).toBe(0);
+    });
+
+    it('keeps a broken-connection RTER violation while the feed is inside the dismiss threshold', () => {
+        // Given the same expense on a feed that broke recently, so the expense still shows the warning
+        const currentUserAccountID = 1;
+        const ownedReport = createMock<Report>({ownerAccountID: currentUserAccountID});
+        const cardID = 55501;
+        const rterViolation = createMockViolation(CONST.VIOLATIONS.RTER, {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH, cardID});
+        const cardList: CardList = {
+            [cardID]: createMock<Card>({
+                cardID,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                fundID: '88801',
+                lastScrapeResult: 438,
+                lastScrape: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString().replace('T', ' ').slice(0, 19),
+            }),
+        };
+
+        // When the submit confirmation summary is built
+        const summary = getReportSubmitViolationSummary([createMockTransaction('1')], {[getViolationsKey('1')]: [rterViolation]}, ownedReport, undefined, '', currentUserAccountID, cardList);
+
+        // Then the confirmation keeps warning about it, matching what the expense still shows
+        expect(summary.otherViolations).toEqual(new Map([[CONST.VIOLATIONS.RTER, rterViolation]]));
+    });
+
     it('buckets any other violation name into otherViolations', () => {
         // Given a transaction with a violation that isn't rejected-expense or RTER (e.g. a policy category limit)
         const overCategoryLimitViolation = createMockViolation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
-        const summary = getReportSubmitViolationSummary([createMockTransaction('1')], {[getViolationsKey('1')]: [overCategoryLimitViolation]}, undefined, undefined, '', 0);
+        const summary = getReportSubmitViolationSummary([createMockTransaction('1')], {[getViolationsKey('1')]: [overCategoryLimitViolation]}, undefined, undefined, '', 0, undefined);
 
         // When the summary is built
         // Then it must be collected as an informational-only bullet, since the modal only needs to warn the user, not resolve anything
@@ -165,6 +214,7 @@ describe('getReportSubmitViolationSummary', () => {
             undefined,
             '',
             0,
+            undefined,
         );
 
         // When the summary is built for the whole report
@@ -175,7 +225,7 @@ describe('getReportSubmitViolationSummary', () => {
 
     it('ignores transactions with no violations entry', () => {
         // Given a transaction whose violations haven't been fetched into Onyx yet (key absent from the collection)
-        const summary = getReportSubmitViolationSummary([createMockTransaction('1')], {}, undefined, undefined, '', 0);
+        const summary = getReportSubmitViolationSummary([createMockTransaction('1')], {}, undefined, undefined, '', 0, undefined);
 
         // When the summary is built
         // Then it must not throw or treat the missing key as a violation, so a report just isn't flagged instead of crashing
@@ -187,7 +237,7 @@ describe('getReportSubmitViolationSummary', () => {
         // where the individual transactions carry no AUTO_REPORTED_REJECTED_EXPENSE violation of their own - the PO
         // asked for these two cases to use different copy, since a report-level rejection has no per-expense
         // "Mark as resolved" action, unlike a transaction-level rejected-expense violation
-        const summary = getReportSubmitViolationSummary([createMockTransaction('1')], {[getViolationsKey('1')]: []}, createMockRejectedReport(), undefined, '', 0);
+        const summary = getReportSubmitViolationSummary([createMockTransaction('1')], {[getViolationsKey('1')]: []}, createMockRejectedReport(), undefined, '', 0, undefined);
 
         // When the summary is built
         // Then it must surface the report-level rejection in its own bucket, and must NOT also flag the
@@ -209,6 +259,7 @@ describe('getReportSubmitViolationSummary', () => {
             undefined,
             '',
             0,
+            undefined,
         );
 
         // When the summary is built
@@ -224,7 +275,7 @@ describe('getReportSubmitViolationSummary', () => {
         ])('flags an expense on an expense report whose merchant is %s', (_description, merchant) => {
             // Given an expense whose merchant is a value the expense row treats as missing, with no violations entry,
             // because the server never sends a violation for a missing merchant
-            const summary = getReportSubmitViolationSummary([createMockTransactionWithMerchant(merchant)], {}, createMockExpenseReport(), undefined, '', 0);
+            const summary = getReportSubmitViolationSummary([createMockTransactionWithMerchant(merchant)], {}, createMockExpenseReport(), undefined, '', 0, undefined);
 
             // When the summary is built
             // Then it must flag the merchant, otherwise the report submits with no warning while the expense row shows an error
@@ -240,6 +291,7 @@ describe('getReportSubmitViolationSummary', () => {
                 undefined,
                 '',
                 0,
+                undefined,
             );
 
             // When the summary is built
@@ -260,6 +312,7 @@ describe('getReportSubmitViolationSummary', () => {
                 undefined,
                 '',
                 0,
+                undefined,
             );
 
             // When the bullets are built from the summary
@@ -279,6 +332,7 @@ describe('getReportSubmitViolationSummary', () => {
                 undefined,
                 '',
                 0,
+                undefined,
             );
 
             // When the summary is built
@@ -295,6 +349,7 @@ describe('getReportSubmitViolationSummary', () => {
                 undefined,
                 '',
                 0,
+                undefined,
             );
 
             // When the summary is built
@@ -316,6 +371,7 @@ describe('getReportSubmitViolationSummary', () => {
                 undefined,
                 '',
                 0,
+                undefined,
             );
 
             // When the summary is built
@@ -332,6 +388,7 @@ describe('getReportSubmitViolationSummary', () => {
                 undefined,
                 '',
                 0,
+                undefined,
             );
 
             // When the summary is built
@@ -351,6 +408,7 @@ describe('getReportSubmitViolationSummary', () => {
                 createMock<Policy>({approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC}),
                 '',
                 0,
+                undefined,
             );
 
             // When the summary is built
@@ -367,6 +425,7 @@ describe('getReportSubmitViolationSummary', () => {
                 createMock<Policy>({approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL}),
                 '',
                 0,
+                undefined,
             );
 
             // When the summary is built
@@ -386,6 +445,7 @@ describe('getReportSubmitViolationSummary', () => {
                 createMock<Policy>({approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC}),
                 '',
                 0,
+                undefined,
             );
 
             // When the summary is built
@@ -407,6 +467,7 @@ describe('getReportSubmitViolationSummary', () => {
                 undefined,
                 '',
                 0,
+                undefined,
             );
 
             // When the bullets are built from the summary
@@ -434,6 +495,7 @@ describe('getReportSubmitViolationSummary', () => {
                 undefined,
                 '',
                 0,
+                undefined,
             );
 
             // When the summary is built
@@ -443,7 +505,15 @@ describe('getReportSubmitViolationSummary', () => {
 
         it('flags a failed scan with no merchant once its smartscanFailed violation is gone', () => {
             // Given a failed scan with no merchant whose smartscanFailed violation was removed after the user entered the amount
-            const summary = getReportSubmitViolationSummary([createMockFailedScan({modifiedAmount: -1000})], {[getViolationsKey('1')]: []}, createMockExpenseReport(), undefined, '', 0);
+            const summary = getReportSubmitViolationSummary(
+                [createMockFailedScan({modifiedAmount: -1000})],
+                {[getViolationsKey('1')]: []},
+                createMockExpenseReport(),
+                undefined,
+                '',
+                0,
+                undefined,
+            );
 
             // When the summary is built
             // Then it must warn about the merchant only, since nothing else now tells the submitter it's missing and the amount has been entered
@@ -453,7 +523,7 @@ describe('getReportSubmitViolationSummary', () => {
 
         it('does not flag a placeholder merchant when the report is not available', () => {
             // Given a report that hasn't loaded, so there is no way to tell whether a merchant is required
-            const summary = getReportSubmitViolationSummary([createMockTransactionWithMerchant(CONST.TRANSACTION.DEFAULT_MERCHANT)], {}, undefined, undefined, '', 0);
+            const summary = getReportSubmitViolationSummary([createMockTransactionWithMerchant(CONST.TRANSACTION.DEFAULT_MERCHANT)], {}, undefined, undefined, '', 0, undefined);
 
             // When the summary is built
             // Then it must not warn, rather than interrupt a submission over a merchant that may be optional
@@ -471,6 +541,7 @@ describe('getReportSubmitViolationSummary', () => {
                 undefined,
                 '',
                 0,
+                undefined,
             );
 
             // When the bullets are built from the summary
@@ -484,7 +555,7 @@ describe('getReportSubmitViolationSummary', () => {
 
         it('flags both fields when a failed scan has neither and smartscanFailed is gone', () => {
             // Given a failed scan with no merchant and no amount, and no smartscanFailed violation to mention them
-            const summary = getReportSubmitViolationSummary([createMockFailedScan()], {[getViolationsKey('1')]: []}, createMockExpenseReport(), undefined, '', 0);
+            const summary = getReportSubmitViolationSummary([createMockFailedScan()], {[getViolationsKey('1')]: []}, createMockExpenseReport(), undefined, '', 0, undefined);
 
             // When the bullets are built from the summary
             const bullets = buildSubmitViolationBullets({summary, translate, dateFnsLocale, convertToDisplayString});
@@ -502,6 +573,7 @@ describe('getReportSubmitViolationSummary', () => {
                 undefined,
                 '',
                 0,
+                undefined,
             );
 
             // When the summary is built
@@ -518,6 +590,7 @@ describe('getReportSubmitViolationSummary', () => {
                 undefined,
                 '',
                 0,
+                undefined,
             );
 
             // When the summary is built
@@ -535,6 +608,7 @@ describe('getReportSubmitViolationSummary', () => {
                 undefined,
                 '',
                 0,
+                undefined,
             );
 
             // When the summary is built
@@ -552,6 +626,7 @@ describe('getReportSubmitViolationSummary', () => {
                 undefined,
                 '',
                 0,
+                undefined,
             );
 
             // When the summary is built
@@ -568,6 +643,7 @@ describe('getReportSubmitViolationSummary', () => {
                 createMock<Policy>({approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC}),
                 '',
                 0,
+                undefined,
             );
 
             // When the summary is built
@@ -577,7 +653,15 @@ describe('getReportSubmitViolationSummary', () => {
 
         it('does not flag a failed scan on an IOU report', () => {
             // Given a failed scan on an IOU, which this warning doesn't cover
-            const summary = getReportSubmitViolationSummary([createMockFailedScan({modifiedMerchant: 'Merchant'})], {}, createMock<Report>({type: CONST.REPORT.TYPE.IOU}), undefined, '', 0);
+            const summary = getReportSubmitViolationSummary(
+                [createMockFailedScan({modifiedMerchant: 'Merchant'})],
+                {},
+                createMock<Report>({type: CONST.REPORT.TYPE.IOU}),
+                undefined,
+                '',
+                0,
+                undefined,
+            );
 
             // When the summary is built
             // Then it must not warn, because only expense reports go through these checks

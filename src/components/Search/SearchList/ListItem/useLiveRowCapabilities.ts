@@ -8,6 +8,7 @@ import {getActions, getPrimaryAction} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {cardsWithBrokenConnectionPastDismissThresholdSelector} from '@src/selectors/Card';
 import type {ReportAction, SearchResults} from '@src/types/onyx';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 
@@ -54,6 +55,8 @@ function useLiveRowCapabilities<T extends LiveRowItem>(params: UseLiveRowCapabil
     const [liveReportActions] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`);
     const [liveReportMetadata] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(reportID)}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    // Runs once per Search row, so narrowed to the cards past the dismiss threshold rather than the whole list.
+    const [cardsPastDismissThreshold] = useOnyx(ONYXKEYS.DERIVED.CARD_FEED_ERRORS, {selector: cardsWithBrokenConnectionPastDismissThresholdSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     if (!enabled || !snapshotData) {
@@ -72,6 +75,7 @@ function useLiveRowCapabilities<T extends LiveRowItem>(params: UseLiveRowCapabil
         bankAccountList,
         liveReportMetadata,
         rules,
+        cardsPastDismissThreshold,
         liveActionsArray,
         transactionsForReport,
     );

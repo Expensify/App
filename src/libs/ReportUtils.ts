@@ -3428,6 +3428,8 @@ function canSubmitAndIsAwaitingForCurrentUser(
             false,
             currentUserEmailParam,
             currentUserAccountIDParam,
+            // This caller passes no violations at all, so there is nothing for the card list to be judged against.
+            undefined,
         ) &&
         shouldWaitForSubmission
     );
@@ -3581,13 +3583,14 @@ function canSubmitReport(
     isReportArchived: boolean,
     currentUserEmailParam: string,
     currentUserAccountID: number,
+    cardList: OnyxEntry<CardList>,
 ) {
     const isReportOpen = isOpenExpenseReport(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isReportSubmitter = report?.ownerAccountID === currentUserAccountID;
     // A role that cannot create expenses cannot submit its own report.
     const canSubmitOwnReport = !isReportSubmitter || canSubmitOwnReportOnPolicy(policy, currentUserEmailParam);
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, allViolations, currentUserEmailParam, currentUserAccountID, report, reportOwnerLogin, policy);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, allViolations, currentUserEmailParam, currentUserAccountID, report, reportOwnerLogin, policy, cardList);
     const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(
         transactions,
         allViolations,
@@ -3596,6 +3599,7 @@ function canSubmitReport(
         report,
         reportOwnerLogin,
         policy,
+        cardList,
     );
     const hasNoSubmittableTransaction =
         transactions.length > 0 &&

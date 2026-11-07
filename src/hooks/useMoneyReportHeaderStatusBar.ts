@@ -79,7 +79,7 @@ function useMoneyReportHeaderStatusBar(reportID: string | undefined, chatReportI
 
     const hasScanningReceipt = transactions.filter((t) => hasReceipt(t)).some(isScanning);
     const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isPending(t));
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, violations, email ?? '', accountID, moneyRequestReport, ownerLogin, policy);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, violations, email ?? '', accountID, moneyRequestReport, ownerLogin, policy, cardList);
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(
         transactions,
         moneyRequestReport,
@@ -88,6 +88,7 @@ function useMoneyReportHeaderStatusBar(reportID: string | undefined, chatReportI
         violations,
         email ?? '',
         accountID,
+        cardList,
     );
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
     const isPayAtEndExpense = isPayAtEndExpenseTransactionUtils(transaction);

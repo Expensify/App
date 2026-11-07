@@ -231,7 +231,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         report &&
         parentReport &&
         transaction &&
-        getTransactionThreadPrimaryAction(currentUserLogin ?? '', accountID, report, parentReport, parentOwnerLogin, transaction, transactionViolations, policy, false)
+        getTransactionThreadPrimaryAction(currentUserLogin ?? '', accountID, report, parentReport, parentOwnerLogin, transaction, transactionViolations, cardList, policy, false)
     );
     const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyExpenseChatSelector(accountID, defaultExpensePolicy?.id)});
 

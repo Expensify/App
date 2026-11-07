@@ -5,6 +5,7 @@ import {filterObject} from '@libs/ObjectUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList, NonPersonalAndWorkspaceCardListDerivedValue, WorkspaceCardsList} from '@src/types/onyx';
+import type {CardFeedErrors} from '@src/types/onyx/DerivedValues';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -119,6 +120,17 @@ const companyCardCustomNamesSelector = (cardFeeds: OnyxEntry<CardFeeds>) => card
 const hasIssuedExpensifyCardSelector = (cardsList: OnyxEntry<WorkspaceCardsList>): boolean =>
     hasAssignedCardMatching(cardsList, (card) => card.bank === CONST.EXPENSIFY_CARD.BANK && isActiveCard(card));
 
+/**
+ * Picks the cards whose feed connection has been broken past the dismiss threshold.
+ *
+ * Read from the derived value rather than from CARD_LIST, because the threshold is crossed by time passing: a
+ * selector over CARD_LIST alone would keep its cached result when a card goes from 89 to 90 days. The derived value
+ * depends on CURRENT_DATE, so it recomputes when the day rolls over. The result is normally empty, which keeps the
+ * subscription cheap in rows that render once per expense.
+ */
+const cardsWithBrokenConnectionPastDismissThresholdSelector = (cardFeedErrors: OnyxEntry<CardFeedErrors>): CardList =>
+    cardFeedErrors?.cardsWithBrokenFeedConnectionPastDismissThreshold ?? {};
+
 /** Reduces the card list to a boolean so consumers don't re-render on unrelated card changes. */
 const hasActiveExpensifyCardSelector = (cardList: OnyxEntry<CardList>): boolean => hasActiveExpensifyCard(cardList ?? undefined);
 
@@ -128,6 +140,7 @@ export {
     defaultExpensifyCardSelector,
     expensifyCardFeedsForDisplaySelector,
     cardByIdSelector,
+    cardsWithBrokenConnectionPastDismissThresholdSelector,
     areAllExpensifyCardsShipped,
     buildFeedKeysWithAssignedCards,
     getBankLinkedPersonalCards,

@@ -20,6 +20,7 @@ import {hasPendingUI, isPending} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {cardsWithBrokenConnectionPastDismissThresholdSelector} from '@src/selectors/Card';
 import {reportActionsLoadingStateSelector, isOptimisticReportSelector} from '@src/selectors/ReportMetaData';
 import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -101,6 +102,8 @@ function MoneyRequestReportPreviewProvider({
     reportPreviewStyles,
     newTransactionIDs,
 }: MoneyRequestReportPreviewProviderProps) {
+    // Narrowed to the cards past the dismiss threshold so this preview doesn't re-render on unrelated card changes.
+    const [cardsPastDismissThreshold] = useOnyx(ONYXKEYS.DERIVED.CARD_FEED_ERRORS, {selector: cardsWithBrokenConnectionPastDismissThresholdSelector});
     const [isOptimisticChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {selector: isOptimisticReportSelector});
     const [chatReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${chatReportID}`, {selector: reportActionsLoadingStateSelector});
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -159,7 +162,7 @@ function MoneyRequestReportPreviewProvider({
     const numberOfRequests = transactions?.length ?? 0;
     const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => isPending(transaction)).length;
 
-    const shouldShowRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, lastTransactionViolations);
+    const shouldShowRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, lastTransactionViolations, cardsPastDismissThreshold);
 
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;

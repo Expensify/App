@@ -70,7 +70,7 @@ function TransactionItemRowRBRInner({transaction, violations, report, containerS
     const [transactionThreadActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadId}`);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [currentUserAccountID = CONST.DEFAULT_NUMBER_ID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
-    const isMarkAsCash = parentReport && currentUserLogin && violations ? isMarkAsCashActionForTransaction(currentUserLogin, parentReport, violations, policy) : false;
+    const isMarkAsCash = parentReport && currentUserLogin && violations ? isMarkAsCashActionForTransaction(currentUserLogin, parentReport, violations, cardList, policy) : false;
 
     const canEdit = wasActionTakenByCurrentUser(iouAction, currentUserAccountID);
     const RBRMessages = ViolationsUtils.getRBRMessages({

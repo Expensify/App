@@ -2839,7 +2839,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         const violationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`;
                         violationsCollection[violationsKey] = getTransactionViolations(transaction, allTransactionViolations, email ?? '', accountID, report, reportOwnerLogin, policy) ?? [];
                     }
-                    return getReportSubmitViolationSummary(reportTransactions, violationsCollection, report, policy, email ?? '', accountID);
+                    return getReportSubmitViolationSummary(reportTransactions, violationsCollection, report, policy, email ?? '', accountID, cardList);
                 };
 
                 const selectedReportForSubmit = selectedReports.at(0);

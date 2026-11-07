@@ -9,6 +9,7 @@ import {
     hasMissingSmartscanFieldsForRBR,
     hasPendingRTERViolation,
     hasTransactionBeenRejected,
+    isViolationOnFeedBrokenPastDismissThresholdInList,
     isFailedScanAmountPlaceholder,
     isMerchantMissing,
     isOnHold,
@@ -18,7 +19,7 @@ import {
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {CardList, Policy, Report, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -71,6 +72,7 @@ function getReportSubmitViolationSummary(
     policy: OnyxEntry<Policy>,
     currentUserEmail: string,
     currentUserAccountID: number,
+    cardList: OnyxEntry<CardList>,
 ): ReportSubmitViolationSummary {
     let hasRejectedExpense = false;
     let hasPendingCardMatch = false;
@@ -97,7 +99,7 @@ function getReportSubmitViolationSummary(
         if (hasTransactionBeenRejected(transactionViolations)) {
             hasRejectedExpense = true;
         }
-        if (hasPendingRTERViolation(transactionViolations)) {
+        if (hasPendingRTERViolation(transactionViolations, cardList)) {
             hasPendingCardMatch = true;
         }
         for (const violation of filterReceiptViolations(transactionViolations)) {
@@ -110,6 +112,12 @@ function getReportSubmitViolationSummary(
             }
 
             if (isPendingRTERViolation(violation)) {
+                continue;
+            }
+
+            // The expense itself stops showing a broken connection past the grace period, so the submit confirmation
+            // must not resurface the same warning.
+            if (isViolationOnFeedBrokenPastDismissThresholdInList(violation, cardList)) {
                 continue;
             }
 

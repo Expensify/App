@@ -307,6 +307,7 @@ type GetReportSectionsParams = {
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     isActionLoadingSet: ReadonlySet<string> | undefined;
     isOffline: boolean | undefined;
+    cardList?: OnyxEntry<OnyxTypes.CardList>;
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     rules: OnyxCollection<OnyxTypes.Rule>;
     conciergeReportID: string | undefined;
@@ -2020,7 +2021,7 @@ function getTransactionsSections({
             const approved = report ? getApprovedDate(report, actions) : undefined;
             const paid = report ? getPaidDate(report, lastReimbursedActionByReportID.get(report.reportID), actions) : undefined;
             const reportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
-            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, rules, actions);
+            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, rules, cardList, actions);
             const transactionPendingAction = getTransactionPendingAction(transactionItem);
             const reportOwnerAccountIDAsAttendee = getReportOwnerAccountIDAsAttendee(transactionItem, currentAccountID, report?.ownerAccountID);
             const reportOwnerAsAttendee = reportOwnerAccountIDAsAttendee ? getReportOwnerAsAttendee(personalDetailsMap.get(reportOwnerAccountIDAsAttendee.toString())) : undefined;
@@ -2247,6 +2248,7 @@ function getActions(
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>,
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>,
     rules: OnyxCollection<OnyxTypes.Rule>,
+    cardList: OnyxEntry<OnyxTypes.CardList>,
     reportActions: OnyxTypes.ReportAction[] = [],
     precomputedTransactionsForReport?: OnyxTypes.Transaction[],
 ): SearchTransactionAction[] {
@@ -2368,7 +2370,7 @@ function getActions(
 
     if (
         isGroupPolicy(policy) &&
-        canSubmitReport(report, ownerLogin, policy, allReportTransactions, allViolations, isArchivedOrPendingDeletePolicy(policy), currentUserLogin, currentUserAccountID) &&
+        canSubmitReport(report, ownerLogin, policy, allReportTransactions, allViolations, isArchivedOrPendingDeletePolicy(policy), currentUserLogin, currentUserAccountID, cardList) &&
         isSubmitActionAllowedForSearch(report, policy, submitToAccountID, currentUserAccountID)
     ) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.SUBMIT);
@@ -2952,6 +2954,7 @@ function getReportSections({
     formatPhoneNumber,
     isActionLoadingSet,
     bankAccountList,
+    cardList,
     rules,
     conciergeReportID,
     reportActions = {},
@@ -3022,6 +3025,7 @@ function getReportSections({
                     bankAccountList,
                     reportMetadata,
                     rules,
+                    cardList,
                     actions,
                     allReportTransactions,
                 );
@@ -3159,7 +3163,7 @@ function getReportSections({
             );
 
             const transactionReportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
-            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, transactionReportMetadata, rules, actions);
+            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, transactionReportMetadata, rules, cardList, actions);
             const transactionPendingAction = getTransactionPendingAction(transactionItem);
             const transaction = {
                 ...transactionItem,
@@ -3998,6 +4002,7 @@ function getSections({
             isOffline,
             formatPhoneNumber,
             isActionLoadingSet,
+            cardList,
             bankAccountList,
             rules,
             conciergeReportID,

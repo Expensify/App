@@ -2762,7 +2762,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
-            expect(canSubmitReport(report, submitterEmail, policy, [transaction], undefined, false, submitterEmail, submitterAccountID)).toBe(true);
+            expect(canSubmitReport(report, submitterEmail, policy, [transaction], undefined, false, submitterEmail, submitterAccountID, undefined)).toBe(true);
 
             submitReport({
                 rules: undefined,
@@ -2829,7 +2829,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
-            expect(canSubmitReport(report, submitterEmail, policy, [transaction], undefined, false, submitterEmail, submitterAccountID)).toBe(true);
+            expect(canSubmitReport(report, submitterEmail, policy, [transaction], undefined, false, submitterEmail, submitterAccountID, undefined)).toBe(true);
 
             submitReport({
                 rules: undefined,

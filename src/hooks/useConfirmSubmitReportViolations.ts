@@ -1,6 +1,8 @@
 import confirmSubmitViolationsThenProceed from '@libs/Violations/confirmSubmitViolationsThenProceed';
 import {getReportSubmitViolationSummary} from '@libs/Violations/getReportSubmitViolationSummary';
 
+import ONYXKEYS from '@src/ONYXKEYS';
+import {cardsWithBrokenConnectionPastDismissThresholdSelector} from '@src/selectors/Card';
 import type {Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -9,6 +11,7 @@ import useConfirmModal from './useConfirmModal';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
+import useOnyx from './useOnyx';
 import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
 
 /** Called once the submitter has either had nothing to confirm or explicitly confirmed the violations modal. */
@@ -40,12 +43,15 @@ function useConfirmSubmitReportViolations({
     const {convertToDisplayString} = useCurrencyListActions();
     const {accountID: currentUserAccountID, email: currentUserEmail} = useCurrentUserPersonalDetails();
     const {transactions: ownedTransactions, violations: ownedViolationsCollection} = useTransactionsAndViolationsForReport(transactionsOverride ? undefined : reportID);
+    // Runs once per Search row, so narrowed to the cards past the dismiss threshold: the summary only asks
+    // whether a violation's card is one of them, and a card missing from the subset is not.
+    const [cardsPastDismissThreshold] = useOnyx(ONYXKEYS.DERIVED.CARD_FEED_ERRORS, {selector: cardsWithBrokenConnectionPastDismissThresholdSelector});
 
     const transactions = transactionsOverride ?? Object.values(ownedTransactions);
     const violationsCollection = violationsCollectionOverride ?? ownedViolationsCollection;
 
     return (onProceed: ConfirmSubmitReportViolationsOnProceed) => {
-        const summary = getReportSubmitViolationSummary(transactions, violationsCollection, report, policy, currentUserEmail ?? '', currentUserAccountID);
+        const summary = getReportSubmitViolationSummary(transactions, violationsCollection, report, policy, currentUserEmail ?? '', currentUserAccountID, cardsPastDismissThreshold);
         confirmSubmitViolationsThenProceed({
             summary,
             showConfirmModal,
