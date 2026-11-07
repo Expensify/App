@@ -1,5 +1,6 @@
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import CardUnsubmittedTransactionsPrompt from '@components/CardUnsubmittedTransactionsPrompt';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import Table from '@components/Table';
 import {useTableContext} from '@components/Table/TableContext';
@@ -114,7 +115,12 @@ function WorkspaceCompanyCardsTableControls({
         const {action} = await showConfirmModal({
             shouldSetModalVisibility: false,
             title: translate('common.areYouSure'),
-            prompt: translate(isSingleAssignedCard ? 'workspace.moreFeatures.companyCards.unassignCardDescription' : 'workspace.moreFeatures.companyCards.unassignCardsDescription'),
+            prompt: (
+                <CardUnsubmittedTransactionsPrompt
+                    cardIDs={selectedAssignedCards.map((card) => card.assignedCard?.cardID).filter((cardID): cardID is number => cardID !== undefined)}
+                    descriptionKey={isSingleAssignedCard ? 'workspace.moreFeatures.companyCards.unassignCardDescription' : 'workspace.moreFeatures.companyCards.unassignCardsDescription'}
+                />
+            ),
             confirmText: translate('workspace.moreFeatures.companyCards.unassign'),
             cancelText: translate('common.cancel'),
             buttonVariant: CONST.BUTTON_VARIANT.DANGER,

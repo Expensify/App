@@ -1,4 +1,5 @@
 import Button from '@components/Button';
+import CardUnsubmittedTransactionsPrompt from '@components/CardUnsubmittedTransactionsPrompt';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
@@ -96,7 +97,12 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
         }
         showConfirmModal({
             title: translate('common.areYouSure'),
-            prompt: translate('workspace.moreFeatures.companyCards.removeCardDescription'),
+            prompt: (
+                <CardUnsubmittedTransactionsPrompt
+                    cardIDs={[card.cardID]}
+                    descriptionKey="workspace.moreFeatures.companyCards.removeCardDescription"
+                />
+            ),
             confirmText: translate('workspace.moreFeatures.companyCards.remove'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
