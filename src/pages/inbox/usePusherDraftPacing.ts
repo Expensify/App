@@ -1,9 +1,9 @@
-import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
 import useOnyx from '@hooks/useOnyx';
 
 import {getReportChannelName} from '@libs/actions/Report';
 import {ACCELERATED_REMAINING_MS, easeOut, getRevealDurationMS, MIN_TRICKLE_TOKEN_COUNT, TICK_INTERVAL_MS, TRICKLE_HARD_CAP_MS} from '@libs/ConciergeRevealUtils';
 import Log from '@libs/Log';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 import Pusher from '@libs/Pusher';
 import type {ConciergeDraftEvent, ConciergeDraftEventsEvent} from '@libs/Pusher/types';
 import stripFollowupListFromHtml from '@libs/ReportActionFollowupUtils/stripFollowupListFromHtml';
@@ -44,7 +44,6 @@ type PusherDraftPaceRefs = {
 };
 
 type PusherDraftPacingRuntime = PusherDraftPaceRefs & {
-    accountIDToNameRef: MutableRef<Record<string, string>>;
     completedReportActionIDsRef: MutableRef<Set<string>>;
     currentDraftRef: MutableRef<ConciergeDraft | null>;
     isGroupPolicyReport: boolean;
@@ -224,7 +223,7 @@ function publishVisibleEvent(
     status?: ConciergeDraftEvent['status'],
     finalRenderedHTML?: string,
 ) {
-    const {accountIDToNameRef, isGroupPolicyReport, reportID, setDraft, visibleBodyMarkdownRef, visibleSequenceRef, visibleSourceMarkdownRef, visibleSourceOffsetRef} = runtime;
+    const {isGroupPolicyReport, reportID, setDraft, visibleBodyMarkdownRef, visibleSequenceRef, visibleSourceMarkdownRef, visibleSourceOffsetRef} = runtime;
 
     if (visibleMarkdown) {
         visibleBodyMarkdownRef.current = visibleMarkdown.bodyMarkdown;
@@ -243,8 +242,10 @@ function publishVisibleEvent(
         sequence: visibleSequenceRef.current,
         status: visibleStatus,
     };
+    // Names are only needed when a draft event is applied, never in render, so they come from PersonalDetailsStore instead of a useAllPersonalDetails subscription that would re-render this hook on every personal details write. Direct use of ONYXKEYS.PERSONAL_DETAILS_LIST is lint-banned
+    const personalDetailsList = getAllPersonalDetails();
     setDraft((currentDraft) => {
-        const next = applyConciergeDraftEvent(currentDraft, visibleEvent, reportID, isGroupPolicyReport, accountIDToNameRef.current);
+        const next = applyConciergeDraftEvent(currentDraft, visibleEvent, reportID, isGroupPolicyReport, personalDetailsList);
         return cacheDraftWithPusherPaceState(runtime, next);
     });
 }
@@ -889,18 +890,12 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
     const finalRenderedHTMLRevealTokensRef = useRef<string[]>([]);
     const finalRenderedHTMLRevealStartedAtRef = useRef(0);
     const finalRenderedHTMLRevealLastStageRef = useRef(0);
-    const accountIDToName = useAccountIDToNameMap();
-    const accountIDToNameRef = useRef(accountIDToName);
-    useEffect(() => {
-        accountIDToNameRef.current = accountIDToName;
-    }, [accountIDToName]);
     const [pendingLocalReportActionID] = useOnyx(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${reportID}`, {
         selector: (pendingResponse) => pendingResponse?.reportAction.reportActionID,
     });
 
     const clearDraft = () => {
         clearCachedPusherDraft({
-            accountIDToNameRef,
             completedReportActionIDsRef,
             completedPusherDraftEventRef,
             currentDraftRef,
@@ -941,8 +936,10 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
             visibleSourceMarkdownRef,
             visibleSourceOffsetRef,
         });
+        // Names are only needed when a draft event is applied, never in render, so they come from PersonalDetailsStore instead of a useAllPersonalDetails subscription that would re-render this hook on every personal details write. Direct use of ONYXKEYS.PERSONAL_DETAILS_LIST is lint-banned
+        const personalDetailsList = getAllPersonalDetails();
         setDraft((currentDraft) => {
-            const next = applyConciergeDraftEvent(currentDraft, event, reportID, isGroupPolicyReport, accountIDToNameRef.current);
+            const next = applyConciergeDraftEvent(currentDraft, event, reportID, isGroupPolicyReport, personalDetailsList);
             currentDraftRef.current = next;
             setCachedDraft(reportID, next);
             return next;
@@ -978,7 +975,6 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
         const sequence = Math.max(currentDraft.sequence, latestPusherDraftEvent?.sequence ?? 0, visibleSequenceRef.current) + 1;
         startFinalRenderedHTMLReveal(
             {
-                accountIDToNameRef,
                 completedReportActionIDsRef,
                 completedPusherDraftEventRef,
                 currentDraftRef,
@@ -1016,7 +1012,6 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
 
     useEffect(() => {
         const runtime = {
-            accountIDToNameRef,
             completedReportActionIDsRef,
             completedPusherDraftEventRef,
             currentDraftRef,

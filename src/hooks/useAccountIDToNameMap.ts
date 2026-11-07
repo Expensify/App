@@ -6,10 +6,14 @@ import {useAllPersonalDetails} from './usePersonalDetails';
 type AccountIDToNameMap = Record<string, string>;
 
 const MENTION_ACCOUNT_ID_REGEX = /<mention-user[^>]*\saccountID="?(\d+)"?/gi;
+// Cheap pre-check before the global regex runs; case-insensitive to match how ExpensiMark matches the tag
+const HAS_USER_MENTION_REGEX = /<mention-user/i;
+// Stable fallback for the first render, before Onyx has delivered the list, so callers don't see a new object each render
+const EMPTY_ACCOUNT_ID_TO_NAME_MAP: AccountIDToNameMap = {};
 
 /** Unique accountIDs referenced by <mention-user accountID=...> tags in the given HTML string */
 function getMentionedAccountIDs(htmlString: string | undefined): number[] {
-    if (!htmlString?.includes('<mention-user')) {
+    if (!htmlString || !HAS_USER_MENTION_REGEX.test(htmlString)) {
         return [];
     }
     return [...new Set(Array.from(htmlString.matchAll(MENTION_ACCOUNT_ID_REGEX), (match) => Number(match[1])))];
@@ -37,11 +41,15 @@ function useAccountIDToNameMap(): AccountIDToNameMap {
     return buildAccountIDToNameMap(personalDetailsList);
 }
 
-/** Same as useAccountIDToNameMap, but only maps the users mentioned in the given HTML string, for components rendered many times in a list. */
+/**
+ * Same as useAccountIDToNameMap, but only maps the users mentioned in the given HTML string.
+ * The selector keeps the subscription scoped to those accounts, so a write to any other personal detail does not re-render the caller.
+ */
 function useMentionedAccountIDToNameMap(htmlString: string | undefined): AccountIDToNameMap {
-    const [personalDetailsList] = useAllPersonalDetails();
-    return buildAccountIDToNameMap(personalDetailsList, getMentionedAccountIDs(htmlString));
+    const mentionedAccountIDs = getMentionedAccountIDs(htmlString);
+    const [accountIDToName = EMPTY_ACCOUNT_ID_TO_NAME_MAP] = useAllPersonalDetails((personalDetailsList) => buildAccountIDToNameMap(personalDetailsList, mentionedAccountIDs));
+    return accountIDToName;
 }
 
 export default useAccountIDToNameMap;
-export {buildAccountIDToNameMap, useMentionedAccountIDToNameMap};
+export {buildAccountIDToNameMap, getMentionedAccountIDs, useMentionedAccountIDToNameMap};
