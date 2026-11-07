@@ -16,6 +16,7 @@ import {
 } from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import type {
     DynamicFormAddressField,
     DynamicFormChoiceField,
@@ -27,7 +28,7 @@ import type {
     DynamicFormTextField,
 } from '@src/types/onyx';
 
-import getAddressInputKeys, {getAddressCountry, isStateAsked} from './getAddressInputKeys';
+import getAddressInputKeys, {getAddressCountry, getStateOptions, isStateAsked} from './getAddressInputKeys';
 import getAnswerKeys from './getAnswerKeys';
 import getFieldOptions from './getFieldOptions';
 import {getFieldLabel} from './getLocalizedText';
@@ -206,6 +207,12 @@ function isAddressRequired(field: DynamicFormAddressField, values: DynamicFormVa
     return field.required || [street, city, state, zipCode, country].some((partKey) => isAnswered(values[partKey]));
 }
 
+/** A state the country's picker does not list, such as a full name AddressSearch saved before the picker took codes, leaves the picker blank, so it is asked again */
+function isStateAnswered(state: FormValue | undefined, country: Country | ''): boolean {
+    const stateOptions = getStateOptions(country);
+    return typeof state === 'string' && !!stateOptions && Object.hasOwn(stateOptions, state);
+}
+
 /** Each address part has its own input, so its errors go under its own draft key */
 function getAddressPartErrors(field: DynamicFormAddressField, values: DynamicFormValues, translate: LocalizedTranslate): Array<[inputID: string, message: string]> {
     const addressKeys = getAddressInputKeys(field.key);
@@ -216,7 +223,8 @@ function getAddressPartErrors(field: DynamicFormAddressField, values: DynamicFor
     if (isAddressRequired(field, values)) {
         const requiredPartKeys = [addressKeys.city, addressKeys.country, ...(isZipAsked ? [addressKeys.zipCode] : []), ...(isStateAsked(country) ? [addressKeys.state] : [])];
         for (const partKey of requiredPartKeys) {
-            if (!isAnswered(values[partKey])) {
+            const isPartAnswered = partKey === addressKeys.state ? isStateAnswered(values[partKey], country) : isAnswered(values[partKey]);
+            if (!isPartAnswered) {
                 partErrors.push([partKey, translate('common.error.fieldRequired')]);
             }
         }

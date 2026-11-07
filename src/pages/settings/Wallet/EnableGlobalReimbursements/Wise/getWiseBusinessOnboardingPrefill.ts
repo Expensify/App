@@ -9,13 +9,12 @@ import {toSavedFile} from '@libs/getWiseOnboardingPageParams';
 import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
+import STATES_BY_COUNTRY from '@src/CONST/STATES_BY_COUNTRY';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 import type {ACHDataReimbursementAccount} from '@src/types/onyx/ReimbursementAccount';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
-
-import {CONST as COMMON_CONST} from 'expensify-common';
 
 import US from './forms/US';
 
@@ -35,13 +34,14 @@ const ALL_FIELDS = getAllFields(getPages(US));
 
 const READONLY_KEYS = new Set(ALL_FIELDS.filter((field) => field.readonly).map((field) => field.key));
 
-/** The state picker lists US states by code, so a US state that is not one is left out */
+/** The state picker lists states by code, so a state saved as its full name is turned into the code, and a state that matches neither is left out */
 function getStateCode(countryCode: string | undefined, state: string | undefined): string | undefined {
-    if (countryCode !== CONST.COUNTRY.US) {
+    const stateOptions = STATES_BY_COUNTRY[countryCode ?? ''];
+    if (!stateOptions || !state) {
         return state;
     }
-    const stateCode = resolveStateCode(state ?? '');
-    return stateCode in COMMON_CONST.STATES ? stateCode : undefined;
+    const stateCode = resolveStateCode(state, stateOptions);
+    return Object.hasOwn(stateOptions, stateCode) ? stateCode : undefined;
 }
 
 /** The answers of every saved page, with each saved file as a draft entry the next save can tell apart from a new one. A key a later save dropped comes back as null and is left out. */
