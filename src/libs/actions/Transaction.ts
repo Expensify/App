@@ -2307,6 +2307,11 @@ function mergeExpenseAddedGrowlTransactionIDs(data: Record<string, SearchDataTyp
     return Onyx.merge(ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS, data);
 }
 
+/** Expiring the marker in Onyx also refreshes derived report attributes and violation counts. */
+function clearPendingAutoCategorizationTime(transactionID: string) {
+    return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {pendingAutoCategorizationTime: null}});
+}
+
 function getDuplicateTransactionDetails(transactionID?: string) {
     if (!transactionID) {
         return;
@@ -2344,5 +2349,6 @@ export {
     getDefaultP2PMileageRate,
     mergeExpenseAddedGrowlTransactionIDs,
     getDuplicateTransactionDetails,
+    clearPendingAutoCategorizationTime,
     setSelectedRoute,
 };

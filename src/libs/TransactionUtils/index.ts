@@ -1189,6 +1189,22 @@ function isReceiptScanBlockingEdit(transaction: OnyxInputOrEntry<Transaction>): 
     return isReceiptBeingScanned(transaction) && transaction?.iouRequestType !== CONST.IOU.REQUEST_TYPE.MANUAL;
 }
 
+/** Returns the end of the 60-second auto-categorization grace period in milliseconds, if its timestamp is valid. */
+function getAutoCategorizationDeadline(transaction: OnyxEntry<Transaction>): number | undefined {
+    const pendingTime = transaction?.comment?.pendingAutoCategorizationTime;
+    if (!pendingTime || typeof pendingTime !== 'string') {
+        return;
+    }
+
+    const timestamp = new Date(`${pendingTime.replace(' ', 'T')}Z`).getTime();
+    if (Number.isNaN(timestamp)) {
+        return;
+    }
+
+    const oneMinuteMs = 60 * 1000;
+    return timestamp + oneMinuteMs;
+}
+
 /**
  * Check if category is being analyzed (manual request creation or auto-categorization grace period)
  */
@@ -1222,7 +1238,6 @@ function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>, report: On
     }
 
     const pendingAction = transaction.pendingAction;
-    const pendingAutoCategorizationTime = transaction.comment?.pendingAutoCategorizationTime;
 
     // Check if manual request is being created
     if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
@@ -1230,17 +1245,8 @@ function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>, report: On
     }
 
     // Check if within auto-categorization grace period
-    if (pendingAutoCategorizationTime && typeof pendingAutoCategorizationTime === 'string') {
-        const pendingTime = new Date(`${pendingAutoCategorizationTime.replace(' ', 'T')}Z`);
-        if (!Number.isNaN(pendingTime.getTime())) {
-            const currentTime = new Date();
-            const elapsedMs = currentTime.getTime() - pendingTime.getTime();
-            const oneMinuteMs = 60 * 1000;
-            return elapsedMs < oneMinuteMs;
-        }
-    }
-
-    return false;
+    const deadline = getAutoCategorizationDeadline(transaction);
+    return deadline !== undefined && Date.now() < deadline;
 }
 
 function didReceiptScanSucceed(transaction: OnyxEntry<Transaction>): boolean {
@@ -1944,6 +1950,7 @@ export {
     isScanning,
     isTransactionSubmittable,
     isCategoryBeingAnalyzed,
+    getAutoCategorizationDeadline,
     getOriginalTransactionWithSplitInfo,
     shouldRedirectDeleteToSplitExpenseEdit,
     getTransactionPendingAction,

@@ -15,6 +15,7 @@ import type {ValueOf} from 'type-fest';
 import {authTokenTypeSelector} from '@selectors/Session';
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 
+import useAutoCategorizationExpiry from './useAutoCategorizationExpiry';
 import useCollectionDelta from './useCollectionDelta';
 import {useCurrentReportIDState} from './useCurrentReportID';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -102,6 +103,7 @@ function SidebarOrderedReportsContextProvider({
      */
     currentReportIDForTests,
 }: SidebarOrderedReportsContextProviderProps) {
+    useAutoCategorizationExpiry();
     const {localeCompare} = useLocalize();
     const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
     const [inboxTab = CONST.INBOX_TAB.ALL] = useOnyx(ONYXKEYS.NVP_INBOX_TAB);
