@@ -1220,7 +1220,8 @@ function formatUTCDateTimeToDateInTimezone(utcDateTime: string, timeZone: Select
 }
 
 /**
- * Formats the violation snapshot start date for display in the user's timezone.
+ * Formats the violation snapshot start date for display: a date-only value as its calendar day, and a UTC datetime in the
+ * user's timezone.
  */
 function formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt: string, timeZone: SelectedTimezone | undefined, dateFnsLocale: DateFnsLocale | undefined): string {
     if (!violationSnapshotStartedAt || !timeZone) {
@@ -1228,7 +1229,12 @@ function formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt: string
     }
 
     try {
-        const date = violationSnapshotStartedAt.includes(' ') ? toDate(violationSnapshotStartedAt, {timeZone: 'UTC'}) : parse(violationSnapshotStartedAt, 'yyyy-MM-dd', new Date());
+        if (!violationSnapshotStartedAt.includes(' ')) {
+            // A date-only snapshot is a calendar boundary, not an instant. Shifting it into the user's timezone would
+            // read the device's local midnight as an instant and could show the previous day.
+            return format(parse(violationSnapshotStartedAt, CONST.DATE.FNS_FORMAT_STRING, new Date()), CONST.DATE.MONTH_DAY_YEAR_ORDINAL_FORMAT, {locale: dateFnsLocale});
+        }
+        const date = toDate(violationSnapshotStartedAt, {timeZone: 'UTC'});
         return formatInTimeZoneWithFallback(date, timeZone, CONST.DATE.MONTH_DAY_YEAR_ORDINAL_FORMAT, {locale: dateFnsLocale});
     } catch (error) {
         Log.warn('[DateUtils] Failed to format violation snapshot started at date', {violationSnapshotStartedAt, timeZone, error});
