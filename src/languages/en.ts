@@ -1538,6 +1538,8 @@ const translations = {
         flash: 'flash',
         flipCamera: 'flip camera',
         multiScan: 'multi-scan',
+        receiptEnhancements: 'Receipt enhancements',
+        receiptEnhancementsEnabled: 'Receipt enhancements enabled',
         shutter: 'shutter',
         gallery: 'gallery',
         deleteReceipt: 'Delete receipt',

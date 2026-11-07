@@ -3490,6 +3490,32 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - VisionCameraWorklets (5.2.3):
+    - hermes-engine
+    - NitroModules
+    - RCTRequired
+    - RCTTypeSafety
+    - React-callinvoker
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - RNWorklets
+    - VisionCamera
+    - Yoga
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -3649,6 +3675,7 @@ DEPENDENCIES:
   - TrustKit (~> 3.0)
   - UMAppLoader (from `../node_modules/unimodules-app-loader/ios`)
   - VisionCamera (from `../node_modules/react-native-vision-camera`)
+  - VisionCameraWorklets (from `../node_modules/react-native-vision-camera-worklets`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -3998,6 +4025,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/unimodules-app-loader/ios"
   VisionCamera:
     :path: "../node_modules/react-native-vision-camera"
+  VisionCameraWorklets:
+    :path: "../node_modules/react-native-vision-camera-worklets"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -4014,7 +4043,7 @@ SPEC CHECKSUMS:
   callstack-repack: 391af9d65585f106b57ca693880593dc2c89db5c
   EXConstants: fa5647482320b7bde855057f8b86580456d4b9f0
   expensify-react-native-background-task: 36103a7c2d62b3f5682a6e2773186d08e46338c5
-  ExpensifyNitroUtils: d627f58d9dd38c2dd4833f59b2c078cf61ad0171
+  ExpensifyNitroUtils: 4165f3f29dbd700d651c1f93ad833818a1f0f63b
   Expo: ce613ebd8e7f9dcd68bae3ec53038db24d3a6ec4
   ExpoAsset: 98143758ff37e14c9ff2a4e7673097db00473011
   ExpoAudio: b69f36525132edba8d87a715b3a20c678ef78b30
@@ -4197,6 +4226,7 @@ SPEC CHECKSUMS:
   TweetNacl: 3abf4d1d2082b0114e7a67410e300892448951e6
   UMAppLoader: 173cb90a3039aa9c1b84bace4487e1907a4a5a39
   VisionCamera: c0e2c308592613de270de5f6e722b53d04a26f0d
+  VisionCameraWorklets: 6934662e331a1300a45f6e2236e156de643f2c0d
   Yoga: c30c859b7e9b75e547b600b486fe33165f60de00
 
 PODFILE CHECKSUM: 22066e0768760f4bad500b497f3d1576110fd025

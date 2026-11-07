@@ -35,9 +35,11 @@ target_sources(
   # Shared Nitrogen C++ sources
   ../nitrogen/generated/shared/c++/HybridAppStartTimeModuleSpec.cpp
   ../nitrogen/generated/shared/c++/HybridContactsModuleSpec.cpp
+  ../nitrogen/generated/shared/c++/HybridDocumentDetectorModuleSpec.cpp
   # Android-specific Nitrogen C++ sources
   ../nitrogen/generated/android/c++/JHybridAppStartTimeModuleSpec.cpp
   ../nitrogen/generated/android/c++/JHybridContactsModuleSpec.cpp
+  ../nitrogen/generated/android/c++/JHybridDocumentDetectorModuleSpec.cpp
 )
 
 # From node_modules/react-native/ReactAndroid/cmake-utils/folly-flags.cmake

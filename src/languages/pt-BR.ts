@@ -1393,6 +1393,8 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'flash',
         flipCamera: 'inverter câmera',
         multiScan: 'escaneamento múltiplo',
+        receiptEnhancements: 'Melhorias de recibos',
+        receiptEnhancementsEnabled: 'Melhorias de recibos ativadas',
         shutter: 'obturador',
         gallery: 'galeria',
         deleteReceipt: 'Excluir recibo',

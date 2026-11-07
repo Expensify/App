@@ -3,11 +3,13 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useNativeCamera from '@hooks/useNativeCamera';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useReceiptPhotoOutput from '@hooks/useReceiptPhotoOutput';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {setIsReceiptEnhancementEnabled} from '@libs/actions/ReceiptEnhancement';
 import cameraPlatformConfig from '@libs/cameraCapture/platformConfig';
 import type CapturedPhoto from '@libs/cameraCapture/types';
 import {getErrorMessage} from '@libs/ErrorUtils';
@@ -25,6 +27,10 @@ import {useMultiScanActions, useMultiScanState} from '@pages/iou/request/step/IO
 import MultiScanEducationalModal from '@pages/iou/request/step/IOURequestStepScan/components/MultiScanEducationalModal';
 import ReceiptPreviews from '@pages/iou/request/step/IOURequestStepScan/components/ReceiptPreviews';
 import ScannerControlsBar from '@pages/iou/request/step/IOURequestStepScan/components/ScannerControlsBar';
+import DocumentOutline from '@pages/iou/request/step/IOURequestStepScan/documentDetection/DocumentOutline';
+import isDocumentDetectionSupported from '@pages/iou/request/step/IOURequestStepScan/documentDetection/isDocumentDetectionSupported';
+import ReceiptEnhancementToast from '@pages/iou/request/step/IOURequestStepScan/documentDetection/ReceiptEnhancementToast';
+import useDocumentEdgeDetection from '@pages/iou/request/step/IOURequestStepScan/documentDetection/useDocumentEdgeDetection';
 import useCameraInitTelemetry from '@pages/iou/request/step/IOURequestStepScan/hooks/useCameraInitTelemetry';
 import usePhotoUpgrade from '@pages/iou/request/step/IOURequestStepScan/hooks/usePhotoUpgrade';
 import isCameraClosedError from '@pages/iou/request/step/IOURequestStepScan/isCameraClosedError';
@@ -32,10 +38,11 @@ import shouldLightFlashWithTorch, {getTorchFallbackReason} from '@pages/iou/requ
 import startReceiptPrepareSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startReceiptPrepareSpan';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import {useNavigation} from '@react-navigation/native';
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Alert, View} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import {useAnimatedStyle, useSharedValue, withSequence, withTiming} from 'react-native-reanimated';
@@ -89,6 +96,18 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         cameraFocusIndicatorAnimatedStyle,
     } = useNativeCamera({onFocusStart, onFocusCleanup});
 
+    const canUseReceiptEnhancement = isDocumentDetectionSupported() && isBetaEnabled(CONST.BETAS.RECEIPT_ENHANCEMENT);
+    const [isReceiptEnhancementEnabled = false] = useOnyx(ONYXKEYS.IS_RECEIPT_ENHANCEMENT_ENABLED);
+    const [isReceiptEnhancementToastVisible, setIsReceiptEnhancementToastVisible] = useState(false);
+    const shouldDetectDocument = canUseReceiptEnhancement && isReceiptEnhancementEnabled && !isMultiScanEnabled;
+
+    const toggleReceiptEnhancement = () => {
+        setIsReceiptEnhancementEnabled(!isReceiptEnhancementEnabled);
+        setIsReceiptEnhancementToastVisible(!isReceiptEnhancementEnabled);
+    };
+
+    const hideReceiptEnhancementToast = () => setIsReceiptEnhancementToastVisible(false);
+
     const isTorchRequested = shouldLightFlashWithTorch({
         flash,
         hasFlash,
@@ -122,8 +141,10 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
             });
     };
 
-    const {photoOutput, cameraAspectRatio, updatePhotoResolution} = useReceiptPhotoOutput(cameraPlatformConfig.scanQualityPrioritization, isInLandscapeMode);
-    const outputs = [photoOutput];
+    // VisionCamera restarts the session, blanking the preview, whenever an output or the photo size changes.
+    const {photoOutput, cameraAspectRatio, updatePhotoResolution} = useReceiptPhotoOutput(cameraPlatformConfig.scanQualityPrioritization, isInLandscapeMode, canUseReceiptEnhancement);
+    const {frameOutput, edge: documentEdge} = useDocumentEdgeDetection({cameraRef: camera, isEnabled: shouldDetectDocument});
+    const outputs = canUseReceiptEnhancement ? [photoOutput, frameOutput] : [photoOutput];
 
     // Blink animation for shutter feedback
     const blinkOpacity = useSharedValue(0);
@@ -331,11 +352,20 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                             onConfigured={finishCameraSetup}
                             onStarted={relightTorchAfterRestart}
                             onSessionConfigSelected={handleSessionConfigSelected}
-                            shouldShowFlashButton={canUseMultiScan}
+                            // With receipt enhancement, the controls bar shows flash next to the shutter, so the viewport doesn't show it too.
+                            shouldShowFlashButton={canUseMultiScan && !canUseReceiptEnhancement}
                             cameraPermissionStatus={cameraPermissionStatus}
                             flash={flash}
                             hasFlash={hasFlash}
                             setFlash={setFlash}
+                            overlay={
+                                shouldDetectDocument && !didCapturePhoto ? (
+                                    <>
+                                        <DocumentOutline edge={documentEdge} />
+                                        {isReceiptEnhancementToastVisible && <ReceiptEnhancementToast onHide={hideReceiptEnhancementToast} />}
+                                    </>
+                                ) : null
+                            }
                             isTorchOn={isTorchRequested}
                         />
                     )}
@@ -355,6 +385,8 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                     onPicked={onPicked}
                     capturePhoto={capturePhoto}
                     toggleMultiScan={toggleMultiScan}
+                    isReceiptEnhancementEnabled={isReceiptEnhancementEnabled}
+                    toggleReceiptEnhancement={canUseReceiptEnhancement ? toggleReceiptEnhancement : undefined}
                 />
 
                 {canUseMultiScan && !!onMultiScanSubmit && isInLandscapeMode && (

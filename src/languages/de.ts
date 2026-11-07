@@ -1394,6 +1394,8 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'Blitz',
         flipCamera: 'Kamera wechseln',
         multiScan: 'Mehrfachscan',
+        receiptEnhancements: 'Beleg-Optimierungen',
+        receiptEnhancementsEnabled: 'Beleg-Optimierungen aktiviert',
         shutter: 'Verschluss',
         gallery: 'Galerie',
         deleteReceipt: 'Beleg löschen',

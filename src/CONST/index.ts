@@ -1535,6 +1535,7 @@ const CONST = {
         FLAT_NAV: 'flatNav',
         CATEGORY_VISIBILITY: 'categoryVisibility',
         SCAN_FLASH_TORCH: 'scanFlashTorch',
+        RECEIPT_ENHANCEMENT: 'receiptEnhancement',
         NEW_DOT_BILL_PAY: 'newDotBillPay',
         HYBRID_WEB: 'hybridWeb',
     },
@@ -11267,6 +11268,7 @@ const CONST = {
             SCAN: {
                 MULTI_SCAN: 'Scan-MultiScan',
                 FLASH: 'Scan-Flash',
+                RECEIPT_ENHANCEMENT: 'Scan-ReceiptEnhancement',
                 CHOOSE_FILE: 'Scan-ChooseFile',
                 CHOOSE_FILES: 'Scan-ChooseFiles',
                 SHUTTER: 'Scan-Shutter',

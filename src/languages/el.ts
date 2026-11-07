@@ -1441,6 +1441,8 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'φλας',
         flipCamera: 'περιστροφή κάμερας',
         multiScan: 'πολλαπλή σάρωση',
+        receiptEnhancements: 'Βελτιώσεις αποδείξεων',
+        receiptEnhancementsEnabled: 'Οι βελτιώσεις αποδείξεων ενεργοποιήθηκαν',
         shutter: 'κλείστρο',
         gallery: 'συλλογή',
         deleteReceipt: 'Διαγραφή απόδειξης',

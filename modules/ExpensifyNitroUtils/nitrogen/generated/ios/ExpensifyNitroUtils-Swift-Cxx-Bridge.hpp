@@ -12,10 +12,16 @@
 namespace margelo::nitro::utils { enum class ContactFields; }
 // Forward declaration of `Contact` to properly resolve imports.
 namespace margelo::nitro::utils { struct Contact; }
+// Forward declaration of `DetectedDocument` to properly resolve imports.
+namespace margelo::nitro::utils { struct DetectedDocument; }
+// Forward declaration of `DocumentCorner` to properly resolve imports.
+namespace margelo::nitro::utils { struct DocumentCorner; }
 // Forward declaration of `HybridAppStartTimeModuleSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridAppStartTimeModuleSpec; }
 // Forward declaration of `HybridContactsModuleSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridContactsModuleSpec; }
+// Forward declaration of `HybridDocumentDetectorModuleSpec` to properly resolve imports.
+namespace margelo::nitro::utils { class HybridDocumentDetectorModuleSpec; }
 // Forward declaration of `StringHolder` to properly resolve imports.
 namespace margelo::nitro::utils { struct StringHolder; }
 
@@ -24,12 +30,17 @@ namespace margelo::nitro::utils { struct StringHolder; }
 namespace ExpensifyNitroUtils { class HybridAppStartTimeModuleSpec_cxx; }
 // Forward declaration of `HybridContactsModuleSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridContactsModuleSpec_cxx; }
+// Forward declaration of `HybridDocumentDetectorModuleSpec_cxx` to properly resolve imports.
+namespace ExpensifyNitroUtils { class HybridDocumentDetectorModuleSpec_cxx; }
 
 // Include C++ defined types
 #include "Contact.hpp"
 #include "ContactFields.hpp"
+#include "DetectedDocument.hpp"
+#include "DocumentCorner.hpp"
 #include "HybridAppStartTimeModuleSpec.hpp"
 #include "HybridContactsModuleSpec.hpp"
+#include "HybridDocumentDetectorModuleSpec.hpp"
 #include "StringHolder.hpp"
 #include <NitroModules/Promise.hpp>
 #include <NitroModules/PromiseHolder.hpp>
@@ -223,6 +234,68 @@ namespace margelo::nitro::utils::bridge::swift {
   }
   inline Result_std__shared_ptr_Promise_std__vector_Contact____ create_Result_std__shared_ptr_Promise_std__vector_Contact____(const std::exception_ptr& error) noexcept {
     return Result<std::shared_ptr<Promise<std::vector<Contact>>>>::withError(error);
+  }
+  
+  // pragma MARK: std::vector<DocumentCorner>
+  /**
+   * Specialized version of `std::vector<DocumentCorner>`.
+   */
+  using std__vector_DocumentCorner_ = std::vector<DocumentCorner>;
+  inline std::vector<DocumentCorner> create_std__vector_DocumentCorner_(size_t size) noexcept {
+    std::vector<DocumentCorner> vector;
+    vector.reserve(size);
+    return vector;
+  }
+  
+  // pragma MARK: std::optional<std::vector<DocumentCorner>>
+  /**
+   * Specialized version of `std::optional<std::vector<DocumentCorner>>`.
+   */
+  using std__optional_std__vector_DocumentCorner__ = std::optional<std::vector<DocumentCorner>>;
+  inline std::optional<std::vector<DocumentCorner>> create_std__optional_std__vector_DocumentCorner__(const std::vector<DocumentCorner>& value) noexcept {
+    return std::optional<std::vector<DocumentCorner>>(value);
+  }
+  inline bool has_value_std__optional_std__vector_DocumentCorner__(const std::optional<std::vector<DocumentCorner>>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline std::vector<DocumentCorner> get_std__optional_std__vector_DocumentCorner__(const std::optional<std::vector<DocumentCorner>>& optional) noexcept {
+    return optional.value();
+  }
+  
+  // pragma MARK: std::optional<DetectedDocument>
+  /**
+   * Specialized version of `std::optional<DetectedDocument>`.
+   */
+  using std__optional_DetectedDocument_ = std::optional<DetectedDocument>;
+  inline std::optional<DetectedDocument> create_std__optional_DetectedDocument_(const DetectedDocument& value) noexcept {
+    return std::optional<DetectedDocument>(value);
+  }
+  inline bool has_value_std__optional_DetectedDocument_(const std::optional<DetectedDocument>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline DetectedDocument get_std__optional_DetectedDocument_(const std::optional<DetectedDocument>& optional) noexcept {
+    return optional.value();
+  }
+  
+  // pragma MARK: std::shared_ptr<HybridDocumentDetectorModuleSpec>
+  /**
+   * Specialized version of `std::shared_ptr<HybridDocumentDetectorModuleSpec>`.
+   */
+  using std__shared_ptr_HybridDocumentDetectorModuleSpec_ = std::shared_ptr<HybridDocumentDetectorModuleSpec>;
+  std::shared_ptr<HybridDocumentDetectorModuleSpec> create_std__shared_ptr_HybridDocumentDetectorModuleSpec_(void* NON_NULL swiftUnsafePointer) noexcept;
+  void* NON_NULL get_std__shared_ptr_HybridDocumentDetectorModuleSpec_(std__shared_ptr_HybridDocumentDetectorModuleSpec_ cppType);
+  
+  // pragma MARK: std::weak_ptr<HybridDocumentDetectorModuleSpec>
+  using std__weak_ptr_HybridDocumentDetectorModuleSpec_ = std::weak_ptr<HybridDocumentDetectorModuleSpec>;
+  inline std__weak_ptr_HybridDocumentDetectorModuleSpec_ weakify_std__shared_ptr_HybridDocumentDetectorModuleSpec_(const std::shared_ptr<HybridDocumentDetectorModuleSpec>& strong) noexcept { return strong; }
+  
+  // pragma MARK: Result<std::optional<DetectedDocument>>
+  using Result_std__optional_DetectedDocument__ = Result<std::optional<DetectedDocument>>;
+  inline Result_std__optional_DetectedDocument__ create_Result_std__optional_DetectedDocument__(const std::optional<DetectedDocument>& value) noexcept {
+    return Result<std::optional<DetectedDocument>>::withValue(value);
+  }
+  inline Result_std__optional_DetectedDocument__ create_Result_std__optional_DetectedDocument__(const std::exception_ptr& error) noexcept {
+    return Result<std::optional<DetectedDocument>>::withError(error);
   }
 
 } // namespace margelo::nitro::utils::bridge::swift

@@ -1337,6 +1337,8 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: '闪光',
         flipCamera: '翻转摄像头',
         multiScan: '多重扫描',
+        receiptEnhancements: '收据增强',
+        receiptEnhancementsEnabled: '已开启收据增强',
         shutter: '快门',
         gallery: '图库',
         deleteReceipt: '删除收据',

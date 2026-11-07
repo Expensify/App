@@ -43,6 +43,7 @@ android {
     minSdkVersion getExtOrIntegerDefault("minSdkVersion")
     targetSdkVersion getExtOrIntegerDefault("targetSdkVersion")
     buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
+    consumerProguardFiles "proguard-rules.pro"
 
     externalNativeBuild {
       cmake {
@@ -125,5 +126,7 @@ dependencies {
 
   // Add a dependency on NitroModules
   implementation project(":react-native-nitro-modules")
+
+  implementation "com.microsoft.onnxruntime:onnxruntime-android:1.30.0"
 }
 

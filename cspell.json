@@ -1243,7 +1243,22 @@
         "workerd",
         "ftyp",
         "ftypheic",
-        "JFIF"
+        "JFIF",
+        "docquad",
+        "docquadnet",
+        "Kierdorf",
+        "logits",
+        "luma",
+        "Onnx",
+        "onnxruntime",
+        "opset",
+        "Synchronizable",
+        "Synchronizables",
+        "BGRA",
+        "Casiez",
+        "hypot",
+        "logit",
+        "Unretained"
     ],
     "ignorePaths": [
         ".github/actions/javascript/**/index.js",
