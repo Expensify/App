@@ -16,6 +16,9 @@ type GetWisePaymentSummaryRowsParams = {
     /** True when the admin chose to pay only the expenses that are not on hold */
     isPayingUnheldOnly: boolean;
 
+    /** True for the payment details after payment, which name the amounts in the past tense */
+    isPaid?: boolean;
+
     translate: LocaleContextProps['translate'];
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
@@ -50,7 +53,7 @@ function getFXRate({rate, currency, paymentCurrency}: WisePaymentAmounts, transl
     return `${convertToShortDisplayString(100, currency)} = ${convertAmountToDisplayString(rate * 100, paymentCurrency)}`;
 }
 
-function getWisePaymentSummaryRows({report, amounts, isPayingUnheldOnly, translate, convertToDisplayString}: GetWisePaymentSummaryRowsParams): WisePaymentSummaryRow[] {
+function getWisePaymentSummaryRows({report, amounts, isPayingUnheldOnly, isPaid = false, translate, convertToDisplayString}: GetWisePaymentSummaryRowsParams): WisePaymentSummaryRow[] {
     // Expense report totals are stored as negative numbers
     const reportTotal = Math.abs(report.total ?? 0);
     const reimbursableTotal = Math.abs(getReimbursableTotal(report));
@@ -67,8 +70,11 @@ function getWisePaymentSummaryRows({report, amounts, isPayingUnheldOnly, transla
     }
 
     rows.push(
-        {label: translate('iou.wisePaymentSummary.debitAmount'), value: convertToDisplayString(amounts.debitedAmount, amounts.currency)},
-        {label: translate('iou.wisePaymentSummary.employeeWillReceive'), value: convertToDisplayString(amounts.creditedAmount, amounts.paymentCurrency)},
+        {label: translate(isPaid ? 'iou.wisePaymentSummary.debitedAmount' : 'iou.wisePaymentSummary.debitAmount'), value: convertToDisplayString(amounts.debitedAmount, amounts.currency)},
+        {
+            label: translate(isPaid ? 'iou.wisePaymentSummary.employeeReceived' : 'iou.wisePaymentSummary.employeeWillReceive'),
+            value: convertToDisplayString(amounts.creditedAmount, amounts.paymentCurrency),
+        },
         {label: translate('iou.wisePaymentSummary.totalFees'), value: convertToDisplayString(amounts.fee, amounts.currency)},
     );
 

@@ -10436,6 +10436,9 @@ const CONST = {
             PREVIOUS: 'WiseQuoteCarousel-Previous',
             NEXT: 'WiseQuoteCarousel-Next',
         },
+        WISE_PAYMENT_DETAILS: {
+            GOT_IT: 'WisePaymentDetails-GotIt',
+        },
         PRODUCT_MARKETING_WINDOW: {
             CTA: 'ProductMarketingWindow-CTA',
             DISMISS: 'ProductMarketingWindow-Dismiss',

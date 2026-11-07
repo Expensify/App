@@ -1837,6 +1837,9 @@ const translations: TranslationDeepObject<typeof en> = {
             employeeWillReceive: 'L’employé recevra',
             totalFees: 'Frais totaux',
             fxRate: 'Taux de change',
+            paymentDetails: 'Détails du paiement',
+            debitedAmount: 'Montant débité',
+            employeeReceived: "L'employé a reçu",
             payAll: 'Tout payer',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 note de frais',

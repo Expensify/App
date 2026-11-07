@@ -1884,6 +1884,9 @@ const translations: TranslationDeepObject<typeof en> = {
             employeeWillReceive: 'Ο υπάλληλος θα λάβει',
             totalFees: 'Συνολικές χρεώσεις',
             fxRate: 'Συναλλαγματική ισοτιμία',
+            paymentDetails: 'Στοιχεία πληρωμής',
+            debitedAmount: 'Χρεωμένο ποσό',
+            employeeReceived: 'Ο υπάλληλος έλαβε',
             payAll: 'Πληρωμή όλων',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 αναφορά',

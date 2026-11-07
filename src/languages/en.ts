@@ -1972,6 +1972,9 @@ const translations = {
             employeeWillReceive: 'Employee will receive',
             totalFees: 'Total fees',
             fxRate: 'FX rate',
+            paymentDetails: 'Payment details',
+            debitedAmount: 'Debited amount',
+            employeeReceived: 'Employee received',
             payAll: 'Pay all',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 report',

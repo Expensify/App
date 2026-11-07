@@ -1806,6 +1806,9 @@ const translations: TranslationDeepObject<typeof en> = {
             employeeWillReceive: '従業員の受取額',
             totalFees: '手数料合計',
             fxRate: '為替レート',
+            paymentDetails: '支払いの詳細',
+            debitedAmount: '引き落とし額',
+            employeeReceived: '従業員の受取額',
             payAll: 'すべて支払う',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 件のレポート',
