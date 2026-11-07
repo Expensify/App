@@ -6,6 +6,8 @@ import useLocalize from '@hooks/useLocalize';
 
 import HomeTaskGroup from '@pages/home/HomeTaskGroup';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 
 import EmptyState from './EmptyState';
@@ -36,10 +38,12 @@ function ForYouBody({isInitialLoad, shouldShowSkeleton, timeSensitiveRows, todoR
             <HomeTaskGroup
                 title={translate('homePage.timeSensitiveSection.title')}
                 rows={timeSensitiveRows}
+                expandToggleSentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.SECTION_EXPAND_TOGGLE_TIME_SENSITIVE}
             />
             <HomeTaskGroup
                 title={translate('homePage.toDos')}
                 rows={todoRows}
+                expandToggleSentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.SECTION_EXPAND_TOGGLE_TO_DOS}
                 reducedTopGap={timeSensitiveRows.length > 0}
             >
                 {shouldShowEmptyState ? <EmptyState /> : null}
