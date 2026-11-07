@@ -177,6 +177,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const receiptSource = isDraftTransaction ? ReceiptStorage.resolve(transactionDraft?.receipt?.source) : tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
     const source = isOdometerImage ? odometerImageSource : receiptSource;
     const [sourceUri, setSourceUri] = useState<ReceiptSource>('');
+    const [loadedScanningImageUri, setLoadedScanningImageUri] = useState<string>();
 
     const parentReportAction = getParentReportActionSelector(parentReportActions, report?.parentReportActionID);
     const receiptFieldParams = {
@@ -545,6 +546,10 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         return menuItems;
     };
 
+    const displayedImageUri = sourceUri || source;
+    const shouldShowScanningLine = isTranslating && !isPDF && typeof displayedImageUri === 'string' && !!displayedImageUri;
+    const isWaitingForScanningImage = shouldShowScanningLine && loadedScanningImageUri !== displayedImageUri;
+
     let footerActionButtons;
     if (isCropping) {
         footerActionButtons = (
@@ -570,7 +575,8 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         );
     } else if (isTranslating) {
         footerActionButtons = (
-            <View style={[styles.ph5, styles.pb5, styles.alignItemsCenter]}>
+            // The receipt area already shows a spinner until the image loads, so this one stays hidden but keeps its space to avoid a layout jump
+            <View style={[styles.ph5, styles.pb5, styles.alignItemsCenter, isWaitingForScanningImage && styles.opacity0]}>
                 <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL} />
             </View>
         );
@@ -668,15 +674,15 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         );
     }
 
-    const displayedImageUri = sourceUri || source;
     let customAttachmentContent;
     if (translatedReceiptRows && !isCropping) {
         customAttachmentContent = <TranslatedReceiptCard rows={translatedReceiptRows} />;
-    } else if (isTranslating && !isPDF && typeof displayedImageUri === 'string' && !!displayedImageUri) {
+    } else if (shouldShowScanningLine) {
         customAttachmentContent = (
             <ReceiptScanningLine
                 imageUri={displayedImageUri}
                 isAuthTokenRequired={sourceUri ? false : isAuthTokenRequired}
+                onLoad={() => setLoadedScanningImageUri(displayedImageUri)}
             />
         );
     } else if (!isCropping || (!sourceUri && !source)) {

@@ -14,6 +14,9 @@ import Svg, {Defs, LinearGradient, Rect, Stop} from 'react-native-svg';
 
 import Image from './Image';
 import RESIZE_MODES from './Image/resizeModes';
+import LoadingIndicator from './LoadingIndicator';
+
+const LOADING_CONTEXT = {context: 'ReceiptScanningLine'};
 
 type ReceiptScanningLineProps = {
     /** Receipt image being translated */
@@ -21,10 +24,13 @@ type ReceiptScanningLineProps = {
 
     /** Whether the image needs the auth token to load */
     isAuthTokenRequired?: boolean;
+
+    /** Called once the receipt image has loaded */
+    onLoad?: () => void;
 };
 
 /** Shows the receipt image with a scanning line moving over it while the receipt is translated */
-function ReceiptScanningLine({imageUri, isAuthTokenRequired}: ReceiptScanningLineProps) {
+function ReceiptScanningLine({imageUri, isAuthTokenRequired, onLoad}: ReceiptScanningLineProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -76,6 +82,7 @@ function ReceiptScanningLine({imageUri, isAuthTokenRequired}: ReceiptScanningLin
             return;
         }
         setImageSize({width, height});
+        onLoad?.();
     };
 
     return (
@@ -91,6 +98,12 @@ function ReceiptScanningLine({imageUri, isAuthTokenRequired}: ReceiptScanningLin
                 onLoad={onImageLoad}
                 isAuthTokenRequired={isAuthTokenRequired}
             />
+            {!imageSize.width && (
+                <LoadingIndicator
+                    style={[styles.opacity1, styles.bgTransparent]}
+                    extraLoadingContext={LOADING_CONTEXT}
+                />
+            )}
             {!!displayHeight && (
                 <View
                     pointerEvents="none"
