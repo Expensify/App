@@ -43,6 +43,7 @@ import React, {useEffect, useEffectEvent, useState} from 'react';
 
 import US from './forms/US';
 import getWiseBusinessOnboardingPrefill, {getMissingPrefill, WISE_BUSINESS_ACCOUNT_KEYS} from './getWiseBusinessOnboardingPrefill';
+import getWiseCompanyType from './getWiseCompanyType';
 
 type WiseBusinessOnboardingPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_BUSINESS_ONBOARDING>;
 
@@ -128,7 +129,8 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     // The prefill runs once per visit, so a visit that opens offline without this bank account or its details would start from blank business rows and
     // without the pages already saved to Wise, and keep them once the connection returns. It waits for the connection instead, as bank account setup does.
     // Next and Back mount the page again mid-visit, after the prefill, so they are left to the flow.
-    const hasBusinessAccountOnDevice = !!bankAccount && businessAccount?.data?.bankAccountID === bankAccountID;
+    const businessAccountData = businessAccount?.data?.bankAccountID === bankAccountID ? businessAccount.data : undefined;
+    const hasBusinessAccountOnDevice = !!bankAccount && !!businessAccountData;
     const isWaitingForConnection = isOffline && isNewVisit && !isPrefillDone && !hasBusinessAccountOnDevice;
     const isLoading =
         isLoadingOnyxValue(bankAccountListMetadata, privatePersonalDetailsMetadata, draftMetadata, businessAccountMetadata) ||
@@ -154,7 +156,7 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     // Only changes count, since the keys a page opens with may predate its newest files. The draft records the keys it last took, so a change that lands
     // while another page saves, before Next or Back mounts the page again, or while the flow is closed is still taken. A page that has not saved keeps its
     // local files, since the server still holds its older ones, and takes the server's keys once a later save of it changes them.
-    const savedDocuments = businessAccount?.data?.bankAccountID === bankAccountID ? businessAccount.data.wise?.documents : undefined;
+    const savedDocuments = businessAccountData?.wise?.documents;
     const savedDocumentsRecord = JSON.stringify(savedDocuments ?? {});
     const draftedSavedDocumentsRecord = draft?.[SAVED_DOCUMENTS_DRAFT_KEY];
     const haveSavedDocumentsChanged =
@@ -210,6 +212,8 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
         return <NotFoundPage onBackButtonPress={goBackToIntro} />;
     }
 
+    const companyType = getWiseCompanyType(businessAccountData?.incorporationType);
+
     return (
         <DynamicFormFlow
             schema={US}
@@ -223,7 +227,11 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
             shouldReplaceRoute
             onBack={goBackToIntro}
             // Each page is saved to Wise as the user leaves it, so a later visit resumes from what the server holds
-            onPageSubmit={(page, answers, sensitiveAnswers) => saveWiseOnboardingPage(bankAccountID, page, answers, sensitiveAnswers)}
+            onPageSubmit={(page, answers, sensitiveAnswers) => {
+                // Wise needs the company type, which the bank account setup already asked for as the incorporation type, so the business page sends it instead of asking again
+                const pageAnswers = page.key === CONST.WISE.ONBOARDING_STEP.BUSINESS ? {...answers, companyType} : answers;
+                saveWiseOnboardingPage(bankAccountID, page, pageAnswers, sensitiveAnswers);
+            }}
             // No page saves offline, so a typed SSN never waits for a connection and a later visit never resumes from a save the server has not seen
             shouldDisableNextWhenOffline
             submitError={saveError}

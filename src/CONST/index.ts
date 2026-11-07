@@ -1047,8 +1047,9 @@ const CONST = {
     },
     WISE: {
         /** Wise's legal pages, linked from the terms page of the onboarding */
-        TERMS_URL: 'https://wise.com/terms-and-conditions',
-        PRIVACY_URL: 'https://wise.com/privacy-policy',
+        TERMS_URL: 'https://wise.com/en/legal/terms-and-conditions',
+        ELECTRONIC_COMMUNICATIONS_POLICY_URL: 'https://wise.com/electronic-communications-policy',
+        PRIVACY_URL: 'https://wise.com/gb/legal/global-privacy-policy-en',
 
         /** The query param Wise adds to the redirect URL when its hosted KYC form ends, saying how it ended */
         KYC_REVIEW_REDIRECT_STATUS_PARAM: 'status',

@@ -1,4 +1,4 @@
-/** The line under a Wallet bank account whose Wise global reimbursements setup is not finished, with Continue when the admin has something to do */
+/** The line under a Wallet bank account whose Wise global reimbursements setup is not finished, with a link to where the admin can pick it up or follow it */
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -14,6 +14,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
 
+import type {TranslationPaths} from '@src/languages/types';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -21,13 +22,16 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import React from 'react';
 import {View} from 'react-native';
 
+/** Before Submit the admin continues the setup, and after it the setup is with Wise, so the admin can only check its status */
+const COPY = {
+    inProgress: {message: 'walletPage.wiseSetupInProgress.message', link: 'walletPage.wiseSetupInProgress.continue'},
+    inReview: {message: 'walletPage.wiseSetupInReview.message', link: 'walletPage.wiseSetupInReview.checkStatus'},
+} as const satisfies Record<string, {message: TranslationPaths; link: TranslationPaths}>;
+
 type WiseSetupInProgressRowProps = {
     bankAccountID: number;
 
-    /** Whether the admin has something to do, which shows Continue to the intro that picks the setup up */
-    canContinue: boolean;
-
-    /** Whether the onboarding is already with Wise, so Continue opens the status page instead of the intro */
+    /** Whether the onboarding is already with Wise, so the row says it is in review and links to the status page instead of the intro */
     isOnboardingSubmitted: boolean;
 
     /** Spacing for the row, which follows the list it sits in */
@@ -35,11 +39,14 @@ type WiseSetupInProgressRowProps = {
 };
 
 /** Tells the admin under the Wallet bank account row that its global reimbursements setup is not finished */
-function WiseSetupInProgressRow({bankAccountID, canContinue, isOnboardingSubmitted, style}: WiseSetupInProgressRowProps) {
+function WiseSetupInProgressRow({bankAccountID, isOnboardingSubmitted, style}: WiseSetupInProgressRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Hourglass']);
+    const copy = isOnboardingSubmitted ? COPY.inReview : COPY.inProgress;
+
+    const linkRoute = isOnboardingSubmitted ? getWiseOnboardingStatusRoute(bankAccountID) : createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(bankAccountID));
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, style]}>
@@ -54,22 +61,13 @@ function WiseSetupInProgressRow({bankAccountID, canContinue, isOnboardingSubmitt
                 variant="label"
                 style={[styles.textSupporting, styles.flexShrink1]}
             >
-                {translate('walletPage.wiseSetupInProgress.message')}
-                {canContinue && (
-                    <>
-                        {' '}
-                        <TextLink
-                            variant="label"
-                            onPress={() =>
-                                isOnboardingSubmitted
-                                    ? Navigation.navigate(getWiseOnboardingStatusRoute(bankAccountID))
-                                    : Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(bankAccountID)))
-                            }
-                        >
-                            {translate('walletPage.wiseSetupInProgress.continue')}
-                        </TextLink>
-                    </>
-                )}
+                {translate(copy.message)}{' '}
+                <TextLink
+                    variant="label"
+                    onPress={() => Navigation.navigate(linkRoute)}
+                >
+                    {translate(copy.link)}
+                </TextLink>
             </Text>
         </View>
     );

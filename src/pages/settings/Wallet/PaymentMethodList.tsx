@@ -180,10 +180,8 @@ function getWiseSetupInProgress(paymentMethod: PaymentMethod): PaymentMethodItem
     }
     const bankAccount = paymentMethod as BankAccount;
     const bankAccountID = bankAccount.accountData?.bankAccountID;
-    const canContinue = isWiseOnboardingPendingSubmit(bankAccount) || isWiseOnboardingMoreInfoNeeded(bankAccount);
-    return bankAccountID && (canContinue || isWiseOnboardingAwaitingDecision(bankAccount))
-        ? {bankAccountID, canContinue, isOnboardingSubmitted: isWiseOnboardingSubmitted(bankAccount.accountData)}
-        : undefined;
+    const isSetupInProgress = isWiseOnboardingPendingSubmit(bankAccount) || isWiseOnboardingMoreInfoNeeded(bankAccount) || isWiseOnboardingAwaitingDecision(bankAccount);
+    return bankAccountID && isSetupInProgress ? {bankAccountID, isOnboardingSubmitted: isWiseOnboardingSubmitted(bankAccount.accountData)} : undefined;
 }
 
 function keyExtractor(item: PaymentMethod | string) {

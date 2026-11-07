@@ -13,23 +13,16 @@ import type {PrivatePersonalDetails} from '@src/types/onyx';
 import type {ACHDataReimbursementAccount} from '@src/types/onyx/ReimbursementAccount';
 
 import type {OnyxEntry} from 'react-native-onyx';
-import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {TupleToUnion} from 'type-fest';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
 
 import US from './forms/US';
 
-/** The bank account's company details the business page shows, under the same keys, and the onboarding pages already saved to Wise */
+/** The bank account's company details the business page shows or sends to Wise, and the onboarding pages already saved to Wise */
 const WISE_BUSINESS_ACCOUNT_KEYS = ['bankAccountID', 'companyName', 'incorporationType', 'wise'] as const satisfies ReadonlyArray<keyof ACHDataReimbursementAccount>;
 
 type WiseBusinessAccountData = Pick<ACHDataReimbursementAccount, TupleToUnion<typeof WISE_BUSINESS_ACCOUNT_KEYS>>;
-
-/** Incorporation types with one matching Wise company type. The others are left for the admin to pick. */
-const COMPANY_TYPE_BY_INCORPORATION_TYPE: Partial<Record<string, ValueOf<typeof CONST.WISE.COMPANY_TYPE>>> = {
-    [CONST.INCORPORATION_TYPES.LLC]: CONST.WISE.COMPANY_TYPE.LIMITED_LIABILITY_COMPANY,
-    [CONST.INCORPORATION_TYPES.CORPORATION]: CONST.WISE.COMPANY_TYPE.FOR_PROFIT_CORPORATION,
-    [CONST.INCORPORATION_TYPES.SOLE_PROPRIETORSHIP]: CONST.WISE.COMPANY_TYPE.SOLE_PROPRIETORSHIP,
-};
 
 const ALL_FIELDS = getAllFields(getPages(US));
 
@@ -98,7 +91,6 @@ function getWiseBusinessOnboardingPrefill(
         [addressKeys.zipCode]: address?.zip,
         [addressKeys.country]: countryCode,
         companyName: business?.companyName,
-        companyType: COMPANY_TYPE_BY_INCORPORATION_TYPE[business?.incorporationType ?? ''],
         // What the user already saved to Wise wins over the details above
         ...getSavedAnswers(business?.wise),
     };

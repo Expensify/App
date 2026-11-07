@@ -3061,16 +3061,6 @@ const translations = {
             business: {
                 title: 'Enter your business info',
                 legalName: 'Legal business name',
-                companyType: 'Company type',
-                companyTypeLimitedLiabilityCompany: 'Limited liability company (LLC)',
-                companyTypeForProfitCorporation: 'For-profit corporation',
-                companyTypeNonProfitCorporation: 'Nonprofit corporation',
-                companyTypeSoleProprietorship: 'Sole proprietorship',
-                companyTypeGeneralPartnership: 'General partnership',
-                companyTypeLimitedPartnership: 'Limited partnership',
-                companyTypeLimitedLiabilityPartnership: 'Limited liability partnership (LLP)',
-                companyTypeTrust: 'Trust',
-                companyTypeOther: 'Other',
                 companyRole: 'Your role at the company',
                 companyRoleOwner: 'Owner',
                 companyRoleDirector: 'Director',
@@ -3240,8 +3230,9 @@ const translations = {
                 certify: "I certify that the information I've provided is true and accurate.",
                 expensifyTerms: `I agree to the Expensify <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">terms and conditions</a> and <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">privacy policy</a>.`,
                 expensifyTermsAccessibilityLabel: 'I agree to the Expensify terms and conditions and privacy policy.',
-                wiseTerms: `I agree to the Wise <a href="${CONST.WISE.TERMS_URL}">terms and conditions</a> and <a href="${CONST.WISE.PRIVACY_URL}">privacy policy</a>.`,
-                wiseTermsAccessibilityLabel: 'I agree to the Wise terms and conditions and privacy policy.',
+                wiseTerms: `By clicking Confirm, I accept Wise’s <a href="${CONST.WISE.TERMS_URL}">Terms of Use</a>, consent to receive electronic records as outlined in Wise’s <a href="${CONST.WISE.ELECTRONIC_COMMUNICATIONS_POLICY_URL}">Electronic Communications Policy</a>, and <a href="${CONST.WISE.PRIVACY_URL}">Privacy Policy</a>.`,
+                wiseTermsAccessibilityLabel:
+                    'By clicking Confirm, I accept Wise’s Terms of Use, consent to receive electronic records as outlined in Wise’s Electronic Communications Policy, and Privacy Policy.',
                 error: 'Please accept all of the terms to continue.',
             },
             moreInfoNeeded: {
@@ -3267,6 +3258,7 @@ const translations = {
             },
         },
         wiseSetupInProgress: {message: 'Global reimbursements setup in progress.', continue: 'Continue.'},
+        wiseSetupInReview: {message: 'Global reimbursements setup in review.', checkStatus: 'Check status'},
         wiseGlobalReimbursementsIntro: {
             headerTitle: 'Global reimbursements',
             title: 'Set up global reimbursements?',

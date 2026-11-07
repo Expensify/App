@@ -1,6 +1,7 @@
 import {act, render, screen} from '@testing-library/react-native';
 
 import type {DynamicFormFlowProps} from '@components/DynamicForm/types';
+import {getPages} from '@components/DynamicForm/utils/paginate';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {toSavedFile} from '@libs/getWiseOnboardingPageParams';
@@ -9,11 +10,13 @@ import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigati
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {setHasRadio} from '@libs/NetworkState';
 
+import US from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/forms/US';
 import type {WiseBusinessAccountData} from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/getWiseBusinessOnboardingPrefill';
 import WiseBusinessOnboardingPage from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseBusinessOnboardingPage';
 
 import {openReimbursementAccountPage} from '@userActions/BankAccounts';
 import {saveDraftAnswers} from '@userActions/DynamicForm';
+import saveWiseOnboardingPage from '@userActions/WiseOnboarding';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -62,6 +65,7 @@ jest.mock('@pages/ErrorPage/NotFoundPage', () => {
 });
 jest.mock('@userActions/DynamicForm', () => ({...jest.requireActual<Record<string, unknown>>('@userActions/DynamicForm'), saveDraftAnswers: jest.fn()}));
 jest.mock('@userActions/BankAccounts', () => ({hideBankAccountErrors: jest.fn(), openReimbursementAccountPage: jest.fn()}));
+jest.mock('@userActions/WiseOnboarding', () => ({...jest.requireActual<Record<string, unknown>>('@userActions/WiseOnboarding'), __esModule: true, default: jest.fn()}));
 const INTRO_PATH = 'settings/wallet/global-reimbursements/1';
 
 // The real hook reads the root state, which a deep link fills only after the page renders
@@ -227,14 +231,8 @@ describe('WiseBusinessOnboardingPage', () => {
         await act(() => Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {...REIMBURSEMENT_ACCOUNT, isLoading: false}));
         await waitForBatchedUpdatesWithAct();
 
-        // Then the business rows are prefilled under the bank account's own keys, the corporation starts on its Wise company type, and the flow shows
-        expect(saveDraftAnswers).toHaveBeenCalledWith(
-            ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM,
-            expect.objectContaining({
-                companyName: 'Boulder Development Inc.',
-                companyType: CONST.WISE.COMPANY_TYPE.FOR_PROFIT_CORPORATION,
-            }),
-        );
+        // Then the business rows are prefilled under the bank account's own keys, and the flow shows
+        expect(saveDraftAnswers).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, expect.objectContaining({companyName: 'Boulder Development Inc.'}));
         expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
         expect(openReimbursementAccountPage).toHaveBeenCalledTimes(1);
     });
@@ -332,7 +330,6 @@ describe('WiseBusinessOnboardingPage', () => {
         const prefill = jest.mocked(saveDraftAnswers).mock.lastCall?.[1];
         expect(prefill).toMatchObject({bankAccountID: String(BANK_ACCOUNT_ID)});
         expect(prefill).not.toHaveProperty('companyName');
-        expect(prefill).not.toHaveProperty('companyType');
         expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
     });
 
@@ -343,7 +340,6 @@ describe('WiseBusinessOnboardingPage', () => {
             [ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT]: {
                 bankAccountID: '2',
                 companyName: 'Other Business LLC',
-                companyType: CONST.WISE.COMPANY_TYPE.LIMITED_LIABILITY_COMPANY,
                 companyRole: 'OWNER',
                 description: 'Sells furniture',
             },
@@ -358,7 +354,6 @@ describe('WiseBusinessOnboardingPage', () => {
         expect(draft).toMatchObject({
             bankAccountID: String(BANK_ACCOUNT_ID),
             companyName: 'Boulder Development Inc.',
-            companyType: CONST.WISE.COMPANY_TYPE.FOR_PROFIT_CORPORATION,
         });
         expect(draft).not.toHaveProperty('companyRole');
         expect(draft).not.toHaveProperty('description');
@@ -539,6 +534,27 @@ describe('WiseBusinessOnboardingPage', () => {
 
         // Then the picked file stays and the server's keys are recorded, since the draft cannot tell whether the older file predates the picked one
         expect(await readDraft()).toMatchObject({idDocument: [pickedFile], savedDocuments: JSON.stringify(savedDocuments)});
+    });
+
+    it('sends the company type the incorporation type maps to with the business page only', async () => {
+        // Given the flow open for a bank account the setup recorded as a corporation
+        await renderPage();
+        const flowProps = mockFlowProps.mock.lastCall?.[0];
+        const [representativePage, businessPage] = getPages(US);
+
+        // When the user leaves the representative page and then the business page with Next
+        act(() => flowProps?.onPageSubmit?.(representativePage, {firstName: 'Alice'}, {}));
+        act(() => flowProps?.onPageSubmit?.(businessPage, {companyRole: CONST.WISE.COMPANY_ROLE.OWNER}, {}));
+
+        // Then only the business page carries Wise's company type for a corporation, since the form no longer asks for it
+        expect(saveWiseOnboardingPage).toHaveBeenNthCalledWith(1, BANK_ACCOUNT_ID, representativePage, {firstName: 'Alice'}, {});
+        expect(saveWiseOnboardingPage).toHaveBeenNthCalledWith(
+            2,
+            BANK_ACCOUNT_ID,
+            businessPage,
+            {companyRole: CONST.WISE.COMPANY_ROLE.OWNER, companyType: CONST.WISE.COMPANY_TYPE.FOR_PROFIT_CORPORATION},
+            {},
+        );
     });
 
     it('keeps the user on the confirmation page while a page that failed to save has not saved since', async () => {
