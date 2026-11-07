@@ -268,13 +268,12 @@ function WithdrawalIDListItemHeader({
                                 onPress={onDownArrowClick}
                             />
                         )}
-                        {!onDownArrowClick &&
-                            isCashBack && (
-                                // Reserves the arrow's footprint so the total stays aligned with the settlement rows.
-                                <View style={[styles.pl3, styles.justifyContentCenter, styles.alignItemsEnd]}>
-                                    <View style={StyleUtils.getWidthAndHeightStyle(variables.iconSizeNormal)} />
-                                </View>
-                            )}
+                        {!onDownArrowClick && isCashBack && (
+                            // Reserves the arrow's footprint so the total stays aligned with the settlement rows.
+                            <View style={[styles.pl3, styles.justifyContentCenter, styles.alignItemsEnd]}>
+                                <View style={StyleUtils.getWidthAndHeightStyle(variables.iconSizeNormal)} />
+                            </View>
+                        )}
                     </View>
                 )}
             </View>
