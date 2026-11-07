@@ -5,10 +5,14 @@ import {canUserPerformWriteAction, isReportTransactionThread as isReportTransact
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
 import {useConciergeChatHistoryActions} from '@pages/inbox/ConciergeChatHistoryContext';
+import filterHiddenSupportTicketSurveys from '@pages/inbox/report/ReportActionsList/filterHiddenSupportTicketSurveys';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {reportActionsListLoadingStateSelector} from '@src/selectors/ReportMetaData';
+import type {ReportNameValuePairs} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
 
@@ -23,6 +27,8 @@ import useReportActionsVisibility from './useReportActionsVisibility';
 import {useDerivedIsEmptyReport} from './useReportAttributes';
 import useReportIsArchived from './useReportIsArchived';
 
+const reopenedAsReportIDSelector = (reportNameValuePairs: OnyxEntry<ReportNameValuePairs>) => reportNameValuePairs?.reopenedAsReportID;
+
 /**
  * Single read/derive pipeline for the report-actions list: the subscriptions and derivations the skeleton
  * decision and the list render both need, computed once. Side-effect-free (no writes/navigation/telemetry).
@@ -35,6 +41,7 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
     const reportActionIDFromRoute = route?.params?.reportActionID;
 
     const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [reopenedAsReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: reopenedAsReportIDSelector});
 
     const {
         reportActions,
@@ -140,6 +147,20 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         ? sortedVisibleReportActions.filter((action) => !shouldHidePayAction(action, true))
         : sortedVisibleReportActions;
 
+    const surveyNameValuePairs = {reopenedAsReportID};
+    const surveyFilteredReportActions = filterHiddenSupportTicketSurveys({
+        reportActions: paymentFilteredReportActions,
+        sortedAllReportActions,
+        report,
+        reportNameValuePairs: surveyNameValuePairs,
+    });
+    const surveyFilteredVisibleReportActions = filterHiddenSupportTicketSurveys({
+        reportActions: paymentFilteredVisibleReportActions,
+        sortedAllReportActions,
+        report,
+        reportNameValuePairs: surveyNameValuePairs,
+    });
+
     // The render state slice on `ReportActionsListStateContext`; this is what drives list re-renders.
     // Ambient state (network, route, archived, concierge chat history) is read locally in the content instead
     // of carried here.
@@ -153,8 +174,10 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         parentReportActionForTransactionThread,
         treatAsNoPaginationAnchor,
         parentReportAction,
-        sortedReportActions: paymentFilteredReportActions,
-        sortedVisibleReportActions: paymentFilteredVisibleReportActions,
+        sortedReportActions: surveyFilteredReportActions,
+        sortedVisibleReportActions: surveyFilteredVisibleReportActions,
+        // Hidden surveys still prove that the selected page contains the newest action.
+        scrollReportActions: paymentFilteredVisibleReportActions,
         isConciergeHiddenHistory,
         showFullHistory,
         hasPreviousMessages,

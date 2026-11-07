@@ -26,7 +26,6 @@ type UseReportActionsListDataParams = {
 type UseReportActionsListScrollParams = Pick<
     Parameters<typeof useReportActionsScroll>[0],
     | 'reportID'
-    | 'sortedVisibleReportActions'
     | 'renderedVisibleReportActions'
     | 'hasScrolledOverThreshold'
     | 'markNewestActionAsRead'

@@ -36,7 +36,6 @@ function keyExtractor(item: OnyxTypes.ReportAction): string {
 /** Owns initial positioning, pagination, unread tracking, and scroll events for the report-actions list. */
 function useReportActionsListScroll({
     reportID,
-    sortedVisibleReportActions,
     renderedVisibleReportActions: listData,
     reportActionIDToDisplayIndex,
     hasScrolledOverThreshold,
@@ -56,6 +55,7 @@ function useReportActionsListScroll({
         report,
         hasOnceLoadedReportActions,
         hasNewerActions,
+        scrollReportActions,
         sortedAllReportActions,
         oldestUnreadReportAction,
         transactionThreadReport,
@@ -126,7 +126,7 @@ function useReportActionsListScroll({
         report,
         transactionThreadReport,
         parentReportAction,
-        sortedVisibleReportActions,
+        sortedVisibleReportActions: scrollReportActions,
         renderedVisibleReportActions: listData,
         reportActionIDToDisplayIndex,
         keyExtractor,
