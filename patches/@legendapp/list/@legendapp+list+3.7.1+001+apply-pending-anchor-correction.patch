@@ -1,0 +1,124 @@
+001.patch
+s0
+s1
+s2
+s3
+diff --git a/node_modules/@legendapp/list/react-native.web.js b/node_modules/@legendapp/list/react-native.web.js
+index 4500177..ff503a5 100644
+--- a/node_modules/@legendapp/list/react-native.web.js
++++ b/node_modules/@legendapp/list/react-native.web.js
+@@ -4719,7 +4719,8 @@ function calculateItemsInView(ctx, params = {}) {
+     const stickyHeaderIndicesArr = state.props.stickyHeaderIndicesArr || [];
+     const stickyHeaderIndicesSet = state.props.stickyHeaderIndicesSet || /* @__PURE__ */ new Set();
+     const drawDistance = getEffectiveDrawDistance(ctx, params.drawDistanceMode);
+-    const { dataChanged, doMVCP, forceFullItemPositions, mvcpAdjustmentSource } = params;
++    const { dataChanged, forceFullItemPositions, mvcpAdjustmentSource } = params;
++    let { doMVCP } = params;
+     const bootstrapInitialScrollState = ((_a3 = state.initialScrollSession) == null ? void 0 : _a3.kind) === "bootstrap" ? state.initialScrollSession.bootstrap : void 0;
+     const suppressInitialScrollSideEffects = !!bootstrapInitialScrollState;
+     const prevNumContainers = peek$(ctx, "numContainers");
+@@ -4820,6 +4821,11 @@ function calculateItemsInView(ctx, params = {}) {
+         }
+       }
+     }
++    // A deferred item-size correction must land in any pass that repositions items, or they move without it.
++    if (!doMVCP && state.scheduledWork.has("mvcpRecalculate")) {
++      state.scheduledWork.cancel("mvcpRecalculate");
++      doMVCP = true;
++    }
+     const checkMVCP = doMVCP && !suppressInitialScrollSideEffects ? prepareMVCP(ctx, dataChanged) : void 0;
+     if (dataChanged) {
+       resetLayoutCachesForDataChange(state);
+001.patch
+s0
+s1
+s2
+s3
+diff --git a/node_modules/@legendapp/list/react-native.web.mjs b/node_modules/@legendapp/list/react-native.web.mjs
+index 1dab5e5..fac9bd4 100644
+--- a/node_modules/@legendapp/list/react-native.web.mjs
++++ b/node_modules/@legendapp/list/react-native.web.mjs
+@@ -4698,7 +4698,8 @@ function calculateItemsInView(ctx, params = {}) {
+     const stickyHeaderIndicesArr = state.props.stickyHeaderIndicesArr || [];
+     const stickyHeaderIndicesSet = state.props.stickyHeaderIndicesSet || /* @__PURE__ */ new Set();
+     const drawDistance = getEffectiveDrawDistance(ctx, params.drawDistanceMode);
+-    const { dataChanged, doMVCP, forceFullItemPositions, mvcpAdjustmentSource } = params;
++    const { dataChanged, forceFullItemPositions, mvcpAdjustmentSource } = params;
++    let { doMVCP } = params;
+     const bootstrapInitialScrollState = ((_a3 = state.initialScrollSession) == null ? void 0 : _a3.kind) === "bootstrap" ? state.initialScrollSession.bootstrap : void 0;
+     const suppressInitialScrollSideEffects = !!bootstrapInitialScrollState;
+     const prevNumContainers = peek$(ctx, "numContainers");
+@@ -4799,6 +4800,11 @@ function calculateItemsInView(ctx, params = {}) {
+         }
+       }
+     }
++    // A deferred item-size correction must land in any pass that repositions items, or they move without it.
++    if (!doMVCP && state.scheduledWork.has("mvcpRecalculate")) {
++      state.scheduledWork.cancel("mvcpRecalculate");
++      doMVCP = true;
++    }
+     const checkMVCP = doMVCP && !suppressInitialScrollSideEffects ? prepareMVCP(ctx, dataChanged) : void 0;
+     if (dataChanged) {
+       resetLayoutCachesForDataChange(state);
+001.patch
+s0
+s1
+s2
+s3
+diff --git a/node_modules/@legendapp/list/react.js b/node_modules/@legendapp/list/react.js
+index 4500177..ff503a5 100644
+--- a/node_modules/@legendapp/list/react.js
++++ b/node_modules/@legendapp/list/react.js
+@@ -4719,7 +4719,8 @@ function calculateItemsInView(ctx, params = {}) {
+     const stickyHeaderIndicesArr = state.props.stickyHeaderIndicesArr || [];
+     const stickyHeaderIndicesSet = state.props.stickyHeaderIndicesSet || /* @__PURE__ */ new Set();
+     const drawDistance = getEffectiveDrawDistance(ctx, params.drawDistanceMode);
+-    const { dataChanged, doMVCP, forceFullItemPositions, mvcpAdjustmentSource } = params;
++    const { dataChanged, forceFullItemPositions, mvcpAdjustmentSource } = params;
++    let { doMVCP } = params;
+     const bootstrapInitialScrollState = ((_a3 = state.initialScrollSession) == null ? void 0 : _a3.kind) === "bootstrap" ? state.initialScrollSession.bootstrap : void 0;
+     const suppressInitialScrollSideEffects = !!bootstrapInitialScrollState;
+     const prevNumContainers = peek$(ctx, "numContainers");
+@@ -4820,6 +4821,11 @@ function calculateItemsInView(ctx, params = {}) {
+         }
+       }
+     }
++    // A deferred item-size correction must land in any pass that repositions items, or they move without it.
++    if (!doMVCP && state.scheduledWork.has("mvcpRecalculate")) {
++      state.scheduledWork.cancel("mvcpRecalculate");
++      doMVCP = true;
++    }
+     const checkMVCP = doMVCP && !suppressInitialScrollSideEffects ? prepareMVCP(ctx, dataChanged) : void 0;
+     if (dataChanged) {
+       resetLayoutCachesForDataChange(state);
+001.patch
+s0
+s1
+s2
+s3
+diff --git a/node_modules/@legendapp/list/react.mjs b/node_modules/@legendapp/list/react.mjs
+index 1dab5e5..fac9bd4 100644
+--- a/node_modules/@legendapp/list/react.mjs
++++ b/node_modules/@legendapp/list/react.mjs
+@@ -4698,7 +4698,8 @@ function calculateItemsInView(ctx, params = {}) {
+     const stickyHeaderIndicesArr = state.props.stickyHeaderIndicesArr || [];
+     const stickyHeaderIndicesSet = state.props.stickyHeaderIndicesSet || /* @__PURE__ */ new Set();
+     const drawDistance = getEffectiveDrawDistance(ctx, params.drawDistanceMode);
+-    const { dataChanged, doMVCP, forceFullItemPositions, mvcpAdjustmentSource } = params;
++    const { dataChanged, forceFullItemPositions, mvcpAdjustmentSource } = params;
++    let { doMVCP } = params;
+     const bootstrapInitialScrollState = ((_a3 = state.initialScrollSession) == null ? void 0 : _a3.kind) === "bootstrap" ? state.initialScrollSession.bootstrap : void 0;
+     const suppressInitialScrollSideEffects = !!bootstrapInitialScrollState;
+     const prevNumContainers = peek$(ctx, "numContainers");
+@@ -4799,6 +4800,11 @@ function calculateItemsInView(ctx, params = {}) {
+         }
+       }
+     }
++    // A deferred item-size correction must land in any pass that repositions items, or they move without it.
++    if (!doMVCP && state.scheduledWork.has("mvcpRecalculate")) {
++      state.scheduledWork.cancel("mvcpRecalculate");
++      doMVCP = true;
++    }
+     const checkMVCP = doMVCP && !suppressInitialScrollSideEffects ? prepareMVCP(ctx, dataChanged) : void 0;
+     if (dataChanged) {
+       resetLayoutCachesForDataChange(state);

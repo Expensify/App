@@ -1,0 +1,240 @@
+diff --git a/node_modules/@legendapp/list/react-native.js b/node_modules/@legendapp/list/react-native.js
+index eeb3fb0..d1e3f1c 100644
+--- a/node_modules/@legendapp/list/react-native.js
++++ b/node_modules/@legendapp/list/react-native.js
+@@ -797,9 +797,6 @@ function requestAdjust(ctx, positionDiff, source) {
+         ctx.doScrollTo({ horizontal: state.props.horizontal, isAdjustment: true, offset: state.scroll });
+       } else {
+         state.scrollAdjustHandler.requestAdjust(positionDiff);
+-        if (state.adjustingFromInitialMount) {
+-          state.adjustingFromInitialMount--;
+-        }
+       }
+     };
+     state.scroll += positionDiff;
+@@ -838,7 +835,13 @@ function requestAdjust(ctx, positionDiff, source) {
+       }
+     } else {
+       state.adjustingFromInitialMount = (state.adjustingFromInitialMount || 0) + 1;
+-      requestAnimationFrame(doit);
++      requestAnimationFrame(() => {
++        doit();
++        state.adjustingFromInitialMount = (state.adjustingFromInitialMount || 1) - 1;
++        if (!state.adjustingFromInitialMount) {
++          setInitialRenderState(ctx, {});
++        }
++      });
+     }
+   }
+ }
+@@ -1232,7 +1235,9 @@ function setInitialRenderState(ctx, {
+   if (didInitialScroll) {
+     state.didFinishInitialScroll = true;
+   }
+-  const isReadyToRender = Boolean(state.didContainersLayout && state.didFinishInitialScroll);
++  const isReadyToRender = Boolean(
++    state.didContainersLayout && state.didFinishInitialScroll && !state.adjustingFromInitialMount
++  );
+   if (isReadyToRender && !peek$(ctx, "readyToRender")) {
+     set$(ctx, "readyToRender", true);
+     setAdaptiveRender(ctx, "normal", "ready");
+diff --git a/node_modules/@legendapp/list/react-native.mjs b/node_modules/@legendapp/list/react-native.mjs
+index fe5f415..2252796 100644
+--- a/node_modules/@legendapp/list/react-native.mjs
++++ b/node_modules/@legendapp/list/react-native.mjs
+@@ -776,9 +776,6 @@ function requestAdjust(ctx, positionDiff, source) {
+         ctx.doScrollTo({ horizontal: state.props.horizontal, isAdjustment: true, offset: state.scroll });
+       } else {
+         state.scrollAdjustHandler.requestAdjust(positionDiff);
+-        if (state.adjustingFromInitialMount) {
+-          state.adjustingFromInitialMount--;
+-        }
+       }
+     };
+     state.scroll += positionDiff;
+@@ -817,7 +814,13 @@ function requestAdjust(ctx, positionDiff, source) {
+       }
+     } else {
+       state.adjustingFromInitialMount = (state.adjustingFromInitialMount || 0) + 1;
+-      requestAnimationFrame(doit);
++      requestAnimationFrame(() => {
++        doit();
++        state.adjustingFromInitialMount = (state.adjustingFromInitialMount || 1) - 1;
++        if (!state.adjustingFromInitialMount) {
++          setInitialRenderState(ctx, {});
++        }
++      });
+     }
+   }
+ }
+@@ -1211,7 +1214,9 @@ function setInitialRenderState(ctx, {
+   if (didInitialScroll) {
+     state.didFinishInitialScroll = true;
+   }
+-  const isReadyToRender = Boolean(state.didContainersLayout && state.didFinishInitialScroll);
++  const isReadyToRender = Boolean(
++    state.didContainersLayout && state.didFinishInitialScroll && !state.adjustingFromInitialMount
++  );
+   if (isReadyToRender && !peek$(ctx, "readyToRender")) {
+     set$(ctx, "readyToRender", true);
+     setAdaptiveRender(ctx, "normal", "ready");
+diff --git a/node_modules/@legendapp/list/react-native.web.js b/node_modules/@legendapp/list/react-native.web.js
+index 3d15098..72be92e 100644
+--- a/node_modules/@legendapp/list/react-native.web.js
++++ b/node_modules/@legendapp/list/react-native.web.js
+@@ -731,9 +731,6 @@ function requestAdjust(ctx, positionDiff, source) {
+     const doit = () => {
+       {
+         state.scrollAdjustHandler.requestAdjust(positionDiff);
+-        if (state.adjustingFromInitialMount) {
+-          state.adjustingFromInitialMount--;
+-        }
+       }
+     };
+     state.scroll += positionDiff;
+@@ -746,7 +743,13 @@ function requestAdjust(ctx, positionDiff, source) {
+       doit();
+     } else {
+       state.adjustingFromInitialMount = (state.adjustingFromInitialMount || 0) + 1;
+-      requestAnimationFrame(doit);
++      requestAnimationFrame(() => {
++        doit();
++        state.adjustingFromInitialMount = (state.adjustingFromInitialMount || 1) - 1;
++        if (!state.adjustingFromInitialMount) {
++          setInitialRenderState(ctx, {});
++        }
++      });
+     }
+   }
+ }
+@@ -1134,7 +1137,9 @@ function setInitialRenderState(ctx, {
+   if (didInitialScroll) {
+     state.didFinishInitialScroll = true;
+   }
+-  const isReadyToRender = Boolean(state.didContainersLayout && state.didFinishInitialScroll);
++  const isReadyToRender = Boolean(
++    state.didContainersLayout && state.didFinishInitialScroll && !state.adjustingFromInitialMount
++  );
+   if (isReadyToRender && !peek$(ctx, "readyToRender")) {
+     set$(ctx, "readyToRender", true);
+     setAdaptiveRender(ctx, "normal", "ready");
+diff --git a/node_modules/@legendapp/list/react-native.web.mjs b/node_modules/@legendapp/list/react-native.web.mjs
+index 0f0be2d..5a359ba 100644
+--- a/node_modules/@legendapp/list/react-native.web.mjs
++++ b/node_modules/@legendapp/list/react-native.web.mjs
+@@ -710,9 +710,6 @@ function requestAdjust(ctx, positionDiff, source) {
+     const doit = () => {
+       {
+         state.scrollAdjustHandler.requestAdjust(positionDiff);
+-        if (state.adjustingFromInitialMount) {
+-          state.adjustingFromInitialMount--;
+-        }
+       }
+     };
+     state.scroll += positionDiff;
+@@ -725,7 +722,13 @@ function requestAdjust(ctx, positionDiff, source) {
+       doit();
+     } else {
+       state.adjustingFromInitialMount = (state.adjustingFromInitialMount || 0) + 1;
+-      requestAnimationFrame(doit);
++      requestAnimationFrame(() => {
++        doit();
++        state.adjustingFromInitialMount = (state.adjustingFromInitialMount || 1) - 1;
++        if (!state.adjustingFromInitialMount) {
++          setInitialRenderState(ctx, {});
++        }
++      });
+     }
+   }
+ }
+@@ -1113,7 +1116,9 @@ function setInitialRenderState(ctx, {
+   if (didInitialScroll) {
+     state.didFinishInitialScroll = true;
+   }
+-  const isReadyToRender = Boolean(state.didContainersLayout && state.didFinishInitialScroll);
++  const isReadyToRender = Boolean(
++    state.didContainersLayout && state.didFinishInitialScroll && !state.adjustingFromInitialMount
++  );
+   if (isReadyToRender && !peek$(ctx, "readyToRender")) {
+     set$(ctx, "readyToRender", true);
+     setAdaptiveRender(ctx, "normal", "ready");
+diff --git a/node_modules/@legendapp/list/react.js b/node_modules/@legendapp/list/react.js
+index 3d15098..72be92e 100644
+--- a/node_modules/@legendapp/list/react.js
++++ b/node_modules/@legendapp/list/react.js
+@@ -731,9 +731,6 @@ function requestAdjust(ctx, positionDiff, source) {
+     const doit = () => {
+       {
+         state.scrollAdjustHandler.requestAdjust(positionDiff);
+-        if (state.adjustingFromInitialMount) {
+-          state.adjustingFromInitialMount--;
+-        }
+       }
+     };
+     state.scroll += positionDiff;
+@@ -746,7 +743,13 @@ function requestAdjust(ctx, positionDiff, source) {
+       doit();
+     } else {
+       state.adjustingFromInitialMount = (state.adjustingFromInitialMount || 0) + 1;
+-      requestAnimationFrame(doit);
++      requestAnimationFrame(() => {
++        doit();
++        state.adjustingFromInitialMount = (state.adjustingFromInitialMount || 1) - 1;
++        if (!state.adjustingFromInitialMount) {
++          setInitialRenderState(ctx, {});
++        }
++      });
+     }
+   }
+ }
+@@ -1134,7 +1137,9 @@ function setInitialRenderState(ctx, {
+   if (didInitialScroll) {
+     state.didFinishInitialScroll = true;
+   }
+-  const isReadyToRender = Boolean(state.didContainersLayout && state.didFinishInitialScroll);
++  const isReadyToRender = Boolean(
++    state.didContainersLayout && state.didFinishInitialScroll && !state.adjustingFromInitialMount
++  );
+   if (isReadyToRender && !peek$(ctx, "readyToRender")) {
+     set$(ctx, "readyToRender", true);
+     setAdaptiveRender(ctx, "normal", "ready");
+diff --git a/node_modules/@legendapp/list/react.mjs b/node_modules/@legendapp/list/react.mjs
+index 0f0be2d..5a359ba 100644
+--- a/node_modules/@legendapp/list/react.mjs
++++ b/node_modules/@legendapp/list/react.mjs
+@@ -710,9 +710,6 @@ function requestAdjust(ctx, positionDiff, source) {
+     const doit = () => {
+       {
+         state.scrollAdjustHandler.requestAdjust(positionDiff);
+-        if (state.adjustingFromInitialMount) {
+-          state.adjustingFromInitialMount--;
+-        }
+       }
+     };
+     state.scroll += positionDiff;
+@@ -725,7 +722,13 @@ function requestAdjust(ctx, positionDiff, source) {
+       doit();
+     } else {
+       state.adjustingFromInitialMount = (state.adjustingFromInitialMount || 0) + 1;
+-      requestAnimationFrame(doit);
++      requestAnimationFrame(() => {
++        doit();
++        state.adjustingFromInitialMount = (state.adjustingFromInitialMount || 1) - 1;
++        if (!state.adjustingFromInitialMount) {
++          setInitialRenderState(ctx, {});
++        }
++      });
+     }
+   }
+ }
+@@ -1113,7 +1116,9 @@ function setInitialRenderState(ctx, {
+   if (didInitialScroll) {
+     state.didFinishInitialScroll = true;
+   }
+-  const isReadyToRender = Boolean(state.didContainersLayout && state.didFinishInitialScroll);
++  const isReadyToRender = Boolean(
++    state.didContainersLayout && state.didFinishInitialScroll && !state.adjustingFromInitialMount
++  );
+   if (isReadyToRender && !peek$(ctx, "readyToRender")) {
+     set$(ctx, "readyToRender", true);
+     setAdaptiveRender(ctx, "normal", "ready");
