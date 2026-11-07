@@ -429,12 +429,20 @@ function resolveLastActionContext(
     report: Report,
     isReportArchived: boolean | undefined,
     visibleReportActionsData: VisibleReportActionsDerivedValue | undefined,
+    currentUserAccountID: number,
     oneTransactionThreadReportID?: string,
 ): LastActionContext {
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const resolvedOneTransactionThreadReportID = oneTransactionThreadReportID ?? deprecatedCachedOneTransactionThreadReportIDs[report.reportID];
-    const lastAction = getLastVisibleActionIncludingTransactionThread(report.reportID, canUserPerformWrite, undefined, visibleReportActionsData, resolvedOneTransactionThreadReportID);
+    const lastAction = getLastVisibleActionIncludingTransactionThread(
+        report.reportID,
+        canUserPerformWrite,
+        undefined,
+        visibleReportActionsData,
+        resolvedOneTransactionThreadReportID,
+        currentUserAccountID,
+    );
     let lastActionReport: OnyxEntry<Report>;
     if (isInviteOrRemovedAction(lastAction)) {
         const lastActionOriginalMessage = getOriginalMessage(lastAction);
@@ -461,7 +469,9 @@ function getLastActorDisplayNameFromLastVisibleActions(
 ): string {
     const reportID = report?.reportID;
     const canUserPerformWrite = canUserPerformWriteAction(report, privateIsArchived);
-    const lastReportAction = lastAction ?? getLastVisibleActionIncludingTransactionThread(reportID, canUserPerformWrite, undefined, visibleReportActionsData, oneTransactionThreadReportID);
+    const lastReportAction =
+        lastAction ??
+        getLastVisibleActionIncludingTransactionThread(reportID, canUserPerformWrite, undefined, visibleReportActionsData, oneTransactionThreadReportID, currentUserAccountIDParam);
 
     if (lastReportAction) {
         const lastActorAccountID = getReportActionActorAccountID(lastReportAction, undefined, undefined) || report?.lastActorAccountID;
@@ -548,25 +558,26 @@ function getLastMessageTextForReport({
 }): string {
     const reportID = report?.reportID;
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
-    let lastReportAction = lastAction ?? getLastVisibleAction(reportID, canUserPerformWrite, {}, undefined, visibleReportActionsDataParam);
+    let lastReportAction = lastAction ?? getLastVisibleAction(reportID, canUserPerformWrite, {}, undefined, visibleReportActionsDataParam, currentUserAccountID);
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const transactionThreadReportID = oneTransactionThreadReportID ?? (reportID ? deprecatedCachedOneTransactionThreadReportIDs[reportID] : undefined);
 
     if (reportID && !lastAction && transactionThreadReportID) {
         lastReportAction =
-            getLastVisibleActionIncludingTransactionThread(reportID, canUserPerformWrite, undefined, visibleReportActionsDataParam, transactionThreadReportID) ?? lastReportAction;
+            getLastVisibleActionIncludingTransactionThread(reportID, canUserPerformWrite, undefined, visibleReportActionsDataParam, transactionThreadReportID, currentUserAccountID) ??
+            lastReportAction;
     }
 
     // Compute lastVisibleMessage before IOU filter — it needs IOU CREATE/TRACK for text extraction.
-    const lastVisibleMessage = getLastVisibleMessage(report?.reportID, undefined, {}, lastReportAction, visibleReportActionsDataParam);
+    const lastVisibleMessage = getLastVisibleMessage(report?.reportID, undefined, {}, lastReportAction, visibleReportActionsDataParam, currentUserAccountID);
 
     // For one-transaction reports, filter IOU CREATE/TRACK and fall back to the parent's action (e.g. REPORT_PREVIEW).
     if (transactionThreadReportID && lastReportAction && isMoneyRequestAction(lastReportAction)) {
         const actionType = getOriginalMessage(lastReportAction)?.type ?? '';
         const isSelfDMReport = reportUtilsIsSelfDM(report);
         if (actionType === CONST.IOU.REPORT_ACTION_TYPE.CREATE || (!isSelfDMReport && actionType === CONST.IOU.REPORT_ACTION_TYPE.TRACK)) {
-            const parentLastAction = getLastVisibleAction(reportID, canUserPerformWrite, {}, undefined, visibleReportActionsDataParam);
+            const parentLastAction = getLastVisibleAction(reportID, canUserPerformWrite, {}, undefined, visibleReportActionsDataParam, currentUserAccountID);
             if (parentLastAction && isMoneyRequestAction(parentLastAction)) {
                 const parentActionType = getOriginalMessage(parentLastAction)?.type ?? '';
                 if (parentActionType === CONST.IOU.REPORT_ACTION_TYPE.CREATE || (!isSelfDMReport && parentActionType === CONST.IOU.REPORT_ACTION_TYPE.TRACK)) {
