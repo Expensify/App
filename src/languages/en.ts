@@ -11128,6 +11128,7 @@ const translations = {
             submit: 'Drafts',
             approve: 'Needs approval',
             pay: 'Ready to pay',
+            rejected: 'Rejected',
             accounting: 'Accounting',
             export: 'Awaiting export',
             unapprovedCash: 'Cash accruals',
@@ -11186,6 +11187,10 @@ const translations = {
             emptyPayResults: {
                 title: 'No expenses to pay',
                 subtitle: 'Congrats! You crossed the finish line.',
+            },
+            emptyRejectedResults: {
+                title: 'No rejected expenses',
+                subtitle: 'Nothing to fix. Nice work!',
             },
             emptyExportResults: {
                 title: 'No expenses to export',

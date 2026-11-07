@@ -9240,6 +9240,7 @@ const CONST = {
             SUBMIT: 'submit',
             APPROVE: 'approve',
             PAY: 'pay',
+            REJECTED: 'rejected',
             EXPORT: 'export',
             STATEMENTS: 'statements',
             UNAPPROVED_CASH: 'unapprovedCash',
