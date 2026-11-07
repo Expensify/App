@@ -1,6 +1,15 @@
 # PR 102579 local manual QA evidence
 
-Tested PR head `8a0551dbd53881ee81b3ae02121bdd94510ec727` against the refreshed Expensidev backend on 2026-11-07. These screenshots are from synthetic local accounts and workspaces. Browser traces and raw console logs remain local because they can contain session data.
+The full browser matrix below tested PR head `8a0551dbd53881ee81b3ae02121bdd94510ec727` against the refreshed Expensidev backend on 2026-11-07. After `main` advanced again, the PR was merged and pushed at `7766857ec57e69d3a6cab004e3b1349ae27f489d`; the focused post-merge retest is documented first. The PR's four-file diff against `main` did not change in that merge. These screenshots are from synthetic local accounts and workspaces. Browser traces and raw console logs remain local because they can contain session data.
+
+## Final PR head after latest-main merge
+
+- [Open non-reimbursable Draft with its transaction loaded](final-main-merge-open-report.png), [excluded in admin picker search](final-main-merge-open-excluded.png), and [mixed report still listed](final-main-merge-mixed-listed.png).
+- [Open Draft excluded offline](final-main-merge-offline-excluded.png) while [the mixed report remains available offline](final-main-merge-offline-mixed.png).
+- [Valid move returned HTTP 200 / `jsonCode` 200](final-main-merge-valid-move.png); [the destination shows the $4 source expense after reload](final-main-merge-move-after-reload.png).
+- [Normal member's Open non-reimbursable Draft](final-main-merge-member-open-report.png) and [the member picker excluding it](final-main-merge-member-excluded.png).
+
+The latest backend `main` was rebuilt and restarted before this retest. Native Android and iOS builds were attempted but stopped before installation because Mapbox returned HTTP 401 for required dependencies. Those platform results remain unverified.
 
 ## Desktop Chromium, 1280 × 720
 
