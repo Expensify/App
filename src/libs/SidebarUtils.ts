@@ -152,6 +152,7 @@ type ShouldDisplayReportInLHNParams = {
     isDefaultRoomsBetaEnabled: boolean;
     isBillPayBetaEnabled?: boolean;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
+    reportMetadata: OnyxEntry<ReportMetadata>;
     draftComment: OnyxEntry<string>;
     transactions: OnyxCollection<Transaction>;
     isOffline: boolean;
@@ -173,6 +174,7 @@ function shouldDisplayReportInLHN({
     isDefaultRoomsBetaEnabled,
     isBillPayBetaEnabled = false,
     transactionViolations,
+    reportMetadata,
     draftComment,
     transactions,
     isOffline,
@@ -252,6 +254,7 @@ function shouldDisplayReportInLHN({
         includeSelfDM: true,
         isReportArchived,
         requiresAttention,
+        reportMetadata,
         derivedIsEmptyReport: reportAttributes?.[report?.reportID]?.isEmpty,
         currentUserLogin,
         currentUserAccountID,
@@ -305,6 +308,7 @@ function getReportsToDisplayInLHN({
     priorityMode,
     draftComments,
     transactionViolations,
+    reportMetadata,
     transactions,
     isOffline,
     currentUserLogin,
@@ -323,6 +327,7 @@ function getReportsToDisplayInLHN({
     priorityMode: OnyxEntry<PriorityMode>;
     draftComments: OnyxCollection<string>;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
+    reportMetadata: OnyxCollection<ReportMetadata>;
     transactions: OnyxCollection<Transaction>;
     isOffline: boolean;
     currentUserLogin: string;
@@ -356,6 +361,7 @@ function getReportsToDisplayInLHN({
             isDefaultRoomsBetaEnabled,
             isBillPayBetaEnabled,
             transactionViolations,
+            reportMetadata: reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`],
             draftComment: reportDraftComment,
             transactions,
             isOffline,
@@ -396,6 +402,7 @@ type UpdateReportsToDisplayInLHNProps = {
     /** Defaults to false, so bills stay hidden unless the caller has the newDotBillPay beta */
     isBillPayBetaEnabled?: boolean;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
+    reportMetadata: OnyxCollection<ReportMetadata>;
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
     draftComments: OnyxCollection<string>;
@@ -418,6 +425,7 @@ function updateReportsToDisplayInLHN({
     isDefaultRoomsBetaEnabled,
     isBillPayBetaEnabled = false,
     transactionViolations,
+    reportMetadata,
     reportNameValuePairs,
     reportAttributes,
     draftComments,
@@ -463,6 +471,7 @@ function updateReportsToDisplayInLHN({
             isDefaultRoomsBetaEnabled,
             isBillPayBetaEnabled,
             transactionViolations,
+            reportMetadata: reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`],
             draftComment: reportDraftComment,
             transactions,
             isOffline,

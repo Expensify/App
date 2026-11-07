@@ -12,6 +12,7 @@ import arraysEqual from '@src/utils/arraysEqual';
 
 import type {ValueOf} from 'type-fest';
 
+import {pendingExpenseActionByReportSelector} from '@selectors/ReportMetaData';
 import {authTokenTypeSelector} from '@selectors/Session';
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 
@@ -114,6 +115,8 @@ function SidebarOrderedReportsContextProvider({
     const transactionsUpdates = useCollectionDelta(transactions);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const transactionViolationsUpdates = useCollectionDelta(transactionViolations);
+    const [reportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {selector: pendingExpenseActionByReportSelector});
+    const reportMetadataUpdates = useCollectionDelta(reportMetadata);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const reportNameValuePairsUpdates = useCollectionDelta(reportNameValuePairs);
     const [reportsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
@@ -180,6 +183,11 @@ function SidebarOrderedReportsContextProvider({
                 reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
             }
         }
+        if (reportMetadataUpdates) {
+            for (const key of Object.keys(reportMetadataUpdates ?? {}).map((metadataKey) => metadataKey.replace(ONYXKEYS.COLLECTION.REPORT_METADATA, ONYXKEYS.COLLECTION.REPORT))) {
+                reportsToUpdate.add(key);
+            }
+        }
         if (transactionsUpdates) {
             for (const key of Object.values(transactionsUpdates ?? {}).map((transaction) => `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`)) {
                 reportsToUpdate.add(key);
@@ -233,6 +241,7 @@ function SidebarOrderedReportsContextProvider({
         reportUpdates,
         reportNameValuePairsUpdates,
         reportAttributesUpdates,
+        reportMetadataUpdates,
         transactionsUpdates,
         transactionViolationsUpdates,
         reportsDraftsUpdates,
@@ -281,6 +290,7 @@ function SidebarOrderedReportsContextProvider({
                 isDefaultRoomsBetaEnabled,
                 isBillPayBetaEnabled,
                 transactionViolations,
+                reportMetadata,
                 reportNameValuePairs,
                 reportAttributes,
                 draftComments: reportsDrafts,
@@ -303,6 +313,7 @@ function SidebarOrderedReportsContextProvider({
                 priorityMode,
                 draftComments: reportsDrafts,
                 transactionViolations,
+                reportMetadata,
                 transactions,
                 isOffline,
                 currentUserLogin: currentUserLogin ?? '',
@@ -326,6 +337,7 @@ function SidebarOrderedReportsContextProvider({
         isDefaultRoomsBetaEnabled,
         isBillPayBetaEnabled,
         transactionViolations,
+        reportMetadata,
         reportNameValuePairs,
         reportAttributes,
         reportsDrafts,
