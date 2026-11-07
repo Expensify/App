@@ -6,6 +6,7 @@ import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddi
 import useInitialDimensions from '@hooks/useInitialWindowDimensions';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useTackInputFocus from '@hooks/useTackInputFocus';
+import useTestToolsTapResponder from '@hooks/useTestToolsTapResponder';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -14,14 +15,12 @@ import {isMobile, isMobileWebKit, isSafari} from '@libs/Browser';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import addViewportResizeListener from '@libs/VisualViewport';
 
-import toggleTestToolsModal from '@userActions/TestTool';
-
 import CONST from '@src/CONST';
 
 import type {ComponentRef, ForwardedRef, ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React, {useContext, useEffect, useMemo, useRef} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {Keyboard, PanResponder, View} from 'react-native';
 import {PickerAvoidingView} from 'react-native-picker-select';
 
@@ -127,58 +126,40 @@ function ScreenWrapperContainer({
     // since Modals are drawn in separate native view hierarchy we should always add paddings
     const ignoreInsetsConsumption = !useContext(ModalContext).default;
 
-    const paddingTopStyle: StyleProp<ViewStyle> = useMemo(() => {
-        if (!includePaddingTop) {
-            return {};
-        }
-        if (isUsingEdgeToEdgeMode) {
-            return {paddingTop};
-        }
-        if (ignoreInsetsConsumption) {
-            return {paddingTop: unmodifiedPaddings.top};
-        }
-        return {paddingTop};
-    }, [isUsingEdgeToEdgeMode, ignoreInsetsConsumption, includePaddingTop, paddingTop, unmodifiedPaddings.top]);
+    const paddingTopStyle: StyleProp<ViewStyle> = !includePaddingTop
+        ? {}
+        : {
+              paddingTop: !isUsingEdgeToEdgeMode && ignoreInsetsConsumption ? unmodifiedPaddings.top : paddingTop,
+          };
 
     const showBottomContent = isUsingEdgeToEdgeMode ? !!bottomContent : true;
     const edgeToEdgeBottomContentStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, addOfflineIndicatorBottomSafeAreaPadding: false});
-    const legacyBottomContentStyle: StyleProp<ViewStyle> = useMemo(() => {
-        const shouldUseUnmodifiedPaddings = includeSafeAreaPaddingBottom && ignoreInsetsConsumption;
-        if (shouldUseUnmodifiedPaddings) {
-            return {
-                paddingBottom: unmodifiedPaddings.bottom,
-            };
-        }
+    const shouldUseUnmodifiedPaddings = includeSafeAreaPaddingBottom && ignoreInsetsConsumption;
+    const legacyBottomContentStyle: StyleProp<ViewStyle> = shouldUseUnmodifiedPaddings
+        ? {
+              paddingBottom: unmodifiedPaddings.bottom,
+          }
+        : {
+              // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
+              paddingBottom: includeSafeAreaPaddingBottom ? paddingBottom : undefined,
+          };
 
-        return {
-            // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
-            paddingBottom: includeSafeAreaPaddingBottom ? paddingBottom : undefined,
-        };
-    }, [ignoreInsetsConsumption, includeSafeAreaPaddingBottom, paddingBottom, unmodifiedPaddings.bottom]);
+    const bottomContentStyle = [isUsingEdgeToEdgeMode ? edgeToEdgeBottomContentStyle : legacyBottomContentStyle, bottomContentStyleProp];
 
-    const bottomContentStyle = useMemo(
-        () => [isUsingEdgeToEdgeMode ? edgeToEdgeBottomContentStyle : legacyBottomContentStyle, bottomContentStyleProp],
-        [isUsingEdgeToEdgeMode, edgeToEdgeBottomContentStyle, legacyBottomContentStyle, bottomContentStyleProp],
+    const testToolsTapResponder = useTestToolsTapResponder();
+
+    const [keyboardDismissPanResponder] = useState(
+        () =>
+            PanResponder.create({
+                onMoveShouldSetPanResponderCapture: (_e, gestureState) => {
+                    const isHorizontalSwipe = Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
+                    const shouldDismissKeyboard = shouldDismissKeyboardBeforeClose && Keyboard.isVisible() && isMobile();
+
+                    return isHorizontalSwipe && shouldDismissKeyboard;
+                },
+                onPanResponderGrant: Keyboard.dismiss,
+            }).panHandlers,
     );
-
-    const panResponder = useRef(
-        PanResponder.create({
-            onStartShouldSetPanResponderCapture: (_e, gestureState) => gestureState.numberActiveTouches === CONST.TEST_TOOL.NUMBER_OF_TAPS,
-            onPanResponderRelease: toggleTestToolsModal,
-        }),
-    ).current;
-
-    const keyboardDismissPanResponder = useRef(
-        PanResponder.create({
-            onMoveShouldSetPanResponderCapture: (_e, gestureState) => {
-                const isHorizontalSwipe = Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
-                const shouldDismissKeyboard = shouldDismissKeyboardBeforeClose && Keyboard.isVisible() && isMobile();
-
-                return isHorizontalSwipe && shouldDismissKeyboard;
-            },
-            onPanResponderGrant: Keyboard.dismiss,
-        }),
-    ).current;
 
     useEffect(() => {
         /**
@@ -206,7 +187,7 @@ function ScreenWrapperContainer({
             ref={ref}
             // This style gives the background for the screens. Stack cards are transparent to make different width screens in RHP possible.
             style={[styles.flex1, styles.appBG, styles.screenWrapperContainerMinHeight(minHeight)]}
-            {...panResponder.panHandlers}
+            {...testToolsTapResponder}
             testID={testID}
             fsClass={forwardedFSClass}
             tabIndex={-1}
@@ -215,7 +196,7 @@ function ScreenWrapperContainer({
         >
             <View
                 style={[shouldEnableMaxHeight && {marginTop: viewportOffsetTop}, style, paddingTopStyle]}
-                {...keyboardDismissPanResponder.panHandlers}
+                {...keyboardDismissPanResponder}
             >
                 <KeyboardAvoidingView
                     style={[styles.w100, styles.h100, !isBlurred ? {maxHeight} : undefined, isAvoidingViewportScroll ? [styles.overflowAuto, styles.overscrollBehaviorContain] : {}]}
@@ -241,5 +222,5 @@ function ScreenWrapperContainer({
 
 ScreenWrapperContainer.displayName = 'ScreenWrapperContainer';
 
-export default React.memo(ScreenWrapperContainer);
+export default ScreenWrapperContainer;
 export type {ScreenWrapperContainerProps};

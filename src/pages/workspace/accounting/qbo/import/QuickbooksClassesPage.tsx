@@ -54,6 +54,7 @@ function QuickbooksClassesPage({policy}: WithPolicyProps) {
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}
                 switchAccessibilityLabel={translate('workspace.qbo.classes')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.IMPORT_CLASSES_SWITCH}
                 isActive={isSwitchOn}
                 onToggle={() =>
                     updateQuickbooksOnlineSyncClasses(policyID, isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG, qboConfig?.syncClasses)

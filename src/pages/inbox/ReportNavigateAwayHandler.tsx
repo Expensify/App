@@ -97,6 +97,7 @@ function ReportNavigateAwayHandler() {
     // a temporary Onyx SET that wipes the report; by the time effects fire, report is undefined
     // so we must persist the value in a ref updated synchronously during render. See issue #84248.
     const isCurrentRouteOwnWorkspaceChatRef = useIsOwnWorkspaceChatRef(report, reportIDFromRoute);
+    const isPendingCreationFromRoute = route.name === SCREENS.REPORT ? route.params?.isPendingCreation === 'true' : false;
 
     const firstRender = useRef(true);
 
@@ -230,6 +231,11 @@ function ReportNavigateAwayHandler() {
             return;
         }
 
+        // A report still pending creation was never created, so its removal is a failed create that the opener handles.
+        if (isPendingCreationFromRoute) {
+            return;
+        }
+
         Navigation.isNavigationReady().then(() => {
             // Drop the deleted report from the split navigator stack before navigating away. Otherwise, it stays
             // mounted underneath the destination, and tapping back refocuses it and re-triggers this effect,
@@ -251,6 +257,7 @@ function ReportNavigateAwayHandler() {
         reportWasDeleted,
         previousReportWasDeleted,
         isFocused,
+        isPendingCreationFromRoute,
         deletedReportParentID,
         conciergeReportID,
         introSelected,

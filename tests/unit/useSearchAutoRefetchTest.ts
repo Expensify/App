@@ -7,17 +7,21 @@ import type {UseSearchAutoRefetch} from '@hooks/useSearchAutoRefetch';
 import {search} from '@libs/actions/Search';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {MemberCustomFieldsByPolicyID} from '@src/selectors/Policy';
 import type {Transaction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
 
+const mockUseIsFocused = jest.fn((): boolean => true);
+
 jest.mock('@libs/actions/Search');
 jest.mock('@react-navigation/native', () => ({
-    useIsFocused: jest.fn(() => true),
+    useIsFocused: () => mockUseIsFocused(),
     createNavigationContainerRef: () => ({}),
 }));
+jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn(() => false));
 jest.mock('@rnmapbox/maps', () => ({
     __esModule: true,
     default: {},
@@ -28,11 +32,10 @@ jest.mock('@rnmapbox/maps', () => ({
 let mockIsOffline = false;
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: mockIsOffline})));
 
-const mockUseIsFocused = jest.fn().mockReturnValue(true);
-
 afterEach(() => {
     jest.clearAllMocks();
     mockIsOffline = false;
+    mockUseIsFocused.mockReturnValue(true);
 });
 
 describe('useSearchAutoRefetch', () => {
@@ -62,6 +65,8 @@ describe('useSearchAutoRefetch', () => {
         previousTransactions: {},
         reportActions: {},
         previousReportActions: {},
+        memberCustomFields: {},
+        previousMemberCustomFields: {},
         queryJSON: {
             type: 'expense',
             sortBy: 'date',
@@ -610,5 +615,86 @@ describe('useSearchAutoRefetch', () => {
 
         rerender(updatedProps);
         expect(search).not.toHaveBeenCalled();
+    });
+
+    describe('member custom field changes', () => {
+        const transactions = {transactions_1: createMock<Transaction>({transactionID: '1'})};
+        const reportActions = {};
+        const memberWithUserID = (employeeUserID: string): MemberCustomFieldsByPolicyID => ({'1': {'a@b.com': {employeeUserID}}});
+
+        const buildProps = (memberCustomFields: MemberCustomFieldsByPolicyID | undefined, previousMemberCustomFields: MemberCustomFieldsByPolicyID | undefined) =>
+            createMock<UseSearchAutoRefetch>({
+                ...baseProps,
+                transactions,
+                previousTransactions: transactions,
+                reportActions,
+                previousReportActions: reportActions,
+                memberCustomFields,
+                previousMemberCustomFields,
+            });
+
+        it('should trigger search when a member custom field changes on a policy the results display', () => {
+            // Given results whose member custom fields have loaded once
+            const oldFields = memberWithUserID('OLD');
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps: buildProps(oldFields, oldFields),
+            });
+
+            // When a member's custom field value changes
+            rerender(buildProps(memberWithUserID('NEW'), oldFields));
+
+            // Then one search is sent so the snapshot picks up the new value
+            expect(search).toHaveBeenCalledTimes(1);
+            expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
+        });
+
+        it('should defer the search for a member custom field change until Search is focused again', () => {
+            // Given Search is not the focused screen
+            const oldFields = memberWithUserID('OLD');
+            const newFields = memberWithUserID('NEW');
+            mockUseIsFocused.mockReturnValue(false);
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps: buildProps(oldFields, oldFields),
+            });
+
+            // When a member's custom field changes while Search is blurred
+            rerender(buildProps(newFields, oldFields));
+            expect(search).not.toHaveBeenCalled();
+
+            rerender(buildProps(newFields, newFields));
+            expect(search).not.toHaveBeenCalled();
+
+            // Then the search fires once Search regains focus
+            mockUseIsFocused.mockReturnValue(true);
+            rerender(buildProps(newFields, newFields));
+            expect(search).toHaveBeenCalledTimes(1);
+        });
+
+        it('should not trigger search when the custom fields are rewritten with the same values', () => {
+            // Given a member whose custom fields have loaded
+            const oldFields = memberWithUserID('OLD');
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps: buildProps(oldFields, oldFields),
+            });
+
+            // When the projection is replaced by an equal one
+            rerender(buildProps(memberWithUserID('OLD'), oldFields));
+
+            // Then no search is sent
+            expect(search).not.toHaveBeenCalled();
+        });
+
+        it('should not trigger search when a policy or member first appears in the custom fields', () => {
+            // Given no custom fields have loaded for the results yet
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps: buildProps({}, {}),
+            });
+
+            // When a policy and its member arrive for the first time
+            rerender(buildProps(memberWithUserID('NEW'), {}));
+
+            // Then no search is sent, since nothing the results already show has changed
+            expect(search).not.toHaveBeenCalled();
+        });
     });
 });

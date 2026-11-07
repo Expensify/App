@@ -33,6 +33,15 @@ function getTagListName(policyTagList: OnyxEntry<PolicyTagLists>, orderWeight: n
 }
 
 /**
+ * Gets the Onyx key and value of the tag list with the given orderWeight.
+ * Tag list names can repeat (e.g. "Sub-projects" stored under both "Sub-projects" and "Sub-projects_2"),
+ * so a tag list must be read and written by its key, never by its name.
+ */
+function getTagListEntryByOrderWeight(policyTagList: OnyxEntry<PolicyTagLists>, orderWeight: number): [string, ValueOf<PolicyTagLists>] | undefined {
+    return Object.entries(policyTagList ?? {}).find(([, tagList]) => tagList?.orderWeight === orderWeight);
+}
+
+/**
  * Gets all tag lists of a policy
  */
 function getTagLists(policyTagList: OnyxEntry<PolicyTagLists>): Array<ValueOf<PolicyTagLists>> {
@@ -177,11 +186,8 @@ function getTagListByOrderWeight(policyTagList: OnyxEntry<PolicyTagLists>, order
         tags: {},
         orderWeight: 0,
     };
-    if (isEmptyObject(policyTagList)) {
-        return tagListEmpty;
-    }
 
-    return Object.values(policyTagList).find((tag) => tag.orderWeight === orderWeight) ?? tagListEmpty;
+    return getTagListEntryByOrderWeight(policyTagList, orderWeight)?.[1] ?? tagListEmpty;
 }
 
 function getTagNamesFromTagsLists(policyTagLists: PolicyTagLists): string[] {
@@ -264,11 +270,12 @@ function hasAnyTagGLCode(policyTagLists: OnyxEntry<PolicyTagLists>): boolean {
 }
 
 /**
- * Escape colon from tag name. Colons that are already escaped are left as-is to match the backend,
+ * Escape colon from tag name. A colon preceded by an odd number of backslashes is already escaped and is left as-is,
  * otherwise `\:` would become `\\:`, which is read as an escaped backslash followed by a tag level separator.
+ * A colon preceded by an even number of backslashes (e.g. `\\:`) is a bare separator, so it is escaped, matching `getTagArrayFromName`.
  */
 function escapeTagName(tag: string) {
-    return tag?.replaceAll(/(?<!\\):/g, '\\:');
+    return tag?.replaceAll(/(?<!\\)((?:\\\\)*):/g, '$1\\:');
 }
 
 /**
@@ -363,6 +370,7 @@ function getTagListLabel(tagListName: string | undefined, fallbackLabel: string)
 export {
     getSortedTagKeys,
     getTagListName,
+    getTagListEntryByOrderWeight,
     getTagLists,
     hasTags,
     matchesParentTagsFilter,

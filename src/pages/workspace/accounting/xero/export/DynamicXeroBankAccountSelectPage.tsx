@@ -23,7 +23,7 @@ import {updateXeroExportNonReimbursableAccount} from '@userActions/connections/X
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 function DynamicXeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) {
@@ -33,50 +33,38 @@ function DynamicXeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) 
 
     const policyID = policy?.id;
     const {config} = policy?.connections?.xero ?? {};
-    const xeroSelectorOptions = useMemo<SelectorType[]>(
-        () => getXeroBankAccounts(policy ?? undefined, config?.export?.nonReimbursableAccount),
-        [config?.export?.nonReimbursableAccount, policy],
-    );
+    const xeroSelectorOptions: SelectorType[] = getXeroBankAccounts(policy ?? undefined, config?.export?.nonReimbursableAccount);
 
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_BANK_ACCOUNT_SELECT.path);
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
-    const listHeaderComponent = useMemo(
-        () => (
-            <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.xero.xeroBankAccountDescription')}</Text>
-            </View>
-        ),
-        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal],
+    const listHeaderComponent = (
+        <View style={[styles.pb2, styles.ph5]}>
+            <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.xero.xeroBankAccountDescription')}</Text>
+        </View>
     );
 
-    const initiallyFocusedOptionKey = useMemo(() => xeroSelectorOptions?.find((mode) => mode.isSelected)?.keyForList, [xeroSelectorOptions]);
+    const initiallyFocusedOptionKey = xeroSelectorOptions?.find((mode) => mode.isSelected)?.keyForList;
 
-    const updateBankAccount = useCallback(
-        ({value}: SelectorType) => {
-            if (initiallyFocusedOptionKey !== value && policyID) {
-                updateXeroExportNonReimbursableAccount(policyID, value, config?.export?.nonReimbursableAccount);
-            }
-            goBack();
-        },
-        [initiallyFocusedOptionKey, policyID, config?.export?.nonReimbursableAccount, goBack],
-    );
+    const updateBankAccount = ({value}: SelectorType) => {
+        if (initiallyFocusedOptionKey !== value && policyID) {
+            updateXeroExportNonReimbursableAccount(policyID, value, config?.export?.nonReimbursableAccount);
+        }
+        goBack();
+    };
 
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.Telescope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.xero.noAccountsFound')}
-                subtitle={translate('workspace.xero.noAccountsFoundDescription')}
-                containerStyle={styles.pb10}
-            />
-        ),
-        [translate, styles.pb10, illustrations.Telescope],
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.xero.noAccountsFound')}
+            subtitle={translate('workspace.xero.noAccountsFoundDescription')}
+            containerStyle={styles.pb10}
+        />
     );
 
     return (

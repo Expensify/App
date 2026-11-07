@@ -115,6 +115,43 @@ describe('useUnreadMarker', () => {
         expect(result.current.unreadMarkerReportActionIndex).toBe(-1);
     });
 
+    it('does not use the oldestUnread anchor on first open when the current user authored the anchored action', () => {
+        // Given an action from the current user that is newer than the session's lastReadTime
+        const selfAction = makeAction('a', {actorAccountID: CURRENT_USER_ACCOUNT_ID});
+
+        // When the chat opens before the report actions have loaded
+        const {result} = renderUnreadMarker({
+            sortedVisibleReportActions: [selfAction],
+            oldestUnreadReportActionID: 'a',
+            hasOnceLoadedReportActions: false,
+        });
+
+        // Then no marker is shown because the current user authored the anchor action
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+        expect(result.current.unreadMarkerReportActionIndex).toBe(-1);
+    });
+
+    it('does not use the oldestUnread anchor on first open when the current user is the last actor of the anchored report preview', () => {
+        // Given a report preview anchor where actorAccountID belongs to another user
+        // and childLastActorAccountID belongs to the current user
+        const reportPreviewAction = makeAction('a', {
+            actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            actorAccountID: OTHER_USER_ACCOUNT_ID,
+            childLastActorAccountID: CURRENT_USER_ACCOUNT_ID,
+        });
+
+        // When the chat opens before the report actions have loaded
+        const {result} = renderUnreadMarker({
+            sortedVisibleReportActions: [reportPreviewAction],
+            oldestUnreadReportActionID: 'a',
+            hasOnceLoadedReportActions: false,
+        });
+
+        // Then no marker is shown, because report previews are attributed to their child report's last actor
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+        expect(result.current.unreadMarkerReportActionIndex).toBe(-1);
+    });
+
     it('clears the marker when an unreadAction event advances the unread marker time past the message', () => {
         const {result} = renderUnreadMarker({sortedVisibleReportActions: [makeAction('m1')]});
         expect(result.current.unreadMarkerReportActionID).toBe('m1');

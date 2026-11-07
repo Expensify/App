@@ -19,9 +19,12 @@ import type TransactionDataCellProps from './TransactionDataCellProps';
 type CategoryCellProps = TransactionDataCellProps &
     EditableProps<string> & {
         policyID?: string;
+
+        /** The account the expense belongs to, passed only when the current user owns it, so the picker lists just their categories */
+        ownerAccountID?: number;
     };
 
-function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem, canEdit, onSave, policyID}: CategoryCellProps) {
+function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem, canEdit, onSave, policyID, ownerAccountID}: CategoryCellProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Folder']);
     const styles = useThemeStyles();
 
@@ -77,6 +80,7 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
                     shouldMeasureAnchorPositionFromTop={!shouldOpenAbove}
                     shouldSwitchPositionIfOverflow={false}
                     onSelected={handleCategorySelected}
+                    ownerAccountID={ownerAccountID}
                 />
             }
         >

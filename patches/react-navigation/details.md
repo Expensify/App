@@ -40,9 +40,11 @@
 - Upstream PR/issue: https://github.com/react-navigation/react-navigation/pull/12751 (`route.history` + `pushParams`, added upstream for this use case); originating issue https://github.com/react-navigation/react-navigation/issues/12460. On the v8 upgrade, evaluate adopting `pushParams` to shrink this patch.
 - E/App issue: [#21356](https://github.com/Expensify/App/issues/21356)
 - PR Introducing Patch: [#24165](https://github.com/Expensify/App/pull/24165)
-- PR Updating Patch: [#32087](https://github.com/Expensify/App/pull/32087) [#42465](https://github.com/Expensify/App/pull/42465) [#64155](https://github.com/Expensify/App/pull/64155) [#103346](https://github.com/Expensify/App/pull/103346) [#101715](https://github.com/Expensify/App/issues/101715)
+- PR Updating Patch: [#32087](https://github.com/Expensify/App/pull/32087) [#42465](https://github.com/Expensify/App/pull/42465) [#64155](https://github.com/Expensify/App/pull/64155) [#103346](https://github.com/Expensify/App/pull/103346) [#101715](https://github.com/Expensify/App/issues/101715) [#103961](https://github.com/Expensify/App/issues/103961)
 - Note: Re-ported onto 7.4.1. `createMemoryHistory` and `useLinking` were refactored upstream (`getPathWithoutHash`, `getHistoryLength`, `pendingPopStateDelta`, `isPoppingLastEntry`), so the hunks were re-anchored instead of applied verbatim: `backIndex` keeps upstream's hash handling and adds the focused-route-key match, and `useLinking` keeps upstream's `pendingPopStateDelta` guard and `getHistoryLength` delta while re-adding `historyDeltaByKeys`/`getStaleHistoryDiff`. Two parts of the old patch became redundant and were dropped: the `findFocusedRouteKey` helper file now matches upstream's own module, and the extra `history.replace` right after `history.go(nextIndex - currentIndex)` duplicated the replace that upstream already runs at the end of the same `try` block.
-- Note: The `popstate` listener skips upstream's `isPoppingLastEntry` → `GO_BACK` shortcut when the last root history entry is a custom string entry (e.g. a `useSyncModalWithHistory` back-guard). No router can pop such an entry with `GO_BACK`, so it falls back to `resetRoot(record.state)` (the pre-7.3 behavior), which drops the entry and lets the modal close on browser Back.
+- Note: The `popstate` listener keeps upstream's `isPoppingLastEntry` → `GO_BACK` shortcut, which preserves live state changes (e.g. `SET_PARAMS` on a screen under a modal), but targets the `GO_BACK` at the navigator whose history changed (`currentFocused.key` from `findMatchingState`). An untargeted `GO_BACK` is handled by the deepest focused navigator (e.g. the reports split), even when the browser history change happened in the tab or root navigator, so the screen drifted from the URL ([#103961](https://github.com/Expensify/App/issues/103961)).
+- Note: The `popstate` listener skips the `GO_BACK` shortcut when the last history entry of that navigator is a custom string entry (e.g. a `useSyncModalWithHistory` back-guard). No router can pop such an entry with `GO_BACK`, so it falls back to `resetRoot(record.state)` (the pre-7.3 behavior), which drops the entry and lets the modal close on browser Back.
+- Note: On the React Navigation v8 upgrade, remove `isPoppingCustomHistoryEntry` and handle `GO_BACK` for our custom history entries in the root router. Context: https://github.com/react-navigation/react-navigation/issues/13333 and https://github.com/react-navigation/react-navigation/pull/13334.
 
 ### [@react-navigation+stack+7.11.2+001+edge-drag-gesture.patch](@react-navigation+stack+7.11.2+001+edge-drag-gesture.patch)
 
@@ -85,6 +87,14 @@
 - Upstream PR/issue: not reported yet. The Android removal bug belongs to react-native-screens (`TabsHostViewManager`).
 - E/App issue: [#104230](https://github.com/Expensify/App/issues/104230), [#104233](https://github.com/Expensify/App/issues/104233)
 - PR Introducing Patch: [#104238](https://github.com/Expensify/App/pull/104238)
+- PR Updating Patch: N/A
+
+### [@react-navigation+bottom-tabs+7.19.2+005+hidden-tab-under-tab-bar.patch](@react-navigation+bottom-tabs+7.19.2+005+hidden-tab-under-tab-bar.patch)
+
+- Reason: Keeps the native tab bar, with no item drawn as selected, while a `tabBarItemHidden` route (patch 003) is focused. This replaces two parts of patch 003: the hidden routes are drawn inside the first visible tab instead of over the host with the tab bar hidden, and the host selects that first visible tab instead of the last visible one in the tab history. The user tapping that tab leaves the hidden route, while native reporting it on its own still confirms the state as in patch 003. The RNScreens prop that hides the selection is added by its patch 007.
+- Upstream PR/issue: not reported, because it builds on patch 003, which has no upstream counterpart.
+- E/App issue: [#104197](https://github.com/Expensify/App/issues/104197)
+- PR Introducing Patch: [#104491](https://github.com/Expensify/App/pull/104491)
 - PR Updating Patch: N/A
 
 ### Removed patches
