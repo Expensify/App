@@ -4803,6 +4803,44 @@ describe('actions/Policy', () => {
             });
         });
 
+        it('should surface the blocking error instead of queuing the delete when blocked offline', async () => {
+            // Given a workspace that is known locally to still have Consolidated Travel Billing enabled
+            const fakePolicy = createRandomPolicy(0);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            const writeSpy = jest.spyOn(APIModule, 'write');
+
+            // When the workspace is deleted with the offline travel billing blocker
+            Policy.deleteWorkspace({
+                policies: {[`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`]: fakePolicy},
+                policyID: fakePolicy.id,
+                personalPolicyID: undefined,
+                activePolicyID: undefined,
+                policyName: fakePolicy.name,
+                lastAccessedWorkspacePolicyID: undefined,
+                policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
+                reportsToArchive: [],
+                transactionViolations: undefined,
+                reimbursementAccountError: undefined,
+                lastUsedPaymentMethods: undefined,
+                localeCompare: TestHelper.localeCompare,
+                offlineDeleteBlockedErrorKey: 'workspace.common.deleteTravelBillingError',
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                accountIDToLogin: {},
+            });
+            await waitForBatchedUpdates();
+
+            // Then the travel billing error is stored on the workspace so it matches the modal shown to the user
+            const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(Object.values(policy?.errors ?? {})).toEqual(['Your company still has Consolidated Travel Billing enabled.']);
+
+            // And no delete is queued, so the backend can't reject it later with a different error
+            expect(policy?.pendingAction).not.toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            expect(writeSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.DELETE_WORKSPACE, expect.anything(), expect.anything());
+            writeSpy.mockRestore();
+        });
+
         it('should remove violation from expense report', async () => {
             const policyID = '123';
             const expenseChatReportID = '1';
