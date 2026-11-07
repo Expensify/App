@@ -88,6 +88,7 @@ function create(context) {
     const sourceCode = context.sourceCode ?? context.getSourceCode();
     const navigationImportBindings = new WeakSet();
     const preInsertAliases = new WeakSet();
+    let hasNavigationImport = false;
 
     function trackBinding(node, bindingName, bindings) {
         const aliasVariable = sourceCode.getDeclaredVariables(node).find((variable) => variable.name === bindingName);
@@ -106,6 +107,10 @@ function create(context) {
     }
 
     return {
+        Program(node) {
+            // Imports may appear after calls, so inspect the whole file before skipping scope lookups.
+            hasNavigationImport = node.body.some((statement) => statement.type === 'ImportDeclaration' && isNavigationModuleImport(statement.source.value));
+        },
         ImportDeclaration(node) {
             if (!isNavigationModuleImport(node.source.value)) {
                 return;
@@ -118,6 +123,10 @@ function create(context) {
             }
         },
         VariableDeclarator(node) {
+            if (!hasNavigationImport) {
+                return;
+            }
+
             if (node.id.type === 'ObjectPattern' && node.init?.type === 'Identifier') {
                 const initVariable = getVariableByName(sourceCode.getScope(node), node.init.name);
 
@@ -139,6 +148,10 @@ function create(context) {
             }
         },
         CallExpression(node) {
+            if (!hasNavigationImport) {
+                return;
+            }
+
             const scope = sourceCode.getScope(node);
             const calleeVariable = node.callee.type === 'Identifier' ? getVariableByName(scope, node.callee.name) : null;
             const isTrackedAliasCall = !!calleeVariable && preInsertAliases.has(calleeVariable);
