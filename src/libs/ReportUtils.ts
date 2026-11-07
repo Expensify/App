@@ -114,6 +114,7 @@ import {getBankAccountFromID} from './actions/BankAccounts';
 import hasCreditBankAccount from './actions/ReimbursementAccount/hasCreditBankAccount';
 import {getAnchorHref, isAttachmentAnchorTag, isOwnAttachmentURL} from './AttachmentAnchorUtils';
 import {convertAttendeesToArray, normalizeAttendees} from './AttendeeUtils';
+import {isBillReport, shouldHideBillReport} from './BillUtils';
 import {buildOnboardingMessagesWithoutManageTeam} from './buildOnboardingMessages';
 import {isCardWithPotentialFraud} from './CardUtils';
 import {getCategoryGLCode} from './CategoryUtils';
@@ -123,7 +124,6 @@ import {getEnvironmentURL} from './Environment/Environment';
 import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from './ErrorUtils';
 import getAttachmentDetails from './fileDownload/getAttachmentDetails';
 import getBankAccountLastFourDigits from './getBankAccountLastFourDigits';
-import isBillReport from './isBillReport';
 import isTeachersUnitePolicyID from './isTeachersUnitePolicyID';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
@@ -149,6 +149,7 @@ import {
     canMemberWrite as canMemberWritePolicyUtils,
     canCreateExpensesOnPolicy,
     canSendInvoiceFromWorkspace,
+    canSubmitOwnReportOnPolicy,
     canSubmitPerDiemExpenseFromWorkspace,
     getActivePolicies,
     getConnectedIntegration,
@@ -295,6 +296,7 @@ import {
     hasMissingSmartscanFieldsForRBR,
     hasNonReimbursableTransactions,
     hasNoticeTypeViolation,
+    hasOnlyUnsettledExpenses,
     hasReceipt as hasReceiptTransactionUtils,
     hasViolation,
     hasWarningTypeViolation,
@@ -3476,13 +3478,15 @@ function canApproveIOU(
     const isReportOpen = isOpenExpenseReport(iouReport);
     const isApproved = isReportApproved({report: iouReport});
     const iouSettled = isSettled(iouReport);
-    const hasOnlyPendingCardOrScanningTransactions = reportTransactions.length > 0 && reportTransactions.every((transaction) => isScanning(transaction) || isPending(transaction));
-    if (hasOnlyPendingCardOrScanningTransactions) {
+    if (reportTransactions.length === 0 || !isCurrentUserManager || isReportOpen || isApproved || iouSettled) {
+        return false;
+    }
+    if (hasOnlyUnsettledExpenses(reportTransactions, iouReport ?? undefined)) {
         return false;
     }
     const isReportPayAtEnd = isPayAtEndExpenseReport(iouReport ?? undefined, reportTransactions);
     const isReportClosed = isClosedReport(iouReport);
-    return reportTransactions.length > 0 && isCurrentUserManager && !isReportOpen && !isApproved && !iouSettled && !isReportPayAtEnd && !isReportClosed;
+    return !isReportPayAtEnd && !isReportClosed;
 }
 
 function canIOUBePaid(
@@ -3580,6 +3584,9 @@ function canSubmitReport(
 ) {
     const isReportOpen = isOpenExpenseReport(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isReportSubmitter = report?.ownerAccountID === currentUserAccountID;
+    // A role that cannot create expenses cannot submit its own report.
+    const canSubmitOwnReport = !isReportSubmitter || canSubmitOwnReportOnPolicy(policy, currentUserEmailParam);
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, allViolations, currentUserEmailParam, currentUserAccountID, report, reportOwnerLogin, policy);
     const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(
         transactions,
@@ -3598,6 +3605,7 @@ function canSubmitReport(
 
     return (
         isReportOpen &&
+        canSubmitOwnReport &&
         (report?.ownerAccountID === currentUserAccountID || report?.managerID === currentUserAccountID || isAdmin) &&
         !hasNoSubmittableTransaction &&
         !hasAllPendingRTERViolations &&
@@ -5416,8 +5424,15 @@ function getReasonAndReportActionThatRequiresAttention({
     // A report whose only expenses are pending Expensify Card transactions can't be actioned until they post, so it
     // shouldn't demand attention even when the chat still carries an outstanding-child flag.
     const hasStaleChildRequest = isTripRoom(optionOrReport) && (optionOrReport.transactionCount ?? 0) === 0;
+    // The bare outstanding-child flag only asks the owner to add expenses to their open report, so it is ignored when the current user cannot create expenses on that workspace.
+    const isBareOutstandingChildIgnorable =
+        !iouReportActionToApproveOrPay?.reportActionID &&
+        isOpenExpenseReport(iouReport) &&
+        (iouReport?.transactionCount ?? 0) === 0 &&
+        iouReport?.ownerAccountID === currentUserAccountID &&
+        !canCreateExpensesOnPolicy(resolvePolicy(iouReport?.policyID), currentUserLogin);
     const hasValidIOUAction =
-        ((optionOrReport.hasOutstandingChildRequest === true && !hasStaleChildRequest) || dotCandidateAction?.reportActionID) &&
+        ((optionOrReport.hasOutstandingChildRequest === true && !hasStaleChildRequest && !isBareOutstandingChildIgnorable) || dotCandidateAction?.reportActionID) &&
         !hasOnlyPendingTransactions &&
         !isFallbackReportExcludedForHeldExpenses;
 
@@ -7443,7 +7458,7 @@ function getParentNavigationSubtitle(
     isParentReportArchived = false,
 ): ParentNavigationSummaryParams {
     // Bills have no parent chat, so their subtitle contains only the policy name.
-    if (report?.type === CONST.REPORT.UNSUPPORTED_TYPE.BILL) {
+    if (isBillReport(report)) {
         return {workspaceName: getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')})};
     }
 
@@ -10971,11 +10986,6 @@ function canAccessReport(report: OnyxEntry<Report>, isDefaultRoomsBetaEnabled: b
     return true;
 }
 
-/** Bills stay hidden from users without the newDotBillPay beta. */
-function shouldHideBillReport(reportType: string | undefined, isBillPayBetaEnabled: boolean): boolean {
-    return reportType === CONST.REPORT.UNSUPPORTED_TYPE.BILL && !isBillPayBetaEnabled;
-}
-
 /** NewDot can't show unsupported report types. Bills are the exception for users with the newDotBillPay beta. */
 function isUnsupportedReportType(reportType: string | undefined, isBillPayBetaEnabled: boolean): boolean {
     if (reportType === CONST.REPORT.UNSUPPORTED_TYPE.BILL) {
@@ -13282,6 +13292,12 @@ function canDuplicateExpenseIntoSourceReport({
         return false;
     }
 
+    // Duplicating always creates a new expense, so members who cannot create expenses on the
+    // source policy, like approve-only members, copy into their default workspace instead
+    if (!canCreateExpensesOnPolicy(policy, currentUserLogin)) {
+        return false;
+    }
+
     return !shouldCreateNewMoneyRequestReport(sourceReport, chatReport, false, isASAPSubmitBetaEnabled, rules, CONST.IOU.ACTION.CREATE, true);
 }
 
@@ -13380,6 +13396,8 @@ function canJoinChat(
         isMoneyRequestReport(report) ||
         isMoneyRequest(report) ||
         isInvoiceReport(report) ||
+        // The parent report can be an inaccessible private self DM when an admin opens an unreported expense.
+        isTransactionThread(parentReportAction) ||
         isTrackExpenseReportNew(report, parentReport, parentReportAction) ||
         isInvoiceReport(parentReport);
     // Anyone viewing these chat types is already a participant and therefore cannot join
@@ -13408,7 +13426,14 @@ function canJoinChat(
 /**
  * Whether the user can leave a report
  */
-function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, currentUserAccountID: number | undefined, isAnonymousUser: boolean, isReportArchived = false): boolean {
+function canLeaveChat(
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    currentUserAccountID: number | undefined,
+    isAnonymousUser: boolean,
+    isReportArchived = false,
+    parentReportAction?: ReportAction,
+): boolean {
     if (isRootGroupChat(report, isReportArchived)) {
         return true;
     }
@@ -13425,8 +13450,9 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, curr
         return false;
     }
 
-    // Anyone viewing these chat types is already a participant and therefore cannot leave
-    if (isSelfDM(report)) {
+    // Self DMs and tracked expenses keep their participants, who cannot rejoin after leaving.
+    // Leaving a tracked expense can also send an admin to the owner's inaccessible private self DM.
+    if (isSelfDM(report) || isTrackExpenseAction(parentReportAction)) {
         return false;
     }
 
@@ -15630,7 +15656,8 @@ function shouldShowMarkAsDone({
     if (!isTrackIntentUser || !isSubmitAndClose(policy) || !isReportOwner(report)) {
         return false;
     }
-    return getNextApproverAccountID(report, rules) === report?.ownerAccountID;
+    // Submit & Close policies have no approval chain, so the next approver is never looked up by login and personalDetailsByLogins isn't needed.
+    return getNextApproverAccountID(report, rules, false, undefined, undefined) === report?.ownerAccountID;
 }
 
 /**
@@ -16197,7 +16224,6 @@ export {
     isWorkspaceChat,
     isOneTransactionReport,
     isTrackExpenseReportNew,
-    shouldHideBillReport,
     shouldHideSingleReportField,
     getBillableAndTaxTotal,
     getReportForHeader,
