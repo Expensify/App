@@ -13,6 +13,7 @@ import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport} from '@lib
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report} from '@src/types/onyx';
 
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
@@ -32,58 +33,21 @@ const defaultReportLoadingState = {
     hasLoadingNewerReportActionsError: false,
 };
 
-/**
- * Route-only orchestrator for the report actions surface. It owns the coarse branching only —
- * skeleton vs. money-request table view vs. the chat list — and subscribes to just what those
- * branches need. All heavy data derivation lives inside the hook-driven `ReportActionsList` body,
- * which is mounted only for the chat path so its hooks/effects never run while a skeleton shows.
- */
-function ReportActions() {
-    const route = useRoute<ReportScreenNavigationProps['route']>();
-    const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
+type ReportActionsViewProps = {
+    report: Report;
+};
 
+/** Keep chat effects unmounted during app loading, except for the Concierge welcome screen. */
+function ChatReportActions({report}: ReportActionsViewProps) {
     const {isOffline} = useNetwork();
-
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
     const isAppLoadPending = useIsAppLoadPending();
-    const isReportLoadPending = useIsReportLoadPending(reportIDFromRoute);
-    const {reportActions} = usePaginatedReportActions(reportIDFromRoute);
-
-    const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
-    const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
-
-    const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
-    const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportLoadingState, isReportLoadPending, isOffline);
-    const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, reportTransactions);
-
-    // The app-load skeleton is hoisted out of the body so the body's data hooks/effects never run
-    // during app boot. It only applies on the chat path (after the skeleton and money-request
-    // branches below) — matching the previous behavior, where this skeleton lived inside the
-    // chat-only ReportActionsView.
-    //
-    // Concierge is excluded so its welcome screen shows while the app loads.
     const isConciergeMainDM = isConciergeChatReport(report, conciergeReportID);
-    const shouldShowAppLoadSkeleton = isAppLoadPending && !isOffline && !!report && !shouldWaitForTransactions && !shouldDisplayMoneyRequestActionsList && !isConciergeMainDM;
 
-    if (!report || shouldWaitForTransactions) {
+    if (isAppLoadPending && !isOffline && !isConciergeMainDM) {
         return (
             <ReportActionsLoadingSkeleton
-                reportID={reportIDFromRoute}
-                skeletonName={CONST.TELEMETRY.CANCELED_BY_SKELETON.REPORT_ACTIONS_REPORT_DATA_LOADING}
-            />
-        );
-    }
-
-    if (shouldDisplayMoneyRequestActionsList) {
-        return <MoneyRequestReportActionsList />;
-    }
-
-    if (shouldShowAppLoadSkeleton) {
-        return (
-            <ReportActionsLoadingSkeleton
-                reportID={reportIDFromRoute}
+                reportID={report.reportID}
                 skeletonName={CONST.TELEMETRY.CANCELED_BY_SKELETON.REPORT_ACTIONS_APP_LOAD}
             />
         );
@@ -98,6 +62,54 @@ function ReportActions() {
             <UserTypingEventListener report={report} />
         </>
     );
+}
+
+/** Only money-request and invoice reports need transactions to select their actions layout. */
+function MoneyRequestReportActions({report}: ReportActionsViewProps) {
+    const {isOffline} = useNetwork();
+    const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report.reportID}`);
+    const isReportLoadPending = useIsReportLoadPending(report.reportID);
+    const {reportActions} = usePaginatedReportActions(report.reportID);
+    const allReportTransactions = useReportTransactionsCollection(report.reportID);
+    const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
+    const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportLoadingState, isReportLoadPending, isOffline);
+
+    if (shouldWaitForTransactions) {
+        return (
+            <ReportActionsLoadingSkeleton
+                reportID={report.reportID}
+                skeletonName={CONST.TELEMETRY.CANCELED_BY_SKELETON.REPORT_ACTIONS_REPORT_DATA_LOADING}
+            />
+        );
+    }
+
+    if (shouldDisplayReportTableView(report, reportTransactions)) {
+        return <MoneyRequestReportActionsList />;
+    }
+
+    return <ChatReportActions report={report} />;
+}
+
+/** Choose the report surface without mounting transaction-based layout selection for ordinary chats. */
+function ReportActions() {
+    const route = useRoute<ReportScreenNavigationProps['route']>();
+    const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
+
+    if (!report) {
+        return (
+            <ReportActionsLoadingSkeleton
+                reportID={reportIDFromRoute}
+                skeletonName={CONST.TELEMETRY.CANCELED_BY_SKELETON.REPORT_ACTIONS_REPORT_DATA_LOADING}
+            />
+        );
+    }
+
+    if (isMoneyRequestReport(report) || isInvoiceReport(report)) {
+        return <MoneyRequestReportActions report={report} />;
+    }
+
+    return <ChatReportActions report={report} />;
 }
 
 type ReportActionsWithInboxTabDeferredMountProps = {
