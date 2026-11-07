@@ -324,25 +324,28 @@ function SubmitDetailsPage({
               });
     });
 
-    const isPolicyExpenseChat = participants?.some((participant) => participant.isPolicyExpenseChat);
     const policyExpenseChatPolicyID = participants?.find((participant) => participant.isPolicyExpenseChat)?.policyID;
+    const isPolicyExpenseChat = policyExpenseChatPolicyID === report?.policyID && report?.policyID !== CONST.POLICY.ID_FAKE;
     const senderPolicyID = participants?.find((participant) => !!participant && 'isSender' in participant && participant.isSender)?.policyID;
     const isCreatingTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
-    const isDestinationPolicyReady = isPolicyExpenseChat ? !!policy?.id && policy.id === report?.policyID : !isCreatingTrackExpense || !!policy?.id;
+    const isWorkspaceDestination = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE;
+    const isDestinationPolicyReady = isWorkspaceDestination ? isPolicyExpenseChat && !!policy?.id && policy.id === report?.policyID : !isCreatingTrackExpense || !!policy?.id;
 
     // Personal destinations do not inherit workspace defaults. `policy` can briefly refer to the previous workspace
     // while transaction participants update, so reading it for a P2P destination would leak a stale billable value.
     const defaultBillable = getDefaultBillableForDestination(isPolicyExpenseChat, isCreatingTrackExpense, policy?.defaultBillable);
     const defaultReimbursable = getDefaultReimbursableForPolicy({policy, isPolicyExpenseChat: !!isPolicyExpenseChat, isCreatingTrackExpense});
     useEffect(() => {
-        if (!hasCapturedInitialDestinationRef.current || !destinationKey || lastHandledDestinationKeyRef.current === destinationKey || !report?.reportID || !isDestinationPolicyReady) {
+        const shouldInitializeUnsetDefaults = transaction?.billable === undefined || transaction?.reimbursable === undefined;
+        const isNewDestination = lastHandledDestinationKeyRef.current !== destinationKey;
+        if (!hasCapturedInitialDestinationRef.current || !destinationKey || (!isNewDestination && !shouldInitializeUnsetDefaults) || !report?.reportID || !isDestinationPolicyReady) {
             return;
         }
         lastHandledDestinationKeyRef.current = destinationKey;
 
         setMoneyRequestBillable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, defaultBillable);
         setMoneyRequestReimbursable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, defaultReimbursable);
-    }, [defaultBillable, defaultReimbursable, destinationKey, isDestinationPolicyReady, report?.reportID]);
+    }, [defaultBillable, defaultReimbursable, destinationKey, isDestinationPolicyReady, report?.reportID, transaction?.billable, transaction?.reimbursable, transaction?.transactionID]);
 
     const setBillable = (billable: boolean) => {
         setMoneyRequestBillable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, billable);
