@@ -132,6 +132,8 @@ PODS:
     - ExpoModulesCore
   - ExpoFont (57.0.1):
     - ExpoModulesCore
+  - ExpoGlassEffect (57.0.4):
+    - ExpoModulesCore
   - ExpoImage (57.0.1):
     - ExpoModulesCore
     - libavif/libdav1d
@@ -3504,6 +3506,7 @@ DEPENDENCIES:
   - ExpoAudio (from `../node_modules/expo-audio/ios`)
   - "ExpoDomWebView (from `../node_modules/@expo/dom-webview/ios`)"
   - ExpoFont (from `../node_modules/expo-font/ios`)
+  - ExpoGlassEffect (from `../node_modules/expo-glass-effect/ios`)
   - ExpoImage (from `../node_modules/expo-image/ios`)
   - ExpoImageManipulator (from `../node_modules/expo-image-manipulator/ios`)
   - ExpoLocation (from `../node_modules/expo-location/ios`)
@@ -3715,6 +3718,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@expo/dom-webview/ios"
   ExpoFont:
     :path: "../node_modules/expo-font/ios"
+  ExpoGlassEffect:
+    :path: "../node_modules/expo-glass-effect/ios"
   ExpoImage:
     :path: "../node_modules/expo-image/ios"
   ExpoImageManipulator:
@@ -4020,6 +4025,7 @@ SPEC CHECKSUMS:
   ExpoAudio: b69f36525132edba8d87a715b3a20c678ef78b30
   ExpoDomWebView: beaec034e51bd028428b98bb1f2633ab79c6d095
   ExpoFont: 59e1faf66ba9bcd232ae1e2ce58d202a48b6f65e
+  ExpoGlassEffect: 310dc75c8d862de1c4b3ff15a90439ba51a39798
   ExpoImage: 4c1e7634db6033185a98959fb028d8d4b1c89695
   ExpoImageManipulator: d3c962dabd86b331980f8ec6794c6073b3cb541a
   ExpoLocation: 187949911b868f72e34a8a6f8f487207ba86388a

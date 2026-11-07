@@ -17,6 +17,7 @@ import React, {useEffect, useRef} from 'react';
 import Animated, {Easing, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
 
+import FloatingButtonGlass, {isFloatingButtonGlassAvailable} from './FloatingButtonGlass';
 import {PressableWithoutFeedback} from './Pressable';
 import Tooltip from './Tooltip';
 
@@ -44,6 +45,8 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
     const fabPressable = useRef<HTMLDivElement | ComponentRef<typeof ViewType> | ComponentRef<typeof TextType> | null>(null);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isLHBVisible = !shouldUseNarrowLayout;
+    // Only the FAB over the floating tab bar is glass. In the LHB it sits next to the solid receipt button, so it keeps its solid fill and hover color.
+    const shouldUseGlass = isFloatingButtonGlassAvailable && !isLHBVisible;
     const {translate} = useLocalize();
 
     const fabSize = isLHBVisible ? variables.iconSizeSmall : variables.iconSizeNormal;
@@ -66,7 +69,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
 
         return {
             transform: [{rotate: `${sharedValue.get() * 135}deg`}],
-            backgroundColor,
+            backgroundColor: shouldUseGlass ? 'transparent' : backgroundColor,
         };
     });
 
@@ -115,9 +118,16 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
 
                     return (
                         <Animated.View
-                            style={[styles.floatingActionButton, {borderRadius}, isLHBVisible && styles.floatingActionButtonSmall, animatedStyle]}
+                            style={[
+                                styles.floatingActionButton,
+                                {borderRadius},
+                                isLHBVisible && styles.floatingActionButtonSmall,
+                                shouldUseGlass && styles.floatingActionButtonGlass,
+                                animatedStyle,
+                            ]}
                             testID="fab-animated-container"
                         >
+                            {shouldUseGlass && <FloatingButtonGlass tintColor={isActive ? buttonHoveredBG : buttonDefaultBG} />}
                             <Svg
                                 width={fabSize}
                                 height={fabSize}
