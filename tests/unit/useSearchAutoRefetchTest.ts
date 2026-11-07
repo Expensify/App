@@ -6,6 +6,7 @@ import type {UseSearchAutoRefetch} from '@hooks/useSearchAutoRefetch';
 
 import {search} from '@libs/actions/Search';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MemberCustomFieldsByPolicyID} from '@src/selectors/Policy';
 import type {Transaction} from '@src/types/onyx';
@@ -15,13 +16,14 @@ import Onyx from 'react-native-onyx';
 import createMock from '../utils/createMock';
 
 const mockUseIsFocused = jest.fn((): boolean => true);
+let mockIsSearchTopmostFullScreenRoute = false;
 
 jest.mock('@libs/actions/Search');
 jest.mock('@react-navigation/native', () => ({
     useIsFocused: () => mockUseIsFocused(),
     createNavigationContainerRef: () => ({}),
 }));
-jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn(() => false));
+jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn(() => mockIsSearchTopmostFullScreenRoute));
 jest.mock('@rnmapbox/maps', () => ({
     __esModule: true,
     default: {},
@@ -35,6 +37,7 @@ jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: mockIsOffline}))
 afterEach(() => {
     jest.clearAllMocks();
     mockIsOffline = false;
+    mockIsSearchTopmostFullScreenRoute = false;
     mockUseIsFocused.mockReturnValue(true);
 });
 
@@ -615,6 +618,126 @@ describe('useSearchAutoRefetch', () => {
 
         rerender(updatedProps);
         expect(search).not.toHaveBeenCalled();
+    });
+
+    describe('with an RHP over Search', () => {
+        beforeEach(() => {
+            // An RHP layered on top of Search makes Search unfocused while it stays the topmost fullscreen route
+            mockUseIsFocused.mockReturnValue(false);
+            mockIsSearchTopmostFullScreenRoute = true;
+        });
+
+        it('should defer the refetch for an edited result transaction until Search is focused again', () => {
+            // Given Search showing a transaction, with a report opened in the RHP over it
+            const transaction = createMock<Transaction>({transactionID: '1', taxCode: ''});
+            const initialProps = createMock<UseSearchAutoRefetch>({
+                ...baseProps,
+                searchResults: {
+                    ...baseProps.searchResults,
+                    data: {
+                        transactions_1: {transactionID: '1'},
+                    },
+                },
+                transactions: {transactions_1: transaction},
+                previousTransactions: {transactions_1: transaction},
+            });
+
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps,
+            });
+
+            // When opening the report rewrites that transaction, as OpenReport does
+            const rewrittenTransactions = {transactions_1: createMock<Transaction>({transactionID: '1', taxCode: undefined})};
+            const rewrittenProps = createMock<UseSearchAutoRefetch>({...initialProps, transactions: rewrittenTransactions});
+            rerender(rewrittenProps);
+
+            // Then no offset 0 refetch runs, because it would replace the snapshot and drop the pages the report navigation loaded
+            expect(search).not.toHaveBeenCalled();
+
+            // When `usePrevious` catches up and the RHP is closed, focusing Search again
+            const settledProps = createMock<UseSearchAutoRefetch>({...rewrittenProps, previousTransactions: rewrittenTransactions});
+            rerender(settledProps);
+            expect(search).not.toHaveBeenCalled();
+            mockUseIsFocused.mockReturnValue(true);
+            rerender({...settledProps});
+
+            // Then the deferred refetch runs once, so the edit still reaches the list
+            expect(search).toHaveBeenCalledTimes(1);
+        });
+
+        it('should defer the refetch for a transaction the results lack that opening a report loaded', () => {
+            // Given Search showing a transaction, with a report opened in the RHP over it
+            const transaction = createMock<Transaction>({transactionID: '1'});
+            const initialProps = createMock<UseSearchAutoRefetch>({
+                ...baseProps,
+                searchResults: {
+                    ...baseProps.searchResults,
+                    data: {
+                        transactions_1: {transactionID: '1'},
+                    },
+                },
+                transactions: {transactions_1: transaction},
+                previousTransactions: {transactions_1: transaction},
+            });
+
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps,
+            });
+
+            // When OpenReport writes a transaction the results lack, like a split original or an expense on a page not loaded yet
+            const loadedTransactions = {
+                transactions_1: transaction,
+                transactions_2: createMock<Transaction>({transactionID: '2', reportID: CONST.REPORT.SPLIT_REPORT_ID}),
+            };
+            const loadedProps = createMock<UseSearchAutoRefetch>({...initialProps, transactions: loadedTransactions});
+            rerender(loadedProps);
+
+            // Then no offset 0 refetch runs, because it would replace the snapshot and drop the pages the report navigation loaded
+            expect(search).not.toHaveBeenCalled();
+
+            // When `usePrevious` catches up and the RHP is closed, focusing Search again
+            const settledProps = createMock<UseSearchAutoRefetch>({...loadedProps, previousTransactions: loadedTransactions});
+            rerender(settledProps);
+            mockUseIsFocused.mockReturnValue(true);
+            rerender({...settledProps});
+
+            // Then the deferred refetch runs once
+            expect(search).toHaveBeenCalledTimes(1);
+        });
+
+        it('should refetch right away when an expense is created from the RHP', () => {
+            // Given Search showing a transaction, with an RHP over it
+            const transaction = createMock<Transaction>({transactionID: '1'});
+            const initialProps = createMock<UseSearchAutoRefetch>({
+                ...baseProps,
+                searchResults: {
+                    ...baseProps.searchResults,
+                    data: {
+                        transactions_1: {transactionID: '1'},
+                    },
+                },
+                transactions: {transactions_1: transaction},
+                previousTransactions: {transactions_1: transaction},
+            });
+
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps,
+            });
+
+            // When an expense is created from the RHP, which writes it optimistically as a pending add
+            rerender(
+                createMock<UseSearchAutoRefetch>({
+                    ...initialProps,
+                    transactions: {
+                        transactions_1: transaction,
+                        transactions_2: createMock<Transaction>({transactionID: '2', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}),
+                    },
+                }),
+            );
+
+            // Then Search fetches again without waiting for the RHP to close, so the new entry shows up behind it
+            expect(search).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe('member custom field changes', () => {
