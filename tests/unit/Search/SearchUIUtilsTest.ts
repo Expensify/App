@@ -3041,6 +3041,47 @@ describe('SearchUIUtils', () => {
             expect(snapshotReportActionIDs).toStrictEqual([payAction.reportActionID]);
         });
 
+        it('should show a NewDot REIMBURSED action on an invoice that is only in the Search snapshot', () => {
+            // Given a CHAT search result whose invoice isn't loaded into Onyx, with a NewDot REIMBURSED action
+            const snapshotInvoiceID = 'snapshotOnlyInvoiceID';
+            const reimbursedAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: 'snapshotReimbursedActionID',
+                reportID: snapshotInvoiceID,
+                created: '2025-01-01 00:00:00',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid this report'}],
+                originalMessage: {isNewDot: true},
+            } as OnyxTypes.ReportAction;
+            const data: OnyxTypes.SearchResults['data'] = {
+                ...searchResults.data,
+                [`${ONYXKEYS.COLLECTION.REPORT}${snapshotInvoiceID}`]: createMock<OnyxTypes.Report>({reportID: snapshotInvoiceID, type: CONST.REPORT.TYPE.INVOICE}),
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${snapshotInvoiceID}`]: {[reimbursedAction.reportActionID]: reimbursedAction},
+            };
+
+            // When the CHAT sections are built from the snapshot
+            const [sections] = SearchUIUtils.getSections({
+                dateFnsLocale: undefined,
+                type: CONST.SEARCH.DATA_TYPES.CHAT,
+                data,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                rules: undefined,
+                conciergeReportID: undefined,
+                convertToDisplayString,
+                reportAttributesDerivedValue: {},
+            });
+
+            // Then the payment action is listed, because the snapshot shows the report is an invoice, and invoices have no IOU PAY action for this payment
+            const snapshotReportActionIDs = sections
+                .filter(SearchUIUtils.isReportActionListItemType)
+                .filter((item) => item.reportID === snapshotInvoiceID)
+                .map((item) => item.reportActionID);
+            expect(snapshotReportActionIDs).toStrictEqual([reimbursedAction.reportActionID]);
+        });
+
         it('should return getTransactionsSections result when groupBy is undefined', () => {
             expect(
                 SearchUIUtils.getSections({

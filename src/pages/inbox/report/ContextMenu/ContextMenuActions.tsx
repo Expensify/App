@@ -211,6 +211,7 @@ import {
     getReportPreviewMessageForCopy,
     getUnreportedTransactionMessage,
     getWorkspaceNameUpdatedMessage,
+    isChatThread,
     isExpenseReport,
     isSelfDM,
     isSupportTicket,
@@ -1375,7 +1376,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                         ),
                     );
                 } else if (isReimbursementQueuedAction(reportAction)) {
-                    Clipboard.setString(getReimbursementQueuedActionMessage({reportAction, translate, formatPhoneNumber, report, shouldUseShortDisplayName: false}));
+                    // Match ReimbursementQueuedContent, which names the parent report's owner when the action is in a thread.
+                    const queuedPaymentReport = isChatThread(report) ? getReportOrDraftReport({reportID: report?.parentReportID}) : report;
+                    Clipboard.setString(getReimbursementQueuedActionMessage({reportAction, translate, formatPhoneNumber, report: queuedPaymentReport, shouldUseShortDisplayName: false}));
                 } else if (isActionableMentionWhisper(reportAction)) {
                     const targetAccountIDs = getOriginalMessage(reportAction)?.inviteeAccountIDs;
                     const mentionWhisperMessage = getActionableMentionWhisperMessage(translate, reportAction, getPersonalDetailsListByIDs(targetAccountIDs, personalDetails));
