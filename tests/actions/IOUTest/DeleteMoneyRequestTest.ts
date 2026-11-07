@@ -2493,6 +2493,8 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             const CHAT_REPORT_ID = '70001';
             const IOU_REPORT_ID = '70002';
             const WHISPER_TARGET_ACCOUNT_ID = 808;
+            const ACTIONABLE_WHISPER_TARGET_ACCOUNT_ID = WHISPER_TARGET_ACCOUNT_ID + 1;
+            const UNRELATED_ACCOUNT_ID = WHISPER_TARGET_ACCOUNT_ID + 2;
 
             const olderIOUAction: ReportAction = {
                 ...createRandomReportAction(10),
@@ -2512,6 +2514,16 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 created: '2026-10-01 12:00:00.000',
                 message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
                 originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+            };
+            /** Newer than `olderIOUAction`, and only visible to the whispered-to account while they can write. */
+            const actionableWhisper: ReportAction = {
+                ...createRandomReportAction(14),
+                reportActionID: 'deleteActionableWhisper',
+                reportID: IOU_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                created: '2026-10-01 13:00:00.000',
+                message: [{type: 'COMMENT', html: 'mentioned you', text: 'mentioned you', whisperedTo: [ACTIONABLE_WHISPER_TARGET_ACCOUNT_ID]}],
+                originalMessage: {whisperedTo: [ACTIONABLE_WHISPER_TARGET_ACCOUNT_ID]},
             };
             const previewAction: ReportAction = {
                 ...createRandomReportAction(12),
@@ -2545,17 +2557,19 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`, {
                 [olderIOUAction.reportActionID]: olderIOUAction,
                 [whisper.reportActionID]: whisper,
+                [actionableWhisper.reportActionID]: actionableWhisper,
                 [deletedIOUAction.reportActionID]: deletedIOUAction,
             });
             await waitForBatchedUpdates();
 
-            const getPreviewCreated = (currentUserAccountID: number) => {
+            const getPreviewCreated = (currentUserAccountID: number, isArchivedIOUReport = false) => {
                 const result = getCleanUpTransactionThreadReportOnyxData({
                     shouldDeleteTransactionThread: false,
                     reportAction: deletedIOUAction,
                     iouReport,
                     chatReport,
                     currentUserAccountID,
+                    isArchivedIOUReport,
                 });
                 const entry = result.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHAT_REPORT_ID}`);
                 const value: unknown = entry && 'value' in entry ? entry.value : undefined;
@@ -2572,8 +2586,14 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             // Given the whisper targets the deleting user, it is the newest action they can see
             expect(getPreviewCreated(WHISPER_TARGET_ACCOUNT_ID)).toBe(whisper.created);
 
-            // Given the whisper targets somebody else, it is invisible and the older comment wins
-            expect(getPreviewCreated(WHISPER_TARGET_ACCOUNT_ID + 1)).toBe(olderIOUAction.created);
+            // Given the actionable whisper targets the deleting user, it is the newest action they can see while they can write
+            expect(getPreviewCreated(ACTIONABLE_WHISPER_TARGET_ACCOUNT_ID)).toBe(actionableWhisper.created);
+
+            // Given the whispers target somebody else, they are invisible and the older comment wins
+            expect(getPreviewCreated(UNRELATED_ACCOUNT_ID)).toBe(olderIOUAction.created);
+
+            // Given the IOU report is archived, the user can't write, so the actionable whisper is hidden
+            expect(getPreviewCreated(ACTIONABLE_WHISPER_TARGET_ACCOUNT_ID, true)).toBe(olderIOUAction.created);
         });
     });
 
