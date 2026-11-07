@@ -1,6 +1,7 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
+import CONST from '@src/CONST';
 import {openPersonalBankAccountSetupView} from '@src/libs/actions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
 import HomeTaskGroup from '@src/pages/home/HomeTaskGroup';
@@ -17,6 +18,7 @@ import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
 jest.mock('@libs/Navigation/Navigation');
 jest.mock('@src/libs/actions/BankAccounts', () => ({
     openPersonalBankAccountSetupView: jest.fn(),
+    openDepositAccountSetup: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -73,6 +75,7 @@ function TimeSensitiveSection() {
         <HomeTaskGroup
             title="homePage.timeSensitiveSection.title"
             rows={useTimeSensitiveItems()}
+            expandToggleSentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.SECTION_EXPAND_TOGGLE_TIME_SENSITIVE}
         />
     );
 }

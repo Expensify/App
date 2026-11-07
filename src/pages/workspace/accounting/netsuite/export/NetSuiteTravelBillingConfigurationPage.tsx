@@ -22,7 +22,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 type NetSuiteSectionType = {
     title?: string;
@@ -41,7 +41,7 @@ function NetSuiteTravelBillingConfigurationPage({policy}: WithPolicyConnectionsP
     const styles = useThemeStyles();
 
     const policyID = policy?.id ?? String(CONST.DEFAULT_NUMBER_ID);
-    const netSuiteExportBackPath = useMemo(() => createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.path, ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID)), [policyID]);
+    const netSuiteExportBackPath = createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.path, ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID));
     const config = policy?.connections?.netsuite?.options?.config;
 
     const {payableList} = policy?.connections?.netsuite?.options?.data ?? {};
@@ -81,7 +81,7 @@ function NetSuiteTravelBillingConfigurationPage({policy}: WithPolicyConnectionsP
     return (
         <ConnectionLayout
             displayName="NetSuiteTravelBillingConfigurationPage"
-            headerTitle="workspace.common.travelInvoicing"
+            headerTitle="workspace.common.travelBilling"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}

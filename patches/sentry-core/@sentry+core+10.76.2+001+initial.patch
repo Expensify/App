@@ -1,0 +1,15 @@
+diff --git a/node_modules/@sentry/core/build/esm/fetch.js b/node_modules/@sentry/core/build/esm/fetch.js
+index b8fac8e..14ac969 100644
+--- a/node_modules/@sentry/core/build/esm/fetch.js
++++ b/node_modules/@sentry/core/build/esm/fetch.js
+@@ -146,6 +146,10 @@ function _INTERNAL_getTracingHeadersForFetchRequest(request, fetchOptionsObj, sp
+ function endSpan(span, handlerData) {
+   if (handlerData.response) {
+     setHttpStatus(span, handlerData.response.status);
++    const requestId = handlerData.response.headers?.get("x-request-id");
++    if (requestId) {
++      span.setAttribute("request-id", requestId);
++    }
+     const contentLength = handlerData.response?.headers?.get("content-length");
+     if (contentLength) {
+       const contentLengthNum = parseInt(contentLength);

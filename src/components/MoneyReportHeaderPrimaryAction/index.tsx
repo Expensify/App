@@ -13,13 +13,18 @@ import RemoveHoldPrimaryAction from './RemoveHoldPrimaryAction';
 import ReviewDuplicatesPrimaryAction from './ReviewDuplicatesPrimaryAction';
 import SubmitPrimaryAction from './SubmitPrimaryAction';
 
-function MoneyReportHeaderPrimaryAction({reportID, chatReportID, primaryAction, onExportModalOpen}: MoneyReportHeaderPrimaryActionProps) {
+function MoneyReportHeaderPrimaryAction({reportID, chatReportID, primaryAction, onExportModalOpen, isDisabled}: MoneyReportHeaderPrimaryActionProps) {
     if (!primaryAction) {
         return null;
     }
 
     if (primaryAction === CONST.REPORT.PRIMARY_ACTIONS.SUBMIT) {
-        return <SubmitPrimaryAction reportID={reportID} />;
+        return (
+            <SubmitPrimaryAction
+                reportID={reportID}
+                isDisabled={isDisabled}
+            />
+        );
     }
 
     if (primaryAction === CONST.REPORT.PRIMARY_ACTIONS.APPROVE) {
@@ -27,6 +32,7 @@ function MoneyReportHeaderPrimaryAction({reportID, chatReportID, primaryAction, 
             <ApprovePrimaryAction
                 reportID={reportID}
                 chatReportID={chatReportID}
+                isDisabled={isDisabled}
             />
         );
     }
@@ -36,6 +42,7 @@ function MoneyReportHeaderPrimaryAction({reportID, chatReportID, primaryAction, 
             <PayPrimaryAction
                 reportID={reportID}
                 chatReportID={chatReportID}
+                isDisabled={isDisabled}
             />
         );
     }
@@ -45,6 +52,7 @@ function MoneyReportHeaderPrimaryAction({reportID, chatReportID, primaryAction, 
             <ExportPrimaryAction
                 reportID={reportID}
                 onExportModalOpen={onExportModalOpen}
+                isDisabled={isDisabled}
             />
         );
     }
@@ -54,6 +62,7 @@ function MoneyReportHeaderPrimaryAction({reportID, chatReportID, primaryAction, 
             <RemoveHoldPrimaryAction
                 reportID={reportID}
                 chatReportID={chatReportID}
+                isDisabled={isDisabled}
             />
         );
     }
@@ -63,6 +72,7 @@ function MoneyReportHeaderPrimaryAction({reportID, chatReportID, primaryAction, 
             <MarkAsCashPrimaryAction
                 reportID={reportID}
                 chatReportID={chatReportID}
+                isDisabled={isDisabled}
             />
         );
     }
@@ -72,6 +82,7 @@ function MoneyReportHeaderPrimaryAction({reportID, chatReportID, primaryAction, 
             <MarkAsResolvedPrimaryAction
                 reportID={reportID}
                 chatReportID={chatReportID}
+                isDisabled={isDisabled}
             />
         );
     }
@@ -81,6 +92,7 @@ function MoneyReportHeaderPrimaryAction({reportID, chatReportID, primaryAction, 
             <ReviewDuplicatesPrimaryAction
                 reportID={reportID}
                 chatReportID={chatReportID}
+                isDisabled={isDisabled}
             />
         );
     }

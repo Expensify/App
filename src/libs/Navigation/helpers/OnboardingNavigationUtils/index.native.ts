@@ -1,9 +1,7 @@
 import Navigation from '@libs/Navigation/Navigation';
 
-function dismissOnboardingModalBeforeExit() {
-    Navigation.dismissModal();
+function dismissOnboardingModalBeforeExit(afterTransition: () => void) {
+    Navigation.dismissModal({afterTransition});
 }
 
-function resetOnboardingStackToRoot() {}
-
-export {dismissOnboardingModalBeforeExit, resetOnboardingStackToRoot};
+export default dismissOnboardingModalBeforeExit;

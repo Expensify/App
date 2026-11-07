@@ -1,10 +1,12 @@
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 
+import useCopySelectionEvent from '@hooks/useCopySelectionEvent';
+
 import CONST from '@src/CONST';
 
 import type {NativeSyntheticEvent} from 'react-native';
 
-import React, {useImperativeHandle} from 'react';
+import React from 'react';
 
 import type {SearchListItem} from './SearchList/ListItem/types';
 import type {CommonSearchViewProps, TransactionViewExtras} from './searchViewProps';
@@ -29,11 +31,10 @@ const isRowDeleted = (item: SearchListItem) => item.pendingAction === CONST.RED_
  * `toggle`/`toggleAll`/`selectedTransactions`). The shared list state and interactions come from
  * `useSearchListViewState`, and the surrounding chrome (horizontal scroll, header bar, long-press menu)
  * from `SearchListViewLayout`; this view only owns the flat-expense specifics: the `TransactionListItem`
- * renderer, single-pass visibility/selection counts, and the highlight-scroll imperative handle.
- * `TransactionListItem` is the only row renderer here and rows always animate, so the
- * group/sticky/chat/task branches of `SearchList` do not apply. Keyboard navigation is inherited from
- * `BaseSearchList`; the post-create highlight stays in the router (the snapshot stamps
- * `shouldAnimateInHighlight`, and `newTransactions` flows into `extraData`).
+ * renderer and single-pass visibility/selection counts.
+ * `TransactionListItem` is the only row renderer here, so the group/sticky/chat/task branches of
+ * `SearchList` do not apply. Keyboard navigation is inherited from `BaseSearchList`; `newTransactions`
+ * flows into `extraData` so the list re-renders when a freshly-created expense lands.
  */
 function ExpenseFlatSearchView({
     queryJSON,
@@ -59,9 +60,10 @@ function ExpenseFlatSearchView({
     onViewableItemsChanged,
     contentContainerStyle,
     containerStyle,
-    ref,
 }: ExpenseFlatSearchViewProps) {
     const {type} = queryJSON;
+    // Normalize copied expense rows so their grid cells paste as one space-separated row.
+    useCopySelectionEvent();
 
     const {
         isOffline,
@@ -79,7 +81,6 @@ function ExpenseFlatSearchView({
         ownerBillingGracePeriodEnd,
         handleUndelete,
         onLongPressRow,
-        modal,
         handleSelectRow,
         scrollToListIndex,
     } = useSearchListViewState({data, isMobileSelectionModeEnabled, onSelectRow, shouldPreventLongPressRow: false});
@@ -93,10 +94,7 @@ function ExpenseFlatSearchView({
     const selectedItemsLength = data.reduce((acc, item) => acc + (item.keyForList && selectedTransactions[item.keyForList]?.isSelected ? 1 : 0), 0);
     const totalItems = data.filter((item) => !isRowDeleted(item)).length;
 
-    // Flat data maps 1:1 to the rendered list, so highlight-scroll-to-index is the same as scroll-to-data-index.
-    useImperativeHandle(ref, () => ({scrollToIndex: scrollToListIndex}), [scrollToListIndex]);
-
-    const renderItem = (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
+    const renderItem = (item: SearchListItem, index: number, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
         const isDisabled = isRowDeleted(item);
         // Only expense row exits animate; invoice and trip transaction lists do not (matches the legacy per-type gate).
         const shouldApplyAnimation = type === CONST.SEARCH.DATA_TYPES.EXPENSE && index < data.length - 1;
@@ -109,7 +107,6 @@ function ExpenseFlatSearchView({
             >
                 <TransactionListItem
                     showTooltip
-                    isFocused={isItemFocused}
                     onSelectRow={handleSelectRow}
                     onLongPressRow={onLongPressRow}
                     onSelectionButtonPress={toggle}
@@ -134,6 +131,21 @@ function ExpenseFlatSearchView({
     const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === totalItems && hasLoadedAllTransactions;
     const selectAllButtonVisible = canSelectMultiple && !searchTableHeader;
 
+    const selectionTopBar = tableHeaderVisible ? (
+        <SelectionTopBar
+            isLargeScreenWidth={isLargeScreenWidth}
+            shouldSplitGroups={false}
+            canSelectMultiple={canSelectMultiple}
+            isSelectAllChecked={isSelectAllChecked}
+            selectedItemsLength={selectedItemsLength}
+            totalItems={totalItems}
+            hasLoadedAllTransactions={hasLoadedAllTransactions}
+            selectAllButtonVisible={selectAllButtonVisible}
+            onAllCheckboxPress={toggleAll}
+            SearchTableHeader={searchTableHeader}
+        />
+    ) : undefined;
+
     return (
         <SearchListViewLayout
             columns={columns}
@@ -150,21 +162,8 @@ function ExpenseFlatSearchView({
             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
             containerStyle={containerStyle}
         >
-            {tableHeaderVisible && (
-                <SelectionTopBar
-                    isLargeScreenWidth={isLargeScreenWidth}
-                    shouldSplitGroups={false}
-                    canSelectMultiple={canSelectMultiple}
-                    isSelectAllChecked={isSelectAllChecked}
-                    selectedItemsLength={selectedItemsLength}
-                    totalItems={totalItems}
-                    hasLoadedAllTransactions={hasLoadedAllTransactions}
-                    selectAllButtonVisible={selectAllButtonVisible}
-                    onAllCheckboxPress={toggleAll}
-                    SearchTableHeader={searchTableHeader}
-                />
-            )}
             <BaseSearchList
+                selectionTopBar={selectionTopBar}
                 data={data}
                 renderItem={renderItem}
                 onSelectRow={handleSelectRow}
@@ -185,7 +184,6 @@ function ExpenseFlatSearchView({
                 isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                 nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
             />
-            {modal}
         </SearchListViewLayout>
     );
 }

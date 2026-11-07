@@ -9,13 +9,13 @@ import {isNumeric} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 
-import type {ComponentRef, ForwardedRef, KeyboardEvent} from 'react';
-import type {FocusEvent, TextInput as RNTextInput, TextInputKeyPressEvent} from 'react-native';
+import type {ForwardedRef, KeyboardEvent} from 'react';
+import type {FocusEvent, TextInputKeyPressEvent} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import {GestureDetector, useTapGesture} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
 
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
@@ -23,6 +23,7 @@ import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import FormHelpMessage from './FormHelpMessage';
 import Text from './Text';
 import TextInput from './TextInput';
+import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
 
 const TEXT_INPUT_EMPTY_STATE = '';
 
@@ -40,7 +41,7 @@ const useValidateCodePaste = (inputRef: React.RefObject<BaseTextInputRef | null>
                 return;
             }
 
-            const isFocused = (inputRef.current as ComponentRef<typeof RNTextInput>)?.isFocused?.() ?? false;
+            const isFocused = isTextInputFocused(inputRef);
             if (!isFocused) {
                 return;
             }
@@ -277,9 +278,9 @@ function ValidateCodeInput({
      * Tap gesture configuration, updates the indexes of the
      * currently focused input.
      */
-    const tapGesture = Gesture.Tap()
-        .runOnJS(true)
-        .onBegin((event) => {
+    const tapGesture = useTapGesture({
+        runOnJS: true,
+        onBegin: (event) => {
             const index = Math.floor(event.x / (inputWidth.current / maxLength));
             shouldFocusLast.current = false;
             // TapGestureHandler works differently on mobile web and native app
@@ -289,7 +290,8 @@ function ValidateCodeInput({
             }
             setInputAndIndex(index);
             lastFocusedIndex.current = index;
-        });
+        },
+    });
 
     /**
      * Updates the validateCode inputs with the contents written in the
@@ -342,7 +344,7 @@ function ValidateCodeInput({
      * NOTE: when using Android Emulator, this can only be tested using
      * hardware keyboard inputs.
      */
-    const onKeyPress = (event: Partial<TextInputKeyPressEvent>) => {
+    const onKeyPress = (event: Partial<TextInputKeyPressEvent> & Partial<Pick<KeyboardEvent, 'shiftKey'>>) => {
         const keyValue = event?.nativeEvent?.key;
         if (keyValue === 'Backspace' || keyValue === '<') {
             let numbers = decomposeString(value, maxLength);
@@ -413,7 +415,7 @@ function ValidateCodeInput({
             setInput(TEXT_INPUT_EMPTY_STATE);
             onFulfill(value);
         } else if (keyValue === 'Tab' && focusedIndex !== undefined) {
-            const newFocusedIndex = (event as unknown as KeyboardEvent).shiftKey ? focusedIndex - 1 : focusedIndex + 1;
+            const newFocusedIndex = event.shiftKey ? focusedIndex - 1 : focusedIndex + 1;
             if (newFocusedIndex >= 0 && newFocusedIndex < maxLength) {
                 setInputAndIndex(newFocusedIndex);
                 inputRef.current?.focus();
@@ -556,7 +558,5 @@ function ValidateCodeInput({
     );
 }
 
-// OXC's React Compiler bails on this file (refs accessed during render in the gesture handler), so
-// it is not memoized on web. Memoize it explicitly to keep parent-driven re-renders cheap there.
-export default React.memo(ValidateCodeInput);
+export default ValidateCodeInput;
 export type {AutoCompleteVariant, ValidateCodeInputHandle, ValidateCodeInputProps};

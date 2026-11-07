@@ -24,7 +24,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 function SelectBankStep() {
@@ -39,7 +39,7 @@ function SelectBankStep() {
     const [hasError, setHasError] = useState(false);
     const isOtherBankSelected = bankSelected === CONST.COMPANY_CARDS.BANKS.OTHER;
 
-    const submit = useCallback(() => {
+    const submit = () => {
         if (!bankSelected) {
             setHasError(true);
         } else {
@@ -53,7 +53,7 @@ function SelectBankStep() {
                 isEditing: false,
             });
         }
-    }, [bankSelected, isOtherBankSelected]);
+    };
 
     const handleBackButtonPress = () => {
         setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE, data: {selectedBank: null}});
@@ -89,16 +89,13 @@ function SelectBankStep() {
             };
         });
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.next'),
-            onConfirm: submit,
-            isDisabled: isOffline,
-            style: !hasError && styles.mt5,
-        }),
-        [hasError, isOffline, styles.mt5, submit, translate],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.next'),
+        onConfirm: submit,
+        isDisabled: isOffline,
+        style: !hasError && styles.mt5,
+    };
 
     return (
         <ScreenWrapper

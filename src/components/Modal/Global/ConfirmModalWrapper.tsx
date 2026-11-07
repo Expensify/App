@@ -13,14 +13,18 @@ import type {ModalProps} from './ModalContext';
 
 import {ModalActions} from './ModalContext';
 
-type ConfirmModalWrapperProps = ModalProps & Omit<ConfirmModalProps, 'onConfirm' | 'onCancel' | 'isVisible'>;
+type ConfirmModalWrapperProps = ModalProps &
+    Omit<ConfirmModalProps, 'onConfirm' | 'onCancel' | 'isVisible'> & {
+        /** Whether a backdrop tap should also hide the modal after running onBackdropPress. Leave it off when onBackdropPress is meant to keep the modal open */
+        shouldHideOnBackdropPress?: boolean;
+    };
 
 // This wrapper bridges the ConfirmModal API with the global modal system, providing handlers for the onConfirm and onCancel callbacks to ConfirmModal.
 // TODOS after migrating all ConfirmModal instances to use showConfirmModal:
 // - handle closeModal inside ConfirmModal
 // - remove ConfirmModalWrapper
 
-function ConfirmModalWrapper({closeModal, onModalHide, resolveModal, ...props}: ConfirmModalWrapperProps) {
+function ConfirmModalWrapper({closeModal, onModalHide, resolveModal, onBackdropPress, shouldHideOnBackdropPress = false, ...props}: ConfirmModalWrapperProps) {
     const activeElementRole = useActiveElementRole();
     const {isOffline} = useNetwork();
     const [isVisible, setIsVisible] = useState(true);
@@ -46,6 +50,15 @@ function ConfirmModalWrapper({closeModal, onModalHide, resolveModal, ...props}: 
         setIsVisible(false);
     };
 
+    // Hide through isVisible so a backdrop close animates out like the cancel button, instead of leaving the stack mid-tap
+    const handleBackdropPress =
+        onBackdropPress && shouldHideOnBackdropPress
+            ? () => {
+                  onBackdropPress();
+                  handleCancel();
+              }
+            : onBackdropPress;
+
     const handleModalHide = () => {
         if (isVisible) {
             return;
@@ -54,11 +67,11 @@ function ConfirmModalWrapper({closeModal, onModalHide, resolveModal, ...props}: 
         onModalHide?.();
     };
 
-    // Mirror the confirm button's offline-disabled state so the Enter shortcut can't bypass a button that is visually disabled while offline.
+    // Mirror the confirm button's disabled state so the Enter shortcut can't bypass a button that is visually disabled.
     const isConfirmDisabledWhileOffline = !!props.shouldDisableConfirmButtonWhenOffline && isOffline;
 
     const shortcutConfig = {
-        isActive: activeElementRole !== CONST.ROLE.BUTTON && !isConfirmLoading && !isConfirmDisabledWhileOffline,
+        isActive: activeElementRole !== CONST.ROLE.BUTTON && !isConfirmLoading && !isConfirmDisabledWhileOffline && !props.isConfirmDisabled,
         shouldPreventDefault: false,
         shouldBubble: false,
     };
@@ -71,6 +84,7 @@ function ConfirmModalWrapper({closeModal, onModalHide, resolveModal, ...props}: 
             isVisible={isVisible}
             onConfirm={handleConfirm}
             onCancel={handleCancel}
+            onBackdropPress={handleBackdropPress}
             onModalHide={handleModalHide}
             isConfirmLoading={isConfirmLoading || props.isConfirmLoading}
         />

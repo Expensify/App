@@ -5,8 +5,6 @@ import {CurrencyListContextProvider} from '@components/CurrencyListContextProvid
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MoneyRequestReportPreview from '@components/ReportActionItem/MoneyRequestReportPreview';
-import type * as MoneyRequestReportPreviewContext from '@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContext';
-import type ReportPreviewActionButton from '@components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewActionButton';
 import type {MoneyRequestReportPreviewProps} from '@components/ReportActionItem/MoneyRequestReportPreview/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
@@ -29,7 +27,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 
 import type {OnyxCollection, OnyxEntry, OnyxMergeInput} from 'react-native-onyx';
@@ -133,24 +130,6 @@ jest.mock('@hooks/useReportTransactionsCollection', () => ({
     default: () => mockUseReportTransactionsCollection(),
 }));
 
-type OnHoldMenuOpen = (paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => void;
-
-// Capture onHoldMenuOpen so a held-expense payment can be triggered with a chosen bank account.
-const mockOnHoldMenuOpenHolder: {current?: OnHoldMenuOpen} = {current: undefined};
-jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewActionButton', () => {
-    const actualReact = jest.requireActual<typeof React>('react');
-    const actualModule = jest.requireActual<{default: typeof ReportPreviewActionButton}>('@components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewActionButton');
-    const {useReportPreviewActions} = jest.requireActual<typeof MoneyRequestReportPreviewContext>('@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContext');
-    return {
-        __esModule: true,
-        default: function MockReportPreviewActionButton() {
-            const {onHoldMenuOpen} = useReportPreviewActions();
-            mockOnHoldMenuOpenHolder.current = onHoldMenuOpen;
-            return actualReact.createElement(actualModule.default);
-        },
-    };
-});
-
 // The RHP widths never reach the rendered output, so capture the calls to assert they are requested and released.
 const mockMarkReportRHPWidth = jest.fn();
 const mockUnmarkReportRHPWidth = jest.fn();
@@ -161,19 +140,6 @@ jest.mock('@components/WideRHPContextProvider', () => ({
         unmarkReportRHPWidth: mockUnmarkReportRHPWidth,
     }),
 }));
-
-const mockHoldMenuPropsHolder: {
-    current?: {isVisible?: boolean; paymentType?: PaymentMethodType; methodID?: number};
-} = {current: undefined};
-jest.mock('@components/ProcessMoneyReportHoldMenu', () => ({
-    __esModule: true,
-    default: (props: {isVisible?: boolean; paymentType?: PaymentMethodType; methodID?: number}) => {
-        mockHoldMenuPropsHolder.current = props;
-        return null;
-    },
-}));
-
-const SELECTED_BANK_ACCOUNT_ID = 9999;
 
 const getIOUActionForReportID = (reportID: string | undefined, transactionID: string | undefined) => {
     if (!reportID || !transactionID) {
@@ -311,8 +277,6 @@ describe('MoneyRequestReportPreview', () => {
         jest.clearAllMocks();
         mockUseNetwork.mockReturnValue({isOffline: false});
         mockDeferredValueOverride = undefined;
-        mockOnHoldMenuOpenHolder.current = undefined;
-        mockHoldMenuPropsHolder.current = undefined;
         setReportPreviewData();
         return act(async () => {
             await Onyx.clear();
@@ -370,28 +334,6 @@ describe('MoneyRequestReportPreview', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.queryByText(TestHelper.translateLocal('common.total'))).not.toBeOnTheScreen();
-    });
-
-    it('forwards the selected bank account to the hold menu when paying a held expense from the preview', async () => {
-        renderPage({});
-        await waitForBatchedUpdatesWithAct();
-        setCurrentWidth();
-        await act(async () => {
-            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, mockOnyxTransactions);
-            await waitForBatchedUpdatesWithAct();
-        });
-        await waitForBatchedUpdatesWithAct();
-
-        expect(mockOnHoldMenuOpenHolder.current).toBeDefined();
-
-        act(() => {
-            mockOnHoldMenuOpenHolder.current?.(CONST.IOU.PAYMENT_TYPE.VBBA, true, SELECTED_BANK_ACCOUNT_ID);
-        });
-        await waitForBatchedUpdatesWithAct();
-
-        expect(mockHoldMenuPropsHolder.current?.isVisible).toBe(true);
-        expect(mockHoldMenuPropsHolder.current?.paymentType).toBe(CONST.IOU.PAYMENT_TYPE.VBBA);
-        expect(mockHoldMenuPropsHolder.current?.methodID).toBe(SELECTED_BANK_ACCOUNT_ID);
     });
 
     it('renders RBR for every transaction with violations', async () => {
@@ -830,7 +772,14 @@ describe('MoneyRequestReportPreview', () => {
             await pressSecondTransaction();
 
             // Online, delete-pending rows are already filtered upstream, so the seed must equal the full visible list.
-            expect(setActiveTransactionIDsSpy).toHaveBeenCalledWith(defaultPreviewTransactions.map((transaction) => transaction.transactionID));
+            expect(setActiveTransactionIDsSpy).toHaveBeenCalledWith(
+                defaultPreviewTransactions.map((transaction) => transaction.transactionID),
+                {
+                    // Stamped so the press owns the carousel it seeds: an unowned list can't be released by any screen
+                    // and any other writer is free to overwrite it while the expense is still open.
+                    source: TransactionThreadNavigation.CAROUSEL_SOURCE.reportPreview(mockIOUReport.reportID),
+                },
+            );
         });
 
         it('still renders an offline-deleted expense card in the carousel', async () => {
@@ -1229,8 +1178,8 @@ describe('MoneyRequestReportPreview', () => {
             fireEvent.press(screen.getByText(getTransactionDisplayAmountAndMetadataText(olderTransaction).transactionDisplayAmount));
             await waitForBatchedUpdatesWithAct();
 
-            expect(setActiveTransactionIDsSpy).toHaveBeenCalledWith([olderTransaction.transactionID, newerTransaction.transactionID]);
-            expect(setActiveTransactionIDsSpy).not.toHaveBeenCalledWith([newerTransaction.transactionID, olderTransaction.transactionID]);
+            expect(setActiveTransactionIDsSpy).toHaveBeenCalledWith([olderTransaction.transactionID, newerTransaction.transactionID], expect.anything());
+            expect(setActiveTransactionIDsSpy).not.toHaveBeenCalledWith([newerTransaction.transactionID, olderTransaction.transactionID], expect.anything());
         });
 
         it('does not open the pressed expense over the report when "View" is tapped during the cascade delay', async () => {
@@ -1287,7 +1236,10 @@ describe('MoneyRequestReportPreview', () => {
             fireEvent.press(screen.getByText(getTransactionDisplayAmountAndMetadataText(many.at(0) ?? mockTransaction).transactionDisplayAmount));
             await waitForBatchedUpdatesWithAct();
 
-            expect(setActiveTransactionIDsSpy).toHaveBeenCalledWith(many.map((transaction) => transaction.transactionID));
+            expect(setActiveTransactionIDsSpy).toHaveBeenCalledWith(
+                many.map((transaction) => transaction.transactionID),
+                expect.anything(),
+            );
         });
 
         it('opens the report instead of the lone expense for a single-expense report', async () => {

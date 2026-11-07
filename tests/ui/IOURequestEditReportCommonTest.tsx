@@ -49,6 +49,7 @@ const renderIOURequestEditReportCommon = ({
     isPerDiemRequest = false,
     selectReport = jest.fn(),
     createReport,
+    onNavigateAway,
 }: {
     selectedReportID: string;
     selectedPolicyID?: string;
@@ -60,6 +61,7 @@ const renderIOURequestEditReportCommon = ({
     isPerDiemRequest?: boolean;
     selectReport?: jest.Mock;
     createReport?: jest.Mock;
+    onNavigateAway?: jest.Mock;
 }) =>
     render(
         <NavigationContainer>
@@ -74,6 +76,7 @@ const renderIOURequestEditReportCommon = ({
                     isDistanceRequest={isDistanceRequest}
                     selectReport={selectReport}
                     createReport={createReport}
+                    onNavigateAway={onNavigateAway}
                     backTo=""
                     isPerDiemRequest={isPerDiemRequest}
                 />
@@ -190,17 +193,25 @@ describe('IOURequestEditReportCommon', () => {
                         nonReimbursableTotal: 0,
                     },
                     [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_ID}` as const]: sourceReport,
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${FAKE_TRANSACTION_ID}` as const]: {
-                        transactionID: FAKE_TRANSACTION_ID,
-                        reportID: FAKE_REPORT_ID,
-                        reimbursable: false,
-                    },
                 });
             });
             await waitForBatchedUpdatesWithAct();
 
             // When the move-report picker is rendered
             renderIOURequestEditReportCommon({selectedReportID: sourceReport.reportID, selectedPolicyID: sourceReport.policyID});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then aggregate totals alone do not hide the destination before its transaction is loaded
+            expect(screen.getByText('Ineligible Report')).toBeOnTheScreen();
+
+            // When the complete destination transaction set becomes available
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${FAKE_TRANSACTION_ID}`, {
+                    transactionID: FAKE_TRANSACTION_ID,
+                    reportID: FAKE_REPORT_ID,
+                    reimbursable: false,
+                });
+            });
             await waitForBatchedUpdatesWithAct();
 
             // Then the ineligible report is not re-added by the policy-admin fallback
@@ -247,6 +258,25 @@ describe('IOURequestEditReportCommon', () => {
 
             expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
             expect(selectReport).not.toHaveBeenCalled();
+        });
+
+        it('closes an anchored container when a pick is blocked, so the block modal can navigate on without it', async () => {
+            // Given a manual distance expense whose report list opened in a container anchored to the expense form's row,
+            // and a report on a workspace with commuter exclusions, which blocks the move with a modal whose button may
+            // open the personal details page
+            const currentReport = await setUpCommuterExclusionTest();
+            const selectReport = jest.fn();
+            const onNavigateAway = jest.fn();
+
+            // When that report is picked
+            renderIOURequestEditReportCommon({selectedReportID: currentReport.reportID, transactionIDs: [FAKE_TRANSACTION_ID], selectReport, onNavigateAway, isManualDistanceRequest: true});
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByText('Expense Report'));
+
+            // Then the block modal shows, nothing is picked, and the container is told to close so it never stays under the page the modal opens
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+            expect(selectReport).not.toHaveBeenCalled();
+            expect(onNavigateAway).toHaveBeenCalledTimes(1);
         });
 
         it('allows moving a GPS distance expense to a report with commuter exclusions', async () => {
@@ -339,6 +369,30 @@ describe('IOURequestEditReportCommon', () => {
 
             expect(createReport).not.toHaveBeenCalled();
             expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        });
+
+        it('closes an anchored container when creating a report is blocked', async () => {
+            // Given a manual distance expense in an anchored container, on a workspace with commuter exclusions
+            const currentReport = await setUpCommuterExclusionTest();
+            const createReport = jest.fn();
+            const onNavigateAway = jest.fn();
+
+            // When Create report is pressed
+            renderIOURequestEditReportCommon({
+                selectedReportID: currentReport.reportID,
+                transactionPolicyID: FAKE_POLICY_ID,
+                transactionIDs: [FAKE_TRANSACTION_ID],
+                isManualDistanceRequest: true,
+                createReport,
+                onNavigateAway,
+            });
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByText('Create report'), {});
+
+            // Then no report is created, the block modal shows, and the container is told to close
+            expect(createReport).not.toHaveBeenCalled();
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+            expect(onNavigateAway).toHaveBeenCalledTimes(1);
         });
 
         it('blocks moving a per diem expense to a report whose policy is missing its custom unit', async () => {

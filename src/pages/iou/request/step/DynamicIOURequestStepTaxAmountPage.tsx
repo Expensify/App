@@ -125,7 +125,7 @@ function DynamicIOURequestStepTaxAmountPage({
         const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(currentAmount.amount));
 
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {taxAmount: taxAmountInSmallestCurrencyUnits}, getCurrencyDecimals, getCurrencySymbol);
+            setDraftSplitTransaction(transactionID, currentTransaction, {taxAmount: taxAmountInSmallestCurrencyUnits}, getCurrencyDecimals, getCurrencySymbol);
             saveAndNavigateBack();
             return;
         }
@@ -161,7 +161,6 @@ function DynamicIOURequestStepTaxAmountPage({
 
         setMoneyRequestTaxAmount(transactionID, taxAmountInSmallestCurrencyUnits);
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         setMoneyRequestCurrency(transactionID, currency || CONST.CURRENCY.USD);
 
         navigateBack();

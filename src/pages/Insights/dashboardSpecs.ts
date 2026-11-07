@@ -1,31 +1,31 @@
 /** Declares the charts each Insights dashboard renders and how they map to backend graph slots and search views. */
 
-import type {ChartView, SearchGroupBy} from '@components/Search/types';
+import type {ChartView, SearchChartMetric, SearchGroupBy} from '@components/Search/types';
 
 import {isPolicyEligibleForTopCategories, isPolicyEligibleForTopSpenders} from '@libs/SearchUIUtils';
 
-import colors from '@styles/theme/colors';
-
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {InsightsDashboardID, InsightsGraphKey, InsightsSearchKey, Policy} from '@src/types/onyx';
+import type {Beta, InsightsDashboardID, InsightsGraphKey, InsightsSearchKey, Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
+import {canViewAllPolicyData} from './insightsAccess';
+
 type InsightsChartSpec = {
-    /** Slot the chart finds its snapshot hash under in the stored dashboard's `graphs` */
+    /** Slot the request names the chart's snapshot under, and the response's `graphs` confirms it in */
     graphKey: InsightsGraphKey;
     titleKey: TranslationPaths;
     view: ChartView;
+
+    /** What the chart plots for each group, left out by charts plotting the money each group totals */
+    metric?: SearchChartMetric;
 
     /** What the chart aggregates by, left out by charts that follow the page's group-by filter */
     groupBy?: SearchGroupBy;
     sortBy?: string;
     sortOrder?: string;
     limit?: number;
-
-    /** Color every bar is drawn in. Only a bar chart reads it. */
-    color?: string;
 
     /** The chart is shown when any workspace in scope passes this. A chart that declares none is always shown. */
     isPolicyEligible?: (policy: Policy, login: string | undefined) => boolean;
@@ -34,6 +34,15 @@ type InsightsChartSpec = {
 type InsightsDashboardSpec = {
     /** Identifies the dashboard to the backend. */
     searchKey: InsightsSearchKey;
+
+    /** Label of the dashboard's tab in the segmented control */
+    labelKey: TranslationPaths;
+
+    /** The dashboard is hidden unless this beta is enabled */
+    beta?: Beta;
+
+    /** The dashboard is shown when any workspace in scope passes this. A dashboard that declares none is always shown. */
+    isPolicyEligible?: (policy: Policy, login: string | undefined) => boolean;
 
     /** Chart across the top of the page, the only one the group-by filter applies to */
     headlineChart: InsightsChartSpec;
@@ -45,6 +54,7 @@ type InsightsDashboardSpec = {
 const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpec> = {
     [CONST.INSIGHTS.DASHBOARD.SPEND]: {
         searchKey: CONST.INSIGHTS.SEARCH_KEY.SPEND,
+        labelKey: 'common.spend',
         headlineChart: {
             graphKey: CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME,
             titleKey: 'search.spendOverTime',
@@ -55,7 +65,6 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 graphKey: CONST.INSIGHTS.GRAPH.TOP_SPENDERS,
                 titleKey: 'search.tabs.topSpenders',
                 view: CONST.SEARCH.VIEW.BAR,
-                color: colors.blue400,
                 groupBy: CONST.SEARCH.GROUP_BY.FROM,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
@@ -66,7 +75,6 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 graphKey: CONST.INSIGHTS.GRAPH.TOP_MERCHANTS,
                 titleKey: 'search.tabs.topMerchants',
                 view: CONST.SEARCH.VIEW.BAR,
-                color: colors.pink400,
                 groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
@@ -84,6 +92,19 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             },
         ],
     },
+    [CONST.INSIGHTS.DASHBOARD.COMPLIANCE]: {
+        searchKey: CONST.INSIGHTS.SEARCH_KEY.COMPLIANCE,
+        labelKey: 'insightsPage.compliance',
+        beta: CONST.BETAS.INSIGHTS_COMPLIANCE,
+        isPolicyEligible: canViewAllPolicyData,
+        headlineChart: {
+            graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_OVER_TIME,
+            titleKey: 'insightsPage.compliance',
+            view: CONST.SEARCH.VIEW.LINE,
+            metric: CONST.SEARCH.CHART_METRIC.COUNT,
+        },
+        supportingCharts: [],
+    },
 };
 
 /** Returns the charts that at least one workspace in scope is eligible for. No selected workspaces means every workspace is in scope. */
@@ -92,6 +113,15 @@ function getVisibleCharts(charts: InsightsChartSpec[], policies: OnyxCollection<
     return charts.filter(({isPolicyEligible}) => !isPolicyEligible || policiesInScope.some((policy) => isPolicyEligible(policy, login)));
 }
 
-export {getVisibleCharts};
+/** Returns the dashboards the user can open, ignoring the workspace filter. */
+function getAccessibleDashboards(policies: OnyxCollection<Policy>, login: string | undefined, isBetaEnabled: (beta: Beta) => boolean): InsightsDashboardID[] {
+    const allPolicies = Object.values(policies ?? {});
+    return Object.values(CONST.INSIGHTS.DASHBOARD).filter((dashboardID) => {
+        const {beta, isPolicyEligible} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
+        return (!beta || isBetaEnabled(beta)) && (!isPolicyEligible || allPolicies.some((policy) => !!policy && isPolicyEligible(policy, login)));
+    });
+}
+
+export {getAccessibleDashboards, getVisibleCharts};
 export type {InsightsChartSpec};
 export default INSIGHTS_DASHBOARD_SPECS;

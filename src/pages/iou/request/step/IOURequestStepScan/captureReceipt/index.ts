@@ -1,23 +1,34 @@
+import {capturePhotoToPath, captureSnapshotToPath} from '@libs/cameraCapture';
+
 import type {CaptureReceipt, CaptureReceiptOptions} from './types';
 
+import getReceiptFilePath from './getReceiptFilePath';
+
 /**
- * Whether `captureReceipt` will use `takePhoto` (as opposed to `takeSnapshot`) for the given options.
+ * Whether `captureReceipt` will take a full photo (as opposed to a preview snapshot) for the given options.
  */
-function shouldTakePhoto({flash, hasFlash, isInLandscapeMode}: Pick<CaptureReceiptOptions, 'flash' | 'hasFlash' | 'isInLandscapeMode'>): boolean {
-    return (flash && hasFlash) || isInLandscapeMode;
+function shouldTakePhoto({flash, hasFlash, isInLandscapeMode, isTorchOn = false}: Pick<CaptureReceiptOptions, 'flash' | 'hasFlash' | 'isInLandscapeMode' | 'isTorchOn'>): boolean {
+    return (flash && hasFlash && !isTorchOn) || isInLandscapeMode;
 }
 
-const captureReceipt: CaptureReceipt = (camera, options) => {
-    const {flash, hasFlash, isPlatformMuted, path} = options;
-    if (shouldTakePhoto(options)) {
-        return camera.takePhoto({
-            flash: flash && hasFlash ? 'on' : 'off',
-            enableShutterSound: !isPlatformMuted,
-            path,
-        });
+const captureReceipt: CaptureReceipt = (camera, photoOutput, {flash, hasFlash, isPlatformMuted, path, isInLandscapeMode, isTorchOn = false, onWillCapturePhoto}) => {
+    const filePath = getReceiptFilePath(path);
+
+    if (!shouldTakePhoto({flash, hasFlash, isInLandscapeMode, isTorchOn})) {
+        return captureSnapshotToPath(camera, filePath);
     }
 
-    return camera.takeSnapshot({quality: 85, path});
+    const isUsingFlash = flash && hasFlash && !isTorchOn;
+
+    return capturePhotoToPath(
+        photoOutput,
+        {
+            flashMode: isUsingFlash ? 'on' : 'off',
+            enableShutterSound: !isPlatformMuted,
+        },
+        filePath,
+        {onWillCapturePhoto},
+    );
 };
 
 export default captureReceipt;

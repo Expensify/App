@@ -2,6 +2,8 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import CONST from '@src/CONST';
+
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
@@ -42,14 +44,15 @@ function FeedSelector({onFeedSelect, CardFeedIcon, feedName, supportingText, sho
             onPress={onFeedSelect}
             wrapperStyle={[styles.flexShrink1, wrapperStyle]}
             style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}
-            accessibilityLabel={feedName ?? ''}
-            sentryLabel="FeedSelector"
+            accessibilityLabel={[feedName, supportingText].filter(Boolean).join(', ')}
+            role={CONST.ROLE.BUTTON}
+            sentryLabel={CONST.SENTRY_LABEL.FEED_SELECTOR.BUTTON}
         >
             {CardFeedIcon}
 
             <View style={styles.flex1}>
                 <View style={[styles.flexRow, styles.gap1, styles.alignItemsCenter]}>
-                    <CaretWrapper>
+                    <CaretWrapper style={[styles.flexShrink1, styles.mw100]}>
                         <Text
                             numberOfLines={1}
                             style={[styles.textStrong, styles.flexShrink1]}

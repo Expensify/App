@@ -37,6 +37,14 @@ type PendingSearchWrite = {
     safetyTimeoutID: ReturnType<typeof setTimeout>;
 };
 
+type FlushHold = {
+    /** Ends the hold if nothing releases it first. */
+    timeoutID: ReturnType<typeof setTimeout>;
+
+    /** Generation of the write whose flush was requested during the hold, so the release cannot flush a newer write. */
+    requestedGeneration?: number;
+};
+
 let pending: PendingSearchWrite | undefined;
 let generationCounter = 0;
 
@@ -145,9 +153,36 @@ function restartPendingSearchWriteSafetyTimeoutForGeneration(generation: number)
     pending.safetyTimeoutID = setTimeout(() => clearPending(generation), SAFETY_TIMEOUT_MS);
 }
 
+/** Set while a revealed wide pre-mount slides the RHP out, so the write does not re-render the visible list mid-slide. */
+let flushHold: FlushHold | undefined;
+
+/** Holds flushes until `releasePendingSearchWriteFlush`, or the safety timeout if the release never comes. */
+function holdPendingSearchWriteFlush() {
+    clearTimeout(flushHold?.timeoutID);
+    flushHold = {timeoutID: setTimeout(releasePendingSearchWriteFlush, SAFETY_TIMEOUT_MS), requestedGeneration: flushHold?.requestedGeneration};
+}
+
+/** Ends the hold and runs a flush that was requested during it. */
+function releasePendingSearchWriteFlush() {
+    if (!flushHold) {
+        return;
+    }
+    clearTimeout(flushHold.timeoutID);
+    const {requestedGeneration} = flushHold;
+    flushHold = undefined;
+    if (requestedGeneration === undefined || pending?.generation !== requestedGeneration) {
+        return;
+    }
+    flushPendingSearchWrite();
+}
+
 /** Resolves `pending.barrier`. Clears `pending` right away if a write already consumed it, otherwise flags `isFlushRequested` so the next one to consume it clears it instead. */
 function flushPendingSearchWrite() {
     if (!pending) {
+        return;
+    }
+    if (flushHold) {
+        flushHold.requestedGeneration = pending.generation;
         return;
     }
 
@@ -185,6 +220,8 @@ function resetForTesting() {
     }
     pending = undefined;
     watchKey = undefined;
+    clearTimeout(flushHold?.timeoutID);
+    flushHold = undefined;
 }
 
 export {
@@ -196,6 +233,8 @@ export {
     consumePendingSearchWriteForGeneration,
     restartPendingSearchWriteSafetyTimeoutForGeneration,
     flushPendingSearchWrite,
+    holdPendingSearchWriteFlush,
+    releasePendingSearchWriteFlush,
     setSearchWriteWatchKey,
     getSearchWriteWatchKey,
     resetForTesting,

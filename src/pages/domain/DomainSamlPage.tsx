@@ -1,5 +1,4 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -29,7 +28,7 @@ import {domainMemberSettingsSelector, isAdminSelector} from '@src/selectors/Doma
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import SamlConfigurationDetailsSectionContent from './Saml/SamlConfigurationDetailsSectionContent';
@@ -57,26 +56,8 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
     useDomainDocumentTitle(domainName, 'domain.saml');
     const doesDomainExist = !!domain;
 
-    const samlFeatures: FeatureListItem[] = useMemo(
-        () => [
-            {
-                icon: illustrations.OpenSafe,
-                translationKey: 'domain.samlFeatureList.fasterAndEasierLogin',
-            },
-            {
-                icon: illustrations.ShieldYellow,
-                translationKey: 'domain.samlFeatureList.moreSecurityAndControl',
-            },
-            {
-                icon: illustrations.LockClosed,
-                translationKey: 'domain.samlFeatureList.onePasswordForAnything',
-            },
-        ],
-        [illustrations.OpenSafe, illustrations.ShieldYellow, illustrations.LockClosed],
-    );
-
     if (isLoadingOnyxValue(domainResults, domainSettingsResults)) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator shouldUseGoBackButton={shouldUseNarrowLayout} />;
     }
 
     return (
@@ -143,7 +124,6 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                             </>
                         ) : (
                             <FeatureList
-                                menuItems={samlFeatures}
                                 title={translate('domain.samlFeatureList.title')}
                                 renderSubtitle={() => (
                                     <SectionSubtitleHTML
@@ -161,7 +141,11 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                                 illustrationStyle={styles.emptyStateSamlIllustration}
                                 illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter, styles.cardSectionIllustrationContainer]}
                                 titleStyles={styles.textHeadlineH1}
-                            />
+                            >
+                                <FeatureList.Item icon={illustrations.OpenSafe}>{translate('domain.samlFeatureList.fasterAndEasierLogin')}</FeatureList.Item>
+                                <FeatureList.Item icon={illustrations.ShieldYellow}>{translate('domain.samlFeatureList.moreSecurityAndControl')}</FeatureList.Item>
+                                <FeatureList.Item icon={illustrations.LockClosed}>{translate('domain.samlFeatureList.onePasswordForAnything')}</FeatureList.Item>
+                            </FeatureList>
                         )}
                     </View>
                 </ScrollView>

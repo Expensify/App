@@ -2,7 +2,7 @@ import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -29,7 +29,7 @@ import FLAG_FOR_REVIEW_RULE_INPUT_IDS from '@src/types/form/FlagForReviewRuleFor
 import INPUT_IDS from '@src/types/form/FlagForReviewRuleMaxAmountForm';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type FlagForReviewRuleAmountPageBaseProps = {
@@ -68,17 +68,13 @@ function FlagForReviewRuleAmountPageBase({policyID, categoryName, isCategoryLock
         backToRoute = ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID, isCategoryLocked ? form?.[FLAG_FOR_REVIEW_RULE_INPUT_IDS.CATEGORY] : undefined);
     }
 
-    const expenseLimitTypes = useMemo(
-        () =>
-            Object.values(CONST.POLICY.EXPENSE_LIMIT_TYPES).map((value) => ({
-                value,
-                text: translate(`workspace.rules.categoryRules.expenseLimitTypes.${value}`),
-                alternateText: translate(`workspace.rules.categoryRules.expenseLimitTypes.${value}Subtitle`),
-                keyForList: value,
-                isSelected: selectedExpenseLimitType === value,
-            })),
-        [selectedExpenseLimitType, translate],
-    );
+    const expenseLimitTypes = Object.values(CONST.POLICY.EXPENSE_LIMIT_TYPES).map((value) => ({
+        value,
+        text: translate(`workspace.rules.categoryRules.expenseLimitTypes.${value}`),
+        alternateText: translate(`workspace.rules.categoryRules.expenseLimitTypes.${value}Subtitle`),
+        keyForList: value,
+        isSelected: selectedExpenseLimitType === value,
+    }));
 
     const goBack = () => {
         Navigation.goBack(backToRoute);
@@ -116,7 +112,7 @@ function FlagForReviewRuleAmountPageBase({policyID, categoryName, isCategoryLock
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID="FlagForReviewRuleAmountPage"
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('iou.amount')}
                     onBackButtonPress={goBack}
                 />

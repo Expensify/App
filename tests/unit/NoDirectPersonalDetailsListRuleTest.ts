@@ -52,6 +52,10 @@ describe('no-direct-personal-details-list', () => {
             'const key = SOME_OTHER_KEYS.PERSONAL_DETAILS_LIST;',
             // Only known at runtime, so there is nothing to resolve statically.
             'const key = ONYXKEYS[PERSONAL_DETAILS_LIST];',
+            // Building a search snapshot payload names its personal details field, it does not touch the Onyx key.
+            'snapshotData[ONYXKEYS.PERSONAL_DETAILS_LIST] = personalDetails;',
+            'Object.assign(data, {[ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails});',
+            'const update = {key: snapshotKey, value: {data: {[ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails}}};',
         ],
         invalid: [
             {
@@ -84,6 +88,18 @@ describe('no-direct-personal-details-list', () => {
             },
             {
                 code: 'const masks = {[ONYXKEYS.PERSONAL_DETAILS_LIST]: {allowList: []}};',
+                errors: [{messageId: 'directUsage'}],
+            },
+            {
+                code: 'const personalDetails = snapshotData[ONYXKEYS.PERSONAL_DETAILS_LIST];',
+                errors: [{messageId: 'directUsage'}],
+            },
+            {
+                code: 'Onyx.multiSet({[ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails});',
+                errors: [{messageId: 'directUsage'}],
+            },
+            {
+                code: 'Object.assign({[ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails}, rest);',
                 errors: [{messageId: 'directUsage'}],
             },
             {

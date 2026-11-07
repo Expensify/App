@@ -5,6 +5,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import usePolicyData from '@hooks/usePolicyData';
 
 import {
+    clearPolicyMemberCategoryVisibilityError,
     createPolicyCategory,
     deleteWorkspaceCategories,
     enablePolicyCategories,
@@ -12,6 +13,7 @@ import {
     renamePolicyCategory,
     setPolicyCategoryReceiptsAndItemizedReceiptRequired,
     setPolicyCategoryTax,
+    setPolicyMemberCategoryVisibility,
     setWorkspaceCategoryEnabled,
     setWorkspaceRequiresCategory,
 } from '@libs/actions/Policy/Category';
@@ -22,6 +24,7 @@ import {
     DEFAULT_MCC_GROUP,
     isDefaultMccGroupID,
 } from '@libs/actions/Policy/OptimisticPolicyCategoriesAndMccGroups';
+import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -38,6 +41,9 @@ import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import createRandomPolicyTags from '../utils/collections/policyTags';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+/** Builds a visibleTo map, keyed by accountID like the server sends it */
+const buildVisibleTo = (...accountIDs: number[]): Record<string, boolean> => Object.fromEntries(accountIDs.map((accountID) => [accountID, true]));
 
 OnyxUpdateManager();
 describe('actions/PolicyCategory', () => {
@@ -69,7 +75,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (policy) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         // Check if policy requiresCategory was updated with correct values
                         expect(policy?.requiresCategory).toBeTruthy();
                         expect(policy?.pendingFields?.requiresCategory).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
@@ -84,13 +90,107 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (policy) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         // Check if the policy pendingFields was cleared
                         expect(policy?.pendingFields?.requiresCategory).toBeFalsy();
                         resolve();
                     },
                 });
             });
+        });
+    });
+    describe('setPolicyMemberCategoryVisibility', () => {
+        const policyID = 'policyID';
+        const policyMemberAccountIDs = [1, 2, 3];
+        const policyCategories: PolicyCategories = {
+            Travel: {name: 'Travel', enabled: true, visibleTo: null},
+            Meals: {name: 'Meals', enabled: true, visibleTo: null},
+            Software: {name: 'Software', enabled: true, visibleTo: buildVisibleTo(2)},
+            Office: {name: 'Office', enabled: false},
+        };
+
+        it('optimistically restricts the member and clears the pending fields on success', async () => {
+            // Given a member who can use every category but Software
+            mockFetch?.pause?.();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, policyCategories);
+
+            // When the admin limits them to Travel and Software
+            setPolicyMemberCategoryVisibility(policyID, [1], ['Travel', 'Software'], policyCategories, policyMemberAccountIDs, ['alice@example.com']);
+            await waitForBatchedUpdates();
+
+            // Then Meals, open to everyone, is restricted to every other member, Software gains the member, and the
+            // unchanged and disabled categories are left alone
+            let updatedCategories = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+            expect(updatedCategories?.Meals?.visibleTo).toEqual(buildVisibleTo(2, 3));
+            expect(updatedCategories?.Meals?.pendingFields?.visibleTo).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(updatedCategories?.Software?.visibleTo).toEqual(buildVisibleTo(1, 2));
+            // Onyx drops null values, so a category open to everyone has no visibleTo at all
+            expect(updatedCategories?.Travel?.visibleTo).toBeUndefined();
+            expect(updatedCategories?.Travel?.pendingFields?.visibleTo).toBeUndefined();
+            expect(updatedCategories?.Office?.visibleTo).toBeUndefined();
+
+            // And the change shows as pending on the member who was changed, not on the categories it touched
+            let updatedPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.employeeList?.['alice@example.com']?.pendingFields?.categoryVisibility).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // When the request succeeds
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then the change is no longer pending
+            updatedCategories = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+            expect(updatedCategories?.Meals?.pendingFields?.visibleTo).toBeFalsy();
+            expect(updatedCategories?.Software?.pendingFields?.visibleTo).toBeFalsy();
+            updatedPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.employeeList?.['alice@example.com']?.pendingFields?.categoryVisibility).toBeFalsy();
+        });
+
+        it('restores the previous visibility and sets the error on the member on failure', async () => {
+            // Given a request that will fail
+            mockFetch?.fail?.();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, policyCategories);
+
+            // When the admin removes Software from the only member who can use it
+            setPolicyMemberCategoryVisibility(policyID, [2], ['Travel', 'Meals'], policyCategories, policyMemberAccountIDs, ['bob@example.com']);
+            await waitForBatchedUpdates();
+
+            // Then Software goes back to its previous members without an error of its own, so the Categories page stays clean
+            const updatedCategories = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+            expect(updatedCategories?.Software?.visibleTo).toEqual(buildVisibleTo(2));
+            expect(updatedCategories?.Software?.pendingFields?.visibleTo).toBeFalsy();
+            expect(updatedCategories?.Software?.errors).toBeFalsy();
+
+            // And the error shows on the member instead, where the admin made the change
+            let updatedPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.employeeList?.['bob@example.com']?.errorFields?.categoryVisibility).toBeTruthy();
+            expect(updatedPolicy?.employeeList?.['bob@example.com']?.pendingFields?.categoryVisibility).toBeFalsy();
+
+            // When the admin dismisses it
+            clearPolicyMemberCategoryVisibilityError(policyID, 'bob@example.com');
+            await waitForBatchedUpdates();
+
+            // Then the error is gone
+            updatedPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.employeeList?.['bob@example.com']?.errorFields?.categoryVisibility).toBeFalsy();
+        });
+
+        it('removes the member from a restricted category without touching the other members', async () => {
+            // Given a category restricted to two members
+            mockFetch?.pause?.();
+            const restrictedCategories: PolicyCategories = {
+                Travel: {name: 'Travel', enabled: true, visibleTo: null},
+                Software: {name: 'Software', enabled: true, visibleTo: buildVisibleTo(1, 2)},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, restrictedCategories);
+
+            // When the admin takes Software away from one of them
+            setPolicyMemberCategoryVisibility(policyID, [1], ['Travel'], restrictedCategories, policyMemberAccountIDs, ['alice@example.com']);
+            await waitForBatchedUpdates();
+
+            // Then visibleTo is merged rather than replaced, so the member's key has to be deleted for them to lose access
+            const updatedCategories = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+            expect(updatedCategories?.Software?.visibleTo).toEqual(buildVisibleTo(2));
+            await mockFetch?.resume?.();
         });
     });
     describe('createWorkspaceCategories', () => {
@@ -116,7 +216,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         const newCategory = policyCategories?.[newCategoryName];
 
                         expect(newCategory?.name).toBe(newCategoryName);
@@ -132,7 +232,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
 
                         const newCategory = policyCategories?.[newCategoryName];
                         expect(newCategory?.errors).toBeFalsy();
@@ -168,7 +268,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
 
                         expect(policyCategories?.[oldCategoryName ?? '']).toBeFalsy();
                         expect(policyCategories?.[newCategoryName]?.name).toBe(newCategoryName);
@@ -185,7 +285,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
 
                         expect(policyCategories?.[newCategoryName]?.pendingAction).toBeFalsy();
                         expect(policyCategories?.[newCategoryName]?.pendingFields?.name).toBeFalsy();
@@ -228,7 +328,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
 
                         expect(policyCategories?.[categoryNameToUpdate]?.enabled).toBeTruthy();
                         expect(policyCategories?.[categoryNameToUpdate]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
@@ -244,7 +344,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
 
                         expect(policyCategories?.[categoryNameToUpdate]?.pendingAction).toBeFalsy();
                         expect(policyCategories?.[categoryNameToUpdate]?.pendingFields?.enabled).toBeFalsy();
@@ -273,7 +373,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
 
                         expect(policyCategories?.[categoryNameToDelete]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
                         resolve();
@@ -286,7 +386,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(policyCategories?.[categoryNameToDelete]).toBeFalsy();
 
                         resolve();
@@ -325,7 +425,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (policy) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(policy?.pendingFields?.areCategoriesEnabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
                         resolve();
                     },
@@ -335,7 +435,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(Object.values(policyCategories ?? {}).every((category) => category.enabled === false)).toBeTruthy();
                         resolve();
                     },
@@ -348,7 +448,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (policy) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(policy?.areCategoriesEnabled).toBe(false);
                         expect(policy?.requiresCategory).toBe(false);
                         expect(policy?.pendingFields?.areCategoriesEnabled).toBeFalsy();
@@ -386,7 +486,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (policy) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(policy?.pendingFields?.areCategoriesEnabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
                         resolve();
                     },
@@ -396,7 +496,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(Object.values(policyCategories ?? {}).every((category) => category.enabled === true)).toBeTruthy();
                         resolve();
                     },
@@ -409,7 +509,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (policy) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(policy?.areCategoriesEnabled).toBe(true);
                         expect(policy?.requiresCategory).toBe(true);
                         expect(policy?.pendingFields?.areCategoriesEnabled).toBeFalsy();
@@ -706,6 +806,77 @@ describe('actions/PolicyCategory', () => {
 
             expect(importFinalModal.promptKey).toStrictEqual('spreadsheet.importCategoriesNoneAddedOrUpdated');
         });
+
+        it('Sends payroll code and category rule fields to the API', async () => {
+            // Given a category import that maps every Classic category column
+            const fakePolicy = createRandomPolicy(0);
+            const categoriesToImport: PolicyCategory[] = [
+                {
+                    name: 'Travel',
+                    enabled: true,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'GL Code': '6000',
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'Payroll Code': 'P100',
+                    areCommentsRequired: true,
+                    commentHint: 'Add the trip purpose',
+                    expenseLimitType: CONST.POLICY.EXPENSE_LIMIT_TYPES.DAILY,
+                    maxExpenseAmount: 5000,
+                },
+            ];
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When the categories are imported
+            await importPolicyCategories(fakePolicy.id, categoriesToImport);
+
+            // Then the new fields are passed through to the backend instead of being dropped from the payload
+            TestHelper.expectAPICommandToHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_CATEGORIES_SPREADSHEET, 0, {
+                policyID: fakePolicy.id,
+                categories: JSON.stringify([
+                    {
+                        name: 'Travel',
+                        enabled: true,
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        'GL Code': '6000',
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        'Payroll Code': 'P100',
+                        areCommentsRequired: true,
+                        commentHint: 'Add the trip purpose',
+                        expenseLimitType: CONST.POLICY.EXPENSE_LIMIT_TYPES.DAILY,
+                        maxExpenseAmount: 5000,
+                    },
+                ]),
+            });
+        });
+
+        it('Counts a category as updated when only its payroll code or description hint changes', async () => {
+            // Given existing categories whose GL code and enabled state will not change
+            const fakePolicy = createRandomPolicy(0);
+            const existingCategories = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                Travel: {name: 'Travel', enabled: true, 'GL Code': '6000', 'Payroll Code': 'P100'},
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                Meals: {name: 'Meals', enabled: true, 'GL Code': '6001', commentHint: 'Old hint'},
+            };
+            const categoriesToImport: PolicyCategory[] = [
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                {name: 'Travel', enabled: true, 'GL Code': '6000', 'Payroll Code': 'P200'},
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                {name: 'Meals', enabled: true, 'GL Code': '6001', commentHint: 'New hint'},
+            ];
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When the categories are imported
+            const importFinalModal = await importPolicyCategories(fakePolicy.id, categoriesToImport, existingCategories);
+
+            // Then both categories are reported as updated in the confirmation modal
+            expect(importFinalModal.promptKey).toBe('spreadsheet.importCategoriesUpdated');
+            expect(importFinalModal.promptKeyParams).toStrictEqual({count: 2});
+        });
     });
 
     describe('setPolicyCategoryReceiptsAndItemizedReceiptRequired', () => {
@@ -747,7 +918,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         const category = policyCategories?.[categoryName];
 
                         expect(category?.maxAmountNoReceipt).toBe(CONST.DISABLED_MAX_EXPENSE_VALUE);
@@ -768,7 +939,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         const category = policyCategories?.[categoryName];
 
                         expect(category?.maxAmountNoReceipt).toBe(CONST.DISABLED_MAX_EXPENSE_VALUE);
@@ -820,7 +991,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         const category = policyCategories?.[categoryName];
 
                         expect(category?.maxAmountNoReceipt).toBe(0);
@@ -841,7 +1012,7 @@ describe('actions/PolicyCategory', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`,
                     callback: (policyCategories) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         const category = policyCategories?.[categoryName];
 
                         expect(category?.maxAmountNoReceipt).toBe(0);

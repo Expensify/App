@@ -32,14 +32,15 @@ import {
     updateLastLocationPermissionPrompt,
 } from '@libs/actions/IOU/MoneyRequest';
 import {setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
+import signalExpenseAddedGrowl from '@libs/actions/IOU/signalExpenseAddedGrowl';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import type {GPSPoint as GpsPoint} from '@libs/actions/IOU/types/TrackExpenseTransactionParams';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
-import getCurrentPosition from '@libs/getCurrentPosition';
+import getCurrentPositionWithinCap from '@libs/getCurrentPosition/getCurrentPositionWithinCap';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getExistingTransactionID, isLookingAroundSearchRoutingActive, resolveReportForMoneyRequest} from '@libs/IOUUtils';
+import {getDefaultReimbursableForPolicy, getExistingTransactionID, isLookingAroundSearchRoutingActive, resolveReportForMoneyRequest} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
@@ -47,14 +48,14 @@ import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {rand64} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isGroupPolicy, resolveCurrentTaxCode} from '@libs/PolicyUtils';
+import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
 import {getReportOrDraftReport, isMoneyRequestReport, isSelfDM} from '@libs/ReportUtils';
 import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
 import {logReceiptAdoptFailed, logReceiptCaptured, logReceiptSubmitted, mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
 import {cancelTracking} from '@libs/telemetry/submitFollowUpAction';
-import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasAllManuallyEnteredScanFields} from '@libs/TransactionUtils';
 
 import DraftWorkspaceOpener from '@pages/iou/request/step/confirmation/DraftWorkspaceOpener';
 import getSubmitExpensePreMountDestinationRoute from '@pages/iou/request/step/confirmation/getSubmitExpensePreMountDestinationRoute';
@@ -71,8 +72,9 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import {showErrorAlert} from './ShareRootPage';
 import useShareFileSizeValidation from './useShareFileSizeValidation';
@@ -142,7 +144,6 @@ function SubmitDetailsPage({
     const hasStartedPendingNavigation = useRef(false);
     const formHasBeenSubmitted = useRef(false);
     const hasCalledReveal = useRef(false);
-    const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
 
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
@@ -182,7 +183,18 @@ function SubmitDetailsPage({
         showErrorAlert(errorTitle, errorMessage);
     }, [errorTitle, errorMessage]);
 
+    // Feed the date / currency the user entered back into `initMoneyRequest`, which re-runs whenever late Onyx data
+    // lands and would otherwise re-seed them from the policy, discarding what they typed.
+    const enteredDate = transaction?.isCreatedSet ? transaction.created : undefined;
+    // Latch the currency rather than reading it live: clearing the amount resets `isAmountSet` while the picked
+    // currency stays on the draft, so a live read would let the next re-seed swap it for the policy's currency.
+    const enteredCurrencyRef = useRef<string | undefined>(undefined);
+
     useEffect(() => {
+        if (transaction?.isAmountSet && transaction.currency) {
+            enteredCurrencyRef.current = transaction.currency;
+        }
+
         initMoneyRequest({
             reportID: reportOrAccountID,
             policy,
@@ -191,14 +203,27 @@ function SubmitDetailsPage({
             newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
             report,
             parentReport,
-            currentDate,
+            currentDate: enteredDate ?? currentDate,
+            overrideCurrency: enteredCurrencyRef.current,
             hasOnlyPersonalPolicies,
             draftTransactionIDs,
         });
         // Populate transaction.participants so IOURequestStepReport can highlight the destination (mirrors other expense flows).
         setMoneyRequestParticipantsFromReport(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report, currentUserPersonalDetails.accountID);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportOrAccountID, policy, personalPolicy, report, parentReport, currentDate, currentUserPersonalDetails.accountID, hasOnlyPersonalPolicies]);
+    }, [
+        reportOrAccountID,
+        policy,
+        personalPolicy,
+        report,
+        parentReport,
+        currentDate,
+        currentUserPersonalDetails.accountID,
+        hasOnlyPersonalPolicies,
+        enteredDate,
+        transaction?.isAmountSet,
+        transaction?.currency,
+    ]);
 
     // Use the branch-aware values computed above: for a share that needs conversion (e.g. HEIC), these resolve to the
     // converted JPEG from VALIDATED_FILE_OBJECT; otherwise they fall back to the raw attachment. Re-deriving from
@@ -239,8 +264,10 @@ function SubmitDetailsPage({
                   reportAttributesDerived,
                   reportDraft,
                   currentUserAccountID: currentUserPersonalDetails.accountID,
-                  localize: {translate, dateFnsLocale, convertToDisplayString},
+                  localize: {translate, dateFnsLocale, convertToDisplayString, formatPhoneNumber},
                   rules,
+                  // Passing pendingDeleteMemberAccountIDs as undefined is intentional, getMoneyRequestParticipantsFromReport only report-backs policy expense chats, self DMs and invoice rooms.
+                  pendingDeleteMemberAccountIDs: undefined,
               });
     });
 
@@ -255,17 +282,17 @@ function SubmitDetailsPage({
     }, [defaultBillable]);
 
     useEffect(() => {
-        const defaultReimbursable = (isPolicyExpenseChat && isGroupPolicy(policy)) || isCreatingTrackExpense ? (policy?.defaultReimbursable ?? true) : true;
+        const defaultReimbursable = getDefaultReimbursableForPolicy({policy, isPolicyExpenseChat: !!isPolicyExpenseChat, isCreatingTrackExpense});
         setMoneyRequestReimbursable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, defaultReimbursable);
     }, [policy, isPolicyExpenseChat, isCreatingTrackExpense]);
 
-    const setBillable = useCallback((billable: boolean) => {
+    const setBillable = (billable: boolean) => {
         setMoneyRequestBillable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, billable);
-    }, []);
+    };
 
-    const setReimbursable = useCallback((reimbursable: boolean) => {
+    const setReimbursable = (reimbursable: boolean) => {
         setMoneyRequestReimbursable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reimbursable);
-    }, []);
+    };
 
     const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
     const transactionAmount = transaction?.amount ?? 0;
@@ -291,7 +318,7 @@ function SubmitDetailsPage({
 
     const hasNavigationDestination = !!transaction && !!postSubmitNavigationReportID;
     // Empty draft skips REPORT_DRAFT fallback — report must be in COLLECTION.REPORT to render behind the share modal.
-    const destinationReportInCollection = hasNavigationDestination ? getReportOrDraftReport(postSubmitNavigationReportID, undefined, undefined, {}) : undefined;
+    const destinationReportInCollection = hasNavigationDestination ? getReportOrDraftReport({reportID: postSubmitNavigationReportID, reportDraft: {}}) : undefined;
     // Destination report isn't in COLLECTION.REPORT yet (e.g. a recipient with no existing chat) — it will only
     // exist after the expense create writes it optimistically, so pre-mounting is impossible.
     const isDestinationReportMissing = hasNavigationDestination && !destinationReportInCollection?.reportID;
@@ -479,6 +506,10 @@ function SubmitDetailsPage({
                     rules,
                 });
             }
+
+            // requestMoney/trackExpense only signal the growl for the global-create flow and the share
+            // extension isn't flagged as such, so signal it here instead.
+            signalExpenseAddedGrowl(optimisticTransactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
         };
 
         const cleanupParams = {
@@ -542,7 +573,7 @@ function SubmitDetailsPage({
 
     const onSuccess = (file: File, locationPermissionGranted?: boolean) => {
         const receipt: Receipt = file;
-        receipt.state = file && CONST.IOU.RECEIPT_STATE.SCAN_READY;
+        receipt.state = hasAllManuallyEnteredScanFields(transaction, !!isPolicyExpenseChat) ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY;
         // The share flow builds the receipt here by hand and skips buildReceiptFiles, so this is the only place to stamp
         // the trace id and log the capture.
         const receiptTraceId = mintAndStampReceiptTraceId(receipt);
@@ -552,25 +583,32 @@ function SubmitDetailsPage({
             return;
         }
         // Use cached userLocation when available — avoids an extra getCurrentPosition round-trip.
-        if (userLocation) {
-            finishRequestAndNavigate(receipt, {
-                lat: userLocation.latitude,
-                long: userLocation.longitude,
-            });
-            return;
-        }
-        getCurrentPosition(
-            (successData) => {
-                finishRequestAndNavigate(receipt, {
-                    lat: successData.coords.latitude,
-                    long: successData.coords.longitude,
+        Onyx.get(ONYXKEYS.USER_LOCATION)
+            .catch((error: unknown) => {
+                // Location is optional. If the cache read fails, use the capped device read so submission can continue.
+                Log.warn('[SubmitDetailsPage] Failed to read the cached user location', {error});
+                return null;
+            })
+            .then((userLocation): GpsPoint | Promise<GpsPoint | undefined> => {
+                if (userLocation) {
+                    return {
+                        lat: userLocation.latitude,
+                        long: userLocation.longitude,
+                    };
+                }
+                // Resolve the position first, then submit in the promise chain so the catch below handles submission errors.
+                return new Promise((resolve) => {
+                    getCurrentPositionWithinCap((gpsCoords) => resolve(gpsCoords));
                 });
-            },
-            (errorData) => {
-                Log.info('[SubmitDetailsPage] getCurrentPosition failed', false, errorData);
-                finishRequestAndNavigate(receipt);
-            },
-        );
+            })
+            .then((gpsPoint) => finishRequestAndNavigate(receipt, gpsPoint))
+            .catch((error: unknown) => {
+                // This chain runs after readFileAsync has already resolved, so its onFailure reset no longer covers a throw here.
+                // Reset the same way so the confirm button does not stay loading and the user can retry.
+                Log.warn('[SubmitDetailsPage] Failed to submit the shared expense', {error});
+                formHasBeenSubmitted.current = false;
+                setIsConfirming(false);
+            });
     };
 
     // Separate helper so the permission-modal callbacks don't re-enter onConfirm (deadlocked when OS permission was pre-granted).
@@ -689,9 +727,13 @@ function SubmitDetailsPage({
                         isPolicyExpenseChat={isPolicyExpenseChat}
                         policyID={policy?.id}
                         isConfirming={isConfirming}
-                        onConfirm={() => onConfirm(true)}
+                        onConfirm={() => onConfirm(!hasAllManuallyEnteredScanFields(transaction, !!isPolicyExpenseChat))}
                         reportID={reportOrAccountID}
-                        shouldShowSmartScanFields={false}
+                        // The share flow always creates a Scan expense from the shared file: it is never a split, never
+                        // a moved tracked expense and never a test receipt, so the amount / merchant / date are always
+                        // offered behind "Show more" here, exactly as they are on the in-app Scan confirmation.
+                        shouldShowSmartScanFields
+                        canEnterScanFieldsManually
                         action={CONST.IOU.ACTION.CREATE}
                         receiptOptions={{
                             receiptPath: currentReceiptSource,

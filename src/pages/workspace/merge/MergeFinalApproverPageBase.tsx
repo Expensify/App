@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceMembersSelectionList from '@components/WorkspaceMembersSelectionList';
 
@@ -57,7 +57,7 @@ function MergeFinalApproverPageBase({policyID, config}: MergeFinalApproverPageBa
                 testID={config.testID}
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={config.getHeaderTitle(providerName)}
                     onBackButtonPress={() => Navigation.goBack(config.backRoute)}
                 />

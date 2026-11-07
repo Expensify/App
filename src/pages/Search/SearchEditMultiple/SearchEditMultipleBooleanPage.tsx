@@ -16,7 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type BooleanOption = ListItem & {
@@ -37,23 +37,20 @@ function SearchEditMultipleBooleanPage() {
     const [draftValue, setDraftValue] = useState<boolean | null>();
     const selectedValue = draftValue === undefined ? persistedValue : draftValue;
 
-    const items = useMemo(
-        () => [
-            {
-                value: true,
-                keyForList: CONST.SEARCH.BOOLEAN.YES,
-                text: translate('common.yes'),
-                isSelected: selectedValue === true,
-            },
-            {
-                value: false,
-                keyForList: CONST.SEARCH.BOOLEAN.NO,
-                text: translate('common.no'),
-                isSelected: selectedValue === false,
-            },
-        ],
-        [selectedValue, translate],
-    );
+    const items = [
+        {
+            value: true,
+            keyForList: CONST.SEARCH.BOOLEAN.YES,
+            text: translate('common.yes'),
+            isSelected: selectedValue === true,
+        },
+        {
+            value: false,
+            keyForList: CONST.SEARCH.BOOLEAN.NO,
+            text: translate('common.no'),
+            isSelected: selectedValue === false,
+        },
+    ];
 
     const selectValue = (item: BooleanOption) => {
         setDraftValue((prev) => {

@@ -28,7 +28,7 @@ import type {RequireFieldsRuleForm, RequireFieldsRuleSettingFieldKey} from '@src
 import type {PolicyCategory} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import FieldRequirementsDirectionToggle from './FieldRequirementsDirectionToggle';
@@ -78,18 +78,15 @@ function FieldRequirementSettingRow({
         !isLoadingOnyxValue(dismissedProductTrainingMetadata) &&
         !isProductTrainingElementDismissed(couplingTooltipName, dismissedProductTraining);
 
-    const hideCouplingTooltip = useCallback(
-        (isDismissedUsingCloseButton = false) => {
-            if (!couplingTooltipName) {
-                return;
-            }
+    const hideCouplingTooltip = (isDismissedUsingCloseButton = false) => {
+        if (!couplingTooltipName) {
+            return;
+        }
 
-            dismissProductTraining(couplingTooltipName, isDismissedUsingCloseButton);
-        },
-        [couplingTooltipName],
-    );
+        dismissProductTraining(couplingTooltipName, isDismissedUsingCloseButton);
+    };
 
-    const renderCouplingTooltipContent = useCallback(() => {
+    const renderCouplingTooltipContent = () => {
         return (
             <View fsClass={CONST.FULLSTORY.CLASS.UNMASK}>
                 <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.textAlignCenter, styles.gap3, styles.pv2, styles.ph2]}>
@@ -119,24 +116,7 @@ function FieldRequirementSettingRow({
                 </View>
             </View>
         );
-    }, [
-        couplingTooltip,
-        expensifyIcons.Close,
-        expensifyIcons.Lightbulb,
-        hideCouplingTooltip,
-        styles.alignItemsCenter,
-        styles.flexRow,
-        styles.flexShrink1,
-        styles.gap3,
-        styles.justifyContentCenter,
-        styles.ph2,
-        styles.productTrainingTooltipText,
-        styles.pv2,
-        styles.textAlignCenter,
-        theme.icon,
-        theme.tooltipHighlightText,
-        translate,
-    ]);
+    };
 
     const handleSelectSetting = (newSetting: FieldRequirementsDirection | undefined) => {
         if (!canWriteRules || isCouplingDisabled) {
@@ -165,6 +145,7 @@ function FieldRequirementSettingRow({
                     isOn={setting === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE}
                     disabled={isDisabled}
                     accessibilityLabel={label}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_FIELD_TOGGLE}
                     onToggle={(isOn) => handleSelectSetting(isOn ? CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE : CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE)}
                 />
             )}

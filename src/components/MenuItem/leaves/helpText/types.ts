@@ -1,5 +1,5 @@
 import type {ReactNode} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewProps, ViewStyle} from 'react-native';
 
 /** Props shared by the help line leaves */
 type MenuItemHelpTextSharedProps = {
@@ -11,6 +11,9 @@ type MenuItemHelpTextSharedProps = {
 type MenuItemHelpTextProps = MenuItemHelpTextSharedProps & {
     /** Error or hint text to render under the row. Nothing renders when it is empty */
     message?: string | ReactNode;
+
+    /** Whether screen readers hear the error with the row's name, since the row hides the error line from them on native */
+    shouldReadErrorWithLabel?: boolean;
 };
 
 /** Props of the HTML help line */
@@ -29,6 +32,12 @@ type BaseMenuItemHelpTextProps = MenuItemHelpTextSharedProps & {
 
     /** Spacing of the line, which depends on where the leaf sits */
     style?: StyleProp<ViewStyle>;
+
+    /** Style applied to the help message text */
+    messageStyle?: StyleProp<TextStyle>;
+
+    /** Data attributes applied to the help text container */
+    dataSet?: ViewProps['dataSet'];
 };
 
 export type {BaseMenuItemHelpTextProps, MenuItemHelpTextHTMLProps, MenuItemHelpTextProps};

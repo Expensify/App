@@ -13,8 +13,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ReportNameValuePairs} from '@src/types/onyx';
 
+import {latestCalendlyCallSelector} from '@selectors/ReportNameValuePairs';
 import {accountIDSelector} from '@selectors/Session';
 import {addMinutes} from 'date-fns';
 import React from 'react';
@@ -37,8 +37,6 @@ type OnboardingHelpButtonProps = {
     hasActiveScheduledCall: boolean | undefined;
 };
 
-const reportNameValuePartsSelector = (reportNameValuePairs?: ReportNameValuePairs) => reportNameValuePairs?.calendlyCalls?.at(-1);
-
 function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldShowRegisterForWebinar, shouldShowGuideBooking, hasActiveScheduledCall}: OnboardingHelpButtonProps) {
     const {translate, dateFnsLocale} = useLocalize();
     const StyleUtils = useStyleUtils();
@@ -47,7 +45,7 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
     });
 
     const [latestScheduledCall] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
-        selector: reportNameValuePartsSelector,
+        selector: latestCalendlyCallSelector,
     });
 
     const styles = useThemeStyles();
@@ -77,12 +75,7 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
 
     if (hasActiveScheduledCall && latestScheduledCall) {
         options.push({
-            text: `${DateUtils.formatInTimeZoneWithFallback(latestScheduledCall.eventTime, userTimezone, CONST.DATE.WEEKDAY_TIME_FORMAT, {locale: dateFnsLocale})}, ${DateUtils.formatInTimeZoneWithFallback(
-                latestScheduledCall.eventTime,
-                userTimezone,
-                CONST.DATE.MONTH_DAY_YEAR_FORMAT,
-                {locale: dateFnsLocale},
-            )}`,
+            text: DateUtils.formatToLongDateInTimeZone(latestScheduledCall.eventTime, userTimezone, dateFnsLocale, true),
             value: CONST.ONBOARDING_HELP.EVENT_TIME,
             description: `${DateUtils.formatInTimeZoneWithFallback(latestScheduledCall.eventTime, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})} - ${DateUtils.formatInTimeZoneWithFallback(
                 addMinutes(latestScheduledCall.eventTime, 30),

@@ -38,12 +38,14 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
     default: () => ({accountID: 1, email: 'test@test.com'}),
 }));
+const mockCurrencyListActions = {convertToDisplayString: () => ''};
 jest.mock('@hooks/useCurrencyList', () => ({
-    useCurrencyListActions: () => ({convertToDisplayString: () => ''}),
+    useCurrencyListActions: () => mockCurrencyListActions,
 }));
+const mockActionLoadingSet = new Set<string>();
 jest.mock('@hooks/useActionLoadingReportIDs', () => ({
     __esModule: true,
-    default: () => new Set(),
+    default: () => mockActionLoadingSet,
 }));
 jest.mock('@hooks/useReportAttributes', () => ({
     __esModule: true,
@@ -56,9 +58,15 @@ jest.mock('@hooks/usePolicyForMovingExpenses', () => ({
         policyForMovingExpenses: undefined,
     }),
 }));
+let mockGroupSnapshots: Record<string, unknown> = {};
+let mockShouldReturnTripRooms = false;
+jest.mock('@hooks/useShouldReturnTripRooms', () => ({
+    __esModule: true,
+    default: () => mockShouldReturnTripRooms,
+}));
 jest.mock('@hooks/useMultipleSnapshots', () => ({
     __esModule: true,
-    default: () => ({}),
+    default: () => mockGroupSnapshots,
 }));
 
 jest.mock('@components/Search/SearchContext', () => ({
@@ -96,6 +104,8 @@ jest.mock('@libs/SearchUIUtils', () => ({
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     isSearchDataLoaded: (...args: unknown[]) => mockIsSearchDataLoaded(...args),
     isTransactionGroupListItemType: (item: Record<string, unknown>) => 'transactions' in item,
+    getSortedTransactionData: (transactions: unknown) => transactions,
+    isTransactionEntry: (key: string) => key.startsWith('transactions_'),
 }));
 
 // The optimistic-tracking hooks are mocked so this suite exercises the hook's WIRING (correct inputs in,
@@ -157,6 +167,8 @@ function trackingReturn(searchDataWithOptimisticTransaction: unknown, optimistic
 describe('useSearchSnapshot', () => {
     beforeEach(() => {
         mockIsOffline = false;
+        mockGroupSnapshots = {};
+        mockShouldReturnTripRooms = false;
         for (const key of Object.keys(onyxData)) {
             delete onyxData[key];
         }
@@ -185,7 +197,6 @@ describe('useSearchSnapshot', () => {
             useSearchSnapshot({
                 queryJSON: makeQueryJSON(),
                 searchResults,
-                newSearchResultKeys: undefined,
                 transactions: undefined,
                 reportActions: undefined,
             }),
@@ -211,7 +222,6 @@ describe('useSearchSnapshot', () => {
             useSearchSnapshot({
                 queryJSON: makeQueryJSON(),
                 searchResults: undefined,
-                newSearchResultKeys: undefined,
                 transactions: undefined,
                 reportActions: undefined,
             }),
@@ -230,7 +240,6 @@ describe('useSearchSnapshot', () => {
             useSearchSnapshot({
                 queryJSON: makeQueryJSON(),
                 searchResults,
-                newSearchResultKeys: undefined,
                 transactions: undefined,
                 reportActions: undefined,
             }),
@@ -250,7 +259,6 @@ describe('useSearchSnapshot', () => {
             useSearchSnapshot({
                 queryJSON: makeQueryJSON(),
                 searchResults,
-                newSearchResultKeys: undefined,
                 transactions: undefined,
                 reportActions: undefined,
             }),
@@ -273,7 +281,6 @@ describe('useSearchSnapshot', () => {
                     groupBy: CONST.SEARCH.GROUP_BY.FROM,
                 }),
                 searchResults,
-                newSearchResultKeys: undefined,
                 transactions: undefined,
                 reportActions: undefined,
             }),
@@ -294,7 +301,6 @@ describe('useSearchSnapshot', () => {
             useSearchSnapshot({
                 queryJSON: makeQueryJSON(),
                 searchResults,
-                newSearchResultKeys: undefined,
                 transactions: undefined,
                 reportActions: undefined,
             }),
@@ -319,7 +325,6 @@ describe('useSearchSnapshot', () => {
             useSearchSnapshot({
                 queryJSON: makeQueryJSON(),
                 searchResults,
-                newSearchResultKeys: undefined,
                 transactions: undefined,
                 reportActions: undefined,
             }),
@@ -347,7 +352,6 @@ describe('useSearchSnapshot', () => {
             useSearchSnapshot({
                 queryJSON: makeQueryJSON(),
                 searchResults,
-                newSearchResultKeys: undefined,
                 transactions: undefined,
                 reportActions: undefined,
             }),
@@ -355,24 +359,6 @@ describe('useSearchSnapshot', () => {
 
         expect(result.current.data).toBe(stabilized);
         expect(result.current.hasCachedOptimisticItem).toBe(true);
-    });
-
-    it('stamps the post-create highlight on matching rows (newSearchResultKeys)', () => {
-        const searchResults = makeSearchResults();
-        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
-        mockGetSortedSections.mockReturnValue([{transactionID: '7', keyForList: '7'}]);
-
-        const {result} = renderHook(() =>
-            useSearchSnapshot({
-                queryJSON: makeQueryJSON(),
-                searchResults,
-                newSearchResultKeys: new Set([`${ONYXKEYS.COLLECTION.TRANSACTION}7`]),
-                transactions: undefined,
-                reportActions: undefined,
-            }),
-        );
-
-        expect(result.current.chartData.at(0)).toEqual(expect.objectContaining({shouldAnimateInHighlight: true}));
     });
 
     it('passes the query type through to getSortedSections for each variant shape', () => {
@@ -392,7 +378,6 @@ describe('useSearchSnapshot', () => {
                 useSearchSnapshot({
                     queryJSON: makeQueryJSON({type}),
                     searchResults,
-                    newSearchResultKeys: undefined,
                     transactions: undefined,
                     reportActions: undefined,
                 }),
@@ -405,22 +390,39 @@ describe('useSearchSnapshot', () => {
         }
     });
 
+    it('tells getSortedSections when a trip search returns trip rooms', () => {
+        // Given a trip search with the TravelApproval beta, whose rows are trip rooms with their own sort keys
+        mockShouldReturnTripRooms = true;
+        const searchResults = makeSearchResults({type: CONST.SEARCH.DATA_TYPES.TRIP});
+        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
+
+        // When the snapshot is projected
+        renderHook(() =>
+            useSearchSnapshot({
+                queryJSON: makeQueryJSON({type: CONST.SEARCH.DATA_TYPES.TRIP}),
+                searchResults,
+                transactions: undefined,
+                reportActions: undefined,
+            }),
+        );
+
+        // Then the trip rooms flag reaches the sort, or trip rows keep the server order whatever column is sorted
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        expect(mockGetSortedSections.mock.calls.at(-1)?.[7]).toEqual(expect.objectContaining({shouldReturnTripRooms: true}));
+    });
+
     it('keeps the projected data referentially stable across re-renders with unchanged inputs', () => {
-        // Regression guard for the "Maximum update depth exceeded" crash: the projection stages used to be
-        // bare IIFEs, which React Compiler does not memoize (it only caches the inline .map callbacks), so
-        // they allocated a fresh array every render. An unstable `data` reference drove
-        // useStableOptimisticSortedData's setState effect into an infinite loop on the optimistic-create
-        // path. The stages must be memoized so the reference only changes when inputs change.
+        // Given stable inputs and projections that allocate new rows whenever they are evaluated.
+        // Their compiler-managed references must stay stable for the optimistic-state effect.
         const searchResults = makeSearchResults();
         mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
-        mockGetSections.mockReturnValue([[{transactionID: '1'}], 1, false]);
-        mockGetSortedSections.mockReturnValue([{transactionID: '1', keyForList: '1'}]);
+        mockGetSections.mockImplementation(() => [[{transactionID: '1'}], 1, false]);
+        mockGetSortedSections.mockImplementation(() => [{transactionID: '1', keyForList: '1'}]);
 
         // Stable props captured from closure so the re-render below passes identical inputs.
         const props = {
             queryJSON: makeQueryJSON(),
             searchResults,
-            newSearchResultKeys: undefined,
             transactions: undefined,
             reportActions: undefined,
         };
@@ -430,10 +432,14 @@ describe('useSearchSnapshot', () => {
         const firstChartData = result.current.chartData;
         const firstData = result.current.data;
 
+        // When the compiled hook renders again without any input changes.
         rerender({});
 
+        // Then both projection stages and their output references are reused.
         expect(result.current.chartData).toBe(firstChartData);
         expect(result.current.data).toBe(firstData);
+        expect(mockGetSections).toHaveBeenCalledTimes(1);
+        expect(mockGetSortedSections).toHaveBeenCalledTimes(1);
     });
 
     it('caps data at visibleRowLimit while leaving chartData and the row count untouched', () => {
@@ -447,7 +453,6 @@ describe('useSearchSnapshot', () => {
             useSearchSnapshot({
                 queryJSON: makeQueryJSON(),
                 searchResults,
-                newSearchResultKeys: undefined,
                 transactions: undefined,
                 reportActions: undefined,
                 visibleRowLimit,
@@ -481,7 +486,6 @@ describe('useSearchSnapshot', () => {
             useSearchSnapshot({
                 queryJSON: makeQueryJSON(),
                 searchResults,
-                newSearchResultKeys: undefined,
                 transactions: undefined,
                 reportActions: undefined,
                 visibleRowLimit: 2,
@@ -505,7 +509,6 @@ describe('useSearchSnapshot', () => {
             useSearchSnapshot({
                 queryJSON: makeQueryJSON(),
                 searchResults,
-                newSearchResultKeys: undefined,
                 transactions: undefined,
                 reportActions: undefined,
                 visibleRowLimit: 3,
@@ -528,7 +531,6 @@ describe('useSearchSnapshot', () => {
             useSearchSnapshot({
                 queryJSON: makeQueryJSON(),
                 searchResults,
-                newSearchResultKeys: undefined,
                 transactions: undefined,
                 reportActions: undefined,
                 visibleRowLimit: 2,
@@ -558,7 +560,6 @@ describe('useSearchSnapshot', () => {
             useSearchSnapshot({
                 queryJSON: makeQueryJSON({groupBy: CONST.SEARCH.GROUP_BY.FROM}),
                 searchResults,
-                newSearchResultKeys: undefined,
                 transactions: undefined,
                 reportActions: undefined,
                 visibleRowLimit: 2,
@@ -570,32 +571,64 @@ describe('useSearchSnapshot', () => {
         expect(result.current.filteredData).toEqual(groups.slice(0, 2).map((group) => expect.objectContaining({keyForList: group.keyForList, transactions: group.transactions})));
     });
 
-    it('keeps a highlighted row past visibleRowLimit on screen', () => {
-        // Given a live list capped at two groups, where a new expense just landed in the last group
+    it('records on each group what its own search returned that the list no longer shows, whether it has more to load, and where it last read from', () => {
         const searchResults = makeSearchResults();
         mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
-        const groups = Array.from({length: 5}, (_value, index) => ({
-            groupID: `group${index}`,
-            keyForList: `group${index}`,
-            transactions: [{transactionID: `${index}`}],
-        }));
-        mockGetSections.mockReturnValue([groups, groups.length, false]);
-        mockGetSortedSections.mockReturnValue(groups);
+        const draftsGroupHash = 11;
+        const unchangedGroupHash = 22;
+        const draftsGroupData = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}a`]: {transactionID: 'a'},
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}b`]: {transactionID: 'b'},
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}submitted`]: {transactionID: 'submitted'},
+            [`${ONYXKEYS.COLLECTION.REPORT}1`]: {reportID: '1'},
+        };
+        const unchangedGroupData = {[`${ONYXKEYS.COLLECTION.TRANSACTION}c`]: {transactionID: 'c'}};
+        const groups = [
+            {keyForList: 'group0', transactions: [], transactionsQueryJSON: {hash: draftsGroupHash}},
+            {keyForList: 'group1', transactions: [], transactionsQueryJSON: {hash: unchangedGroupHash}},
+            {keyForList: 'group2', transactions: [], transactionsQueryJSON: {hash: 33}},
+        ];
+        mockGroupSnapshots = {
+            [String(draftsGroupHash)]: {data: draftsGroupData, search: {hasMoreResults: true, offset: 50}},
+            [String(unchangedGroupHash)]: {data: unchangedGroupData, search: {hasMoreResults: false, offset: 0}},
+        };
+        mockGetSections.mockImplementation(({data}: {data: unknown}) => {
+            if (data === draftsGroupData) {
+                return [[{transactionID: 'a'}, {transactionID: 'b'}], 2, false];
+            }
+            if (data === unchangedGroupData) {
+                return [[{transactionID: 'c'}], 1, false];
+            }
+            return [groups, groups.length, false];
+        });
 
-        // When the snapshot is projected with that expense queued for highlight
+        // Given a group after a Show more holding a submitted expense the list hides, one with every row loaded, and one never opened
+        // When the grouped search is projected
         const {result} = renderHook(() =>
             useSearchSnapshot({
                 queryJSON: makeQueryJSON({groupBy: CONST.SEARCH.GROUP_BY.FROM}),
                 searchResults,
-                newSearchResultKeys: new Set([`${ONYXKEYS.COLLECTION.TRANSACTION}4`]),
                 transactions: undefined,
                 reportActions: undefined,
-                visibleRowLimit: 2,
             }),
         );
 
-        // Then the highlighted group still renders, or the scroll-to-new-expense has no row to land on
-        expect(result.current.data.map((item) => item.keyForList)).toContain('group4');
+        // Then each opened group carries what its own search said, and the unopened group carries none
+        const [draftsGroup, unchangedGroup, unopenedGroup] = result.current.filteredData;
+        expect(draftsGroup).toEqual(
+            expect.objectContaining({
+                keyForList: 'group0',
+                transactions: [{transactionID: 'a'}, {transactionID: 'b'}],
+                hiddenTransactionIDs: ['submitted'],
+                hasMoreTransactions: true,
+                transactionsOffset: 50,
+            }),
+        );
+        expect(unchangedGroup).toEqual(
+            expect.objectContaining({keyForList: 'group1', transactions: [{transactionID: 'c'}], hiddenTransactionIDs: [], hasMoreTransactions: false, transactionsOffset: 0}),
+        );
+        expect(unopenedGroup).not.toHaveProperty('hasMoreTransactions');
+        expect(unopenedGroup).not.toHaveProperty('transactionsOffset');
     });
 
     it('does not spend visibleRowLimit on rows being deleted online', () => {
@@ -615,7 +648,6 @@ describe('useSearchSnapshot', () => {
             useSearchSnapshot({
                 queryJSON: makeQueryJSON(),
                 searchResults,
-                newSearchResultKeys: undefined,
                 transactions: undefined,
                 reportActions: undefined,
                 visibleRowLimit: 2,
@@ -644,7 +676,6 @@ describe('useSearchSnapshot', () => {
             useSearchSnapshot({
                 queryJSON: makeQueryJSON({groupBy: CONST.SEARCH.GROUP_BY.FROM}),
                 searchResults,
-                newSearchResultKeys: undefined,
                 transactions: undefined,
                 reportActions: undefined,
                 visibleRowLimit: 2,
@@ -674,7 +705,6 @@ describe('useSearchSnapshot', () => {
             useSearchSnapshot({
                 queryJSON: makeQueryJSON(),
                 searchResults,
-                newSearchResultKeys: undefined,
                 transactions: undefined,
                 reportActions: undefined,
                 visibleRowLimit: 2,

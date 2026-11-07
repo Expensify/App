@@ -1,5 +1,6 @@
 import DatePicker from '@components/DatePicker';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -33,6 +34,7 @@ import AutomaticFieldHint from './AutomaticFieldHint';
 import ExpenseFieldRow from './ExpenseFieldRow';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {dateStateSelector} from './selectors';
+import useSplitDraftBaseTransaction from './useSplitDraftBaseTransaction';
 import useTransactionSelector from './useTransactionSelector';
 
 type DateFieldProps = {
@@ -49,7 +51,7 @@ type DateFieldProps = {
 
 function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, transactionID, action, iouType, reportID, reportActionID}: DateFieldProps) {
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
-    const {isEditingSplitBill, canEnterScanFieldsManually} = useConfirmationFields();
+    const {isEditingSplitBill, canEnterScanFieldsManually, isPolicyExpenseChat} = useConfirmationFields();
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -57,7 +59,6 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
     const policyForTrackExpense = usePolicy(isTrackExpense ? policyForMovingExpensesID : undefined);
 
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const policy = usePolicy(report?.policyID);
@@ -65,6 +66,7 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
 
     const dateState = useTransactionSelector(transactionID, dateStateSelector);
     const transaction = useTransactionSelector(transactionID, (t) => t);
+    const {baseTransaction} = useSplitDraftBaseTransaction(transactionID);
 
     const iouCreated = dateState?.iouCreated ?? '';
     const createdMissing = dateState?.isMissing ?? true;
@@ -82,7 +84,7 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
     const dateErrorText = shouldDisplayFieldError && createdMissing ? translate('common.error.enterDate') : '';
 
     // A draft always carries a date, so on a partially filled Scan the all-or-nothing rule stands in for `createdMissing`.
-    const isDateRequiredMissing = isPartiallyEnteredScanExpense(dateState, canEnterScanFieldsManually) ? !dateState?.isCreatedSet : createdMissing;
+    const isDateRequiredMissing = isPartiallyEnteredScanExpense(dateState, canEnterScanFieldsManually, isPolicyExpenseChat) ? !dateState?.isCreatedSet : createdMissing;
     const inlineDateErrorText = formError === 'common.error.fieldRequired' && isDateRequiredMissing ? translate('common.error.fieldRequired') : '';
 
     const handleDateChange = (newDate: string) => {
@@ -97,7 +99,7 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
         }
 
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {created: newDate}, getCurrencyDecimals, getCurrencySymbol);
+            setDraftSplitTransaction(transactionID, baseTransaction, {created: newDate}, getCurrencyDecimals, getCurrencySymbol);
             return;
         }
 
@@ -130,7 +132,8 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
 
     if (!isReadOnly) {
         return (
-            <View style={[styles.mh4, styles.mb2]}>
+            // The bordered rows carry their own vertical margin, so an extra bottom margin here would stack with it.
+            <View style={[styles.mh4, !shouldUseDropdownRows && styles.mb2]}>
                 <DatePicker
                     inputID={INPUT_IDS.MONEY_REQUEST_CREATED}
                     value={shouldShowEmptyDate ? '' : iouCreated}
@@ -144,6 +147,7 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
                     // The hint only renders while the date is empty, and `TextInput` drops its right-hand-side
                     // component whenever the clear button can appear, which it can't without a value to clear.
                     shouldHideClearButton={shouldShowEmptyDate}
+                    clearButtonSentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DATE_FIELD_CLEAR_BUTTON}
                     rightHandSideComponent={shouldShowAutomaticHint ? <AutomaticFieldHint /> : undefined}
                     // The calendar icon and the hint share the right-hand side, so the field shows one or the other.
                     // The icon comes back once the user opens the picker, the same way the amount field's buttons do.
@@ -181,19 +185,23 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
     }
 
     return (
-        <MenuItemWithTopDescription
-            shouldShowRightIcon={!isReadOnly}
-            title={readOnlyDate}
-            description={translate('common.date')}
-            style={[styles.moneyRequestMenuItem]}
-            titleStyle={styles.flex1}
-            onPress={openDatePage}
-            disabled={didConfirm}
-            interactive={!isReadOnly}
-            brickRoadIndicator={shouldDisplayFieldError && createdMissing ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-            errorText={dateErrorText}
+        <MenuItem.Root
+            isDisabled={didConfirm}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DATE_FIELD}
-        />
+        >
+            <MenuItemField.Row
+                name={translate('common.date')}
+                value={readOnlyDate}
+            >
+                {shouldDisplayFieldError && createdMissing && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+            </MenuItemField.Row>
+            {!!dateErrorText && (
+                <MenuItem.HelpText
+                    isError
+                    message={dateErrorText}
+                />
+            )}
+        </MenuItem.Root>
     );
 }
 

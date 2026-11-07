@@ -105,6 +105,9 @@ type ContactState = {
     /** Function to trigger contact import */
     importContacts: () => void;
 
+    /** Opens the system contact picker and adds the picked contacts to the list. Only set where contacts can't be imported in bulk (Android) */
+    pickContact?: () => void;
+
     setContactPermissionState: (status: PermissionStatus) => void;
 };
 
@@ -155,7 +158,7 @@ const CONTEXTS_APPLYING_GET_VALID_OPTIONS_CONFIG: ReadonlySet<SearchSelectorCont
 
 const doOptionsMatch = (option1: OptionData, option2: OptionData) => {
     return (
-        (option1.accountID && option1.accountID === option2.accountID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
+        (option1.accountID && option1.accountID === option2.accountID) ||
         (option1.reportID && option1.reportID !== '-1' && option1.reportID === option2.reportID) ||
         (option1.login && option1.login === option2.login)
     );
@@ -187,8 +190,8 @@ function useSearchSelectorBase({
     shouldKeepSelectedInAvailableOptions = false,
     shouldSeparateNonExistingSelectedOptions = false,
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
-    const {translate, dateFnsLocale} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {translate, dateFnsLocale, localeCompare, formatPhoneNumber} = useLocalize();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -201,6 +204,8 @@ function useSearchSelectorBase({
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const sortedReportActionsData = useSortedReportActionsData();
     const sortedActions = sortedReportActionsData?.sortedActions;
+    const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
+    const lastActions = sortedReportActionsData?.lastActions;
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -229,6 +234,7 @@ function useSearchSelectorBase({
         isSearching: isSearchingOptions,
         includeP2P,
         batchSize: maxResultsPerPage,
+        activePolicyID: appliesGetValidOptionsConfig ? getValidOptionsConfig.activePolicyID : undefined,
     });
     const areOptionsInitialized = !isLoadingOptions;
     const defaultOptions = filteredOptions ?? emptyOptionList;
@@ -290,6 +296,7 @@ function useSearchSelectorBase({
                     draftComments,
                     dateFnsLocale,
                     convertToDisplayString,
+                    convertToDisplayStringWithoutCurrency,
                     isDefaultRoomsBetaEnabled: isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                     isUsedInChatFinder: true,
                     includeReadOnly: true,
@@ -303,7 +310,14 @@ function useSearchSelectorBase({
                     currentUserAccountID,
                     currentUserEmail,
                     personalDetails,
+                    reportAttributesDerived: reportAttributesDerived?.reports,
+                    allPolicyTags,
                     sortedActions,
+                    transactionThreadIDs,
+                    lastActions,
+                    currentUserLogin: currentUserEmail,
+                    localeCompare,
+                    formatPhoneNumber,
                     conciergeReportID,
                     isTrackIntentUser,
                     translate,
@@ -322,6 +336,7 @@ function useSearchSelectorBase({
                     {
                         dateFnsLocale,
                         convertToDisplayString,
+                        convertToDisplayStringWithoutCurrency,
                         isDefaultRoomsBetaEnabled: isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                         searchString: computedSearchTerm,
                         searchInputValue: trimmedSearchInput,
@@ -341,11 +356,15 @@ function useSearchSelectorBase({
                         reportAttributesDerived: reportAttributesDerived?.reports,
                         allPolicyTags,
                         sortedActions,
+                        transactionThreadIDs,
+                        lastActions,
+                        localeCompare,
+                        formatPhoneNumber,
                         isTrackIntentUser,
                         getReportByID,
                         ...appliedGetValidOptionsConfig,
                     },
-                    translate,
+                    {translate, formatPhoneNumber},
                     rules,
                 );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
@@ -360,6 +379,7 @@ function useSearchSelectorBase({
                     {
                         dateFnsLocale,
                         convertToDisplayString,
+                        convertToDisplayStringWithoutCurrency,
                         isDefaultRoomsBetaEnabled: isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                         selectedOptions,
                         includeMultipleParticipantReports: true,
@@ -380,12 +400,17 @@ function useSearchSelectorBase({
                         countryCode,
                         reportAttributesDerived: reportAttributesDerived?.reports,
                         allPolicyTags,
+                        visibleReportActionsData,
                         sortedActions,
+                        transactionThreadIDs,
+                        lastActions,
+                        localeCompare,
+                        formatPhoneNumber,
                         isTrackIntentUser,
                         getReportByID,
                         ...appliedGetValidOptionsConfig,
                     },
-                    translate,
+                    {translate, formatPhoneNumber},
                     rules,
                 );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
@@ -400,6 +425,7 @@ function useSearchSelectorBase({
                     {
                         dateFnsLocale,
                         convertToDisplayString,
+                        convertToDisplayStringWithoutCurrency,
                         isDefaultRoomsBetaEnabled: isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                         includeP2P: true,
                         includeSelectedOptions: false,
@@ -419,38 +445,21 @@ function useSearchSelectorBase({
                         reportAttributesDerived: reportAttributesDerived?.reports,
                         allPolicyTags,
                         sortedActions,
+                        transactionThreadIDs,
+                        lastActions,
+                        localeCompare,
+                        formatPhoneNumber,
                         isTrackIntentUser,
                         getReportByID,
                         ...appliedGetValidOptionsConfig,
                     },
-                    translate,
+                    {translate, formatPhoneNumber},
                     rules,
                 );
             default:
                 return getEmptyOptions();
         }
     })();
-
-    // Two independent pagination cursors are checked here on purpose:
-    // - hasMore/maxResults track how many relevance-sorted options are rendered.
-    // - hasMoreReports/loadMoreReports track the raw Onyx report pool size by useFilteredOptions
-    const onListEndReached = useDebounce(
-        () => {
-            if (!areOptionsInitialized) {
-                return;
-            }
-
-            if (hasMore) {
-                setMaxResults((previous) => previous + maxResultsPerPage);
-            }
-            if (hasMoreReports) {
-                loadMoreReports();
-            }
-        },
-        CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME,
-        // maxWait keeps pages arriving while the scrolling continues.
-        {maxWait: CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME},
-    );
 
     const isOptionSelected = (option: OptionData) => selectedOptions.some((selected) => doOptionsMatch(selected, option));
 
@@ -484,6 +493,26 @@ function useSearchSelectorBase({
         recentReports: filteredRecentReports,
         userToInvite: !shouldKeepSelectedInAvailableOptions && searchOptions.userToInvite?.isSelected ? null : searchOptions.userToInvite,
     };
+
+    const selectedOptionsForDisplay = selectedOptions.filter((option) => {
+        const personalDetailSearchTerms = getPersonalDetailSearchTerms(option, currentUserAccountID, translate);
+        return (
+            !!option.text?.toLowerCase().includes(computedSearchTerm) ||
+            !!option.login?.toLowerCase().includes(computedSearchTerm) ||
+            personalDetailSearchTerms.some((term) => term.toLocaleLowerCase().includes(computedSearchTerm))
+        );
+    });
+
+    const selectedNonExistingOptions = shouldSeparateNonExistingSelectedOptions
+        ? (() => {
+              const personalDetailLogins = new Set(filteredPersonalDetails.map((option) => option.login).filter(Boolean));
+              return selectedOptionsForDisplay.filter((option) => !personalDetailLogins.has(option.login));
+          })()
+        : [];
+
+    // Keep toggleSelection below the option lists so React Compiler can reuse the lists when
+    // only onSingleSelect or onSelectionChange changes. Keep useDebounce below the derived
+    // lists so no hook call separates them from getValidOptions.
 
     /**
      * Toggle selection state of option based on selection mode
@@ -529,21 +558,26 @@ function useSearchSelectorBase({
         onSelectionChange?.(newlySelected);
     };
 
-    const selectedOptionsForDisplay = selectedOptions.filter((option) => {
-        const personalDetailSearchTerms = getPersonalDetailSearchTerms(option, currentUserAccountID, translate);
-        return (
-            !!option.text?.toLowerCase().includes(computedSearchTerm) ||
-            !!option.login?.toLowerCase().includes(computedSearchTerm) ||
-            personalDetailSearchTerms.some((term) => term.toLocaleLowerCase().includes(computedSearchTerm))
-        );
-    });
+    // Two independent pagination cursors are checked here on purpose:
+    // - hasMore/maxResults track how many relevance-sorted options are rendered.
+    // - hasMoreReports/loadMoreReports track the raw Onyx report pool size by useFilteredOptions
+    const onListEndReached = useDebounce(
+        () => {
+            if (!areOptionsInitialized) {
+                return;
+            }
 
-    const selectedNonExistingOptions = shouldSeparateNonExistingSelectedOptions
-        ? (() => {
-              const personalDetailLogins = new Set(filteredPersonalDetails.map((option) => option.login).filter(Boolean));
-              return selectedOptionsForDisplay.filter((option) => !personalDetailLogins.has(option.login));
-          })()
-        : [];
+            if (hasMore) {
+                setMaxResults((previous) => previous + maxResultsPerPage);
+            }
+            if (hasMoreReports) {
+                loadMoreReports();
+            }
+        },
+        CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME,
+        // maxWait keeps pages arriving while the scrolling continues.
+        {maxWait: CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME},
+    );
 
     return {
         searchTerm,
