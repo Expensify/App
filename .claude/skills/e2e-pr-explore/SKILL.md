@@ -6,21 +6,13 @@ alwaysApply: false
 
 # E2E PR Explore
 
-This skill reads an App PR's code, never its description or QA steps, and posts up to 10 paths most likely to break as one PR comment. It never runs the app and is never a required check. The C+ reviewer runs the paths by hand or through Melvin, along with the author's QA steps.
-
-Why: a PR's QA steps cover the flow its author meant to change. Deploy blockers mostly land outside it: another report or workspace type, a narrow screen, offline, a different role, or another screen that uses the same code.
+Give it a PR number in `Expensify/App`, for example `/e2e-pr-explore 103121`. It reads the PR's code, never its description or QA steps, and posts up to 10 paths most likely to break as one PR comment. It never runs the app and is never a required check. The C+ reviewer runs the paths by hand or through Melvin, along with the author's QA steps.
 
 **Fetch the code → write paths blind → check them → post one PR comment.**
 
-## Inputs
-
-A PR number in `Expensify/App`, for example `/e2e-pr-explore 103121`.
-
-If step 1 fails, stop and say why. If a later command fails, go on without it and add it to the footer's run notes. However the run ends (posted, printed or stopped), run the cleanup at the end of step 1 last.
-
 ## 1. Fetch the code at the PR's head
 
-Run this as written, from the root of any checkout of App (the **repo**). It copies the PR's code into `$DIR/code` without its git history, so nothing there can show the PR's commit messages. The fetched branches are deleted as soon as they're used, for the same reason.
+Run this as written, from the root of any checkout of App (the **repo**). It copies the PR's code into `$DIR/code` without its git history, so nothing there can show the PR's commit messages. The fetched branches are deleted as soon as they're used, for the same reason. If this step fails, stop and say why. If a later command fails, go on without it and add it to the footer's run notes.
 
 ```sh
 PR=<number>
@@ -41,7 +33,7 @@ gh pr diff "$PR" -R Expensify/App > "$DIR/diff"
 - `$DIR/base` holds the **base commit**: the last commit on the base branch before this PR's own commits. For a merged PR it comes from the merge commit's first parent, because the PR is already part of the base branch.
 - `STATE` decides how step 4 delivers the comment, `MERGED_AT` is the merge date (empty if not merged), and `HEAD_SHA` goes in the comment's footer.
 
-Cleanup, always the last thing you run:
+Cleanup, always the last thing you run, however the run ends:
 
 ```sh
 git branch -D -q "e2e-pr-explore-$PR" "e2e-pr-explore-$PR-base" 2>/dev/null
@@ -59,12 +51,12 @@ If you can't start a subagent, follow `subagent.md` yourself and don't read anyt
 
 ## 3. Check the paths
 
-Back in the main agent, read `$DIR/paths.md` and `subagent.md`, and check the paths in this order.
+Back in the main agent, read `$DIR/paths.md` and check it in this order.
 
 First, without reading the PR description:
 
-- The subagent's command list stays inside the allowed list in `subagent.md`. A shortened list is fine when every entry is clearly allowed. A command only breaks the rules if it could show this PR's text (title, description, comments or commit messages), for example `git log` past the base commit; a harmless one like `git status` doesn't. If it broke the rules, left the list out, or skipped a step for a reason that doesn't hold, run step 2 again, at most once, and add that to the run notes. If the second run breaks the rules too, stop and tell the user why.
-- If the subagent wrote no paths, check its reason against the diff. If it holds, skip the rest of this step and the description. If it doesn't, run step 2 again as above.
+- If the subagent's command list shows it read this PR's text (title, description, comments or commit messages), or it skipped a step or wrote no paths for a reason the diff doesn't support, run step 2 again once and add that to the run notes. If it happens again, stop and tell the user why.
+- If it wrote no paths for a reason that holds, skip the rest of this step, including the description.
 - The `file:line` exists at the PR's head and the code there does what the path claims. Fix a wrong claim, or drop the path if its steps no longer make sense.
 - The expected result is what the code intends. If the code, its tests or its UI text say the behavior is deliberate, fix the path or drop it.
 - No two paths test the same flow.
@@ -87,7 +79,7 @@ Use one comment per PR and update it when the skill runs again. Start it with th
 gh api "repos/Expensify/App/issues/$PR/comments" --paginate --jq '.[] | select(.body | test("^<!-- e2e-pr-explore -->")) | .id'
 ```
 
-Write the comment to `$DIR/comment.md`. If the lookup returns an id, update that comment with `gh api -X PATCH repos/Expensify/App/issues/comments/<id> -F body=@$DIR/comment.md`. If it returns more than one, update the first. Otherwise create it with `gh pr comment "$PR" -R Expensify/App --body-file "$DIR/comment.md"`.
+Write the comment to `$DIR/comment.md`. If the lookup returns an id, update that comment with `gh api -X PATCH repos/Expensify/App/issues/comments/<id> -F body=@$DIR/comment.md`. Otherwise create it with `gh pr comment "$PR" -R Expensify/App --body-file "$DIR/comment.md"`.
 
 Comment template:
 

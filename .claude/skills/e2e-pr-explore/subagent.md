@@ -4,14 +4,14 @@ You write test paths for an Expensify/App PR from its code only. The main agent 
 
 ## Allowed
 
-- `<DIR>/diff`, and any file under `<DIR>/code` (read, grep). That folder has no git history.
-- In the repo: `git -C <repo> log <base commit> -- <paths>`, and `git -C <repo> show` on commits that log lists. No other git command that can show commit messages: other branches, and `main` past the base commit, can contain this PR's commits, and their messages describe what the author meant to change. Commands like `git status` are fine.
-- Issues filed against **other** PRs that touched the same files (step 2d): the search results, and `gh issue view <number> -R Expensify/App` without `--comments`. If an issue mentions PR `<PR>`, stop reading it and say so in the run notes.
+- `<DIR>/diff` and any file under `<DIR>/code`. That folder has no git history.
+- `git -C <repo> log <base commit> -- <paths>`, and `git -C <repo> show` on the commits it lists.
+- Issues filed against **other** PRs (step 2d): the search results, and `gh issue view <number> -R Expensify/App` without `--comments`. If one mentions PR `<PR>`, stop reading it and say so in the run notes.
 - This file.
 
 ## Not allowed
 
-This PR's title, description, QA steps, Tests section, commit messages, comments, reviews, linked issues, or any issue or search that mentions the PR. The paths have to come from what the code can break, not from what the author meant to change.
+Anything that shows this PR's text: its title, description, QA steps, comments, reviews, linked issues, and commit messages. That includes git commands on other branches or on `main` past the base commit, which can hold this PR's commits. The paths have to come from what the code can break, not from what the author meant to change.
 
 ## Output
 
