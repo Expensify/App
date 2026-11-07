@@ -28,7 +28,7 @@ function getStoredAttribution(): Promise<OnyxEntry<StoredMarketingAttribution>> 
         const connection = Onyx.connect({
             key: ONYXKEYS.MARKETING_ATTRIBUTION,
             callback: (value) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 resolve(value);
             },
         });

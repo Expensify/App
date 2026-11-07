@@ -71,6 +71,11 @@ type Response<TKey extends OnyxKey> = {
     /** Commands data */
     data?: Data;
 
+    /** Details sent with a failure, such as the members SetWorkspaceCategoriesEnabled would leave without a category they can use */
+    additionalData?: {
+        accountIDs?: number[];
+    };
+
     /** Used to pass error type for error handling purposes */
     type?: string;
 
@@ -85,6 +90,9 @@ type Response<TKey extends OnyxKey> = {
 
     /** Whether the account is set for testing Travel and should use the sandbox environment */
     isTestAccount?: boolean;
+
+    /** Whether the account can enable Travel without a guide verifying the business first */
+    canSkipVerification?: boolean;
 
     /** User authorization token to authorize Pusher connections */
     auth?: string;
