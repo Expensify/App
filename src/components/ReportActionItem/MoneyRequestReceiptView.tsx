@@ -28,6 +28,7 @@ import useOriginalReportID from '@hooks/useOriginalReportID';
 import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePrevious from '@hooks/usePrevious';
+import useReceiptTranslation from '@hooks/useReceiptTranslation';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
@@ -211,7 +212,7 @@ function MoneyRequestReceiptView({
     const receiptContainerRef = useRef<ComponentRef<typeof View> | null>(null);
     const addButtonRef = useRef<ComponentRef<typeof View> | null>(null);
     const [isPickerOpen, setIsPickerOpen] = useState(false);
-    const lazyIcons = useMemoizedLazyExpensifyIcons(['Expand', 'ReceiptPlus']);
+    const lazyIcons = useMemoizedLazyExpensifyIcons(['Expand', 'ReceiptPlus', 'Translate']);
 
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     // Browsers don't fire mouseenter when an element mounts under the cursor
@@ -273,6 +274,7 @@ function MoneyRequestReceiptView({
     const resolvedTransactionThreadReport = resolveTransactionThreadReport(transaction, transactionThreadReport, report, parentReportAction);
 
     const displayedTransaction = updatedTransaction ?? transaction;
+    const {canTranslate, isTranslateDisabled, startTranslation} = useReceiptTranslation(displayedTransaction);
     const isDistanceRequest = isDistanceRequestTransactionUtils(displayedTransaction);
 
     // The hover overlay shows the full distance e-receipt (map + amount + waypoints), so only surface it for
@@ -853,6 +855,34 @@ function MoneyRequestReceiptView({
                                             )}
                                         </AttachmentPicker>
                                     )}
+                                    {canTranslate &&
+                                        deviceHasHoverSupport && (
+                                            // TODO: The spec switches this tooltip to `View original` once translated. Add it when design confirms what the thumbnail shows then.
+                                            <Tooltip text={translate('receipt.translate')}>
+                                                <PressableWithoutFocus
+                                                    onPress={() => {
+                                                        startTranslation();
+                                                        Navigation.navigate(
+                                                            ROUTES.TRANSACTION_RECEIPT.getRoute(report?.reportID, displayedTransaction?.transactionID, readonly || !canEditReceipt),
+                                                        );
+                                                    }}
+                                                    disabled={isTranslateDisabled}
+                                                    style={styles.receiptActionButton}
+                                                    disabledStyle={styles.buttonOpacityDisabled}
+                                                    hoverStyle={styles.buttonDefaultHovered}
+                                                    accessibilityLabel={translate('receipt.translate')}
+                                                    role={CONST.ROLE.BUTTON}
+                                                    sentryLabel={CONST.SENTRY_LABEL.RECEIPT.TRANSLATE_BUTTON}
+                                                >
+                                                    <Icon
+                                                        src={lazyIcons.Translate}
+                                                        height={variables.iconSizeSmall}
+                                                        width={variables.iconSizeSmall}
+                                                        fill={theme.icon}
+                                                    />
+                                                </PressableWithoutFocus>
+                                            </Tooltip>
+                                        )}
                                     <Tooltip text={translate('reportActionCompose.expand')}>
                                         <PressableWithoutFocus
                                             onPress={() =>

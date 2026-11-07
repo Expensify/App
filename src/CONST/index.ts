@@ -1534,6 +1534,7 @@ const CONST = {
         TRAVEL_APPROVAL: 'travelApproval',
         FLAT_NAV: 'flatNav',
         CATEGORY_VISIBILITY: 'categoryVisibility',
+        RECEIPT_TRANSLATION: 'receiptTranslation',
         SCAN_FLASH_TORCH: 'scanFlashTorch',
         NEW_DOT_BILL_PAY: 'newDotBillPay',
         HYBRID_WEB: 'hybridWeb',
@@ -2003,6 +2004,27 @@ const CONST = {
 
         // Elements with this data attribute pause the hover zoom while the pointer is over them
         HOVER_ZOOM_EXCLUDED_ELEMENT: 'receipt-hover-zoom-excluded',
+
+        TRANSLATION_SCAN_DURATION: 1500,
+        TRANSLATION_SCAN_LINE_HEIGHT: 8,
+        TRANSLATION_SCAN_TINT_OPACITY: 0.2,
+        TRANSLATION_ROW_TYPE: {
+            HEADING: 'heading',
+            TEXT: 'text',
+            LABEL_VALUE: 'labelValue',
+            ITEM: 'item',
+            TOTAL: 'total',
+            DIVIDER: 'divider',
+        },
+        TRANSLATION_ROW_ALIGN: {
+            LEFT: 'left',
+            CENTER: 'center',
+        },
+        TRANSLATION_STATE: {
+            TRANSLATED: 'translated',
+            UNREADABLE: 'unreadable',
+            ALREADY_IN_LANGUAGE: 'alreadyInLanguage',
+        },
     },
     RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN: 120,
     REPORT: {
@@ -10553,10 +10575,13 @@ const CONST = {
             NEXT_PAGE_BUTTON: 'Receipt-NextPageButton',
             ENLARGE_BUTTON: 'Receipt-EnlargeButton',
             ADD_ATTACHMENT_BUTTON: 'Receipt-AddAttachmentButton',
+            TRANSLATE_BUTTON: 'Receipt-TranslateButton',
         },
         RECEIPT_MODAL: {
             DOWNLOAD_RECEIPT: 'ReceiptModal-DownloadReceipt',
             DELETE_RECEIPT: 'ReceiptModal-DeleteReceipt',
+            TRANSLATE_RECEIPT: 'ReceiptModal-TranslateReceipt',
+            VIEW_ORIGINAL_RECEIPT: 'ReceiptModal-ViewOriginalReceipt',
         },
         AVATAR_WITH_DISPLAY_NAME: {
             SHOW_ACTOR_DETAILS: 'AvatarWithDisplayName-ShowActorDetails',

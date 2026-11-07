@@ -1,7 +1,11 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ReceiptCropView from '@components/ReceiptCropView';
 import type {CropRect} from '@components/ReceiptCropView';
+import ReceiptScanningLine from '@components/ReceiptScanningLine';
+import Text from '@components/Text';
+import TranslatedReceiptCard from '@components/TranslatedReceiptCard';
 
 import useAllTransactions from '@hooks/useAllTransactions';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -13,11 +17,13 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import useReceiptTranslation from '@hooks/useReceiptTranslation';
 import useRestartOnOdometerImagesFailure from '@hooks/useRestartOnOdometerImagesFailure';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt, setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
 import {removeMoneyRequestOdometerImage, setMoneyRequestOdometerImage} from '@libs/actions/OdometerTransactionUtils';
+import {showOriginalReceipt} from '@libs/actions/ReceiptTranslation';
 import {openReport} from '@libs/actions/Report';
 import cropOrRotateImage from '@libs/cropOrRotateImage';
 import fetchImage from '@libs/fetchImage';
@@ -70,7 +76,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {isOffline} = useNetwork();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'Download', 'Crop', 'Trashcan', 'Rotate', 'Close', 'Checkmark', 'AttachmentNotFound']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'Download', 'Crop', 'Trashcan', 'Rotate', 'Close', 'Checkmark', 'AttachmentNotFound', 'Translate', 'ArrowsLeftRight']);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: Boolean});
@@ -171,6 +177,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const receiptSource = isDraftTransaction ? ReceiptStorage.resolve(transactionDraft?.receipt?.source) : tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
     const source = isOdometerImage ? odometerImageSource : receiptSource;
     const [sourceUri, setSourceUri] = useState<ReceiptSource>('');
+    const [loadedScanningImageUri, setLoadedScanningImageUri] = useState<string>();
 
     const parentReportAction = getParentReportActionSelector(parentReportActions, report?.parentReportActionID);
     const receiptFieldParams = {
@@ -208,6 +215,19 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const [isCropSaving, setIsCropSaving] = useState(false);
     const [cropRect, setCropRect] = useState<CropRect | null>(null);
     const styles = useThemeStyles();
+    const {canTranslate, isTranslateDisabled, isTranslating, translatedReceiptRows, startTranslation, showOriginal} = useReceiptTranslation(transaction);
+    const shouldShowTranslateButton = canTranslate && !isDraftTransaction && !isOdometerImage;
+
+    // Every visit starts on the original receipt
+    useEffect(
+        () => () => {
+            if (!transaction?.transactionID) {
+                return;
+            }
+            showOriginalReceipt(transaction.transactionID);
+        },
+        [transaction?.transactionID],
+    );
 
     useEffect(() => {
         if ((!!report && !!transaction) || isDraftTransaction) {
@@ -526,6 +546,10 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         return menuItems;
     };
 
+    const displayedImageUri = sourceUri || source;
+    const shouldShowScanningLine = isTranslating && !isPDF && typeof displayedImageUri === 'string' && !!displayedImageUri;
+    const isWaitingForScanningImage = shouldShowScanningLine && loadedScanningImageUri !== displayedImageUri;
+
     let footerActionButtons;
     if (isCropping) {
         footerActionButtons = (
@@ -549,7 +573,33 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 </Button>
             </View>
         );
-    } else if (!shouldShowRotateAndCropReceiptButton && !shouldShowReplaceReceiptButton && !isOdometerImage) {
+    } else if (isTranslating) {
+        footerActionButtons = (
+            // The receipt area already shows a spinner until the image loads, so this one stays hidden but keeps its space to avoid a layout jump
+            <View style={[styles.ph5, styles.pb5, styles.alignItemsCenter, isWaitingForScanningImage && styles.opacity0]}>
+                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL} />
+            </View>
+        );
+    } else if (translatedReceiptRows) {
+        footerActionButtons = (
+            <View style={[styles.ph5, styles.pb5, styles.alignItemsCenter]}>
+                <Text
+                    variant="label"
+                    style={[styles.textSupporting, styles.textAlignCenter, styles.mb4]}
+                >
+                    {translate('receipt.translationDisclaimer')}
+                </Text>
+                <Button
+                    onPress={showOriginal}
+                    style={styles.transactionReceiptButton}
+                    sentryLabel={CONST.SENTRY_LABEL.RECEIPT_MODAL.VIEW_ORIGINAL_RECEIPT}
+                >
+                    <Button.Icon src={expensifyIcons.ArrowsLeftRight} />
+                    <Button.Text>{translate('receipt.viewOriginal')}</Button.Text>
+                </Button>
+            </View>
+        );
+    } else if (!shouldShowRotateAndCropReceiptButton && !shouldShowReplaceReceiptButton && !isOdometerImage && !shouldShowTranslateButton) {
         footerActionButtons = null;
     } else {
         footerActionButtons = (
@@ -583,6 +633,17 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                         <Button.Text>{translate('common.rotate')}</Button.Text>
                     </Button>
                 )}
+                {shouldShowTranslateButton && (
+                    <Button
+                        onPress={startTranslation}
+                        isDisabled={isTranslateDisabled}
+                        style={styles.transactionReceiptButton}
+                        sentryLabel={CONST.SENTRY_LABEL.RECEIPT_MODAL.TRANSLATE_RECEIPT}
+                    >
+                        <Button.Icon src={expensifyIcons.Translate} />
+                        <Button.Text>{translate('receipt.translate')}</Button.Text>
+                    </Button>
+                )}
                 {(shouldShowReplaceReceiptButton || isOdometerImage) && (
                     <Button
                         onPress={() => {
@@ -614,7 +675,17 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     }
 
     let customAttachmentContent;
-    if (!isCropping || (!sourceUri && !source)) {
+    if (translatedReceiptRows && !isCropping) {
+        customAttachmentContent = <TranslatedReceiptCard rows={translatedReceiptRows} />;
+    } else if (shouldShowScanningLine) {
+        customAttachmentContent = (
+            <ReceiptScanningLine
+                imageUri={displayedImageUri}
+                isAuthTokenRequired={sourceUri ? false : isAuthTokenRequired}
+                onLoad={() => setLoadedScanningImageUri(displayedImageUri)}
+            />
+        );
+    } else if (!isCropping || (!sourceUri && !source)) {
         customAttachmentContent = null;
     } else {
         customAttachmentContent = (
