@@ -13396,6 +13396,8 @@ function canJoinChat(
         isMoneyRequestReport(report) ||
         isMoneyRequest(report) ||
         isInvoiceReport(report) ||
+        // The parent report can be an inaccessible private self DM when an admin opens an unreported expense.
+        isTransactionThread(parentReportAction) ||
         isTrackExpenseReportNew(report, parentReport, parentReportAction) ||
         isInvoiceReport(parentReport);
     // Anyone viewing these chat types is already a participant and therefore cannot join
@@ -13424,7 +13426,14 @@ function canJoinChat(
 /**
  * Whether the user can leave a report
  */
-function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, currentUserAccountID: number | undefined, isAnonymousUser: boolean, isReportArchived = false): boolean {
+function canLeaveChat(
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    currentUserAccountID: number | undefined,
+    isAnonymousUser: boolean,
+    isReportArchived = false,
+    parentReportAction?: ReportAction,
+): boolean {
     if (isRootGroupChat(report, isReportArchived)) {
         return true;
     }
@@ -13442,7 +13451,7 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, curr
     }
 
     // Anyone viewing these chat types is already a participant and therefore cannot leave
-    if (isSelfDM(report)) {
+    if (isSelfDM(report) || isTrackExpenseAction(parentReportAction)) {
         return false;
     }
 
