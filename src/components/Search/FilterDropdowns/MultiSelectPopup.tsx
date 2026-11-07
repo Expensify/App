@@ -2,6 +2,8 @@ import {ListFilterHeightContextProvider} from '@components/Search/FilterComponen
 import MultiSelect from '@components/Search/FilterComponents/MultiSelect';
 import type {MultiSelectItem} from '@components/Search/FilterComponents/MultiSelect';
 
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
+
 import React, {useState} from 'react';
 
 import BasePopup from './BasePopup';
@@ -26,8 +28,8 @@ type MultiSelectPopupProps<T> = {
     /** Whether the data for the popover is loading */
     loading?: boolean;
 
-    applySentryLabel: string;
-    resetSentryLabel: string;
+    applySentryLabel: SentryLabel;
+    resetSentryLabel: SentryLabel;
 };
 
 function MultiSelectPopup<T extends string>({

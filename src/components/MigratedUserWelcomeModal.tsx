@@ -22,8 +22,6 @@ import ROUTES from '@src/ROUTES';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {FeatureListItem} from './FeatureList';
-
 import CenteredModalLayout from './CenteredModalLayout';
 import FeatureTraining from './FeatureTraining';
 import Icon from './Icon';
@@ -39,7 +37,7 @@ function MigratedUserWelcomeModal() {
     const illustrations = useMemoizedLazyIllustrations(['ChatBubbles', 'ConciergeBot', 'PlanetWithMobileApp', 'MagnifyingGlassReceipt']);
     const isCurrentUserPolicyAdmin = useIsPaidPolicyAdmin();
 
-    const ExpensifyFeatures: FeatureListItem[] = [
+    const ExpensifyFeatures = [
         {
             icon: illustrations.MagnifyingGlassReceipt,
             translationKey: 'migratedUserWelcomeModal.features.search',
@@ -52,7 +50,7 @@ function MigratedUserWelcomeModal() {
             icon: illustrations.ChatBubbles,
             translationKey: 'migratedUserWelcomeModal.features.chat',
         },
-    ];
+    ] as const;
 
     const persistDismissal = () => {
         Log.hmmm('[MigratedUserWelcomeModal] dismissing product training');
