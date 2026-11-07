@@ -1829,6 +1829,20 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmApprovalWithHeldAmount: "Le rapport contient des dépenses en attente. Approuver uniquement les dépenses conformes, ou approuver l'ensemble du rapport ?",
         confirmApprovalAllHoldAmount: 'Toutes les dépenses sont en attente. Approuver quand même ?',
         confirmPay: 'Confirmer le montant du paiement',
+        wisePaymentSummary: {
+            confirmPayment: 'Confirmer le paiement',
+            reportTotal: 'Total de la note de frais',
+            unheldAmountBeingPaid: 'Montant non retenu à payer',
+            debitAmount: 'Montant débité',
+            employeeWillReceive: 'L’employé recevra',
+            totalFees: 'Frais totaux',
+            fxRate: 'Taux de change',
+            payAll: 'Tout payer',
+            reportCount: ({count}: {count: number}) => ({
+                one: '1 note de frais',
+                other: `${count} notes de frais`,
+            }),
+        },
         confirmPayAmount: 'Payez ce qui n’est pas en attente, ou payez l’intégralité de la note de frais.',
         confirmPayAllHoldAmount: () => ({
             one: 'Cette dépense est en attente. Voulez-vous tout de même la payer ?',
