@@ -6,9 +6,11 @@ import type {UseSearchAutoRefetch} from '@hooks/useSearchAutoRefetch';
 
 import {search} from '@libs/actions/Search';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MemberCustomFieldsByPolicyID} from '@src/selectors/Policy';
 import type {Transaction} from '@src/types/onyx';
+import type ReportActionName from '@src/types/onyx/ReportActionName';
 
 import Onyx from 'react-native-onyx';
 
@@ -615,6 +617,106 @@ describe('useSearchAutoRefetch', () => {
 
         rerender(updatedProps);
         expect(search).not.toHaveBeenCalled();
+    });
+
+    describe('approval report actions', () => {
+        const transaction1 = createMock<Transaction>({transactionID: '1'});
+        const approverProps = createMock<UseSearchAutoRefetch>({
+            ...baseProps,
+            queryJSON: {...baseProps.queryJSON, groupBy: 'approver' as const},
+            searchResults: {
+                ...baseProps.searchResults,
+                data: {
+                    transactions_1: transaction1,
+                },
+            },
+            transactions: {transactions_1: transaction1},
+            previousTransactions: {transactions_1: transaction1},
+            reportActions: {
+                reportActions_1: {
+                    '1': {actionName: 'CREATED', reportActionID: '1'},
+                },
+            },
+            previousReportActions: {
+                reportActions_1: {
+                    '1': {actionName: 'CREATED', reportActionID: '1'},
+                },
+            },
+        });
+
+        const withAddedAction = (props: UseSearchAutoRefetch, actionName: ReportActionName) =>
+            createMock<UseSearchAutoRefetch>({
+                ...props,
+                reportActions: {
+                    reportActions_1: {
+                        '1': {actionName: 'CREATED', reportActionID: '1'},
+                        '2': {actionName, reportActionID: '2'},
+                    },
+                },
+            });
+
+        it.each<ReportActionName>(['APPROVED', 'UNAPPROVED', 'FORWARDED'])('should trigger search when an %s report action is added while grouped by approver', (actionName) => {
+            // Given a search grouped by approver whose results already show a row
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps: approverProps,
+            });
+
+            // When a report is approved, unapproved or forwarded, which adds a report action but changes no transaction
+            rerender(withAddedAction(approverProps, actionName));
+
+            // Then the search runs again, because the report's expenses move in or out of an approver group
+            expect(search).toHaveBeenCalledTimes(1);
+        });
+
+        it.each([CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO])(
+            'should trigger search when an APPROVED report action is added while the has:approved-violation filter uses %s',
+            (operator) => {
+                // Given a search that includes or excludes approved violations, whose results already show a row
+                const approvedViolationProps = createMock<UseSearchAutoRefetch>({
+                    ...approverProps,
+                    queryJSON: {
+                        ...baseProps.queryJSON,
+                        flatFilters: [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS, filters: [{operator, value: CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}]}],
+                    },
+                });
+                const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                    initialProps: approvedViolationProps,
+                });
+
+                // When a report is approved, which adds a report action but changes no transaction
+                rerender(withAddedAction(approvedViolationProps, 'APPROVED'));
+
+                // Then the search runs again, because the report's violations now count as approved violations either way
+                expect(search).toHaveBeenCalledTimes(1);
+            },
+        );
+
+        it('should not trigger search when a non-approval report action is added while grouped by approver', () => {
+            // Given a search grouped by approver whose results already show a row
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps: approverProps,
+            });
+
+            // When a comment is added, which doesn't change who approves the report
+            rerender(withAddedAction(approverProps, 'ADDCOMMENT'));
+
+            // Then no search is triggered
+            expect(search).not.toHaveBeenCalled();
+        });
+
+        it('should not trigger search when an approval report action is added and the search is not grouped by approver', () => {
+            // Given a search that isn't grouped by approver
+            const ungroupedProps = createMock<UseSearchAutoRefetch>({...approverProps, queryJSON: baseProps.queryJSON});
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps: ungroupedProps,
+            });
+
+            // When a report is approved
+            rerender(withAddedAction(ungroupedProps, 'APPROVED'));
+
+            // Then no search is triggered, because only the approver grouping depends on approval actions
+            expect(search).not.toHaveBeenCalled();
+        });
     });
 
     describe('member custom field changes', () => {
