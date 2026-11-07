@@ -355,6 +355,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 component={ModalStackNavigators.ReportDescriptionModalStackNavigator}
                             />
                             <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.REPORT_HISTORY}
+                                component={ModalStackNavigators.ReportHistoryModalStackNavigator}
+                            />
+                            <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.CHRONOS_SCHEDULE_OOO}
                                 component={ModalStackNavigators.ChronosScheduleOOOModalStackNavigator}
                             />
@@ -539,6 +543,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.SEARCH_COLUMNS}
                                 component={ModalStackNavigators.SearchColumnsModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.INSIGHTS_DETAILS}
+                                component={ModalStackNavigators.InsightsDetailsModalStackNavigator}
                             />
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.MULTIFACTOR_AUTHENTICATION}

@@ -1,3 +1,4 @@
+/** useNewTransactions uses this hook to wait for a report's complete transaction list before it looks for new expenses. */
 import type {Transaction} from '@src/types/onyx';
 
 import {useState} from 'react';

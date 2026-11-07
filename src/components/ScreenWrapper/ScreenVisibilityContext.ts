@@ -1,3 +1,4 @@
+/** These contexts tell the components of a screen whether the user can see it. */
 import {createContext} from 'react';
 
 type ScreenVisibilityStore = {

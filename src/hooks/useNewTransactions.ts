@@ -169,6 +169,8 @@ function useNewTransactions({
         if (!hasOnceLoadedReportActions || hasSettledAfterInitialLoad) {
             return;
         }
+        // A report that loads without adding transactions never grows, so the diff above never settles it, and it settles here instead.
+        // This waits a microtask and a frame, so transactions that arrive in the same Onyx update as the loaded flag still count as the baseline, not as adds.
         let frame: number | undefined;
         let isStale = false;
         new Promise<void>((resolve) => {

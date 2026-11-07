@@ -196,6 +196,8 @@ function DescribeRuleForm({
             // The form shows this answer until the next description, so the answer stays in Onyx
             pendingGenerationRef.current = undefined;
             stopNewRulePromptLoading();
+            // The answer and its buttons show below the input, where the keyboard on iOS and Android covers them
+            formRef.current?.scrollToEnd();
             return;
         }
         if (generatedRuleState !== CONST.GENERATED_RULE.STATE.RULE) {
@@ -314,6 +316,8 @@ function DescribeRuleForm({
             style={style}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
             shouldUseScrollView={shouldUseScrollView}
+            // scrollToInput moves the whole box above the keyboard. If Android also moves the box, the page moves two times.
+            shouldScrollChildToFocus={false}
             submitFlexEnabled={submitFlexEnabled}
             shouldHideFixErrorsAlert
             isSubmitButtonNeutral={!!refusalSuggestedPrompt}

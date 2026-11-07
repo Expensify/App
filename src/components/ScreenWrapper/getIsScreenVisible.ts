@@ -1,3 +1,4 @@
+/** ScreenWrapper uses this rule to decide whether the user can see its screen. */
 import type {RHPWidth} from '@components/WideRHPContextProvider/types';
 
 type GetIsScreenVisibleParams = {

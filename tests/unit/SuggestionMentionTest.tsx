@@ -144,7 +144,7 @@ describe('SuggestionMention', () => {
 
         mockUsePersonalDetails.mockImplementation(() => mockPersonalDetails);
         mockUseArrowKeyFocusManager.mockReturnValue([0, mockSetHighlightedMentionIndex]);
-        mockUseCurrentReportIDState.mockReturnValue({currentReportID: '', currentRHPReportID: ''});
+        mockUseCurrentReportIDState.mockReturnValue({currentReportID: ''});
         mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: 1, login: 'current@gmail.com'});
         mockUseDebounce.mockImplementation((callback) => {
             const callbackRef = React.useRef(callback);
@@ -400,7 +400,7 @@ describe('SuggestionMention', () => {
             // Given a group chat with a report participant and a policy employee
             setupPersonalDetails();
             const currentReportID = 'group1';
-            mockUseCurrentReportIDState.mockReturnValue({currentReportID, currentRHPReportID: ''});
+            mockUseCurrentReportIDState.mockReturnValue({currentReportID});
             const report = buildReportWithParticipant({
                 reportID: 'group1',
                 chatType: CONST.REPORT.CHAT_TYPE.GROUP,
@@ -425,7 +425,7 @@ describe('SuggestionMention', () => {
             // Given a workspace chat from the active workspace
             setupPersonalDetails();
             const currentReportID = 'wsp1';
-            mockUseCurrentReportIDState.mockReturnValue({currentReportID, currentRHPReportID: ''});
+            mockUseCurrentReportIDState.mockReturnValue({currentReportID});
             const report = buildReportWithParticipant({
                 reportID: 'wsp1',
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
@@ -451,7 +451,7 @@ describe('SuggestionMention', () => {
             // Given a one-to-one direct message
             setupPersonalDetails();
             const currentReportID = 'dm1';
-            mockUseCurrentReportIDState.mockReturnValue({currentReportID, currentRHPReportID: ''});
+            mockUseCurrentReportIDState.mockReturnValue({currentReportID});
             const report = buildReportWithParticipant({reportID: 'dm1'});
             mockUsePolicy.mockReturnValue(policyWithEmployeeUb);
 

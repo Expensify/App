@@ -1,3 +1,4 @@
+/** This provider gives the components of a screen its visibility, as a store they can wait on and as a value for the current render. */
 import type {ReactNode} from 'react';
 
 import React, {useEffect, useLayoutEffect, useState} from 'react';
@@ -37,7 +38,7 @@ function createScreenVisibilityStore(isInitiallyVisible: boolean): ScreenVisibil
 function ScreenVisibilityProvider({isVisible, children}: ScreenVisibilityProviderProps) {
     const [store] = useState(() => createScreenVisibilityStore(isVisible));
 
-    // Hidden is published before the rows act and visible after, so a row asked to highlight as the screen is covered waits, and one reused as it is uncovered drops its wait first.
+    // Hidden is published before the rows' effects run and visible after them, so a row asked to highlight as the screen is covered waits, and one reused as it is uncovered drops its wait first.
     useLayoutEffect(() => {
         if (isVisible) {
             return;

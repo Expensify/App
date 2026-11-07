@@ -139,6 +139,19 @@ describe('useReportPreviewCarousel', () => {
         expect(scrolledIndexes()).toEqual([NEW_TRANSACTION_INDEX]);
     });
 
+    it('scrolls once the scroll delay passes even when the report updates during it, without restarting the delay', () => {
+        // Given a chat the user can see, with an expense that has just become new
+        const {showReport} = renderCarousel(new Set([NEW_TRANSACTION_ID]));
+
+        // When a write to the report's transactions arrives partway through the delay, which rebuilds the set of new IDs with the same contents
+        act(() => jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_SCROLL_DELAY / 2));
+        showReport(new Set([NEW_TRANSACTION_ID]), [...TRANSACTIONS]);
+        act(() => jest.advanceTimersByTime(CONST.PENDING_TRANSACTION_SCROLL_DELAY / 2));
+
+        // Then it scrolls on time, since writes that keep arriving would otherwise hold the scroll back until the flag is swept
+        expect(scrolledIndexes()).toEqual([NEW_TRANSACTION_INDEX]);
+    });
+
     it('scrolls to a new expense only once, however often the chat is covered and uncovered while it is still new', () => {
         // Given a chat that has already scrolled its carousel to a new expense
         renderCarousel(new Set([NEW_TRANSACTION_ID]));

@@ -1,4 +1,5 @@
 import RenderHTML from '@components/RenderHTML';
+import getPaidWisePaymentAmounts from '@components/WisePaymentSummary/utils/getPaidWisePaymentAmounts';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -18,13 +19,18 @@ import type * as OnyxTypes from '@src/types/onyx';
 import {policyPaymentAttributionSelector} from '@selectors/Policy';
 import React from 'react';
 
+import WisePaymentDetailsMessage from './WisePaymentDetailsMessage';
+
 type PaymentContentProps = {
     action: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
     expectedDate: string | undefined;
     policyID: string | undefined;
+
+    /** The report the payment belongs to */
+    reportID: string | undefined;
 };
 
-function PaymentContent({action, expectedDate, policyID}: PaymentContentProps) {
+function PaymentContent({action, expectedDate, policyID, reportID}: PaymentContentProps) {
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [policyPaymentAttribution] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: policyPaymentAttributionSelector});
     const [reimburserAccountID] = useAllPersonalDetails((personalDetails) => getPolicyReimburserAccountID(policyPaymentAttribution, personalDetails));
@@ -55,6 +61,15 @@ function PaymentContent({action, expectedDate, policyID}: PaymentContentProps) {
         const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, last4Digits);
         const paymentMessage = crossBorderMessage ?? translate(wasAutoPaid ? 'iou.automaticallyPaidWithBusinessBankAccount' : 'iou.businessBankAccount', '', last4Digits);
         const translation = getPaymentMessageWithExpectedDate(translate, dateFnsLocale, paymentMessage, expectedDate);
+        const wisePaymentAmounts = getPaidWisePaymentAmounts(action);
+        if (reportID && wisePaymentAmounts) {
+            return (
+                <WisePaymentDetailsMessage
+                    message={translation}
+                    reportID={reportID}
+                />
+            );
+        }
         if (wasAutoPaid) {
             return (
                 <ReportActionItemBasicMessage>

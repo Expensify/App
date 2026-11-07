@@ -121,6 +121,7 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                             showLockIcon={item.isLocked}
                             disabled={item.disabled}
                             accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${item.name}`}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.ROW_ENABLE_SWITCH}
                             onToggle={item.onToggleEnabled}
                         />
                     </View>

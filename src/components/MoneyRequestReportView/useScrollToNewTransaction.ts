@@ -1,3 +1,4 @@
+/** The report table uses this hook to bring a new expense into view, so its highlight plays where the user can see it. */
 import type FlatListRefType from '@components/FlashList/types';
 
 import useIsScreenVisible from '@hooks/useIsScreenVisible';
