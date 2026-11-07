@@ -19,17 +19,22 @@ jest.mock('@libs/Violations/getReportSubmitViolationSummary', () => ({
 
 type ApprovalSummary = ReturnType<typeof getReportApproveViolationSummary>;
 
-const translate = createMock<LocaleContextProps['translate']>(jest.fn((key: string) => key));
+const translate = createMock<LocaleContextProps['translate']>(jest.fn((...args: [string, ...unknown[]]) => args[0]));
 const dateFnsLocale = createMock<LocaleContextProps['dateFnsLocale']>({});
 
 function createSummary(hasViolations = false): ApprovalSummary {
+    const otherViolations: ApprovalSummary['otherViolations'] = new Map();
+    if (hasViolations) {
+        otherViolations.set(CONST.VIOLATIONS.RECEIPT_REQUIRED, {name: CONST.VIOLATIONS.RECEIPT_REQUIRED, type: CONST.VIOLATION_TYPES.WARNING});
+    }
+
     return {
         hasRejectedExpense: false,
         hasReportBeenRejected: false,
         hasPendingCardMatch: false,
         hasMissingMerchant: false,
         hasMissingAmount: false,
-        otherViolations: hasViolations ? new Map([[CONST.VIOLATIONS.RECEIPT_REQUIRED, {name: CONST.VIOLATIONS.RECEIPT_REQUIRED}]]) : new Map(),
+        otherViolations,
     };
 }
 
