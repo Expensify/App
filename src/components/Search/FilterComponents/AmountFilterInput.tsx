@@ -4,6 +4,7 @@ import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {SearchAmountFilterKeys} from '@components/Search/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 
 import {getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
@@ -39,6 +40,7 @@ type AmountFilterInputProps = {
 
 function AmountFilterInput({ref, baseFilterKey, amount, currency, label, name, autoFocus, containerStyles, onAmountChange, onCurrencyChange}: AmountFilterInputProps) {
     const {translate, preferredLocale} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
     const [initialAmount] = useState(amount);
 
@@ -72,8 +74,9 @@ function AmountFilterInput({ref, baseFilterKey, amount, currency, label, name, a
                 currency={currency}
                 symbol={currency ? (getLocalizedCurrencySymbol(preferredLocale, currency) ?? '') : ''}
                 hideSymbol={!currency}
-                decimals={CONST.DEFAULT_CURRENCY_DECIMALS}
+                decimals={currency ? getCurrencyDecimals(currency) : CONST.DEFAULT_CURRENCY_DECIMALS}
                 label={label}
+                accessibilityLabel={[label.trim(), currency || translate('common.anyCurrency')].join(', ')}
                 testID={name}
                 onInputChange={onAmountChange}
                 allowNegativeInput

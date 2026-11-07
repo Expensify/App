@@ -25,6 +25,57 @@ type CalendlyCall = {
     inserted: string;
 };
 
+/** An approver of a travel booking, as Spotnana sent it */
+type BookingApprover = {
+    /** Name from Spotnana, which may differ from the Expensify display name */
+    name: string;
+
+    /** Email from Spotnana, which may not be an Expensify login */
+    email: string;
+
+    /** The approver's Spotnana user ID */
+    spotnanaUserID: string;
+};
+
+/** The approval state of one travel booking */
+type BookingApproval = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** Where the booking is in its approval */
+    status: ValueOf<typeof CONST.TRAVEL.BOOKING_APPROVAL.STATUS>;
+
+    /** Spotnana's approval type */
+    approvalType: ValueOf<typeof CONST.TRAVEL.BOOKING_APPROVAL.TYPE>;
+
+    /** Spotnana's approval ID, needed to send a decision */
+    approvalID: string;
+
+    /** Approvers as Spotnana knows them; `approverAccountIDs` holds their Expensify accounts */
+    approvers?: BookingApprover[];
+
+    /** The approvers' Expensify accounts */
+    approverAccountIDs?: number[];
+
+    /** Spotnana's deadline: a local time and the time zone it is in */
+    deadline?: {
+        /** The deadline's local time, without an offset */
+        iso8601: string;
+
+        /** The time zone of the deadline */
+        zoneId: string;
+    };
+
+    /** The webhook time of the last event applied */
+    timestamp?: string;
+
+    /** Who approved or rejected the booking in Expensify */
+    decidedByAccountID?: number;
+
+    /** Errors from approving or rejecting the booking */
+    errors?: OnyxCommon.Errors;
+}>;
+
+/** The approval state of a trip's bookings, keyed by pnrID */
+type BookingApprovalState = Record<string, BookingApproval>;
+
 /**
  * Guide call schedule
  */
@@ -61,6 +112,9 @@ type ReportNameValuePairs = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Original reportID that spawned the current report */
     originalID?: string;
+
+    /** On an invoice, the reportID of the bill linked to it. Auth sends it as a number, and an empty value means no bill. */
+    billID?: string | number;
 
     /** The follow-up support ticket created after this ticket was reopened */
     reopenedAsReportID?: string;
@@ -108,6 +162,9 @@ type ReportNameValuePairs = OnyxCommon.OnyxValueWithOfflineFeedback<{
         tripID: string;
 
         payload?: TripData;
+
+        /** Keyed by pnrID; missing when no booking in the trip needs approval */
+        bookingApprovalState?: BookingApprovalState;
     };
 
     /** Title field configuration copied from policy - presence indicates auto-generated names are allowed */
@@ -163,4 +220,4 @@ type ReportNameValuePairsCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.C
 
 export default ReportNameValuePairs;
 
-export type {ReportNameValuePairsCollectionDataSet, CalendlyCall};
+export type {ReportNameValuePairsCollectionDataSet, CalendlyCall, BookingApproval};
