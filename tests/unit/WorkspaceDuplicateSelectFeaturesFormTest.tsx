@@ -82,9 +82,10 @@ const MERCHANT_RULE: Rule = {
 };
 
 /** A Control workspace whose only possible workspace-level rule is eReceipts, so the test decides whether the Rules row is shown. */
-function createSourcePolicy(hasWorkspaceRules: boolean): Policy {
+function createSourcePolicy(hasWorkspaceRules: boolean, areRulesEnabled: boolean): Policy {
     return {
         ...createRandomPolicy(Number(POLICY_ID), CONST.POLICY.TYPE.CORPORATE),
+        areRulesEnabled,
         preventSelfApproval: false,
         maxExpenseAmountNoReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE,
         maxExpenseAmount: CONST.DISABLED_MAX_EXPENSE_VALUE,
@@ -93,8 +94,8 @@ function createSourcePolicy(hasWorkspaceRules: boolean): Policy {
     };
 }
 
-async function renderForm(hasWorkspaceRules: boolean) {
-    await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, createSourcePolicy(hasWorkspaceRules));
+async function renderForm(hasWorkspaceRules: boolean, areRulesEnabled = true) {
+    await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, createSourcePolicy(hasWorkspaceRules, areRulesEnabled));
     await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}merchantRule`, MERCHANT_RULE);
     await Onyx.set(ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED, true);
     await Onyx.set(ONYXKEYS.DUPLICATE_WORKSPACE, {name: 'Duplicate', policyID: TARGET_POLICY_ID});
@@ -205,5 +206,59 @@ describe('WorkspaceDuplicateSelectFeaturesForm Rules and Merchant rules', () => 
 
         // Then the merchant rules are still copied, because there is no Rules row they could depend on
         expect(getSentParts()).toMatchObject({expenses: false, codingRules: true});
+    });
+
+    it('hides Rules when the source has workspace-level rules but Rules is turned off', async () => {
+        // Given a Control source with Rules turned off that still has a workspace-level rule set and a merchant rule
+        await renderForm(true, false);
+
+        // Then the Rules row is not offered, while Merchant rules is still offered and selected
+        expect(getRow('rules')).toBeUndefined();
+        expect(getRow('codingRules')?.isSelected).toBe(true);
+
+        // When the admin continues
+        pressContinue();
+
+        // Then Rules is not copied, so the duplicated workspace keeps Rules turned off like the source, and the merchant rules are copied on their own
+        expect(getSentParts()).toMatchObject({expenses: false, codingRules: true});
+    });
+
+    it('keeps the other choices when Rules is turned off on the source while the form is open', async () => {
+        // Given a source with Rules on, where the admin deselected Overview
+        await renderForm(true);
+        await pressRow('overview');
+
+        // When another admin turns Rules off on the source and the update reaches this form
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {areRulesEnabled: false});
+        });
+        await waitForBatchedUpdates();
+
+        // Then the Rules row goes away and Overview stays deselected, instead of every row being selected again
+        expect(getRow('rules')).toBeUndefined();
+        expect(getRow('overview')?.isSelected).toBe(false);
+        expect(getRow('codingRules')?.isSelected).toBe(true);
+
+        // When the admin continues
+        pressContinue();
+
+        // Then Overview is still not copied
+        expect(getSentParts()).toMatchObject({overview: false, expenses: false, codingRules: true});
+    });
+
+    it('selects a row that shows up while the form is open and keeps the other choices', async () => {
+        // Given a source with Rules off, where the admin deselected Overview
+        await renderForm(true, false);
+        await pressRow('overview');
+
+        // When another admin turns Rules on and the update reaches this form
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {areRulesEnabled: true});
+        });
+        await waitForBatchedUpdates();
+
+        // Then the new Rules row is selected, like every row when the form opens, and Overview stays deselected
+        expect(getRow('rules')?.isSelected).toBe(true);
+        expect(getRow('overview')?.isSelected).toBe(false);
     });
 });

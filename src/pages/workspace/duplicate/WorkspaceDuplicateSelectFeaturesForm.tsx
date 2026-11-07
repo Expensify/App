@@ -19,7 +19,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getExpenseDefaultRuleCount} from '@libs/ExpenseDefaultRuleUtils';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
-import {createFilteredMemberCountSelector, createInvoiceConfigurationTextSelector, getDistanceRateCustomUnit, getPerDiemCustomUnit, isCollectPolicy} from '@libs/PolicyUtils';
+import {
+    arePolicyRulesEnabled,
+    createFilteredMemberCountSelector,
+    createInvoiceConfigurationTextSelector,
+    getDistanceRateCustomUnit,
+    getPerDiemCustomUnit,
+    isCollectPolicy,
+} from '@libs/PolicyUtils';
 import {formatAddressToString} from '@libs/ReportActionsUtils';
 import {getReportFieldsByPolicyID} from '@libs/ReportUtils';
 
@@ -33,7 +40,7 @@ import ROUTES from '@src/ROUTES';
 import type {Rate} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import {getAllValidConnectedIntegration, getWorkflowRules, getWorkspaceRules} from './utils';
@@ -149,7 +156,8 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                       alternateText: workflows?.join(', '),
                   }
                 : undefined,
-            rules && rules.length > 0 && !isCollect
+            // A Control workspace keeps its rule settings while Rules is turned off, so only offer to copy them when Rules is on.
+            rules && rules.length > 0 && !isCollect && arePolicyRulesEnabled(policy, policyCategories)
                 ? {
                       translation: translate('workspace.common.rules'),
                       value: 'rules',
@@ -198,7 +206,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         return result.filter((item): item is NonNullable<typeof item> => !!item);
     })();
 
-    // Merchant rules live under Rules, so they are copied only along with it. The Rules row is hidden when the source has no workspace-level rules, and merchant rules can then be copied on their own.
+    // Merchant rules live under Rules, so they are copied only along with it. The Rules row is hidden when the source has no workspace-level rules or has Rules turned off, and merchant rules can then be copied on their own.
     const hasRulesItem = items.some((item) => item.value === 'rules');
     const effectiveSelectedItems = hasRulesItem && !selectedItems.includes('rules') ? selectedItems.filter((value) => value !== 'codingRules') : selectedItems;
 
@@ -333,13 +341,20 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         );
     }, [duplicateWorkspace?.fileURI, policyID]);
 
+    // Rows can show up or go away while the form is open, as the source's data loads or when another admin changes the source.
+    // Select the rows that show up, like every row when the form opens, and drop the ones that went away, keeping the admin's choices for the rest.
+    const itemValues = items.map((item) => item.value);
+    const itemValuesKey = itemValues.join();
+    const previousItemValuesRef = useRef<string[]>([]);
     useEffect(() => {
-        if (!items.length) {
-            return;
-        }
-        setSelectedItems(items.map((i) => i.value));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [items.length]);
+        const previousItemValues = previousItemValuesRef.current;
+        previousItemValuesRef.current = itemValues;
+        setSelectedItems((currentSelectedItems) => [
+            ...currentSelectedItems.filter((value) => itemValues.includes(value)),
+            ...itemValues.filter((value) => !previousItemValues.includes(value) && !currentSelectedItems.includes(value)),
+        ]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- itemValuesKey stands for itemValues, so this runs only when a row shows up or goes away
+    }, [itemValuesKey]);
 
     useEffect(() => {
         fetchWorkspaceRelatedData();
