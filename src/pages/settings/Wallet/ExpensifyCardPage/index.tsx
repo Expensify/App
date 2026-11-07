@@ -282,8 +282,11 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
         });
     };
 
+    const [cardHolderWorkspaceChatReportID] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: (reports) => getPolicyExpenseChat(currentCard?.accountID, policyIDForCurrentCard, reports ?? {})?.reportID,
+    });
+
     const handleAskToUnfreezePress = () => {
-        const cardHolderWorkspaceChatReportID = getPolicyExpenseChat(currentCard?.accountID, policyIDForCurrentCard)?.reportID;
         if (!cardHolderWorkspaceChatReportID) {
             return;
         }

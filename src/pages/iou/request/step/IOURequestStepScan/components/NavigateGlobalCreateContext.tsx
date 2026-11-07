@@ -93,6 +93,9 @@ function NavigateGlobalCreateSubscriber({fnRef, iouType, reportID, transactionID
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [policyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: (reports) => getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id, reports ?? {}),
+    });
 
     const navigateGlobalCreate: NavigateGlobalCreateFn = (transactionIDs, isMultiScanEnabled) => {
         startScanProcessSpan(isMultiScanEnabled);
@@ -107,7 +110,7 @@ function NavigateGlobalCreateSubscriber({fnRef, iouType, reportID, transactionID
             // Quick-scan entry points (e.g. the bottom-tab camera button) start from the default workspace chat rather than a generated reportID,
             // so the draft isn't flagged as global create yet. Flag it here so the workspace stays editable on the confirmation page, like the FAB scan flow.
             const shouldAutoReport = !isSelfDMTrackExpense && (!!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting);
-            const targetReport = shouldAutoReport ? getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id) : selfDMReport;
+            const targetReport = shouldAutoReport ? policyExpenseChat : selfDMReport;
             const transactionReportID = isSelfDM(targetReport) ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
             const iouTypeTrackOrSubmit = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
 

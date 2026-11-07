@@ -7,6 +7,7 @@ import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import useCardFeedsForActivePolicies from '@hooks/useCardFeedsForActivePolicies';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
@@ -14,6 +15,7 @@ import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
@@ -32,16 +34,16 @@ function PersonalCardWarning() {
     const adminPolicyIdsInCardFeeds = Object.keys(cardFeedsByPolicy).filter((policyID) => adminPolicyIds.has(policyID));
     const adminPoliciesCountInCardFeeds = adminPolicyIdsInCardFeeds.length;
     const isAdmin = adminPoliciesCountInCardFeeds > 0;
+    const nonAdminPolicyID = !isAdmin ? Object.keys(cardFeedsByPolicy).find((key) => !!key) : undefined;
+    const [expenseChatReportID] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => getPolicyExpenseChat(accountID, nonAdminPolicyID, reports ?? {})?.reportID});
 
     const onPrimaryActionPress = () => {
         if (!isAdmin) {
-            const policyID = Object.keys(cardFeedsByPolicy).find((key) => !!key);
-            if (!policyID) {
+            if (!nonAdminPolicyID) {
                 return;
             }
-            const expenseChatReportId = getPolicyExpenseChat(accountID, policyID)?.reportID;
-            if (expenseChatReportId) {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(expenseChatReportId));
+            if (expenseChatReportID) {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(expenseChatReportID));
                 return;
             }
         }
