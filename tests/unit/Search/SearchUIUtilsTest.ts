@@ -13700,8 +13700,16 @@ describe('SearchUIUtils', () => {
             expect(tagGLCodeHeader?.sortColumnName).toBe(CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE);
         });
 
-        test('Should exclude Violations from sort options', () => {
-            expect(SearchUIUtils.getSortByOptions([CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS, CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE], translateLocal)).toEqual([
+        test('Should include Violations in sort options', () => {
+            // Given the Violations column is shown next to another sortable column
+            const columns = [CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS, CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE];
+
+            // When the Sort by options are built for those columns
+            const sortByOptions = SearchUIUtils.getSortByOptions(columns, translateLocal);
+
+            // Then Violations can be picked, since the rows sort by the violation labels the column shows
+            expect(sortByOptions).toEqual([
+                {text: translateLocal('common.violations'), value: CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS},
                 {text: translateLocal('common.categoryGLCode'), value: CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE},
             ]);
         });
@@ -16116,7 +16124,7 @@ describe('SearchUIUtils', () => {
             });
 
             expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBe(
-                `${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.missingComment')}`,
+                `${translateLocal('violations.shortName.missingComment')}, ${translateLocal('violations.shortName.missingCategory')}`,
             );
         });
 
@@ -16188,7 +16196,7 @@ describe('SearchUIUtils', () => {
             });
 
             expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBe(
-                `${translateLocal('violations.shortName.receiptRequired')}, ${translateLocal('violations.shortName.missingCategory')}`,
+                `${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.receiptRequired')}`,
             );
         });
 
@@ -16316,7 +16324,7 @@ describe('SearchUIUtils', () => {
             });
 
             expect(SearchUIUtils.getApprovedViolationsForTransaction([forwardedAction], transactionIDForViolations, translateLocal)).toBe(
-                `${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.missingComment')}`,
+                `${translateLocal('violations.shortName.missingComment')}, ${translateLocal('violations.shortName.missingCategory')}`,
             );
         });
 
