@@ -1,10 +1,16 @@
-import type {ReportActionsListActions, ReportActionsListState, ReportActionsReadinessSignals} from '@hooks/useReportActionsListModel';
+import type {ReportActionsListActions, ReportActionsListSourceState, ReportActionsReadinessSignals} from '@hooks/useReportActionsListModel';
 
 import {isUnread} from '@libs/ReportUtils';
 
+import type {ReportAction} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {createContext, useContext} from 'react';
+
+type ReportActionsListState = ReportActionsListSourceState & {
+    /** Selected page before survey filtering, so hidden surveys still establish scroll freshness. */
+    scrollReportActions: ReportAction[];
+};
 
 /**
  * Carries the render `state` slice from the guard to `ReportActionsList` so the list renders from the same
@@ -116,3 +122,4 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
 }
 
 export {ReportActionsListStateContext, ReportActionsListActionsContext, useReportActionsListState, useReportActionsListActions, computeReportActionsSkeletonState};
+export type {ReportActionsListState};

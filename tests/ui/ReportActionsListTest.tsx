@@ -35,6 +35,8 @@ import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/Concierg
 import CollapsedSystemMessages from '@pages/inbox/report/CollapsedSystemMessages';
 import ReportActionsList from '@pages/inbox/report/ReportActionsList';
 import ReportActionsListFloatingMessageCounter from '@pages/inbox/report/ReportActionsList/ReportActionsListFloatingMessageCounter';
+import {useReportActionsListState} from '@pages/inbox/report/ReportActionsListContext';
+import type {ReportActionsListState} from '@pages/inbox/report/ReportActionsListContext';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
 import * as ReportActionsNewActionLiveTail from '@pages/inbox/report/useReportActionsNewActionLiveTail';
@@ -199,7 +201,7 @@ type MockInvertedFlashListProps = {
     onContentSizeChange?: () => void;
 };
 
-const mockInvertedFlashList: jest.MockedFunction<(props: MockInvertedFlashListProps) => null> = jest.requireMock('@components/FlashList/InvertedFlashList');
+const mockInvertedFlashList: jest.MockedFunction<(props: MockInvertedFlashListProps) => React.ReactElement | null> = jest.requireMock('@components/FlashList/InvertedFlashList');
 const mockReportActionItemCreated: jest.Mock = jest.requireMock('@pages/inbox/report/ReportActionItemCreated');
 
 /** Returns the report actions the body fed into the (mocked) inverted list on its latest render. */
@@ -286,6 +288,23 @@ const renderReportActionsList = (props: {reportID?: string} = {}) => {
     return render(<ReportActionsList reportID={reportID} />);
 };
 
+function renderPublishedReportActionsListState() {
+    const observeState = jest.fn<void, [ReportActionsListState]>();
+    function StateProbe() {
+        observeState(useReportActionsListState());
+        return null;
+    }
+    mockInvertedFlashList.mockImplementation(() => <StateProbe />);
+    renderReportActionsList();
+    return () => {
+        const state = observeState.mock.lastCall?.[0];
+        if (!state) {
+            throw new Error('Expected the ready report list to publish its state');
+        }
+        return state;
+    };
+}
+
 // useReportActionsListModel derives app-load state from the request queue via useIsAppLoadPending,
 // which reads these queue keys through selectors that resolve to a boolean. Returning that boolean
 // directly mirrors what useOnyx yields once the selector runs. The legacy IS_LOADING_APP flag is kept
@@ -321,6 +340,7 @@ describe('ReportActionsList (body)', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockInvertedFlashList.mockImplementation(() => null);
         mockUseIsReportLoadPending.mockReturnValue(false);
         mockUseUnreadMarker.mockReturnValue({unreadMarkerReportActionID: null, unreadMarkerReportActionIndex: -1});
 
@@ -648,7 +668,7 @@ describe('ReportActionsList (body)', () => {
         });
     });
 
-    describe('Support survey filtering in the list model', () => {
+    describe('Support survey filtering in the published list state', () => {
         const reply: OnyxTypes.ReportAction = {...mockReportActions[1], created: '2023-01-01 00:04:00.000'};
         const obsoleteSurvey: OnyxTypes.ReportAction = {
             ...reply,
@@ -679,7 +699,7 @@ describe('ReportActionsList (body)', () => {
             {ticketState: 'resolved', hasCachedResolution: true, shouldShowLatestSurvey: true},
             {ticketState: 'replaced', hasCachedResolution: true, shouldShowLatestSurvey: false},
             {ticketState: 'resolved', hasCachedResolution: false, shouldShowLatestSurvey: false},
-        ])('filters both model arrays for a $ticketState ticket (cached resolution: $hasCachedResolution)', ({ticketState, hasCachedResolution, shouldShowLatestSurvey}) => {
+        ])('filters both published arrays for a $ticketState ticket (cached resolution: $hasCachedResolution)', ({ticketState, hasCachedResolution, shouldShowLatestSurvey}) => {
             // Given a selected page whose resolution can only be found in the full cache
             const supportReport = ticketState === 'unresolved' ? {...resolvedReport, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN} : resolvedReport;
             const page = [latestSurvey, reply, obsoleteSurvey];
@@ -697,27 +717,27 @@ describe('ReportActionsList (body)', () => {
             });
             mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions: page, sortedAllReportActions: fullCache});
 
-            // When the actual model derives its render and scroll views
-            const {result} = renderHook(() => useReportActionsListModel(mockReport.reportID, false));
+            // When the public guard mounts the provider and a consumer reads its render and scroll views
+            const getPublishedState = renderPublishedReportActionsListState();
 
             // Then unread selection and rows share eligibility without losing selected-page freshness or raw pagination
             const expectedActions = shouldShowLatestSurvey ? [latestSurvey, reply] : [reply];
-            expect(result.current.state.sortedReportActions).toEqual(expectedActions);
-            expect(result.current.state.sortedVisibleReportActions).toEqual(expectedActions);
-            expect(result.current.state.scrollReportActions).toEqual(page);
-            expect(result.current.state.sortedAllReportActions).toBe(fullCache);
-            expect(result.current.readinessSignals).toMatchObject({isMissingReportActions: false, reportActionsLength: page.length});
+            expect(getPublishedState().sortedReportActions).toEqual(expectedActions);
+            expect(getPublishedState().sortedVisibleReportActions).toEqual(expectedActions);
+            expect(getPublishedState().scrollReportActions).toEqual(page);
+            expect(getPublishedState().sortedAllReportActions).toBe(fullCache);
             expect(jest.mocked(useLoadReportActions).mock.lastCall?.[0].reportActions).toEqual(page);
         });
 
         it('reacts to replacement metadata arriving and ticket status changing without changing the loaded page', async () => {
-            // Given a resolved ticket with a visible survey and real Onyx subscriptions for its report and metadata
+            // Given a resolved ticket with cached metadata so its archive subscription has settled before replacement updates
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}` as const;
             const nameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${mockReport.reportID}` as const;
             const actualUseOnyx = jest.requireActual<{default: typeof useOnyx}>('@hooks/useOnyx').default;
             const page = [latestSurvey, resolution, reply, obsoleteSurvey];
             await act(async () => {
                 await Onyx.set(reportKey, resolvedReport);
+                await Onyx.set(nameValuePairsKey, {});
                 await waitForBatchedUpdates();
             });
             mockUseNetwork.mockReturnValue({isOffline: false});
@@ -728,8 +748,9 @@ describe('ReportActionsList (body)', () => {
                 return getMockOnyxValue(key, options);
             });
             mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions: page, sortedAllReportActions: page});
-            const {result} = renderHook(() => useReportActionsListModel(mockReport.reportID, false));
-            await waitFor(() => expect(result.current.state.sortedVisibleReportActions).toEqual([latestSurvey, resolution, reply]));
+            const getPublishedState = renderPublishedReportActionsListState();
+            await waitFor(() => expect(getPublishedState().sortedVisibleReportActions).toEqual([latestSurvey, resolution, reply]));
+            const initialModelExecutions = mockUsePaginatedReportActions.mock.calls.length;
 
             // When the server supplies replacement metadata after the actions have loaded
             await act(async () => {
@@ -738,30 +759,32 @@ describe('ReportActionsList (body)', () => {
             });
 
             // Then both render arrays immediately hide surveys, but scroll freshness retains the selected newest action
-            await waitFor(() => expect(result.current.state.sortedVisibleReportActions).toEqual([resolution, reply]));
-            expect(result.current.state.sortedReportActions).toEqual([resolution, reply]);
-            expect(result.current.state.scrollReportActions).toEqual(page);
+            await waitFor(() => expect(getPublishedState().sortedVisibleReportActions).toEqual([resolution, reply]));
+            expect(getPublishedState().sortedReportActions).toEqual([resolution, reply]);
+            expect(getPublishedState().scrollReportActions).toEqual(page);
+            expect(mockUsePaginatedReportActions).toHaveBeenCalledTimes(initialModelExecutions);
 
             // When the replacement disappears and the ticket changes from resolved to open and back
             await act(async () => {
                 await Onyx.set(nameValuePairsKey, {});
                 await waitForBatchedUpdates();
             });
-            await waitFor(() => expect(result.current.state.sortedVisibleReportActions).toContain(latestSurvey));
+            await waitFor(() => expect(getPublishedState().sortedVisibleReportActions).toContain(latestSurvey));
+            expect(mockUsePaginatedReportActions).toHaveBeenCalledTimes(initialModelExecutions);
             await act(async () => {
                 await Onyx.merge(reportKey, {stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
                 await waitForBatchedUpdates();
             });
 
             // Then eligibility follows status as well as metadata, without requiring a new action array
-            await waitFor(() => expect(result.current.state.sortedVisibleReportActions).toEqual([resolution, reply]));
-            expect(result.current.state.sortedReportActions).toEqual([resolution, reply]);
+            await waitFor(() => expect(getPublishedState().sortedVisibleReportActions).toEqual([resolution, reply]));
+            expect(getPublishedState().sortedReportActions).toEqual([resolution, reply]);
             await act(async () => {
                 await Onyx.merge(reportKey, {stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.CLOSED});
                 await waitForBatchedUpdates();
             });
-            await waitFor(() => expect(result.current.state.sortedVisibleReportActions).toEqual([latestSurvey, resolution, reply]));
-            expect(result.current.state.scrollReportActions).toEqual(page);
+            await waitFor(() => expect(getPublishedState().sortedVisibleReportActions).toEqual([latestSurvey, resolution, reply]));
+            expect(getPublishedState().scrollReportActions).toEqual(page);
         });
 
         it.each([false, true])('keeps a hidden-survey-only loaded page ready without backfilling (offline: %s)', (isOffline) => {
@@ -800,8 +823,14 @@ describe('ReportActionsList (body)', () => {
             }
         });
 
-        it('keeps read, scroll, and unread effects dormant while a support ticket load is pending', () => {
+        it('keeps presentation subscriptions and effects dormant while a support ticket load is pending', async () => {
             // Given a partially cached support ticket whose OpenReport request has not completed
+            const nameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${mockReport.reportID}` as const;
+            const actualUseOnyx = jest.requireActual<{default: typeof useOnyx}>('@hooks/useOnyx').default;
+            await act(async () => {
+                await Onyx.set(nameValuePairsKey, {});
+                await waitForBatchedUpdates();
+            });
             const unreadSupportReport = {
                 ...resolvedReport,
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
@@ -813,23 +842,43 @@ describe('ReportActionsList (body)', () => {
             };
             mockUseNetwork.mockReturnValue({isOffline: false});
             mockUseIsReportLoadPending.mockReturnValue(true);
-            mockUseOnyx.mockImplementation((key, options) =>
-                key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}` ? [unreadSupportReport, {status: 'loaded'}] : getMockOnyxValue(key, options),
-            );
+            mockUseOnyx.mockImplementation((key, options) => {
+                if (key === nameValuePairsKey) {
+                    return actualUseOnyx(key, options);
+                }
+                return key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}` ? [unreadSupportReport, {status: 'loaded'}] : getMockOnyxValue(key, options);
+            });
             mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions: [latestSurvey], sortedAllReportActions: [latestSurvey]});
 
             // When the guard sees an in-flight report load despite its cached survey
             renderReportActionsList();
+            await act(async () => {
+                await waitForBatchedUpdates();
+            });
+            const initialModelExecutions = mockUsePaginatedReportActions.mock.calls.length;
+            await act(async () => {
+                await Onyx.set(nameValuePairsKey, {reopenedAsReportID: 'replacement-ticket'});
+                await waitForBatchedUpdates();
+            });
 
             // Then no content effect can consume unread state or subscribe to live scrolling
             expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
             expect(mockUseMarkAsRead).not.toHaveBeenCalled();
             expect(mockUseUnreadMarker).not.toHaveBeenCalled();
             expect(mockUseReportActionsScroll).not.toHaveBeenCalled();
+            expect(mockInvertedFlashList).not.toHaveBeenCalled();
+            expect(mockUsePaginatedReportActions).toHaveBeenCalledTimes(initialModelExecutions);
+            const replacementSelectors = mockUseOnyx.mock.calls.filter(([key, options]) => {
+                if (key !== `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${mockReport.reportID}` || !options?.selector) {
+                    return false;
+                }
+                return (options.selector as (value: OnyxTypes.ReportNameValuePairs) => unknown)({reopenedAsReportID: 'replacement-ticket'}) === 'replacement-ticket';
+            });
+            expect(replacementSelectors).toHaveLength(0);
         });
     });
 
-    describe('Payment filtering in the list model', () => {
+    describe('Payment filtering in the published list state', () => {
         const payment: OnyxTypes.ReportAction = {
             ...mockReportActions[1],
             reportActionID: 'bank-payment',
@@ -874,15 +923,18 @@ describe('ReportActionsList (body)', () => {
                 hasNewerActions: true,
             });
 
-            // When the real model separates render state from the page used to load more actions
+            // When the raw model prepares readiness and pagination before the public provider publishes render state
             const {result} = renderHook(() => useReportActionsListModel(mockReport.reportID, false));
+            const getPublishedState = renderPublishedReportActionsListState();
 
             // Then both render arrays omit only the bank payment, while fetching retains its identity and cursor
-            expect(result.current.state.sortedReportActions).toEqual([directSend, ...mockReportActions]);
-            expect(result.current.state.sortedVisibleReportActions).toEqual([directSend, ...mockReportActions]);
-            expect(result.current.state.scrollReportActions).toEqual([directSend, ...mockReportActions]);
-            expect(result.current.state.sortedAllReportActions).toBe(sourceActions);
-            expect(result.current.state.persistedReportActionIDs).toContain(payment.reportActionID);
+            expect(getPublishedState().sortedReportActions).toEqual([directSend, ...mockReportActions]);
+            expect(getPublishedState().sortedVisibleReportActions).toEqual([directSend, ...mockReportActions]);
+            expect(getPublishedState().scrollReportActions).toEqual([directSend, ...mockReportActions]);
+            expect(getPublishedState().sortedAllReportActions).toBe(sourceActions);
+            expect(getPublishedState().persistedReportActionIDs).toContain(payment.reportActionID);
+            expect(result.current.state.sortedReportActions).toEqual(sourceActions);
+            expect(result.current.state.sortedVisibleReportActions).toEqual(sourceActions);
             expect(result.current.readinessSignals).toMatchObject({
                 isMissingReportActions: false,
                 reportActionsLength: sourceActions.length,

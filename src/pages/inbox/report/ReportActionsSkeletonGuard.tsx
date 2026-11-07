@@ -13,7 +13,8 @@ import type {ReactNode} from 'react';
 import React, {useEffect} from 'react';
 
 import AskConciergeWelcome from './AskConciergeWelcome';
-import {computeReportActionsSkeletonState, ReportActionsListActionsContext, ReportActionsListStateContext} from './ReportActionsListContext';
+import {computeReportActionsSkeletonState, ReportActionsListActionsContext} from './ReportActionsListContext';
+import ReportActionsListStateProvider from './ReportActionsListStateProvider';
 import ReportActionsLoadingSkeleton from './ReportActionsLoadingSkeleton';
 
 type ReportActionsSkeletonGuardProps = {
@@ -96,7 +97,7 @@ function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonG
 
     return (
         <ReportActionsListActionsContext.Provider value={actions}>
-            <ReportActionsListStateContext.Provider value={state}>{children}</ReportActionsListStateContext.Provider>
+            <ReportActionsListStateProvider state={state}>{children}</ReportActionsListStateProvider>
         </ReportActionsListActionsContext.Provider>
     );
 }
