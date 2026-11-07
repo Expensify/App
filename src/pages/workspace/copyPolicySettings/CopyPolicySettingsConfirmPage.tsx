@@ -1,8 +1,8 @@
 import Button from '@components/Button';
-import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import PolicyCopyTravelTerms from '@components/PolicyCopyTravelTerms';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -14,7 +14,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {copyPolicySettings} from '@libs/actions/Policy/CopyPolicySettings';
-import {FEATURE_ROWS, isSourceProvisionedForTravel, shouldShowCopyPolicySettingsUpgradeStep} from '@libs/CopyPolicySettingsUtils';
+import {FEATURE_ROWS, shouldRequireTravelTerms, shouldShowCopyPolicySettingsUpgradeStep} from '@libs/CopyPolicySettingsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PolicyCopySettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -57,7 +57,7 @@ function CopyPolicySettingsConfirmPage() {
 
     // Copying travel from a provisioned source re-provisions each target with its own Spotnana
     // entity, which requires accepting Expensify Travel terms. Capture that consent here.
-    const requiresTravelTermsConsent = parts.includes('travel') && isSourceProvisionedForTravel(sourcePolicy);
+    const requiresTravelTermsConsent = shouldRequireTravelTerms(sourcePolicy, parts);
     const [hasAcceptedTravelTerms, setHasAcceptedTravelTerms] = useState(false);
 
     useEffect(() => {
@@ -155,18 +155,10 @@ function CopyPolicySettingsConfirmPage() {
                     addBottomSafeAreaPadding
                 >
                     {requiresTravelTermsConsent && (
-                        <>
-                            <View style={[styles.renderHTML, styles.flexRow, styles.mb3]}>
-                                <RenderHTML html={translate('travel.termsAndConditions.subtitle')} />
-                            </View>
-                            <CheckboxWithLabel
-                                style={[styles.mb3]}
-                                accessibilityLabel={translate('travel.termsAndConditions.label')}
-                                isChecked={hasAcceptedTravelTerms}
-                                onInputChange={() => setHasAcceptedTravelTerms((prev) => !prev)}
-                                label={translate('travel.termsAndConditions.label')}
-                            />
-                        </>
+                        <PolicyCopyTravelTerms
+                            isChecked={hasAcceptedTravelTerms}
+                            onToggle={() => setHasAcceptedTravelTerms((prev) => !prev)}
+                        />
                     )}
                     <Button
                         variant={CONST.BUTTON_VARIANT.SUCCESS}

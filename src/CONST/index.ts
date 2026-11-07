@@ -11290,6 +11290,7 @@ const CONST = {
             CONFIRMATION_FORM_KEEP_ME_AS_ADMIN_SWITCH: 'WorkspaceConfirmationForm-KeepMeAsAdminSwitch',
             IMPORT_SPREADSHEET_FILE_CONTAINS_HEADER_SWITCH: 'WorkspaceImportSpreadsheet-FileContainsHeaderSwitch',
             DUPLICATE_SELECT_FEATURES_SELECT_ALL: 'WorkspaceDuplicate-SelectFeaturesSelectAll',
+            DUPLICATE_SELECT_FEATURES_CONTINUE: 'WorkspaceDuplicate-SelectFeaturesContinue',
             COPY_SETTINGS_SELECT_FEATURES_SELECT_ALL: 'WorkspaceCopySettings-SelectFeaturesSelectAll',
             INVITE_MESSAGE_PRIVACY_LINK: 'WorkspaceInviteMessage-PrivacyLink',
             IMPORTED_MEMBERS_CONFIRMATION_PRIVACY_LINK: 'ImportedMembersConfirmation-PrivacyLink',
