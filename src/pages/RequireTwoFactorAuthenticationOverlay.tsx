@@ -11,7 +11,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useRequire2FAOverlayVisibility from '@hooks/useRequire2FAOverlayVisibility';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSignOut from '@hooks/useSignOut';
 import useTestToolsTapResponder from '@hooks/useTestToolsTapResponder';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -56,7 +55,6 @@ function RequireTwoFactorAuthenticationOverlay() {
 
     const illustrations = useMemoizedLazyIllustrations(['Encryption']);
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const testToolsTapResponder = useTestToolsTapResponder();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -167,7 +165,7 @@ function RequireTwoFactorAuthenticationOverlay() {
                             </View>
                         </View>
                     </View>
-                    {shouldUseNarrowLayout && isOffline && (
+                    {isOffline && (
                         <View
                             style={[styles.appBG, offlineBannerSafeAreaStyle]}
                             testID="RequireTwoFactorOfflineBanner"

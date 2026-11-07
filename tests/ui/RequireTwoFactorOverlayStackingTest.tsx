@@ -293,16 +293,17 @@ describe('RequireTwoFactorAuthenticationOverlay stacking', () => {
         expect(screen.getByTestId('enable-2fa-enter-shortcut')).toBeOnTheScreen();
     });
 
-    it('hides the offline banner on a wide layout', () => {
-        // Given required 2FA is visible on a wide screen, where ScreenWrapper does not show an offline indicator.
+    it('shows the offline banner on a wide layout', () => {
+        // Given required 2FA is visible on a wide screen, such as a landscape browser window. The overlay covers the sidebar and page indicators.
         mockShouldUseNarrowLayout = false;
 
         // When the overlay renders.
         render(<RequireTwoFactorAuthenticationOverlay />);
 
-        // Then it does not add a full-width banner of its own.
-        expect(screen.getByTestId('RequireTwoFactorAuthenticationOverlay')).toBeOnTheScreen();
-        expect(screen.queryByTestId('RequireTwoFactorOfflineBanner')).toBeNull();
+        // Then the overlay still tells the user they are offline.
+        const overlay = screen.getByTestId('RequireTwoFactorAuthenticationOverlay');
+        expect(within(overlay).getByTestId('RequireTwoFactorOfflineBanner')).toBeOnTheScreen();
+        expect(within(overlay).getByText('You appear to be offline.')).toBeOnTheScreen();
     });
 
     it('hides the banner when the overlay is not showing', () => {
