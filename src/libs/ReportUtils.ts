@@ -3599,6 +3599,7 @@ function canSubmitReport(
         report,
         reportOwnerLogin,
         policy,
+        cardList,
     );
     const hasNoSubmittableTransaction =
         transactions.length > 0 &&

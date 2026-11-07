@@ -83,9 +83,11 @@ function hasBrokenConnectionViolation(
     report: OnyxEntry<Report>,
     reportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
+    cardList: OnyxEntry<CardList>,
 ): boolean {
     const violations = getTransactionViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, reportOwnerLogin, policy);
-    return !!violations?.find((violation) => isBrokenConnectionViolation(violation));
+    // A connection past the grace period is not shown anywhere, so it must not hold the expense back either.
+    return !!violations?.find((violation) => isBrokenConnectionViolation(violation) && !isViolationOnFeedBrokenPastDismissThresholdInList(violation, cardList));
 }
 
 function isBrokenConnectionViolation(violation: TransactionViolation) {
@@ -371,11 +373,12 @@ function hasAnyTransactionWithoutRTERViolation(
     report: OnyxEntry<Report>,
     reportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
+    cardList: OnyxEntry<CardList>,
 ): boolean {
     return (
         transactions.length > 0 &&
         transactions.some((transaction) => {
-            return !hasBrokenConnectionViolation(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, reportOwnerLogin, policy);
+            return !hasBrokenConnectionViolation(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, reportOwnerLogin, policy, cardList);
         })
     );
 }

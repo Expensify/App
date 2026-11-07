@@ -2,11 +2,12 @@ import {canSubmitAndIsAwaitingForCurrentUser, canSubmitReport, shouldCurrentUser
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Card, CardList, Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
 import {createExpenseReport, createPolicyExpenseChat} from '../utils/collections/reports';
+import createMock from '../utils/createMock';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const CURRENT_USER_ACCOUNT_ID = 5;
@@ -242,5 +243,64 @@ describe('canSubmitReport approve-only role', () => {
 
         // Then the submit is allowed
         expect(canSubmit).toBe(true);
+    });
+});
+
+describe('canSubmitReport on a broken card feed', () => {
+    const CARD_ID = 55501;
+    const openExpenseReport: Report = {
+        ...createExpenseReport(9),
+        ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+    };
+    const transaction: Transaction = {
+        transactionID: '9',
+        reportID: openExpenseReport.reportID,
+        amount: 1000,
+        currency: CONST.CURRENCY.USD,
+        created: '2024-01-01 12:00:00.000',
+        merchant: 'Test merchant',
+        status: CONST.TRANSACTION.STATUS.POSTED,
+        reimbursable: true,
+    };
+    const violations: Record<string, TransactionViolations> = {
+        [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [
+            {name: CONST.VIOLATIONS.RTER, type: CONST.VIOLATION_TYPES.VIOLATION, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH, cardID: CARD_ID}},
+        ],
+    };
+
+    function cardListBrokenFor(days: number): CardList {
+        return {
+            [CARD_ID]: createMock<Card>({
+                cardID: CARD_ID,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                fundID: '88801',
+                lastScrapeResult: 438,
+                lastScrape: new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().replace('T', ' ').slice(0, 19),
+            }),
+        };
+    }
+
+    beforeAll(async () => {
+        Onyx.init({keys: ONYXKEYS});
+        await Onyx.set(ONYXKEYS.SESSION, {email: 'user@test.com', accountID: CURRENT_USER_ACCOUNT_ID});
+        return waitForBatchedUpdates();
+    });
+
+    // Given an expense held by a feed that broke recently, when the owner tries to submit, then it is still held:
+    // the connection can realistically be fixed and the expense matched.
+    it('does not allow submitting while the feed is inside the grace period', () => {
+        expect(canSubmitReport(openExpenseReport, 'user@test.com', basePolicy, [transaction], violations, false, 'user@test.com', CURRENT_USER_ACCOUNT_ID, cardListBrokenFor(10))).toBe(
+            false,
+        );
+    });
+
+    // Given the same expense on a feed broken past the grace period, when the owner tries to submit, then it is
+    // allowed: the warning is no longer shown anywhere, so it must not silently block submitting either.
+    it('allows submitting once the feed is past the grace period', () => {
+        expect(canSubmitReport(openExpenseReport, 'user@test.com', basePolicy, [transaction], violations, false, 'user@test.com', CURRENT_USER_ACCOUNT_ID, cardListBrokenFor(120))).toBe(
+            true,
+        );
     });
 });

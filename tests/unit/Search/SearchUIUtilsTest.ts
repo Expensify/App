@@ -2355,12 +2355,12 @@ describe('SearchUIUtils', () => {
     });
     describe('Test getAction', () => {
         test('Should return `View` action for an invalid key', () => {
-            const action = SearchUIUtils.getActions(searchResults.data, {}, 'invalid_key', CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined).at(0);
+            const action = SearchUIUtils.getActions(searchResults.data, {}, 'invalid_key', CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined, undefined).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
 
         test('Should return `Submit` action for report on policy with delayed submission and no violations', () => {
-            const action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined).at(0);
+            const action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined, undefined).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
         });
 
@@ -2372,7 +2372,7 @@ describe('SearchUIUtils', () => {
             delete data[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
             // When the Search actions are computed for the report
-            const actions = SearchUIUtils.getActions(data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined);
+            const actions = SearchUIUtils.getActions(data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined, undefined);
 
             // Then Submit is not offered, matching the report view, because the backend rejects submissions to a deleted workspace
             expect(actions).not.toContain(CONST.SEARCH.ACTION_TYPES.SUBMIT);
@@ -2380,7 +2380,7 @@ describe('SearchUIUtils', () => {
 
         test('Should return only `View` action for the expense of a single-expense report that can be submitted', () => {
             // Given report1 holds a single expense and the report itself can be submitted
-            const reportActions = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined);
+            const reportActions = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined, undefined);
             expect(reportActions).toContain(CONST.SEARCH.ACTION_TYPES.SUBMIT);
 
             // When the actions are computed for its expense row
@@ -2393,6 +2393,7 @@ describe('SearchUIUtils', () => {
                 adminAccountID,
                 {},
                 {},
+                undefined,
                 undefined,
             );
 
@@ -2408,7 +2409,18 @@ describe('SearchUIUtils', () => {
                 ...searchResults.data,
                 [`report_${reportID3}`]: {...searchResults.data[`report_${reportID3}`], transactionCount: 1},
             };
-            const reportActions = SearchUIUtils.getActions(localSearchResults, {}, `report_${reportID3}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined);
+            const reportActions = SearchUIUtils.getActions(
+                localSearchResults,
+                {},
+                `report_${reportID3}`,
+                CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+                '',
+                adminAccountID,
+                {},
+                {},
+                undefined,
+                undefined,
+            );
             expect(reportActions).toContain(CONST.SEARCH.ACTION_TYPES.PAY);
 
             // When the actions are computed for its expense row
@@ -2421,6 +2433,7 @@ describe('SearchUIUtils', () => {
                 adminAccountID,
                 {},
                 {},
+                undefined,
                 undefined,
             );
 
@@ -2468,6 +2481,7 @@ describe('SearchUIUtils', () => {
                 adminAccountID,
                 {},
                 {},
+                undefined,
                 undefined,
             ).at(0);
 
@@ -2536,9 +2550,18 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${submitReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminEmail, adminAccountID, {}, {}, undefined).at(
-                0,
-            );
+            const action = SearchUIUtils.getActions(
+                localSearchResults,
+                {},
+                `report_${submitReportID}`,
+                CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+                adminEmail,
+                adminAccountID,
+                {},
+                {},
+                undefined,
+                undefined,
+            ).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
         });
 
@@ -2562,7 +2585,18 @@ describe('SearchUIUtils', () => {
                 },
             };
             expect(
-                SearchUIUtils.getActions(localSearchResults, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', submitterAccountID, {}, {}, undefined).at(0),
+                SearchUIUtils.getActions(
+                    localSearchResults,
+                    allViolations,
+                    `report_${reportID2}`,
+                    CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+                    '',
+                    submitterAccountID,
+                    {},
+                    {},
+                    undefined,
+                    undefined,
+                ).at(0),
             ).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
             expect(
                 SearchUIUtils.getActions(
@@ -2574,6 +2608,7 @@ describe('SearchUIUtils', () => {
                     submitterAccountID,
                     {},
                     {},
+                    undefined,
                     undefined,
                 ).at(0),
             ).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
@@ -2594,7 +2629,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, paidReportID, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', submitterAccountID, {}, {}, undefined).at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, paidReportID, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', submitterAccountID, {}, {}, undefined, undefined).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAID);
         });
 
@@ -2618,7 +2653,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, paidReportID, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', submitterAccountID, {}, {}, undefined).at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, paidReportID, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', submitterAccountID, {}, {}, undefined, undefined).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAID);
         });
 
@@ -2634,7 +2669,18 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${closedReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', submitterAccountID, {}, {}, undefined).at(0);
+            const action = SearchUIUtils.getActions(
+                localSearchResults,
+                {},
+                `report_${closedReportID}`,
+                CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+                '',
+                submitterAccountID,
+                {},
+                {},
+                undefined,
+                undefined,
+            ).at(0);
 
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAY);
         });
@@ -2652,13 +2698,35 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${closedReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', submitterAccountID, {}, {}, undefined).at(0);
+            const action = SearchUIUtils.getActions(
+                localSearchResults,
+                {},
+                `report_${closedReportID}`,
+                CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+                '',
+                submitterAccountID,
+                {},
+                {},
+                undefined,
+                undefined,
+            ).at(0);
 
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.DONE);
         });
 
         test('Should return `View` action for non-money request reports', () => {
-            const action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID4}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', submitterAccountID, {}, {}, undefined).at(0);
+            const action = SearchUIUtils.getActions(
+                searchResults.data,
+                {},
+                `report_${reportID4}`,
+                CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+                '',
+                submitterAccountID,
+                {},
+                {},
+                undefined,
+                undefined,
+            ).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
 
@@ -2681,6 +2749,7 @@ describe('SearchUIUtils', () => {
                 submitterAccountID,
                 {},
                 {},
+                undefined,
                 undefined,
             ).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
@@ -2710,6 +2779,7 @@ describe('SearchUIUtils', () => {
                 {},
                 {},
                 undefined,
+                undefined,
             ).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
@@ -2717,7 +2787,7 @@ describe('SearchUIUtils', () => {
             Onyx.merge(ONYXKEYS.SESSION, {accountID: adminAccountID});
             await waitForBatchedUpdates();
             const iouReportKey = `report_${reportID3}`;
-            const action = SearchUIUtils.getActions(searchResults.data, {}, iouReportKey, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined).at(0);
+            const action = SearchUIUtils.getActions(searchResults.data, {}, iouReportKey, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined, undefined).at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.PAY);
         });
 
@@ -2752,7 +2822,18 @@ describe('SearchUIUtils', () => {
                 },
             });
 
-            const actions = SearchUIUtils.getActions(localSearchResults, {}, `report_${exportReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminEmail, adminAccountID, {}, {}, undefined);
+            const actions = SearchUIUtils.getActions(
+                localSearchResults,
+                {},
+                `report_${exportReportID}`,
+                CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+                adminEmail,
+                adminAccountID,
+                {},
+                {},
+                undefined,
+                undefined,
+            );
 
             expect(actions).toContain(CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING);
         });
@@ -2804,6 +2885,7 @@ describe('SearchUIUtils', () => {
                 {},
                 {},
                 undefined,
+                undefined,
                 dewReportActions,
             ).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
@@ -2851,6 +2933,7 @@ describe('SearchUIUtils', () => {
                 adminAccountID,
                 {},
                 {},
+                undefined,
                 undefined,
                 dewReportActions,
             ).at(0);
@@ -2901,6 +2984,7 @@ describe('SearchUIUtils', () => {
                 adminAccountID,
                 {},
                 {},
+                undefined,
                 undefined,
                 nonDewReportActions,
             ).at(0);
@@ -11924,6 +12008,7 @@ describe('SearchUIUtils', () => {
                 {},
                 {},
                 undefined,
+                undefined,
             ).at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
 
@@ -11936,6 +12021,7 @@ describe('SearchUIUtils', () => {
                 overlimitApproverAccountID,
                 {},
                 {},
+                undefined,
                 undefined,
             ).at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
@@ -12051,7 +12137,18 @@ describe('SearchUIUtils', () => {
             },
         };
         return waitForBatchedUpdates().then(() => {
-            const action = SearchUIUtils.getActions(result.data, allViolations, 'report_6523565988285061', CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined).at(0);
+            const action = SearchUIUtils.getActions(
+                result.data,
+                allViolations,
+                'report_6523565988285061',
+                CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+                '',
+                adminAccountID,
+                {},
+                {},
+                undefined,
+                undefined,
+            ).at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.APPROVE);
         });
     });
