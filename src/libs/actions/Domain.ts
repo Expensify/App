@@ -1422,10 +1422,16 @@ function clearDomainMemberError(domainAccountID: number, accountID: number, emai
         },
     });
 
+    // Keep the lock and unlock pending actions: those requests may still be queued, and dropping them would let the user send a duplicate
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
         member: {
             [email]: null,
-            [accountID]: null,
+            [accountID]: {
+                pendingAction: null,
+                vacationDelegate: null,
+                twoFactorAuthExemptEmails: null,
+                changeDomainSecurityGroup: null,
+            },
         },
     });
 }

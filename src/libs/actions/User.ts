@@ -1462,6 +1462,7 @@ function lockAccount(currentUserAccountID: number, accountID: number | undefined
     let domainSuccessData: DomainOnyxUpdate[] = [];
     if (accountID && domainAccountID) {
         const userLockKey = `${CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX}${accountID}`;
+        const userUnlockRequestedKey = `${CONST.DOMAIN.PRIVATE_UNLOCK_REQUESTED_PREFIX}${accountID}`;
 
         domainOptimisticData = [
             {
@@ -1469,7 +1470,9 @@ function lockAccount(currentUserAccountID: number, accountID: number | undefined
                 key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
                 value: {
                     [userLockKey]: true,
-                } as PrefixedRecord<typeof CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX, boolean>,
+                    // Clear any unlock request left over from a previous lock so the new lock doesn't show as pending unlock
+                    [userUnlockRequestedKey]: false,
+                } as PrefixedRecord<typeof CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX | typeof CONST.DOMAIN.PRIVATE_UNLOCK_REQUESTED_PREFIX, boolean>,
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1599,12 +1602,103 @@ function lockAccount(currentUserAccountID: number, accountID: number | undefined
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOCK_ACCOUNT, params, {optimisticData, successData, failureData});
 }
 
-function requestUnlockAccount(accountID: number) {
+function requestUnlockAccount(accountID: number, domainAccountID?: number, domainName?: string) {
+    let optimisticData: DomainOnyxUpdate[] = [];
+    let successData: DomainOnyxUpdate[] = [];
+    let failureData: DomainOnyxUpdate[] = [];
+    if (domainAccountID) {
+        const userUnlockRequestedKey = `${CONST.DOMAIN.PRIVATE_UNLOCK_REQUESTED_PREFIX}${accountID}`;
+
+        // Only mark the request as pending while it's queued; the unlock-requested flag is set once the server receives it
+        optimisticData = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                value: {
+                    member: {
+                        [accountID]: {
+                            unlockAccount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                value: {
+                    memberErrors: {
+                        [accountID]: {
+                            unlockAccountErrors: null,
+                        },
+                    },
+                },
+            },
+        ];
+
+        successData = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+                value: {
+                    [userUnlockRequestedKey]: true,
+                } as PrefixedRecord<typeof CONST.DOMAIN.PRIVATE_UNLOCK_REQUESTED_PREFIX, boolean>,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                value: {
+                    member: {
+                        [accountID]: {
+                            unlockAccount: null,
+                        },
+                    },
+                },
+            },
+        ];
+
+        failureData = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                value: {
+                    member: {
+                        [accountID]: {
+                            unlockAccount: null,
+                        },
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                value: {
+                    memberErrors: {
+                        [accountID]: {
+                            unlockAccountErrors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                        },
+                    },
+                },
+            },
+        ];
+    }
+
     const params: LockAccountParams = {
         accountID,
+        domainAccountID,
+        domainName,
     };
 
-    API.write(WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT, params);
+    API.write(WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT, params, {optimisticData, successData, failureData});
+}
+
+function clearUnlockAccountError(domainAccountID: number, accountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+        memberErrors: {
+            [accountID]: {
+                unlockAccountErrors: null,
+            },
+        },
+    });
 }
 
 type RespondToProactiveAppReviewParams = {
@@ -2112,6 +2206,7 @@ export {
     clearBetaOverrides,
     lockAccount,
     requestUnlockAccount,
+    clearUnlockAccountError,
     respondToProactiveAppReview,
     verifyAddSecondaryLoginCode,
     updateIsVerifiedValidateActionCode,

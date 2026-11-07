@@ -26,6 +26,7 @@ import {
     selectRestrictedPrimaryPolicyID,
     selectSecurityGroupForAccount,
     technicalContactSettingsSelector,
+    unlockRequestedSelector,
     vacationDelegateSelector,
 } from '@selectors/Domain';
 
@@ -1056,6 +1057,26 @@ describe('domainSelectors', () => {
 
             expect(accountLockSelector(accountID)(undefined)).toBeUndefined();
             expect(accountLockSelector(accountID)(domain)).toBeUndefined();
+        });
+    });
+
+    describe('unlockRequestedSelector', () => {
+        it('Should return the unlock requested state for the given account ID', () => {
+            // Given a domain where an unlock was requested for one member
+            const accountID = 123;
+            const domain = createDomainFixture({boundaryEntries: {[`${CONST.DOMAIN.PRIVATE_UNLOCK_REQUESTED_PREFIX}${accountID}`]: true}});
+
+            // When reading the unlock requested state for that member and another member
+            // Then only the member with the request is reported as pending
+            expect(unlockRequestedSelector(accountID)(domain)).toBe(true);
+            expect(unlockRequestedSelector(456)(domain)).toBeUndefined();
+        });
+
+        it('Should return undefined when the domain object is undefined', () => {
+            // Given the domain has not loaded yet
+            // When reading the unlock requested state
+            // Then nothing is reported as pending
+            expect(unlockRequestedSelector(123)(undefined)).toBeUndefined();
         });
     });
 
