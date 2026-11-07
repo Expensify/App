@@ -1114,14 +1114,18 @@ describe('DateUtils', () => {
             expect(result).toBe('Sunday, Apr 19, 2026 3:00 PM, UTC');
         });
 
-        it('should use the given locale for the weekday, the month and the clock', () => {
+        it('should use the given locale for the weekday, the month, the order and the clock', () => {
+            // Given a cancellation deadline in the venue's timezone, in a year other than the current one
             jest.useFakeTimers();
             jest.setSystemTime(new Date('2025-01-01T00:00:00Z'));
-            // German and Japanese use a 24-hour clock, so the time loses its meridiem entirely.
-            expect(DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00+07:00', de)).toBe('Sonntag, Apr. 19, 2026 15:00, GMT+7');
-            expect(DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00+07:00', ja)).toBe('日曜日, 4月 19, 2026 15:00, GMT+7');
+
+            // When it is formatted in German, Japanese and Greek
+            // Then each language orders the date its own way and uses its own clock. German and Japanese use a 24-hour
+            // clock, so the time loses its meridiem; German puts the day first and Japanese leads with the year.
+            expect(DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00+07:00', de)).toBe('Sonntag, 19. Apr. 2026 15:00, GMT+7');
+            expect(DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00+07:00', ja)).toBe('2026年4月19日日曜日 15:00, GMT+7');
             // Greek is the one shipped locale that keeps a 12-hour clock, with its own marker.
-            expect(DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00+07:00', el)).toBe('Κυριακή, Απρ 19, 2026 3:00 μ.μ., GMT+7');
+            expect(DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00+07:00', el)).toBe('Κυριακή 19 Απρ 2026 3:00 μ.μ., GMT+7');
         });
     });
 
