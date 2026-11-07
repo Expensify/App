@@ -140,5 +140,57 @@ describe('ReusableDistanceRoutesUtils', () => {
             // Then the route is included
             expect(available).toEqual([route]);
         });
+
+        it('excludes routes with invalid waypoints', () => {
+            // Given routes with zero coordinates, fewer than two waypoints, or duplicate adjacent waypoints
+            const zeroCoordinatesRoute: ReusableDistanceRoute = {
+                ...createRoute('tx-1', ['invalid1', 'invalid2']),
+                waypoints: {
+                    waypoint0: {address: 'invalid1', lat: 0, lng: 0},
+                    waypoint1: {address: 'invalid2', lat: 0, lng: 0},
+                },
+            };
+            const singleWaypointRoute = createRoute('tx-2', ['Only One']);
+            const duplicateWaypointsRoute = createRoute('tx-3', ['Same Address', 'Same Address']);
+            const validRoute = createRoute('tx-4', ['Start', 'End']);
+
+            // When resolving available routes
+            const availableOnline = getAvailableReusableDistanceRoutes([zeroCoordinatesRoute, singleWaypointRoute, duplicateWaypointsRoute, validRoute], undefined, false);
+            const availableOffline = getAvailableReusableDistanceRoutes([zeroCoordinatesRoute, singleWaypointRoute, duplicateWaypointsRoute, validRoute], undefined, true);
+
+            // Then only the route with valid waypoints is returned
+            expect(availableOnline).toEqual([validRoute]);
+            expect(availableOffline).toEqual([validRoute]);
+        });
+
+        it('excludes routes whose source transaction resolved to invalid waypoints after syncing', () => {
+            // Given an optimistically saved offline route whose transaction later synced with zero coordinates
+            const optimisticOfflineRoute: ReusableDistanceRoute = {
+                transactionID: 'tx-1',
+                distance: 0,
+                inserted: '2026-09-01 12:00:00',
+                waypoints: {
+                    waypoint0: {address: 'invalid1'},
+                    waypoint1: {address: 'invalid2'},
+                },
+            };
+            const transactions: Record<string, Transaction> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}tx-1`]: {
+                    ...baseTransaction,
+                    comment: {
+                        waypoints: {
+                            waypoint0: {address: 'invalid1', lat: 0, lng: 0},
+                            waypoint1: {address: 'invalid2', lat: 0, lng: 0},
+                        },
+                    },
+                },
+            };
+
+            // When resolving available routes after the transaction synced
+            const available = getAvailableReusableDistanceRoutes([optimisticOfflineRoute], transactions, false);
+
+            // Then the route is excluded
+            expect(available).toEqual([]);
+        });
     });
 });
