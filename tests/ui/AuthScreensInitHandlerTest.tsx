@@ -71,20 +71,25 @@ jest.mock('@libs/Navigation/currentUrl', () => ({
 
 jest.mock('@libs/SessionUtils', () => ({
     isLoggingInAsNewUser: jest.fn(() => false),
+    isLoggingInAsDelegate: jest.fn(() => false),
     didUserLogInDuringSession: jest.fn(() => false),
 }));
 
 jest.mock('@libs/ActiveClientManager', () => ({
     isClientTheLeader: jest.fn(() => true),
     init: jest.fn(),
+    getLogTab: jest.fn(),
     isReady: jest.fn(() => Promise.resolve()),
 }));
 
 jest.mock('@userActions/App', () => ({
     openApp: jest.fn(),
     reconnectApp: jest.fn(),
-    setUpPoliciesAndNavigate: jest.fn(),
     setLocale: jest.fn(),
+}));
+
+jest.mock('@userActions/Policy/CreateWorkspaceFlow', () => ({
+    setUpPoliciesAndNavigate: jest.fn(),
 }));
 
 jest.mock('@userActions/Download', () => ({
@@ -98,6 +103,7 @@ jest.mock('@userActions/Report', () => ({
 jest.mock('@userActions/Session', () => ({
     signOutAndRedirectToSignIn: jest.fn(),
     cleanupSession: jest.fn(),
+    isDelegateSession: jest.fn(() => false),
 }));
 
 jest.mock('@userActions/User', () => ({

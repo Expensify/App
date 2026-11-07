@@ -6,14 +6,16 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
+import useShouldUseApprovalWorkflowRules from '@hooks/useShouldUseApprovalWorkflowRules';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isAnyHRReadOnlyWorkflowMode} from '@libs/merge/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getMemberAccountIDsForWorkspace, isExpensifyTeam, shouldFilterExpensifyTeam, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
+import {isApprovalWorkflowLockedByIntegration} from '@libs/WorkflowUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
@@ -39,7 +41,9 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
     const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const isApprovalWorkflowLoading = isLoadingOnyxValue(approvalWorkflowMetadata);
     const personalDetailsByEmail = usePersonalDetailsByEmail();
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
+    const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules(policy);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
     const policyID = route.params.policyID;
@@ -49,10 +53,11 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
     const employeeList = policy?.employeeList;
     const isDefault = approvalWorkflow?.isDefault;
     const membersEmail = approvalWorkflow?.members.map((member) => member.email);
+    const workflowApproverEmails = new Set(approvalWorkflow?.approvers?.map((approver) => approver?.email));
 
     const currentApproverEmail = currentApprover?.email;
 
-    const shouldShowNotFoundView = isAnyHRReadOnlyWorkflowMode(policy) || shouldHideDynamicExternalWorkflowPeople(policy);
+    const shouldShowNotFoundView = isApprovalWorkflowLockedByIntegration(policy) || shouldHideDynamicExternalWorkflowPeople(policy);
     const shouldFilterOutExpensifyTeam = shouldFilterExpensifyTeam(policy?.owner, currentUserLogin);
 
     const allApprovers: SelectionListApprover[] = (() => {
@@ -60,7 +65,7 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
             return [];
         }
 
-        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList);
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, employeePersonalDetails);
 
         return Object.values(employeeList)
             .map((employee): SelectionListApprover | null => {
@@ -83,6 +88,11 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
                 }
 
                 if (email === currentApproverEmail) {
+                    return null;
+                }
+
+                // Someone who already approves in this workflow approves every report anyway, so the limit can't add them
+                if (shouldUseApprovalWorkflowRules && workflowApproverEmails.has(email)) {
                     return null;
                 }
 

@@ -24,6 +24,7 @@ const DEFAULT_CARD_FEED_ERROR_STATE = {
     hasWorkspaceErrors: false,
     isFeedConnectionBroken: false,
     shouldPromptBrokenConnection: false,
+    hasFeedConnectionIssue: false,
 };
 
 function createDefaultCardFeedErrors(): CardFeedErrors {

@@ -29,7 +29,7 @@ const mockAvatarTooltipsProvider = jest.mocked(AvatarTooltipsProvider);
 
 const renderWithContext = (children: ReactNode, shouldShowTooltip = true) =>
     render(
-        <ListItemContext.Provider value={{shouldShowTooltip, isFocusVisible: false, isDisabled: false, isInteractive: true, shouldDisableAccessibleGrouping: false}}>
+        <ListItemContext.Provider value={{shouldShowTooltip, isFocused: false, isFocusVisible: false, isDisabled: false, isInteractive: true, shouldDisableAccessibleGrouping: false}}>
             {children}
         </ListItemContext.Provider>,
     );
@@ -65,6 +65,20 @@ describe('ListItemComposed avatar primitives', () => {
         );
 
         expect(mockAccountAvatar.mock.calls.at(0)?.at(0)).toEqual(expect.objectContaining({accountID: 7, fallbackDisplayName: 'User row'}));
+    });
+
+    it('UserAvatar forwards the account email to the connected avatar', () => {
+        // Given a user row for an account that has no personal details yet, such as a new invitee
+        // When the avatar renders with the account's login
+        renderWithContext(
+            <ListItemComposed.UserAvatar
+                accountID={7}
+                accountEmail="new@example.com"
+            />,
+        );
+
+        // Then the login reaches the connected avatar, which uses it to seed a letter avatar
+        expect(mockAccountAvatar.mock.calls.at(0)?.at(0)).toEqual(expect.objectContaining({accountID: 7, accountEmail: 'new@example.com'}));
     });
 
     it('WorkspaceAvatar forwards the policy, subscript account, and the context-driven backdrop color to the connected avatar', () => {

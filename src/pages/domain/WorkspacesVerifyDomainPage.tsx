@@ -17,6 +17,8 @@ function WorkspacesVerifyDomainPage({route}: WorkspacesVerifyDomainPageProps) {
         <BaseVerifyDomainPage
             domainAccountID={domainAccountID}
             forwardTo={ROUTES.WORKSPACES_DOMAIN_VERIFIED.getRoute(domainAccountID)}
+            fallbackTo={ROUTES.WORKSPACES_DOMAIN_ALREADY_EXISTS.getRoute(domainAccountID)}
+            shouldDismissForVerifiedAdmin
         />
     );
 }

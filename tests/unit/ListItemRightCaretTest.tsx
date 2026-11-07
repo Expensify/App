@@ -30,7 +30,7 @@ type RowContextState = {isDisabled?: boolean; isInteractive?: boolean};
 
 const renderCaret = (isHovered: boolean, {isDisabled = false, isInteractive = true}: RowContextState = {}) =>
     render(
-        <ListItemContext.Provider value={{isDisabled, isInteractive, isFocusVisible: false, shouldShowTooltip: false, shouldDisableAccessibleGrouping: false}}>
+        <ListItemContext.Provider value={{isDisabled, isInteractive, isFocused: false, isFocusVisible: false, shouldShowTooltip: false, shouldDisableAccessibleGrouping: false}}>
             <ListItemHoverContext.Provider value={isHovered}>
                 <ListItemComposed.RightCaret />
             </ListItemHoverContext.Provider>

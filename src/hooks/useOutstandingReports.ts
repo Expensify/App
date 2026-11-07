@@ -1,9 +1,10 @@
 import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
+import {canCreateExpensesOnPolicy} from '@libs/PolicyUtils';
 import {getOutstandingReportsForUser, isSelfDM} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -11,14 +12,29 @@ import type {OnyxEntry} from 'react-native-onyx';
 import useMappedPolicies from './useMappedPolicies';
 import useOnyx from './useOnyx';
 
-const policyIdMapper = (policy: OnyxEntry<Policy>) => policy?.id;
+/** Maps a policy to its ID when the report owner can create expenses on it, and to null when they cannot. */
+const createEligiblePolicyIdMapper = (reportOwnerLogin: string | undefined) => (policy: OnyxEntry<Policy>) =>
+    policy && canCreateExpensesOnPolicy(policy, reportOwnerLogin) ? policy.id : null;
 
-export default function useOutstandingReports(selectedReportID: string | undefined, selectedPolicyID: string | undefined, ownerAccountID: number | undefined, isEditing: boolean) {
+export {createEligiblePolicyIdMapper};
+
+/** Whether the outstanding reports of every workspace are listed, instead of those of the selected workspace only */
+function shouldListAllPolicies(selectedPolicyID: string | undefined, personalPolicyID: string | undefined, selectedReport: OnyxEntry<Report>) {
+    return !selectedPolicyID || selectedPolicyID === personalPolicyID || isSelfDM(selectedReport);
+}
+
+export default function useOutstandingReports(
+    selectedReportID: string | undefined,
+    selectedPolicyID: string | undefined,
+    ownerAccountID: number | undefined,
+    isEditing: boolean,
+    reportOwnerLogin?: string,
+) {
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
-    const [allPoliciesID] = useMappedPolicies(policyIdMapper);
+    const [eligiblePoliciesID] = useMappedPolicies(createEligiblePolicyIdMapper(reportOwnerLogin));
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
-    const shouldUseAllPolicies = !selectedPolicyID || selectedPolicyID === personalPolicyID || isSelfDM(selectedReport);
+    const shouldUseAllPolicies = shouldListAllPolicies(selectedPolicyID, personalPolicyID, selectedReport);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
@@ -29,7 +45,7 @@ export default function useOutstandingReports(selectedReportID: string | undefin
 
     if (shouldUseAllPolicies) {
         const result = [];
-        for (const policyID of Object.values(allPoliciesID ?? {})) {
+        for (const policyID of Object.values(eligiblePoliciesID ?? {})) {
             // Teachers Unite only supports expenses via split expense, so its reports can never be a move-expense destination.
             if (!policyID || policyID === personalPolicyID || isTeachersUnitePolicyID(policyID)) {
                 continue;
@@ -45,6 +61,11 @@ export default function useOutstandingReports(selectedReportID: string | undefin
         return [];
     }
 
+    // Null means the policy is loaded but the owner cannot create expenses on it. Undefined means the policy is not loaded yet.
+    if (eligiblePoliciesID?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyID}`] === null) {
+        return [];
+    }
+
     return getOutstandingReportsForUser(
         selectedPolicyID,
         ownerAccountID,
@@ -54,3 +75,5 @@ export default function useOutstandingReports(selectedReportID: string | undefin
         isEditing,
     );
 }
+
+export {shouldListAllPolicies};

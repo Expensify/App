@@ -24,8 +24,9 @@ To create a Merchant Rule:
    - **Contains**
    - **Matches exactly**
 5. Select the fields you want the rule to update. 
-6. Optionally apply the rule to existing unsubmitted expenses and review matching expenses using **Preview matches**.
-7. Click **Save rule**.
+6. (Optional) Enable **Apply to existing unsubmitted expenses** to also apply the rule to matching expenses that haven't been submitted yet.
+7. (Optional) Click **Preview matches** to review which unsubmitted expenses match the rule.
+8. Click **Save rule**.
 
 ---
 
@@ -123,7 +124,7 @@ Common reasons include:
 - The rule is disabled.
 - Another rule matched first.
 - A field was manually set during expense creation.
-- The rule was created after the expense and wasn't applied retroactively, unless you select "apply to existing expenses" when creating the rule.
+- The rule was created after the expense and wasn't applied retroactively, unless you enabled **Apply to existing unsubmitted expenses** when saving the rule. Expenses that have already been submitted are never updated by a rule.
 - The tag the rule applies was deleted from the workspace, so only that update is skipped.
 
 ## How do I clear a Category, Tag, or Tax value from a Merchant Rule?
@@ -136,7 +137,7 @@ The rule stays in place and keeps applying its other updates, but the deleted ta
 
 You'll see this in two places:
 
-- In the **Merchant** section of the **Rules** page, the rule summary no longer lists the tag update.
+- On the **Expense defaults** tab of the **Rules** page, the rule summary no longer lists the tag update.
 - When you open the rule, the **Tag** field is empty.
 
 To have the rule set a tag again, open the rule, select a value in the **Tag** field, then select **Save rule**. If you recreate a tag with the same name, the rule applies that tag again. Learn how to [create and manage expense tags](/articles/new-expensify/workspaces/Create-and-manage-expense-tags).

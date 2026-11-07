@@ -1,7 +1,7 @@
 /**
  * Locates Reports tab state so Inbox navigation can reuse a mounted ReportScreen instead of rebuilding its route.
  */
-import {getTabState} from '@libs/Navigation/helpers/tabNavigatorUtils';
+import {getTabNavigatorRoute, getTabState} from '@libs/Navigation/helpers/tabNavigatorUtils';
 
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
@@ -11,14 +11,6 @@ import type {NavigationState, PartialState} from '@react-navigation/native';
 import getStringParam from './getStringParam';
 
 type RootNavigationState = NavigationState | PartialState<NavigationState> | undefined;
-
-function getTabNavigatorRoute(rootState: RootNavigationState) {
-    return rootState?.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
-}
-
-function getTabNavigatorStateKey(rootState: RootNavigationState): string | undefined {
-    return getTabNavigatorRoute(rootState)?.state?.key;
-}
 
 function getReusableReportsTabStateKey(
     rootState: RootNavigationState,
@@ -43,5 +35,4 @@ function getReusableReportsTabStateKey(
     return tabNavigatorRoute?.state?.key;
 }
 
-export {getTabNavigatorStateKey};
 export default getReusableReportsTabStateKey;

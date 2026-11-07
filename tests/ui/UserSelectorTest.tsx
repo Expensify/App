@@ -50,11 +50,12 @@ describe('UserSelector', () => {
     let currentUserOption: OptionData | null = null;
     const buildSelectorReturn = (config: Parameters<typeof usePersonalDetailSearchSelector>[0]) => {
         const selected = config.initialSelected ?? new Set<string>();
+        const selectedOptions = personalDetailOptions.filter((option) => selected.has(String(option.accountID))).map((option) => ({...option, isSelected: true}));
         return {
             searchTerm: '',
             debouncedSearchTerm: '',
             setSearchTerm: jest.fn(),
-            selectedOptions: [],
+            selectedOptions,
             availableOptions: {
                 selectedOptions: [],
                 recentOptions: [],
@@ -158,5 +159,40 @@ describe('UserSelector', () => {
         const selectionListProps = mockedSelectionList.mock.lastCall?.[0];
         expect(selectionListProps?.data.at(0)?.keyForList).toBe(preselectedKey);
         expect(selectionListProps?.data.at(1)?.keyForList).toBe('999');
+    });
+
+    it('renders a pre-selected public-profile user without a login', () => {
+        // Given a search filter containing a user whose public profile does not expose their login
+        const publicProfileAccountID = 1000;
+        const publicProfileOption: OptionData = {
+            text: 'Public profile user',
+            accountID: publicProfileAccountID,
+            keyForList: String(publicProfileAccountID),
+            isSelected: true,
+        };
+        mockedUsePersonalDetails.mockReturnValue({
+            ...personalDetailsList,
+            [publicProfileAccountID]: {
+                accountID: publicProfileAccountID,
+                displayName: publicProfileOption.text,
+            },
+        });
+        mockedUsePersonalDetailSearchSelector.mockImplementation((config) => ({
+            ...buildSelectorReturn(config),
+            selectedOptions: [publicProfileOption],
+        }));
+
+        // When the From selector opens
+        render(
+            <UserSelector
+                value={[String(publicProfileAccountID)]}
+                policyID={undefined}
+                onChange={jest.fn()}
+            />,
+        );
+
+        // Then the selected user remains visible so they can be deselected
+        const selectionListProps = mockedSelectionList.mock.lastCall?.[0];
+        expect(selectionListProps?.data.at(0)).toEqual(expect.objectContaining(publicProfileOption));
     });
 });

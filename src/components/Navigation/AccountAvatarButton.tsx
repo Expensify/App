@@ -7,14 +7,17 @@ import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
@@ -26,10 +29,9 @@ import React from 'react';
  * the Account tab is not part of the navigation tab bar.
  */
 function AccountAvatarButton() {
-    const {isBetaEnabled} = usePermissions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    if (!shouldUseNarrowLayout || !isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE)) {
+    if (!shouldUseNarrowLayout) {
         return null;
     }
 
@@ -37,6 +39,7 @@ function AccountAvatarButton() {
 }
 
 function AccountAvatarButtonContent() {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {status} = useAccountTabIndicatorStatus();
@@ -56,7 +59,7 @@ function AccountAvatarButtonContent() {
         }
         interceptAnonymousUser(() => {
             Navigation.navigate(ROUTES.SETTINGS);
-        });
+        }, session);
     };
 
     const TooltipToRender = shouldShowProductTrainingTooltip ? EducationalTooltip : Tooltip;
@@ -70,6 +73,7 @@ function AccountAvatarButtonContent() {
                   horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                   vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
               },
+              shiftHorizontal: variables.accountAvatarTooltipShiftHorizontal,
           }
         : {text: translate('initialSettingsPage.account'), isFocused};
 
@@ -79,7 +83,7 @@ function AccountAvatarButtonContent() {
                 onPress={navigateToAccount}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={`${translate('initialSettingsPage.account')}. ${status ? `${translate('common.yourReviewIsRequired')}.` : ''}`}
-                style={[styles.flexRow, styles.touchableButtonImage]}
+                style={[styles.flexRow, styles.touchableButtonImage, styles.ml1]}
                 sentryLabel={CONST.SENTRY_LABEL.TOP_BAR.ACCOUNT_BUTTON}
             >
                 <AccountNavigationAvatar

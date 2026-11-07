@@ -20,11 +20,9 @@ If you already have QuickBooks Desktop connected to another workspace, you can r
 
 1. From the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces**
 2. Choose the workspace you want to connect to
-3. Click **More features** in the left-hand menu
-4. In the **Integrate** section, toggle on **Accounting**
-5. Click **Accounting** in the left-hand menu
-6. Click **Set up** next to QuickBooks Desktop
-7. Select the workspace with the existing QuickBooks Desktop connection you want to reuse
+3. In the navigation menu, select **Connections**
+4. Select **QuickBooks Desktop**
+5. Select the workspace with the existing QuickBooks Desktop connection you want to reuse
 
 The connection and its settings will be imported to your new workspace.
 
@@ -36,12 +34,10 @@ To create a new connection instead, click **Create new connection** and follow t
 
 1. From the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces**
 2. Choose the workspace you want to connect to
-3. Click **More features** in the left-hand menu
-4. In the **Integrate** section, toggle on **Accounting**
-5. Click **Accounting** in the left-hand menu
-6. Click **Set up** next to QuickBooks Desktop
-7. Click **Copy** to copy the link, then paste the link into the computer that runs QuickBooks Desktop
-8. Select your QuickBooks Desktop version
+3. In the navigation menu, select **Connections**
+4. Select **QuickBooks Desktop**
+5. Select **Copy** to copy the link, then paste the link into the computer that runs QuickBooks Desktop
+6. Select your QuickBooks Desktop version
 
 ![QuickBooks Desktop version selection](https://help.expensify.com/assets/images/QBO_desktop_02.png){:width="100%"}
 

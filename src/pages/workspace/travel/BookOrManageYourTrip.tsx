@@ -1,4 +1,5 @@
 import MenuItem from '@components/MenuItem';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import Section from '@components/Section';
 
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -22,6 +23,7 @@ import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 
 import React from 'react';
+import {View} from 'react-native';
 
 import WorkspaceTravelBillingSection from './WorkspaceTravelBillingSection';
 
@@ -35,7 +37,7 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
     const StyleUtils = useStyleUtils();
     const policy = usePolicy(policyID);
     const {canWrite: canWriteMoreFeatures, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
-    const icons = useMemoizedLazyExpensifyIcons(['LuggageWithLines', 'NewWindow']);
+    const icons = useMemoizedLazyExpensifyIcons(['LuggageWithLines']);
     const illustrations = useMemoizedLazyIllustrations(['RocketDude']);
     const {isBetaEnabled} = usePermissions();
     const {showConfirmModal} = useConfirmModal();
@@ -44,11 +46,12 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
 
     const autoAddTripName = policy?.travelSettings?.autoAddTripName !== false;
 
+    const bookTravelText = translate('workspace.moreFeatures.travel.bookOrManageYourTrip.ctaText');
+
     const toggleAutoAddTripName = (enabled: boolean) => {
         setPolicyTravelSettings(policy, {autoAddTripName: enabled});
     };
 
-    const isCodingSyncBetaEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_CODING_SYNC);
     const isCodingSyncEnabled = policy?.travelSettings?.isCodingSyncEnabled ?? false;
 
     const toggleCodingSync = (enabled: boolean) => {
@@ -87,20 +90,30 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
                 subtitleMuted
                 isCentralPane
             >
-                <MenuItem
-                    title={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.ctaText')}
-                    icon={icons.LuggageWithLines}
-                    onPress={withReadOnlyFallback(handleManageTravel)}
-                    shouldShowRightIcon={canWriteMoreFeatures}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BOOK_TRAVEL_BUTTON}
-                    iconRight={canWriteMoreFeatures ? icons.NewWindow : undefined}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, !canWriteMoreFeatures && styles.buttonOpacityDisabled]}
-                />
+                <View style={[styles.mt3, !canWriteMoreFeatures && styles.buttonOpacityDisabled]}>
+                    <MenuItemSectionRoot
+                        onPress={withReadOnlyFallback(handleManageTravel)}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BOOK_TRAVEL_BUTTON}
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Icon src={icons.LuggageWithLines} />
+                            <MenuItem.Content>
+                                <MenuItem.Title>{bookTravelText}</MenuItem.Title>
+                            </MenuItem.Content>
+                            {canWriteMoreFeatures && (
+                                <MenuItem.Trailing>
+                                    <MenuItem.NewWindowIcon />
+                                </MenuItem.Trailing>
+                            )}
+                        </MenuItem.Row>
+                    </MenuItemSectionRoot>
+                </View>
                 <ToggleSettingOptionRow
                     title={translate('workspace.moreFeatures.travel.settings.autoAddTripName.title')}
                     subtitle={translate('workspace.moreFeatures.travel.settings.autoAddTripName.subtitle')}
                     shouldPlaceSubtitleBelowSwitch
                     switchAccessibilityLabel={translate('workspace.moreFeatures.travel.settings.autoAddTripName.title')}
+                    switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.AUTO_ADD_TRIP_NAME_SWITCH}
                     isActive={autoAddTripName}
                     onToggle={toggleAutoAddTripName}
                     disabled={!canWriteMoreFeatures}
@@ -111,23 +124,22 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
                     onCloseError={() => clearPolicyErrorField(policyID, 'autoAddTripName')}
                     wrapperStyle={styles.mt3}
                 />
-                {isCodingSyncBetaEnabled && (
-                    <ToggleSettingOptionRow
-                        title={translate('workspace.moreFeatures.travel.settings.codingSync.title')}
-                        subtitle={translate('workspace.moreFeatures.travel.settings.codingSync.subtitle')}
-                        shouldPlaceSubtitleBelowSwitch
-                        switchAccessibilityLabel={translate('workspace.moreFeatures.travel.settings.codingSync.title')}
-                        isActive={isCodingSyncEnabled}
-                        onToggle={toggleCodingSync}
-                        disabled={!canWriteMoreFeatures}
-                        disabledAction={withReadOnlyFallback()}
-                        showLockIcon={!canWriteMoreFeatures}
-                        pendingAction={policy?.pendingFields?.isCodingSyncEnabled}
-                        errors={policy?.errorFields?.isCodingSyncEnabled ?? undefined}
-                        onCloseError={() => clearPolicyErrorField(policyID, 'isCodingSyncEnabled')}
-                        wrapperStyle={styles.mt3}
-                    />
-                )}
+                <ToggleSettingOptionRow
+                    title={translate('workspace.moreFeatures.travel.settings.codingSync.title')}
+                    subtitle={translate('workspace.moreFeatures.travel.settings.codingSync.subtitle')}
+                    shouldPlaceSubtitleBelowSwitch
+                    switchAccessibilityLabel={translate('workspace.moreFeatures.travel.settings.codingSync.title')}
+                    switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.CODING_SYNC_SWITCH}
+                    isActive={isCodingSyncEnabled}
+                    onToggle={toggleCodingSync}
+                    disabled={!canWriteMoreFeatures}
+                    disabledAction={withReadOnlyFallback()}
+                    showLockIcon={!canWriteMoreFeatures}
+                    pendingAction={policy?.pendingFields?.isCodingSyncEnabled}
+                    errors={policy?.errorFields?.isCodingSyncEnabled ?? undefined}
+                    onCloseError={() => clearPolicyErrorField(policyID, 'isCodingSyncEnabled')}
+                    wrapperStyle={styles.mt3}
+                />
             </Section>
             <WorkspaceTravelBillingSection policyID={policyID} />
         </>

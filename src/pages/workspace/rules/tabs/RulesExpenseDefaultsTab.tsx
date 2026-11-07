@@ -24,13 +24,17 @@ function RulesExpenseDefaultsTab({policyID, canWriteRules, selectedKeys, onSelec
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
 
     const expenseDefaultsTableData = getExpenseDefaultsTableData({
         policy,
         policyID,
+        rules,
         policyCategories,
+        policyTags,
         translate,
         isOffline,
         onNavigate: Navigation.navigate,

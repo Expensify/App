@@ -1,15 +1,13 @@
 ---
 title: Connect to QuickBooks Online
 description: Integrate QuickBooks Online with Expensify
-keywords: [New Expensify, QuickBooks Online, QBO integration, connect QuickBooks, reconnect QuickBooks, accounting sync, Expensify control plan, accounting sync, QuickBooks ISE, QuickBooks Essentials,Quickbooks Simple Start]
+keywords: [New Expensify, QuickBooks Online, QBO integration, connect QuickBooks, reconnect QuickBooks, accounting sync, Expensify control plan, accounting sync, QuickBooks Essentials,Quickbooks Simple Start]
 internalScope: Audience is Workspace Admins. Covers connecting and reconnecting QuickBooks Online to Expensify and supported features. Does not cover QuickBooks Desktop or advanced accounting configuration. QuickBooks Online, QBO integration, connect QuickBooks Online, reconnect QuickBooks, QuickBooks Online red dot error, Intuit login error, accounting sync, Workspace Admin, automate expense syncing
 order: 1
 ---
 
 
 To use the QuickBooks Online connection, you must have a **QuickBooks Online account** and an Expensify **Collect** plan.
-
-**Intuit Enterprise Suite** is a separate connection, listed directly below **QuickBooks Online** on the **Accounting** page, and it requires the **Control** plan. Learn how to [connect to Intuit Enterprise Suite](/articles/new-expensify/connections/quickbooks-online/Connect-to-Intuit-Enterprise-Suite).
 
 The **QuickBooks Self-Employed** subscription is not supported.
 
@@ -19,20 +17,20 @@ The **QuickBooks Self-Employed** subscription is not supported.
 
 Expensify's QuickBooks Online integration includes different features depending on your subscription level. While some options may appear in the app, you’ll see an error if your plan doesn’t support them.
 
-| Feature                    | Simple Start | Essentials | Essentials Plus | Intuit Enterprise Suite |
-|----------------------------|--------------|------------|-----------------|------------------------|
-| Expense Reports            | ✅            | ✅          | ✅               | ✅                      |
-| GL Accounts as Categories  | ✅            | ✅          | ✅               | ✅                      |
-| Credit Card Transactions   | ✅            | ✅          | ✅               | ✅                      |
-| Debit Card Transaction     |              | ✅          | ✅               | ✅                      |
-| Classes                    |              | ✅          | ✅               | ✅                      |
-| Customers                  |              | ✅          | ✅               | ✅                      |
-| Projects                   |              | ✅          | ✅               | ✅                      |
-| Vendor Bills               |              | ✅          | ✅               | ✅                      |
-| Journal Entries            |              | ✅          | ✅               | ✅                      |
-| Tax                        |              | ✅          | ✅               | ✅                      |
-| Billable                   |              |            | ✅               | ✅                      |
-| Location                   |              |            | ✅               | ✅                      |
+| Feature                    | Simple Start | Essentials | Essentials Plus |
+|----------------------------|--------------|------------|-----------------|
+| Expense Reports            | ✅            | ✅          | ✅               |
+| GL Accounts as Categories  | ✅            | ✅          | ✅               |
+| Credit Card Transactions   | ✅            | ✅          | ✅               |
+| Debit Card Transaction     |              | ✅          | ✅               |
+| Classes                    |              | ✅          | ✅               |
+| Customers                  |              | ✅          | ✅               |
+| Projects                   |              | ✅          | ✅               |
+| Vendor Bills               |              | ✅          | ✅               |
+| Journal Entries            |              | ✅          | ✅               |
+| Tax                        |              | ✅          | ✅               |
+| Billable                   |              |            | ✅               |
+| Location                   |              |            | ✅               |
 
 ---
 
@@ -53,11 +51,9 @@ To connect your workspace:
 
 1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces**
 2. Select your **Workspace**
-3. Click **More features**
-4. Scroll to **Integrate** and enable the **Accounting** toggle
-5. Click **Accounting** in the left-hand menu
-6. Click **Connect** next to **QuickBooks Online**
-7. Log in with your Intuit credentials when prompted
+3. Select **Connections**
+4. Select **QuickBooks Online**
+5. Log in with your Intuit credentials when prompted
 
 This will enable the connection between QuickBooks Online and import your settings into Expensify.
 
@@ -79,14 +75,15 @@ This will enable the connection between QuickBooks Online and import your settin
 
 A red dot means there’s a connection error. You’ll see this:
 
-- Next to **Accounting** in the left-hand menu
+- Next to **Connections** in the navigation menu
 - On the QuickBooks Online connection card
 
 This usually happens if the login details were entered incorrectly.
 
 To fix it:
 
-1. Click the **three-dot icon** next to the QuickBooks Online connection
-2. Select **Enter credentials**
-3. Enter your **Intuit login** again to reconnect
+1. On the **Connections** page, select **Fix** next to QuickBooks Online
+2. Select **More (⋮)**
+3. Select **Enter credentials**
+4. Enter your **Intuit login** again to reconnect
 

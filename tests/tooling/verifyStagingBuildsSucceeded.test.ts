@@ -41,7 +41,7 @@ function stagingDeployJobs(overrides: Array<[string, JobConclusion | null]> = []
         [IOS_BUILD, 'success'],
         [IOS_UPLOAD, 'success'],
         ['Build Web / Build Web', 'success'],
-        ['Deploy Web to S3', 'success'],
+        ['Deploy Web to the Cloudflare Worker', 'success'],
 
         // Production-only, skipped on every staging deploy.
         ['Submit Android for production rollout', 'skipped'],
@@ -188,7 +188,7 @@ describe('verifyStagingBuildsSucceeded', () => {
     test('ignores a failed web deploy and the continue-on-error uploads', async () => {
         mockListJobs.mockResolvedValue(
             stagingDeployJobs([
-                ['Deploy Web to S3', 'failure'],
+                ['Deploy Web to the Cloudflare Worker', 'failure'],
                 ['Upload iOS to BrowserStack', 'failure'],
                 ['Upload Android to Applause', 'failure'],
             ]),

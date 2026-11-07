@@ -9,18 +9,16 @@ import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
-import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
-import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceList from '@hooks/useWorkspaceList';
 
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {isGroupPolicy} from '@libs/PolicyUtils';
+import {canCreateExpensesOnPolicy, isGroupPolicy} from '@libs/PolicyUtils';
 
 import type {MoneyRequestNavigatorParamList} from '@navigation/types';
 
@@ -30,7 +28,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type SetDefaultWorkspacePageProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.SET_DEFAULT_WORKSPACE>;
@@ -42,7 +40,7 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate, localeCompare} = useLocalize();
 
-    const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const isAppLoadPending = useIsAppLoadPending();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
@@ -51,25 +49,19 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
 
     const [draftPolicyID, setDraftPolicyID] = useState<string>();
 
-    const isInLandscapeMode = useIsInLandscapeMode();
-    const {isKeyboardActive} = useKeyboardState();
-    const shouldFooterBeInsideList = isInLandscapeMode && isKeyboardActive;
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
 
     const selectPolicy = (selectedPolicyID?: string) => {
         if (!selectedPolicyID) {
             return;
         }
-        if (!navigateTo) {
-            Log.hmmm(`[SetDefaultWorkspacePage] navigateTo is undefined. Cannot navigate after setting default workspace to ${selectedPolicyID}`);
-            return;
-        }
-
         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyID}`];
 
         // eslint-disable-next-line rulesdir/no-default-id-values
         setNameValuePair(ONYXKEYS.NVP_ACTIVE_POLICY_ID, selectedPolicyID, activePolicyID ?? '');
 
-        if (policy?.areCategoriesEnabled) {
+        // Without a destination, the caller handles what comes next once it is back in focus.
+        if (navigateTo && policy?.areCategoriesEnabled) {
             Navigation.navigate(navigateTo);
             return;
         }
@@ -86,7 +78,7 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
         shouldSortSelectedToTop: false,
         searchTerm: debouncedSearchTerm,
         localeCompare,
-        additionalFilter: (newPolicy) => isGroupPolicy(newPolicy),
+        additionalFilter: (newPolicy) => isGroupPolicy(newPolicy) && canCreateExpensesOnPolicy(newPolicy),
     });
 
     const confirmButtonOptions = {
@@ -96,15 +88,12 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
         isDisabled: !draftPolicyID,
     };
 
-    const textInputOptions = useMemo(
-        () => ({
-            label: shouldShowSearchInput ? translate('common.search') : undefined,
-            value: searchTerm,
-            onChangeText: setSearchTerm,
-            headerMessage: shouldShowNoResultsFoundMessage ? translate('common.noResultsFound') : '',
-        }),
-        [searchTerm, setSearchTerm, shouldShowNoResultsFoundMessage, shouldShowSearchInput, translate],
-    );
+    const textInputOptions = {
+        label: shouldShowSearchInput ? translate('common.search') : undefined,
+        value: searchTerm,
+        onChangeText: setSearchTerm,
+        headerMessage: shouldShowNoResultsFoundMessage ? translate('common.noResultsFound') : '',
+    };
 
     return (
         <ScreenWrapper
@@ -131,7 +120,7 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
                             textInputOptions={textInputOptions}
                             onSelectRow={(option) => setDraftPolicyID(option.policyID)}
                             confirmButtonOptions={confirmButtonOptions}
-                            shouldShowLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
+                            shouldShowLoadingPlaceholder={!didScreenTransitionEnd}
                             disableMaintainingScrollPosition
                             addBottomSafeAreaPadding
                             shouldFooterBeInsideList={shouldFooterBeInsideList}

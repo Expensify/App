@@ -73,11 +73,6 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
         return;
     }
 
-    // API sometimes returns the parent as the preexisting report, which would parent it to itself
-    if (preexistingReportID === parentReportID) {
-        return;
-    }
-
     // Handle cleanup of stale optimistic IOU report and its report preview separately
     if (isMoneyRequestReport(report) && parentReportID && parentReportActionID) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
@@ -105,28 +100,33 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
             // Or we optimistically created a thread report under a comment that already has an associated child chat report.
             // In this case, the API will let us know by returning a preexistingReportID.
             // We should clear out the optimistically created report and re-route the user to the preexisting report.
-            const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`];
             const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
             let callback = () => {
+                // Read at call time, since this callback can run after the draft is saved
+                const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`];
+                // Keep the existing report's server fields (e.g. type) and its own errors, so an optimistic "Report not found" error never lands on it
+                const mergedReport = {
+                    ...existingReport,
+                    ...report,
+                    reportID: preexistingReportID,
+                    preexistingReportID: null,
+                    errors: existingReport?.errors,
+                    errorFields: existingReport?.errorFields,
+                    pendingFields: existingReport?.pendingFields,
+                };
                 Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
                 Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, null);
 
                 if (!parentReportActionID) {
                     // DMs and group-DMs don't have parent actions, so we only need to merge report data and preserve existing participants
                     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
-                        ...report,
-                        reportID: preexistingReportID,
-                        preexistingReportID: null,
+                        ...mergedReport,
                         // Replacing the existing report's participants to avoid duplicates
                         participants: existingReport?.participants ?? report.participants,
                     });
                 } else {
                     // Thread reports have parent actions that need their childReportID updated to point to the preexisting thread
-                    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
-                        ...report,
-                        reportID: preexistingReportID,
-                        preexistingReportID: null,
-                    });
+                    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, mergedReport);
                     // Non-optimistic parent actions already exist, so we update their childReportID;
                     // optimistic actions were already cleaned up above
                     const parentReportAction = parentReportID ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]?.[parentReportActionID] : null;
@@ -223,14 +223,13 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
                         callback();
 
                         // We are already on the parent one expense report, so just call the API to fetch report data
-                        // betas and conciergeChat are safe to pass as undefined because introSelected is undefined, so the
-                        // guided-setup code path that uses them is never reached. Passing them explicitly so the compiler
-                        // flags this when they become required. Refactor issues: https://github.com/Expensify/App/issues/66424
+                        // conciergeChat is safe to pass as undefined because introSelected is undefined, so the
+                        // guided-setup code path that uses it is never reached. Passing it explicitly so the compiler
+                        // flags this when it becomes required. Refactor issues: https://github.com/Expensify/App/issues/66424
                         // personalDetails is undefined because the parent report already exists, so no optimistic report is created and they are never read.
                         openReport({
                             reportID: parentReportID,
                             introSelected: undefined,
-                            betas: undefined,
                             conciergeChat: undefined,
                             personalDetails: undefined,
                             hasReportActions,
@@ -241,14 +240,13 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
                     callback();
 
                     // We are already on the parent one expense report, so just call the API to fetch report data
-                    // betas and conciergeChat are safe to pass as undefined because introSelected is undefined, so the
-                    // guided-setup code path that uses them is never reached. Passing them explicitly so the compiler
-                    // flags this when they become required. Refactor issues: https://github.com/Expensify/App/issues/66424
+                    // conciergeChat is safe to pass as undefined because introSelected is undefined, so the
+                    // guided-setup code path that uses it is never reached. Passing it explicitly so the compiler
+                    // flags this when it becomes required. Refactor issues: https://github.com/Expensify/App/issues/66424
                     // personalDetails is undefined because the parent report already exists, so no optimistic report is created and they are never read.
                     openReport({
                         reportID: parentReportID,
                         introSelected: undefined,
-                        betas: undefined,
                         conciergeChat: undefined,
                         personalDetails: undefined,
                         hasReportActions,

@@ -15,6 +15,7 @@ jest.mock('@libs/ActiveClientManager', () => ({
     isClientTheLeader: jest.fn(() => true),
     isReady: jest.fn(() => Promise.resolve()),
     init: jest.fn(),
+    getLogTab: jest.fn(),
 }));
 
 const mockShowModifiedExpenseNotification = jest.fn<void, [LocalNotificationModifiedExpenseParams]>();
@@ -28,7 +29,6 @@ jest.mock('@libs/Notification/LocalNotification', () => ({
         showCommentNotification: (...args: Parameters<LocalNotificationModule['showCommentNotification']>) => {
             mockShowCommentNotification(...args);
         },
-        showUpdateAvailableNotification: jest.fn(),
         clearReportNotifications: jest.fn(),
     },
 }));

@@ -1,11 +1,13 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsLists from '@hooks/useCardsLists';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {findMatchingCards, getCardsUsingCustomExportCount} from '@libs/CardFeedUtils';
@@ -16,13 +18,18 @@ import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
 
 function DualEntryCardProgramAccountPage({policy}: WithPolicyConnectionsProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
@@ -69,24 +76,26 @@ function DualEntryCardProgramAccountPage({policy}: WithPolicyConnectionsProps) {
                             key={feedKey}
                             pendingAction={settingsPendingAction([`${CONST.DUALENTRY_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feedKey}`], dualentryConfig?.pendingFields)}
                         >
-                            <MenuItemWithTopDescription
-                                title={cardProgramAccountDisplayName}
-                                description={feedName}
-                                hintText={
-                                    cardsUsingCustomAccountsCount.perFeedCount[feedKey]
-                                        ? translate('workspace.dualEntry.cardAccount.countInfo', cardsUsingCustomAccountsCount.perFeedCount[feedKey])
-                                        : undefined
-                                }
-                                onPress={() =>
-                                    policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_CARD_PROGRAM_ACCOUNT_SELECTOR.getRoute(policyID, feedWithDomainID)) : undefined
-                                }
-                                shouldShowRightIcon
-                                brickRoadIndicator={
-                                    areSettingsInErrorFields([`${CONST.DUALENTRY_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feedKey}`], dualentryConfig?.errorFields)
-                                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                        : undefined
-                                }
-                            />
+                            <MenuItem.Root
+                                onPress={callFunctionIfActionIsAllowed(
+                                    () => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_CARD_PROGRAM_ACCOUNT_SELECTOR.getRoute(policyID, feedWithDomainID)) : undefined),
+                                    false,
+                                    session,
+                                )}
+                            >
+                                <MenuItemField.Row
+                                    name={feedName ?? ''}
+                                    value={cardProgramAccountDisplayName}
+                                >
+                                    {areSettingsInErrorFields([`${CONST.DUALENTRY_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feedKey}`], dualentryConfig?.errorFields) && (
+                                        <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                                    )}
+                                    <MenuItem.Chevron />
+                                </MenuItemField.Row>
+                                {!!cardsUsingCustomAccountsCount.perFeedCount[feedKey] && (
+                                    <MenuItem.HelpText message={translate('workspace.dualEntry.cardAccount.countInfo', cardsUsingCustomAccountsCount.perFeedCount[feedKey])} />
+                                )}
+                            </MenuItem.Root>
                         </OfflineWithFeedback>
                     );
                 })}

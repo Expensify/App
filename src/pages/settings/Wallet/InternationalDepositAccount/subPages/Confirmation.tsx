@@ -1,11 +1,12 @@
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
+import CollapsibleHeaderOnKeyboardGroupMember from '@components/CollapsibleHeaderOnKeyboard/GroupMember';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
+import TermsOfServiceLabel from '@components/TermsOfServiceLabel';
 import Text from '@components/Text';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -25,7 +26,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CorpayFormField} from '@src/types/onyx';
 
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 
 const STEP_INDEXES = CONST.CORPAY_FIELDS.INDEXES.MAPPING;
 
@@ -37,11 +38,6 @@ type MenuItemProps = {
     interactive?: boolean;
     disabled?: boolean;
 };
-
-function TermsAndConditionsLabel() {
-    const {translate} = useLocalize();
-    return <RenderHTML html={translate('common.acceptTermsOfService')} />;
-}
 
 function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProps) {
     const {translate} = useLocalize();
@@ -159,23 +155,22 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
         });
     }
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> = {};
-            if (!values.acceptTerms) {
-                errors.acceptTerms = translate('common.error.acceptTerms');
-            }
-            return errors;
-        },
-        [translate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> = {};
+        if (!values.acceptTerms) {
+            errors.acceptTerms = translate('common.error.acceptTerms');
+        }
+        return errors;
+    };
 
     const errorMessage = getLatestErrorMessage(reimbursementAccount);
 
     return (
         <ScrollView contentContainerStyle={styles.flexGrow1}>
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('addPersonalBankAccount.confirmationStepHeader')}</Text>
-            <Text style={[styles.mb6, styles.ph5, styles.textSupporting]}>{translate('addPersonalBankAccount.confirmationStepSubHeader')}</Text>
+            <CollapsibleHeaderOnKeyboardGroupMember>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('addPersonalBankAccount.confirmationStepHeader')}</Text>
+                <Text style={[styles.mb6, styles.ph5, styles.textSupporting]}>{translate('addPersonalBankAccount.confirmationStepSubHeader')}</Text>
+            </CollapsibleHeaderOnKeyboardGroupMember>
             {summaryItems.map(({id, description, title, interactive, disabled, onPress}) => (
                 <MenuItemField
                     key={id}
@@ -199,9 +194,9 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
             >
                 <InputWrapper
                     InputComponent={CheckboxWithLabel}
-                    aria-label={`${translate('common.iAcceptThe')} ${translate('common.addCardTermsOfService')}`}
+                    accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.addCardTermsOfService')}`}
                     inputID="acceptTerms"
-                    LabelComponent={TermsAndConditionsLabel}
+                    LabelComponent={TermsOfServiceLabel}
                     style={[styles.mt3]}
                     shouldSaveDraft
                 />

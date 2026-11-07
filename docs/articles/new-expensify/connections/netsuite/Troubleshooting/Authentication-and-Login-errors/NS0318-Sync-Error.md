@@ -45,13 +45,15 @@ Follow the steps below based on what you are exporting.
 If you are exporting an expense report:
 
 - Refresh the page.
-- Go to **Settings > Workspaces > Accounting**.
-- Click **Sync Now**.
+- Select **Workspaces > [workspace name] > Connections**, then select **Configure** next to NetSuite.
+- Select **More (⋮)**, then select **Sync now**.
 - Confirm the Workspace synced successfully.
 
 If you are exporting an invoice, continue to the next step.
 
 ### Update the Expensify Connect Bundle in NetSuite
+
+Before updating, record any customized integration role permissions. Learn how to [update the Expensify Connect bundle and verify permissions afterward](/articles/new-expensify/connections/netsuite/Update-Expensify-Connect-Bundle-in-NetSuite).
 
 1. Log in to NetSuite as an administrator.
 2. Go to **Customization > SuiteBundler > Search & Install Bundles > List**.
@@ -70,7 +72,7 @@ If the Expensify Connect bundle is already on the latest version and the error c
 
 1. Review the NetSuite connection settings in the Workspace.
 2. Confirm the correct account ID, role, and permissions are configured.
-3. Click **Sync Now** under **Settings > Workspaces > Accounting**.
+3. Select **Workspaces > [workspace name] > Connections**, select **Configure** next to NetSuite, select **More (⋮)**, then select **Sync now**.
 
 If the issue persists, reach out to **Concierge** and include:
 

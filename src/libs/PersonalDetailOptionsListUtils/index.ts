@@ -78,7 +78,7 @@ function createOption(
             accountID: personalDetail.accountID,
             formatPhoneNumber,
             personalDetailsData: {[personalDetail.accountID]: personalDetail},
-            translate,
+            hiddenTranslation: translate?.('common.hidden'),
         }) || formatPhoneNumber(personalDetail.login ?? '');
     result.icons = [
         {
@@ -501,6 +501,21 @@ function filterPersonalDetailsByLogins(personalDetails: OnyxEntry<PersonalDetail
 }
 
 /**
+ * Excludes the personal details of agents whom account ID is not in the whitelist `accountIDs`
+ * Meant to be applied before createOptionList so that agents you do not own are not listed (e.g. when inviting members to workspace)
+ */
+function filterAgentsPersonalDetailsByAccountIDs(personalDetails: OnyxEntry<PersonalDetailsList>, accountIDs: Set<number>): PersonalDetailsList {
+    const filteredPersonalDetails: PersonalDetailsList = {};
+    for (const [accountID, personalDetail] of Object.entries(personalDetails ?? {})) {
+        if (personalDetail?.isCustomAgent && !accountIDs.has(Number(accountID))) {
+            continue;
+        }
+        filteredPersonalDetails[accountID] = personalDetail;
+    }
+    return filteredPersonalDetails;
+}
+
+/**
  * Helper method that returns the text to be used for the header's message and title (if any)
  */
 function getHeaderMessage(translate: LocaleContextProps['translate'], searchValue: string, countryCode: number, hasMatchedParticipant = false): string {
@@ -531,7 +546,7 @@ function getHeaderMessage(translate: LocaleContextProps['translate'], searchValu
  * `recentAttendees`, which rebuilds the full options (matching personal details or creating optimistic ones).
  */
 function getFilteredRecentAttendees(attendees: Attendee[], recentAttendees: Attendee[], currentUserEmail: string): string[] {
-    const allRecentAttendees = [...recentAttendees];
+    const allRecentAttendees = Array.isArray(recentAttendees) ? [...recentAttendees] : [];
     if (currentUserEmail && !allRecentAttendees.some((attendee) => attendee.email === currentUserEmail)) {
         allRecentAttendees.push({email: currentUserEmail, displayName: currentUserEmail, avatarUrl: ''});
     }
@@ -541,7 +556,6 @@ function getFilteredRecentAttendees(attendees: Attendee[], recentAttendees: Atte
         allRecentAttendees
             .filter((attendee) => {
                 // Deduplicate: use email for regular users, displayName for name-only attendees
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 const key = attendee.email || attendee.displayName || '';
                 if (!key || seenAttendees.has(key)) {
                     return false;
@@ -551,7 +565,6 @@ function getFilteredRecentAttendees(attendees: Attendee[], recentAttendees: Atte
             })
             .filter((attendee) => !attendees.find(({email, displayName}) => (attendee.email ? email === attendee.email : displayName === attendee.displayName)))
             // Use || to fall back to displayName for name-only attendees (empty email)
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             .map((attendee) => attendee.email || attendee.displayName)
     );
 }
@@ -565,6 +578,7 @@ export {
     getValidOptions,
     createOptionList,
     filterPersonalDetailsByLogins,
+    filterAgentsPersonalDetailsByAccountIDs,
     getHeaderMessage,
     getUserToInviteOption,
     getFilteredRecentAttendees,

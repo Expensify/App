@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import SplitListItem from '@components/SelectionList/ListItem/SplitListItem';
@@ -19,7 +19,7 @@ jest.mock('@hooks/useCurrencyList', () => ({
     useCurrencyListActions: () => ({convertToDisplayStringWithoutCurrency: (amount: number) => String(amount)}),
 }));
 
-const createSplitItem = (category: string): SplitListItemType => ({
+const createSplitItem = (category: string, isEditable = true): SplitListItemType => ({
     keyForList: 'split-1',
     transactionID: 'split-1',
     amount: 1000,
@@ -30,7 +30,7 @@ const createSplitItem = (category: string): SplitListItemType => ({
     currency: CONST.CURRENCY.USD,
     currencySymbol: '$',
     originalAmount: 1000,
-    isEditable: true,
+    isEditable,
     mode: CONST.TAB.SPLIT.AMOUNT,
     percentage: 100,
     onSplitExpenseValueChange: jest.fn(),
@@ -65,5 +65,42 @@ describe('SplitListItem', () => {
 
         expect(screen.getByText('Parent: Child', {includeHiddenElements: true})).toBeOnTheScreen();
         expect(screen.getByLabelText('Aug 13, Coffee shop, Parent: Child')).toBeOnTheScreen();
+    });
+
+    it.each([
+        [true, 1],
+        [false, 0],
+    ])('with isEditable=%s renders %i edit button(s)', async (isEditable, expectedCount) => {
+        render(
+            <LocaleContextProvider>
+                <SplitListItem
+                    item={createSplitItem('Travel', isEditable)}
+                    showTooltip={false}
+                    onSelectRow={jest.fn()}
+                />
+            </LocaleContextProvider>,
+        );
+        await waitForBatchedUpdates();
+
+        expect(screen.queryAllByLabelText('Edit')).toHaveLength(expectedCount);
+    });
+
+    it('selects the row when the edit button is pressed', async () => {
+        const onSelectRow = jest.fn();
+        const item = createSplitItem('Travel');
+        render(
+            <LocaleContextProvider>
+                <SplitListItem
+                    item={item}
+                    showTooltip={false}
+                    onSelectRow={onSelectRow}
+                />
+            </LocaleContextProvider>,
+        );
+        await waitForBatchedUpdates();
+
+        fireEvent.press(screen.getByLabelText('Edit'));
+
+        expect(onSelectRow).toHaveBeenCalledWith(item);
     });
 });

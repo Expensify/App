@@ -20,6 +20,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {TupleToUnion} from 'type-fest';
 
+import {format, isValid} from 'date-fns';
 import React, {useRef, useState} from 'react';
 import {PanResponder, PixelRatio, Platform, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
@@ -32,6 +33,7 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import ImageSVG from './ImageSVG';
 import RenderHTML from './RenderHTML';
 import ScreenWrapper from './ScreenWrapper';
+import ScrollView from './ScrollView';
 import Text from './Text';
 
 type ImportSpreadsheetProps = {
@@ -46,6 +48,9 @@ type ImportSpreadsheetProps = {
 
     isImportingMultiLevelTags?: boolean;
 
+    /** Whether the imported tag lists are appended to the existing (accounting connection) tag lists */
+    isAppendingToExistingLists?: boolean;
+
     /** Whether an OFX/QFX bank statement can be picked alongside a spreadsheet */
     shouldAllowBankStatements?: boolean;
 
@@ -53,7 +58,15 @@ type ImportSpreadsheetProps = {
     onStatementPicked?: (file: FileObject) => Promise<void>;
 };
 
-function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, isImportingMultiLevelTags, shouldAllowBankStatements, onStatementPicked}: ImportSpreadsheetProps) {
+function ImportSpreadsheet({
+    backTo,
+    goTo,
+    shouldForceReplaceNavigation = false,
+    isImportingMultiLevelTags,
+    isAppendingToExistingLists,
+    shouldAllowBankStatements,
+    onStatementPicked,
+}: ImportSpreadsheetProps) {
     const [importedSpreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const icons = useMemoizedLazyExpensifyIcons(['SpreadsheetComputer']);
     const styles = useThemeStyles();
@@ -150,11 +163,13 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
                             })
                             .then((text) => XLSX.read(text, {type: 'string', raw: true}));
                     }
+                    // cellDates is only set on the binary read: it turns date-formatted cells into Date objects instead of Excel serial
+                    // numbers. The text read above keeps raw: true so CSV values are passed through untouched.
                     return fetch(fileURI)
                         .then((data) => {
                             return data.arrayBuffer();
                         })
-                        .then((arrayBuffer) => XLSX.read(new Uint8Array(arrayBuffer), {type: 'buffer', raw: true}));
+                        .then((arrayBuffer) => XLSX.read(new Uint8Array(arrayBuffer), {type: 'buffer', raw: true, cellDates: true}));
                 };
                 readWorkbook()
                     .then((workbook) => {
@@ -165,6 +180,10 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
                             row.map((cell) => {
                                 if (cell == null) {
                                     return '';
+                                }
+                                // xlsx builds cellDates values at midnight in the local time zone, so format them locally too
+                                if (cell instanceof Date) {
+                                    return isValid(cell) ? format(cell, CONST.DATE.FNS_FORMAT_STRING) : '';
                                 }
                                 // Handle primitives (string, number, boolean) directly
                                 if (typeof cell === 'string' || typeof cell === 'number' || typeof cell === 'boolean') {
@@ -181,6 +200,7 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
                             file.name,
                             isImportingMultiLevelTags ?? false,
                             importedSpreadsheet?.importTransactionSettings,
+                            isAppendingToExistingLists,
                         );
                     })
                     .then(() => {
@@ -278,33 +298,35 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
                             }}
                         />
 
-                        <View style={[styles.flex1, styles.uploadFileView, styles.uploadFileViewBorderWidth(isSmallScreenWidth)]}>
-                            {!(isDraggingOver ?? isDraggingOver) && desktopView}
+                        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
+                            <View style={[styles.flex1, styles.uploadFileView, styles.uploadFileViewBorderWidth(isSmallScreenWidth)]}>
+                                {!(isDraggingOver ?? isDraggingOver) && desktopView}
 
-                            <DragAndDropConsumer
-                                onDrop={(e) => {
-                                    const file = e?.dataTransfer?.files[0];
-                                    if (!file || isReadingFile) {
-                                        return;
-                                    }
-                                    readFile(file);
-                                }}
-                            >
-                                <View style={[styles.fileDropOverlay, styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                                    <View style={[styles.pAbsolute, styles.fileUploadImageWrapper(fileTopPosition)]}>
-                                        <ImageSVG
-                                            src={icons.SpreadsheetComputer}
-                                            contentFit="contain"
-                                            style={styles.mb4}
-                                            width={CONST.IMPORT_SPREADSHEET.ICON_WIDTH}
-                                            height={CONST.IMPORT_SPREADSHEET.ICON_HEIGHT}
-                                        />
-                                        <Text style={[styles.textFileUpload]}>{translate('common.dropTitle')}</Text>
-                                        <Text style={[styles.subTextFileUpload, styles.themeTextColor]}>{translate('common.dropMessage')}</Text>
+                                <DragAndDropConsumer
+                                    onDrop={(e) => {
+                                        const file = e?.dataTransfer?.files[0];
+                                        if (!file || isReadingFile) {
+                                            return;
+                                        }
+                                        readFile(file);
+                                    }}
+                                >
+                                    <View style={[styles.fileDropOverlay, styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                                        <View style={[styles.pAbsolute, styles.fileUploadImageWrapper(fileTopPosition)]}>
+                                            <ImageSVG
+                                                src={icons.SpreadsheetComputer}
+                                                contentFit="contain"
+                                                style={styles.mb4}
+                                                width={CONST.IMPORT_SPREADSHEET.ICON_WIDTH}
+                                                height={CONST.IMPORT_SPREADSHEET.ICON_HEIGHT}
+                                            />
+                                            <Text style={[styles.textFileUpload]}>{translate('common.dropTitle')}</Text>
+                                            <Text style={[styles.subTextFileUpload, styles.themeTextColor]}>{translate('common.dropMessage')}</Text>
+                                        </View>
                                     </View>
-                                </View>
-                            </DragAndDropConsumer>
-                        </View>
+                                </DragAndDropConsumer>
+                            </View>
+                        </ScrollView>
                     </View>
                 </DragAndDropProvider>
             )}

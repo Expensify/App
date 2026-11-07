@@ -124,10 +124,10 @@ describe('UserListItem', () => {
     });
 
     it.each([
-        ['disables the row accessibility grouping when a right-side component renders without multi-select', false, false],
+        ['disables the row accessibility grouping when an action element renders without multi-select', false, false],
         ['keeps the row accessibility grouping with multi-select', true, true],
     ])('%s', (_label, canSelectMultiple, isRowAccessible) => {
-        renderItem(buildItem(), {canSelectMultiple, rightHandSideComponent: <View testID="rhs" />});
+        renderItem(buildItem({actionElement: <View testID="action" />}), {canSelectMultiple});
 
         const rowAccessible: unknown = screen.getByTestId(ROW_TEST_ID).props.accessible;
         if (isRowAccessible) {

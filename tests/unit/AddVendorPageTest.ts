@@ -1,4 +1,4 @@
-import {getVendorRuleDisplayValue, hasVendorFeature, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
+import {getVendorRuleDisplayValue, hasVendorFeature} from '@libs/PolicyUtils';
 
 import {getSelectedVendorItem, getVendorSelectionItems} from '@pages/workspace/rules/MerchantRules/AddVendorPage';
 
@@ -36,7 +36,7 @@ const buildIntacctPolicy = (vendors: Array<{id: string; name: string; value: str
         }),
     });
 
-/** Xero policy whose supplier list scopes vendor matching to Xero (label flips vendor -> supplier). */
+/** Xero policy whose supplier list scopes vendor matching to Xero. */
 const buildXeroPolicy = (contacts: Record<string, {id: string; name: string; email: string}>): Policy =>
     createMock<Policy>({
         ...createRandomPolicy(0),
@@ -105,6 +105,43 @@ describe('AddVendorPage', () => {
             const policy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
             expect(getVendorSelectionItems(policy, localeCompare)).toEqual([{name: 'Acme Xero', value: 'xc1'}]);
         });
+
+        it('excludes disabled vendors from the selection items', () => {
+            // Given a policy with multiple vendors where one vendor is disabled in policyVendors
+            const policy = buildQBOPolicy([
+                {id: 'v1', name: 'Acme Co', currency: 'USD'},
+                {id: 'v2', name: 'Globex', currency: 'USD'},
+            ]);
+            const policyVendors = {
+                v2: {externalID: 'v2', name: 'Globex', enabled: false},
+            };
+
+            // When resolving the vendor selection items
+            const result = getVendorSelectionItems(policy, localeCompare, policyVendors);
+
+            // Then the disabled vendor is excluded from the list
+            expect(result).toEqual([{name: 'Acme Co', value: 'v1'}]);
+        });
+
+        it('retains the currently-selected vendor even if disabled', () => {
+            // Given a policy with a disabled vendor that is currently selected in the rule
+            const policy = buildQBOPolicy([
+                {id: 'v1', name: 'Acme Co', currency: 'USD'},
+                {id: 'v2', name: 'Globex', currency: 'USD'},
+            ]);
+            const policyVendors = {
+                v2: {externalID: 'v2', name: 'Globex', enabled: false},
+            };
+
+            // When resolving the vendor selection items with the disabled vendor as selectedVendorID
+            const result = getVendorSelectionItems(policy, localeCompare, policyVendors, 'v2');
+
+            // Then the disabled vendor is retained so the user can see their current selection
+            expect(result).toEqual([
+                {name: 'Acme Co', value: 'v1'},
+                {name: 'Globex', value: 'v2'},
+            ]);
+        });
     });
 
     describe('getSelectedVendorItem', () => {
@@ -161,8 +198,13 @@ describe('AddVendorPage', () => {
             expect(hasVendorFeature(intacctPolicy, false)).toBe(true);
         });
 
-        it('hides the row on Xero when the beta is off because Xero vendor matching is not generally available yet', () => {
-            expect(hasVendorFeature(xeroPolicy, false)).toBe(false);
+        it('shows the row on Xero with the beta off because Xero vendor matching is generally available', () => {
+            // Given a configured Xero workspace with synced contacts
+            // When the vendor feature is checked without the vendorMatching beta
+            const isVendorFeatureAvailable = hasVendorFeature(xeroPolicy, false);
+
+            // Then the row is shown because Xero does not depend on the beta
+            expect(isVendorFeatureAvailable).toBe(true);
         });
 
         it('hides the row when no vendor integration is connected', () => {
@@ -171,11 +213,6 @@ describe('AddVendorPage', () => {
 
         it('shows the row when the beta is on and a vendor integration is connected', () => {
             expect(hasVendorFeature(qboPolicy, true)).toBe(true);
-        });
-
-        it('labels the row "vendor" on QBO and flips to "supplier" on Xero', () => {
-            expect(isXeroActiveMatchingSource(qboPolicy)).toBe(false);
-            expect(isXeroActiveMatchingSource(xeroPolicy)).toBe(true);
         });
 
         it('uses the shared vendor display resolver for the row title', () => {

@@ -66,6 +66,21 @@ jest.mock('@components/RenderHTML', () => {
     return MockRenderHTML;
 });
 
+jest.mock('@hooks/useLocalize', () =>
+    jest.fn(() => ({
+        translate: jest.fn((key: string) => key),
+        numberFormat: jest.fn(),
+    })),
+);
+
+jest.mock('@hooks/useThemeStyles', () => {
+    // Some style entries, such as twoFactorAuthCodesBoxPadding, are functions of layout flags.
+    const styleProxy: () => unknown = new Proxy(() => styleProxy, {
+        get: () => styleProxy,
+    });
+    return jest.fn(() => styleProxy);
+});
+
 const PAGE_ROUTE = {key: 'codes-page', name: SCREENS.TWO_FACTOR_AUTH.DYNAMIC_ROOT};
 const VERIFY_ROUTE = {key: 'verify-page', name: SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY};
 
@@ -142,16 +157,62 @@ describe('DynamicTwoFactorAuthPage', () => {
         await waitForBatchedUpdates();
     });
 
-    it('requests the recovery codes when 2FA is off and there are no codes', async () => {
-        // Given a validated account without 2FA and without recovery codes
-        await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, requiresTwoFactorAuth: false});
+    it('does not call Toggle again when an unfinished setup already has recovery codes', async () => {
+        // Given the user already started setup and scanned the QR code
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {
+            validated: true,
+            requiresTwoFactorAuth: false,
+            recoveryCodes: RECOVERY_CODES,
+            twoFactorAuthSecretKey: 'ABCDEFGHIJKLMNOP',
+        });
 
-        // When the recovery codes page opens
+        // When they reopen the codes page
         await renderPage();
 
-        // Then it asks the server for the codes once, because this page is the first step of the setup
+        // Then the existing codes are reused and EnableTwoFactorAuth is not called
+        expect(mockToggleTwoFactorAuth).not.toHaveBeenCalled();
+    });
+
+    it('calls Toggle once for a fresh setup', async () => {
+        // Given a validated account with no setup in progress
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, requiresTwoFactorAuth: false});
+
+        // When the codes page opens
+        await renderPage();
+
+        // Then EnableTwoFactorAuth is requested exactly once
         expect(mockToggleTwoFactorAuth).toHaveBeenCalledTimes(1);
         expect(mockToggleTwoFactorAuth).toHaveBeenCalledWith(true);
+    });
+
+    it('does not call Toggle again when focus flickers before the response arrives', async () => {
+        // Given a fresh setup whose EnableTwoFactorAuth request has not returned codes yet
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, requiresTwoFactorAuth: false});
+        const view = await renderPage();
+        expect(mockToggleTwoFactorAuth).toHaveBeenCalledTimes(1);
+
+        // When the page loses and regains focus
+        await setFocused(view, false);
+        await setFocused(view, true);
+
+        // Then a second EnableTwoFactorAuth request is not sent
+        expect(mockToggleTwoFactorAuth).toHaveBeenCalledTimes(1);
+    });
+
+    it('retries Toggle after a failed request once the page is focused again', async () => {
+        // Given a fresh setup whose first EnableTwoFactorAuth request has not returned codes
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, requiresTwoFactorAuth: false});
+        const view = await renderPage();
+        expect(mockToggleTwoFactorAuth).toHaveBeenCalledTimes(1);
+
+        // When that request fails, then the page loses and regains focus
+        await updateAccount({isLoading: true});
+        await updateAccount({isLoading: false});
+        await setFocused(view, false);
+        await setFocused(view, true);
+
+        // Then the failed request is retried, because the guard resets once loading ends without codes
+        expect(mockToggleTwoFactorAuth).toHaveBeenCalledTimes(2);
     });
 
     it('opens the enabled page when it is opened with 2FA already on', async () => {

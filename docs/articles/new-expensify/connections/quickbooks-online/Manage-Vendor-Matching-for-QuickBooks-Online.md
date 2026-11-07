@@ -32,7 +32,7 @@ Workspace Admins can manually select a vendor from the searchable **Vendor** fie
 
 ## How to set a fallback (default) vendor for QuickBooks Online company card expenses
 
-1. Click the navigation tabs (on the left on web, on the bottom on mobile), then go to **Workspaces > [workspace name] > Accounting > QuickBooks Online**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**, then select **Configure** next to QuickBooks Online.
 2. Click **Export**.
 3. Under **Export company card expenses as**, select **Credit card** or **Debit card**.
 4. Select a **Default vendor**.
@@ -47,7 +47,7 @@ When company card expenses are exported, Expensify assigns vendors in the follow
 
 1. The vendor selected on the expense.
 2. The **Default vendor** configured in workspace settings.
-3. **Credit Card Misc** or **Debit Card Misc**., if neither of the above is available.
+3. **Credit Card Misc** or **Debit Card Misc**, if neither of the above is available.
 
 ## How inactive QuickBooks Online vendors affect expenses
 

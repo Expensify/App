@@ -1,4 +1,3 @@
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import useLocalize from '@hooks/useLocalize';
 import useMarkAsRead from '@hooks/useMarkAsRead';
@@ -7,66 +6,72 @@ import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import useReportScrollManager from '@hooks/useReportScrollManager';
-import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
+import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
-import useScrollToEndOnNewMessageReceived from '@hooks/useScrollToEndOnNewMessageReceived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUnreadMarker from '@hooks/useUnreadMarker';
 
+import {isBillPayReport, shouldKeepBillPayActorHeader} from '@libs/BillPayReportActionUtils';
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
-import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
-import {getFilteredReportActionsForReportView, getLatestConciergeFeedbackActionID, getOneTransactionThreadReportID, hasNextActionMadeBySameActor} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction, chatIncludesChronosWithID, getReportLastVisibleActionCreated, isHarvestCreatedExpenseReport, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {getFeedbackPromptActionIDs, getOneTransactionThreadReportID, hasNextActionMadeBySameActor} from '@libs/ReportActionsUtils';
+import {
+    canUserPerformWriteAction,
+    chatIncludesChronosWithID,
+    getReportLastVisibleActionCreated,
+    isHarvestCreatedExpenseReport,
+    shouldReportAlignToTop,
+    shouldShowMarkAsDone,
+} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 
 import ConciergeThinkingMessage from '@pages/home/report/ConciergeThinkingMessage';
-import {useActionListContext, useActionListRef} from '@pages/inbox/ActionListContext';
-import {useAgentZeroStatus} from '@pages/inbox/AgentZeroStatusContext';
+import {useActionListRef} from '@pages/inbox/ActionListContext';
 import {useConciergeDraft} from '@pages/inbox/ConciergeDraftContext';
+import CollapsedSystemMessages from '@pages/inbox/report/CollapsedSystemMessages';
 import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
 import {ReportActionPositionContextProvider, ReportActionScrollToNewestContext} from '@pages/inbox/report/ReportActionIndexContext';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
-import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
+import useReportActionsPresentation from '@pages/inbox/report/useReportActionsPresentation';
 
-import {openReport, subscribeToNewActionEvent} from '@userActions/Report';
-
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {getStableReportSelector} from '@src/selectors/Report';
 import {pendingNewTransactionIDsSelector} from '@src/selectors/ReportMetaData';
+import {isLinkedToBillSelector} from '@src/selectors/ReportNameValuePairs';
 import type * as OnyxTypes from '@src/types/onyx';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {LayoutChangeEvent} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
-import isEmpty from 'lodash/isEmpty';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {getCustomAgentAccountIDs} from '@selectors/AgentZeroChat';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
+import {accountIDSelector} from '@selectors/Session';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import MoneyRequestReportEmptyStateView from './MoneyRequestReportEmptyStateView';
 import MoneyRequestReportTransactionList from './MoneyRequestReportTransactionList';
 import SelectionToolbar from './SelectionToolbar';
+import useMoneyRequestReportData from './useMoneyRequestReportData';
 import useMoneyRequestReportPagination from './useMoneyRequestReportPagination';
+import useMoneyRequestReportScroll from './useMoneyRequestReportScroll';
 import useMoneyRequestReportVisibleActions from './useMoneyRequestReportVisibleActions';
+import useShouldShowReportBulkActionBar from './useShouldShowReportBulkActionBar';
 
 /**
  * In this view we are not handling the special single transaction case, we're just handling the report
  */
 const EmptyParentReportActionForTransactionThread = undefined;
-
-// Amount of time to wait until all list items should be rendered and scrollToEnd will behave well
-const DELAY_FOR_SCROLLING_TO_END = 100;
 
 type MoneyRequestReportListProps = {
     onLayout?: (event: LayoutChangeEvent) => void;
@@ -77,33 +82,30 @@ type MoneyRequestReportActionsListContentProps = MoneyRequestReportListProps & {
     reportIDFromRoute: string | undefined;
 };
 
+function reportNameValuePairsSelector(reportNameValuePairs: OnyxEntry<OnyxTypes.ReportNameValuePairs>) {
+    return {
+        origin: reportNameValuePairs?.origin,
+        originalID: reportNameValuePairs?.originalID,
+        billID: reportNameValuePairs?.billID,
+        conciergeFeedbackForReportActionID: reportNameValuePairs?.conciergeFeedbackForReportActionID,
+    };
+}
+
+/**
+ * Renders the money-request report's unified list (transactions table + report actions). Composes the
+ * view's data/behavior hooks (`useMoneyRequestReportVisibleActions` / `useMoneyRequestReportPagination` /
+ * `useMoneyRequestReportScroll`) with the hooks shared with the chat list (`useUnreadMarker` / `useMarkAsRead`).
+ * Mounted with `key={reportID}` by the wrapper below, so all hook state resets on report switch.
+ */
 function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: MoneyRequestReportActionsListContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const reportScrollManager = useReportScrollManager();
-    // The unified list writes its last item index here (see lastItemIndexRef prop). We jump to the bottom via
-    // scrollToIndex rather than scrollToEnd: scrollToEnd targets an estimated content-end offset, which on a large
-    // list (hundreds of transactions + chat) leaves the bottom blank until it renders/corrects. scrollToIndex
-    // targets the last item directly and renders around it, so the landing is not blank.
-    const lastItemIndexRef = useRef(0);
-    const updateLastItemIndex = useCallback((index: number) => {
-        lastItemIndexRef.current = index;
-    }, []);
-
-    const scrollToBottom = useCallback(() => {
-        if (lastItemIndexRef.current < 0) {
-            return;
-        }
-
-        reportScrollManager.scrollToIndex(lastItemIndexRef.current, {animated: false, viewPosition: 1});
-    }, [reportScrollManager]);
-
-    const didLayout = useRef(false);
     const isFocused = useIsFocused();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
     // The table is visible whenever it's wide, or — on narrow — only when focused (the RHP has closed).
     const isReportVisible = shouldUseNarrowLayout ? isFocused : true;
+    const shouldReserveBulkActionBarSpace = useShouldShowReportBulkActionBar();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const linkedReportActionID = route?.params?.reportActionID;
     const isReportLoadPending = useIsReportLoadPending(reportIDFromRoute);
@@ -111,26 +113,24 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     // Self-subscribe to report, policy, metadata, actions, transactions
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {selector: getStableReportSelector});
+    const reportsParentHierarchy = useReportsParentHierarchy(reportIDFromRoute);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
+    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(report?.policyID)}`, {
+        selector: fullPolicySnapshotLastModifiedSelector,
+    });
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
     const [reportPaginationState] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportIDFromRoute}`);
     const reportID = report?.reportID;
 
     const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, linkedReportActionID);
-    const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
     const {draftReportAction, isDraftPendingCompletion} = useConciergeDraft();
     const draftReportActionID = draftReportAction?.reportActionID;
 
-    const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
-    const reportTransactions = useMemo(() => getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true), [allReportTransactions, reportActions, isOffline]);
-    const transactions = useMemo(
-        () => reportTransactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) ?? [],
-        [reportTransactions, isOffline],
-    );
-    const hasPendingDeletionTransaction = useMemo(
-        () => Object.values(allReportTransactions ?? {}).some((transaction) => transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
-        [allReportTransactions],
+    const {reportActions, reportTransactions, transactions, hasPendingDeletionTransaction, reportTransactionIDs, reportActionIDs} = useMoneyRequestReportData(
+        reportIDFromRoute,
+        unfilteredReportActions,
+        isOffline,
     );
     const [pendingNewTransactionIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {
         selector: pendingNewTransactionIDsSelector,
@@ -138,68 +138,56 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     const newTransactions = useNewTransactions(reportLoadingState?.hasOnceLoadedReportActions, reportTransactions, pendingNewTransactionIDs, reportIDFromRoute, isFocused);
     const showReportActionsLoadingState = reportLoadingState?.isLoadingInitialReportActions && !reportLoadingState?.hasOnceLoadedReportActions;
     const isInitialReportLoadPending = !isOffline && isReportLoadPending && !reportLoadingState?.hasOnceLoadedReportActions;
-    const reportTransactionIDs = useMemo(() => transactions.map((transaction) => transaction.transactionID), [transactions]);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
-    // Opened from the "X Replies" link: land on the latest message instead of the default top of the report.
+    // Set when the report is opened from an "X Replies" link, which should land on the latest message
     const shouldScrollToLatestOnOpen = route?.params?.[REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST] === 'true';
     const scrolledToLatestOnOpenForReportIDRef = useRef<string | undefined>(undefined);
 
     const parentReportAction = useParentReportAction(report);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
-
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], false, reportTransactionIDs);
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions, false, reportTransactionIDs);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
 
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`, {
+        selector: reportNameValuePairsSelector,
+    });
     const shouldShowHarvestCreatedAction = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
-    const [enableScrollToEnd, setEnableScrollToEnd] = useState<boolean>(false);
-    const [lastActionEventId, setLastActionEventId] = useState<string>('');
-    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
+    const isInvoiceLinkedToBill = isLinkedToBillSelector(reportNameValuePairs);
 
     const {visibleReportActions, visibleReportActionsNewestFirst, lastAction, firstVisibleReportActionID} = useMoneyRequestReportVisibleActions({
         reportID,
         reportActions,
         reportTransactionIDs,
         canPerformWriteAction: !!canPerformWriteAction,
-        shouldShowHarvestCreatedAction,
+        shouldShowCreatedAction: shouldShowHarvestCreatedAction || isBillPayReport(reportStable, isInvoiceLinkedToBill),
         isOffline,
+        isWaitingOnBankAccount: !!report?.isWaitingOnBankAccount,
     });
 
-    const {scrollOffsetRef} = useActionListContext();
     const listRef = useActionListRef();
+    const didLayout = useRef(false);
 
-    const scrollingVerticalBottomOffset = useRef(0);
-    const stickToBottomRef = useRef(false);
-    const stickToBottomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    // Set when the user taps "Latest messages"; the report is marked as read only once the scroll actually reaches the bottom.
-    const pendingMarkAsReadRef = useRef(false);
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
     const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated;
 
-    const reportActionIDs = useMemo(() => {
-        return reportActions?.map((action) => action.reportActionID) ?? [];
-    }, [reportActions]);
-
     const conciergeFeedbackForReportActionID = reportNameValuePairs?.conciergeFeedbackForReportActionID;
 
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+
+    // An agent account can be opened through Copilot, and the agent must not rate its own replies
+    const actorAccountIDs = [...new Set(visibleReportActionsNewestFirst.map((action) => action.actorAccountID))].filter((accountID) => accountID !== currentUserAccountID);
+    const [customAgentAccountIDs = getEmptyArray<number>()] = usePersonalDetailsByIDs(actorAccountIDs, getCustomAgentAccountIDs);
+
     // Skip inside the thread the backend opens after a thumbs down, while a Concierge answer is still streaming, and while newer actions are not loaded because the newest reply may not be in the list yet
-    const latestConciergeFeedbackActionID = useMemo(
-        () =>
-            conciergeFeedbackForReportActionID || isDraftPendingCompletion || hasNewerActions
-                ? undefined
-                : getLatestConciergeFeedbackActionID(visibleReportActionsNewestFirst, reportActionIDs),
-        [conciergeFeedbackForReportActionID, isDraftPendingCompletion, hasNewerActions, visibleReportActionsNewestFirst, reportActionIDs],
-    );
+    const latestConciergeFeedbackActionIDs =
+        conciergeFeedbackForReportActionID || isDraftPendingCompletion || hasNewerActions
+            ? getEmptyArray<string>()
+            : getFeedbackPromptActionIDs(visibleReportActionsNewestFirst, reportActionIDs, customAgentAccountIDs);
 
     const {onStartReached, onEndReached} = useMoneyRequestReportPagination({
         reportID,
@@ -213,18 +201,8 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     });
 
     const [hasScrolledOverThreshold, setHasScrolledOverThreshold] = useState(false);
-    const listLayoutHeightRef = useRef(0);
-    const listContentHeightRef = useRef(0);
-    const listScrollYRef = useRef(0);
 
-    const syncBottomOffset = () => {
-        const bottomOffset = listContentHeightRef.current - listLayoutHeightRef.current - listScrollYRef.current;
-        scrollingVerticalBottomOffset.current = bottomOffset;
-        scrollOffsetRef.current = bottomOffset;
-        setHasScrolledOverThreshold(bottomOffset >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
-    };
-
-    const {unreadMarkerReportActionID, unreadMarkerReportActionIndex} = useUnreadMarker({
+    const {unreadMarkerReportActionID} = useUnreadMarker({
         reportID: reportID ?? reportIDFromRoute ?? '',
         sortedVisibleReportActions: visibleReportActions,
         isReversed: true,
@@ -233,6 +211,21 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         isScrolledOverThreshold: hasScrolledOverThreshold,
         hasOnceLoadedReportActions: !!reportLoadingState?.hasOnceLoadedReportActions,
     });
+
+    const {
+        displayReportActions,
+        runsByAnchorReportActionID,
+        expandedSystemMessageReportActionIDs,
+        unreadMarkerReportActionIndex,
+        expandSystemMessageRun,
+        focusRequestedReportActionID,
+        onExpandedSystemMessageReady,
+    } = useReportActionsPresentation({
+        visibleReportActions,
+        linkedReportActionID,
+        unreadMarkerReportActionID,
+    });
+    const canonicalIndexByReportActionID = new Map(visibleReportActions.map((action, index) => [action.reportActionID, index]));
 
     const {markNewestActionAsRead, completeSkippedMarkAsRead} = useMarkAsRead({
         reportID: reportID ?? reportIDFromRoute ?? '',
@@ -246,144 +239,89 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         shouldRequireScreenFocus: true,
     });
 
-    const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
-        reportID: reportID ?? reportIDFromRoute ?? '',
-        currentVerticalScrollingOffsetRef: scrollingVerticalBottomOffset,
-        onUnreadActionVisible: completeSkippedMarkAsRead,
-        unreadMarkerReportActionIndex,
-        isInverted: false,
-        hasNewerActions,
-        onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-            const {layoutMeasurement, contentSize, contentOffset} = event.nativeEvent;
-
-            /**
-             * Count the diff between current scroll position and the bottom of the list.
-             * Diff == (height of all items in the list) - (height of the layout with the list) - (how far user scrolled)
-             */
-            listContentHeightRef.current = contentSize.height;
-            listLayoutHeightRef.current = layoutMeasurement.height;
-            listScrollYRef.current = contentOffset.y;
-            syncBottomOffset();
-
-            // Mark the report as read only once the scroll has actually reached the bottom. The jump fired by
-            // "Latest messages" settles over several frames as deferred items hydrate, so we wait for the real end.
-            if (pendingMarkAsReadRef.current && scrollingVerticalBottomOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD) {
-                pendingMarkAsReadRef.current = false;
-                markNewestActionAsRead();
-            }
-        },
-    });
-
-    useScrollToEndOnNewMessageReceived({
-        sizeChangeType: 'grewFromReportActions',
-        scrollOffsetRef,
-        lastActionID: lastAction?.reportActionID,
-        visibleActionsLength: visibleReportActions.length,
-        reportActionsLength: reportActions.length,
-        hasNewestReportAction,
-        setIsFloatingMessageCounterVisible,
-        scrollToEnd: scrollToBottom,
+    const {
+        isFloatingMessageCounterVisible,
+        trackVerticalScrolling,
+        onViewableItemsChanged,
+        scrollToLatestMessages,
+        onListContentSizeChange,
+        onListScrollBeginDrag,
+        updateLastItemIndex,
+        scrollToBottom,
+        onListLayout: syncBottomOffsetFromLayout,
+    } = useMoneyRequestReportScroll({
+        reportID,
+        shouldBeAlignedToTop: shouldReportAlignToTop(report, parentReportAction),
         resetKey: reportID ?? reportIDFromRoute ?? '',
+        visibleReportActions,
+        reportActionsLength: reportActions.length,
+        lastAction,
+        hasNewestReportAction,
+        hasNewerActions,
+        unreadMarkerReportActionIndex,
+        onScrolledOverThresholdChange: setHasScrolledOverThreshold,
+        markNewestActionAsRead,
+        completeSkippedMarkAsRead,
+        fullPolicySnapshot: report?.policyID && fullPolicySnapshotLastModified ? {policyID: report.policyID, lastModified: fullPolicySnapshotLastModified} : undefined,
     });
 
-    // The indicator renders in the list footer, below the row scrollToBottom targets, so only
-    // scrollToEnd reveals it. This list is not inverted, so nothing sticks to the bottom for us.
-    const {candidateAgentIDs} = useAgentZeroStatus();
-    const isThinkingIndicatorVisible = candidateAgentIDs.length > 0;
-    // Scroll once per appearance: the label changes many times per run, and re-firing would yank
-    // the viewport away from a user who has since scrolled up.
-    const hasScrolledForThinkingIndicatorRef = useRef(false);
-    useEffect(() => {
-        if (!isThinkingIndicatorVisible) {
-            hasScrolledForThinkingIndicatorRef.current = false;
+    const [editScrollRequestID, setEditScrollRequestID] = useState(0);
+    const completedEditScrollRequestIDRef = useRef(0);
+    const requestScrollToNewestAfterEdit = () => {
+        // Force a layout commit even when closing the editor leaves the row's height unchanged.
+        setEditScrollRequestID((requestID) => requestID + 1);
+    };
+    const onCommitLayoutEffect = () => {
+        if (editScrollRequestID <= completedEditScrollRequestIDRef.current) {
             return;
         }
-        if (hasScrolledForThinkingIndicatorRef.current || scrollingVerticalBottomOffset.current >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD) {
+        completedEditScrollRequestIDRef.current = editScrollRequestID;
+        scrollToBottom();
+    };
+
+    // Wait for the actions to arrive before jumping, and clear the route param afterwards so a later remount
+    // doesn't yank the user back down.
+    useEffect(() => {
+        if (!shouldScrollToLatestOnOpen || scrolledToLatestOnOpenForReportIDRef.current === reportIDFromRoute || visibleReportActions.length === 0) {
             return;
         }
-        hasScrolledForThinkingIndicatorRef.current = true;
+        scrolledToLatestOnOpenForReportIDRef.current = reportIDFromRoute;
+        scrollToLatestMessages();
+        Navigation.setParams({[REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST]: undefined});
+    }, [shouldScrollToLatestOnOpen, visibleReportActions.length, scrollToLatestMessages, reportIDFromRoute]);
 
-        // Wait for the footer to lay out, otherwise the content hasn't grown yet and there is
-        // nothing to scroll to.
-        const timeoutID = setTimeout(() => {
-            reportScrollManager.scrollToEnd();
-        }, DELAY_FOR_SCROLLING_TO_END);
+    const renderReportAction = (reportAction: OnyxTypes.ReportAction, indexWithinReportActions: number) => {
+        const canonicalIndex = canonicalIndexByReportActionID.get(reportAction.reportActionID) ?? indexWithinReportActions;
+        const systemMessageRun = runsByAnchorReportActionID.get(reportAction.reportActionID);
+        const previousReportAction = indexWithinReportActions > 0 ? displayReportActions.at(indexWithinReportActions - 1) : undefined;
+        const previousRun = previousReportAction ? runsByAnchorReportActionID.get(previousReportAction.reportActionID) : undefined;
+        const isAfterCollapsedRun = indexWithinReportActions > 0 && !!previousRun && !previousRun.isExpanded;
 
-        return () => clearTimeout(timeoutID);
-    }, [isThinkingIndicatorVisible, reportScrollManager]);
+        const displayAsGroup =
+            !isAfterCollapsedRun &&
+            !shouldKeepBillPayActorHeader(reportAction, previousReportAction, reportStable, isInvoiceLinkedToBill) &&
+            !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, canonicalIndex, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
+            hasNextActionMadeBySameActor(visibleReportActions, canonicalIndex, isOffline);
+        const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
+        const isNewestReportAction = indexWithinReportActions === displayReportActions.length - 1;
 
-    const scrollToBottomForCurrentUserAction = useCallback(
-        (isFromCurrentUser: boolean, reportAction?: OnyxTypes.ReportAction) => {
-            TransitionTracker.runAfterTransitions({
-                callback: () => {
-                    setIsFloatingMessageCounterVisible(false);
-                    // If a new comment is added from the current user, scroll to the bottom, otherwise leave the user position unchanged
-                    if (!isFromCurrentUser || reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) {
-                        return;
-                    }
-
-                    // We want to scroll to the end of the list where the newest message is. We route through the indexed
-                    // scrollToBottom (scrollToIndex) rather than scrollToEnd because scrollToEnd targets an estimated
-                    // content-end offset that leaves the bottom blank on large transaction+chat lists. We still delay so
-                    // the just-sent item has landed in the data before we jump.
-                    const index = visibleReportActions.findIndex((item) => item.reportActionID === reportAction?.reportActionID);
-                    if (index !== -1) {
-                        setTimeout(() => {
-                            scrollToBottom();
-                        }, DELAY_FOR_SCROLLING_TO_END);
-                    } else {
-                        setEnableScrollToEnd(true);
-                        setLastActionEventId(reportAction?.reportActionID);
-                    }
-                },
-            });
-        },
-        [scrollToBottom, setIsFloatingMessageCounterVisible, visibleReportActions],
-    );
-
-    useEffect(() => {
-        if (!report?.reportID) {
-            return;
-        }
-        // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.ts. This allows us to maintain
-        // a single source of truth for the "new action" event instead of trying to derive that a new action has appeared from looking at props.
-        const unsubscribe = subscribeToNewActionEvent(report.reportID, scrollToBottomForCurrentUserAction);
-
-        return () => {
-            if (!unsubscribe) {
-                return;
-            }
-            unsubscribe();
-        };
-
-        // This effect handles subscribing to events, so we only want to run it on mount, and in case reportID changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [report?.reportID]);
-
-    useEffect(() => {
-        const index = visibleReportActions.findIndex((item) => item.reportActionID === lastActionEventId);
-        if (enableScrollToEnd && index !== -1) {
-            setTimeout(() => {
-                scrollToBottom();
-            }, DELAY_FOR_SCROLLING_TO_END);
-            setEnableScrollToEnd(false);
-        }
-    }, [visibleReportActions, lastActionEventId, enableScrollToEnd, scrollToBottom]);
-
-    const renderReportAction = useCallback(
-        (reportAction: OnyxTypes.ReportAction, indexWithinReportActions: number) => {
-            const displayAsGroup =
-                !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, indexWithinReportActions, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
-                hasNextActionMadeBySameActor(visibleReportActions, indexWithinReportActions, isOffline);
-            const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
-            const isNewestReportAction = indexWithinReportActions === visibleReportActions.length - 1;
-
-            return (
-                <ReportActionScrollToNewestContext.Provider value={scrollToBottom}>
-                    <ReportActionPositionContextProvider
-                        index={indexWithinReportActions}
-                        isNewest={isNewestReportAction}
-                    >
+        return (
+            <ReportActionScrollToNewestContext.Provider value={requestScrollToNewestAfterEdit}>
+                <ReportActionPositionContextProvider
+                    index={indexWithinReportActions}
+                    isNewest={isNewestReportAction}
+                >
+                    {systemMessageRun && !systemMessageRun.isExpanded ? (
+                        <CollapsedSystemMessages
+                            count={systemMessageRun.reportActionIDs.length}
+                            earliestReportAction={systemMessageRun.earliestReportAction}
+                            report={reportStable}
+                            onPress={() => expandSystemMessageRun(systemMessageRun.reportActionIDs)}
+                            unreadMarkerReportActionID={
+                                unreadMarkerReportActionID && systemMessageRun.reportActionIDs.includes(unreadMarkerReportActionID) ? unreadMarkerReportActionID : undefined
+                            }
+                        />
+                    ) : (
                         <ReportActionsListItemRenderer
                             reportAction={reportAction}
                             parentReportAction={parentReportAction}
@@ -399,125 +337,31 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
                             linkedReportActionID={linkedReportActionID}
                             isHarvestCreatedExpenseReport={shouldShowHarvestCreatedAction}
                             shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
-                            isLatestConciergeFeedbackAction={!!latestConciergeFeedbackActionID && latestConciergeFeedbackActionID === reportAction.reportActionID}
+                            isLatestConciergeFeedbackAction={latestConciergeFeedbackActionIDs.includes(reportAction.reportActionID)}
+                            reportsParentHierarchy={reportsParentHierarchy}
+                            onExpandedSystemMessageReady={
+                                reportAction.reportActionID === focusRequestedReportActionID ? (target) => onExpandedSystemMessageReady(reportAction.reportActionID, target) : undefined
+                            }
                         />
-                    </ReportActionPositionContextProvider>
-                </ReportActionScrollToNewestContext.Provider>
-            );
-        },
-        [
-            visibleReportActions,
-            parentReportAction,
-            reportStable,
-            chatReport,
-            isOffline,
-            transactionThreadReport,
-            unreadMarkerReportActionID,
-            firstVisibleReportActionID,
-            linkedReportActionID,
-            shouldShowHarvestCreatedAction,
-            draftReportActionID,
-            isDraftPendingCompletion,
-            latestConciergeFeedbackActionID,
-            scrollToBottom,
-        ],
-    );
-
-    const reportActionsExtraData = useMemo(
-        () => [draftReportActionID, isDraftPendingCompletion, latestConciergeFeedbackActionID],
-        [draftReportActionID, isDraftPendingCompletion, latestConciergeFeedbackActionID],
-    );
-
-    const scrollToLatestMessages = useCallback(() => {
-        setIsFloatingMessageCounterVisible(false);
-
-        stickToBottomRef.current = true;
-        if (stickToBottomTimeoutRef.current) {
-            clearTimeout(stickToBottomTimeoutRef.current);
-        }
-        // Safety net: stop pinning after deferred content has had time to settle, so a much later
-        // unrelated layout change doesn't yank the user back down.
-        stickToBottomTimeoutRef.current = setTimeout(() => {
-            stickToBottomRef.current = false;
-        }, 2000);
-
-        if (!hasNewestReportAction) {
-            openReport({
-                reportID,
-                introSelected,
-                conciergeChat,
-                betas,
-                hasReportActions: true,
-                currentUserAccountID,
-                isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
-                hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-            });
-            scrollToBottom();
-            return;
-        }
-
-        // Defer marking the report as read until the scroll actually reaches the bottom (handled in onTrackScrolling).
-        pendingMarkAsReadRef.current = true;
-        scrollToBottom();
-    }, [
-        setIsFloatingMessageCounterVisible,
-        hasNewestReportAction,
-        scrollToBottom,
-        reportID,
-        introSelected,
-        conciergeChat,
-        betas,
-        currentUserAccountID,
-        guidedSetupAndTourStatus?.isSelfTourViewed,
-        guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-    ]);
-
-    useEffect(() => {
-        return () => {
-            if (!stickToBottomTimeoutRef.current) {
-                return;
-            }
-            clearTimeout(stickToBottomTimeoutRef.current);
-        };
-    }, []);
-
-    // When the report is opened from the "X Replies" link, scroll to the latest message once the actions are
-    // available (this list otherwise opens at the top). scrollToLatestMessages pins to the bottom while the
-    // deferred content settles, mirroring the floating "new messages" button. We clear the route param afterwards
-    // so a later re-render or remount doesn't yank the user back down.
-    useEffect(() => {
-        if (!shouldScrollToLatestOnOpen || scrolledToLatestOnOpenForReportIDRef.current === reportIDFromRoute || visibleReportActions.length === 0) {
-            return;
-        }
-        scrolledToLatestOnOpenForReportIDRef.current = reportIDFromRoute;
-        scrollToLatestMessages();
-        Navigation.setParams({[REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST]: undefined});
-    }, [shouldScrollToLatestOnOpen, visibleReportActions.length, scrollToLatestMessages, reportIDFromRoute]);
-
-    const onListContentSizeChange = (_width: number, height: number) => {
-        listContentHeightRef.current = height;
-        syncBottomOffset();
-
-        if (!stickToBottomRef.current) {
-            return;
-        }
-        scrollToBottom();
+                    )}
+                </ReportActionPositionContextProvider>
+            </ReportActionScrollToNewestContext.Provider>
+        );
     };
 
-    const onListScrollBeginDrag = () => {
-        stickToBottomRef.current = false;
-        // The user scrolled away before reaching the bottom, so cancel the pending read.
-        pendingMarkAsReadRef.current = false;
-        if (stickToBottomTimeoutRef.current) {
-            clearTimeout(stickToBottomTimeoutRef.current);
-            stickToBottomTimeoutRef.current = null;
-        }
-    };
+    const reportActionsExtraData = [
+        draftReportActionID,
+        isDraftPendingCompletion,
+        latestConciergeFeedbackActionIDs,
+        expandedSystemMessageReportActionIDs,
+        unreadMarkerReportActionID,
+        focusRequestedReportActionID,
+    ];
 
     /**
      * Runs when the FlatList finishes laying out
      */
-    const recordTimeToMeasureItemLayout = useCallback(() => {
+    const recordTimeToMeasureItemLayout = () => {
         if (didLayout.current || !reportIDFromRoute) {
             return;
         }
@@ -525,15 +369,14 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         didLayout.current = true;
 
         markOpenReportEnd(reportIDFromRoute, report, {warm: true});
-    }, [reportIDFromRoute, report]);
+    };
 
     const onListLayout = (event: LayoutChangeEvent) => {
-        listLayoutHeightRef.current = event.nativeEvent.layout.height;
-        syncBottomOffset();
+        syncBottomOffsetFromLayout(event);
         recordTimeToMeasureItemLayout();
     };
 
-    const isReportEmpty = isEmpty(visibleReportActions) && isEmpty(transactions) && !isInitialReportLoadPending;
+    const isReportEmpty = visibleReportActions.length === 0 && transactions.length === 0 && !isInitialReportLoadPending;
     const showEmptyState = isReportEmpty;
 
     if (!report) {
@@ -547,13 +390,20 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         rules,
     });
 
+    // The narrow layout puts its selection controls in a header above the list, while the wide layout floats a bar over
+    // the end of it. The floating bar has to follow the list here rather than lead it, or Tab reaches it only after the
+    // rest of the app has been walked through and wrapped back around.
+    const selectionToolbar = (
+        <SelectionToolbar
+            reportID={report.reportID}
+            transactions={transactions}
+            reportActions={reportActions}
+        />
+    );
+
     return (
         <View style={[styles.flex1]}>
-            <SelectionToolbar
-                reportID={report.reportID}
-                transactions={transactions}
-                reportActions={reportActions}
-            />
+            {shouldUseNarrowLayout && selectionToolbar}
             <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
                 <FloatingMessageCounter
                     hasNewMessages={!!unreadMarkerReportActionID}
@@ -583,28 +433,32 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
                         policy={policy}
                         hasComments={visibleReportActions.length > 0}
                         isLoadingInitialReportActions={showReportActionsLoadingState}
-                        visibleReportActions={visibleReportActions}
+                        visibleReportActions={displayReportActions}
                         renderReportAction={renderReportAction}
                         reportActionsExtraData={reportActionsExtraData}
                         linkedReportActionID={linkedReportActionID}
+                        focusRequestedReportActionID={focusRequestedReportActionID}
                         listRef={listRef}
                         onLastItemIndexChange={updateLastItemIndex}
                         accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                         onListLayout={onListLayout}
+                        onCommitLayoutEffect={onCommitLayoutEffect}
                         onScroll={trackVerticalScrolling}
                         onScrollBeginDrag={onListScrollBeginDrag}
                         onContentSizeChange={onListContentSizeChange}
                         onViewableItemsChanged={onViewableItemsChanged}
                         onEndReached={onEndReached}
                         onStartReached={onStartReached}
-                        contentContainerStyle={shouldUseNarrowLayout ? styles.pt4 : styles.pt3}
+                        // 20px between the report header and the first row of content, which is the report field inputs when the report has fields.
+                        contentContainerStyle={[styles.pt5, shouldReserveBulkActionBarSpace && styles.bulkActionBarListSpacing]}
                         isLoadingInitialActions={isInitialReportLoadPending}
                         /* This list is not inverted, so the footer is the bottom of the message feed —
-                           the same position the indicator occupies in the inverted ReportActionsList. */
+                           the same position the indicator occupies in ReportActionsList. */
                         listFooterComponent={<ConciergeThinkingMessage reportID={report.reportID} />}
                     />
                 )}
             </View>
+            {!shouldUseNarrowLayout && selectionToolbar}
         </View>
     );
 }

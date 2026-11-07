@@ -19,6 +19,7 @@ This document covers **how the queue works today**. For sibling concerns:
 - **How the app decides it is offline** (the hard-stop model, failure tracking, reachability) → [Network State Detection](NETWORK_STATE_DETECTION.md).
 - **How features should behave when offline** (optimistic UX patterns A/B/C/D) → [Offline UX Patterns](philosophies/OFFLINE.md).
 - **How screens derive loading state from the queue** (the `PERSISTED_REQUESTS` / `PERSISTED_ONGOING_REQUESTS` consumer hooks, and the READ-command exception) → [Deriving Loading State From the Request Queue](LOADING_STATE.md).
+- [Onyx update manager](ONYX_UPDATE_MANAGER.md) explains server update IDs and replaying deferred updates.
 
 This is an observational reference. Where current behavior diverges from apparent intent, that is noted neutrally in a **Sharp edges** subsection on the relevant block. All references use module and function **names**, not line numbers, so the doc survives refactors. Read it in terms of blocks and their relationships.
 
@@ -254,7 +255,9 @@ These are **two distinct deferral mechanisms** that are easy to confuse.
 
 **Problem `queueFlushedData` solves.** Apply a small piece of data **only after a full drain**: mark the app as loaded only once the queue has actually emptied, not mid-drain.
 
-**How `queueFlushedData` works.** It is a **distinct, Onyx-persisted** buffer (`QUEUE_FLUSHED_DATA`), separate from the in-memory `QueuedOnyxUpdates`. `SequentialQueue.saveQueueFlushedData` appends a request's `queueFlushedData` field only when the response's `jsonCode` is `CONST.JSON_CODE.SUCCESS`; a resolved-but-failed response (`HttpUtils.xhr` resolves application-level failures instead of rejecting them) does not save it, so it cannot wrongly mark `HAS_LOADED_APP` true on the next boot. The queue applies it via `Onyx.update` and clears it only when fully drained (after `flushOnyxUpdatesQueue`). Its sole producer is `App.getOnyxDataForOpenOrReconnect` (`OPEN_APP` / `ReconnectApp`), currently carrying exactly one entry: a merge of `HAS_LOADED_APP = true`.
+**How `queueFlushedData` works.** It is a **distinct, Onyx-persisted** buffer (`QUEUE_FLUSHED_DATA`), separate from the in-memory `QueuedOnyxUpdates`. `SequentialQueue.saveQueueFlushedData` appends whatever it is handed, and `process()` hands it a request's `queueFlushedData` field only when the response's `jsonCode` is `CONST.JSON_CODE.SUCCESS`; a resolved-but-failed response (`HttpUtils.xhr` resolves application-level failures instead of rejecting them) does not save it, so it cannot wrongly mark `HAS_LOADED_APP` true on the next boot. The queue applies it via `Onyx.update` and clears it only when fully drained (after `flushOnyxUpdatesQueue`). Its sole producer is `App.getOnyxDataForOpenOrReconnect` (`OPEN_APP` / `ReconnectApp`), currently carrying exactly one entry: a merge of `HAS_LOADED_APP = true`.
+
+**The failure modal on a resolved-but-failed `OPEN_APP`.** A first app load that fails leaves nothing on screen but a skeleton, so the queue raises a blocking modal to say so. Two conditions narrow it to that case. The app must never have loaded, which keeps the modal away from a failed account or delegate switch, where the user still has a working app. And no other module may have prompted about the same response already, which `hasResponseAlreadyPromptedUser` decides.
 
 **Sharp edges.**
 - Both apply **only** when the queue reaches fully-empty. Under sustained WRITE pressure neither applies, so `HAS_LOADED_APP` never flips and the buffers accumulate.
@@ -289,7 +292,7 @@ The blocks above describe what the queue does; this is the inbound surface: who 
 - `onCrossTabRequestsMerged`: another tab enqueued a genuinely-new request.
 - The `PERSISTED_ONGOING_REQUESTS` connect callback: post-init, when a **new** ongoing request appears (e.g. observed from another tab), it re-fires the registered initialization callback, which is `flush`.
 - `Reconnect`, on **two** edges: the offline→online `NetworkState` transition and the app-became-active listener. Both are deliberately decoupled from `reconnect()`'s data-sync (`openApp`/`reconnectApp`), which never flushes.
-- `Network/index` startup: `ActiveClientManager.isReady().then(flush)`, the primary "drain whatever survived the last session, once we know who the leader is" trigger.
+- `Network/index` startup: `ActiveClientManager.isReady().then(flush)`, the primary "drain whatever survived the last session, once we know who the leader is" trigger. After that, `ActiveClientManager.onBecomeLeader(flush)` drains the queue each time this tab becomes the leader later (for example when the leader tab closes, or after the Web Lock is granted on focus).
 - The **native background-fetch wake-up** (`backgroundTask`), which flushes on a native scheduler tick.
 
 **Two ordering gates (don't conflate them):**
@@ -376,7 +379,7 @@ Three concerns cut across every block.
 
 **Problem it solves.** On web, `PERSISTED_REQUESTS` is a single Onyx key replicated to **every tab** of one browser. Without coordination, N tabs would each drain the shared queue and send every request N times.
 
-**How it works today.** `flush()` hard-gates on `isClientTheLeader()` (the last client GUID (globally unique identifier) in the shared active-clients list wins, with an `isPromotingNewLeader` carve-out: during the `beforeunload` handoff the departing leader keeps answering `true` even when its GUID is no longer last). Only the leader drains; followers may still **enqueue** (their genuinely-new requests merge cross-tab via `requestID` not in `knownRequestIDs`) but never send. Leadership is checked **once** per flush, before the running flag flips.
+**How it works today.** `flush()` hard-gates on `isClientTheLeader()`. The leader is the tab holding the `activeClientLeader` [Web Lock](https://developer.mozilla.org/en-US/docs/Web/API/Web_Locks_API). Every `init()` (page load, tab focus) steals the lock, so the most recently opened or focused tab leads, and the other tabs wait in line for it. The browser releases the lock when its tab closes or crashes, so the next waiting tab takes over and a dead tab can never keep leadership. While tabs from a build before Web Locks are still open, the lock holder steps aside whenever an older build's ID is last in the active-clients list (that tab leads by its own rule), and takes leadership back on its next `init()`. In browsers without Web Locks, the last client GUID (globally unique identifier) in the shared active-clients list wins, with an `isPromotingNewLeader` carve-out: during the `beforeunload` handoff the departing leader keeps answering `true` even when its GUID is no longer last. Only the leader drains; followers may still **enqueue** (their genuinely-new requests merge cross-tab via `requestID` not in `knownRequestIDs`) but never send. Leadership is checked **once** per flush, before the running flag flips.
 
 **Sharp edges.**
 - **Mid-flush leadership change.** Because leadership is checked once and the async `process()` recursion never re-checks, a leader tab closed/refreshed mid-request can hand leadership to a follower that flushes the same shared queue while the old request is still in flight. There is no cross-tab lock on the ongoing request. Duplicate-send avoidance relies on server-side `DUPLICATE_RECORD` / `ALREADY_CREATED` reconciliation, not a lock.

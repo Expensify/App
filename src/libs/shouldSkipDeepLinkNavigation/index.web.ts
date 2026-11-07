@@ -1,5 +1,7 @@
 import ROUTES, {VERIFY_ACCOUNT} from '@src/ROUTES';
 
+import {isTestToolsRoute} from './common';
+
 export default function shouldSkipDeepLinkNavigation(route: string) {
     // When deep-linking to desktop app with `transition` route we don't want to call navigate
     // on the route because it will display an infinite loading indicator.
@@ -11,5 +13,5 @@ export default function shouldSkipDeepLinkNavigation(route: string) {
         return true;
     }
 
-    return false;
+    return isTestToolsRoute(route);
 }

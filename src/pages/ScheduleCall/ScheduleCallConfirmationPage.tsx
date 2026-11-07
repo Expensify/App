@@ -5,7 +5,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithLabel from '@components/MenuItem/presets/MenuItemWithLabel';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -75,7 +74,7 @@ function ScheduleCallConfirmationPage() {
 
     let dateTimeString = '';
     if (scheduleCallDraft?.timeSlot && scheduleCallDraft.date) {
-        const dateString = DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft.date, userTimezone, CONST.DATE.MONTH_DAY_YEAR_FORMAT, {locale: dateFnsLocale});
+        const dateString = DateUtils.formatToLongDateInTimeZone(scheduleCallDraft.date, userTimezone, dateFnsLocale);
         const timeString = `${DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft?.timeSlot, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})} - ${DateUtils.formatInTimeZoneWithFallback(
             addMinutes(scheduleCallDraft?.timeSlot, 30),
             userTimezone,
@@ -126,12 +125,10 @@ function ScheduleCallConfirmationPage() {
                             </MenuItem.Content>
                         </MenuItem.Row>
                     </MenuItemWithLabel>
-                    <MenuItemWithTopDescription
-                        title={dateTimeString}
-                        description={translate('scheduledCall.confirmation.dateTime')}
-                        shouldTruncateTitle={false}
-                        numberOfLinesTitle={2}
-                        shouldShowRightIcon
+                    <MenuItemField
+                        name={translate('scheduledCall.confirmation.dateTime')}
+                        value={dateTimeString}
+                        numberOfLinesValue={2}
                         onPress={() => {
                             if (!route?.params?.reportID) {
                                 return;

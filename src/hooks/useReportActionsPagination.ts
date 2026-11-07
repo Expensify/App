@@ -10,9 +10,10 @@ import type {Report, ReportAction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useMemo, useState} from 'react';
+import {useState} from 'react';
 
 import {useCurrencyListActions} from './useCurrencyList';
+import useDelegateAccountID from './useDelegateAccountID';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePaginatedReportActions from './usePaginatedReportActions';
@@ -23,6 +24,7 @@ type UseReportActionsPaginationResult = {
     reportActions: ReportAction[];
     allReportActions: ReportAction[];
     allReportActionIDs: string[];
+    persistedReportActionIDs: string[];
     hasOlderActions: boolean;
     hasNewerActions: boolean;
     sortedAllReportActions: ReportAction[] | undefined;
@@ -39,12 +41,12 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const {isOffline} = useNetwork();
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const delegateAccountID = useDelegateAccountID();
     const parentReportAction = useParentReportAction(report);
 
     const [treatAsNoPaginationAnchor, setTreatAsNoPaginationAnchor] = useState(false);
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
 
     const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction);
 
@@ -59,44 +61,53 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
         treatAsNoPaginationAnchor,
         // Scope the first-defined lastReadTime snapshot to Concierge so the cold-open unread anchor resolves
         // (https://github.com/Expensify/App/issues/93196) without changing regular inbox chat pagination.
-        shouldSnapshotInitialLastReadTime: isConciergeChat,
+        shouldSnapshotInitialLastReadTime: isConciergeChatReport(report, conciergeReportID),
     });
-    const allReportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
+    const thread = useTransactionThread({reportID, report, allReportActions: getFilteredReportActionsForReportView(unfilteredReportActions), isOffline});
 
-    const thread = useTransactionThread({reportID, report, allReportActions, isOffline});
+    const [chatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
+
+    // React Compiler does not memoize a value created before a hook call and used after it, so these are computed again below the last hook.
+    const allReportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+    const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
 
     const isReportTransactionThread = isReportTransactionThreadUtil(report);
 
     const lastAction = allReportActions?.at(-1);
     const shouldAddCreatedAction = !isCreatedAction(lastAction) && (isMoneyRequestReport(report) || isInvoiceReport(report) || isReportTransactionThread || isConciergeChat);
 
-    const [chatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
-    const reportPreviewAction = useMemo(
-        () => getReportPreviewReportAction(report?.chatReportID, report?.reportID, chatReportActions),
-        [report?.chatReportID, report?.reportID, chatReportActions],
-    );
+    const reportPreviewAction = getReportPreviewReportAction(report?.chatReportID, report?.reportID, chatReportActions);
 
     // When we are offline before opening an IOU/Expense report,
     // the total of the report and sometimes the expense aren't displayed because these actions aren't returned until `OpenReport` API is complete.
     // We generate a fake created action here if it doesn't exist to display the total whenever possible because the total just depends on report data
     // and we also generate an expense action if the number of expenses in allReportActions is less than the total number of expenses
     // to display at least one expense action to match the total data.
-    const reportActionsToDisplay = useMemo(
-        () => getReportActionsToDisplay(allReportActions, lastAction, report, reportPreviewAction, thread.transactionThreadReport, shouldAddCreatedAction, getCurrencyDecimals),
-        [allReportActions, lastAction, report, reportPreviewAction, shouldAddCreatedAction, thread.transactionThreadReport, getCurrencyDecimals],
+    const reportActionsToDisplay = getReportActionsToDisplay(
+        allReportActions,
+        lastAction,
+        report,
+        reportPreviewAction,
+        thread.transactionThreadReport,
+        shouldAddCreatedAction,
+        getCurrencyDecimals,
+        delegateAccountID,
     );
 
-    const reportActions = useMemo(
-        () => (reportActionsToDisplay ? getCombinedReportActions(reportActionsToDisplay, thread.transactionThreadReportID ?? null, thread.transactionThreadReportActions ?? []) : []),
-        [reportActionsToDisplay, thread.transactionThreadReportActions, thread.transactionThreadReportID],
-    );
+    const reportActions = reportActionsToDisplay
+        ? getCombinedReportActions(reportActionsToDisplay, thread.transactionThreadReportID ?? null, thread.transactionThreadReportActions ?? [])
+        : [];
 
-    const allReportActionIDs = useMemo(() => allReportActions.map((action) => action.reportActionID), [allReportActions]);
+    const allReportActionIDs = allReportActions.map((action) => action.reportActionID);
+    // A one-expense report shows the comments of its transaction thread. Onyx stores those comments under the
+    // reportID of the thread, therefore allReportActionIDs does not contain them.
+    const persistedReportActionIDs = [...allReportActionIDs, ...(thread.transactionThreadReportActions ?? []).map((action) => action.reportActionID)];
 
     return {
         reportActions,
         allReportActions,
         allReportActionIDs,
+        persistedReportActionIDs,
         hasOlderActions,
         hasNewerActions,
         sortedAllReportActions,

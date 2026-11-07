@@ -19,6 +19,7 @@ let deferredAttachmentEdits: OnyxEntry<DeferredAttachmentEdits>;
 let replayDeferredAttachmentEdit: ReplayDeferredAttachmentEdit | undefined;
 
 function deferAttachmentEdit(reportActionID: string, deferredEdit: DeferredAttachmentEdit) {
+    deferredAttachmentEdits = {...deferredAttachmentEdits, [reportActionID]: deferredEdit};
     Onyx.merge(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS, {[reportActionID]: deferredEdit});
 }
 
@@ -27,49 +28,84 @@ function clearDeferredAttachmentEdit(reportActionID: string) {
     if (!deferredAttachmentEdits?.[reportActionID]) {
         return;
     }
+    const remainingEdits = {...deferredAttachmentEdits};
+    delete remainingEdits[reportActionID];
+    deferredAttachmentEdits = remainingEdits;
     Onyx.merge(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS, {[reportActionID]: null});
 }
 
 function watchDeferredAttachmentEdit(reportActionID: string, deferredEdit: DeferredAttachmentEdit) {
     const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${deferredEdit.reportID}` as const;
-    let connection: Connection | undefined;
+    const connections: Connection[] = [];
     let hasStopped = false;
+    let syncedAction: ReportAction | undefined;
+
     const stop = () => {
         hasStopped = true;
         deferredAttachmentEditWatchers.delete(reportActionID);
-        if (connection !== undefined) {
-            Onyx.disconnect(connection);
+        for (const connection of connections.splice(0)) {
+            connection.unsubscribe();
         }
+    };
+    // A subscriber can fire while it is still being connected, so a connection made after the watcher stopped is
+    // disconnected rather than stored.
+    const track = (connection: Connection) => {
+        if (hasStopped) {
+            connection.unsubscribe();
+            return;
+        }
+        connections.push(connection);
     };
     deferredAttachmentEditWatchers.set(reportActionID, stop);
 
+    const replayWhenReady = () => {
+        if (hasStopped || !syncedAction || !replayDeferredAttachmentEdit?.(deferredEdit, syncedAction)) {
+            return;
+        }
+        stop();
+        Onyx.merge(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS, {[reportActionID]: null});
+    };
+
     // We use connectWithoutView because this waits on a background sync and renders nothing itself.
-    connection = Onyx.connectWithoutView({
-        key: reportActionsKey,
-        callback: (reportActions) => {
-            if (hasStopped) {
-                return;
-            }
-            const syncedAction = reportActions?.[reportActionID];
-            if (!syncedAction) {
-                return;
-            }
-            if (!isEmptyObject(syncedAction.errors ?? {})) {
-                stop();
-                Onyx.merge(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS, {[reportActionID]: null});
-                Onyx.merge(reportActionsKey, {[reportActionID]: {pendingAction: null, ...(deferredEdit.originalMessage ? {message: [deferredEdit.originalMessage]} : {})}});
-                return;
-            }
-            if (getReportActionHtml(syncedAction)?.includes(CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE)) {
-                return;
-            }
-            if (!replayDeferredAttachmentEdit?.(deferredEdit, syncedAction)) {
-                return;
-            }
-            stop();
-            Onyx.merge(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS, {[reportActionID]: null});
-        },
-    });
+    track(
+        Onyx.connectWithoutView({
+            key: reportActionsKey,
+            callback: (reportActions) => {
+                if (hasStopped) {
+                    return;
+                }
+                const action = reportActions?.[reportActionID];
+                if (!action) {
+                    return;
+                }
+                if (!isEmptyObject(action.errors ?? {})) {
+                    // The failed Add already puts the action back as it was sent, still pending with its error, so
+                    // touching it here would only take away the faded look `OfflineWithFeedback` gives a failed send.
+                    stop();
+                    Onyx.merge(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS, {[reportActionID]: null});
+                    return;
+                }
+                if (getReportActionHtml(action)?.includes(CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE)) {
+                    return;
+                }
+                syncedAction = action;
+                replayWhenReady();
+            },
+        }),
+    );
+
+    // The replay also needs the report, and on a cold start it can arrive after the action. Nothing else would wake
+    // the watcher then, so the edit would sit deferred until the app restarted.
+    track(
+        Onyx.connectWithoutView({
+            key: `${ONYXKEYS.COLLECTION.REPORT}${deferredEdit.reportID}` as const,
+            // The replay reads the report through another subscriber's cache, so the retry waits for this update to
+            // finish reaching every subscriber.
+            callback: () => {
+                Promise.resolve().then(replayWhenReady);
+            },
+        }),
+    );
 }
 
 function startDeferredAttachmentEditReplays(replay: ReplayDeferredAttachmentEdit) {

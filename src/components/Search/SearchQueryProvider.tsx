@@ -4,14 +4,13 @@ import useLoadSearchCategoryData from '@hooks/useLoadSearchCategoryData';
 import useOnyx from '@hooks/useOnyx';
 import usePreviousDefined from '@hooks/usePreviousDefined';
 import useRootNavigationState from '@hooks/useRootNavigationState';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 
-import {getDeepestFocusedScreen} from '@libs/Navigation/Navigation';
-import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildSearchQueryString, getQueryWithoutGroupBy, getSearchRootParamsFromRootState} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches, getSuggestedSearchesVisibility} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
 import {defaultExpensifyCardSelector} from '@src/selectors/Card';
 
 import type {NavigationState} from '@react-navigation/routers';
@@ -28,24 +27,43 @@ type SearchQueryProviderProps = {
     children: React.ReactNode;
 };
 
-function selectSearchQueryParam(state: NavigationState | undefined) {
-    const focused = getDeepestFocusedScreen(state);
-    return focused?.name === SCREENS.SEARCH.ROOT ? (focused.params?.q as string | undefined) : undefined;
+/**
+ * Joins `q` and `rawQuery` so they can't drift apart. Restoring only `q` would drop `rawFilterList` while keeping the same hash.
+ * Returns `undefined` when no tab navigator has Search state, so `usePreviousDefined` keeps the last real query
+ * instead of resetting to the default. This happens once the Spend navigator is dropped, for example after
+ * "Go to room" and "Go to workspace" push two more tab navigators.
+ */
+function selectSearchQueryParams(state: NavigationState | undefined) {
+    const searchRootParams = getSearchRootParamsFromRootState(state, false);
+    if (!searchRootParams) {
+        return undefined;
+    }
+    return `${searchRootParams.q}${CONST.SEARCH.QUERY_PARAMS_SEPARATOR}${searchRootParams.rawQuery ?? ''}`;
 }
 
-function selectSearchRawQueryParam(state: NavigationState | undefined) {
-    const focused = getDeepestFocusedScreen(state);
-    return focused?.name === SCREENS.SEARCH.ROOT ? (focused.params?.rawQuery as string | undefined) : undefined;
+function splitSearchQueryParams(queryParams: string | undefined) {
+    if (queryParams === undefined) {
+        return {query: undefined, rawQuery: undefined};
+    }
+    const separatorIndex = queryParams.indexOf(CONST.SEARCH.QUERY_PARAMS_SEPARATOR);
+    if (separatorIndex === -1) {
+        return {query: queryParams, rawQuery: undefined};
+    }
+    const rawQuery = queryParams.slice(separatorIndex + CONST.SEARCH.QUERY_PARAMS_SEPARATOR.length);
+    return {query: queryParams.slice(0, separatorIndex), rawQuery: rawQuery || undefined};
 }
 
 function SearchQueryProvider({children}: SearchQueryProviderProps) {
     const navigation = useNavigation();
-    // Extract only the primitive values we need from the focused screen to avoid
-    // re-renders from new object references returned by getDeepestFocusedScreen.
-    const queryParam = useRootNavigationState((state) => selectSearchQueryParam(state ?? navigation.getState()));
-    const rawQueryParam = useRootNavigationState((state) => selectSearchRawQueryParam(state ?? navigation.getState()));
-    const definedQueryParam = usePreviousDefined(queryParam) ?? buildSearchQueryString();
-    const currentSearchQueryJSON = buildSearchQueryJSON(definedQueryParam, rawQueryParam);
+    // Extract only the primitive values we need from the resolved Search root route to avoid
+    // re-renders from new object references returned by getSearchRootParamsFromRootState.
+    const queryParams = useRootNavigationState((state) => selectSearchQueryParams(state ?? navigation.getState()));
+    const {query: queryParam, rawQuery: rawQueryParam} = splitSearchQueryParams(usePreviousDefined(queryParams));
+    const definedQueryParam = queryParam ?? buildSearchQueryString();
+    const parsedSearchQueryJSON = buildSearchQueryJSON(definedQueryParam, rawQueryParam);
+    // Trip rooms can't be grouped, so a group-by from a saved or typed trip query is dropped
+    const shouldDropGroupBy = useShouldReturnTripRooms(parsedSearchQueryJSON?.type) && !!parsedSearchQueryJSON?.groupBy;
+    const currentSearchQueryJSON = shouldDropGroupBy && parsedSearchQueryJSON ? buildSearchQueryJSON(getQueryWithoutGroupBy(parsedSearchQueryJSON), rawQueryParam) : parsedSearchQueryJSON;
     const shouldLoadCategoryData = currentSearchQueryJSON?.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) ?? false;
     useLoadSearchCategoryData({shouldLoad: shouldLoadCategoryData});
 

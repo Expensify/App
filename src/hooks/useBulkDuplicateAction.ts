@@ -2,7 +2,6 @@ import {useSearchSelectionActions} from '@components/Search/SearchContext';
 
 import {bulkDuplicateExpenses} from '@libs/actions/IOU/Duplicate';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
-import {getPolicyExpenseChat} from '@libs/ReportUtils';
 
 import {getMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 
@@ -13,6 +12,7 @@ import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {policyExpenseChatSelector} from '@selectors/Report';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 
 import {useCurrencyListActions} from './useCurrencyList';
@@ -57,7 +57,6 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [personalDetails] = useAllPersonalDetails();
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [targetPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${defaultExpensePolicy?.id}`);
@@ -76,7 +75,7 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
         sourcePolicyIDMap[transactionID] = report?.policyID;
     }
 
-    const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
+    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyExpenseChatSelector(accountID, defaultExpensePolicy?.id)});
     const policyTagList = useMoneyRequestPolicyTagsForReport({report: activePolicyExpenseChat, currentUserAccountID: accountID});
     const participants = getMoneyRequestParticipantsFromReport(activePolicyExpenseChat, accountID);
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
@@ -100,7 +99,6 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
             isSelfTourViewed,
             transactionDrafts,
-            betas,
             recentWaypoints,
             currentUser: {accountID, email: currentUserLogin ?? ''},
             currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,

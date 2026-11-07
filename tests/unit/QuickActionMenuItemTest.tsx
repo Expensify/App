@@ -120,7 +120,7 @@ describe('QuickActionMenuItem', () => {
         await waitForBatchedUpdates();
 
         // The pay-someone quick action resolves the payee name via getDisplayNameForParticipant, which must receive the translate from useLocalize.
-        expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({accountID: AVATAR_ACCOUNT_ID, shouldUseShortForm: true, translate: mockTranslate}));
+        expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({accountID: AVATAR_ACCOUNT_ID, shouldUseShortForm: true, hiddenTranslation: 'common.hidden'}));
         expect(mockTranslate).toHaveBeenCalledWith('quickAction.paySomeone', 'SPY_NAME');
     });
 
@@ -204,7 +204,7 @@ describe('QuickActionMenuItem', () => {
         );
         await waitForBatchedUpdates();
 
-        // getIcons only returns the Concierge icon for a thread when it knows which report is the Concierge DM, so it has to arrive in the last slot.
-        expect(mockGetIcons.mock.calls.at(-1)?.at(11)).toBe(CONCIERGE_REPORT_ID);
+        // getIcons only returns the Concierge icon for a thread when it knows which report is the Concierge DM, so it has to be passed in.
+        expect(mockGetIcons).toHaveBeenLastCalledWith(expect.objectContaining({conciergeReportID: CONCIERGE_REPORT_ID}));
     });
 });

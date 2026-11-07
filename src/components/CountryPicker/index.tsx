@@ -1,12 +1,18 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 
 import type {Option} from '@libs/searchOptions';
 
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useState} from 'react';
 
 import CountrySelectorModal from './CountrySelectorModal';
@@ -19,9 +25,16 @@ type CountryPickerProps = {
 
     /** Form Error description */
     errorText?: string;
+
+    /** Row title */
+    label?: string;
+
+    /** The row cannot be opened for now, such as offline, and shows as dimmed */
+    disabled?: boolean;
 };
 
-function CountryPicker({value, errorText, onInputChange = () => {}}: CountryPickerProps) {
+function CountryPicker({value, errorText, onInputChange = () => {}, label, disabled = false}: CountryPickerProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
@@ -36,14 +49,25 @@ function CountryPicker({value, errorText, onInputChange = () => {}}: CountryPick
 
     return (
         <>
-            <MenuItemWithTopDescription
-                shouldShowRightIcon
-                title={value ? translate(`allCountries.${value}` as TranslationPaths) : undefined}
-                description={translate('common.country')}
-                onPress={() => setIsPickerVisible(true)}
-                brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                errorText={errorText}
-            />
+            <MenuItem.Root
+                onPress={callFunctionIfActionIsAllowed(() => setIsPickerVisible(true), false, session)}
+                isDisabled={disabled}
+                sentryLabel={CONST.SENTRY_LABEL.COUNTRY_PICKER.OPEN}
+            >
+                <MenuItemField.Row
+                    name={label ?? translate('common.country')}
+                    value={value ? translate(`allCountries.${value}` as TranslationPaths) : undefined}
+                >
+                    {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                    <MenuItem.Chevron />
+                </MenuItemField.Row>
+                {!!errorText && (
+                    <MenuItem.HelpText
+                        isError
+                        message={errorText}
+                    />
+                )}
+            </MenuItem.Root>
             <CountrySelectorModal
                 isVisible={isPickerVisible}
                 currentCountry={value ?? ''}

@@ -1,11 +1,10 @@
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
+import useSingleRHPWidth from '@hooks/useSingleRHPWidth';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isMobileChrome, isMobileSafari} from '@libs/Browser';
-
-import variables from '@styles/variables';
 
 import type {StackCardInterpolatedStyle, StackCardInterpolationProps} from '@react-navigation/stack';
 
@@ -28,6 +27,7 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const {sidePanelOffset, sidePanelNVP, isSidePanelTransitionEnded} = useSidePanelState();
+    const {width: singleRHPWidth} = useSingleRHPWidth();
 
     // Narrow mobile browsers compositing the stacked, transparent modal cards can flicker mid-slide on low-end devices.
     // Hardening the animated card (opaque background + dedicated compositor layer) avoids that glitch while keeping the animation.
@@ -52,15 +52,18 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
         // existing behavior that prevents a janky double-animation when the side panel slides in/out.
         const sidePanelGateAllowsEntry = isSidePanelTransitionEnded || !!sidePanelNVP?.openNarrowScreen || !shouldUseNarrowLayout;
 
+        // Wide cards draw their own frame and shadow so the container must not clip them. Narrow still needs the clip to mask the slide.
+        const containerOverflow: 'hidden' | 'visible' = shouldUseNarrowLayout ? 'hidden' : 'visible';
+
         if (enter.kind === 'none' || !sidePanelGateAllowsEntry) {
-            return {containerStyle: {overflow: 'hidden'}, cardStyle};
+            return {containerStyle: {overflow: containerOverflow}, cardStyle};
         }
 
         if (enter.kind === 'fade') {
             return {cardStyle: {...cardStyle, opacity: progress}};
         }
 
-        const widthFallback = shouldUseNarrowLayout ? screen.width : variables.sideBarWidth;
+        const widthFallback = shouldUseNarrowLayout ? screen.width : singleRHPWidth;
         const distancePx = enter.kind === 'slide-and-fade' ? enter.distancePx : widthFallback;
 
         const translateX = Animated.multiply(
@@ -83,7 +86,7 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
         }
 
         return {
-            containerStyle: {overflow: 'hidden'},
+            containerStyle: {overflow: containerOverflow},
             cardStyle,
         };
     };

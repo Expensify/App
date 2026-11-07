@@ -4,6 +4,7 @@ import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReceiptImage from '@components/ReceiptImage';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -68,7 +69,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -147,7 +148,6 @@ function IOURequestStepDistanceOdometer({
     const selfDMReport = useSelfDMReport();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
 
@@ -169,11 +169,25 @@ function IOURequestStepDistanceOdometer({
     if (getPlatform() === CONST.PLATFORM.ANDROID) {
         keyboardAvoidingViewInstanceKey = isFocused ? 'focused' : 'unfocused';
     }
+    // The remount above also resets the ScrollView's scroll position (e.g. after returning from the camera). These refs
+    // live outside the remounted subtree, so they survive it and can restore the offset once the fresh ScrollView mounts.
+    const scrollOffsetRef = useRef(0);
+    const scrollViewRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
+    useEffect(() => {
+        if (scrollOffsetRef.current === 0) {
+            return;
+        }
+        scrollViewRef.current?.scrollTo({y: scrollOffsetRef.current, animated: false});
+    }, [keyboardAvoidingViewInstanceKey]);
     const {keyboardVerticalOffset, onLayout: measureOwnLayout} = useOdometerKeyboardVerticalOffset();
 
-    const shouldUseDefaultExpensePolicy = useMemo(
-        () => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, currentUserAccountIDParam),
-        [iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, currentUserAccountIDParam],
+    const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(
+        iouType,
+        defaultExpensePolicy,
+        amountOwed,
+        userBillingGracePeriodEnds,
+        ownerBillingGracePeriodEnd,
+        currentUserAccountIDParam,
     );
     const shouldAutoReportToDefaultWorkspace = shouldUseDefaultExpensePolicy && (!!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting);
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
@@ -266,7 +280,6 @@ function IOURequestStepDistanceOdometer({
         translate,
         selfDMReport,
         policyForMovingExpenses,
-        betas,
         recentWaypoints,
         introSelected,
         personalOutputCurrency: personalPolicy?.outputCurrency,
@@ -285,7 +298,7 @@ function IOURequestStepDistanceOdometer({
     })();
 
     // Get image source for web (blob URL) or native (URI string)
-    const getImageSource = useCallback((image: FileObject | string | {uri?: string} | undefined): string | undefined => {
+    const getImageSource = (image: FileObject | string | {uri?: string} | undefined): string | undefined => {
         if (!image) {
             return undefined;
         }
@@ -303,10 +316,10 @@ function IOURequestStepDistanceOdometer({
         }
         // Native: Object with uri property (fallback)
         return image?.uri;
-    }, []);
+    };
 
-    const startImageSource = useMemo(() => getImageSource(odometerStartImage), [getImageSource, odometerStartImage]);
-    const endImageSource = useMemo(() => getImageSource(odometerEndImage), [getImageSource, odometerEndImage]);
+    const startImageSource = getImageSource(odometerStartImage);
+    const endImageSource = getImageSource(odometerEndImage);
 
     const buttonText = (() => {
         if (shouldSkipConfirmation) {
@@ -369,13 +382,13 @@ function IOURequestStepDistanceOdometer({
         }
     };
 
-    const navigateBack = useCallback(() => {
+    const navigateBack = () => {
         if (isEditingConfirmation) {
             Navigation.goBack(confirmationRoute);
             return;
         }
         Navigation.goBack();
-    }, [confirmationRoute, isEditingConfirmation]);
+    };
 
     const {handlePressStartImage, handlePressEndImage} = useOdometerImageHandlers({
         action,
@@ -407,7 +420,7 @@ function IOURequestStepDistanceOdometer({
             if (isEditingSplit && transaction) {
                 setDraftSplitTransaction(
                     transaction.transactionID,
-                    splitDraftTransaction,
+                    currentTransaction,
                     {
                         distance: calculatedDistance,
                         odometerStart: start,
@@ -596,7 +609,7 @@ function IOURequestStepDistanceOdometer({
         onVisibilityChange: setIsDiscardModalVisible,
     });
 
-    const handleSaveForLater = useCallback(async () => {
+    const handleSaveForLater = async () => {
         shouldBypassDiscardConfirmationRef.current = true;
 
         const normalizedStart = DistanceRequestUtils.normalizeOdometerText(startReading, fromLocaleDigit);
@@ -627,7 +640,7 @@ function IOURequestStepDistanceOdometer({
             return;
         }
         Navigation.closeRHPFlow();
-    }, [fromLocaleDigit, startReading, endReading, odometerStartImage, odometerEndImage, translate, setFormError]);
+    };
 
     return (
         <StepScreenWrapper
@@ -649,9 +662,15 @@ function IOURequestStepDistanceOdometer({
                 shouldOffsetBottomSafeAreaPadding
                 onLayout={measureOwnLayout}
             >
-                <View
+                <ScrollView
+                    ref={scrollViewRef}
                     testID="odometerContentContainer"
-                    style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween, styles.ph5, styles.pt5, styles.mb5]}
+                    onScroll={(e) => {
+                        scrollOffsetRef.current = e.nativeEvent.contentOffset.y;
+                    }}
+                    scrollEventThrottle={16}
+                    keyboardShouldPersistTaps="handled"
+                    contentContainerStyle={[styles.flexGrow1, styles.justifyContentBetween, styles.ph5, styles.pt5, styles.mb5]}
                 >
                     <View>
                         {/* Start Reading */}
@@ -787,7 +806,7 @@ function IOURequestStepDistanceOdometer({
                             <Button.Text>{buttonText}</Button.Text>
                         </Button>
                     </View>
-                </View>
+                </ScrollView>
             </KeyboardAvoidingView>
         </StepScreenWrapper>
     );

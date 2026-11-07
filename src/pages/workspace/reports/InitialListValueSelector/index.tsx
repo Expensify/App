@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
@@ -24,7 +24,7 @@ type InitialListValueSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLab
     route: Route;
 
     /** Reference to the outer element */
-    ref: ForwardedRef<View>;
+    ref: ForwardedRef<ComponentRef<typeof View>>;
 };
 
 function InitialListValueSelector({value = '', label = '', rightLabel, errorText = '', onInputChange, route, ref}: InitialListValueSelectorProps) {

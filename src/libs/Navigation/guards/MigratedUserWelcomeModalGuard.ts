@@ -1,6 +1,9 @@
+import AccountUtils from '@libs/AccountUtils';
 import Log from '@libs/Log';
+import createScheduleOnce from '@libs/Navigation/helpers/createScheduleOnce';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import Navigation from '@libs/Navigation/Navigation';
+import getValidDynamicRouteBasePath from '@libs/Navigation/helpers/getValidDynamicRouteBasePath';
+import Navigation, {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 
 import CONST from '@src/CONST';
@@ -9,14 +12,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {DismissedProductTraining, Session} from '@src/types/onyx';
+import type {Account, DismissedProductTraining, Onboarding, Session} from '@src/types/onyx';
 
 import type {NavigationAction, NavigationState} from '@react-navigation/native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {findFocusedRoute} from '@react-navigation/native';
-import {tryNewDotOnyxSelector} from '@selectors/Onboarding';
-import {isSupportalSessionSelector} from '@selectors/Session';
+import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
+import {isDelegateSessionSelector, isSupportalSessionSelector} from '@selectors/Session';
 import Onyx from 'react-native-onyx';
 
 import type {GuardResult, NavigationGuard} from './types';
@@ -26,11 +29,20 @@ let dismissedProductTraining: OnyxEntry<DismissedProductTraining>;
 let isDismissedProductTrainingLoaded = false;
 let session: OnyxEntry<Session>;
 let isLoadingApp = true;
+let account: OnyxEntry<Account>;
+let onboarding: OnyxEntry<Onboarding>;
 
 let hasRedirectedToMigratedUserModal = false;
 
 function getMigratedUserWelcomeModalRoute(basePath?: string): Route {
-    return createDynamicRoute(DYNAMIC_ROUTES.MIGRATED_USER_WELCOME.path, basePath ?? (Navigation.getActiveRoute() || ROUTES.HOME));
+    return createDynamicRoute(
+        DYNAMIC_ROUTES.MIGRATED_USER_WELCOME.path,
+        basePath ??
+            getValidDynamicRouteBasePath({
+                entryScreens: DYNAMIC_ROUTES.MIGRATED_USER_WELCOME.entryScreens,
+                fallbackPath: ROUTES.HOME,
+            }),
+    );
 }
 
 function resetSessionFlag() {
@@ -46,6 +58,7 @@ function resetSessionFlag() {
 function navigateToMigratedUserWelcomeModalIfReady() {
     if (
         isSupportalSessionSelector(session) ||
+        isDelegateSessionSelector(session) ||
         !session?.authToken ||
         isLoadingApp ||
         hasRedirectedToMigratedUserModal ||
@@ -61,6 +74,9 @@ function navigateToMigratedUserWelcomeModalIfReady() {
     Navigation.navigate(getMigratedUserWelcomeModalRoute());
 }
 
+/** Waits until the current Onyx update batch has populated every value used by the guard. */
+const scheduleMigratedUserWelcomeModalEvaluation = createScheduleOnce(navigateToMigratedUserWelcomeModalIfReady);
+
 /**
  * Called by guards/index.ts when session or loading app state changes.
  * Reuses the shared Onyx subscriptions from guards/index.ts to avoid duplicate connections.
@@ -68,7 +84,7 @@ function navigateToMigratedUserWelcomeModalIfReady() {
 function onSessionOrLoadingAppChanged(sessionValue: OnyxEntry<Session>, isLoadingAppValue: boolean) {
     session = sessionValue;
     isLoadingApp = isLoadingAppValue;
-    navigateToMigratedUserWelcomeModalIfReady();
+    scheduleMigratedUserWelcomeModalEvaluation();
 }
 
 Onyx.connectWithoutView({
@@ -76,7 +92,7 @@ Onyx.connectWithoutView({
     callback: (value) => {
         const result = value ? tryNewDotOnyxSelector(value) : undefined;
         hasBeenAddedToNudgeMigration = result?.hasBeenAddedToNudgeMigration ?? false;
-        navigateToMigratedUserWelcomeModalIfReady();
+        scheduleMigratedUserWelcomeModalEvaluation();
     },
 });
 
@@ -88,22 +104,67 @@ Onyx.connectWithoutView({
         if (isProductTrainingElementDismissed('migratedUserWelcomeModal', value)) {
             hasRedirectedToMigratedUserModal = false;
         }
-        navigateToMigratedUserWelcomeModalIfReady();
+        scheduleMigratedUserWelcomeModalEvaluation();
     },
 });
+
+// The guard reads the account while evaluating navigation, outside any React render.
+// useOnyx() only works during render, so connectWithoutView() is the right subscription here.
+Onyx.connectWithoutView({
+    key: ONYXKEYS.ACCOUNT,
+    callback: (value) => {
+        account = value;
+    },
+});
+
+// The guard reads onboarding while evaluating navigation, outside any React render.
+// useOnyx() only works during render, so connectWithoutView() is the right subscription here.
+Onyx.connectWithoutView({
+    key: ONYXKEYS.NVP_ONBOARDING,
+    callback: (value) => {
+        onboarding = value;
+    },
+});
+
+function isRequiredTwoFactorSetupExceptionActive(): boolean {
+    const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboarding) ?? false;
+    // Allow 2FA setup while the blocking overlay is up, and also through the post-verify
+    // handoff window when the overlay is intentionally hidden but setup is still in progress.
+    return AccountUtils.shouldShowRequire2FAPage(account, hasCompletedGuidedSetupFlow) || AccountUtils.isForced2FAOnboardingSetup(account, hasCompletedGuidedSetupFlow);
+}
+
+type DeepestFocusedScreenInput = NonNullable<Parameters<typeof getDeepestFocusedScreen>[0]>;
+
+function isObjectPayload(value: unknown): value is DeepestFocusedScreenInput {
+    return typeof value === 'object' && value !== null;
+}
+
+function getActionPayloadScreenName(action: NavigationAction): string | undefined {
+    // NAVIGATE/PUSH payloads aren't full NavigationStates. getDeepestFocusedScreen accepts that shape.
+    // Use a type guard (not `as`) so we stay within this file's no-unsafe-type-assertion seatbelt.
+    if (!isObjectPayload(action.payload)) {
+        return undefined;
+    }
+
+    return getDeepestFocusedScreen(action.payload)?.name;
+}
 
 /**
  * Block navigation while the migrated user modal is active (on top of the stack).
  * Prevents tab switches from pushing screens before the modal overlay becomes visible,
  * which would cause DISMISS_MODAL to fail.
+ * Required 2FA setup is allowed through, matching OnboardingGuard, so Enable can open
+ * the setup flow while this modal is still underneath.
  */
 function shouldBlockWhileModalActive(state: NavigationState, action: NavigationAction): boolean {
     const isAllowedAction = action.type === CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL || action.type === CONST.NAVIGATION.ACTION_TYPE.GO_BACK;
+    const isRequiredTwoFactorSetupNavigation = isRequiredTwoFactorSetupExceptionActive() && isTwoFactorSetupScreen(getActionPayloadScreenName(action));
     return (
         hasRedirectedToMigratedUserModal &&
         !isProductTrainingElementDismissed('migratedUserWelcomeModal', dismissedProductTraining) &&
         state.routes.at(-1)?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR &&
-        !isAllowedAction
+        !isAllowedAction &&
+        !isRequiredTwoFactorSetupNavigation
     );
 }
 
@@ -146,7 +207,7 @@ const MigratedUserWelcomeModalGuard: NavigationGuard = {
         }
 
         if (hasBeenAddedToNudgeMigration && !isProductTrainingElementDismissed('migratedUserWelcomeModal', dismissedProductTraining)) {
-            if (context.isSupportalSession) {
+            if (context.isSupportalSession || context.isDelegateSession) {
                 return {type: 'ALLOW'};
             }
 

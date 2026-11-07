@@ -8,8 +8,10 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import type {ListItem} from '@components/SelectionList/types';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsVendorColumnAvailable from '@hooks/useIsVendorColumnAvailable';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {close} from '@libs/actions/Modal';
@@ -51,8 +53,10 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
     const {clearSelectedTransactions} = useSearchSelectionActions();
 
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
+    const isVendorColumnAvailable = useIsVendorColumnAvailable();
 
     const searchDataType = shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type;
+    const shouldReturnTripRooms = useShouldReturnTripRooms(searchDataType);
     const currentColumns = !searchResults?.data
         ? []
         : getColumnsToShow({
@@ -63,8 +67,10 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
               groupBy: groupBy?.value,
               sortBy: queryJSON.sortBy,
               shouldShowViolationsColumn: queryHasViolationFilter(queryJSON),
+              isVendorColumnAvailable,
+              shouldReturnTripRooms,
           });
-    const sortableColumns = getSortByOptions(currentColumns, translate);
+    const sortableColumns = getSortByOptions(currentColumns, translate, searchDataType);
     const sortOrder = queryJSON.sortOrder;
 
     const [selectedItem, setSelectedItem] = useState(queryJSON.sortBy);
@@ -109,8 +115,8 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
             onReset={resetChanges}
             onApply={applyChanges}
             onBackButtonPress={onBackButtonPress}
-            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_SINGLE_SELECT}
-            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_SINGLE_SELECT}
+            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.DISPLAY_POPUP_RESET.SORT_BY}
+            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.DISPLAY_POPUP_APPLY.SORT_BY}
         >
             <ListFilterWrapper
                 itemCount={sortableColumns.length}

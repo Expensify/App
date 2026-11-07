@@ -32,5 +32,6 @@ jobs:
     if: |
       always()
       && (github.event_name == 'issue_comment' || needs.validate.outputs.IS_AUTHORIZED == 'true')
+    cache-mode: read
     uses: Expensify/GitHub-Actions/.github/workflows/cla.yml@main
     secrets: inherit

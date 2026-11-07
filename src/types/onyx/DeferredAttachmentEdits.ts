@@ -1,5 +1,3 @@
-import type {Message} from './ReportAction';
-
 /** An edit saved while its attachment was still uploading, replayed once the attachment has synced */
 type DeferredAttachmentEdit = {
     /** Report the edited comment belongs to */
@@ -11,14 +9,17 @@ type DeferredAttachmentEdit = {
     /** Login of the editor, needed to parse mentions on replay */
     currentUserLogin: string;
 
+    /** Account ID of the editor, needed to pick the last visible action on replay */
+    currentUserAccountID: number;
+
     /** Whether the report was archived when the edit was saved */
     isOriginalReportArchived?: boolean;
 
-    /** Message shown before the edit, restored if the upload fails */
-    originalMessage?: Message;
-
     /** Video attributes the editor cached for the draft, keyed by source */
     videoAttributeCache?: Record<string, string>;
+
+    /** Names of the rooms mentioned in the edit, keyed by reportID, so the replay can read the room mentions the backend stores by reportID */
+    reportIDToName?: Record<string, string>;
 };
 
 /** Deferred attachment edits, indexed by report action ID */

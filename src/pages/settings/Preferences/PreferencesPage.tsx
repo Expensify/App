@@ -1,5 +1,7 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
@@ -10,6 +12,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,6 +21,7 @@ import {togglePlatformMute, updateNewsletterSubscription} from '@libs/actions/Us
 import getPlatform from '@libs/getPlatform';
 import type Platform from '@libs/getPlatform/types';
 import Navigation from '@libs/Navigation/Navigation';
+import {getFormattedAddress} from '@libs/PersonalDetailsUtils';
 
 import colors from '@styles/theme/colors';
 import {getBaseTheme} from '@styles/theme/utils';
@@ -45,6 +49,8 @@ function PreferencesPage() {
     const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
+    const [formattedHomeAddress] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {selector: getFormattedAddress});
+    const {isBetaEnabled} = usePermissions();
 
     const personalPolicy = usePolicy(personalPolicyID);
 
@@ -70,7 +76,10 @@ function PreferencesPage() {
                 shouldDisplayHelpButton
                 onBackButtonPress={Navigation.goBack}
             />
-            <ScrollView contentContainerStyle={styles.pt3}>
+            <ScrollView
+                contentContainerStyle={styles.pt3}
+                addBottomSafeAreaPadding
+            >
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section
                         title={translate('preferencesPage.appSection.title')}
@@ -93,6 +102,7 @@ function PreferencesPage() {
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch
                                         accessibilityLabel={translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
+                                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.FEATURE_UPDATES_SWITCH}
                                         isOn={account?.isSubscribedToNewsletter ?? true}
                                         onToggle={updateNewsletterSubscription}
                                     />
@@ -110,46 +120,79 @@ function PreferencesPage() {
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch
                                         accessibilityLabel={translate('preferencesPage.muteAllSounds')}
+                                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.MUTE_ALL_SOUNDS_SWITCH}
                                         isOn={isPlatformMuted ?? false}
                                         onToggle={() => togglePlatformMute(platform, mutedPlatforms)}
                                     />
                                 </View>
                             </View>
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title={translate(`priorityModePage.priorityModes.${priorityMode ?? CONST.PRIORITY_MODE.DEFAULT}.label`)}
-                                description={translate('priorityModePage.priorityMode')}
+                            <MenuItemSectionRoot
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIORITY_MODE)}
-                                wrapperStyle={styles.sectionMenuItemTopDescription}
                                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.PRIORITY_MODE}
-                            />
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title={preferredLocale ? LOCALE_TO_LANGUAGE_STRING[preferredLocale] : undefined}
-                                description={translate('languagePage.language')}
+                            >
+                                <MenuItemField.Row
+                                    name={translate('priorityModePage.priorityMode')}
+                                    value={translate(`priorityModePage.priorityModes.${priorityMode ?? CONST.PRIORITY_MODE.DEFAULT}.label`)}
+                                >
+                                    <MenuItem.Chevron />
+                                </MenuItemField.Row>
+                            </MenuItemSectionRoot>
+                            <MenuItemSectionRoot
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
-                                wrapperStyle={styles.sectionMenuItemTopDescription}
-                                hintText={!preferredLocale || !isFullySupportedLocale(preferredLocale) ? translate('languagePage.aiGenerated') : ''}
                                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.LANGUAGE}
-                            />
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title={`${paymentCurrency} - ${getCurrencySymbol(paymentCurrency)}`}
-                                description={translate('billingCurrency.paymentCurrency')}
+                            >
+                                <MenuItemField.Row
+                                    name={translate('languagePage.language')}
+                                    value={preferredLocale ? LOCALE_TO_LANGUAGE_STRING[preferredLocale] : undefined}
+                                >
+                                    <MenuItem.Chevron />
+                                </MenuItemField.Row>
+                                {(!preferredLocale || !isFullySupportedLocale(preferredLocale)) && <MenuItem.HelpText message={translate('languagePage.aiGenerated')} />}
+                            </MenuItemSectionRoot>
+                            <MenuItemSectionRoot
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENT_CURRENCY)}
-                                wrapperStyle={styles.sectionMenuItemTopDescription}
                                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.PAYMENT_CURRENCY}
-                            />
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title={translate(`themePage.themes.${getBaseTheme(preferredTheme ?? CONST.THEME.DEFAULT)}.label`)}
-                                description={translate('themePage.theme')}
+                            >
+                                <MenuItemField.Row
+                                    name={translate('billingCurrency.paymentCurrency')}
+                                    value={`${paymentCurrency} - ${getCurrencySymbol(paymentCurrency)}`}
+                                >
+                                    <MenuItem.Chevron />
+                                </MenuItemField.Row>
+                            </MenuItemSectionRoot>
+                            <MenuItemSectionRoot
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_THEME)}
-                                wrapperStyle={styles.sectionMenuItemTopDescription}
                                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.THEME}
-                            />
+                            >
+                                <MenuItemField.Row
+                                    name={translate('themePage.theme')}
+                                    value={translate(`themePage.themes.${getBaseTheme(preferredTheme ?? CONST.THEME.DEFAULT)}.label`)}
+                                >
+                                    <MenuItem.Chevron />
+                                </MenuItemField.Row>
+                            </MenuItemSectionRoot>
                         </View>
                     </Section>
+                    {isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS) && (
+                        <Section
+                            title={translate('preferencesPage.distanceSection.title')}
+                            titleStyles={styles.accountSettingsSectionTitle}
+                            childrenStyles={styles.pt3}
+                            isCentralPane
+                        >
+                            <MenuItemSectionRoot
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_HOME_ADDRESS)}
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.HOME_ADDRESS}
+                            >
+                                <MenuItemField.Row
+                                    name={translate('privatePersonalDetails.address')}
+                                    value={formattedHomeAddress}
+                                >
+                                    <MenuItem.Chevron />
+                                </MenuItemField.Row>
+                            </MenuItemSectionRoot>
+                        </Section>
+                    )}
                 </View>
             </ScrollView>
         </ScreenWrapper>

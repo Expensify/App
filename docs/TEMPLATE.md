@@ -1,5 +1,5 @@
 ---
-title: Clear task-based title using the feature name
+title: Clear Task-Based Title Using the Feature Name (title case)
 description: A short description of the page's content. This is used for SEO purposes.
 keywords: [how to primary task, feature name, related task phrases]
 internalScope: Audience is [who this doc is for]. Covers [single clearly defined workflow], does not cover [closely related workflows intentionally excluded].
@@ -7,6 +7,7 @@ internalScope: Audience is [who this doc is for]. Covers [single clearly defined
 <!--
 This template follows the HelpDot governance standards.
 Full guidelines: docs/HELP_AUTHORING_GUIDELINES.md
+Naming, navigation, and capitalization: docs/HELPSITE_NAMING_CONVENTIONS.md
 
 CORE AUTHORING RULES
 
@@ -17,6 +18,9 @@ CORE AUTHORING RULES
 - Include the exact Feature Name in instructional headings
 - Include web and mobile navigation instructions when applicable
 - Use exact UI terminology and correct button casing
+- Use title case for the article title and sentence case for every ## heading
+- Use "select" for UI interactions (never click or tap) and "choose" only for decisions between options
+- Lowercase roles and generic terms (workspace admin, workspace, expense report) unless quoting a UI label
 - Do not use Liquid includes or collapsible FAQ sections
 - If multiple distinct workflows are required, split into separate articles
 
@@ -51,15 +55,15 @@ Keep this concise and benefit-focused.
 
 Clearly state:
 
-- Required role (Workspace Admin, Member, Domain Admin, etc.)
-- Plan limitations (Free, Collect, Control, Track, Submit, Annual Subscription, pay-per-use)
-- Any permission or Workspace setting prerequisites
+- Required role (workspace admin, member, domain admin, etc.)
+- Plan limitations (Free, Collect, Control, Track, or Submit plan; annual or pay-per-use subscription)
+- Any permission or workspace setting prerequisites
 
 If this feature depends on another setting:
 If [the required setting] is not enabled, [learn how to enable <Dependency Feature>](/relative-link).
 If [the required setting] is not enabled, [learn how to enable [Dependency Feature]](/relative-link).
-State explicitly if:
-This feature is not available on mobile.
+State explicitly if the feature is limited to one platform:
+This feature is only available on web. It isn't available on mobile.
 
 ---
 
@@ -70,23 +74,23 @@ NAVIGATION STRUCTURE GUIDANCE
 
 If web and mobile navigation differ:
 - Provide separate labeled sections:
-  Web:
-  Mobile:
+  On web:
+  On mobile:
 - Do not merge instructions into one sentence.
 
 If web and mobile navigation are structurally the same:
 - Use a unified instruction.
 - Example:
-  Click the navigation tabs (on the left on web, on the bottom on mobile).
+  In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Members**.
 - Do not duplicate identical steps unnecessarily.
 
-Follow the Navigation Conventions in docs/HELP_AUTHORING_GUIDELINES.md.
+Follow the navigation rules in docs/HELPSITE_NAMING_CONVENTIONS.md (navigation tabs, navigation paths, navigation menu, More (⋮), fields, and the selection bar).
 -->
 
-1. Go to Settings > Workspaces > Workspace Name > [Section Name].
-2. Click **[Exact button name in Sentence case]**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > [Section name]**.
+2. Select **[Exact button name, matching the UI]**.
 3. Configure the required settings.
-4. Click **Save** or final action button (for example, **Submit**, **Confirm**).
+4. Select **Save** or the final action button (for example, **Submit**, **Confirm**).
 
 **ADD A SCREENSHOT HERE.**  
 Suggestion: Show the full page with the relevant section highlighted.
@@ -114,9 +118,9 @@ Clear direct answer.
 ## Why can’t I see [Feature Name]?
 
 Explain possible causes:
-- You’re not a Workspace Admin or Workspace Owner
+- You’re not a workspace admin or workspace owner
 - The feature is not included in your plan
-- The Workspace setting is disabled
+- The workspace setting is disabled
 - Domain-level restrictions apply
 
 ## Does [Feature Name] work with [Integration or Related Feature]?

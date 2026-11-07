@@ -14,10 +14,10 @@ import BlockingView from './BlockingView';
 import ForceFullScreenView from './ForceFullScreenView';
 
 /**
- * Illustrations this view can show. Both are requested up front, because the lazy illustrations hook
+ * Illustrations this view can show. All are requested up front, because the lazy illustrations hook
  * only seeds its asset map once per mount, so a name it wasn't given at mount resolves to PlaceholderIcon.
  */
-type FullPageErrorViewIllustration = 'BrokenMagnifyingGlass' | 'FolderSync';
+type FullPageErrorViewIllustration = 'BrokenMagnifyingGlass' | 'FolderSync' | 'ChartSync';
 
 type FullPageErrorViewProps = {
     testID?: string;
@@ -45,6 +45,12 @@ type FullPageErrorViewProps = {
     /** Function to call when pressing the CTA button. The button only renders when this and `buttonTranslationKey` are both provided */
     onButtonPress?: () => void;
 
+    /** Translation key for an optional link rendered below the subtitle */
+    linkTranslationKey?: TranslationPaths;
+
+    /** Function to call when pressing the link. Without it the link dismisses the modal */
+    onLinkPress?: () => void;
+
     /** Illustration shown above the title */
     illustration?: FullPageErrorViewIllustration;
 
@@ -66,12 +72,14 @@ function FullPageErrorView({
     containerStyle,
     buttonTranslationKey,
     onButtonPress,
+    linkTranslationKey,
+    onLinkPress,
     illustration = 'BrokenMagnifyingGlass',
     illustrationWidth = variables.errorPageIconWidth,
     illustrationHeight = variables.errorPageIconHeight,
 }: FullPageErrorViewProps) {
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass', 'FolderSync']);
+    const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass', 'FolderSync', 'ChartSync']);
 
     if (shouldShow) {
         return (
@@ -91,6 +99,8 @@ function FullPageErrorView({
                         containerStyle={[styles.gap5, containerStyle]}
                         buttonTranslationKey={buttonTranslationKey}
                         onButtonPress={onButtonPress}
+                        linkTranslationKey={linkTranslationKey}
+                        onLinkPress={onLinkPress}
                     />
                 </View>
             </ForceFullScreenView>

@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 
+import {getDelegateAccountIDFromReportAction} from '@libs/ReportActionsUtils';
 import {sortIconsByName} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -123,7 +124,6 @@ function ReportActionAvatars({
         ([CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW].find((act) => act === action?.actionName) ? action?.childReportID : undefined);
 
     // reportID can be an empty string causing Onyx to fetch the whole collection
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [reportFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || undefined}`);
     // When the search hash changes, report from the snapshot will be undefined if it hasn't been fetched yet.
     // Therefore, we will fall back to reportProp while the data is being fetched.
@@ -187,16 +187,20 @@ function ReportActionAvatars({
         return null;
     }
 
-    const delegateAccountIDFromAction = shouldUseConciergeAvatar ? undefined : source.action?.delegateAccountID;
-    const singleAvatar: AvatarIcon = delegateAccountIDFromAction
-        ? {
-              ...primaryAvatar,
-              copilot: {
-                  accountID: delegateAccountIDFromAction,
-                  actedForAccountID: delegateAccountID,
-              },
-          }
-        : primaryAvatar;
+    // Read the copilot through `getDelegateAccountIDFromReportAction` rather than off the action: the server stamps
+    // `delegateAccountID` on every action a copilot's request creates, including Concierge-authored ones, and the
+    // accessor suppresses it there so Concierge never renders as "<copilot> (as copilot for Concierge)".
+    const delegateAccountIDFromAction = shouldUseConciergeAvatar ? undefined : getDelegateAccountIDFromReportAction(source.action);
+    const singleAvatar: AvatarIcon =
+        delegateAccountID && delegateAccountIDFromAction
+            ? {
+                  ...primaryAvatar,
+                  copilot: {
+                      accountID: delegateAccountIDFromAction,
+                      actedForAccountID: delegateAccountID,
+                  },
+              }
+            : primaryAvatar;
 
     if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT_CARD_FEED && subscriptCardFeed) {
         return (

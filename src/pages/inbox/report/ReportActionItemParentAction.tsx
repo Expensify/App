@@ -3,6 +3,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -10,15 +11,16 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {shouldExcludeAncestorReportAction} from '@libs/ReportUtils';
 
+import type {ReportHierarchyInfo} from '@userActions/ClearReportActionErrors';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {conciergePersonalDetailSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -39,6 +41,9 @@ type ReportActionItemParentActionProps = {
     shouldDisplayReplyDivider: boolean;
     isFirstVisibleReportAction: boolean;
     shouldUseThreadDividerLine?: boolean;
+
+    /** Parent links of the thread and its ancestors, shared by every ancestor shown above it */
+    reportsParentHierarchy: OnyxCollection<ReportHierarchyInfo>;
 };
 
 function ReportActionItemParentAction({
@@ -50,17 +55,17 @@ function ReportActionItemParentAction({
     shouldDisplayReplyDivider,
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
+    reportsParentHierarchy,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const ancestors = useAncestors(report, shouldExcludeAncestorReportAction);
     const transactionID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID;
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS);
     const isReportArchived = useReportIsArchived(report?.reportID);
 
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
     const {accountID: currentUserAccountID} = currentUserPersonalDetail;
-    const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: conciergePersonalDetailSelector});
-    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(report?.ownerAccountID)});
+    const [conciergePersonalDetail] = usePersonalDetail(CONST.ACCOUNT_ID.CONCIERGE);
+    const [reportOwnerPersonalDetail] = usePersonalDetail(report?.ownerAccountID);
 
     const [linkedTransactionRouteError] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         selector: (transaction: OnyxEntry<Transaction>) => {
@@ -84,7 +89,9 @@ function ReportActionItemParentAction({
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
 
     const onCloseParentReportActionItem = () => {
         navigateToConciergeChatAndDeleteReport(
@@ -93,7 +100,7 @@ function ReportActionItemParentAction({
             currentUserAccountID,
             introSelected,
             isSelfTourViewed,
-            allBetas,
+            hasCompletedGuidedSetupFlow,
             reportOwnerPersonalDetail,
             currentUserPersonalDetail,
             conciergePersonalDetail,
@@ -110,7 +117,7 @@ function ReportActionItemParentAction({
                 errors={
                     report?.errorFields?.createChatThread ?? (report?.errorFields?.createChat ? getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage') : null)
                 }
-                errorRowStyles={[styles.ml10, styles.mr2]}
+                errorRowStyles={styles.ml10}
                 onClose={onCloseParentReportActionItem}
             >
                 {ancestors.map(({report: ancestorReport, reportAction: ancestorReportAction, shouldDisplayNewMarker}) => (
@@ -120,18 +127,19 @@ function ReportActionItemParentAction({
                         reportAction={ancestorReportAction}
                         shouldDisplayNewMarker={shouldDisplayNewMarker}
                         reportNameValuePairs={ancestorsReportNameValuePairs}
-                        allBetas={allBetas}
                         conciergePersonalDetail={conciergePersonalDetail}
                         conciergeReportID={conciergeReportID}
                         currentUserAccountID={currentUserAccountID}
                         introSelected={introSelected}
                         isReportArchived={isReportArchived}
                         isSelfTourViewed={isSelfTourViewed}
+                        hasCompletedGuidedSetupFlow={hasCompletedGuidedSetupFlow}
                         parentReportAction={parentReportAction}
                         transactionThreadReport={transactionThreadReport}
                         isFirstVisibleReportAction={isFirstVisibleReportAction}
                         shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                         linkedTransactionRouteError={linkedTransactionRouteError}
+                        reportsParentHierarchy={reportsParentHierarchy}
                     />
                 ))}
             </OfflineWithFeedback>

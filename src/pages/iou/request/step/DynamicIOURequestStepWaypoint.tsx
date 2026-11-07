@@ -33,12 +33,13 @@ import type {RecentWaypoint, Transaction} from '@src/types/onyx';
 import type {Waypoint} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {ComponentRef} from 'react';
 import type {TextInput} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useNavigation} from '@react-navigation/native';
 import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -83,7 +84,7 @@ function DynamicIOURequestStepWaypoint({
     const isFocused = navigation.isFocused();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const textInput = useRef<TextInput | null>(null);
+    const textInput = useRef<ComponentRef<typeof TextInput> | null>(null);
     const parsedWaypointIndex = parseInt(pageIndex, 10);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -103,14 +104,7 @@ function DynamicIOURequestStepWaypoint({
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {selector: recentWaypointsSelector});
     const [allRecentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
 
-    const waypointDescriptionKey = useMemo(() => {
-        switch (parsedWaypointIndex) {
-            case 0:
-                return 'distance.waypointDescription.start';
-            default:
-                return 'distance.waypointDescription.stop';
-        }
-    }, [parsedWaypointIndex]);
+    const waypointDescriptionKey: TranslationPaths = parsedWaypointIndex === 0 ? 'distance.waypointDescription.start' : 'distance.waypointDescription.stop';
 
     const locationBias = useLocationBias(allWaypoints, userLocation);
     const waypointAddress = currentWaypoint.address ?? '';
@@ -193,7 +187,7 @@ function DynamicIOURequestStepWaypoint({
         goBack();
     };
 
-    const onScroll = useCallback(() => {
+    const onScroll = () => {
         if (!isSafari()) {
             return;
         }
@@ -204,11 +198,11 @@ function DynamicIOURequestStepWaypoint({
                 setCaretHidden(false);
             }
         });
-    }, [contentHeaderHeight]);
+    };
 
-    const resetCaretHiddenValue = useCallback(() => {
+    const resetCaretHiddenValue = () => {
         setCaretHidden(false);
-    }, []);
+    };
 
     return (
         <ScreenWrapper
@@ -259,7 +253,7 @@ function DynamicIOURequestStepWaypoint({
                             canUseCurrentLocation
                             inputID={`waypoint${pageIndex}`}
                             ref={(e: HTMLElement | null) => {
-                                textInput.current = e as unknown as TextInput;
+                                textInput.current = e as unknown as ComponentRef<typeof TextInput>;
                             }}
                             hint={!isOffline ? translate('distance.error.selectSuggestedAddress') : ''}
                             containerStyles={[styles.mt4]}

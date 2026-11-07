@@ -17,6 +17,7 @@ import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {ComponentRef} from 'react';
 import type {TextInput as TextInputType} from 'react-native';
 
 import {useFocusEffect} from '@react-navigation/native';
@@ -50,43 +51,40 @@ function TextSelectorModal({
     const [currentValue, setValue] = useState(value);
     const [isClosing, setIsClosing] = useState(false);
 
-    const inputRef = useRef<TextInputType | null>(null);
+    const inputRef = useRef<ComponentRef<typeof TextInputType> | null>(null);
     const inputValueRef = useRef(value);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const inputCallbackRef = (ref: TextInputType | null) => {
+    const inputCallbackRef = (ref: ComponentRef<typeof TextInputType> | null) => {
         inputRef.current = ref;
     };
 
-    const hide = useCallback(() => {
+    const hide = () => {
         setIsClosing(true);
         onClose();
         if (shouldClearOnClose) {
             setValue('');
         }
-    }, [onClose, shouldClearOnClose]);
+    };
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.TEXT_PICKER_MODAL_FORM>) => {
-            let errors: FormInputErrors<typeof ONYXKEYS.FORMS.TEXT_PICKER_MODAL_FORM> = {};
-            const formValue = values[rest.inputID];
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.TEXT_PICKER_MODAL_FORM>) => {
+        let errors: FormInputErrors<typeof ONYXKEYS.FORMS.TEXT_PICKER_MODAL_FORM> = {};
+        const formValue = values[rest.inputID];
 
-            if (required) {
-                errors = getFieldRequiredErrors(values, [rest.inputID], translate);
-            }
+        if (required) {
+            errors = getFieldRequiredErrors(values, [rest.inputID], translate);
+        }
 
-            if (formValue.length > maxLength) {
-                errors[rest.inputID] = translate('common.error.characterLimitExceedCounter', formValue.length, maxLength);
-            }
+        if (formValue.length > maxLength) {
+            errors[rest.inputID] = translate('common.error.characterLimitExceedCounter', formValue.length, maxLength);
+        }
 
-            if (customValidate) {
-                const customErrors = customValidate(values);
-                errors = {...errors, ...customErrors};
-            }
+        if (customValidate) {
+            const customErrors = customValidate(values);
+            errors = {...errors, ...customErrors};
+        }
 
-            return errors;
-        },
-        [maxLength, rest.inputID, required, translate, customValidate],
-    );
+        return errors;
+    };
 
     // In TextPicker, when the modal is hidden, it is not completely unmounted, so when it is shown again, the currentValue is not updated with the value prop.
     // Therefore, we need to update the currentValue with the value prop when the modal is shown. This is done once when the modal is shown again.
@@ -124,19 +122,16 @@ function TextSelectorModal({
         }, [isVisible, autoGrowHeight]),
     );
 
-    const handleSubmit = useCallback(
-        (data: FormOnyxValues<typeof ONYXKEYS.FORMS.TEXT_PICKER_MODAL_FORM>) => {
-            const submittedValue = data[rest.inputID] ?? '';
+    const handleSubmit = (data: FormOnyxValues<typeof ONYXKEYS.FORMS.TEXT_PICKER_MODAL_FORM>) => {
+        const submittedValue = data[rest.inputID] ?? '';
 
-            if (required && !submittedValue.trim()) {
-                return;
-            }
+        if (required && !submittedValue.trim()) {
+            return;
+        }
 
-            Keyboard.dismiss();
-            onValueSelected?.(submittedValue);
-        },
-        [onValueSelected, rest.inputID, required],
-    );
+        Keyboard.dismiss();
+        onValueSelected?.(submittedValue);
+    };
 
     return (
         <Modal

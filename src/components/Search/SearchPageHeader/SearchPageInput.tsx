@@ -9,7 +9,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {getKeywordQueryWithCurrentSearchContext, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {getKeywordQueryForSearchInput, getKeywordQueryWithCurrentSearchContext, getQueryWithUpdatedValues} from '@libs/SearchQueryUtils';
 
 import variables from '@styles/variables';
 
@@ -39,7 +39,7 @@ function SearchPageInput({queryJSON, onFocus}: SearchPageInputProps) {
     const [textInputValue, setTextInputValue] = useState('');
 
     const keywordFilters = queryJSON.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD)?.filters ?? [];
-    const keywordQuery = keywordFilters.reduce((acc, keyword) => `${acc} ${sanitizeSearchValue(keyword.value.toString())}`, '').trim();
+    const keywordQuery = getKeywordQueryForSearchInput(keywordFilters.map((keyword) => keyword.value.toString()));
     const [prevKeywordQuery, setPrevKeywordQuery] = useState('');
 
     if (keywordQuery !== prevKeywordQuery) {
@@ -89,6 +89,7 @@ function SearchPageInput({queryJSON, onFocus}: SearchPageInputProps) {
             placeholderTextColor={theme.textSupporting}
             shouldShowClearButton={!!textInputValue}
             shouldHideClearButton={false}
+            clearButtonSentryLabel={CONST.SENTRY_LABEL.SEARCH.PAGE_INPUT_CLEAR_BUTTON}
             onClearInput={() => {
                 setTextInputValue('');
                 submitSearch('');

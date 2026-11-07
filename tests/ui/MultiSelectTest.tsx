@@ -8,6 +8,7 @@ import type {ListItem} from '@components/SelectionList/ListItem/types';
 import CONST from '@src/CONST';
 
 import React from 'react';
+import {View} from 'react-native';
 
 jest.mock('@components/SelectionList', () => jest.fn(() => null));
 jest.mock('@components/SelectionList/ListItem/MultiSelectListItem', () => jest.fn(() => null));
@@ -114,5 +115,46 @@ describe('MultiSelect', () => {
 
         const props = mockedSelectionList.mock.lastCall?.[0];
         expect(props?.shouldUpdateFocusedIndex).toBe(true);
+    });
+
+    it('passes undefined footerContent when neither isLoadingMore nor footer is provided', () => {
+        render(
+            <MultiSelect
+                value={[]}
+                items={items}
+                onChange={jest.fn()}
+            />,
+        );
+
+        const props = mockedSelectionList.mock.lastCall?.[0];
+        expect(props?.footerContent).toBeUndefined();
+    });
+
+    it('passes footerContent when footer is provided', () => {
+        render(
+            <MultiSelect
+                value={[]}
+                items={items}
+                onChange={jest.fn()}
+                footer={<View />}
+            />,
+        );
+
+        const props = mockedSelectionList.mock.lastCall?.[0];
+        expect(props?.footerContent).toBeDefined();
+    });
+
+    it('passes footerContent when isLoadingMore is true', () => {
+        render(
+            <MultiSelect
+                value={[]}
+                items={items}
+                onChange={jest.fn()}
+                isLoadingMore
+            />,
+        );
+
+        const props = mockedSelectionList.mock.lastCall?.[0];
+        expect(props?.footerContent).toBeDefined();
     });
 });

@@ -112,16 +112,27 @@ function hasFormulaPartsInInitialValue(initialValue?: string): boolean {
 }
 
 /**
- * Checks if a report field name already exists in the policy's field list (case-insensitive).
+ * Finds an existing report field with the specified name in the policy's field list (case-insensitive).
  */
-function isReportFieldNameExisting(fieldList: Record<string, PolicyReportField> | undefined, fieldName: string, expectedTarget?: ValueOf<typeof CONST.REPORT_FIELD_TARGETS>): boolean {
-    return Object.values(fieldList ?? {}).some((reportField) => {
+function getExistingReportFieldByName(
+    fieldList: Record<string, PolicyReportField> | undefined,
+    fieldName: string,
+    expectedTarget?: ValueOf<typeof CONST.REPORT_FIELD_TARGETS>,
+): PolicyReportField | undefined {
+    return Object.values(fieldList ?? {}).find((reportField) => {
         if (!isReportFieldTargetValid(reportField, expectedTarget)) {
             return false;
         }
 
         return reportField.name.toLowerCase() === fieldName.toLowerCase();
     });
+}
+
+/**
+ * Checks if a report field name already exists in the policy's field list (case-insensitive).
+ */
+function isReportFieldNameExisting(fieldList: Record<string, PolicyReportField> | undefined, fieldName: string, expectedTarget?: ValueOf<typeof CONST.REPORT_FIELD_TARGETS>): boolean {
+    return !!getExistingReportFieldByName(fieldList, fieldName, expectedTarget);
 }
 
 /**
@@ -276,6 +287,7 @@ export {
     getUnsupportedReportFieldFormulaParts,
     hasFormulaPartsInInitialValue,
     isReportFieldNameExisting,
+    getExistingReportFieldByName,
     isReportFieldTargetValid,
     getReportFieldsForTarget,
     isReportFieldImportedFromIntegration,

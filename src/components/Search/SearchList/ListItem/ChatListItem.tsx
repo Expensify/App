@@ -1,9 +1,12 @@
+import useIsSearchRowFocused from '@components/Search/hooks/useIsSearchRowFocused';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
-import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
-import {useListItemHighlight} from '@components/SelectionList/ListItemComposed';
+import ListItemComposed from '@components/SelectionList/ListItemComposed';
 import type {ListItem} from '@components/SelectionList/types';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useOnyx from '@hooks/useOnyx';
+import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import FS from '@libs/Fullstory';
@@ -15,6 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {getStableReportSelector} from '@src/selectors/Report';
 
 import React from 'react';
+import {View} from 'react-native';
 
 import type {ChatListItemProps, ReportActionListItemType} from './types';
 
@@ -23,7 +27,6 @@ import type {ChatListItemProps, ReportActionListItemType} from './types';
  */
 function ChatListItem<TItem extends ListItem>({
     item,
-    isFocused,
     showTooltip,
     isDisabled,
     canSelectMultiple,
@@ -33,54 +36,68 @@ function ChatListItem<TItem extends ListItem>({
     onLongPressRow,
     shouldSyncFocus,
 }: ChatListItemProps<TItem>) {
+    const isFocused = useIsSearchRowFocused(item.keyForList);
     const reportActionItem = item as unknown as ReportActionListItemType;
     const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID}`, {selector: getStableReportSelector});
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.childReportID}`);
     const [chatReportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportStable?.chatReportID)}`, {selector: getStableReportSelector});
+    const reportsParentHierarchy = useReportsParentHierarchy(reportActionItem?.reportID);
     const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
+    const StyleUtils = useStyleUtils();
     const {isSelected} = useRowSelection(item.keyForList);
-    const {pressableStyle, pressableWrapperStyle} = useListItemHighlight({
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        isSelected,
-    });
+    const pressableStyle = [
+        styles.selectionListPressableItemWrapper,
+        styles.p0,
+        styles.textAlignLeft,
+        styles.overflowHidden,
+        // Background is applied on the parent wrapper, so keep this transparent
+        styles.bgTransparent,
+        isSelected && styles.activeComponentBG,
+        styles.mh0,
+    ];
 
     const fsClass = FS.getChatFSClass(reportStable);
 
     const handlePress = () => onSelectRow(item);
 
     return (
-        <BaseListItem
+        <ListItemComposed
             item={item}
-            pressableStyle={[pressableStyle, styles.p0, styles.textAlignLeft, styles.overflowHidden, item.cursorStyle]}
-            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.userSelectNone]}
+            pressableStyle={pressableStyle}
             containerStyle={styles.mb2}
             isFocused={isFocused}
             isDisabled={isDisabled}
-            showTooltip={showTooltip}
+            shouldShowTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onLongPressRow={onLongPressRow}
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            pressableWrapperStyle={pressableWrapperStyle}
+            pressableWrapperStyle={[pageGutterMargin, StyleUtils.getSearchRowBackgroundStyle(isSelected), styles.br2]}
             hoverStyle={isSelected && styles.activeComponentBG}
-            forwardedFSClass={fsClass}
         >
-            <ReportActionItem
-                action={reportActionItem}
-                report={reportStable}
-                transactionThreadReport={transactionThreadReport}
-                chatReport={chatReportStable}
-                onPress={handlePress}
-                parentReportAction={undefined}
-                displayAsGroup={false}
-                shouldDisplayNewMarker={false}
-                isFirstVisibleReportAction={false}
-                shouldDisplayContextMenu={false}
-                shouldShowBorder
-            />
-        </BaseListItem>
+            <View
+                style={[styles.flex1, styles.justifyContentBetween, styles.userSelectNone]}
+                fsClass={fsClass}
+            >
+                <ReportActionItem
+                    action={reportActionItem}
+                    report={reportStable}
+                    transactionThreadReport={transactionThreadReport}
+                    chatReport={chatReportStable}
+                    onPress={handlePress}
+                    parentReportAction={undefined}
+                    displayAsGroup={false}
+                    shouldDisplayNewMarker={false}
+                    isFirstVisibleReportAction={false}
+                    shouldDisplayContextMenu={false}
+                    shouldShowBorder
+                    reportsParentHierarchy={reportsParentHierarchy}
+                />
+            </View>
+        </ListItemComposed>
     );
 }
 

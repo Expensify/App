@@ -1,5 +1,6 @@
 import useSyncFocus from '@hooks/useSyncFocus';
 
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import React, {useRef} from 'react';
@@ -8,11 +9,16 @@ import type {MenuItemProps} from './MenuItem';
 
 import MenuItem from './MenuItem';
 
-function FocusableMenuItem(props: MenuItemProps) {
-    const ref = useRef<View>(null);
+type FocusableMenuItemProps = MenuItemProps & {
+    /** Whether keyboard focus should follow the visual focused state */
+    shouldSyncFocus?: boolean;
+};
+
+function FocusableMenuItem({shouldSyncFocus = true, ...props}: FocusableMenuItemProps) {
+    const ref = useRef<ComponentRef<typeof View>>(null);
 
     // Sync focus on an item
-    useSyncFocus(ref, !!props.focused);
+    useSyncFocus(ref, !!props.focused, shouldSyncFocus);
 
     return (
         <MenuItem

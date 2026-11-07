@@ -1,5 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
@@ -20,6 +21,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
+import {View} from 'react-native';
 
 function QuickbooksDesktopChartOfAccountsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -42,23 +44,27 @@ function QuickbooksDesktopChartOfAccountsPage({policy}: WithPolicyProps) {
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}
                 switchAccessibilityLabel={translate('workspace.accounting.accounts')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBD.CHART_OF_ACCOUNTS_IMPORT_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 isActive
                 onToggle={() => {}}
                 disabled
                 showLockIcon
             />
-            <MenuItemWithTopDescription
-                interactive={false}
-                title={translate('workspace.common.categories')}
-                description={translate('workspace.common.displayedAs')}
-                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt2]}
-            />
+            <View style={styles.mt2}>
+                <MenuItemSectionRoot>
+                    <MenuItemField.Row
+                        name={translate('workspace.common.displayedAs')}
+                        value={translate('workspace.common.categories')}
+                    />
+                </MenuItemSectionRoot>
+            </View>
             <Text style={styles.pv5}>{translate('workspace.qbd.accountsSwitchTitle')}</Text>
             <ToggleSettingOptionRow
                 title={translate('workspace.common.enabled')}
                 subtitle={translate('workspace.qbd.accountsSwitchDescription')}
                 switchAccessibilityLabel={translate('workspace.accounting.accounts')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBD.ENABLE_NEW_CATEGORIES_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 isActive={!!qbdConfig?.enableNewCategories}
                 onToggle={() => QuickbooksDesktop.updateQuickbooksDesktopEnableNewCategories(policyID, !qbdConfig?.enableNewCategories)}

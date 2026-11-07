@@ -67,7 +67,6 @@ function RichDropZone({reportID, shouldAddOrReplaceReceipt, transactionID, onAtt
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const isReportArchived = useReportIsArchived(report?.reportID);
@@ -80,7 +79,7 @@ function RichDropZone({reportID, shouldAddOrReplaceReceipt, transactionID, onAtt
     const hasReceipt = hasReceiptTransactionUtils(transaction);
 
     const isSettledReport = isSettled(report) || isSettled(parentReport);
-    const hasMoneyRequestOptions = !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, betas, rules, isReportArchived, isRestrictedToPreferredPolicy).length;
+    const hasMoneyRequestOptions = !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, rules, isReportArchived, isRestrictedToPreferredPolicy).length;
     // Approved reports are not excluded here because shouldAddOrReplaceReceipt already limits them to admins.
     const canModifyReceipt = shouldAddOrReplaceReceipt && !isSettledReport;
     const shouldDisplayDualDropZone = canModifyReceipt || hasMoneyRequestOptions;

@@ -1,3 +1,4 @@
+import type {ComponentRef} from 'react';
 import type {LayoutChangeEvent, View} from 'react-native';
 
 import {useRef, useState} from 'react';
@@ -8,7 +9,7 @@ import {useRef, useState} from 'react';
  * web, where it is attached to the container to take the synchronous first measurement.
  */
 function useSearchTableWidth() {
-    const tableWidthRef = useRef<View | null>(null);
+    const tableWidthRef = useRef<ComponentRef<typeof View> | null>(null);
     const [tableWidth, setTableWidth] = useState(0);
 
     const onTableLayout = (event: LayoutChangeEvent) => {

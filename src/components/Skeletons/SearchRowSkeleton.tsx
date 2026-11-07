@@ -1,3 +1,4 @@
+import useNavigationBarWidth from '@components/Navigation/FlatNavigationBar/useNavigationBarWidth';
 import SkeletonRect from '@components/SkeletonRect';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -6,6 +7,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import getPlatform from '@libs/getPlatform';
 
+import layoutSpacing, {resolveLayoutSpacing} from '@styles/layoutSpacing';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -30,7 +32,7 @@ type SearchRowSkeletonProps = {
 
 const barHeight = 8;
 const longBarWidth = 120;
-const leftPaneWidth = variables.sideBarWithLHBWidth + (getPlatform() === CONST.PLATFORM.WEB ? variables.navigationTabBarSize : 0);
+const shouldOffsetByNavigationBar = getPlatform() === CONST.PLATFORM.WEB;
 
 // 12 is the gap between the element and the right button
 const gapWidth = 12;
@@ -38,8 +40,7 @@ const gapWidth = 12;
 // 68 is the width of the action button
 const rightSideElementWidth = 68;
 
-// 40 is the padding of the central pane summing two sides
-const centralPanePadding = 40;
+const centralPanePadding = layoutSpacing.pageGutter.wide * 2;
 
 // 16 is the width of the right arrow icon + padding
 const rightArrowWidth = 28;
@@ -58,21 +59,24 @@ function SearchRowSkeleton({
 }: SearchRowSkeletonProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
+    const navigationBarWidth = useNavigationBarWidth();
     const {shouldUseNarrowLayout: shouldUseNarrowLayoutResponsive, isLargeScreenWidth} = useResponsiveLayout();
     // The prop lets callers (e.g. SearchStaticList) pin the layout independently of the
     // global responsive breakpoint - useful when the skeleton is rendered in a context
     // whose container width doesn't match the window (e.g. inside a split pane).
     const shouldUseNarrowLayout = shouldUseNarrowLayoutProp ?? shouldUseNarrowLayoutResponsive;
+    const {values, pageGutterMargin} = resolveLayoutSpacing(shouldUseNarrowLayout);
+    const leftPaneWidth = variables.sideBarWithLHBWidth + (shouldOffsetByNavigationBar ? navigationBarWidth : 0);
 
     if (shouldUseNarrowLayout) {
-        const containerWidth = windowWidth - 40;
+        const containerWidth = windowWidth - values.pageGutter * 2;
         return (
             <View style={[styles.flex1, containerStyle]}>
                 <ItemListSkeletonView
                     itemViewHeight={100}
                     itemViewStyle={[styles.highlightBG, styles.mr0]}
                     itemContainerStyle={styles.borderBottom}
-                    style={[styles.mh5, styles.overflowHidden, isLoadMore && styles.tableBottomRadius, !isLoadMore && styles.tableTopRadius]}
+                    style={[pageGutterMargin, styles.overflowHidden, isLoadMore && styles.tableBottomRadius, !isLoadMore && styles.tableTopRadius]}
                     gradientOpacityEnabled={gradientOpacityEnabled}
                     shouldAnimate={shouldAnimate}
                     onLayout={onLayout}
@@ -138,7 +142,7 @@ function SearchRowSkeleton({
                 itemViewStyle={[styles.highlightBG, styles.mr0]}
                 itemViewHeight={variables.tableRowHeight}
                 itemContainerStyle={styles.borderBottom}
-                style={[styles.mh5, styles.overflowHidden, isLoadMore && styles.tableBottomRadius, !isLoadMore && styles.tableTopRadius]}
+                style={[pageGutterMargin, styles.overflowHidden, isLoadMore && styles.tableBottomRadius, !isLoadMore && styles.tableTopRadius]}
                 renderSkeletonItem={() => (
                     <>
                         <SkeletonRect

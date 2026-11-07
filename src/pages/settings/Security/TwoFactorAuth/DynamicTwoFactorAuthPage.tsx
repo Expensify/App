@@ -30,7 +30,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {CommonActions, useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
@@ -64,7 +63,10 @@ function DynamicTwoFactorAuthPage({navigation, route}: DynamicTwoFactorAuthPageP
         setStatusAnnouncement((prev) => ({id: prev.id + 1, text: message}));
     };
 
-    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    // EnableTwoFactorAuth mints a new secret on every call. Guard the in-flight request so a focus
+    // flicker before recovery codes land cannot send a second Toggle and invalidate the first QR code.
+    const hasRequestedEnableRef = useRef(false);
 
     const isUserValidated = account?.validated ?? false;
     const is2FAEnabled = !!account?.requiresTwoFactorAuth;
@@ -73,6 +75,17 @@ function DynamicTwoFactorAuthPage({navigation, route}: DynamicTwoFactorAuthPageP
     const recoveryCodes = account?.recoveryCodes;
 
     const hasLeftFlowRef = useRef(false);
+
+    // A failed EnableTwoFactorAuth leaves no codes. Clear the guard only after that request has
+    // finished, so the next focus can retry without firing a second request while one is in flight.
+    const wasEnableRequestLoadingRef = useRef(false);
+    useEffect(() => {
+        const isLoading = !!account?.isLoading;
+        if (wasEnableRequestLoadingRef.current && !isLoading && !account?.recoveryCodes) {
+            hasRequestedEnableRef.current = false;
+        }
+        wasEnableRequestLoadingRef.current = isLoading;
+    }, [account?.isLoading, account?.recoveryCodes]);
 
     useEffect(() => {
         // Once 2FA is on, this step has no use. This check comes first because the forced-onboarding handoff resets the account
@@ -122,7 +135,7 @@ function DynamicTwoFactorAuthPage({navigation, route}: DynamicTwoFactorAuthPageP
         // toggleTwoFactorAuth(true) is a mutation (ENABLE_TWO_FACTOR_AUTH), not a fetch, so it must never run once 2FA
         // is enabled. The forced-onboarding post-verify handoff has 2FA enabled, setup still in progress and no codes
         // (the Onyx reset after validation drops them), and enabling again there would rotate the recovery codes.
-        if (isLoadingOnyxValue(accountMetadata) || is2FAEnabled || account?.recoveryCodes || !isUserValidated) {
+        if (is2FAEnabled || account?.recoveryCodes || !isUserValidated) {
             return;
         }
 
@@ -130,13 +143,18 @@ function DynamicTwoFactorAuthPage({navigation, route}: DynamicTwoFactorAuthPageP
             return;
         }
 
+        if (hasRequestedEnableRef.current) {
+            return;
+        }
+        hasRequestedEnableRef.current = true;
+
         toggleTwoFactorAuth(true);
         // `recoveryCodes` is a dependency because the right-modal `beforeRemove` listener clears the 2FA data after
         // this effect has already run, which happens when a browser back on a freshly loaded page rebuilds the modal.
         // Without it the page would keep rendering an empty codes box with no way to continue. The `is2FAEnabled`
         // guard above keeps this re-run from enabling 2FA a second time.
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We want to run this when component mounts
-    }, [isUserValidated, accountMetadata.status, isFocused, is2FAEnabled, is2FASetupInProgress, recoveryCodes]);
+    }, [isUserValidated, isFocused, is2FAEnabled, is2FASetupInProgress, recoveryCodes]);
 
     return (
         <TwoFactorAuthWrapper
@@ -148,7 +166,7 @@ function DynamicTwoFactorAuthPage({navigation, route}: DynamicTwoFactorAuthPageP
             }}
             shouldEnableKeyboardAvoidingView={false}
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.COPY_CODES}
-            onBackButtonPress={() => quitAndNavigateBack(backPath)}
+            onBackButtonPress={() => quitAndNavigateBack(is2FAEnabled, backPath)}
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 {!!isUserValidated && !is2FAEnabled && (

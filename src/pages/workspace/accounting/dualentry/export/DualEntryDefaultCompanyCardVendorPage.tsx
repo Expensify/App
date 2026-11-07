@@ -10,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDualEntryErrorField, updateDualEntryDefaultVendor} from '@libs/actions/connections/DualEntry';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import {withClearRow} from '@libs/ListUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDualEntryVendors, settingsPendingAction, sortVendors} from '@libs/PolicyUtils';
 
@@ -39,13 +40,24 @@ function DualEntryDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsPr
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_DUALENTRY_EXPORT.getRoute(policyID) : undefined;
 
     const sortedVendors = sortVendors(getDualEntryVendors(policy), localeCompare);
-    const data: VendorListItem[] = sortedVendors.map((vendorItem) => ({
+    const vendorOptions: VendorListItem[] = sortedVendors.map((vendorItem) => ({
         value: vendorItem.id,
         text: vendorItem.name,
         keyForList: vendorItem.id,
         isSelected: defaultCompanyCardVendorID === vendorItem.id,
     }));
-    const {filteredData, textInputOptions} = useSelectionListSearch(data);
+    const clearOption: VendorListItem = {
+        value: '',
+        text: translate('common.none'),
+        keyForList: '',
+        isSelected: !defaultCompanyCardVendorID,
+    };
+    const shouldShowClearOption = !!defaultCompanyCardVendorID || vendorOptions.length > 0;
+    const {filteredData: filteredVendorOptions, textInputOptions, pinnedValues} = useSelectionListSearch(vendorOptions);
+    // Place the clear row below the top vendor only when that vendor is the one the hook actually pinned.
+    const firstVendorValue = filteredVendorOptions.at(0)?.value;
+    const isSelectionPinnedToTop = firstVendorValue !== undefined && pinnedValues.includes(firstVendorValue);
+    const data: VendorListItem[] = shouldShowClearOption ? withClearRow(filteredVendorOptions, clearOption, isSelectionPinnedToTop) : filteredVendorOptions;
 
     const headerContent = (
         <View>
@@ -65,7 +77,11 @@ function DualEntryDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsPr
     );
 
     const selectDefaultVendor = (item: VendorListItem) => {
-        if (item.value !== defaultCompanyCardVendorID && policyID) {
+        const isAlreadySelected = item.value === defaultCompanyCardVendorID || (!item.value && !defaultCompanyCardVendorID);
+        if (isAlreadySelected) {
+            return;
+        }
+        if (policyID) {
             updateDualEntryDefaultVendor(policyID, item.value, defaultCompanyCardVendorID);
         }
         Navigation.goBack(backPath);
@@ -78,7 +94,7 @@ function DualEntryDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsPr
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="DualEntryDefaultCompanyCardVendorPage"
             title="workspace.dualEntry.defaultCompanyCardVendor.label"
-            data={filteredData}
+            data={data}
             textInputOptions={textInputOptions}
             headerContent={headerContent}
             listEmptyContent={listEmptyContent}
