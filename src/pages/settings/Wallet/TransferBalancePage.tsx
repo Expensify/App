@@ -145,7 +145,7 @@ function TransferBalancePage() {
         selectedAccount?.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? CONST.WALLET.TRANSFER_METHOD_TYPE.ACH : CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT;
 
     const calculatedFee = calculateWalletTransferBalanceFee(userWallet?.currentBalance ?? 0, selectedPaymentType);
-    const transferAmount = userWallet?.currentBalance ?? 0 - calculatedFee;
+    const transferAmount = (userWallet?.currentBalance ?? 0) - calculatedFee;
     const isTransferable = transferAmount > 0;
     const isButtonDisabled = !isTransferable || !selectedAccount;
     const errorMessage = getLatestErrorMessage(walletTransfer);
@@ -218,7 +218,7 @@ function TransferBalancePage() {
                     <FormAlertWithSubmitButton
                         buttonText={translate('transferAmountPage.transfer', isTransferable ? convertToDisplayString(transferAmount, CONST.CURRENCY.USD) : '')}
                         isLoading={walletTransfer?.loading}
-                        onSubmit={() => selectedAccount && transferWalletBalance(selectedAccount)}
+                        onSubmit={() => selectedAccount && transferWalletBalance(selectedAccount, userWallet)}
                         isDisabled={isButtonDisabled || isOffline}
                         message={errorMessage}
                         isAlertVisible={!isEmptyObject(errorMessage)}
