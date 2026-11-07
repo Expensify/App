@@ -6,11 +6,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getUnsubmittedCardTransactionsRoute} from '@libs/CardNavigationUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import Parser from '@libs/Parser';
 
 import React from 'react';
 import {View} from 'react-native';
 
 import RenderHTML from './RenderHTML';
+import Text from './Text';
 
 type CardUnsubmittedTransactionsPromptProps = {
     cardIDs: number[];
@@ -28,7 +30,7 @@ function CardUnsubmittedTransactionsPrompt({cardIDs, descriptionKey}: CardUnsubm
     const transactionsRoute = getUnsubmittedCardTransactionsRoute(cardIDs);
 
     if (!transactionsRoute) {
-        return null;
+        return <Text>{Parser.htmlToText(translate(descriptionKey, ''))}</Text>;
     }
 
     const openUnsubmittedTransactions = () => {

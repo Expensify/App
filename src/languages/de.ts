@@ -7324,13 +7324,13 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 unassignCards: 'Kartenzuweisung aufheben',
                 unassign: 'Zuweisung aufheben',
                 unassignCardDescription: (transactionsUrl: string) =>
-                    'Das Entfernen der Zuweisung dieser Karte löscht dauerhaft alle <a href="'.concat(transactionsUrl, '">nicht eingereichten Transaktionen</a> dieser Karte, einschließlich nicht gemeldeter Transaktionen und Transaktionen in Berichtsentwürfen. Dies kann nicht rückgängig gemacht werden.'),
+                    `Das Entfernen der Zuweisung dieser Karte löscht dauerhaft alle <a href="${transactionsUrl}">nicht eingereichten Transaktionen</a> dieser Karte, einschließlich nicht gemeldeter Transaktionen und Transaktionen in Berichtsentwürfen. Dies kann nicht rückgängig gemacht werden.`,
                 unassignCardsDescription: (transactionsUrl: string) =>
-                    'Das Aufheben der Zuweisung löscht dauerhaft alle <a href="'.concat(transactionsUrl, '">nicht eingereichten Transaktionen</a> der ausgewählten Karten, einschließlich nicht gemeldeter Transaktionen und Transaktionen in Berichtsentwürfen. Dies kann nicht rückgängig gemacht werden.'),
+                    `Das Aufheben der Zuweisung löscht dauerhaft alle <a href="${transactionsUrl}">nicht eingereichten Transaktionen</a> der ausgewählten Karten, einschließlich nicht gemeldeter Transaktionen und Transaktionen in Berichtsentwürfen. Dies kann nicht rückgängig gemacht werden.`,
                 removeCard: 'Karte entfernen',
                 remove: 'Entfernen',
                 removeCardDescription: (transactionsUrl: string) =>
-                    'Wenn Sie diese Karte entfernen, werden alle <a href="'.concat(transactionsUrl, '">nicht eingereichten Transaktionen</a> dieser Karte dauerhaft gelöscht, einschließlich nicht gemeldeter Transaktionen und Transaktionen in Berichtsentwürfen. Dies kann nicht rückgängig gemacht werden.'),
+                    `Wenn Sie diese Karte entfernen, werden alle <a href="${transactionsUrl}">nicht eingereichten Transaktionen</a> dieser Karte dauerhaft gelöscht, einschließlich nicht gemeldeter Transaktionen und Transaktionen in Berichtsentwürfen. Dies kann nicht rückgängig gemacht werden.`,
                 assignCard: 'Karte zuweisen',
                 cardFeedName: 'Name des Kartenfeeds',
                 cardFeedNameDescription: 'Gib dem Kartenfeed einen eindeutigen Namen, damit du ihn von den anderen unterscheiden kannst.',

@@ -7180,13 +7180,13 @@ ${amount} para ${merchant} - ${date}`,
                 unassignCards: 'Desasignar tarjetas',
                 unassign: 'Desasignar',
                 unassignCardDescription: (transactionsUrl: string) =>
-                    'Desasignar esta tarjeta eliminará permanentemente todas sus <a href="'.concat(transactionsUrl, '">transacciones no enviadas</a>, incluidas las transacciones no reportadas y las que están en informes en borrador. Esta acción no se puede deshacer.'),
+                    `Desasignar esta tarjeta eliminará permanentemente todas sus <a href="${transactionsUrl}">transacciones no enviadas</a>, incluidas las transacciones no reportadas y las que están en informes en borrador. Esta acción no se puede deshacer.`,
                 unassignCardsDescription: (transactionsUrl: string) =>
-                    'Desasignar eliminará permanentemente todas las <a href="'.concat(transactionsUrl, '">transacciones no enviadas</a> de las tarjetas seleccionadas, incluidas las transacciones no reportadas y las que están en informes en borrador. Esta acción no se puede deshacer.'),
+                    `Desasignar eliminará permanentemente todas las <a href="${transactionsUrl}">transacciones no enviadas</a> de las tarjetas seleccionadas, incluidas las transacciones no reportadas y las que están en informes en borrador. Esta acción no se puede deshacer.`,
                 removeCard: 'Eliminar tarjeta',
                 remove: 'Eliminar',
                 removeCardDescription: (transactionsUrl: string) =>
-                    'Eliminar esta tarjeta eliminará permanentemente todas sus <a href="'.concat(transactionsUrl, '">transacciones no enviadas</a>, incluidas las transacciones no reportadas y las que están en informes en borrador. Esta acción no se puede deshacer.'),
+                    `Eliminar esta tarjeta eliminará permanentemente todas sus <a href="${transactionsUrl}">transacciones no enviadas</a>, incluidas las transacciones no reportadas y las que están en informes en borrador. Esta acción no se puede deshacer.`,
                 assignCard: 'Asignar tarjeta',
                 cardFeedName: 'Nombre del feed de tarjeta',
                 cardFeedNameDescription: 'Dale al feed de tarjeta un nombre único para que puedas distinguirlo de los demás.',

@@ -7348,13 +7348,13 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 unassignCards: 'Retirer l’assignation des cartes',
                 unassign: "Retirer l'assignation",
                 unassignCardDescription: (transactionsUrl: string) =>
-                    "Retirer l'assignation de cette carte supprimera définitivement toutes ses <a href=\"".concat(transactionsUrl, "\">transactions non soumises</a>, y compris les transactions non déclarées et celles figurant sur des brouillons de notes de frais. Cette action est irréversible."),
+                    `Retirer l'assignation de cette carte supprimera définitivement toutes ses <a href="${transactionsUrl}">transactions non soumises</a>, y compris les transactions non déclarées et celles figurant sur des brouillons de notes de frais. Cette action est irréversible.`,
                 unassignCardsDescription: (transactionsUrl: string) =>
-                    "Retirer l'assignation supprimera définitivement toutes les <a href=\"".concat(transactionsUrl, "\">transactions non soumises</a> des cartes sélectionnées, y compris les transactions non déclarées et celles figurant sur des brouillons de notes de frais. Cette action est irréversible."),
+                    `Retirer l'assignation supprimera définitivement toutes les <a href="${transactionsUrl}">transactions non soumises</a> des cartes sélectionnées, y compris les transactions non déclarées et celles figurant sur des brouillons de notes de frais. Cette action est irréversible.`,
                 removeCard: 'Supprimer la carte',
                 remove: 'Supprimer',
                 removeCardDescription: (transactionsUrl: string) =>
-                    'La suppression de cette carte effacera définitivement toutes ses <a href="'.concat(transactionsUrl, '">transactions non soumises</a>, y compris les transactions non déclarées et celles figurant sur des brouillons de notes de frais. Cette action est irréversible.'),
+                    `La suppression de cette carte effacera définitivement toutes ses <a href="${transactionsUrl}">transactions non soumises</a>, y compris les transactions non déclarées et celles figurant sur des brouillons de notes de frais. Cette action est irréversible.`,
                 assignCard: 'Assigner une carte',
                 cardFeedName: 'Nom du flux de carte',
                 cardFeedNameDescription: 'Donnez au flux de carte un nom unique afin de pouvoir le distinguer des autres.',

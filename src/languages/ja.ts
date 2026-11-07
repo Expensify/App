@@ -7166,13 +7166,13 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 unassignCards: 'カードの割り当てを解除',
                 unassign: '割り当てを解除',
                 unassignCardDescription: (transactionsUrl: string) =>
-                    'このカードの割り当てを解除すると、未報告の取引や下書きレポート内の取引を含む、このカードの<a href="'.concat(transactionsUrl, '">未送信の取引</a>はすべて完全に削除されます。この操作は元に戻せません。'),
+                    `このカードの割り当てを解除すると、未報告の取引や下書きレポート内の取引を含む、このカードの<a href="${transactionsUrl}">未送信の取引</a>はすべて完全に削除されます。この操作は元に戻せません。`,
                 unassignCardsDescription: (transactionsUrl: string) =>
-                    '割り当てを解除すると、未報告の取引や下書きレポート内の取引を含む、選択したカードの<a href="'.concat(transactionsUrl, '">未送信の取引</a>はすべて完全に削除されます。この操作は元に戻せません。'),
+                    `割り当てを解除すると、未報告の取引や下書きレポート内の取引を含む、選択したカードの<a href="${transactionsUrl}">未送信の取引</a>はすべて完全に削除されます。この操作は元に戻せません。`,
                 removeCard: 'カードを削除',
                 remove: '削除',
                 removeCardDescription: (transactionsUrl: string) =>
-                    'このカードを削除すると、未報告の取引や下書きレポート内の取引を含む、このカードの<a href="'.concat(transactionsUrl, '">未送信の取引</a>はすべて完全に削除されます。この操作は元に戻せません。'),
+                    `このカードを削除すると、未報告の取引や下書きレポート内の取引を含む、このカードの<a href="${transactionsUrl}">未送信の取引</a>はすべて完全に削除されます。この操作は元に戻せません。`,
                 assignCard: 'カードを割り当てる',
                 cardFeedName: 'カードフィード名',
                 cardFeedNameDescription: '他のカードフィードと区別できるように、一意の名前を付けてください。',

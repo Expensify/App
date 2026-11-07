@@ -170,10 +170,7 @@ describe('WorkspaceCompanyCardsTableControls narrow-layout selection mode', () =
     it.each([[123], [123, 456]])('links only the selected assigned cards in the warning: %j', async (...cardIDs) => {
         // Given selected assigned cards, plus disabled and unselected rows that must not enter the link
         mockProcessedData = cardIDs.map((cardID) => ({selected: true, isAssigned: true, assignedCard: createRandomCard(cardID)}));
-        mockProcessedData.push(
-            {selected: true, disabled: true, isAssigned: true, assignedCard: createRandomCard(789)},
-            {selected: false, isAssigned: false},
-        );
+        mockProcessedData.push({selected: true, disabled: true, isAssigned: true, assignedCard: createRandomCard(789)}, {selected: false, isAssigned: false});
         const {clearCardSelection} = renderControls(true);
 
         // When opening and closing the warning without confirming

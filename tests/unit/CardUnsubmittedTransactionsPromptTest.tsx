@@ -1,4 +1,4 @@
-import {render} from '@testing-library/react-native';
+import {render, screen} from '@testing-library/react-native';
 
 import CardUnsubmittedTransactionsPrompt from '@components/CardUnsubmittedTransactionsPrompt';
 import RenderHTML from '@components/RenderHTML';
@@ -54,18 +54,20 @@ describe('CardUnsubmittedTransactionsPrompt', () => {
         expect(mockCloseModal.mock.invocationCallOrder.at(0)).toBeLessThan(jest.mocked(Navigation.navigate).mock.invocationCallOrder.at(0) ?? 0);
     });
 
-    it('never offers a broad search when the card list is empty', () => {
+    it.each(['removeCardDescription', 'unassignCardDescription', 'unassignCardsDescription'] as const)('keeps %s visible without a link when the card list is empty', (description) => {
         // Given no card IDs
         // When rendering the warning prompt
         render(
             <CardUnsubmittedTransactionsPrompt
                 cardIDs={[]}
-                descriptionKey="workspace.moreFeatures.companyCards.removeCardDescription"
+                descriptionKey={`workspace.moreFeatures.companyCards.${description}`}
             />,
         );
 
-        // Then there is no clickable HTML or navigation
+        // Then the full deletion warning remains visible, but there is no clickable HTML or navigation
+        expect(screen.getByText(mockTranslations.workspace.moreFeatures.companyCards[description]('').replace('<a href="">', '').replace('</a>', ''))).toBeTruthy();
         expect(RenderHTML).not.toHaveBeenCalled();
         expect(Navigation.navigate).not.toHaveBeenCalled();
+        expect(mockCloseModal).not.toHaveBeenCalled();
     });
 });
