@@ -548,8 +548,9 @@ function getReusableP2PReportID(participant: Participant, transactionReportID: s
 
 /**
  * Whether the participant picker for this transaction should be restricted to workspaces only.
- * A negative amount (or a distance request with zero quantity) implies money is owed *to* the
- * current user, so only a workspace can be the counterparty — not an individual user.
+ * A distance request with zero quantity can only be associated with a workspace. Negative amounts
+ * are handled separately through `shouldExcludeP2P`, which keeps Self DM available because it
+ * supports negative amounts while still excluding ordinary P2P recipients.
  * Scan requests are excluded because the amount isn't known until after SmartScan completes.
  */
 function getIsWorkspacesOnlyForTransaction(transaction: OnyxEntry<Transaction>, iouRequestType: IOURequestType): boolean {
@@ -564,7 +565,7 @@ function getIsWorkspacesOnlyForTransaction(transaction: OnyxEntry<Transaction>, 
         return false;
     }
 
-    return transaction?.amount !== undefined && transaction?.amount !== null && transaction?.amount < 0;
+    return false;
 }
 
 /**

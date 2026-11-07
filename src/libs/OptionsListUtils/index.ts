@@ -2016,8 +2016,9 @@ function isValidReport(
         return false;
     }
 
-    // When passing includeP2P false we are trying to hide features from users that are not ready for P2P and limited to expense chats only.
-    if (!includeP2P && !isPolicyExpenseChat) {
+    // When passing includeP2P false, hide ordinary P2P destinations while preserving Self DM when it is explicitly enabled.
+    // Self DM supports negative amounts, unlike personal 1:1 chats.
+    if (!includeP2P && !isPolicyExpenseChat && !(isSelfDM && includeSelfDM)) {
         return false;
     }
 
