@@ -55,8 +55,7 @@ function readReferencePaths(config: unknown): string[] {
 /**
  * The projects the root solution references, relative to the repo root.
  *
- * `--showConfig` is how we read them: the root config carries comments, so it is not plain JSON, and
- * TypeScript 7 does not yet expose a compiler API we could parse it with.
+ * `--showConfig` handles comments in the root config and follows the compiler's config parsing rules.
  */
 async function getReferencedProjects(): Promise<string[]> {
     const result = await $`${tsc} -p tsconfig.json --showConfig`.cwd(projectRoot).quiet().nothrow();
