@@ -89,11 +89,22 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
     };
 
     const submit = () => {
-        const beneficialOwnerFields = ['firstName', 'lastName', 'dob', 'ssnLast4', 'street', 'city', 'state', 'zipCode'];
+        const ownerMissingEmail = beneficialOwnerKeys.find((ownerKey) => {
+            const email = SafeString(reimbursementAccountDraft?.[`beneficialOwner_${ownerKey}_email`]).trim();
+            return !Str.isValidEmail(email);
+        });
+        if (ownerMissingEmail) {
+            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {ownerBeingModifiedID: ownerMissingEmail, isEditingCreatedOwner: true});
+            navigateToSubPage(SUB_PAGE_NAMES.EMAIL);
+            return;
+        }
+
+        const beneficialOwnerFields = ['firstName', 'lastName', 'email', 'dob', 'ssnLast4', 'street', 'city', 'state', 'zipCode'];
         const beneficialOwnersData = beneficialOwnerKeys.map((ownerKey) =>
             beneficialOwnerFields.reduce(
                 (acc, fieldName) => {
-                    acc[fieldName] = reimbursementAccountDraft ? SafeString(reimbursementAccountDraft[`beneficialOwner_${ownerKey}_${fieldName}`]) : undefined;
+                    const value = reimbursementAccountDraft ? SafeString(reimbursementAccountDraft[`beneficialOwner_${ownerKey}_${fieldName}`]) : undefined;
+                    acc[fieldName] = fieldName === 'email' ? value?.trim() : value;
                     return acc;
                 },
                 {} as Record<string, string | undefined>,

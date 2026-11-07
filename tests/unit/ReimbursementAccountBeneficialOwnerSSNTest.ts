@@ -9,6 +9,18 @@ import createMock from '../utils/createMock';
 const BENEFICIAL_OWNER_ID = 'beneficialOwnerID';
 
 describe('Beneficial owner SSN contracts', () => {
+    it('preserves the USD owner email for confirmation', () => {
+        // Given an owner whose email was entered during bank account setup
+        const key = `${CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.PREFIX}_${BENEFICIAL_OWNER_ID}_${CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.EMAIL}`;
+        const draft = createMock<ReimbursementAccountForm>({[key]: 'owner@example.com'});
+
+        // When the confirmation values are assembled
+        const values = getUSDBeneficialOwnerValues(BENEFICIAL_OWNER_ID, draft);
+
+        // Then the email remains associated with that owner
+        expect(values.email).toBe('owner@example.com');
+    });
+
     it('uses ssnLast4 for USD verified bank accounts', () => {
         // Given a USD beneficial-owner draft with the last four SSN digits
         const key = `${CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.PREFIX}_${BENEFICIAL_OWNER_ID}_${CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.SSN_LAST_4}`;
