@@ -103,6 +103,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'DigitsSquare',
         'ZohoBooksSquare',
         'BusinessCentralSquare',
     ]);
