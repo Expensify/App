@@ -559,7 +559,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const getHeaderContent = () => (
         <>
             <WorkspaceNewRolesBanner policy={policy} />
-            <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
+            <View style={shouldUseNarrowLayout ? [styles.workspaceSectionMobile, styles.pr5] : styles.workspaceSection}>
                 <View style={[styles.pl5, styles.mb5, styles.mt3, styles.flexRow, styles.alignItemsCenter]}>
                     <Text style={[styles.textSupporting, styles.flexShrink1, isPendingAddOrDelete && styles.offlineFeedbackPending]}>
                         {translate('workspace.people.workspaceMembersCount', memberCount)}
@@ -780,7 +780,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     let tableHeaderComponent: React.ReactElement | undefined;
     if (data.length > 0) {
         tableHeaderComponent = shouldUseNarrowLayout ? (
-            <View style={[styles.pr5]}>{getHeaderContent()}</View>
+            getHeaderContent()
         ) : (
             <>
                 {!!headerMessage && (
