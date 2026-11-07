@@ -698,6 +698,7 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
     updateMoneyRequestAmountAndCurrency({
         isVendorMatchingBetaEnabled: ctx.isVendorMatchingBetaEnabled,
         transactionID,
+        transaction: currentTransaction,
         transactionThreadReport: report,
         parentReport,
         iouReportOwnerLogin: getLoginByAccountID(parentReport?.ownerAccountID, allPersonalDetails),

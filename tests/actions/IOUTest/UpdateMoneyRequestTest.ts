@@ -114,7 +114,9 @@ async function mergeTransactionWithBackendOnlyViolation(transactionID: string, t
     await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
     await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
 
-    return {policy, transactionThreadReport};
+    const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+
+    return {policy, transactionThreadReport, transaction};
 }
 
 /** Reads back the violation names stored for a transaction. */
@@ -507,6 +509,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID: fakeTransaction.transactionID,
+                transaction: fakeTransaction,
                 transactionThreadReport: fakeReport,
                 parentReport: undefined,
                 iouReportOwnerLogin: undefined,
@@ -582,6 +585,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID: fakeTransaction.transactionID,
+                transaction: fakeTransaction,
                 transactionThreadReport: fakeReport,
                 parentReport: undefined,
                 iouReportOwnerLogin: undefined,
@@ -660,6 +664,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             const {onyxData} = getUpdateTrackExpenseParams({
                 transactionID,
+                transaction,
                 transactionThread: transactionThreadReport,
                 transactionThreadParentReport: selfDMReport,
                 transactionChanges: {amount: 20000},
@@ -762,6 +767,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID,
+                transaction,
                 transactionThreadReport: transactionThread,
                 parentReport: expenseReport,
                 iouReportOwnerLogin: undefined,
@@ -1063,12 +1069,13 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
         it('should keep a violation the client cannot recompute when the description is edited', async () => {
             // Given an expense on a group policy carrying a violation only the backend can produce
             const transactionID = '1';
-            const {policy, transactionThreadReport} = await mergeTransactionWithBackendOnlyViolation(transactionID, '2');
+            const {policy, transactionThreadReport, transaction} = await mergeTransactionWithBackendOnlyViolation(transactionID, '2');
 
             // When editing the description
             updateMoneyRequestDescription({
                 isVendorMatchingBetaEnabled: false,
                 transactionID,
+                transaction,
                 transactionThreadReport,
                 parentReport: undefined,
                 rules: undefined,
@@ -1177,6 +1184,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 personalPolicyOutputCurrency: undefined,
                 reportPolicyTags: undefined,
                 transactionID,
+                transaction: fakeTransaction,
                 transactionThreadReport,
                 parentReport,
                 iouReportOwnerLogin: undefined,
@@ -2021,6 +2029,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID,
+                transaction: fakeTransaction,
                 transactionThreadReport,
                 parentReport,
                 iouReportOwnerLogin: undefined,
@@ -2082,6 +2091,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID,
+                transaction: fakeTransaction,
                 transactionThreadReport,
                 parentReport,
                 iouReportOwnerLogin: undefined,
@@ -2111,12 +2121,13 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
         it('should keep a violation the client cannot recompute when the merchant is edited', async () => {
             // Given an expense on a group policy carrying a violation only the backend can produce
             const transactionID = '1';
-            const {policy, transactionThreadReport} = await mergeTransactionWithBackendOnlyViolation(transactionID, '2');
+            const {policy, transactionThreadReport, transaction} = await mergeTransactionWithBackendOnlyViolation(transactionID, '2');
 
             // When editing the merchant
             updateMoneyRequestMerchant({
                 isVendorMatchingBetaEnabled: false,
                 transactionID,
+                transaction,
                 transactionThreadReport,
                 parentReport: undefined,
                 rules: undefined,
@@ -2229,6 +2240,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     isVendorMatchingBetaEnabled: false,
                     rules: undefined,
                     transactionID,
+                    transaction: fakeTransaction,
                     transactionThreadReport,
                     parentReport,
                     iouReportOwnerLogin: undefined,
@@ -2300,6 +2312,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             // When the caller passes a higher-precision distance than what `customUnit.quantity` would round to
             const {params} = getUpdateTrackExpenseParams({
                 transactionID,
+                transaction: fakeTransaction,
                 transactionThread: fakeThreadReport,
                 transactionThreadParentReport: selfDMReport,
                 transactionChanges: {distance: 5.555},
@@ -2379,6 +2392,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             const {onyxData} = getUpdateTrackExpenseParams({
                 transactionID,
+                transaction: fakeTransaction,
                 transactionThread: fakeThreadReport,
                 transactionThreadParentReport: selfDMReport,
                 transactionChanges: {created: '2026-06-15'},
@@ -2557,6 +2571,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 personalPolicyOutputCurrency: undefined,
                 reportPolicyTags: undefined,
                 transactionID,
+                transaction,
                 transactionThreadReport: transactionThread,
                 parentReport: expenseReport,
                 iouReportOwnerLogin: undefined,
@@ -2690,6 +2705,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 personalPolicyOutputCurrency: undefined,
                 reportPolicyTags: undefined,
                 transactionID,
+                transaction,
                 transactionThreadReport: transactionThread,
                 parentReport: expenseReport,
                 iouReportOwnerLogin: undefined,
@@ -2792,6 +2808,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 personalPolicyOutputCurrency: undefined,
                 reportPolicyTags: undefined,
                 transactionID,
+                transaction,
                 transactionThreadReport: transactionThread,
                 parentReport: expenseReport,
                 iouReportOwnerLogin: undefined,
@@ -2915,6 +2932,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 personalPolicyOutputCurrency: undefined,
                 reportPolicyTags: undefined,
                 transactionID,
+                transaction,
                 transactionThreadReport: transactionThread,
                 parentReport: expenseReport,
                 iouReportOwnerLogin: undefined,
@@ -3040,6 +3058,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 personalPolicyOutputCurrency: undefined,
                 reportPolicyTags: undefined,
                 transactionID,
+                transaction,
                 transactionThreadReport: transactionThread,
                 parentReport: selfDMReport,
                 iouReportOwnerLogin: undefined,
@@ -3227,6 +3246,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             updateMoneyRequestDescription({
                 isVendorMatchingBetaEnabled: true,
                 transactionID,
+                transaction: fakeTransaction,
                 transactionThreadReport,
                 parentReport,
                 rules: undefined,
@@ -3315,6 +3335,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             updateMoneyRequestDescription({
                 isVendorMatchingBetaEnabled: true,
                 transactionID,
+                transaction: fakeTransaction,
                 transactionThreadReport,
                 parentReport,
                 rules: undefined,
