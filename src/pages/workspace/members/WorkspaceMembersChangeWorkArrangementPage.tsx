@@ -10,6 +10,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useRedirectToWorkspaceMembersWithoutSelection from '@hooks/useRedirectToWorkspaceMembersWithoutSelection';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setEmployeeWorkArrangement} from '@libs/actions/Policy/DistanceRate';
@@ -53,8 +54,12 @@ function WorkspaceMembersChangeWorkArrangementPage({policy, personalDetails, rou
     // Members picked on another workspace's member list are left out, even when they also belong to this one
     const selectedAccountIDs = selection?.policyID === policyID ? selection.accountIDs : undefined;
 
-    // The selection only lives in memory, so it is gone when the page is opened from a link or after a refresh
-    const hasSelectedMembers = isLoadingOnyxValue(selectionMetadata) || !!selectedAccountIDs?.length;
+    useRedirectToWorkspaceMembersWithoutSelection({
+        policyID,
+        isSelectionLoading: isLoadingOnyxValue(selectionMetadata),
+        selectedMemberCount: selectedAccountIDs?.length ?? 0,
+    });
+
     const canChangeWorkArrangement =
         isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) &&
         canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MEMBERS) &&
@@ -94,7 +99,7 @@ function WorkspaceMembersChangeWorkArrangementPage({policy, personalDetails, rou
             policyID={policyID}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
-            shouldBeBlocked={!canChangeWorkArrangement || !hasSelectedMembers}
+            shouldBeBlocked={!canChangeWorkArrangement}
         >
             <ScreenWrapper
                 testID="WorkspaceMembersChangeWorkArrangementPage"
