@@ -34,7 +34,6 @@ import type {Attendee, DistanceExpenseType} from '@src/types/onyx/IOU';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {Comment, UnreportedTransaction, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
@@ -993,11 +992,11 @@ function getCreated(transaction: OnyxInputOrEntry<Transaction>): string {
 }
 
 /**
- * Return the created field from the transaction, return the modifiedCreated if present.
+ * Return the created field from the transaction as yyyy-MM-dd, using the modifiedCreated if present. It is the same in
+ * every language, so a date shown to the user is formatted from it with the user's locale.
  */
-function getFormattedCreated(transaction: OnyxInputOrEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING, dateFnsLocale?: DateFnsLocale): string {
-    const created = getCreated(transaction);
-    return DateUtils.formatWithUTCTimeZone(created, dateFormat, dateFnsLocale);
+function getFormattedCreated(transaction: OnyxInputOrEntry<Transaction>): string {
+    return DateUtils.formatMachineDateWithUTCTimeZone(getCreated(transaction));
 }
 
 /**

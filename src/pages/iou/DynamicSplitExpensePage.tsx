@@ -178,7 +178,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
             parentReport,
         );
 
-    const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, undefined, effectivePolicy, true) ?? {};
+    const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, effectivePolicy, true) ?? {};
     let transactionDetailsAmount;
     // `initSplitExpense` computes the total against the fallback rate for self-DM splits
     // where the original rate was deleted from the workspace, and stores it on the draft.
