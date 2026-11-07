@@ -152,6 +152,14 @@ describe('MoneyRequestConfirmationListFooter', () => {
         return waitForBatchedUpdatesWithAct();
     });
 
+    beforeEach(async () => {
+        // Creation eligibility requires the signed-in user to be the report's submitter.
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {accountID: FAKE_ACCOUNT_ID, email: 'reportfooter@example.com'});
+        });
+        await waitForBatchedUpdatesWithAct();
+    });
+
     afterEach(async () => {
         await act(async () => {
             await Onyx.clear();

@@ -45,6 +45,8 @@ const renderIOURequestEditReportCommon = ({
     isOdometerDistanceRequest = false,
     isDistanceRequest = false,
     isPerDiemRequest = false,
+    isCreatingExpense = false,
+    isEditing = false,
     selectReport = jest.fn(),
     createReport,
     onNavigateAway,
@@ -57,6 +59,8 @@ const renderIOURequestEditReportCommon = ({
     isOdometerDistanceRequest?: boolean;
     isDistanceRequest?: boolean;
     isPerDiemRequest?: boolean;
+    isCreatingExpense?: boolean;
+    isEditing?: boolean;
     selectReport?: jest.Mock;
     createReport?: jest.Mock;
     onNavigateAway?: jest.Mock;
@@ -77,6 +81,8 @@ const renderIOURequestEditReportCommon = ({
                     onNavigateAway={onNavigateAway}
                     backTo=""
                     isPerDiemRequest={isPerDiemRequest}
+                    isCreatingExpense={isCreatingExpense}
+                    isEditing={isEditing}
                 />
             </ComposeProviders>
         </NavigationContainer>,
@@ -147,6 +153,67 @@ describe('IOURequestEditReportCommon', () => {
             // Then do not show RBR
             const dotIndicators = screen.queryAllByTestId(CONST.DOT_INDICATOR_TEST_ID);
             expect(dotIndicators).toHaveLength(0);
+        });
+
+        it.each([
+            {isCreatingExpense: true, isEditing: false, shouldShowReport: false},
+            {isCreatingExpense: false, isEditing: true, shouldShowReport: true},
+            {isCreatingExpense: false, isEditing: false, shouldShowReport: true},
+        ])('preserves move permissions but uses save eligibility for creation: %j', async ({isCreatingExpense, isEditing, shouldShowReport}) => {
+            // Given an admin's retracted report containing only non-reimbursable expenses
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`, {
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    autoReporting: true,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                    pendingAction: undefined,
+                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${FAKE_TRANSACTION_ID}`, {
+                    transactionID: FAKE_TRANSACTION_ID,
+                    reportID: FAKE_REPORT_ID,
+                    amount: -100,
+                    currency: 'USD',
+                    created: '2026-01-01',
+                    merchant: 'Merchant',
+                    reimbursable: false,
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // When the same picker opens for creation, editing, or a caller that does not set isEditing
+            renderIOURequestEditReportCommon({selectedReportID: FAKE_REPORT_ID, selectedPolicyID: FAKE_POLICY_ID, isCreatingExpense, isEditing});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then only creation hides the rejected destination, preserving all existing move callers
+            expect(!!screen.queryByText('Expense Report')).toBe(shouldShowReport);
+        });
+
+        it('does not apply moving eligibility to submitted reports during creation', async () => {
+            // Given an instant-submit workspace with payments off and a submitted reimbursable report
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`, {
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    autoReporting: true,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                    pendingAction: undefined,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}`, {
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // When the create-flow picker lists destinations
+            renderIOURequestEditReportCommon({selectedReportID: FAKE_REPORT_ID, selectedPolicyID: FAKE_POLICY_ID, isCreatingExpense: true});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then a report accepted only for moving transactions is not offered for creation
+            expect(screen.queryByText('Expense Report')).toBeNull();
         });
 
         const setUpCommuterExclusionTest = async () => {
