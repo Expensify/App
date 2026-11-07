@@ -17,7 +17,6 @@ import useUnreadMarker from '@hooks/useUnreadMarker';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import {shouldHidePayAction} from '@libs/ReportActionsUtils';
 import {isArchivedReport} from '@libs/ReportUtils';
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
@@ -66,18 +65,12 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         oldestUnreadReportAction,
         transactionThreadReport,
         sortedAllReportActions,
-        sortedReportActions: unfilteredReportActions,
-        sortedVisibleReportActions: unfilteredVisibleReportActions,
+        sortedReportActions: paymentFilteredReportActions,
+        sortedVisibleReportActions: paymentFilteredVisibleReportActions,
         isConciergeHiddenHistory,
         shouldShowConciergeWelcome,
         isConciergeHistoryExpanded,
     } = useReportActionsListState();
-
-    // Remove rows hidden by the renderer before calculating summary counts, headers, and scroll positions.
-    const paymentFilteredReportActions = report?.isWaitingOnBankAccount ? unfilteredReportActions.filter((action) => !shouldHidePayAction(action, true)) : unfilteredReportActions;
-    const paymentFilteredVisibleReportActions = report?.isWaitingOnBankAccount
-        ? unfilteredVisibleReportActions.filter((action) => !shouldHidePayAction(action, true))
-        : unfilteredVisibleReportActions;
 
     const {handleShowPreviousMessages: onShowPreviousMessages} = useReportActionsListActions();
 

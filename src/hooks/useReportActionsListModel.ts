@@ -1,4 +1,5 @@
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import {shouldHidePayAction} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, isReportTransactionThread as isReportTransactionThreadUtil, shouldReportAlignToTop} from '@libs/ReportUtils';
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
@@ -133,6 +134,12 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         hasUnreadConciergeMessageFromOthers,
     };
 
+    // Hidden payments must not affect pagination, loading, or recovery decisions above.
+    const paymentFilteredReportActions = report?.isWaitingOnBankAccount ? sortedReportActions.filter((action) => !shouldHidePayAction(action, true)) : sortedReportActions;
+    const paymentFilteredVisibleReportActions = report?.isWaitingOnBankAccount
+        ? sortedVisibleReportActions.filter((action) => !shouldHidePayAction(action, true))
+        : sortedVisibleReportActions;
+
     // The render state slice on `ReportActionsListStateContext`; this is what drives list re-renders.
     // Ambient state (network, route, archived, concierge chat history) is read locally in the content instead
     // of carried here.
@@ -146,8 +153,8 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         parentReportActionForTransactionThread,
         treatAsNoPaginationAnchor,
         parentReportAction,
-        sortedReportActions,
-        sortedVisibleReportActions,
+        sortedReportActions: paymentFilteredReportActions,
+        sortedVisibleReportActions: paymentFilteredVisibleReportActions,
         isConciergeHiddenHistory,
         showFullHistory,
         hasPreviousMessages,
