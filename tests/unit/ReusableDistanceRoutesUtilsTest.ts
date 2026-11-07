@@ -141,8 +141,8 @@ describe('ReusableDistanceRoutesUtils', () => {
             expect(available).toEqual([route]);
         });
 
-        it('excludes routes with invalid waypoints', () => {
-            // Given routes with zero coordinates, fewer than two waypoints, or duplicate adjacent waypoints
+        it('excludes routes with invalid waypoints or zero distance', () => {
+            // Given routes with zero coordinates, zero resolved distance (no route found), fewer than two waypoints, or duplicate adjacent waypoints
             const zeroCoordinatesRoute: ReusableDistanceRoute = {
                 ...createRoute('tx-1', ['invalid1', 'invalid2']),
                 waypoints: {
@@ -150,15 +150,19 @@ describe('ReusableDistanceRoutesUtils', () => {
                     waypoint1: {address: 'invalid2', lat: 0, lng: 0},
                 },
             };
-            const singleWaypointRoute = createRoute('tx-2', ['Only One']);
-            const duplicateWaypointsRoute = createRoute('tx-3', ['Same Address', 'Same Address']);
-            const validRoute = createRoute('tx-4', ['Start', 'End']);
+            const noRouteFoundRoute: ReusableDistanceRoute = {
+                ...createRoute('tx-2', ['abcde1', 'fghij2']),
+                distance: 0,
+            };
+            const singleWaypointRoute = createRoute('tx-3', ['Only One']);
+            const duplicateWaypointsRoute = createRoute('tx-4', ['Same Address', 'Same Address']);
+            const validRoute = createRoute('tx-5', ['Start', 'End']);
 
             // When resolving available routes
-            const availableOnline = getAvailableReusableDistanceRoutes([zeroCoordinatesRoute, singleWaypointRoute, duplicateWaypointsRoute, validRoute], undefined, false);
-            const availableOffline = getAvailableReusableDistanceRoutes([zeroCoordinatesRoute, singleWaypointRoute, duplicateWaypointsRoute, validRoute], undefined, true);
+            const availableOnline = getAvailableReusableDistanceRoutes([zeroCoordinatesRoute, noRouteFoundRoute, singleWaypointRoute, duplicateWaypointsRoute, validRoute], undefined, false);
+            const availableOffline = getAvailableReusableDistanceRoutes([zeroCoordinatesRoute, noRouteFoundRoute, singleWaypointRoute, duplicateWaypointsRoute, validRoute], undefined, true);
 
-            // Then only the route with valid waypoints is returned
+            // Then only the route with valid waypoints and a resolved distance is returned
             expect(availableOnline).toEqual([validRoute]);
             expect(availableOffline).toEqual([validRoute]);
         });
