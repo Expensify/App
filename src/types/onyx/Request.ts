@@ -113,6 +113,9 @@ type RequestDataBase<TKey extends OnyxKey> = {
 
     /** The client-side monotonically-increasing index of this request (seeded with Date.now() at module load). Not to be confused with the server's response.requestID. */
     requestIndex?: number;
+
+    /** The requestIndex of the newest WRITE prepared when this READ was sent, used to tell whether its response is older than a later WRITE */
+    latestWriteRequestIndexWhenSent?: number;
 };
 
 /** Model of overall requests sent to the API */
