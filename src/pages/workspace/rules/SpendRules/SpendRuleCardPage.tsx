@@ -135,13 +135,6 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
         };
     });
 
-    useEffect(() => {
-        if (expensifyCardSettings) {
-            return;
-        }
-        openPolicyExpensifyCardsPage(policyID, defaultFundID);
-    }, [defaultFundID, expensifyCardSettings, policyID]);
-
     const toggleCard = (item: ExpensifyCardListItem) => {
         setSelectedCardIDs((prev) => {
             if (prev.includes(item.keyForList)) {
@@ -150,6 +143,13 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
             return [...prev, item.keyForList];
         });
     };
+
+    useEffect(() => {
+        if (expensifyCardSettings) {
+            return;
+        }
+        openPolicyExpensifyCardsPage(policyID, defaultFundID);
+    }, [defaultFundID, expensifyCardSettings, policyID]);
 
     const toggleSelectAll = () => {
         const visibleKeys = listData.map((item) => item.keyForList);

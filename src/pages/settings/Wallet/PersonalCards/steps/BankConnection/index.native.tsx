@@ -53,6 +53,13 @@ function BankConnection() {
         setAddNewPersonalCardStepAndData({step: CONST.PERSONAL_CARDS.STEP.SELECT_BANK});
     };
 
+    const checkIfConnectionCompleted = (navState: WebViewNavigation) => {
+        if (!navState.url.includes(ROUTES.BANK_CONNECTION_COMPLETE)) {
+            return;
+        }
+        setConnectionCompleted(true);
+    };
+
     useEffect(() => {
         if (!url && !isPlaid) {
             return;
@@ -71,13 +78,6 @@ function BankConnection() {
             onImportPlaidAccounts();
         }
     }, [url, isPlaid, onImportPlaidAccounts, newCard, isNewCardError]);
-
-    const checkIfConnectionCompleted = (navState: WebViewNavigation) => {
-        if (!navState.url.includes(ROUTES.BANK_CONNECTION_COMPLETE)) {
-            return;
-        }
-        setConnectionCompleted(true);
-    };
 
     return (
         <ScreenWrapper

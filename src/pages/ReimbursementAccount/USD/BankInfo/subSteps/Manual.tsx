@@ -35,6 +35,12 @@ function Manual({onNext}: BankInfoSubStepProps) {
     const defaultValues = getSubStepValues(BANK_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount);
     const hasBankAccountData = !!reimbursementAccount?.achData?.bankAccountID;
 
+    const handleSubmit = useReimbursementAccountStepFormSubmit({
+        fieldIds: STEP_FIELDS,
+        onNext,
+        shouldSaveDraft: true,
+    });
+
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
         const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
         const routingNumber = values.routingNumber?.trim();
@@ -54,12 +60,6 @@ function Manual({onNext}: BankInfoSubStepProps) {
 
         return errors;
     };
-
-    const handleSubmit = useReimbursementAccountStepFormSubmit({
-        fieldIds: STEP_FIELDS,
-        onNext,
-        shouldSaveDraft: true,
-    });
 
     return (
         <FormProvider

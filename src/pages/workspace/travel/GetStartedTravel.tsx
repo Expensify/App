@@ -19,11 +19,11 @@ type GetStartedTravelProps = {
 };
 
 function GetStartedTravel({policyID, canWriteTravelFeature, showReadOnlyModal}: GetStartedTravelProps) {
-    const handleCtaPress = () => {};
-
     const {translate} = useLocalize();
+
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['PendingTravel']);
+    const handleCtaPress = () => {};
 
     return (
         <FeatureList

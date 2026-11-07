@@ -14,15 +14,6 @@ function KeypadAmountPad({isTwoColumn, testID}: KeypadAmountLayoutPartProps) {
     const {deleteBackward, focusInput, insertAtSelection, setShouldUpdateSelection} = useKeypadAmountEditorActions();
     const isLongPressingRef = useRef(false);
 
-    useEffect(() => {
-        return () => {
-            if (!isLongPressingRef.current) {
-                return;
-            }
-            setShouldUpdateSelection(true);
-        };
-    }, [setShouldUpdateSelection]);
-
     const handleNumberPressed = (key: string) => {
         if (!isLongPressingRef.current) {
             focusInput();
@@ -43,6 +34,15 @@ function KeypadAmountPad({isTwoColumn, testID}: KeypadAmountLayoutPartProps) {
             focusInput();
         }
     };
+
+    useEffect(() => {
+        return () => {
+            if (!isLongPressingRef.current) {
+                return;
+            }
+            setShouldUpdateSelection(true);
+        };
+    }, [setShouldUpdateSelection]);
 
     return (
         <View

@@ -37,12 +37,8 @@ function CustomFlatList<T>({
     };
 
     const emitComposerScrollEvents = useEmitComposerScrollEvents({enabled: !enableAnimatedKeyboardDismissal && !!restProps.inverted});
-    const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-        onScrollProp?.(e);
-        emitComposerScrollEvents();
-    };
-
     const listRef = useRef<FlatListInnerRefType<T> | null>(null);
+
     useFlatListHandle<T>({
         ref,
         listRef,
@@ -50,6 +46,10 @@ function CustomFlatList<T>({
         setCurrentDataId: () => {},
         onScrollToIndexFailed: () => {},
     });
+    const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+        onScrollProp?.(e);
+        emitComposerScrollEvents();
+    };
 
     const maintainVisibleContentPosition = isScrolling || shouldDisableVisibleContentPosition ? undefined : maintainVisibleContentPositionProp;
 

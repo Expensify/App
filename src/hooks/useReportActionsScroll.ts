@@ -382,11 +382,6 @@ function useReportActionsScroll({
         }
         return TransitionTracker.runAfterTransitions({callback: () => reportScrollManager.scrollToBottom()});
     });
-    useEffect(() => {
-        const handle = scheduleScrollToNewError();
-        return () => handle?.cancel();
-    }, [lastAction]);
-
     const scrollToBottomAndMarkReportAsRead = () => {
         setIsFloatingMessageCounterVisible(false);
 
@@ -409,6 +404,11 @@ function useReportActionsScroll({
         reportScrollManager.scrollToBottom();
         markNewestActionAsRead();
     };
+
+    useEffect(() => {
+        const handle = scheduleScrollToNewError();
+        return () => handle?.cancel();
+    }, [lastAction]);
 
     const scrollToActionBadgeTarget = () => {
         if (actionBadgeTargetIndex < 0) {

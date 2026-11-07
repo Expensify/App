@@ -36,6 +36,8 @@ function Confirmation({onNext, onMove, formValues, fieldsMap, fieldsType}: Custo
         createCollectOnlyDepositAccount(getSubmitParameters(formValues, fieldsMap, fieldsType, lastRejectedDetails.current === submittedDetails));
     };
 
+    const editCountry = () => onMove(STEP_INDEXES.COUNTRY_SELECTOR, true);
+
     useEffect(() => {
         if (!personalBankAccount?.errors) {
             return;
@@ -58,8 +60,6 @@ function Confirmation({onNext, onMove, formValues, fieldsMap, fieldsType}: Custo
             clearPersonalBankAccountErrors();
         };
     }, []);
-
-    const editCountry = () => onMove(STEP_INDEXES.COUNTRY_SELECTOR, true);
     const editDetails = () => onMove(STEP_INDEXES.BANK_ACCOUNT_DETAILS, true);
 
     return (

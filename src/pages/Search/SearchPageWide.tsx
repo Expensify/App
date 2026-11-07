@@ -100,9 +100,9 @@ function SearchPageWide({
 
     const offlineIndicatorStyle = shouldReserveFooterSpace ? [styles.mtAuto, styles.pAbsolute, styles.h10, styles.b0] : [styles.mtAuto];
 
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery(), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     const splitContainerAnimatedStyle = useSearchSidebarContentOffsetStyle();
     const receiptDropTargetRef = useRef<ComponentRef<typeof View>>(null);
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery(), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
 
     return (
         <Animated.View

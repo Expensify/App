@@ -43,6 +43,11 @@ function Docusign({onBackButtonPress, onSubmit, stepNames, currency}: NonUSDPage
         });
     };
 
+    const handleBackButtonPress = () => {
+        clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
+        onBackButtonPress();
+    };
+
     useEffect(() => {
         if (reimbursementAccount?.errors || reimbursementAccount?.isFinishingCorpayBankAccountOnboarding || !reimbursementAccount?.isSuccess) {
             return;
@@ -57,11 +62,6 @@ function Docusign({onBackButtonPress, onSubmit, stepNames, currency}: NonUSDPage
             clearReimbursementAccountFinishCorpayBankAccountOnboarding();
         };
     }, [reimbursementAccount?.errors, reimbursementAccount?.isFinishingCorpayBankAccountOnboarding, reimbursementAccount?.isSuccess, onSubmit]);
-
-    const handleBackButtonPress = () => {
-        clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
-        onBackButtonPress();
-    };
 
     return (
         <DocusignFullStep

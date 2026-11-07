@@ -131,14 +131,6 @@ function AccountDetailsPage() {
         return () => task.cancel();
     });
 
-    useEffect(() => {
-        const unsubscribe = navigation.addListener('blur', () => {
-            clearGetValidateCodeForAccountMerge();
-        });
-
-        return unsubscribe;
-    }, [navigation]);
-
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MERGE_ACCOUNT_DETAILS_FORM>): Errors => {
         const errors = {};
 
@@ -166,6 +158,14 @@ function AccountDetailsPage() {
         }
         return errors;
     };
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('blur', () => {
+            clearGetValidateCodeForAccountMerge();
+        });
+
+        return unsubscribe;
+    }, [navigation]);
 
     return (
         <ScreenWrapper

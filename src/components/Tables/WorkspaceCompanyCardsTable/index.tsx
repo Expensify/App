@@ -461,6 +461,10 @@ function WorkspaceCompanyCardsTable({
         />
     );
 
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: true,
+    });
+
     const renderItem = ({item, index}: ListRenderItemInfo<WorkspaceCompanyCardTableItemData>) => (
         <WorkspaceCompanyCardTableItem
             key={item.keyForList}
@@ -475,10 +479,6 @@ function WorkspaceCompanyCardsTable({
             shouldShowExportAccountColumn={shouldShowExportAccountColumn}
         />
     );
-
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
-        addBottomSafeAreaPadding: true,
-    });
 
     const headerButtonsComponent =
         showTableHeaderButtons && !isSelectionModeEnabled ? (

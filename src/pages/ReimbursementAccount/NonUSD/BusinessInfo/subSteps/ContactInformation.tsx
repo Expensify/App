@@ -36,6 +36,17 @@ function ContactInformation({onNext, isEditing}: ContactInformationProps) {
     const phoneNumberDefaultValue = reimbursementAccount?.achData?.corpay?.[BUSINESS_CONTACT_NUMBER] ?? '';
     const confirmationEmailDefaultValue = reimbursementAccount?.achData?.corpay?.[BUSINESS_CONFIRMATION_EMAIL] ?? primaryLogin ?? '';
 
+    const handleSubmit = useReimbursementAccountStepFormSubmit({
+        fieldIds: STEP_FIELDS,
+        onNext: (values) => {
+            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {
+                [BUSINESS_CONFIRMATION_EMAIL]: (values as FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>)[BUSINESS_CONFIRMATION_EMAIL],
+            });
+            onNext();
+        },
+        shouldSaveDraft: true,
+    });
+
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
         const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
@@ -49,17 +60,6 @@ function ContactInformation({onNext, isEditing}: ContactInformationProps) {
 
         return errors;
     };
-
-    const handleSubmit = useReimbursementAccountStepFormSubmit({
-        fieldIds: STEP_FIELDS,
-        onNext: (values) => {
-            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {
-                [BUSINESS_CONFIRMATION_EMAIL]: (values as FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>)[BUSINESS_CONFIRMATION_EMAIL],
-            });
-            onNext();
-        },
-        shouldSaveDraft: true,
-    });
 
     return (
         <FormProvider

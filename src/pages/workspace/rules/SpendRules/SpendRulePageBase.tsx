@@ -108,14 +108,14 @@ function SpendRulePageBase({policyID, ruleID, testID, upgradeBackTo}: SpendRuleP
     const [isErrorVisible, setIsErrorVisible] = useState(false);
     const [isRestrictMerchantsOff, setIsRestrictMerchantsOff] = useState(() => !hasSpendRuleMerchantRestrictions(isNewRule ? spendRuleForm : existingFormValues));
 
-    useEffect(() => () => clearDraftSpendRule(), []);
-
     const applyGeneratedRule = (values: GeneratedRuleValues) => {
         const eligibleCardIDs = expensifyCardSettings ? getEligibleSpendRuleCards(cardsList, expensifyCardSettings).map((card) => String(card.cardID)) : undefined;
         const draft = getSpendRuleDraftFromGeneratedValues(values, eligibleCardIDs, spendRuleForm?.cardIDs);
         setDraftSpendRule(draft);
         setIsRestrictMerchantsOff(!hasSpendRuleMerchantRestrictions(draft));
     };
+
+    useEffect(() => () => clearDraftSpendRule(), []);
 
     useEffect(() => {
         if (!isEditingRule || !existingFormValues) {

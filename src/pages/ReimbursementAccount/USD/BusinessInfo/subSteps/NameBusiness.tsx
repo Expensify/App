@@ -33,6 +33,12 @@ function NameBusiness({onNext, onMove, isEditing}: SubPageProps) {
         bankAccountState !== CONST.BANK_ACCOUNT.STATE.VERIFYING
     );
 
+    const handleSubmit = useReimbursementAccountStepFormSubmit({
+        fieldIds: STEP_FIELDS,
+        onNext,
+        shouldSaveDraft: isEditing,
+    });
+
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
         const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
@@ -42,12 +48,6 @@ function NameBusiness({onNext, onMove, isEditing}: SubPageProps) {
 
         return errors;
     };
-
-    const handleSubmit = useReimbursementAccountStepFormSubmit({
-        fieldIds: STEP_FIELDS,
-        onNext,
-        shouldSaveDraft: isEditing,
-    });
 
     return (
         <SingleFieldStep<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>

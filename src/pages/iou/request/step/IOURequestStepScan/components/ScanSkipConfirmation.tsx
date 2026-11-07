@@ -383,6 +383,10 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
         submitWithGpsCheck(newReceiptFiles);
     };
 
+    const {validateFiles, PDFValidationComponent} = useFilesValidation((files: FileObject[]) => {
+        processReceipts(files, getPickerCaptureSource());
+    });
+
     const submitMultiScan = () => {
         const draftIDs = new Set(transactions.map((t) => t.transactionID).filter((id): id is string => !!id));
         const validReceiptFiles = receiptFiles.filter((rf) => draftIDs.has(rf.transactionID));
@@ -391,10 +395,6 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
         }
         submitWithGpsCheck(validReceiptFiles);
     };
-
-    const {validateFiles, PDFValidationComponent} = useFilesValidation((files: FileObject[]) => {
-        processReceipts(files, getPickerCaptureSource());
-    });
 
     return (
         <>

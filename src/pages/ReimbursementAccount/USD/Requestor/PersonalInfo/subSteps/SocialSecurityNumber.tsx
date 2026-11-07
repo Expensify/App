@@ -30,6 +30,12 @@ function SocialSecurityNumber({onNext, onMove, isEditing}: SubPageProps) {
 
     const defaultSsnLast4 = reimbursementAccount?.achData?.[PERSONAL_INFO_STEP_KEY.SSN_LAST_4] ?? '';
 
+    const handleSubmit = useReimbursementAccountStepFormSubmit({
+        fieldIds: STEP_FIELDS,
+        onNext,
+        shouldSaveDraft: isEditing,
+    });
+
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
         const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
@@ -39,12 +45,6 @@ function SocialSecurityNumber({onNext, onMove, isEditing}: SubPageProps) {
 
         return errors;
     };
-
-    const handleSubmit = useReimbursementAccountStepFormSubmit({
-        fieldIds: STEP_FIELDS,
-        onNext,
-        shouldSaveDraft: isEditing,
-    });
 
     if (isLoadingReimbursementAccount) {
         return (

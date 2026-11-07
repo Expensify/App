@@ -318,16 +318,6 @@ function useMoneyRequestReportScroll({
         scrollToBottom();
     };
 
-    useEffect(() => {
-        return () => {
-            for (const timeoutRef of [stickToBottomTimeoutRef, pendingScrollTimeoutRef, ownActionScrollTimeoutRef]) {
-                if (timeoutRef.current) {
-                    clearTimeout(timeoutRef.current);
-                }
-            }
-        };
-    }, []);
-
     const onListContentSizeChange = (_width: number, height: number) => {
         listContentHeightRef.current = height;
         syncBottomOffset();
@@ -342,6 +332,16 @@ function useMoneyRequestReportScroll({
         listLayoutHeightRef.current = event.nativeEvent.layout.height;
         syncBottomOffset();
     };
+
+    useEffect(() => {
+        return () => {
+            for (const timeoutRef of [stickToBottomTimeoutRef, pendingScrollTimeoutRef, ownActionScrollTimeoutRef]) {
+                if (timeoutRef.current) {
+                    clearTimeout(timeoutRef.current);
+                }
+            }
+        };
+    }, []);
 
     const onListScrollBeginDrag = () => {
         stickToBottomRef.current = false;

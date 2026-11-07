@@ -37,14 +37,14 @@ function PrivatePersonalDetailsConfirmValidateCodePage() {
     const submitError = !isEmptyObject(personalDetailsErrorField) ? personalDetailsErrorField : personalDetailsError;
     const hasErrors = !isEmptyObject(submitError) || !isEmptyObject(validateCodeAction?.errorFields);
 
+    const wasLoading = useRef(false);
+
     const clearError = () => {
         if (!hasErrors) {
             return;
         }
         clearPersonalDetailsErrors();
     };
-
-    const wasLoading = useRef(false);
     useEffect(() => {
         if (privatePersonalDetails?.isLoading) {
             wasLoading.current = true;

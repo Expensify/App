@@ -138,6 +138,8 @@ function BaseSearchList({
 
     // Rows read their own focus by key, so a focus change doesn't invalidate every FlashList cell.
     const focusedKeyForList = focusedIndex >= 0 ? data.at(focusedIndex)?.keyForList : undefined;
+    const renderItemWithKeyboardFocus = ({item, index}: {item: SearchListItem; index: number}) => renderItem(item, index, getOnFocus(index));
+
     useEffect(() => {
         if (!focusedKeyForList) {
             return;
@@ -145,8 +147,6 @@ function BaseSearchList({
         setSearchRowFocused(focusedKeyForList, true);
         return () => setSearchRowFocused(focusedKeyForList, false);
     }, [focusedKeyForList]);
-
-    const renderItemWithKeyboardFocus = ({item, index}: {item: SearchListItem; index: number}) => renderItem(item, index, getOnFocus(index));
 
     const selectFocusedOption = (event?: GestureResponderEvent | KeyboardEvent) => {
         // Allow event propagation during cell editing so Enter can trigger TextInput.onSubmitEditing.
@@ -180,18 +180,18 @@ function BaseSearchList({
         shouldStopPropagation: false,
     });
 
-    useEffect(() => {
-        addKeyDownPressListener(setHasKeyBeenPressed);
-
-        return () => removeKeyDownPressListener(setHasKeyBeenPressed);
-    }, [setHasKeyBeenPressed]);
-
     const handleLayout = (event: LayoutChangeEvent) => {
         if (isUnderScrollAwayHeader) {
             setListHeight(event.nativeEvent.layout.height);
         }
         onLayout?.(event);
     };
+
+    useEffect(() => {
+        addKeyDownPressListener(setHasKeyBeenPressed);
+
+        return () => removeKeyDownPressListener(setHasKeyBeenPressed);
+    }, [setHasKeyBeenPressed]);
 
     const handleContentSizeChange = isUnderScrollAwayHeader ? (width: number, height: number) => setListContentHeight(height) : undefined;
 

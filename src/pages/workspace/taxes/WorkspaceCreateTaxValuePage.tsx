@@ -36,15 +36,8 @@ function WorkspaceCreateTaxValuePage({
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM_DRAFT);
     const [currentValue, setCurrentValue] = useState(formDraft?.[INPUT_IDS.VALUE]);
 
-    const goBack = () => Navigation.goBack(ROUTES.WORKSPACE_TAX_CREATE.getRoute(policyID));
-
-    const save = () => {
-        const normalizedValue = currentValue !== undefined ? String(Number(currentValue)) : currentValue;
-        setDraftValues(ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM, {[INPUT_IDS.VALUE]: normalizedValue});
-        Navigation.goBack(ROUTES.WORKSPACE_TAX_CREATE.getRoute(policyID), {shouldSkipFocusRestore: true});
-    };
-
     const inputRef = useRef<BaseTextInputRef | null>(null);
+
     useFocusEffect(() => {
         const handle = TransitionTracker.runAfterTransitions({
             callback: () => inputRef.current?.focus(),
@@ -52,6 +45,13 @@ function WorkspaceCreateTaxValuePage({
         });
         return () => handle.cancel();
     });
+
+    const goBack = () => Navigation.goBack(ROUTES.WORKSPACE_TAX_CREATE.getRoute(policyID));
+    const save = () => {
+        const normalizedValue = currentValue !== undefined ? String(Number(currentValue)) : currentValue;
+        setDraftValues(ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM, {[INPUT_IDS.VALUE]: normalizedValue});
+        Navigation.goBack(ROUTES.WORKSPACE_TAX_CREATE.getRoute(policyID), {shouldSkipFocusRestore: true});
+    };
 
     return (
         <ScreenWrapper

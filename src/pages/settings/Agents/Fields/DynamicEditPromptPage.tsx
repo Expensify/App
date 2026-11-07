@@ -53,11 +53,11 @@ function DynamicEditPromptPage({route}: DynamicEditPromptPageProps) {
     const formRef = useRef<FormRef>(null);
     const promptTopOffsetRef = useRef(0);
     const isPromptFocusedRef = useRef(false);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.AGENT_EDIT_PROMPT.path);
     const scrollToInput = () => {
         isPromptFocusedRef.current = true;
         scrollToMultilineInput(formRef, shouldUseScrollableLayout, promptTopOffsetRef.current);
     };
-    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.AGENT_EDIT_PROMPT.path);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM> => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM> = {};

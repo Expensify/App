@@ -45,13 +45,13 @@ function ReportVirtualCardFraudPage({route}: ReportVirtualCardFraudPageProps) {
     const virtualCard = cardList?.[cardID];
     const virtualCardError = getLatestErrorMessage(virtualCard);
 
-    useEffect(() => {
-        clearReportVirtualCardFraudForm();
-    }, []);
-
     const handleSubmit = () => {
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_CARD_REPORT_FRAUD_VERIFY_ACCOUNT.path));
     };
+
+    useEffect(() => {
+        clearReportVirtualCardFraudForm();
+    }, []);
 
     if (isEmptyObject(virtualCard) && !formData?.cardID) {
         return <NotFoundPage />;

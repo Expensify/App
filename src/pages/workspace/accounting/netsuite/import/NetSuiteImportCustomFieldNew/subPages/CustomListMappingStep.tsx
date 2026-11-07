@@ -25,6 +25,12 @@ function CustomListMappingStep({importCustomField, customSegmentType, onNext, is
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
+    const handleSubmit = useNetSuiteImportAddCustomListFormSubmit({
+        fieldIds: STEP_FIELDS,
+        onNext,
+        shouldSaveDraft: true,
+    });
+
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM> => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM> = {};
 
@@ -34,12 +40,6 @@ function CustomListMappingStep({importCustomField, customSegmentType, onNext, is
 
         return errors;
     };
-
-    const handleSubmit = useNetSuiteImportAddCustomListFormSubmit({
-        fieldIds: STEP_FIELDS,
-        onNext,
-        shouldSaveDraft: true,
-    });
 
     let titleKey;
     if (importCustomField === CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS) {

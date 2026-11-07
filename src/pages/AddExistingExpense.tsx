@@ -82,13 +82,6 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
         getEligibleTransactionsToAdd({transactions: allTransactions, report, policy, cardList, currentUserAccountID, reportID, allOpenReports, openReportDrafts});
     const [transactions = getEmptyArray<Transaction>()] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: transactionsSelector});
 
-    useEffect(() => {
-        if (isLoadingUnreportedTransactions) {
-            return;
-        }
-        isFetchingMoreUnreportedTransactionsRef.current = false;
-    }, [isLoadingUnreportedTransactions]);
-
     const fetchMoreUnreportedTransactions = () => {
         if (!hasMoreUnreportedTransactionsResults || isLoadingUnreportedTransactions || isFetchingMoreUnreportedTransactionsRef.current) {
             return;
@@ -97,6 +90,13 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
         fetchUnreportedExpenses(offset + CONST.UNREPORTED_EXPENSES_PAGE_SIZE);
         setOffset((prevOffset) => prevOffset + CONST.UNREPORTED_EXPENSES_PAGE_SIZE);
     };
+
+    useEffect(() => {
+        if (isLoadingUnreportedTransactions) {
+            return;
+        }
+        isFetchingMoreUnreportedTransactionsRef.current = false;
+    }, [isLoadingUnreportedTransactions]);
 
     useEffect(() => {
         fetchUnreportedExpenses(0);

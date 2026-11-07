@@ -11,19 +11,19 @@ function useDistanceUnit(unit: Unit | undefined) {
     const [distanceUnit, setDistanceUnit] = useState(unit);
     const userToggledUnit = useRef(false);
 
-    useEffect(() => {
-        if (!unit || userToggledUnit.current) {
-            return;
-        }
-        setDistanceUnit(unit);
-    }, [unit]);
-
     const toggleDistanceUnit = () => {
         userToggledUnit.current = true;
         setDistanceUnit((currentUnit) =>
             currentUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES : CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
         );
     };
+
+    useEffect(() => {
+        if (!unit || userToggledUnit.current) {
+            return;
+        }
+        setDistanceUnit(unit);
+    }, [unit]);
 
     return {distanceUnit, toggleDistanceUnit};
 }

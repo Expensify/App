@@ -172,11 +172,6 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         });
     };
 
-    const handleSpendRuleSelectionChange = (selectedRowKeys: string[]) => updateTabSelectionKeys(RULES_TAB.CARD_RESTRICTIONS, selectedRowKeys);
-    const handleExpenseDefaultSelectionChange = (selectedRowKeys: string[]) => updateTabSelectionKeys(RULES_TAB.EXPENSE_DEFAULTS, selectedRowKeys);
-    const handleRequireFieldsRuleSelectionChange = (selectedRowKeys: string[]) => updateTabSelectionKeys(RULES_TAB.REQUIRE_FIELDS, selectedRowKeys);
-    const handleFlagForReviewRuleSelectionChange = (selectedRowKeys: string[]) => updateTabSelectionKeys(RULES_TAB.FLAG_FOR_REVIEW, selectedRowKeys);
-
     const {selectedRuleKeys, getFilteredSelectedKeys, deleteSelectedForActiveTab} = useRulesTableBulkActions({
         policyID,
         activeTab,
@@ -184,6 +179,11 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         canWriteRules,
         clearTableSelection,
     });
+    const handleSpendRuleSelectionChange = (selectedRowKeys: string[]) => updateTabSelectionKeys(RULES_TAB.CARD_RESTRICTIONS, selectedRowKeys);
+    const handleExpenseDefaultSelectionChange = (selectedRowKeys: string[]) => updateTabSelectionKeys(RULES_TAB.EXPENSE_DEFAULTS, selectedRowKeys);
+    const handleRequireFieldsRuleSelectionChange = (selectedRowKeys: string[]) => updateTabSelectionKeys(RULES_TAB.REQUIRE_FIELDS, selectedRowKeys);
+
+    const handleFlagForReviewRuleSelectionChange = (selectedRowKeys: string[]) => updateTabSelectionKeys(RULES_TAB.FLAG_FOR_REVIEW, selectedRowKeys);
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
     const hasSelectedRules = selectedRuleKeys.length > 0;

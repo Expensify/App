@@ -50,16 +50,16 @@ function useParticipantSection({
                   participants: translate(formError),
               };
 
+    const dismissParticipantRowError = () => {
+        clearFormErrors(['iou.error.noParticipantSelected', 'violations.missingAttendees']);
+    };
+
     useEffect(() => {
         if (selectedParticipants.length === 0) {
             return;
         }
         clearFormErrors(['iou.error.noParticipantSelected']);
     }, [selectedParticipants.length, clearFormErrors]);
-
-    const dismissParticipantRowError = () => {
-        clearFormErrors(['iou.error.noParticipantSelected', 'violations.missingAttendees']);
-    };
 
     const {splitParticipants, getSplitSectionHeader} = useSplitParticipants({
         isTypeSplit,

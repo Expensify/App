@@ -131,6 +131,8 @@ function DynamicIOURequestStepDescription({
 
     const {navigateBack, armNavigateBack} = useNavigateBackOnSave(isSaved, backPath);
 
+    const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
+
     const updateDescriptionRef = (value: string) => {
         setCurrentDescription(value);
     };
@@ -186,8 +188,6 @@ function DynamicIOURequestStepDescription({
         setIsSaved(true);
         armNavigateBack();
     };
-
-    const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
     const isReportInGroupPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE && personalPolicyID !== report.policyID;
     const descriptionHint = getCategoryDescriptionHint(policyCategories, transaction?.category, arePolicyRulesEnabled(policy, policyCategories));

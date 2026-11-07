@@ -70,15 +70,15 @@ function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
 
     const STEP_FIELDS: Array<FormOnyxKeys<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>> = [copyOfIDInputID, addressProofInputID, directorsProofInputID, codiceFiscaleInputID];
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM> => {
-        return getFieldRequiredErrors(values, STEP_FIELDS, translate);
-    };
-
     const handleSubmit = useEnterSignerInfoStepFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
         shouldSaveDraft: isEditing,
     });
+
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM> => {
+        return getFieldRequiredErrors(values, STEP_FIELDS, translate);
+    };
 
     const handleSubmitWithDownload = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>) => {
         if (isDocumentNeededStatus.isPRDAndFSGNeeded && !isPDSandFSGDownloaded) {

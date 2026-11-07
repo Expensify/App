@@ -24,8 +24,6 @@ function TravelLegalNamePage() {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
 
-    useEffect(() => () => clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM), []);
-
     const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>) => {
         updateLegalName(values.legalFirstName?.trim() ?? '', values.legalLastName?.trim() ?? '', formatPhoneNumber, currentUserPersonalDetails);
     };
@@ -34,6 +32,8 @@ function TravelLegalNamePage() {
         clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
         Navigation.closeRHPFlow();
     };
+
+    useEffect(() => () => clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM), []);
 
     return (
         <BaseLegalNamePage

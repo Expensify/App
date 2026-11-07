@@ -74,15 +74,6 @@ function MissingPersonalDetailsValidateCodePage({
 
     const missingDetails = arePersonalDetailsMissing(privatePersonalDetails);
 
-    useEffect(() => {
-        if (isVirtualCard || missingDetails || !!privateDetailsErrors || !isTargetCardShipped) {
-            return;
-        }
-
-        clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
-        Navigation.dismissModal();
-    }, [isVirtualCard, missingDetails, privateDetailsErrors, isTargetCardShipped]);
-
     const clearError = () => {
         setRevealCardError({});
         if (!isEmptyObject(cardErrors) && cardID) {
@@ -93,6 +84,15 @@ function MissingPersonalDetailsValidateCodePage({
         }
         clearPersonalDetailsErrors();
     };
+
+    useEffect(() => {
+        if (isVirtualCard || missingDetails || !!privateDetailsErrors || !isTargetCardShipped) {
+            return;
+        }
+
+        clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
+        Navigation.dismissModal();
+    }, [isVirtualCard, missingDetails, privateDetailsErrors, isTargetCardShipped]);
 
     const values = normalizeCountryCode(getSubPageValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm;
 

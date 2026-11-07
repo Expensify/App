@@ -44,13 +44,13 @@ function VictoryChartCartesianInteractive() {
         dismissTooltip,
     } = useVictoryBarInteractions();
 
-    const updateChartWidth = (event: LayoutChangeEvent) => {
-        setChartWidth(event.nativeEvent.layout.width);
-    };
-
     const cursorStyle = useAnimatedStyle(() => ({
         cursor: isCursorOverClickable.get() ? 'pointer' : 'auto',
     }));
+
+    const updateChartWidth = (event: LayoutChangeEvent) => {
+        setChartWidth(event.nativeEvent.layout.width);
+    };
 
     if (!hasInteractiveBars) {
         return <VictoryChartCartesian />;

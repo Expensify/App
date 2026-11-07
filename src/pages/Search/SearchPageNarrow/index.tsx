@@ -214,9 +214,6 @@ function SearchPageNarrow({
     const [hasBeenFocused, setHasBeenFocused] = useState(!useStaticRendering);
     const isHeaderInteractiveRef = useRef(isHeaderInteractive);
     const [, startTransition] = useTransition();
-    useEffect(() => {
-        isHeaderInteractiveRef.current = isHeaderInteractive;
-    }, [isHeaderInteractive]);
     const onSearchLayout = () => {
         if (isHeaderInteractiveRef.current) {
             return;
@@ -225,6 +222,9 @@ function SearchPageNarrow({
             setIsHeaderInteractive(true);
         });
     };
+    useEffect(() => {
+        isHeaderInteractiveRef.current = isHeaderInteractive;
+    }, [isHeaderInteractive]);
 
     const endSubmitNavigationSpans = useEndSubmitNavigationSpans({requireLayout: true});
 

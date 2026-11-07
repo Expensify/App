@@ -37,6 +37,12 @@ function CustomSegmentScriptIdStep({customSegmentType, onNext, isEditing, custom
         }`,
     );
 
+    const handleSubmit = useNetSuiteImportAddCustomSegmentFormSubmit({
+        fieldIds: STEP_FIELDS,
+        onNext,
+        shouldSaveDraft: true,
+    });
+
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM> => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM> = {};
 
@@ -47,12 +53,6 @@ function CustomSegmentScriptIdStep({customSegmentType, onNext, isEditing, custom
         }
         return errors;
     };
-
-    const handleSubmit = useNetSuiteImportAddCustomSegmentFormSubmit({
-        fieldIds: STEP_FIELDS,
-        onNext,
-        shouldSaveDraft: true,
-    });
 
     return (
         <FormProvider

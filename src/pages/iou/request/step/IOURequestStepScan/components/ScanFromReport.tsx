@@ -88,6 +88,10 @@ function ScanFromReport({report, iouType, reportID, transactionID, transaction, 
         navigateFromReport(receiptFiles.map((rf: ReceiptFile) => rf.transactionID));
     };
 
+    const {validateFiles, PDFValidationComponent} = useFilesValidation((files: FileObject[]) => {
+        processReceipts(files, getPickerCaptureSource());
+    });
+
     const submitMultiScan = () => {
         const ids = transactions.map((t) => t.transactionID).filter((id): id is string => !!id);
         if (ids.length === 0) {
@@ -95,10 +99,6 @@ function ScanFromReport({report, iouType, reportID, transactionID, transaction, 
         }
         navigateFromReport(ids);
     };
-
-    const {validateFiles, PDFValidationComponent} = useFilesValidation((files: FileObject[]) => {
-        processReceipts(files, getPickerCaptureSource());
-    });
 
     return (
         <>

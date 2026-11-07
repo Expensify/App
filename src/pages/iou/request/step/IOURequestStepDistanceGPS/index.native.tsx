@@ -142,6 +142,9 @@ function IOURequestStepDistanceGPS({
         translate,
     });
 
+    const [shouldShowStartError, setShouldShowStartError] = useState(false);
+
+    const [shouldShowPermissionsError, setShouldShowPermissionsError] = useState(false);
     const navigateToNextStep = () => {
         const gpsCoordinates = getStringifiedGPSCoordinates(gpsDraftDetails);
         const originalDistance = DistanceRequestUtils.convertDistanceUnit(gpsDraftDetails?.distanceInMeters ?? 0, unit);
@@ -210,9 +213,6 @@ function IOURequestStepDistanceGPS({
             rules,
         });
     };
-
-    const [shouldShowStartError, setShouldShowStartError] = useState(false);
-    const [shouldShowPermissionsError, setShouldShowPermissionsError] = useState(false);
     const getError = (): Errors => {
         if (shouldShowStartError) {
             return {startError: translate('gps.error.failedToStart')};

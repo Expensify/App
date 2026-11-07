@@ -26,6 +26,15 @@ function ChooseSegmentTypeStep({onNext, setCustomSegmentType, isEditing, netSuit
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
+    const handleSubmit = useNetSuiteImportAddCustomSegmentFormSubmit({
+        fieldIds: STEP_FIELDS,
+        onNext: () => {
+            setCustomSegmentType?.(netSuiteCustomFieldFormValues[INPUT_IDS.SEGMENT_TYPE] as ValueOf<typeof CONST.NETSUITE_CUSTOM_RECORD_TYPES>);
+            onNext();
+        },
+        shouldSaveDraft: true,
+    });
+
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM> => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM> = {};
 
@@ -35,15 +44,6 @@ function ChooseSegmentTypeStep({onNext, setCustomSegmentType, isEditing, netSuit
 
         return errors;
     };
-
-    const handleSubmit = useNetSuiteImportAddCustomSegmentFormSubmit({
-        fieldIds: STEP_FIELDS,
-        onNext: () => {
-            setCustomSegmentType?.(netSuiteCustomFieldFormValues[INPUT_IDS.SEGMENT_TYPE] as ValueOf<typeof CONST.NETSUITE_CUSTOM_RECORD_TYPES>);
-            onNext();
-        },
-        shouldSaveDraft: true,
-    });
 
     return (
         <FormProvider

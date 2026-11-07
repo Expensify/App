@@ -98,6 +98,10 @@ function ScanGlobalCreateInner({reportID, transactionID, transaction}: ScanGloba
         );
     };
 
+    const {validateFiles, PDFValidationComponent} = useFilesValidation((files: FileObject[]) => {
+        processReceipts(files, getPickerCaptureSource());
+    });
+
     const submitMultiScan = () => {
         const ids = transactions.map((t) => t.transactionID).filter((id): id is string => !!id);
         if (ids.length === 0) {
@@ -105,10 +109,6 @@ function ScanGlobalCreateInner({reportID, transactionID, transaction}: ScanGloba
         }
         navigateGlobalCreate(ids, isMultiScanEnabled);
     };
-
-    const {validateFiles, PDFValidationComponent} = useFilesValidation((files: FileObject[]) => {
-        processReceipts(files, getPickerCaptureSource());
-    });
 
     return (
         <>

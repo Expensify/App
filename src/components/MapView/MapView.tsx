@@ -213,13 +213,6 @@ function MapView({
         }, [mapPadding, waypoints, isIdle, allDirectionCoordinates, currentPositionLongitude, currentPositionLatitude]),
     );
 
-    useEffect(() => {
-        if (!isOffline) {
-            return;
-        }
-        setIsIdle(false);
-    }, [isOffline]);
-
     const setMapIdle = (e: MapState) => {
         if (e.gestures.isGestureActive) {
             return;
@@ -229,6 +222,13 @@ function MapView({
             onMapReady();
         }
     };
+
+    useEffect(() => {
+        if (!isOffline) {
+            return;
+        }
+        setIsIdle(false);
+    }, [isOffline]);
 
     const mapHeading = useSharedValue(0);
 

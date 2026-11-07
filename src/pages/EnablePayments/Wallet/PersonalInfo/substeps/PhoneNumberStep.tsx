@@ -25,6 +25,12 @@ function PhoneNumberStep({onNext, onMove, isEditing}: SubPageProps) {
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const defaultPhoneNumber = walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.PHONE_NUMBER] ?? '';
 
+    const handleSubmit = useWalletAdditionalDetailsStepFormSubmit({
+        fieldIds: STEP_FIELDS,
+        onNext,
+        shouldSaveDraft: isEditing,
+    });
+
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
         const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
@@ -39,12 +45,6 @@ function PhoneNumberStep({onNext, onMove, isEditing}: SubPageProps) {
 
         return errors;
     };
-
-    const handleSubmit = useWalletAdditionalDetailsStepFormSubmit({
-        fieldIds: STEP_FIELDS,
-        onNext,
-        shouldSaveDraft: isEditing,
-    });
 
     return (
         <SingleFieldStep<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>

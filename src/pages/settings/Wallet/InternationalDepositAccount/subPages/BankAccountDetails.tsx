@@ -41,6 +41,8 @@ function BankAccountDetails({isEditing, onNext, onMove, formValues, fieldsMap}: 
         shouldSaveDraft: true,
     });
 
+    const icons = useMemoizedLazyExpensifyIcons(['QuestionMark']);
+
     const onCurrencySelected = (value: string) => {
         if (formValues.bankCurrency === value) {
             return;
@@ -48,11 +50,9 @@ function BankAccountDetails({isEditing, onNext, onMove, formValues, fieldsMap}: 
         fetchCorpayFields(formValues.bankCountry, value);
         onMove(CONST.CORPAY_FIELDS.INDEXES.MAPPING.BANK_ACCOUNT_DETAILS, false);
     };
-
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> => {
         return getValidationErrors(values, fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS], translate);
     };
-    const icons = useMemoizedLazyExpensifyIcons(['QuestionMark']);
 
     const currencyHeaderContent = (
         <View style={styles.ph5}>

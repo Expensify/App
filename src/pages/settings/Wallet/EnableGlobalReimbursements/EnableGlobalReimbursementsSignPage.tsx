@@ -47,14 +47,6 @@ function EnableGlobalReimbursementsSignPage({route}: EnableGlobalReimbursementsS
         Navigation.goBack(agreementsRoute);
     };
 
-    useEffect(() => {
-        if (bankStatement?.length || isLoadingDraft) {
-            return;
-        }
-
-        Navigation.navigate(getAgreementsRoute(Number(bankAccountID), persistedRouteParams), isDynamic ? {forceReplace: true} : undefined);
-    }, [bankAccountID, bankStatement?.length, getAgreementsRoute, isDynamic, isLoadingDraft, persistedRouteParams]);
-
     const onSubmit = () => {
         enableGlobalReimbursementsForUSDBankAccount({
             inputs: JSON.stringify({
@@ -77,6 +69,14 @@ function EnableGlobalReimbursementsSignPage({route}: EnableGlobalReimbursementsS
             bankAccountID: Number(bankAccountID),
         });
     };
+
+    useEffect(() => {
+        if (bankStatement?.length || isLoadingDraft) {
+            return;
+        }
+
+        Navigation.navigate(getAgreementsRoute(Number(bankAccountID), persistedRouteParams), isDynamic ? {forceReplace: true} : undefined);
+    }, [bankAccountID, bankStatement?.length, getAgreementsRoute, isDynamic, isLoadingDraft, persistedRouteParams]);
 
     useEffect(() => {
         if (enableGlobalReimbursements?.errors || enableGlobalReimbursements?.isEnablingGlobalReimbursements || !enableGlobalReimbursements?.isSuccess) {

@@ -15,19 +15,6 @@ function useReviewDuplicatesNavigation(stepNames: string[], currentScreenName: S
     const [currentScreenIndex, setCurrentScreenIndex] = useState(0);
     const intersection = CONST.REVIEW_DUPLICATES_ORDER.filter((element) => stepNames.includes(element));
 
-    useEffect(() => {
-        if (currentScreenName === 'confirmation') {
-            setPrevScreen(intersection.at(-1));
-            return;
-        }
-        const currentIndex = intersection.indexOf(currentScreenName);
-        const nextScreenIndex = currentIndex + 1;
-        const prevScreenIndex = currentIndex - 1;
-        setCurrentScreenIndex(currentIndex);
-        setNextScreen(intersection.at(nextScreenIndex));
-        setPrevScreen(prevScreenIndex !== -1 ? intersection.at(prevScreenIndex) : undefined);
-    }, [currentScreenName, intersection]);
-
     const goBack = () => {
         switch (prevScreen) {
             case 'merchant':
@@ -89,6 +76,19 @@ function useReviewDuplicatesNavigation(stepNames: string[], currentScreenName: S
                 break;
         }
     };
+
+    useEffect(() => {
+        if (currentScreenName === 'confirmation') {
+            setPrevScreen(intersection.at(-1));
+            return;
+        }
+        const currentIndex = intersection.indexOf(currentScreenName);
+        const nextScreenIndex = currentIndex + 1;
+        const prevScreenIndex = currentIndex - 1;
+        setCurrentScreenIndex(currentIndex);
+        setNextScreen(intersection.at(nextScreenIndex));
+        setPrevScreen(prevScreenIndex !== -1 ? intersection.at(prevScreenIndex) : undefined);
+    }, [currentScreenName, intersection]);
 
     return {navigateToNextScreen, goBack, currentScreenIndex};
 }

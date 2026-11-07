@@ -23,15 +23,15 @@ function ChooseCustomListStep({policyIDParam, onNext, isEditing, netSuiteCustomF
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM> => {
-        return getFieldRequiredErrors(values, [INPUT_IDS.LIST_NAME], translate);
-    };
-
     const handleSubmit = useNetSuiteImportAddCustomListFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
         shouldSaveDraft: true,
     });
+
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM> => {
+        return getFieldRequiredErrors(values, [INPUT_IDS.LIST_NAME], translate);
+    };
 
     return (
         <FormProvider

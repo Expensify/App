@@ -35,16 +35,6 @@ function useHighlighting<DataType extends TableData>(): MiddlewareHookResult<Tab
         highlightTimeoutRef.current = setTimeout(clearHighlightedRows, durationHighlightItem);
     };
 
-    useEffect(() => {
-        return () => {
-            if (!highlightTimeoutRef.current) {
-                return;
-            }
-
-            clearTimeout(highlightTimeoutRef.current);
-        };
-    }, []);
-
     const middleware: Middleware<TableRow<DataType>> = (data) => {
         if (!highlightedRowKeys) {
             return data;
@@ -55,6 +45,16 @@ function useHighlighting<DataType extends TableData>(): MiddlewareHookResult<Tab
             shouldAnimateInHighlight: highlightedRowKeys.has(item.keyForList),
         }));
     };
+
+    useEffect(() => {
+        return () => {
+            if (!highlightTimeoutRef.current) {
+                return;
+            }
+
+            clearTimeout(highlightTimeoutRef.current);
+        };
+    }, []);
 
     return {middleware, methods: {highlightItems}};
 }

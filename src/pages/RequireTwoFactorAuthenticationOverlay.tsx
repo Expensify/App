@@ -95,13 +95,6 @@ function RequireTwoFactorAuthenticationOverlay() {
         }
     };
 
-    useEffect(() => {
-        if (!isRequire2FAOverlayVisible) {
-            return;
-        }
-        snapshotOnboardingResumePathIfNeeded();
-    }, [isRequire2FAOverlayVisible, snapshotOnboardingResumePathIfNeeded]);
-
     const onEscapePress = () => {
         if (isEscapeInFlight) {
             return;
@@ -117,6 +110,13 @@ function RequireTwoFactorAuthenticationOverlay() {
         snapshotOnboardingResumePathIfNeeded();
         Navigation.navigate(getTwoFactorAuthRoute(ROUTES.SETTINGS_SECURITY.getRoute(true), {forceSetup: true}));
     };
+
+    useEffect(() => {
+        if (!isRequire2FAOverlayVisible) {
+            return;
+        }
+        snapshotOnboardingResumePathIfNeeded();
+    }, [isRequire2FAOverlayVisible, snapshotOnboardingResumePathIfNeeded]);
 
     if (!isRequire2FAOverlayVisible) {
         return null;

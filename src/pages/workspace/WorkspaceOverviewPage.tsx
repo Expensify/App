@@ -333,13 +333,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         goBackFromInvalidPolicy();
     };
 
-    useEffect(() => {
-        if (isLoadingBill) {
-            return;
-        }
-        dropdownMenuRef.current?.setIsMenuVisible(false);
-    }, [isLoadingBill]);
-
     const handleBackButtonPress = () => {
         if (isComingFromGlobalReimbursementsFlow) {
             setIsComingFromGlobalReimbursementsFlow(false);
@@ -354,6 +347,13 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
         Navigation.goBack();
     };
+
+    useEffect(() => {
+        if (isLoadingBill) {
+            return;
+        }
+        dropdownMenuRef.current?.setIsMenuVisible(false);
+    }, [isLoadingBill]);
 
     const startChangeOwnershipFlow = () => {
         clearWorkspaceOwnerChangeFlow(policyID);

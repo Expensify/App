@@ -256,16 +256,16 @@ function LineChartCanvas({
 
     const syncPointPositions = useSyncPointPositions(data, series, setPointPositions);
 
+    const cursorStyle = useAnimatedStyle(() => ({
+        cursor: isCursorOverClickable.get() ? 'pointer' : 'auto',
+    }));
+
     const handleScaleChange = (xScale: Scale, yScale: Scale) => {
         updateTickPositions(xScale, data.length);
         const [rangeStart, rangeEnd] = xScale.range();
         bandHalfWidth.set(data.length > 1 ? Math.abs(xScale(1) - xScale(0)) / 2 : Math.abs(rangeEnd - rangeStart));
         syncPointPositions(xScale, yScale);
     };
-
-    const cursorStyle = useAnimatedStyle(() => ({
-        cursor: isCursorOverClickable.get() ? 'pointer' : 'auto',
-    }));
 
     const renderOutside = (args: CartesianChartRenderArg<TupleToUnion<typeof chartData>, string>) => {
         const chartBoundsBottom = args.chartBounds.bottom;

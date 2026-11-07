@@ -22,6 +22,12 @@ function PhoneNumberStep({isEditing, onNext, onMove, personalDetailsValues}: Cus
     const {translate} = useLocalize();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
 
+    const handleSubmit = usePersonalDetailsFormSubmit({
+        fieldIds: STEP_FIELDS,
+        onNext,
+        shouldSaveDraft: true,
+    });
+
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> = {};
         const phoneNumber = values[INPUT_IDS.PHONE_NUMBER];
@@ -38,12 +44,6 @@ function PhoneNumberStep({isEditing, onNext, onMove, personalDetailsValues}: Cus
 
         return errors;
     };
-
-    const handleSubmit = usePersonalDetailsFormSubmit({
-        fieldIds: STEP_FIELDS,
-        onNext,
-        shouldSaveDraft: true,
-    });
 
     return (
         <SingleFieldStep<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>

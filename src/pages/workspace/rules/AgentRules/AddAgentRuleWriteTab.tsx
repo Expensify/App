@@ -45,6 +45,8 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
         }
     };
 
+    const inputWrapperStyles = useAgentPromptInputStyles();
+
     const validate = (values: FormOnyxValues<AddAgentRuleFormID>): FormInputErrors<AddAgentRuleFormID> => {
         const errors: FormInputErrors<AddAgentRuleFormID> = {};
         if (!values[INPUT_IDS.PROMPT]?.trim()) {
@@ -52,8 +54,6 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
         }
         return errors;
     };
-
-    const inputWrapperStyles = useAgentPromptInputStyles();
 
     return (
         <FormProvider

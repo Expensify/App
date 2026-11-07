@@ -21,15 +21,15 @@ function JobTitle({onNext, onMove, isEditing}: SubPageProps) {
     const inputID = INPUT_IDS.SIGNER_JOB_TITLE;
     const defaultValue = String(enterSignerInfoFormDraft?.[inputID] ?? '');
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM> => {
-        return getFieldRequiredErrors(values, [inputID], translate);
-    };
-
     const handleSubmit = useEnterSignerInfoStepFormSubmit({
         fieldIds: [inputID],
         onNext,
         shouldSaveDraft: isEditing,
     });
+
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM> => {
+        return getFieldRequiredErrors(values, [inputID], translate);
+    };
 
     return (
         <SingleFieldStep<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>

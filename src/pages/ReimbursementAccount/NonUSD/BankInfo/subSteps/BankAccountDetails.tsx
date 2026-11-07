@@ -53,6 +53,12 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
 
     const fieldIds = bankAccountDetailsFields?.map((field) => field.id);
 
+    const handleSubmit = useReimbursementAccountStepFormSubmit({
+        fieldIds: fieldIds as Array<FormOnyxKeys<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>>,
+        onNext,
+        shouldSaveDraft: true,
+    });
+
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> = {};
 
@@ -80,12 +86,6 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
 
         return errors;
     };
-
-    const handleSubmit = useReimbursementAccountStepFormSubmit({
-        fieldIds: fieldIds as Array<FormOnyxKeys<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>>,
-        onNext,
-        shouldSaveDraft: true,
-    });
 
     const inputs = bankAccountDetailsFields?.map((field) => {
         if (field.valueSet !== undefined) {

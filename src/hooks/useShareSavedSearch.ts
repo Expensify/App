@@ -18,12 +18,6 @@ function useShareSavedSearch() {
     const [copiedID, setCopiedID] = useState<string | null>(null);
     const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    useEffect(() => {
-        return () => {
-            clearTimeout(timeoutRef.current ?? undefined);
-        };
-    }, []);
-
     const handleShare = (itemID: string, itemQuery: string) => {
         const url = `${environmentURL}/${ROUTES.SEARCH_ROOT.getRoute({query: itemQuery, searchKey: savedSearchIDToSearchKey(itemID)})}`;
         Clipboard.setString(url);
@@ -37,6 +31,12 @@ function useShareSavedSearch() {
             timeoutRef.current = null;
         }, SHARE_FEEDBACK_DURATION_MS);
     };
+
+    useEffect(() => {
+        return () => {
+            clearTimeout(timeoutRef.current ?? undefined);
+        };
+    }, []);
 
     return {copiedID, handleShare};
 }

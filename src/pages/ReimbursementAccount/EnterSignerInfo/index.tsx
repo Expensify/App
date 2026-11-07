@@ -81,6 +81,20 @@ function EnterSignerInfo({route}: EnterSignerInfoProps) {
         isRedirecting,
     } = useSubPage<EnterSignerInfoFormSubPageProps>({pages, startFrom: 0, onFinished: submit, buildRoute});
 
+    const handleBackButtonPress = () => {
+        clearErrors(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM);
+        if (isEditing) {
+            moveTo(confirmationIndex, false);
+            return;
+        }
+
+        if (pageIndex > 0) {
+            prevPage();
+        } else {
+            Navigation.goBack(basePath);
+        }
+    };
+
     useEffect(() => {
         if (enterSignerInfoForm?.errors || enterSignerInfoForm?.isSavingSignerInformation || !enterSignerInfoForm?.isSuccess) {
             return;
@@ -99,20 +113,6 @@ function EnterSignerInfo({route}: EnterSignerInfoProps) {
     useEffect(() => {
         return clearErrors(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM);
     }, []);
-
-    const handleBackButtonPress = () => {
-        clearErrors(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM);
-        if (isEditing) {
-            moveTo(confirmationIndex, false);
-            return;
-        }
-
-        if (pageIndex > 0) {
-            prevPage();
-        } else {
-            Navigation.goBack(basePath);
-        }
-    };
 
     if (isRedirecting) {
         return <FullScreenLoadingIndicator />;

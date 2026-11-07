@@ -30,26 +30,6 @@ function useNativePopoverMenuFocusManagement(
     const shouldUseNewFocusManagement = shouldEnableNewFocusManagement ? true : isFocusHandoffEnabled && hasFocusRestoreSuppressionOption(menuItems);
     const effectiveRestoreFocusType = restoreFocusTypeOverride ?? restoreFocusType;
 
-    useLayoutEffect(() => {
-        isVisibleRef.current = isVisible;
-    }, [isVisible]);
-
-    useLayoutEffect(() => {
-        if (!pendingClose) {
-            return;
-        }
-
-        close(pendingClose.onModalClose, undefined, pendingClose.shouldCloseAllModals);
-    }, [pendingClose]);
-
-    useEffect(
-        () => () => {
-            releaseBackgroundInputFocusSuppressionRef.current?.();
-            releaseBackgroundInputFocusSuppressionRef.current = null;
-        },
-        [],
-    );
-
     const prepareForSelection = (item: FocusManagedMenuItem): boolean => {
         const shouldSuppressFocusRestore = isFocusHandoffEnabled && !!item.shouldSkipFocusRestore;
         if (!shouldSuppressFocusRestore) {
@@ -77,6 +57,26 @@ function useNativePopoverMenuFocusManagement(
         setRestoreFocusTypeOverride(null);
         setPendingClose(null);
     };
+
+    useLayoutEffect(() => {
+        isVisibleRef.current = isVisible;
+    }, [isVisible]);
+
+    useLayoutEffect(() => {
+        if (!pendingClose) {
+            return;
+        }
+
+        close(pendingClose.onModalClose, undefined, pendingClose.shouldCloseAllModals);
+    }, [pendingClose]);
+
+    useEffect(
+        () => () => {
+            releaseBackgroundInputFocusSuppressionRef.current?.();
+            releaseBackgroundInputFocusSuppressionRef.current = null;
+        },
+        [],
+    );
 
     return {
         effectiveRestoreFocusType,

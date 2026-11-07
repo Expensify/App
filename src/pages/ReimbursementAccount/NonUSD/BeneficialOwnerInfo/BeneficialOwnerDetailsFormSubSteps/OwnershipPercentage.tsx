@@ -30,6 +30,12 @@ function OwnershipPercentage({onNext, isEditing, onMove, isUserEnteringHisOwnDat
     const defaultOwnershipPercentage = SafeString(reimbursementAccountDraft?.[ownershipPercentageInputID]);
     const formTitle = translate(isUserEnteringHisOwnData ? 'ownershipInfoStep.whatsYoursPercentage' : 'ownershipInfoStep.whatPercentage');
 
+    const handleSubmit = useReimbursementAccountStepFormSubmit({
+        fieldIds: [ownershipPercentageInputID],
+        onNext,
+        shouldSaveDraft: isEditing,
+    });
+
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
         const errors = getFieldRequiredErrors(values, [ownershipPercentageInputID], translate);
 
@@ -39,12 +45,6 @@ function OwnershipPercentage({onNext, isEditing, onMove, isUserEnteringHisOwnDat
 
         return errors;
     };
-
-    const handleSubmit = useReimbursementAccountStepFormSubmit({
-        fieldIds: [ownershipPercentageInputID],
-        onNext,
-        shouldSaveDraft: isEditing,
-    });
 
     return (
         <SingleFieldStep<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>

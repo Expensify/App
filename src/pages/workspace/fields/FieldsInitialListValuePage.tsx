@@ -42,19 +42,19 @@ function FieldsInitialListValuePage({policyID, featureName, backPath, subtitleKe
     const availableListValuesLength = (formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? []).filter((disabledListValue) => !disabledListValue).length;
     const shouldRedirectToCreatePage = !isLoadingFormDraft && availableListValuesLength === 0;
 
-    useEffect(() => {
-        if (!shouldRedirectToCreatePage) {
-            return;
-        }
-        Navigation.goBack(backPath);
-    }, [backPath, shouldRedirectToCreatePage]);
-
     const selectValue = (value: string) => {
         setDraftValues(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM, {
             [INPUT_IDS.INITIAL_VALUE]: currentValue === value ? '' : value,
         });
         Navigation.goBack(backPath);
     };
+
+    useEffect(() => {
+        if (!shouldRedirectToCreatePage) {
+            return;
+        }
+        Navigation.goBack(backPath);
+    }, [backPath, shouldRedirectToCreatePage]);
 
     return (
         <AccessOrNotFoundWrapper

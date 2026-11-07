@@ -114,6 +114,10 @@ function Template(props: MoneyRequestReportPreviewContentProps, {parameters}: {p
         }
     };
 
+    const StyleUtils = useStyleUtils();
+
+    const styles = useThemeStyles();
+
     const onCarouselLayout = (e: LayoutChangeEvent) => {
         const newWidth = e.nativeEvent.layout.width;
         if (widthsRef.current.currentWidth !== newWidth) {
@@ -121,7 +125,6 @@ function Template(props: MoneyRequestReportPreviewContentProps, {parameters}: {p
             updateWidths();
         }
     };
-
     const onWrapperLayout = (e: LayoutChangeEvent) => {
         const newWrapperWidth = e.nativeEvent.layout.width;
         if (widthsRef.current.currentWrapperWidth !== newWrapperWidth) {
@@ -129,9 +132,6 @@ function Template(props: MoneyRequestReportPreviewContentProps, {parameters}: {p
             updateWidths();
         }
     };
-
-    const StyleUtils = useStyleUtils();
-    const styles = useThemeStyles();
     const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(false, transactions.length, widths.currentWidth, widths.currentWrapperWidth);
     const transactionPreviewContainerStyles = [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle];
 

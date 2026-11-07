@@ -254,13 +254,6 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
         },
     ];
 
-    useEffect(() => {
-        if (!policyID || !policy?.areExpensifyCardsEnabled || !workspaceAccountID) {
-            return;
-        }
-        openPolicyExpensifyCardsPage(policyID, workspaceAccountID);
-    }, [policyID, policy?.areExpensifyCardsEnabled, workspaceAccountID]);
-
     const getIntegrationSpecificMenuItems = () => {
         const sageIntacctEntityList = policy?.connections?.intacct?.data?.entities ?? [];
         const netSuiteSubsidiaryList = policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? [];
@@ -464,6 +457,13 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
                 return undefined;
         }
     };
+
+    useEffect(() => {
+        if (!policyID || !policy?.areExpensifyCardsEnabled || !workspaceAccountID) {
+            return;
+        }
+        openPolicyExpensifyCardsPage(policyID, workspaceAccountID);
+    }, [policyID, policy?.areExpensifyCardsEnabled, workspaceAccountID]);
     const integrationSpecificMenuItems = getIntegrationSpecificMenuItems();
     // Zoho Books' organization row was built to stay through every failed sync, so the authentication rule below leaves it unchanged.
     const shouldKeepIntegrationSpecificMenuItemOnAuthError = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS;

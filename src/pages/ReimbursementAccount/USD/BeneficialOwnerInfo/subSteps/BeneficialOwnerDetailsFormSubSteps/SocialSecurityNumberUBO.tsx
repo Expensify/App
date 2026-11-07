@@ -28,6 +28,12 @@ function SocialSecurityNumberUBO({onNext, onMove, isEditing, beneficialOwnerBein
     const defaultSsnLast4 = SafeString(reimbursementAccountDraft?.[ssnLast4InputID]);
     const stepFields = [ssnLast4InputID];
 
+    const handleSubmit = useReimbursementAccountStepFormSubmit({
+        fieldIds: stepFields,
+        onNext,
+        shouldSaveDraft: isEditing,
+    });
+
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
         const errors = getFieldRequiredErrors(values, stepFields, translate);
         if (values[ssnLast4InputID] && !isValidSSNLastFour(SafeString(values[ssnLast4InputID]))) {
@@ -35,12 +41,6 @@ function SocialSecurityNumberUBO({onNext, onMove, isEditing, beneficialOwnerBein
         }
         return errors;
     };
-
-    const handleSubmit = useReimbursementAccountStepFormSubmit({
-        fieldIds: stepFields,
-        onNext,
-        shouldSaveDraft: isEditing,
-    });
 
     return (
         <SingleFieldStep<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>

@@ -50,18 +50,18 @@ function Address({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBein
 
     const stepFields = shouldDisplayStateSelector ? stepFieldsWithState : stepFieldsWithoutState;
 
+    const handleSubmit = useReimbursementAccountStepFormSubmit({
+        fieldIds: stepFields,
+        onNext,
+        shouldSaveDraft: isEditing,
+    });
+
     const handleCountryChange = (country: unknown) => {
         if (typeof country !== 'string' || country === '') {
             return;
         }
         setShouldDisplayStateSelector(country === CONST.COUNTRY.US || country === CONST.COUNTRY.CA);
     };
-
-    const handleSubmit = useReimbursementAccountStepFormSubmit({
-        fieldIds: stepFields,
-        onNext,
-        shouldSaveDraft: isEditing,
-    });
 
     return (
         <AddressStep<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>

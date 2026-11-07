@@ -135,12 +135,19 @@ function ThreeDotsMenu({
         });
     };
 
+    const getIconFill = () => {
+        if (!shouldChangeFillOnOpen) {
+            return iconFill ?? theme.icon;
+        }
+        return (iconFill ?? isPopupMenuVisible) ? theme.success : theme.icon;
+    };
     useImperativeHandle(threeDotsMenuRef as React.RefObject<ThreeDotsMenuHandle & {onThreeDotsPress: () => void}> | undefined, () => ({
         isPopupMenuVisible,
         hidePopoverMenu,
         onThreeDotsPress,
         updateMenuPosition,
     }));
+
     useEffect(() => {
         if ((!isBehindModal || !isPopupMenuVisible) && isContainerFocused) {
             return;
@@ -151,13 +158,6 @@ function ThreeDotsMenu({
     useLayoutEffect(() => {
         updateMenuPosition();
     }, [windowWidth, windowHeight, shouldSelfPosition, updateMenuPosition]);
-
-    const getIconFill = () => {
-        if (!shouldChangeFillOnOpen) {
-            return iconFill ?? theme.icon;
-        }
-        return (iconFill ?? isPopupMenuVisible) ? theme.success : theme.icon;
-    };
 
     const TooltipToRender = shouldShowProductTrainingTooltip ? EducationalTooltip : Tooltip;
     const tooltipProps = shouldShowProductTrainingTooltip

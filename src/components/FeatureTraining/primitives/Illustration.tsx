@@ -94,6 +94,14 @@ function Illustration({
     const [measuredAspectRatio, setMeasuredAspectRatio] = useState(aspectRatioProp ?? VIDEO_ASPECT_RATIO);
 
     const animationRef = useRef<ComponentRef<typeof LottieView> | null>(null);
+    const setAspectRatio = (event: SourceLoadEventPayload) => {
+        const track = event.availableVideoTracks.at(0);
+        if (!track) {
+            return;
+        }
+        setMeasuredAspectRatio(track.size.width / track.size.height);
+    };
+
     useEffect(() => {
         if (isMobile() || !animationRef.current || isReduceMotionEnabled) {
             return;
@@ -104,14 +112,6 @@ function Illustration({
             animationRef.current.pause();
         }
     }, [isFocused, isReduceMotionEnabled]);
-
-    const setAspectRatio = (event: SourceLoadEventPayload) => {
-        const track = event.availableVideoTracks.at(0);
-        if (!track) {
-            return;
-        }
-        setMeasuredAspectRatio(track.size.width / track.size.height);
-    };
 
     const aspectRatio = measuredAspectRatio || VIDEO_ASPECT_RATIO;
 

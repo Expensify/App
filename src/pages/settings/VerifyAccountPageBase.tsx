@@ -49,13 +49,13 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
     const isUserValidated = account?.validated ?? false;
 
-    useEffect(() => () => clearUnvalidatedNewContactMethodAction(), []);
-
     const sendValidateCode = () => requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.VALIDATE_ACCOUNT});
 
     const handleSubmitForm = (validateCode: string) => {
         validateSecondaryLogin(contactMethod, validateCode);
     };
+
+    useEffect(() => () => clearUnvalidatedNewContactMethodAction(), []);
 
     const handleCloseWithFallback = () => {
         if (handleClose) {

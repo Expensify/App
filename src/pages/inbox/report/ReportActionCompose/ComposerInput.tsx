@@ -73,22 +73,22 @@ function ComposerInput() {
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
     const userBlockedFromConcierge = isBlockedFromConciergeUserAction(blockedFromConcierge);
 
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+
+    const isReportArchived = useReportIsArchived(report?.reportID);
+
+    const isConciergeInboxDM = useIsConciergeInboxDM(reportID);
+    const [askConciergePlaceholderKey] = useState(() => ASK_CONCIERGE_PLACEHOLDER_KEYS[Math.floor(Math.random() * ASK_CONCIERGE_PLACEHOLDER_KEYS.length)]);
+    const shouldSkipAutoFocus = useShouldSkipComposerAutoFocus(report);
     const onValueChange = (v: string) => {
         if (v.length === 0 && isComposerFullSize) {
             setIsComposerFullSize(reportID, false);
         }
         debouncedCommentMaxLengthValidation?.(v);
     };
-
     const measureContainer = (callback: MeasureInWindowOnSuccessCallback) => {
         containerRef.current?.measureInWindow(callback);
     };
-
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const isReportArchived = useReportIsArchived(report?.reportID);
-    const isConciergeInboxDM = useIsConciergeInboxDM(reportID);
-    const [askConciergePlaceholderKey] = useState(() => ASK_CONCIERGE_PLACEHOLDER_KEYS[Math.floor(Math.random() * ASK_CONCIERGE_PLACEHOLDER_KEYS.length)]);
-    const shouldSkipAutoFocus = useShouldSkipComposerAutoFocus(report);
 
     const includesConcierge = chatIncludesConcierge({participants: report?.participants});
     const isGroupPolicyReport = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE;

@@ -94,6 +94,21 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
         setIsAlertVisible(false);
         setSelectedOptions(newSelectedOptions);
     };
+    const handleConfirm = () => {
+        if (!bankAccountID) {
+            return;
+        }
+
+        if (selectedOptions.length === 0) {
+            setIsAlertVisible(true);
+            return;
+        }
+
+        const emails = selectedOptions.map((member) => member.login).filter(Boolean);
+        setShareBankAccountAdmins(selectedOptions);
+        shareBankAccount(Number(bankAccountID), emails);
+    };
+
     useEffect(() => {
         return () => {
             clearShareBankAccountErrors(Number(bankAccountID));
@@ -117,21 +132,6 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
         }
         setSelectedOptions(sharedBankAccountData.admins);
     }, [sharedBankAccountData?.admins]);
-
-    const handleConfirm = () => {
-        if (!bankAccountID) {
-            return;
-        }
-
-        if (selectedOptions.length === 0) {
-            setIsAlertVisible(true);
-            return;
-        }
-
-        const emails = selectedOptions.map((member) => member.login).filter(Boolean);
-        setShareBankAccountAdmins(selectedOptions);
-        shareBankAccount(Number(bankAccountID), emails);
-    };
     const getAdminList = () => {
         if (admins.length === 0) {
             return [];

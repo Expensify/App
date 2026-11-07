@@ -45,6 +45,12 @@ function Address({onNext, isEditing, onMove}: SubPageProps) {
 
     const stepFields = shouldDisplayStateSelector ? stepFieldsWithState : stepFieldsWithoutState;
 
+    const handleSubmit = useEnterSignerInfoStepFormSubmit({
+        fieldIds: stepFields,
+        onNext,
+        shouldSaveDraft: isEditing,
+    });
+
     const handleCountryChange = (country: unknown) => {
         if (typeof country !== 'string' || country === '') {
             return;
@@ -52,12 +58,6 @@ function Address({onNext, isEditing, onMove}: SubPageProps) {
         setShouldDisplayStateSelector(country === CONST.COUNTRY.US || country === CONST.COUNTRY.CA);
         setShouldValidateZipCodeFormat(country === CONST.COUNTRY.US);
     };
-
-    const handleSubmit = useEnterSignerInfoStepFormSubmit({
-        fieldIds: stepFields,
-        onNext,
-        shouldSaveDraft: isEditing,
-    });
 
     return (
         <AddressStep<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>

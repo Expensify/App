@@ -79,6 +79,10 @@ function MultifactorAuthenticationRevokePage() {
     // localCredentialID hydrates asynchronously, and the confirmation modal resolves after the render that opened it,
     // so read it through a ref: a stale undefined would make the 'single' path revoke this device's credential too.
     const localCredentialIDRef = useRef(localCredentialID);
+    const onGoBackPress = () => {
+        Navigation.goBack();
+    };
+
     useEffect(() => {
         localCredentialIDRef.current = localCredentialID;
     }, [localCredentialID]);
@@ -86,10 +90,6 @@ function MultifactorAuthenticationRevokePage() {
     useEffect(() => {
         openMultifactorAuthenticationRevokePage();
     }, []);
-
-    const onGoBackPress = () => {
-        Navigation.goBack();
-    };
 
     const executeRevoke = async (params: Parameters<typeof revokeMultifactorAuthenticationCredentials>[0], setLoading: (loading: boolean) => void) => {
         setLoading(true);

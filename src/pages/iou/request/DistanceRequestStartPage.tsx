@@ -134,13 +134,13 @@ function DistanceRequestStartPage({
         isTrackDistanceExpense,
     });
 
-    useEffect(() => {
-        endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
-    }, []);
-
     const navigateBack = () => {
         Navigation.closeRHPFlow();
     };
+
+    useEffect(() => {
+        endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
+    }, []);
 
     const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);
     const [tabBarContainerElement, setTabBarContainerElement] = useState<HTMLElement | null>(null);

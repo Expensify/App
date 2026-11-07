@@ -145,6 +145,17 @@ function SearchChangeApproverPage() {
     const hasInitiatedUpgradeRef = useRef(false);
     const prevSelectedReportsLength = useRef(0);
 
+    const getSelectedPolicies = () => {
+        const policies = new Map<string, Policy>();
+        for (const selectedReport of selectedReports) {
+            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
+            if (policy?.id) {
+                policies.set(policy.id, policy);
+            }
+        }
+        return Array.from(policies.values());
+    };
+
     useEffect(() => {
         if (selectedReports.length === 0) {
             return;
@@ -160,17 +171,6 @@ function SearchChangeApproverPage() {
         prevSelectedReportsLength.current = selectedReports.length;
         openBulkChangeApproverPage(selectedReports.map((selectedReport) => selectedReport.reportID).filter((selectedReportID) => undefined !== selectedReportID));
     }, [hasLoadedApp, selectedReports]);
-
-    const getSelectedPolicies = () => {
-        const policies = new Map<string, Policy>();
-        for (const selectedReport of selectedReports) {
-            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
-            if (policy?.id) {
-                policies.set(policy.id, policy);
-            }
-        }
-        return Array.from(policies.values());
-    };
     const selectedPolicies = getSelectedPolicies();
     const areSelectedPoliciesLoaded = selectedReports.every((selectedReport) => !!allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`]);
 

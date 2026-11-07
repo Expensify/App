@@ -100,6 +100,8 @@ function DynamicIOURequestStepMerchant({
 
     const {navigateBack, armNavigateBack} = useNavigateBackOnSave(isSaved, backPath);
 
+    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
+
     const validate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM> = {};
         const merchantError = getMerchantError(value.moneyRequestMerchant, isMerchantFieldRequired);
@@ -114,8 +116,6 @@ function DynamicIOURequestStepMerchant({
     const updateMerchantRef = (value: string) => {
         setCurrentMerchant(value);
     };
-
-    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
 
     const updateMerchant = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
         const newMerchant = value.moneyRequestMerchant?.trim();

@@ -46,39 +46,12 @@ function DynamicNewContactMethodPage() {
     const validateLoginError = getLatestErrorField(loginData, 'addedLogin');
     const validateActionCodeError = getLatestErrorField(validateActionCode, 'addedLogin');
 
-    useEffect(() => {
-        updateIsVerifiedValidateActionCode(false);
-    }, []);
-    useEffect(() => {
-        let error = validateLoginError;
-        if (isEmptyObject(error)) {
-            error = validateActionCodeError;
-        }
-        setServerErrorsOnForm(error);
-    }, [validateLoginError, validateActionCodeError]);
-    useEffect(() => {
-        return () => {
-            if (!loginList) {
-                return;
-            }
-            const removedLogin: string[] = [];
-            for (const login of Object.keys(loginList)) {
-                const error = getLatestErrorField(loginList?.[login], 'addedLogin');
-                if (!isEmptyObject(error)) {
-                    removedLogin.push(login);
-                }
-            }
-            clearContactMethod(removedLogin);
-        };
-    }, [loginList]);
-
     const handleAddSecondaryLogin = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>) => {
         const phoneLogin = getPhoneLogin(values.phoneOrEmail, countryCode);
         const validateIfNumber = validateNumber(phoneLogin);
         const submitDetail = (validateIfNumber || values.phoneOrEmail).trim().toLowerCase();
         addNewContactMethod(submitDetail, pendingContactAction?.validateActionCode ?? '');
     };
-
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>): Errors => {
         const phoneLogin = getPhoneLogin(values.phoneOrEmail, countryCode);
         const validateIfNumber = validateNumber(phoneLogin);
@@ -101,6 +74,33 @@ function DynamicNewContactMethodPage() {
 
         return errors;
     };
+    useEffect(() => {
+        updateIsVerifiedValidateActionCode(false);
+    }, []);
+
+    useEffect(() => {
+        let error = validateLoginError;
+        if (isEmptyObject(error)) {
+            error = validateActionCodeError;
+        }
+        setServerErrorsOnForm(error);
+    }, [validateLoginError, validateActionCodeError]);
+
+    useEffect(() => {
+        return () => {
+            if (!loginList) {
+                return;
+            }
+            const removedLogin: string[] = [];
+            for (const login of Object.keys(loginList)) {
+                const error = getLatestErrorField(loginList?.[login], 'addedLogin');
+                if (!isEmptyObject(error)) {
+                    removedLogin.push(login);
+                }
+            }
+            clearContactMethod(removedLogin);
+        };
+    }, [loginList]);
 
     const onBackButtonPress = () => {
         Navigation.goBack(listPath);

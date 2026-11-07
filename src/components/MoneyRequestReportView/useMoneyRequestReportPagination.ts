@@ -107,6 +107,20 @@ function useMoneyRequestReportPagination({
     // where the previous one left off, until the cursor stops advancing (gap filled).
     const prevBackfillCursorRef = useRef<string | undefined>(undefined);
     const isBackfillingRef = useRef(false);
+    const onStartReached = () => {
+        if (!isSearchTopmostFullScreenRoute()) {
+            loadOlderChats(false);
+            return;
+        }
+        TransitionTracker.runAfterTransitions({
+            callback: () => loadOlderChats(false),
+        });
+    };
+
+    const onEndReached = () => {
+        loadNewerChats(false);
+    };
+
     useEffect(() => {
         if (!hasFinishedInitialLoad || isOffline || hasNewerActions || reportLoadingState?.isLoadingNewerReportActions || reportLoadingState?.isLoadingOlderReportActions) {
             return;
@@ -144,20 +158,6 @@ function useMoneyRequestReportPagination({
         reportActions,
         reportID,
     ]);
-
-    const onStartReached = () => {
-        if (!isSearchTopmostFullScreenRoute()) {
-            loadOlderChats(false);
-            return;
-        }
-        TransitionTracker.runAfterTransitions({
-            callback: () => loadOlderChats(false),
-        });
-    };
-
-    const onEndReached = () => {
-        loadNewerChats(false);
-    };
 
     return {onStartReached, onEndReached};
 }

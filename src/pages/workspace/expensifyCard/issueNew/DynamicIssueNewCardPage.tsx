@@ -64,10 +64,6 @@ function DynamicIssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     const stepNames = issueNewCard?.isChangeAssigneeDisabled ? CONST.EXPENSIFY_CARD.ASSIGNEE_EXCLUDED_STEP_NAMES : CONST.EXPENSIFY_CARD.STEP_NAMES;
     const startStepIndex = getStartStepIndex(issueNewCard);
 
-    useEffect(() => {
-        startIssueNewCardFlow(policyID);
-    }, [policyID]);
-
     const getCurrentStep = () => {
         switch (currentStep) {
             case CONST.EXPENSIFY_CARD.STEP.ASSIGNEE:
@@ -132,6 +128,10 @@ function DynamicIssueNewCardPage({policy, route}: IssueNewCardPageProps) {
                 );
         }
     };
+
+    useEffect(() => {
+        startIssueNewCardFlow(policyID);
+    }, [policyID]);
 
     if (isDelegateAccessRestricted) {
         return (

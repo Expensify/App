@@ -69,15 +69,15 @@ function IncorporationLocation({onNext, isEditing}: IncorporationLocationProps) 
     const [selectedState, setSelectedState] = useState<string>(incorporationStateInitialValue);
     const shouldGatherState = isCountryWithSelectableState(selectedCountry);
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-        return getFieldRequiredErrors(values, shouldGatherState ? STEP_FIELDS : [FORMATION_INCORPORATION_COUNTRY_CODE], translate);
-    };
-
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
         shouldSaveDraft: true,
     });
+
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        return getFieldRequiredErrors(values, shouldGatherState ? STEP_FIELDS : [FORMATION_INCORPORATION_COUNTRY_CODE], translate);
+    };
 
     const handleSelectingCountry = (country: unknown) => {
         setSelectedCountry(typeof country === 'string' ? country : '');

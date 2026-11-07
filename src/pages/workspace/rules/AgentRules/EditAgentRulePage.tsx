@@ -62,6 +62,22 @@ function EditAgentRulePage({
         }
     };
 
+    const inputWrapperStyles = useAgentPromptInputStyles();
+
+    const {deleteIconButtonProps} = useRuleDeleteHeaderProps({
+        canDelete: !!policy && !!agentRule && agentRule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        onDelete: () => {
+            if (!policy) {
+                return false;
+            }
+            deletePolicyAgentRule(policy, ruleID);
+            return true;
+        },
+        sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.AGENT_RULE_DELETE,
+        titleKey: 'workspace.rules.agentRules.deleteRule',
+        promptKey: 'workspace.rules.agentRules.deleteRuleConfirmation',
+    });
+
     const validate = (values: FormOnyxValues<EditAgentRuleFormID>): FormInputErrors<EditAgentRuleFormID> => {
         const errors: FormInputErrors<EditAgentRuleFormID> = {};
         if (!values[INPUT_IDS.PROMPT].trim()) {
@@ -78,22 +94,6 @@ function EditAgentRulePage({
         }
         Navigation.goBack();
     };
-
-    const inputWrapperStyles = useAgentPromptInputStyles();
-
-    const {deleteIconButtonProps} = useRuleDeleteHeaderProps({
-        canDelete: !!policy && !!agentRule && agentRule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        onDelete: () => {
-            if (!policy) {
-                return false;
-            }
-            deletePolicyAgentRule(policy, ruleID);
-            return true;
-        },
-        sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.AGENT_RULE_DELETE,
-        titleKey: 'workspace.rules.agentRules.deleteRule',
-        promptKey: 'workspace.rules.agentRules.deleteRuleConfirmation',
-    });
 
     if (!agentRule) {
         return <NotFoundPage />;

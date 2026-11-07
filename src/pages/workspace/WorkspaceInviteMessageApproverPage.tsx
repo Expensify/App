@@ -47,11 +47,11 @@ function WorkspaceInviteMessageApproverPage({policy, personalDetails, isLoadingR
 
     const backTo = route.params.backTo;
 
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(employeeList ?? {}));
+
     const goBack = () => {
         Navigation.goBack(backTo);
     };
-
-    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(employeeList ?? {}));
     const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, employeePersonalDetails);
 
     const allApprovers: SelectionListApprover[] = (() => {

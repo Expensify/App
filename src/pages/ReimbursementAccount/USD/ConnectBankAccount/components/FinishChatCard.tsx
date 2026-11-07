@@ -64,6 +64,9 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, policy, se
         setUSDBankAccountStep,
     });
 
+    const icons = useMemoizedLazyExpensifyIcons(['ChatBubble', 'Pencil', 'RotateLeft']);
+
+    const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble']);
     const handleNavigateToConciergeChat = () =>
         navigateToConciergeChat({
             conciergeReportID,
@@ -75,9 +78,6 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, policy, se
             shouldDismissModal: true,
             reportActionID: reimbursementAccount?.achData?.ACHRequestReportActionID,
         });
-
-    const icons = useMemoizedLazyExpensifyIcons(['ChatBubble', 'Pencil', 'RotateLeft']);
-    const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble']);
 
     return (
         <ScrollView style={[styles.flex1]}>

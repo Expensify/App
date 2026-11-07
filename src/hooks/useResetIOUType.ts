@@ -147,12 +147,12 @@ function useResetIOUType({
 
     const tabSelectedTypeRef = useRef<IOURequestType | null>(null);
 
+    const prevTransactionReportID = usePrevious(transaction?.reportID);
+
     const onTabSelected = (newIouType: IOURequestType) => {
         tabSelectedTypeRef.current = newIouType;
         resetIOUTypeIfChanged(newIouType);
     };
-
-    const prevTransactionReportID = usePrevious(transaction?.reportID);
     const personalPolicyID = personalPolicy?.id;
 
     // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.

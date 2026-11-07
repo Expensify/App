@@ -43,6 +43,12 @@ function ExpensifyCodePage() {
         [INPUT_IDS.EXPENSIFY_CODE]: '',
     };
 
+    useFocusEffect(
+        useCallback(() => {
+            clearErrorFields(ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM);
+        }, []),
+    );
+
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM> => {
         return getFieldRequiredErrors(values, [INPUT_IDS.EXPENSIFY_CODE], translate);
     };
@@ -52,12 +58,6 @@ function ExpensifyCodePage() {
         clearDraftValues(ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM);
         setHasSubmitted(true);
     };
-
-    useFocusEffect(
-        useCallback(() => {
-            clearErrorFields(ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM);
-        }, []),
-    );
 
     useEffect(() => {
         if (!hasSubmitted || !isExpensifyCodeApplied) {

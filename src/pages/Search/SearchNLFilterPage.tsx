@@ -23,16 +23,16 @@ function SearchNLFilterPage() {
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isNLFiltersBeta = isBetaEnabledOrUnknown(CONST.BETAS.NL_FILTERS);
 
+    const handleSuccess = (route: Route) => {
+        Navigation.dismissModal({afterTransition: () => Navigation.navigate(route)});
+    };
+
     useEffect(() => {
         if (isNLFiltersBeta !== false) {
             return;
         }
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
     }, [isNLFiltersBeta]);
-
-    const handleSuccess = (route: Route) => {
-        Navigation.dismissModal({afterTransition: () => Navigation.navigate(route)});
-    };
 
     return (
         <ScreenWrapper

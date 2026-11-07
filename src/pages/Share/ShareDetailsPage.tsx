@@ -124,6 +124,8 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const fileType = shouldUsePreValidatedFile ? (validatedFile?.type ?? CONST.SHARE_FILE_MIMETYPE.JPEG) : (currentAttachment?.mimeType ?? '');
 
     const reportAttachmentsContext = useContext(AttachmentModalContext);
+    useShareFileSizeValidation(currentAttachment?.content, setErrorTitle, setErrorMessage, !errorTitle && shouldShowAttachment);
+
     const showAttachmentModalScreen = () => {
         reportAttachmentsContext.setCurrentAttachment<typeof SCREENS.SHARE.SHARE_DETAILS_ATTACHMENT>({
             source: fileSource,
@@ -133,8 +135,6 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
         });
         Navigation.navigate(ROUTES.SHARE_DETAILS_ATTACHMENT);
     };
-
-    useShareFileSizeValidation(currentAttachment?.content, setErrorTitle, setErrorMessage, !errorTitle && shouldShowAttachment);
 
     useEffect(() => {
         if (!errorTitle || !errorMessage) {

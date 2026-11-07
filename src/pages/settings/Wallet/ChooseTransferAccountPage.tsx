@@ -53,6 +53,9 @@ function ChooseTransferAccountPage() {
         Navigation.goBack(ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE);
     };
 
+    const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+
+    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const navigateToAddPaymentMethodPage = () => {
         if (walletTransfer?.filterPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
             Navigation.navigate(ROUTES.SETTINGS_ADD_DEBIT_CARD);
@@ -60,9 +63,6 @@ function ChooseTransferAccountPage() {
         }
         openPersonalBankAccountSetupView({});
     };
-
-    const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const selectedAccountID = walletTransfer?.selectedAccountID;
 
     const [draftAccountID, setDraftAccountID] = useState<string>();

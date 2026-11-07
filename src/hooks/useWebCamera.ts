@@ -124,6 +124,18 @@ function useWebCamera({onUnmount}: UseWebCameraOptions = {}) {
             });
     };
 
+    const setupCameraPermissionsAndCapabilities = (stream: MediaStream) => {
+        setCameraPermissionState('granted');
+
+        const [track] = stream.getVideoTracks();
+        const capabilities = track.getCapabilities();
+
+        if ('torch' in capabilities && capabilities.torch) {
+            trackRef.current = track;
+        }
+        setIsTorchAvailable('torch' in capabilities && !!capabilities.torch);
+    };
+
     useEffect(() => {
         if (!isTabActive) {
             return;
@@ -168,18 +180,6 @@ function useWebCamera({onUnmount}: UseWebCameraOptions = {}) {
         },
         [onUnmount],
     );
-
-    const setupCameraPermissionsAndCapabilities = (stream: MediaStream) => {
-        setCameraPermissionState('granted');
-
-        const [track] = stream.getVideoTracks();
-        const capabilities = track.getCapabilities();
-
-        if ('torch' in capabilities && capabilities.torch) {
-            trackRef.current = track;
-        }
-        setIsTorchAvailable('torch' in capabilities && !!capabilities.torch);
-    };
 
     const clearTorchConstraints = () => {
         if (!trackRef.current) {

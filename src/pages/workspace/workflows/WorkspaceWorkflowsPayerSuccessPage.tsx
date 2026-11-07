@@ -21,6 +21,8 @@ function WorkspaceWorkflowsPayerSuccessPage() {
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['ShareBank', 'Telescope']);
 
+    const onButtonPress = () => Navigation.closeRHPFlow();
+
     useEffect(() => {
         return () => {
             if (!shouldShowSuccess) {
@@ -29,8 +31,6 @@ function WorkspaceWorkflowsPayerSuccessPage() {
             clearShareBankAccount();
         };
     }, [shouldShowSuccess]);
-
-    const onButtonPress = () => Navigation.closeRHPFlow();
 
     return (
         <ScrollView

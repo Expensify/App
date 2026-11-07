@@ -51,6 +51,11 @@ function Agreements({onBackButtonPress, onSubmit, stepNames, currency}: NonUSDPa
         });
     };
 
+    const handleBackButtonPress = () => {
+        clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
+        onBackButtonPress();
+    };
+
     useEffect(() => {
         if (isDocusignStepRequired) {
             return;
@@ -70,11 +75,6 @@ function Agreements({onBackButtonPress, onSubmit, stepNames, currency}: NonUSDPa
             clearReimbursementAccountFinishCorpayBankAccountOnboarding();
         };
     }, [reimbursementAccount?.errors, reimbursementAccount?.isFinishingCorpayBankAccountOnboarding, reimbursementAccount?.isSuccess, onSubmit, currency, isDocusignStepRequired]);
-
-    const handleBackButtonPress = () => {
-        clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
-        onBackButtonPress();
-    };
 
     return (
         <AgreementsFullStep

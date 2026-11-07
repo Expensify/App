@@ -63,20 +63,6 @@ function RulesRequireReceiptsPage({
     // below the pair rather than as an error on either input, raised on a save attempt and cleared on the next edit.
     const [amountConflictError, setAmountConflictError] = useState('');
 
-    useEffect(() => {
-        syncedPolicyIDRef.current = undefined;
-    }, [policyID]);
-
-    useEffect(() => {
-        if (!policy?.id || policy.isLoading || syncedPolicyIDRef.current === policy.id) {
-            return;
-        }
-
-        syncedPolicyIDRef.current = policy.id;
-        setReceiptEnabled(isMaxExpenseAmountSet(policy.maxExpenseAmountNoReceipt));
-        setItemizedEnabled(isMaxExpenseAmountSet(policy.maxExpenseAmountNoItemizedReceipt));
-    }, [policy?.id, policy?.isLoading, policy?.maxExpenseAmountNoReceipt, policy?.maxExpenseAmountNoItemizedReceipt]);
-
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_REQUIRE_RECEIPTS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.RULES_REQUIRE_RECEIPTS_FORM> => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RULES_REQUIRE_RECEIPTS_FORM> = {};
 
@@ -96,6 +82,20 @@ function RulesRequireReceiptsPage({
 
         return errors;
     };
+
+    useEffect(() => {
+        syncedPolicyIDRef.current = undefined;
+    }, [policyID]);
+
+    useEffect(() => {
+        if (!policy?.id || policy.isLoading || syncedPolicyIDRef.current === policy.id) {
+            return;
+        }
+
+        syncedPolicyIDRef.current = policy.id;
+        setReceiptEnabled(isMaxExpenseAmountSet(policy.maxExpenseAmountNoReceipt));
+        setItemizedEnabled(isMaxExpenseAmountSet(policy.maxExpenseAmountNoItemizedReceipt));
+    }, [policy?.id, policy?.isLoading, policy?.maxExpenseAmountNoReceipt, policy?.maxExpenseAmountNoItemizedReceipt]);
 
     const clearAmountConflictError = () => setAmountConflictError('');
 

@@ -88,14 +88,6 @@ function AddPaymentCard() {
 
     useNavigateToCardAuthenticationOnLink();
 
-    useEffect(() => {
-        clearPaymentCardFormErrorAndSubmit();
-
-        return () => {
-            clearPaymentCardFormErrorAndSubmit();
-        };
-    }, []);
-
     const addPaymentCard = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>) => {
         const cardData = {
             cardNumber: getMCardNumberString(values.cardNumber),
@@ -109,6 +101,14 @@ function AddPaymentCard() {
         setHasSubmittedPaymentCard(true);
         addSubscriptionPaymentCard(accountID ?? CONST.DEFAULT_NUMBER_ID, cardData, fundList, route.name);
     };
+
+    useEffect(() => {
+        clearPaymentCardFormErrorAndSubmit();
+
+        return () => {
+            clearPaymentCardFormErrorAndSubmit();
+        };
+    }, []);
 
     const [formData] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
     const prevFormDataSetupComplete = usePrevious(!!formData?.setupComplete);

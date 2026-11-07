@@ -28,6 +28,12 @@ function SocialSecurityNumberStep({onNext, onMove, isEditing}: SubPageProps) {
     // Also check the shown value: errorCode is cleared optimistically on submit while a full 9-digit SSN is still displayed.
     const shouldAskForFullSSN = walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN || isValidSSNFullNine(ssnValue);
 
+    const handleSubmit = useWalletAdditionalDetailsStepFormSubmit({
+        fieldIds: STEP_FIELDS,
+        onNext,
+        shouldSaveDraft: isEditing,
+    });
+
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
         const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
@@ -41,12 +47,6 @@ function SocialSecurityNumberStep({onNext, onMove, isEditing}: SubPageProps) {
 
         return errors;
     };
-
-    const handleSubmit = useWalletAdditionalDetailsStepFormSubmit({
-        fieldIds: STEP_FIELDS,
-        onNext,
-        shouldSaveDraft: isEditing,
-    });
 
     return (
         <SingleFieldStep<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>

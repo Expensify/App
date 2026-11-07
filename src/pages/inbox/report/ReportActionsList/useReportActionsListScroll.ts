@@ -143,6 +143,15 @@ function useReportActionsListScroll({
         setTreatAsNoPaginationAnchor,
     });
 
+    useFollowActionBadgeTarget({
+        reportID,
+        actionTargetReportActionID: actionBadgeTargetID,
+        actionBadgeTargetIndex,
+        renderedVisibleReportActions: listData,
+        reportActionIDToDisplayIndex,
+        scrollToActionBadgeTarget,
+    });
+
     const trackScrollPositionAndThreshold = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         trackVerticalScrolling(event);
         onScrolledOverThresholdChange(event.nativeEvent.contentOffset.y >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
@@ -172,15 +181,6 @@ function useReportActionsListScroll({
             },
         });
     };
-
-    useFollowActionBadgeTarget({
-        reportID,
-        actionTargetReportActionID: actionBadgeTargetID,
-        actionBadgeTargetIndex,
-        renderedVisibleReportActions: listData,
-        reportActionIDToDisplayIndex,
-        scrollToActionBadgeTarget,
-    });
 
     return {
         listID,

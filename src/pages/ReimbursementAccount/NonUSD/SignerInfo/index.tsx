@@ -81,37 +81,6 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, bac
         });
     };
 
-    useEffect(() => {
-        if (reimbursementAccount?.errors || reimbursementAccount?.isSavingCorpayOnboardingDirectorInformation || !reimbursementAccount?.isSuccess) {
-            return;
-        }
-
-        if (reimbursementAccount?.isSuccess && isSubmittingRef.current) {
-            isSubmittingRef.current = false;
-            if (currency === CONST.CURRENCY.AUD) {
-                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: SUB_PAGE_NAMES.ENTER_EMAIL, backTo}));
-                clearReimbursementAccountSaveCorpayOnboardingDirectorInformation();
-                return;
-            }
-            onSubmit();
-            clearReimbursementAccountSaveCorpayOnboardingDirectorInformation();
-        }
-
-        return () => {
-            clearReimbursementAccountSaveCorpayOnboardingDirectorInformation();
-        };
-    }, [reimbursementAccount?.errors, reimbursementAccount?.isSavingCorpayOnboardingDirectorInformation, reimbursementAccount?.isSuccess, onSubmit, currency, policyID, backTo]);
-
-    useEffect(() => {
-        if (reimbursementAccount?.errors || reimbursementAccount?.isAskingForCorpaySignerInformation || !reimbursementAccount?.isAskingForCorpaySignerInformationSuccess) {
-            return;
-        }
-
-        if (reimbursementAccount?.isAskingForCorpaySignerInformationSuccess) {
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: SUB_PAGE_NAMES.HANG_TIGHT, backTo}));
-        }
-    }, [reimbursementAccount?.errors, reimbursementAccount?.isAskingForCorpaySignerInformation, reimbursementAccount?.isAskingForCorpaySignerInformationSuccess, policyID, backTo]);
-
     const handleEmailSubmit = (values: EmailSubmitParams) => {
         const params = shouldSendOnlySecondSignerEmail
             ? {
@@ -154,6 +123,37 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, bac
             onBackButtonPress();
         }
     };
+
+    useEffect(() => {
+        if (reimbursementAccount?.errors || reimbursementAccount?.isSavingCorpayOnboardingDirectorInformation || !reimbursementAccount?.isSuccess) {
+            return;
+        }
+
+        if (reimbursementAccount?.isSuccess && isSubmittingRef.current) {
+            isSubmittingRef.current = false;
+            if (currency === CONST.CURRENCY.AUD) {
+                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: SUB_PAGE_NAMES.ENTER_EMAIL, backTo}));
+                clearReimbursementAccountSaveCorpayOnboardingDirectorInformation();
+                return;
+            }
+            onSubmit();
+            clearReimbursementAccountSaveCorpayOnboardingDirectorInformation();
+        }
+
+        return () => {
+            clearReimbursementAccountSaveCorpayOnboardingDirectorInformation();
+        };
+    }, [reimbursementAccount?.errors, reimbursementAccount?.isSavingCorpayOnboardingDirectorInformation, reimbursementAccount?.isSuccess, onSubmit, currency, policyID, backTo]);
+
+    useEffect(() => {
+        if (reimbursementAccount?.errors || reimbursementAccount?.isAskingForCorpaySignerInformation || !reimbursementAccount?.isAskingForCorpaySignerInformationSuccess) {
+            return;
+        }
+
+        if (reimbursementAccount?.isAskingForCorpaySignerInformationSuccess) {
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: SUB_PAGE_NAMES.HANG_TIGHT, backTo}));
+        }
+    }, [reimbursementAccount?.errors, reimbursementAccount?.isAskingForCorpaySignerInformation, reimbursementAccount?.isAskingForCorpaySignerInformationSuccess, policyID, backTo]);
 
     const handleBackToIsDirector = () => {
         clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);

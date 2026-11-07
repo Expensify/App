@@ -228,11 +228,11 @@ function ReportSubmitToPopoverRoot({reportID, onSubmitSuccess, anchorAlignment, 
 function ReportSubmitToPopoverRootWithHost({reportID, host, children}: {reportID: string | undefined; host: ReportSubmitToPopoverHostContextValue; children: React.ReactNode}) {
     const anchorRef = useRef<ComponentRef<typeof View>>(null);
 
-    useEffect(() => host.registerAnchor(reportID, anchorRef), [host, reportID]);
-
     const openReportSubmitToPopover = (options?: ReportSubmitToPopoverOpenOptions) => {
         host.openReportSubmitToPopover(reportID, options, anchorRef);
     };
+
+    useEffect(() => host.registerAnchor(reportID, anchorRef), [host, reportID]);
 
     return (
         <ReportSubmitToPopoverAnchorRefContext.Provider value={anchorRef}>

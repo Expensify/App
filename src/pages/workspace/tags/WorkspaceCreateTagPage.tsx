@@ -53,18 +53,6 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
 
     const policyHasCustomCategories = hasCustomCategories(policyCategories);
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
-        const {tags} = getTagList(policyTagLists, 0);
-        const error = getTagNameError(tags, values.tagName);
-
-        if (error) {
-            errors.tagName = getTagNameErrorMessage(translate, error, values.tagName);
-        }
-
-        return errors;
-    };
-
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const {
@@ -82,6 +70,18 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
         hasOutstandingChildTask: setupCategoriesAndTagsHasOutstandingChildTask,
         parentReportAction: setupCategoriesAndTagsParentReportAction,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS);
+
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
+        const {tags} = getTagList(policyTagLists, 0);
+        const error = getTagNameError(tags, values.tagName);
+
+        if (error) {
+            errors.tagName = getTagNameErrorMessage(translate, error, values.tagName);
+        }
+
+        return errors;
+    };
 
     const createTag = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
         createPolicyTag({

@@ -321,9 +321,9 @@ function SearchStaticList({
         );
     };
 
-    const keyExtractor = (item: TransactionListItemType) => item.keyForList;
-
     const hasEndedSpanRef = useRef(false);
+
+    const keyExtractor = (item: TransactionListItemType) => item.keyForList;
     const onLayout = () => {
         if (hasEndedSpanRef.current) {
             return;

@@ -242,10 +242,6 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
     const noResultsFound = sections.at(0)?.data.length === 0 && sections.at(1)?.data.length === 0;
     const headerMessage = noResultsFound ? translate('common.noResultsFound') : undefined;
 
-    useEffect(() => {
-        searchInServer(debouncedSearchTerm.trim());
-    }, [debouncedSearchTerm]);
-
     const handleParticipantSelection = (selectedOption: OptionWithKey) => {
         const optionReportID = selectedOption.reportID;
         if (!optionReportID) {
@@ -262,6 +258,10 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
         }
         onChange(newValue);
     };
+
+    useEffect(() => {
+        searchInServer(debouncedSearchTerm.trim());
+    }, [debouncedSearchTerm]);
 
     const isLoadingNewOptions = !!isSearchingForReports;
     const shouldShowLoadingPlaceholder = !ready || isLoading || !value || !personalDetails;

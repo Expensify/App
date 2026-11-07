@@ -103,17 +103,6 @@ function DateFilterBase({
         ),
     );
 
-    useEffect(() => {
-        setRangeDisplayText(
-            getDateRangeDisplayValueFromFormValue(
-                dateFnsLocale,
-                normalizedDefaultDateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE],
-                normalizedDefaultDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER],
-                normalizedDefaultDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
-            ),
-        );
-    }, [normalizedDefaultDateValues, dateFnsLocale]);
-
     const handleDateValuesChange = (values: SearchDateValues) => {
         setRangeDisplayText(
             getDateRangeDisplayValueFromFormValue(
@@ -125,6 +114,17 @@ function DateFilterBase({
         );
         onDateValuesChange?.(values);
     };
+
+    useEffect(() => {
+        setRangeDisplayText(
+            getDateRangeDisplayValueFromFormValue(
+                dateFnsLocale,
+                normalizedDefaultDateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE],
+                normalizedDefaultDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER],
+                normalizedDefaultDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
+            ),
+        );
+    }, [normalizedDefaultDateValues, dateFnsLocale]);
 
     const isDateModifierControlled = selectedDateModifierProp !== undefined;
     const selectedDateModifier = isDateModifierControlled ? selectedDateModifierProp : selectedDateModifierState;

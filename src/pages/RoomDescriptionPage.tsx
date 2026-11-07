@@ -65,6 +65,20 @@ function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(backPath));
     };
 
+    useFocusEffect(
+        useCallback(() => {
+            focusTimeoutRef.current = setTimeout(() => {
+                reportDescriptionInputRef.current?.focus();
+                return () => {
+                    if (!focusTimeoutRef.current) {
+                        return;
+                    }
+                    clearTimeout(focusTimeoutRef.current);
+                };
+            }, CONST.ANIMATED_TRANSITION);
+        }, []),
+    );
+
     const submitForm = () => {
         const newValue = description.trim();
 
@@ -81,20 +95,6 @@ function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
 
         return errors;
     };
-
-    useFocusEffect(
-        useCallback(() => {
-            focusTimeoutRef.current = setTimeout(() => {
-                reportDescriptionInputRef.current?.focus();
-                return () => {
-                    if (!focusTimeoutRef.current) {
-                        return;
-                    }
-                    clearTimeout(focusTimeoutRef.current);
-                };
-            }, CONST.ANIMATED_TRANSITION);
-        }, []),
-    );
 
     const canEdit = canEditReportDescription(report, policy, reportIsArchived);
     return (

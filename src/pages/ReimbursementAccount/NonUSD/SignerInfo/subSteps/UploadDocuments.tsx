@@ -69,15 +69,15 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
 
     const STEP_FIELDS: Array<FormOnyxKeys<'reimbursementAccount'>> = [COPY_OF_ID, ADDRESS_PROOF, PROOF_OF_DIRECTORS, CODICE_FISCALE];
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-        return getFieldRequiredErrors(values, STEP_FIELDS, translate);
-    };
-
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
         shouldSaveDraft: isEditing,
     });
+
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        return getFieldRequiredErrors(values, STEP_FIELDS, translate);
+    };
 
     const handleSubmitWithDownload = (values: FormOnyxValues<'reimbursementAccount'>) => {
         if (isDocumentNeededStatus.isPRDAndFSGNeeded && !isPDSandFSGDownloaded) {

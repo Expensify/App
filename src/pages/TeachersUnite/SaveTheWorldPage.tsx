@@ -92,18 +92,6 @@ function SaveTheWorldPage() {
 
     const isFocused = useIsFocused();
 
-    useEffect(() => {
-        if (!isFocused || !pendingPersonalKarmaEnableRef.current) {
-            return;
-        }
-
-        pendingPersonalKarmaEnableRef.current = false;
-
-        if (billingCard) {
-            updatePersonalKarma(true);
-        }
-    }, [isFocused, billingCard]);
-
     const handlePersonalKarmaToggle = () => {
         if (isActingAsDelegate) {
             showDelegateNoAccessModal();
@@ -132,6 +120,18 @@ function SaveTheWorldPage() {
         }
         updatePersonalKarma(true);
     };
+
+    useEffect(() => {
+        if (!isFocused || !pendingPersonalKarmaEnableRef.current) {
+            return;
+        }
+
+        pendingPersonalKarmaEnableRef.current = false;
+
+        if (billingCard) {
+            updatePersonalKarma(true);
+        }
+    }, [isFocused, billingCard]);
 
     return (
         <ScreenWrapper

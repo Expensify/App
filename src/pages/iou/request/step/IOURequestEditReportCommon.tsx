@@ -177,6 +177,13 @@ function IOURequestEditReportCommon({
     const {showConfirmModal} = useConfirmModal();
     const {isOffline} = useNetwork({onReconnect: loadOutstandingReports});
 
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
+        isManualDistanceRequest,
+        isOdometerDistanceRequest,
+        isDistanceRequest,
+    });
+    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+
     const loadMoreOutstandingReports = () => {
         if (!hasMoreOutstandingReports || isLoadingOutstandingReports || isOffline) {
             return;
@@ -184,13 +191,6 @@ function IOURequestEditReportCommon({
         outstandingReportsOffset.current += CONST.OUTSTANDING_REPORTS_PAGE_SIZE;
         fetchOutstandingReports(resolvedReportOwnerAccountID, outstandingReportsPolicyID, outstandingReportsOffset.current);
     };
-    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
-        isManualDistanceRequest,
-        isOdometerDistanceRequest,
-        isDistanceRequest,
-    });
-
-    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const isSelectedReportUnreported = !!(isUnreported ?? selectedReportID === CONST.REPORT.UNREPORTED_REPORT_ID);
     const isOwner = resolvedReportOwnerAccountID === currentUserPersonalDetails.accountID || isSelectedReportUnreported;
     const isAdmin = isPolicyAdmin(reportPolicy);

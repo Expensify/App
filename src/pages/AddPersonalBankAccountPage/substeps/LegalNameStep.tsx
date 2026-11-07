@@ -22,15 +22,15 @@ function LegalNameStep({onNext, onMove, isEditing, enabledWhenOffline}: LegalNam
     const {translate} = useLocalize();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
 
-    const getDefaultValues = () => ({
-        firstName: privatePersonalDetails?.legalFirstName ?? '',
-        lastName: privatePersonalDetails?.legalLastName ?? '',
-    });
-
     const handleSubmit = usePersonalBankAccountDetailsFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
         shouldSaveDraft: isEditing,
+    });
+
+    const getDefaultValues = () => ({
+        firstName: privatePersonalDetails?.legalFirstName ?? '',
+        lastName: privatePersonalDetails?.legalLastName ?? '',
     });
 
     const defaultValues = getDefaultValues();

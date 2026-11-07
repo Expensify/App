@@ -26,14 +26,6 @@ function useDuplicateFeedDetection({policyID, isPlaid}: UseDuplicateFeedDetectio
     const showConfirmModalRef = useRef(showConfirmModal);
     const translateRef = useRef(translate);
 
-    useEffect(() => {
-        showConfirmModalRef.current = showConfirmModal;
-    }, [showConfirmModal]);
-
-    useEffect(() => {
-        translateRef.current = translate;
-    }, [translate]);
-
     const checkForDuplicateFeed = (newFeed: CompanyCardFeedWithDomainID | undefined) => {
         if (newFeed) {
             hasEverDetectedNewFeed.current = true;
@@ -56,6 +48,14 @@ function useDuplicateFeedDetection({policyID, isPlaid}: UseDuplicateFeedDetectio
 
         return false;
     };
+
+    useEffect(() => {
+        showConfirmModalRef.current = showConfirmModal;
+    }, [showConfirmModal]);
+
+    useEffect(() => {
+        translateRef.current = translate;
+    }, [translate]);
 
     return {checkForDuplicateFeed};
 }

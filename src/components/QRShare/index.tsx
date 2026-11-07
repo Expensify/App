@@ -53,6 +53,11 @@ function QRShare({
     const [qrCodeSize, setQrCodeSize] = useState<number>(qrCodeContainerWidth - styles.ph5.paddingHorizontal * 2 - variables.qrShareHorizontalPadding * 2);
     const svgRef = useRef<Svg | undefined>(undefined);
 
+    const onLayout = (event: LayoutChangeEvent) => {
+        const containerWidth = event.nativeEvent.layout.width - variables.qrShareHorizontalPadding * 2 || 0;
+        setQrCodeSize(Math.max(1, containerWidth));
+    };
+
     useImperativeHandle(
         ref,
         () => ({
@@ -60,11 +65,6 @@ function QRShare({
         }),
         [],
     );
-
-    const onLayout = (event: LayoutChangeEvent) => {
-        const containerWidth = event.nativeEvent.layout.width - variables.qrShareHorizontalPadding * 2 || 0;
-        setQrCodeSize(Math.max(1, containerWidth));
-    };
 
     return (
         <View

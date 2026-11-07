@@ -50,11 +50,11 @@ const useScrollToFocusedInput: UseScrollToFocusedInput = (listRef, isKeyboardSho
         scrollTimeoutRef.current = null;
     };
 
-    useEffect(() => cleanup, [cleanup]);
-
     const trackScrollOffset = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
     };
+
+    useEffect(() => cleanup, [cleanup]);
 
     const scrollInputIntoView = (input: MeasurableInput) => {
         if (!isMeasurable(input)) {

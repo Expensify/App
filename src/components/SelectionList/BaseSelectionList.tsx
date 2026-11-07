@@ -262,6 +262,8 @@ function BaseSelectionListImpl({
         shouldBubble: !focusedOption,
     });
 
+    const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
     const textInputComponent = ({shouldBeInsideList}: {shouldBeInsideList?: boolean}) => {
         if (shouldBeInsideList !== (textInputOptions?.shouldBeInsideList ?? false)) {
             return null;
@@ -324,8 +326,6 @@ function BaseSelectionListImpl({
             />
         );
     };
-
-    const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
         return () => {
@@ -436,19 +436,19 @@ function BaseSelectionListImpl({
         setFocusedIndex,
     });
 
-    useEffect(() => {
-        if (!itemFocusTimeoutRef.current) {
-            return;
-        }
-        clearTimeout(itemFocusTimeoutRef.current);
-    }, []);
-
     const handleSelectAll = () => {
         onSelectAll?.();
         if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow) {
             focusTextInput();
         }
     };
+
+    useEffect(() => {
+        if (!itemFocusTimeoutRef.current) {
+            return;
+        }
+        clearTimeout(itemFocusTimeoutRef.current);
+    }, []);
 
     useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex, updateFocusedIndex, scrollToFocusedInput, focusTextInput}), [
         focusTextInput,

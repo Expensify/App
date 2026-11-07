@@ -24,15 +24,15 @@ function JobTitle({onNext, onMove, isEditing}: JobTitleProps) {
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const defaultValue = String(reimbursementAccountDraft?.[SIGNER_JOB_TITLE] ?? '');
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-        return getFieldRequiredErrors(values, [SIGNER_JOB_TITLE], translate);
-    };
-
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: [SIGNER_JOB_TITLE],
         onNext,
         shouldSaveDraft: isEditing,
     });
+
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        return getFieldRequiredErrors(values, [SIGNER_JOB_TITLE], translate);
+    };
 
     return (
         <SingleFieldStep<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>

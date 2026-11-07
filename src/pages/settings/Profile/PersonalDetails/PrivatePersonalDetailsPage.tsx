@@ -77,16 +77,6 @@ function PrivatePersonalDetailsPage() {
     // payload as soon as we navigate to the confirm-validate-code RHP. Skip clearing in that case and let the confirm-validate-code
     // success path (or the next intentional back out) handle cleanup.
     const skipClearDraftOnUnmountRef = useRef(false);
-    useEffect(
-        () => () => {
-            if (skipClearDraftOnUnmountRef.current) {
-                return;
-            }
-            clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
-        },
-        [],
-    );
-
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> = {};
 
@@ -169,6 +159,16 @@ function PrivatePersonalDetailsPage() {
 
         return errors;
     };
+
+    useEffect(
+        () => () => {
+            if (skipClearDraftOnUnmountRef.current) {
+                return;
+            }
+            clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
+        },
+        [],
+    );
 
     const hasChanges = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): boolean => {
         if ((values[INPUT_IDS.LEGAL_FIRST_NAME] ?? '') !== legalFirstName) {

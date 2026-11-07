@@ -51,6 +51,7 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
     const userDimensions = policy?.connections?.intacct?.config?.mappings?.dimensions;
     const editedUserDimension = userDimensions?.find((userDimension) => userDimension.dimension === editedUserDimensionName);
 
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SAGE_INTACCT_DIMENSION_TYPE_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SAGE_INTACCT_DIMENSION_TYPE_FORM> = {};
 
@@ -67,7 +68,6 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
         }
         return errors;
     };
-    const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
 
     return (
         <ConnectionLayout

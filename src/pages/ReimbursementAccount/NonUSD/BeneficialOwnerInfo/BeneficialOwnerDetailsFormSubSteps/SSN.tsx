@@ -26,6 +26,12 @@ function SSN({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBeingMod
     const defaultSSN = SafeString(reimbursementAccountDraft?.[ssnInputID]);
     const formTitle = translate(isUserEnteringHisOwnData ? 'ownershipInfoStep.whatsYourSSN' : 'ownershipInfoStep.whatsTheOwnersSSN');
 
+    const handleSubmit = useReimbursementAccountStepFormSubmit({
+        fieldIds: [ssnInputID],
+        onNext,
+        shouldSaveDraft: isEditing,
+    });
+
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
         const errors = getFieldRequiredErrors(values, [ssnInputID], translate);
 
@@ -35,12 +41,6 @@ function SSN({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBeingMod
 
         return errors;
     };
-
-    const handleSubmit = useReimbursementAccountStepFormSubmit({
-        fieldIds: [ssnInputID],
-        onNext,
-        shouldSaveDraft: isEditing,
-    });
 
     return (
         <SingleFieldStep<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>

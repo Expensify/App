@@ -43,8 +43,6 @@ function WorkspaceCreateTaxPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    useEffect(() => () => clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM), []);
-
     const validateTaxNameCustom = (inputID: string) => {
         return (values: Record<string, string>) => {
             const errors: Record<string, string> = {};
@@ -57,6 +55,8 @@ function WorkspaceCreateTaxPage({
             return errors;
         };
     };
+
+    useEffect(() => () => clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM), []);
 
     const customValidateForName = validateTaxNameCustom(INPUT_IDS.NAME);
 

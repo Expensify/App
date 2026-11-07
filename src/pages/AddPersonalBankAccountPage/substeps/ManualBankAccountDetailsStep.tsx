@@ -33,6 +33,12 @@ function ManualBankAccountDetailsStep({onNext, isEditing}: ManualProps) {
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
 
+    const handleSubmit = usePersonalBankAccountDetailsFormSubmit({
+        fieldIds: STEP_FIELDS,
+        onNext,
+        shouldSaveDraft: true,
+    });
+
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM> => {
         const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
         const routingNumber = values.routingNumber?.trim();
@@ -52,12 +58,6 @@ function ManualBankAccountDetailsStep({onNext, isEditing}: ManualProps) {
 
         return errors;
     };
-
-    const handleSubmit = usePersonalBankAccountDetailsFormSubmit({
-        fieldIds: STEP_FIELDS,
-        onNext,
-        shouldSaveDraft: true,
-    });
 
     return (
         <FormProvider

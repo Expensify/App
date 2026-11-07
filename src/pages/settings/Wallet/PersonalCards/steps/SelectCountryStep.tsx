@@ -72,10 +72,6 @@ function SelectCountryStep({disableAutoFocus}: {disableAutoFocus?: boolean}) {
         }
     };
 
-    useEffect(() => {
-        setCurrentCountry(getCountry());
-    }, [getCountry]);
-
     const handleBackButtonPress = () => {
         Navigation.goBack();
     };
@@ -96,6 +92,10 @@ function SelectCountryStep({disableAutoFocus}: {disableAutoFocus?: boolean}) {
                 searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
             };
         }).sort((a, b) => localeCompare(a.text, b.text));
+
+    useEffect(() => {
+        setCurrentCountry(getCountry());
+    }, [getCountry]);
 
     const countries = getCountries();
 

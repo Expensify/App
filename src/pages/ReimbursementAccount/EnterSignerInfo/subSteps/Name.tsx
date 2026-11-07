@@ -21,6 +21,12 @@ function Name({onNext, onMove, isEditing}: SubPageProps) {
     const inputID = INPUT_IDS.SIGNER_FULL_NAME;
     const defaultValue = String(enterSignerInfoFormDraft?.[inputID] ?? '');
 
+    const handleSubmit = useEnterSignerInfoStepFormSubmit({
+        fieldIds: [inputID],
+        onNext,
+        shouldSaveDraft: isEditing,
+    });
+
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM> => {
         const errors = getFieldRequiredErrors(values, [inputID], translate);
 
@@ -30,12 +36,6 @@ function Name({onNext, onMove, isEditing}: SubPageProps) {
 
         return errors;
     };
-
-    const handleSubmit = useEnterSignerInfoStepFormSubmit({
-        fieldIds: [inputID],
-        onNext,
-        shouldSaveDraft: isEditing,
-    });
 
     return (
         <SingleFieldStep<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>

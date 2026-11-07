@@ -278,15 +278,6 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
     // The back button message is about leaving onboarding, not about the email, so it never becomes a field error and never blocks the submit
     const workEmailErrorTranslationKey = onboardingErrorMessageTranslationKey && !isBackButtonMessage ? onboardingErrorMessageTranslationKey : undefined;
 
-    useEffect(() => {
-        if (!workEmailErrorTranslationKey) {
-            clearWorkEmailFormErrors();
-            return;
-        }
-
-        addWorkEmailFormError(translate(workEmailErrorTranslationKey));
-    }, [workEmailErrorTranslationKey, translate]);
-
     const clearOnboardingErrorMessage = () => {
         if (!onboardingErrorMessageTranslationKey) {
             return;
@@ -300,6 +291,15 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
         }
         setOnboardingErrorMessage(null);
     };
+
+    useEffect(() => {
+        if (!workEmailErrorTranslationKey) {
+            clearWorkEmailFormErrors();
+            return;
+        }
+
+        addWorkEmailFormError(translate(workEmailErrorTranslationKey));
+    }, [workEmailErrorTranslationKey, translate]);
 
     const handleRegularJoinWorkspaceErrorConfirm = () => {
         setOnboardingErrorMessage(null);

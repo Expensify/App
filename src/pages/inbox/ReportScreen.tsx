@@ -99,6 +99,8 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
     });
     const {reportPendingAction, reportErrors, hasReportCreationErrors} = reportPendingActionAndErrors ?? {};
 
+    useClearReportActionDraftsOnReportChange(reportIDFromRoute);
+
     const dismissReportCreationError = () => {
         if (!hasReportCreationErrors) {
             clearReportErrors(reportIDFromRoute);
@@ -108,8 +110,6 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
             afterTransition: () => removeFailedReport(reportIDFromRoute),
         });
     };
-
-    useClearReportActionDraftsOnReportChange(reportIDFromRoute);
 
     return (
         <ReportScreenEditMessageProvider reportID={reportIDFromRoute}>

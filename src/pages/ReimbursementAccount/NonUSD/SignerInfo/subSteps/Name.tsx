@@ -24,6 +24,12 @@ function Name({onNext, onMove, isEditing}: NameProps) {
 
     const defaultValue = String(reimbursementAccountDraft?.[SIGNER_FULL_NAME] ?? '');
 
+    const handleSubmit = useReimbursementAccountStepFormSubmit({
+        fieldIds: [SIGNER_FULL_NAME],
+        onNext,
+        shouldSaveDraft: isEditing,
+    });
+
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
         const errors = getFieldRequiredErrors(values, [SIGNER_FULL_NAME], translate);
 
@@ -33,12 +39,6 @@ function Name({onNext, onMove, isEditing}: NameProps) {
 
         return errors;
     };
-
-    const handleSubmit = useReimbursementAccountStepFormSubmit({
-        fieldIds: [SIGNER_FULL_NAME],
-        onNext,
-        shouldSaveDraft: isEditing,
-    });
 
     return (
         <SingleFieldStep<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>
