@@ -103,6 +103,7 @@ function FormWrapper({
     serverErrorFields,
     serverErrorMessage,
     shouldScrollToEnd = false,
+    shouldScrollChildToFocus = true,
     addBottomSafeAreaPadding,
     addOfflineIndicatorBottomSafeAreaPadding,
     shouldSubmitButtonStickToBottom: shouldSubmitButtonStickToBottomProp,
@@ -279,6 +280,7 @@ function FormWrapper({
                     style={[styles.w100, styles.flex1]}
                     contentContainerStyle={styles.flexGrow1}
                     keyboardShouldPersistTaps="handled"
+                    scrollsChildToFocus={shouldScrollChildToFocus}
                     addBottomSafeAreaPadding={shouldApplyBottomSafeAreaPadding}
                     addOfflineIndicatorBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
                     ref={formRef}
@@ -290,6 +292,7 @@ function FormWrapper({
                     style={[styles.w100, styles.flex1]}
                     contentContainerStyle={styles.flexGrow1}
                     keyboardShouldPersistTaps="handled"
+                    scrollsChildToFocus={shouldScrollChildToFocus}
                     addBottomSafeAreaPadding={shouldApplyBottomSafeAreaPadding}
                     addOfflineIndicatorBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
                     ref={formRef}

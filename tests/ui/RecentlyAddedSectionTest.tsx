@@ -506,7 +506,7 @@ describe('RecentlyAddedSection', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -515,7 +515,7 @@ describe('RecentlyAddedSection', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -547,7 +547,7 @@ describe('RecentlyAddedSection', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -556,7 +556,7 @@ describe('RecentlyAddedSection', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });

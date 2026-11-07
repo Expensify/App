@@ -14,7 +14,7 @@ function DistanceSymbolMarker({distanceSymbolCoordinate, children, onPress}: Dis
             latitude={distanceSymbolCoordinate.at(1) ?? 0}
         >
             <PressableWithoutFeedback
-                sentryLabel="MapView-ToggleDistanceUnit"
+                sentryLabel={CONST.SENTRY_LABEL.MAP_VIEW.TOGGLE_DISTANCE_UNIT}
                 accessibilityLabel="distance-label"
                 role={CONST.ROLE.BUTTON}
                 onPress={onPress}

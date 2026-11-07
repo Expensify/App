@@ -210,6 +210,7 @@ export type {default as OpenPublicProfilePageParams} from './OpenPublicProfilePa
 export type {default as OpenReimbursementAccountPageParams} from './OpenReimbursementAccountPageParams';
 export type {default as OpenReportParams} from './OpenReportParams';
 export type {default as OpenRoomMembersPageParams} from './OpenRoomMembersPageParams';
+export type {default as OpenReportStatusPageParams} from './OpenReportStatusPageParams';
 export type {default as OpenPlaidCompanyCardLoginParams} from './OpenPlaidCompanyCardLoginParams';
 export type {default as OpenPolicyReceiptPartnersPageParams} from './OpenPolicyReceiptPartnersPageParams';
 export type {default as OpenPolicyHRPageParams} from './OpenPolicyHRPageParams';
@@ -559,6 +560,7 @@ export type {default as OpenCardDetailsPageParams} from './OpenCardDetailsPagePa
 export type {default as SetPolicyCategoryDescriptionRequiredParams} from './SetPolicyCategoryDescriptionRequiredParams';
 export type {default as SetPolicyCategoryAttendeesRequiredParams} from './SetPolicyCategoryAttendeesRequiredParams';
 export type {default as SetPolicyCategoryApproverParams} from './SetPolicyCategoryApproverParams';
+export type {default as SetPolicyMemberCategoryVisibilityParams} from './SetPolicyMemberCategoryVisibilityParams';
 export type {default as SetWorkspaceCategoryDescriptionHintParams} from './SetWorkspaceCategoryDescriptionHintParams';
 export type {default as SetPolicyCategoryTaxParams} from './SetPolicyCategoryTaxParams';
 export type {default as SetPolicyCategoryMaxAmountParams} from './SetPolicyCategoryMaxAmountParams';
@@ -632,6 +634,8 @@ export type {default as TogglePolicyPerDiemParams} from './TogglePolicyPerDiemPa
 export type {default as OpenPolicyPerDiemRatesPageParams} from './OpenPolicyPerDiemRatesPageParams';
 export type {default as TogglePlatformMuteParams} from './TogglePlatformMuteParams';
 export type {default as GetCorpayBankAccountFieldsParams} from './GetCorpayBankAccountFieldsParams';
+export type {default as GetWiseBankAccountFieldsParams} from './GetWiseBankAccountFieldsParams';
+export type {default as CreateWiseBankAccountParams} from './CreateWiseBankAccountParams';
 export type {default as BankAccountCreateCorpayParams} from './BankAccountCreateCorpayParams';
 export type {default as JoinAccessiblePolicyParams} from './JoinAccessiblePolicyParams';
 export type {default as AskToJoinPolicyParams} from './AskToJoinPolicyParams';
@@ -653,6 +657,7 @@ export type {default as CreatePerDiemRequestParams} from './CreatePerDiemRequest
 export type {default as QueueExpensifyCardForBillingParams} from './QueueExpensifyCardForBillingParams';
 export type {default as GetCorpayOnboardingFieldsParams} from './GetCorpayOnboardingFieldsParams';
 export type {default as GetWiseKYCReviewEmbeddedLinkParams} from './GetWiseKYCReviewEmbeddedLinkParams';
+export type {default as GetWiseQuoteParams} from './GetWiseQuoteParams';
 export type {SaveCorpayOnboardingCompanyDetailsParams} from './SaveCorpayOnboardingCompanyDetailsParams';
 export type {default as AcceptSpotnanaTermsParams} from './AcceptSpotnanaTermsParams';
 export type {default as SaveCorpayOnboardingBeneficialOwnerParams} from './SaveCorpayOnboardingBeneficialOwnerParams';

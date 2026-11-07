@@ -1129,6 +1129,79 @@ describe('ReportAlternateTextUtils', () => {
 
                 expect(lastMessage).toBe('-$25.00 for Missing currency');
             });
+
+            it.each([
+                {description: '', storedComment: '{"comment":""}', expected: '-$25.00'},
+                {description: 'Team lunch', storedComment: '{"comment":"Team lunch"}', expected: '-$25.00 for Team lunch'},
+            ])('should use the linked transaction description "$description" instead of the raw split comment on the action', async ({description, storedComment, expected}) => {
+                // Given an expense report whose only expense is a split, where the server stored the raw split payload as the action comment
+                const report: Report = {
+                    ...createRandomReport(0, undefined),
+                    reportID: 'expense-report-split',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    currency: CONST.CURRENCY.USD,
+                    transactionCount: 1,
+                };
+                const createdAction: ReportAction = {
+                    ...createRandomReportAction(19),
+                    reportID: report.reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                    message: {type: 'COMMENT', text: ''},
+                };
+                const transaction: Transaction = {
+                    ...createRandomTransaction(2),
+                    transactionID: 'split-transaction',
+                    reportID: report.reportID,
+                    amount: 2500,
+                    modifiedAmount: '',
+                    currency: CONST.CURRENCY.USD,
+                    modifiedCurrency: '',
+                    receipt: undefined,
+                    comment: {comment: description, source: CONST.IOU.TYPE.SPLIT, originalTransactionID: 'original-transaction'},
+                };
+                const moneyRequestAction: ReportAction = {
+                    ...createRandomReportAction(20),
+                    reportID: report.reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    created: '2026-04-01 16:00:00.000',
+                    message: {
+                        text: '',
+                        amount: -2500,
+                        currency: CONST.CURRENCY.USD,
+                        comment: storedComment,
+                        IOUTransactionID: transaction.transactionID,
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    },
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [createdAction.reportActionID]: createdAction,
+                    [moneyRequestAction.reportActionID]: moneyRequestAction,
+                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await waitForBatchedUpdates();
+
+                // When the LHN builds the preview from the latest expense action
+                const lastMessage = getLastMessageTextForReport({
+                    rules: undefined,
+                    dateFnsLocale: undefined,
+                    convertToDisplayString,
+                    conciergeReportID: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    personalDetails: undefined,
+                    translate: translateLocal,
+                    report,
+                    lastActorDetails: null,
+                    isReportArchived: false,
+                    lastAction: createdAction,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                });
+
+                // Then the loaded transaction is the source of truth, so the stored JSON never leaks into the preview
+                expect(lastMessage).toBe(expected);
+            });
         });
         it('MOVED_TRANSACTION action', async () => {
             const mockIsSearchTopmostFullScreenRoute = jest.mocked(isSearchTopmostFullScreenRoute);

@@ -47,7 +47,7 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-nat
 
 import Onyx from 'react-native-onyx';
 
-import {getAllReports, getAllTransactions} from '.';
+import {getAllTransactions} from '.';
 
 /**
  * Put expense on HOLD
@@ -306,15 +306,17 @@ function putOnHold({
         );
     }
 
-    if (transactionReport) {
+    // Holding only changes the next step of an open report. For other statuses it would rebuild the step the report already has.
+    if (transactionReport && (transactionReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN) === CONST.REPORT.STATUS_NUM.OPEN) {
         const optimisticNextStep = buildOptimisticNextStep({
             report: transactionReport,
-            predictedNextStatus: transactionReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+            predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
             shouldFixViolations: true,
             currentUserAccountIDParam: currentUserAccountID,
             currentUserEmailParam: currentUserLogin,
             isTrackIntentUser,
             rules,
+            personalDetailsByLogins: undefined,
         });
 
         optimisticData.push({
@@ -431,8 +433,10 @@ function putTransactionsOnHold({
  */
 function unholdRequest({
     transactionID,
-    transaction,
     reportID,
+    transactionReport: iouReport,
+    report,
+    transaction,
     policy,
     isOffline,
     currentUserLogin,
@@ -443,8 +447,12 @@ function unholdRequest({
     rules,
 }: {
     transactionID: string;
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    /** The transaction thread report ID the unhold action belongs to. Always set, so optimistic updates never target an undefined key. */
     reportID: string;
+    transactionReport: OnyxEntry<OnyxTypes.Report>;
+    /** Only used to roll back lastVisibleActionCreated on API failure. */
+    report: OnyxEntry<OnyxTypes.Report>;
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
     policy: OnyxEntry<OnyxTypes.Policy>;
     isOffline: boolean;
     currentUserLogin: string;
@@ -454,12 +462,8 @@ function unholdRequest({
     delegateAccountID: number | undefined;
     rules: OnyxCollection<OnyxTypes.Rule>;
 }) {
-    const allReports = getAllReports();
-
     const createdReportAction = buildOptimisticUnHoldReportAction(delegateAccountID);
     const updatedTransactionViolations = transactionViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.HOLD) ?? [];
-    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     const optimisticData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT>
@@ -565,16 +569,18 @@ function unholdRequest({
         },
     ];
 
-    if (iouReport) {
+    // Unholding only changes the next step of an open report. For other statuses it would rebuild the step the report already has.
+    if (iouReport && (iouReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN) === CONST.REPORT.STATUS_NUM.OPEN) {
         const optimisticNextStep = buildOptimisticNextStep({
             report: iouReport,
             policy,
-            predictedNextStatus: iouReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+            predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
             shouldFixViolations: updatedTransactionViolations.length > 0,
             currentUserAccountIDParam: currentUserAccountID,
             currentUserEmailParam: currentUserLogin,
             isTrackIntentUser,
             rules,
+            personalDetailsByLogins: undefined,
         });
 
         optimisticData.push({
@@ -1123,18 +1129,33 @@ function getReportFromHoldRequestsOnyxData({
 /**
  * Takes the expense off hold when it is already on hold, otherwise opens the hold reason flow.
  */
-function changeMoneyRequestHoldStatus(
-    reportAction: OnyxEntry<OnyxTypes.ReportAction>,
-    iouTransaction: OnyxEntry<OnyxTypes.Transaction>,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    isOffline: boolean,
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>,
-    isTrackIntentUser: boolean | undefined,
-    delegateAccountID: number | undefined,
-    rules: OnyxCollection<OnyxTypes.Rule>,
-): void {
+function changeMoneyRequestHoldStatus({
+    reportAction,
+    iouTransaction,
+    iouTransactionReport,
+    reportActionChildReport,
+    policy,
+    isOffline,
+    currentUserLogin,
+    currentUserAccountID,
+    transactionViolations,
+    isTrackIntentUser,
+    delegateAccountID,
+    rules,
+}: {
+    reportAction: OnyxEntry<OnyxTypes.ReportAction>;
+    iouTransaction: OnyxEntry<OnyxTypes.Transaction>;
+    iouTransactionReport: OnyxEntry<OnyxTypes.Report>;
+    reportActionChildReport: OnyxEntry<OnyxTypes.Report>;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    isOffline: boolean;
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>;
+    isTrackIntentUser: boolean | undefined;
+    delegateAccountID: number | undefined;
+    rules: OnyxCollection<OnyxTypes.Rule>;
+}) {
     if (!isMoneyRequestAction(reportAction)) {
         return;
     }
@@ -1158,6 +1179,8 @@ function changeMoneyRequestHoldStatus(
                 transactionID,
                 transaction: iouTransaction,
                 reportID: reportAction.childReportID,
+                transactionReport: iouTransactionReport,
+                report: reportActionChildReport,
                 policy,
                 isOffline,
                 currentUserLogin,

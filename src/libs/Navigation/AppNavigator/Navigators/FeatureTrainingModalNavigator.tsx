@@ -9,6 +9,7 @@ import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptio
 import type {FeatureTrainingNavigatorParamList} from '@libs/Navigation/types';
 
 import ChangePolicyEducationalModal from '@pages/ChangePolicyEducationalModal';
+import DynamicWisePaymentDetailsModal from '@pages/DynamicWisePaymentDetailsModal';
 import TrackTrainingPage from '@pages/TrackTrainingPage';
 
 import SCREENS from '@src/SCREENS';
@@ -36,6 +37,10 @@ function FeatureTrainingModalNavigator() {
                 <Stack.Screen
                     name={SCREENS.DYNAMIC_CHANGE_POLICY_EDUCATIONAL_ROOT}
                     component={ChangePolicyEducationalModal}
+                />
+                <Stack.Screen
+                    name={SCREENS.DYNAMIC_PAYMENT_DETAILS_ROOT}
+                    component={DynamicWisePaymentDetailsModal}
                 />
                 <Stack.Screen
                     name={SCREENS.AUTO_SUBMIT_ROOT}
