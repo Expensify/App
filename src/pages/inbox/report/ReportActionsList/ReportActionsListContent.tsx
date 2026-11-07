@@ -65,8 +65,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         oldestUnreadReportAction,
         transactionThreadReport,
         sortedAllReportActions,
-        sortedReportActions: paymentFilteredReportActions,
-        sortedVisibleReportActions: paymentFilteredVisibleReportActions,
+        sortedReportActions,
+        sortedVisibleReportActions,
         isConciergeHiddenHistory,
         shouldShowConciergeWelcome,
         isConciergeHistoryExpanded,
@@ -89,14 +89,14 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
     // Hidden surveys must not become unread targets that have no rendered row.
-    const sortedReportActions = filterHiddenSupportTicketSurveys({
-        reportActions: paymentFilteredReportActions,
+    const surveyFilteredReportActions = filterHiddenSupportTicketSurveys({
+        reportActions: sortedReportActions,
         sortedAllReportActions,
         report,
         reportNameValuePairs,
     });
-    const sortedVisibleReportActions = filterHiddenSupportTicketSurveys({
-        reportActions: paymentFilteredVisibleReportActions,
+    const surveyFilteredVisibleReportActions = filterHiddenSupportTicketSurveys({
+        reportActions: sortedVisibleReportActions,
         sortedAllReportActions,
         report,
         reportNameValuePairs,
@@ -123,8 +123,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
 
     const {unreadMarkerReportActionID} = useUnreadMarker({
         reportID,
-        sortedVisibleReportActions,
-        sortedReportActions,
+        sortedVisibleReportActions: surveyFilteredVisibleReportActions,
+        sortedReportActions: surveyFilteredReportActions,
         oldestUnreadReportActionID: oldestUnreadReportAction?.reportActionID,
         isScrolledOverThreshold: hasScrolledOverThreshold,
         hasOnceLoadedReportActions: !!hasOnceLoadedReportActions,
@@ -135,13 +135,13 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         reportID,
         report,
         transactionThreadReport,
-        sortedVisibleReportActions,
+        sortedVisibleReportActions: surveyFilteredVisibleReportActions,
         isScrolledToEnd: !hasScrolledOverThreshold,
         hasNewerActions,
     });
 
     const reportActionsListData = useReportActionsListData({
-        sortedVisibleReportActions,
+        sortedVisibleReportActions: surveyFilteredVisibleReportActions,
         sessionStartTime,
         linkedReportActionID,
         unreadMarkerReportActionID,
@@ -152,7 +152,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         useReportActionsListScroll({
             reportID,
             // Hidden surveys still prove that the selected page contains the newest action.
-            sortedVisibleReportActions: paymentFilteredVisibleReportActions,
+            sortedVisibleReportActions,
             renderedVisibleReportActions: listData,
             reportActionIDToDisplayIndex,
             hasScrolledOverThreshold,
@@ -174,7 +174,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         reportNameValuePairs,
         isReportArchived,
         isOffline,
-        sortedReportActions,
+        sortedReportActions: surveyFilteredReportActions,
         unreadMarkerReportActionID,
         linkedReportActionID,
         onShowPreviousMessages,
@@ -200,7 +200,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         </>
     );
 
-    const shouldShowOfflineSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+    const shouldShowOfflineSkeleton = isOffline && !surveyFilteredVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 
     const listFooterComponent = shouldShowOfflineSkeleton ? <ReportActionsSkeletonView shouldAnimate={false} /> : undefined;
 
