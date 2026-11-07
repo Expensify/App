@@ -840,9 +840,7 @@ function formatWithUTCTimeZone(datetime: string, dateFormat: string, dateFnsLoca
  *
  * Format a date using the UTC timezone, for machine-readable output only (e.g. yyyy-MM-dd sent to the API or used as a
  * key). Anything a user reads must go through `formatWithUTCTimeZone` so it follows their language.
- * param datetime
- * param dateFormat
- * returns If the date is valid, returns the formatted date with the UTC timezone, otherwise returns an empty string.
+ * @returns If the date is valid, returns the formatted date with the UTC timezone, otherwise returns an empty string.
  */
 function formatMachineDateWithUTCTimeZone(datetime: string, dateFormat: MachineDateFormat = CONST.DATE.FNS_FORMAT_STRING) {
     const date = toDate(datetime, {timeZone: 'UTC'});
