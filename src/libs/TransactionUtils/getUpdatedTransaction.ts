@@ -135,6 +135,7 @@ function getUpdatedTransaction({
     policy = undefined,
     policies = undefined,
     isSplitTransaction = false,
+    shouldApplyCommuterExclusion = true,
     personalPolicyOutputCurrency,
     getCurrencyDecimals,
     getCurrencySymbol,
@@ -146,6 +147,7 @@ function getUpdatedTransaction({
     policy?: OnyxEntry<Policy>;
     policies?: OnyxCollection<Policy>;
     isSplitTransaction?: boolean;
+    shouldApplyCommuterExclusion?: boolean;
     personalPolicyOutputCurrency: string | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
@@ -228,15 +230,16 @@ function getUpdatedTransaction({
                 lodashSet(updatedTransaction, 'comment.customUnit.routeDistanceMeters', distanceInMeters);
             }
 
-            const commuterExclusionTransactionData = hasAppliedCommuterExclusion(updatedTransaction)
-                ? DistanceRequestUtils.getTransactionCommuterExclusionData({
-                      transaction: updatedTransaction,
-                      policy,
-                      storedCustomUnit: transaction?.comment?.customUnit,
-                      personalPolicyOutputCurrency,
-                      hasTripChanged: waypointsActuallyChanged,
-                  })
-                : undefined;
+            const commuterExclusionTransactionData =
+                shouldApplyCommuterExclusion && hasAppliedCommuterExclusion(updatedTransaction)
+                    ? DistanceRequestUtils.getTransactionCommuterExclusionData({
+                          transaction: updatedTransaction,
+                          policy,
+                          storedCustomUnit: transaction?.comment?.customUnit,
+                          personalPolicyOutputCurrency,
+                          hasTripChanged: waypointsActuallyChanged,
+                      })
+                    : undefined;
 
             if (commuterExclusionTransactionData) {
                 lodashSet(updatedTransaction, 'comment.customUnit', commuterExclusionTransactionData.customUnit);
@@ -344,23 +347,30 @@ function getUpdatedTransaction({
 
             const distanceInMeters = getDistanceInMeters(updatedTransaction, unit);
 
-            // The commuter exclusion is expressed in distance units, so it has to be re-derived against the new
-            // rate's unit and the converted quantity. The amount and merchant then describe the reimbursable
-            // distance, matching what the backend stores for modifiedAmount/modifiedMerchant.
-            const commuterExclusionTransactionData = hasAppliedCommuterExclusion(updatedTransaction)
-                ? DistanceRequestUtils.getTransactionCommuterExclusionData({
-                      transaction: updatedTransaction,
-                      policy,
-                      storedCustomUnit: transaction?.comment?.customUnit,
-                      personalPolicyOutputCurrency,
-                  })
-                : undefined;
+            // Self DM uses the full amount, but a saved exclusion must still follow a unit change so it retains
+            // the same physical distance when this expense moves back to a workspace.
+            const shouldConvertSavedExclusion =
+                !shouldApplyCommuterExclusion &&
+                hasCommuterExclusion &&
+                !!existingDistanceUnit &&
+                existingDistanceUnit !== updatedTransaction.comment?.customUnit?.distanceUnit &&
+                !isOdometerDistanceRequest(transaction);
+            const commuterExclusionTransactionData =
+                (shouldApplyCommuterExclusion || shouldConvertSavedExclusion) && hasAppliedCommuterExclusion(updatedTransaction)
+                    ? DistanceRequestUtils.getTransactionCommuterExclusionData({
+                          transaction: updatedTransaction,
+                          policy,
+                          storedCustomUnit: transaction?.comment?.customUnit,
+                          personalPolicyOutputCurrency,
+                      })
+                    : undefined;
 
             if (commuterExclusionTransactionData) {
                 lodashSet(updatedTransaction, 'comment.customUnit', commuterExclusionTransactionData.customUnit);
             }
 
-            const amount = commuterExclusionTransactionData?.modifiedAmount ?? DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
+            const appliedCommuterExclusionData = shouldApplyCommuterExclusion ? commuterExclusionTransactionData : undefined;
+            const amount = appliedCommuterExclusionData?.modifiedAmount ?? DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
             const updatedAmount = isFromExpenseReport || isUnReportedExpense ? -amount : amount;
             const updatedCurrency = updatedMileageRate.currency ?? CONST.CURRENCY.USD;
             const updatedMerchant = getRecalculatedDistanceMerchant(
@@ -370,10 +380,12 @@ function getUpdatedTransaction({
                 rate,
                 updatedCurrency,
                 getCurrencySymbol,
-                DistanceRequestUtils.getCommuterExclusionDisplayData(commuterExclusionTransactionData?.customUnit, unit),
+                DistanceRequestUtils.getCommuterExclusionDisplayData(appliedCommuterExclusionData?.customUnit, unit),
             );
 
-            updatedTransaction.amount = updatedAmount;
+            if (!appliedCommuterExclusionData) {
+                updatedTransaction.amount = updatedAmount;
+            }
             updatedTransaction.modifiedAmount = updatedAmount;
             updatedTransaction.modifiedMerchant = updatedMerchant;
             updatedTransaction.modifiedCurrency = updatedCurrency;

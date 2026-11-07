@@ -60,6 +60,7 @@ import getDistanceInMeters from './getDistanceInMeters';
 import getSelectedRouteKey from './getSelectedRouteKey';
 // eslint-disable-next-line import/no-cycle
 import {getClearedPendingFields, getDistanceMerchantForTransaction, getUpdatedTransaction} from './getUpdatedTransaction';
+import parseDistanceMerchant, {getDistanceMerchantPrefix} from './parseDistanceMerchant';
 // eslint-disable-next-line import/no-cycle
 import {
     calculateTaxAmount,
@@ -180,18 +181,198 @@ function getDisplayTransactionWithoutInvalidCommuterExclusion({
         return transaction;
     }
 
+    const modifiedAmount = hasValidModifiedAmount(transaction) ? Number(transaction.modifiedAmount) : undefined;
+    const storedUnit = customUnit?.distanceUnit;
+    const reducedDistance = customUnit?.reimbursableDistance;
+    const storedAmount = modifiedAmount ?? transaction.amount;
+    const storedMerchant = transaction.modifiedMerchant ?? transaction.merchant;
     const mileageRate = DistanceRequestUtils.getRateByCustomUnitRateIDAcrossPolicies({customUnitRateID: customUnit?.customUnitRateID, policy, policies});
     const rate = mileageRate?.rate;
     const unit = customUnit?.distanceUnit ?? mileageRate?.unit;
-    if (!unit || !rate) {
+    // A rate edit can leave the preferred merchant describing the full route. Keep its saved rate
+    // and amount, and only clear the stale commuter fields.
+    if (parseDistanceMerchant({merchant: storedMerchant, distance: fullDistance, unit: storedUnit})) {
+        return {
+            ...transaction,
+            amount: storedAmount,
+            convertedAmount: undefined,
+            modifiedAmount: undefined,
+            merchant: storedMerchant,
+            modifiedMerchant: undefined,
+        };
+    }
+
+    // Base fields can preserve the full route while modified fields contain the commuter-reduced
+    // snapshot. Matching rate text confirms both snapshots use the same historical rate.
+    if (
+        storedUnit &&
+        typeof reducedDistance === 'number' &&
+        reducedDistance >= 0 &&
+        reducedDistance < fullDistance &&
+        (!transaction.modifiedCurrency || transaction.modifiedCurrency === transaction.currency)
+    ) {
+        const snapshotCurrency = getCurrency(transaction);
+        const parsedFullMerchant = parseDistanceMerchant({
+            merchant: transaction.merchant,
+            distance: fullDistance,
+            unit: storedUnit,
+            currency: snapshotCurrency,
+            currencySymbol: getCurrencySymbol(snapshotCurrency),
+        });
+        const fullRateText = parsedFullMerchant?.rateText;
+        const reducedRateText = parseDistanceMerchant({merchant: transaction.modifiedMerchant, distance: reducedDistance, unit: storedUnit})?.rateText;
+        if (fullRateText && fullRateText === reducedRateText && Number.isFinite(transaction.amount) && (modifiedAmount === undefined || Number.isFinite(modifiedAmount))) {
+            const roundedFullDistance = Number(fullDistance.toFixed(CONST.DISTANCE_DECIMAL_PLACES));
+            const roundedReducedDistance = Number(reducedDistance.toFixed(CONST.DISTANCE_DECIMAL_PLACES));
+            if (roundedFullDistance > 0) {
+                // The stored total is rounded to the nearest minor currency unit, so its unrounded
+                // value lies within +/-0.5 of that total. Dividing those bounds by distance gives
+                // the possible historical-rate range; if the whole range reproduces modifiedAmount,
+                // it was an automatic commuter reduction rather than a manual edit.
+                const lowerRate = Math.max(0, (Math.abs(transaction.amount) - 0.5) / roundedFullDistance);
+                const upperRate = (Math.abs(transaction.amount) + 0.5) / roundedFullDistance;
+                const calculatedReducedAmount = Math.round(roundedReducedDistance * lowerRate);
+                let isCalculatedAmount =
+                    modifiedAmount === undefined || (calculatedReducedAmount === Math.round(roundedReducedDistance * upperRate) && calculatedReducedAmount === Math.abs(modifiedAmount));
+                if (!isCalculatedAmount && modifiedAmount !== undefined) {
+                    const savedRate = parsedFullMerchant?.rate;
+                    // Validate both snapshots with their historical rate before consulting a mutable policy rate.
+                    if (savedRate !== undefined) {
+                        const fullDistanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(roundedFullDistance, storedUnit);
+                        const reducedDistanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(roundedReducedDistance, storedUnit);
+                        isCalculatedAmount =
+                            Math.abs(transaction.amount) === DistanceRequestUtils.getDistanceRequestAmount(fullDistanceInMeters, storedUnit, savedRate) &&
+                            Math.abs(modifiedAmount) === DistanceRequestUtils.getDistanceRequestAmount(reducedDistanceInMeters, storedUnit, savedRate);
+                    }
+                }
+                if (!isCalculatedAmount && modifiedAmount !== undefined && typeof rate === 'number' && unit === storedUnit) {
+                    const resolvedCurrency = mileageRate?.currency ?? getCurrency(transaction);
+                    const savedCurrency = getCurrency(transaction);
+                    if (resolvedCurrency === savedCurrency) {
+                        const fullDistanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(roundedFullDistance, unit);
+                        const reducedDistanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(roundedReducedDistance, unit);
+                        const fullMerchantAtResolvedRate = getDistanceMerchantForTransaction({
+                            transaction,
+                            distanceInMeters: fullDistanceInMeters,
+                            unit,
+                            rate,
+                            currency: resolvedCurrency,
+                            translate,
+                            getCurrencySymbol,
+                        });
+                        const reducedMerchantAtResolvedRate = getDistanceMerchantForTransaction({
+                            transaction,
+                            distanceInMeters: reducedDistanceInMeters,
+                            unit,
+                            rate,
+                            currency: resolvedCurrency,
+                            translate,
+                            getCurrencySymbol,
+                        });
+                        isCalculatedAmount =
+                            transaction.merchant === fullMerchantAtResolvedRate &&
+                            transaction.modifiedMerchant === reducedMerchantAtResolvedRate &&
+                            Math.abs(transaction.amount) === DistanceRequestUtils.getDistanceRequestAmount(fullDistanceInMeters, unit, rate) &&
+                            Math.abs(modifiedAmount) === DistanceRequestUtils.getDistanceRequestAmount(reducedDistanceInMeters, unit, rate);
+                    }
+                }
+                const amountToDisplay = isCalculatedAmount ? Math.abs(transaction.amount) : Math.abs(modifiedAmount ?? transaction.amount);
+                return {
+                    ...transaction,
+                    amount: (modifiedAmount ?? transaction.amount) < 0 ? -amountToDisplay : amountToDisplay,
+                    convertedAmount: undefined,
+                    modifiedAmount: undefined,
+                    modifiedMerchant: undefined,
+                };
+            }
+        }
+    }
+
+    if (!unit) {
         return transaction;
     }
 
     const fullDistanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(fullDistance, unit);
+    const storedReducedMerchant = transaction.modifiedMerchant ?? transaction.merchant;
+    const storedReducedAmount = modifiedAmount ?? transaction.amount;
+    const savedCurrencyForRate = getCurrency(transaction);
+    const parsedReducedMerchant = parseDistanceMerchant({
+        merchant: storedReducedMerchant,
+        distance: reducedDistance,
+        unit: storedUnit,
+        currency: savedCurrencyForRate,
+        currencySymbol: getCurrencySymbol(savedCurrencyForRate),
+    });
+    // Only allow proportional restoration when both modified fields are available and the merchant
+    // identifies the saved reduced distance; otherwise the full route cannot be reconstructed safely.
+    const canRestoreSavedReducedValues =
+        modifiedAmount !== undefined &&
+        !!transaction.modifiedMerchant &&
+        !!storedUnit &&
+        typeof reducedDistance === 'number' &&
+        reducedDistance > 0 &&
+        reducedDistance < fullDistance &&
+        Number.isFinite(storedReducedAmount) &&
+        !!parsedReducedMerchant;
+    function restoreSavedReducedValues(): OnyxEntry<Transaction> {
+        if (!transaction || !unit || !storedUnit || typeof fullDistance !== 'number' || !canRestoreSavedReducedValues || !parsedReducedMerchant || typeof reducedDistance !== 'number') {
+            return transaction;
+        }
+
+        const rateText = parsedReducedMerchant.rateText.trim();
+        let fullAmount = Math.round((Math.abs(storedReducedAmount ?? 0) * fullDistance) / reducedDistance);
+        const savedRate = parsedReducedMerchant.rate;
+        if (savedRate !== undefined) {
+            const reducedDistanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(reducedDistance, unit);
+            if (DistanceRequestUtils.getDistanceRequestAmount(reducedDistanceInMeters, unit, savedRate) === Math.abs(storedReducedAmount)) {
+                fullAmount = DistanceRequestUtils.getDistanceRequestAmount(fullDistanceInMeters, unit, savedRate);
+            }
+        }
+        return {
+            ...transaction,
+            amount: (storedReducedAmount ?? 0) < 0 ? -fullAmount : fullAmount,
+            convertedAmount: undefined,
+            modifiedAmount: undefined,
+            merchant: `${getDistanceMerchantPrefix(fullDistance, storedUnit)}${rateText}`,
+            modifiedMerchant: undefined,
+        };
+    }
+
+    // When the rate cannot be resolved from policy data, recover from the available reduced snapshot
+    // instead of leaving commuter values in a personal report.
+    if (!rate) {
+        return restoreSavedReducedValues();
+    }
+
     const fullDistanceAmount = DistanceRequestUtils.getDistanceRequestAmount(fullDistanceInMeters, unit, rate);
-    const storedAmount = hasValidModifiedAmount(transaction) ? Number(transaction.modifiedAmount) : (transaction.amount ?? 0);
-    const normalizedAmount = storedAmount < 0 ? -fullDistanceAmount : fullDistanceAmount;
+    const normalizedAmount = (storedAmount ?? 0) < 0 ? -fullDistanceAmount : fullDistanceAmount;
     const currency = mileageRate?.currency ?? getCurrency(transaction);
+    const savedCurrency = getCurrency(transaction);
+    // Identical symbols cannot prove that the expense used the newly resolved currency, so avoid
+    // a potentially incorrect conversion.
+    if (currency !== savedCurrency && getCurrencySymbol(currency) === getCurrencySymbol(savedCurrency)) {
+        return transaction;
+    }
+
+    // Verify the live policy rate against the saved reduced merchant. If they do not match, preserve
+    // the historical snapshot instead of risking a reprice from changed or differently formatted data.
+    if (canRestoreSavedReducedValues && typeof reducedDistance === 'number') {
+        const reducedDistanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(reducedDistance, unit);
+        const merchantAtCurrentRate = getDistanceMerchantForTransaction({
+            transaction,
+            distanceInMeters: reducedDistanceInMeters,
+            unit,
+            rate,
+            currency,
+            translate,
+            getCurrencySymbol,
+        });
+        // Rate values use a locale-dependent decimal separator, while the saved merchant keeps the locale used at edit time.
+        if (storedReducedMerchant.replaceAll(',', '.') !== merchantAtCurrentRate.replaceAll(',', '.')) {
+            return restoreSavedReducedValues();
+        }
+    }
+
     const normalizedMerchant = getDistanceMerchantForTransaction({
         transaction,
         distanceInMeters: fullDistanceInMeters,
