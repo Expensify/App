@@ -12,11 +12,12 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type BillingBannerProps = {
@@ -44,7 +45,7 @@ type BillingBannerProps = {
     rightIconTooltipText?: string;
 
     /** Sentry label for the right icon button. Defaults to `CONST.SENTRY_LABEL.BILLING_BANNER.RIGHT_ICON`. */
-    rightIconSentryLabel?: string;
+    rightIconSentryLabel?: SentryLabel;
 
     /** A component to be rendered on the right side of the banner. */
     rightComponent?: React.ReactNode;
@@ -70,56 +71,40 @@ function BillingBanner({
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
-    const rightIconComponent = useMemo(() => {
-        if (rightIcon) {
-            if (onRightIconPress && rightIconAccessibilityLabel) {
-                const rightIconButton = (
-                    <PressableWithoutFeedback
-                        onPress={onRightIconPress}
-                        style={[styles.touchableButtonImage, styles.threeDotsMenuIconWidth]}
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={rightIconAccessibilityLabel}
-                        sentryLabel={rightIconSentryLabel ?? CONST.SENTRY_LABEL.BILLING_BANNER.RIGHT_ICON}
-                    >
-                        <Icon
-                            src={rightIcon}
-                            fill={theme.icon}
-                        />
-                    </PressableWithoutFeedback>
-                );
-                return rightIconTooltipText ? <Tooltip text={rightIconTooltipText}>{rightIconButton}</Tooltip> : rightIconButton;
-            }
-
-            return (
+    let rightIconComponent;
+    if (rightIcon) {
+        if (onRightIconPress && rightIconAccessibilityLabel) {
+            const rightIconButton = (
+                <PressableWithoutFeedback
+                    onPress={onRightIconPress}
+                    style={[styles.touchableButtonImage, styles.threeDotsMenuIconWidth]}
+                    role={CONST.ROLE.BUTTON}
+                    accessibilityLabel={rightIconAccessibilityLabel}
+                    sentryLabel={rightIconSentryLabel ?? CONST.SENTRY_LABEL.BILLING_BANNER.RIGHT_ICON}
+                >
+                    <Icon
+                        src={rightIcon}
+                        fill={theme.icon}
+                    />
+                </PressableWithoutFeedback>
+            );
+            rightIconComponent = rightIconTooltipText ? <Tooltip text={rightIconTooltipText}>{rightIconButton}</Tooltip> : rightIconButton;
+        } else {
+            rightIconComponent = (
                 <Icon
                     src={rightIcon}
                     fill={theme.icon}
                 />
             );
         }
-
-        return (
-            !!brickRoadIndicator && (
-                <Icon
-                    src={expensifyIcons.DotIndicator}
-                    fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.success}
-                />
-            )
+    } else {
+        rightIconComponent = !!brickRoadIndicator && (
+            <Icon
+                src={expensifyIcons.DotIndicator}
+                fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.success}
+            />
         );
-    }, [
-        brickRoadIndicator,
-        onRightIconPress,
-        rightIcon,
-        rightIconAccessibilityLabel,
-        rightIconTooltipText,
-        rightIconSentryLabel,
-        styles.touchableButtonImage,
-        styles.threeDotsMenuIconWidth,
-        theme.danger,
-        theme.icon,
-        theme.success,
-        expensifyIcons.DotIndicator,
-    ]);
+    }
 
     return (
         <View style={[styles.pv4, styles.ph5, styles.flexRow, styles.flexWrap, styles.gap3, styles.w100, styles.alignItemsCenter, styles.trialBannerBackgroundColor, style]}>

@@ -21,7 +21,7 @@ import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {QBDNonReimbursableExportAccountType} from '@src/types/onyx/Policy';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 type MenuItem = ListItem & {
     value: QBDNonReimbursableExportAccountType;
@@ -37,56 +37,50 @@ function DynamicQuickbooksDesktopCompanyCardExpenseAccountSelectCardPage({policy
     const nonReimbursableBillDefaultVendor = qbdConfig?.export?.nonReimbursableBillDefaultVendor;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_CARD_SELECT.path);
 
-    const data: MenuItem[] = useMemo(
-        () => [
-            {
-                text: translate(`workspace.qbd.accounts.${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}`),
-                value: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD,
-                keyForList: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD,
-                isSelected: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD === nonReimbursable,
-            },
-            {
-                text: translate(`workspace.qbd.accounts.${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK}`),
-                value: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK,
-                keyForList: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK,
-                isSelected: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK === nonReimbursable,
-            },
-            {
-                text: translate(`workspace.qbd.accounts.${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL}`),
-                value: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
-                keyForList: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
-                isSelected: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL === nonReimbursable,
-            },
-        ],
-        [translate, nonReimbursable],
-    );
-
-    const goBack = useCallback(() => {
-        Navigation.goBack(backPath, {compareParams: false});
-    }, [backPath]);
-
-    const selectExportCompanyCard = useCallback(
-        (row: MenuItem) => {
-            if (row.value !== nonReimbursable && policyID) {
-                // Switching export type invalidates the previously selected account/vendor because the list of available accounts differs per export type. Clear them so the admin is required to choose on the next screens.
-                updateQuickbooksCompanyCardExpenseAccount(
-                    policyID,
-                    {
-                        [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE]: row.value,
-                        [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_ACCOUNT]: '',
-                        [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE as string,
-                    },
-                    {
-                        [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE]: nonReimbursable,
-                        [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_ACCOUNT]: nonReimbursableAccount,
-                        [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: nonReimbursableBillDefaultVendor,
-                    },
-                );
-            }
-            goBack();
+    const data: MenuItem[] = [
+        {
+            text: translate(`workspace.qbd.accounts.${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}`),
+            value: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD,
+            keyForList: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD,
+            isSelected: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD === nonReimbursable,
         },
-        [nonReimbursable, nonReimbursableAccount, nonReimbursableBillDefaultVendor, policyID, goBack],
-    );
+        {
+            text: translate(`workspace.qbd.accounts.${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK}`),
+            value: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK,
+            keyForList: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK,
+            isSelected: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK === nonReimbursable,
+        },
+        {
+            text: translate(`workspace.qbd.accounts.${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL}`),
+            value: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
+            keyForList: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
+            isSelected: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL === nonReimbursable,
+        },
+    ];
+
+    const goBack = () => {
+        Navigation.goBack(backPath, {compareParams: false});
+    };
+
+    const selectExportCompanyCard = (row: MenuItem) => {
+        if (row.value !== nonReimbursable && policyID) {
+            // Switching export type invalidates the previously selected account/vendor because the list of available accounts differs per export type. Clear them so the admin is required to choose on the next screens.
+            updateQuickbooksCompanyCardExpenseAccount(
+                policyID,
+                {
+                    [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE]: row.value,
+                    [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_ACCOUNT]: '',
+                    [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE as string,
+                },
+                {
+                    [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE]: nonReimbursable,
+                    [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_ACCOUNT]: nonReimbursableAccount,
+                    [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: nonReimbursableBillDefaultVendor,
+                },
+            );
+        }
+        goBack();
+    };
 
     return (
         <SelectionScreen

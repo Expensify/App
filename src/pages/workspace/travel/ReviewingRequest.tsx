@@ -18,7 +18,6 @@ function ReviewingRequest() {
 
     return (
         <FeatureList
-            menuItems={[]}
             title={translate('workspace.moreFeatures.travel.reviewingRequest.title')}
             subtitle={translate('workspace.moreFeatures.travel.reviewingRequest.subtitle')}
             footer={

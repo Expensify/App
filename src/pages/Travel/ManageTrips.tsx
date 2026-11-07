@@ -1,6 +1,5 @@
 import BookTravelButton from '@components/BookTravelButton';
 import Button from '@components/Button';
-import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
 import LottieAnimations from '@components/LottieAnimations';
 import ScrollView from '@components/ScrollView';
@@ -23,7 +22,7 @@ import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {Linking, View} from 'react-native';
 
 type ManageTripsProps = {
@@ -39,31 +38,20 @@ function ManageTrips({policyID}: ManageTripsProps) {
     const isReduceMotionEnabled = Accessibility.useReducedMotion();
     const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'TravelAlerts', 'EmptyStateTravel']);
 
-    const tripsFeatures: FeatureListItem[] = [
-        {
-            icon: illustrations.PiggyBank,
-            translationKey: 'travel.features.saveMoney',
-        },
-        {
-            icon: illustrations.TravelAlerts,
-            translationKey: 'travel.features.alerts',
-        },
-    ];
-
     const navigateToBookTravelDemo = () => {
         Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
     };
 
     const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
 
-    const handleOnContentSizeChange = useCallback(() => {
+    const handleOnContentSizeChange = () => {
         if (!shouldScrollToBottom) {
             return;
         }
 
         scrollViewRef.current?.scrollToEnd({animated: true});
         setShouldScrollToBottom(false);
-    }, [shouldScrollToBottom]);
+    };
 
     return (
         <AccessOrNotFoundWrapper policyID={policyID}>
@@ -74,7 +62,6 @@ function ManageTrips({policyID}: ManageTripsProps) {
             >
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <FeatureList
-                        menuItems={tripsFeatures}
                         title={translate('travel.title')}
                         subtitle={translate('travel.subtitle')}
                         illustration={isReduceMotionEnabled ? illustrations.EmptyStateTravel : LottieAnimations.TripsEmptyState}
@@ -101,7 +88,10 @@ function ManageTrips({policyID}: ManageTripsProps) {
                                 />
                             </>
                         }
-                    />
+                    >
+                        <FeatureList.Item icon={illustrations.PiggyBank}>{translate('travel.features.saveMoney')}</FeatureList.Item>
+                        <FeatureList.Item icon={illustrations.TravelAlerts}>{translate('travel.features.alerts')}</FeatureList.Item>
+                    </FeatureList>
                 </View>
             </ScrollView>
         </AccessOrNotFoundWrapper>

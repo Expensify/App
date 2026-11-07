@@ -1,6 +1,7 @@
+import {useIsCapturingChart} from '@components/Charts/context/ChartCaptureContext';
+
 import type {SharedValue} from 'react-native-reanimated';
 
-import {useCallback} from 'react';
 import {PointerType, useCompetingGestures, useHoverGesture, useTapGesture} from 'react-native-gesture-handler';
 import {useDerivedValue, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN, scheduleOnUI} from 'react-native-worklets';
@@ -186,6 +187,7 @@ function useChartInteractions({
     coordinateScale = 1,
     shouldPinTooltipOnTouch = true,
 }: UseChartInteractionsProps) {
+    const isCapturing = useIsCapturingChart();
     /** Interaction state compatible with Victory Native's internal logic */
     const {state: chartInteractionState} = useChartInteractionState();
 
@@ -207,13 +209,10 @@ function useChartInteractions({
      * Called by chart content from handleScaleChange to populate canvas positions.
      * Must be called with the positions derived from the current d3 scale.
      */
-    const setPointPositions = useCallback(
-        (ox: number[], oy: number[]) => {
-            pointOX.set(ox);
-            pointOY.set(oy);
-        },
-        [pointOX, pointOY],
-    );
+    const setPointPositions = (ox: number[], oy: number[]) => {
+        pointOX.set(ox);
+        pointOY.set(oy);
+    };
 
     const getHitTestArgs = (targetIndex: number, cursorX: number, cursorY: number, targetX: number, targetY: number, currentChartBottom: number): HitTestArgs => {
         'worklet';
@@ -366,7 +365,7 @@ function useChartInteractions({
         isTooltipActive.set(false);
     };
 
-    const {setIsTouchPinned, dismissTouchTooltip, onTooltipDismiss, onTapFinalize, onChartTouchStart} = useTouchPinnedTooltip(() => {
+    const {isTouchPinned, setIsTouchPinned, dismissTooltip, onTapFinalize, onChartTouchStart} = useTouchPinnedTooltip(() => {
         hideTooltip();
         applyTargetIndex(-1);
     });
@@ -420,7 +419,7 @@ function useChartInteractions({
         chartInteractionState.isActive.set(true);
         const isOverTarget = matchTargetAt(cursorX, cursorY);
         if (!isOverTarget) {
-            scheduleOnRN(dismissTouchTooltip);
+            scheduleOnRN(dismissTooltip);
             return;
         }
         scheduleOnRN(setIsTouchPinned, true);
@@ -495,6 +494,7 @@ function useChartInteractions({
     }));
 
     const customGestures = useCompetingGestures(hoverGesture, tapGesture);
+    const isTooltipVisible = useDerivedValue(() => !isCapturing && isTooltipActive.get());
 
     return {
         /** Custom gestures to be passed to CartesianChart */
@@ -507,7 +507,7 @@ function useChartInteractions({
         /** SharedValue for the currently matched data index — read on the UI thread or sync via useAnimatedReaction */
         matchedIndex: chartInteractionState.matchedIndex,
         /** SharedValue that is true when the tooltip should be visible */
-        isTooltipActive,
+        isTooltipActive: isTooltipVisible,
         /** SharedValue that is true when the cursor is over a clickable element (dot/bar, not label) */
         isCursorOverClickable,
         /** Raw tooltip positioning data */
@@ -516,8 +516,10 @@ function useChartInteractions({
         activePointPosition,
         /** Call with how far the chart moved in the window, e.g. on page scroll, to re-check the hover under a still cursor */
         onChartMoved,
-        /** Hides the tooltip pinned by a touch tap, undefined while nothing is pinned */
-        onTooltipDismiss,
+        /** Hides the tooltip, whether it is shown by a hover or pinned by a touch tap */
+        dismissTooltip,
+        /** Whether the tooltip is shown by a touch tap */
+        isTouchPinned,
         /** Marks a touch on this chart, so the screen's touch start keeps the tooltip and lets the tap switch it */
         onChartTouchStart,
     };

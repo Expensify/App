@@ -1,5 +1,6 @@
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
+import {useSession} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import RadioButton from '@components/RadioButton';
 import {useSearchColumnStyles} from '@components/Search/SearchColumnWidthsContext';
@@ -12,8 +13,9 @@ import TextCell from '@components/Search/SearchList/ListItem/TextCell';
 import AmountCell from '@components/Search/SearchList/ListItem/TotalCell';
 import UserInfoCell from '@components/Search/SearchList/ListItem/UserInfoCell';
 import WorkspaceCell from '@components/Search/SearchList/ListItem/WorkspaceCell';
+import YesNoCell from '@components/Search/SearchList/ListItem/YesNoCell';
 import type {SearchColumnType} from '@components/Search/types';
-import Text from '@components/Text';
+import {TABLE_ROW_DATA_SET} from '@components/Table/columnResize/columnWidthExpressions';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -26,7 +28,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {getVendorDisplayName, isTaxCodeCustomized} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
-import {getReimbursableTotal, isExpenseReport} from '@libs/ReportUtils';
+import {getReimbursableTotal, isCurrentUserSubmitter, isExpenseReport} from '@libs/ReportUtils';
 import {getViolationsForTransaction} from '@libs/SearchUIUtils';
 import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
@@ -97,6 +99,7 @@ function TransactionItemRowWide({
     isDateColumnCreated = false,
     submittedColumnSize,
     approvedColumnSize,
+    paidColumnSize,
     postedColumnSize,
     exportedColumnSize,
     amountColumnSize,
@@ -166,11 +169,16 @@ function TransactionItemRowWide({
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isSubmittedColumnWide = submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isApprovedColumnWide = approvedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
+    const isPaidColumnWide = paidColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
+    const {paid: paidDate = ''} = transactionItem;
     const isPostedColumnWide = postedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isExportedColumnWide = exportedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isAmountColumnWide = amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isTaxAmountColumnWide = taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const reportForCustomColumns = transactionItem.report ?? report;
+    const session = useSession();
+    const isOwnExpense = isExpenseUnreported(transactionItem) || isCurrentUserSubmitter(transactionItem.report ?? report, session?.accountID);
+    const categoryOwnerAccountID = isOwnExpense ? session?.accountID : undefined;
     const submitterUserID = reportForCustomColumns?.submitterUserID;
     const submitterPayrollID = reportForCustomColumns?.submitterPayrollID;
     const orderDealNumbers = reportForCustomColumns?.orderDealNumbers;
@@ -185,12 +193,7 @@ function TransactionItemRowWide({
             key={columnName}
             style={[getSearchColumnStyles(columnName)]}
         >
-            <Text
-                selectable
-                dataSet={COPYABLE_TEXT_DATA_SET}
-            >
-                {value ? translate('common.yes') : translate('common.no')}
-            </Text>
+            <YesNoCell value={value} />
         </View>
     );
 
@@ -309,6 +312,20 @@ function TransactionItemRowWide({
                         />
                     </View>
                 );
+            case CONST.SEARCH.TABLE_COLUMNS.PAID:
+                return (
+                    <View
+                        key={column}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.PAID, {isPaidColumnWide})]}
+                    >
+                        <DateCell
+                            date={paidDate}
+                            showTooltip={shouldShowTooltip}
+                            isLargeScreenWidth
+                            shouldUseLocalTimeZone
+                        />
+                    </View>
+                );
             case CONST.SEARCH.TABLE_COLUMNS.POSTED:
                 return (
                     <View
@@ -349,6 +366,7 @@ function TransactionItemRowWide({
                             canEdit={canEditCategory}
                             onSave={onEditCategory}
                             policyID={effectivePolicyID}
+                            ownerAccountID={categoryOwnerAccountID}
                         />
                     </View>
                 );
@@ -365,6 +383,7 @@ function TransactionItemRowWide({
                             onSave={onEditCategory}
                             policyID={effectivePolicyID}
                             policyCategories={policyCategories}
+                            ownerAccountID={categoryOwnerAccountID}
                         />
                     </View>
                 );
@@ -374,6 +393,8 @@ function TransactionItemRowWide({
                 return renderYesNoCell(column, !!transactionItem.billable);
             case CONST.SEARCH.TABLE_COLUMNS.HELD:
                 return renderYesNoCell(column, isOnHold(transactionItem));
+            case CONST.SEARCH.TABLE_COLUMNS.DECLINED:
+                return renderYesNoCell(column, !!transactionItem.declined);
             case CONST.SEARCH.TABLE_COLUMNS.ACTION:
                 return (
                     <View
@@ -395,6 +416,7 @@ function TransactionItemRowWide({
                                 chatReport={chatReport}
                                 shouldDisablePointerEvents={isDisabled || shouldDisableActionPointerEvents}
                                 shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
+                                snapshotTransactions={[transactionItem]}
                             />
                         )}
                     </View>
@@ -742,7 +764,8 @@ function TransactionItemRowWide({
                     styles.mw100,
                     style,
                 ]}
-                dataSet={dataSet}
+                // The resize line reads this marker to find the rows it spans.
+                dataSet={{...dataSet, ...TABLE_ROW_DATA_SET}}
                 testID="transaction-item-row"
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, fullHeightMainRowStyle]}>

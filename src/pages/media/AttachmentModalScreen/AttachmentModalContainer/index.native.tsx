@@ -10,7 +10,7 @@ import AttachmentModalContext from '@pages/media/AttachmentModalScreen/Attachmen
 import type {AttachmentModalScreenType} from '@pages/media/AttachmentModalScreen/types';
 
 import {SafeString} from 'expensify-common';
-import React, {memo, useCallback, useContext, useEffect} from 'react';
+import React, {useContext, useEffect} from 'react';
 
 import type AttachmentModalContainerProps from './types';
 
@@ -18,33 +18,30 @@ function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({con
     const attachmentsContext = useContext(AttachmentModalContext);
     const testID = typeof contentProps.source === 'string' ? contentProps.source : SafeString(contentProps.source);
 
-    const resetAttachmentModalAndClose = useCallback(() => {
+    const resetAttachmentModalAndClose = () => {
         attachmentsContext.setCurrentAttachment(undefined);
         onClose?.();
-    }, [attachmentsContext, onClose]);
+    };
 
     /**
      * Closes the modal.
-     * @param {boolean} [shouldCallDirectly] If true, directly calls `onModalClose`.
+     * @param options Modal close options, including whether to call `onModalClose` directly.
      * This is useful when you plan to continue navigating to another page after closing the modal, to avoid freezing the app due to navigating to another page first and dismissing the modal later.
      * If `shouldCallDirectly` is false or undefined, it calls `attachmentModalHandler.handleModalClose` to close the modal.
      * This ensures smooth modal closing behavior without causing delays in closing.
      */
-    const closeScreen = useCallback(
-        (options?: AttachmentModalOnCloseOptions) => {
-            const close = () => {
-                resetAttachmentModalAndClose();
-                Navigation.goBack();
-            };
+    const closeScreen = (options?: AttachmentModalOnCloseOptions) => {
+        const close = () => {
+            resetAttachmentModalAndClose();
+            Navigation.goBack();
+        };
 
-            if (options?.shouldCallDirectly) {
-                close();
-            } else {
-                attachmentModalHandler.handleModalClose(close);
-            }
-        },
-        [resetAttachmentModalAndClose],
-    );
+        if (options?.shouldCallDirectly) {
+            close();
+        } else {
+            attachmentModalHandler.handleModalClose(close);
+        }
+    };
 
     useEffect(() => {
         onShow?.();
@@ -70,4 +67,4 @@ function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({con
     );
 }
 
-export default memo(AttachmentModalContainer);
+export default AttachmentModalContainer;

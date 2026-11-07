@@ -14,6 +14,7 @@ import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -23,6 +24,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import useTransactionThreadReportID from '@hooks/useTransactionThreadReportID';
 
+import {shouldHideBillReport} from '@libs/BillUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
@@ -32,7 +34,7 @@ import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getIOUActionForTransactionID, getReportAction} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isMoneyRequestReportPendingDeletion, isValidReportIDFromPath} from '@libs/ReportUtils';
-import {cancelAllSendMessageSpans} from '@libs/telemetry/sendMessageSpans';
+import {cancelSendMessageSpansForReport} from '@libs/telemetry/sendMessageSpans';
 import {doesDeleteNavigateBackUrlIncludeDuplicatesReview, getParentReportActionDeletionStatus, hasLoadedReportActions, isThreadReportDeleted} from '@libs/TransactionNavigationUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -53,7 +55,7 @@ import {PortalHost} from '@gorhom/portal';
 import {useIsFocused} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 
 type SearchMoneyRequestPageProps =
     | PlatformStackScreenProps<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT>
@@ -72,6 +74,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const {isBetaEnabled} = usePermissions();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const {currentSearchResults: snapshot} = useSearchResultsContext();
 
@@ -137,11 +140,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const {transactions: allReportTransactions, violations: allReportViolations} = useTransactionsAndViolationsForReport(reportIDFromRoute);
     const {transactionThreadReportID, effectiveTransactionThreadReportID, reportActions} = useTransactionThreadReportID(reportIDFromRoute);
-    const reportTransactions = useMemo(() => getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true), [allReportTransactions, reportActions, isOffline]);
-    const visibleTransactions = useMemo(
-        () => reportTransactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
-        [reportTransactions, isOffline],
-    );
+    const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
+    const visibleTransactions = reportTransactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const oneTransactionID = reportTransactions.at(0)?.transactionID;
 
     const reportID = report?.reportID;
@@ -165,11 +165,13 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const hasCreatedLegacyThreadRef = useRef(false);
 
     // Get transaction from search snapshot if not available in main collections
-    const {snapshotTransaction, snapshotViolations} = useMemo(() => {
-        if (!snapshot?.data || Object.keys(allReportTransactions).length > 0) {
-            return {snapshotTransaction: undefined, snapshotViolations: undefined};
-        }
-
+    let derivedValue;
+    if (!snapshot?.data || Object.keys(allReportTransactions).length > 0) {
+        derivedValue = {
+            snapshotTransaction: undefined,
+            snapshotViolations: undefined,
+        };
+    } else {
         const snapshotData = snapshot.data as Record<string, unknown>;
         const transactionKey = Object.keys(snapshotData).find((key) => {
             if (!key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
@@ -179,16 +181,21 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             return typeof candidate === 'object' && candidate !== null && 'reportID' in candidate && candidate.reportID === reportIDFromRoute;
         });
         if (!transactionKey) {
-            return {snapshotTransaction: undefined, snapshotViolations: undefined};
+            derivedValue = {
+                snapshotTransaction: undefined,
+                snapshotViolations: undefined,
+            };
+        } else {
+            const transaction = snapshotData[transactionKey] as Transaction;
+            const violationKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`;
+            const violations = snapshotData[violationKey] as TransactionViolations | undefined;
+            derivedValue = {
+                snapshotTransaction: transaction,
+                snapshotViolations: violations,
+            };
         }
-
-        const transaction = snapshotData[transactionKey] as Transaction;
-
-        const violationKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`;
-        const violations = snapshotData[violationKey] as TransactionViolations | undefined;
-
-        return {snapshotTransaction: transaction, snapshotViolations: violations};
-    }, [snapshot?.data, allReportTransactions, reportIDFromRoute]);
+    }
+    const {snapshotTransaction, snapshotViolations} = derivedValue;
 
     // If there is more than one transaction, display the report in Super Wide RHP, otherwise it will be shown in Wide RHP
     const shouldShowSuperWideRHP = visibleTransactions.length > 1;
@@ -250,8 +257,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         hasCreatedLegacyThreadRef.current = false;
 
         return () => {
-            // Cancel any pending send-message spans to prevent orphaned spans when navigating away
-            cancelAllSendMessageSpans();
+            // Cancel this report's pending send-message spans to prevent orphaned spans when navigating away
+            cancelSendMessageSpansForReport(reportIDFromRoute);
         };
     }, [reportIDFromRoute]);
 
@@ -334,47 +341,26 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     ]);
 
     const shouldUseSnapshotTransaction = reportTransactions.length === 0 && !!snapshotTransaction;
-    const activeTransactionsCount = useMemo(() => {
-        if (shouldUseSnapshotTransaction) {
-            return snapshotTransaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? 0 : 1;
-        }
-        return reportTransactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
-    }, [reportTransactions, shouldUseSnapshotTransaction, snapshotTransaction?.pendingAction]);
+    let activeTransactionsCount;
+    if (shouldUseSnapshotTransaction) {
+        activeTransactionsCount = snapshotTransaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? 0 : 1;
+    } else {
+        activeTransactionsCount = reportTransactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
+    }
     const hasAnyTransactions = reportTransactions.length > 0 || shouldUseSnapshotTransaction;
-    const wereAllTransactionsDeleted = useMemo(() => hasAnyTransactions && activeTransactionsCount === 0, [hasAnyTransactions, activeTransactionsCount]);
+    const wereAllTransactionsDeleted = hasAnyTransactions && activeTransactionsCount === 0;
 
-    const shouldShowAccessErrorPage = useMemo((): boolean => {
-        if (isLoadingApp !== false) {
-            return false;
-        }
-
-        if (deleteTransactionNavigateBackUrl) {
-            return false;
-        }
-
-        if (!!reportID && !doesReportIDLookValid) {
-            return true;
-        }
-
-        if (isReportPendingDeletion || wereAllTransactionsDeleted || wasParentActionDeleted || isThreadReportDeletedForReview) {
-            return true;
-        }
-
-        return !reportID && hasLoadedReportActionsForAccessError && !hasAnyTransactions;
-
-        // isLoadingApp intentionally omitted to avoid re-computing after initial load completes.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [
-        reportID,
-        hasLoadedReportActionsForAccessError,
-        doesReportIDLookValid,
-        isReportPendingDeletion,
-        wereAllTransactionsDeleted,
-        hasAnyTransactions,
-        deleteTransactionNavigateBackUrl,
-        wasParentActionDeleted,
-        isThreadReportDeletedForReview,
-    ]);
+    const isBillHidden = shouldHideBillReport(report?.type, isBetaEnabled(CONST.BETAS.NEW_DOT_BILL_PAY));
+    const shouldShowAccessErrorPage: boolean =
+        isBillHidden ||
+        (!(isLoadingApp !== false) &&
+            !deleteTransactionNavigateBackUrl &&
+            ((!!reportID && !doesReportIDLookValid) ||
+                isReportPendingDeletion ||
+                wereAllTransactionsDeleted ||
+                wasParentActionDeleted ||
+                isThreadReportDeletedForReview ||
+                (!reportID && hasLoadedReportActionsForAccessError && !hasAnyTransactions)));
 
     useEffect(() => {
         if (!shouldShowAccessErrorPage) {
@@ -392,6 +378,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             wasParentActionDeleted,
             isThreadReportDeletedForReview,
             shouldUseSnapshotTransaction,
+            isBillHidden,
         });
     }, [
         shouldShowAccessErrorPage,
@@ -405,6 +392,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         wasParentActionDeleted,
         isThreadReportDeletedForReview,
         shouldUseSnapshotTransaction,
+        isBillHidden,
     ]);
 
     useClearReportActionDraftsOnReportChange(reportIDFromRoute);

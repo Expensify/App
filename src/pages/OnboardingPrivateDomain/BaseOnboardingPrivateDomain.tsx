@@ -4,6 +4,8 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
 
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
+import useBlockedBrowserBackHandler from '@hooks/useBlockedBrowserBackHandler';
 import useContinueJoinWorkspaceOnboarding from '@hooks/useContinueJoinWorkspaceOnboarding';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -15,7 +17,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useReturnToOriginReport from '@hooks/useReturnToOriginReport';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {createJoinWorkspaceOnboardingContent, updateOnboardingValuesAndNavigation} from '@libs/actions/Welcome';
+import {createJoinWorkspaceOnboardingContent, setOnboardingErrorMessage, updateOnboardingValuesAndNavigation} from '@libs/actions/Welcome';
 import Navigation from '@libs/Navigation/Navigation';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
@@ -31,7 +33,7 @@ import type {Route} from '@src/ROUTES';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import {CONST as COMMON_CONST, PUBLIC_DOMAINS_SET} from 'expensify-common';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {BaseOnboardingPrivateDomainProps} from './types';
@@ -95,14 +97,14 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         delegateAccountID,
     });
 
-    const sendValidateCode = useCallback(() => {
+    const sendValidateCode = () => {
         if (!email) {
             return;
         }
         resendValidateCode({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.VALIDATE_ACCOUNT}, email);
-    }, [email]);
+    };
 
-    const handleBackButtonPress = useCallback(() => {
+    const handleBackButtonPress = () => {
         const backTo = route.params?.backTo as Route | undefined;
         // When this screen was opened directly from the intent list (backTo is the purpose route), go straight
         // back there instead of running the work-email restore path, which would insert a work-email screen.
@@ -112,38 +114,51 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         }
 
         Navigation.goBack(backTo ?? ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute());
-    }, [route.params?.backTo, onboardingValues]);
+    };
 
-    const navigateToNextOnboardingStep = useCallback(
-        (backTo: string | undefined, options?: {forceReplace?: boolean}) => {
-            if (isVsb || isSmb) {
-                Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(backTo), options);
-                return;
-            }
-            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(backTo), options);
-        },
-        [isVsb, isSmb],
-    );
+    // Android's system back and a browser back that OnboardingGuard blocked run the header back logic, otherwise the press does nothing visible.
+    const goBackToPreviousStep = () => {
+        // The Concierge task flow shows a close button instead of back, so its press keeps the default behavior.
+        if (isConciergeTaskFlow) {
+            return false;
+        }
+        handleBackButtonPress();
+        return true;
+    };
+
+    useAndroidBackButtonHandler(goBackToPreviousStep);
+    useBlockedBrowserBackHandler(() => {
+        if (!goBackToPreviousStep()) {
+            return;
+        }
+        // The guard saved its back button message when it blocked the press, and the previous step would show it.
+        setOnboardingErrorMessage(null);
+    });
+
+    const navigateToNextOnboardingStep = (backTo: string | undefined, options?: {forceReplace?: boolean}) => {
+        if (isVsb || isSmb) {
+            Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(backTo), options);
+            return;
+        }
+        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(backTo), options);
+    };
 
     // Reaching this screen from the join-workspace intent means there is no further onboarding step to route
     // back into: skipping or finding no joinable workspaces should complete onboarding (collecting a name first
     // if needed), or simply close when this screen was reopened from a Concierge task after onboarding finished.
-    const continueAfterPrivateDomain = useCallback(
-        (backTo: string | undefined, options?: {forceReplace?: boolean}) => {
-            if (isJoiningCompanyWorkspace) {
-                if (isConciergeTaskFlow) {
-                    returnToOriginReport();
-                    return;
-                }
-                continueJoinWorkspaceOnboarding(options);
+    const continueAfterPrivateDomain = (backTo: string | undefined, options?: {forceReplace?: boolean}) => {
+        if (isJoiningCompanyWorkspace) {
+            if (isConciergeTaskFlow) {
+                returnToOriginReport();
                 return;
             }
-            navigateToNextOnboardingStep(backTo, options);
-        },
-        [continueJoinWorkspaceOnboarding, isJoiningCompanyWorkspace, isConciergeTaskFlow, navigateToNextOnboardingStep, returnToOriginReport],
-    );
+            continueJoinWorkspaceOnboarding(options);
+            return;
+        }
+        navigateToNextOnboardingStep(backTo, options);
+    };
 
-    const handleConciergeTaskExit = useCallback(() => {
+    const handleConciergeTaskExit = () => {
         if (!isConciergeTaskFlow) {
             return;
         }
@@ -160,15 +175,15 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
             return;
         }
         returnToOriginReport();
-    }, [conciergeChat, delegateAccountID, domain, email, isConciergeTaskFlow, returnToOriginReport, validateEmailTaskReport?.reportID]);
+    };
 
-    const handleSkipButtonPress = useCallback(() => {
+    const handleSkipButtonPress = () => {
         if (isConciergeTaskFlow) {
             handleConciergeTaskExit();
             return;
         }
         continueAfterPrivateDomain(route.params?.backTo);
-    }, [continueAfterPrivateDomain, handleConciergeTaskExit, isConciergeTaskFlow, route.params?.backTo]);
+    };
 
     // Only users whose current primary login is both validated and public-domain are blocked from this screen, since
     // the "people on YOUR domain" copy would otherwise reference gmail.com. The account flag can lag a primary-login

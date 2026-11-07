@@ -9,6 +9,7 @@ import {getMerchantFilterFormValues} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import type {MerchantMatchType, SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -38,7 +39,7 @@ type MerchantFilterContentProps = {
     buttonText?: string;
 
     /** The Sentry label for the confirmation button. */
-    sentryLabel?: string;
+    sentryLabel?: SentryLabel;
 
     /** Whether the input should receive focus automatically. */
     autoFocus?: boolean;

@@ -168,7 +168,7 @@ function getPersonalInfoStepValues(
     walletAdditionalDetails: OnyxEntry<WalletAdditionalDetailsRefactor>,
     privatePersonalDetails?: OnyxEntry<PrivatePersonalDetails>,
 ): PersonalInfoStepProps {
-    const base = getSubstepValues(PERSONAL_INFO_STEP_KEYS, walletAdditionalDetailsDraft, walletAdditionalDetails);
+    const base = getSubstepValues(walletAdditionalDetailsDraft, walletAdditionalDetails);
     const owner = getBankAccountOwnerDetails({walletAdditionalDetailsDraft, walletAdditionalDetails, privatePersonalDetails});
 
     return {

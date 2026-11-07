@@ -19,10 +19,8 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-
-import type {FeatureListItem} from './FeatureList';
 
 import CenteredModalLayout from './CenteredModalLayout';
 import FeatureTraining from './FeatureTraining';
@@ -39,23 +37,20 @@ function MigratedUserWelcomeModal() {
     const illustrations = useMemoizedLazyIllustrations(['ChatBubbles', 'ConciergeBot', 'PlanetWithMobileApp', 'MagnifyingGlassReceipt']);
     const isCurrentUserPolicyAdmin = useIsPaidPolicyAdmin();
 
-    const ExpensifyFeatures = useMemo<FeatureListItem[]>(
-        () => [
-            {
-                icon: illustrations.MagnifyingGlassReceipt,
-                translationKey: 'migratedUserWelcomeModal.features.search',
-            },
-            {
-                icon: illustrations.ConciergeBot,
-                translationKey: 'migratedUserWelcomeModal.features.concierge',
-            },
-            {
-                icon: illustrations.ChatBubbles,
-                translationKey: 'migratedUserWelcomeModal.features.chat',
-            },
-        ],
-        [illustrations.ChatBubbles, illustrations.ConciergeBot, illustrations.MagnifyingGlassReceipt],
-    );
+    const ExpensifyFeatures = [
+        {
+            icon: illustrations.MagnifyingGlassReceipt,
+            translationKey: 'migratedUserWelcomeModal.features.search',
+        },
+        {
+            icon: illustrations.ConciergeBot,
+            translationKey: 'migratedUserWelcomeModal.features.concierge',
+        },
+        {
+            icon: illustrations.ChatBubbles,
+            translationKey: 'migratedUserWelcomeModal.features.chat',
+        },
+    ] as const;
 
     const persistDismissal = () => {
         Log.hmmm('[MigratedUserWelcomeModal] dismissing product training');

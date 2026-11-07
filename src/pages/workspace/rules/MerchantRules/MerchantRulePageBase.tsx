@@ -23,6 +23,7 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePressLoading from '@hooks/usePressLoading';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useRulesPrefetch from '@hooks/useRulesPrefetch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -67,12 +68,11 @@ import type {PolicyTagLists} from '@src/types/onyx';
 import type {GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type IconAsset from '@src/types/utils/IconAsset';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {ValueOf} from 'type-fest';
 
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import useMerchantRuleRoute from './useMerchantRuleRoute';
@@ -177,6 +177,7 @@ function MerchantRulePageBase({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     // The page is on its way out, so the rule it was editing no longer being there is expected. A category rule is
     // keyed by its category, so moving it to another category makes the one this page opened with disappear.
@@ -194,7 +195,7 @@ function MerchantRulePageBase({
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [policyTagsFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const policyTags = useMemo(() => getTagLists(policyTagsFromOnyx) ?? getEmptyArray<ValueOf<PolicyTagLists>>(), [policyTagsFromOnyx]);
+    const policyTags = getTagLists(policyTagsFromOnyx) ?? getEmptyArray<ValueOf<PolicyTagLists>>();
     const [shouldShowError, setShouldShowError] = useState(false);
     const {showConfirmModal} = useConfirmModal();
     const [shouldUpdateMatchingTransactions, setShouldUpdateMatchingTransactions] = useState(false);
@@ -214,10 +215,9 @@ function MerchantRulePageBase({
 
     // This route is deep linkable, so it can be the first screen mounted. Nothing else on the way in fetches the
     // rules collection, which would leave the not-found guard below reading an empty collection for a valid rule.
-    const {areRulesLoading: isRulesFetchPending} = useRulesPrefetch();
+    const {areRulesLoading} = useRulesPrefetch();
 
-    const [rules, rulesResult] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const areRulesLoading = isLoadingOnyxValue(rulesResult) || isRulesFetchPending;
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     // Get the existing rule from the rules collection (for edit mode)
     const existingRule = ruleID ? rules?.[`${ONYXKEYS.COLLECTION.RULE}${ruleID}`] : undefined;
     const existingCategoryTaxID = editCategoryTaxRuleFor ? getCategoryTaxRuleTaxID(policy?.rules?.expenseRules, editCategoryTaxRuleFor) : undefined;
@@ -266,14 +266,14 @@ function MerchantRulePageBase({
     useEffect(() => () => clearDraftMerchantRule(), []);
 
     // Fetch categories and tags if they're not loaded (e.g. after cache clear)
-    const fetchPolicyData = useCallback(() => {
+    const fetchPolicyData = () => {
         if (policy?.areCategoriesEnabled && !policyCategories) {
             openPolicyCategoriesPage(policyID);
         }
         if (policy?.areTagsEnabled && !policyTagsFromOnyx) {
             openPolicyTagsPage(policyID);
         }
-    }, [policyID, policy?.areCategoriesEnabled, policy?.areTagsEnabled, policyCategories, policyTagsFromOnyx]);
+    };
 
     useNetwork({onReconnect: fetchPolicyData});
 
@@ -428,10 +428,10 @@ function MerchantRulePageBase({
             setIsClosing(true);
             // A move clears the old category and sets the new one as a pair, sharing one rollback.
             if (editCategoryTaxRuleFor && movedToCategory) {
-                movePolicyCategoryTax(policy, editCategoryTaxRuleFor, movedToCategory, categoryTaxID);
+                movePolicyCategoryTax(policy, editCategoryTaxRuleFor, movedToCategory, categoryTaxID, getReviewWorkspaceSettingsTaskCompletion());
             } else {
                 // The command is per-category, so a bulk selection saves one rule for each category picked.
-                setPolicyCategoryTaxes(policy, categoriesToMatch, categoryTaxID);
+                setPolicyCategoryTaxes(policy, categoriesToMatch, categoryTaxID, getReviewWorkspaceSettingsTaskCompletion());
             }
             if (isEditingCategoryTaxRule || categorySettingsBackPath) {
                 Navigation.goBack(categorySettingsBackPath);
@@ -498,7 +498,7 @@ function MerchantRulePageBase({
         }
         setIsClosing(true);
         if (editCategoryTaxRuleFor) {
-            deletePolicyCategoryTax(policy, editCategoryTaxRuleFor);
+            deletePolicyCategoryTax(policy, editCategoryTaxRuleFor, getReviewWorkspaceSettingsTaskCompletion());
         } else if (ruleID) {
             deleteRule(ruleID, existingRule);
         }
@@ -807,6 +807,7 @@ function MerchantRulePageBase({
                         </Text>
                         <Switch
                             accessibilityLabel={translate('workspace.rules.merchantRules.applyToExistingUnsubmittedExpenses')}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_APPLY_TO_EXISTING_SWITCH}
                             isOn={!isCategoryRule && shouldUpdateMatchingTransactions}
                             onToggle={setShouldUpdateMatchingTransactions}
                             disabled={isCategoryRule}

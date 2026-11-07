@@ -17,11 +17,13 @@ function OptionRowLHN({
     hasDraftComment,
     testID,
     shouldShowMarkAsDoneCopy,
+    shouldUseFlatNavigationBar = false,
 }: OptionRowLHNProps) {
     const styles = useThemeStyles();
-    const {setHovered, sidebarInnerRowStyle, contentContainerStyles, avatarBackgroundColor} = useOptionRowChrome({
+    const {setHovered, sidebarInnerRowStyle, contentContainerStyles, avatarBackgroundColor, selectedStyle, hoveredStyle} = useOptionRowChrome({
         isOptionFocused,
         viewMode,
+        shouldUseFlatNavigationBar,
     });
 
     const brickRoadIndicator = optionItem.brickRoadIndicator;
@@ -35,6 +37,8 @@ function OptionRowLHN({
                 <OptionRow.Pressable
                     optionItem={optionItem}
                     isOptionFocused={isOptionFocused}
+                    selectedStyle={selectedStyle}
+                    hoveredStyle={hoveredStyle}
                     onSelectRow={onSelectRow}
                     onLayout={onLayout}
                     onHoverIn={() => setHovered(true)}

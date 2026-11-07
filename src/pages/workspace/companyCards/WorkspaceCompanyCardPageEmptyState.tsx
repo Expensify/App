@@ -1,6 +1,5 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FeatureList from '@components/FeatureList';
-import type {FeatureListItem} from '@components/FeatureList';
 import Text from '@components/Text';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -59,29 +58,6 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer, c
         'CompanyCardsEmptyStateGeneric',
     ]);
 
-    const features = [
-        {
-            icon: illustrations.CreditCardsNew,
-            translationKey: 'workspace.moreFeatures.companyCards.feed.features.support' as const,
-        },
-
-        {
-            icon: illustrations.HandCard,
-            translationKey: 'workspace.moreFeatures.companyCards.feed.features.assignCards' as const,
-        },
-
-        {
-            icon: illustrations.MagnifyingGlassMoney,
-            translationKey: 'workspace.moreFeatures.companyCards.feed.features.automaticImport' as const,
-        },
-    ];
-    const companyCardFeatures = features
-        .filter((feature) => feature.icon !== null)
-        .map((feature) => ({
-            icon: feature.icon,
-            translationKey: feature.translationKey,
-        }));
-
     const getCompanyCardIllustration = () => {
         const currency = policy?.outputCurrency ?? '';
 
@@ -136,7 +112,6 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer, c
                 />
             )}
             <FeatureList
-                menuItems={companyCardFeatures as FeatureListItem[]}
                 title={translate('workspace.moreFeatures.companyCards.feed.title')}
                 subtitle={translate('workspace.moreFeatures.companyCards.feed.subtitle')}
                 ctaText={translate('workspace.companyCards.addCards')}
@@ -150,7 +125,17 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer, c
                 illustrationContainerStyle={styles.getEmptyStateCompanyCardsIllustrationContainer(shouldUseNarrowLayout)}
                 titleStyles={styles.textHeadlineH1}
                 isButtonDisabled={workspaceAccountID === CONST.DEFAULT_NUMBER_ID}
-            />
+            >
+                {illustrations.CreditCardsNew !== null && (
+                    <FeatureList.Item icon={illustrations.CreditCardsNew}>{translate('workspace.moreFeatures.companyCards.feed.features.support')}</FeatureList.Item>
+                )}
+                {illustrations.HandCard !== null && (
+                    <FeatureList.Item icon={illustrations.HandCard}>{translate('workspace.moreFeatures.companyCards.feed.features.assignCards')}</FeatureList.Item>
+                )}
+                {illustrations.MagnifyingGlassMoney !== null && (
+                    <FeatureList.Item icon={illustrations.MagnifyingGlassMoney}>{translate('workspace.moreFeatures.companyCards.feed.features.automaticImport')}</FeatureList.Item>
+                )}
+            </FeatureList>
             {!!shouldShowGBDisclaimer && <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.companyCards.ukRegulation')}</Text>}
         </View>
     );

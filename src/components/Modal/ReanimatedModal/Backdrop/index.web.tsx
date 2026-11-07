@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 import type {ViewStyle} from 'react-native';
 import type {CSSStyle} from 'react-native-reanimated';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Animated, {Keyframe, ReduceMotion} from 'react-native-reanimated';
 
@@ -28,13 +28,13 @@ function Backdrop({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const Exiting = useMemo(() => {
-        if (!backdropOpacity) {
-            return;
-        }
+    let Exiting;
+    if (!backdropOpacity) {
+        Exiting = undefined;
+    } else {
         const FadeOut = new Keyframe(getModalOutAnimation('fadeOut', backdropOpacity));
-        return FadeOut.duration(animationOutTiming).reduceMotion(ReduceMotion.Never);
-    }, [animationOutTiming, backdropOpacity]);
+        Exiting = FadeOut.duration(animationOutTiming).reduceMotion(ReduceMotion.Never);
+    }
 
     // A CSS animation instead of an entering keyframe: on web, Reanimated hides an entering element until its keyframe starts and can
     // delete the keyframe before the next animation frame (for example in a background tab), which leaves the backdrop hidden for good.
