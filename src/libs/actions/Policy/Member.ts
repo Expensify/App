@@ -4,9 +4,11 @@ import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
 import * as API from '@libs/API';
 import type {
     AddMembersToWorkspaceParams,
+    CheckBulkTransferPolicyBillingOwnerParams,
     DeleteMembersFromWorkspaceParams,
     OpenPolicyMemberProfilePageParams,
     OpenWorkspaceMembersPageParams,
+    QueueBulkTransferPolicyBillingOwnerParams,
     RequestWorkspaceOwnerChangeParams,
     UpdatePolicyMemberDisplayNameParams,
     UpdateWorkspaceMembersRoleParams,
@@ -824,6 +826,71 @@ function requestWorkspaceOwnerChange(policy: OnyxEntry<Policy>, currentUserAccou
     API.write(WRITE_COMMANDS.REQUEST_WORKSPACE_OWNER_CHANGE, params, {optimisticData, successData, failureData});
 }
 
+/**
+ * Returns the listed workspaces the current user can take over billing for together, or none if the check fails.
+ */
+async function checkBulkTransferPolicyBillingOwner(policyIDs: string[]): Promise<string[]> {
+    const params: CheckBulkTransferPolicyBillingOwnerParams = {policyIDList: policyIDs.join(',')};
+
+    try {
+        // The transfer flow needs the answer before it can offer to take over every workspace, and the answer isn't stored in Onyx.
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CHECK_BULK_TRANSFER_POLICY_BILLING_OWNER, params);
+        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+            return [];
+        }
+        return response.policyIDs ?? [];
+    } catch (error) {
+        Log.hmmm('[Policy] Failed to check the bulk billing transfer', {error});
+        return [];
+    }
+}
+
+/**
+ * Takes over billing for every listed workspace from the transfer flow of policyID.
+ */
+function queueBulkTransferPolicyBillingOwner(policyID: string, policyIDs: string[]) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                errorFields: null,
+                isLoading: true,
+                isChangeOwnerSuccessful: false,
+                isChangeOwnerFailed: false,
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                isLoading: false,
+                isChangeOwnerSuccessful: true,
+                changeOwnerPolicyCount: policyIDs.length,
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                isLoading: false,
+                isChangeOwnerFailed: true,
+            },
+        },
+    ];
+
+    const params: QueueBulkTransferPolicyBillingOwnerParams = {policyIDList: policyIDs.join(',')};
+
+    API.write(WRITE_COMMANDS.QUEUE_BULK_TRANSFER_POLICY_BILLING_OWNER, params, {optimisticData, successData, failureData});
+}
+
 function clearWorkspaceOwnerChangeFlow(policyID: string | undefined) {
     if (!policyID) {
         return;
@@ -835,6 +902,7 @@ function clearWorkspaceOwnerChangeFlow(policyID: string | undefined) {
         isLoading: false,
         isChangeOwnerSuccessful: false,
         isChangeOwnerFailed: false,
+        changeOwnerPolicyCount: null,
     });
 }
 
@@ -1645,6 +1713,8 @@ export {
     buildUpdateWorkspaceMembersRoleOnyxData,
     updateWorkspaceMembersRole,
     requestWorkspaceOwnerChange,
+    checkBulkTransferPolicyBillingOwner,
+    queueBulkTransferPolicyBillingOwner,
     clearWorkspaceOwnerChangeFlow,
     buildAddMembersToWorkspaceOnyxData,
     addMembersToWorkspace,

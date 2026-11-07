@@ -8189,6 +8189,24 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             successDescription: '您现在是此工作区的所有者。',
             errorTitle: '哎呀！先别急……',
             errorDescription: `<muted-text><centered-text>转移此工作区的所有权时出现问题。请重试，或<concierge-link>联系 Concierge</concierge-link>获取帮助。</centered-text></muted-text>`,
+            takeOverAllWorkspacesTitle: '接管所有工作区',
+            takeOverAllWorkspacesText: ({email, workspaceName}: {email: string; workspaceName: string}) => ({
+                one: `${email} 拥有 1 个你是管理员的工作区。
+
+你想接管该工作区的账单吗？`,
+                other: (count: number) => `${email} 拥有 ${count} 个你是管理员的工作区，其中包括 ${workspaceName}。
+
+你想接管所有这些工作区的账单，还是只接管这个工作区的账单？`,
+            }),
+            takeOverAllWorkspacesButtonText: () => ({
+                one: '接管 1 个工作区',
+                other: (count: number) => `接管全部 ${count} 个工作区`,
+            }),
+            takeOverThisWorkspaceButtonText: '仅此工作区',
+            successAllWorkspacesDescription: () => ({
+                one: '几分钟后，您将成为此工作区的所有者。',
+                other: (count: number) => `几分钟后，您将成为全部 ${count} 个工作区的所有者。`,
+            }),
         },
         exportAgainModal: {
             title: '小心！',

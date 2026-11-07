@@ -8508,6 +8508,24 @@ Se vuoi assumere la fatturazione per l'intero abbonamento, chiedi loro di aggiun
             successDescription: 'Ora sei il proprietario di questo spazio di lavoro.',
             errorTitle: 'Ops! Non così in fretta...',
             errorDescription: `<muted-text><centered-text>Si è verificato un problema durante il trasferimento della proprietà di questo spazio di lavoro. Riprova oppure <concierge-link>contatta Concierge</concierge-link> per assistenza.</centered-text></muted-text>`,
+            takeOverAllWorkspacesTitle: 'Prendi il controllo di tutti gli spazi di lavoro',
+            takeOverAllWorkspacesText: ({email, workspaceName}: {email: string; workspaceName: string}) => ({
+                one: `${email} possiede 1 workspace di cui sei amministratore.
+
+Vuoi assumerti la gestione della fatturazione?`,
+                other: (count: number) => `${email} possiede ${count} workspace di cui sei amministratore, incluso ${workspaceName}.
+
+Vuoi prendere in carico la fatturazione per tutti o solo per questo?`,
+            }),
+            takeOverAllWorkspacesButtonText: () => ({
+                one: 'Prendi il controllo di 1 spazio di lavoro',
+                other: (count: number) => `Prendi il controllo di tutti i ${count} spazi di lavoro`,
+            }),
+            takeOverThisWorkspaceButtonText: 'Solo questo spazio di lavoro',
+            successAllWorkspacesDescription: () => ({
+                one: 'Tra pochi minuti sarai il proprietario di questo spazio di lavoro.',
+                other: (count: number) => `Sarai il proprietario di tutti i ${count} spazi di lavoro tra pochi minuti.`,
+            }),
         },
         exportAgainModal: {
             title: 'Attenzione!',

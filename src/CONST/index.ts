@@ -11358,6 +11358,10 @@ const CONST = {
                 LIST_ROW: 'WorkspaceMembers-ListRow',
                 CATEGORY_VISIBILITY: 'WorkspaceMemberDetails-CategoryVisibility',
             },
+            OWNER_CHANGE: {
+                TAKE_OVER_ALL_WORKSPACES: 'WorkspaceOwnerChange-TakeOverAllWorkspaces',
+                TAKE_OVER_THIS_WORKSPACE: 'WorkspaceOwnerChange-TakeOverThisWorkspace',
+            },
             CATEGORIES: {
                 ROW: 'WorkspaceCategories-Row',
                 ADD_BUTTON: 'WorkspaceCategories-AddButton',

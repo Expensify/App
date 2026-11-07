@@ -8505,6 +8505,24 @@ Se você quiser assumir a cobrança de toda a assinatura deles, peça para que a
             successDescription: 'Agora você é o proprietário deste workspace.',
             errorTitle: 'Opa! Não tão rápido...',
             errorDescription: `<muted-text><centered-text>Houve um problema ao transferir a propriedade deste workspace. Tente novamente ou <concierge-link>entre em contato com o Concierge</concierge-link> para obter ajuda.</centered-text></muted-text>`,
+            takeOverAllWorkspacesTitle: 'Assumir todos os espaços de trabalho',
+            takeOverAllWorkspacesText: ({email, workspaceName}: {email: string; workspaceName: string}) => ({
+                one: `${email} é proprietário de 1 espaço de trabalho em que você é administrador.
+
+Você quer assumir a cobrança dele?`,
+                other: (count: number) => `${email} é proprietário de ${count} espaços de trabalho dos quais você é administrador, incluindo ${workspaceName}.
+
+Você quer assumir o faturamento de todos eles ou só deste?`,
+            }),
+            takeOverAllWorkspacesButtonText: () => ({
+                one: 'Assumir 1 espaço de trabalho',
+                other: (count: number) => `Assumir todos os ${count} espaços de trabalho`,
+            }),
+            takeOverThisWorkspaceButtonText: 'Apenas este espaço de trabalho',
+            successAllWorkspacesDescription: () => ({
+                one: 'Você será o proprietário deste espaço de trabalho em alguns minutos.',
+                other: (count: number) => `Você será o proprietário de todos os ${count} espaços de trabalho em alguns minutos.`,
+            }),
         },
         exportAgainModal: {
             title: 'Cuidado!',

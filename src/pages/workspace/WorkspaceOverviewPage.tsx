@@ -42,7 +42,7 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {close} from '@libs/actions/Modal';
 import {clearOfficeLocationErrors, updateOfficeLocation} from '@libs/actions/Policy/DistanceRate';
-import {clearInviteDraft, clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
+import {clearInviteDraft, clearWorkspaceOwnerChangeFlow} from '@libs/actions/Policy/Member';
 import {
     clearAvatarErrors,
     clearPolicyErrorField,
@@ -357,7 +357,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     const startChangeOwnershipFlow = () => {
         clearWorkspaceOwnerChangeFlow(policyID);
-        requestWorkspaceOwnerChange(policy, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
         Navigation.navigate(
             buildDynamicRoute(
                 DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, currentUserPersonalDetails.accountID, 'amountOwed' as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>),

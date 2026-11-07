@@ -8565,6 +8565,24 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             successDescription: 'Ahora eres el propietario de este espacio de trabajo.',
             errorTitle: '¡Ups! No tan rapido...',
             errorDescription: `<muted-text><centered-text>Hubo un problema al transferir la propiedad de este espacio de trabajo. Inténtalo de nuevo, o <concierge-link>contacta con Concierge</concierge-link> por ayuda.</centered-text></muted-text>`,
+            takeOverAllWorkspacesTitle: 'Hacerte cargo de todos los espacios de trabajo',
+            takeOverAllWorkspacesText: ({email, workspaceName}: {email: string; workspaceName: string}) => ({
+                one: `${email} es propietario de 1 espacio de trabajo en el que eres administrador.
+
+¿Quieres hacerte cargo de la facturación de ese espacio de trabajo?`,
+                other: (count: number) => `${email} es propietario de ${count} espacios de trabajo en los que eres administrador, incluido ${workspaceName}.
+
+¿Quieres hacerte cargo de la facturación de todos, o solo de este?`,
+            }),
+            takeOverAllWorkspacesButtonText: () => ({
+                one: 'Hacerte cargo de 1 espacio de trabajo',
+                other: (count: number) => `Hacerte cargo de los ${count} espacios de trabajo`,
+            }),
+            takeOverThisWorkspaceButtonText: 'Solo este espacio de trabajo',
+            successAllWorkspacesDescription: () => ({
+                one: 'Serás el propietario de este espacio de trabajo en unos minutos.',
+                other: (count: number) => `Serás el propietario de los ${count} espacios de trabajo en unos minutos.`,
+            }),
         },
         exportAgainModal: {
             title: '¡Cuidado!',
