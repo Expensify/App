@@ -92,7 +92,7 @@ describe('isMerchantRuleSuggestionLive', () => {
     it('is not live when the only confirmed field was never edited', () => {
         // Given a verdict for a field the user did not edit on this expense, which is what a response for an expense
         // the call site declined to record leaves behind, and what a verdict outliving its session reads like
-        const suggestion = buildSuggestion({editedFields: {[TRANSACTION_ID]: {description: true}}});
+        const suggestion = buildSuggestion({editedFields: {[TRANSACTION_ID]: {[CONST.MERCHANT_RULE_SUGGESTION_FIELDS.DESCRIPTION]: true}}});
 
         // When the offer is checked
         // Then it does not stand, since there is no field the rule could be built from
@@ -142,7 +142,7 @@ describe('isMerchantRuleSuggestionLive', () => {
 describe('getOfferableMerchantRuleSuggestionFields', () => {
     it('offers only the fields the server confirmed', () => {
         // Given an expense whose category repeats often enough to earn a rule, edited alongside a one-off description
-        const suggestion = buildSuggestion({editedFields: {[TRANSACTION_ID]: {category: true, description: true}}});
+        const suggestion = buildSuggestion({editedFields: {[TRANSACTION_ID]: {category: true, [CONST.MERCHANT_RULE_SUGGESTION_FIELDS.DESCRIPTION]: true}}});
 
         // When the fields the rule may carry are worked out
         // Then the one-off description is left out, so the rule does not impose it on every future expense
