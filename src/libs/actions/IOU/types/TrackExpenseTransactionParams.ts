@@ -1,6 +1,7 @@
 import type CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
+import type {Unit} from '@src/types/onyx/Policy';
 import type {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
 
 import type {ValueOf} from 'type-fest';
@@ -41,6 +42,7 @@ type TrackExpenseTransactionParams = {
     isLinkedTrackedExpenseReportArchived?: boolean;
     odometerStart?: number;
     odometerEnd?: number;
+    odometerUnit?: Unit;
     isFromGlobalCreate?: boolean;
     gpsCoordinates?: string;
     distanceRequestType?: string;

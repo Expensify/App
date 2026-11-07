@@ -7,6 +7,7 @@ import CONST from '@src/CONST';
 import type {OdometerImageType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OdometerDraft, Transaction} from '@src/types/onyx';
+import type {Unit} from '@src/types/onyx/Policy';
 import type {Comment} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 
@@ -24,11 +25,16 @@ type SaveOdometerDraftParams = {
     endImage?: FileObject | string | null;
 };
 
-function setMoneyRequestOdometerReading(transactionID: string, startReading: number | null, endReading: number | null, isDraft: boolean) {
+/**
+ * Set the odometer readings for a transaction
+ * @param odometerUnit - The distance unit the readings were entered in. Omit it when clearing the readings.
+ */
+function setMoneyRequestOdometerReading(transactionID: string, startReading: number | null, endReading: number | null, isDraft: boolean, odometerUnit: Unit | null = null) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             odometerStart: startReading,
             odometerEnd: endReading,
+            odometerUnit,
         },
     });
 }
