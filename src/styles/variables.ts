@@ -11,6 +11,12 @@ function getValueUsingPixelRatio(defaultValue: number, maxValue: number): number
     return PixelRatio.getFontScale() * defaultValue > maxValue ? maxValue : defaultValue * PixelRatio.getFontScale();
 }
 
+/** Rendered width of the Expensify wordmark in the flat navigation bar's header. */
+const flatNavigationBarLogoWidth = 92;
+
+/** expensify-wordmark.svg has a 78x19 viewBox, so deriving the height keeps the wordmark's proportions. */
+const flatNavigationBarLogoHeight = (flatNavigationBarLogoWidth * 19) / 78;
+
 const avatarSizes = {
     avatarSizeXxxxSmall: 12,
     avatarSizeXxxSmall: 16,
@@ -32,6 +38,8 @@ const avatarSizes = {
 export default {
     bottomTabHeight: 72,
     floatingTabBarHeight: 60,
+    /** A phone in landscape has little height to spare, so the bar lays each tab's label beside its icon and is shorter. */
+    floatingTabBarLandscapeHeight: 44,
     floatingTabBarHorizontalInset: 16,
     // How far the selected pill reaches past its tab on each side, whatever the label's length.
     floatingTabBarSelectedOverhang: 4,
@@ -167,6 +175,7 @@ export default {
     conciergeAskColumnMaxWidth: 720,
     centeredContentMaxWidth: 1200,
     insightsEmptyStateIllustrationSize: 136,
+    insightsAICardTextWidth: 250,
     minScanTooltipWidth: 320,
     chartTooltipMinWidth: 200,
     uploadViewMargin: 20,
@@ -181,6 +190,16 @@ export default {
     searchSidebarExpandedWidth: 260,
     searchSidebarCollapsedWidth: 76,
     navigationTabBarSize: 72,
+    flatNavigationBarWidth: 232,
+    flatNavigationBarItemHeight: 40,
+    flatNavigationBarAccountItemHeight: 56,
+    // Horizontal inset every row's background sits at, inside the bar's own width.
+    flatNavigationBarRowInset: 8,
+    // Space between a row's background edge and its icon. The header and dividers line up with the icon, at the inset plus this.
+    flatNavigationBarRowPadding: 12,
+    flatNavigationBarHeaderHeight: 72,
+    flatNavigationBarLogoWidth,
+    flatNavigationBarLogoHeight,
     popoverMargin: 18,
     pdfPageMaxWidth: 992,
     tooltipZIndex: 10050,
@@ -226,6 +245,7 @@ export default {
     // otherwise Android clamps the descent and clips descenders and underlines at small device font scales.
     lineHeightXSmall: Math.max(getValueUsingPixelRatio(11, 17), 11),
     lineHeightFinePrint: 12,
+    lineHeightChartLabel: 14,
     lineHeightSmall: getValueUsingPixelRatio(14, 16),
     lineHeightNormal: getValueUsingPixelRatio(16, 21),
     lineHeightLarge: getValueUsingPixelRatio(18, 24),
@@ -498,6 +518,12 @@ export default {
     searchAutocompleteInputSkeletonHeight: 8,
     searchAutocompleteInputSkeletonWidth: 145,
 
+    reportHistoryLabelGap: 12,
+    reportHistoryConnectorHeight: 12,
+    reportHistoryConnectorMarginVertical: 4,
+    reportHistorySkeletonLabelHeight: 8,
+    reportHistorySkeletonLabelWidth: 160,
+
     errorPageIconWidth: 116,
     errorPageIconHeight: 168,
 
@@ -610,7 +636,6 @@ export default {
     searchTableColumnGap: 12,
     // The margin and padding each row sits inside on both sides, from `mh5` on its wrapper and `ph3` on the row.
     searchTableRowChromeWidth: (20 + 12) * 2,
-    searchTableRowCheckboxWidth: 24,
     // What the status badge spends around its label, from `condensedBadge`'s horizontal padding and `defaultBadge`'s border.
     statusBadgeChromeWidth: 6 * 2 + 1 * 2,
     // Padding on every side of an editable cell. The edit button sits at this same inset.

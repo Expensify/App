@@ -3,6 +3,7 @@ import Button from '@components/Button';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 
@@ -14,7 +15,7 @@ type HelpButtonProps = {
     onPress?: () => void;
 
     /** Sentry label for the help button */
-    sentryLabel?: string;
+    sentryLabel?: SentryLabel;
 };
 
 function HelpButton({children, onPress, sentryLabel}: HelpButtonProps) {

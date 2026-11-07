@@ -1,11 +1,8 @@
-import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
-import Modal from '@components/Modal';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useScrollToFocusedInput from '@components/SelectionList/hooks/useScrollToFocusedInput';
 
-import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardState from '@hooks/useKeyboardState';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMenuModal from '@hooks/useMobileSelectionMenuModal';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -14,9 +11,7 @@ import useVerticalScrollbarWidth from '@hooks/useVerticalScrollbarWidth';
 
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {canUseCssPositionSticky} from '@libs/DeviceCapabilities';
-import getPlatform from '@libs/getPlatform';
 import {canMeasureText} from '@libs/measureTextWidth';
-import {acquireBackgroundInputFocusSuppression} from '@libs/ModalFocusManager';
 
 import CONST from '@src/CONST';
 import type {StoredTableColumnWidths} from '@src/types/onyx/TableColumnWidths';
@@ -25,8 +20,7 @@ import type {FlashListRef} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 
-import React, {useEffect, useImperativeHandle, useLayoutEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import React, {useImperativeHandle, useRef, useState} from 'react';
 
 import type {TableListMetadata} from './buildTableListData';
 import type {TableContextValue} from './TableContext';
@@ -34,6 +28,7 @@ import type {TableHeaderProps} from './TableHeader';
 import type {TableData, TableHandle, TableMethods, TableProps, TableRow} from './types';
 
 import {getDataVisibleIndices, getListIndex, getTableListMetadata, rendersColumnHeader} from './buildTableListData';
+import ColumnResizeContext from './columnResize/ColumnResizeContext';
 import getMeasureWidthRef from './columnResize/getMeasureWidthRef';
 import useColumnResize from './columnResize/useColumnResize';
 import useStoredColumnWidths from './columnResize/useStoredColumnWidths';
@@ -45,7 +40,7 @@ import useSorting from './middlewares/sorting';
 import {shouldUseTableSemantics} from './tableAccessibility';
 import {doesBodyRenderWhenEmpty} from './TableBody';
 import TableBulkActionBar from './TableBulkActionBar';
-import TableContext from './TableContext';
+import TableContext, {TableActionsContext} from './TableContext';
 import TableEmptyState from './TableEmptyStates/TableEmptyState';
 import TableNoResultsState from './TableEmptyStates/TableNoResultsState';
 import TableListHeader from './TableListHeader';
@@ -151,6 +146,21 @@ type TableContentProps<DataType extends TableData, ColumnKey extends string, Fil
     storedTableColumnWidths?: StoredTableColumnWidths;
 };
 
+function useTableListMetadata<DataType extends TableData>({
+    listHeaderElement,
+    listHeaderComponent,
+    hasColumnHeaderElement,
+    hasRows,
+    isColumnHeaderHiddenInNarrowLayout,
+    canStickColumnHeaderInScroller,
+}: Parameters<typeof getTableListMetadata<DataType>>[0]): TableListMetadata {
+    // TableContent passes its rest props into the context value, which stops React Compiler from caching this there.
+    // This hook calls no other hooks, so it opts into compilation explicitly.
+    'use memo';
+
+    return getTableListMetadata({listHeaderElement, listHeaderComponent, hasColumnHeaderElement, hasRows, isColumnHeaderHiddenInNarrowLayout, canStickColumnHeaderInScroller});
+}
+
 function TableContent<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string>({
     ref,
     title,
@@ -178,7 +188,7 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
     onSortingChange,
     ...listProps
 }: TableContentProps<DataType, ColumnKey, FilterKey>) {
-    const {translate} = useLocalize();
+    const {showMobileSelectionMenuModal} = useMobileSelectionMenuModal();
     const isGlobalMobileSelectionEnabled = useMobileSelectionMode();
 
     // A table whose only purpose is picking rows is always in selection mode, so it shows its checkboxes from the
@@ -198,10 +208,8 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
 
         turnOffMobileSelectionMode();
     };
-    const icons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, addOfflineIndicatorBottomSafeAreaPadding: false});
 
     if (!columns || columns.length === 0) {
         throw new Error('Table columns must be provided');
@@ -233,11 +241,7 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
     });
     const sortedData = sortMiddleware(searchedData);
 
-    const {
-        methods: selectionMethods,
-        mobileSelectionModalRowKey,
-        middleware: selectionMiddleware,
-    } = useSelection<DataType>({
+    const {methods: selectionMethods, middleware: selectionMiddleware} = useSelection<DataType>({
         data: sortedData,
         originalSelectableCount,
         currentFilters,
@@ -256,10 +260,6 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
     const processedData = highlightMiddleware(selectionData);
 
     const listRef = useRef<FlashListRef<DataType>>(null);
-    const releaseBackgroundInputFocusSuppressionRef = useRef<(() => void) | null>(null);
-    const mobileSelectionModalRowKeyRef = useRef(mobileSelectionModalRowKey);
-    const [shouldSubmitMobileSelection, setShouldSubmitMobileSelection] = useState(false);
-    const [shouldSkipMobileSelectionFocusRestore, setShouldSkipMobileSelectionFocusRestore] = useState(false);
     // Keeps the table search input visible above the keyboard when it is focused inside the
     // scrolling list (native only; the web variant of the hook is a no-op).
     const {isKeyboardShown} = useKeyboardState();
@@ -367,7 +367,7 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
     const hasBulkActionBarChild = childrenArray.some((child) => React.isValidElement(child) && child.type === TableBulkActionBar);
     const isBulkActionBarVisible = hasBulkActionBarChild && !shouldUseNarrowLayout && selectedKeys.length > 0;
 
-    const tableListMetadata = getTableListMetadata({
+    const tableListMetadata = useTableListMetadata({
         listHeaderElement,
         listHeaderComponent: listProps.ListHeaderComponent,
         hasColumnHeaderElement,
@@ -386,43 +386,20 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
     // In that case the data exists but nothing is shown, so we surface the empty state instead of a blank body.
     const isDefaultViewEmpty = processedData.length === 0 && originalDataLength > 0 && !hasActiveSearchString && !hasActiveFilters;
 
-    const handleMobileSelectionPress = () => {
-        if (!mobileSelectionModalRowKey) {
-            return;
-        }
+    const showSelectionMenu = (rowKey: string) => {
+        showMobileSelectionMenuModal({
+            sentryLabel: CONST.SENTRY_LABEL.TABLE.SELECTION_MODE_MENU_ITEM,
+            testID: CONST.SELECTION_LIST_WITH_MODAL_TEST_ID,
+            shouldSkipFocusRestoreOnSelect: true,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
 
-        const shouldSuppressFocusRestore = getPlatform() === CONST.PLATFORM.IOS;
-        if (shouldSuppressFocusRestore && !releaseBackgroundInputFocusSuppressionRef.current) {
-            releaseBackgroundInputFocusSuppressionRef.current = acquireBackgroundInputFocusSuppression();
-        }
-        setShouldSkipMobileSelectionFocusRestore(shouldSuppressFocusRestore);
-        setShouldSubmitMobileSelection(true);
+            setMobileSelectionModeEnabled(true);
+            selectionMethods.handleSingleRowSelection(rowKey);
+        });
     };
-
-    useLayoutEffect(() => {
-        mobileSelectionModalRowKeyRef.current = mobileSelectionModalRowKey;
-    }, [mobileSelectionModalRowKey]);
-
-    useLayoutEffect(() => {
-        if (!shouldSubmitMobileSelection || !mobileSelectionModalRowKey) {
-            return;
-        }
-
-        setMobileSelectionModeEnabled(true);
-        selectionMethods.handleSingleRowSelection(mobileSelectionModalRowKey);
-        selectionMethods.setMobileSelectionModalRowKey(null);
-        // This should only run when the user confirms the selection, so setMobileSelectionModeEnabled is left out of
-        // the dependencies below. It is redefined on every render, which would otherwise run this again straight away.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [mobileSelectionModalRowKey, selectionMethods, shouldSkipMobileSelectionFocusRestore, shouldSubmitMobileSelection]);
-
-    useEffect(
-        () => () => {
-            releaseBackgroundInputFocusSuppressionRef.current?.();
-            releaseBackgroundInputFocusSuppressionRef.current = null;
-        },
-        [],
-    );
 
     // eslint-disable-next-line react/jsx-no-constructed-context-values
     const contextValue: TableContextValue<DataType, ColumnKey, FilterKey> = {
@@ -443,7 +420,6 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
         dynamicGridTemplateColumns,
         scrollWidth: dynamicScrollWidth,
         rowWidth: dynamicRowWidth,
-        columnResize,
         tableWidth: contentWidth,
         filterConfig: filters,
         activeFilters: currentFilters,
@@ -480,51 +456,28 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
 
     return (
         <TableContext.Provider value={contextValue as unknown as TableContextValue<TableData, string, string>}>
-            <TableSemanticContainer
-                isEnabled={isTableSemanticsEnabled && !tableListMetadata.hasPageHeader}
-                title={title}
-                rowCount={processedData.length}
-                columnCount={semanticColumnCount}
-                rendersBodyWhenEmpty={rendersBodyWhenEmpty}
-                shouldUseDynamicColumns={shouldUseDynamicColumns}
-                hasHeaderRow={rendersColumnHeader(tableListMetadata)}
-                // Only tables without a page header scroll here. With one, an ancestor scroller would drag the
-                // in-list filter bar sideways, so their list scrolls horizontally itself (see `TableBody`).
-                scrollWidth={hasPageHeader ? undefined : dynamicScrollWidth}
-                onLayout={isDynamicSizingEnabled ? handleTableLayout : undefined}
-                // Stored widths differ from the static tracks, so a resizable table can't paint before it's measured.
-                measureWidthRef={isColumnResizingEnabled ? getMeasureWidthRef(setTableWidth) : undefined}
-                onScopeElement={columnResize?.setScopeElement}
-            >
-                {renderedChildren}
-            </TableSemanticContainer>
-
-            <Modal
-                shouldPreventScrollOnFocus
-                isVisible={!!mobileSelectionModalRowKey}
-                type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
-                restoreFocusType={shouldSkipMobileSelectionFocusRestore ? CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE : undefined}
-                onClose={() => tableMethods.setMobileSelectionModalRowKey(null)}
-                enableEdgeToEdgeBottomSafeAreaPadding
-                onModalHide={() => {
-                    if (mobileSelectionModalRowKeyRef.current) {
-                        return;
-                    }
-                    releaseBackgroundInputFocusSuppressionRef.current?.();
-                    releaseBackgroundInputFocusSuppressionRef.current = null;
-                    setShouldSubmitMobileSelection(false);
-                    setShouldSkipMobileSelectionFocusRestore(false);
-                }}
-            >
-                <View style={bottomSafeAreaPaddingStyle}>
-                    <MenuItemAction
-                        icon={icons.CheckSquare}
-                        title={translate('common.select')}
-                        onPress={handleMobileSelectionPress}
-                        testID={CONST.SELECTION_LIST_WITH_MODAL_TEST_ID}
-                    />
-                </View>
-            </Modal>
+            <TableActionsContext.Provider value={{showSelectionMenu}}>
+                <ColumnResizeContext.Provider value={columnResize}>
+                    <TableSemanticContainer
+                        isEnabled={isTableSemanticsEnabled && !tableListMetadata.hasPageHeader}
+                        title={title}
+                        rowCount={processedData.length}
+                        columnCount={semanticColumnCount}
+                        rendersBodyWhenEmpty={rendersBodyWhenEmpty}
+                        shouldUseDynamicColumns={shouldUseDynamicColumns}
+                        hasHeaderRow={rendersColumnHeader(tableListMetadata)}
+                        // Only tables without a page header scroll here. With one, an ancestor scroller would drag the
+                        // in-list filter bar sideways, so their list scrolls horizontally itself (see `TableBody`).
+                        scrollWidth={hasPageHeader ? undefined : dynamicScrollWidth}
+                        onLayout={isDynamicSizingEnabled ? handleTableLayout : undefined}
+                        // Stored widths differ from the static tracks, so a resizable table can't paint before it's measured.
+                        measureWidthRef={isColumnResizingEnabled ? getMeasureWidthRef(setTableWidth) : undefined}
+                        onScopeElement={columnResize?.setScopeElement}
+                    >
+                        {renderedChildren}
+                    </TableSemanticContainer>
+                </ColumnResizeContext.Provider>
+            </TableActionsContext.Provider>
         </TableContext.Provider>
     );
 }
