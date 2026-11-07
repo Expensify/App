@@ -6,6 +6,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type * as SearchContextModule from '@components/Search/SearchContext';
 import TransactionListItem from '@components/Search/SearchList/ListItem/TransactionListItem';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+
 import useConfirmApproveReportViolations from '@hooks/useConfirmApproveReportViolations';
 
 import CONST from '@src/CONST';
