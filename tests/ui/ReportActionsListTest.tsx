@@ -1,4 +1,4 @@
-import {act, render, screen, waitFor} from '@testing-library/react-native';
+import {act, render, renderHook, screen, waitFor} from '@testing-library/react-native';
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 
@@ -7,12 +7,14 @@ import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 import type * as InFlightRequests from '@hooks/useInFlightRequests';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
+import useLoadReportActions from '@hooks/useLoadReportActions';
 import useNetwork from '@hooks/useNetwork';
 import * as NetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePrevious from '@hooks/usePrevious';
+import useReportActionsListModel from '@hooks/useReportActionsListModel';
 import type useReportActionsScroll from '@hooks/useReportActionsScroll';
 import * as ReportScrollManager from '@hooks/useReportScrollManager';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
@@ -413,18 +415,30 @@ describe('ReportActionsList (body)', () => {
             {hasUnreadMarker: true, hasNewestPage: false},
             {hasUnreadMarker: false, hasNewestPage: false},
         ])('handles a hidden newest survey (latest page loaded: $hasNewestPage, unread marker: $hasUnreadMarker)', ({hasUnreadMarker, hasNewestPage}) => {
-            // Given a cached survey newer than the reply, but not necessarily in the loaded page
+            // Given a cached survey and hidden payment newer than the reply, but not necessarily in the loaded page
             const reply = {...mockReportActions[1], created: '2023-01-01 00:04:00.000'};
             const survey = {...reply, reportActionID: 'hidden-survey', actionName: CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY, created: '2023-01-01 00:05:00.000'};
-            const supportReport = {...mockReport, type: CONST.REPORT.TYPE.SUPPORT_TICKET, lastVisibleActionCreated: survey.created};
+            const payment: OnyxTypes.ReportAction = {
+                ...reply,
+                reportActionID: 'hidden-payment',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '2023-01-01 00:06:00.000',
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY},
+            };
+            const supportReport = {
+                ...mockReport,
+                type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+                isWaitingOnBankAccount: true,
+                lastVisibleActionCreated: survey.created,
+            };
             mockUseNetwork.mockReturnValue({isOffline: false});
             mockUseOnyx.mockImplementation((key, options) =>
                 key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}` ? [supportReport, {status: 'loaded'}] : getMockOnyxValue(key, options),
             );
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
-                reportActions: hasNewestPage ? [survey, reply] : [reply],
-                sortedAllReportActions: [survey, reply],
+                reportActions: hasNewestPage ? [payment, survey, reply] : [reply],
+                sortedAllReportActions: [payment, survey, reply],
                 hasNewerActions: !hasNewestPage,
             });
             mockUseUnreadMarker.mockReturnValue({unreadMarkerReportActionID: hasUnreadMarker ? reply.reportActionID : null, unreadMarkerReportActionIndex: hasUnreadMarker ? 0 : -1});
@@ -453,6 +467,7 @@ describe('ReportActionsList (body)', () => {
 
                 // Then only a loaded latest page is marked read; a cached survey alone cannot prove freshness
                 expect(getCapturedVisibleActions()).not.toContain(survey);
+                expect(getCapturedVisibleActions()).not.toContain(payment);
                 expect(markNewestActionAsRead).toHaveBeenCalledTimes(hasNewestPage ? 1 : 0);
                 expect(openReportAtLiveTail).toHaveBeenCalledTimes(!hasNewestPage && !hasUnreadMarker ? 1 : 0);
                 if (hasUnreadMarker) {
@@ -474,12 +489,24 @@ describe('ReportActionsList (body)', () => {
         });
 
         it('keeps the offline unread divider above the reply when a newer survey is hidden', () => {
-            // Given a reply received offline and a newer hidden survey
-            const supportReport = {...mockReport, type: CONST.REPORT.TYPE.SUPPORT_TICKET, lastReadTime: '2023-01-01 00:02:00.000'};
+            // Given a reply received offline with a newer hidden survey and payment
+            const supportReport = {
+                ...mockReport,
+                type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+                isWaitingOnBankAccount: true,
+                lastReadTime: '2023-01-01 00:02:00.000',
+            };
             const readComment = {...mockReportActions[1], reportActionID: 'read-comment', created: '2023-01-01 00:01:00.000'};
             const offlineReply = {...readComment, reportActionID: 'offline-reply', created: '2023-01-01 00:04:00.000'};
             const survey = {...readComment, reportActionID: 'hidden-survey', actionName: CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY, created: '2023-01-01 00:05:00.000'};
-            const actions = [survey, offlineReply, readComment];
+            const payment: OnyxTypes.ReportAction = {
+                ...readComment,
+                reportActionID: 'hidden-payment',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '2023-01-01 00:06:00.000',
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY},
+            };
+            const actions = [payment, survey, offlineReply, readComment];
             mockUseCurrentUserPersonalDetails.mockReturnValue({...mockUseCurrentUserPersonalDetails(), timezone: {selected: 'Africa/Abidjan', automatic: false}});
             mockUseNetwork.mockReturnValue({isOffline: true});
             const networkSpy = jest.spyOn(NetworkWithOfflineStatus, 'default').mockReturnValue({
@@ -508,6 +535,7 @@ describe('ReportActionsList (body)', () => {
 
                 // Then New belongs to the unread reply, not the older read comment
                 expect(getCapturedVisibleActions()).not.toContain(survey);
+                expect(getCapturedVisibleActions()).not.toContain(payment);
                 expect(mockUseReportActionsScroll.mock.lastCall?.[0].unreadMarkerReportActionID).toBe(offlineReply.reportActionID);
                 expect(mockUseReportActionsScroll.mock.lastCall?.[0].unreadMarkerReportActionIndex).toBe(0);
             } finally {
@@ -604,6 +632,152 @@ describe('ReportActionsList (body)', () => {
                 ReportActionsListItemRenderer,
             );
             expect(row?.props.shouldDisplayNewMarker).toBe(true);
+        });
+    });
+
+    describe('Payment filtering in the list model', () => {
+        const payment: OnyxTypes.ReportAction = {
+            ...mockReportActions[1],
+            reportActionID: 'bank-payment',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY},
+        };
+
+        it.each([false, true])('filters waiting payments but preserves direct sends and source pagination (offline: %s)', (isOffline) => {
+            // Given a loaded page containing a bank payment and a direct send with independent pagination cursors
+            const waitingReport = {
+                ...mockReport,
+                type: CONST.REPORT.TYPE.CHAT,
+                isWaitingOnBankAccount: true,
+            };
+            const directSend: OnyxTypes.ReportAction = {
+                ...payment,
+                reportActionID: 'direct-send',
+                originalMessage: {
+                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    IOUDetails: {amount: 100, currency: CONST.CURRENCY.USD, comment: ''},
+                },
+            };
+            const sourceActions = [payment, directSend, ...mockReportActions];
+            const paginationState = {
+                newestFetchedReportActionID: payment.reportActionID,
+            };
+            mockUseNetwork.mockReturnValue({isOffline});
+            mockUseOnyx.mockImplementation((key, options) => {
+                if (key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`) {
+                    return [waitingReport, {status: 'loaded'}];
+                }
+                if (key === `${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${mockReport.reportID}`) {
+                    return [paginationState, {status: 'loaded'}];
+                }
+                return getMockOnyxValue(key, options);
+            });
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: sourceActions,
+                sortedAllReportActions: sourceActions,
+                hasOlderActions: true,
+                hasNewerActions: true,
+            });
+
+            // When the real model separates render state from the page used to load more actions
+            const {result} = renderHook(() => useReportActionsListModel(mockReport.reportID, false));
+
+            // Then both render arrays omit only the bank payment, while fetching retains its identity and cursor
+            expect(result.current.state.sortedReportActions).toEqual([directSend, ...mockReportActions]);
+            expect(result.current.state.sortedVisibleReportActions).toEqual([directSend, ...mockReportActions]);
+            expect(result.current.state.sortedAllReportActions).toBe(sourceActions);
+            expect(result.current.state.persistedReportActionIDs).toContain(payment.reportActionID);
+            expect(result.current.readinessSignals).toMatchObject({
+                isMissingReportActions: false,
+                reportActionsLength: sourceActions.length,
+            });
+            expect(jest.mocked(useLoadReportActions).mock.lastCall?.[0]).toMatchObject({
+                reportActions: sourceActions,
+                allReportActionIDs: sourceActions.map((action) => action.reportActionID),
+                hasOlderActions: true,
+                hasNewerActions: true,
+                newestFetchedReportActionID: payment.reportActionID,
+            });
+        });
+
+        it.each([false, true])('does not treat a loaded payment-only page as missing or backfill it (offline: %s)', (isOffline) => {
+            // Given the only loaded action is hidden for a report waiting on its bank account
+            const waitingReport = {
+                ...mockReport,
+                type: CONST.REPORT.TYPE.CHAT,
+                isWaitingOnBankAccount: true,
+            };
+            const loadOlderChats = jest.fn();
+            const loadHookSpy = jest.mocked(useLoadReportActions);
+            const defaultImplementation = loadHookSpy.getMockImplementation();
+            loadHookSpy.mockReturnValue({
+                loadOlderChats,
+                loadNewerChats: jest.fn(),
+                currentReportOldestActionID: payment.reportActionID,
+            });
+            mockUseNetwork.mockReturnValue({isOffline});
+            mockUseOnyx.mockImplementation((key, options) =>
+                key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}` ? [waitingReport, {status: 'loaded'}] : getMockOnyxValue(key, options),
+            );
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [payment],
+                hasOlderActions: true,
+            });
+
+            try {
+                // When the public guard receives a page that becomes empty only after payment filtering
+                renderReportActionsList();
+
+                // Then the content mounts without a skeleton or recovery request for an already loaded page
+                expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
+                expect(getCapturedVisibleActions()).toEqual([]);
+                expect(mockUseMarkAsRead).toHaveBeenCalled();
+                expect(mockUseReportActionsScroll).toHaveBeenCalled();
+                expect(loadOlderChats).not.toHaveBeenCalled();
+            } finally {
+                loadHookSpy.mockReset();
+                if (defaultImplementation) {
+                    loadHookSpy.mockImplementation(defaultImplementation);
+                }
+            }
+        });
+
+        it.each([false, true])('retains recovery for genuinely absent visible actions (offline: %s)', (isOffline) => {
+            // Given a raw page has no visible actions but still has an older pagination cursor
+            const loadOlderChats = jest.fn();
+            const loadHookSpy = jest.mocked(useLoadReportActions);
+            const defaultImplementation = loadHookSpy.getMockImplementation();
+            loadHookSpy.mockReturnValue({
+                loadOlderChats,
+                loadNewerChats: jest.fn(),
+                currentReportOldestActionID: 'invisible-action',
+            });
+            mockUseNetwork.mockReturnValue({isOffline});
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                hasOlderActions: true,
+            });
+
+            try {
+                // When the public guard checks readiness before mounting the list content
+                renderReportActionsList();
+
+                // Then absent data still gates the content and only an online report starts recovery
+                expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
+                expect(mockUseMarkAsRead).not.toHaveBeenCalled();
+                expect(mockUseReportActionsScroll).not.toHaveBeenCalled();
+                expect(loadOlderChats).toHaveBeenCalledTimes(isOffline ? 0 : 1);
+                if (!isOffline) {
+                    expect(loadOlderChats).toHaveBeenCalledWith(false);
+                }
+            } finally {
+                loadHookSpy.mockReset();
+                if (defaultImplementation) {
+                    loadHookSpy.mockImplementation(defaultImplementation);
+                }
+            }
         });
     });
 
