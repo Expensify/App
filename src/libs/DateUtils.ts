@@ -258,6 +258,7 @@ function datetimeToRelative(locale: Locale | undefined, datetime: string, curren
  *
  * @param datetime
  * @param selectedTimezone
+ * @param dateFnsLocale - language the zone is named in
  * @returns
  */
 function getZoneAbbreviation(datetime: string | Date, selectedTimezone: SelectedTimezone, dateFnsLocale: DateFnsLocale | undefined): string {

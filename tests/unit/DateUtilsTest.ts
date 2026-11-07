@@ -17,6 +17,7 @@ import {addDays, addMinutes, endOfDay, format, set, setHours, setMinutes, startO
 import {fromZonedTime, toZonedTime, format as tzFormat} from 'date-fns-tz';
 import {de} from 'date-fns/locale/de';
 import {el} from 'date-fns/locale/el';
+import {enUS} from 'date-fns/locale/en-US';
 import {es} from 'date-fns/locale/es';
 import {fr} from 'date-fns/locale/fr';
 import {ja} from 'date-fns/locale/ja';
@@ -71,7 +72,7 @@ describe('DateUtils', () => {
     const timezone = 'Atlantic/Reykjavik';
 
     it('getZoneAbbreviation should show zone abbreviation from the datetime', () => {
-        const zoneAbbreviation = DateUtils.getZoneAbbreviation(datetime, timezone, undefined);
+        const zoneAbbreviation = DateUtils.getZoneAbbreviation(datetime, timezone, enUS);
         expect(zoneAbbreviation).toBe('GMT+0');
     });
 
@@ -1266,10 +1267,11 @@ describe('DateUtils', () => {
         const SUMMER_INSTANT = new Date('2026-06-20T12:00:00Z');
 
         it('keeps the English zone names unchanged', () => {
-            // Given a summer time in New York and no locale, which falls back to en-US
+            // Given a summer time in New York in English. The app passes `enUS` for English, while no locale would leave
+            // date-fns-tz on the system language, which is `GMT-4` on a German machine.
             // When its zone is named
             // Then English keeps its abbreviation
-            expect(DateUtils.getZoneAbbreviation(SUMMER_INSTANT, NEW_YORK, undefined)).toBe('EDT');
+            expect(DateUtils.getZoneAbbreviation(SUMMER_INSTANT, NEW_YORK, enUS)).toBe('EDT');
         });
 
         it('names the zone the way the language does', () => {
