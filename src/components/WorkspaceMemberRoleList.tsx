@@ -1,17 +1,23 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {navigateToConciergeChat} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {getSelectableRoles} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -27,6 +33,7 @@ import RenderHTML from './RenderHTML';
 import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
 import SelectionListWithSections from './SelectionList/SelectionListWithSections';
 import Text from './Text';
+import TextLink from './TextLink';
 
 type ListItemType = ListItem<ValueOf<typeof CONST.POLICY.ROLE>> & {
     value: ValueOf<typeof CONST.POLICY.ROLE>;
@@ -156,7 +163,12 @@ function WorkspaceMemberRoleList({
 }: WorkspaceMemberRoleListProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin = '', accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
+    const delegateAccountID = useDelegateAccountID();
 
     const availableRoleItems = getAssignableWorkspaceMemberRoleItems(translate, role, policy, currentUserLogin, allowedRoles);
     const roleGroups = [
@@ -184,9 +196,26 @@ function WorkspaceMemberRoleList({
 
     const footerContent = (
         <>
-            <View style={[styles.renderHTML, styles.flexRow, styles.pt3, styles.mb4]}>
-                <RenderHTML html={translate('workspace.common.roleSelectorFeedback')} />
-            </View>
+            <Text style={[styles.mutedNormalTextLabel, styles.textAlignCenter, styles.pt3, styles.mb4]}>
+                {translate('workspace.common.roleSelectorFeedback')}{' '}
+                <TextLink
+                    onPress={() => {
+                        navigateToConciergeChat({
+                            conciergeReportID,
+                            introSelected,
+                            currentUserAccountID,
+                            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                            conciergePersonalDetails,
+                            shouldDismissModal: false,
+                            delegateAccountID,
+                        });
+                    }}
+                >
+                    {translate('workspace.common.roleSelectorFeedbackLink')}
+                </TextLink>
+                .
+            </Text>
             {!!errorMessage && (
                 // Remounting is what makes the alert speak again. The list is not inside a `Form`, so `FormHelpMessage`
                 // has no submit count of its own to re-announce from.
