@@ -23,6 +23,7 @@ import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
+import useShouldShowNewWorkspaceRolesPromotion from '@hooks/useShouldShowNewWorkspaceRolesPromotion';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
@@ -196,6 +197,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const {manageableWorkspaceAgents} = useWorkspaceAgents(policy);
     const hasAgentErrors = hasAgentErrorsSelector(manageableWorkspaceAgents);
 
+    const shouldShowNewRolesBadge = useShouldShowNewWorkspaceRolesPromotion(policy);
     const workspaceMenuItems = getWorkspaceMenuItems({
         policy,
         policyID,
@@ -211,6 +213,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         shouldShowRBR,
         hasApprovalWorkflowWithNonMemberApprover,
         isVendorMatchingBetaEnabled: isBetaEnabled(CONST.BETAS.VENDOR_MATCHING),
+        shouldShowNewRolesBadge,
         convertToDisplayString,
     }).map((item) => ({
         ...item,
@@ -331,6 +334,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                         focused={getItemScreenNames(item).some((screenName) => activeRoute?.startsWith(screenName))}
                                         role={CONST.ROLE.TAB}
                                         badgeText={item.badgeTranslationKey ? translate(item.badgeTranslationKey) : item.badgeText}
+                                        isBadgeSuccess={item.isBadgeSuccess}
                                         shouldIconUseAutoWidthStyle
                                         sentryLabel={item.sentryLabel}
                                         shouldGreyOutWhenDisabled={hasPolicyCreationError}

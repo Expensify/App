@@ -5486,6 +5486,12 @@ ${amount} pour ${merchant} - ${date}`,
             readOnlyActionPrompt: 'Votre rôle dans cet espace de travail peut afficher ces paramètres, mais ne peut pas les modifier.',
             noAccessActionPrompt: 'Votre rôle dans l’espace de travail n’a pas accès à ces paramètres. Demandez à un administrateur si vous en avez besoin.',
             connections: 'Connexions',
+            newRoles: 'Nouveaux rôles',
+            adminRoles: 'Rôles d’administrateur',
+            otherRoles: 'Autres rôles',
+            roleSelectorDescription: `Assignez un rôle pour gérer les autorisations d’espace de travail d’un membre. <a href="${CONST.HELP_DOC_LINKS.WORKSPACE_ROLES_AND_PERMISSIONS}">Comparer les rôles d’espace de travail</a>.`,
+            roleSelectorFeedback:
+                '<muted-text-label><centered-text>Vous ne voyez pas le rôle dont vous avez besoin ? <concierge-link>Dites-le-nous</concierge-link>.</centered-text></muted-text-label>',
         },
         createdForClient: {
             title: 'Vous avez créé un espace de travail pour votre client !',
@@ -7900,6 +7906,11 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             changeOfficeLocation: 'Modifier le lieu de travail',
             changeWorkArrangement: 'Modifier l’organisation du travail',
             changeRole: 'Modifier le rôle',
+            newRolesBanner: {
+                title: 'Nouveaux rôles disponibles',
+                subtitle:
+                    '<label-text>Donnez aux membres uniquement l’accès dont ils ont besoin grâce aux nouveaux rôles <strong>Approbation uniquement</strong> et <strong>Invité</strong>.</label-text>',
+            },
         },
         card: {
             getStartedIssuing: 'Commencez par émettre votre première carte virtuelle ou physique.',
