@@ -51,9 +51,9 @@ jest.mock('@hooks/useLocalize', () =>
             const translations: Record<string, string | ((args?: Record<string, string>) => string)> = {};
             translations['receipt.alternativeMethodsTitle'] = 'Other ways to add receipts:';
             translations['receipt.alternativeMethodsDownloadApp'] = 'Download the app to scan from your phone';
-            translations['receipt.alternativeMethodsForwardReceipts'] = ({email} = {}) => `Forward receipts to ${email}`;
-            translations['receipt.alternativeMethodsAddPhoneNumber'] = ({phoneNumber} = {}) => `Add your number to text receipts to ${phoneNumber}`;
-            translations['receipt.alternativeMethodsTextReceipts'] = ({phoneNumber} = {}) => `Text receipts to ${phoneNumber} (US numbers only)`;
+            translations['receipt.alternativeMethodsForwardReceipts'] = ({email}: Record<string, string> = {}) => `Forward receipts to ${email}`;
+            translations['receipt.alternativeMethodsAddPhoneNumber'] = ({phoneNumber}: Record<string, string> = {}) => `Add your number to text receipts to ${phoneNumber}`;
+            translations['receipt.alternativeMethodsTextReceipts'] = ({phoneNumber}: Record<string, string> = {}) => `Text receipts to ${phoneNumber} (US numbers only)`;
 
             const translation = translations[key];
             if (typeof translation === 'function') {
