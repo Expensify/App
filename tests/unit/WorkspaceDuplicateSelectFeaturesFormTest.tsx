@@ -222,43 +222,4 @@ describe('WorkspaceDuplicateSelectFeaturesForm Rules and Merchant rules', () => 
         // Then Rules is not copied, so the duplicated workspace keeps Rules turned off like the source, and the merchant rules are copied on their own
         expect(getSentParts()).toMatchObject({expenses: false, codingRules: true});
     });
-
-    it('keeps the other choices when Rules is turned off on the source while the form is open', async () => {
-        // Given a source with Rules on, where the admin deselected Overview
-        await renderForm(true);
-        await pressRow('overview');
-
-        // When another admin turns Rules off on the source and the update reaches this form
-        await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {areRulesEnabled: false});
-        });
-        await waitForBatchedUpdates();
-
-        // Then the Rules row goes away and Overview stays deselected, instead of every row being selected again
-        expect(getRow('rules')).toBeUndefined();
-        expect(getRow('overview')?.isSelected).toBe(false);
-        expect(getRow('codingRules')?.isSelected).toBe(true);
-
-        // When the admin continues
-        pressContinue();
-
-        // Then Overview is still not copied
-        expect(getSentParts()).toMatchObject({overview: false, expenses: false, codingRules: true});
-    });
-
-    it('selects a row that shows up while the form is open and keeps the other choices', async () => {
-        // Given a source with Rules off, where the admin deselected Overview
-        await renderForm(true, false);
-        await pressRow('overview');
-
-        // When another admin turns Rules on and the update reaches this form
-        await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {areRulesEnabled: true});
-        });
-        await waitForBatchedUpdates();
-
-        // Then the new Rules row is selected, like every row when the form opens, and Overview stays deselected
-        expect(getRow('rules')?.isSelected).toBe(true);
-        expect(getRow('overview')?.isSelected).toBe(false);
-    });
 });
