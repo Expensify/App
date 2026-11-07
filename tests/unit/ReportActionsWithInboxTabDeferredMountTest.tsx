@@ -3,7 +3,7 @@ import {render, screen} from '@testing-library/react-native';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 
-import {ReportActionsWithInboxTabDeferredMount} from '@pages/inbox/ReportActions';
+import ReportActionsWithInboxTabDeferredMount from '@pages/inbox/ReportActionsWithInboxTabDeferredMount';
 
 import type {ComponentType} from 'react';
 
