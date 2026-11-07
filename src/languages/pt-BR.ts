@@ -11120,6 +11120,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         success: {
             title: 'Download concluído!',
             message: 'Anexo baixado com sucesso!',
+            open: 'Abrir',
             qrMessage:
                 'Verifique sua pasta de fotos ou de downloads para encontrar uma cópia do seu código QR. Dica: Adicione-o a uma apresentação para que seu público possa escanear e se conectar diretamente com você.',
         },

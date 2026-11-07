@@ -60,6 +60,7 @@ function HeaderWithBackButton({
     shouldShowBorderBottom = false,
     shouldShowCloseButton = false,
     shouldShowDownloadButton = false,
+    shouldUseShareIconForDownloadButton = false,
     isDownloading = false,
     shouldShowRotateButton = false,
     isRotating = false,
@@ -97,7 +98,7 @@ function HeaderWithBackButton({
     // Avatar-header routes skip Header, so register the dialog label here.
     useDialogLabelRegistration(shouldShowReportAvatarWithDisplay ? (report?.reportName ?? '') : '');
 
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Rotate', 'BackArrow', 'Close']);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'UploadAlt', 'Rotate', 'BackArrow', 'Close']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -106,6 +107,8 @@ function HeaderWithBackButton({
     const isInLandscapeMode = useIsInLandscapeMode();
     const {contentHeaderHeightStyle} = useContentHeaderHeight();
     const setBackButtonRef = useInitialFocusRef({shouldSkip: shouldSkipFocusAfterTransition});
+
+    const downloadButtonLabel = translate(shouldUseShareIconForDownloadButton ? 'common.share' : 'common.download');
 
     let middleContent;
     const stepCounterTranslation = stepCounter ? translate('stepCounter', stepCounter.step, stepCounter.total, stepCounter.text) : undefined;
@@ -247,7 +250,7 @@ function HeaderWithBackButton({
                         {children}
                         {shouldShowDownloadButton &&
                             (!isDownloading ? (
-                                <Tooltip text={translate('common.download')}>
+                                <Tooltip text={downloadButtonLabel}>
                                     <PressableWithoutFeedback
                                         onPress={(event) => {
                                             // Blur the pressable in case this button triggers a Growl notification
@@ -263,11 +266,11 @@ function HeaderWithBackButton({
                                         }}
                                         style={[styles.touchableButtonImage]}
                                         role="button"
-                                        accessibilityLabel={translate('common.download')}
+                                        accessibilityLabel={downloadButtonLabel}
                                         sentryLabel={CONST.SENTRY_LABEL.HEADER.DOWNLOAD_BUTTON}
                                     >
                                         <Icon
-                                            src={icons.Download}
+                                            src={shouldUseShareIconForDownloadButton ? icons.UploadAlt : icons.Download}
                                             fill={iconFill ?? StyleUtils.getIconFillColor({buttonState: getButtonState({isComplete: !isDownloadButtonActive})})}
                                         />
                                     </PressableWithoutFeedback>

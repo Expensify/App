@@ -11197,6 +11197,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         success: {
             title: 'Heruntergeladen!',
             message: 'Anhang erfolgreich heruntergeladen!',
+            open: 'Öffnen',
             qrMessage:
                 'Überprüfe deinen Fotos- oder Downloads-Ordner auf eine Kopie deines QR-Codes. Profi-Tipp: Füge ihn einer Präsentation hinzu, damit dein Publikum ihn scannen und direkt mit dir in Kontakt treten kann.',
         },

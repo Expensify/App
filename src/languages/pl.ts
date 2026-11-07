@@ -11144,6 +11144,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         success: {
             title: 'Pobrano!',
             message: 'Załącznik został pomyślnie pobrany!',
+            open: 'Otwórz',
             qrMessage:
                 'Sprawdź folder ze zdjęciami lub pobranymi plikami, aby znaleźć kopię swojego kodu QR. Wskazówka: dodaj go do prezentacji, aby Twoi odbiorcy mogli go zeskanować i połączyć się z Tobą bezpośrednio.',
         },

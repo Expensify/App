@@ -10675,6 +10675,7 @@ ${reportName}`,
         success: {
             title: '已下载！',
             message: '附件已成功下载！',
+            open: '打开',
             qrMessage: '请在相册或下载文件夹中查找你的二维码副本。专业提示：将它添加到演示文稿中，方便观众扫描并直接与你建立联系。',
         },
         generalError: {

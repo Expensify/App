@@ -11115,6 +11115,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         success: {
             title: 'Gedownload!',
             message: 'Bijlage is gedownload!',
+            open: 'Openen',
             qrMessage:
                 'Controleer je foto- of downloadmap voor een kopie van je QR-code. Protip: voeg hem toe aan een presentatie, zodat je publiek hem kan scannen en direct met je kan verbinden.',
         },
