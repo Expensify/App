@@ -1,0 +1,19 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.kt
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.kt
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/SurfaceMountingManager.kt
+@@ -563,6 +563,15 @@
+     // generated.
+     // This represents a perf issue only, not a correctness issue. In the future we need to
+     // refactor View preallocation to correct the currently incorrect assumptions.
++
++    // The tag was deleted while touched and is mounted again, so finish the deferred delete now.
++    if (viewsToDeleteAfterTouchFinishes.remove(reactTag)) {
++      getNullableViewState(reactTag)?.let { staleViewState ->
++        registryRemove(reactTag)
++        onViewStateDeleted(staleViewState)
++      }
++    }
++
+     val viewState = getNullableViewState(reactTag)
+     if (viewState?.view != null) {
+       return
