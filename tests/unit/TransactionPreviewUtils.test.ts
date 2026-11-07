@@ -864,6 +864,12 @@ describe('TransactionPreviewUtils', () => {
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
         };
 
+        // Duplicates are only compared when their report is loaded and still mergeable.
+        beforeEach(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fakeReportID}`, fakeReport);
+            await waitForBatchedUpdates();
+        });
+
         it('should navigate to confirmation page when all fields match', () => {
             const transaction1 = buildOptimisticTransaction({
                 transactionParams: {amount: 100, currency: 'USD', reportID: fakeReportID, comment: '', attendees: [], created: '2024-01-01'},

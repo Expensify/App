@@ -1,3 +1,4 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
@@ -11,6 +12,7 @@ import Text from '@components/Text';
 
 import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDuplicateReportsStatus from '@hooks/useDuplicateReportsStatus';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -27,7 +29,6 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getLinkedTransactionID, getReportAction} from '@libs/ReportActionsUtils';
-import {isReportIDApproved, isSettled} from '@libs/ReportUtils';
 import {doesDeleteNavigateBackUrlIncludeSpecificDuplicatesReview, getParentReportActionDeletionStatus, hasLoadedReportActions, isThreadReportDeleted} from '@libs/TransactionNavigationUtils';
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
 import type {TransactionThreadNavigationDescriptor} from '@libs/TransactionThreadNavigationUtils';
@@ -115,7 +116,14 @@ function DynamicReviewPage() {
     const [selectedTransactionPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${selectedTransactionReport?.policyID}`);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
-    const hasSettledOrApprovedTransaction = transactions.some((transaction) => isSettled(transaction?.reportID) || isReportIDApproved(transaction?.reportID));
+    const duplicateReportIDs = transactions.map((transaction) => transaction.reportID).filter((reportID): reportID is string => !!reportID && reportID !== CONST.REPORT.UNREPORTED_REPORT_ID);
+    const {hasSettledOrApprovedReport: hasSettledOrApprovedTransaction, hasUnloadedReport} = useDuplicateReportsStatus(duplicateReportIDs);
+    // A duplicate that isn't loaded yet, or whose report isn't, may be approved or paid, and merging it fails server-side.
+    const hasUnloadedTransaction = transactions.length < transactionIDs.length;
+    const canKeepSelected = !hasSettledOrApprovedTransaction && !hasUnloadedReport && !hasUnloadedTransaction;
+    const [isLoadingDuplicateDetails] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_DUPLICATE_TRANSACTION_DETAILS}${transactionID}`);
+    // Undefined means the fetch hasn't started yet, so a partial list isn't rendered for the first frame.
+    const isLoadingDuplicates = !isOffline && (hasUnloadedTransaction || hasUnloadedReport) && isLoadingDuplicateDetails !== false;
     const hasLoadedThreadReportActions = hasLoadedReportActions(reportLoadingState, isOffline);
     const isThreadReportDeletedForReview = isThreadReportDeleted(report, reportLoadingState, isOffline);
     const {hasLoadedParentReportActions, wasParentActionDeleted} = getParentReportActionDeletionStatus({
@@ -284,6 +292,20 @@ function DynamicReviewPage() {
         );
     }
 
+    if (!shouldShowNotFound && isLoadingDuplicates) {
+        return (
+            <ScreenWrapper testID="DynamicReviewPage">
+                <HeaderWithBackButton
+                    title={translate('iou.reviewDuplicates')}
+                    onBackButtonPress={() => Navigation.goBack(backPath, {compareParams: false})}
+                />
+                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    <ActivityIndicator size="large" />
+                </View>
+            </ScreenWrapper>
+        );
+    }
+
     return (
         <ScreenWrapper
             testID="DynamicReviewPage"
@@ -304,7 +326,7 @@ function DynamicReviewPage() {
                         <DuplicateTransactionsList
                             transactions={transactions}
                             selectedTransactionID={effectiveSelectedTransactionID}
-                            shouldShowSelection={!hasSettledOrApprovedTransaction}
+                            shouldShowSelection={canKeepSelected}
                             onSelectTransaction={setSelectedTransactionID}
                             onPreviewPressed={onPreviewPressed}
                         />
@@ -317,7 +339,7 @@ function DynamicReviewPage() {
                         >
                             <Button.Text>{translate('iou.keepAll')}</Button.Text>
                         </Button>
-                        {!hasSettledOrApprovedTransaction && (
+                        {canKeepSelected && (
                             <Button
                                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 size={CONST.BUTTON_SIZE.LARGE}
