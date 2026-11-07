@@ -10,6 +10,7 @@ import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
@@ -20,7 +21,10 @@ import {View} from 'react-native';
 
 import type {DynamicFormFieldsProps} from './DynamicFormFields';
 
-type DynamicFormFieldRowProps = Pick<DynamicFormFieldsProps, 'values' | 'maxFileSize' | 'onRefreshRequirements' | 'onOpenListItemEditor' | 'onListItemsChange' | 'isSensitive'> &
+type DynamicFormFieldRowProps = Pick<
+    DynamicFormFieldsProps,
+    'values' | 'maxFileSize' | 'onRefreshRequirements' | 'onOpenListItemEditor' | 'onListItemsChange' | 'isSensitive' | 'isRefreshingRequirements'
+> &
     Required<Pick<DynamicFormFieldsProps, 'currency'>> &
     Pick<DynamicFieldContext, 'renderFields'> & {
         field: DynamicFormField;
@@ -47,10 +51,12 @@ function DynamicFormFieldRow({
     onOpenListItemEditor,
     onListItemsChange,
     isSensitive = false,
+    isRefreshingRequirements = false,
     renderFields,
 }: DynamicFormFieldRowProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
     const label = getFieldLabel(field, translate);
 
     if (field.readonly) {
@@ -92,6 +98,7 @@ function DynamicFormFieldRow({
             forwardedFSClass: CONST.FULLSTORY.CLASS.MASK,
             onValueChange: shouldRefreshOnChange ? (value, key) => onRefreshRequirements?.(key, value) : undefined,
             onBlur: shouldRefreshOnBlur ? refreshRequirements : undefined,
+            disabled: (isOffline || isRefreshingRequirements) && !!field.refreshOnChange,
         },
     );
     const description = showsDescription ? undefined : getLocalizedText(translate, field.descriptionKey, field.description);
