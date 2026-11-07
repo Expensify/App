@@ -10279,7 +10279,7 @@ const translations = {
         scheduleACall: 'Schedule call',
         questionMarkButtonTooltip: 'Get assistance from our team',
         exploreHelpDocs: 'Explore help docs',
-        registerForWebinar: 'Register for webinar',
+        registerForWebinar: 'Webinar',
         onboardingHelp: 'Onboarding help',
     },
     emojiPicker: {

@@ -10023,7 +10023,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         scheduleACall: 'Anruf planen',
         questionMarkButtonTooltip: 'Holen Sie sich Unterstützung von unserem Team',
         exploreHelpDocs: 'Hilfedokumente durchsuchen',
-        registerForWebinar: 'Für Webinar registrieren',
+        registerForWebinar: 'Webinar',
         onboardingHelp: 'Onboarding-Hilfe',
     },
     emojiPicker: {

@@ -9940,7 +9940,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         scheduleACall: 'Afspraak plannen',
         questionMarkButtonTooltip: 'Krijg hulp van ons team',
         exploreHelpDocs: 'Bekijk helpdocs',
-        registerForWebinar: 'Registreren voor webinar',
+        registerForWebinar: 'Webinar',
         onboardingHelp: 'Onboardinghulp',
     },
     emojiPicker: {

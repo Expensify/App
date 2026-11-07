@@ -10052,7 +10052,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         scheduleACall: 'Planifier un appel',
         questionMarkButtonTooltip: 'Obtenez de l’aide auprès de notre équipe',
         exploreHelpDocs: 'Explorer les documents d’aide',
-        registerForWebinar: 'S’inscrire au webinaire',
+        registerForWebinar: 'Webinaire',
         onboardingHelp: 'Aide à l’intégration',
     },
     emojiPicker: {
