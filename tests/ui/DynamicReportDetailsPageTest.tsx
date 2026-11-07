@@ -383,7 +383,7 @@ describe('DynamicReportDetailsPage', () => {
             await waitForBatchedUpdatesWithAct();
 
             // The page's own fallback must have produced the invoice-room back URL.
-            const backUrl = await getOnyxValue(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
+            const backUrl = await getOnyxValue(ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL);
             expect(backUrl).toBe(ROUTES.REPORT_WITH_ID.getRoute(invoiceRoomID));
         });
 
@@ -413,7 +413,7 @@ describe('DynamicReportDetailsPage', () => {
             // Simulate the invoice delete: set the delete-back URL to the invoice room, then null the invoice report
             // (the deferred optimistic delete) while this focused RHP is still mounted.
             await act(async () => {
-                await Onyx.set(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, ROUTES.REPORT_WITH_ID.getRoute(invoiceRoomID));
+                await Onyx.set(ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL, ROUTES.REPORT_WITH_ID.getRoute(invoiceRoomID));
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, null);
             });
             await waitForBatchedUpdatesWithAct();

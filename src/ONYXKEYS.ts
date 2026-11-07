@@ -366,8 +366,8 @@ const ONYXKEYS = {
     /** The end date (epoch timestamp) of the workspace owner’s grace period for an overdue Consolidated Travel Billing invoice. */
     NVP_PRIVATE_OWNER_TRAVEL_BILLING_GRACE_PERIOD_END: 'nvp_private_travelBillingGracePeriodEnd',
 
-    /**  The NVP containing the target url to navigate to when deleting a transaction */
-    NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL: 'nvp_deleteTransactionNavigateBackURL',
+    /** Set while a deleted transaction's screen is navigating away, holds the route it goes back to. Not found guards stay quiet while it's set */
+    RAM_ONLY_PENDING_TRANSACTION_DELETE_URL: 'pendingTransactionDeleteURL',
 
     /**
      * Cutoff time for a full reconnect. If this client's last full reconnect
@@ -2009,7 +2009,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: number;
     [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: number;
     [ONYXKEYS.NVP_PRIVATE_OWNER_TRAVEL_BILLING_GRACE_PERIOD_END]: number;
-    [ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL]: string | undefined;
+    [ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL]: string | undefined;
     [ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE]: string;
     [ONYXKEYS.NVP_PRIVATE_FIRST_POLICY_CREATED_DATE]: string;
     [ONYXKEYS.NVP_PRIVATE_MANUAL_TEAM_2025_PRICING]: string;

@@ -51,7 +51,7 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
     });
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
+    const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL);
 
     const reportID = report?.reportID;
     const isOptimisticDelete = report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;

@@ -85,6 +85,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
 import Navigation from '@libs/Navigation/Navigation';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {getDBTimeWithSkew, getIsOffline as isOfflineNetwork} from '@libs/NetworkState';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -7436,12 +7437,28 @@ function downloadReportPDF(fileName: string, reportName: string, translate: Loca
     fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, encryptedAuthToken, true), downloadFileName, '', Browser.isMobileSafari()).then(() => setDownload(fileName, false));
 }
 
+// A newer deletion cancels this so a stale clear can't wipe its URL.
+let pendingDeleteTransactionNavigateBackUrlClear: {cancel: () => void} | undefined;
+
 function setDeleteTransactionNavigateBackUrl(url: string) {
-    Onyx.set(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, url);
+    pendingDeleteTransactionNavigateBackUrlClear?.cancel();
+    pendingDeleteTransactionNavigateBackUrlClear = undefined;
+    Onyx.set(ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL, url);
 }
 
 function clearDeleteTransactionNavigateBackUrl() {
-    Onyx.merge(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, null);
+    Onyx.merge(ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL, null);
+}
+
+function clearDeleteTransactionNavigateBackUrlAfterTransitions(onTransitionsEnd: () => void) {
+    pendingDeleteTransactionNavigateBackUrlClear?.cancel();
+    pendingDeleteTransactionNavigateBackUrlClear = TransitionTracker.runAfterTransitions({
+        callback: () => {
+            pendingDeleteTransactionNavigateBackUrlClear = undefined;
+            onTransitionsEnd();
+        },
+        waitForUpcomingTransition: true,
+    });
 }
 
 type DeleteAppReportProps = {
@@ -9536,6 +9553,7 @@ export {
     clearAddRoomMemberError,
     clearAvatarErrors,
     clearDeleteTransactionNavigateBackUrl,
+    clearDeleteTransactionNavigateBackUrlAfterTransitions,
     clearIOUError,
     clearReportErrors,
     clearNewRoomFormError,
