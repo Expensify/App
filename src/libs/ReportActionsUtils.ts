@@ -864,6 +864,15 @@ function getElsewherePaymentReportActionMessage(translate: LocalizedTranslate, o
     return translate('iou.paidElsewhere', payer, originalMessage?.comment?.trim());
 }
 
+function getElsewherePaymentReportActionMessageBG(originalMessage: OriginalMessageIOU | undefined, payer?: string): string {
+    if (originalMessage?.isSubmitterMarkedPaymentReceived) {
+        return `${payer ? `${payer} ` : ''}received payment`;
+    }
+
+    const comment = originalMessage?.comment?.trim();
+    return `${payer ? `${payer} ` : ''}marked as paid${comment ? `, saying "${comment}"` : ''}`;
+}
+
 /**
  * Builds the payment message for a cross-border FX reimbursement, which reports the amount credited to the employee
  * in their deposit currency plus both account last-4s, since the company and employee move different currencies.
@@ -6174,6 +6183,7 @@ export {
     resolveTransactionThreadReport,
     getCrossBorderReimbursedMessage,
     getElsewherePaymentReportActionMessage,
+    getElsewherePaymentReportActionMessageBG,
     getMarkedReimbursedMessage,
     getReimbursedMessage,
     getPaymentMessageWithExpectedDate,
