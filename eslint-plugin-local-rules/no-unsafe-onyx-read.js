@@ -741,6 +741,11 @@ function isObjectValueUse(reference, getReferencedReadMethod) {
 
 function create(context) {
     const sourceCode = context.sourceCode ?? context.getSourceCode();
+    // Module names may use escapes, so files with a backslash still need full analysis.
+    if (!sourceCode.text.includes(ONYX_MODULE) && !sourceCode.text.includes('\\')) {
+        return {};
+    }
+
     const filename = context.filename ?? context.getFilename();
     const shouldCheckComponentOrHookScope = requiresComponentOrHookScope(filename);
     const {getCalledReadMethod, getReferencedReadMethod, isOnyxObjectExpression} = createOnyxReadTracker(sourceCode);
