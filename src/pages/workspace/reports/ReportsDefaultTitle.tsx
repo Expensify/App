@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import BulletList from '@components/BulletList';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -109,6 +110,8 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
                     <RenderHTML html={translate('workspace.reports.customNameDescription')} />
                 </View>
                 <FormProvider
+                    shouldConstrainWebContentHeight
+                    submitFlexEnabled={false}
                     style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM}
                     validate={validateCustomName}
@@ -118,30 +121,35 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    <OfflineWithFeedback
-                        pendingAction={policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.pendingFields?.defaultValue}
-                        errors={titleFieldError}
-                        errorRowStyles={styles.mh0}
-                        onClose={clearTitleFieldError}
-                    >
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            role={CONST.ROLE.PRESENTATION}
-                            inputID={INPUT_IDS.DEFAULT_TITLE}
-                            defaultValue={customNameDefaultValue}
-                            label={translate('workspace.reports.customNameInputLabel')}
-                            aria-label={translate('workspace.reports.customNameInputLabel')}
-                            spellCheck={false}
-                            autoFocus
-                            autoGrowSingleLine
-                            ref={(el: BaseTextInputRef | null): void => {
-                                if (!isInputInitializedRef.current) {
-                                    updateMultilineInputRange(el);
-                                }
-                                isInputInitializedRef.current = true;
-                            }}
-                        />
-                    </OfflineWithFeedback>
+                    <AutoGrowHeightInputContainer shouldKeepMinimumHeight>
+                        {(maxAutoGrowHeight) => (
+                            <OfflineWithFeedback
+                                pendingAction={policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.pendingFields?.defaultValue}
+                                errors={titleFieldError}
+                                errorRowStyles={styles.mh0}
+                                onClose={clearTitleFieldError}
+                            >
+                                <InputWrapper
+                                    InputComponent={TextInput}
+                                    role={CONST.ROLE.PRESENTATION}
+                                    inputID={INPUT_IDS.DEFAULT_TITLE}
+                                    defaultValue={customNameDefaultValue}
+                                    label={translate('workspace.reports.customNameInputLabel')}
+                                    aria-label={translate('workspace.reports.customNameInputLabel')}
+                                    maxAutoGrowHeight={maxAutoGrowHeight}
+                                    spellCheck={false}
+                                    autoFocus
+                                    autoGrowSingleLine
+                                    ref={(el: BaseTextInputRef | null): void => {
+                                        if (!isInputInitializedRef.current) {
+                                            updateMultilineInputRange(el);
+                                        }
+                                        isInputInitializedRef.current = true;
+                                    }}
+                                />
+                            </OfflineWithFeedback>
+                        )}
+                    </AutoGrowHeightInputContainer>
                     <BulletList
                         items={RULE_EXAMPLE_BULLET_POINTS}
                         header={translate('workspace.reports.reportsCustomTitleExamples')}

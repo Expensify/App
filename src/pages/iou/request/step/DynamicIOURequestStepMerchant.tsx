@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -25,6 +26,7 @@ import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isMerchantRequired} from '@libs/MoneyRequestUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import {hasReceipt} from '@libs/TransactionUtils';
 import {getMerchantError, getMerchantErrorMessage, isInvalidMerchantValue} from '@libs/ValidationUtils';
 
@@ -42,7 +44,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
 import React, {useState} from 'react';
-import {View} from 'react-native';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -74,7 +75,7 @@ function DynamicIOURequestStepMerchant({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
-    const {inputCallbackRef, inputRef} = useAutoFocusInput();
+    const {inputCallbackRef, inputRef} = useAutoFocusInput(true);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
 
@@ -195,30 +196,39 @@ function DynamicIOURequestStepMerchant({
             shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
             <FormProvider
+                shouldConstrainWebContentHeight
+                submitFlexEnabled={false}
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM}
-                onSubmit={updateMerchant}
-                validate={validate}
+                onSubmit={(values) => updateMerchant({...values, [INPUT_IDS.MONEY_REQUEST_MERCHANT]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.MONEY_REQUEST_MERCHANT])})}
+                validate={(values) => validate({...values, [INPUT_IDS.MONEY_REQUEST_MERCHANT]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.MONEY_REQUEST_MERCHANT])})}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
                 shouldUseStrictHtmlTagValidation
             >
-                <View style={styles.mb4}>
-                    <InputWrapper
-                        valueType="string"
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.MONEY_REQUEST_MERCHANT}
-                        name={INPUT_IDS.MONEY_REQUEST_MERCHANT}
-                        defaultValue={initialMerchant}
-                        onValueChange={updateMerchantRef}
-                        label={translate('common.merchant')}
-                        accessibilityLabel={translate('common.merchant')}
-                        role={CONST.ROLE.PRESENTATION}
-                        editable={!isDiscardModalVisible}
-                        ref={inputCallbackRef}
-                    />
-                </View>
+                <AutoGrowHeightInputContainer
+                    shouldKeepMinimumHeight
+                    style={styles.mb4}
+                >
+                    {(maxAutoGrowHeight) => (
+                        <InputWrapper
+                            valueType="string"
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.MONEY_REQUEST_MERCHANT}
+                            name={INPUT_IDS.MONEY_REQUEST_MERCHANT}
+                            defaultValue={initialMerchant}
+                            onValueChange={updateMerchantRef}
+                            label={translate('common.merchant')}
+                            accessibilityLabel={translate('common.merchant')}
+                            role={CONST.ROLE.PRESENTATION}
+                            editable={!isDiscardModalVisible}
+                            ref={inputCallbackRef}
+                            maxAutoGrowHeight={maxAutoGrowHeight}
+                            autoGrowSingleLine
+                        />
+                    )}
+                </AutoGrowHeightInputContainer>
             </FormProvider>
         </StepScreenWrapper>
     );
