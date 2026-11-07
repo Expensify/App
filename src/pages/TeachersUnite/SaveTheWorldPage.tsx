@@ -181,6 +181,7 @@ function SaveTheWorldPage() {
                         <ToggleSettingOptionRow
                             title={personalKarmaTitle}
                             switchAccessibilityLabel={personalKarmaTitle}
+                            switchSentryLabel={CONST.SENTRY_LABEL.SETTINGS_TEACHERS_UNITE.PERSONAL_KARMA_SWITCH}
                             onToggle={handlePersonalKarmaToggle}
                             isActive={personalOffsetsEnabled}
                             pendingAction={isPendingUpdatePersonalKarma ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined}

@@ -13,13 +13,11 @@ type ReportActionsListProps = {
     /** The ID of the report to display actions for */
     reportID: string;
 
-    conciergeChat: OnyxEntry<OnyxTypes.Report>;
     onLayout?: (event: LayoutChangeEvent) => void;
 };
 
 type UseReportActionsListDataParams = {
     sortedVisibleReportActions: OnyxTypes.ReportAction[];
-    reportNameValuePairs: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
     sessionStartTime: string | null;
     linkedReportActionID: string | undefined;
     unreadMarkerReportActionID: string | null;
@@ -28,7 +26,6 @@ type UseReportActionsListDataParams = {
 type UseReportActionsListScrollParams = Pick<
     Parameters<typeof useReportActionsScroll>[0],
     | 'reportID'
-    | 'conciergeChat'
     | 'sortedVisibleReportActions'
     | 'renderedVisibleReportActions'
     | 'hasScrolledOverThreshold'
@@ -59,8 +56,9 @@ type UseReportActionsListRenderItemParams = Pick<
     | 'draftReportActionID'
     | 'isDraftPendingCompletion'
 > &
-    Pick<UseReportActionsListDataParams, 'reportNameValuePairs' | 'linkedReportActionID' | 'unreadMarkerReportActionID'> &
+    Pick<UseReportActionsListDataParams, 'linkedReportActionID' | 'unreadMarkerReportActionID'> &
     Pick<ReportActionsListProps, 'reportID'> & {
+        reportNameValuePairs: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
         isReportArchived: boolean;
         isOffline: boolean;
         sortedReportActions: OnyxTypes.ReportAction[];
