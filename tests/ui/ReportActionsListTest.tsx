@@ -54,7 +54,7 @@ import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
 import {buildSystemAction} from '../utils/ReportTestUtils';
-import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const mockUseIsFocused = jest.fn().mockReturnValue(false);
 jest.mock('@react-navigation/native', () => {
@@ -376,8 +376,10 @@ describe('ReportActionsList (body)', () => {
     });
 
     afterEach(async () => {
-        await waitForBatchedUpdatesWithAct();
-        await Onyx.clear();
+        await act(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdates();
+        });
     });
 
     it('leaves counter copy subscriptions in the counter wrapper while forwarding report and navigation props', () => {
@@ -468,6 +470,7 @@ describe('ReportActionsList (body)', () => {
                 // Then only a loaded latest page is marked read; a cached survey alone cannot prove freshness
                 expect(getCapturedVisibleActions()).not.toContain(survey);
                 expect(getCapturedVisibleActions()).not.toContain(payment);
+                expect(mockUseReportActionsScroll.mock.lastCall?.[0].sortedVisibleReportActions).toEqual(hasNewestPage ? [survey, reply] : [reply]);
                 expect(markNewestActionAsRead).toHaveBeenCalledTimes(hasNewestPage ? 1 : 0);
                 expect(openReportAtLiveTail).toHaveBeenCalledTimes(!hasNewestPage && !hasUnreadMarker ? 1 : 0);
                 if (hasUnreadMarker) {
@@ -536,6 +539,9 @@ describe('ReportActionsList (body)', () => {
                 // Then New belongs to the unread reply, not the older read comment
                 expect(getCapturedVisibleActions()).not.toContain(survey);
                 expect(getCapturedVisibleActions()).not.toContain(payment);
+                expect(mockUseUnreadMarker).toHaveBeenLastCalledWith(
+                    expect.objectContaining({sortedReportActions: [offlineReply, readComment], sortedVisibleReportActions: [offlineReply, readComment]}),
+                );
                 expect(mockUseReportActionsScroll.mock.lastCall?.[0].unreadMarkerReportActionID).toBe(offlineReply.reportActionID);
                 expect(mockUseReportActionsScroll.mock.lastCall?.[0].unreadMarkerReportActionIndex).toBe(0);
             } finally {
@@ -588,7 +594,8 @@ describe('ReportActionsList (body)', () => {
                     return [supportReport, {status: 'loaded'}];
                 }
                 if (key === `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${mockReport.reportID}`) {
-                    return [ticketState === 'replaced' ? {reopenedAsReportID: 'replacement-ticket'} : {}, {status: 'loaded'}];
+                    const nameValuePairs = ticketState === 'replaced' ? {reopenedAsReportID: 'replacement-ticket'} : {};
+                    return [options?.selector ? (options.selector as (value: OnyxTypes.ReportNameValuePairs) => string | undefined)(nameValuePairs) : nameValuePairs, {status: 'loaded'}];
                 }
                 return getMockOnyxValue(key, options);
             });
@@ -622,6 +629,12 @@ describe('ReportActionsList (body)', () => {
             const visibleActions = getCapturedVisibleActions();
             expect(visibleActions).not.toContain(obsoleteSurvey);
             expect(visibleActions?.includes(latestSurvey)).toBe(ticketState === 'resolved');
+            expect(mockUseUnreadMarker).toHaveBeenLastCalledWith(
+                expect.objectContaining({
+                    sortedReportActions: actions.filter((action) => action !== obsoleteSurvey && (ticketState === 'resolved' || action !== latestSurvey)),
+                    sortedVisibleReportActions: visibleActions,
+                }),
+            );
             expect(mockUseReportActionsScroll.mock.lastCall?.[0].unreadMarkerReportActionID).toBe(unreadReply.reportActionID);
             expect(mockUseReportActionsScroll.mock.lastCall?.[0].unreadMarkerReportActionIndex).toBe(visibleActions?.indexOf(unreadReply));
             const row = findRenderedElement<React.ComponentProps<typeof ReportActionsListItemRenderer>>(
@@ -632,6 +645,187 @@ describe('ReportActionsList (body)', () => {
                 ReportActionsListItemRenderer,
             );
             expect(row?.props.shouldDisplayNewMarker).toBe(true);
+        });
+    });
+
+    describe('Support survey filtering in the list model', () => {
+        const reply: OnyxTypes.ReportAction = {...mockReportActions[1], created: '2023-01-01 00:04:00.000'};
+        const obsoleteSurvey: OnyxTypes.ReportAction = {
+            ...reply,
+            reportActionID: 'obsolete-survey',
+            actionName: CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY,
+            created: '2023-01-01 00:03:00.000',
+        };
+        const resolution: OnyxTypes.ReportAction = {
+            ...reply,
+            reportActionID: 'resolution',
+            actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
+            created: '2023-01-01 00:05:00.000',
+        };
+        const latestSurvey: OnyxTypes.ReportAction = {
+            ...obsoleteSurvey,
+            reportActionID: 'latest-survey',
+            created: '2023-01-01 00:06:00.000',
+        };
+        const resolvedReport: OnyxTypes.Report = {
+            ...mockReport,
+            type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+        };
+
+        it.each([
+            {ticketState: 'unresolved', hasCachedResolution: true, shouldShowLatestSurvey: false},
+            {ticketState: 'resolved', hasCachedResolution: true, shouldShowLatestSurvey: true},
+            {ticketState: 'replaced', hasCachedResolution: true, shouldShowLatestSurvey: false},
+            {ticketState: 'resolved', hasCachedResolution: false, shouldShowLatestSurvey: false},
+        ])('filters both model arrays for a $ticketState ticket (cached resolution: $hasCachedResolution)', ({ticketState, hasCachedResolution, shouldShowLatestSurvey}) => {
+            // Given a selected page whose resolution can only be found in the full cache
+            const supportReport = ticketState === 'unresolved' ? {...resolvedReport, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN} : resolvedReport;
+            const page = [latestSurvey, reply, obsoleteSurvey];
+            const fullCache = hasCachedResolution ? [latestSurvey, resolution, reply, obsoleteSurvey] : page;
+            const nameValuePairs = ticketState === 'replaced' ? {reopenedAsReportID: 'replacement-ticket'} : {};
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockUseOnyx.mockImplementation((key, options) => {
+                if (key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`) {
+                    return [supportReport, {status: 'loaded'}];
+                }
+                if (key === `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${mockReport.reportID}`) {
+                    return [options?.selector ? (options.selector as (value: OnyxTypes.ReportNameValuePairs) => string | undefined)(nameValuePairs) : nameValuePairs, {status: 'loaded'}];
+                }
+                return getMockOnyxValue(key, options);
+            });
+            mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions: page, sortedAllReportActions: fullCache});
+
+            // When the actual model derives its render and scroll views
+            const {result} = renderHook(() => useReportActionsListModel(mockReport.reportID, false));
+
+            // Then unread selection and rows share eligibility without losing selected-page freshness or raw pagination
+            const expectedActions = shouldShowLatestSurvey ? [latestSurvey, reply] : [reply];
+            expect(result.current.state.sortedReportActions).toEqual(expectedActions);
+            expect(result.current.state.sortedVisibleReportActions).toEqual(expectedActions);
+            expect(result.current.state.scrollReportActions).toEqual(page);
+            expect(result.current.state.sortedAllReportActions).toBe(fullCache);
+            expect(result.current.readinessSignals).toMatchObject({isMissingReportActions: false, reportActionsLength: page.length});
+            expect(jest.mocked(useLoadReportActions).mock.lastCall?.[0].reportActions).toEqual(page);
+        });
+
+        it('reacts to replacement metadata arriving and ticket status changing without changing the loaded page', async () => {
+            // Given a resolved ticket with a visible survey and real Onyx subscriptions for its report and metadata
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}` as const;
+            const nameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${mockReport.reportID}` as const;
+            const actualUseOnyx = jest.requireActual<{default: typeof useOnyx}>('@hooks/useOnyx').default;
+            const page = [latestSurvey, resolution, reply, obsoleteSurvey];
+            await act(async () => {
+                await Onyx.set(reportKey, resolvedReport);
+                await waitForBatchedUpdates();
+            });
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockUseOnyx.mockImplementation((key, options) => {
+                if (key === reportKey || key === nameValuePairsKey) {
+                    return actualUseOnyx(key, options);
+                }
+                return getMockOnyxValue(key, options);
+            });
+            mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions: page, sortedAllReportActions: page});
+            const {result} = renderHook(() => useReportActionsListModel(mockReport.reportID, false));
+            await waitFor(() => expect(result.current.state.sortedVisibleReportActions).toEqual([latestSurvey, resolution, reply]));
+
+            // When the server supplies replacement metadata after the actions have loaded
+            await act(async () => {
+                await Onyx.set(nameValuePairsKey, {reopenedAsReportID: 'replacement-ticket'});
+                await waitForBatchedUpdates();
+            });
+
+            // Then both render arrays immediately hide surveys, but scroll freshness retains the selected newest action
+            await waitFor(() => expect(result.current.state.sortedVisibleReportActions).toEqual([resolution, reply]));
+            expect(result.current.state.sortedReportActions).toEqual([resolution, reply]);
+            expect(result.current.state.scrollReportActions).toEqual(page);
+
+            // When the replacement disappears and the ticket changes from resolved to open and back
+            await act(async () => {
+                await Onyx.set(nameValuePairsKey, {});
+                await waitForBatchedUpdates();
+            });
+            await waitFor(() => expect(result.current.state.sortedVisibleReportActions).toContain(latestSurvey));
+            await act(async () => {
+                await Onyx.merge(reportKey, {stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
+                await waitForBatchedUpdates();
+            });
+
+            // Then eligibility follows status as well as metadata, without requiring a new action array
+            await waitFor(() => expect(result.current.state.sortedVisibleReportActions).toEqual([resolution, reply]));
+            expect(result.current.state.sortedReportActions).toEqual([resolution, reply]);
+            await act(async () => {
+                await Onyx.merge(reportKey, {stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.CLOSED});
+                await waitForBatchedUpdates();
+            });
+            await waitFor(() => expect(result.current.state.sortedVisibleReportActions).toEqual([latestSurvey, resolution, reply]));
+            expect(result.current.state.scrollReportActions).toEqual(page);
+        });
+
+        it.each([false, true])('keeps a hidden-survey-only loaded page ready without backfilling (offline: %s)', (isOffline) => {
+            // Given an unresolved ticket whose selected page contains only a survey that cannot render
+            const supportReport = {...resolvedReport, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
+            const loadOlderChats = jest.fn();
+            const loadHookSpy = jest.mocked(useLoadReportActions);
+            const defaultImplementation = loadHookSpy.getMockImplementation();
+            loadHookSpy.mockReturnValue({loadOlderChats, loadNewerChats: jest.fn(), currentReportOldestActionID: latestSurvey.reportActionID});
+            mockUseNetwork.mockReturnValue({isOffline});
+            mockUseOnyx.mockImplementation((key, options) =>
+                key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}` ? [supportReport, {status: 'loaded'}] : getMockOnyxValue(key, options),
+            );
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [latestSurvey],
+                sortedAllReportActions: [latestSurvey],
+                hasOlderActions: true,
+            });
+
+            try {
+                // When the public list evaluates readiness before survey filtering
+                renderReportActionsList();
+
+                // Then an empty presentation mounts normally instead of requesting unrelated older messages
+                expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
+                expect(getCapturedVisibleActions()).toEqual([]);
+                expect(mockUseMarkAsRead).toHaveBeenCalled();
+                expect(mockUseReportActionsScroll.mock.lastCall?.[0].sortedVisibleReportActions).toEqual([latestSurvey]);
+                expect(loadOlderChats).not.toHaveBeenCalled();
+            } finally {
+                loadHookSpy.mockReset();
+                if (defaultImplementation) {
+                    loadHookSpy.mockImplementation(defaultImplementation);
+                }
+            }
+        });
+
+        it('keeps read, scroll, and unread effects dormant while a support ticket load is pending', () => {
+            // Given a partially cached support ticket whose OpenReport request has not completed
+            const unreadSupportReport = {
+                ...resolvedReport,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                lastReadTime: '2023-01-01 00:02:00.000',
+                lastVisibleActionCreated: latestSurvey.created,
+                lastMessageText: 'Unread support reply',
+                lastActorAccountID: reply.actorAccountID,
+            };
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockUseIsReportLoadPending.mockReturnValue(true);
+            mockUseOnyx.mockImplementation((key, options) =>
+                key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}` ? [unreadSupportReport, {status: 'loaded'}] : getMockOnyxValue(key, options),
+            );
+            mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions: [latestSurvey], sortedAllReportActions: [latestSurvey]});
+
+            // When the guard sees an in-flight report load despite its cached survey
+            renderReportActionsList();
+
+            // Then no content effect can consume unread state or subscribe to live scrolling
+            expect(screen.getByTestId('ReportActionsSkeletonView')).toBeTruthy();
+            expect(mockUseMarkAsRead).not.toHaveBeenCalled();
+            expect(mockUseUnreadMarker).not.toHaveBeenCalled();
+            expect(mockUseReportActionsScroll).not.toHaveBeenCalled();
         });
     });
 
@@ -686,6 +880,7 @@ describe('ReportActionsList (body)', () => {
             // Then both render arrays omit only the bank payment, while fetching retains its identity and cursor
             expect(result.current.state.sortedReportActions).toEqual([directSend, ...mockReportActions]);
             expect(result.current.state.sortedVisibleReportActions).toEqual([directSend, ...mockReportActions]);
+            expect(result.current.state.scrollReportActions).toEqual([directSend, ...mockReportActions]);
             expect(result.current.state.sortedAllReportActions).toBe(sourceActions);
             expect(result.current.state.persistedReportActionIDs).toContain(payment.reportActionID);
             expect(result.current.readinessSignals).toMatchObject({
@@ -1150,7 +1345,8 @@ describe('ReportActionsList (body)', () => {
         it('marks nothing inside the feedback thread the backend opens after a thumbs down', () => {
             mockUseOnyx.mockImplementation((key, options) => {
                 if (key.startsWith(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS)) {
-                    return [{conciergeFeedbackForReportActionID: conciergeReply.reportActionID}, {status: 'loaded'}];
+                    const nameValuePairs = {conciergeFeedbackForReportActionID: conciergeReply.reportActionID};
+                    return [options?.selector ? (options.selector as (value: OnyxTypes.ReportNameValuePairs) => string | undefined)(nameValuePairs) : nameValuePairs, {status: 'loaded'}];
                 }
                 return getMockOnyxValue(key, options);
             });
@@ -1253,11 +1449,17 @@ describe('ReportActionsList (body)', () => {
         });
 
         it('clears a completed streamed reply when an unrelated survey is filtered out', () => {
-            // Given an unresolved ticket with a saved reply and an obsolete survey.
-            const supportReport = {...mockReport, type: CONST.REPORT.TYPE.SUPPORT_TICKET};
+            // Given an unresolved ticket with a saved reply, an obsolete survey, and a hidden payment.
+            const supportReport = {...mockReport, type: CONST.REPORT.TYPE.SUPPORT_TICKET, isWaitingOnBankAccount: true};
             const savedReply = {...conciergeDraftReportAction, reportActionID: 'saved-reply'};
             const survey = {...conciergeDraftReportAction, reportActionID: 'obsolete-survey', actionName: CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY};
-            const actions = [savedReply, survey, ...mockReportActions];
+            const payment: OnyxTypes.ReportAction = {
+                ...savedReply,
+                reportActionID: 'hidden-payment',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY},
+            };
+            const actions = [payment, savedReply, survey, ...mockReportActions];
             const clearDraft = jest.fn();
             mockUseOnyx.mockImplementation((key, options) =>
                 key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}` ? [supportReport, {status: 'loaded'}] : getMockOnyxValue(key, options),
@@ -1272,6 +1474,7 @@ describe('ReportActionsList (body)', () => {
             // Then only the saved reply remains, and no synthetic autoscroll or retained reply is needed.
             expect(getCapturedVisibleActions()?.filter((action) => action.reportActionID === savedReply.reportActionID)).toHaveLength(1);
             expect(getCapturedVisibleActions()).not.toContain(survey);
+            expect(getCapturedVisibleActions()).not.toContain(payment);
             expect(mockUseReportActionsScroll.mock.calls.at(-1)?.at(0)?.draftAutoScrollKey).toBe('');
             expect(clearDraft).toHaveBeenCalledTimes(1);
         });
