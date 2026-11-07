@@ -481,23 +481,27 @@ describe('DateUtils', () => {
 
     describe('getFormattedQuarterForSearch', () => {
         it('covers each quarter with the right month boundaries', () => {
-            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, undefined)).toBe('Q1 2026 (Jan 1 - Mar 31)');
-            expect(DateUtils.getFormattedQuarterForSearch(2026, 2, undefined)).toBe('Q2 2026 (Apr 1 - Jun 30)');
-            expect(DateUtils.getFormattedQuarterForSearch(2026, 3, undefined)).toBe('Q3 2026 (Jul 1 - Sep 30)');
-            expect(DateUtils.getFormattedQuarterForSearch(2026, 4, undefined)).toBe('Q4 2026 (Oct 1 - Dec 31)');
+            // Given each quarter of 2026
+            // When its label is built in English
+            // Then the range inside the parentheses spans exactly that quarter's months, joined the way `Intl` writes a range
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, undefined)).toBe('Q1 2026 (Jan 1\u2009–\u2009Mar 31)');
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 2, undefined)).toBe('Q2 2026 (Apr 1\u2009–\u2009Jun 30)');
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 3, undefined)).toBe('Q3 2026 (Jul 1\u2009–\u2009Sep 30)');
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 4, undefined)).toBe('Q4 2026 (Oct 1\u2009–\u2009Dec 31)');
         });
 
         it('labels the quarter the way the locale does', () => {
-            // `QQQ` rather than a hardcoded `Q`. `Intl.DateTimeFormat` has no quarter option, so date-fns is the only
-            // source for these. The day range inside the parentheses is still the hand-written US-ordered `MMM d`,
-            // which is why French reads `janv. 1` rather than `1 janv.`. Localizing that ordering is a separate
-            // change.
-            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, fr)).toBe('1er trim. 2026 (janv. 1 - mars 31)');
-            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, pl)).toBe('I kw. 2026 (sty 1 - mar 31)');
-            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, nl)).toBe('K1 2026 (jan. 1 - mrt. 31)');
-            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, el)).toBe('Τ1 2026 (Ιαν 1 - Μαρ 31)');
+            // Given the first quarter of 2026 in several languages
+            // When its label is built
+            // Then the quarter name comes from `QQQ` rather than a hardcoded `Q`, because `Intl.DateTimeFormat` has no
+            // quarter option, and the day range in the parentheses is a localized `Intl` range, so French reads
+            // `1 janv.` rather than `janv. 1`.
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, fr)).toBe('1er trim. 2026 (1 janv.\u2009–\u200931 mars)');
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, pl)).toBe('I kw. 2026 (1 sty–31 mar)');
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, nl)).toBe('K1 2026 (1 jan\u2009–\u200931 mrt)');
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, el)).toBe('Τ1 2026 (1 Ιαν – 31 Μαρ)');
             // German and Japanese keep the English-looking `Q1`, so a dropped locale would not show up there.
-            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, de)).toBe('Q1 2026 (Jan. 1 - März 31)');
+            expect(DateUtils.getFormattedQuarterForSearch(2026, 1, de)).toBe('Q1 2026 (1. Jan.\u2009–\u200931. März)');
         });
     });
 
@@ -1253,6 +1257,61 @@ describe('DateUtils', () => {
             expect(DateUtils.getShortFormattedQuarterForSearch(2026, 3, undefined, false)).toBe('Q3');
             expect(DateUtils.getShortFormattedDateRangeForSearch('2026-09-01', '2026-09-07', undefined, false)).toBe('Sep 1 - 7');
             expect(DateUtils.getShortFormattedDateRangeForSearch('2026-09-28', '2026-10-04', undefined, false)).toBe('Sep 28 - Oct 4');
+        });
+    });
+
+    describe('getFormattedDateRangeForSearch', () => {
+        // cspell:ignore Sept
+        // `Intl` puts thin spaces around the en dash in an English range.
+        const THIN_SPACE = ' ';
+
+        it('writes the shared month and year once in English', () => {
+            // Given a week of Search results within one month
+            // When its range label is built
+            // Then the month and year are written once, the way `Intl` joins a range
+            expect(DateUtils.getFormattedDateRangeForSearch('2025-09-01', '2025-09-07', undefined)).toBe(`Sep 1${THIN_SPACE}–${THIN_SPACE}7, 2025`);
+        });
+
+        it('joins the range the way each language does', () => {
+            // Given the same week in German and Spanish
+            // When its range label is built
+            // Then each language puts the days first and uses its own range punctuation. The hand-written `MMM d - MMM d`
+            // kept the US order and repeated the month.
+            expect(DateUtils.getFormattedDateRangeForSearch('2025-09-01', '2025-09-07', de)).toBe('1.–7. Sept. 2025');
+            expect(DateUtils.getFormattedDateRangeForSearch('2025-09-01', '2025-09-07', es)).toBe('1–7 sept 2025');
+        });
+
+        it('shows both years when the range crosses New Year', () => {
+            // Given a range that starts in one year and ends in the next
+            // When its range label is built
+            // Then each end carries its own year
+            expect(DateUtils.getFormattedDateRangeForSearch('2025-12-29', '2026-01-04', undefined)).toBe(`Dec 29, 2025${THIN_SPACE}–${THIN_SPACE}Jan 4, 2026`);
+        });
+
+        it('still joins the range on an engine without formatRange', () => {
+            // Given an engine that does not implement `Intl.DateTimeFormat.prototype.formatRange`, as can happen on Hermes
+            const formatRangeDescriptor = Object.getOwnPropertyDescriptor(Intl.DateTimeFormat.prototype, 'formatRange');
+            // @ts-expect-error -- removed on purpose to reproduce an engine that leaves the method out
+            delete Intl.DateTimeFormat.prototype.formatRange;
+
+            try {
+                // When a range label is built
+                const result = DateUtils.getFormattedDateRangeForSearch('2025-09-01', '2025-09-07', undefined);
+
+                // Then both dates are still shown, joined with a dash, instead of the Search page throwing
+                expect(result).toBe('Sep 1, 2025 – Sep 7, 2025');
+            } finally {
+                if (formatRangeDescriptor) {
+                    Object.defineProperty(Intl.DateTimeFormat.prototype, 'formatRange', formatRangeDescriptor);
+                }
+            }
+        });
+
+        it('returns an empty string for a date that cannot be read', () => {
+            // Given a range whose start is not a yyyy-MM-dd date
+            // When its range label is built
+            // Then nothing is shown instead of `Intl` throwing a RangeError
+            expect(DateUtils.getFormattedDateRangeForSearch('not a date', '2025-09-07', undefined)).toBe('');
         });
     });
 

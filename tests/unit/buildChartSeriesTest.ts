@@ -1169,7 +1169,7 @@ describe('buildChartSeries labels for compared time buckets', () => {
         const labels = buildSeriesLabels([weekGroup('2026-08-30')], CONST.SEARCH.GROUP_BY.WEEK, {start: '2026-09-01', end: '2026-09-30'}, {start: '2026-08-01', end: '2026-08-31'});
 
         // Then the tooltip names the days each period actually adds up, rather than the period names
-        expect(labels).toEqual([{[CHART_SERIES_KEY.PRIMARY]: 'Sep 1 - Sep 5, 2026', [CHART_SERIES_KEY.COMPARISON]: 'Aug 1, 2026'}]);
+        expect(labels).toEqual([{[CHART_SERIES_KEY.PRIMARY]: 'Sep 1\u2009–\u20095, 2026', [CHART_SERIES_KEY.COMPARISON]: 'Aug 1, 2026'}]);
     });
 
     it("names each period's row by its year when the same month of two years is compared", () => {

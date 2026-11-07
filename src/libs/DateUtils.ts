@@ -1323,18 +1323,41 @@ function getShortFormattedMonthForSearch(year: number, month: number, dateFnsLoc
 }
 
 /**
- * Returns a formatted date range.
+ * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language and
+ * whether the year is shown.
+ * They format in UTC, so pass dates through `toUTCWallClockDate` to show them in the device's current timezone.
+ */
+const memoizedCreateSearchDateRangeFormatter = memoize(
+    (localeCode: string, shouldIncludeYear: boolean) =>
+        new Intl.DateTimeFormat(localeCode, {year: shouldIncludeYear ? 'numeric' : undefined, month: 'short', day: 'numeric', timeZone: 'UTC'}),
+);
+
+/**
+ * Formats a Search date range with `Intl`'s range format, so each language orders the dates and joins them its own way,
+ * and parts the two dates share (such as the month or year) are written once.
+ */
+function formatSearchDateRange(start: Date, end: Date, dateFnsLocale: DateFnsLocale | undefined, shouldIncludeYear: boolean): string {
+    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
+    const formatter = memoizedCreateSearchDateRangeFormatter(dateFnsLocale?.code ?? 'en-US', shouldIncludeYear);
+    // Hermes, which runs the app on iOS and Android, may not implement `formatRange` even though the type says it always
+    // exists, so join two localized dates there.
+    if (!formatter.formatRange) {
+        return `${formatter.format(toUTCWallClockDate(start))} – ${formatter.format(toUTCWallClockDate(end))}`;
+    }
+    return formatter.formatRange(toUTCWallClockDate(start), toUTCWallClockDate(end));
+}
+
+/**
+ * Returns a formatted date range, e.g. Sep 1 – 7, 2025.
  */
 function getFormattedDateRangeForSearch(startDate: string, endDate: string, dateFnsLocale: DateFnsLocale | undefined, shouldShowFullYear = false, shouldOmitCurrentYear = false): string {
     const start = parse(startDate, 'yyyy-MM-dd', new Date());
     const end = parse(endDate, 'yyyy-MM-dd', new Date());
-    if (shouldShowFullYear || !isSameYear(new Date(start), new Date(end))) {
-        return `${format(start, 'MMM d, yyyy', {locale: dateFnsLocale})} - ${format(end, 'MMM d, yyyy', {locale: dateFnsLocale})}`;
+    if (!isValid(start) || !isValid(end)) {
+        return '';
     }
-    if (shouldOmitCurrentYear && isThisYear(start) && isThisYear(end)) {
-        return `${format(start, 'MMM d', {locale: dateFnsLocale})} - ${format(end, 'MMM d', {locale: dateFnsLocale})}`;
-    }
-    return `${format(start, 'MMM d', {locale: dateFnsLocale})} - ${format(end, 'MMM d, yyyy', {locale: dateFnsLocale})}`;
+    const shouldIncludeYear = shouldShowFullYear || !isSameYear(start, end) || !shouldOmitCurrentYear || !isThisYear(start) || !isThisYear(end);
+    return formatSearchDateRange(start, end, dateFnsLocale, shouldIncludeYear);
 }
 
 /** Returns a compact date range, e.g. "Sep 1 - 7, ’25". */
@@ -1380,7 +1403,7 @@ function getFormattedQuarterForSearch(year: number, quarter: number, dateFnsLoca
     // `I kw.` in Polish and `第一季` in Chinese. `Intl.DateTimeFormat` has no quarter option at all, so date-fns is
     // the only way to localize this. The quarter still comes before the year by hand, because neither library has
     // a canned pattern pairing the two.
-    return `${format(quarterStart, 'QQQ yyyy', {locale: dateFnsLocale})} (${format(quarterStart, 'MMM d', {locale: dateFnsLocale})} - ${format(quarterEnd, 'MMM d', {locale: dateFnsLocale})})`;
+    return `${format(quarterStart, 'QQQ yyyy', {locale: dateFnsLocale})} (${formatSearchDateRange(quarterStart, quarterEnd, dateFnsLocale, false)})`;
 }
 
 /**
