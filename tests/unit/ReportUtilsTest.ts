@@ -13833,22 +13833,41 @@ describe('ReportUtils', () => {
             expect(result).toBe(true);
         });
 
-        it('returns false for a retracted Open draft even when its totals contain only non-reimbursable transactions', () => {
-            // Given a retracted report that Auth treats as a draft
+        it('keeps a non-reimbursable destination when the policy does not use instant submit', () => {
+            // Given a complete non-reimbursable report on a workspace without instant submit
+            const report: Report = {
+                ...createRandomReport(30008, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: instantSubmitPolicy.id,
+                transactionCount: 1,
+            };
+            const transaction = {...createRandomTransaction(30008), reportID: report.reportID, reimbursable: false};
+            const manualSubmitPolicy = {...instantSubmitPolicy, autoReporting: false};
+
+            // When move eligibility is checked for that workspace
+            const result = isReportIneligibleForMoveExpenses(report, manualSubmitPolicy, {[transaction.transactionID]: transaction});
+
+            // Then the report stays available because this Auth restriction applies only to instant submit with Submit & Close
+            expect(result).toBe(false);
+        });
+
+        it.each(['hasReportBeenRetracted', 'hasReportBeenReopened'] as const)('returns false for an Open draft with %s even when every transaction is non-reimbursable', (draftFlag) => {
+            // Given a reopened or retracted report that Auth treats as a draft
             const report: Report = {
                 ...createRandomReport(30002, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 policyID: instantSubmitPolicy.id,
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                hasReportBeenRetracted: true,
+                [draftFlag]: true,
                 transactionCount: 1,
                 total: -100,
                 nonReimbursableTotal: -100,
             };
+            const transaction = {...createRandomTransaction(30002), reportID: report.reportID, reimbursable: false};
 
-            // When the move eligibility is checked
-            const result = isReportIneligibleForMoveExpenses(report, instantSubmitPolicy, undefined);
+            // When the move eligibility is checked with its complete transaction set
+            const result = isReportIneligibleForMoveExpenses(report, instantSubmitPolicy, {[transaction.transactionID]: transaction});
 
             // Then the draft remains available because Auth allows transactions to be moved into it
             expect(result).toBe(false);
