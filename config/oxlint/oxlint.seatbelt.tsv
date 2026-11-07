@@ -2414,7 +2414,6 @@
 "../../src/pages/workspace/hr/merge/MergeHRGroupsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/hr/merge/MergeHRGroupsPage.tsx"	"no-restricted-syntax"	1
 "../../src/pages/workspace/hr/utils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/workspace/invoices/WorkspaceInvoiceBalanceSection.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/invoices/WorkspaceInvoiceVBASection.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/pages/workspace/invoices/WorkspaceInvoiceVBASection.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/invoices/WorkspaceInvoicingDetailsName.tsx"	"no-restricted-imports"	1
@@ -2983,7 +2982,6 @@
 "../../tests/unit/QuickActionUtilsTest.ts"	"no-restricted-imports"	2
 "../../tests/unit/ReceiptUploadRetryHandlerTest.ts"	"@typescript-eslint/no-deprecated/originalMessage"	1
 "../../tests/unit/ReceiptUploadRetryHandlerTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	4
-"../../tests/unit/ReportActionItemSingleTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/ReportActionsUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	38
 "../../tests/unit/ReportAlternateTextParityTest.ts"	"@typescript-eslint/no-deprecated/originalMessage"	15
 "../../tests/unit/ReportAlternateTextParityTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1

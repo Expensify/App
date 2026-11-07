@@ -82,7 +82,7 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
                 userTimezone,
                 CONST.DATE.LOCAL_TIME_FORMAT,
                 {locale: dateFnsLocale},
-            )} ${DateUtils.getZoneAbbreviation(new Date(latestScheduledCall.eventTime), userTimezone)}`,
+            )} ${DateUtils.getZoneAbbreviation(new Date(latestScheduledCall.eventTime), userTimezone, dateFnsLocale)}`,
             descriptionTextStyle: [styles.themeTextColor, styles.ml2],
             displayInDefaultIconColor: true,
             icon: illustrations.HeadSet,
