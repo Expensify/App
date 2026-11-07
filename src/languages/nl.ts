@@ -1930,6 +1930,9 @@ const translations: TranslationDeepObject<typeof en> = {
             selectMemberError: 'Selecteer een lid om dit rapport naar terug te sturen.',
             couldNotReject: 'Het rapport kon niet worden afgewezen. Probeer het opnieuw.',
             couldNotRejectExpense: 'De uitgave kon niet worden afgewezen omdat deze mogelijk al is verplaatst of afgewezen.',
+            couldNotRejectCorporateCardExpense:
+                'Uitgaven van bedrijfskaarten op een afschrift-rapport kunnen niet afzonderlijk worden afgewezen. Wijs in plaats daarvan het volledige rapport af.',
+            couldNotRejectExpenseContactConcierge: 'Deze uitgave kon niet worden afgewezen. Neem contact op met Concierge voor hulp.',
         },
         moveExpenses: 'Verplaatsen naar rapport',
         autoReport: 'Automatisch rapport',

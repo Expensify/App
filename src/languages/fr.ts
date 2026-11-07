@@ -1945,6 +1945,9 @@ const translations: TranslationDeepObject<typeof en> = {
             selectMemberError: 'Sélectionnez un membre vers qui rejeter cette note de frais.',
             couldNotReject: 'La note de frais n’a pas pu être rejetée. Veuillez réessayer.',
             couldNotRejectExpense: 'La dépense n’a pas pu être rejetée, car elle a peut-être déjà été déplacée ou rejetée.',
+            couldNotRejectCorporateCardExpense:
+                'Les dépenses par carte d’entreprise sur une note de frais de relevé ne peuvent pas être rejetées individuellement. Veuillez plutôt rejeter l’intégralité de la note de frais.',
+            couldNotRejectExpenseContactConcierge: 'Cette dépense n’a pas pu être rejetée. Veuillez contacter Concierge pour obtenir de l’aide.',
         },
         moveExpenses: 'Déplacer vers le rapport',
         autoReport: 'Rapport automatique',

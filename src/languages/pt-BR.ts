@@ -1930,6 +1930,9 @@ const translations: TranslationDeepObject<typeof en> = {
             selectMemberError: 'Selecione um membro para o qual rejeitar este relatório.',
             couldNotReject: 'Não foi possível rejeitar o relatório. Tente novamente.',
             couldNotRejectExpense: 'A despesa não pôde ser rejeitada porque ela pode já ter sido movida ou rejeitada.',
+            couldNotRejectCorporateCardExpense:
+                'Despesas de cartão corporativo em um relatório de fatura não podem ser rejeitadas individualmente. Em vez disso, rejeite o relatório inteiro.',
+            couldNotRejectExpenseContactConcierge: 'Não foi possível rejeitar essa despesa. Entre em contato com o Concierge para obter ajuda.',
         },
         moveExpenses: 'Mover para relatório',
         autoReport: 'Relatório automático',

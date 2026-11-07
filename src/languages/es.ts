@@ -1929,6 +1929,8 @@ const translations: TranslationDeepObject<typeof en> = {
             selectMemberError: 'Selecciona un miembro al que devolver este informe.',
             couldNotReject: 'No se pudo rechazar el informe. Por favor, inténtalo de nuevo.',
             couldNotRejectExpense: 'No se ha podido rechazar el gasto porque es posible que ya se haya movido o rechazado.',
+            couldNotRejectCorporateCardExpense: 'Los gastos de tarjeta corporativa en un informe de extracto no se pueden rechazar individualmente. Por favor, rechaza el informe completo.',
+            couldNotRejectExpenseContactConcierge: 'No se ha podido rechazar este gasto. Ponte en contacto con Concierge para obtener ayuda.',
         },
         moveExpenses: 'Mover a informe',
         autoReport: 'Informe automático',

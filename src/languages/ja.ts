@@ -1914,6 +1914,8 @@ const translations: TranslationDeepObject<typeof en> = {
             selectMemberError: 'このレポートを差し戻すメンバーを選択してください。',
             couldNotReject: 'レポートを拒否できませんでした。もう一度お試しください。',
             couldNotRejectExpense: 'この経費は、すでに移動または却下されている可能性があるため、却下できませんでした。',
+            couldNotRejectCorporateCardExpense: 'ステートメントレポート上のコーポレートカード経費は、個別に却下することはできません。代わりに、レポート全体を却下してください。',
+            couldNotRejectExpenseContactConcierge: 'この経費は却下できませんでした。ヘルプが必要な場合は Concierge へお問い合わせください。',
         },
         moveExpenses: 'レポートに移動',
         autoReport: '自動レポート',

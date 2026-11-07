@@ -1970,6 +1970,8 @@ const translations: TranslationDeepObject<typeof en> = {
             selectMemberError: 'Wybierz członka, do którego chcesz odesłać ten raport do odrzucenia.',
             couldNotReject: 'Nie udało się odrzucić raportu. Spróbuj ponownie.',
             couldNotRejectExpense: 'Nie można było odrzucić tego wydatku, ponieważ mógł już zostać przeniesiony lub odrzucony.',
+            couldNotRejectCorporateCardExpense: 'Wydatków z kart służbowych na raporcie zestawienia nie można odrzucać pojedynczo. Zamiast tego odrzuć cały raport.',
+            couldNotRejectExpenseContactConcierge: 'Nie udało się odrzucić tego wydatku. Skontaktuj się z Concierge, żeby uzyskać pomoc.',
         },
         moveExpenses: 'Przenieś do raportu',
         autoReport: 'Raport automatyczny',
