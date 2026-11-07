@@ -83,9 +83,7 @@ type GetReportPrimaryActionParams = {
     reportTransactions: Transaction[];
     violations: OnyxCollection<TransactionViolation[]>;
     bankAccountList: OnyxEntry<BankAccountList>;
-    /** Optional so the existing callers that cannot see a broken feed keep today's behaviour: with no card we cannot
-     *  tell how long a connection has been broken, so the violation stays visible. */
-    cardList?: OnyxEntry<CardList>;
+    cardList: OnyxEntry<CardList>;
     policy?: Policy;
     reportNameValuePairs?: ReportNameValuePairs;
     reportActions?: ReportAction[];

@@ -72,9 +72,7 @@ function getReportSubmitViolationSummary(
     policy: OnyxEntry<Policy>,
     currentUserEmail: string,
     currentUserAccountID: number,
-    /** Optional so existing callers keep today's behaviour: with no card we cannot tell how long a connection has
-     *  been broken, so the violation stays in the summary. */
-    cardList?: OnyxEntry<CardList>,
+    cardList: OnyxEntry<CardList>,
 ): ReportSubmitViolationSummary {
     let hasRejectedExpense = false;
     let hasPendingCardMatch = false;

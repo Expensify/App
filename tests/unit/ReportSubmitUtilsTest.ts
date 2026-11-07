@@ -169,8 +169,8 @@ describe('canSubmitReport reportOwnerLogin', () => {
         };
 
         // When we call canSubmitReport with and without the owner login
-        const withOwnerLogin = canSubmitReport(report, OWNER_LOGIN, adminPolicy, [transaction], violations, false, 'user@test.com', CURRENT_USER_ACCOUNT_ID);
-        const withoutOwnerLogin = canSubmitReport(report, undefined, adminPolicy, [transaction], violations, false, 'user@test.com', CURRENT_USER_ACCOUNT_ID);
+        const withOwnerLogin = canSubmitReport(report, OWNER_LOGIN, adminPolicy, [transaction], violations, false, 'user@test.com', CURRENT_USER_ACCOUNT_ID, undefined);
+        const withoutOwnerLogin = canSubmitReport(report, undefined, adminPolicy, [transaction], violations, false, 'user@test.com', CURRENT_USER_ACCOUNT_ID, undefined);
 
         // Then only the call with the login sees the dismissal, so only that call allows submitting
         expect(withOwnerLogin).toBe(true);
@@ -206,7 +206,7 @@ describe('canSubmitReport approve-only role', () => {
     it('returns false when the report owner has the approve-only role', () => {
         // Given an open expense report owned by the current user on a policy where they have the approve-only role
         // When the owner submits it
-        const canSubmit = canSubmitReport(openExpenseReport, 'user@test.com', approveOnlyPolicy, [transaction], {}, false, 'user@test.com', CURRENT_USER_ACCOUNT_ID);
+        const canSubmit = canSubmitReport(openExpenseReport, 'user@test.com', approveOnlyPolicy, [transaction], {}, false, 'user@test.com', CURRENT_USER_ACCOUNT_ID, undefined);
 
         // Then the submit is not allowed
         expect(canSubmit).toBe(false);
@@ -215,7 +215,7 @@ describe('canSubmitReport approve-only role', () => {
     it('returns true when a member with the user role submits their own report', () => {
         // Given the same report on a policy where the current user has the user role
         // When the owner submits it
-        const canSubmit = canSubmitReport(openExpenseReport, 'user@test.com', basePolicy, [transaction], {}, false, 'user@test.com', CURRENT_USER_ACCOUNT_ID);
+        const canSubmit = canSubmitReport(openExpenseReport, 'user@test.com', basePolicy, [transaction], {}, false, 'user@test.com', CURRENT_USER_ACCOUNT_ID, undefined);
 
         // Then the submit is allowed
         expect(canSubmit).toBe(true);
@@ -226,7 +226,7 @@ describe('canSubmitReport approve-only role', () => {
         const personalPolicy: Policy = {...basePolicy, type: CONST.POLICY.TYPE.PERSONAL, role: CONST.POLICY.ROLE.ADMIN};
 
         // When the owner submits it
-        const canSubmit = canSubmitReport(openExpenseReport, 'user@test.com', personalPolicy, [transaction], {}, false, 'user@test.com', CURRENT_USER_ACCOUNT_ID);
+        const canSubmit = canSubmitReport(openExpenseReport, 'user@test.com', personalPolicy, [transaction], {}, false, 'user@test.com', CURRENT_USER_ACCOUNT_ID, undefined);
 
         // Then the submit is allowed
         expect(canSubmit).toBe(true);
@@ -238,7 +238,7 @@ describe('canSubmitReport approve-only role', () => {
         const adminPolicy: Policy = {...approveOnlyPolicy, role: CONST.POLICY.ROLE.ADMIN};
 
         // When the admin submits it on the member's behalf
-        const canSubmit = canSubmitReport(reportOwnedByMember, 'other.user@test.com', adminPolicy, [transaction], {}, false, 'user@test.com', CURRENT_USER_ACCOUNT_ID);
+        const canSubmit = canSubmitReport(reportOwnedByMember, 'other.user@test.com', adminPolicy, [transaction], {}, false, 'user@test.com', CURRENT_USER_ACCOUNT_ID, undefined);
 
         // Then the submit is allowed
         expect(canSubmit).toBe(true);

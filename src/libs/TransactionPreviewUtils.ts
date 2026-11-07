@@ -309,7 +309,8 @@ function getTransactionPreviewTextAndTranslationPaths({
         previewStatusText.push({translationPath: 'iou.pending'});
     }
 
-    if (hasPendingRTERViolation(violations)) {
+    // `violations` is the already-visible list the caller passes in, so the feed age has been applied to it.
+    if (hasPendingRTERViolation(violations, undefined)) {
         previewStatusText.push({translationPath: 'iou.pendingMatch'});
     }
 

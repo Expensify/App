@@ -59,7 +59,7 @@ function isPendingRTERViolation(violation: TransactionViolation): boolean {
 /**
  * Check if there is pending rter violation in transactionViolations.
  */
-function hasPendingRTERViolation(transactionViolations?: TransactionViolations | null, cardList?: OnyxEntry<CardList>): boolean {
+function hasPendingRTERViolation(transactionViolations: TransactionViolations | null | undefined, cardList: OnyxEntry<CardList>): boolean {
     // A hold waiting on a feed nobody is going to reconnect is not worth showing either, so it is dropped on the same
     // terms as the broken connection warning.
     return !!transactionViolations?.some((violation) => isPendingRTERViolation(violation) && !isViolationOnFeedBrokenPastDismissThresholdInList(violation, cardList));
@@ -341,7 +341,7 @@ function allHavePendingRTERViolation(
     report: OnyxEntry<Report>,
     reportOwnerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
-    cardList?: OnyxEntry<CardList>,
+    cardList: OnyxEntry<CardList>,
 ): boolean {
     if (!transactions) {
         return false;
@@ -383,7 +383,7 @@ function hasAnyTransactionWithoutRTERViolation(
 /**
  * Check if the transaction is pending or has a pending rter violation.
  */
-function hasPendingUI(transaction: OnyxEntry<Transaction>, transactionViolations?: TransactionViolations | null, cardList?: OnyxEntry<CardList>): boolean {
+function hasPendingUI(transaction: OnyxEntry<Transaction>, transactionViolations: TransactionViolations | null | undefined, cardList: OnyxEntry<CardList>): boolean {
     return isScanning(transaction) || isPending(transaction) || (!!transaction && hasPendingRTERViolation(transactionViolations, cardList));
 }
 

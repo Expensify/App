@@ -2582,7 +2582,7 @@ describe('TransactionUtils', () => {
                 {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {pendingPattern: true, rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH}},
             ];
 
-            expect(TransactionUtils.hasPendingRTERViolation(transactionViolations)).toBe(false);
+            expect(TransactionUtils.hasPendingRTERViolation(transactionViolations, undefined)).toBe(false);
         });
 
         it('stops treating a seven-day hold as pending once its feed is past the grace period', () => {
@@ -2635,7 +2635,7 @@ describe('TransactionUtils', () => {
 
             // When the expense is checked for a pending card match
             // Then nothing changes: with no card there is no feed age to judge
-            expect(TransactionUtils.hasPendingRTERViolation(transactionViolations)).toBe(true);
+            expect(TransactionUtils.hasPendingRTERViolation(transactionViolations, undefined)).toBe(true);
         });
 
         it('should treat a seven-day-hold RTER violation as pending', () => {
@@ -2643,7 +2643,7 @@ describe('TransactionUtils', () => {
                 {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {pendingPattern: true, rterType: CONST.RTER_VIOLATION_TYPES.SEVEN_DAY_HOLD}},
             ];
 
-            expect(TransactionUtils.hasPendingRTERViolation(transactionViolations)).toBe(true);
+            expect(TransactionUtils.hasPendingRTERViolation(transactionViolations, undefined)).toBe(true);
         });
     });
 
