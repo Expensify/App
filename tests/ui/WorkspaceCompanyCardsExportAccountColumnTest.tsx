@@ -9,11 +9,14 @@ import type {WorkspaceCompanyCardTableItemData} from '@components/Tables/Workspa
 
 import type {UseCompanyCardsResult} from '@hooks/useCompanyCards';
 
+import {fontScale} from '@styles/typography';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card} from '@src/types/onyx';
 import type {CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
+import type {ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
 import type {PartialDeep} from 'type-fest';
 
 import React from 'react';
@@ -38,6 +41,9 @@ let capturedColumns: Array<TableColumn<string, WorkspaceCompanyCardTableItemData
 let capturedData: WorkspaceCompanyCardTableItemData[] = [];
 let capturedCompareItems: CompareItemsCallback<WorkspaceCompanyCardTableItemData, string> | undefined;
 let mockCardFeedErrors: Record<string, {shouldPromptBrokenConnection?: boolean}> = {};
+let mockShouldUseNarrowLayout = false;
+let mockIsMediumScreenWidth = false;
+let capturedRenderItem: ListRenderItem<WorkspaceCompanyCardTableItemData> | undefined;
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyIllustrations: () => ({}),
@@ -56,7 +62,7 @@ jest.mock('@hooks/useNetwork', () => ({
 
 jest.mock('@hooks/useResponsiveLayout', () => ({
     __esModule: true,
-    default: () => ({shouldUseNarrowLayout: false, isMediumScreenWidth: false}),
+    default: () => ({shouldUseNarrowLayout: mockShouldUseNarrowLayout, isMediumScreenWidth: mockIsMediumScreenWidth}),
 }));
 
 jest.mock('@components/ActivityIndicator', () => {
@@ -76,6 +82,12 @@ type MockTableProps = {
     columns: Array<TableColumn<string, WorkspaceCompanyCardTableItemData>>;
     data: WorkspaceCompanyCardTableItemData[];
     compareItems: CompareItemsCallback<WorkspaceCompanyCardTableItemData, string>;
+    renderItem: ListRenderItem<WorkspaceCompanyCardTableItemData>;
+};
+
+type MockTableRowProps = {
+    accessibilityLabel: string;
+    children: (state: {hovered: boolean}) => React.ReactNode;
 };
 
 // The real Table drives a FlashList and its own text measurement, neither of which this test needs: it only checks
@@ -87,14 +99,15 @@ jest.mock('@components/Table', () => {
 
     // Kept outside MockTable, which the React Compiler treats as a component: capturing render props into a module
     // variable is only for this test's assertions and would otherwise look like an impure component body.
-    function captureTableProps(columns: MockTableProps['columns'], data: MockTableProps['data'], compareItems: MockTableProps['compareItems']) {
+    function captureTableProps(columns: MockTableProps['columns'], data: MockTableProps['data'], compareItems: MockTableProps['compareItems'], renderItem: MockTableProps['renderItem']) {
         capturedColumns = columns;
         capturedData = data;
         capturedCompareItems = compareItems;
+        capturedRenderItem = renderItem;
     }
 
-    function MockTable({children, columns, data, compareItems}: MockTableProps) {
-        captureTableProps(columns, data, compareItems);
+    function MockTable({children, columns, data, compareItems, renderItem}: MockTableProps) {
+        captureTableProps(columns, data, compareItems, renderItem);
         return <View testID="WorkspaceCompanyCardsTable">{children}</View>;
     }
 
@@ -105,6 +118,7 @@ jest.mock('@components/Table', () => {
     MockTable.EmptyState = () => <View testID="WorkspaceCompanyCardsTableEmptyState" />;
     MockTable.NoResultsState = () => <View testID="WorkspaceCompanyCardsTableNoResultsState" />;
     MockTable.LoadingState = () => <View testID="WorkspaceCompanyCardsTableLoadingIndicator" />;
+    MockTable.Row = ({children, accessibilityLabel}: MockTableRowProps) => <View accessibilityLabel={accessibilityLabel}>{children({hovered: false})}</View>;
     return {
         __esModule: true,
         default: MockTable,
@@ -400,5 +414,136 @@ describe('WorkspaceCompanyCardsTable row feedback', () => {
 
         // Then the feed-level prompt owns the root error while the independent field failure remains actionable on the row
         expect(capturedData.at(0)?.errors).toEqual({[START_DATE_ERROR_KEY]: 'Start date update failed'});
+    });
+});
+
+describe('WorkspaceCompanyCardsTable Last updated column', () => {
+    beforeEach(async () => {
+        jest.useFakeTimers().setSystemTime(new Date('2026-11-04T18:54:00Z'));
+        mockCardFeedErrors = {};
+        mockShouldUseNarrowLayout = false;
+        mockIsMediumScreenWidth = false;
+        await Onyx.clear();
+        await Onyx.set(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID});
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [ACCOUNT_ID]: {accountID: ACCOUNT_ID, displayName: 'Alice Smith', timezone: {automatic: false, selected: 'America/Los_Angeles'}},
+        });
+        await waitForBatchedUpdates();
+    });
+
+    afterEach(() => {
+        mockShouldUseNarrowLayout = false;
+        mockIsMediumScreenWidth = false;
+        jest.useRealTimers();
+    });
+
+    it('adds a non-sortable column measured from the timestamp in the selected timezone', async () => {
+        // Given an assigned card with a successful sync recorded in UTC
+        const card = buildAssignedCard({lastScrape: '2026-11-04 18:54:00'});
+
+        // When the list prepares its columns and row data
+        renderTable(buildCompanyCards(card));
+        await waitForBatchedUpdates();
+
+        // Then the column uses the same local timestamp for sizing and display
+        const column = capturedColumns.find(({key}) => key === 'lastSynced');
+        const row = capturedData.at(0);
+        expect(column?.label).toBe('Last updated');
+        expect(column?.sortable).toBe(false);
+        expect(row?.lastSyncedText).toBe('Nov 4');
+        expect(row && column?.dynamicSizing?.getContentToMeasure(row)).toEqual([{text: 'Nov 4', fontSize: fontScale.text}]);
+    });
+
+    it.each([
+        {lastScrape: '2025-11-04T18:54:00Z', expected: 'Nov 4, 2025'},
+        {lastScrape: '2027-11-04T18:54:00Z', expected: 'Nov 4, 2027'},
+        {lastScrape: '2026-11-04T01:00:00Z', expected: 'Nov 3'},
+    ])('abbreviates $lastScrape using the selected timezone', async ({lastScrape, expected}) => {
+        // Given a sync in another year or near a UTC date boundary
+        const card = buildAssignedCard({lastScrape});
+
+        // When the list formats the sync date
+        renderTable(buildCompanyCards(card));
+        await waitForBatchedUpdates();
+
+        // Then it follows the expense date abbreviation without losing timezone conversion
+        expect(capturedData.at(0)?.lastSyncedText).toBe(expected);
+    });
+
+    it('compares years in the selected timezone at New Year', async () => {
+        // Given UTC is already in 2027 but Los Angeles is still in 2026
+        jest.setSystemTime(new Date('2027-01-01T01:00:00Z'));
+
+        // When a sync from the same local year is displayed
+        renderTable(buildCompanyCards(buildAssignedCard({lastScrape: '2026-11-04T18:54:00Z'})));
+        await waitForBatchedUpdates();
+
+        // Then the date does not gain an unnecessary year
+        expect(capturedData.at(0)?.lastSyncedText).toBe('Nov 4');
+    });
+
+    it('localizes the abbreviated month', async () => {
+        // Given a French locale and a successful sync
+        await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.FR);
+        await waitForBatchedUpdates();
+
+        // When the list formats the date
+        renderTable(buildCompanyCards(buildAssignedCard({lastScrape: '2026-11-04T18:54:00Z'})));
+        await waitForBatchedUpdates();
+
+        // Then the abbreviated month uses the selected locale
+        expect(capturedData.at(0)?.lastSyncedText).toBe('nov. 4');
+    });
+
+    it.each([
+        {description: 'missing timestamp', card: buildAssignedCard(), expected: 'Never'},
+        {description: 'empty timestamp', card: buildAssignedCard({lastScrape: ''}), expected: 'Never'},
+        {description: 'invalid timestamp', card: buildAssignedCard({lastScrape: 'invalid'}), expected: 'N/A'},
+        {description: 'unassigned card', card: undefined, expected: 'N/A'},
+    ])('handles $description without inventing a sync time', async ({card, expected}) => {
+        // Given a card without usable successful-sync metadata
+
+        // When the list prepares its row data
+        renderTable(buildCompanyCards(card));
+        await waitForBatchedUpdates();
+
+        // Then it distinguishes no recorded sync from unavailable history
+        expect(capturedData.at(0)?.lastSyncedText).toBe(expected);
+    });
+
+    it.each([
+        {description: 'pending', isLoadingLastUpdated: true, lastScrapeResult: CONST.JSON_CODE.SUCCESS},
+        {description: 'failed', isLoadingLastUpdated: false, lastScrapeResult: CONST.JSON_CODE.BAD_REQUEST},
+    ])('retains the last successful timestamp after a $description attempt', async ({isLoadingLastUpdated, lastScrapeResult}) => {
+        // Given a card with a previous successful sync and a later attempt
+        const card = buildAssignedCard({lastScrape: '2026-11-04T18:54:00Z', isLoadingLastUpdated, lastScrapeResult});
+
+        // When the list prepares its row data
+        renderTable(buildCompanyCards(card));
+        await waitForBatchedUpdates();
+
+        // Then attempt state does not replace the successful-sync time
+        expect(capturedData.at(0)?.lastSyncedText).toBe('Nov 4');
+    });
+
+    it.each([
+        {layout: 'wide', narrow: false, medium: false, expected: 'Nov 4'},
+        {layout: 'narrow', narrow: true, medium: false, expected: 'Last successful sync: Nov 4'},
+        {layout: 'medium', narrow: false, medium: true, expected: 'Last successful sync: Nov 4'},
+    ])('renders the sync time in the $layout layout', async ({narrow, medium, expected}) => {
+        // Given a successful sync in the requested responsive layout
+        mockShouldUseNarrowLayout = narrow;
+        mockIsMediumScreenWidth = medium;
+        renderTable(buildCompanyCards(buildAssignedCard({lastScrape: '2026-11-04 18:54:00'})));
+        await waitForBatchedUpdates();
+
+        // When the table's actual row renderer runs
+        const row = capturedRenderItem?.(createMock<ListRenderItemInfo<WorkspaceCompanyCardTableItemData>>({item: capturedData.at(0), index: 0}));
+        render(<ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>{row}</ComposeProviders>);
+        await waitForBatchedUpdates();
+
+        // Then the timestamp is visible and its success meaning is accessible
+        expect(screen.getByText(expected)).toBeTruthy();
+        expect(screen.getByLabelText(/Last successful sync: Nov 4/)).toBeTruthy();
     });
 });

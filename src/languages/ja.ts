@@ -7159,6 +7159,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 integrationExportTitle: (integration: string, exportPageLink?: string) =>
                     `取引をエクスポートする${integration}アカウントを選択してください。${exportPageLink ? `利用可能なアカウントを変更するには、別の<a href="${exportPageLink}">エクスポートオプション</a>を選択してください。` : ''}`,
                 lastUpdated: '最終更新日時',
+                lastSuccessfulSync: (value: string) => `最後に成功した同期: ${value}`,
                 transactionStartDate: '取引開始日',
                 bulkUpdateTransactionStartDate: '取引開始日を更新',
                 updateCard: 'カードを更新',

@@ -7272,6 +7272,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 integrationExportTitle: (integration: string, exportPageLink?: string) =>
                     `Escolha a conta do ${integration} para a qual as transações devem ser exportadas.${exportPageLink ? ` Selecione uma <a href="${exportPageLink}">opção de exportação</a> diferente para alterar as contas disponíveis.` : ''}`,
                 lastUpdated: 'Última atualização',
+                lastSuccessfulSync: (value: string) => `Última sincronização bem-sucedida: ${value}`,
                 transactionStartDate: 'Data de início da transação',
                 bulkUpdateTransactionStartDate: 'Atualizar data de início da transação',
                 updateCard: 'Atualizar cartão',

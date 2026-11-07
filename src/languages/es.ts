@@ -7173,6 +7173,7 @@ ${amount} para ${merchant} - ${date}`,
                 integrationExportTitle: (integration, exportPageLink) =>
                     `Seleccione la cuenta ${integration} donde se deben exportar las transacciones.${exportPageLink ? ` Seleccione una cuenta diferente <a href="${exportPageLink}">opción de exportación</a> para cambiar las cuentas disponibles.` : ''}`,
                 lastUpdated: 'Última actualización',
+                lastSuccessfulSync: (value: string) => `Última sincronización correcta: ${value}`,
                 transactionStartDate: 'Fecha de inicio de transacciones',
                 bulkUpdateTransactionStartDate: 'Actualizar fecha de inicio de transacciones',
                 updateCard: 'Actualizar tarjeta',
