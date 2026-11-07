@@ -1,5 +1,6 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
+import getReportApproveViolationSummary from '@libs/Violations/getReportApproveViolationSummary';
 import {
     buildSubmitViolationBullets,
     getReportSubmitViolationSummary,
@@ -68,6 +69,51 @@ function createMockRejectedReport(): Report {
         nextStep: {icon: CONST.NEXT_STEP.ICONS.HOURGLASS, messageKey: CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT},
     });
 }
+
+describe('getReportApproveViolationSummary', () => {
+    it('warns about a held expense with a missing merchant when approving everything', () => {
+        // Given a held expense whose missing merchant is not represented by a server violation
+        const transaction = createMockTransactionWithMerchant(CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, {comment: {hold: 'hold-action'}});
+        const report = createMockExpenseReport();
+
+        // When choosing full or partial approval
+        const full = getReportApproveViolationSummary([transaction], {}, report, undefined, '', 0, true);
+        const partial = getReportApproveViolationSummary([transaction], {}, report, undefined, '', 0, false);
+
+        // Then only full approval includes the held expense's missing field warning
+        expect(full.hasMissingMerchant).toBe(true);
+        expect(hasAnySubmitViolation(partial)).toBe(false);
+    });
+
+    it('does not show submitter-only rejection or pending card-match warnings', () => {
+        // Given a rejected report with rejected expenses and a pending card match
+        const violations = {
+            [getViolationsKey('1')]: [createMockViolation(CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE), createMockViolation(CONST.VIOLATIONS.RTER, {pendingPattern: true})],
+        };
+
+        // When an approver reviews its violations
+        const summary = getReportApproveViolationSummary([createMockTransaction('1')], violations, createMockRejectedReport(), undefined, '', 0);
+
+        // Then the submitter's acknowledgement warnings are not shown to the approver
+        expect(hasAnySubmitViolation(summary)).toBe(false);
+    });
+
+    it('includes held expenses only when approving the full report', () => {
+        // Given a held expense with a policy violation
+        const transaction = createMock<Transaction>({transactionID: '1', comment: {hold: 'hold-action'}});
+        const overLimit = createMockViolation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
+        const violations = {[getViolationsKey('1')]: [overLimit]};
+
+        // When choosing full or partial approval
+        const full = getReportApproveViolationSummary([transaction], violations, undefined, undefined, '', 0, true);
+        const partial = getReportApproveViolationSummary([transaction], violations, undefined, undefined, '', 0, false);
+
+        // Then only the full approval warns about this expense, without mutating its violations
+        expect(full.otherViolations.get(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT)).toBe(overLimit);
+        expect(hasAnySubmitViolation(partial)).toBe(false);
+        expect(violations[getViolationsKey('1')]).toEqual([overLimit]);
+    });
+});
 
 describe('getReportSubmitViolationSummary', () => {
     it('returns all-false/empty when there are no violations', () => {

@@ -5,6 +5,7 @@
  */
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 
+import useConfirmApproveReportViolations from '@hooks/useConfirmApproveReportViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
@@ -34,31 +35,34 @@ function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useRe
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const {iouReport, policy, ownerLogin, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd, delegateEmail, delegateAccountID} = actionButtonData;
+    const confirmApproveReportViolations = useConfirmApproveReportViolations({report: iouReport, policy});
 
     return (full = true) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
         } else {
-            approveMoneyRequest({
-                personalDetailsByLogins: getPersonalDetailsByLogin(),
-                getCurrencyDecimals,
-                expenseReport: iouReport,
-                expenseReportPolicy: policy,
-                rules,
-                currentUserAccountIDParam: currentUserDetails.accountID,
-                currentUserEmailParam: currentUserDetails.email ?? '',
-                hasViolations,
-                isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
-                userBillingGracePeriodEnds,
-                amountOwed,
-                ownerBillingGracePeriodEnd,
-                ownerLogin,
-                full,
-                onApproved: startApprovedAnimation,
-                delegateEmail,
-                delegateAccountID,
-                isTrackIntentUser,
-            });
+            confirmApproveReportViolations(() => {
+                approveMoneyRequest({
+                    personalDetailsByLogins: getPersonalDetailsByLogin(),
+                    getCurrencyDecimals,
+                    expenseReport: iouReport,
+                    expenseReportPolicy: policy,
+                    rules,
+                    currentUserAccountIDParam: currentUserDetails.accountID,
+                    currentUserEmailParam: currentUserDetails.email ?? '',
+                    hasViolations,
+                    isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+                    userBillingGracePeriodEnds,
+                    amountOwed,
+                    ownerBillingGracePeriodEnd,
+                    ownerLogin,
+                    full,
+                    onApproved: startApprovedAnimation,
+                    delegateEmail,
+                    delegateAccountID,
+                    isTrackIntentUser,
+                });
+            }, full);
         }
     };
 }
