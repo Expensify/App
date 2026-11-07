@@ -16,8 +16,8 @@ If your Sage Intacct account supports multiple entities, you can connect each Wo
 
 To change the entity connection:
 
-1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting**
-2. Under the Sage Intacct connection, select **Entity**
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**, then select **Configure** next to Sage Intacct
+2. Select **Entity**
 
 ---
 
@@ -25,8 +25,8 @@ To change the entity connection:
 
 To configure how data is imported from Sage Intacct:
 
-1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting**
-2. Click **Import** under the Sage Intacct section
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**, then select **Configure** next to Sage Intacct
+2. Select **Import**
 
 ## Expense Types vs. Chart of Accounts
 
@@ -71,11 +71,11 @@ Manage these settings the same way as standard dimensions.
 
 To import native VAT or GST tax rates:
 
-1. Go to **Workspaces > [Workspace Name] > Accounting**
-2. Click **Import** under Sage Intacct
+1. Select **Workspaces > [workspace name] > Connections**, then select **Configure** next to Sage Intacct
+2. Select **Import**
 3. Toggle on **Tax**
 
-Set default rates per category under **Categories**. If you don’t see the Tax option, click the three-dot menu next to Sage Intacct and **resync the connection**.
+Set default rates per category under **Categories**. If you don’t see the Tax option, select **More (⋮)** in the Sage Intacct settings, then select **Sync now**.
 
 ## User-defined dimensions (UDDs)
 
@@ -85,7 +85,7 @@ To import UDDs:
    - Go to **Platform Services > Objects > List**
    - Filter by application: "user-defined dimensions"
 2. In Expensify:  
-   - Go to **Workspaces > [Workspace Name] > Accounting**
+   - Select **Workspaces > [workspace name] > Connections**, then select **Configure** next to Sage Intacct
    - Click **Import** > Enable **User-defined dimensions**
    - Enter the Integration Name and choose whether to import as **Tags** or **Report Fields**
    - Click **Save**
@@ -96,8 +96,8 @@ To import UDDs:
 
 To access export settings:
 
-1. Go to **Workspaces > [Workspace Name] > Accounting**
-2. Click **Export** under Sage Intacct
+1. Select **Workspaces > [workspace name] > Connections**, then select **Configure** next to Sage Intacct
+2. Select **Export**
 
 ## Preferred Exporter
 
@@ -147,8 +147,8 @@ The toggle stays locked until you select a **Credit card account** and enable **
 
 To access advanced settings:
 
-1. Go to **Workspaces > [Workspace Name] > Accounting**
-2. Click **Advanced** under Sage Intacct
+1. Select **Workspaces > [workspace name] > Connections**, then select **Configure** next to Sage Intacct
+2. Select **Advanced**
 
 ## Auto-sync
 

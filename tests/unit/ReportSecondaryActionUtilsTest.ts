@@ -118,6 +118,7 @@ jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/approvals'),
     ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/payments'),
     ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/members'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/expensifyTeam'),
     isPreferredExporter: jest.fn().mockReturnValue(true),
     hasAccountingConnections: jest.fn().mockReturnValue(true),
     isPolicyAdmin: jest.fn().mockReturnValue(true),
@@ -125,7 +126,8 @@ jest.mock('@libs/PolicyUtils', () => ({
     isPolicyAuditor: (...args: Parameters<typeof PolicyUtils.isPolicyAuditor>) => jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyAuditor(...args),
     getValidConnectedIntegration: jest.fn().mockReturnValue('netsuite'),
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
-    isGroupPolicy: jest.fn().mockReturnValue(true),
+    // Answer from the policy type so tests can opt out with a personal policy, even when getTransactionDetails also reaches this mock
+    isGroupPolicy: jest.fn((policy?: Policy) => policy?.type !== 'personal'),
 }));
 
 describe('getSecondaryAction', () => {
@@ -887,6 +889,7 @@ describe('getSecondaryAction', () => {
             total: 10,
         });
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             harvesting: {
                 enabled: true,
@@ -909,6 +912,86 @@ describe('getSecondaryAction', () => {
             rules: undefined,
             cardList: undefined,
         });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
+    });
+
+    it('excludes SUBMIT option for an approve-only member', async () => {
+        // Given an open expense report owned by the current user, who has the approve-only role on the policy
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            total: 10,
+        });
+        const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.APPROVE_ONLY,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            harvesting: {
+                enabled: true,
+            },
+            type: CONST.POLICY.TYPE.CORPORATE,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        // When the secondary actions are resolved
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then SUBMIT is excluded
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
+    });
+
+    it('includes SUBMIT option for an admin when the report owner has the approve-only role', async () => {
+        // Given an open expense report owned by an approve-only member, viewed by the current admin
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: APPROVER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            total: 10,
+        });
+        const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.ADMIN,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            harvesting: {
+                enabled: true,
+            },
+            type: CONST.POLICY.TYPE.CORPORATE,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        // When the secondary actions are resolved
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then SUBMIT is included
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
 
@@ -958,6 +1041,7 @@ describe('getSecondaryAction', () => {
             total: 10,
         });
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             harvesting: {
                 enabled: true,
@@ -998,6 +1082,7 @@ describe('getSecondaryAction', () => {
             total: 10,
         });
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             harvesting: {
                 enabled: true,
@@ -1186,6 +1271,7 @@ describe('getSecondaryAction', () => {
             total: 10,
         });
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             harvesting: {
                 enabled: true,
@@ -1230,6 +1316,7 @@ describe('getSecondaryAction', () => {
             total: 10,
         });
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             harvesting: {
                 enabled: true,
@@ -1268,6 +1355,7 @@ describe('getSecondaryAction', () => {
             total: 10,
         });
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             harvesting: {
                 enabled: true,
@@ -1338,6 +1426,7 @@ describe('getSecondaryAction', () => {
             total: 0,
         });
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             harvesting: {
                 enabled: true,
@@ -1380,6 +1469,7 @@ describe('getSecondaryAction', () => {
             total: 0,
         });
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             harvesting: {
                 enabled: true,
@@ -1715,6 +1805,63 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
     });
 
+    it.each([false, true])('only includes APPROVE for a scan-failed duplicate report when it also has a complete expense: %s', async (hasCompleteExpense) => {
+        // Given a duplicate expense whose failed scan has no amount, optionally alongside a complete expense
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+        });
+        const policy = createMock<Policy>({
+            approver: EMPLOYEE_EMAIL,
+        });
+        const transaction = createMock<Transaction>({
+            transactionID: 'SCAN_FAILED_TRANSACTION_ID',
+            reportID: REPORT_ID,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            amount: 0,
+            merchant: 'Merchant',
+            created: '2025-01-01',
+        });
+        const completeTransaction = createMock<Transaction>({
+            transactionID: 'COMPLETE_TRANSACTION_ID',
+            reportID: REPORT_ID,
+            amount: 10,
+            merchant: 'Merchant',
+            created: '2025-01-01',
+        });
+        const reportTransactions = hasCompleteExpense ? [transaction, completeTransaction] : [transaction];
+        const violation = createMock<TransactionViolation>({
+            name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+        });
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        await Promise.all(reportTransactions.map((reportTransaction) => Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${reportTransaction.transactionID}`, reportTransaction)));
+
+        // When the approver opens the report's secondary actions
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions,
+            originalTransaction: createMock<Transaction>({}),
+            violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [violation]},
+            bankAccountList: {},
+            policy,
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then a duplicate cannot bypass the missing-amount check, but a complete expense still allows approval
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(hasCompleteExpense);
+    });
+
     it('does not include APPROVE option for approver and report with only pending transactions', async () => {
         const report = createMock<Report>({
             reportID: REPORT_ID,
@@ -1897,6 +2044,7 @@ describe('getSecondaryAction', () => {
     });
 
     it('includes APPROVE option when a different user is the manager on a Submit workspace with duplicate violations', async () => {
+        // Given a different approver and a posted duplicate expense, not a randomly pending card charge
         const TRANSACTION_ID = 'TRANSACTION_ID_SUBMIT_WORKSPACE_APPROVER';
         const report = {
             ...createExpenseReport(Number(REPORT_ID)),
@@ -1914,6 +2062,7 @@ describe('getSecondaryAction', () => {
         const transaction = {
             ...createRandomTransaction(1),
             transactionID: TRANSACTION_ID,
+            status: CONST.TRANSACTION.STATUS.POSTED,
         };
         const violation: TransactionViolation = {
             name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
@@ -1923,6 +2072,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
+        // When the assigned approver opens the secondary actions
         const result = getSecondaryReportActions({
             currentUserLogin: APPROVER_EMAIL,
             currentUserAccountID: APPROVER_ACCOUNT_ID,
@@ -1938,6 +2088,7 @@ describe('getSecondaryAction', () => {
             cardList: undefined,
         });
 
+        // Then the duplicate shortcut still allows another user to approve the report
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
     });
 
@@ -2503,7 +2654,12 @@ describe('getSecondaryAction', () => {
         {
             action: CONST.REPORT.SECONDARY_ACTIONS.SUBMIT,
             reportData: {stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, total: 10},
-            policyData: {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT, harvesting: {enabled: true}, type: CONST.POLICY.TYPE.CORPORATE},
+            policyData: {
+                role: CONST.POLICY.ROLE.USER,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                harvesting: {enabled: true},
+                type: CONST.POLICY.TYPE.CORPORATE,
+            },
         },
         {
             action: CONST.REPORT.SECONDARY_ACTIONS.APPROVE,
@@ -2582,7 +2738,12 @@ describe('getSecondaryAction', () => {
         {
             action: CONST.REPORT.SECONDARY_ACTIONS.SUBMIT,
             reportData: {stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, total: 10},
-            policyData: {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT, harvesting: {enabled: true}, type: CONST.POLICY.TYPE.CORPORATE},
+            policyData: {
+                role: CONST.POLICY.ROLE.USER,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                harvesting: {enabled: true},
+                type: CONST.POLICY.TYPE.CORPORATE,
+            },
         },
         {
             action: CONST.REPORT.SECONDARY_ACTIONS.RETRACT,
@@ -4226,6 +4387,7 @@ describe('getSecondaryAction', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: undefined,
             reportTransaction: createMock<Transaction>({}),
             reportAction: undefined,
             originalTransaction: createMock<Transaction>({}),
@@ -5065,6 +5227,44 @@ describe('getSecondaryAction', () => {
         });
         expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE);
     });
+
+    it('passes the report actions it was given to canEditFieldOfMoneyRequest when checking MOVE_EXPENSE', () => {
+        // Given a single-expense report whose IOU action is found in the passed report actions
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            policyID: POLICY_ID,
+        });
+        const transaction = createMock<Transaction>({
+            transactionID: originalMessageR14932.IOUTransactionID,
+        });
+        const reportActions = [actionR14932];
+        const canEditFieldOfMoneyRequestSpy = jest.spyOn(ReportUtils, 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+        jest.spyOn(ReportUtils, 'canUserPerformWriteAction').mockReturnValue(true);
+
+        // When building the secondary actions for the report
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [transaction],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy: createMock<Policy>({}),
+            reportActions,
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then the same report actions reach canEditFieldOfMoneyRequest, so the forwarded-since-last-submit check inside
+        // canEditMoneyRequest reads this report's own history instead of the module-level Onyx cache
+        expect(canEditFieldOfMoneyRequestSpy).toHaveBeenCalledWith(expect.objectContaining({reportAction: actionR14932, fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT, reportActions}));
+        expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE);
+    });
 });
 
 describe('getReportAccountingExportActions', () => {
@@ -5496,6 +5696,39 @@ describe('getReportAccountingExportActions', () => {
 });
 
 describe('getSecondaryTransactionThreadActions', () => {
+    it('passes the parent report actions it was given to the delete check', () => {
+        // Given a transaction thread whose parent report's actions are handed to the function
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            policyID: POLICY_ID,
+        });
+        const parentReportActions = {[actionR14932.reportActionID]: actionR14932};
+        const canDeleteMoneyRequestReportSpy = jest.spyOn(ReportUtils, 'canDeleteMoneyRequestReport').mockReturnValue(true);
+
+        // When building the thread's secondary actions
+        const result = getSecondaryTransactionThreadActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            parentReport: report,
+            parentReportActions,
+            reportTransaction: createMock<Transaction>({transactionID: originalMessageR14932.IOUTransactionID}),
+            reportAction: actionR14932,
+            originalTransaction: createMock<Transaction>({}),
+            policy: createMock<Policy>({}),
+            isChatReportArchived: false,
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then the delete check receives the parent's full action list, so the check for a forward since the last submit inside
+        // isAwaitingFirstLevelApproval reads the parent report's own history rather than the module-level Onyx cache
+        expect(canDeleteMoneyRequestReportSpy.mock.calls.at(0)?.[2]).toEqual([actionR14932]);
+        expect(result).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE);
+        canDeleteMoneyRequestReportSpy.mockRestore();
+    });
+
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -5520,6 +5753,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 currentUserLogin: EMPLOYEE_EMAIL,
                 currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
                 parentReport: report,
+                parentReportActions: undefined,
                 reportTransaction: createMock<Transaction>({}),
                 reportAction: undefined,
                 originalTransaction: createMock<Transaction>({}),
@@ -5552,6 +5786,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
@@ -5580,6 +5815,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: undefined,
             reportTransaction: transaction,
             reportAction: undefined,
             originalTransaction: createMock<Transaction>({}),
@@ -5597,6 +5833,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: undefined,
             reportTransaction: transaction,
             reportAction: undefined,
             originalTransaction: createMock<Transaction>({}),
@@ -5626,6 +5863,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: undefined,
             reportTransaction: createMock<Transaction>({}),
             reportAction: undefined,
             originalTransaction: createMock<Transaction>({}),
@@ -5687,6 +5925,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: undefined,
             reportTransaction: transaction,
             reportAction: undefined,
             originalTransaction,
@@ -5698,6 +5937,92 @@ describe('getSecondaryTransactionThreadActions', () => {
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
+    });
+
+    it('keeps SPLIT for a per diem split expense once the parent report was forwarded, so the menu still offers Edit splits', async () => {
+        // Given a per diem split expense on a processing report owned by an admin who submits to the manager, whose parent actions
+        // show the report was forwarded after that submit. Delete is hidden for a forwarded report, so Split must stay to reach Edit splits
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            policyID: POLICY_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            managerID: MANAGER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+        });
+        const transaction = createMock<Transaction>({
+            transactionID: SPLIT_TRANSACTION_ID,
+            reportID: REPORT_ID,
+            status: CONST.TRANSACTION.STATUS.POSTED,
+            amount: 10,
+            merchant: 'Merchant',
+            created: '2025-01-01',
+            comment: {
+                originalTransactionID: ORIGINAL_TRANSACTION_ID,
+                source: CONST.IOU.TYPE.SPLIT,
+            },
+        });
+        const originalTransaction = createMock<Transaction>({
+            transactionID: ORIGINAL_TRANSACTION_ID,
+            amount: 20,
+            merchant: 'Merchant',
+            created: '2025-01-01',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+            comment: {
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                },
+            },
+        });
+        const policy = createMock<Policy>({
+            id: POLICY_ID,
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            employeeList: {
+                [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.ADMIN, submitsTo: MANAGER_EMAIL},
+            },
+        });
+        const iouAction = createMock<ReportAction>({
+            reportActionID: 'iou',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            actorAccountID: EMPLOYEE_ACCOUNT_ID,
+            created: '2026-04-21 16:00:00',
+            originalMessage: {IOUTransactionID: SPLIT_TRANSACTION_ID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 10, currency: CONST.CURRENCY.USD},
+        });
+        const submittedAction = createMock<ReportAction>({reportActionID: 'submitted', actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED, created: '2026-04-21 17:00:00'});
+        const forwardedAction = createMock<ReportAction>({reportActionID: 'forwarded', actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED, created: '2026-04-21 17:10:00'});
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS, [MANAGER_ACCOUNT_ID]: {accountID: MANAGER_ACCOUNT_ID, login: MANAGER_EMAIL}});
+        await waitForBatchedUpdates();
+
+        // When building the thread's secondary actions
+        const result = getSecondaryTransactionThreadActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            parentReport: report,
+            parentReportOwnerLogin: EMPLOYEE_EMAIL,
+            parentReportActions: {
+                [iouAction.reportActionID]: iouAction,
+                [submittedAction.reportActionID]: submittedAction,
+                [forwardedAction.reportActionID]: forwardedAction,
+            },
+            reportTransaction: transaction,
+            reportAction: iouAction,
+            originalTransaction,
+            policy,
+            isChatReportArchived: false,
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then the split and delete checks agree on the forward: Delete is hidden and Split is offered instead of neither
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
     });
 
     it('should not include CHANGE_WORKSPACE option for exported report', async () => {
@@ -5789,6 +6114,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
@@ -5852,6 +6178,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: survivingSplit,
             reportAction: actionR14932,
             originalTransaction,
@@ -5900,6 +6227,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
@@ -5912,6 +6240,7 @@ describe('getSecondaryTransactionThreadActions', () => {
     });
 
     it('does not include the SPLIT option for a personal policy', async () => {
+        // Given a submitted expense report on a personal policy, where splitting is not allowed even for an admin
         const report = createMock<Report>({
             reportID: REPORT_ID,
             policyID: POLICY_ID,
@@ -5939,15 +6268,16 @@ describe('getSecondaryTransactionThreadActions', () => {
             },
             role: CONST.POLICY.ROLE.ADMIN,
         });
-        jest.mocked(jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isGroupPolicy).mockReturnValueOnce(false);
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
+        // When the secondary actions for the transaction thread are computed
         const result = getSecondaryTransactionThreadActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
@@ -5956,6 +6286,8 @@ describe('getSecondaryTransactionThreadActions', () => {
             rules: undefined,
             cardList: undefined,
         });
+
+        // Then SPLIT is not offered, because only group policies support splitting expenses
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
 
@@ -5999,6 +6331,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
@@ -6030,6 +6363,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: selfDMReport,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
@@ -6062,6 +6396,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 currentUserLogin: EMPLOYEE_EMAIL,
                 currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
                 parentReport: createMock<Report>({chatType: CONST.REPORT.CHAT_TYPE.SELF_DM}),
+                parentReportActions: {[actionR14932.reportActionID]: actionR14932},
                 reportTransaction: createMock<Transaction>({}),
                 reportAction: actionR14932,
                 originalTransaction: createMock<Transaction>({}),
@@ -6132,6 +6467,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: transactionThreadReport,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
@@ -6164,6 +6500,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: nonExpenseReport,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
@@ -6197,6 +6534,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
@@ -6235,6 +6573,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),

@@ -42,6 +42,7 @@ jest.mock('@userActions/Policy/DistanceRate', () => {
 jest.mock('@hooks/useResponsiveLayoutOnWideRHP', () => ({
     __esModule: true,
     default: () => ({isLargeScreenWidth: true, shouldUseNarrowLayout: false, isInNarrowPaneModal: false}),
+    useIsDisplayedInWideRHP: () => false,
 }));
 
 // EditableCell only enables the edit-pencil button while the cell is hovered, which jsdom can't simulate reliably.
@@ -90,6 +91,7 @@ function buildRow(rate: Rate): DistanceRateTableItemData {
         rateID: rate.customUnitRateID,
         rate,
         formattedRate: '$14.00 / mile',
+        formattedTaxReclaimable: '',
         enabled: true,
         isLocked: false,
         canEditName: true,
@@ -118,6 +120,7 @@ function renderTable() {
                                 selectionEnabled={false}
                                 selectedKeys={[]}
                                 canWriteDistanceRates
+                                isDistanceRateTaxEnabled={false}
                                 onRowSelectionChange={jest.fn()}
                             />
                         </ScreenWrapperStatusContext.Provider>

@@ -11,7 +11,7 @@
 import useOnyx from '@hooks/useOnyx';
 
 import {isActionVisibleOnMoneyRequestReport} from '@libs/MoneyRequestReportUtils';
-import {getFirstVisibleReportActionID, isDeletedParentAction, isIOUActionMatchingTransactionList, isReportActionVisible} from '@libs/ReportActionsUtils';
+import {getFirstVisibleReportActionID, isDeletedParentAction, isIOUActionMatchingTransactionList, isReportActionVisible, shouldHidePayAction} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,11 +32,14 @@ type UseMoneyRequestReportVisibleActionsParams = {
     /** Whether the current user can perform write actions on the report */
     canPerformWriteAction: boolean;
 
-    /** Whether the harvest-created expense CREATED action should stay visible */
-    shouldShowHarvestCreatedAction: boolean;
+    /** Keeps creation history visible for harvested expense reports, bills, and invoices linked to bills. */
+    shouldShowCreatedAction: boolean;
 
     /** Whether the network is offline */
     isOffline: boolean;
+
+    /** Whether expense payments are hidden while the payee adds a bank account or wallet */
+    isWaitingOnBankAccount?: boolean;
 };
 
 type UseMoneyRequestReportVisibleActionsResult = {
@@ -63,13 +66,15 @@ function useMoneyRequestReportVisibleActions({
     reportActions,
     reportTransactionIDs,
     canPerformWriteAction,
-    shouldShowHarvestCreatedAction,
+    shouldShowCreatedAction,
     isOffline,
+    isWaitingOnBankAccount = false,
 }: UseMoneyRequestReportVisibleActionsParams): UseMoneyRequestReportVisibleActionsResult {
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {selector: reportVisibleActionsSelector(reportID)});
 
-    const visibleReportActionsNewestFirst = reportActions.filter((reportAction) => {
-        const isActionVisibleOnMoneyReport = isActionVisibleOnMoneyRequestReport(reportAction, shouldShowHarvestCreatedAction);
+    const reportActionsWithVisiblePayments = isWaitingOnBankAccount ? reportActions.filter((action) => !shouldHidePayAction(action, true)) : reportActions;
+    const visibleReportActionsNewestFirst = reportActionsWithVisiblePayments.filter((reportAction) => {
+        const isActionVisibleOnMoneyReport = isActionVisibleOnMoneyRequestReport(reportAction, shouldShowCreatedAction);
         if (!isActionVisibleOnMoneyReport) {
             return false;
         }
@@ -93,7 +98,7 @@ function useMoneyRequestReportVisibleActions({
 
     const visibleReportActions = visibleReportActionsNewestFirst.slice().reverse();
     const lastAction = visibleReportActionsNewestFirst.at(0);
-    const firstVisibleReportActionID = getFirstVisibleReportActionID(reportActions, isOffline);
+    const firstVisibleReportActionID = getFirstVisibleReportActionID(reportActionsWithVisiblePayments, isOffline);
 
     return {
         visibleReportActions,

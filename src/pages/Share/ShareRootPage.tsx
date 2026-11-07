@@ -9,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addTempShareFile, addValidatedShareFile, clearShareData} from '@libs/actions/Share';
+import {snapshotUserLocation} from '@libs/actions/UserLocation';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {splitExtensionFromFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
@@ -26,7 +27,7 @@ import ROUTES from '@src/ROUTES';
 import type {ShareTempFile} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Alert, AppState, View} from 'react-native';
 
 import getFileSize from './getFileSize';
@@ -50,34 +51,31 @@ function ShareRootPage() {
     const {validateFiles} = useFilesValidation(addValidatedShareFile);
     const isTextShared = currentAttachment?.mimeType === 'txt';
 
-    const validateFileIfNecessary = useCallback(
-        (file: ShareTempFile) => {
-            if (!file || isTextShared || !shouldValidateFile(file)) {
-                return;
-            }
+    const validateFileIfNecessary = (file: ShareTempFile) => {
+        if (!file || isTextShared || !shouldValidateFile(file)) {
+            return;
+        }
 
-            getFileSize(file.content)
-                .catch((error: unknown) => {
-                    Log.warn('[ShareRootPage] Failed to get file size for validation', {error});
-                    return undefined;
-                })
-                .then((size) => {
-                    validateFiles(
-                        [
-                            {
-                                name: file.id,
-                                uri: file.content,
-                                type: file.mimeType,
-                                size,
-                            },
-                        ],
-                        undefined,
-                        {isValidatingReceipts: false},
-                    );
-                });
-        },
-        [isTextShared, validateFiles],
-    );
+        getFileSize(file.content)
+            .catch((error: unknown) => {
+                Log.warn('[ShareRootPage] Failed to get file size for validation', {error});
+                return undefined;
+            })
+            .then((size) => {
+                validateFiles(
+                    [
+                        {
+                            name: file.id,
+                            uri: file.content,
+                            type: file.mimeType,
+                            size,
+                        },
+                    ],
+                    undefined,
+                    {isValidatingReceipts: false},
+                );
+            });
+    };
 
     const appState = useRef(AppState.currentState);
     const [isFileReady, setIsFileReady] = useState(false);
@@ -98,7 +96,7 @@ function ShareRootPage() {
         showErrorAlert(errorTitle, errorMessage);
     }, [errorTitle, errorMessage]);
 
-    const handleProcessFiles = useCallback(() => {
+    const handleProcessFiles = () => {
         ShareActionHandler.processFiles((processedFiles) => {
             const tempFile = Array.isArray(processedFiles) ? processedFiles.at(0) : (JSON.parse(processedFiles) as ShareTempFile);
             if (errorTitle) {
@@ -144,6 +142,9 @@ function ShareRootPage() {
                         // Reset the persisted tab to SUBMIT so that defaultSelectedTab takes effect
                         // even when a previous Share session left the tab on SHARE.
                         Tab.setSelectedTab(CONST.TAB.SHARE.NAVIGATOR_ID, CONST.TAB.SHARE.SUBMIT);
+                        // Pre-warm the position while the user picks a recipient so SubmitDetailsPage
+                        // avoids reading the device inside the ShareExtensionOpenSubmitFlow span.
+                        snapshotUserLocation();
                     } else {
                         setIsFileScannable(false);
                     }
@@ -154,7 +155,7 @@ function ShareRootPage() {
                 addTempShareFile(tempFile);
             }
         });
-    }, [errorTitle, shareFileMimeTypes, translate, receiptFileFormats, validateFileIfNecessary]);
+    };
 
     useEffect(() => {
         const subscription = AppState.addEventListener('change', (nextAppState) => {

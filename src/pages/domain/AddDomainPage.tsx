@@ -22,10 +22,9 @@ import {getFieldRequiredErrors, isPublicDomain} from '@libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/CreateDomainForm';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 
 function AddDomainPage() {
     const styles = useThemeStyles();
@@ -33,25 +32,22 @@ function AddDomainPage() {
     const {inputCallbackRef} = useAutoFocusInput();
 
     const [form] = useOnyx(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM);
-    const [allDomains, allDomainsResult] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
+    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const isAppLoadPending = useIsAppLoadPending();
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CREATE_DOMAIN_FORM>) => {
-            const errors = getFieldRequiredErrors(values, [INPUT_IDS.DOMAIN_NAME], translate);
-            const domainName = values[INPUT_IDS.DOMAIN_NAME];
-            if (!domainName) {
-                return errors;
-            }
-            if (!Str.isValidDomainName(domainName)) {
-                errors[INPUT_IDS.DOMAIN_NAME] = translate('iou.invalidDomainError');
-            } else if (isPublicDomain(domainName)) {
-                errors[INPUT_IDS.DOMAIN_NAME] = translate('iou.publicDomainError');
-            }
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CREATE_DOMAIN_FORM>) => {
+        const errors = getFieldRequiredErrors(values, [INPUT_IDS.DOMAIN_NAME], translate);
+        const domainName = values[INPUT_IDS.DOMAIN_NAME];
+        if (!domainName) {
             return errors;
-        },
-        [translate],
-    );
+        }
+        if (!Str.isValidDomainName(domainName)) {
+            errors[INPUT_IDS.DOMAIN_NAME] = translate('iou.invalidDomainError');
+        } else if (isPublicDomain(domainName)) {
+            errors[INPUT_IDS.DOMAIN_NAME] = translate('iou.publicDomainError');
+        }
+        return errors;
+    };
 
     const submittedDomainName = useRef<string | undefined>(undefined);
 
@@ -132,9 +128,7 @@ function AddDomainPage() {
                     onSubmit={({domainName}) => {
                         const submitDomain = () => {
                             submittedDomainName.current = domainName;
-                            domainKeysBeforeCreation.current = isLoadingOnyxValue(allDomainsResult)
-                                ? undefined
-                                : new Set(Object.keys(allDomains ?? {}).filter((domainKey) => !!allDomains?.[domainKey]?.accountID));
+                            domainKeysBeforeCreation.current = new Set(Object.keys(allDomains ?? {}).filter((domainKey) => !!allDomains?.[domainKey]?.accountID));
                             createDomain(domainName, domainKeysBeforeCreation.current);
                         };
 

@@ -157,6 +157,7 @@ function WorkspaceTaxesTableRow({item, rowIndex, shouldUseNarrowTableLayout, sho
                             disabled={item.isSwitchDisabled}
                             disabledAction={item.onDisabledSwitchPress}
                             accessibilityLabel={translate('workspace.taxes.actions.enable')}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.ROW_ENABLE_SWITCH}
                             onToggle={item.onToggleEnabled}
                             isNested
                         />

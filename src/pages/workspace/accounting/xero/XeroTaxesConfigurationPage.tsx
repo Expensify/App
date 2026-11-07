@@ -38,6 +38,7 @@ function XeroTaxesConfigurationPage({policy}: WithPolicyProps) {
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}
                 switchAccessibilityLabel={translate('workspace.xero.customers')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.IMPORT_TAX_RATES_SWITCH}
                 isActive={isSwitchOn}
                 onToggle={() => Xero.updateXeroImportTaxRates(policyID, !xeroConfig?.importTaxRates, xeroConfig?.importTaxRates)}
                 errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.IMPORT_TAX_RATES)}
