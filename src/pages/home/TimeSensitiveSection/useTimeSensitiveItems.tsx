@@ -14,6 +14,7 @@ import useBrokenDirectCompanyCardFeedsForAdmin from './hooks/useBrokenDirectComp
 import useTimeSensitiveAddBankAccount from './hooks/useTimeSensitiveAddBankAccount';
 import useTimeSensitiveAddDepositAccount from './hooks/useTimeSensitiveAddDepositAccount';
 import useTimeSensitiveAddPaymentCard from './hooks/useTimeSensitiveAddPaymentCard';
+import useTimeSensitiveBankAccountAddress from './hooks/useTimeSensitiveBankAccountAddress';
 import useTimeSensitiveBilling from './hooks/useTimeSensitiveBilling';
 import useTimeSensitiveCards from './hooks/useTimeSensitiveCards';
 import useTimeSensitiveHomeAddress from './hooks/useTimeSensitiveHomeAddress';
@@ -25,6 +26,7 @@ import useTimeSensitiveSubscriptionExpiring from './hooks/useTimeSensitiveSubscr
 import useTimeSensitiveWiseMoreInfoNeeded from './hooks/useTimeSensitiveWiseMoreInfoNeeded';
 import ActivateCard from './items/ActivateCard';
 import AddBankAccount from './items/AddBankAccount';
+import AddBankAccountAddress from './items/AddBankAccountAddress';
 import AddDepositAccount from './items/AddDepositAccount';
 import AddHomeAddress from './items/AddHomeAddress';
 import AddPaymentCard from './items/AddPaymentCard';
@@ -89,6 +91,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
     const adminPolicies = adminPoliciesData?.policies;
     const brokenPolicyConnections = adminPoliciesData?.brokenConnections ?? CONST.EMPTY_ARRAY;
     const {lockedBankAccounts} = useTimeSensitiveLockedBankAccount(adminPolicies);
+    const {bankAccountsMissingAddress} = useTimeSensitiveBankAccountAddress(adminPolicies);
     const {pendingSignerInfo} = useTimeSensitiveSignerInfo();
     const {wiseMoreInfoNeededBankAccounts} = useTimeSensitiveWiseMoreInfoNeeded();
     const {netSuiteMigrationPolicies} = useTimeSensitiveNetSuiteMigration();
@@ -120,17 +123,18 @@ function useTimeSensitiveItems(): React.ReactNode[] {
     // 6. Broken bank connections (company cards)
     // 7. Broken bank connections (personal cards)
     // 8. Locked bank accounts (workspace VBAs and personal)
-    // 9. Broken policy connections (accounting + HR)
-    // 10. NetSuite connections requiring OAuth 2.0 migration
-    // 11. Add home address (commuter exclusions, homeAndOffice method)
-    // 12. Add payment card (trial ended, no payment card)
-    // 13. Add bank account for a queued reimbursement, or a deposit account for a workspace collecting details
-    // 14. Enter signer info for global bank accounts
-    // 15. Send Wise the info it asked for to enable global reimbursements
-    // 16. Expensify card shipping
-    // 17. Expensify card activation
-    // 18. Virtual Expensify card needs personal details
-    // 19. Digital wallet addition needs confirming
+    // 9. Bank accounts missing an address (MTL compliance)
+    // 10. Broken policy connections (accounting + HR)
+    // 11. NetSuite connections requiring OAuth 2.0 migration
+    // 12. Add home address (commuter exclusions, homeAndOffice method)
+    // 13. Add payment card (trial ended, no payment card)
+    // 14. Add bank account for a queued reimbursement, or a deposit account for a workspace collecting details
+    // 15. Enter signer info for global bank accounts
+    // 16. Send Wise the info it asked for to enable global reimbursements
+    // 17. Expensify card shipping
+    // 18. Expensify card activation
+    // 19. Virtual Expensify card needs personal details
+    // 20. Digital wallet addition needs confirming
     const items: React.ReactNode[] = [];
 
     // Priority 1: Failed billing for existing customers
@@ -212,7 +216,20 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             />,
         );
     }
-    // Priority 9: Broken policy connections (accounting + HR)
+    // Priority 9: Bank accounts missing an address (MTL compliance)
+    for (const bankAccountMissingAddress of bankAccountsMissingAddress) {
+        items.push(
+            <AddBankAccountAddress
+                key={bankAccountMissingAddress.key}
+                bankAccountID={bankAccountMissingAddress.bankAccountID}
+                isPersonalAccount={bankAccountMissingAddress.isPersonalAccount}
+                policyID={bankAccountMissingAddress.policyID}
+                policyName={bankAccountMissingAddress.policyName}
+                additionalData={bankAccountMissingAddress.additionalData}
+            />,
+        );
+    }
+    // Priority 10: Broken policy connections (accounting + HR)
     for (const connection of brokenPolicyConnections) {
         items.push(
             <FixPolicyConnection
@@ -224,7 +241,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             />,
         );
     }
-    // Priority 10: NetSuite connections requiring OAuth 2.0 migration (deadline: February 2027)
+    // Priority 11: NetSuite connections requiring OAuth 2.0 migration (deadline: February 2027)
     for (const item of netSuiteMigrationPolicies) {
         items.push(
             <UpgradeNetSuiteConnection
@@ -234,22 +251,22 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             />,
         );
     }
-    // Priority 11: Add home address (commuter exclusions, homeAndOffice method)
+    // Priority 12: Add home address (commuter exclusions, homeAndOffice method)
     if (shouldShowAddHomeAddress) {
         items.push(<AddHomeAddress key="add-home-address" />);
     }
-    // Priority 12: Add payment card (trial ended, no payment card)
+    // Priority 13: Add payment card (trial ended, no payment card)
     if (shouldShowAddPaymentCard) {
         items.push(<AddPaymentCard key="add-payment-card" />);
     }
-    // Priority 13: Add bank account for a queued reimbursement
+    // Priority 14: Add bank account for a queued reimbursement
     if (shouldShowAddBankAccount) {
         items.push(<AddBankAccount key="add-bank-account" />);
     } else if (shouldShowAddDepositAccount) {
         // Priority 13: Add a deposit account so a workspace with reimbursements enabled can pay the user.
         items.push(<AddDepositAccount key="add-deposit-account" />);
     }
-    // Priority 14: Enter signer info for global bank accounts
+    // Priority 15: Enter signer info for global bank accounts
     for (const item of pendingSignerInfo) {
         items.push(
             <EnterSignerInfo
@@ -260,7 +277,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             />,
         );
     }
-    // Priority 15: Send Wise the info it asked for to enable global reimbursements
+    // Priority 16: Send Wise the info it asked for to enable global reimbursements
     for (const bankAccount of wiseMoreInfoNeededBankAccounts) {
         items.push(
             <VerifyWiseBankAccount
@@ -270,7 +287,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             />,
         );
     }
-    // Priority 16: Expensify card shipping
+    // Priority 17: Expensify card shipping
     if (shouldShowAddShippingAddress) {
         for (const card of cardsNeedingShippingAddress) {
             items.push(
@@ -281,7 +298,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             );
         }
     }
-    // Priority 17: Expensify card activation
+    // Priority 18: Expensify card activation
     if (shouldShowActivateCard) {
         for (const card of cardsNeedingActivation) {
             items.push(
@@ -292,7 +309,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             );
         }
     }
-    // Priority 18: Virtual Expensify card needs personal details before reveal
+    // Priority 19: Virtual Expensify card needs personal details before reveal
     if (shouldShowAddVirtualCardPersonalDetails) {
         for (const card of virtualCardsNeedingPersonalDetails) {
             items.push(
@@ -303,7 +320,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             );
         }
     }
-    // Priority 19: Confirm a digital wallet addition
+    // Priority 20: Confirm a digital wallet addition
     if (shouldShowConfirmDigitalWalletAddition) {
         for (const card of cardsPendingDigitalWalletApproval) {
             items.push(
