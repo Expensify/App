@@ -16893,6 +16893,30 @@ describe('ReportUtils', () => {
             await Onyx.clear();
         });
 
+        it.each([CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.PAY])('preserves Leave for joined %s transaction threads', async (type) => {
+            // Given a joined transaction thread that is not a tracked expense
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.CHAT,
+                parentReportID: '12345',
+                parentReportActionID: '67890',
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1234]),
+            };
+            const parentReportAction: ReportAction = {
+                ...createRandomReportAction(67890),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                message: [{type: 'COMMENT', html: 'requested $10.00', text: 'requested $10.00', whisperedTo: []}],
+                originalMessage: {type, IOUTransactionID: '123', IOUDetails: {amount: 1000, currency: CONST.CURRENCY.USD, comment: ''}},
+            };
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+
+            // When checking membership actions with the parent action supplied
+            const canLeave = canLeaveChat(report, undefined, currentUserAccountID, false, false, parentReportAction);
+
+            // Then the tracked expense restriction does not remove existing Leave behavior for other transaction threads
+            expect(canLeave).toBe(true);
+        });
+
         it('should return true for root group chat', () => {
             const report: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.GROUP);
 
@@ -17050,6 +17074,33 @@ describe('ReportUtils', () => {
 
             await Onyx.clear();
         });
+
+        it.each([CONST.IOU.REPORT_ACTION_TYPE.TRACK, CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.PAY])(
+            'does not offer Join for a %s transaction thread without its parent report',
+            async (type) => {
+                // Given a hidden transaction thread whose private parent is not available to the current user
+                const report: Report = {
+                    ...createRandomReport(1, undefined),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    parentReportID: '12345',
+                    parentReportActionID: '67890',
+                    participants: {[currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN}},
+                };
+                const parentReportAction: ReportAction = {
+                    ...createRandomReportAction(67890),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    message: [{type: 'COMMENT', html: 'tracked $10.00', text: 'tracked $10.00', whisperedTo: []}],
+                    originalMessage: {type, IOUTransactionID: '123', IOUDetails: {amount: 1000, currency: CONST.CURRENCY.USD, comment: ''}},
+                };
+                await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+
+                // When checking whether the user can join using only the retained parent action
+                const canJoin = canJoinChat(report, parentReportAction, undefined, undefined);
+
+                // Then a transaction thread is not mistaken for an ordinary chat thread
+                expect(canJoin).toBe(false);
+            },
+        );
 
         it('should return false if the parent report action is a whisper action', () => {
             const report: Report = {

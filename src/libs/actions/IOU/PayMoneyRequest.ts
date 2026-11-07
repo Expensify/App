@@ -307,7 +307,14 @@ function getPayMoneyRequestParams({
     }
     let optimisticNextStep = null;
     if (!isInvoiceReport) {
-        optimisticNextStep = buildOptimisticNextStep({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED, isTrackIntentUser, rules});
+        // A paid report has no next approver, so personalDetailsByLogins isn't needed.
+        optimisticNextStep = buildOptimisticNextStep({
+            report: iouReport,
+            predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            isTrackIntentUser,
+            rules,
+            personalDetailsByLogins: undefined,
+        });
     }
 
     const optimisticChatReport = {
@@ -676,6 +683,7 @@ function cancelPayment(
     const hasConnectedBankAccount = !!policy?.achAccount?.accountNumber;
     const predictedNextStatus = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL && hasConnectedBankAccount ? CONST.REPORT.STATUS_NUM.SUBMITTED : statusNum;
 
+    // The next step is only SUBMITTED for Optional approval policies, which never look up the next approver, so personalDetailsByLogins isn't needed.
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
         predictedNextStatus,
@@ -686,6 +694,7 @@ function cancelPayment(
         isASAPSubmitBetaEnabled,
         isTrackIntentUser,
         rules,
+        personalDetailsByLogins: undefined,
     });
     const iouReportActions = getAllReportActions(chatReport.iouReportID);
     const expenseReportActions = getAllReportActions(expenseReport.reportID);
@@ -770,12 +779,14 @@ function cancelPayment(
                 isWaitingOnBankAccount: expenseReport.isWaitingOnBankAccount,
                 canCancelReimbursement: expenseReport.canCancelReimbursement,
                 isCancelledIOU: false,
+                // A paid report has no next approver, so personalDetailsByLogins isn't needed.
                 nextStep:
                     buildOptimisticNextStep({
                         report: expenseReport,
                         predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED,
                         isTrackIntentUser,
                         rules,
+                        personalDetailsByLogins: undefined,
                     }) ?? null,
                 pendingFields: {
                     nextStep: null,
@@ -1056,7 +1067,14 @@ function markReportPaymentReceived(
 
     const reportPreviewAction = getReportPreviewReportAction(chatReport.reportID, iouReport.reportID, chatReportActions);
     const optimisticReportPreviewAction = reportPreviewAction ? updateReportPreview(iouReport, reportPreviewAction, getCurrencyDecimals, true) : null;
-    const optimisticNextStep = buildOptimisticNextStep({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED, isTrackIntentUser, rules});
+    // A paid report has no next approver, so personalDetailsByLogins isn't needed.
+    const optimisticNextStep = buildOptimisticNextStep({
+        report: iouReport,
+        predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED,
+        isTrackIntentUser,
+        rules,
+        personalDetailsByLogins: undefined,
+    });
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
