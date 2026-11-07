@@ -94,15 +94,16 @@ function SearchPageFooter({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [isFooterButtonFocused, setIsFooterButtonFocused] = useState(false);
-    // The height the real total last occupied, which is what the skeleton stands in at.
-    const [loadedTotalHeight, setLoadedTotalHeight] = useState<number | undefined>(undefined);
+    // The size the real total last occupied, which is what the skeleton stands in at.
+    const [loadedTotalSize, setLoadedTotalSize] = useState<{width: number; height: number} | undefined>(undefined);
 
     const handleTotalLayout = (event: LayoutChangeEvent) => {
+        const width = Math.round(event.nativeEvent.layout.width);
         const height = Math.round(event.nativeEvent.layout.height);
-        if (!height || height === loadedTotalHeight) {
+        if (!width || !height || (width === loadedTotalSize?.width && height === loadedTotalSize?.height)) {
             return;
         }
-        setLoadedTotalHeight(height);
+        setLoadedTotalSize({width, height});
     };
 
     const valueTextStyle = isOffline ? [styles.textLabelSupporting, styles.labelStrong] : [styles.labelStrong];
@@ -155,6 +156,15 @@ function SearchPageFooter({
     // not read out on its own.
     const footerAccessibilityLabel = [`${countLabel}: ${count ?? ''}`, hasTotal ? `${totalLabel}: ${totalDisplayValue}` : undefined].filter(Boolean).join(', ');
 
+    // Rendered inside the last group, so it wraps along with the total and stays visible.
+    const arrow = (
+        <Button.Icon
+            src={icons.DownArrow}
+            fill={theme.icon}
+            hoverFill={theme.iconHovered}
+        />
+    );
+
     // The whole content is the trigger, not just the total: every figure it shows is changed from the same menu.
     // It stays pressable while the total reloads and offline, since the count row needs no request; the rows that do
     // wait inside the menu.
@@ -162,31 +172,38 @@ function SearchPageFooter({
         <Button
             ref={props.ref}
             accessibilityLabel={footerAccessibilityLabel}
-            innerStyles={[styles.bgTransparent, styles.mnh0, styles.ph0, styles.pv0]}
-            contentContainerStyle={styles.gap1}
+            sentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_BUTTON}
+            style={styles.flexShrink1}
+            innerStyles={[styles.bgTransparent, styles.mnh0, styles.ph0, styles.pv0, styles.flexShrink1]}
             size={CONST.BUTTON_SIZE.SMALL}
             hoverStyles={styles.bgTransparent}
             onPress={props.onPress}
             onFocus={() => setIsFooterButtonFocused(true)}
             onBlur={() => setIsFooterButtonFocused(false)}
         >
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+            <View style={[styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.flexShrink1, styles.columnGap3, styles.rowGap1]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
                     <Text style={[styles.textLabelSupporting, styles.pointerEventsNone]}>{`${countLabel}:`}</Text>
                     {/* The count never loads: both counts come back on every search, so it holds still while the total reloads. */}
                     <Text style={[valueTextStyle, styles.pointerEventsNone]}>{count}</Text>
+                    {!hasTotal && arrow}
                 </View>
                 {hasTotal && (
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-                        {/* Both labels stay rendered while the total reloads, so the footer keeps its height and nothing shifts. */}
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.flexShrink1, styles.gap1]}>
+                        {/* Both labels stay rendered while the total reloads, so the footer keeps its size and nothing shifts. */}
                         <Text style={[styles.textLabelSupporting, styles.pointerEventsNone]}>{`${totalLabel}:`}</Text>
                         {isTotalLoading ? (
-                            <SearchPageFooterSkeleton height={loadedTotalHeight} />
+                            <SearchPageFooterSkeleton
+                                width={loadedTotalSize?.width}
+                                height={loadedTotalSize?.height}
+                            />
                         ) : (
-                            // Measured so the skeleton stands in at the same height. Anything else resizes the footer,
-                            // which shifts the count beside it as the row grows.
+                            // Measured so the skeleton stands in at the same size. Anything else resizes the footer or
+                            // moves the total between one line and two. It shrinks so a total too long even for a line
+                            // of its own ends in an ellipsis, keeping its label and the arrow visible.
                             <View
                                 testID="searchPageFooterTotal"
+                                style={styles.flexShrink1}
                                 onLayout={handleTotalLayout}
                             >
                                 <Button.Text
@@ -197,21 +214,18 @@ function SearchPageFooter({
                                 </Button.Text>
                             </View>
                         )}
+                        {arrow}
                     </View>
                 )}
             </View>
-            <Button.Icon
-                src={icons.DownArrow}
-                fill={theme.icon}
-                hoverFill={theme.iconHovered}
-            />
         </Button>
     );
 
     return (
-        <View style={[styles.borderTop, styles.ph5, styles.pv3, StyleUtils.getBackgroundColorStyle(theme.appBG)]}>
+        <View style={[styles.borderTop, styles.ph5, styles.pv3, shouldUseNarrowLayout && styles.searchPageFooterFABClearance, StyleUtils.getBackgroundColorStyle(theme.appBG)]}>
             <View style={[shouldUseNarrowLayout ? styles.justifyContentStart : styles.justifyContentEnd, styles.flexRow, styles.alignItemsCenter]}>
                 <FilterPopupButton
+                    wrapperStyle={styles.flexShrink1}
                     PopoverComponent={renderFooterPopup}
                     renderButton={footerButton}
                     popoverAnchorAlignment={{

@@ -10585,6 +10585,7 @@ const CONST = {
             FOOTER_COUNT: 'Search-FooterCount',
             FOOTER_TOTAL: 'Search-FooterTotal',
             FOOTER_CURRENCY: 'Search-FooterCurrency',
+            FOOTER_BUTTON: 'Search-FooterButton',
             ADVANCED_FILTERS_BUTTON: 'Search-AdvancedFiltersButton',
             COLUMNS_BUTTON: 'Search-ColumnsButton',
             SELECT_ALL_CHECKBOX: 'Search-SelectAllCheckbox',
