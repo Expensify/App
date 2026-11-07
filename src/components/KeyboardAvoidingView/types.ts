@@ -1,6 +1,9 @@
 import type {KeyboardAvoidingViewProps as RNKeyboardAvoidingViewProps} from 'react-native';
 
 type KeyboardAvoidingViewProps = RNKeyboardAvoidingViewProps & {
+    /** Whether native keyboard avoidance should measure the view's position on screen. */
+    automaticOffset?: boolean;
+
     /**
      * Whether to compensate for the bottom safe area padding.
      * The KeyboardAvoidingView will use a negative keyboardVerticalOffset.

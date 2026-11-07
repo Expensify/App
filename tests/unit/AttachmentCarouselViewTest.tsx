@@ -1,26 +1,29 @@
-/** Exercises the web carousel's viewability, focus, arrow bounds and shared gesture ref through its real component. */
-import {act, render, screen} from '@testing-library/react-native';
+/** Exercises web carousel selection independently of layout and visibility. */
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import type AttachmentCarouselViewComponent from '@components/Attachments/AttachmentCarousel/AttachmentCarouselView/index';
 import type AttachmentCarouselViewProps from '@components/Attachments/AttachmentCarousel/AttachmentCarouselView/types';
+import CarouselActions from '@components/Attachments/AttachmentCarousel/CarouselActions';
 import CarouselButtons from '@components/Attachments/AttachmentCarousel/CarouselButtons';
 import CarouselItem from '@components/Attachments/AttachmentCarousel/CarouselItem';
 import {AttachmentCarouselPagerStateContext} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import type {AttachmentCarouselPagerStateContextType} from '@components/Attachments/AttachmentCarousel/Pager/types';
-import type {Attachment, AttachmentSource} from '@components/Attachments/types';
+import type {Attachment} from '@components/Attachments/types';
 import Text from '@components/Text';
 import {useFullScreenState} from '@components/VideoPlayerContexts/FullScreenContextProvider';
 
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 
-import type {FlatListProps, FlatList, ListRenderItemInfo} from 'react-native';
-// eslint-disable-next-line no-restricted-imports -- This type-only import describes the real Gesture Handler module retained by the mock.
+import type {FlatList, FlatListProps, ListRenderItemInfo} from 'react-native';
+// eslint-disable-next-line no-restricted-imports -- Retain the real gesture hook while observing its callbacks.
 import type * as GestureHandler from 'react-native-gesture-handler';
 import type * as Reanimated from 'react-native-reanimated';
+import type * as Worklets from 'react-native-worklets';
 
-import React, {useContext} from 'react';
+import React, {useContext, useState} from 'react';
 import {Keyboard} from 'react-native';
-import {GestureDetector} from 'react-native-gesture-handler';
+import {GestureDetector, usePanGesture} from 'react-native-gesture-handler';
+import {scrollTo} from 'react-native-reanimated';
 
 import createMock from '../utils/createMock';
 
@@ -29,11 +32,18 @@ jest.mock('@components/Attachments/AttachmentCarousel/CarouselActions', () => je
 jest.mock('@components/Attachments/AttachmentCarousel/CarouselItem', () => jest.fn(() => null));
 jest.mock('@components/VideoPlayerContexts/FullScreenContextProvider', () => ({useFullScreenState: jest.fn()}));
 jest.mock('@libs/DeviceCapabilities', () => ({canUseTouchScreen: jest.fn()}));
-jest.mock('@hooks/useResponsiveLayout');
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
-jest.mock('react-native-gesture-handler', () => ({
-    ...jest.requireActual<typeof GestureHandler>('react-native-gesture-handler'),
-    GestureDetector: jest.fn(({children}: React.ComponentProps<typeof GestureDetector>) => children),
+jest.mock('react-native-gesture-handler', () => {
+    const actual = jest.requireActual<typeof GestureHandler>('react-native-gesture-handler');
+    return {
+        ...actual,
+        usePanGesture: jest.fn(actual.usePanGesture),
+        GestureDetector: jest.fn(({children}: React.ComponentProps<typeof GestureDetector>) => children),
+    };
+});
+jest.mock('react-native-worklets', () => ({
+    ...jest.requireActual<typeof Worklets>('react-native-worklets/src/mock'),
+    scheduleOnRN: <Args extends unknown[], Result>(callback: (...args: Args) => Result, ...args: Args) => callback(...args),
 }));
 
 const AttachmentCarouselView = jest.requireActual<{default: typeof AttachmentCarouselViewComponent}>(
@@ -53,27 +63,38 @@ const mockFlatList = jest.fn(({data, renderItem}: FlatListProps<Attachment>) => 
         </>
     );
 });
+jest.mock('react-native/Libraries/Lists/FlatList', () => ({__esModule: true, default: (props: FlatListProps<Attachment>) => mockFlatList(props)}));
 jest.mock('react-native-reanimated', () => {
     const animated = jest.requireActual<typeof Reanimated>('react-native-reanimated/mock');
     return {
         ...animated,
-        default: {...animated.default, FlatList: (props: FlatListProps<Attachment>) => mockFlatList(props)},
         useAnimatedRef: () => mockScrollRef,
+        scrollTo: jest.fn(),
     };
 });
 
-function createOnNavigateMock() {
-    return jest.fn<ReturnType<NonNullable<AttachmentCarouselViewProps['onNavigate']>>, Parameters<NonNullable<AttachmentCarouselViewProps['onNavigate']>>>();
+function CarouselHost(props: AttachmentCarouselViewProps) {
+    const [page, setPage] = useState(props.page);
+    return (
+        <AttachmentCarouselView
+            {...props}
+            page={page}
+            setPage={(nextPage) => {
+                props.setPage(nextPage);
+                setPage(nextPage);
+            }}
+        />
+    );
 }
 
-function createSvgAttachmentSourceMock() {
-    return jest.fn<ReturnType<Extract<AttachmentSource, React.FunctionComponent>>, Parameters<Extract<AttachmentSource, React.FunctionComponent>>>(() => null);
+function resize(width: number) {
+    fireEvent(screen.getByTestId('attachment-carousel'), 'layout', {nativeEvent: {layout: {width, height: 300, x: 0, y: 0}}});
 }
 
-function renderCarousel(overrides: Partial<AttachmentCarouselViewProps> = {}) {
+function renderCarousel(overrides: Partial<AttachmentCarouselViewProps> = {}, Component: React.ComponentType<AttachmentCarouselViewProps> = CarouselHost) {
     const props: AttachmentCarouselViewProps = {
         page: 0,
-        attachments: [{source: 'first.png'}, {source: 'second.png'}],
+        attachments: [{source: 'first.png'}, {source: 'protected.pdf'}, {source: 'last.png'}],
         source: 'first.png',
         shouldShowArrows: true,
         autoHideArrows: jest.fn(),
@@ -83,8 +104,25 @@ function renderCarousel(overrides: Partial<AttachmentCarouselViewProps> = {}) {
         onNavigate: jest.fn(),
         ...overrides,
     };
-    const view = render(<AttachmentCarouselView {...props} />);
+    const view = render(<Component {...props} />);
+    resize(390);
     return {props, ...view};
+}
+
+function getPanCallbacks() {
+    const config = jest.mocked(usePanGesture).mock.calls.at(-1)?.[0];
+    if (!config?.onActivate || !config.onDeactivate) {
+        throw new Error('Expected carousel pan callbacks');
+    }
+    return config;
+}
+
+function swipe(translationX: number, velocityX = 0, canceled = false) {
+    const config = getPanCallbacks();
+    act(() => {
+        config.onActivate?.(createMock<Parameters<NonNullable<typeof config.onActivate>>[0]>({translationX: 0}));
+        config.onDeactivate?.(createMock<Parameters<NonNullable<typeof config.onDeactivate>>[0]>({translationX, velocityX, canceled}));
+    });
 }
 
 describe('AttachmentCarouselView web', () => {
@@ -92,206 +130,211 @@ describe('AttachmentCarouselView web', () => {
         jest.clearAllMocks();
         pagerState = null;
         jest.mocked(canUseTouchScreen).mockReturnValue(true);
-        jest.mocked(useFullScreenState).mockReturnValue(createMock<ReturnType<typeof useFullScreenState>>({isFullScreen: false, isFullScreenRef: {current: false}}));
+        jest.mocked(useFullScreenState).mockReturnValue(createMock<ReturnType<typeof useFullScreenState>>({isFullScreen: false}));
         jest.mocked(CarouselItem).mockImplementation(({item, isFocused}) => {
             const sourceLabel = typeof item.source === 'object' ? JSON.stringify(item.source) : String(item.source);
             return <Text>{`${item.attachmentID ?? sourceLabel}:${String(isFocused)}`}</Text>;
         });
     });
 
-    it.each<Attachment>([{source: 'image.png', attachmentID: 'report_2'}, {source: 'image.png'}, {source: 123}])(
-        'keeps attachment identity and focus for source $source and id $attachmentID',
-        (attachment) => {
-            // Given a typed attachment from the carousel producer, including supported source variants
-            const other: Attachment = {source: attachment.source, attachmentID: 'different-id'};
-            const onNavigate = createOnNavigateMock();
-            const {props} = renderCarousel({attachments: [other, attachment], source: other.source, attachmentID: other.attachmentID, onNavigate});
-            const viewability = mockFlatList.mock.calls.at(-1)?.[0].onViewableItemsChanged;
-            expect(viewability).toBeDefined();
-            if (!viewability) {
-                throw new Error('Expected the web FlatList viewability callback');
-            }
-
-            // When FlatList reports the second attachment as visible
-            act(() => viewability({viewableItems: [{item: attachment, key: 'selected', index: 1, isViewable: true}], changed: []}));
-
-            // Then navigation receives the exact item and focus follows attachmentID before source
-            expect(onNavigate.mock.calls.at(0)?.at(0)).toBe(attachment);
-            expect(props.setPage).toHaveBeenCalledWith(1);
-            expect(
-                screen.getByText(`${attachment.attachmentID ?? (typeof attachment.source === 'object' ? JSON.stringify(attachment.source) : String(attachment.source))}:true`),
-            ).toBeOnTheScreen();
-            expect(screen.getByText('different-id:false')).toBeOnTheScreen();
-        },
-    );
-
-    it('invokes a function source as the initial state value and renders it unfocused without an id', () => {
-        // Given a supported SVG source without an attachment id
-        const source = createSvgAttachmentSourceMock();
-        const attachment: Attachment = {source};
-
-        // When the unchanged useState initializer receives that function
-        renderCarousel({attachments: [attachment], source});
-
-        // Then React invokes it and stores its null return rather than the source function
-        expect(source).toHaveBeenCalled();
-        expect(screen.getByText(`${String(source)}:false`)).toBeOnTheScreen();
-    });
-
-    it('invokes a function source as a state updater while retaining exact navigation and page effects', () => {
-        // Given a function source without an id and a carousel initialized from a string
-        const source = createSvgAttachmentSourceMock();
-        const attachment: Attachment = {source};
-        const onNavigate = createOnNavigateMock();
-        const {props} = renderCarousel({attachments: [{source: 'first.png'}, attachment], onNavigate});
-        expect(source).not.toHaveBeenCalled();
-        const viewability = mockFlatList.mock.calls.at(-1)?.[0].onViewableItemsChanged;
-        expect(viewability).toBeDefined();
-        if (!viewability) {
-            throw new Error('Expected the web FlatList viewability callback');
-        }
-
-        // When the unchanged state setter receives that function from viewability
-        act(() => viewability({viewableItems: [{item: attachment, key: 'function', index: 1, isViewable: true}], changed: []}));
-
-        // Then React invokes the updater, leaves the item unfocused and still navigates to the original attachment
-        expect(source).toHaveBeenCalled();
-        expect(screen.getByText(`${String(source)}:false`)).toBeOnTheScreen();
-        expect(props.setPage).toHaveBeenCalledWith(1);
-        expect(onNavigate).toHaveBeenCalledTimes(1);
-        expect(onNavigate.mock.calls.at(0)?.at(0)).toBe(attachment);
-    });
-
-    it('prefers attachment ids over function sources during initialization and viewability', () => {
-        // Given two SVG sources whose ids supply their focus identities
-        const source = createSvgAttachmentSourceMock();
-        const first: Attachment = {source, attachmentID: 'first-id'};
-        const second: Attachment = {source, attachmentID: 'second-id'};
-        const onNavigate = createOnNavigateMock();
-        const {props} = renderCarousel({attachments: [first, second], source, attachmentID: first.attachmentID, onNavigate});
-        expect(source).not.toHaveBeenCalled();
-        expect(screen.getByText('first-id:true')).toBeOnTheScreen();
-        const viewability = mockFlatList.mock.calls.at(-1)?.[0].onViewableItemsChanged;
-        expect(viewability).toBeDefined();
-        if (!viewability) {
-            throw new Error('Expected the web FlatList viewability callback');
-        }
-
-        // When the second item becomes visible, its id also takes precedence over the function updater
-        act(() => viewability({viewableItems: [{item: second, key: 'second', index: 1, isViewable: true}], changed: []}));
-
-        // Then neither state call invokes the source and exact navigation and focus follow the selected id
-        expect(source).not.toHaveBeenCalled();
-        expect(screen.getByText('first-id:false')).toBeOnTheScreen();
-        expect(screen.getByText('second-id:true')).toBeOnTheScreen();
-        expect(props.setPage).toHaveBeenCalledWith(1);
-        expect(onNavigate).toHaveBeenCalledTimes(1);
-        expect(onNavigate.mock.calls.at(0)?.at(0)).toBe(second);
-    });
-
-    it('clears focus for empty tokens and navigates a null-index token without changing page or focus', () => {
-        // Given a real callback installed by the web target
-        const {props} = renderCarousel();
-        const viewability = mockFlatList.mock.calls.at(-1)?.[0].onViewableItemsChanged;
-        expect(viewability).toBeDefined();
-        if (!viewability) {
-            throw new Error('Expected viewability callback');
-        }
-        const attachment: Attachment = {source: 'second.png'};
-
-        // When a token has no index, navigation still receives it, then an empty token set clears focus
-        act(() => viewability({viewableItems: [{item: attachment, key: 'second', index: null, isViewable: true}], changed: []}));
-        expect(props.onNavigate).toHaveBeenCalledWith(attachment);
-        expect(props.setPage).not.toHaveBeenCalled();
-        expect(screen.getByText('first.png:true')).toBeOnTheScreen();
-        act(() => viewability({viewableItems: [], changed: []}));
-
-        // Then empty input removes active focus without another navigation
-        expect(screen.getByText('first.png:false')).toBeOnTheScreen();
-        expect(props.onNavigate).toHaveBeenCalledTimes(1);
-    });
-
-    it('returns before keyboard, page or navigation effects during fullscreen', () => {
-        // Given a fullscreen media item
-        jest.mocked(useFullScreenState).mockReturnValue(createMock<ReturnType<typeof useFullScreenState>>({isFullScreen: true, isFullScreenRef: {current: true}}));
+    it('preserves PDF focus through rotation and a transient zero-width layout', () => {
+        // Given a selected PDF between two attachments
         const dismiss = jest.spyOn(Keyboard, 'dismiss');
-        const {props} = renderCarousel();
-        const viewability = mockFlatList.mock.calls.at(-1)?.[0].onViewableItemsChanged;
-        expect(viewability).toBeDefined();
-        if (!viewability) {
-            throw new Error('Expected viewability callback');
-        }
+        const {props} = renderCarousel({page: 1});
 
-        // When viewability changes behind fullscreen playback
-        act(() => viewability({viewableItems: [{item: {source: 'second.png'}, key: 'second', index: 1, isViewable: true}], changed: []}));
+        // When layout changes without a navigation action
+        resize(748);
+        expect(mockFlatList.mock.calls.at(-1)?.[0].getItemLayout?.(null, 1)).toEqual({length: 748, offset: 748, index: 1});
+        resize(0);
+        resize(390);
 
-        // Then none of the ordinary paging effects happen
-        expect(dismiss).not.toHaveBeenCalled();
+        // Then the PDF stays focused and realigns without navigation or keyboard dismissal
+        expect(screen.getByText('protected.pdf:true')).toBeOnTheScreen();
+        expect(mockScrollToIndex).toHaveBeenLastCalledWith({index: 1, animated: false});
         expect(props.setPage).not.toHaveBeenCalled();
         expect(props.onNavigate).not.toHaveBeenCalled();
+        expect(dismiss).not.toHaveBeenCalled();
         dismiss.mockRestore();
     });
 
-    it('shares the real pan gesture and the list ref with pager consumers and retains them on rerender', () => {
-        // Given the production gesture passed to the detector, with only detector rendering replaced
-        const {props, rerender} = renderCarousel();
-        const detectorProps = jest.mocked(GestureDetector).mock.calls.at(-1)?.[0];
-        expect(detectorProps).toBeDefined();
-        const gesture = pagerState?.pagerGesture;
-        if (!detectorProps || !pagerState || !gesture) {
-            throw new Error('Expected the real detector gesture and pager context');
-        }
+    it('navigates to both neighbors and restores PDF focus on return', () => {
+        // Given a PDF between two attachments
+        const dismiss = jest.spyOn(Keyboard, 'dismiss');
+        const {props} = renderCarousel({page: 1});
 
-        // Then pager consumers receive the exact enabled pan gesture given to the detector, and the list ref
-        expect(detectorProps.gesture).toBe(gesture);
-        expect(gesture.type).toBe('PanGestureHandler');
-        expect(gesture.config.enabled).toBe(true);
-        expect(pagerState.pagerRef).toBe(mockScrollRef);
-        const handlerTag = gesture.handlerTag;
+        // When completed swipes move left, back, right, and back
+        swipe(300);
+        swipe(-300);
+        swipe(-300);
+        swipe(300);
 
-        // When the carousel rerenders with unrelated props
+        // Then each destination is selected once and the PDF becomes active again
+        expect(jest.mocked(props.setPage).mock.calls).toEqual([[0], [1], [2], [1]]);
+        expect(props.onNavigate).toHaveBeenCalledTimes(4);
+        expect(dismiss).toHaveBeenCalledTimes(4);
+        expect(screen.getByText('protected.pdf:true')).toBeOnTheScreen();
+        expect(mockScrollToIndex).toHaveBeenLastCalledWith({index: 1, animated: true});
+        dismiss.mockRestore();
+    });
+
+    it.each([
+        {translationX: -20, velocityX: 0, canceled: false},
+        {translationX: -300, velocityX: -600, canceled: true},
+    ])('keeps selection for a short or canceled swipe: %o', ({translationX, velocityX, canceled}) => {
+        // Given a selected PDF
+        const {props} = renderCarousel({page: 1});
+
+        // When the swipe snaps back or is canceled
+        swipe(translationX, velocityX, canceled);
+
+        // Then selection is unchanged and the list returns to its selected page
+        expect(props.onNavigate).not.toHaveBeenCalled();
+        expect(props.setPage).not.toHaveBeenCalled();
+        expect(scrollTo).toHaveBeenLastCalledWith(mockScrollRef, 390, 0, !canceled);
+        expect(screen.getByText('protected.pdf:true')).toBeOnTheScreen();
+    });
+
+    it('discards a gesture destination calculated before rotation', () => {
+        // Given a gesture that starts in portrait on the selected PDF
+        const {props} = renderCarousel({page: 1});
+        const initial = getPanCallbacks();
+        act(() => initial.onActivate?.(createMock<Parameters<NonNullable<typeof initial.onActivate>>[0]>({translationX: 0})));
+
+        // When rotation changes the geometry before the gesture ends
+        resize(748);
+        const current = getPanCallbacks();
+        act(() => current.onDeactivate?.(createMock<Parameters<NonNullable<typeof current.onDeactivate>>[0]>({translationX: -300, velocityX: -600, canceled: false})));
+
+        // Then the gesture realigns the current page without selecting a neighbor
+        expect(props.onNavigate).not.toHaveBeenCalled();
+        expect(scrollTo).toHaveBeenLastCalledWith(mockScrollRef, 748, 0, false);
+    });
+
+    it('uses fling velocity to select a neighboring page', () => {
+        // Given a PDF selected in the middle of the carousel
+        const {props} = renderCarousel({page: 1});
+
+        // When a short fast fling points toward the next page
+        swipe(-10, -600);
+
+        // Then the destination is selected despite the small translation
+        expect(props.setPage).toHaveBeenCalledWith(2);
+        expect(props.onNavigate).toHaveBeenCalledWith(props.attachments.at(2));
+    });
+
+    it('shares navigation across arrow buttons and keyboard shortcuts with bounds', () => {
+        // Given a desktop carousel at its first page
+        jest.mocked(canUseTouchScreen).mockReturnValue(false);
+        const {props} = renderCarousel();
+
+        // When navigation hits the first boundary, then buttons and keyboard move to the last page
+        act(() => jest.mocked(CarouselButtons).mock.calls.at(-1)?.[0].onBack());
+        expect(props.setPage).not.toHaveBeenCalled();
+        act(() => jest.mocked(CarouselButtons).mock.calls.at(-1)?.[0].onForward());
+        act(() => jest.mocked(CarouselActions).mock.calls.at(-1)?.[0].onCycleThroughAttachments(1));
+        act(() => jest.mocked(CarouselButtons).mock.calls.at(-1)?.[0].onForward());
+
+        // Then only valid navigation changes selection, without touch animation or a detector
+        expect(jest.mocked(props.setPage).mock.calls).toEqual([[1], [2]]);
+        expect(mockScrollToIndex).toHaveBeenLastCalledWith({index: 2, animated: false});
+        expect(screen.getByText('last.png:true')).toBeOnTheScreen();
+        expect(GestureDetector).not.toHaveBeenCalled();
+    });
+
+    it('blocks navigation during fullscreen and zoom-disabled swiping', () => {
+        // Given zoom has disabled the carousel pan
+        const {props, rerender} = renderCarousel({page: 1});
+        act(() => pagerState?.isScrollEnabled.set(false));
+
+        // When a swipe is released and fullscreen then receives an arrow action
+        swipe(-300);
+        jest.mocked(useFullScreenState).mockReturnValue(createMock<ReturnType<typeof useFullScreenState>>({isFullScreen: true}));
+        rerender(<CarouselHost {...props} />);
+        act(() => jest.mocked(CarouselButtons).mock.calls.at(-1)?.[0].onForward());
+
+        // Then neither interaction changes the selected attachment
+        expect(props.setPage).not.toHaveBeenCalled();
+        expect(props.onNavigate).not.toHaveBeenCalled();
+        expect(getPanCallbacks().enabled).toBe(false);
+    });
+
+    it('follows parent selection through replacement and reordering without duplicate navigation', () => {
+        // Given a parent-controlled selected page
+        const {props, rerender} = renderCarousel({page: 1}, AttachmentCarouselView);
+        const replacement: Attachment = {source: 'uploaded.pdf', attachmentID: 'uploaded'};
+        const neighbor: Attachment = {source: 'neighbor.png'};
+
+        // When the parent replaces the selected upload, then moves it to a new index
         rerender(
             <AttachmentCarouselView
+                {...props}
+                attachments={[neighbor, replacement]}
+            />,
+        );
+        expect(screen.getByText('uploaded:true')).toBeOnTheScreen();
+        rerender(
+            <AttachmentCarouselView
+                {...props}
+                page={0}
+                attachments={[replacement, neighbor]}
+            />,
+        );
+
+        // Then focus and scroll follow the supplied page without another navigation event
+        expect(screen.getByText('uploaded:true')).toBeOnTheScreen();
+        expect(mockScrollToIndex).toHaveBeenLastCalledWith({index: 0, animated: false});
+        expect(props.onNavigate).not.toHaveBeenCalled();
+    });
+
+    it('focuses only the selected index when attachments share a source', () => {
+        // Given separate attachments with the same underlying file
+        const attachments: Attachment[] = [
+            {source: 'same.pdf', attachmentID: 'first'},
+            {source: 'same.pdf', attachmentID: 'second'},
+        ];
+        renderCarousel({attachments, page: 1});
+
+        // When rendering the selected page
+        const list = mockFlatList.mock.calls.at(-1)?.[0];
+
+        // Then only one PDF is focused and the list receives selection as extra data
+        expect(screen.getByText('first:false')).toBeOnTheScreen();
+        expect(screen.getByText('second:true')).toBeOnTheScreen();
+        expect(list?.extraData).toBe(1);
+    });
+
+    it('treats a function attachment source as data during selection', () => {
+        // Given an SVG attachment source that must only be invoked by its renderer
+        const source = jest.fn(() => null);
+        const attachment: Attachment = {source};
+        const {props} = renderCarousel({attachments: [{source: 'first.png'}, attachment]});
+
+        // When navigating to the function source
+        act(() => jest.mocked(CarouselButtons).mock.calls.at(-1)?.[0].onForward());
+
+        // Then selection does not invoke it as a state updater and focuses the destination
+        expect(source).not.toHaveBeenCalled();
+        expect(props.onNavigate).toHaveBeenCalledWith(attachment);
+        expect(jest.mocked(CarouselItem).mock.calls.some(([itemProps]) => itemProps.item === attachment && itemProps.isFocused)).toBe(true);
+    });
+
+    it('shares the pan gesture and list ref with attachment gesture consumers', () => {
+        // Given the carousel's real pan gesture and shared pager context
+        const {props, rerender} = renderCarousel();
+        const gesture = pagerState?.pagerGesture;
+
+        // When unrelated presentation props change
+        rerender(
+            <CarouselHost
                 {...props}
                 shouldShowArrows={false}
             />,
         );
 
-        // Then the provider keeps the same list ref and the gesture keeps its native handler identity
-        expect(pagerState.pagerRef).toBe(mockScrollRef);
-        expect(pagerState.pagerGesture?.handlerTag).toBe(handlerTag);
-        expect(jest.mocked(GestureDetector).mock.calls.at(-1)?.[0].gesture).toBe(pagerState.pagerGesture);
-    });
-
-    it('enforces arrow bounds and bypasses the detector on a mouse device', () => {
-        // Given a non-touch device at the first page
-        jest.mocked(canUseTouchScreen).mockReturnValue(false);
-        const {props, rerender} = renderCarousel();
-        mockScrollToIndex.mockClear();
-        const buttons = jest.mocked(CarouselButtons).mock.calls.at(-1)?.[0];
-        expect(buttons).toBeDefined();
-        if (!buttons) {
-            throw new Error('Expected carousel arrow controls');
-        }
-
-        // When the user cycles backward then forward and tries to pass the last page
-        act(() => buttons.onBack());
-        expect(mockScrollToIndex).not.toHaveBeenCalled();
-        act(() => buttons.onForward());
-        expect(mockScrollToIndex).toHaveBeenCalledWith({index: 1, animated: false});
-        rerender(
-            <AttachmentCarouselView
-                {...props}
-                page={1}
-            />,
-        );
-        mockScrollToIndex.mockClear();
-        const lastButtons = jest.mocked(CarouselButtons).mock.calls.at(-1)?.[0];
-        expect(lastButtons).toBeDefined();
-        act(() => lastButtons?.onForward());
-
-        // Then out-of-range navigation does not scroll and pointer capture has no gesture detector
-        expect(mockScrollToIndex).not.toHaveBeenCalled();
-        expect(GestureDetector).not.toHaveBeenCalled();
+        // Then attachment zoom and carousel paging still share the same gesture and list
+        expect(gesture).toBeDefined();
+        expect(pagerState?.pagerGesture?.handlerTag).toBe(gesture?.handlerTag);
+        expect(pagerState?.pagerRef).toBe(mockScrollRef);
+        expect(jest.mocked(GestureDetector).mock.calls.at(-1)?.[0].gesture).toBe(pagerState?.pagerGesture);
     });
 });

@@ -15,7 +15,7 @@ import {deepEqual} from 'fast-equals';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
-import type {AttachmentCarouselProps} from './types';
+import type AttachmentCarouselProps from './types';
 
 import AttachmentCarouselView from './AttachmentCarouselView';
 import extractAttachments from './extractAttachments';

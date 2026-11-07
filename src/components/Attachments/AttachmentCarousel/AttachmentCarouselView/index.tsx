@@ -3,41 +3,52 @@ import CarouselButtons from '@components/Attachments/AttachmentCarousel/Carousel
 import CarouselItem from '@components/Attachments/AttachmentCarousel/CarouselItem';
 import {AttachmentCarouselPagerActionsContext, AttachmentCarouselPagerStateContext} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import type {AttachmentCarouselPagerActionsContextType, AttachmentCarouselPagerStateContextType} from '@components/Attachments/AttachmentCarousel/Pager/types';
-import type {UpdatePageProps} from '@components/Attachments/AttachmentCarousel/types';
 import useCarouselContextEvents from '@components/Attachments/AttachmentCarousel/useCarouselContextEvents';
-import type {Attachment, AttachmentSource} from '@components/Attachments/types';
+import type {Attachment} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import {useFullScreenState} from '@components/VideoPlayerContexts/FullScreenContextProvider';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {CellRendererProps} from '@src/types/utils/ReactNativeCompat';
 
 import type {ListRenderItemInfo} from 'react-native';
 import type {PanGesture} from 'react-native-gesture-handler';
 
-import React, {useEffect, useState} from 'react';
-import {Keyboard, PixelRatio, View} from 'react-native';
+import React, {useLayoutEffect, useRef, useState} from 'react';
+import {FlatList, Keyboard, PixelRatio, View} from 'react-native';
 import {GestureDetector, usePanGesture} from 'react-native-gesture-handler';
-import Animated, {scrollTo, useAnimatedRef, useSharedValue} from 'react-native-reanimated';
+import {scrollTo, useAnimatedRef, useSharedValue} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 
 import type AttachmentCarouselViewProps from './types';
 
-const viewabilityConfig = {
-    // To facilitate paging through the attachments, we want to consider an item "viewable" when it is
-    // more than 95% visible. When that happens we update the page index in the state.
-    itemVisiblePercentThreshold: 95,
-};
-
 const MIN_FLING_VELOCITY = 500;
+
+// Forward bubbling focus so the web list keeps the password input mounted while its render window moves during rotation.
+function CarouselCell({children, style, onLayout, onFocusCapture}: CellRendererProps<Attachment>) {
+    return (
+        <View
+            style={style}
+            onLayout={onLayout}
+            onFocus={({nativeEvent}) => {
+                if (!(nativeEvent instanceof FocusEvent)) {
+                    return;
+                }
+                onFocusCapture?.(nativeEvent);
+            }}
+        >
+            {children}
+        </View>
+    );
+}
 
 type DeviceAwareGestureDetectorProps = {
     canUseTouchScreen: boolean;
@@ -65,69 +76,39 @@ function AttachmentCarouselView({
     onNavigate,
     onSwipeDown,
     setPage,
-    attachmentID,
 }: AttachmentCarouselViewProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud']);
     const canUseTouchScreen = canUseTouchScreenUtil();
-    const {isFullScreen, isFullScreenRef} = useFullScreenState();
+    const {isFullScreen} = useFullScreenState();
     const isPagerScrolling = useSharedValue(false);
     const {handleTap, handleScaleChange, isScrollEnabled} = useCarouselContextEvents(setShouldShowArrows);
 
-    const [activeAttachmentID, setActiveAttachmentID] = useState<AttachmentSource | null>(attachmentID ?? source);
+    const scrollRef = useAnimatedRef<FlatList<Attachment>>();
 
-    const scrollRef = useAnimatedRef<Animated.FlatList<Attachment>>();
+    // The modal's safe-area padding can make the carousel narrower than the window.
+    // Wait for its actual width before mounting the list so visibility and paging use the same geometry.
+    const [cellWidth, setCellWidth] = useState(0);
+    const previousLayout = useRef<{page: number; width: number; attachments: Attachment[]} | null>(null);
+    const gestureStartWidth = useSharedValue(0);
+    const gestureStartPage = useSharedValue(page);
 
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const modalStyles = styles.centeredModalStyles(shouldUseNarrowLayout, true);
-    const {windowWidth} = useWindowDimensions();
-
-    const cellWidth = PixelRatio.roundToNearestPixel(windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2);
-
-    /** Updates the page state when the user navigates between attachments */
-    const updatePage = ({viewableItems}: UpdatePageProps) => {
-        if (isFullScreenRef.current) {
-            return;
+    // The parent owns selection. Layout and visibility changes must not navigate or unmount its PDF.
+    const navigateToPage = (nextIndex: number) => {
+        const item = attachments.at(nextIndex);
+        if (isFullScreen || nextIndex < 0 || !item || nextIndex === page || !scrollRef.current) {
+            return false;
         }
 
         Keyboard.dismiss();
-
-        // Since we can have only one item in view at a time, we can use the first item in the array
-        // to get the index of the current page
-        const entry = viewableItems.at(0);
-        if (!entry) {
-            setActiveAttachmentID(null);
-            return;
-        }
-
-        const item = entry.item;
-        if (entry.index != null) {
-            setPage(entry.index);
-            setActiveAttachmentID(item.attachmentID ?? item.source);
-        }
-
-        if (onNavigate) {
-            onNavigate(item);
-        }
+        setPage(nextIndex);
+        onNavigate?.(item);
+        return true;
     };
 
     /** Increments or decrements the index to get another selected item, returning whether the carousel moved */
-    const cycleThroughAttachments = (deltaSlide: number) => {
-        if (isFullScreen) {
-            return false;
-        }
-
-        const nextIndex = page + deltaSlide;
-        const nextItem = attachments.at(nextIndex);
-
-        if (!nextItem || nextIndex < 0 || !scrollRef.current) {
-            return false;
-        }
-
-        scrollRef.current.scrollToIndex({index: nextIndex, animated: canUseTouchScreen});
-        return true;
-    };
+    const cycleThroughAttachments = (deltaSlide: number) => navigateToPage(page + deltaSlide);
 
     const extractItemKey = (item: Attachment) =>
         !!item.attachmentID || (typeof item.source !== 'string' && typeof item.source !== 'number') ? `attachmentID-${item.attachmentID}` : `source-${item.source}|${item.attachmentLink}`;
@@ -141,9 +122,13 @@ function AttachmentCarouselView({
 
     /** Pan gesture handling swiping through attachments on touch screen devices */
     const pan = usePanGesture({
-        enabled: canUseTouchScreen,
+        enabled: canUseTouchScreen && !isFullScreen && cellWidth > 0 && page >= 0,
+        onActivate: () => {
+            gestureStartWidth.set(cellWidth);
+            gestureStartPage.set(page);
+        },
         onUpdate: ({translationX}) => {
-            if (!isScrollEnabled.get()) {
+            if (!isScrollEnabled.get() || gestureStartWidth.get() !== cellWidth || gestureStartPage.get() !== page) {
                 return;
             }
 
@@ -153,8 +138,11 @@ function AttachmentCarouselView({
 
             scrollTo(scrollRef, page * cellWidth - translationX, 0, false);
         },
-        onDeactivate: ({translationX, velocityX}) => {
-            if (!isScrollEnabled.get()) {
+        onDeactivate: ({translationX, velocityX, canceled}) => {
+            isPagerScrolling.set(false);
+            // A canceled or resized gesture has no navigation destination in the current geometry.
+            if (canceled || !isScrollEnabled.get() || gestureStartWidth.get() !== cellWidth || gestureStartPage.get() !== page) {
+                scrollTo(scrollRef, page * cellWidth, 0, false);
                 return;
             }
 
@@ -171,8 +159,12 @@ function AttachmentCarouselView({
                 newIndex = Math.min(attachments.length - 1, Math.max(0, page + delta));
             }
 
-            isPagerScrolling.set(false);
-            scrollTo(scrollRef, newIndex * cellWidth, 0, true);
+            if (newIndex === page) {
+                scrollTo(scrollRef, page * cellWidth, 0, true);
+                return;
+            }
+
+            scheduleOnRN(navigateToPage, newIndex);
         },
     });
 
@@ -193,11 +185,11 @@ function AttachmentCarouselView({
     };
 
     /** Defines how a single attachment should be rendered */
-    const renderItem = ({item}: ListRenderItemInfo<Attachment>) => (
+    const renderItem = ({item, index}: ListRenderItemInfo<Attachment>) => (
         <View style={[styles.h100, {width: cellWidth}]}>
             <CarouselItem
                 item={item}
-                isFocused={activeAttachmentID === (item.attachmentID ?? item.source)}
+                isFocused={page === index}
                 onPress={canUseTouchScreen ? handleTap : undefined}
                 isModalHovered={shouldShowArrows}
                 reportID={report?.reportID}
@@ -205,20 +197,30 @@ function AttachmentCarouselView({
         </View>
     );
 
-    // Scroll position is affected when window width is resized, so we readjust it on width changes
-    useEffect(() => {
-        if (attachments.length === 0 || scrollRef.current == null) {
+    // Animate page navigation, but realign immediately after resize or attachment replacement/reordering.
+    useLayoutEffect(() => {
+        if (!cellWidth || page < 0 || page >= attachments.length || scrollRef.current == null) {
+            previousLayout.current = null;
             return;
         }
 
-        scrollRef.current.scrollToIndex({index: page, animated: false});
-        // The hook is not supposed to run on page change, so we keep the page out of the dependencies
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [cellWidth]);
+        const previous = previousLayout.current;
+        const animated = canUseTouchScreen && previous?.width === cellWidth && previous.attachments === attachments && previous.page !== page;
+        previousLayout.current = {page, width: cellWidth, attachments};
+        scrollRef.current.scrollToIndex({index: page, animated});
+    }, [attachments, canUseTouchScreen, cellWidth, page, scrollRef]);
 
     return (
         <View
+            testID="attachment-carousel"
             style={[styles.flex1, styles.attachmentCarouselContainer]}
+            onLayout={({nativeEvent: {layout}}) => {
+                const width = PixelRatio.roundToNearestPixel(layout.width);
+                if (width <= 0) {
+                    return;
+                }
+                setCellWidth(width);
+            }}
             onMouseEnter={() => !canUseTouchScreen && setShouldShowArrows(true)}
             onMouseLeave={() => !canUseTouchScreen && setShouldShowArrows(false)}
         >
@@ -230,45 +232,47 @@ function AttachmentCarouselView({
                     title={translate('notFound.notHere')}
                 />
             ) : (
-                <>
-                    <CarouselButtons
-                        page={page}
-                        attachments={attachments}
-                        shouldShowArrows={shouldShowArrows}
-                        onBack={() => cycleThroughAttachments(-1)}
-                        onForward={() => cycleThroughAttachments(1)}
-                        autoHideArrow={autoHideArrows}
-                        cancelAutoHideArrow={cancelAutoHideArrow}
-                    />
-                    <AttachmentCarouselPagerStateContext.Provider value={stateValue}>
-                        <AttachmentCarouselPagerActionsContext.Provider value={actionsValue}>
-                            <DeviceAwareGestureDetector
-                                canUseTouchScreen={canUseTouchScreen}
-                                gesture={pan}
-                            >
-                                <Animated.FlatList
-                                    keyboardShouldPersistTaps="handled"
-                                    horizontal
-                                    showsHorizontalScrollIndicator={false}
-                                    // scrolling is controlled by the pan gesture
-                                    scrollEnabled={false}
-                                    ref={scrollRef}
-                                    initialScrollIndex={page}
-                                    initialNumToRender={3}
-                                    windowSize={5}
-                                    maxToRenderPerBatch={CONST.MAX_TO_RENDER_PER_BATCH.CAROUSEL}
-                                    data={attachments}
-                                    renderItem={renderItem}
-                                    getItemLayout={getItemLayout}
-                                    keyExtractor={extractItemKey}
-                                    viewabilityConfig={viewabilityConfig}
-                                    onViewableItemsChanged={updatePage}
-                                />
-                            </DeviceAwareGestureDetector>
-                        </AttachmentCarouselPagerActionsContext.Provider>
-                    </AttachmentCarouselPagerStateContext.Provider>
-                    <CarouselActions onCycleThroughAttachments={cycleThroughAttachments} />
-                </>
+                cellWidth > 0 && (
+                    <>
+                        <CarouselButtons
+                            page={page}
+                            attachments={attachments}
+                            shouldShowArrows={shouldShowArrows}
+                            onBack={() => cycleThroughAttachments(-1)}
+                            onForward={() => cycleThroughAttachments(1)}
+                            autoHideArrow={autoHideArrows}
+                            cancelAutoHideArrow={cancelAutoHideArrow}
+                        />
+                        <AttachmentCarouselPagerStateContext.Provider value={stateValue}>
+                            <AttachmentCarouselPagerActionsContext.Provider value={actionsValue}>
+                                <DeviceAwareGestureDetector
+                                    canUseTouchScreen={canUseTouchScreen}
+                                    gesture={pan}
+                                >
+                                    <FlatList
+                                        CellRendererComponent={CarouselCell}
+                                        keyboardShouldPersistTaps="handled"
+                                        horizontal
+                                        showsHorizontalScrollIndicator={false}
+                                        // scrolling is controlled by the pan gesture
+                                        scrollEnabled={false}
+                                        ref={scrollRef}
+                                        initialScrollIndex={page}
+                                        initialNumToRender={3}
+                                        windowSize={5}
+                                        maxToRenderPerBatch={CONST.MAX_TO_RENDER_PER_BATCH.CAROUSEL}
+                                        data={attachments}
+                                        extraData={page}
+                                        renderItem={renderItem}
+                                        getItemLayout={getItemLayout}
+                                        keyExtractor={extractItemKey}
+                                    />
+                                </DeviceAwareGestureDetector>
+                            </AttachmentCarouselPagerActionsContext.Provider>
+                        </AttachmentCarouselPagerStateContext.Provider>
+                        <CarouselActions onCycleThroughAttachments={cycleThroughAttachments} />
+                    </>
+                )
             )}
         </View>
     );

@@ -3,10 +3,7 @@ import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import type CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 
-import type {FlatListProps} from 'react-native';
 import type {ValueOf} from 'type-fest';
-
-type UpdatePageProps = Pick<Parameters<NonNullable<FlatListProps<Attachment>['onViewableItemsChanged']>>[0], 'viewableItems'>;
 
 type AttachmentCarouselProps = {
     /** Source is used to determine the starting index in the array of attachments */
@@ -33,4 +30,4 @@ type AttachmentCarouselProps = {
     onAttachmentError?: (source: AttachmentSource, state?: boolean) => void;
 };
 
-export type {AttachmentCarouselProps, UpdatePageProps};
+export default AttachmentCarouselProps;
