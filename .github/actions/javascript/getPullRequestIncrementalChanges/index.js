@@ -26467,14 +26467,12 @@ var GithubUtils = class {
       info(`\u{1F389} Successfully fetched ${allCommits.length} total commits`);
       endGroup();
       console.log("");
-      return allCommits.map(
-        (commit) => ({
-          commit: commit.sha,
-          subject: commit.commit.message,
-          authorName: commit.commit.author?.name ?? "Unknown",
-          date: commit.commit.committer?.date ?? ""
-        })
-      );
+      return allCommits.map((commit) => ({
+        commit: commit.sha,
+        subject: commit.commit.message,
+        authorName: commit.commit.author?.name ?? "Unknown",
+        date: commit.commit.committer?.date ?? ""
+      }));
     } catch (error3) {
       if (error3 instanceof RequestError && error3.status === 404) {
         error(
