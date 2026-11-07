@@ -68,6 +68,7 @@ function MentionWhisperContent({action, actionOwnerReportStable, parentReport, o
                                 action,
                                 CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE,
                                 isOriginalReportArchived,
+                                currentUserAccountID,
                                 parentReport,
                             )
                         }
@@ -77,14 +78,28 @@ function MentionWhisperContent({action, actionOwnerReportStable, parentReport, o
                 )}
                 <Button
                     onPress={() =>
-                        resolveActionableMentionWhisper(actionOwnerReport, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, isOriginalReportArchived, parentReport)
+                        resolveActionableMentionWhisper(
+                            actionOwnerReport,
+                            action,
+                            CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE,
+                            isOriginalReportArchived,
+                            currentUserAccountID,
+                            parentReport,
+                        )
                     }
                 >
                     <Button.Text>{translate('actionableMentionWhisperOptions.inviteToChat')}</Button.Text>
                 </Button>
                 <Button
                     onPress={() =>
-                        resolveActionableMentionWhisper(actionOwnerReport, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, isOriginalReportArchived, parentReport)
+                        resolveActionableMentionWhisper(
+                            actionOwnerReport,
+                            action,
+                            CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING,
+                            isOriginalReportArchived,
+                            currentUserAccountID,
+                            parentReport,
+                        )
                     }
                 >
                     <Button.Text>{translate('actionableMentionWhisperOptions.nothing')}</Button.Text>

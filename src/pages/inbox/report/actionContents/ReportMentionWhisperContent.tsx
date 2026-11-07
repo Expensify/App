@@ -2,6 +2,7 @@ import Button from '@components/Button';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -31,6 +32,7 @@ type ReportMentionWhisperContentProps = {
 
 function ReportMentionWhisperContent({action, reportID, actionOwnerReportStable}: ReportMentionWhisperContentProps) {
     const isReportArchived = useReportIsArchived(reportID);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const resolution = getOriginalMessage(action)?.resolution;
     const {translate} = useLocalize();
 
@@ -52,14 +54,26 @@ function ReportMentionWhisperContent({action, reportID, actionOwnerReportStable}
                         <Button
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={() =>
-                                resolveActionableReportMentionWhisper(actionOwnerReport, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.CREATE, isReportArchived)
+                                resolveActionableReportMentionWhisper(
+                                    actionOwnerReport,
+                                    action,
+                                    CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.CREATE,
+                                    isReportArchived,
+                                    currentUserAccountID,
+                                )
                             }
                         >
                             <Button.Text>{translate('common.yes')}</Button.Text>
                         </Button>
                         <Button
                             onPress={() =>
-                                resolveActionableReportMentionWhisper(actionOwnerReport, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING, isReportArchived)
+                                resolveActionableReportMentionWhisper(
+                                    actionOwnerReport,
+                                    action,
+                                    CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING,
+                                    isReportArchived,
+                                    currentUserAccountID,
+                                )
                             }
                         >
                             <Button.Text>{translate('common.no')}</Button.Text>
