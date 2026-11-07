@@ -631,14 +631,20 @@ const CONST = {
 
     MERCHANT_NAME_MAX_BYTES: 255,
 
-    /** The subset of EDIT_REQUEST_FIELD a merchant rule can govern, whose edit shows the "Create a rule" callout */
+    /**
+     * The fields a merchant rule can govern, whose edit shows the "Create a rule" callout.
+     *
+     * Named the way the server names them in its `suggestNewRuleCreation` verdict, since that verdict is read by
+     * these keys. A description is `comment` there and a tax rate is `tax`, so the names cannot be taken from
+     * EDIT_REQUEST_FIELD.
+     */
     MERCHANT_RULE_SUGGESTION_FIELDS: {
-        CATEGORY: editRequestFields.CATEGORY,
-        TAG: editRequestFields.TAG,
-        TAX: editRequestFields.TAX_RATE,
-        DESCRIPTION: editRequestFields.DESCRIPTION,
-        BILLABLE: editRequestFields.BILLABLE,
-        REIMBURSABLE: editRequestFields.REIMBURSABLE,
+        CATEGORY: 'category',
+        TAG: 'tag',
+        TAX: 'tax',
+        DESCRIPTION: 'comment',
+        BILLABLE: 'billable',
+        REIMBURSABLE: 'reimbursable',
     },
 
     MASKED_PAN_PREFIX: 'XXXXXXXXXXXX',
