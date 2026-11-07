@@ -1201,6 +1201,21 @@ function formatToLongDateInTimeZone(date: string | Date, timeZone: SelectedTimez
 }
 
 /**
+ * Formats a UTC datetime or calendar date as a long date without moving the day to the device's timezone, the way
+ * `formatToLongDateInTimeZone` does for a given timezone.
+ *
+ * @returns June 20, 2026
+ */
+function formatToLongDateInUTC(datetime: string, dateFnsLocale: DateFnsLocale | undefined): string {
+    const date = toDate(datetime, {timeZone: 'UTC'});
+    if (!isValid(date)) {
+        return '';
+    }
+    // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
+    return memoizedCreateLongDateInTimeZoneFormatter(dateFnsLocale?.code ?? 'en-US', 'UTC', false).format(date);
+}
+
+/**
  * Converts a UTC datetime string to a date string (yyyy-MM-dd) in the target timezone.
  * @param utcDateTime - Datetime string in UTC format (yyyy-MM-dd HH:mm:ss or yyyy-MM-dd HH:mm:ss.SSS)
  * @param timeZone - Target timezone to display the date in
@@ -1451,6 +1466,7 @@ const DateUtils = {
     getMonthNames,
     getDaysOfWeek,
     formatWithUTCTimeZone,
+    formatToLongDateInUTC,
     formatMachineDateWithUTCTimeZone,
     getWeekEndsOn,
     isTimeAtLeastOneMinuteInFuture,

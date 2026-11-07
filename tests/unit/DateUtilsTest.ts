@@ -1256,6 +1256,51 @@ describe('DateUtils', () => {
         });
     });
 
+    describe('formatToLongDateInUTC', () => {
+        // cspell:ignore Juni junio juin
+        it('keeps the English long date unchanged', () => {
+            // Given a date and no locale, which falls back to en-US
+            // When it is formatted as a long date
+            // Then English keeps the `MMMM d, yyyy` shape it had before
+            expect(DateUtils.formatToLongDateInUTC('2026-06-20', undefined)).toBe('June 20, 2026');
+        });
+
+        it('orders the date the way each language does', () => {
+            // Given languages that do not write a long date in the US order
+            // When the same date is formatted in each
+            // Then German puts the day first, Spanish adds its `de` between the parts and Japanese leads with the year.
+            // The hand-written pattern produced `Juni 20, 2026` and `junio 20, 2026` instead.
+            expect(DateUtils.formatToLongDateInUTC('2026-06-20', de)).toBe('20. Juni 2026');
+            expect(DateUtils.formatToLongDateInUTC('2026-06-20', es)).toBe('20 de junio de 2026');
+            expect(DateUtils.formatToLongDateInUTC('2026-06-20', ja)).toBe('2026年6月20日');
+        });
+
+        it('does not move the day for a UTC midnight timestamp', () => {
+            // Given a renewal or due date sent as UTC midnight, on a device in Los Angeles where that is still the
+            // previous evening. Jest runs in UTC, where the day could never move, and setting `process.env.TZ` inside a
+            // test has no effect, so `Intl` is made to default to Los Angeles instead. French is formatted nowhere else
+            // in UTC, so its cached formatter is first built here.
+            const OriginalDateTimeFormat = Intl.DateTimeFormat;
+            const dateTimeFormatSpy = jest
+                .spyOn(Intl, 'DateTimeFormat')
+                .mockImplementation((locales, options) => new OriginalDateTimeFormat(locales, {...options, timeZone: options?.timeZone ?? 'America/Los_Angeles'}));
+
+            // When it is formatted
+            const formattedDates = [DateUtils.formatToLongDateInUTC('2026-06-20T00:00:00.000Z', fr), DateUtils.formatToLongDateInUTC('2026-06-20', fr)];
+            dateTimeFormatSpy.mockRestore();
+
+            // Then the UTC day is shown, matching the date the server meant
+            expect(formattedDates).toEqual(['20 juin 2026', '20 juin 2026']);
+        });
+
+        it('returns an empty string for an invalid date', () => {
+            // Given a value that is not a date
+            // When it is formatted
+            // Then nothing is shown, so callers that fall back to the raw value (such as payment history) still can
+            expect(DateUtils.formatToLongDateInUTC('not a date', undefined)).toBe('');
+        });
+    });
+
     describe('abbreviated date with a year', () => {
         // cspell:ignore Juni
         // Midday UTC, so the displayed day is the same in every timezone the test can run in.
