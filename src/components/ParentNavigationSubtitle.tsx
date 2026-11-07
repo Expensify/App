@@ -203,6 +203,10 @@ function ParentNavigationSubtitle({
                 'reportID' in previousRoute.params &&
                 previousRoute.params.reportID === parentReportID
             ) {
+                // Point the previous report at the parent action so going back scrolls to it.
+                if (previousRoute.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && isVisibleAction && parentReportActionID && previousRoute.key && focusedNavigatorState?.key) {
+                    Navigation.setParams({reportActionID: parentReportActionID}, previousRoute.key, focusedNavigatorState.key);
+                }
                 Navigation.goBack();
                 return;
             }

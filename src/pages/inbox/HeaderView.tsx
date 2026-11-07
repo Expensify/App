@@ -34,6 +34,7 @@ import usePolicy from '@hooks/usePolicy';
 import {useDerivedReportNamesByReportIDs} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSidePanelActions from '@hooks/useSidePanelActions';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -125,6 +126,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const isInSidePanel = useIsInSidePanel();
+    const {openSidePanel} = useSidePanelActions();
     const route = useRoute();
     const openParentReportInCurrentTab = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID) ?? getNonEmptyStringOnyxID(report?.reportID)}`, {
@@ -330,6 +332,10 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     );
 
     const startNewConciergeChat = () => {
+        if (isInSidePanel) {
+            openSidePanel({forceConcierge: true});
+            return;
+        }
         collapseConciergeHistory();
         Navigation.navigate(getReportRouteForCurrentContext({reportID: conciergeReportID}));
     };
@@ -524,7 +530,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                                    {!isInSidePanel && isConciergeThread && !shouldUseNarrowLayout && newConciergeChatButton}
+                                    {isConciergeThread && !shouldUseNarrowLayout && newConciergeChatButton}
                                     {shouldShowBookCall && !shouldStackBookCall && bookCallButton}
                                     {shouldShowOnBoardingHelpDropdownButton && !shouldUseNarrowLayout && onboardingHelpDropdownButton}
                                     {!shouldUseNarrowLayout && !shouldShowDiscount && isChatUsedForOnboarding && (
@@ -560,7 +566,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                     )}
                 </View>
                 {!isParentReportLoading && !isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
-                {!isLoading && !isInSidePanel && isConciergeThread && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb3]}>{newConciergeChatButton}</View>}
+                {!isLoading && isConciergeThread && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb3]}>{newConciergeChatButton}</View>}
                 {shouldShowBookCall && shouldStackBookCall && <View style={[styles.ph5, styles.pb3]}>{bookCallButton}</View>}
                 <View style={shouldShowOnBoardingHelpDropdownButton && [styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.ph5]}>
                     {!shouldShowEarlyDiscountBanner && shouldShowOnBoardingHelpDropdownButton && shouldUseNarrowLayout && (
