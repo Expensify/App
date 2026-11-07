@@ -59,8 +59,8 @@ Vendors are managed in Rillet, and the list refreshes when the connection syncs.
 ## How to set a default company card vendor for Rillet
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [Workspace Name]**.
-2. Select **Accounting**.
-3. On the Rillet connection, select **Export**.
+2. Select **Connections**, then select **Configure** next to Rillet.
+3. Select **Export**.
 4. Select **Default company card vendor**.
 5. Select a vendor from your imported Rillet vendor list.
 

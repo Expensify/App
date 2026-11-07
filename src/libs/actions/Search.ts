@@ -27,6 +27,7 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
+import {shouldConfirmWiseQuoteBeforePaying} from '@libs/BankAccountUtils';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
@@ -68,9 +69,8 @@ import {
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
-import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
+import {isReportEntry, savedSearchIDToSearchKey, TODO_SEARCH_KEYS} from '@libs/SearchKeyUtils';
 import {buildSearchQueryJSON, buildSearchQueryString, getFooterSelectionFromQuery, normalizeDatePresetsInQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
-import {getExpenseReportIDs, TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {hasOnlyPendingCardTransactions} from '@libs/TransactionUtils';
@@ -707,6 +707,22 @@ function getPayActionCallback({
     }
 
     const chatReportPolicyForPayment = chatReportPolicy ?? getPolicyFromSearchSnapshot(chatReportForPayment.policyID, searchData, undefined);
+    const methodID = lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? paymentPolicy?.achAccount?.bankAccountID : undefined;
+
+    // One-tap pay can't show the Wise quote, so the report opens and the admin pays from there
+    if (
+        shouldConfirmWiseQuoteBeforePaying({
+            paymentType: lastPolicyPaymentMethod,
+            methodID,
+            bankAccountList,
+            isWiseReimbursementsBetaEnabled,
+            iouReport: snapshotReport,
+            policy: paymentPolicy,
+        })
+    ) {
+        goToItem();
+        return;
+    }
 
     payMoneyRequest({
         bankAccountList,
@@ -725,7 +741,7 @@ function getPayActionCallback({
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
-        methodID: lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA ? paymentPolicy?.achAccount?.bankAccountID : undefined,
+        methodID,
         isWiseReimbursementsBetaEnabled,
         additionalOnyxData: getSearchPayOnyxData(hash, item.reportID, currentSearchKey),
         chatReportActions,
@@ -1317,6 +1333,17 @@ function getBackendQueryJSON(queryJSON: Readonly<SearchQueryJSON>) {
           }
         : queryJSONWithoutFlatFilters;
     return {backendQueryJSON, limit};
+}
+
+/** The IDs of the expense reports in search data */
+function getExpenseReportIDs(data: SearchResults['data']): Record<string, boolean> {
+    const reportIDs: Record<string, boolean> = {};
+    for (const key of Object.keys(data)) {
+        if (isReportEntry(key) && isExpenseReport(data[key])) {
+            reportIDs[key.replace(ONYXKEYS.COLLECTION.REPORT, '')] = true;
+        }
+    }
+    return reportIDs;
 }
 
 function search({
@@ -2801,6 +2828,7 @@ export {
     getExportTemplates,
     getReportType,
     getTotalFormattedAmount,
+    getExpenseReportIDs,
     setOptimisticDataForTransactionThreadPreview,
     getPayMoneyOnSearchInvoiceParams,
     handlePreventSearchAPI,

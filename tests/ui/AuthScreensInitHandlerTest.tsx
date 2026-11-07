@@ -78,6 +78,7 @@ jest.mock('@libs/SessionUtils', () => ({
 jest.mock('@libs/ActiveClientManager', () => ({
     isClientTheLeader: jest.fn(() => true),
     init: jest.fn(),
+    getLogTab: jest.fn(),
     isReady: jest.fn(() => Promise.resolve()),
 }));
 

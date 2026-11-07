@@ -298,6 +298,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
             switchAccessibilityLabel={
                 isApprovalsLockedBySmartLimit ? translate('workspace.moreFeatures.workflows.disableApprovalPrompt') : translate('workflowsPage.addApprovalsDescription')
             }
+            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.ADD_APPROVALS_SWITCH}
             onToggle={(isEnabled: boolean) => {
                 if (!canWriteApprovals) {
                     showReadOnlyModal();

@@ -3,7 +3,7 @@ name: Check validateCode terminology
 on:
   pull_request:
     types: [opened, synchronize]
-    branches: [main, staging]
+    branches: [main, staging, production]
     paths: ['**.ts', '**.tsx', '**.md']
 
 jobs:

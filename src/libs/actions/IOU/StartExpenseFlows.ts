@@ -27,6 +27,7 @@ import type {BillingGraceEndPeriod, IntroSelected, Policy, Transaction} from '@s
 import type {CreatableWorkspaceType} from '@src/types/onyx/Policy';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -54,6 +55,12 @@ function navigateToRestrictedActionIfNeeded(
     return true;
 }
 
+type AddExpenseDropdownSentryLabels = {
+    createExpense: SentryLabel;
+    trackDistance: SentryLabel;
+    addExistingExpense: SentryLabel;
+};
+
 /**
  * Returns the dropdown options for the add expense button
  * @param iouReport - The IOU report to add an expense to
@@ -62,12 +69,6 @@ function navigateToRestrictedActionIfNeeded(
  * @param sentryLabels - The Sentry labels of the options, which differ per menu that shows them
  * @returns The dropdown options for the add expense button
  */
-type AddExpenseDropdownSentryLabels = {
-    createExpense: string;
-    trackDistance: string;
-    addExistingExpense: string;
-};
-
 type GetAddExpenseDropdownOptionsParams = {
     translate: LocalizedTranslate;
     icons: Record<'Location' | 'ReceiptPlus' | 'Plus', IconAsset>;
