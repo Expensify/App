@@ -7,6 +7,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateQuickbooksDesktopShouldAutoCreateVendor} from '@libs/actions/connections/QuickbooksDesktop';
@@ -26,11 +27,14 @@ import {clearQBDErrorField} from '@userActions/Policy/Policy';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 function DynamicQuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConnectionsProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
@@ -81,7 +85,7 @@ function DynamicQuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPol
                     key={section.keyForList}
                     pendingAction={settingsPendingAction(section.subscribedSettings, qbdConfig?.pendingFields)}
                 >
-                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(section.onPress)}>
+                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(section.onPress, false, session)}>
                         <MenuItemField.Row
                             name={section.description}
                             value={section.title}
@@ -99,6 +103,7 @@ function DynamicQuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPol
                         title={translate('workspace.accounting.defaultVendor')}
                         subtitle={translate('workspace.qbd.defaultVendorDescription')}
                         switchAccessibilityLabel={translate('workspace.qbd.defaultVendorDescription')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBD.DEFAULT_VENDOR_SWITCH}
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={[styles.ph5, styles.mb3, styles.mt1]}
                         isActive={!!qbdConfig?.shouldAutoCreateVendor}

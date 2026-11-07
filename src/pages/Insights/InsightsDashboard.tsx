@@ -1,5 +1,7 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
+import {ChartCaptureContext} from '@components/Charts/context/ChartCaptureContext';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabRootScrollViewMarker from '@components/Navigation/TabBarBottomContent/TabRootScrollViewMarker';
 import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
@@ -9,12 +11,14 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useTheme from '@hooks/useTheme';
@@ -26,17 +30,22 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {InsightsDashboardID} from '@src/types/onyx';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import type {AIInsight, InsightsDashboard as InsightsDashboardRecord, InsightsDashboardID, InsightsScope} from '@src/types/onyx';
+import viewRef from '@src/types/utils/viewRef';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useEffectEvent} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
+import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 
+import type {InsightsCaptureRef} from './exportInsightsDashboard/types';
 import type {InsightsFilters} from './insightsFilters';
 import type {InsightsChartQuery} from './insightsQueries';
 import type {InsightsDashboardChart, InsightsDashboardState} from './resolveDashboardState';
 
+import InsightsAICardRow from './ai/InsightsAICardRow';
 import InsightsChartWidget from './charts/InsightsChartWidget';
 import InsightsPageControls from './controls/InsightsPageControls';
 import INSIGHTS_DASHBOARD_SPECS, {getVisibleCharts} from './dashboardSpecs';
@@ -46,10 +55,15 @@ import InsightsTabSelector from './InsightsTabSelector';
 import {getDashboardState, hasDashboardResponse, INSIGHTS_DASHBOARD_STATE} from './resolveDashboardState';
 import InsightsEmptyState from './states/InsightsEmptyState';
 import InsightsNoExpensesState from './states/InsightsNoExpensesState';
+import useInsightsExport from './useInsightsExport';
 import useInsightsFilters from './useInsightsFilters';
 
 type InsightsDashboardContentProps = {
+    dashboardID: InsightsDashboardID;
     state: InsightsDashboardState;
+    aiInsights: AIInsight[] | undefined;
+    insightsScope: InsightsScope;
+    isLoadingAIInsights: boolean;
     headlineChart: InsightsDashboardChart;
 
     /** Charts in the grid below the headline, left out when no workspace in scope is eligible for them */
@@ -63,18 +77,39 @@ type InsightsDashboardContentProps = {
 
     /** Changes how the headline chart aggregates: the time bucket, or Running total */
     onGroupByChange: (update: Partial<InsightsFilters>) => void;
+
+    /** Ref on the scrolling dashboard content so the export includes cards below the fold */
+    captureRef: InsightsCaptureRef;
+
+    /** Page header rendered at the top of the scroller, so it scrolls away with the charts */
+    children?: React.ReactNode;
 };
 
-function InsightsDashboardContent({state, headlineChart, supportingCharts, filters, onRetry, onGroupByChange}: InsightsDashboardContentProps) {
+function InsightsDashboardContent({
+    dashboardID,
+    state,
+    aiInsights,
+    insightsScope,
+    isLoadingAIInsights,
+    headlineChart,
+    supportingCharts,
+    filters,
+    onRetry,
+    onGroupByChange,
+    captureRef,
+    children,
+}: InsightsDashboardContentProps) {
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
+    const shouldScrollMainHeader = useIsMobileWebLandscape();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
     const triggerScrollEvent = useScrollEventEmitter();
     const isEmptyState = state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES || state === INSIGHTS_DASHBOARD_STATE.EMPTY;
-    const scrollProps = useTabRootScrollProps(isEmptyState ? [styles.flexGrow1, styles.flexShrink0] : [styles.flexGrow1, pageGutter, styles.pb5], {
+    const scrollProps = useTabRootScrollProps(isEmptyState ? [styles.flexGrow1, styles.flexShrink0] : [styles.flexGrow1, !shouldScrollMainHeader && pageGutter, styles.pb5], {
         hasBottomSafeAreaPadding: true,
         hasOfflineIndicatorPadding: true,
         fillsVisibleArea: isEmptyState,
@@ -99,24 +134,53 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
             },
         } as const;
         return (
-            <FullPageErrorView
-                shouldShow
-                onButtonPress={onRetry}
-                {...failureViewByState[state]}
-            />
+            <>
+                {children}
+                <View
+                    ref={viewRef(captureRef)}
+                    collapsable={false}
+                    style={styles.flex1}
+                >
+                    <FullPageErrorView
+                        shouldShow
+                        onButtonPress={onRetry}
+                        {...failureViewByState[state]}
+                    />
+                </View>
+            </>
         );
     }
 
     if (state === INSIGHTS_DASHBOARD_STATE.OFFLINE) {
         return (
-            <BlockingView
-                icon={icons.OfflineCloud}
-                iconColor={theme.offline}
-                title={translate('common.youAppearToBeOffline')}
-                subtitle={translate('common.thisFeatureRequiresInternet')}
-                addBottomSafeAreaPadding
-                addOfflineIndicatorBottomSafeAreaPadding
-            />
+            <>
+                {children}
+                <View
+                    ref={viewRef(captureRef)}
+                    collapsable={false}
+                    style={styles.flex1}
+                >
+                    <BlockingView
+                        icon={icons.OfflineCloud}
+                        iconColor={theme.offline}
+                        title={translate('common.youAppearToBeOffline')}
+                        subtitle={translate('common.thisFeatureRequiresInternet')}
+                        addBottomSafeAreaPadding
+                        addOfflineIndicatorBottomSafeAreaPadding
+                    />
+                </View>
+            </>
+        );
+    }
+
+    if (state === INSIGHTS_DASHBOARD_STATE.LOADING) {
+        return (
+            <>
+                {children}
+                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    <ActivityIndicator size="large" />
+                </View>
+            </>
         );
     }
 
@@ -127,7 +191,14 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                     {...scrollProps}
                     addBottomSafeAreaPadding
                 >
-                    {state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES ? <InsightsNoExpensesState /> : <InsightsEmptyState />}
+                    {children}
+                    <View
+                        ref={viewRef(captureRef)}
+                        collapsable={false}
+                        style={styles.flexGrow1}
+                    >
+                        {state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES ? <InsightsNoExpensesState /> : <InsightsEmptyState />}
+                    </View>
                 </ScrollView>
             </TabRootScrollViewMarker>
         );
@@ -144,9 +215,23 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                 scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                 {...scrollProps}
                 addBottomSafeAreaPadding
+                removeClippedSubviews={false}
             >
-                <View style={styles.insightsDashboardLayout(shouldUseNarrowLayout)}>
+                {children}
+                <View
+                    ref={viewRef(captureRef)}
+                    collapsable={false}
+                    style={[styles.insightsDashboardLayout(shouldUseNarrowLayout), shouldScrollMainHeader && pageGutter]}
+                >
+                    {isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && (
+                        <InsightsAICardRow
+                            insights={aiInsights}
+                            insightsScope={insightsScope}
+                            isLoading={isLoadingAIInsights}
+                        />
+                    )}
                     <InsightsChartWidget
+                        dashboardID={dashboardID}
                         chart={headlineChart.chart}
                         queryJSON={headlineChart.queryJSON}
                         snapshot={headlineChart.snapshot}
@@ -155,6 +240,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                         averageTotal={headlineChart.averageTotal}
                         isDashboardLoaded={headlineChart.isDashboardLoaded}
                         filters={filters}
+                        insightsScope={insightsScope}
                         onRetry={onRetry}
                         onGroupByChange={onGroupByChange}
                     />
@@ -168,6 +254,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                                 {columnCharts.map(({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageTotal, isDashboardLoaded}) => (
                                     <InsightsChartWidget
                                         key={chart.graphKey}
+                                        dashboardID={dashboardID}
                                         chart={chart}
                                         queryJSON={queryJSON}
                                         snapshot={snapshot}
@@ -176,6 +263,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                                         averageTotal={averageTotal}
                                         isDashboardLoaded={isDashboardLoaded}
                                         filters={filters}
+                                        insightsScope={insightsScope}
                                         onRetry={onRetry}
                                     />
                                 ))}
@@ -188,21 +276,34 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
     );
 }
 
+/** Checks whether GetInsights has responded for any dashboard or filters. */
+function hasStoredDashboardResponse(dashboards: OnyxCollection<InsightsDashboardRecord>): boolean {
+    return Object.values(dashboards ?? {}).some(hasDashboardResponse);
+}
+
 function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: InsightsDashboardID; accessibleDashboards: InsightsDashboardID[]}) {
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.INSIGHTS);
+    const shouldScrollMainHeader = useIsMobileWebLandscape();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {login} = useCurrentUserPersonalDetails();
-    const [policies, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {filters, defaultFilters, isResolved, setFilters} = useInsightsFilters(dashboardID);
+    const {headerRef, controlsRef, contentRef, isExporting, isLoading: isChartLoading, exportDashboard, captureContext} = useInsightsExport(dashboardID, filters);
+    const updateFilters = (update: Partial<InsightsFilters>) => {
+        if (isExporting) {
+            return;
+        }
+        setFilters(update);
+    };
     const {headlineChart: headlineSpec, supportingCharts: supportingSpecs} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
     const eligibleCharts = getVisibleCharts(supportingSpecs, policies, filters.policyIDs, login);
     const eligibleGraphKeys = eligibleCharts.map(({graphKey}) => graphKey).join(',');
-    const query = isResolved && !isLoadingOnyxValue(policiesMetadata) ? buildInsightsJsonQuery(dashboardID, filters, eligibleCharts) : undefined;
+    const query = isResolved ? buildInsightsJsonQuery(dashboardID, filters, eligibleCharts) : undefined;
     const hash = query?.hash;
     // The bucket actually queried, which Running total resolves to a real day/month bucket. Toggling Running total alone leaves this unchanged, so it stays a client-side transform with no refetch.
     const queryGroupBy = isResolved ? getQueryGroupBy(filters) : undefined;
@@ -227,6 +328,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     }, [dashboardID, hash, queryGroupBy, eligibleGraphKeys, isFocused, isOffline]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
+    const [hasLoadedBefore = false] = useOnyx(ONYXKEYS.COLLECTION.INSIGHTS, {selector: hasStoredDashboardResponse});
     // Until the filters and workspaces load, the charts have no query to read data for, so they show their loading state
     const visibleChartQueries = query
         ? [query.headlineChart, ...query.supportingCharts]
@@ -244,7 +346,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         isDashboardLoaded: hasDashboardResponse(dashboard),
     }));
     const [headlineChart, ...supportingCharts] = charts;
-    const state = getDashboardState(dashboard, isOffline, charts);
+    const state = getDashboardState(dashboard, isOffline, charts, hasLoadedBefore);
 
     const tabSelector =
         accessibleDashboards.length > 1 ? (
@@ -255,25 +357,29 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         ) : null;
 
     const pageControls =
-        state !== INSIGHTS_DASHBOARD_STATE.NO_EXPENSES ? (
+        state !== INSIGHTS_DASHBOARD_STATE.NO_EXPENSES && state !== INSIGHTS_DASHBOARD_STATE.LOADING ? (
             <InsightsPageControls
                 filters={filters}
                 defaultFilters={defaultFilters}
-                onChange={setFilters}
+                onChange={updateFilters}
+                captureRef={controlsRef}
+                onExport={exportDashboard}
+                isExporting={isExporting}
+                isExportDisabled={!isResolved || isChartLoading}
             />
         ) : null;
 
-    return (
-        <ScreenWrapper
-            shouldShowOfflineIndicatorInWideScreen
-            enableEdgeToEdgeBottomSafeAreaPadding={false}
-            {...tabRootScreenWrapperProps}
-            testID="InsightsPage"
-        >
-            <TopBar
-                breadcrumbLabel={translate('common.insights')}
-                shouldDisplayHelpButton
-            />
+    const header = (
+        <>
+            <View
+                ref={viewRef(headerRef)}
+                collapsable={false}
+            >
+                <TopBar
+                    breadcrumbLabel={translate('common.insights')}
+                    shouldDisplayHelpButton
+                />
+            </View>
             {shouldUseNarrowLayout ? (
                 <>
                     {!!tabSelector && <View style={[pageGutter, styles.pb3]}>{tabSelector}</View>}
@@ -289,15 +395,50 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                     </View>
                 )
             )}
-            <InsightsDashboardContent
-                state={state}
-                headlineChart={headlineChart}
-                supportingCharts={supportingCharts}
-                filters={filters}
-                onRetry={requestDashboard}
-                onGroupByChange={setFilters}
-            />
-        </ScreenWrapper>
+        </>
+    );
+
+    return (
+        <ChartCaptureContext.Provider value={captureContext}>
+            <ScreenWrapper
+                shouldShowOfflineIndicatorInWideScreen
+                enableEdgeToEdgeBottomSafeAreaPadding={false}
+                {...tabRootScreenWrapperProps}
+                testID="InsightsPage"
+            >
+                {!shouldScrollMainHeader && header}
+                <View style={styles.flex1}>
+                    <Animated.View
+                        key={state}
+                        entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                        exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                        style={StyleSheet.absoluteFill}
+                    >
+                        <InsightsDashboardContent
+                            dashboardID={dashboardID}
+                            state={state}
+                            aiInsights={dashboard?.aiInsights}
+                            insightsScope={{
+                                searchKey: INSIGHTS_DASHBOARD_SPECS[dashboardID].searchKey,
+                                policyIDs: filters.policyIDs,
+                                date: filters.date,
+                                groupCurrency: filters.groupCurrency,
+                            }}
+                            // Offline no response is coming, so the row hides instead of loading forever
+                            isLoadingAIInsights={!hasDashboardResponse(dashboard) && !isOffline}
+                            headlineChart={headlineChart}
+                            supportingCharts={supportingCharts}
+                            filters={filters}
+                            onRetry={requestDashboard}
+                            onGroupByChange={updateFilters}
+                            captureRef={contentRef}
+                        >
+                            {shouldScrollMainHeader && header}
+                        </InsightsDashboardContent>
+                    </Animated.View>
+                </View>
+            </ScreenWrapper>
+        </ChartCaptureContext.Provider>
     );
 }
 

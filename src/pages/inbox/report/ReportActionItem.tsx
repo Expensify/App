@@ -28,6 +28,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Accessibility from '@libs/Accessibility';
 import {cleanUpMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
+import {isBillPayHistoryAction} from '@libs/BillPayReportActionUtils';
 import {isSafari} from '@libs/Browser';
 import {isChronosOOOListAction} from '@libs/ChronosUtils';
 import ControlSelection from '@libs/ControlSelection';
@@ -36,6 +37,7 @@ import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
 import {getLatestErrorMessageField, isReceiptError} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
+import {shouldDisplayReportTableView} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import Permissions from '@libs/Permissions';
@@ -51,6 +53,7 @@ import {
     isActionOfType,
     isCreatedTaskReportAction,
     isDeletedParentAction as isDeletedParentActionUtils,
+    getVisibleReportActionErrors,
     isMessageDeleted,
     isMoneyRequestAction,
     isPendingRemove,
@@ -63,6 +66,8 @@ import {
     canWriteInReport,
     getTransactionsWithReceipts,
     isClosedExpenseReportWithNoExpenses as isClosedExpenseReportWithNoExpensesUtils,
+    isInvoiceReport,
+    isMoneyRequestReport,
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesUtils,
 } from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
@@ -94,7 +99,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useNavigation} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {displayNameOrDefaultSelector} from '@selectors/PersonalDetails';
-import {agentZeroProcessingAgentIDsSelector} from '@selectors/ReportNameValuePairs';
+import {agentZeroProcessingAgentIDsSelector, isLinkedToBillSelector} from '@selectors/ReportNameValuePairs';
 import {deepEqual} from 'fast-equals';
 import mapValues from 'lodash/mapValues';
 import React, {useContext, useEffect, useRef} from 'react';
@@ -211,6 +216,10 @@ function ReportActionItem({
     const transactionsOnIOUReport = useReportTransactionsCollection(iouReport?.reportID);
     const transactionsOnReportCollection = useReportTransactionsCollection(report?.reportID);
     const transactionsOnReport = Object.values(transactionsOnReportCollection);
+    const [isInvoiceLinkedToBill = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(isInvoiceReport(report) ? reportID : undefined)}`, {
+        selector: isLinkedToBillSelector,
+    });
+    const isBillPayCreatedAction = action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && isBillPayHistoryAction(action, report, isInvoiceLinkedToBill);
     const IOUOriginalMessage = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) ? getOriginalMessage(action) : undefined;
     const transactionID = isMoneyRequestAction(action) && IOUOriginalMessage?.IOUTransactionID;
     const isACHPaymentAction = IOUOriginalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && IOUOriginalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA;
@@ -276,6 +285,10 @@ function ReportActionItem({
     // IOUDetails only exists when we are sending money
     const isSendingMoney = isMoneyRequestAction(action) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && getOriginalMessage(action)?.IOUDetails;
 
+    // Only send money rows need the chat's actions. A comment on an expense report updates the report preview in that chat,
+    // so subscribing on every row would re-render the whole list on each send.
+    const [sendMoneyChatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(isSendingMoney ? report?.chatReportID : undefined)}`);
+
     const updateHiddenState = (isHiddenValue: boolean) => {
         setIsHidden(isHiddenValue);
         const message = Array.isArray(action.message) ? action.message?.at(-1) : action.message;
@@ -307,6 +320,7 @@ function ReportActionItem({
                 isOffline,
                 isSingleTransactionView: true,
                 policy: iouPolicy,
+                chatReportActions: sendMoneyChatReportActions,
             });
             return;
         }
@@ -436,10 +450,13 @@ function ReportActionItem({
 
     const disabledActions = !canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : [];
 
-    const hasActionErrors = !isEmptyValueObject(action.errors);
+    // An invisible error must not disable the action, or the preview loses its context menu for no reason.
+    const visibleActionErrors = getVisibleReportActionErrors(action);
+
+    const hasActionErrors = !isEmptyValueObject(visibleActionErrors);
 
     // Receipt upload errors should still allow the context menu so the user can access "Delete expense"
-    const hasOnlyReceiptErrors = hasActionErrors && Object.values(action.errors ?? {}).every((error) => error === null || isReceiptError(error));
+    const hasOnlyReceiptErrors = hasActionErrors && Object.values(visibleActionErrors ?? {}).every((error) => error === null || isReceiptError(error));
 
     const isContextMenuDisabled = hasDraft || (hasActionErrors && !hasOnlyReceiptErrors) || !shouldDisplayContextMenuValue;
 
@@ -497,7 +514,7 @@ function ReportActionItem({
 
     const createdTransactionID = isMoneyRequestAction(parentReportActionForTransactionThread) ? getOriginalMessage(parentReportActionForTransactionThread)?.IOUTransactionID : undefined;
 
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && !isHarvestCreatedExpenseReport) {
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && !isHarvestCreatedExpenseReport && !isBillPayCreatedAction) {
         return (
             <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
                 <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
@@ -512,9 +529,11 @@ function ReportActionItem({
         );
     }
 
-    // Should show the created action content if:
-    // - Harvest report is shown in ReportActionsList (one-transaction view)
-    const shouldShowCreatedAction = action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && !!isHarvestCreatedExpenseReport && !!parentReportActionForTransactionThread;
+    // The table view renders its own report header. Other views still need the header above the creation history row.
+    const shouldShowBillPayReportHeader =
+        isBillPayCreatedAction && !((isMoneyRequestReport(report) || isInvoiceReport(report)) && shouldDisplayReportTableView(report, transactionsOnReport));
+    const shouldShowCreatedAction =
+        shouldShowBillPayReportHeader || (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && !!isHarvestCreatedExpenseReport && !!parentReportActionForTransactionThread);
 
     if (isTripPreview(action) && isThreadReportParentAction) {
         return <TripSummary reportID={getOriginalMessage(action)?.linkedReportID} />;
@@ -644,7 +663,7 @@ function ReportActionItem({
                                                     hasDraft ? undefined : (action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined))
                                                 }
                                                 shouldHideOnDelete={!isDeletedParentAction}
-                                                errors={(linkedTransactionRouteError ?? !isOnSearch) ? getLatestErrorMessageField(action as OnyxDataWithErrors) : {}}
+                                                errors={(linkedTransactionRouteError ?? !isOnSearch) ? getLatestErrorMessageField({errors: visibleActionErrors} as OnyxDataWithErrors) : {}}
                                                 errorRowStyles={styles.ml10}
                                                 needsOffscreenAlphaCompositing={isMoneyRequestAction(action)}
                                                 shouldDisableStrikeThrough

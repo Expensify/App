@@ -1,6 +1,7 @@
 import RenderHTML from '@components/RenderHTML';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -32,6 +33,7 @@ function PreTrialBillingBanner() {
     const isSelfTourViewed = onboarding?.selfTourViewed;
     const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboarding);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
 
     const navigateToChat = () => {
         const reportUsedForOnboarding = getChatUsedForOnboarding(onboarding, conciergeReportID);
@@ -45,6 +47,7 @@ function PreTrialBillingBanner() {
                 hasCompletedGuidedSetupFlow,
                 conciergePersonalDetails,
                 shouldDismissModal: false,
+                delegateAccountID,
             });
             return;
         }

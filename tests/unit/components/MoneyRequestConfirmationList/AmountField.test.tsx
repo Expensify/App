@@ -1,46 +1,79 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import AmountField from '@components/MoneyRequestConfirmationList/sections/AmountField';
+import type {NumberWithSymbolFormProps} from '@components/NumberWithSymbolForm';
 
 import {setMoneyRequestAmount, setMoneyRequestCurrency} from '@libs/actions/IOU/MoneyRequest';
 
+import type IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
+
+import {setDraftSplitTransaction} from '@userActions/IOU/Split';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 
 import React from 'react';
 
+const mockFocusAmountInput = jest.fn();
+let mockIsScreenFocused = true;
+let mockCanUseTouchScreen = true;
+let mockCurrentRouteName: string | undefined;
+let mockOnScreenBlur: (() => void) | undefined;
+let mockCurrencyButtonRef: NumberWithSymbolFormProps['currencyButtonRef'];
+let mockLauncherRef: React.ComponentProps<typeof IOURequestStepCurrencyModal>['launcherRef'];
+let mockOnyxValues: Record<string, unknown> = {};
 jest.mock('@components/NumberWithSymbolForm', () => {
     const {Pressable, Text} =
         jest.requireActual<Record<'Pressable' | 'Text', React.ComponentType<{children?: React.ReactNode; onPress?: () => void; accessibilityRole?: 'button'}>>>('react-native');
-    return ({onInputChange, errorText}: {onInputChange: (amount: string) => void; errorText?: string}) => (
-        <>
-            {!!errorText && <Text>{errorText}</Text>}
-            <Pressable
-                accessibilityRole="button"
-                onPress={() => onInputChange('0')}
-            >
-                <Text>Enter zero</Text>
-            </Pressable>
-            <Pressable
-                accessibilityRole="button"
-                onPress={() => onInputChange('1')}
-            >
-                <Text>Enter one</Text>
-            </Pressable>
-        </>
-    );
+    const {useImperativeHandle} = jest.requireActual<typeof React>('react');
+    return ({
+        onInputChange,
+        errorText,
+        currencyButtonRef,
+        ref,
+    }: {
+        onInputChange: (amount: string) => void;
+        errorText?: string;
+        currencyButtonRef?: NumberWithSymbolFormProps['currencyButtonRef'];
+        ref?: React.Ref<{focus: () => void}>;
+    }) => {
+        useImperativeHandle(ref, () => ({focus: mockFocusAmountInput}));
+        mockCurrencyButtonRef = currencyButtonRef;
+        return (
+            <>
+                {!!errorText && <Text>{errorText}</Text>}
+                <Pressable
+                    accessibilityRole="button"
+                    onPress={() => onInputChange('0')}
+                >
+                    <Text>Enter zero</Text>
+                </Pressable>
+                <Pressable
+                    accessibilityRole="button"
+                    onPress={() => onInputChange('1')}
+                >
+                    <Text>Enter one</Text>
+                </Pressable>
+            </>
+        );
+    };
 });
 jest.mock('@pages/iou/request/step/IOURequestStepCurrencyModal', () => {
     const {Pressable, Text} =
         jest.requireActual<Record<'Pressable' | 'Text', React.ComponentType<{children?: React.ReactNode; onPress?: () => void; accessibilityRole?: 'button'}>>>('react-native');
-    return ({onInputChange}: {onInputChange: (currency: string) => void}) => (
-        <Pressable
-            accessibilityRole="button"
-            onPress={() => onInputChange('EUR')}
-        >
-            <Text>Pick EUR</Text>
-        </Pressable>
-    );
+    return ({onInputChange, launcherRef}: {onInputChange: (currency: string) => void; launcherRef?: React.ComponentProps<typeof IOURequestStepCurrencyModal>['launcherRef']}) => {
+        mockLauncherRef = launcherRef;
+        return (
+            <Pressable
+                accessibilityRole="button"
+                onPress={() => onInputChange('EUR')}
+            >
+                <Text>Pick EUR</Text>
+            </Pressable>
+        );
+    };
 });
 jest.mock('@components/MenuItemWithTopDescription', () => {
     const {Text} = jest.requireActual<Record<'Text', React.ComponentType<{children?: React.ReactNode}>>>('react-native');
@@ -67,12 +100,23 @@ let mockTransactionSlice: {transactionID: string; amount: number; currency: stri
     isAmountMissing: false,
 };
 jest.mock('@components/MoneyRequestConfirmationList/sections/useTransactionSelector', () => () => mockTransactionSlice);
-jest.mock('@hooks/useOnyx', () => () => [undefined]);
+jest.mock('@hooks/useOnyx', () => (key: string) => [mockOnyxValues[key]]);
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
+    useIsFocused: () => mockIsScreenFocused,
+    useNavigation: () => ({
+        addListener: (_event: string, callback: () => void) => {
+            mockOnScreenBlur = callback;
+            return () => {};
+        },
+    }),
+}));
+jest.mock('@libs/Navigation/navigationRef', () => ({getCurrentRoute: () => (mockCurrentRouteName ? {name: mockCurrentRouteName} : undefined)}));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({accountID: 1}));
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key, preferredLocale: 'en'}));
 jest.mock('@hooks/useThemeStyles', () => () => ({}));
 jest.mock('@hooks/useCurrencyList', () => ({useCurrencyListActions: () => ({getCurrencyDecimals: () => 2, getCurrencySymbol: () => '$'})}));
-jest.mock('@libs/DeviceCapabilities', () => ({canUseTouchScreen: () => true}));
+jest.mock('@libs/DeviceCapabilities', () => ({canUseTouchScreen: () => mockCanUseTouchScreen}));
 jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
     getMoneyRequestParticipantsFromReport: () => [],
     setMoneyRequestAmount: jest.fn(),
@@ -97,6 +141,7 @@ const amountFieldProps: React.ComponentProps<typeof AmountField> = {
 describe('AmountField split-bill error clearing', () => {
     beforeEach(() => {
         mockTransactionSlice = {transactionID: '1', amount: 0, currency: 'USD', isAmountMissing: false};
+        mockOnyxValues = {};
     });
 
     it('shows the missing amount error for a failed split scan', () => {
@@ -204,6 +249,30 @@ describe('AmountField split-bill error clearing', () => {
         fireEvent.press(screen.getByText('Enter one'));
         expect(clearFormErrors).toHaveBeenCalledWith(['common.error.invalidAmount']);
     });
+
+    it('seeds a split draft from the saved transaction when no split draft exists yet', () => {
+        // Given a split being edited whose split draft has not been created yet, so the saved transaction is the base
+        const transaction = {transactionID: '1', amount: 0, currency: 'USD'};
+        mockOnyxValues = {[`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: transaction};
+
+        render(
+            <ConfirmationFieldsProvider
+                transactionID="1"
+                reportID="2"
+                action={CONST.IOU.ACTION.EDIT}
+                iouType={CONST.IOU.TYPE.SPLIT}
+                isEditingSplitBill
+            >
+                <AmountField {...amountFieldProps} />
+            </ConfirmationFieldsProvider>,
+        );
+
+        // When the amount changes
+        fireEvent.press(screen.getByText('Enter one'));
+
+        // Then the split draft is seeded from the saved transaction instead of being cleared with a null merge
+        expect(setDraftSplitTransaction).toHaveBeenCalledWith('1', transaction, expect.objectContaining({amount: 100, currency: 'USD'}), expect.any(Function), expect.any(Function));
+    });
 });
 
 describe('AmountField currency change', () => {
@@ -259,6 +328,89 @@ describe('AmountField currency change', () => {
         // Then the entered amount is saved together with the new currency, since the amount is the user's own
         expect(setMoneyRequestAmount).toHaveBeenCalledWith('1', 1000, 'EUR');
         expect(setMoneyRequestCurrency).not.toHaveBeenCalled();
+    });
+});
+
+describe('AmountField refocus on return', () => {
+    beforeEach(() => {
+        jest.useFakeTimers();
+        jest.clearAllMocks();
+        mockTransactionSlice = {transactionID: '1', amount: 0, currency: 'USD', isAmountMissing: false};
+        mockIsScreenFocused = true;
+        mockCanUseTouchScreen = false;
+        mockCurrentRouteName = undefined;
+    });
+
+    afterEach(() => {
+        mockCanUseTouchScreen = true;
+        jest.useRealTimers();
+    });
+
+    it.each([
+        ['focuses the amount again after picking a participant', SCREENS.MONEY_REQUEST.DYNAMIC_STEP_PARTICIPANTS, 1],
+        ["leaves focus on the edited row after another field's page", SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY, 0],
+    ])('%s', (_description, leftForScreen, expectedFocusCalls) => {
+        // Given a manual expense on a device without a touch screen, whose amount took focus when the confirmation opened
+        const renderAmountField = () => (
+            <ConfirmationFieldsProvider
+                transactionID="1"
+                reportID="2"
+                action={CONST.IOU.ACTION.CREATE}
+                iouType={CONST.IOU.TYPE.SUBMIT}
+            >
+                <AmountField {...amountFieldProps} />
+            </ConfirmationFieldsProvider>
+        );
+        const {rerender} = render(renderAmountField());
+        act(() => {
+            jest.runAllTimers();
+        });
+        expect(mockFocusAmountInput).toHaveBeenCalledTimes(1);
+        mockFocusAmountInput.mockClear();
+
+        // When the user leaves the confirmation for another page and comes back to it
+        mockCurrentRouteName = leftForScreen;
+        mockIsScreenFocused = false;
+        act(() => {
+            mockOnScreenBlur?.();
+        });
+        rerender(renderAmountField());
+        mockIsScreenFocused = true;
+        rerender(renderAmountField());
+        act(() => {
+            jest.runAllTimers();
+        });
+
+        // Then only the participants page refocuses the amount, and other pages leave focus on the edited row
+        expect(mockFocusAmountInput).toHaveBeenCalledTimes(expectedFocusCalls);
+    });
+});
+
+describe('AmountField currency picker focus return', () => {
+    beforeEach(() => {
+        mockTransactionSlice = {transactionID: '1', amount: 0, currency: 'USD', isAmountMissing: false};
+        mockCurrencyButtonRef = undefined;
+        mockLauncherRef = undefined;
+    });
+
+    it('hands the currency button ref to the picker so focus returns to the button on close', () => {
+        // Given a manual expense whose amount field shows the currency button
+        // When the amount field renders
+        render(
+            <ConfirmationFieldsProvider
+                transactionID="1"
+                reportID="2"
+                action={CONST.IOU.ACTION.CREATE}
+                iouType={CONST.IOU.TYPE.SUBMIT}
+            >
+                <AmountField {...amountFieldProps} />
+            </ConfirmationFieldsProvider>,
+        );
+
+        // Then the picker gets the same ref the currency button is attached to, so closing the picker returns keyboard
+        // focus to that button instead of dropping the user at the top of the form
+        expect(mockLauncherRef).toBeDefined();
+        expect(mockLauncherRef).toBe(mockCurrencyButtonRef);
     });
 });
 

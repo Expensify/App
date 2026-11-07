@@ -124,10 +124,34 @@ describe('collectDisableDirectivesFromSource', () => {
         expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts')).toEqual([]);
     });
 
+    it('matches oxlint-disable directives the same way as eslint-disable', () => {
+        // Given a named oxlint-disable-next-line, a blanket oxlint-disable block and a trailing oxlint-disable-line, each over a connect call
+        const named = [`// oxlint-disable-next-line ${BANNED_RULE_ID}`, onyxConnectCall('x')].join('\n');
+        const blanket = ['/* oxlint-disable */', onyxConnectCall('x')].join('\n');
+        const trailing = `${onyxConnectCall('x')} // oxlint-disable-line`;
+
+        // When the connect ban scans each
+        // Then each counts, because oxlint honors the oxlint- prefix exactly like eslint-
+        expect(collectDisableDirectivesFromSource(named, 'src/libs/Foo.ts')).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+        expect(collectDisableDirectivesFromSource(blanket, 'src/libs/Foo.ts')).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+        expect(collectDisableDirectivesFromSource(trailing, 'src/libs/Foo.ts')).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+    });
+
+    it('lets an enable of either prefix reopen a disable of the other', () => {
+        // Given an eslint-disable block closed by oxlint-enable, and an oxlint-disable block closed by eslint-enable, before a call
+        const eslintThenOxlint = ['/* eslint-disable */', '/* oxlint-enable */', onyxConnectCall('x')].join('\n');
+        const oxlintThenEslint = ['/* oxlint-disable */', '/* eslint-enable */', onyxConnectCall('x')].join('\n');
+
+        // When the connect ban scans each
+        // Then nothing is reported, because oxlint treats the two prefixes as one directive family
+        expect(collectDisableDirectivesFromSource(eslintThenOxlint, 'src/libs/Foo.ts')).toEqual([]);
+        expect(collectDisableDirectivesFromSource(oxlintThenEslint, 'src/libs/Foo.ts')).toEqual([]);
+    });
+
     it('does not treat eslint-enable-line or eslint-enable-next-line as re-enabling the ban', () => {
         // Given a blanket disable followed by eslint-enable-line or eslint-enable-next-line before the call
         // When the connect ban scans each
-        // Then both still count, since those are not real ESLint directives
+        // Then both still count, since oxlint reads neither as an enable
         const enableLine = ['/* eslint-disable */', '// eslint-enable-line', onyxConnectCall('x')].join('\n');
         const enableNextLine = ['/* eslint-disable */', '// eslint-enable-next-line', onyxConnectCall('x')].join('\n');
 
@@ -403,24 +427,31 @@ describe('no-unsafe-onyx-read bypasses', () => {
         expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([]);
     });
 
-    it('splits the description only on a spaced double dash, as ESLint does', () => {
-        // Given a directive where `--` touches a rule name, so ESLint reads the whole text as rule names
-        const source = ['/* eslint-disable no-console--x, rulesdir/no-unsafe-onyx-read */', onyxReadCall].join('\n');
-
-        // When the read ban scans it
-        // Then the disable counts, because the read rule is still part of the rule list
-        expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
-    });
-
-    it('ignores block-form directives written as line comments, as ESLint does', () => {
-        // Given a blanket block disable followed by `// eslint-enable`, and a `// eslint-disable` line comment, each above a read
-        const lineEnable = ['/* eslint-disable */', '// eslint-enable', onyxReadCall].join('\n');
-        const lineDisable = ['// eslint-disable', onyxReadCall].join('\n');
+    it('splits the description on a bare double dash, as oxlint does', () => {
+        // Given a directive where `--` touches a rule name before the read rule, one where it touches the read rule itself, and a blanket disable with only a description
+        const otherRuleFirst = ['/* eslint-disable no-console--x, rulesdir/no-unsafe-onyx-read */', onyxReadCall].join('\n');
+        const banThenDashes = ['/* eslint-disable rulesdir/no-unsafe-onyx-read--x */', onyxReadCall].join('\n');
+        const blanketWithDescription = ['/* eslint-disable --x */', onyxReadCall].join('\n');
 
         // When the read ban scans each
-        // Then the block disable still counts, since the line-comment enable is not a directive to ESLint, and the line-comment disable silences nothing
-        expect(collectDisableDirectivesFromSource(lineEnable, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
-        expect(collectDisableDirectivesFromSource(lineDisable, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([]);
+        // Then the first is not reported, because oxlint reads `x, rulesdir/no-unsafe-onyx-read` as the description and disables only no-console,
+        // while the other two count: the ban is named before the dashes, and an empty rule list is a blanket disable over the read
+        expect(collectDisableDirectivesFromSource(otherRuleFirst, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([]);
+        expect(collectDisableDirectivesFromSource(banThenDashes, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+        expect(collectDisableDirectivesFromSource(blanketWithDescription, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+    });
+
+    it('reads block-form directives written as line comments, as oxlint does', () => {
+        // Given a blanket block disable followed by `// eslint-enable`, and `// eslint-disable` and `// oxlint-disable` line comments, each above a read
+        const lineEnable = ['/* eslint-disable */', '// eslint-enable', onyxReadCall].join('\n');
+        const lineDisable = ['// eslint-disable', onyxReadCall].join('\n');
+        const oxlintLineDisable = ['// oxlint-disable', onyxReadCall].join('\n');
+
+        // When the read ban scans each
+        // Then the line-comment enable frees the read, and each line-comment disable counts, because oxlint, unlike ESLint, honors both forms
+        expect(collectDisableDirectivesFromSource(lineEnable, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([]);
+        expect(collectDisableDirectivesFromSource(lineDisable, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+        expect(collectDisableDirectivesFromSource(oxlintLineDisable, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
     });
 
     it('treats a malformed enable as a plain comment', () => {
@@ -429,7 +460,7 @@ describe('no-unsafe-onyx-read bypasses', () => {
         const comma = ['/* eslint-disable */', '/* eslint-enable,rulesdir/no-unsafe-onyx-read */', onyxReadCall].join('\n');
 
         // When the read ban scans each
-        // Then the disable still counts, because ESLint needs whitespace after the keyword to honor an enable
+        // Then the disable still counts, because oxlint needs whitespace after the keyword to honor an enable
         expect(collectDisableDirectivesFromSource(stars, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
         expect(collectDisableDirectivesFromSource(comma, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
     });
@@ -675,6 +706,14 @@ describe('OnyxUtils import bypasses', () => {
         expect(scan(['/* eslint-disable @typescript-eslint/no-restricted-imports */', onyxUtilsImport])).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
     });
 
+    it('flags a disable that names the core rule id oxlint reports', () => {
+        // Given a src file that silences `no-restricted-imports` under the id oxlint uses, without the `@typescript-eslint/` prefix
+        // When the OnyxUtils ban scans it
+        // Then the directive counts as a bypass, the same as one naming the old id
+        expect(scan(['// eslint-disable-next-line no-restricted-imports', onyxUtilsImport])).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+        expect(scan(['/* eslint no-restricted-imports: off */', onyxUtilsImport])).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+    });
+
     it('flags a blanket disable over an OnyxUtils import', () => {
         // Given a blanket disable over the import
         // When the OnyxUtils ban scans it
@@ -862,7 +901,7 @@ describe('findForbiddenSeatbeltRows', () => {
 
     it('finds no forbidden row in the committed seatbelt TSV', () => {
         // Given the seatbelt TSV checked into the repo
-        const tsv = fs.readFileSync(path.resolve(__dirname, '../../config/eslint/eslint.seatbelt.tsv'), 'utf8');
+        const tsv = fs.readFileSync(path.resolve(__dirname, '../../config/oxlint/oxlint.seatbelt.tsv'), 'utf8');
 
         // When it is scanned for the forbidden rules
         // Then nothing is reported, so a row added through SEATBELT_INCREASE fails this suite as well as the lint run

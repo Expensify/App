@@ -13,7 +13,6 @@ import {
     convertApprovalWorkflowToPolicyEmployees,
     convertPolicyEmployeesToApprovalWorkflows,
     extractSubmitterEmails,
-    filterRulesForPolicy,
     getApprovalLimitDescription,
     getApproverPendingActionByMemberEmail,
     getOpenConnectedToPolicyBusinessBankAccounts,
@@ -36,6 +35,7 @@ import {
     reconcileApprovalWorkflowRulesForEdit,
     reconcileApprovalWorkflowRulesForMembersChange,
     reconcileApprovalWorkflowRulesForRemove,
+    shouldUseApprovalWorkflowRules,
     updateWorkflowDataOnApproverRemoval,
 } from '@src/libs/WorkflowUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -2803,36 +2803,6 @@ describe('WorkflowUtils', () => {
         });
     });
 
-    describe('filterRulesForPolicy', () => {
-        const ruleForPolicy = (scopeID: string, extra: Partial<Omit<Rule, 'actions' | 'filters' | 'triggers'>> = {}): Rule => ({
-            scope: CONST.RULES.SCOPE.POLICY,
-            scopeID,
-            triggers: {'1': CONST.RULES.TRIGGERS.REPORT_SUBMIT},
-            filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: 'a@example.com'},
-            actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: 'b@example.com'}},
-            ...extra,
-        });
-
-        it('keeps only the rules scoped to the given policy, preserving the collection keys', () => {
-            const mine = ruleForPolicy('policy1');
-            const collection = {rules_1: mine, rules_2: ruleForPolicy('policy2')};
-
-            // The value is passed through by reference so callers still see the full rule.
-            expect(filterRulesForPolicy(collection, 'policy1')).toEqual({rules_1: mine});
-        });
-
-        it('keeps rules pending deletion, leaving that decision to the caller', () => {
-            const pendingDelete = ruleForPolicy('policy1', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
-
-            expect(filterRulesForPolicy({rules_1: pendingDelete}, 'policy1')).toEqual({rules_1: pendingDelete});
-        });
-
-        it('returns an empty collection when there is no policy or no rules', () => {
-            expect(filterRulesForPolicy({rules_1: ruleForPolicy('policy1')}, undefined)).toEqual({});
-            expect(filterRulesForPolicy(undefined, 'policy1')).toEqual({});
-        });
-    });
-
     describe('hasApprovalWorkflowRules', () => {
         const approvalWorkflowRule = (scopeID: string, extra: Partial<Omit<Rule, 'actions' | 'filters' | 'triggers'>> = {}): Rule => ({
             scope: CONST.RULES.SCOPE.POLICY,
@@ -2874,6 +2844,80 @@ describe('WorkflowUtils', () => {
             // Then the other policy's rule never counts, and this policy's rule stops counting while it is being deleted, since it won't route once that goes through
             expect(hasRulesWhileDeleting).toBe(false);
             expect(hasRulesOnceUndone).toBe(true);
+        });
+    });
+
+    describe('shouldUseApprovalWorkflowRules', () => {
+        const defaultApproverEmail = 'admin@example.com';
+        const policyWithEmployees = (employeeList: PolicyEmployeeList, approvalMode: ValueOf<typeof CONST.POLICY.APPROVAL_MODE> = CONST.POLICY.APPROVAL_MODE.ADVANCED): Policy => ({
+            ...createRandomPolicy(1),
+            type: CONST.POLICY.TYPE.CORPORATE,
+            approvalMode,
+            approver: defaultApproverEmail,
+            employeeList,
+        });
+
+        it('keeps every policy on employeeList without the multiple approvers beta', () => {
+            // Given a policy whose reports approval workflow rules already route
+            const policy = policyWithEmployees({'1@example.com': {email: '1@example.com', submitsTo: '2@example.com'}});
+
+            // When the multiple approvers beta is off
+            const shouldUseRules = shouldUseApprovalWorkflowRules(policy, true, false);
+
+            // Then its workflows are still read from and saved to employeeList, like everywhere else without the beta
+            expect(shouldUseRules).toBe(false);
+        });
+
+        it('moves a policy without over-limit approvers onto rules', () => {
+            // Given a policy without rules whose approvers send every report on to the same next approver
+            const policy = policyWithEmployees({
+                '1@example.com': {email: '1@example.com', submitsTo: '2@example.com'},
+                '2@example.com': {email: '2@example.com', forwardsTo: '3@example.com'},
+            });
+
+            // When the multiple approvers beta is on
+            const shouldUseRules = shouldUseApprovalWorkflowRules(policy, false, true);
+
+            // Then saving a workflow writes rules, since they route those reports exactly like employeeList does
+            expect(shouldUseRules).toBe(true);
+        });
+
+        it('keeps a policy without rules on employeeList while its reports reach an over-limit approver', () => {
+            // Given a policy whose approver 2 sends reports over their limit on to 4, next to a null employeeList entry,
+            // which the type rules out but happens at runtime
+            const employeeList: PolicyEmployeeList = {};
+            Reflect.set(employeeList, 'stale@example.com', null);
+            employeeList['1@example.com'] = {email: '1@example.com', submitsTo: '2@example.com'};
+            employeeList['2@example.com'] = {email: '2@example.com', forwardsTo: '3@example.com', approvalLimit: 10000, overLimitForwardsTo: '4@example.com'};
+            const policy = policyWithEmployees(employeeList);
+
+            // When the multiple approvers beta is on, before and after the policy has rules
+            const shouldUseRulesWithoutRules = shouldUseApprovalWorkflowRules(policy, false, true);
+            const shouldUseRulesWithRules = shouldUseApprovalWorkflowRules(policy, true, true);
+
+            // Then the policy stays on employeeList until it has rules, since writing rules would change where reports
+            // over the limit go, and a policy the rules already route keeps using them
+            expect(shouldUseRulesWithoutRules).toBe(false);
+            expect(shouldUseRulesWithRules).toBe(true);
+        });
+
+        it('moves a policy onto rules when no report reaches its over-limit approver', () => {
+            // Given a policy whose approvals were turned off and back on, which sends every member to the default approver
+            // but leaves approver 2's limit and over-limit approver behind, as it comes back on in basic mode and once a
+            // workflow takes it back to advanced mode
+            const employeeList: PolicyEmployeeList = {
+                [defaultApproverEmail]: {email: defaultApproverEmail, submitsTo: defaultApproverEmail},
+                '1@example.com': {email: '1@example.com', submitsTo: defaultApproverEmail},
+                '2@example.com': {email: '2@example.com', submitsTo: defaultApproverEmail, approvalLimit: 10000, overLimitForwardsTo: '4@example.com'},
+            };
+
+            // When the multiple approvers beta is on
+            const shouldUseRulesInBasicMode = shouldUseApprovalWorkflowRules(policyWithEmployees(employeeList, CONST.POLICY.APPROVAL_MODE.BASIC), false, true);
+            const shouldUseRulesInAdvancedMode = shouldUseApprovalWorkflowRules(policyWithEmployees(employeeList), false, true);
+
+            // Then both write rules, since no report goes through approver 2 to be sent over their limit
+            expect(shouldUseRulesInBasicMode).toBe(true);
+            expect(shouldUseRulesInAdvancedMode).toBe(true);
         });
     });
 
@@ -3443,7 +3487,7 @@ describe('WorkflowUtils', () => {
                 (approvalMode) => {
                     expect(getApprovalWorkflowSource(buildPolicyWithConnectedATS(approvalMode), POLICY_ID)).toEqual({
                         providerName: 'Greenhouse',
-                        settingsRoute: ROUTES.WORKSPACE_RECRUITING.getRoute(POLICY_ID),
+                        settingsRoute: ROUTES.WORKSPACE_CONNECTIONS.getRoute(POLICY_ID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.RECRUITING),
                     });
                 },
             );
@@ -3467,7 +3511,7 @@ describe('WorkflowUtils', () => {
 
                 expect(getApprovalWorkflowSource(policy, POLICY_ID)).toEqual({
                     providerName: 'Workday',
-                    settingsRoute: ROUTES.WORKSPACE_HR.getRoute(POLICY_ID),
+                    settingsRoute: ROUTES.WORKSPACE_CONNECTIONS.getRoute(POLICY_ID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.PEOPLE),
                 });
             });
         });

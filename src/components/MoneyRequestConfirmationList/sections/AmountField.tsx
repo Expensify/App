@@ -22,6 +22,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {calculateAmount, isMovingTransactionFromTrackExpense, isP2PRecipient, isParticipantP2P} from '@libs/IOUUtils';
 import {isConfirmationAmountMissing} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
 import {shouldEnableNegative} from '@libs/ReportUtils';
 import {calculateTaxAmount, getTaxCode, getTaxValue, hasAnyManuallyEnteredScanField} from '@libs/TransactionUtils';
 
@@ -33,10 +34,12 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {useIsFocused, useNavigation} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -44,6 +47,7 @@ import AutomaticFieldHint from './AutomaticFieldHint';
 import ExpenseFieldRow from './ExpenseFieldRow';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {amountSliceSelector} from './selectors';
+import useSplitDraftBaseTransaction from './useSplitDraftBaseTransaction';
 import useTransactionSelector from './useTransactionSelector';
 
 type AmountFieldProps = {
@@ -58,7 +62,6 @@ type AmountFieldProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
     clearFormErrors: (errors: string[]) => void;
     setFormError: (error: TranslationPaths | '') => void;
-    isParticipantPickerVisible?: boolean;
 };
 
 function AmountField({
@@ -73,8 +76,9 @@ function AmountField({
     policy,
     clearFormErrors,
     setFormError,
-    isParticipantPickerVisible = false,
 }: AmountFieldProps) {
+    const isScreenFocused = useIsFocused();
+    const navigation = useNavigation();
     const {isEditingSplitBill, canEnterScanFieldsManually, isPolicyExpenseChat, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
     // Filled by the forms that offer a receipt from beside the amount field rather than from a full-width empty
     // state, with their compact add-receipt button.
@@ -86,9 +90,10 @@ function AmountField({
     const {translate, preferredLocale} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+    const {splitDraftTransaction, baseTransaction} = useSplitDraftBaseTransaction(transactionID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const amountInputRef = useRef<BaseTextInputRef | null>(null);
+    const currencyButtonRef = useRef<View>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const transactionSlice = useTransactionSelector(transactionID, amountSliceSelector);
@@ -149,12 +154,20 @@ function AmountField({
     const allowNegative =
         shouldEnableNegative(report, policy, iouType, transactionSlice?.participants) && !isP2PRecipient(transactionSlice?.participants?.at(0), currentUserPersonalDetails.accountID);
 
-    // `autoFocus` on our TextInput only runs on mount. Closing and reopening the RHP often keeps the same mounted
-    // instance, so autofocus does not run again. We re-focus when the parent-owned participant picker closes
-    // (visible → hidden) so the amount input gains focus once the user selects a participant. The setTimeout defers
-    // focus past the RHP entry / picker close animation so the input reliably receives focus.
+    // Focus the amount on mount and after picking a participant. Other pages leave focus on the row the user edited.
+    const shouldFocusOnScreenFocusRef = useRef(true);
+    useEffect(
+        () =>
+            navigation.addListener('blur', () => {
+                shouldFocusOnScreenFocusRef.current = navigationRef.getCurrentRoute()?.name === SCREENS.MONEY_REQUEST.DYNAMIC_STEP_PARTICIPANTS;
+            }),
+        [navigation],
+    );
+
+    // `autoFocus` only runs on mount and the RHP often keeps this instance mounted, so focus again when the screen
+    // regains focus. The timeout waits out the RHP animation.
     useEffect(() => {
-        if (!shouldAutoFocusOnMount || isAmountFieldDisabled || isParticipantPickerVisible) {
+        if (!shouldAutoFocusOnMount || isAmountFieldDisabled || !isScreenFocused || !shouldFocusOnScreenFocusRef.current) {
             return;
         }
 
@@ -166,7 +179,7 @@ function AmountField({
             }
             clearTimeout(focusTimeoutRef.current);
         };
-    }, [shouldAutoFocusOnMount, isAmountFieldDisabled, isParticipantPickerVisible]);
+    }, [shouldAutoFocusOnMount, isAmountFieldDisabled, isScreenFocused]);
 
     const showCurrencyPicker = () => {
         setIsCurrencyPickerVisible(true);
@@ -228,7 +241,7 @@ function AmountField({
 
             setDraftSplitTransaction(
                 transactionID,
-                splitDraftTransaction,
+                baseTransaction,
                 {
                     amount: updatedAmount,
                     currency: updatedCurrency,
@@ -348,6 +361,7 @@ function AmountField({
                 headerText={translate('common.selectCurrency')}
                 value={effectiveCurrency}
                 onInputChange={updateCurrency}
+                launcherRef={currencyButtonRef}
             />
             {!isAmountFieldDisabled ? (
                 <View style={[styles.mh4, styles.mv2, styles.flexRow, styles.gap2]}>
@@ -369,6 +383,7 @@ function AmountField({
                             shouldShowCurrencyButton={shouldShowAmountButtons}
                             shouldShowBigNumberPad={false}
                             onCurrencyButtonPress={showCurrencyPicker}
+                            currencyButtonRef={currencyButtonRef}
                             onFocus={() => {
                                 setIsAmountInputFocused(true);
                             }}
