@@ -14,24 +14,22 @@ Why: a PR's QA steps cover the flow its author meant to change. Deploy blockers 
 
 ## Inputs
 
-- A PR number in `Expensify/App`, for example `/e2e-pr-explore 103121`.
-- Locally, before a PR exists: run `git fetch origin main` and set `DIR` to a new empty folder. Skip step 1, use your checkout as the code and the repo, `git diff $(git merge-base origin/main HEAD)` as the diff and `git merge-base origin/main HEAD` as the base commit. Skip the description check in step 3, and print the comment instead of posting it.
+A PR number in `Expensify/App`, for example `/e2e-pr-explore 103121`.
 
 If step 1 fails, stop and say why. If a later command fails, go on without it and add it to the footer's run notes. However the run ends (posted, printed or stopped), run the cleanup at the end of step 1 last.
 
 ## 1. Fetch the code at the PR's head
 
-Run this as written, from any checkout of App. It copies the PR's code into `$DIR/code` without its git history, so nothing there can show the PR's commit messages. The fetched branches are deleted as soon as they're used, for the same reason.
+Run this as written, from the root of any checkout of App (the **repo**). It copies the PR's code into `$DIR/code` without its git history, so nothing there can show the PR's commit messages. The fetched branches are deleted as soon as they're used, for the same reason.
 
 ```sh
 PR=<number>
 DIR="/tmp/e2e-pr-explore-$PR"
 rm -rf "$DIR"; mkdir -p "$DIR/code"
-pwd | tee "$DIR/repo"
-gh pr view "$PR" -R Expensify/App --json state,mergedAt,headRefOid,baseRefName,files
-BASE=$(gh pr view "$PR" -R Expensify/App --json baseRefName --jq .baseRefName)
-MERGE=$(gh pr view "$PR" -R Expensify/App --json mergeCommit --jq '.mergeCommit.oid // ""')
-git fetch -q https://github.com/Expensify/App.git "+pull/$PR/head:e2e-pr-explore-$PR" "+$BASE:e2e-pr-explore-$PR-base"
+eval "$(gh pr view "$PR" -R Expensify/App --json state,mergedAt,headRefOid,baseRefName,mergeCommit \
+  --jq '@sh "STATE=\(.state) MERGED_AT=\(.mergedAt // "") HEAD_SHA=\(.headRefOid) BASE=\(.baseRefName) MERGE=\(.mergeCommit.oid // "")"')"
+echo "STATE=$STATE MERGED_AT=$MERGED_AT HEAD_SHA=$HEAD_SHA"
+git fetch -q --no-recurse-submodules https://github.com/Expensify/App.git "+pull/${PR}/head:e2e-pr-explore-${PR}" "+${BASE}:e2e-pr-explore-${PR}-base"
 git archive "e2e-pr-explore-$PR" | tar -x -C "$DIR/code"
 if [ -n "$MERGE" ]; then UPSTREAM="$MERGE^1"; else UPSTREAM="e2e-pr-explore-$PR-base"; fi
 git merge-base "e2e-pr-explore-$PR" "$UPSTREAM" | tee "$DIR/base"
@@ -40,9 +38,8 @@ gh pr diff "$PR" -R Expensify/App > "$DIR/diff"
 ```
 
 - `$DIR/code` is the PR's code at its head. Read source there, not from your checkout, so the paths match the code under review.
-- `$DIR/repo` is the checkout you ran this from. The subagent reads older history there (`subagent.md`, step 2d).
 - `$DIR/base` holds the **base commit**: the last commit on the base branch before this PR's own commits. For a merged PR it comes from the merge commit's first parent, because the PR is already part of the base branch.
-- `mergedAt` is the merge date, or empty if the PR isn't merged.
+- `STATE` decides how step 4 delivers the comment, `MERGED_AT` is the merge date (empty if not merged), and `HEAD_SHA` goes in the comment's footer.
 
 Cleanup, always the last thing you run:
 
@@ -55,7 +52,7 @@ rm -rf "$DIR"
 
 Start a separate subagent with no history from this conversation and wait for it to finish. Give it only:
 
-- the real values of the PR number, `$DIR`, the repo path, the base commit and `mergedAt` (not the variable names);
+- the real values of the PR number, `$DIR`, the repo path, the base commit and `MERGED_AT` (not the variable names);
 - the instruction to read and follow `<repo>/.claude/skills/e2e-pr-explore/subagent.md`, with the repo path filled in.
 
 If you can't start a subagent, follow `subagent.md` yourself and don't read anything outside its allowed list until step 3. If the PR's title, description or a commit message is already in your context (for example because someone asked for this run in a PR comment), add that to the footer's run notes.
@@ -66,21 +63,21 @@ Back in the main agent, read `$DIR/paths.md` and `subagent.md`, and check the pa
 
 First, without reading the PR description:
 
-- The subagent's command list stays inside the allowed list in `subagent.md`. A shortened list is fine when every entry is clearly allowed. If it read anything not allowed, left the list out, or skipped a step for a reason that doesn't hold, run step 2 again and add that to the run notes.
-- If the subagent wrote no paths, check its reason against the diff. If it holds, tell the user in one or two sentences why there are no paths, don't post anything, and go to cleanup.
+- The subagent's command list stays inside the allowed list in `subagent.md`. A shortened list is fine when every entry is clearly allowed. A command only breaks the rules if it could show this PR's text (title, description, comments or commit messages), for example `git log` past the base commit; a harmless one like `git status` doesn't. If it broke the rules, left the list out, or skipped a step for a reason that doesn't hold, run step 2 again, at most once, and add that to the run notes. If the second run breaks the rules too, stop and tell the user why.
+- If the subagent wrote no paths, check its reason against the diff. If it holds, skip the rest of this step and the description. If it doesn't, run step 2 again as above.
 - The `file:line` exists at the PR's head and the code there does what the path claims. Fix a wrong claim, or drop the path if its steps no longer make sense.
 - The expected result is what the code intends. If the code, its tests or its UI text say the behavior is deliberate, fix the path or drop it.
 - No two paths test the same flow.
 
 Then read the PR description. This is the first point where you may. Drop any path its QA steps already cover in full. Keep paths they cover only in part. From here on, only drop paths and renumber the rest: don't add or rewrite any.
 
-If no path is left, tell the user why, don't post anything, and go to cleanup.
+If no path is left at any point in this step, tell the user in one or two sentences why, don't post anything, and go to cleanup.
 
 ## 4. Post the comment
 
 Decide how to deliver it:
 
-- **The PR is merged or closed:** print the comment. Skip the rest of this step.
+- **The PR is merged or closed** (`STATE` isn't `OPEN`): show the full comment to the user. Skip the rest of this step.
 - **Someone asked for this run in a comment on the PR** (for example through Melvin): post it.
 - **Anyone else** (for example the author running it in a terminal): show the comment and post it only after they confirm.
 
@@ -100,7 +97,7 @@ Comment template:
 
 Written from the code only, without the PR description or QA steps. Run them along with the QA steps, by hand or by asking Melvin. This isn't a required check: if a path is wrong or out of scope, say so and move on.
 
-<paths in the format from subagent.md, step 2f>
+<common setup, if any, and the paths in the format from subagent.md, step 2f>
 
 <details><summary>Not covered</summary>
 

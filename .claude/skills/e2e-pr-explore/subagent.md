@@ -5,16 +5,17 @@ You write test paths for an Expensify/App PR from its code only. The main agent 
 ## Allowed
 
 - `<DIR>/diff`, and any file under `<DIR>/code` (read, grep). That folder has no git history.
-- In the repo: `git -C <repo> log <base commit> -- <paths>`, and `git -C <repo> show` on commits that log lists. No other git command in the repo: other branches, and `main` past the base commit, can contain this PR's commits, and their messages describe what the author meant to change.
-- `gh pr view <PR> -R Expensify/App --json files,headRefOid,baseRefName`.
-- Issues filed against **other** PRs that touched the same files (step 2d): the search results, and `gh issue view <number> -R Expensify/App` without `--comments`. If an issue mentions PR `<PR>`, stop reading it.
+- In the repo: `git -C <repo> log <base commit> -- <paths>`, and `git -C <repo> show` on commits that log lists. No other git command that can show commit messages: other branches, and `main` past the base commit, can contain this PR's commits, and their messages describe what the author meant to change. Commands like `git status` are fine.
+- Issues filed against **other** PRs that touched the same files (step 2d): the search results, and `gh issue view <number> -R Expensify/App` without `--comments`. If an issue mentions PR `<PR>`, stop reading it and say so in the run notes.
 - This file.
 
 ## Not allowed
 
 This PR's title, description, QA steps, Tests section, commit messages, comments, reviews, linked issues, or any issue or search that mentions the PR. The paths have to come from what the code can break, not from what the author meant to change.
 
-At the end of `<DIR>/paths.md`, add a "Run notes" section with anything the main agent should know (for example "no past issues found in 2d", or a step you skipped and why). Then list every command you ran and every file you read, with full arguments, one per line. The main agent checks the list against this file.
+## Output
+
+Write the paths to `<DIR>/paths.md` in the format from 2f. At the end, add a "Run notes" section with anything the main agent should know (for example "no past issues found in 2d", or a step you skipped and why). Then list every command you ran and every file you read, with full arguments, one per line. The main agent checks the list against this file.
 
 ## 2a. Map where the changed code shows up
 
@@ -55,7 +56,7 @@ Two variants apply everywhere they make sense:
 ## 2d. Look at history
 
 ```sh
-git -C <repo> log --format='%H' -n 30 <base commit> -- <changed files>
+git -C <repo> log --no-merges --format='%H' -n 30 <base commit> -- <changed files>
 ```
 
 You may leave out files that change in almost every PR (`src/languages/*`, `src/CONST/*`, `src/ONYXKEYS.ts`) so they don't fill the log; say so in the run notes. For each commit, find its PR. Check at most the 15 most recent distinct PRs:
@@ -77,7 +78,7 @@ If `mergedAt` is set, add `created:<YYYY-MM-DD` with its date to the search, so 
 Rank paths by how likely they are to break and how much it would hurt, for example submitting, approving or paying a report, sending a message, or changing a member's role and then using the workspace. Base the number on what the change puts at risk, not on the diff's size: a one-line change to a shared helper can need many paths, a large change to one screen can need few.
 
 - Write at most 10 paths. Aim for 6 or more. Write fewer only when the change can't reach 6 different flows.
-- If no path is left (for example the diff only changes tests, docs, CI, or logging and telemetry no user can see), write why in `<DIR>/paths.md`, add the run notes and command list (see "Not allowed"), and stop.
+- If no path is left (for example the diff only changes tests, docs, CI, or logging and telemetry no user can see), write why in `<DIR>/paths.md`, add the run notes and command list (see Output), and stop.
 - Each path is one user flow, end to end, with the variants that matter for it. Don't list every combination: pick the variant most likely to break and name the others in one line.
 - Skip the main flow the diff is about, in its default state. The author's QA steps cover it; the value is in everything around it.
 - Every path must point at the code that puts it at risk (`file:line` in the PR's head). No pointer, no path.
@@ -85,6 +86,8 @@ Rank paths by how likely they are to break and how much it would hurt, for examp
 The "Not covered" list holds only entry points and variants from 2a and 2b that no path covers. Everything else goes in the run notes.
 
 ## 2f. Write each path in this format
+
+If several paths share the same setup, write it once as a "Common setup" paragraph above path 1 and refer to it.
 
 ```md
 ### <n>. <Short title: what might break, where>
