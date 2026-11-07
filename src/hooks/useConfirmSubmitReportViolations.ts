@@ -45,7 +45,7 @@ function useConfirmSubmitReportViolations({
     const {transactions: ownedTransactions, violations: ownedViolationsCollection} = useTransactionsAndViolationsForReport(transactionsOverride ? undefined : reportID);
     // Runs once per Search row, so narrowed to the cards past the dismiss threshold: the summary only asks
     // whether a violation's card is one of them, and a card missing from the subset is not.
-    const [cardsPastDismissThreshold] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardsWithBrokenConnectionPastDismissThresholdSelector});
+    const [cardsPastDismissThreshold] = useOnyx(ONYXKEYS.DERIVED.CARD_FEED_ERRORS, {selector: cardsWithBrokenConnectionPastDismissThresholdSelector});
 
     const transactions = transactionsOverride ?? Object.values(ownedTransactions);
     const violationsCollection = violationsCollectionOverride ?? ownedViolationsCollection;

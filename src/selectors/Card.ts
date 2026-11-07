@@ -1,20 +1,11 @@
 import {getExpensifyCardFeedsForDisplay} from '@libs/CardFeedUtils';
-import {
-    hasActiveExpensifyCard,
-    hasAssignedCardMatching,
-    isActiveCard,
-    isBrokenConnectionPastDismissThreshold,
-    isCard,
-    isCardHiddenFromSearch,
-    isCSVFeedOrExpensifyCard,
-    isExpensifyCard,
-    isPersonalCard,
-} from '@libs/CardUtils';
+import {hasActiveExpensifyCard, hasAssignedCardMatching, isActiveCard, isCard, isCardHiddenFromSearch, isCSVFeedOrExpensifyCard, isExpensifyCard, isPersonalCard} from '@libs/CardUtils';
 import {filterObject} from '@libs/ObjectUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList, NonPersonalAndWorkspaceCardListDerivedValue, WorkspaceCardsList} from '@src/types/onyx';
+import type {CardFeedErrors} from '@src/types/onyx/DerivedValues';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -130,13 +121,15 @@ const hasIssuedExpensifyCardSelector = (cardsList: OnyxEntry<WorkspaceCardsList>
     hasAssignedCardMatching(cardsList, (card) => card.bank === CONST.EXPENSIFY_CARD.BANK && isActiveCard(card));
 
 /**
- * Reduces the card list to only the cards whose connection has been broken past the dismiss threshold.
+ * Picks the cards whose feed connection has been broken past the dismiss threshold.
  *
- * Consumers only ever ask whether a given card is past the threshold, so everything else is dropped: the result is
- * normally empty, which keeps the subscription cheap in rows that render once per expense.
+ * Read from the derived value rather than from CARD_LIST, because the threshold is crossed by time passing: a
+ * selector over CARD_LIST alone would keep its cached result when a card goes from 89 to 90 days. The derived value
+ * depends on CURRENT_DATE, so it recomputes when the day rolls over. The result is normally empty, which keeps the
+ * subscription cheap in rows that render once per expense.
  */
-const cardsWithBrokenConnectionPastDismissThresholdSelector = (cardList: OnyxEntry<CardList>): CardList =>
-    filterObject(cardList ?? {}, (_cardID, card) => isCard(card) && isBrokenConnectionPastDismissThreshold(card));
+const cardsWithBrokenConnectionPastDismissThresholdSelector = (cardFeedErrors: OnyxEntry<CardFeedErrors>): CardList =>
+    cardFeedErrors?.cardsWithBrokenFeedConnectionPastDismissThreshold ?? {};
 
 /** Reduces the card list to a boolean so consumers don't re-render on unrelated card changes. */
 const hasActiveExpensifyCardSelector = (cardList: OnyxEntry<CardList>): boolean => hasActiveExpensifyCard(cardList ?? undefined);

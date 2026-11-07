@@ -56,7 +56,7 @@ function useLiveRowCapabilities<T extends LiveRowItem>(params: UseLiveRowCapabil
     const [liveReportMetadata] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(reportID)}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     // Runs once per Search row, so narrowed to the cards past the dismiss threshold rather than the whole list.
-    const [cardsPastDismissThreshold] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardsWithBrokenConnectionPastDismissThresholdSelector});
+    const [cardsPastDismissThreshold] = useOnyx(ONYXKEYS.DERIVED.CARD_FEED_ERRORS, {selector: cardsWithBrokenConnectionPastDismissThresholdSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     if (!enabled || !snapshotData) {

@@ -178,6 +178,10 @@ type CardFeedErrors = {
     cardFeedErrors: CardFeedErrorsObject;
 
     cardsWithBrokenFeedConnection: Record<string, Card>;
+
+    /** The cards whose feed connection has been broken past the dismiss threshold. Recomputed when the day changes,
+     *  because the threshold is crossed by time passing rather than by the card data changing. */
+    cardsWithBrokenFeedConnectionPastDismissThreshold: Record<string, Card>;
     personalCardsWithBrokenConnection: Record<string, Card>;
     shouldShowRbrForWorkspaceAccountID: Record<number, boolean>;
     shouldShowRbrForFeedNameWithDomainID: Record<string, boolean>;

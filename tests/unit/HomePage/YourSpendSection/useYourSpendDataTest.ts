@@ -235,6 +235,7 @@ function makeCardFeedErrors(overrides: Partial<CardFeedErrors> = {}): CardFeedEr
     return {
         cardFeedErrors: {},
         cardsWithBrokenFeedConnection: {},
+        cardsWithBrokenFeedConnectionPastDismissThreshold: {},
         personalCardsWithBrokenConnection: {},
         shouldShowRbrForWorkspaceAccountID: {},
         shouldShowRbrForFeedNameWithDomainID: {},

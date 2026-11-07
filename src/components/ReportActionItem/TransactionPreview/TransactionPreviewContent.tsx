@@ -117,7 +117,7 @@ function TransactionPreviewContent({
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
     // Narrowed to the cards past the dismiss threshold so this row doesn't re-render on every unrelated card change.
-    const [cardsPastDismissThreshold] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardsWithBrokenConnectionPastDismissThresholdSelector});
+    const [cardsPastDismissThreshold] = useOnyx(ONYXKEYS.DERIVED.CARD_FEED_ERRORS, {selector: cardsWithBrokenConnectionPastDismissThresholdSelector});
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight,
         highlightColor: theme.messageHighlightBG,

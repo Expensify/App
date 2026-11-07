@@ -74,9 +74,9 @@ export default function ViolationMessages({
                     transactionCurrency,
                 }),
             ];
-            // A violation can translate to an empty message when it is deliberately suppressed (e.g. a broken connection
-            // past the 90-day grace period); rendering it would leave a blank, spaced row.
         })
+        // A violation can translate to an empty message when it is deliberately suppressed (e.g. a broken connection
+        // past the 90-day grace period); rendering it would leave a blank, spaced row.
         .filter(([, message]) => !!message);
 
     return (

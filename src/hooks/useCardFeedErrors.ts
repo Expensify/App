@@ -15,6 +15,7 @@ const DEFAULT_CARD_FEED_ERROR_STATE: CardFeedErrorState = {
 const DEFAULT_CARD_FEED_ERRORS: CardFeedErrors = {
     cardFeedErrors: {},
     cardsWithBrokenFeedConnection: {},
+    cardsWithBrokenFeedConnectionPastDismissThreshold: {},
     personalCardsWithBrokenConnection: {},
     shouldShowRbrForWorkspaceAccountID: {},
     shouldShowRbrForFeedNameWithDomainID: {},
