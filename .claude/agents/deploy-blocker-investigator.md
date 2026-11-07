@@ -112,7 +112,26 @@ Ask: **Where does the fix need to happen?**
 
 See Decision Tree below for label actions.
 
-### Step 7: Post comment and update labels
+### Step 7: Check the e2e-pr-explore paths
+
+Run this only for the primary causing PR, and only with High or Medium confidence. It measures the `e2e-pr-explore` skill, which posts the paths most likely to break as a PR comment. It must not change the causing PR, the classification, the labels or the recommendation, which are already decided.
+
+Find the comment, keeping it only if it was last edited before the PR merged (`mergedAt` from Step 3), so a run after the bug can't count:
+
+```bash
+gh api "repos/Expensify/App/issues/<PR_NUMBER>/comments" --paginate --jq '.[] | select((.body | test("^<!-- e2e-pr-explore -->")) and .updated_at < "<mergedAt>") | .body'
+```
+
+If the command fails or finds no comment, leave the `### e2e-pr-explore` section out of the summary.
+
+Otherwise, compare the deploy blocker with the comment and pick the first result that applies:
+
+1. **Covered by path N**: following that path's setup and steps reaches the bug, and its expected result fails because of it.
+2. **Near path N**: a path reaches the same screen or code, but with a different variant (report type, role, state, platform, offline) than the bug needs.
+3. **Listed as not covered**: the flow is in the comment's "Not covered" list.
+4. **Missed**: the comment doesn't mention the flow.
+
+### Step 8: Post comment and update labels
 
 Write the comment body to a temp file using the Write tool, then post it:
 ```bash
@@ -127,7 +146,7 @@ removeDeployBlockerLabel.sh "$ISSUE_URL" DeployBlocker      # For Frontend bugs
 
 Call scripts by name only (e.g., `removeDeployBlockerLabel.sh`), not with full paths.
 
-### Step 8: Assign contributors
+### Step 9: Assign contributors
 
 If the primary causing PR has at least medium confidence, assign its author and approving reviewers to the deploy blocker issue. Only assign contributors from this single PR.
 
@@ -175,7 +194,7 @@ Choose ONE:
 
 ## Comment Format
 
-Use the Write tool to create `/tmp/investigation-summary.md` with the following markdown structure. Every field and heading must be present.
+Use the Write tool to create `/tmp/investigation-summary.md` with the following markdown structure. Every field and heading must be present, except the `### e2e-pr-explore` section, which appears only when Step 7 finds a comment.
 
 ```markdown
 ## 🔍 Investigation Summary
@@ -206,6 +225,9 @@ Brief explanation of why this recommendation (1-2 sentences).
 
 ### Root Cause
 Technical explanation of what went wrong in the code.
+
+### e2e-pr-explore
+Covered by path N / Near path N / Listed as not covered / Missed, with one line on why.
 
 </details>
 ```
