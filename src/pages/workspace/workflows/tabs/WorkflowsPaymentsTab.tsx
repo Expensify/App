@@ -39,7 +39,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getReimbursementChoice, getReimbursementCountryISOs, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
+import {getReimbursementChoice, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
 
@@ -293,11 +293,15 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     };
     const bankAccountMenuItem = <MenuItem {...bankAccountMenuItemProps} />;
 
-    const reimbursementCountryNames = getReimbursementCountryISOs(policy?.reimbursement?.countries)
+    const reimbursementCountries = Object.keys(policy?.reimbursement?.countries ?? {})
         .filter((countryISO): countryISO is Country => countryISO in CONST.ALL_COUNTRIES)
-        .map((countryISO) => translate(`allCountries.${countryISO}`))
-        .join(', ');
-    const hasPendingReimbursementCountries = Object.values(policy?.reimbursement?.countries ?? {}).some((country) => !!country?.pendingAction);
+        .map((countryISO) => ({
+            countryISO,
+            name: translate(`allCountries.${countryISO}`),
+            pendingAction: policy?.reimbursement?.countries?.[countryISO]?.pendingAction,
+        }))
+        .filter((country) => isOffline || country.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const reimbursementCountryNames = reimbursementCountries.map((country) => country.name).join(', ');
     const reimbursementCountriesErrors = getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_COUNTRIES);
 
     return (
@@ -463,7 +467,6 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                             showLockIcon={!canWritePayments}
                             subMenuItems={
                                 <OfflineWithFeedback
-                                    pendingAction={hasPendingReimbursementCountries ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined}
                                     errors={reimbursementCountriesErrors}
                                     onClose={() => clearPolicyErrorField(policyID, CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_COUNTRIES)}
                                 >
@@ -482,7 +485,28 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                                     >
                                         <MenuItem.Row>
                                             <MenuItemField.Content name={translate('workflowsPage.businessBankAccountCountries')}>
-                                                {!!reimbursementCountryNames && <MenuItem.FieldValue numberOfLines={0}>{reimbursementCountryNames}</MenuItem.FieldValue>}
+                                                {!!reimbursementCountryNames && (
+                                                    <MenuItem.FieldValue
+                                                        numberOfLines={0}
+                                                        accessibilityLabel={reimbursementCountryNames}
+                                                    >
+                                                        <Text>
+                                                            {reimbursementCountries.map((country, index) => (
+                                                                <Text key={country.countryISO}>
+                                                                    {index > 0 ? ', ' : ''}
+                                                                    <Text
+                                                                        style={[
+                                                                            isOffline && !!country.pendingAction && styles.colorMuted,
+                                                                            isOffline && country.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && styles.offlineFeedbackDeleted,
+                                                                        ]}
+                                                                    >
+                                                                        {country.name}
+                                                                    </Text>
+                                                                </Text>
+                                                            ))}
+                                                        </Text>
+                                                    </MenuItem.FieldValue>
+                                                )}
                                             </MenuItemField.Content>
                                             <MenuItem.Trailing>
                                                 {!isEmptyObject(reimbursementCountriesErrors) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
