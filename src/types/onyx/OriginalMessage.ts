@@ -1308,6 +1308,9 @@ type OriginalMessageMarkedReimbursed = {
 
 /** Model of `reimbursed` report action */
 type OriginalMessageReimbursed = {
+    /** Accounts the payment message is actionable for, supplied by Auth. */
+    actionableForAccountIDs?: number[];
+
     /** Whether this action was created from NewDot */
     isNewDot?: boolean;
 
