@@ -67,7 +67,7 @@ function useReceiptTranslation(transaction: OnyxEntry<Transaction>) {
 
     return {
         canTranslate: isBetaEnabled(CONST.BETAS.RECEIPT_TRANSLATION) && hasReceiptSource(transaction),
-        isTranslateDisabled: isOffline || isTranslating || !!transaction?.pendingFields?.receipt,
+        isTranslateDisabled: isOffline || isTranslating || !receiptID || !!transaction?.pendingFields?.receipt,
         isTranslating,
         translatedReceiptRows,
         startTranslation,
