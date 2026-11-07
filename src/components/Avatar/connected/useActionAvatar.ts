@@ -12,6 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
+import {isBillPayHistoryAction} from '@libs/BillPayReportActionUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     getDelegateAccountIDFromReportAction,
@@ -47,8 +48,9 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {getStableReportSelector} from '@selectors/Report';
-import {getReportActionByIDSelector} from '@selectors/ReportAction';
+import {getBillProcessorAccountIDSelector, getReportActionByIDSelector} from '@selectors/ReportAction';
 import {pendingDeleteMemberAccountIDsSelector} from '@selectors/ReportMetaData';
+import {isLinkedToBillSelector} from '@selectors/ReportNameValuePairs';
 
 import useInvoiceReportIcons from './useInvoiceReportIcons';
 import useIOUReportIcons from './useIOUReportIcons';
@@ -176,7 +178,18 @@ function useActionAvatar({action: passedAction, report, shouldUseRealActor}: Use
 
     const delegateAccountIDFromAction = getDelegateAccountIDFromReportAction(action);
     const delegatePersonalDetails = delegateAccountIDFromAction ? personalDetails?.[delegateAccountIDFromAction] : undefined;
-    const actorAccountID = getReportActionActorAccountID(action, iouReport, chatReport, delegatePersonalDetails, shouldUseRealActor);
+    const [isInvoiceLinkedToBill = false] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(isOtherAction && isInvoiceReport(iouReport) ? iouReport?.reportID : undefined)}`,
+        {selector: isLinkedToBillSelector},
+    );
+    const isBillPayHistory = isBillPayHistoryAction(action, iouReport, isInvoiceLinkedToBill);
+    const [billProcessorAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(isBillPayHistory ? iouReport?.reportID : undefined)}`, {
+        selector: getBillProcessorAccountIDSelector,
+    });
+    const actorAccountID = getReportActionActorAccountID(action, iouReport, chatReport, delegatePersonalDetails, shouldUseRealActor, {
+        isInvoiceLinkedToBill,
+        processorAccountID: billProcessorAccountID,
+    });
     const accountID = reportPreviewSenderID || (actorAccountID ?? CONST.DEFAULT_NUMBER_ID);
     const actorPersonalDetails = personalDetails?.[accountID] ?? undefined;
     const {avatar, fallbackIcon, login} = personalDetails?.[delegatePersonalDetails ? delegatePersonalDetails.accountID : accountID] ?? {};
@@ -410,6 +423,12 @@ function useActionAvatar({action: passedAction, report, shouldUseRealActor}: Use
     } else if (isUserWithWorkspaceAvatar && wasReportPreviewMovedToDifferentPolicy) {
         const policyChatReportIcon = {...getWorkspaceIcon(policyChatReport, translate, policy), id: policyID, name: avatarPolicy?.name};
         avatars = [avatars.at(0) ?? primaryAvatar, policyChatReportIcon];
+    }
+
+    // Intake history credits Concierge even when personal details are missing or still use the account's email as its name.
+    if (isBillPayHistory && actorAccountID === CONST.ACCOUNT_ID.CONCIERGE) {
+        avatars = [{id: actorAccountID, type: CONST.ICON_TYPE_AVATAR, source: defaultAvatars.ConciergeAvatar, name: CONST.CONCIERGE_DISPLAY_NAME}];
+        avatarType = CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE;
     }
 
     // A human agent revealing themselves behind Concierge shows as Concierge's subscript.
