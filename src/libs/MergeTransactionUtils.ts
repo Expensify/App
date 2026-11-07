@@ -228,6 +228,7 @@ function getMergeableDataAndConflictFields(
     targetTransaction: OnyxEntry<Transaction>,
     sourceTransaction: OnyxEntry<Transaction>,
     localeCompare: LocaleContextProps['localeCompare'],
+    translate: LocaleContextProps['translate'],
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     searchReports: Array<OnyxEntry<Report>> = [],
     targetTransactionPolicy?: OnyxEntry<Policy>,
@@ -293,6 +294,7 @@ function getMergeableDataAndConflictFields(
                     field,
                     fieldValue: SafeString(targetValue),
                     getCurrencyDecimals,
+                    translate,
                     mergeTransaction: mergedSoFar,
                     searchReports,
                     // Both expenses share the report, so the merged expense stays on that report's workspace
@@ -334,6 +336,7 @@ function getMergeableDataAndConflictFields(
                 field,
                 fieldValue: selectedFieldValue as MergeTransaction[typeof field],
                 getCurrencyDecimals,
+                translate,
                 mergeTransaction: mergedSoFar,
                 searchReports,
                 policy: selectedPolicy,
@@ -613,7 +616,7 @@ function getDisplayValue(
     }
 
     if (field === 'taxValue') {
-        return getTaxName(policy, transaction) ?? transaction.taxValue ?? '';
+        return getTaxName(translate, policy, transaction) ?? transaction.taxValue ?? '';
     }
 
     if (field === 'category') {
@@ -720,6 +723,7 @@ type GetMergeFieldUpdatedValuesParams<K extends MergeFieldKey> = {
     field: K;
     fieldValue: MergeTransaction[K];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    translate: LocaleContextProps['translate'];
     mergeTransaction?: OnyxEntry<MergeTransaction>;
     searchReports?: Array<OnyxEntry<Report>>;
     policy?: OnyxEntry<Policy>;
@@ -809,6 +813,7 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>({
     field,
     fieldValue,
     getCurrencyDecimals,
+    translate,
     mergeTransaction,
     searchReports,
     policy,
@@ -879,7 +884,7 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>({
         // Distance expense tax rate is fixed to the distance rate, so just carry it over
         updatedValues.taxValue = transaction?.taxValue;
         updatedValues.taxCode = transaction?.taxCode;
-        updatedValues.taxName = getTaxName(policy, transaction) ?? transaction?.taxValue;
+        updatedValues.taxName = getTaxName(translate, policy, transaction) ?? transaction?.taxValue;
         updatedValues.taxAmount = transaction?.taxAmount;
         // Don't erase this prop
         // The selected rate might not have tax tracking
@@ -897,7 +902,7 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>({
 
     if (field === 'taxValue') {
         updatedValues.taxCode = transaction?.taxCode;
-        updatedValues.taxName = getTaxName(policy, transaction) ?? transaction?.taxValue ?? '';
+        updatedValues.taxName = getTaxName(translate, policy, transaction) ?? transaction?.taxValue ?? '';
         updatedValues.taxPolicyID = policy?.id;
         if (mergeTransaction?.amount) {
             updatedValues.taxAmount = convertToBackendAmount(calculateTaxAmount(transaction?.taxValue, mergeTransaction.amount, getCurrencyDecimals(getCurrency(transaction))));

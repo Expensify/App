@@ -80,7 +80,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     const decimals = getCurrencyDecimals(effectiveCurrency);
     const formattedTaxAmount = convertToDisplayString(taxAmount, effectiveCurrency);
     const taxAmountInput = convertToFrontendAmountAsString(taxAmount, decimals);
-    const taxRateTitle = getTaxRateTitle(policy, transactionForHelpers, isMovingCurrentTransactionFromTrackExpense, policyForMovingExpenses);
+    const taxRateTitle = getTaxRateTitle(translate, policy, transactionForHelpers, isMovingCurrentTransactionFromTrackExpense, policyForMovingExpenses);
 
     const taxAmountInputKey = `${taxSlice?.taxCode}-${taxSlice?.taxValue}-${taxSlice?.amount}-${effectiveCurrency}`;
 

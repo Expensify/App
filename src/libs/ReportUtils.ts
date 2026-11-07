@@ -15560,6 +15560,7 @@ function isSortableColumnName(key: unknown): key is SortableColumnName {
  * Used for sorting transactions in MoneyRequestReportTransactionList.
  */
 function getTransactionSortValue(
+    translate: LocalizedTranslate,
     transaction: Transaction,
     key: SortableColumnName,
     report: Report,
@@ -15608,7 +15609,7 @@ function getTransactionSortValue(
         case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
             return getTaxAmount(transaction, isExpenseReport(report));
         case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
-            return getTaxName(policy, transaction) ?? '';
+            return getTaxName(translate, policy, transaction) ?? '';
         case CONST.SEARCH.TABLE_COLUMNS.CARD:
             return transaction.cardID ?? CONST.DEFAULT_NUMBER_ID;
         case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
