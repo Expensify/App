@@ -2,6 +2,7 @@ import confirmSubmitViolationsThenProceed from '@libs/Violations/confirmSubmitVi
 import {getReportSubmitViolationSummary} from '@libs/Violations/getReportSubmitViolationSummary';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import {cardsWithBrokenConnectionPastDismissThresholdSelector} from '@src/selectors/Card';
 import type {Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -42,13 +43,15 @@ function useConfirmSubmitReportViolations({
     const {convertToDisplayString} = useCurrencyListActions();
     const {accountID: currentUserAccountID, email: currentUserEmail} = useCurrentUserPersonalDetails();
     const {transactions: ownedTransactions, violations: ownedViolationsCollection} = useTransactionsAndViolationsForReport(transactionsOverride ? undefined : reportID);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    // Runs once per Search row, so narrowed to the cards past the dismiss threshold: the summary only asks
+    // whether a violation's card is one of them, and a card missing from the subset is not.
+    const [cardsPastDismissThreshold] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardsWithBrokenConnectionPastDismissThresholdSelector});
 
     const transactions = transactionsOverride ?? Object.values(ownedTransactions);
     const violationsCollection = violationsCollectionOverride ?? ownedViolationsCollection;
 
     return (onProceed: ConfirmSubmitReportViolationsOnProceed) => {
-        const summary = getReportSubmitViolationSummary(transactions, violationsCollection, report, policy, currentUserEmail ?? '', currentUserAccountID, cardList);
+        const summary = getReportSubmitViolationSummary(transactions, violationsCollection, report, policy, currentUserEmail ?? '', currentUserAccountID, cardsPastDismissThreshold);
         confirmSubmitViolationsThenProceed({
             summary,
             showConfirmModal,

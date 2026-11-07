@@ -36,7 +36,7 @@ import StringUtils from '@libs/StringUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {createTransactionPreviewConditionals, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
 import {
-    isViolationOnFeedBrokenPastDismissThreshold,
+    isViolationOnFeedBrokenPastDismissThresholdInList,
     isManagedCardTransaction as isCardTransactionUtils,
     isGPSDistanceRequest,
     isMapDistanceRequest,
@@ -73,7 +73,7 @@ function getViolationToDescribe(violations: TransactionPreviewContentProps['viol
 // suppressed, because the red dot beside the message is driven by the list itself - leaving it in would render a dot
 // with no text next to it. Kept as a function, like getViolationToDescribe, so no array is built before the last hook.
 function getVisibleViolations(violations: TransactionPreviewContentProps['violations'], cardsPastDismissThreshold: OnyxEntry<CardList>) {
-    return violations.filter((violation) => !isViolationOnFeedBrokenPastDismissThreshold(violation, violation.data?.cardID ? cardsPastDismissThreshold?.[violation.data.cardID] : undefined));
+    return violations.filter((violation) => !isViolationOnFeedBrokenPastDismissThresholdInList(violation, cardsPastDismissThreshold));
 }
 
 function TransactionPreviewContent({
