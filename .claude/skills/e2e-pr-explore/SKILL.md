@@ -53,7 +53,7 @@ rm -rf "$DIR"
 
 ## 2. Write paths blind
 
-Start a separate subagent with no history from this conversation and wait for it to finish: in Claude Code use the Agent (Task) tool with a `general-purpose` agent; in pi use the `subagent` tool with the `delegate` agent and `async: false`. Give it only:
+Start a separate subagent with no history from this conversation and wait for it to finish. Give it only:
 
 - the real values of the PR number, `$DIR`, the repo path, the base commit and `mergedAt` (not the variable names);
 - the instruction to read and follow `<repo>/.claude/skills/e2e-pr-explore/subagent.md`, with the repo path filled in.
