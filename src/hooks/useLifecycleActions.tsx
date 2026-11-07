@@ -40,6 +40,7 @@ import React, {useEffect, useRef} from 'react';
 
 import type {ActionHandledType} from './useHoldMenuSubmit';
 
+import useConfirmApproveReportViolations from './useConfirmApproveReportViolations';
 import useConfirmModal from './useConfirmModal';
 import useConfirmSubmitReportViolations from './useConfirmSubmitReportViolations';
 import {useCurrencyListActions} from './useCurrencyList';
@@ -195,43 +196,47 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         shouldShowMarkAsDoneCopy,
     });
 
+    const confirmApproveReportViolations = useConfirmApproveReportViolations({report: moneyRequestReport, policy, transactions, violationsCollection: violations});
+
     const onApprove = (isFullApproval: boolean, skipAnimation = false) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return;
         }
-        if (!skipAnimation && !isSubmitPolicy(policy)) {
-            startApprovedAnimation();
-        }
-        approveMoneyRequest({
-            personalDetailsByLogins: getPersonalDetailsByLogin(),
-            getCurrencyDecimals,
-            expenseReport: moneyRequestReport,
-            currentUserAccountIDParam: accountID,
-            currentUserEmailParam: email ?? '',
-            hasViolations,
-            isASAPSubmitBetaEnabled,
-            full: isFullApproval,
-            expenseReportPolicy: policy,
-            userBillingGracePeriodEnds,
-            ownerBillingGracePeriodEnd,
-            ownerLogin: submitterLogin,
-            amountOwed,
-            onApproved: () => {
-                if (skipAnimation) {
-                    return;
-                }
+        confirmApproveReportViolations(() => {
+            if (!skipAnimation && !isSubmitPolicy(policy)) {
                 startApprovedAnimation();
-            },
-            delegateEmail,
-            delegateAccountID,
-            isTrackIntentUser,
-            rules,
-        });
-        if (skipAnimation) {
-            clearSelectedTransactions(true);
-            onCleanup?.();
-        }
+            }
+            approveMoneyRequest({
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
+                getCurrencyDecimals,
+                expenseReport: moneyRequestReport,
+                currentUserAccountIDParam: accountID,
+                currentUserEmailParam: email ?? '',
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                full: isFullApproval,
+                expenseReportPolicy: policy,
+                userBillingGracePeriodEnds,
+                ownerBillingGracePeriodEnd,
+                ownerLogin: submitterLogin,
+                amountOwed,
+                onApproved: () => {
+                    if (skipAnimation) {
+                        return;
+                    }
+                    startApprovedAnimation();
+                },
+                delegateEmail,
+                delegateAccountID,
+                isTrackIntentUser,
+                rules,
+            });
+            if (skipAnimation) {
+                clearSelectedTransactions(true);
+                onCleanup?.();
+            }
+        }, isFullApproval);
     };
 
     const isIOUPayable = canIOUBePaid(moneyRequestReport, chatReport, policy, bankAccountList, currentUserPersonalDetails.login ?? '', accountID, undefined, false, isChatReportArchived);

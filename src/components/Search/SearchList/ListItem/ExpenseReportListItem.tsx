@@ -13,6 +13,7 @@ import ListItemComposed from '@components/SelectionList/ListItemComposed';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
+import useConfirmApproveReportViolations from '@hooks/useConfirmApproveReportViolations';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -219,6 +220,12 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const beginSearchActionPress = useSearchActionPress();
     const {transactions: reportTransactions, violations: reportViolations} = useTransactionsAndViolationsForReport(reportItem.reportID);
     const liveReportTransactions = Object.values(reportTransactions);
+    const confirmApproveReportViolations = useConfirmApproveReportViolations({
+        report: reportForViolations,
+        policy: policyForViolations,
+        transactions: liveReportTransactions,
+        violationsCollection: reportViolations,
+    });
     const confirmSubmitReportViolations = useConfirmSubmitReportViolations({
         reportID: reportItem.reportID,
         report: reportForViolations,
@@ -276,6 +283,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             onDelegateAccessRestricted: showDelegateNoAccessModal,
             personalPolicyID,
             confirmSubmitReportViolations,
+            confirmApproveReportViolations,
             ownerBillingGracePeriodEnd,
             openReportSubmitToPopover,
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),

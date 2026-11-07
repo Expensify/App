@@ -1,5 +1,6 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 
+import useConfirmApproveReportViolations from '@hooks/useConfirmApproveReportViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -73,36 +74,39 @@ function useConfirmApproval(
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations, accountID, email ?? '', undefined, transactions);
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
+    const confirmApproveReportViolations = useConfirmApproveReportViolations({report: moneyRequestReport, policy, transactions, violationsCollection: transactionViolations});
 
     const onApprove = (full: boolean) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return;
         }
-        if (!isSubmitPolicy(policy)) {
-            startApprovedAnimation();
-        }
-        approveMoneyRequest({
-            personalDetailsByLogins: getPersonalDetailsByLogin(),
-            getCurrencyDecimals,
-            expenseReport: moneyRequestReport,
-            expenseReportPolicy: policy,
-            rules,
-            currentUserAccountIDParam: accountID,
-            currentUserEmailParam: email ?? '',
-            hasViolations,
-            isASAPSubmitBetaEnabled,
-            userBillingGracePeriodEnds,
-            amountOwed,
-            ownerBillingGracePeriodEnd,
-            ownerLogin,
-            full,
-            onApproved: startApprovedAnimation,
-            delegateEmail,
-            delegateAccountID,
-            isTrackIntentUser,
-            additionalOnyxData: getAdditionalOnyxData?.(),
-        });
+        confirmApproveReportViolations(() => {
+            if (!isSubmitPolicy(policy)) {
+                startApprovedAnimation();
+            }
+            approveMoneyRequest({
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
+                getCurrencyDecimals,
+                expenseReport: moneyRequestReport,
+                expenseReportPolicy: policy,
+                rules,
+                currentUserAccountIDParam: accountID,
+                currentUserEmailParam: email ?? '',
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                userBillingGracePeriodEnds,
+                amountOwed,
+                ownerBillingGracePeriodEnd,
+                ownerLogin,
+                full,
+                onApproved: startApprovedAnimation,
+                delegateEmail,
+                delegateAccountID,
+                isTrackIntentUser,
+                additionalOnyxData: getAdditionalOnyxData?.(),
+            });
+        }, full);
     };
 
     // When there are held expenses the partial/full choice is surfaced up front via the settlement button's approve

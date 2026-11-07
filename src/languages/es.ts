@@ -95,6 +95,7 @@ const translations: TranslationDeepObject<typeof en> = {
         saveChanges: 'Guardar cambios',
         submit: 'Enviar',
         submitAnyway: 'Enviar de todos modos',
+        approveAnyway: 'Aprobar de todos modos',
         markAsDone: 'Marcar como listo',
         markAsDoneAnyway: 'Marcar como listo de todos modos',
         submitted: 'Enviado',
@@ -1486,6 +1487,10 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchWithCreditCard: 'Recibo pendiente de adjuntar con la transacción de la tarjeta',
         pendingMatchWithCreditCardDescription: 'Recibo pendiente de adjuntar con la transacción de la tarjeta. Márcalo como efectivo para cancelar.',
         markAsCash: 'Marcar como efectivo',
+        confirmApproveReportViolations: {
+            title: '¿Aprobar de todos modos?',
+            description: 'Este informe tiene infracciones de la política. ¿Seguro que quieres aprobarlo sin realizar cambios?',
+        },
         confirmSubmitReportViolations: {
             title: '¿Enviar informe?',
             description: 'Este informe tiene infracciones de política. ¿Seguro que quieres enviarlo sin hacer cambios?',

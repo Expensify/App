@@ -13,6 +13,7 @@ import {useSearchQueryContext, useSearchResultsContext} from '@components/Search
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {ListItem} from '@components/SelectionList/types';
 
+import useConfirmApproveReportViolations from '@hooks/useConfirmApproveReportViolations';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -289,6 +290,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         isTrackIntentUser,
         rules,
     });
+    const confirmApproveReportViolations = useConfirmApproveReportViolations({report: parentReport ?? snapshotReport, policy: parentPolicy});
     const confirmSubmitReportViolations = useConfirmSubmitReportViolations({
         reportID: snapshotReport?.reportID ?? reportItem.reportID,
         report: parentReport ?? snapshotReport,
@@ -340,6 +342,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             personalPolicyID,
             ownerBillingGracePeriodEnd,
             confirmSubmitReportViolations,
+            confirmApproveReportViolations,
             openReportSubmitToPopover,
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),

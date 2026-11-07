@@ -40,14 +40,20 @@ type ReportSubmitViolationSummary = {
 };
 
 /** Whether the "Submit report?" modal should warn about the required fields this expense has left empty. */
-function shouldWarnAboutMissingFields(transaction: Transaction, transactionViolations: OnyxEntry<TransactionViolations>, report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+function shouldWarnAboutMissingFields(
+    transaction: Transaction,
+    transactionViolations: OnyxEntry<TransactionViolations>,
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    shouldIncludeHeldExpenses: boolean,
+): boolean {
     // These warnings are only for expense reports, where the merchant is required.
     if (!isExpenseReport(report)) {
         return false;
     }
 
     // Submitting moves a held expense to a new draft report, except on a dynamic external workflow, so it isn't part of this submission.
-    if (isOnHold(transaction) && !hasDynamicExternalWorkflow(policy)) {
+    if (!shouldIncludeHeldExpenses && isOnHold(transaction) && !hasDynamicExternalWorkflow(policy)) {
         return false;
     }
 
@@ -71,6 +77,8 @@ function getReportSubmitViolationSummary(
     policy: OnyxEntry<Policy>,
     currentUserEmail: string,
     currentUserAccountID: number,
+    // Full approval includes held expenses, whereas submission normally moves them to another report.
+    shouldIncludeHeldExpenses = false,
 ): ReportSubmitViolationSummary {
     let hasRejectedExpense = false;
     let hasPendingCardMatch = false;
@@ -85,7 +93,7 @@ function getReportSubmitViolationSummary(
         const transactionViolations = violationsCollection?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
 
         // These fields have no violation, so this has to run before the check below skips expenses without violations.
-        if (shouldWarnAboutMissingFields(transaction, transactionViolations, report, policy)) {
+        if (shouldWarnAboutMissingFields(transaction, transactionViolations, report, policy, shouldIncludeHeldExpenses)) {
             hasMissingMerchant ||= isMerchantMissing(transaction);
             // Expense reports allow a zero amount, so only a failed scan's placeholder counts as a missing amount.
             hasMissingAmount ||= isFailedScanAmountPlaceholder(transaction);

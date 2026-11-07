@@ -102,6 +102,7 @@ const translations: TranslationDeepObject<typeof en> = {
         saveChanges: '保存更改',
         submit: '提交',
         submitAnyway: '仍然提交',
+        approveAnyway: '仍然批准',
         markAsDone: '标记为完成',
         markAsDoneAnyway: '仍然标记为完成',
         submitted: '已提交',
@@ -1454,6 +1455,10 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: '待匹配',
         pendingMatchWithCreditCardDescription: '收据正在等待与卡片交易匹配。将其标记为现金以取消。',
         markAsCash: '标记为现金',
+        confirmApproveReportViolations: {
+            title: '仍然批准？',
+            description: '此报告存在违反政策的情况。确定要在不作更改的情况下批准吗？',
+        },
         confirmSubmitReportViolations: {
             title: '提交报告？',
             description: '此报告存在违反政策的情况。您确定要不做任何更改就提交吗？',

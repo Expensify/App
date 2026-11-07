@@ -1,5 +1,6 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
+import getReportApproveViolationSummary from '@libs/Violations/getReportApproveViolationSummary';
 import {
     buildSubmitViolationBullets,
     getReportSubmitViolationSummary,
@@ -21,6 +22,8 @@ const translate = jest.fn((key: string, ...params: unknown[]) => {
 }) as unknown as LocaleContextProps['translate'];
 
 const convertToDisplayString = jest.fn((amount: number | undefined, currency: string | undefined) => `${amount} ${currency}`);
+const APPROVER_EMAIL = 'approver@example.com';
+const SUBMITTER_EMAIL = 'submitter@example.com';
 
 // Not exercised by the violation types covered here (overCategoryLimit doesn't need a formatted date), but
 // required by buildSubmitViolationBullets's params shape.
@@ -68,6 +71,145 @@ function createMockRejectedReport(): Report {
         nextStep: {icon: CONST.NEXT_STEP.ICONS.HOURGLASS, messageKey: CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT},
     });
 }
+
+describe('getReportApproveViolationSummary', () => {
+    it('omits raw violations dismissed by the approver without modifying the source data', () => {
+        // Given raw violations from a header, hold menu or bulk approval input
+        const transaction = createMockTransactionWithMerchant('Merchant', {
+            comment: {dismissedViolations: {[CONST.VIOLATIONS.OVER_CATEGORY_LIMIT]: {[APPROVER_EMAIL]: '2026-11-07 00:00:00'}}},
+        });
+        const violation = createMockViolation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
+        const violations = {[getViolationsKey('1')]: [violation]};
+
+        // When the current approver has already dismissed the only warning
+        const summary = getReportApproveViolationSummary([transaction], violations, undefined, undefined, APPROVER_EMAIL, 1);
+
+        // Then approval needs no warning and the dismissal remains local to this summary
+        expect(hasAnySubmitViolation(summary)).toBe(false);
+        expect(violations[getViolationsKey('1')]).toEqual([violation]);
+        expect(transaction.comment?.dismissedViolations?.[CONST.VIOLATIONS.OVER_CATEGORY_LIMIT]).toEqual({[APPROVER_EMAIL]: '2026-11-07 00:00:00'});
+    });
+
+    it('still warns the approver about violations dismissed only by the submitter', () => {
+        // Given a submitted report whose owner dismissed a violation, but its approver did not
+        const transaction = createMockTransactionWithMerchant('Merchant', {
+            comment: {dismissedViolations: {[CONST.VIOLATIONS.OVER_CATEGORY_LIMIT]: {[SUBMITTER_EMAIL]: '2026-11-07 00:00:00'}}},
+        });
+        const violation = createMockViolation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
+        const report = createMock<Report>({...createMockExpenseReport(), stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, ownerAccountID: 2, managerID: 1});
+
+        // When a different user approves the report
+        const summary = getReportApproveViolationSummary([transaction], {[getViolationsKey('1')]: [violation]}, report, undefined, APPROVER_EMAIL, 1);
+
+        // Then the submitter's dismissal does not hide the warning from the approver
+        expect(summary.otherViolations.get(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT)).toBe(violation);
+    });
+
+    it('deduplicates only after filtering each transaction dismissal', () => {
+        // Given two violations with the same name, only the first expense's instance is dismissed
+        const dismissedTransaction = createMockTransactionWithMerchant('Merchant', {
+            comment: {dismissedViolations: {[CONST.VIOLATIONS.OVER_CATEGORY_LIMIT]: {[APPROVER_EMAIL]: '2026-11-07 00:00:00'}}},
+        });
+        const visibleTransaction = createMockTransactionWithMerchant('Merchant', {transactionID: '2'});
+        const dismissedViolation = createMockViolation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT, {amount: 1000, currency: 'USD'});
+        const visibleViolation = createMockViolation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT, {amount: 2000, currency: 'USD'});
+
+        // When both expenses are summarized in report order
+        const summary = getReportApproveViolationSummary(
+            [dismissedTransaction, visibleTransaction],
+            {[getViolationsKey('1')]: [dismissedViolation], [getViolationsKey('2')]: [visibleViolation]},
+            undefined,
+            undefined,
+            APPROVER_EMAIL,
+            1,
+        );
+
+        // Then the remaining warning retains the second expense's message data
+        expect(summary.otherViolations.size).toBe(1);
+        expect(summary.otherViolations.get(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT)).toBe(visibleViolation);
+    });
+
+    it('keeps missing-field warnings when an unrelated server violation is dismissed', () => {
+        // Given an expense missing its merchant with a dismissed policy violation
+        const transaction = createMockTransactionWithMerchant(CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, {
+            comment: {dismissedViolations: {[CONST.VIOLATIONS.OVER_CATEGORY_LIMIT]: {[APPROVER_EMAIL]: '2026-11-07 00:00:00'}}},
+        });
+
+        // When the approver reviews the raw violations
+        const summary = getReportApproveViolationSummary(
+            [transaction],
+            {[getViolationsKey('1')]: [createMockViolation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT)]},
+            createMockExpenseReport(),
+            undefined,
+            APPROVER_EMAIL,
+            1,
+        );
+
+        // Then only the independent missing merchant warning remains
+        expect(summary.otherViolations.size).toBe(0);
+        expect(summary.hasMissingMerchant).toBe(true);
+        expect(hasAnySubmitViolation(summary)).toBe(true);
+    });
+
+    it('excludes dismissed violations during both full and partial approval', () => {
+        // Given a held expense whose only violation the approver dismissed
+        const transaction = createMockTransactionWithMerchant('Merchant', {
+            comment: {hold: 'hold-action', dismissedViolations: {[CONST.VIOLATIONS.OVER_CATEGORY_LIMIT]: {[APPROVER_EMAIL]: '2026-11-07 00:00:00'}}},
+        });
+        const violations = {[getViolationsKey('1')]: [createMockViolation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT)]};
+
+        // When full approval includes the held expense and partial approval excludes it
+        const full = getReportApproveViolationSummary([transaction], violations, undefined, undefined, APPROVER_EMAIL, 1, true);
+        const partial = getReportApproveViolationSummary([transaction], violations, undefined, undefined, APPROVER_EMAIL, 1, false);
+
+        // Then neither mode warns about the dismissed violation
+        expect(hasAnySubmitViolation(full)).toBe(false);
+        expect(hasAnySubmitViolation(partial)).toBe(false);
+    });
+
+    it('warns about a held expense with a missing merchant when approving everything', () => {
+        // Given a held expense whose missing merchant is not represented by a server violation
+        const transaction = createMockTransactionWithMerchant(CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, {comment: {hold: 'hold-action'}});
+        const report = createMockExpenseReport();
+
+        // When choosing full or partial approval
+        const full = getReportApproveViolationSummary([transaction], {}, report, undefined, '', 0, true);
+        const partial = getReportApproveViolationSummary([transaction], {}, report, undefined, '', 0, false);
+
+        // Then only full approval includes the held expense's missing field warning
+        expect(full.hasMissingMerchant).toBe(true);
+        expect(hasAnySubmitViolation(partial)).toBe(false);
+    });
+
+    it('does not show submitter-only rejection or pending card-match warnings', () => {
+        // Given a rejected report with rejected expenses and a pending card match
+        const violations = {
+            [getViolationsKey('1')]: [createMockViolation(CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE), createMockViolation(CONST.VIOLATIONS.RTER, {pendingPattern: true})],
+        };
+
+        // When an approver reviews its violations
+        const summary = getReportApproveViolationSummary([createMockTransaction('1')], violations, createMockRejectedReport(), undefined, '', 0);
+
+        // Then the submitter's acknowledgement warnings are not shown to the approver
+        expect(hasAnySubmitViolation(summary)).toBe(false);
+    });
+
+    it('includes held expenses only when approving the full report', () => {
+        // Given a held expense with a policy violation
+        const transaction = createMock<Transaction>({transactionID: '1', comment: {hold: 'hold-action'}});
+        const overLimit = createMockViolation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
+        const violations = {[getViolationsKey('1')]: [overLimit]};
+
+        // When choosing full or partial approval
+        const full = getReportApproveViolationSummary([transaction], violations, undefined, undefined, '', 0, true);
+        const partial = getReportApproveViolationSummary([transaction], violations, undefined, undefined, '', 0, false);
+
+        // Then only the full approval warns about this expense, without mutating its violations
+        expect(full.otherViolations.get(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT)).toBe(overLimit);
+        expect(hasAnySubmitViolation(partial)).toBe(false);
+        expect(violations[getViolationsKey('1')]).toEqual([overLimit]);
+    });
+});
 
 describe('getReportSubmitViolationSummary', () => {
     it('returns all-false/empty when there are no violations', () => {

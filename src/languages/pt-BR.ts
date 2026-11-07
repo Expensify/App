@@ -102,6 +102,7 @@ const translations: TranslationDeepObject<typeof en> = {
         saveChanges: 'Salvar alterações',
         submit: 'Enviar',
         submitAnyway: 'Enviar mesmo assim',
+        approveAnyway: 'Aprovar mesmo assim',
         markAsDone: 'Marcar como concluído',
         markAsDoneAnyway: 'Marcar como concluído mesmo assim',
         submitted: 'Enviado',
@@ -1510,6 +1511,10 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Correspondência pendente',
         pendingMatchWithCreditCardDescription: 'Recibo aguardando correspondência com transação do cartão. Marque como dinheiro para cancelar.',
         markAsCash: 'Marcar como dinheiro',
+        confirmApproveReportViolations: {
+            title: 'Aprovar mesmo assim?',
+            description: 'Este relatório tem violações da política. Tem certeza de que deseja aprová-lo sem fazer alterações?',
+        },
         confirmSubmitReportViolations: {
             title: 'Enviar relatório?',
             description: 'Este relatório tem violações de política. Tem certeza de que deseja enviá-lo sem fazer alterações?',
