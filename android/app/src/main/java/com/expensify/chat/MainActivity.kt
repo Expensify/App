@@ -3,6 +3,7 @@ package com.expensify.chat
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Resources
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
@@ -42,11 +43,20 @@ class MainActivity : ReactActivity() {
     ))
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        BootSplash.init(this)
+
+        val initialIntent = intent
+        val isColdShareIntent = initialIntent?.action == Intent.ACTION_SEND
+        if (isColdShareIntent && handleIntent(initialIntent, shouldLaunchActivity = false)) {
+            setIntent(Intent(Intent.ACTION_VIEW, Uri.parse("new-expensify://share/root")).apply {
+                addCategory(Intent.CATEGORY_BROWSABLE)
+            })
+        }
+
         getSharedPreferences(APP_START_TIME_PREFERENCES, MODE_PRIVATE)
             .edit()
             .putLong(APP_START_TIME_PREFERENCES, System.currentTimeMillis())
             .apply()
-        BootSplash.init(this)
         super.onCreate(null)
 
         // Sets translucent status bar. This code is based on what the react-native StatusBar
@@ -62,7 +72,7 @@ class MainActivity : ReactActivity() {
             )
         }
 
-        if (intent != null) {
+        if (!isColdShareIntent && intent != null) {
             handleIntent(intent)
         }
     }
@@ -80,12 +90,13 @@ class MainActivity : ReactActivity() {
         handleIntent(intent)
     }
 
-    private fun handleIntent(intent: Intent) {
+    private fun handleIntent(intent: Intent, shouldLaunchActivity: Boolean = true): Boolean {
         try {
             val intenthandler = IntentHandlerFactory.getIntentHandler(this, intent.type, intent.toString())
-            intenthandler?.handle(intent)
+            return intenthandler?.handle(intent, shouldLaunchActivity) ?: false
         } catch (exception: Exception) {
             Log.e("handleIntentException", exception.toString())
+            return false
         }
     }
 
