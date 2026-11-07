@@ -12,6 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type {InvoiceReceiver} from '@src/types/onyx/Report';
 
+import {personalDetailsListSelector} from '@selectors/PersonalDetails';
 import {policyAvatarFieldsSelector} from '@selectors/Policy';
 import {use} from 'react';
 
@@ -21,8 +22,12 @@ import {use} from 'react';
  */
 function useInvoiceReceiverIcon(invoiceReceiver: InvoiceReceiver | undefined): Icon {
     const defaultAvatars = useDefaultAvatars();
-    const [personalDetailsFromSnapshot] = useAllPersonalDetails();
+    // Only a person receiving the invoice is read, so a change to anyone else's details doesn't re-render the icon.
+    const receiverAccountID = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL ? invoiceReceiver.accountID : undefined;
     // On Search, the snapshot can hold a receiver missing from the live list. The live list covers the gap while the snapshot loads.
+    const [personalDetailsFromSnapshot] = useAllPersonalDetails((personalDetailsList) =>
+        personalDetailsList ? personalDetailsListSelector([receiverAccountID])(personalDetailsList) : undefined,
+    );
     const personalDetails = personalDetailsFromSnapshot ?? use(PersonalDetailsContext);
     const invoiceReceiverPolicyID = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? invoiceReceiver.policyID : undefined;
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(invoiceReceiverPolicyID)}`, {selector: policyAvatarFieldsSelector});
