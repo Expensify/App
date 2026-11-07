@@ -1,5 +1,5 @@
 import type {Unit} from '@src/types/onyx/Policy';
-import type {Comment, WaypointCollection} from '@src/types/onyx/Transaction';
+import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
 type SplitTransactionSplitParam = {
     transactionID: string;
@@ -8,7 +8,7 @@ type SplitTransactionSplitParam = {
     tag?: string;
     created: string;
     merchant?: string;
-    comment?: Comment;
+    comment?: string;
     splitReportActionID?: string;
     transactionThreadReportID?: string;
     createdReportActionIDForThread?: string;
@@ -41,8 +41,7 @@ type SplitTransactionParams = {
     [key: string]: string | number | boolean;
 };
 
-type RevertSplitTransactionParams = Omit<SplitTransactionSplitParam, 'comment' | 'holdReportActionID' | 'holdReportActionCommentID' | 'copiedComments'> & {
-    comment?: string;
+type RevertSplitTransactionParams = Omit<SplitTransactionSplitParam, 'holdReportActionID' | 'holdReportActionCommentID' | 'copiedComments'> & {
     copiedComments?: string;
 };
 
