@@ -24,6 +24,7 @@ function TextInputLabel({label, labelScale, labelTranslateY, isMultiline, should
                 ellipsizeMode={shouldClipToSingleLine ? 'tail' : undefined}
                 allowFontScaling={false}
                 style={[styles.textInputLabel, animatedStyleForText]}
+                // The label names the field, not what the user typed, so it stays readable in session recordings even inside a masked input
                 fsClass={CONST.FULLSTORY.CLASS.UNMASK}
             >
                 {label}

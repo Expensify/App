@@ -23,7 +23,7 @@ export default function fullstoryAnnotationLoader(source) {
         return source;
     }
 
-    const isNative = !!this.getOptions()?.native;
+    const isNative = !!this.getOptions().native;
     const callback = this.async();
     babel.transform(
         source,
