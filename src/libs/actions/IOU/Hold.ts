@@ -801,6 +801,9 @@ function getReportFromHoldRequestsOnyxData({
     const newParentReportActionID = NumberUtils.rand64();
 
     const coefficient = isExpenseReport(iouReport) ? -1 : 1;
+    // In the approve-held-expenses flow chatReport can be missing, so fall back to the iouReport:
+    // an expense report still needs an optimistic expense report built from iouReport's chatReportID,
+    // and the chat-report Onyx updates below are skipped entirely when chatReport is undefined.
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(chatReport) || isExpenseReport(iouReport);
     const chatReportID = chatReport?.reportID ?? iouReport?.chatReportID;
     const holdReimbursable = getReimbursableTotal(iouReport) - getUnheldReimbursableTotal(iouReport);
