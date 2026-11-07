@@ -4019,13 +4019,29 @@ describe('ReportUtils', () => {
         });
 
         it('should return the correct parent navigation subtitle for the archived invoice report', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, undefined, translateLocal, formatPhoneNumber, undefined, true);
+            const actual = getParentNavigationSubtitle({
+                report: baseArchivedPolicyExpenseChat,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                translate: translateLocal,
+                formatPhoneNumber,
+                parentReportName: undefined,
+                isParentReportArchived: true,
+            });
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok (archived)'});
         });
 
         it('should return the correct parent navigation subtitle for the non archived invoice report', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, undefined, translateLocal, formatPhoneNumber, undefined, false);
+            const actual = getParentNavigationSubtitle({
+                report: baseArchivedPolicyExpenseChat,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                translate: translateLocal,
+                formatPhoneNumber,
+                parentReportName: undefined,
+                isParentReportArchived: false,
+            });
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok'});
         });
@@ -4044,7 +4060,14 @@ describe('ReportUtils', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
             });
 
-            const actual = getParentNavigationSubtitle(expenseReport, testPolicy, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
+            const actual = getParentNavigationSubtitle({
+                report: expenseReport,
+                policy: testPolicy,
+                invoiceReceiverPolicy: undefined,
+                translate: translateLocal,
+                formatPhoneNumber,
+                parentReportName: undefined,
+            });
             expect(actual.workspaceName).toBe('Direct Policy Name');
         });
 
@@ -4060,7 +4083,14 @@ describe('ReportUtils', () => {
             const billPolicy = hasPolicy ? createMock<Policy>({id: 'bill-policy', name: 'Current Bill Policy'}) : undefined;
 
             // When the header builds the bill subtitle.
-            const subtitle = getParentNavigationSubtitle(billReport, billPolicy, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
+            const subtitle = getParentNavigationSubtitle({
+                report: billReport,
+                policy: billPolicy,
+                invoiceReceiverPolicy: undefined,
+                translate: translateLocal,
+                formatPhoneNumber,
+                parentReportName: undefined,
+            });
 
             // Then it omits the owner's expense chat and uses the current policy name when available.
             expect(subtitle).toEqual({workspaceName: hasPolicy ? 'Current Bill Policy' : 'Bill Policy'});
@@ -4090,14 +4120,28 @@ describe('ReportUtils', () => {
             };
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}200`, parentInvoiceRoom).then(() => {
-                const actual = getParentNavigationSubtitle(invoiceReport, testPolicy, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
+                const actual = getParentNavigationSubtitle({
+                    report: invoiceReport,
+                    policy: testPolicy,
+                    invoiceReceiverPolicy: undefined,
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    parentReportName: undefined,
+                });
                 const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
                 expect(normalizedActual.reportName).toContain('Invoice Policy');
             });
         });
 
         it('should fall back to allPolicies when policy parameter is undefined', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
+            const actual = getParentNavigationSubtitle({
+                report: baseArchivedPolicyExpenseChat,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                translate: translateLocal,
+                formatPhoneNumber,
+                parentReportName: undefined,
+            });
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             // Should still resolve via Onyx-connected allPolicies or report.policyName
             expect(normalizedActual.reportName).toContain('A workspace');
@@ -4110,41 +4154,80 @@ describe('ReportUtils', () => {
                 reportName: 'Chat Report',
                 type: CONST.REPORT.TYPE.CHAT,
             };
-            const actual = getParentNavigationSubtitle(chatReport, undefined, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
+            const actual = getParentNavigationSubtitle({
+                report: chatReport,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                translate: translateLocal,
+                formatPhoneNumber,
+                parentReportName: undefined,
+            });
             expect(actual).toEqual({});
         });
 
-        it('should pass conciergeReportID through to getReportName for parent report name resolution', () => {
-            const conciergeReportID = '999';
-            const conciergeParentReport: Report = {
-                reportID: conciergeReportID,
+        // `getParentNavigationSubtitle` resolves the parent's name as `parentReportName ?? parentReport.reportName`, so
+        // these two cover both halves of that fallback. They use a plain chat thread because an invoice report returns
+        // from the invoice branch before either name is read.
+        describe('parent report name resolution', () => {
+            const threadParentReportID = '999';
+            const threadParentReport: Report = {
+                reportID: threadParentReportID,
                 lastReadTime: '2024-02-01 04:56:47.233',
-                reportName: 'Concierge',
+                reportName: 'Stored Parent Name',
                 type: CONST.REPORT.TYPE.CHAT,
             };
             const childReport: Report = {
                 reportID: '1000',
                 lastReadTime: '2024-02-01 04:56:47.233',
-                parentReportID: conciergeReportID,
+                parentReportID: threadParentReportID,
                 parentReportActionID: '1',
                 reportName: 'Child Thread',
                 type: CONST.REPORT.TYPE.CHAT,
             };
 
-            const reportCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.REPORT, [conciergeParentReport, childReport], (report) => report.reportID);
-            return Onyx.multiSet({
-                ...reportCollectionDataSet,
-            })
-                .then(waitForBatchedUpdates)
-                .then(() => {
-                    const actual = getParentNavigationSubtitle(childReport, undefined, undefined, conciergeReportID, translateLocal, formatPhoneNumber, 'Concierge');
-                    expect(actual.reportName).toBe('Concierge');
-                });
-        });
+            beforeEach(() => {
+                const reportCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.REPORT, [threadParentReport, childReport], (report) => report.reportID);
+                return Onyx.multiSet({...reportCollectionDataSet}).then(waitForBatchedUpdates);
+            });
 
-        it('should return reportName and workspaceName when parent report exists and conciergeReportID is undefined', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
-            expect(actual).toHaveProperty('reportName');
+            afterEach(() => {
+                return Onyx.multiSet({
+                    [`${ONYXKEYS.COLLECTION.REPORT}${threadParentReportID}`]: null,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${childReport.reportID}`]: null,
+                }).then(waitForBatchedUpdates);
+            });
+
+            it('should name the subtitle after the passed parentReportName', () => {
+                // Given a thread whose parent report is stored in Onyx under a different name than the one the caller resolved
+                // When the subtitle is built with the name the caller resolved for the parent
+                const actual = getParentNavigationSubtitle({
+                    report: childReport,
+                    policy: undefined,
+                    invoiceReceiverPolicy: undefined,
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    parentReportName: 'Resolved Parent Name',
+                });
+
+                // Then the subtitle uses the passed name, not the one stored on the parent report
+                expect(actual.reportName).toBe('Resolved Parent Name');
+            });
+
+            it('should fall back to the parent report name when no parentReportName is passed', () => {
+                // Given the same thread, but a caller that has not resolved the parent's name yet
+                // When the subtitle is built without a parent report name
+                const actual = getParentNavigationSubtitle({
+                    report: childReport,
+                    policy: undefined,
+                    invoiceReceiverPolicy: undefined,
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    parentReportName: undefined,
+                });
+
+                // Then the subtitle falls back to the name stored on the parent report
+                expect(actual.reportName).toBe('Stored Parent Name');
+            });
         });
 
         it('resolves the report owner name through the provided translate function for an expense report without a parent', async () => {
@@ -4155,7 +4238,14 @@ describe('ReportUtils', () => {
             const expenseReport = {reportID: '780051', type: CONST.REPORT.TYPE.EXPENSE, ownerAccountID: hiddenOwnerAccountID};
             const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
 
-            const actual = getParentNavigationSubtitle(expenseReport, undefined, undefined, undefined, translateWithHiddenMarker, formatPhoneNumber, undefined);
+            const actual = getParentNavigationSubtitle({
+                report: expenseReport,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                translate: translateWithHiddenMarker,
+                formatPhoneNumber,
+                parentReportName: undefined,
+            });
             expect(actual.reportName).toContain('HiddenMarker');
         });
 
@@ -4210,7 +4300,14 @@ describe('ReportUtils', () => {
                 const passedReceiverPolicy = createMock<Policy>({id: RECEIVER_POLICY_ID, name: 'Passed Receiver Name'});
 
                 // When the caller passes the receiver policy it actually holds
-                const actual = getParentNavigationSubtitle(invoiceReport, undefined, passedReceiverPolicy, undefined, translateLocal, formatPhoneNumber, undefined);
+                const actual = getParentNavigationSubtitle({
+                    report: invoiceReport,
+                    policy: undefined,
+                    invoiceReceiverPolicy: passedReceiverPolicy,
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    parentReportName: undefined,
+                });
 
                 // Then the subtitle names the passed workspace, proving the payer is read off the argument and
                 // not off the policy that `RECEIVER_POLICY_ID` resolves to in Onyx
@@ -4220,7 +4317,14 @@ describe('ReportUtils', () => {
             it('never falls back to the cached policy when the caller has no receiver policy', () => {
                 // Given the same invoice, but a caller that has not loaded the receiver policy yet
                 // When the subtitle is built with no receiver policy
-                const actual = getParentNavigationSubtitle(invoiceReport, undefined, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
+                const actual = getParentNavigationSubtitle({
+                    report: invoiceReport,
+                    policy: undefined,
+                    invoiceReceiverPolicy: undefined,
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    parentReportName: undefined,
+                });
 
                 // Then the cached name never reaches the subtitle. Without a receiver policy `getInvoicePayerName`
                 // falls back to the invoice room's own `policyName`, exactly as it did before this refactor, so the
