@@ -889,7 +889,23 @@ function subscribeToUserEvents(
                     return;
                 }
 
-                return Onyx.update(pushJSON.updates);
+                const updates = pushJSON.updates.map(({parentReportActionID, ...update}) => {
+                    if (!parentReportActionID) {
+                        return update;
+                    }
+
+                    // Keep live thread labels separate from the legacy value that history responses can reset.
+                    const indicators = update.value.agentZeroProcessingRequestIndicator;
+                    return {
+                        ...update,
+                        value: {
+                            agentZeroProcessingRequestIndicator: Object.fromEntries(Object.keys(indicators).map((accountID) => [accountID, null])),
+                            agentZeroProcessingRequestIndicatorByParentAction: {[parentReportActionID]: indicators},
+                        },
+                    };
+                });
+
+                return Onyx.update(updates);
             })
             .catch((error: unknown) => {
                 Log.alert('[subscribeToUserEvents] Applying Agent Zero processing status failed', {

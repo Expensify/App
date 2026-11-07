@@ -240,7 +240,7 @@ function ReportActionItem({
     // While an agent (e.g. Concierge) is still replying in the thread, the thread has no persisted actions yet, so the
     // server can return zeroed reply counts. Use the thread's processing indicator to keep the thread row visible.
     const [threadProcessingAgentIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(action.childReportID)}`, {
-        selector: agentZeroProcessingAgentIDsSelector,
+        selector: (reportNameValuePairs) => agentZeroProcessingAgentIDsSelector(reportNameValuePairs, action.reportActionID),
     });
     const isAgentProcessingInThread = !isOffline && !!action.childReportID && (threadProcessingAgentIDs?.length ?? 0) > 0;
 
