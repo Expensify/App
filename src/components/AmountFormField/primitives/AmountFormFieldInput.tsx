@@ -9,6 +9,8 @@ import CONST from '@src/CONST';
 
 import type {TextInputSelectionChangeEvent} from 'react-native';
 
+import {View} from 'react-native';
+
 /** Text input primitive connected to an AmountFormField root. */
 function AmountFormFieldInput({
     prefixCharacter = '',
@@ -30,6 +32,7 @@ function AmountFormFieldInput({
     testID,
     touchableInputWrapperStyle,
     style,
+    children,
 }: AmountFormFieldInputProps) {
     const styles = useThemeStyles();
     const {errorText, formattedNumber, selection} = useAmountFormFieldState();
@@ -65,6 +68,8 @@ function AmountFormFieldInput({
             prefixContainerStyle={prefixContainerStyle}
             prefixStyle={styles.colorMuted}
             ref={ref}
+            // BaseTextInput only exposes the area inside its border through this prop
+            rightHandSideComponent={children ? <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>{children}</View> : undefined}
             selection={selection}
             shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
             shouldUseDefaultLineHeightForPrefix={shouldUseDefaultLineHeightForPrefix}

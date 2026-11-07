@@ -94,6 +94,7 @@ import type {
     DynamicFormFieldOption,
     DynamicFormFieldType,
     DynamicFormHeading,
+    DynamicFormLink,
     DynamicFormListField,
     DynamicFormListItem,
     DynamicFormMultiChoiceField,
@@ -263,6 +264,7 @@ import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
 import type WiseBankAccountFields from './WiseBankAccountFields';
 import type {WiseKYCReviewEmbeddedLink} from './WiseKYCReview';
+import type WiseQuote from './WiseQuote';
 import type WorkspaceMembersSelectedForBulkEdit from './WorkspaceMembersSelectedForBulkEdit';
 import type WorkspaceMembersSelectedForRoleChange from './WorkspaceMembersSelectedForRoleChange';
 
@@ -496,6 +498,7 @@ export type {
     CorpayFields,
     WiseBankAccountFields,
     WiseKYCReviewEmbeddedLink,
+    WiseQuote,
     CorpayFormField,
     DynamicFormAddressField,
     DynamicFormChoiceField,
@@ -505,6 +508,7 @@ export type {
     DynamicFormFieldOption,
     DynamicFormFieldType,
     DynamicFormHeading,
+    DynamicFormLink,
     DynamicFormListField,
     DynamicFormListItem,
     DynamicFormMultiChoiceField,

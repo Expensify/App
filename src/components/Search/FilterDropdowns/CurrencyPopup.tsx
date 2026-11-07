@@ -4,6 +4,8 @@ import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyLi
 
 import {getCurrencyOptions} from '@libs/SearchUIUtils';
 
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
+
 import React from 'react';
 
 import SingleSelectPopup from './SingleSelectPopup';
@@ -33,8 +35,8 @@ type CurrencyPopupProps = {
     /** Whether the popover keeps a fixed height instead of growing with its content */
     shouldUseFixedPopoverHeight?: boolean;
 
-    applySentryLabel: string;
-    resetSentryLabel: string;
+    applySentryLabel: SentryLabel;
+    resetSentryLabel: SentryLabel;
 };
 
 /**
