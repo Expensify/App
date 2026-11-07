@@ -8,6 +8,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import {buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {getSortOrderOptions} from '@libs/SearchUIUtils';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 
 import SingleSelectPopup from './SingleSelectPopup';
@@ -50,6 +52,8 @@ function SortOrderPopup({queryJSON, onSort, onBackButtonPress, closeOverlay}: So
                 }
                 onSortChange(item.value);
             }}
+            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.DISPLAY_POPUP_APPLY.SORT_ORDER}
+            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.DISPLAY_POPUP_RESET.SORT_ORDER}
         />
     );
 }

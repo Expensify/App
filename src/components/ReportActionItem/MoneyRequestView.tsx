@@ -101,6 +101,7 @@ import {
 } from '@libs/ReportUtils';
 import {COPYABLE_ROW_DATA_SET, COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 import {getDependentTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
+import startOpenCategoryPickerSpan from '@libs/telemetry/startOpenCategoryPickerSpan';
 import {
     getAttendeesListDisplayString,
     getBillable,
@@ -1535,6 +1536,7 @@ function MoneyRequestView({
                                                       ),
                                                   );
                                               } else {
+                                                  startOpenCategoryPickerSpan();
                                                   Navigation.navigate(
                                                       createDynamicRoute(
                                                           DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
@@ -1786,6 +1788,7 @@ function MoneyRequestView({
                         </View>
                         <Switch
                             accessibilityLabel={Str.UCFirst(translate('iou.reimbursable'))}
+                            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.REIMBURSABLE_SWITCH}
                             isOn={updatedTransaction?.reimbursable ?? !!transactionReimbursable}
                             onToggle={saveReimbursable}
                             disabled={!canEditReimbursable}
@@ -1826,6 +1829,7 @@ function MoneyRequestView({
                         </View>
                         <Switch
                             accessibilityLabel={translate('common.billable')}
+                            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.BILLABLE_SWITCH}
                             isOn={updatedTransaction?.billable ?? !!transactionBillable}
                             onToggle={saveBillable}
                             disabled={!canEdit}

@@ -1,4 +1,4 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
 import Section from '@components/Section';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -20,6 +20,8 @@ function WorkspaceInvoiceBalanceSection({policyID}: WorkspaceInvoiceBalanceSecti
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const invoiceBalance = convertToDisplayString(policy?.invoice?.bankAccount?.stripeConnectAccountBalance ?? 0, policy?.outputCurrency);
+    const balanceLabel = translate('walletPage.balance');
 
     return (
         <Section
@@ -30,13 +32,14 @@ function WorkspaceInvoiceBalanceSection({policyID}: WorkspaceInvoiceBalanceSecti
             childrenStyles={styles.pt5}
             subtitleMuted
         >
-            <MenuItemWithTopDescription
-                description={translate('walletPage.balance')}
-                title={convertToDisplayString(policy?.invoice?.bankAccount?.stripeConnectAccountBalance ?? 0, policy?.outputCurrency)}
-                titleStyle={styles.textHeadlineH2}
-                interactive={false}
-                wrapperStyle={styles.sectionMenuItemTopDescription}
-            />
+            <MenuItem.Root style={styles.sectionMenuItemTopDescription}>
+                <MenuItem.Row>
+                    <MenuItem.Content>
+                        <MenuItem.FieldName>{balanceLabel}</MenuItem.FieldName>
+                        <MenuItem.FieldValue style={styles.textHeadlineH2}>{invoiceBalance}</MenuItem.FieldValue>
+                    </MenuItem.Content>
+                </MenuItem.Row>
+            </MenuItem.Root>
         </Section>
     );
 }

@@ -189,6 +189,7 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
 };
 
 const TableContext = createContext(defaultTableContextValue);
+const TableActionsContext = createContext<{showSelectionMenu: (rowKey: string) => void}>({showSelectionMenu: () => {}});
 const TableRowSemanticIDContext = createContext<string | null | undefined>(undefined);
 
 /**
@@ -223,5 +224,5 @@ function useTableRowSemanticID() {
 }
 
 export default TableContext;
-export {TableRowSemanticIDContext, useTableContext, useTableRowSemanticID};
+export {TableActionsContext, TableRowSemanticIDContext, useTableContext, useTableRowSemanticID};
 export type {TableContextValue};

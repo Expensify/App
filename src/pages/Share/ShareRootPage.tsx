@@ -9,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addTempShareFile, addValidatedShareFile, clearShareData} from '@libs/actions/Share';
+import {snapshotUserLocation} from '@libs/actions/UserLocation';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {splitExtensionFromFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
@@ -141,6 +142,9 @@ function ShareRootPage() {
                         // Reset the persisted tab to SUBMIT so that defaultSelectedTab takes effect
                         // even when a previous Share session left the tab on SHARE.
                         Tab.setSelectedTab(CONST.TAB.SHARE.NAVIGATOR_ID, CONST.TAB.SHARE.SUBMIT);
+                        // Pre-warm the position while the user picks a recipient so SubmitDetailsPage
+                        // avoids reading the device inside the ShareExtensionOpenSubmitFlow span.
+                        snapshotUserLocation();
                     } else {
                         setIsFileScannable(false);
                     }
