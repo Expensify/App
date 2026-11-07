@@ -16,6 +16,7 @@ import type {InsightsFilters} from './insightsFilters';
 import type {InsightsDashboardChart} from './resolveDashboardState';
 
 import resolveComparisonPeriods from './insightsCompare';
+import normalizeInsightsSnapshot from './normalizeInsightsSnapshot';
 
 type InsightsChartState = ValueOf<typeof INSIGHTS_CHART_STATE>;
 
@@ -38,13 +39,16 @@ function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: I
     const theme = useTheme();
     const {isOffline} = useNetwork();
 
-    const sortedData = useGroupedItems(snapshot, queryJSON);
+    const sortedData = useGroupedItems(normalizeInsightsSnapshot(snapshot, queryJSON?.groupBy), queryJSON);
     const current = resolveInsightsChartData({snapshot, queryJSON, sortedData, isOffline});
 
     const compare = filters.compare;
     const isPreviousPeriod = compare === CONST.SEARCH.COMPARE.PREVIOUS_PERIOD;
     // Keeps every compared group, so each plotted group finds its own and not only the top ones.
-    const comparedSortedData = useGroupedItems(isPreviousPeriod ? previousPeriodSnapshot : undefined, queryJSON && {...queryJSON, limit: undefined});
+    const comparedSortedData = useGroupedItems(
+        isPreviousPeriod ? normalizeInsightsSnapshot(previousPeriodSnapshot, queryJSON?.groupBy) : undefined,
+        queryJSON && {...queryJSON, limit: undefined},
+    );
 
     if (current.state !== INSIGHTS_CHART_STATE.READY) {
         return current;
