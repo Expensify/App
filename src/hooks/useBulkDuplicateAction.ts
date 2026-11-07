@@ -40,7 +40,8 @@ type UseBulkDuplicateActionParams = {
  * so these subscriptions don't exist for users who aren't actively duplicating.
  */
 function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allReports, searchData, onAfterDuplicate}: UseBulkDuplicateActionParams) {
-    const {accountID, login: currentUserLogin, localCurrencyCode} = useCurrentUserPersonalDetails();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {accountID, login: currentUserLogin, localCurrencyCode} = currentUserPersonalDetails;
     const delegateAccountID = useDelegateAccountID();
     const {formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -101,6 +102,7 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
             transactionDrafts,
             recentWaypoints,
             currentUser: {accountID, email: currentUserLogin ?? ''},
+            currentUserPersonalDetails,
             currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
             isTrackIntentUser,
             delegateAccountID,
