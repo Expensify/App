@@ -19,7 +19,7 @@ import {
     getAutocompleteTaxList,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
-import {getUserFriendlyKey, getUserFriendlyValue, isFilterSupported} from '@libs/SearchQueryUtils';
+import {getUserFriendlyKey, getUserFriendlyValue, isFilterSupported, resolvePolicyIDFromName} from '@libs/SearchQueryUtils';
 import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -145,11 +145,21 @@ function useAutocompleteSuggestions({
     const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
     const lastActions = sortedReportActionsData?.lastActions;
     const {currencyList} = useCurrencyListState();
-    const {exportedToFilterOptions} = useExportedToFilterOptions();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
     const {autocomplete, ranges = []} = parsedQuery ?? {};
+    const policyIdRanges = ranges.filter((range) => range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
+    const keyValueCount = new Map<string, number>();
+    const typedPolicyIDs = policyIdRanges.map((range) => {
+        const baseKey = getSubstitutionMapKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, range.value);
+        const index = keyValueCount.get(baseKey) ?? 0;
+        keyValueCount.set(baseKey, index + 1);
+        const fullKey = getSubstitutionMapKeyWithIndex(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, range.value, index);
+        return autocompleteSubstitutions?.[fullKey] ?? resolvePolicyIDFromName(range.value, policies);
+    });
+    // Removing a typed workspace must also remove the submitted search's workspace scope.
+    const {exportedToFilterOptions} = useExportedToFilterOptions({value: typedPolicyIDs.length > 0 ? typedPolicyIDs : undefined, isNegated: policyIdRanges.at(0)?.negated ?? false});
 
     let autocompleteKey = autocomplete?.key;
     let autocompleteValue = autocomplete?.value ?? '';
@@ -578,21 +588,7 @@ function useAutocompleteSuggestions({
                 }
                 workspaceList.push({id: singlePolicy.id, name: singlePolicy.name ?? ''});
             }
-            const policyIdRanges = ranges.filter((range) => range.key === autocompleteKey);
-            const keyValueCount = new Map<string, number>();
-            const alreadySelectedPolicyIds =
-                autocompleteSubstitutions &&
-                new Set(
-                    policyIdRanges
-                        .map((range) => {
-                            const baseKey = getSubstitutionMapKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, range.value);
-                            const index = keyValueCount.get(baseKey) ?? 0;
-                            keyValueCount.set(baseKey, index + 1);
-                            const fullKey = getSubstitutionMapKeyWithIndex(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, range.value, index);
-                            return autocompleteSubstitutions[fullKey] ?? (index === 0 ? autocompleteSubstitutions[baseKey] : undefined);
-                        })
-                        .filter(Boolean),
-                );
+            const alreadySelectedPolicyIds = autocompleteSubstitutions && new Set(typedPolicyIDs);
 
             const filteredPolicies = workspaceList
                 .filter((workspace) => {
