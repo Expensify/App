@@ -10,6 +10,7 @@ type CreateExpensifyCardParams = {
     validThru?: string;
     cardRuleID?: string;
     cardRuleValue?: string;
+    shippingAddress?: string;
 };
 
 export default CreateExpensifyCardParams;

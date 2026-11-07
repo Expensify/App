@@ -6,7 +6,10 @@ import type {ValueOf} from 'type-fest';
 import type * as OnyxCommon from './OnyxCommon';
 
 /** The flow a validateCode was requested for */
-type ValidateCodeReason = ValueOf<typeof CONST.VALIDATE_CODE_REASONS> | typeof CONST_APP.EXPENSIFY_CARD.APPROVE_DIGITAL_WALLET_VALIDATE_CODE_REASON;
+type ValidateCodeReason =
+    | ValueOf<typeof CONST.VALIDATE_CODE_REASONS>
+    | typeof CONST_APP.EXPENSIFY_CARD.APPROVE_DIGITAL_WALLET_VALIDATE_CODE_REASON
+    | typeof CONST_APP.EXPENSIFY_CARD.ACTIVATE_CARD_VALIDATE_CODE_REASON;
 
 /** Model of action to receive validateCode */
 type VerifyValidateCodeAction = OnyxCommon.OnyxValueWithOfflineFeedback<

@@ -1,5 +1,6 @@
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
@@ -16,12 +17,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import AccountUtils from '@libs/AccountUtils';
 import {clearIssueNewCardError, clearIssueNewCardFlow, issueExpensifyCard, setIssueNewCardStepAndData} from '@libs/actions/Card';
-import {getTranslationKeyForLimitType} from '@libs/CardUtils';
+import {getTranslationKeyForLimitType, shouldShowPhoneNumberStep, shouldShowShippingAddressStep} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
+
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,6 +33,7 @@ import type {IssueNewCardStep} from '@src/types/onyx/Card';
 
 import type {ComponentRef} from 'react';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -47,6 +51,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -120,9 +125,24 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
         setIssueNewCardStepAndData({step, isEditing: true, policyID});
     };
 
+    const isShippingAddressStepShown = shouldShowShippingAddressStep(data);
+    const isPhoneNumberStepShown = shouldShowPhoneNumberStep(issueNewCard);
+    const isPhoneNumberMissing = isPhoneNumberStepShown && !data?.shippingAddress?.phoneNumber;
+
     const handleBackButtonPress = () => {
-        setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CARD_NAME, policyID});
+        if (isPhoneNumberStepShown) {
+            setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.PHONE_NUMBER, policyID});
+            return;
+        }
+        setIssueNewCardStepAndData({step: isShippingAddressStepShown ? CONST.EXPENSIFY_CARD.STEP.SHIPPING_ADDRESS : CONST.EXPENSIFY_CARD.STEP.CARD_NAME, policyID});
     };
+
+    const shippingAddress = data?.shippingAddress;
+    const shippingAddressTitle = shippingAddress
+        ? [...shippingAddress.addressStreet.split('\n'), shippingAddress.addressCity, shippingAddress.addressState, shippingAddress.addressZip, shippingAddress.addressCountry]
+              .filter(Boolean)
+              .join(', ')
+        : translate('workspace.card.issueNewCard.promptCardholder');
 
     const translationForLimitType = getTranslationKeyForLimitType(data?.limitType);
     const limitTitle = convertToShortDisplayString(data?.limit, data?.currency);
@@ -225,12 +245,36 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.CARD_NAME)}
                     value={data?.cardTitle}
                 />
+                {isShippingAddressStepShown && (
+                    <MenuItemField
+                        name={translate('workspace.card.issueNewCard.shippingAddress')}
+                        onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.SHIPPING_ADDRESS)}
+                        value={shippingAddressTitle}
+                    />
+                )}
+                {isPhoneNumberStepShown && (
+                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => editStep(CONST.EXPENSIFY_CARD.STEP.PHONE_NUMBER), false, session)}>
+                        <MenuItemField.Row
+                            name={translate('common.phoneNumber')}
+                            value={shippingAddress?.phoneNumber}
+                        >
+                            {isPhoneNumberMissing && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                            <MenuItem.Chevron />
+                        </MenuItemField.Row>
+                        {isPhoneNumberMissing && (
+                            <MenuItem.HelpText
+                                isError
+                                message={translate('common.error.fieldRequired')}
+                            />
+                        )}
+                    </MenuItem.Root>
+                )}
                 <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd]}>
                     <FormAlertWithSubmitButton
                         buttonRef={submitButton}
                         message={errorMessage}
                         isAlertVisible={!!errorMessage}
-                        isDisabled={isOffline || shouldDisableSubmitButton}
+                        isDisabled={isOffline || shouldDisableSubmitButton || isPhoneNumberMissing}
                         isMessageHtml={shouldDisableSubmitButton}
                         isLoading={issueNewCard?.isLoading}
                         onSubmit={handleIssueCard}
