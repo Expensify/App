@@ -27,8 +27,10 @@ function useReceiptTranslation(transaction: OnyxEntry<Transaction>) {
     const locale = preferredLocale ?? CONST.LOCALES.DEFAULT;
     const receiptID = transaction?.receipt?.receiptID;
     const savedTranslation = receiptTranslation?.[locale];
-    const savedTranslationRows =
-        !!receiptID && savedTranslation?.receiptID === receiptID && savedTranslation.state === CONST.RECEIPT.TRANSLATION_STATE.TRANSLATED ? savedTranslation.rows : undefined;
+
+    // The server sends the transaction's receiptID as a string but the translation's as a number
+    const isSameReceipt = !!receiptID && !!savedTranslation && String(savedTranslation.receiptID) === String(receiptID);
+    const savedTranslationRows = isSameReceipt && savedTranslation.state === CONST.RECEIPT.TRANSLATION_STATE.TRANSLATED ? savedTranslation.rows : undefined;
     const isTranslating = !!receiptTranslationState?.isTranslating;
     const translatedReceiptRows = receiptTranslationState?.isShowingTranslation && !isTranslating ? savedTranslationRows : undefined;
 
