@@ -1488,6 +1488,7 @@ function getChangeTransactionsReportOnyxData({
                 shouldRemoveRejectedExpenseViolation: true,
                 ownerLogin: undefined,
                 isVendorMatchingBetaEnabled,
+                iouReport: newReport,
             });
             optimisticData.push(violationData);
             failureData.push({

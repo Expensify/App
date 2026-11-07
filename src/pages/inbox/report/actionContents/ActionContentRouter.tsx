@@ -337,6 +337,7 @@ function ActionContentRouter({
         return (
             <PaymentContent
                 action={action}
+                reportID={actionOwnerReportID}
                 expectedDate={paymentExpectedDate}
                 policyID={policyID}
             />
