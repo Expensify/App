@@ -37,6 +37,33 @@ describe('useCopySelectionEvent', () => {
         window.getSelection()?.removeAllRanges();
     });
 
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    it('only manages the selection anchor listener on mobile Chrome', () => {
+        // Given the document listener methods are observed across desktop and mobile Chrome mounts
+        const addEventListener = jest.spyOn(document, 'addEventListener');
+        const removeEventListener = jest.spyOn(document, 'removeEventListener');
+        const desktopConsumer = renderHook(() => useCopySelectionEvent());
+
+        // When the desktop consumer unmounts
+        desktopConsumer.unmount();
+
+        // Then it does not manage the mobile-only selection anchor listener
+        expect(addEventListener.mock.calls.some(([eventName]) => eventName === 'selectionchange')).toBe(false);
+        expect(removeEventListener.mock.calls.some(([eventName]) => eventName === 'selectionchange')).toBe(false);
+
+        // When a mobile Chrome consumer mounts and unmounts
+        mockIsMobileChrome.mockReturnValue(true);
+        const mobileConsumer = renderHook(() => useCopySelectionEvent());
+        mobileConsumer.unmount();
+
+        // Then the selection anchor listener is added and removed with that consumer
+        expect(addEventListener.mock.calls.some(([eventName]) => eventName === 'selectionchange')).toBe(true);
+        expect(removeEventListener.mock.calls.some(([eventName]) => eventName === 'selectionchange')).toBe(true);
+    });
+
     it('keeps the original copyable text anchor when Android Chrome moves it to an empty layout element', () => {
         // Given a selection from Amount to another field on Android Chrome
         mockIsMobileChrome.mockReturnValue(true);

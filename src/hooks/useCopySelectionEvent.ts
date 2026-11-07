@@ -76,9 +76,10 @@ export default function useCopySelectionEvent() {
             return;
         }
 
+        const shouldPreserveCopyableSelectionAnchor = isMobileChrome();
         if (copySelectionEventConsumerCount === 0) {
             document.addEventListener('copy', copySelectionToClipboard);
-            if (isMobileChrome()) {
+            if (shouldPreserveCopyableSelectionAnchor) {
                 document.addEventListener('selectionchange', preserveCopyableSelectionAnchor);
             }
         }
@@ -88,8 +89,10 @@ export default function useCopySelectionEvent() {
             copySelectionEventConsumerCount -= 1;
             if (copySelectionEventConsumerCount === 0) {
                 document.removeEventListener('copy', copySelectionToClipboard);
-                document.removeEventListener('selectionchange', preserveCopyableSelectionAnchor);
-                copyableSelectionAnchor = null;
+                if (shouldPreserveCopyableSelectionAnchor) {
+                    document.removeEventListener('selectionchange', preserveCopyableSelectionAnchor);
+                    copyableSelectionAnchor = null;
+                }
             }
         };
     }, []);
