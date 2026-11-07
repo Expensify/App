@@ -4,10 +4,12 @@ import ComposeProviders from '@components/ComposeProviders';
 import FullScreenBlockingViewContextProvider from '@components/FullScreenBlockingViewContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import type * as ExpenseReportSearchViewModule from '@components/Search/ExpenseReportSearchView';
 import type * as SearchContext from '@components/Search/SearchContext';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
+import type {CommonSearchViewProps} from '@components/Search/searchViewProps';
 import type * as SearchWriteActionsProviderModule from '@components/Search/SearchWriteActionsProvider';
 import type {SearchData, SearchSelectionActionsValue, SelectedTransactionInfo} from '@components/Search/types';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
@@ -33,6 +35,10 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import styles from '@src/styles';
+import {defaultTheme} from '@src/styles/theme';
+import createStyleUtils from '@src/styles/utils';
+import variables from '@src/styles/variables';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 
@@ -136,6 +142,18 @@ jest.mock('@components/Search/SearchWriteActionsProvider', () => {
         return createElement(SearchWriteActionsProvider, props);
     }
     return {__esModule: true, default: MockSearchWriteActionsProvider};
+});
+
+// The props <Search> hands the Reports view, which carry the column size options its rows and column width budget share.
+const mockRenderExpenseReportSearchView = jest.fn<void, [CommonSearchViewProps]>();
+jest.mock('@components/Search/ExpenseReportSearchView', () => {
+    const {createElement} = jest.requireActual<typeof React>('react');
+    const {default: ExpenseReportSearchView} = jest.requireActual<typeof ExpenseReportSearchViewModule>('@components/Search/ExpenseReportSearchView');
+    function MockExpenseReportSearchView(props: CommonSearchViewProps) {
+        mockRenderExpenseReportSearchView(props);
+        return createElement(ExpenseReportSearchView, props);
+    }
+    return {__esModule: true, default: MockExpenseReportSearchView};
 });
 
 function lastWriteActionsRender() {
@@ -1740,5 +1758,37 @@ describe('SearchPageNarrow', () => {
 
         // Then the totals stay, because they belong to the Search the user can still see
         expect(mockClearFooterConversion).not.toHaveBeenCalled();
+    });
+    it('budgets the Reports date column at the width its rows draw', async () => {
+        // Given cached Reports results, whose rows draw the date column at the wider "Created" width
+        const reportQuery = 'type:expense-report';
+        const reportQueryJSON = SearchQueryUtils.buildSearchQueryJSON(reportQuery);
+        const reportSnapshot = getExpenseSnapshot(false);
+        mockSearchQueryParam.mockReturnValue(reportQuery);
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${reportQueryJSON?.hash}`, {
+                ...reportSnapshot,
+                search: {
+                    ...reportSnapshot.search,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                    hash: reportQueryJSON?.hash,
+                    sortBy: reportQueryJSON?.sortBy,
+                    sortOrder: reportQueryJSON?.sortOrder,
+                },
+            });
+        });
+
+        // When the page renders them
+        renderPage(reportQuery);
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        // Then the column width budget reads the same date width the rows draw, since with resizable columns any
+        // difference overflows the row and pushes the Action button into the trailing caret
+        const columnSizeOptions = mockRenderExpenseReportSearchView.mock.lastCall?.[0].columnSizeOptions;
+        const StyleUtils = createStyleUtils(defaultTheme, styles(defaultTheme));
+        expect(columnSizeOptions).toBeDefined();
+        expect(StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, columnSizeOptions).width).toBe(variables.w80);
     });
 });

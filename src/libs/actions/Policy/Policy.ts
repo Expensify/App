@@ -101,7 +101,7 @@ import {rand64} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import {buildOnyxDataForGovernmentRateAutoUpdate} from '@libs/PolicyDistanceRatesUtils';
+import {buildOnyxDataForGovernmentRateAutoUpdate, getGovernmentRateCountryForCurrency} from '@libs/PolicyDistanceRatesUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {
     getCustomUnitsForDuplication,
@@ -584,7 +584,14 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
 
     if (policyID === activePolicyID) {
         const mostRecentlyCreatedGroupPolicy = Object.values(policies ?? {})
-            .filter((p) => p && p.id !== activePolicyID && p.type !== CONST.POLICY.TYPE.PERSONAL && p.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+            .filter(
+                (p) =>
+                    p &&
+                    p.id !== activePolicyID &&
+                    p.type !== CONST.POLICY.TYPE.PERSONAL &&
+                    p.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+                    PolicyUtils.canCreateExpensesOnPolicy(p),
+            )
             .sort((policyA, policyB) => localeCompare(policyB?.created ?? '', policyA?.created ?? ''))
             .at(0);
 
@@ -2392,19 +2399,13 @@ function updateGeneralSettings(
         }
     }
 
-    // Enabling government rate auto-update and copying the chosen country's reference rates rides on this request, so the
-    // whole currency change stays a single API call. The server applies the same copy when it saves the currency.
-    const governmentRateAutoUpdateData = governmentRateCountry
-        ? buildOnyxDataForGovernmentRateAutoUpdate(
-              policy.id,
-              distanceUnit,
-              true,
-              governmentMileageRates,
-              currency,
-              governmentRateCountry,
-              !!policy.shouldAutoUpdateGovernmentDistanceRates,
-              policy.autoUpdateGovernmentRateCountry,
-          )
+    // Enabling government rate auto-update and copying the new country's reference rates rides on this request, so the
+    // whole currency change stays a single API call. The server applies the same copy when it saves the currency. EUR needs
+    // the chosen country, and every other supported currency maps to one country, so the rates are filtered by currency.
+    const shouldCopyGovernmentRates =
+        !!governmentRateCountry || (!!policy.shouldAutoUpdateGovernmentDistanceRates && currencyPendingAction !== undefined && !!getGovernmentRateCountryForCurrency(currency));
+    const governmentRateAutoUpdateData = shouldCopyGovernmentRates
+        ? buildOnyxDataForGovernmentRateAutoUpdate(policy, true, governmentMileageRates, currency, governmentRateCountry)
         : undefined;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
@@ -2504,11 +2505,9 @@ function updateGeneralSettings(
         completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
         // The server mirrors this copy through its own SetWorkspaceDistanceAutoUpdate call, so send the client-side
         // optimistic rate IDs to keep the persisted rates consistent with the optimistic Onyx state.
-        ...(governmentRateCountry && {
-            governmentRateCountry,
-            ...(Object.keys(governmentRateAutoUpdateData?.optimisticRateIDs ?? {}).length > 0 && {
-                optimisticRateIDs: JSON.stringify(governmentRateAutoUpdateData?.optimisticRateIDs),
-            }),
+        ...(governmentRateCountry && {governmentRateCountry}),
+        ...(Object.keys(governmentRateAutoUpdateData?.optimisticRateIDs ?? {}).length > 0 && {
+            optimisticRateIDs: JSON.stringify(governmentRateAutoUpdateData?.optimisticRateIDs),
         }),
     };
 

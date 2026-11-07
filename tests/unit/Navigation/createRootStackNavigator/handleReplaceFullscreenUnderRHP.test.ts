@@ -729,6 +729,37 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
         expect(routes?.at(0)?.key).toBe('inbox-key');
         expect(routes?.at(1)?.key).toBe('report-a-key');
     });
+
+    it('restores the original tab into its own slot when another tab and RHP were pushed above it', () => {
+        // Given report B was pre-inserted under the RHP, and the RHP then opened a second fullscreen tab with its own RHP on top
+        mockStubbedParsedState = makeReportsParsedState('B');
+        const originalState = makeExistingReportsState(
+            [makeRoute(SCREENS.INBOX, undefined, undefined, 'inbox-key'), makeRoute(SCREENS.REPORT, {reportID: 'A'}, undefined, 'report-a-key')],
+            1,
+        );
+        const preInsertedState = handleReplaceFullscreenUnderRHP(originalState, makeReportsAction('B'), CONFIG_OPTIONS, stackRouter);
+        if (!preInsertedState) {
+            throw new Error('Expected the report pre-insert to return a navigation state');
+        }
+        const secondTabRoute = makeRoute(
+            NAVIGATORS.TAB_NAVIGATOR,
+            undefined,
+            {index: 0, routes: [makeRoute(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, undefined, undefined, 'second-search-key')]},
+            'second-tab-key',
+        );
+        const secondRHPRoute = makeRoute(NAVIGATORS.RIGHT_MODAL_NAVIGATOR, undefined, undefined, 'second-rhp-key');
+        const stackedRoutes = [...preInsertedState.routes, secondTabRoute, secondRHPRoute];
+        const stackedState = {...preInsertedState, routes: stackedRoutes, index: stackedRoutes.length - 1};
+
+        // When the first pre-insert is cancelled while the second RHP is on top
+        const restoredState = handleRemoveFullscreenUnderRHP(stackedState, makeRemoveAction(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR), CONFIG_OPTIONS, stackRouter);
+
+        // Then the saved tab goes back to its own slot and the second tab is untouched, so no two root routes share a key
+        expect(restoredState?.routes.map((route) => route.key)).toEqual(['tab-nav-key', 'rhp-key', 'second-tab-key', 'second-rhp-key']);
+        const firstTabReports = restoredState?.routes.at(0)?.state?.routes.find((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)?.state;
+        expect(firstTabReports?.routes.at(1)?.key).toBe('report-a-key');
+        expect(restoredState?.routes.at(2)).toBe(secondTabRoute);
+    });
 });
 
 describe('handleReplaceFullscreenUnderRHP — WORKSPACE_NAVIGATOR seeding', () => {
