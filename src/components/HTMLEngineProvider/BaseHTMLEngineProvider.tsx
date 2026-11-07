@@ -137,7 +137,8 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
         }),
         'centered-text': HTMLElementModel.fromCustomModel({
             tagName: 'centered-text',
-            mixedUAStyles: {...styles.textAlignCenter},
+            // In a flex row the HTML root fills the width, so text alignment alone leaves the content on the left
+            getMixedUAStyles: (tnode) => (tnode.attributes.iscontentcentered === undefined ? styles.textAlignCenter : {...styles.textAlignCenter, ...styles.alignItemsCenter}),
             contentModel: HTMLContentModel.block,
         }),
         comment: HTMLElementModel.fromCustomModel({
