@@ -9,6 +9,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 
 import {setCustomUnitRateID} from '@userActions/IOU/MoneyRequest';
+import {createDraftWorkspace} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,6 +46,7 @@ jest.mock('@src/utils/keyboard', () => ({
 // `mock`-prefixed so the jest.mock factories below may close over them.
 let mockPolicies: OnyxCollection<Policy> = {};
 let mockDraftTransactions: Transaction[] = [];
+let mockShowRestrictedPolicyCreationModal: (() => void) | undefined;
 
 // Stub out the hook's data dependencies so the test can render it in isolation and focus purely on the backTo logic.
 // Every Onyx read is stubbed to undefined here; goToNextStep's backTo path does not depend on Onyx data, but a future
@@ -58,10 +60,15 @@ jest.mock('@hooks/useOnyx', () => ({__esModule: true, default: () => [undefined]
 jest.mock('@hooks/useOptimisticDraftTransactions', () => ({__esModule: true, default: () => [mockDraftTransactions]}));
 jest.mock('@hooks/usePersonalPolicy', () => ({__esModule: true, default: () => undefined}));
 jest.mock('@hooks/usePolicyForMovingExpenses', () => ({__esModule: true, default: () => ({policyForMovingExpenses: undefined})}));
+jest.mock('@hooks/useRestrictedPolicyCreationModal', () => ({__esModule: true, default: () => mockShowRestrictedPolicyCreationModal}));
 jest.mock('@hooks/useTransactionsByID', () => ({__esModule: true, default: () => [[]]}));
 jest.mock('@userActions/IOU/MoneyRequest', () => ({
     ...jest.requireActual<Record<string, unknown>>('@userActions/IOU/MoneyRequest'),
     setCustomUnitRateID: jest.fn(),
+}));
+jest.mock('@userActions/Policy/Policy', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@userActions/Policy/Policy'),
+    createDraftWorkspace: jest.fn(() => ({expenseChatReportID: 'R9', policyID: 'DRAFT_POLICY', policyName: 'Draft workspace'})),
 }));
 
 const mockGoBack = jest.mocked(Navigation.goBack);
@@ -340,5 +347,46 @@ describe('useParticipantSubmission addParticipant distance rate', () => {
         });
 
         expect(setCustomUnitRateID).not.toHaveBeenCalled();
+    });
+});
+
+describe('useParticipantSubmission restricted workspace creation', () => {
+    beforeEach(() => {
+        jest.mocked(createDraftWorkspace).mockClear();
+        jest.mocked(Navigation.navigate).mockClear();
+    });
+
+    afterEach(() => {
+        mockShowRestrictedPolicyCreationModal = undefined;
+    });
+
+    it.each([CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE])('shows the restricted modal instead of creating a workspace for %s with no workspace picked', (action) => {
+        // Given a member of a domain group that restricts workspace creation
+        mockShowRestrictedPolicyCreationModal = jest.fn();
+        const {result} = renderSubmission({action});
+
+        // When they continue from the picker without picking a workspace, which would otherwise create one for them
+        act(() => {
+            result.current.goToNextStep();
+        });
+
+        // Then the modal explains why, and no draft workspace is created because the server would reject it
+        expect(mockShowRestrictedPolicyCreationModal).toHaveBeenCalledTimes(1);
+        expect(createDraftWorkspace).not.toHaveBeenCalled();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('creates a draft workspace for an unrestricted user with no workspace picked', () => {
+        // Given a user who is allowed to create workspaces
+        const {result} = renderSubmission({action: CONST.IOU.ACTION.CATEGORIZE});
+
+        // When they continue from the picker without picking a workspace
+        act(() => {
+            result.current.goToNextStep();
+        });
+
+        // Then a draft workspace is created so the expense has somewhere to go
+        expect(createDraftWorkspace).toHaveBeenCalledTimes(1);
+        expect(Navigation.navigate).toHaveBeenCalledTimes(1);
     });
 });

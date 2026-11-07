@@ -9,6 +9,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
+import useRestrictedPolicyCreationModal from '@hooks/useRestrictedPolicyCreationModal';
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -37,6 +38,7 @@ function ReportDetailsMenuTrackExpenseItems({reportID, requestData}: ReportDetai
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
+    const showRestrictedPolicyCreationModal = useRestrictedPolicyCreationModal();
     const activePolicy = useActivePolicy();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'Folder', 'UserPlus']);
@@ -88,6 +90,7 @@ function ReportDetailsMenuTrackExpenseItems({reportID, requestData}: ReportDetai
             amountOwed,
             ownerBillingGracePeriodEnd,
             restrictedPreferredPolicy: isRestrictedToPreferredPolicy ? preferredPolicy : undefined,
+            showRestrictedPolicyCreationModal,
             transaction: iouTransaction,
             currentUserAccountID,
             currentUserEmail: currentUserEmail ?? '',
