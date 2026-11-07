@@ -5287,6 +5287,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             chatgpt: {
                 title: 'ChatGPT',
             },
+            grok: {
+                title: 'Grok',
+            },
         },
         connections: {
             tabs: {
