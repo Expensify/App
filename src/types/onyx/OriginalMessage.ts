@@ -144,6 +144,18 @@ type OriginalMessageSmartScanFailed = {
     reasoning?: string;
 };
 
+/** Fields common to all report action original messages */
+type OriginalMessageBase = {
+    /** Account IDs for whom this action is marked as important */
+    importantForAccountIDs?: number[];
+
+    /** Whether push notifications should be scoped to actionableForAccountIDs only */
+    shouldScopePushToActionableAccounts?: boolean;
+
+    /** Account IDs that should receive push notifications when shouldScopePushToActionableAccounts is true */
+    actionableForAccountIDs?: number[];
+};
+
 /** Model of `add comment` report action */
 type OriginalMessageAddComment = {
     /** HTML content of the comment */
@@ -1919,6 +1931,7 @@ export type {
     OriginalMessageMovedTransaction,
     PolicyBudgetFrequency,
     OriginalMessageMarkedReimbursed,
+    OriginalMessageBase,
     OriginalMessageReimbursed,
     OriginalMessageSettlementAccountLocked,
     ViolationsSnapshot,
