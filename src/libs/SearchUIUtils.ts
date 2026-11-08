@@ -7693,14 +7693,6 @@ function getSearchTableRowChromeWidths(columnCount: number): RowChromeWidths {
     };
 }
 
-/**
- * One stored layout per data type, since each shows its own columns. Grouped tables don't resize, so the group-by isn't
- * part of it. Not per query, so a filter change keeps the widths.
- */
-function getSearchColumnResizingID(type: SearchDataTypes): string {
-    return `${CONST.TABLES.COLUMN_RESIZING_IDS.SEARCH_PREFIX}:${type}`;
-}
-
 function getTableMinWidth(
     columns: SearchColumnType[],
     type?: SearchDataTypes,
@@ -8226,7 +8218,6 @@ export {
     getSearchColumnTranslationKey,
     getSearchTableRowInsetWidth,
     getSearchTableRowChromeWidths,
-    getSearchColumnResizingID,
     getTableMinWidth,
     getGroupColumnWidthFlags,
     getGroupTableScrollLayout,
