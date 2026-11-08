@@ -15,49 +15,56 @@ import type {OnyxCollection} from 'react-native-onyx';
 import {useState} from 'react';
 
 const DEFAULT_PLACEHOLDER_KEYS = ['common.concierge.composerPlaceholders.createExpense', 'reportActionCompose.askConciergeForHelp'] as const;
+const MAX_EXPENSE_COUNT = 2;
 
 const EXPENSE_PLACEHOLDER_KEYS = [
     'common.concierge.composerPlaceholders.spendLastMonth',
     'common.concierge.composerPlaceholders.topExpenses',
     'common.concierge.composerPlaceholders.spendDrivers',
     'common.concierge.composerPlaceholders.travelSpendChange',
-    'common.concierge.composerPlaceholders.topSpender',
-    'common.concierge.composerPlaceholders.missingCategory',
     'common.concierge.composerPlaceholders.unsubmitted',
     'common.concierge.composerPlaceholders.exportCsv',
 ] as const;
 
-const ACCESSIBLE_REPORT_PLACEHOLDER_KEYS = ['common.concierge.composerPlaceholders.awaitingApproval', 'common.concierge.composerPlaceholders.leftToPay'] as const;
+const ACCESSIBLE_REPORT_PLACEHOLDER_KEYS = [
+    'common.concierge.composerPlaceholders.awaitingApproval',
+    'common.concierge.composerPlaceholders.leftToPay',
+    'common.concierge.composerPlaceholders.topSpender',
+    'common.concierge.composerPlaceholders.missingCategory',
+] as const;
 
 const OWN_REPORT_PLACEHOLDER_KEYS = ['common.concierge.composerPlaceholders.notReimbursed', 'common.concierge.composerPlaceholders.exportPdf'] as const;
 
 function getReportEligibility(reports: OnyxCollection<Report>, isConciergeInboxDM: boolean, accountID: number | undefined) {
-    const ownedReportIDs: Record<string, boolean> = {};
+    let ownReportedExpenseCount = 0;
     let hasAccessibleExpenseReports = false;
     let hasOwnExpenseReports = false;
     if (!isConciergeInboxDM || !accountID) {
-        return {ownedReportIDs, hasAccessibleExpenseReports, hasOwnExpenseReports};
+        return {ownReportedExpenseCount, hasAccessibleExpenseReports, hasOwnExpenseReports};
     }
 
     for (const report of Object.values(reports ?? {})) {
         if (!report || report.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report.errorFields?.notFound) {
             continue;
         }
-        const isOwnReport = isCurrentUserSubmitter(report, accountID);
-        // Keep ownership even before report counts hydrate, including expenses tracked in self-DM.
-        if (isOwnReport) {
-            ownedReportIDs[report.reportID] = true;
-        }
-        if (!isMoneyRequestReport(report) || (report.transactionCount ?? 0) === 0) {
+        if (!isMoneyRequestReport(report) || (report.transactionCount ?? 0) <= 0) {
             continue;
         }
         hasAccessibleExpenseReports = true;
-        hasOwnExpenseReports ||= isOwnReport;
+        if (!isCurrentUserSubmitter(report, accountID)) {
+            continue;
+        }
+        hasOwnExpenseReports = true;
+        // Report counts include expenses whose transaction records have not been loaded locally.
+        ownReportedExpenseCount = Math.min(MAX_EXPENSE_COUNT, ownReportedExpenseCount + (report.transactionCount ?? 0));
+        if (ownReportedExpenseCount === MAX_EXPENSE_COUNT) {
+            break;
+        }
     }
-    return {ownedReportIDs, hasAccessibleExpenseReports, hasOwnExpenseReports};
+    return {ownReportedExpenseCount, hasAccessibleExpenseReports, hasOwnExpenseReports};
 }
 
-function getExpenseCount(transactions: OnyxCollection<Transaction>, isConciergeInboxDM: boolean, accountID: number | undefined, ownedReportIDs: Record<string, boolean> | undefined) {
+function getUnreportedExpenseCount(transactions: OnyxCollection<Transaction>, isConciergeInboxDM: boolean, accountID: number | undefined) {
     if (!isConciergeInboxDM || !accountID) {
         return 0;
     }
@@ -68,12 +75,12 @@ function getExpenseCount(transactions: OnyxCollection<Transaction>, isConciergeI
         if (!transaction || transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             continue;
         }
-        // Approvers can load other people's expenses, but those must not enable personal prompts.
-        if (!isExpenseUnreported(transaction) && (!transaction.reportID || !ownedReportIDs?.[transaction.reportID])) {
+        // Avoid double-counting owned reports or counting other users' expenses loaded by approvers.
+        if (!isExpenseUnreported(transaction)) {
             continue;
         }
         count++;
-        if (count === 2) {
+        if (count === MAX_EXPENSE_COUNT) {
             return count;
         }
     }
@@ -85,9 +92,10 @@ function useConciergeComposerPlaceholder(isConciergeInboxDM: boolean) {
     const [reportEligibility] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: (reports) => getReportEligibility(reports, isConciergeInboxDM, accountID),
     });
-    const [expenseCount = 0] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: (transactions) => getExpenseCount(transactions, isConciergeInboxDM, accountID, reportEligibility?.ownedReportIDs),
+    const [unreportedExpenseCount = 0] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: (transactions) => getUnreportedExpenseCount(transactions, isConciergeInboxDM, accountID),
     });
+    const expenseCount = Math.min(MAX_EXPENSE_COUNT, (reportEligibility?.ownReportedExpenseCount ?? 0) + unreportedExpenseCount);
 
     // Retain the random seed, not a key that could become invalid when Onyx loads or expenses are removed.
     const [randomSeed] = useState(() => Math.random());

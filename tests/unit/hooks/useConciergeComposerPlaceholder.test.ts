@@ -138,9 +138,11 @@ describe('useConciergeComposerPlaceholder', () => {
     });
 
     it.each([
-        [0.5, 'common.concierge.composerPlaceholders.awaitingApproval'],
-        [0.999, 'common.concierge.composerPlaceholders.leftToPay'],
-    ])('offers approver and payer prompts without owned reports for seed %s', async (seed, expectedPlaceholder) => {
+        [2 / 6, 'common.concierge.composerPlaceholders.awaitingApproval'],
+        [3 / 6, 'common.concierge.composerPlaceholders.leftToPay'],
+        [4 / 6, 'common.concierge.composerPlaceholders.topSpender'],
+        [5 / 6, 'common.concierge.composerPlaceholders.missingCategory'],
+    ])('offers team and approval prompts without owned expenses for seed %s', async (seed, expectedPlaceholder) => {
         // Given another user's submitted report and its loaded expense, but no own expenses
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {...expenseReport, ownerAccountID: 2});
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, transaction);
@@ -150,7 +152,7 @@ describe('useConciergeComposerPlaceholder', () => {
         const {result} = renderHook(() => useConciergeComposerPlaceholder(true));
         await waitForBatchedUpdates();
 
-        // Then approval/payment prompts are available without enabling personal report prompts
+        // Then team and approval prompts are available without enabling personal report prompts
         expect(result.current).toBe(expectedPlaceholder);
     });
 
@@ -166,7 +168,13 @@ describe('useConciergeComposerPlaceholder', () => {
         await waitForBatchedUpdates();
 
         // Then only safe defaults and accessible-report prompts are eligible, never CSV, PDF or combining
-        expect([...BASE_PLACEHOLDERS, 'common.concierge.composerPlaceholders.awaitingApproval', 'common.concierge.composerPlaceholders.leftToPay']).toContain(result.current);
+        expect([
+            ...BASE_PLACEHOLDERS,
+            'common.concierge.composerPlaceholders.awaitingApproval',
+            'common.concierge.composerPlaceholders.leftToPay',
+            'common.concierge.composerPlaceholders.topSpender',
+            'common.concierge.composerPlaceholders.missingCategory',
+        ]).toContain(result.current);
     });
 
     it('requires two own expenses rather than one own and one other expense to combine', async () => {
@@ -202,8 +210,16 @@ describe('useConciergeComposerPlaceholder', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {...expenseReport, transactionCount: 0});
         });
 
-        // Then personal expense prompts become eligible without a transaction update
-        expect(result.current).toBe('common.concierge.composerPlaceholders.exportCsv');
+        // Then loaded transactions do not bypass the report count while it is hydrating
+        expect(result.current).toBe(HELP_PLACEHOLDER);
+
+        // When its count hydrates without a transaction update
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {transactionCount: 1});
+        });
+
+        // Then owned report and personal expense prompts become available
+        expect(result.current).toBe(PDF_PLACEHOLDER);
 
         // When ownership changes without modifying the transaction
         await act(async () => {
@@ -211,7 +227,7 @@ describe('useConciergeComposerPlaceholder', () => {
         });
 
         // Then the other user's expense no longer enables personal prompts
-        expect(result.current).toBe(HELP_PLACEHOLDER);
+        expect(result.current).toBe('common.concierge.composerPlaceholders.missingCategory');
 
         // When ownership is restored but the report is pending deletion
         await act(async () => {
@@ -220,6 +236,67 @@ describe('useConciergeComposerPlaceholder', () => {
 
         // Then the deleted report cannot establish expense ownership
         expect(result.current).toBe(HELP_PLACEHOLDER);
+    });
+
+    it.each([
+        [1, 'common.concierge.composerPlaceholders.exportCsv'],
+        [2, 'common.concierge.composerPlaceholders.combineExpenses'],
+        [100, 'common.concierge.composerPlaceholders.combineExpenses'],
+    ])('uses reported count %s without loading transaction records', async (transactionCount, expectedPlaceholder) => {
+        // Given an owned report whose expenses have not been opened locally
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {...expenseReport, transactionCount});
+        jest.mocked(Math.random).mockReturnValue(0.55);
+
+        // When eligibility is derived from report summaries
+        const {result} = renderHook(() => useConciergeComposerPlaceholder(true));
+        await waitForBatchedUpdates();
+
+        // Then one expense enables personal prompts and multiple expenses enable combining
+        expect(result.current).toBe(expectedPlaceholder);
+    });
+
+    it('sums counts across owned reports without counting loaded transactions twice', async () => {
+        // Given one reported expense that is also loaded in the transaction collection
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, expenseReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, transaction);
+        jest.mocked(Math.random).mockReturnValue(0.55);
+        const {result} = renderHook(() => useConciergeComposerPlaceholder(true));
+        await waitForBatchedUpdates();
+        expect(result.current).toBe('common.concierge.composerPlaceholders.exportCsv');
+
+        // When another owned report contributes one more expense without loading its transaction
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}2`, {...expenseReport, reportID: '2'});
+        });
+
+        // Then the two reported expenses enable combining
+        expect(result.current).toBe('common.concierge.composerPlaceholders.combineExpenses');
+    });
+
+    it('combines reported and unreported counts and responds to deletions and count changes', async () => {
+        // Given one reported and one unreported own expense
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, expenseReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}2`, {...transaction, transactionID: '2', reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
+        jest.mocked(Math.random).mockReturnValue(0.55);
+        const {result} = renderHook(() => useConciergeComposerPlaceholder(true));
+        await waitForBatchedUpdates();
+        expect(result.current).toBe('common.concierge.composerPlaceholders.combineExpenses');
+
+        // When the unreported expense is pending deletion
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}2`, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+        });
+
+        // Then only one own expense remains eligible
+        expect(result.current).toBe('common.concierge.composerPlaceholders.exportCsv');
+
+        // When the report count reaches zero without a transaction update
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {transactionCount: 0});
+        });
+
+        // Then all history-dependent eligibility is removed
+        expect(BASE_PLACEHOLDERS).toContain(result.current);
     });
 
     it('keeps the selection stable across unrelated updates and rerenders', async () => {
