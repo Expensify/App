@@ -8,7 +8,6 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useConfirmationParticipantSelection from '@hooks/useConfirmationParticipantSelection';
-import useCreateFlowDiscardGuard from '@hooks/useCreateFlowDiscardGuard';
 
 import {startSplitBill} from '@libs/actions/IOU/Split';
 import getCurrentPosition from '@libs/getCurrentPosition';
@@ -48,8 +47,12 @@ import getOnyxValue from '../../utils/getOnyxValue';
 import {setupGlobalFetchMock, signInWithTestUser, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
-// The screen is rendered outside a navigator, which the flow's discard guard needs
-jest.mock('@hooks/useCreateFlowDiscardGuard', () => jest.fn(() => ({isFlowDirty: false})));
+// The screen is rendered outside a navigator, which the flow's discard guard needs, so this stands in for it
+jest.mock('@pages/iou/request/step/CreateFlowRootDiscardGuard', () => () => {
+    const {createElement} = jest.requireActual<typeof React>('react');
+    const {View} = jest.requireActual<{View: React.ComponentType<{testID: string}>}>('react-native');
+    return createElement(View, {testID: 'MockCreateFlowRootDiscardGuard'});
+});
 jest.mock('@rnmapbox/maps', () => {
     return {
         default: jest.fn(),
@@ -3421,21 +3424,20 @@ describe('IOURequestStepConfirmationPageTest', () => {
         });
 
         it('leaves guarding the flow to the start page when embedded', async () => {
-            // Given the body embedded in the start page, which guards the embedded confirmation
+            // Given the body embedded in the start page, which guards the whole flow
             await renderConfirmation({isEmbedded: true});
 
-            // Then the body doesn't guard the flow itself, so leaving the flow prompts once
+            // Then the body adds no flow guard of its own, so leaving the flow prompts once
             expect(await screen.findByText(/^(Create|Split) /i)).toBeOnTheScreen();
-            expect(jest.mocked(useCreateFlowDiscardGuard)).toHaveBeenLastCalledWith(expect.objectContaining({isEnabled: false}));
+            expect(screen.queryByTestId('MockCreateFlowRootDiscardGuard')).not.toBeOnTheScreen();
         });
 
-        it('guards the flow on the standalone route', async () => {
+        it('guards the flow on the standalone route, where dropping a receipt can open it with no start page below', async () => {
             // Given the standalone RHP route of a create flow
             await renderConfirmation({isEmbedded: false});
 
-            // Then it guards the flow, so leaving it or closing the RHP from a page opened from it asks first
-            expect(await screen.findByTestId(CONFIRMATION_SCREEN_TEST_ID)).toBeOnTheScreen();
-            expect(jest.mocked(useCreateFlowDiscardGuard)).toHaveBeenLastCalledWith(expect.objectContaining({isEnabled: true}));
+            // Then it mounts the flow guard, which only reacts when the screen is the first one of the flow
+            expect(await screen.findByTestId('MockCreateFlowRootDiscardGuard')).toBeOnTheScreen();
         });
     });
 });
