@@ -11,7 +11,7 @@ import React from 'react';
 import type {BaseMenuItemTextProps, MenuItemSupportingTextProps} from './types';
 
 /** Base of the muted leaves */
-function BaseMenuItemSupportingText({children, numberOfLines = 2, slot, style}: MenuItemSupportingTextProps & BaseMenuItemTextProps) {
+function BaseMenuItemSupportingText({children, numberOfLines = 2, slot, style, forwardedFSClass}: MenuItemSupportingTextProps & BaseMenuItemTextProps) {
     const styles = useThemeStyles();
     const {shouldAllowTextSelection} = useMenuItemConfig();
 
@@ -22,6 +22,7 @@ function BaseMenuItemSupportingText({children, numberOfLines = 2, slot, style}: 
             style={[styles.textLabelSupporting, styles.breakWord, style, shouldAllowTextSelection && styles.userSelectNone]}
             numberOfLines={numberOfLines}
             dataSet={shouldAllowTextSelection ? {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true} : undefined}
+            fsClass={forwardedFSClass}
         >
             {children}
         </Text>

@@ -96,7 +96,7 @@ import capturePageHTML from '@libs/PageHTMLCapture';
 import {prunePagesToNewestWindow} from '@libs/PaginationUtils';
 import Parser from '@libs/Parser';
 import {getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
-import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
+import {getAllPersonalDetails, getPersonalDetail} from '@libs/PersonalDetailsStore';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
@@ -347,7 +347,7 @@ type ParticipantInfo = {
     accountIDForOptimisticData?: number;
 };
 
-type OpenReportActionParams = {
+type OpenReportActionBaseParams = {
     reportID: string | undefined;
     introSelected: OnyxEntry<IntroSelected>;
 
@@ -355,10 +355,6 @@ type OpenReportActionParams = {
     reportActionID?: string;
 
     participants?: ParticipantInfo[];
-
-    // TODO: personalDetails should be a required field in follow-up PRs https://github.com/Expensify/App/issues/73656
-    /** The personal details of the participants */
-    personalDetails?: OnyxEntry<PersonalDetailsList>;
 
     /** The optimistic report object created when making a new chat, saved as optimistic data */
     newReportObject?: OptimisticChatReport;
@@ -383,6 +379,9 @@ type OpenReportActionParams = {
 
     /** The optimistic selfDM report when it exists on the server but was filtered out from OpenApp response (e.g., no actions yet) */
     optimisticSelfDMReport?: Report;
+
+    /** The parent IOU action from another member's self DM, which the current user does not have locally */
+    parentReportAction?: ReportAction;
 
     currentUserLogin?: string;
     currentUserAccountID: number;
@@ -419,6 +418,19 @@ type OpenReportActionParams = {
     // TODO: This will be made required once all callers thread the value. Refactor issue: https://github.com/Expensify/App/issues/66425
     delegateAccountID?: number;
 };
+
+type OpenReportActionParams = OpenReportActionBaseParams &
+    (
+        | {
+              /** Required when creating a report or opening a transaction that may need optimistic actions. */
+              personalDetails: OnyxEntry<PersonalDetailsList>;
+          }
+        | {
+              personalDetails?: OnyxEntry<PersonalDetailsList>;
+              newReportObject?: never;
+              transaction?: never;
+          }
+    );
 
 type PregeneratedResponseParams = {
     optimisticConciergeReportActionID: string;
@@ -1757,6 +1769,7 @@ function openReport(params: OpenReportActionParams) {
         parentReportID,
         shouldAddPendingFields = true,
         optimisticSelfDMReport,
+        parentReportAction,
         currentUserLogin,
         currentUserAccountID,
         isSelfTourViewed,
@@ -2056,8 +2069,7 @@ function openReport(params: OpenReportActionParams) {
 
         let emailCreatingAction: string = CONST.REPORT.OWNER_EMAIL_FAKE;
         if (newReportObject.ownerAccountID && newReportObject.ownerAccountID !== CONST.REPORT.OWNER_ACCOUNT_ID_FAKE) {
-            // TODO: getAllPersonalDetails() fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
-            emailCreatingAction = (personalDetails ?? getAllPersonalDetails())?.[newReportObject.ownerAccountID]?.login ?? '';
+            emailCreatingAction = personalDetails?.[newReportObject.ownerAccountID]?.login ?? '';
         }
         const optimisticCreatedAction = buildOptimisticCreatedReportAction({emailCreatingAction});
         optimisticData.push(
@@ -2097,8 +2109,7 @@ function openReport(params: OpenReportActionParams) {
                 continue;
             }
 
-            // TODO: getAllPersonalDetails() fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
-            const isOptimisticAccount = !(personalDetails ?? getAllPersonalDetails())?.[accountID];
+            const isOptimisticAccount = !personalDetails?.[accountID];
 
             if (!isOptimisticAccount) {
                 continue;
@@ -2167,12 +2178,13 @@ function openReport(params: OpenReportActionParams) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newReportObject.parentReportID}`,
-                value: {[parentReportActionID]: {childReportID: reportID, childType: CONST.REPORT.TYPE.CHAT}},
+                value: {[parentReportActionID]: {...parentReportAction, childReportID: reportID, childType: CONST.REPORT.TYPE.CHAT}},
             });
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newReportObject.parentReportID}`,
-                value: {[parentReportActionID]: {childType: ''}},
+                // Nothing from the server repairs another member's self DM, so drop the dead thread to let the next open retry
+                value: {[parentReportActionID]: parentReportAction ? {childReportID: null, childType: ''} : {childType: ''}},
             });
         }
     }
@@ -2526,6 +2538,9 @@ type CreateTransactionThreadReportParams = {
     /** The accountID of the copilot acting on behalf of the current user, if any */
     // TODO: This will be made required once all callers thread the value. Refactor issue: https://github.com/Expensify/App/issues/66425
     delegateAccountID?: number;
+
+    /** The self DM holding the expense, used instead of the current user's when set */
+    selfDMReportID?: string;
 };
 
 function createTransactionThreadReport(params: CreateTransactionThreadReportParams): OptimisticChatReport | undefined {
@@ -2548,17 +2563,28 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
     const isTrackExpense = !iouReport && ReportActionsUtils.isTrackExpenseAction(iouReportAction);
     const isUnreportedTransaction = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const shouldUseSelfDM = isTrackExpense || isUnreportedTransaction;
-    if (shouldUseSelfDM && iouReportAction?.actorAccountID !== currentUserAccountID) {
-        Log.warn('Cannot build transaction thread in the current user self DM for an expense owned by another user');
+    const isOwnedByCurrentUser = iouReportAction?.actorAccountID === currentUserAccountID;
+    if (shouldUseSelfDM && !isOwnedByCurrentUser && !params.selfDMReportID) {
+        Log.warn('Cannot build transaction thread in the current user self DM for an expense owned by another user', {
+            transactionID: transaction?.transactionID,
+            reportActionID: iouReportAction?.reportActionID,
+        });
         return;
     }
 
-    const selfDMReportID = shouldUseSelfDM ? findSelfDMReportID() : undefined;
+    const selfDMReportID = shouldUseSelfDM ? (params.selfDMReportID ?? findSelfDMReportID()) : undefined;
 
     let optimisticSelfDMReport: Report | undefined;
+    let parentReportAction: ReportAction | undefined;
     let reportToUse = iouReport;
     if (selfDMReportID) {
         reportToUse = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
+
+        // The viewer doesn't have another member's self DM loaded, and the thread only needs its ID as the parent
+        if (!reportToUse && !isOwnedByCurrentUser) {
+            reportToUse = {reportID: selfDMReportID};
+            parentReportAction = iouReportAction ?? undefined;
+        }
 
         // selfDMReportID may be set but the report is filtered out.
         // Create an optimistic report if needed to proceed with the transaction thread.
@@ -2605,6 +2631,7 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
         parentReportID: selfDMReportID,
         shouldAddPendingFields,
         optimisticSelfDMReport,
+        parentReportAction,
         currentUserLogin,
         currentUserAccountID,
         isSelfTourViewed,
@@ -4369,6 +4396,7 @@ function updateReportField({
     const optimisticChangeFieldAction = buildOptimisticChangeFieldAction(reportField, previousReportField, accountID);
     const predictedNextStatus = getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
 
+    // A closed or open report has no next approver, so personalDetailsByLogins isn't needed.
     const optimisticNextStep = buildOptimisticNextStep({
         report,
         predictedNextStatus,
@@ -4380,6 +4408,7 @@ function updateReportField({
         isASAPSubmitBetaEnabled,
         isTrackIntentUser,
         rules,
+        personalDetailsByLogins: undefined,
     });
 
     const isInvoiceField = report.type === CONST.REPORT.TYPE.INVOICE && reportField.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
@@ -4777,11 +4806,9 @@ function navigateToConciergeChat({
             navigateToAndOpenReport({
                 login: CONST.EMAIL.CONCIERGE,
                 personalDetailsByLogin: {[CONST.EMAIL.CONCIERGE]: {accountID: CONST.ACCOUNT_ID.CONCIERGE, login: CONST.EMAIL.CONCIERGE}},
-                // The list was captured before onServerDataReady(), so it can be stale when OpenApp only just loaded Concierge.
-                // When Concierge is missing from it, pass undefined so openReport reads the live list instead of treating Concierge
-                // as a new account and merging an optimistic personal detail over the real one.
-                // TODO: Remove this fallback together with the allPersonalDetails Onyx.connect https://github.com/Expensify/App/issues/73656
-                personalDetails: conciergePersonalDetails?.[CONST.ACCOUNT_ID.CONCIERGE] ? conciergePersonalDetails : undefined,
+                // OpenApp may load Concierge while waiting for server data. Read its current record at this
+                // non-React boundary so a stale caller snapshot cannot replace it with an optimistic profile.
+                personalDetails: buildPersonalDetailsList([getPersonalDetail(CONST.ACCOUNT_ID.CONCIERGE) ?? conciergePersonalDetails?.[CONST.ACCOUNT_ID.CONCIERGE] ?? undefined]),
                 currentUserAccountID,
                 introSelected,
                 // The Concierge chat does not exist yet on this path (it is being created here), so there is no report to thread.
@@ -4860,6 +4887,7 @@ function buildNewReportOptimisticData({
         optimisticReportData.reportName = reportName;
     }
 
+    // A new report is open and has no next approver, so personalDetailsByLogins isn't needed.
     const optimisticNextStep = buildOptimisticNextStep({
         report: optimisticReportData,
         predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
@@ -4870,6 +4898,7 @@ function buildNewReportOptimisticData({
         isASAPSubmitBetaEnabled,
         isTrackIntentUser,
         rules,
+        personalDetailsByLogins: undefined,
     });
     if (optimisticNextStep) {
         optimisticReportData.nextStep = optimisticNextStep;
@@ -8431,6 +8460,7 @@ function buildOptimisticChangePolicyData({
     reportTransactions,
     rules,
     delegateAccountID,
+    personalDetailsByLogins,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -8449,6 +8479,7 @@ function buildOptimisticChangePolicyData({
     reportTransactions: Transaction[];
     rules: OnyxCollection<Rule>;
     delegateAccountID: number | undefined;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 }) {
     const optimisticData: Array<
         OnyxUpdate<
@@ -8504,7 +8535,7 @@ function buildOptimisticChangePolicyData({
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                managerID: getNextApproverAccountID(report, rules, true),
+                managerID: getNextApproverAccountID(report, rules, true, undefined, personalDetailsByLogins),
             },
         });
 
@@ -8555,6 +8586,7 @@ function buildOptimisticChangePolicyData({
             bypassNextApproverID: shouldResetApprovalChain ? newManagerAccountID : undefined,
             isTrackIntentUser,
             rules,
+            personalDetailsByLogins,
         });
 
         optimisticData.push({
@@ -8941,6 +8973,7 @@ function changeReportPolicy({
     reportTransactions,
     rules,
     delegateAccountID,
+    personalDetailsByLogins,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -8959,6 +8992,7 @@ function changeReportPolicy({
     reportTransactions: Transaction[];
     rules: OnyxCollection<Rule>;
     delegateAccountID: number | undefined;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 }) {
     if (!report || !policy || report.policyID === policy.id || !isExpenseReport(report) || shouldBlockChangeReportPolicyForMapOrGPSRequirement(reportTransactions, policy)) {
         return;
@@ -8981,6 +9015,7 @@ function changeReportPolicy({
         reportTransactions,
         rules,
         delegateAccountID,
+        personalDetailsByLogins,
     });
 
     const params = {
@@ -9104,6 +9139,7 @@ function changeReportPolicyAndInviteSubmitter({
         reportTransactions,
         rules,
         delegateAccountID,
+        personalDetailsByLogins,
     });
 
     const optimisticData = [...optimisticAddMembersData, ...optimisticChangePolicyData];

@@ -25,9 +25,14 @@ const mockTranslate = TestHelper.translateLocal;
 
 const mockOnyxValues: Record<string, unknown> = {};
 
+const INTRO_PATH = 'settings/wallet/global-reimbursements/1';
+
+// The real hook reads the focused route, so the path changes once the page navigates away
+let mockFocusedPath = INTRO_PATH;
+
 // The real useFocusEffect throws outside a navigator
 jest.mock('@react-navigation/native', () => ({...jest.requireActual<Record<string, unknown>>('@react-navigation/native'), useFocusEffect: jest.fn()}));
-jest.mock('@navigation/Navigation', () => ({dismissModal: jest.fn(), navigate: jest.fn(), goBack: jest.fn()}));
+jest.mock('@navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn()}));
 jest.mock('@userActions/DynamicForm', () => ({clearSensitiveAnswers: jest.fn()}));
 jest.mock('@userActions/FormActions', () => ({clearDraftValues: jest.fn(), clearErrorFields: jest.fn()}));
 jest.mock('@userActions/BankAccounts', () => ({hideBankAccountErrors: jest.fn()}));
@@ -40,7 +45,7 @@ jest.mock('@hooks/useOnyx', () => (key: string, options?: {selector?: (value: un
     const value = mockOnyxValues[key];
     return [options?.selector ? options.selector(value) : value, {status: 'loaded'}];
 });
-jest.mock('@hooks/useDynamicBackPath', () => () => 'settings/wallet/global-reimbursements/1');
+jest.mock('@hooks/useDynamicBackPath', () => () => mockFocusedPath);
 jest.mock('@hooks/usePermissions', () => () => ({isBetaEnabledOrUnknown: () => true}));
 jest.mock('@hooks/useLocalize', () => () => ({translate: mockTranslate, preferredLocale: 'en'}));
 jest.mock('@hooks/useThemeStyles', () => () => new Proxy({}, {get: () => ({})}));
@@ -72,7 +77,6 @@ jest.mock('@components/CheckboxWithLabel', () => {
 const BANK_ACCOUNT_ID = 1;
 const ERROR_TIMESTAMP = '1793657199501652';
 const ERROR = mockTranslate('walletPage.wiseOnboarding.terms.error');
-const ALREADY_SUBMITTED = mockTranslate('walletPage.wiseOnboarding.terms.alreadySubmitted');
 const CONFIRM = mockTranslate('common.confirm');
 const TERM_LABELS = [
     mockTranslate('walletPage.wiseOnboarding.terms.certify'),
@@ -123,6 +127,7 @@ function answerSubmission(rerender: () => void, answer: Record<string, unknown>)
 describe('WiseAcceptTermsPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockFocusedPath = INTRO_PATH;
         for (const key of Object.keys(mockOnyxValues)) {
             delete mockOnyxValues[key];
         }
@@ -164,7 +169,7 @@ describe('WiseAcceptTermsPage', () => {
         expect(screen.queryByText(ERROR)).not.toBeOnTheScreen();
     });
 
-    it('drops the onboarding answers and opens the more info needed page once Wise has the business', () => {
+    it('drops the onboarding answers and opens the status page once Wise has the business', () => {
         // Given a submission sent from the terms page
         const {rerender} = renderPage();
         tickEveryBox();
@@ -173,11 +178,42 @@ describe('WiseAcceptTermsPage', () => {
         // When the request succeeds
         answerSubmission(rerender, {isWiseBusinessOnboardingSubmitSuccessful: true});
 
-        // Then the draft, the SSN in memory and the unsaved pages go, since the server holds the business now, and the more info needed page replaces the terms
+        // Then the draft, the SSN in memory and the unsaved pages go, since the server holds the business now, and the status page replaces the terms
         expect(clearDraftValues).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
         expect(clearSensitiveAnswers).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
         expect(clearWiseOnboardingUnsavedPages).toHaveBeenCalled();
-        expect(Navigation.navigate).toHaveBeenCalledWith('settings/wallet/global-reimbursements/1/more-info-needed', {forceReplace: true});
+        expect(Navigation.navigate).toHaveBeenCalledWith('settings/wallet/global-reimbursements/1/status', {forceReplace: true});
+    });
+
+    it('opens the status page only once while the terms page is still mounted under it', () => {
+        // Given a submission that succeeded and opened the status page
+        const {rerender} = renderPage();
+        tickEveryBox();
+        pressConfirm();
+        answerSubmission(rerender, {isWiseBusinessOnboardingSubmitSuccessful: true});
+
+        // When the terms page renders again with the status page focused, as it does until the replace finishes
+        mockFocusedPath = `${INTRO_PATH}/status`;
+        rerender();
+
+        // Then it does not navigate again, since the focused path is no longer the terms page and would point at a route that does not exist
+        expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+    });
+
+    it('opens the page with a rejected answer only once while the terms page is still mounted under it', () => {
+        // Given a submission whose rejected answer opened the business page
+        const {rerender} = renderPage();
+        tickEveryBox();
+        pressConfirm();
+        mockOnyxValues[ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM] = {errorFields: {description: {[ERROR_TIMESTAMP]: 'Too vague'}}};
+        answerSubmission(rerender, {isWiseBusinessOnboardingSubmitSuccessful: false, errors: {[ERROR_TIMESTAMP]: 'Validation failed'}});
+
+        // When the terms page renders again with the business page focused
+        mockFocusedPath = `${INTRO_PATH}/business-onboarding/business`;
+        rerender();
+
+        // Then it does not navigate again, since the focused path is no longer the terms page
+        expect(Navigation.navigate).toHaveBeenCalledTimes(1);
     });
 
     it('keeps the user on the terms page with the error when the submission fails', () => {
@@ -223,19 +259,50 @@ describe('WiseAcceptTermsPage', () => {
         expect(screen.getByText('Validation failed')).toBeOnTheScreen();
     });
 
-    it('tells the user the business is already submitted, as information, and Confirm closes the flow', () => {
-        // Given a bank account whose business Wise is already reviewing
+    it('opens the status page instead of the terms once the business is submitted', () => {
+        // Given a bank account whose business is already submitted to Wise
         mockOnyxValues[ONYXKEYS.BANK_ACCOUNT_LIST] = {[BANK_ACCOUNT_ID]: {accountData: {additionalData: {wise: {status: CONST.WISE.ONBOARDING_STATUS.IN_REVIEW}}}}};
+
+        // When the terms page opens for it
         renderPage();
 
-        // Then the page says so as information
-        expect(screen.getByText(ALREADY_SUBMITTED)).toBeOnTheScreen();
-
-        // When the user presses Confirm
-        pressConfirm();
-
-        // Then nothing is sent again and the flow closes
+        // Then nothing is sent again, the answers left on the device go and the status page replaces the terms
         expect(submitWiseBusinessOnboarding).not.toHaveBeenCalled();
-        expect(Navigation.dismissModal).toHaveBeenCalledTimes(1);
+        expect(clearDraftValues).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
+        expect(Navigation.navigate).toHaveBeenCalledWith('settings/wallet/global-reimbursements/1/status', {forceReplace: true});
+    });
+
+    it('waits for the intro path before opening the status page from a deep link', () => {
+        // Given a submitted business and a deep link that renders the page before the root state holds it, so the back path is empty
+        mockOnyxValues[ONYXKEYS.BANK_ACCOUNT_LIST] = {[BANK_ACCOUNT_ID]: {accountData: {additionalData: {wise: {status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED}}}}};
+        mockFocusedPath = '';
+        const {rerender} = renderPage();
+
+        // Then it does not navigate yet, since a status route built on an empty path does not exist
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+
+        // When the root state catches up and the back path becomes the intro
+        mockFocusedPath = INTRO_PATH;
+        rerender();
+
+        // Then the status page replaces the terms over the intro
+        expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+        expect(Navigation.navigate).toHaveBeenCalledWith('settings/wallet/global-reimbursements/1/status', {forceReplace: true});
+    });
+
+    it('opens the status page only once when the server sends the submitted business after the submission succeeded', () => {
+        // Given a submission that succeeded and opened the status page
+        const {rerender} = renderPage();
+        tickEveryBox();
+        pressConfirm();
+        answerSubmission(rerender, {isWiseBusinessOnboardingSubmitSuccessful: true});
+
+        // When the bank account with Wise's status arrives while the terms page is still mounted
+        mockOnyxValues[ONYXKEYS.BANK_ACCOUNT_LIST] = {[BANK_ACCOUNT_ID]: {accountData: {additionalData: {wise: {status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED}}}}};
+        mockFocusedPath = `${INTRO_PATH}/status`;
+        rerender();
+
+        // Then it does not navigate again, since the status page is already open
+        expect(Navigation.navigate).toHaveBeenCalledTimes(1);
     });
 });

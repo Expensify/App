@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.5.32-3",
+  "version": "9.5.34-0",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -349,7 +349,7 @@
     "openai": "^7.0.0",
     "oxc-transform-react": "0.156.0",
     "oxfmt": "^0.55.0",
-    "oxlint": "1.90.0",
+    "oxlint": "1.92.0",
     "oxlint-tsgolint": "7.0.2005",
     "patch-package": "^8.1.0-canary.1",
     "peggy": "^4.0.3",

@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
@@ -26,11 +27,14 @@ type HomeSectionExpandToggleProps = {
     /** Label rendered when the section is collapsed (e.g. "See 24 more") */
     collapsedLabel: string;
 
+    /** Label for Sentry tracking, from `CONST.SENTRY_LABEL`. Each section passes its own because expanding renders different rows. */
+    sentryLabel: SentryLabel;
+
     /** Optional override for the wrapper style. Defaults to the standard ph5/ph8 padding used by home sections. */
     wrapperStyle?: StyleProp<ViewStyle>;
 };
 
-function HomeSectionExpandToggle({isExpanded, onPress, collapsedLabel, wrapperStyle}: HomeSectionExpandToggleProps) {
+function HomeSectionExpandToggle({isExpanded, onPress, collapsedLabel, sentryLabel, wrapperStyle}: HomeSectionExpandToggleProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -44,7 +48,7 @@ function HomeSectionExpandToggle({isExpanded, onPress, collapsedLabel, wrapperSt
             onPress={onPress}
             role={CONST.ROLE.BUTTON}
             accessibilityLabel={label}
-            sentryLabel="HomeSectionExpandToggle"
+            sentryLabel={sentryLabel}
             style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv3, cardPaddingHorizontal, wrapperStyle]}
         >
             <View style={[styles.alignItemsCenter, styles.justifyContentCenter, {width: variables.componentSizeNormal, height: variables.componentSizeNormal}]}>

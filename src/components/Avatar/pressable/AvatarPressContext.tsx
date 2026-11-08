@@ -1,4 +1,5 @@
 import type {Icon} from '@src/types/onyx/OnyxCommon';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {PropsWithChildren} from 'react';
 
@@ -9,7 +10,7 @@ type AvatarPress = {
     onAvatarPress: (avatar: Icon) => void;
 
     /** Sentry label for every press target */
-    sentryLabel: string;
+    sentryLabel: SentryLabel;
 };
 
 const AvatarPressContext = createContext<AvatarPress | undefined>(undefined);

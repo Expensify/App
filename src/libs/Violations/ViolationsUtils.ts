@@ -4,7 +4,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import {convertAttendeesToArray, getAttendeesMinusOwnerCount, getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {isPersonalCard} from '@libs/CardUtils';
-import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
+import {getDecodedCategoryName, isCategoryMissing, isCategoryVisibleToMember} from '@libs/CategoryUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
@@ -801,6 +801,11 @@ const ViolationsUtils = {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.SMARTSCAN_FAILED});
         }
 
+        // A cleared category cannot be restricted, even when the policy does not require categories.
+        if (isCategoryMissing(updatedTransaction.category)) {
+            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED});
+        }
+
         // Calculate client-side category violations. Also run when the transaction has a category (not just
         // when the policy requires one) so disabling that category flags it optimistically. Mirrors tags below.
         const policyRequiresCategories = (!!policy.requiresCategory || !!updatedTransaction.category) && !isSelfDM;
@@ -821,6 +826,13 @@ const ViolationsUtils = {
             // Remove 'categoryOutOfPolicy' violation if category is in policy
             if (hasCategoryOutOfPolicyViolation && updatedTransaction.category && isCategoryInPolicy) {
                 newTransactionViolations = reject(newTransactionViolations, {name: 'categoryOutOfPolicy'});
+            }
+
+            // Category restrictions belong to the expense owner, not the user editing the expense.
+            const ownerAccountID = iouReport?.ownerAccountID;
+            const hasRestrictedCategoryViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED);
+            if (hasRestrictedCategoryViolation && ownerAccountID && isCategoryVisibleToMember(categoryData, ownerAccountID)) {
+                newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED});
             }
 
             // Remove 'missingCategory' violation if category is valid according to policy
@@ -1244,6 +1256,8 @@ const ViolationsUtils = {
                 return translate('violations.billableExpense');
             case 'cashExpenseWithNoReceipt':
                 return translate('violations.cashExpenseWithNoReceipt', !isEmptyObject(violation.data) ? convertToDisplayString(amount, currency) : undefined);
+            case 'categoryNotAllowed':
+                return translate('violations.categoryNotAllowed');
             case 'categoryOutOfPolicy':
                 return translate('violations.categoryOutOfPolicy');
             case 'conversionSurcharge':
