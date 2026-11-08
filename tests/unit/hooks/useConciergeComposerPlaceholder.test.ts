@@ -1,9 +1,13 @@
 import {act, renderHook} from '@testing-library/react-native';
+
 import useConciergeComposerPlaceholder from '@pages/inbox/report/ReportActionCompose/useConciergeComposerPlaceholder';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
+
 import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const ACCOUNT_ID = 1;
@@ -150,7 +154,7 @@ describe('useConciergeComposerPlaceholder', () => {
         expect(result.current).toBe(expectedPlaceholder);
     });
 
-    it.each(Array.from({length: 15}, (_, index) => index / 15))('never offers personal prompts for others\' expenses with seed %s', async (seed) => {
+    it.each(Array.from({length: 15}, (_, index) => index / 15))("never offers personal prompts for others' expenses with seed %s", async (seed) => {
         // Given only another user's report and two of their expenses loaded by an approver
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {...expenseReport, ownerAccountID: 2});
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, transaction);

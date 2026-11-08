@@ -2,13 +2,17 @@
  * Keeps Concierge prompts that require existing expenses out of an empty account's composer.
  */
 import useOnyx from '@hooks/useOnyx';
+
 import {isCurrentUserSubmitter, isMoneyRequestReport} from '@libs/ReportUtils';
 import {isExpenseUnreported} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
-import {useState} from 'react';
+
 import type {OnyxCollection} from 'react-native-onyx';
+
+import {useState} from 'react';
 
 const DEFAULT_PLACEHOLDER_KEYS = ['common.concierge.composerPlaceholders.createExpense', 'reportActionCompose.askConciergeForHelp'] as const;
 
