@@ -42,22 +42,25 @@ function FlatNavAccountStatus() {
             text={tooltipText}
             shiftVertical={-4}
         >
-            <Hoverable>
-                {(isHovered) => (
-                    <View
-                        testID="FlatNavAccountStatus"
-                        style={[
-                            styles.alignItemsCenter,
-                            styles.justifyContentCenter,
-                            StyleUtils.getWidthAndHeightStyle(variables.componentSizeSmall),
-                            styles.borderRadiusCircle,
-                            isHovered ? styles.buttonHoveredBG : styles.buttonDefaultBG,
-                        ]}
-                    >
-                        <Text numberOfLines={1}>{emojiCode}</Text>
-                    </View>
-                )}
-            </Hoverable>
+            {/* Tooltip shows on mouse handlers it injects into its child, which Hoverable does not forward, so its target is a plain View */}
+            <View>
+                <Hoverable>
+                    {(isHovered) => (
+                        <View
+                            testID="FlatNavAccountStatus"
+                            style={[
+                                styles.alignItemsCenter,
+                                styles.justifyContentCenter,
+                                StyleUtils.getWidthAndHeightStyle(variables.componentSizeSmall),
+                                styles.borderRadiusCircle,
+                                isHovered ? styles.buttonHoveredBG : styles.buttonDefaultBG,
+                            ]}
+                        >
+                            <Text numberOfLines={1}>{emojiCode}</Text>
+                        </View>
+                    )}
+                </Hoverable>
+            </View>
         </Tooltip>
     );
 }

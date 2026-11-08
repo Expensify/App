@@ -15,7 +15,7 @@ import React from 'react';
 import type {BaseMenuItemTextProps, MenuItemPrimaryTextProps} from './types';
 
 /** Base of the full-contrast leaves */
-function BaseMenuItemPrimaryText({children, accessibilityLabel, numberOfLines = 1, isSelectable = false, slot, style}: MenuItemPrimaryTextProps & BaseMenuItemTextProps) {
+function BaseMenuItemPrimaryText({children, accessibilityLabel, numberOfLines = 1, isSelectable = false, slot, style, forwardedFSClass}: MenuItemPrimaryTextProps & BaseMenuItemTextProps) {
     const styles = useThemeStyles();
     const {isDisabled, isInteractive} = useMenuItemConfig();
     const shouldHideTextFromSelection = isInteractive && isDisabled;
@@ -43,6 +43,7 @@ function BaseMenuItemPrimaryText({children, accessibilityLabel, numberOfLines = 
             ]}
             numberOfLines={numberOfLines}
             dataSet={selectionDataSet}
+            fsClass={forwardedFSClass}
         >
             {typeof children === 'string' ? convertToLTR(children) : children}
         </Text>

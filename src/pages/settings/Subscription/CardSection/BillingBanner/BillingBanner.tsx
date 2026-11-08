@@ -12,6 +12,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -44,7 +45,7 @@ type BillingBannerProps = {
     rightIconTooltipText?: string;
 
     /** Sentry label for the right icon button. Defaults to `CONST.SENTRY_LABEL.BILLING_BANNER.RIGHT_ICON`. */
-    rightIconSentryLabel?: string;
+    rightIconSentryLabel?: SentryLabel;
 
     /** A component to be rendered on the right side of the banner. */
     rightComponent?: React.ReactNode;

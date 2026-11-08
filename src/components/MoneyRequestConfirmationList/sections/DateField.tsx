@@ -34,6 +34,7 @@ import AutomaticFieldHint from './AutomaticFieldHint';
 import ExpenseFieldRow from './ExpenseFieldRow';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {dateStateSelector} from './selectors';
+import useSplitDraftBaseTransaction from './useSplitDraftBaseTransaction';
 import useTransactionSelector from './useTransactionSelector';
 
 type DateFieldProps = {
@@ -58,7 +59,6 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
     const policyForTrackExpense = usePolicy(isTrackExpense ? policyForMovingExpensesID : undefined);
 
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const policy = usePolicy(report?.policyID);
@@ -66,6 +66,7 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
 
     const dateState = useTransactionSelector(transactionID, dateStateSelector);
     const transaction = useTransactionSelector(transactionID, (t) => t);
+    const {baseTransaction} = useSplitDraftBaseTransaction(transactionID);
 
     const iouCreated = dateState?.iouCreated ?? '';
     const createdMissing = dateState?.isMissing ?? true;
@@ -98,7 +99,7 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
         }
 
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {created: newDate}, getCurrencyDecimals, getCurrencySymbol);
+            setDraftSplitTransaction(transactionID, baseTransaction, {created: newDate}, getCurrencyDecimals, getCurrencySymbol);
             return;
         }
 

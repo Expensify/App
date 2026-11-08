@@ -17,6 +17,7 @@ import {addDays, addMinutes, endOfDay, format, set, setHours, setMinutes, startO
 import {fromZonedTime, toZonedTime, format as tzFormat} from 'date-fns-tz';
 import {de} from 'date-fns/locale/de';
 import {el} from 'date-fns/locale/el';
+import {enUS} from 'date-fns/locale/en-US';
 import {es} from 'date-fns/locale/es';
 import {fr} from 'date-fns/locale/fr';
 import {ja} from 'date-fns/locale/ja';
@@ -71,7 +72,7 @@ describe('DateUtils', () => {
     const timezone = 'Atlantic/Reykjavik';
 
     it('getZoneAbbreviation should show zone abbreviation from the datetime', () => {
-        const zoneAbbreviation = DateUtils.getZoneAbbreviation(datetime, timezone);
+        const zoneAbbreviation = DateUtils.getZoneAbbreviation(datetime, timezone, enUS);
         expect(zoneAbbreviation).toBe('GMT+0');
     });
 
@@ -731,49 +732,82 @@ describe('DateUtils', () => {
         const translateEN = <TPath extends TranslationPaths>(path: TPath, ...params: TranslationParameters<TPath>) => translate(LOCALE, path, ...params);
 
         it('should return empty string when startDate is undefined', () => {
-            const result = DateUtils.getFormattedSplitDateRange(translateEN, undefined, '2024-01-15');
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, undefined, '2024-01-15', undefined);
             expect(result).toBe('');
         });
 
         it('should return empty string when endDate is undefined', () => {
-            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-10', undefined);
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-10', undefined, undefined);
             expect(result).toBe('');
         });
 
         it('should return empty string when both dates are undefined', () => {
-            const result = DateUtils.getFormattedSplitDateRange(translateEN, undefined, undefined);
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, undefined, undefined, undefined);
             expect(result).toBe('');
         });
 
+        it('should show readable dates instead of the raw yyyy-MM-dd values', () => {
+            // Given a split over a few days, shown to an English user
+            // When its date range title is built
+            // Then each date is an abbreviated date with a year, since nobody writes dates as the stored `yyyy-MM-dd`
+            expect(DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-10', '2024-01-15', undefined)).toBe('Jan 10, 2024 to Jan 15, 2024 (6 days)');
+        });
+
+        it('should order the dates the way the language does', () => {
+            // Given the same split shown with German date formatting
+            // When its date range title is built
+            // Then the day comes before the month in each date
+            expect(DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-10', '2024-01-15', de)).toBe('10. Jan. 2024 to 15. Jan. 2024 (6 days)');
+        });
+
+        it('should return empty string when a date cannot be read', () => {
+            // Given a split whose start date is not a valid date
+            // When its date range title is built
+            // Then nothing is shown instead of `Intl` throwing a RangeError
+            expect(DateUtils.getFormattedSplitDateRange(translateEN, 'not a date', '2024-01-15', undefined)).toBe('');
+        });
+
         it('should return plural form for multiple days', () => {
-            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-10', '2024-01-15');
-            expect(result).toContain('2024-01-10');
+            // Given a split over six days
+            // When its title is built
+            // Then both dates and the plural day count are shown
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-10', '2024-01-15', undefined);
+            expect(result).toContain('Jan 10, 2024');
             expect(result).toContain('to');
-            expect(result).toContain('2024-01-15');
+            expect(result).toContain('Jan 15, 2024');
             expect(result).toContain('6 days');
         });
 
         it('should return correct format for 2 days', () => {
-            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-10', '2024-01-11');
-            expect(result).toContain('2024-01-10');
+            // Given a split over two consecutive days
+            // When its title is built
+            // Then the count includes both the first and last day
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-10', '2024-01-11', undefined);
+            expect(result).toContain('Jan 10, 2024');
             expect(result).toContain('to');
-            expect(result).toContain('2024-01-11');
+            expect(result).toContain('Jan 11, 2024');
             expect(result).toContain('2 days');
         });
 
         it('should handle cross-month date ranges', () => {
-            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-25', '2024-02-05');
-            expect(result).toContain('2024-01-25');
+            // Given a split that runs from January into February
+            // When its title is built
+            // Then the count spans the month boundary
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-25', '2024-02-05', undefined);
+            expect(result).toContain('Jan 25, 2024');
             expect(result).toContain('to');
-            expect(result).toContain('2024-02-05');
+            expect(result).toContain('Feb 5, 2024');
             expect(result).toContain('12 days');
         });
 
         it('should handle cross-year date ranges', () => {
-            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2023-12-25', '2024-01-05');
-            expect(result).toContain('2023-12-25');
+            // Given a split that runs over New Year
+            // When its title is built
+            // Then each date carries its own year
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2023-12-25', '2024-01-05', undefined);
+            expect(result).toContain('Dec 25, 2023');
             expect(result).toContain('to');
-            expect(result).toContain('2024-01-05');
+            expect(result).toContain('Jan 5, 2024');
             expect(result).toContain('12 days');
         });
     });
@@ -1114,14 +1148,18 @@ describe('DateUtils', () => {
             expect(result).toBe('Sunday, Apr 19, 2026 3:00 PM, UTC');
         });
 
-        it('should use the given locale for the weekday, the month and the clock', () => {
+        it('should use the given locale for the weekday, the month, the order and the clock', () => {
+            // Given a cancellation deadline in the venue's timezone, in a year other than the current one
             jest.useFakeTimers();
             jest.setSystemTime(new Date('2025-01-01T00:00:00Z'));
-            // German and Japanese use a 24-hour clock, so the time loses its meridiem entirely.
-            expect(DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00+07:00', de)).toBe('Sonntag, Apr. 19, 2026 15:00, GMT+7');
-            expect(DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00+07:00', ja)).toBe('日曜日, 4月 19, 2026 15:00, GMT+7');
+
+            // When it is formatted in German, Japanese and Greek
+            // Then each language orders the date its own way and uses its own clock. German and Japanese use a 24-hour
+            // clock, so the time loses its meridiem; German puts the day first and Japanese leads with the year.
+            expect(DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00+07:00', de)).toBe('Sonntag, 19. Apr. 2026 15:00, GMT+7');
+            expect(DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00+07:00', ja)).toBe('2026年4月19日日曜日 15:00, GMT+7');
             // Greek is the one shipped locale that keeps a 12-hour clock, with its own marker.
-            expect(DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00+07:00', el)).toBe('Κυριακή, Απρ 19, 2026 3:00 μ.μ., GMT+7');
+            expect(DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00+07:00', el)).toBe('Κυριακή 19 Απρ 2026 3:00 μ.μ., GMT+7');
         });
     });
 
@@ -1216,6 +1254,56 @@ describe('DateUtils', () => {
             expect(DateUtils.getShortFormattedQuarterForSearch(2026, 3, undefined, false)).toBe('Q3');
             expect(DateUtils.getShortFormattedDateRangeForSearch('2026-09-01', '2026-09-07', undefined, false)).toBe('Sep 1 - 7');
             expect(DateUtils.getShortFormattedDateRangeForSearch('2026-09-28', '2026-10-04', undefined, false)).toBe('Sep 28 - Oct 4');
+        });
+    });
+
+    describe('getZoneAbbreviation', () => {
+        // cspell:ignore MESZ
+        const BERLIN: SelectedTimezone = 'Europe/Berlin';
+        const NEW_YORK: SelectedTimezone = 'America/New_York';
+        const TOKYO: SelectedTimezone = 'Asia/Tokyo';
+
+        // Midsummer, so Berlin and New York are on daylight saving time
+        const SUMMER_INSTANT = new Date('2026-06-20T12:00:00Z');
+
+        it('keeps the English zone names unchanged', () => {
+            // Given a summer time in New York in English. The app passes `enUS` for English, while no locale would leave
+            // date-fns-tz on the system language, which is `GMT-4` on a German machine.
+            // When its zone is named
+            // Then English keeps its abbreviation
+            expect(DateUtils.getZoneAbbreviation(SUMMER_INSTANT, NEW_YORK, enUS)).toBe('EDT');
+        });
+
+        it('names the zone the way the language does', () => {
+            // Given zones that a language has its own abbreviation for
+            // When they are named in that language
+            // Then the language's own name is used rather than the English one, such as `MESZ` for summer time in
+            // Berlin in German and `JST` for Tokyo in Japanese
+            expect(DateUtils.getZoneAbbreviation(SUMMER_INSTANT, BERLIN, de)).toBe('MESZ');
+            expect(DateUtils.getZoneAbbreviation(SUMMER_INSTANT, TOKYO, ja)).toBe('JST');
+        });
+    });
+
+    describe('abbreviated date with a year', () => {
+        // cspell:ignore Juni
+        // Midday UTC, so the displayed day is the same in every timezone the test can run in.
+        const DATETIME = '2026-06-20 12:00:00';
+
+        it('keeps the English abbreviated date unchanged', () => {
+            // Given a date and no locale, which falls back to en-US
+            // When it is formatted with the abbreviated date constant
+            // Then English keeps the `MMM d, yyyy` shape it had before the constant became a localized token
+            expect(DateUtils.formatWithUTCTimeZone(DATETIME, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, undefined)).toBe('Jun 20, 2026');
+        });
+
+        it('orders the date the way each language does', () => {
+            // Given languages that do not write a short date in the US order
+            // When the same date is formatted in each
+            // Then the day comes first in German and Spanish and Japanese uses its numeric year-first form. The
+            // hand-written pattern kept the US order for every language, which produced forms like `Juni 20, 2026`.
+            expect(DateUtils.formatWithUTCTimeZone(DATETIME, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, de)).toBe('20. Juni 2026');
+            expect(DateUtils.formatWithUTCTimeZone(DATETIME, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, es)).toBe('20 jun 2026');
+            expect(DateUtils.formatWithUTCTimeZone(DATETIME, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, ja)).toBe('2026/06/20');
         });
     });
 });

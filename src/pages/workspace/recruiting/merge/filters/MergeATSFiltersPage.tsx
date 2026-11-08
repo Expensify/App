@@ -27,6 +27,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -56,7 +57,7 @@ function MergeATSFiltersPage({
 
     const providerName = getConnectedATSProvider(policy)?.displayName ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.merge_ats;
 
-    const filterRows: Array<{filterType: MergeATSFilterType; toggleTitle: string; rowDescription: string; switchSentryLabel: string}> = [
+    const filterRows: Array<{filterType: MergeATSFilterType; toggleTitle: string; rowDescription: string; switchSentryLabel: SentryLabel}> = [
         {
             filterType: CONST.MERGE.ATS_FILTER_TYPE.STAGES,
             toggleTitle: translate('workspace.recruiting.filters.stages.toggleTitle'),

@@ -1,6 +1,7 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import FSClassView from '@components/FSClassView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -205,7 +206,7 @@ function DetailsStep({policyID, cardFeeds, workspaceAccountID}: DetailsStepProps
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>
                     {!!feedProvider && !isStripeFeedProvider ? translate(`workspace.companyCards.addNewCard.feedDetails.${feedProvider}.title`) : ''}
                 </Text>
-                <View fsClass={CONST.FULLSTORY.CLASS.MASK}>{renderInputs()}</View>
+                <FSClassView forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}>{renderInputs()}</FSClassView>
                 {!!feedProvider && !isStripeFeedProvider && (
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                         <Icon

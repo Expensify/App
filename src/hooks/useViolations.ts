@@ -20,6 +20,7 @@ const violationNameToField: Record<ViolationName, (violation: TransactionViolati
     autoReportedRejectedExpense: () => 'merchant',
     billableExpense: () => 'billable',
     cashExpenseWithNoReceipt: () => 'receipt',
+    categoryNotAllowed: () => 'category',
     categoryOutOfPolicy: () => 'category',
     conversionSurcharge: () => 'amount',
     customUnitOutOfPolicy: () => 'customUnitRateID',
