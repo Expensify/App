@@ -8,19 +8,25 @@ import MenuItemDescription from '@components/MenuItem/leaves/content/MenuItemDes
 import MenuItemTitle from '@components/MenuItem/leaves/content/MenuItemTitle';
 import MenuItemChevron from '@components/MenuItem/leaves/trailing/icons/MenuItemChevron';
 
+import useOnyx from '@hooks/useOnyx';
+
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
+import ONYXKEYS from '@src/ONYXKEYS';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import type WithTestID from '@src/types/utils/TestID';
 
 import type {GestureResponderEvent} from 'react-native';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 type MenuItemAvatarNavigationProps = WithSentryLabel &
-    WithTestID & {
+    WithTestID &
+    ForwardedFSClassProps & {
         /** The title text of the row. Typically the name of whoever the avatar belongs to */
         title: string;
 
@@ -44,10 +50,11 @@ type MenuItemAvatarNavigationProps = WithSentryLabel &
  * The avatar-navigation MenuItem preset — a tappable row led by a person's avatar, with their name as the title
  * and a secondary identifier below, that navigates.
  */
-function MenuItemAvatarNavigation({title, description, accountID, avatarSource, onPress, isDisabled = false, sentryLabel, testID}: MenuItemAvatarNavigationProps) {
+function MenuItemAvatarNavigation({title, description, accountID, avatarSource, onPress, isDisabled = false, sentryLabel, testID, forwardedFSClass}: MenuItemAvatarNavigationProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     return (
         <MenuItemRoot
-            onPress={callFunctionIfActionIsAllowed(onPress)}
+            onPress={callFunctionIfActionIsAllowed(onPress, false, session)}
             isDisabled={isDisabled}
             sentryLabel={sentryLabel}
             testID={testID}
@@ -61,8 +68,8 @@ function MenuItemAvatarNavigation({title, description, accountID, avatarSource, 
                     />
                 </MenuItemLeading>
                 <MenuItemContent>
-                    <MenuItemTitle>{title}</MenuItemTitle>
-                    <MenuItemDescription>{description}</MenuItemDescription>
+                    <MenuItemTitle forwardedFSClass={forwardedFSClass}>{title}</MenuItemTitle>
+                    <MenuItemDescription forwardedFSClass={forwardedFSClass}>{description}</MenuItemDescription>
                 </MenuItemContent>
                 <MenuItemTrailing>
                     <MenuItemChevron />

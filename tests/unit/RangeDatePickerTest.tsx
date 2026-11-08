@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 
 import type * as ReactNavigationNative from '@react-navigation/native';
 
-import {addYears, format} from 'date-fns';
+import {addYears, format, isToday} from 'date-fns';
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native'),
@@ -18,7 +18,7 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../src/hooks/useLocalize', () =>
     jest.fn(() => ({
-        translate: jest.fn(),
+        translate: jest.fn((key: string, ...params: string[]) => [key, ...params].join('|')),
     })),
 );
 
@@ -40,8 +40,10 @@ function toStoredDate(date: Date) {
     return format(date, CONST.DATE.FNS_FORMAT_STRING);
 }
 
+// The calendar names today in its label, so a test day that falls on today is found by that label
 function toDayLabel(date: Date) {
-    return DateUtils.formatToLongDateWithWeekday(date, undefined);
+    const longDateLabel = DateUtils.formatToLongDateWithWeekday(date, undefined);
+    return isToday(date) ? `common.todayDateLabel|${longDateLabel}` : longDateLabel;
 }
 
 function pressDay(label: string, calendarIndex: number) {

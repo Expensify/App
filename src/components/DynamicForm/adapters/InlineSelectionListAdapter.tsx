@@ -1,4 +1,5 @@
 import FormHelpMessage from '@components/FormHelpMessage';
+import FSClassView from '@components/FSClassView';
 import type {Choice} from '@components/RadioButtons';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
@@ -12,6 +13,8 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import searchOptions from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
 import toggleArrayItem from '@libs/toggleArrayItem';
+
+import type {ComponentRef, Ref} from 'react';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -28,6 +31,9 @@ type InlineSelectionListAdapterBaseProps = ForwardedFSClassProps & {
 
     /** Label of the search box */
     searchInputLabel?: string;
+
+    /** Lets FormProvider scroll to the field when the user asks to fix the errors */
+    ref?: Ref<ComponentRef<typeof View>>;
 };
 
 type InlineSelectionListAdapterSingleProps = {
@@ -56,7 +62,7 @@ type InlineSelectionListAdapterProps = InlineSelectionListAdapterBaseProps & (In
 
 /** A choice list shown as the page itself, for a choice field that is alone on its page */
 function InlineSelectionListAdapter(props: InlineSelectionListAdapterProps) {
-    const {items, errorText = '', isSearchable = false, searchInputLabel, forwardedFSClass} = props;
+    const {items, errorText = '', isSearchable = false, searchInputLabel, forwardedFSClass, ref} = props;
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
@@ -90,7 +96,10 @@ function InlineSelectionListAdapter(props: InlineSelectionListAdapterProps) {
     };
 
     return (
-        <View fsClass={forwardedFSClass}>
+        <FSClassView
+            ref={ref}
+            forwardedFSClass={forwardedFSClass}
+        >
             <SelectionList
                 data={data}
                 canSelectMultiple={!!props.canSelectMultiple}
@@ -106,7 +115,7 @@ function InlineSelectionListAdapter(props: InlineSelectionListAdapterProps) {
                     <FormHelpMessage message={errorText} />
                 </View>
             )}
-        </View>
+        </FSClassView>
     );
 }
 

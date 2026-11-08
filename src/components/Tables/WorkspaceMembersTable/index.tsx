@@ -10,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getPolicyApproverLogins, isControlPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+import {getFirstApproverLabel} from '@libs/WorkflowUtils';
 
 import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
@@ -26,14 +27,21 @@ import React from 'react';
 
 import WorkspaceMembersTableRow from './WorkspaceMembersTableRow';
 
-type WorkspaceMembersTableColumnKey = 'member' | 'role' | 'actions' | 'customField1' | 'customField2' | 'bankAccount';
+type WorkspaceMembersTableColumnKey = 'member' | 'approver' | 'role' | 'actions' | 'officeLocation' | 'customField1' | 'customField2' | 'bankAccount';
 
 type WorkspaceMemberRowData = TableData & {
     accountID: number;
     login: string;
+    /** Whether this member is the workspace billing owner, shown as a badge rather than a role. */
+    isOwner?: boolean;
     role?: ValueOf<typeof CONST.POLICY.ROLE>;
     employeeUserID?: string;
     employeePayrollID?: string;
+    approverAccountID?: number;
+    approverDisplayName?: string;
+    approverLogin?: string;
+    approverPendingAction?: OnyxCommon.PendingAction;
+    officeLocationName?: string;
     bankAccountLastFour?: string;
     name: string;
     email: string;
@@ -57,6 +65,9 @@ type WorkspaceMembersTableProps = {
     selectedKeys: string[];
     shouldShowCustomField1Column: boolean;
     shouldShowCustomField2Column: boolean;
+    shouldShowApproverColumn: boolean;
+    shouldUseOrdinalApproverLabel: boolean;
+    shouldShowOfficeLocationColumn: boolean;
     shouldShowBankAccountColumn: boolean;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
     headerComponent?: React.ReactElement;
@@ -65,8 +76,12 @@ type WorkspaceMembersTableProps = {
     bulkActionOptions?: Array<DropdownOption<WorkspaceMemberBulkActionType>>;
 };
 
+/** Width the approver cell's avatar and the gap the row lays it out with, which the name starts after. */
+const APPROVER_CELL_AVATAR_WIDTH = variables.avatarSizeXxxSmall + variables.spacing2;
+
 const WORKSPACE_MEMBER_FILTER_VALUES = {
     ADMINS: 'admins',
+    APPROVE_ONLY: 'approveOnly',
     APPROVERS: 'approvers',
     AUDITORS: 'auditors',
     CARD_ADMINS: 'cardAdmins',
@@ -84,6 +99,9 @@ export default function WorkspaceMembersTable({
     selectedKeys,
     shouldShowCustomField1Column,
     shouldShowCustomField2Column,
+    shouldShowApproverColumn,
+    shouldUseOrdinalApproverLabel,
+    shouldShowOfficeLocationColumn,
     shouldShowBankAccountColumn,
     members,
     onRowSelectionChange,
@@ -91,10 +109,13 @@ export default function WorkspaceMembersTable({
     bulkActionOptions,
 }: WorkspaceMembersTableProps) {
     const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, toLocaleOrdinalWithWords} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     useCopySelectionEvent();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
+    // The badge sits after the name with gap2, and its padding and border apply on both sides, so those values are doubled.
+    const ownerBadgeExtraWidth = members.some((member) => member.isOwner) ? styles.gap2.gap + styles.defaultBadge.paddingHorizontal * 2 + styles.defaultBadge.borderWidth * 2 : 0;
+    const ownerMemberColumnDragMinWidth = Math.ceil(variables.tableMemberCellAvatarWidth + variables.workspaceRoomsMembersColumnWidth + ownerBadgeExtraWidth);
 
     const workspaceMembersColumns: Array<TableColumn<WorkspaceMembersTableColumnKey, WorkspaceMemberRowData>> = [
         {
@@ -103,15 +124,43 @@ export default function WorkspaceMembersTable({
             sortable: true,
             dynamicSizing: {
                 // The cell stacks the member's name above their email, so whichever of the two renders wider decides the
-                // column's width.
+                // column's width. Owner rows also render a badge after the name, so that label is measured with the name
+                // and extraWidth covers the gap and the badge's padding and border.
                 getContentToMeasure: (item) => [
-                    {text: item.name, fontSize: fontScale.text},
+                    {text: item.isOwner ? `${item.name}${translate('common.owner')}` : item.name, fontSize: fontScale.text},
                     {text: item.email, fontSize: fontScale.label},
                 ],
-                extraWidth: variables.tableMemberCellAvatarWidth,
+                extraWidth: variables.tableMemberCellAvatarWidth + ownerBadgeExtraWidth,
+                dragMinWidth: ownerMemberColumnDragMinWidth,
             },
         },
 
+        ...(shouldShowApproverColumn
+            ? [
+                  {
+                      sortable: true,
+                      key: 'approver' as const,
+                      // One header for the whole table, so it follows the deepest workflow in the workspace.
+                      label: getFirstApproverLabel(shouldUseOrdinalApproverLabel, translate, toLocaleOrdinalWithWords),
+                      dynamicSizing: {
+                          getContentToMeasure: (item: WorkspaceMemberRowData) => (item.approverDisplayName ? [{text: item.approverDisplayName}] : []),
+                          extraWidth: APPROVER_CELL_AVATAR_WIDTH,
+                      },
+                  },
+              ]
+            : []),
+        ...(shouldShowOfficeLocationColumn
+            ? [
+                  {
+                      sortable: true,
+                      key: 'officeLocation' as const,
+                      label: translate('workspace.people.officeLocation'),
+                      dynamicSizing: {
+                          getContentToMeasure: (item: WorkspaceMemberRowData) => (item.officeLocationName ? [{text: item.officeLocationName, fontSize: fontScale.text}] : []),
+                      },
+                  },
+              ]
+            : []),
         ...(shouldShowCustomField1Column
             ? [
                   {
@@ -186,6 +235,14 @@ export default function WorkspaceMembersTable({
             return compareOptionalValues(item1.role, item2.role, compareRoleNames, orderMultiplier, memberNameComparison);
         }
 
+        if (activeSorting.columnKey === 'approver') {
+            return compareOptionalValues(item1.approverDisplayName, item2.approverDisplayName, localeCompare, orderMultiplier, memberNameComparison);
+        }
+
+        if (activeSorting.columnKey === 'officeLocation') {
+            return compareOptionalValues(item1.officeLocationName, item2.officeLocationName, localeCompare, orderMultiplier, memberNameComparison);
+        }
+
         if (activeSorting.columnKey === 'customField1') {
             return compareOptionalValues(item1.employeeUserID, item2.employeeUserID, localeCompare, orderMultiplier, memberNameComparison);
         }
@@ -213,7 +270,7 @@ export default function WorkspaceMembersTable({
             return true;
         }
 
-        const isAdmin = item.role === CONST.POLICY.ROLE.ADMIN || item.role === CONST.POLICY.ROLE.OWNER;
+        const isAdmin = item.role === CONST.POLICY.ROLE.ADMIN;
         if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.ADMINS) && isAdmin) {
             return true;
         }
@@ -244,6 +301,11 @@ export default function WorkspaceMembersTable({
 
         const isGuest = item.role === CONST.POLICY.ROLE.GUEST;
         if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.GUESTS) && isGuest) {
+            return true;
+        }
+
+        const isApproveOnly = item.role === CONST.POLICY.ROLE.APPROVE_ONLY;
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.APPROVE_ONLY) && isApproveOnly) {
             return true;
         }
 
@@ -302,6 +364,11 @@ export default function WorkspaceMembersTable({
             label: translate('workspace.people.guests'),
             value: WORKSPACE_MEMBER_FILTER_VALUES.GUESTS,
         });
+
+        filterConfig.role.options.push({
+            label: translate('workspace.people.approveOnly'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.APPROVE_ONLY,
+        });
     }
 
     if (isSubmitPolicy(policy)) {
@@ -324,6 +391,8 @@ export default function WorkspaceMembersTable({
                 shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
                 shouldShowCustomField1Column={shouldShowCustomField1Column}
                 shouldShowCustomField2Column={shouldShowCustomField2Column}
+                shouldShowApproverColumn={shouldShowApproverColumn}
+                shouldShowOfficeLocationColumn={shouldShowOfficeLocationColumn}
                 shouldShowBankAccountColumn={shouldShowBankAccountColumn}
                 policy={policy}
             />

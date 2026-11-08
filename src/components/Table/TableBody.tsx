@@ -12,7 +12,7 @@ import type {ListRenderItemInfo, ViewToken} from '@shopify/flash-list';
 import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 
 import {FlashList} from '@shopify/flash-list';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import type {TableData} from '.';
@@ -28,6 +28,7 @@ import {
     rendersColumnHeaderAsStickyRow,
     rendersColumnHeaderInListHeader,
 } from './buildTableListData';
+import {TABLE_COLUMN_SCROLLER_DATA_SET} from './columnResize/columnWidthExpressions';
 import dismissKeyboardOnDrag from './dismissKeyboardOnDrag';
 import {getRowGroupAccessibilityProps, getTableContainerAccessibilityProps, getVirtualizedRowSemanticID, shouldUseTableSemantics} from './tableAccessibility';
 import {TableRowSemanticIDContext, useTableContext} from './TableContext';
@@ -57,7 +58,7 @@ type ColumnScrollOverrideProps = Record<string, unknown> & {
 function getColumnScrollOverrideProps(overflowXAutoStyle: ViewStyle, overrideProps: ColumnScrollOverrideProps = {}) {
     return {
         ...overrideProps,
-        dataSet: {...overrideProps.dataSet, tableColumnScroller: true},
+        dataSet: {...overrideProps.dataSet, ...TABLE_COLUMN_SCROLLER_DATA_SET},
         style: [overrideProps.style, overflowXAutoStyle],
     };
 }
@@ -256,38 +257,25 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         return () => cancelAnimationFrame(frame);
     }, [hasActivatedStickyHeader, hasRows, isListLoaded, shouldRenderColumnHeaderAsStickyRow]);
 
-    const handleChangeStickyIndex: NonNullable<typeof onChangeStickyIndex> = useCallback(
-        (current, previous) => {
-            setActiveStickyHeaderIndex((activeIndex) => (activeIndex === current ? activeIndex : current));
-            onChangeStickyIndex?.(current, previous);
-        },
-        [onChangeStickyIndex],
-    );
+    const handleChangeStickyIndex: NonNullable<typeof onChangeStickyIndex> = (current, previous) => {
+        setActiveStickyHeaderIndex((activeIndex) => (activeIndex === current ? activeIndex : current));
+        onChangeStickyIndex?.(current, previous);
+    };
 
-    const handleViewableItemsChanged: NonNullable<typeof onViewableItemsChanged> = useCallback(
-        (info) => onViewableItemsChanged?.(getDataViewabilityInfo(info, tableListMetadata)),
-        [onViewableItemsChanged, tableListMetadata],
-    );
+    const handleViewableItemsChanged: NonNullable<typeof onViewableItemsChanged> = (info) => onViewableItemsChanged?.(getDataViewabilityInfo(info, tableListMetadata));
 
-    const viewabilityConfigCallbackPairsForList = useMemo(
-        () =>
-            viewabilityConfigCallbackPairs?.map((pair) => ({
-                ...pair,
-                onViewableItemsChanged: pair.onViewableItemsChanged ? (info: ViewabilityInfo) => pair.onViewableItemsChanged?.(getDataViewabilityInfo(info, tableListMetadata)) : null,
-            })),
-        [tableListMetadata, viewabilityConfigCallbackPairs],
-    );
+    const viewabilityConfigCallbackPairsForList = viewabilityConfigCallbackPairs?.map((pair) => ({
+        ...pair,
+        onViewableItemsChanged: pair.onViewableItemsChanged ? (info: ViewabilityInfo) => pair.onViewableItemsChanged?.(getDataViewabilityInfo(info, tableListMetadata)) : null,
+    }));
 
-    const overrideItemLayoutForList: NonNullable<typeof overrideItemLayout> = useCallback(
-        (layout, item, index, maxColumns, extraData) => {
-            if (getSyntheticRowKind(index, tableListMetadata) !== 'data') {
-                return;
-            }
+    const overrideItemLayoutForList: NonNullable<typeof overrideItemLayout> = (layout, item, index, maxColumns, extraData) => {
+        if (getSyntheticRowKind(index, tableListMetadata) !== 'data') {
+            return;
+        }
 
-            overrideItemLayout?.(layout, item, getDataIndex(index, tableListMetadata), maxColumns, extraData);
-        },
-        [overrideItemLayout, tableListMetadata],
-    );
+        overrideItemLayout?.(layout, item, getDataIndex(index, tableListMetadata), maxColumns, extraData);
+    };
 
     const initialScrollIndexForList = initialScrollIndex == null ? initialScrollIndex : getListIndex(initialScrollIndex, tableListMetadata);
 

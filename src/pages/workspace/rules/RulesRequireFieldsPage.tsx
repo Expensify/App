@@ -222,7 +222,7 @@ function RulesRequireFieldsPage({
             if (action !== ModalActions.CONFIRM) {
                 return;
             }
-            Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+            Navigation.navigate(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.ACCOUNTING));
             return;
         }
 
@@ -272,7 +272,7 @@ function RulesRequireFieldsPage({
             if (action !== ModalActions.CONFIRM) {
                 return;
             }
-            Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+            Navigation.navigate(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.ACCOUNTING));
             return;
         }
 
@@ -313,6 +313,7 @@ function RulesRequireFieldsPage({
                     <ToggleSettingOptionRow
                         title={translate('workspace.rules.requireFields.category')}
                         switchAccessibilityLabel={translate('workspace.rules.requireFields.category')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_CATEGORY_SWITCH}
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={styles.pv3}
                         isActive={categoryRequired}
@@ -327,7 +328,7 @@ function RulesRequireFieldsPage({
                     />
 
                     {hasPerLevelTagRequired ? (
-                        tagLists.map((tagList, tagListIndex) => {
+                        tagLists.map((tagList) => {
                             const label = getTagListLabel(tagList.name, genericTagLabel);
                             // Per the Tags table row: only this level's own tags gate its switch.
                             const areLevelTagsEnabled = hasEnabledOptions(Object.values(tagList.tags ?? {}));
@@ -337,6 +338,7 @@ function RulesRequireFieldsPage({
                                     key={tagList.name}
                                     title={label}
                                     switchAccessibilityLabel={label}
+                                    switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_TAG_LEVEL_SWITCH}
                                     shouldPlaceSubtitleBelowSwitch
                                     wrapperStyle={styles.pv3}
                                     isActive={getLevelRequired(tagList)}
@@ -346,7 +348,7 @@ function RulesRequireFieldsPage({
                                     disabledAction={shouldShowTagLock ? promptEnableTags : undefined}
                                     pendingAction={tagList.pendingFields?.required}
                                     errors={tagList.errorFields?.required ?? undefined}
-                                    onCloseError={() => clearPolicyTagListErrorField({policyID, tagListIndex, errorField: 'required', policyTags})}
+                                    onCloseError={() => clearPolicyTagListErrorField({policyID, tagListIndex: tagList.orderWeight, errorField: 'required', policyTags})}
                                     onToggle={(isOn) => handleTagListRequiredToggle(isOn, tagList)}
                                 />
                             );
@@ -355,6 +357,7 @@ function RulesRequireFieldsPage({
                         <ToggleSettingOptionRow
                             title={singleTagRowLabel}
                             switchAccessibilityLabel={singleTagRowLabel}
+                            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_TAG_SWITCH}
                             shouldPlaceSubtitleBelowSwitch
                             wrapperStyle={styles.pv3}
                             isActive={tagRequired}

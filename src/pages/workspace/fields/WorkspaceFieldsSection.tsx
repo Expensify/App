@@ -33,13 +33,14 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {Policy, PolicyConnectionName} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {FlashList} from '@shopify/flash-list';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type FieldListValue = NonNullable<Policy['fieldList']>[string];
@@ -75,6 +76,7 @@ type WorkspaceFieldsSectionProps = {
     policyFeature: PolicyFeature;
     syncErrorConnectionNames?: readonly PolicyConnectionName[];
     titleAccessibilityRole?: typeof CONST.ROLE.HEADER;
+    switchSentryLabel: SentryLabel;
 };
 
 function keyExtractor(item: FieldListItem) {
@@ -103,6 +105,7 @@ function WorkspaceFieldsSection({
     policyFeature,
     syncErrorConnectionNames,
     titleAccessibilityRole,
+    switchSentryLabel,
 }: WorkspaceFieldsSectionProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -117,15 +120,12 @@ function WorkspaceFieldsSection({
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
     const fieldList = policy?.fieldList;
-    const hasImportedField = useMemo(
-        () => Object.values(fieldList ?? {}).some((field) => fieldFilter(field) && isReportFieldImportedFromIntegration(field, policy)),
-        [fieldFilter, fieldList, policy],
-    );
+    const hasImportedField = Object.values(fieldList ?? {}).some((field) => fieldFilter(field) && isReportFieldImportedFromIntegration(field, policy));
     const {canWrite, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, policyFeature);
 
-    const fetchFields = useCallback(() => {
+    const fetchFields = () => {
         openFieldsPage(policyID);
-    }, [openFieldsPage, policyID]);
+    };
 
     const {isOffline} = useNetwork({onReconnect: fetchFields});
 
@@ -133,51 +133,41 @@ function WorkspaceFieldsSection({
         fetchFields();
     }, [fetchFields]);
 
-    const fields = useMemo<FieldListItem[]>(() => {
-        if (!fieldList) {
-            return [];
+    const fields: FieldListItem[] = !fieldList
+        ? []
+        : Object.values(fieldList)
+              .filter(fieldFilter)
+              .sort((a, b) => localeCompare(a.name, b.name))
+              .map((field) => ({
+                  text: field.name,
+                  keyForList: String(field.fieldID),
+                  fieldID: field.fieldID,
+                  pendingAction: field.pendingAction,
+                  isDisabled: field.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                  rightLabel: Str.recapitalize(translate(getReportFieldTypeTranslationKey(field.type ?? CONST.REPORT_FIELD_TYPES.TEXT))),
+              }));
+
+    const navigateToFieldSettings = (item: FieldListItem) => {
+        if (!canWrite) {
+            return;
         }
 
-        return Object.values(fieldList)
-            .filter(fieldFilter)
-            .sort((a, b) => localeCompare(a.name, b.name))
-            .map((field) => ({
-                text: field.name,
-                keyForList: String(field.fieldID),
-                fieldID: field.fieldID,
-                pendingAction: field.pendingAction,
-                isDisabled: field.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                rightLabel: Str.recapitalize(translate(getReportFieldTypeTranslationKey(field.type ?? CONST.REPORT_FIELD_TYPES.TEXT))),
-            }));
-    }, [fieldFilter, fieldList, localeCompare, translate]);
+        Navigation.navigate(getSettingsRoute(policyID, item.fieldID));
+    };
 
-    const navigateToFieldSettings = useCallback(
-        (item: FieldListItem) => {
-            if (!canWrite) {
-                return;
-            }
-
-            Navigation.navigate(getSettingsRoute(policyID, item.fieldID));
-        },
-        [canWrite, getSettingsRoute, policyID],
-    );
-
-    const renderItem = useCallback(
-        ({item}: ListRenderItemInfo<FieldListItem>) => (
-            <OfflineWithFeedback pendingAction={item.pendingAction}>
-                <MenuItem
-                    style={cardPaddingHorizontal}
-                    onPress={() => navigateToFieldSettings(item)}
-                    description={item.text}
-                    disabled={item.isDisabled}
-                    shouldShowRightIcon={!item.isDisabled && canWrite}
-                    interactive={!item.isDisabled && canWrite}
-                    rightLabel={item.rightLabel}
-                    descriptionTextStyle={[styles.popoverMenuText, styles.textStrong]}
-                />
-            </OfflineWithFeedback>
-        ),
-        [canWrite, navigateToFieldSettings, cardPaddingHorizontal, styles.popoverMenuText, styles.textStrong],
+    const renderItem = ({item}: ListRenderItemInfo<FieldListItem>) => (
+        <OfflineWithFeedback pendingAction={item.pendingAction}>
+            <MenuItem
+                style={cardPaddingHorizontal}
+                onPress={() => navigateToFieldSettings(item)}
+                description={item.text}
+                disabled={item.isDisabled}
+                shouldShowRightIcon={!item.isDisabled && canWrite}
+                interactive={!item.isDisabled && canWrite}
+                rightLabel={item.rightLabel}
+                descriptionTextStyle={[styles.popoverMenuText, styles.textStrong]}
+            />
+        </OfflineWithFeedback>
     );
 
     const headerText =
@@ -223,6 +213,7 @@ function WorkspaceFieldsSection({
                 pendingAction={pendingAction}
                 title={translate(titleKey)}
                 switchAccessibilityLabel={switchAccessibilityLabel}
+                switchSentryLabel={switchSentryLabel}
                 subtitle={headerText}
                 titleStyle={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
                 titleAccessibilityRole={titleAccessibilityRole}

@@ -6,7 +6,6 @@ import {
     getOriginalMessage,
     getSortedReportActions,
     isActionOfType,
-    isSentMoneyReportAction,
 } from '@libs/ReportActionsUtils';
 import {hasReportBeenForwardedSinceLastSubmit} from '@libs/ReportUtils';
 
@@ -62,6 +61,36 @@ function getReportActionByIDSelector(reportActions: OnyxEntry<ReportActions>, re
         return;
     }
     return reportActions[reportActionID];
+}
+
+function getBillProcessorAccountIDSelector(reportActions: OnyxEntry<ReportActions>): number | undefined {
+    const createdAction = Object.values(reportActions ?? {}).find((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CREATED));
+    return getOriginalMessage(createdAction)?.processor;
+}
+
+function getBillPayHistoryParticipantSelector(reportActions: OnyxEntry<ReportActions>, reportActionID: string) {
+    const action = reportActions?.[reportActionID];
+    const isCreatedAction = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CREATED);
+
+    // The creation action has no participant emails, so the creation row reads the sender from the submission action.
+    const submission = isCreatedAction
+        ? Object.values(reportActions ?? {}).find(
+              (reportAction) =>
+                  (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED)) &&
+                  !!reportAction.submitterEmail,
+          )
+        : action;
+    const originalMessage =
+        isActionOfType(submission, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(submission, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED)
+            ? getOriginalMessage(submission)
+            : undefined;
+
+    return {
+        isCreatedAction,
+        senderLogin: submission?.submitterEmail,
+        receiverLogin: originalMessage?.to,
+        receiverAccountID: originalMessage?.submittedTo,
+    };
 }
 
 function getReimbursedExpectedDateSelector(reportActions: OnyxEntry<ReportActions>, paymentCreated: string): string | undefined {
@@ -153,9 +182,6 @@ function getReceiptScanFailedIOUActionDataSelector(
 const transactionThreadReportIDSelector = (transactionID: string | undefined) => (reportActions: OnyxEntry<ReportActions>) =>
     transactionID ? getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID)?.childReportID : undefined;
 
-/** Returns whether the report is a "Pay someone" (sent money) report, which has a pay action with IOUDetails instead of an expense-creating one. */
-const isSentMoneyReportSelector = (reportActions: OnyxEntry<ReportActions>) => Object.values(reportActions ?? {}).some(isSentMoneyReportAction);
-
 /** Returns the ID of the author's newest comment in the report that can show the feedback prompt. */
 const getLatestFeedbackActionIDByAuthorSelector = (authorAccountID: number | undefined) => (reportActions: OnyxEntry<ReportActions>) =>
     authorAccountID ? getLatestConciergeFeedbackActionIDFromReportActions(reportActions, authorAccountID) : undefined;
@@ -191,7 +217,8 @@ function getParentReportActionWithoutThreadRepliesSelector(parentReportActions: 
 }
 
 export {
-    isSentMoneyReportSelector,
+    getBillPayHistoryParticipantSelector,
+    getBillProcessorAccountIDSelector,
     getLatestFeedbackActionIDByAuthorSelector,
     getParentReportActionSelector,
     getLastClosedReportAction,

@@ -1,8 +1,10 @@
+import type {POLICY_ROLE_RANKING} from '@libs/PolicyUtils/permissions';
+
 import type CONST from '@src/CONST';
 import type {OnyxInputOrEntry, Report, Session, UserMetadata} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 
 type FSClass = ValueOf<typeof CONST.FULLSTORY.CLASS>;
 
@@ -15,7 +17,8 @@ type FullstoryUserVars = {
     user_status?: 'new' | 'returning';
     has_completed_onboarding?: boolean;
     onb_step?: 'registration' | 'accounting' | 'completed';
-    user_role?: 'admin' | 'paymentsAdmin' | 'cardAdmin' | 'peopleAdmin' | 'auditor' | 'editor' | 'member' | 'guest';
+    // Every ranked policy role, with USER renamed to FullStory's 'member'.
+    user_role?: Exclude<TupleToUnion<typeof POLICY_ROLE_RANKING>, typeof CONST.POLICY.ROLE.USER> | 'member';
     workspace_state?: 'has_workspaces' | 'no_workspaces';
     workspace_count?: number;
     workspace_member_count?: number;
@@ -24,6 +27,8 @@ type FullstoryUserVars = {
     free_trial_status?: 'active' | 'expiring_soon' | 'expired' | 'expired_last30days';
     plan_type?: 'collect' | 'control';
     paid_member?: boolean;
+    nps_score?: number;
+    nps_response_date?: Date;
     auth_method?: 'email' | 'google' | 'apple';
     reg_method?: 'Google signup' | 'email/phone signup';
     login_status?: 'success' | 'failure';
@@ -278,4 +283,4 @@ type ForwardedFSClassProps = {
     forwardedFSClass?: FSClass;
 };
 
-export type {FSPageLike, Fullstory, FullstoryEventName, FullstoryEventPropertiesMap, FullstoryUserVars, GetChatFSClass, ForwardedFSClassProps, ShouldInitialize};
+export type {FSClass, FSPageLike, Fullstory, FullstoryEventName, FullstoryEventPropertiesMap, FullstoryUserVars, GetChatFSClass, ForwardedFSClassProps, ShouldInitialize};

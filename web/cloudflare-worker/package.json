@@ -8,14 +8,16 @@
         "prepare-dist": "./scripts/prepareDist.sh",
         "dev": "wrangler dev",
         "dev:production": "wrangler dev --env production",
-        "types": "wrangler types",
+        "types": "wrangler types && wrangler types worker-development.d.ts --config wrangler.dev.jsonc --env-interface DevelopmentEnv --include-runtime false",
         "typecheck": "npm run types > /dev/null && tsc -p . && tsc -p tests",
         "test": "node --test 'tests/**/*.test.ts'",
         "compare-headers": "node scripts/compareHeaders.ts"
     },
     "devDependencies": {
         "@types/node": "24.19.0",
+        "@types/ws": "8.18.1",
         "typescript": "7.0.2",
-        "wrangler": "4.144.0"
+        "wrangler": "4.152.0",
+        "ws": "8.21.0"
     }
 }

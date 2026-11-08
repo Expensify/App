@@ -34,7 +34,7 @@ import type {OnyxEntry} from 'react-native-onyx';
  * camera isn't torn down when subscriptions become ready. useNavigateGlobalCreate()
  * returns a stable callable.
  */
-import React, {createContext, useCallback, useContext, useEffect, useRef, useState} from 'react';
+import React, {createContext, useContext, useEffect, useRef, useState} from 'react';
 
 type NavigateGlobalCreateFn = (transactionIDs: string[], isMultiScanEnabled: boolean) => void;
 
@@ -64,9 +64,9 @@ function NavigateGlobalCreateProvider({children, ...rest}: ProviderProps) {
 
     // Stable dispatch — context value identity never changes, so consumers
     // don't re-render on Onyx ticks. Late-binds to fnRef.current at call time.
-    const dispatch = useCallback((transactionIDs: string[], isMultiScanEnabled: boolean) => {
+    const dispatch = (transactionIDs: string[], isMultiScanEnabled: boolean) => {
         fnRef.current(transactionIDs, isMultiScanEnabled);
-    }, []);
+    };
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional one-tick defer to keep heavy Onyx subscriptions off the camera-mount critical path

@@ -52,7 +52,7 @@ on:
 jobs:
   build:
     name: Build iOS HybridApp
-    runs-on: blacksmith-12vcpu-macos-latest
+    runs-on: blacksmith-12vcpu-macos-27
     env:
       PULL_REQUEST_NUMBER: ${{ inputs.pull-request-number }}
       RCT_SYMBOLICATE_PREBUILT_FRAMEWORKS: ${{ inputs.download-dsyms && '1' || '0' }}
@@ -81,6 +81,14 @@ jobs:
       - name: Set up Xcode version
         id: xcodeVersion
         uses: ./.github/actions/composite/getXcodeVersion
+
+      # Temporary Blacksmith macOS 27 image workaround: the image lacks the Apple WWDR G3 intermediate (no valid signing identity)
+      # and the iOS 27.1 simulator runtime. Safe to remove once Blacksmith ships the patched image.
+      - name: Install missing Apple WWDR G3 certificate and iOS simulator runtime
+        run: |
+          curl -fsSLO https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer
+          sudo security import AppleWWDRCAG3.cer -k /Library/Keychains/System.keychain 2>/dev/null || true
+          xcodebuild -downloadPlatform iOS
 
       - name: Compute custom build identifier
         id: computeIdentifier
@@ -122,7 +130,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          RESULT=$(./node_modules/.bin/bun scripts/artifacts-utils/resolve-artifacts.ts --platform=ios --hybrid=true --new-dot-root="$GITHUB_WORKSPACE")
+          # pod install resolves the same artifact through patched_ios_artifacts.rb, which picks the Hermes tag file from
+          # RCT_HERMES_V1_ENABLED. HybridApp pins that to '1' inside Mobile-Expensify/iOS/Podfile (invisible to this shell),
+          # so the cache key must assume Hermes V1 to stay in sync with what pod install downloads.
+          RESULT=$(./node_modules/.bin/bun scripts/artifacts-utils/resolve-artifacts.ts --platform=ios --hybrid=true --new-dot-root="$GITHUB_WORKSPACE" --hermes-version-file="$GITHUB_WORKSPACE/node_modules/react-native/sdks/.hermesv1version")
           VERSION=$(echo "$RESULT" | jq -r '.version // "source"')
           if [ -z "$VERSION" ]; then
             echo "::error::Could not resolve react-native artifact version from resolve-artifacts.ts output: $RESULT"

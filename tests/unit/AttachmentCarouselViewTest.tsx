@@ -232,29 +232,24 @@ describe('AttachmentCarouselView web', () => {
         dismiss.mockRestore();
     });
 
-    it('shares the exact undefined-initialized ref with the real pan gesture and retains it on rerender', () => {
+    it('shares the real pan gesture and the list ref with pager consumers and retains them on rerender', () => {
         // Given the production gesture passed to the detector, with only detector rendering replaced
         const {props, rerender} = renderCarousel();
         const detectorProps = jest.mocked(GestureDetector).mock.calls.at(-1)?.[0];
         expect(detectorProps).toBeDefined();
-        if (!detectorProps || !pagerState || !('toGestureArray' in detectorProps.gesture)) {
+        const gesture = pagerState?.pagerGesture;
+        if (!detectorProps || !pagerState || !gesture) {
             throw new Error('Expected the real detector gesture and pager context');
         }
-        const gestures = detectorProps.gesture.toGestureArray();
-        expect(gestures).toHaveLength(1);
-        const gesture = gestures.at(0);
-        expect(gesture).toBeDefined();
-        if (!gesture) {
-            throw new Error('Expected the single pan gesture');
-        }
-        expect(gesture.handlerName).toBe('PanGestureHandler');
-        const contextRef = pagerState.pagerRef;
-        expect(gesture.config.ref).toBe(contextRef);
-        expect(gesture.config.ref?.current).toBeUndefined();
 
-        // When Gesture Handler initializes the real gesture it writes the same ref exposed to pager consumers
-        gesture.initialize();
-        expect(gesture.config.ref?.current).toBe(gesture);
+        // Then pager consumers receive the exact enabled pan gesture given to the detector, and the list ref
+        expect(detectorProps.gesture).toBe(gesture);
+        expect(gesture.type).toBe('PanGestureHandler');
+        expect(gesture.config.enabled).toBe(true);
+        expect(pagerState.pagerRef).toBe(mockScrollRef);
+        const handlerTag = gesture.handlerTag;
+
+        // When the carousel rerenders with unrelated props
         rerender(
             <AttachmentCarouselView
                 {...props}
@@ -262,8 +257,10 @@ describe('AttachmentCarouselView web', () => {
             />,
         );
 
-        // Then the provider keeps the original ref object rather than a snapshot or a second ref
-        expect(pagerState.pagerRef).toBe(contextRef);
+        // Then the provider keeps the same list ref and the gesture keeps its native handler identity
+        expect(pagerState.pagerRef).toBe(mockScrollRef);
+        expect(pagerState.pagerGesture?.handlerTag).toBe(handlerTag);
+        expect(jest.mocked(GestureDetector).mock.calls.at(-1)?.[0].gesture).toBe(pagerState.pagerGesture);
     });
 
     it('enforces arrow bounds and bypasses the detector on a mouse device', () => {

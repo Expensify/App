@@ -52,7 +52,7 @@ On web:
 
 1. Go to the navigation tabs on the left and select **Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
+3. Select **Connections**, then select **Configure** next to NetSuite.
 4. Click **Export**.
 5. Confirm the export type for **non-reimbursable expenses** is set to **Journal entries**.
 
@@ -60,7 +60,7 @@ On mobile:
 
 1. Tap the navigation tabs on the bottom and select **Workspaces**.
 2. Select your Workspace.
-3. Tap **Accounting**.
+3. Select **Connections**, then select **Configure** next to NetSuite.
 4. Tap **Export**.
 5. Confirm non-reimbursable expenses are set to **Journal entries**.
 

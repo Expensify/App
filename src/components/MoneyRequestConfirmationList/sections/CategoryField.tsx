@@ -1,7 +1,7 @@
-import {CATEGORY_PICKER_HEADER_HEIGHT} from '@components/CategoryPicker/CategoryPickerModal';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import usePolicyCategoriesForConfirmation from '@components/MoneyRequestConfirmationList/hooks/usePolicyCategoriesForConfirmation';
+import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -15,6 +15,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {canCreateCategoryInSitu} from '@libs/PolicyUtils';
+import startOpenCategoryPickerSpan from '@libs/telemetry/startOpenCategoryPickerSpan';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -150,6 +151,7 @@ function CategoryField({
             const categoryStepRoute = canOpenInDropdownAfterWorkspaceStep ? undefined : getCategoryStepRoute(transactionID);
             Navigation.navigate(ROUTES.SET_DEFAULT_WORKSPACE.getRoute(categoryStepRoute));
         } else {
+            startOpenCategoryPickerSpan();
             Navigation.navigate(getCategoryStepRoute(transactionID));
         }
     };
@@ -170,7 +172,7 @@ function CategoryField({
                 errorText={shouldDisplayCategoryError ? translate(formError as TranslationPaths) : ''}
                 onPress={openCategoryPage}
                 shouldOpenInDropdown={canOpenListInPlace}
-                listHeaderHeight={canAddCategory ? CATEGORY_PICKER_HEADER_HEIGHT : 0}
+                listHeaderHeight={canAddCategory ? SELECTION_LIST_POPOVER_HEADER_HEIGHT : 0}
                 renderDropdown={(dropdownProps) =>
                     !!transactionID && (
                         <CategoryFieldDropdown

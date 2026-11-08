@@ -27,6 +27,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactions from '@hooks/useReportTransactions';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceList from '@hooks/useWorkspaceList';
@@ -85,7 +86,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
 
     const reportPreviewAction = useParentReportAction(report);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
-    const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isChangePolicyTrainingModalDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: changePolicyTrainingModalDismissedSelector});
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
@@ -134,6 +135,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const initialSelection = useInitialSelection(currentSelection, {resetOnFocus: true});
 
     const shouldFooterBeInsideList = useShouldFooterBeInsideList();
+    const shouldReturnTripRooms = useShouldReturnTripRooms(currentSearchQueryJSON?.type);
 
     // The snapshot keeps the report row after a workspace change, and only the server can tell whether it still matches the query.
     const refreshSearch = () => {
@@ -143,6 +145,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             shouldCalculateTotals,
             isOffline,
             isLoading: !!currentSearchResults?.search?.isLoading,
+            shouldReturnTripRooms,
         });
     };
 
@@ -231,6 +234,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             reportTransactions,
             rules,
             delegateAccountID,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
         });
         refreshSearch();
     };
@@ -303,7 +307,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                             initiallyFocusedItemKey={initialSelection}
                             shouldScrollToFocusedIndexOnMount={false}
                             shouldUpdateFocusedIndex
-                            shouldShowLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
+                            shouldShowLoadingPlaceholder={!didScreenTransitionEnd}
                             disableMaintainingScrollPosition
                             addBottomSafeAreaPadding
                             shouldFooterBeInsideList={shouldFooterBeInsideList}
