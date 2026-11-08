@@ -388,6 +388,18 @@ describe('useDiscardChangesConfirmation (web)', () => {
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
         });
 
+        it('lets a replace inside the flow stack through', () => {
+            // Given a dirty Confirmation
+            renderCoveredGuardHook();
+
+            // When going back replaces it with an earlier step of the same flow
+            const event = invokeBeforeRemove('REPLACE', {target: 'flow-stack'});
+
+            // Then the draft stays, so it doesn't prompt
+            expect(event.defaultPrevented).toBe(false);
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        });
+
         it('stays quiet while a page opened from it submits, and prompts again once the suppression is released', () => {
             // Given a dirty Confirmation and a submit from a page opened from it that muted the flow's guards
             renderCoveredGuardHook();

@@ -343,6 +343,18 @@ describe('useDiscardChangesConfirmation (native)', () => {
             expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'POP', target: 'rhp-stack'});
         });
 
+        it('lets a replace inside the flow stack through without prompting', () => {
+            // Given a dirty Confirmation
+            renderCoveredGuardHook();
+
+            // When going back replaces it with an earlier step of the same flow
+            invokeBeforeRemove('REPLACE', {target: 'flow-stack'});
+
+            // Then the draft stays, so the navigation proceeds without a prompt
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+            expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'REPLACE', target: 'flow-stack'});
+        });
+
         it('lets a submit from a later step through while the flow is suppressed', () => {
             // Given a dirty Confirmation and a submit that muted the flow's guards
             renderCoveredGuardHook();

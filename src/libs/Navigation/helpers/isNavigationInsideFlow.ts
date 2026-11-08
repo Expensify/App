@@ -13,6 +13,11 @@ type GuardedRoute = {
     params?: unknown;
 };
 
+/** The stack the flow's first screen is in */
+type GuardedStack = {
+    key: string;
+};
+
 function isNavigationStateWithRoutes(state: unknown): state is PartialState<NavigationState> {
     return isRecord(state) && Array.isArray(state.routes);
 }
@@ -39,11 +44,17 @@ function doesStateContainRoute(state: PartialState<NavigationState>, routeToMatc
 }
 
 /**
- * Whether a navigation that removes the flow's first screen keeps the user in the flow, so it shouldn't prompt. Browser back or
- * forward after a page refresh rebuilds the whole navigation state (RESET) with new keys, so every screen looks removed, even those
- * that stay. If the new state still has the flow's first screen for the same expense, the user is still in the flow.
+ * Whether a navigation that removes the flow's first screen keeps the user in the flow, so it shouldn't prompt:
+ * - Browser back or forward after a page refresh rebuilds the whole navigation state (RESET) with new keys, so every screen looks
+ *   removed, even those that stay. If the new state still has the flow's first screen for the same expense, the user is still in the flow.
+ * - `Navigation.goBack(route)` replaces the current screen (REPLACE) when the route it goes back to isn't in the stack yet. Inside the
+ *   flow's own stack, the user is still in the flow. For example, the header back on the confirmation of a dropped receipt opens the Scan step.
  */
-function isNavigationInsideFlow(action: NavigationAction, route: GuardedRoute): boolean {
+function isNavigationInsideFlow(action: NavigationAction, route: GuardedRoute, stack: GuardedStack | undefined): boolean {
+    if (action.type === CONST.NAVIGATION.ACTION_TYPE.REPLACE) {
+        return !action.target || action.target === stack?.key;
+    }
+
     if (action.type !== CONST.NAVIGATION.ACTION_TYPE.RESET || !isNavigationStateWithRoutes(action.payload)) {
         return false;
     }

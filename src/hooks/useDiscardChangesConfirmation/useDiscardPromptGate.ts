@@ -47,7 +47,7 @@ function useDiscardPromptGate({getHasUnsavedChanges, shouldPromptWhenUnfocused =
     const hasUnsavedChanges = () => isGuardActive() && !isMuted() && getHasUnsavedChanges();
 
     // Some navigations remove this screen but keep the user in the flow, so they don't prompt
-    const shouldPromptFor = (action: NavigationAction) => !shouldPromptWhenUnfocused || !isNavigationInsideFlow(action, route);
+    const shouldPromptFor = (action: NavigationAction) => !shouldPromptWhenUnfocused || !isNavigationInsideFlow(action, route, navigation.getState());
 
     const suppressDiscardPrompt = (shouldSuppress = true) => {
         isSavingRef.current = shouldSuppress;
