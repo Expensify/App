@@ -85,27 +85,64 @@ describe('shouldInitializeOdometerFromTransaction', () => {
 });
 
 describe('getOdometerTotalDistance', () => {
-    // Readings of 1000 -> 1100 entered on a km workspace, then moved to a mi workspace, which converts the quantity
+    // Readings of 1000 to 1100 entered on a km workspace, then moved to a mi workspace, which converts the quantity
     const CONVERTED_COMMENT = {odometerStart: 1000, odometerEnd: 1100, customUnit: {quantity: 62.1371}};
 
     it('returns the difference between the readings when nothing is saved yet', () => {
-        expect(getOdometerTotalDistance(1000, 1100.5, undefined)).toBe(100.5);
+        // Given new readings without a saved conversion to preserve
+        const comment = undefined;
+
+        // When their total is calculated before the transaction is saved
+        const distance = getOdometerTotalDistance(1000, 1100.5, comment);
+
+        // Then the raw difference is used because no conversion has occurred
+        expect(distance).toBe(100.5);
     });
 
     it('returns the difference between the readings when the saved quantity was not converted', () => {
-        expect(getOdometerTotalDistance(1000, 1100, {odometerStart: 1000, odometerEnd: 1100, customUnit: {quantity: 100}})).toBe(100);
+        // Given a saved quantity in the same unit as the readings
+        const comment = {odometerStart: 1000, odometerEnd: 1100, customUnit: {quantity: 100}};
+
+        // When the unchanged readings are totaled
+        const distance = getOdometerTotalDistance(1000, 1100, comment);
+
+        // Then no conversion is introduced
+        expect(distance).toBe(100);
     });
 
     it('returns the converted quantity when the readings match the saved ones', () => {
-        expect(getOdometerTotalDistance(1000, 1100, CONVERTED_COMMENT)).toBe(62.1371);
+        // Given a saved quantity already converted from kilometers to miles
+        const comment = CONVERTED_COMMENT;
+
+        // When the original readings have not changed
+        const distance = getOdometerTotalDistance(1000, 1100, comment);
+
+        // Then saving again preserves the converted quantity without rounding it
+        expect(distance).toBe(62.1371);
     });
 
     it('scales changed readings by the same conversion factor', () => {
-        expect(getOdometerTotalDistance(1000, 1200, CONVERTED_COMMENT)).toBe(124.27);
+        // Given readings whose saved total has already been converted to miles
+        const comment = CONVERTED_COMMENT;
+
+        // When the new end reading doubles the original distance
+        const distance = getOdometerTotalDistance(1000, 1200, comment);
+
+        // Then the new total uses the same conversion instead of treating kilometers as miles
+        expect(distance).toBe(124.27);
     });
 
     it('returns the difference between the readings when the saved readings are not usable', () => {
-        expect(getOdometerTotalDistance(1000, 1100, {odometerStart: 1000, odometerEnd: 1000, customUnit: {quantity: 50}})).toBe(100);
-        expect(getOdometerTotalDistance(1000, 1100, {odometerStart: 1000, odometerEnd: 1100, customUnit: {quantity: null}})).toBe(100);
+        // Given saved data that cannot provide a valid conversion factor
+        const zeroDifferenceComment = {odometerStart: 1000, odometerEnd: 1000, customUnit: {quantity: 50}};
+        const missingQuantityComment = {odometerStart: 1000, odometerEnd: 1100, customUnit: {quantity: null}};
+
+        // When totals are calculated from these incomplete saved values
+        const zeroDifferenceTotal = getOdometerTotalDistance(1000, 1100, zeroDifferenceComment);
+        const missingQuantityTotal = getOdometerTotalDistance(1000, 1100, missingQuantityComment);
+
+        // Then the raw difference is used instead of an invalid conversion
+        expect(zeroDifferenceTotal).toBe(100);
+        expect(missingQuantityTotal).toBe(100);
     });
 });

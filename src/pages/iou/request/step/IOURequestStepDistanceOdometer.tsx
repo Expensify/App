@@ -406,10 +406,11 @@ function IOURequestStepDistanceOdometer({
         const start = parseFloat(DistanceRequestUtils.normalizeOdometerText(startReading, fromLocaleDigit));
         const end = parseFloat(DistanceRequestUtils.normalizeOdometerText(endReading, fromLocaleDigit));
         const calculatedDistance = getOdometerTotalDistance(start, end, currentTransaction?.comment);
+        const odometerUnit = currentTransaction?.comment?.odometerUnit ?? unit;
 
         if (!isEditing) {
             // Keep the unit the readings were first entered in, since they aren't converted when the rate's unit changes
-            setMoneyRequestOdometerReading(transactionID, start, end, isTransactionDraft, currentTransaction?.comment?.odometerUnit ?? unit);
+            setMoneyRequestOdometerReading(transactionID, start, end, isTransactionDraft, odometerUnit);
             setMoneyRequestDistance(transactionID, calculatedDistance, isTransactionDraft, unit);
         }
         // Local state has just been persisted to the transaction thus the resync guard can be lowered
@@ -510,6 +511,7 @@ function IOURequestStepDistanceOdometer({
         navigateToNextStep({
             odometerStart: start,
             odometerEnd: end,
+            odometerUnit,
             odometerDistance: calculatedDistance,
             unit,
             previousOdometerDraft: odometerDraft,

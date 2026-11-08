@@ -94,6 +94,8 @@ type MoneyRequestStepDistanceNavigationParams = {
     gpsModifiedDistance?: number;
     odometerStart?: number;
     odometerEnd?: number;
+    /** Unit the readings were entered in, which can differ from the current rate's unit. */
+    odometerUnit?: Unit;
     odometerDistance?: number;
     previousOdometerDraft?: OnyxEntry<OdometerDraft>;
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
@@ -203,6 +205,7 @@ function handleMoneyRequestStepDistanceNavigation({
     policyForMovingExpenses,
     odometerStart,
     odometerEnd,
+    odometerUnit,
     odometerDistance,
     previousOdometerDraft,
     recentWaypoints,
@@ -342,6 +345,7 @@ function handleMoneyRequestStepDistanceNavigation({
                                 selectedRouteDistance,
                                 odometerStart,
                                 odometerEnd,
+                                odometerUnit,
                                 taxCode: distanceTaxCode,
                                 taxAmount: distanceTaxAmount,
                                 isFromGlobalCreate: getIsFromGlobalCreate(transaction),
@@ -432,6 +436,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             selectedRouteDistance,
                             odometerStart,
                             odometerEnd,
+                            odometerUnit,
                             taxCode: distanceTaxCode,
                             taxAmount: distanceTaxAmount,
                         },

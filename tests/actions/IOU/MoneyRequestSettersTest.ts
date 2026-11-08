@@ -372,12 +372,15 @@ describe('actions/IOU', () => {
         }
 
         it('converts distance quantity into the new rate unit', async () => {
+            // Given a draft measured in miles that needs to retain its physical distance
             const testTransaction = createDistanceDraft();
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${testTransaction.transactionID}`, testTransaction);
 
+            // When the destination rate uses kilometers instead
             setCustomUnitRateID(testTransaction.transactionID, CUSTOM_UNIT_RATE_ID, testTransaction, createPolicyWithKilometreRate(), false, CONST.CURRENCY.USD);
             await waitForBatchedUpdates();
 
+            // Then both the quantity and unit change so they describe the same distance
             const transactionDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${testTransaction.transactionID}`);
             expect(transactionDraft?.comment?.customUnit?.customUnitRateID).toBe(CUSTOM_UNIT_RATE_ID);
             expect(transactionDraft?.comment?.customUnit?.distanceUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
@@ -386,13 +389,16 @@ describe('actions/IOU', () => {
         });
 
         it('converts distance quantity for an odometer request but keeps the readings as entered', async () => {
+            // Given odometer readings that must continue matching the vehicle's photos
             const testTransaction = createDistanceDraft(CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER);
             testTransaction.comment = {...testTransaction.comment, odometerStart: 1000, odometerEnd: 1010};
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${testTransaction.transactionID}`, testTransaction);
 
+            // When the destination rate uses kilometers instead of miles
             setCustomUnitRateID(testTransaction.transactionID, CUSTOM_UNIT_RATE_ID, testTransaction, createPolicyWithKilometreRate(), false, CONST.CURRENCY.USD);
             await waitForBatchedUpdates();
 
+            // Then the total converts without changing the readings shown in the photos
             const transactionDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${testTransaction.transactionID}`);
             expect(transactionDraft?.comment?.customUnit?.customUnitRateID).toBe(CUSTOM_UNIT_RATE_ID);
             expect(transactionDraft?.comment?.customUnit?.distanceUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);

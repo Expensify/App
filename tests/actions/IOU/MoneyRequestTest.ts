@@ -1542,13 +1542,19 @@ describe('MoneyRequest', () => {
             expect(Split.resetSplitShares).not.toHaveBeenCalled();
         });
 
-        it('should call trackExpense with odometerDistance as distance and forward odometerStart and odometerEnd', () => {
+        it('should forward the original odometer unit and readings when tracking without confirmation', () => {
+            // Given readings entered in kilometers for a distance now displayed in miles
+            const odometerUnit = CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS;
+
+            // When tracking immediately without waiting for the draft's Onyx writes
             handleMoneyRequestStepDistanceNavigation({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 ...baseParams,
-                odometerDistance: 25,
+                odometerDistance: 15.53,
                 odometerStart: 1000,
                 odometerEnd: 1025,
+                odometerUnit,
+                unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
                 manualDistance: undefined,
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.TRACK,
@@ -1556,17 +1562,54 @@ describe('MoneyRequest', () => {
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
+            // Then the original unit accompanies the readings rather than the destination unit
             expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
                 expect.objectContaining({
                     transactionParams: expect.objectContaining({
-                        distance: 25,
+                        distance: 15.53,
                         odometerStart: 1000,
                         odometerEnd: 1025,
+                        odometerUnit,
                         validWaypoints: undefined,
                     }),
                 }),
             );
             expect(Split.createDistanceRequest).not.toHaveBeenCalled();
+        });
+
+        it('should forward the original odometer unit and readings when submitting without confirmation', () => {
+            // Given readings entered in kilometers for an expense using a miles rate
+            const odometerUnit = CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS;
+
+            // When submitting immediately without waiting for the draft's Onyx writes
+            handleMoneyRequestStepDistanceNavigation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                ...baseParams,
+                odometerDistance: 15.53,
+                odometerStart: 1000,
+                odometerEnd: 1025,
+                odometerUnit,
+                unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                manualDistance: undefined,
+                shouldSkipConfirmation: true,
+                iouType: CONST.IOU.TYPE.SUBMIT,
+                draftTransactionIDs: [baseParams.transactionID],
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Then the create request retains the readings' unit so the backend can convert them
+            expect(Split.createDistanceRequest).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionParams: expect.objectContaining({
+                        distance: 15.53,
+                        odometerStart: 1000,
+                        odometerEnd: 1025,
+                        odometerUnit,
+                        validWaypoints: undefined,
+                    }),
+                }),
+            );
+            expect(TrackExpense.trackExpense).not.toHaveBeenCalled();
         });
 
         it('should call trackExpense with gpsDistance as distance and forward gpsCoordinates', () => {
