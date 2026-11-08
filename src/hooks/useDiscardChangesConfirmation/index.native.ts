@@ -28,7 +28,6 @@ function useDiscardChangesConfirmation({
     onConfirm,
     onTabSwitchDiscard,
     shouldPromptWhenUnfocused = false,
-    shouldPromptWhenGoingBackInFlow = true,
 }: UseDiscardChangesConfirmationOptions): DiscardChangesConfirmation {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
@@ -38,7 +37,6 @@ function useDiscardChangesConfirmation({
     const {routeName, isFocused, hasUnsavedChanges, shouldPromptFor, suppressDiscardPrompt} = useDiscardPromptGate({
         getHasUnsavedChanges,
         shouldPromptWhenUnfocused,
-        shouldPromptWhenGoingBackInFlow,
     });
 
     // Callers derive dirtiness from current values and baselines, so this is safe to read during render.
@@ -102,9 +100,7 @@ function useDiscardChangesConfirmation({
             if (isDiscardModalOpen.current) {
                 return true;
             }
-            // When going back inside the flow shouldn't ask, let react-navigation go back. The `usePreventRemove` callback then
-            // lets a back inside the flow through, and still asks when the back closes the RHP.
-            if (!hasUnsavedChanges() || !shouldPromptWhenGoingBackInFlow) {
+            if (!hasUnsavedChanges()) {
                 return false;
             }
             showDiscardModal();

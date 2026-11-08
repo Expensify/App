@@ -35,14 +35,12 @@ function useDiscardChangesConfirmation({
     onConfirm,
     onTabSwitchDiscard,
     shouldPromptWhenUnfocused,
-    shouldPromptWhenGoingBackInFlow,
 }: UseDiscardChangesConfirmationOptions): DiscardChangesConfirmation {
     const {translate} = useLocalize();
     const {showConfirmModal, closeModal} = useConfirmModal();
     const {routeName, hasUnsavedChanges, shouldPromptFor, suppressDiscardPrompt} = useDiscardPromptGate({
         getHasUnsavedChanges,
         shouldPromptWhenUnfocused,
-        shouldPromptWhenGoingBackInFlow,
     });
 
     useRegisterTabSwitchGuard(routeName, hasUnsavedChanges, onTabSwitchDiscard, onCancel);

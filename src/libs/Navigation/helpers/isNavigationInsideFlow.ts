@@ -1,6 +1,6 @@
 /**
- * Tells whether a navigation that removes a guarded screen still keeps the user in its flow, so the "Discard changes?" prompt
- * shouldn't ask.
+ * Tells whether a navigation that removes the first screen of a flow still keeps the user in the flow, so the "Discard changes?"
+ * prompt shouldn't ask.
  */
 import {isRecord} from '@libs/ObjectUtils';
 
@@ -12,15 +12,6 @@ type GuardedRoute = {
     name: string;
     params?: unknown;
 };
-
-/** The stack the guarded screen is in */
-type GuardedStack = {
-    key: string;
-    index: number;
-    routes: ReadonlyArray<{key: string}>;
-};
-
-const BACK_ACTION_TYPES = new Set<string>([CONST.NAVIGATION.ACTION_TYPE.GO_BACK, CONST.NAVIGATION.ACTION_TYPE.POP]);
 
 function isNavigationStateWithRoutes(state: unknown): state is PartialState<NavigationState> {
     return isRecord(state) && Array.isArray(state.routes);
@@ -39,48 +30,25 @@ function getTransactionIDFromRouteParams(params: unknown): string | undefined {
     return getTransactionIDFromRouteParams(params.params);
 }
 
-function doesStateContainRoute(state: PartialState<NavigationState>, isMatch: (route: PartialState<NavigationState>['routes'][number]) => boolean): boolean {
-    return state.routes.some((route) => isMatch(route) || (isNavigationStateWithRoutes(route.state) && doesStateContainRoute(route.state, isMatch)));
+function doesStateContainRoute(state: PartialState<NavigationState>, routeToMatch: GuardedRoute, transactionID: string | undefined): boolean {
+    return state.routes.some(
+        (route) =>
+            (route.name === routeToMatch.name && (transactionID === undefined || getTransactionIDFromRouteParams(route.params) === transactionID)) ||
+            (isNavigationStateWithRoutes(route.state) && doesStateContainRoute(route.state, routeToMatch, transactionID)),
+    );
 }
 
 /**
- * Whether a navigation that removes the guarded screen keeps the user in the flow, so it shouldn't prompt.
- *
- * Browser back or forward after a page refresh rebuilds the whole navigation state (RESET) with new keys, so every screen looks
- * removed, even those that stay. If the new state still has the guarded screen for the same expense, nothing is lost. For example,
- * after a refresh on Category, browser back opens Confirmation again.
- *
- * With `canGoBack`, going back to an earlier screen of the same expense with the RHP still open doesn't prompt either. That's a back
- * that the guarded screen's own stack handles, such as the header back, Android back or an iOS swipe, or a browser back to
- * another screen of the expense. Closing the RHP still prompts.
+ * Whether a navigation that removes the flow's first screen keeps the user in the flow, so it shouldn't prompt. Browser back or
+ * forward after a page refresh rebuilds the whole navigation state (RESET) with new keys, so every screen looks removed, even those
+ * that stay. If the new state still has the flow's first screen for the same expense, the user is still in the flow.
  */
-function isNavigationInsideFlow(action: NavigationAction, route: GuardedRoute, stack: GuardedStack | undefined, canGoBack: boolean): boolean {
-    const transactionID = getTransactionIDFromRouteParams(route.params);
-
-    if (action.type === CONST.NAVIGATION.ACTION_TYPE.RESET) {
-        if (!isNavigationStateWithRoutes(action.payload)) {
-            return false;
-        }
-        if (canGoBack && transactionID !== undefined) {
-            return doesStateContainRoute(action.payload, (stateRoute) => getTransactionIDFromRouteParams(stateRoute.params) === transactionID);
-        }
-        return doesStateContainRoute(
-            action.payload,
-            (stateRoute) => stateRoute.name === route.name && (transactionID === undefined || getTransactionIDFromRouteParams(stateRoute.params) === transactionID),
-        );
-    }
-
-    if (!canGoBack || !stack) {
+function isNavigationInsideFlow(action: NavigationAction, route: GuardedRoute): boolean {
+    if (action.type !== CONST.NAVIGATION.ACTION_TYPE.RESET || !isNavigationStateWithRoutes(action.payload)) {
         return false;
     }
 
-    if (action.target) {
-        return action.target === stack.key;
-    }
-
-    // Without a target, the focused screen's stack handles a back. It doesn't when there's no earlier screen in the stack, or when a
-    // screen outside the stack sent it, such as clicking outside the RHP.
-    return BACK_ACTION_TYPES.has(action.type) && stack.index > 0 && (!action.source || stack.routes.some((stackRoute) => stackRoute.key === action.source));
+    return doesStateContainRoute(action.payload, route, getTransactionIDFromRouteParams(route.params));
 }
 
 export default isNavigationInsideFlow;

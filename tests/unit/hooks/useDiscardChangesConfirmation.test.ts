@@ -28,9 +28,8 @@ jest.mock('@hooks/useBeforeRemove', () => ({
 
 let mockIsFocused = true;
 let mockIsFlowFocused = true;
-let mockOwnNavigatorState: {type: string; key: string; index: number; routes: Array<{key: string}>} = {type: 'stack', key: 'flow-stack', index: 0, routes: [{key: 'test-route-key'}]};
 const mockNavigation = {
-    getState: () => mockOwnNavigatorState,
+    getState: () => ({type: 'stack', key: 'flow-stack', index: 0, routes: [{key: 'test-route-key'}]}),
     getParent: () => ({getState: () => undefined, getParent: () => undefined, isFocused: () => mockIsFlowFocused}),
     isFocused: () => mockIsFocused,
 };
@@ -133,7 +132,6 @@ describe('useDiscardChangesConfirmation (web)', () => {
         mockBeforeRemoveCallback = undefined;
         mockIsFocused = true;
         mockIsFlowFocused = true;
-        mockOwnNavigatorState = {type: 'stack', key: 'flow-stack', index: 0, routes: [{key: 'test-route-key'}]};
         releaseFlowDiscardPromptSuppression();
         resolveModal = undefined;
         historyGoSpy = jest.spyOn(window.history, 'go').mockImplementation(() => {});
@@ -388,31 +386,6 @@ describe('useDiscardChangesConfirmation (web)', () => {
             // Then the user stays in the flow, so nothing is discarded
             expect(event.defaultPrevented).toBe(false);
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
-        });
-
-        it('asks when going back to an earlier step, unless that is turned off', async () => {
-            // Given a dirty Confirmation above an earlier step of its flow
-            mockOwnNavigatorState = {type: 'stack', key: 'flow-stack', index: 1, routes: [{key: 'start'}, {key: 'test-route-key'}]};
-            const {rerender} = renderHook(
-                (options: Partial<UseDiscardChangesConfirmationOptions>) => useDiscardChangesConfirmation({getHasUnsavedChanges: () => true, shouldPromptWhenUnfocused: true, ...options}),
-                {initialProps: {}},
-            );
-
-            // When the header back goes to the earlier step
-            const defaultBack = invokeBeforeRemove('POP_TO', {target: 'flow-stack'});
-
-            // Then it asks, since the earlier step may not show the draft
-            expect(defaultBack.defaultPrevented).toBe(true);
-            await resolveModalWith('CLOSE');
-
-            // When the earlier step shows the same data, so going back is allowed, and the user goes back again
-            rerender({shouldPromptWhenGoingBackInFlow: false});
-            const allowedBack = invokeBeforeRemove('POP_TO', {target: 'flow-stack'});
-            const close = invokeBeforeRemove('GO_BACK', {source: 'rhp-route'});
-
-            // Then going back doesn't ask, but closing the RHP still does
-            expect(allowedBack.defaultPrevented).toBe(false);
-            expect(close.defaultPrevented).toBe(true);
         });
 
         it('stays quiet while a page opened from it submits, and prompts again once the suppression is released', () => {

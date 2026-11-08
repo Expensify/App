@@ -121,55 +121,38 @@ describe('getNavigationActionForReplay', () => {
 });
 
 describe('isNavigationInsideFlow', () => {
-    const confirmation = {name: 'Money_Request_Step_Confirmation', params: {transactionID: '1'}};
-    const stack = {key: 'flow-stack', index: 1, routes: [{key: 'start'}, {key: 'confirmation'}]};
-    const restoreState = (routes: unknown[]) => ({
-        type: 'RESET',
-        payload: {routes: [{name: 'RightModalNavigator', state: {routes: [{name: 'MoneyRequest', params: {params: {transactionID: '1'}}, state: {routes}}]}}]},
-    });
+    const flowRoot = {name: 'Money_Request_Create', params: {transactionID: '1'}};
 
-    it('keeps a browser back in the flow when the restored state still holds the guarded screen', () => {
-        // Given a RESET after a refresh that restores Confirmation, nested under the RHP
-        const action = restoreState([confirmation]);
+    it('keeps a browser back in the flow when the restored state still holds the flow root', () => {
+        // Given a RESET after a refresh that restores the same flow root, nested under the RHP
+        const action = {
+            type: 'RESET',
+            payload: {routes: [{name: 'RightModalNavigator', state: {routes: [{name: 'MoneyRequest', params: {params: {transactionID: '1'}}, state: {routes: [flowRoot]}}]}}]},
+        };
 
         // When checking whether it leaves the flow
         // Then it stays in the flow
-        expect(isNavigationInsideFlow(action, confirmation, stack, false)).toBe(true);
+        expect(isNavigationInsideFlow(action, flowRoot)).toBe(true);
     });
 
-    it('treats a browser back that drops the guarded screen, or holds another draft, as leaving the flow', () => {
-        // Given RESETs restoring a state without Confirmation, and one with the Confirmation of another draft
+    it('treats a browser back that drops the flow root, or holds another draft, as leaving the flow', () => {
+        // Given RESETs restoring a state without the flow root, and one with the root of another draft
         const closingReset = {type: 'RESET', payload: {routes: [{name: 'Home'}]}};
-        const resetToOtherDraft = {type: 'RESET', payload: {routes: [{name: confirmation.name, params: {transactionID: '2'}}]}};
+        const resetToOtherDraft = {type: 'RESET', payload: {routes: [{name: flowRoot.name, params: {transactionID: '2'}}]}};
 
         // When checking whether they leave the flow
         // Then both leave it
-        expect(isNavigationInsideFlow(closingReset, confirmation, stack, false)).toBe(false);
-        expect(isNavigationInsideFlow(resetToOtherDraft, confirmation, stack, false)).toBe(false);
+        expect(isNavigationInsideFlow(closingReset, flowRoot)).toBe(false);
+        expect(isNavigationInsideFlow(resetToOtherDraft, flowRoot)).toBe(false);
     });
 
-    it.each([
-        ['the header back', {type: 'POP_TO', target: 'flow-stack'}],
-        ['Android back', {type: 'GO_BACK'}],
-        ['an iOS swipe', {type: 'POP', source: 'confirmation', target: 'flow-stack'}],
-        ['a browser back', restoreState([{name: 'Money_Request_Create', params: {transactionID: '1'}}])],
-    ])('treats %s to an earlier step as leaving the screen unless going back is allowed', (_, action) => {
-        // Given a back from Confirmation to an earlier step of the same expense
-        // When checking whether it leaves the flow
-        // Then it leaves Confirmation by default, and stays in the flow when going back is allowed
-        expect(isNavigationInsideFlow(action, confirmation, stack, false)).toBe(false);
-        expect(isNavigationInsideFlow(action, confirmation, stack, true)).toBe(true);
-    });
-
-    it('treats closing the RHP as leaving the flow even when going back is allowed', () => {
-        // Given the actions that close the RHP, and a back from a screen with nothing below it in its stack
-        const firstScreenStack = {key: 'flow-stack', index: 0, routes: [{key: 'confirmation'}]};
-
+    it('treats closing the RHP as leaving the flow', () => {
+        // Given the actions that close the RHP or go back from the flow root
         // When checking whether they leave the flow
         // Then they do
-        expect(isNavigationInsideFlow({type: 'DISMISS_MODAL'}, confirmation, stack, true)).toBe(false);
-        expect(isNavigationInsideFlow({type: 'GO_BACK', source: 'rhp-route'}, confirmation, stack, true)).toBe(false);
-        expect(isNavigationInsideFlow({type: 'POP', target: 'rhp-navigator'}, confirmation, stack, true)).toBe(false);
-        expect(isNavigationInsideFlow({type: 'GO_BACK'}, confirmation, firstScreenStack, true)).toBe(false);
+        expect(isNavigationInsideFlow({type: 'DISMISS_MODAL'}, flowRoot)).toBe(false);
+        expect(isNavigationInsideFlow({type: 'GO_BACK', source: 'rhp-route'}, flowRoot)).toBe(false);
+        expect(isNavigationInsideFlow({type: 'POP', target: 'rhp-navigator'}, flowRoot)).toBe(false);
+        expect(isNavigationInsideFlow({type: 'GO_BACK'}, flowRoot)).toBe(false);
     });
 });

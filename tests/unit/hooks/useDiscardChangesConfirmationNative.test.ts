@@ -17,9 +17,8 @@ let mockPreventRemoveFlag: boolean | undefined;
 let mockPreventRemoveCallback: ((e: MockBeforeRemoveEvent) => void) | undefined;
 let mockIsFocused = true;
 let mockIsFlowFocused = true;
-let mockOwnNavigatorState = {key: 'flow-stack', index: 0, routes: [{key: 'test-route-key'}]};
 const mockNavigation = {
-    getState: () => mockOwnNavigatorState,
+    getState: () => ({key: 'flow-stack', index: 0, routes: [{key: 'test-route-key'}]}),
     getParent: () => ({isFocused: () => mockIsFlowFocused}),
     isFocused: () => mockIsFocused,
 };
@@ -110,7 +109,6 @@ describe('useDiscardChangesConfirmation (native)', () => {
         mockPreventRemoveCallback = undefined;
         mockIsFocused = true;
         mockIsFlowFocused = true;
-        mockOwnNavigatorState = {key: 'flow-stack', index: 0, routes: [{key: 'test-route-key'}]};
         releaseFlowDiscardPromptSuppression();
         hardwareBackCallback = undefined;
         resolveModal = undefined;
@@ -343,27 +341,6 @@ describe('useDiscardChangesConfirmation (native)', () => {
             // Then it isn't asked about and the removal proceeds
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
             expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'POP', target: 'rhp-stack'});
-        });
-
-        it('lets a back to an earlier step through when going back is allowed, and still asks on closing the RHP', () => {
-            // Given a dirty Confirmation above an earlier step that shows the same data
-            mockOwnNavigatorState = {key: 'flow-stack', index: 1, routes: [{key: 'start'}, {key: 'test-route-key'}]};
-            renderCoveredGuardHook({shouldPromptWhenGoingBackInFlow: false});
-
-            // When Android back is pressed, and an iOS swipe goes back
-            const isBackConsumed = pressHardwareBack();
-            invokeBeforeRemove('POP', {source: 'test-route-key', target: 'flow-stack'});
-
-            // Then react-navigation goes back without a prompt
-            expect(isBackConsumed).toBe(false);
-            expect(mockShowConfirmModal).not.toHaveBeenCalled();
-            expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'POP', source: 'test-route-key', target: 'flow-stack'});
-
-            // When the RHP is closed instead
-            invokeBeforeRemove('GO_BACK', {source: 'rhp-route'});
-
-            // Then it asks
-            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         });
 
         it('lets a submit from a later step through while the flow is suppressed', () => {

@@ -11,9 +11,9 @@ import {useEffect, useRef} from 'react';
 
 import type UseDiscardChangesConfirmationOptions from './types';
 
-type UseDiscardPromptGateParams = Pick<UseDiscardChangesConfirmationOptions, 'getHasUnsavedChanges' | 'shouldPromptWhenUnfocused' | 'shouldPromptWhenGoingBackInFlow'>;
+type UseDiscardPromptGateParams = Pick<UseDiscardChangesConfirmationOptions, 'getHasUnsavedChanges' | 'shouldPromptWhenUnfocused'>;
 
-function useDiscardPromptGate({getHasUnsavedChanges, shouldPromptWhenUnfocused = false, shouldPromptWhenGoingBackInFlow = true}: UseDiscardPromptGateParams) {
+function useDiscardPromptGate({getHasUnsavedChanges, shouldPromptWhenUnfocused = false}: UseDiscardPromptGateParams) {
     const route = useRoute();
     const navigation = useNavigation();
 
@@ -47,7 +47,7 @@ function useDiscardPromptGate({getHasUnsavedChanges, shouldPromptWhenUnfocused =
     const hasUnsavedChanges = () => isGuardActive() && !isMuted() && getHasUnsavedChanges();
 
     // Some navigations remove this screen but keep the user in the flow, so they don't prompt
-    const shouldPromptFor = (action: NavigationAction) => !shouldPromptWhenUnfocused || !isNavigationInsideFlow(action, route, navigation.getState(), !shouldPromptWhenGoingBackInFlow);
+    const shouldPromptFor = (action: NavigationAction) => !shouldPromptWhenUnfocused || !isNavigationInsideFlow(action, route);
 
     const suppressDiscardPrompt = (shouldSuppress = true) => {
         isSavingRef.current = shouldSuppress;
