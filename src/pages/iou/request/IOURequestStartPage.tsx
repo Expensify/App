@@ -384,6 +384,7 @@ function IOURequestStartPage({
                                         <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>
                                             {() => (
                                                 <TabScreenWithFocusTrapWrapper>
+                                                    <CreateFlowTabSwitchGuard hasUnsavedChanges={isFlowDirty} />
                                                     <DynamicIOURequestStepDistance
                                                         route={route}
                                                         navigation={navigation}
