@@ -53,8 +53,9 @@ Then:
 
 1. Go to **Settings > Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
-4. Click **Sync Now**.
+3. Select **Connections**, then select **Configure** next to Sage Intacct.
+4. Select **More (⋮)**.
+5. Select **Sync now**.
 
 Retry exporting the report.
 
@@ -66,7 +67,7 @@ If the dimension must remain required in Sage Intacct:
 
 1. Go to **Settings > Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
+3. Select **Connections**.
 4. Click **Configure**.
 5. Open the **Coding** tab.
 6. Locate the corresponding dimension or field.
@@ -76,7 +77,7 @@ If the dimension must remain required in Sage Intacct:
 
 Then:
 
-1. Click **Sync Now** under **Accounting**.
+1. Select **Connections**, select **Configure** next to Sage Intacct, select **More (⋮)**, then select **Sync now**.
 2. Open the report.
 3. Apply the required tag to each affected expense.
 

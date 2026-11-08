@@ -54,13 +54,26 @@ type CapturedInputProps = {
     defaultValue?: unknown;
     onValueChange?: (value: string, key: string) => void;
     onBlur?: () => void;
+    disabled?: boolean;
+    shouldAllowChange?: boolean;
 };
+
+const mockNetwork = {isOffline: false};
+
+jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: mockNetwork.isOffline})));
 
 const mockInputWrapper = jest.fn((props: CapturedInputProps) => props.inputID);
 
 jest.mock('@components/Form/InputWrapper', () => ({
     __esModule: true,
     default: (props: CapturedInputProps) => mockInputWrapper(props),
+}));
+
+const mockOnFileTextInput = jest.fn((props: {inputID: string; label?: string; shouldSaveDraft?: boolean}) => props.inputID);
+
+jest.mock('@components/DynamicForm/components/DynamicFormOnFileTextInput', () => ({
+    __esModule: true,
+    default: (props: {inputID: string}) => mockOnFileTextInput(props),
 }));
 
 jest.mock('@hooks/useLocalize', () =>
@@ -105,6 +118,7 @@ type RenderFieldsOptions = {
 
 function renderFields(content: DynamicFormContentItem[], values: DynamicFormValues = {}, {currency, maxFileSize, onRefreshRequirements, isLoneFieldInHeadline}: RenderFieldsOptions = {}) {
     mockInputWrapper.mockClear();
+    mockOnFileTextInput.mockClear();
     render(
         <DynamicFormFields
             content={content}
@@ -189,6 +203,29 @@ describe('DynamicFormFields', () => {
         // Then only the regular field saves its draft
         expect(rendered.get('ssn')?.shouldSaveDraft).toBe(false);
         expect(rendered.get('nationality')?.shouldSaveDraft).toBe(true);
+    });
+
+    it('draws a sensitive answer the server holds with the on-file input', () => {
+        // Given a resumed SSN the server holds, which it never sends back
+        const ssn: DynamicFormField = {key: 'ssn', type: 'text', required: true, sensitive: true};
+
+        // When its page renders
+        renderFields([ssn, otherQuestion], {ssnProvided: true});
+
+        // Then the on-file input draws it, which shows the mask until the user clears it, with the label and the draft rule the field would get anyway
+        expect(mockOnFileTextInput).toHaveBeenCalledWith(expect.objectContaining({inputID: 'ssn', label: 'ssn', shouldSaveDraft: false}));
+    });
+
+    it('shows no mask on a sensitive field the server does not hold', () => {
+        // Given an SSN the user has not given yet
+        const ssn: DynamicFormField = {key: 'ssn', type: 'text', required: true, sensitive: true};
+
+        // When the field renders
+        const rendered = renderFields([ssn, otherQuestion]);
+
+        // Then the input is a plain one, with nothing suggesting an answer is on file
+        expect(mockOnFileTextInput).not.toHaveBeenCalled();
+        expect(rendered.get('ssn')?.InputComponent).toBe(TextInput);
     });
 
     it.each(FIELD_TYPES)('refills a sensitive %s field from the answer kept in memory', (type) => {
@@ -345,10 +382,12 @@ describe('DynamicFormFields', () => {
         // When the fields render
         const rendered = renderFields([readonlyCountry], {nationality: 'GB'});
 
-        // Then no input is drawn, and the row shows the translated country, masked in session recordings since a prefilled answer is still personal
+        // Then no input is drawn, and the row shows the translated country, masked in session recordings since a prefilled answer is still personal,
+        // while the field name stays readable
         expect(rendered.size).toBe(0);
         expect(screen.getByText('allCountries.GB')).toBeOnTheScreen();
-        expect(isMasked(screen.UNSAFE_getByType(MenuItemField))).toBe(true);
+        expect(isMasked(screen.getByText('allCountries.GB'))).toBe(true);
+        expect(isMasked(screen.UNSAFE_getByType(MenuItemField))).toBe(false);
     });
 
     it('draws a heading with its description above the fields that follow it', () => {
@@ -431,6 +470,18 @@ describe('DynamicFormFields', () => {
 
         // Then the push row allows several choices, and the answer is a list of option keys
         expect(rendered.get('industries')).toMatchObject({canSelectMultiple: true, valueType: 'stringList', optionsList: {RETAIL: 'Retail'}});
+    });
+
+    it('keeps the label above an input readable in session recordings while masking the input', () => {
+        // Given a file field, which names the field above its upload button
+        const proofOfFunds: DynamicFormField = {key: 'proofOfFunds', label: 'Source of funds document', type: 'file', required: true};
+
+        // When it renders
+        renderFields([proofOfFunds]);
+
+        // Then reviewers can still see which field it is, while the upload itself stays masked
+        expect(isMasked(screen.getByText('Source of funds document'))).toBe(false);
+        expect(isMasked(screen.UNSAFE_getByProps({inputID: 'proofOfFunds'}))).toBe(true);
     });
 
     it('takes one file unless the schema allows more, and names the field above the upload button', () => {
@@ -557,6 +608,84 @@ describe('DynamicFormFields', () => {
         // Then the screen is told which answer changed, and the other field has no such hook
         expect(onRefreshRequirements).toHaveBeenCalledWith('payoutCurrency', 'EUR');
         expect(rendered.get('nickname')?.onValueChange).toBeUndefined();
+    });
+
+    describe('offline', () => {
+        beforeEach(() => {
+            mockNetwork.isOffline = true;
+        });
+
+        afterEach(() => {
+            mockNetwork.isOffline = false;
+        });
+
+        const manyOptions = Array.from({length: CONST.DYNAMIC_FORM.LARGE_SELECT_MIN_OPTIONS + 1}, (_, index) => ({key: `option${index}`, label: `Option ${index}`}));
+        const refreshingFields: Array<[string, DynamicFormField]> = [
+            ['text', {key: 'answer', type: 'text', required: true, refreshOnChange: true}],
+            ['number', {key: 'answer', type: 'number', required: true, refreshOnChange: true}],
+            ['amount', {key: 'answer', type: 'amount', required: true, refreshOnChange: true}],
+            ['date', {key: 'answer', type: 'date', required: true, refreshOnChange: true}],
+            ['currency', {key: 'answer', type: 'currency', required: true, refreshOnChange: true}],
+            ['country', {key: 'answer', type: 'country', required: true, refreshOnChange: true}],
+            ['short select', {key: 'answer', type: 'select', required: true, refreshOnChange: true, values: manyOptions.slice(0, 2)}],
+        ];
+
+        it.each(refreshingFields)('locks a %s field that changes the requirements', (_, field) => {
+            // Given a field whose change asks the server for new requirements, which would only wait in the queue offline and leave the form stale
+            // When it renders offline, next to another question so it is drawn as a row
+            const rendered = renderFields([field, otherQuestion]);
+
+            // Then the user cannot change it until they are back online
+            expect(rendered.get('answer')?.disabled).toBe(true);
+        });
+
+        it('locks a long select that changes the requirements', () => {
+            // Given a select with more options than fit in a picker, which opens as a searchable list, and changes the requirements
+            const bankType: DynamicFormField = {key: 'bankType', type: 'select', required: true, refreshOnChange: true, values: manyOptions};
+
+            // When it renders offline
+            const rendered = renderFields([bankType, otherQuestion]);
+
+            // Then its list cannot be opened, so no refresh is queued
+            expect(rendered.get('bankType')?.disabled).toBe(true);
+        });
+
+        it('locks only the country of an address that changes the requirements', () => {
+            // Given an address whose country changes the requirements
+            const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: true, refreshOnChange: true};
+
+            // When it renders offline
+            const rendered = renderFields([homeAddress]);
+
+            // Then the country is locked, while the street and city stay editable since typing them sends nothing to the server
+            expect(rendered.get('homeAddress.country')?.shouldAllowChange).toBe(false);
+            expect(rendered.get('homeAddress')?.disabled).toBeFalsy();
+            expect(rendered.get('homeAddress.city')?.disabled).toBeFalsy();
+        });
+
+        it('keeps a field that does not change the requirements editable', () => {
+            // Given a currency and a text field that change nothing on the server
+            const nickname: DynamicFormField = {key: 'nickname', type: 'text', required: false};
+            const payoutCurrency: DynamicFormField = {key: 'payoutCurrency', type: 'currency', required: true};
+
+            // When they render offline
+            const rendered = renderFields([nickname, payoutCurrency]);
+
+            // Then the user can still fill them in, since only Confirm sends the answers
+            expect(rendered.get('nickname')?.disabled).toBeFalsy();
+            expect(rendered.get('payoutCurrency')?.disabled).toBeFalsy();
+        });
+    });
+
+    it('keeps a field that changes the requirements editable online', () => {
+        // Given a currency that changes the requirements
+        const payoutCurrency: DynamicFormField = {key: 'payoutCurrency', type: 'currency', required: true, refreshOnChange: true};
+
+        // When it renders online
+        const rendered = renderFields([payoutCurrency, otherQuestion]);
+
+        // Then the user can change it, since the new requirements can be fetched
+        expect(rendered.get('payoutCurrency')?.disabled).toBeFalsy();
     });
 
     it('shows a readonly address as one line', () => {

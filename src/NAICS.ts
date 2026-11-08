@@ -12145,9 +12145,6 @@ function getNAICSMappingWithId(item: NAICSItem) {
     });
 
     for (const option of item.options) {
-        if (option.options.length === 0) {
-            continue;
-        }
         getNAICSMappingWithId(option);
     }
 }

@@ -85,6 +85,68 @@ describe('DynamicReportDetailsPage', () => {
         });
     });
 
+    describe('unreported company card expense membership', () => {
+        it.each([CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS])(
+            'does not offer Join or Leave with notification preference %s when the private parent is unavailable',
+            async (notificationPreference) => {
+                // Given an admin viewing a member's imported expense without access to the member's private self DM
+                const adminAccountID = 1;
+                const memberAccountID = 2;
+                const parentReportID = '40';
+                const threadReportID = '41';
+                const parentReportActionID = '42';
+                const transactionID = '43';
+                const thread: Report = {
+                    ...createRandomReport(Number(threadReportID), undefined),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    parentReportID,
+                    parentReportActionID,
+                    participants: {
+                        [adminAccountID]: {notificationPreference},
+                        [memberAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                };
+                const parentReportAction: ReportAction = {
+                    ...createRandomReportAction(Number(parentReportActionID)),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    actorAccountID: memberAccountID,
+                    childReportID: threadReportID,
+                    message: [{type: 'COMMENT', html: 'tracked $125.50', text: 'tracked $125.50', whisperedTo: []}],
+                    originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.TRACK, IOUTransactionID: transactionID},
+                };
+                await act(async () => {
+                    await Onyx.set(ONYXKEYS.SESSION, {accountID: adminAccountID});
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, thread);
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {[parentReportActionID]: parentReportAction});
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                        ...createRandomTransaction(Number(transactionID)),
+                        reportID: '0',
+                        managedCard: true,
+                    });
+                });
+
+                // When the expense details render, the retained parent action identifies the transaction thread
+                render(
+                    <OnyxListItemProvider>
+                        <LocaleContextProvider>
+                            <DynamicReportDetailsPage
+                                navigation={navigationMock}
+                                route={getRouteMock(threadReportID)}
+                            />
+                        </LocaleContextProvider>
+                    </OnyxListItemProvider>,
+                );
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the admin cannot join again or leave for an inaccessible private parent, even if already subscribed
+                expect(screen.getByText(translateLocal('common.details'))).toBeVisible();
+                expect(screen.getByText(translateLocal('common.share'))).toBeVisible();
+                expect(screen.queryByText(translateLocal('common.join'))).toBeNull();
+                expect(screen.queryByRole(CONST.ROLE.BUTTON, {name: translateLocal('common.leave')})).toBeNull();
+            },
+        );
+    });
+
     it('self DM track options should disappear when report moved to workspace', async () => {
         const selfDMReportID = '1';
         const trackExpenseReportID = '2';

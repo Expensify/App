@@ -1,5 +1,6 @@
 import CurrencySelectionList from '@components/CurrencySelectionList';
 import FormHelpMessage from '@components/FormHelpMessage';
+import FSClassView from '@components/FSClassView';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,9 +32,9 @@ function CurrencyInlineListAdapter({value, onInputChange = () => {}, errorText =
     const styles = useThemeStyles();
 
     return (
-        <View
+        <FSClassView
             ref={ref}
-            fsClass={forwardedFSClass}
+            forwardedFSClass={forwardedFSClass}
         >
             <CurrencySelectionList
                 searchInputLabel={translate('common.currency')}
@@ -45,7 +46,7 @@ function CurrencyInlineListAdapter({value, onInputChange = () => {}, errorText =
                     <FormHelpMessage message={errorText} />
                 </View>
             )}
-        </View>
+        </FSClassView>
     );
 }
 

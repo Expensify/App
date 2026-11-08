@@ -56,6 +56,7 @@ export default function WorkspaceReportFieldListValuesTableRow({item, rowIndex}:
                             disabled={item.isSwitchDisabled}
                             disabledAction={item.onDisabledSwitchPress}
                             accessibilityLabel={`${translate('workspace.reportFields.enableValue')}: ${item.name}`}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.LIST_VALUE_ENABLE_SWITCH}
                             onToggle={item.onToggleEnabled}
                         />
                     </View>

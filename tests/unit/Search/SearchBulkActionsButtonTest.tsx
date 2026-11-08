@@ -216,6 +216,53 @@ describe('SearchBulkActionsButton all-matching count', () => {
         expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:1', isLoading: false});
     });
 
+    it('counts the rows of a group checked through its header as the whole group, including the rows not loaded', () => {
+        // Given a 692-expense group checked through its header with two rows loaded, next to an expense of another group
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}2026_10_07`;
+        mockAreAllMatchingItemsSelected = false;
+        mockSearchData = {[groupKey]: {count: 692, total: 12990, currency: CONST.CURRENCY.USD}};
+        mockSelectedTransactions = {
+            tx1: {...makeTransaction(), groupKey, isSelectedViaGroup: true},
+            tx2: {...makeTransaction(), groupKey, isSelectedViaGroup: true},
+            tx3: {...makeTransaction(), groupKey: `${CONST.SEARCH.GROUP_PREFIX}2026_10_03`},
+        };
+
+        // When the bar shows that selection
+        render(<SearchBulkActionsButton queryJSON={queryJSON} />);
+
+        // Then it counts the whole group plus the other expense, as an export covers them
+        expect(getBarProps()).toEqual({selectedCount: 693, isSelectedCountLoading: false});
+    });
+
+    it('subtracts one expense for a row excluded from Select all after its group was checked through the header', () => {
+        // Given Select all with one row unchecked, which still carries the claim of the header that checked it
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}2026_10_07`;
+        mockSearchCount = 694;
+        mockSearchData = {[groupKey]: {count: 692, total: 12990, currency: CONST.CURRENCY.USD}};
+        mockExcludedTransactions = {tx2: {...makeTransaction(), groupKey, isSelectedViaGroup: true}};
+
+        // When the bar shows the selection
+        render(<SearchBulkActionsButton queryJSON={queryJSON} />);
+
+        // Then only that row leaves the count, since the rest of its group stays selected
+        expect(getBarProps()).toEqual({selectedCount: 693, isSelectedCountLoading: false});
+    });
+
+    it('counts a row checked again inside a group excluded whole from Select all', () => {
+        // Given Select all over ten expenses, a five-expense group excluded whole, and one of its rows checked again
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}2026_10_07`;
+        mockSearchCount = 10;
+        mockSearchData = {[groupKey]: {count: 5, total: 500, currency: CONST.CURRENCY.USD}};
+        mockExcludedTransactions = {[groupKey]: makeTransaction()};
+        mockSelectedTransactions = {tx1: {...makeTransaction(), groupKey}};
+
+        // When the bar shows the selection
+        render(<SearchBulkActionsButton queryJSON={queryJSON} />);
+
+        // Then the row counts alongside the five expenses still selected, as its checkbox shows
+        expect(getBarProps()).toEqual({selectedCount: 6, isSelectedCountLoading: false});
+    });
+
     it('keeps loading when an exclusion exists before the count arrives', () => {
         mockSearchIsLoading = true;
         mockExcludedTransactions = {tx2: makeTransaction()};
