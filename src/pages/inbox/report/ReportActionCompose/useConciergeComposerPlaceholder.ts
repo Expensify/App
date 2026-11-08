@@ -30,7 +30,6 @@ const ACCESSIBLE_REPORT_PLACEHOLDER_KEYS = [
     'common.concierge.composerPlaceholders.awaitingApproval',
     'common.concierge.composerPlaceholders.leftToPay',
     'common.concierge.composerPlaceholders.topSpender',
-    'common.concierge.composerPlaceholders.missingCategory',
 ] as const;
 
 const OWN_REPORT_PLACEHOLDER_KEYS = ['common.concierge.composerPlaceholders.notReimbursed', 'common.concierge.composerPlaceholders.exportPdf'] as const;
@@ -101,6 +100,7 @@ function useConciergeComposerPlaceholder(isConciergeInboxDM: boolean) {
     const [randomSeed] = useState(() => Math.random());
     const eligibleKeys = [
         ...DEFAULT_PLACEHOLDER_KEYS,
+        ...(expenseCount > 0 || reportEligibility?.hasAccessibleExpenseReports ? (['common.concierge.composerPlaceholders.missingCategory'] as const) : []),
         ...(expenseCount > 0 ? EXPENSE_PLACEHOLDER_KEYS : []),
         ...(expenseCount > 1 ? (['common.concierge.composerPlaceholders.combineExpenses'] as const) : []),
         ...(reportEligibility?.hasAccessibleExpenseReports ? ACCESSIBLE_REPORT_PLACEHOLDER_KEYS : []),

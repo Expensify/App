@@ -138,10 +138,10 @@ describe('useConciergeComposerPlaceholder', () => {
     });
 
     it.each([
-        [2 / 6, 'common.concierge.composerPlaceholders.awaitingApproval'],
-        [3 / 6, 'common.concierge.composerPlaceholders.leftToPay'],
-        [4 / 6, 'common.concierge.composerPlaceholders.topSpender'],
-        [5 / 6, 'common.concierge.composerPlaceholders.missingCategory'],
+        [2 / 6, 'common.concierge.composerPlaceholders.missingCategory'],
+        [3 / 6, 'common.concierge.composerPlaceholders.awaitingApproval'],
+        [4 / 6, 'common.concierge.composerPlaceholders.leftToPay'],
+        [5 / 6, 'common.concierge.composerPlaceholders.topSpender'],
     ])('offers team and approval prompts without owned expenses for seed %s', async (seed, expectedPlaceholder) => {
         // Given another user's submitted report and its loaded expense, but no own expenses
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {...expenseReport, ownerAccountID: 2});
@@ -227,7 +227,7 @@ describe('useConciergeComposerPlaceholder', () => {
         });
 
         // Then the other user's expense no longer enables personal prompts
-        expect(result.current).toBe('common.concierge.composerPlaceholders.missingCategory');
+        expect(result.current).toBe('common.concierge.composerPlaceholders.topSpender');
 
         // When ownership is restored but the report is pending deletion
         await act(async () => {
@@ -245,7 +245,7 @@ describe('useConciergeComposerPlaceholder', () => {
     ])('uses reported count %s without loading transaction records', async (transactionCount, expectedPlaceholder) => {
         // Given an owned report whose expenses have not been opened locally
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {...expenseReport, transactionCount});
-        jest.mocked(Math.random).mockReturnValue(0.55);
+        jest.mocked(Math.random).mockReturnValue(0.6);
 
         // When eligibility is derived from report summaries
         const {result} = renderHook(() => useConciergeComposerPlaceholder(true));
@@ -259,7 +259,7 @@ describe('useConciergeComposerPlaceholder', () => {
         // Given one reported expense that is also loaded in the transaction collection
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, expenseReport);
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, transaction);
-        jest.mocked(Math.random).mockReturnValue(0.55);
+        jest.mocked(Math.random).mockReturnValue(0.6);
         const {result} = renderHook(() => useConciergeComposerPlaceholder(true));
         await waitForBatchedUpdates();
         expect(result.current).toBe('common.concierge.composerPlaceholders.exportCsv');
@@ -277,7 +277,7 @@ describe('useConciergeComposerPlaceholder', () => {
         // Given one reported and one unreported own expense
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, expenseReport);
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}2`, {...transaction, transactionID: '2', reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
-        jest.mocked(Math.random).mockReturnValue(0.55);
+        jest.mocked(Math.random).mockReturnValue(0.6);
         const {result} = renderHook(() => useConciergeComposerPlaceholder(true));
         await waitForBatchedUpdates();
         expect(result.current).toBe('common.concierge.composerPlaceholders.combineExpenses');
@@ -297,6 +297,65 @@ describe('useConciergeComposerPlaceholder', () => {
 
         // Then all history-dependent eligibility is removed
         expect(BASE_PLACEHOLDERS).toContain(result.current);
+    });
+
+    it('offers missing-category help for an unreported expense without any reports', async () => {
+        // Given an uncategorized unreported expense and no expense reports
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, {...transaction, reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
+        jest.mocked(Math.random).mockReturnValue(2 / 9);
+
+        // When the category-help slot is selected
+        const {result} = renderHook(() => useConciergeComposerPlaceholder(true));
+        await waitForBatchedUpdates();
+
+        // Then a report is not required to ask about missing categories
+        expect(result.current).toBe('common.concierge.composerPlaceholders.missingCategory');
+
+        // When the only unreported expense is pending deletion
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+        });
+
+        // Then a deleted expense does not keep category help eligible
+        expect(BASE_PLACEHOLDERS).toContain(result.current);
+    });
+
+    it('keeps category help eligible after deleting a report makes its expense unreported', async () => {
+        // Given an owned report and its uncategorized expense
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, expenseReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, transaction);
+        jest.mocked(Math.random).mockReturnValue(2 / 9);
+        const {result} = renderHook(() => useConciergeComposerPlaceholder(true));
+        await waitForBatchedUpdates();
+
+        // When deleting the report retains the expense as unreported
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
+        });
+
+        // Then the mounted composer can still select category help without an accessible report
+        expect(result.current).toBe('common.concierge.composerPlaceholders.missingCategory');
+    });
+
+    it('includes missing-category help only once when both expense and report eligibility apply', async () => {
+        // Given both an own unreported expense and another user's accessible report
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {...expenseReport, ownerAccountID: 2});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, {...transaction, reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
+        const selections = [];
+
+        // When each of the twelve eligible prompt slots is selected deterministically
+        for (let index = 0; index < 12; index++) {
+            jest.mocked(Math.random).mockReturnValue((index + 0.5) / 12);
+            const {result, unmount} = renderHook(() => useConciergeComposerPlaceholder(true));
+            await waitForBatchedUpdates();
+            selections.push(result.current);
+            unmount();
+        }
+
+        // Then category help has a single slot rather than being duplicated by both eligibility sources
+        expect(selections.filter((key) => key === 'common.concierge.composerPlaceholders.missingCategory')).toHaveLength(1);
+        expect(new Set(selections).size).toBe(12);
     });
 
     it('keeps the selection stable across unrelated updates and rerenders', async () => {
