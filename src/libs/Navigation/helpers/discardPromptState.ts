@@ -3,8 +3,8 @@ import CONST from '@src/CONST';
 /**
  * State shared by all the "Discard changes?" prompts.
  *
- * Muting: Confirmation keeps prompting while pages opened from it are on top of it. Code that closes the flow on purpose, such as
- * a submit, often can't reach Confirmation's own `suppressDiscardPrompt`, so it mutes the prompt here instead.
+ * Muting: the first screen of a flow keeps prompting while later steps are open on top of it. When a later step closes the flow
+ * on purpose, such as after a submit, it can't reach that screen's own `suppressDiscardPrompt`, so it mutes the prompt here instead.
  * If the submit fails and the flow stays open, the caller turns the prompt back on. The timeout is a fallback, so a mute can't last forever.
  *
  * Replaying: after the user picks Discard, the blocked navigation is sent again. Other prompts it reaches check
@@ -22,7 +22,7 @@ function releaseFlowDiscardPromptSuppression() {
     suppressionTimeoutID = undefined;
 }
 
-/** Mutes the prompt of every screen that guards the pages opened from it, for code that closes the flow on purpose, such as a submit. */
+/** Mutes the prompt of every flow's first screen, for code that closes the flow on purpose, such as a submit. */
 function suppressFlowDiscardPrompt() {
     isSuppressed = true;
     clearTimeout(suppressionTimeoutID);

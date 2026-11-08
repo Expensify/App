@@ -305,37 +305,37 @@ describe('useDiscardChangesConfirmation (native)', () => {
             expect(mockNavigationGoBack).toHaveBeenCalledTimes(1);
         });
     });
-    describe('while covered by a page opened from it', () => {
+    describe('flow root', () => {
         const invokeBeforeRemove = (type: string, action: Omit<MockBeforeRemoveEvent['data']['action'], 'type'> = {}) => {
             act(() => {
                 mockPreventRemoveCallback?.({data: {action: {type, ...action}}});
             });
         };
 
-        const renderCoveredGuardHook = (options: Partial<UseDiscardChangesConfirmationOptions> = {}) =>
+        const renderFlowRootHook = (options: Partial<UseDiscardChangesConfirmationOptions> = {}) =>
             renderHook(() => useDiscardChangesConfirmation({getHasUnsavedChanges: () => true, shouldPromptWhenUnfocused: true, ...options}));
 
-        it('keeps prevention armed and prompts while a page opened from it covers it', () => {
-            // Given a dirty Confirmation covered by a page opened from it
+        it('keeps prevention armed and prompts while a later step covers the root', () => {
+            // Given a dirty flow root covered by a later step
             mockIsFocused = false;
-            renderCoveredGuardHook();
+            renderFlowRootHook();
 
-            // When closing the flow removes Confirmation
+            // When closing the flow removes the root
             invokeBeforeRemove('POP', {target: 'rhp-stack'});
 
-            // Then Confirmation still blocks the removal and asks the user
+            // Then the root still blocks the removal and asks the user
             expect(mockPreventRemoveFlag).toBe(true);
             expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
             expect(mockNavigationDispatch).not.toHaveBeenCalled();
         });
 
         it('lets the removal through when the flow itself is not visible', () => {
-            // Given a dirty Confirmation whose flow is covered by another screen
+            // Given a dirty flow root whose flow is covered by another screen
             mockIsFocused = false;
             mockIsFlowFocused = false;
-            renderCoveredGuardHook();
+            renderFlowRootHook();
 
-            // When Confirmation is removed
+            // When the root is removed
             invokeBeforeRemove('POP', {target: 'rhp-stack'});
 
             // Then it isn't asked about and the removal proceeds
@@ -344,10 +344,10 @@ describe('useDiscardChangesConfirmation (native)', () => {
         });
 
         it('lets a replace inside the flow stack through without prompting', () => {
-            // Given a dirty Confirmation
-            renderCoveredGuardHook();
+            // Given a dirty flow root
+            renderFlowRootHook();
 
-            // When going back replaces it with an earlier step of the same flow
+            // When going back replaces the root with an earlier step of the same flow
             invokeBeforeRemove('REPLACE', {target: 'flow-stack'});
 
             // Then the draft stays, so the navigation proceeds without a prompt
@@ -356,8 +356,8 @@ describe('useDiscardChangesConfirmation (native)', () => {
         });
 
         it('lets a submit from a later step through while the flow is suppressed', () => {
-            // Given a dirty Confirmation and a submit that muted the flow's guards
-            renderCoveredGuardHook();
+            // Given a dirty flow root and a submit that muted the flow's guards
+            renderFlowRootHook();
             suppressFlowDiscardPrompt();
 
             // When the submit dismisses the flow
@@ -369,8 +369,8 @@ describe('useDiscardChangesConfirmation (native)', () => {
         });
 
         it('replays a root-level close at the root navigator on Discard', async () => {
-            // Given a dirty Confirmation
-            renderCoveredGuardHook();
+            // Given a dirty flow root
+            renderFlowRootHook();
 
             // When a close sent from the root-level RHP route is blocked and the user confirms Discard
             invokeBeforeRemove('GO_BACK', {source: 'rhp-route'});
@@ -381,13 +381,13 @@ describe('useDiscardChangesConfirmation (native)', () => {
         });
 
         it('discards without a second prompt when another guard already confirmed the navigation', () => {
-            // Given a dirty Confirmation under another guard of the same flow
-            renderCoveredGuardHook();
+            // Given a dirty flow root under another guard of the same flow
+            renderFlowRootHook();
 
             // When the other guard replays the navigation the user confirmed to discard
             runWhileReplayingDiscardedNavigation(() => invokeBeforeRemove('DISMISS_MODAL'));
 
-            // Then Confirmation lets it through without asking again
+            // Then the root lets it through without asking again
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
             expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'DISMISS_MODAL'});
         });

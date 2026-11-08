@@ -18,14 +18,15 @@ function useDiscardPromptGate({getHasUnsavedChanges, shouldPromptWhenUnfocused =
     const navigation = useNavigation();
 
     // Only the focused screen should prompt — a flow-leave reset fires `beforeRemove` for hidden siblings too.
-    // With `shouldPromptWhenUnfocused`, the screen also prompts while pages opened from it are on top of it.
+    // The first screen of a flow (`shouldPromptWhenUnfocused`) is the exception: it keeps prompting while the flow's
+    // other steps are open on top of it.
     const isFocused = useIsFocused();
     const isSavingRef = useRef(false);
     useFocusEffect(() => {
         isSavingRef.current = false;
         return () => {
-            // The screen stays open below the page it opens after it calls `suppressDiscardPrompt` and moves on.
-            // Turn its prompt back on, so closing the RHP from that page still asks.
+            // The first screen of a flow stays open below the next step after it calls `suppressDiscardPrompt` and moves on.
+            // Turn its prompt back on, so closing the RHP from the next step still asks.
             if (!shouldPromptWhenUnfocused) {
                 return;
             }
@@ -41,12 +42,12 @@ function useDiscardPromptGate({getHasUnsavedChanges, shouldPromptWhenUnfocused =
         return () => releaseFlowDiscardPromptSuppression();
     }, [shouldPromptWhenUnfocused]);
 
-    // A screen that prompts while covered still stays quiet when its whole flow is covered, such as by another RHP or a fullscreen
+    // The first screen of a flow still stays quiet when the whole flow is covered, such as by another RHP or a fullscreen
     const isGuardActive = () => (shouldPromptWhenUnfocused ? (navigation.getParent()?.isFocused() ?? true) : isFocused);
     const isMuted = () => isSavingRef.current || (shouldPromptWhenUnfocused && isFlowDiscardPromptSuppressed());
     const hasUnsavedChanges = () => isGuardActive() && !isMuted() && getHasUnsavedChanges();
 
-    // Some navigations remove this screen but keep the user in the flow, so they don't prompt
+    // Some navigations remove the flow's first screen but keep the user in the flow, so they don't prompt
     const shouldPromptFor = (action: NavigationAction) => !shouldPromptWhenUnfocused || !isNavigationInsideFlow(action, route, navigation.getState());
 
     const suppressDiscardPrompt = (shouldSuppress = true) => {

@@ -1,7 +1,6 @@
 /**
- * Asks "Discard changes?" when the user leaves the confirmation of a create expense flow while a draft has their input. It also
- * asks when the user closes the RHP from a page opened from the confirmation, such as Category. Going back from such a page to
- * the confirmation doesn't remove it, so it doesn't prompt.
+ * Asks "Discard changes?" when the user closes a create expense flow from any step while a draft has their input. Use it on the
+ * flow's first screen: going back between steps never removes that screen, so it doesn't prompt.
  */
 import {haveMoneyRequestDraftsUserEdits} from '@libs/MoneyRequestUtils';
 
@@ -11,10 +10,10 @@ import useDiscardChangesConfirmation from './useDiscardChangesConfirmation';
 import useOnyx from './useOnyx';
 
 type UseCreateFlowDiscardGuardParams = {
-    /** Whether to guard the flow. Only the confirmation of a create expense flow should. */
+    /** Whether to guard the flow. Only the first screen of a create expense flow should. */
     isEnabled: boolean;
 
-    /** Checked each time the guard runs. Return false to not ask this time, e.g. on a tab that doesn't show the confirmation. */
+    /** Checked each time the guard runs. Return false to not ask this time, e.g. on a screen that is only sometimes the first one. */
     shouldPrompt?: () => boolean;
 
     /** Runs after the user picks Discard, before the flow closes */

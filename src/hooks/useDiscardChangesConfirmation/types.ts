@@ -7,10 +7,9 @@ type UseDiscardChangesConfirmationOptions = {
     onTabSwitchDiscard?: () => void | Promise<void>;
 
     /**
-     * Use on a screen that opens other pages on top of it, such as a confirmation that opens Category. The screen keeps prompting
-     * while those pages are open, so closing the RHP from one of them asks first. Going back from them never removes the screen,
-     * so it doesn't prompt. Code that closes the flow on purpose from such a page, such as a submit, must call
-     * `suppressFlowDiscardPrompt` first.
+     * Use on the first screen of a multi-step flow. The screen keeps prompting while the flow's other steps are open on top of it,
+     * so closing the RHP from any step asks first. Going back between steps never removes the first screen, so it doesn't prompt.
+     * Code that closes the flow on purpose from a later step, such as a submit, must call `suppressFlowDiscardPrompt` first.
      */
     shouldPromptWhenUnfocused?: boolean;
 };
