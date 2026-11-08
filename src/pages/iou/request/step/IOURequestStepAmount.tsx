@@ -35,7 +35,7 @@ import {getMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyReque
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type {Report, SelectedTabRequest} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -70,6 +70,7 @@ const selectReportPolicyID = (report: OnyxEntry<Report>) => report?.policyID;
 function IOURequestStepAmount({
     report,
     route: {
+        name: routeName,
         params: {iouType, reportID, transactionID = '-1', backTo, action, backToReport, reportActionID},
     },
     transaction,
@@ -149,6 +150,10 @@ function IOURequestStepAmount({
 
     const baselineAmount = transactionAmount ? convertToFrontendAmountAsString(transactionAmount, decimals) : '';
 
+    // In the start page (INVOICE), this step is the first screen of the flow, so closing the RHP from any later step asks first too.
+    // After the user moves on, the saved amount still counts as a change.
+    const isFlowRoot = routeName === SCREENS.MONEY_REQUEST.CREATE;
+
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () =>
             getAmountHasUnsavedChanges({
@@ -162,6 +167,7 @@ function IOURequestStepAmount({
         onCancel: () => {
             focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
         },
+        shouldPromptWhenUnfocused: isFlowRoot,
     });
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
