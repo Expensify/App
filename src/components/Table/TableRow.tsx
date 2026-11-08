@@ -208,7 +208,9 @@ export default function TableRow({
         styles.dFlex,
         rowContentHeightStyle,
         // Use Grid on web when available (will override flex if supported)
-        !shouldUseNarrowTableLayout && [styles.dGrid, {gridTemplateColumns: gridTemplateColumns.join(' ')}],
+        // The grid must not grow, because rowContentHeightStyle already gives it the row's min height. In older Safari (17.5), a growing grid
+        // inside the list's absolutely positioned cell centers the first row's cells against the whole list's height, behind the next row.
+        !shouldUseNarrowTableLayout && [styles.dGrid, styles.flexGrow0, {gridTemplateColumns: gridTemplateColumns.join(' ')}],
     ];
 
     const tableRowPressableHoverStyle = (() => {
