@@ -1,7 +1,6 @@
 import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
 import validateReceiptFile from '@libs/fileDownload/validateReceiptFile';
 import {navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
-import {suppressFlowDiscardPrompt} from '@libs/Navigation/helpers/discardPromptState';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasAllManuallyEnteredScanFields} from '@libs/TransactionUtils';
@@ -152,8 +151,6 @@ function ReceiptFileValidator({
             }
             removeDraftTransactionsByIDs(draftTransactionIDs, true);
             if (requestType) {
-                // The receipts can't be read anymore and were just cleared, so going back to the start doesn't ask to discard them
-                suppressFlowDiscardPrompt();
                 navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID, action, backToReport);
             }
         });
