@@ -14,6 +14,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useParentReportAction from '@hooks/useParentReportAction';
 import {useAllPersonalDetails, usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import usePressLoading from '@hooks/usePressLoading';
@@ -38,7 +39,7 @@ import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import type {MemberEmailsToAccountIDs} from '@libs/PolicyUtils';
 import {isPolicyEmployee as isPolicyEmployeeUtil} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
-import {getParticipantsAccountIDsForDisplay, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {canInviteMembersToRoom, getParticipantsAccountIDsForDisplay, isPolicyExpenseChat} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -77,6 +78,10 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
     const isReportArchived = useReportIsArchived(report.reportID);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
+    const parentReportAction = useParentReportAction(report);
+    const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
+    const canInvite = canInviteMembersToRoom(parentReport, parentReportAction, policy, isParentReportArchived, currentUserPersonalDetails.accountID);
     const {isLoading, startWithLoading} = usePressLoading();
 
     // Any existing participants and Expensify emails should not be eligible for invitation
@@ -231,7 +236,7 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
             includeSafeAreaPaddingBottom
         >
             <FullPageNotFoundView
-                shouldShow={isEmptyObject(report) || isReportArchived}
+                shouldShow={isEmptyObject(report) || isReportArchived || !canInvite}
                 subtitleKey={subtitleKey}
                 onBackButtonPress={() => Navigation.goBack(backRoute)}
             >

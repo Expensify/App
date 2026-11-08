@@ -41,6 +41,7 @@ import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isPolicyEmployee as isPolicyEmployeeUtils, isRoomMemberProtectedByPolicyRole} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
+    canInviteMembersToRoom,
     getReportForHeader,
     getReportPersonalDetailsParticipants,
     isChatThread,
@@ -91,6 +92,8 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     };
     const isReportArchived = useReportIsArchived(report.reportID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
+    const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
+    const canInvite = canInviteMembersToRoom(parentReport, reportAction, policy, isParentReportArchived, session?.accountID);
     const reportForSubtitle = getReportForHeader(report, parentReport);
     const derivedSubtitleReportName = useDerivedReportNameByReportID(reportForSubtitle?.reportID);
     const subtitleReportName = getReportName(reportForSubtitle, derivedSubtitleReportName);
@@ -280,9 +283,10 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     ];
     const bulkActionsButtonOptions = options;
 
+    const isSelecting = isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0;
     const headerButtons = (
         <View style={styles.w100}>
-            {(isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0) ? (
+            {isSelecting && (
                 <ButtonWithDropdownMenu<RoomMemberBulkActionType>
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     shouldAlwaysShowDropdownMenu
@@ -295,7 +299,8 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                     style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
                     isDisabled={!selectedMembers.length}
                 />
-            ) : (
+            )}
+            {!isSelecting && canInvite && (
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={inviteUser}
