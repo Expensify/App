@@ -27,6 +27,8 @@ import Onyx from 'react-native-onyx';
 import createMock from '../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
+// The page is rendered outside a navigator screen, which the flow's discard guard needs
+jest.mock('@hooks/useCreateFlowDiscardGuard', () => jest.fn(() => ({isFlowDirty: false})));
 jest.mock('@userActions/Tab');
 jest.mock(
     '@pages/workspace/AccessOrNotFoundWrapper',

@@ -3,6 +3,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 
+import useCreateFlowDiscardGuard from '@hooks/useCreateFlowDiscardGuard';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultParticipants from '@hooks/useDefaultParticipants';
 import useLocalize from '@hooks/useLocalize';
@@ -137,6 +138,9 @@ function DistanceRequestStartPage({
     useEffect(() => {
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
     }, []);
+
+    // This page is the first screen of the flow, so closing the RHP from any step asks first when a draft has user input
+    useCreateFlowDiscardGuard({isEnabled: action === CONST.IOU.ACTION.CREATE});
 
     const navigateBack = () => {
         Navigation.closeRHPFlow();
