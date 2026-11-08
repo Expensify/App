@@ -61,7 +61,7 @@ function formatLastUsed(inserted: string): string {
 }
 
 /**
- * Checks that every waypoint on the route is valid. Routes created offline with unresolvable addresses
+ * Checks that every waypoint on the route is valid. Routes created offline with invalid addresses
  * receive zero coordinates once synced, so getValidWaypoints drops them and the count no longer matches.
  */
 function hasValidWaypoints(waypoints: WaypointCollection | undefined): boolean {

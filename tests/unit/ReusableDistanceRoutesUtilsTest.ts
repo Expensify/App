@@ -144,14 +144,14 @@ describe('ReusableDistanceRoutesUtils', () => {
         it('excludes routes with invalid waypoints or zero distance', () => {
             // Given routes with zero coordinates, zero resolved distance (no route found), fewer than two waypoints, or duplicate adjacent waypoints
             const zeroCoordinatesRoute: ReusableDistanceRoute = {
-                ...createRoute('tx-1', ['invalid1', 'invalid2']),
+                ...createRoute('tx-1', ['Invalid Start', 'Invalid End']),
                 waypoints: {
-                    waypoint0: {address: 'invalid1', lat: 0, lng: 0},
-                    waypoint1: {address: 'invalid2', lat: 0, lng: 0},
+                    waypoint0: {address: 'Invalid Start', lat: 0, lng: 0},
+                    waypoint1: {address: 'Invalid End', lat: 0, lng: 0},
                 },
             };
             const noRouteFoundRoute: ReusableDistanceRoute = {
-                ...createRoute('tx-2', ['abcde1', 'fghij2']),
+                ...createRoute('tx-2', ['Unreachable Start', 'Unreachable End']),
                 distance: 0,
             };
             const singleWaypointRoute = createRoute('tx-3', ['Only One']);
@@ -174,8 +174,8 @@ describe('ReusableDistanceRoutesUtils', () => {
                 distance: 0,
                 inserted: '2026-09-01 12:00:00',
                 waypoints: {
-                    waypoint0: {address: 'invalid1'},
-                    waypoint1: {address: 'invalid2'},
+                    waypoint0: {address: 'Invalid Start'},
+                    waypoint1: {address: 'Invalid End'},
                 },
             };
             const transactions: Record<string, Transaction> = {
@@ -183,8 +183,8 @@ describe('ReusableDistanceRoutesUtils', () => {
                     ...baseTransaction,
                     comment: {
                         waypoints: {
-                            waypoint0: {address: 'invalid1', lat: 0, lng: 0},
-                            waypoint1: {address: 'invalid2', lat: 0, lng: 0},
+                            waypoint0: {address: 'Invalid Start', lat: 0, lng: 0},
+                            waypoint1: {address: 'Invalid End', lat: 0, lng: 0},
                         },
                     },
                 },
