@@ -283,12 +283,12 @@ function getActionHtml(reportAction: OnyxInputOrEntry<ReportAction>): string {
 }
 
 /** Sets the HTML string to Clipboard */
-function setClipboardMessage(content: string | undefined, reportIDToName?: Record<string, string>) {
+function setClipboardMessage(content: string | undefined, reportIDToName?: Record<string, string>, accountIDToName?: Record<string, string>) {
     const strippedContent = stripFollowupListFromHtml(content);
     if (!strippedContent) {
         return;
     }
-    const clipboardText = getClipboardText(strippedContent, reportIDToName);
+    const clipboardText = getClipboardText(strippedContent, reportIDToName, accountIDToName);
     if (!Clipboard.canSetHtml()) {
         Clipboard.setString(clipboardText);
     } else {
@@ -297,13 +297,14 @@ function setClipboardMessage(content: string | undefined, reportIDToName?: Recor
 }
 
 /** Sets the HTML string to Clipboard after stripping the SMS domain from any user mentions */
-function setClipboardMessageWithCleanedMentions(value: string, reportIDToName?: Record<string, string>) {
+function setClipboardMessageWithCleanedMentions(value: string, reportIDToName?: Record<string, string>, accountIDToName?: Record<string, string>) {
     setClipboardMessage(
         value.replaceAll(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {
             const modifiedContent = Str.removeSMSDomain(innerContent) || '';
             return openTag + modifiedContent + closeTag || '';
         }),
         reportIDToName,
+        accountIDToName,
     );
 }
 
@@ -1169,7 +1170,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 if (selection) {
                     // When the user has highlighted part of a message, always copy exactly what's selected,
                     // regardless of the report action type (including system messages like "marked as paid").
-                    setClipboardMessageWithCleanedMentions(selection, reportIDToName);
+                    setClipboardMessageWithCleanedMentions(selection, reportIDToName, accountIDToName);
                 } else if (isReportPreviewAction) {
                     const iouReportID = getIOUReportIDFromReportActionPreview(reportAction);
                     const displayMessage = getReportPreviewMessageForCopy({
@@ -1661,7 +1662,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.AUTO_PAY_FEE_DISCLOSURE)) {
                     setClipboardMessage(getAutoPayFeeDisclosureMessage(translate, reportAction, getPersonalDetailsByID(getOriginalMessage(reportAction)?.accountID, personalDetails)));
                 } else if (content) {
-                    setClipboardMessageWithCleanedMentions(content, reportIDToName);
+                    setClipboardMessageWithCleanedMentions(content, reportIDToName, accountIDToName);
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
                     setClipboardMessage(getSettlementAccountLockedMessage(translate, reportAction));
                 } else if (messageText) {
