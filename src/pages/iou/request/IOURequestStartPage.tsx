@@ -371,6 +371,7 @@ function IOURequestStartPage({
                                     <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>
                                         {() => (
                                             <TabScreenWithFocusTrapWrapper>
+                                                <CreateFlowTabSwitchGuard hasUnsavedChanges={isFlowDirty} />
                                                 <IOURequestStepScan
                                                     key={transactionRequestType}
                                                     route={route}
