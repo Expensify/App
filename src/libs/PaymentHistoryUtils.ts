@@ -341,7 +341,7 @@ function getReceiptPurchase(purchases: Purchases | null | undefined, purchaseID:
         return null;
     }
     const purchase = purchases[String(purchaseID)];
-    if (!purchase) {
+    if (!purchase?.purchaseID || !purchase.message) {
         return null;
     }
     if (purchase.receipt?.source) {
@@ -357,7 +357,7 @@ function getReceiptPurchase(purchases: Purchases | null | undefined, purchaseID:
     while (currentID !== undefined && !visited.has(currentID)) {
         visited.add(currentID);
         const current: Purchase | undefined = purchases[String(currentID)];
-        if (!current) {
+        if (!current?.purchaseID || !current.message) {
             return null;
         }
         if (current.receipt?.source) {

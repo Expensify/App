@@ -16,6 +16,8 @@ import {
 import CONST from '@src/CONST';
 import type {Purchase} from '@src/types/onyx/PurchaseList';
 
+import createMock from '../utils/createMock';
+
 function createPurchase(purchaseID: number, created: string, message: Purchase['message'] = {}, amount = 1000): Purchase {
     return {
         purchaseID,
@@ -452,6 +454,85 @@ describe('getReceiptSource', () => {
 
         // Then null is returned
         expect(source).toBeNull();
+    });
+});
+
+describe('incomplete receipt purchases', () => {
+    it.each([
+        {name: 'loaded placeholder', purchase: {isLoaded: true}},
+        {name: 'missing ID', purchase: {message: {}}},
+        {name: 'missing message', purchase: {purchaseID: 1}},
+    ])('rejects a $name with and without a receipt', ({purchase}) => {
+        // Given partial persisted data that must not be treated as a valid receipt carrier
+        const purchaseID = 1;
+        for (const receipt of [undefined, {receiptID: 100, source: 'https://example.com/receipt.pdf'}]) {
+            const purchases = createMock<Record<string, Purchase>>({[purchaseID]: {...purchase, receipt}});
+
+            // When either receipt helper resolves the incomplete purchase
+            const source = getReceiptSource(purchases, 1);
+            const isInvoice = isInvoiceBilling(purchases, 1);
+
+            // Then neither helper accepts the entry or dereferences its missing message
+            expect(source).toBeNull();
+            expect(isInvoice).toBe(false);
+        }
+    });
+
+    it.each([
+        {name: 'loaded placeholder', purchase: {isLoaded: true}},
+        {name: 'missing ID', purchase: {message: {failedPurchaseID: 10}}},
+        {name: 'missing message', purchase: {purchaseID: 20}},
+    ])('stops a receipt chain at a $name', ({purchase}) => {
+        // Given a cleared bill whose chain contains an invalid entry before a valid invoice
+        const failedPurchaseID = 20;
+        const original = createPurchase(10, '2026-01-01', {billingType: CONST.BILLING.TYPE_INVOICING});
+        original.receipt = {receiptID: 100, source: 'https://example.com/invoice.pdf'};
+        const clear = createPurchase(30, '2026-03-01', {billingType: CONST.BILLING.TYPE_CLEAR, failedPurchaseID});
+        for (const receipt of [undefined, original.receipt]) {
+            const purchases = createMock<Record<string, Purchase>>({...toPurchases([original, clear]), [failedPurchaseID]: {...purchase, receipt}});
+
+            // When either helper traverses the invalid link, even one carrying a receipt
+            const source = getReceiptSource(purchases, 30);
+            const isInvoice = isInvoiceBilling(purchases, 30);
+
+            // Then resolution stops safely rather than accepting or following the invalid entry
+            expect(source).toBeNull();
+            expect(isInvoice).toBe(false);
+        }
+    });
+
+    it('rejects a null message at the root or a linked purchase', () => {
+        // Given persisted data with a null message, including a direct receipt source
+        const invalid = createPurchase(1, '2026-01-01');
+        invalid.receipt = {receiptID: 100, source: 'https://example.com/receipt.pdf'};
+        Reflect.set(invalid, 'message', null);
+        const clear = createPurchase(2, '2026-03-01', {billingType: CONST.BILLING.TYPE_CLEAR, failedPurchaseID: 1});
+        const purchases = toPurchases([invalid, clear]);
+
+        // When resolving the invalid purchase directly or through a cleared bill
+        for (const purchaseID of [1, 2]) {
+            const source = getReceiptSource(purchases, purchaseID);
+            const isInvoice = isInvoiceBilling(purchases, purchaseID);
+
+            // Then neither path treats the receipt as safe for billing classification
+            expect(source).toBeNull();
+            expect(isInvoice).toBe(false);
+        }
+    });
+
+    it('terminates a cyclic receipt chain', () => {
+        // Given a chain with no receipt that eventually points back to the cleared bill
+        const clear = createPurchase(1, '2026-03-01', {billingType: CONST.BILLING.TYPE_CLEAR, failedPurchaseID: 2});
+        const failed = createPurchase(2, '2026-02-01', {billingType: CONST.BILLING.TYPE_FAILED, failedPurchaseID: 1});
+        const purchases = toPurchases([clear, failed]);
+
+        // When the receipt helpers traverse the cycle
+        const source = getReceiptSource(purchases, 1);
+        const isInvoice = isInvoiceBilling(purchases, 1);
+
+        // Then the existing cycle protection still returns an empty result
+        expect(source).toBeNull();
+        expect(isInvoice).toBe(false);
     });
 });
 

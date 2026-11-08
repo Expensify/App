@@ -4,6 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp, PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import {getReceiptFileName, getReceiptSource, isInvoiceBilling} from '@libs/PaymentHistoryUtils';
@@ -39,13 +40,25 @@ function BillingReceiptModalContent() {
         openPaymentDetailsPage(numericPurchaseID);
     }, [purchase?.isLoaded, isOffline, numericPurchaseID]);
 
-    const source = getReceiptSource(purchases, numericPurchaseID) ?? '';
+    useEffect(() => {
+        if (!purchase?.isLoaded || purchase.purchaseID) {
+            return;
+        }
+
+        Navigation.dismissModal();
+    }, [purchase?.isLoaded, purchase?.purchaseID]);
+
     const onDownloadAttachment = useDownloadAttachment({isAuthTokenRequired: true});
 
     if (!purchase?.isLoaded) {
         return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
+    if (!purchase.purchaseID) {
+        return null;
+    }
+
+    const source = getReceiptSource(purchases, numericPurchaseID) ?? '';
     const originalFileName = getReceiptFileName(source, numericPurchaseID);
     const isInvoice = isInvoiceBilling(purchases, numericPurchaseID);
 
