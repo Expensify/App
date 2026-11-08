@@ -18,4 +18,4 @@
 
 - Upstream PR/issue: https://github.com/mapbox/mapbox-gl-js/issues/13735, fixed upstream in https://github.com/mapbox/mapbox-gl-js/commit/8a04af5eb487d328457dfdd7ad25e5f656255c40, which ships in v3.36. Remove this patch when we upgrade to that version.
 - E/App issue: https://github.com/Expensify/App/issues/100845
-- PR introducing patch: 🛑 TODO
+- PR introducing patch: https://github.com/Expensify/App/pull/106319
