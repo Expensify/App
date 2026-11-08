@@ -22,7 +22,6 @@ import {useIsFocused} from '@react-navigation/native';
 import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
 import React, {useEffect} from 'react';
 
-import MultiScanDiscardGuard from './components/MultiScanDiscardGuard';
 import MultiScanGate from './components/MultiScanGate';
 import ScanEditReceipt from './components/ScanEditReceipt';
 import ScanFromReport from './components/ScanFromReport';
@@ -183,7 +182,6 @@ function ScanRouter({report, action, iouType, reportID, transactionID, transacti
 
     return (
         <MultiScanGate>
-            <MultiScanDiscardGuard />
             <ScanLocationPrompt gpsRequired={transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT} />
             <ScanNewReceipt
                 report={report}
