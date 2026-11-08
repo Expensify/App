@@ -396,6 +396,7 @@ function IOURequestStartPage({
                                         <TopTab.Screen name={CONST.TAB_REQUEST.PER_DIEM}>
                                             {() => (
                                                 <TabScreenWithFocusTrapWrapper>
+                                                    <CreateFlowTabSwitchGuard hasUnsavedChanges={isFlowDirty} />
                                                     {shouldShowWorkspaceSelectForPerDiem ? (
                                                         <IOURequestStepPerDiemWorkspace
                                                             route={route}
