@@ -221,15 +221,10 @@ function IOURequestStartPage({
     // mounts for PAY - the embedded confirmation carries the amount inline, so there is no separate step left to skip.
     const shouldEmbedConfirmation = shouldUseTab || iouType === CONST.IOU.TYPE.PAY;
 
-    // Only the Manual tab and PAY show the confirmation on this page. The Scan tab shows the camera, which doesn't show the draft,
-    // and the distance and time tabs show a step with its own guard. Their flows ask on the Confirmation page that comes next.
-    const isShowingConfirmation = () => transactionRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
-
-    // Closing the RHP from the embedded confirmation, or from a page opened from it, asks first when a draft has user input.
-    // INVOICE doesn't use it: it starts on the amount step, which has its own guard.
+    // This page is the first screen of the flow, so closing the RHP from any step asks first when a draft has user input.
+    // INVOICE doesn't use it: its first screen is the embedded amount step, which has its own guard.
     const {isFlowDirty} = useCreateFlowDiscardGuard({
         isEnabled: shouldEmbedConfirmation,
-        shouldPrompt: isShowingConfirmation,
         // Runs only after the user picks Discard, so Cancel leaves the tracking and the tab under the RHP as they were.
         // When a tab was removed, close the RHP a frame later, for the same reason as in navigateBack below.
         onBeforeClose: () => {
@@ -243,7 +238,7 @@ function IOURequestStartPage({
     });
 
     const navigateBack = () => {
-        if (isFlowDirty && isShowingConfirmation()) {
+        if (isFlowDirty) {
             // The guard asks first, and cleans up only if the user picks Discard
             Navigation.closeRHPFlow();
             return;
