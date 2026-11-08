@@ -40,6 +40,8 @@ function BillingReceiptModalContent() {
         openPaymentDetailsPage(numericPurchaseID);
     }, [purchase?.isLoaded, isOffline, numericPurchaseID]);
 
+    // A completed lookup can leave an Onyx placeholder without purchase data, including after an API failure.
+    // Dismiss from an effect to keep navigation out of render while Onyx resolves the lookup asynchronously.
     useEffect(() => {
         if (!purchase?.isLoaded || purchase.purchaseID) {
             return;

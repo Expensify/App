@@ -341,6 +341,8 @@ function getReceiptPurchase(purchases: Purchases | null | undefined, purchaseID:
         return null;
     }
     const purchase = purchases[String(purchaseID)];
+    // Onyx can persist lookup completion without purchase data, despite these fields being required by the type.
+    // Reject placeholders before using their receipt or reading their message.
     if (!purchase?.purchaseID || !purchase.message) {
         return null;
     }
@@ -357,6 +359,7 @@ function getReceiptPurchase(purchases: Purchases | null | undefined, purchaseID:
     while (currentID !== undefined && !visited.has(currentID)) {
         visited.add(currentID);
         const current: Purchase | undefined = purchases[String(currentID)];
+        // Linked purchases can also be persisted placeholders, so each entry needs the same validation.
         if (!current?.purchaseID || !current.message) {
             return null;
         }
