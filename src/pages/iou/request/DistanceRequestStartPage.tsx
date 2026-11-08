@@ -36,6 +36,7 @@ import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
 
+import CreateFlowTabSwitchGuard from './CreateFlowTabSwitchGuard';
 import DynamicIOURequestStepDistanceManual from './step/DynamicIOURequestStepDistanceManual';
 import IOURequestStepDistanceGPS from './step/IOURequestStepDistanceGPS';
 import IOURequestStepDistanceMap from './step/IOURequestStepDistanceMap';
@@ -140,7 +141,7 @@ function DistanceRequestStartPage({
     }, []);
 
     // This page is the first screen of the flow, so closing the RHP from any step asks first when a draft has user input
-    useCreateFlowDiscardGuard({isEnabled: action === CONST.IOU.ACTION.CREATE});
+    const {isFlowDirty} = useCreateFlowDiscardGuard({isEnabled: action === CONST.IOU.ACTION.CREATE});
 
     const navigateBack = () => {
         Navigation.closeRHPFlow();
@@ -193,6 +194,7 @@ function DistanceRequestStartPage({
                         <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_MAP}>
                             {() => (
                                 <TabScreenWithFocusTrapWrapper>
+                                    <CreateFlowTabSwitchGuard hasUnsavedChanges={isFlowDirty} />
                                     <IOURequestStepDistanceMap
                                         route={route}
                                         navigation={navigation}
@@ -204,6 +206,7 @@ function DistanceRequestStartPage({
                             <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_MANUAL}>
                                 {() => (
                                     <TabScreenWithFocusTrapWrapper>
+                                        <CreateFlowTabSwitchGuard hasUnsavedChanges={isFlowDirty} />
                                         <DynamicIOURequestStepDistanceManual
                                             route={route}
                                             navigation={navigation}

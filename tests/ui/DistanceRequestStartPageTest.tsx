@@ -29,6 +29,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 // The page is rendered outside a navigator screen, which the flow's discard guard needs
 jest.mock('@hooks/useCreateFlowDiscardGuard', () => jest.fn(() => ({isFlowDirty: false})));
+jest.mock('@pages/iou/request/CreateFlowTabSwitchGuard', () => () => null);
 jest.mock('@userActions/Tab');
 jest.mock(
     '@pages/workspace/AccessOrNotFoundWrapper',
