@@ -554,7 +554,7 @@ describe('getUpdateMoneyRequestParams — next step of a submitted report', () =
         ownerAccountID: RORY_ACCOUNT_ID,
         stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
         statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-    } as Report;
+    };
 
     function buildPolicy(approvalMode: Policy['approvalMode']): Policy {
         return {
