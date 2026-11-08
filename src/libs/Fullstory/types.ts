@@ -27,6 +27,8 @@ type FullstoryUserVars = {
     free_trial_status?: 'active' | 'expiring_soon' | 'expired' | 'expired_last30days';
     plan_type?: 'collect' | 'control';
     paid_member?: boolean;
+    nps_score?: number;
+    nps_response_date?: Date;
     auth_method?: 'email' | 'google' | 'apple';
     reg_method?: 'Google signup' | 'email/phone signup';
     login_status?: 'success' | 'failure';
@@ -281,4 +283,4 @@ type ForwardedFSClassProps = {
     forwardedFSClass?: FSClass;
 };
 
-export type {FSPageLike, Fullstory, FullstoryEventName, FullstoryEventPropertiesMap, FullstoryUserVars, GetChatFSClass, ForwardedFSClassProps, ShouldInitialize};
+export type {FSClass, FSPageLike, Fullstory, FullstoryEventName, FullstoryEventPropertiesMap, FullstoryUserVars, GetChatFSClass, ForwardedFSClassProps, ShouldInitialize};

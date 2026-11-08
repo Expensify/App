@@ -5,10 +5,14 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+// eslint-disable-next-line no-restricted-imports -- namespace import only types jest.requireActual for the PolicyUtils mock, so there is no runtime use of the billing helper
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessage, getSortedReportActions} from '@libs/ReportActionsUtils';
 import {buildOptimisticCreatedReportAction, buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
+
+import type * as ReportActionSubscribers from '@userActions/Report/reportActionSubscribers';
+import {notifyNewAction} from '@userActions/Report/reportActionSubscribers';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -57,6 +61,11 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 jest.mock('@react-navigation/native');
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
+
+jest.mock('@userActions/Report/reportActionSubscribers', () => ({
+    ...jest.requireActual<typeof ReportActionSubscribers>('@userActions/Report/reportActionSubscribers'),
+    notifyNewAction: jest.fn(),
+}));
 
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
@@ -108,6 +117,7 @@ describe('actions/IOU/Hold', () => {
                 initialReportID: 'existing-thread',
                 initialReport,
                 transactionReport: undefined,
+                transactionReportActions: undefined,
                 isOffline: true,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
@@ -157,6 +167,7 @@ describe('actions/IOU/Hold', () => {
                 initialReportID: undefined,
                 initialReport: undefined,
                 transactionReport: undefined,
+                transactionReportActions: undefined,
                 isOffline: true,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
@@ -227,6 +238,7 @@ describe('actions/IOU/Hold', () => {
                         initialReportID: transactionThread.reportID,
                         initialReport: transactionThread,
                         transactionReport: iouReport,
+                        transactionReportActions: undefined,
                         isOffline: false,
                         currentUserLogin: RORY_EMAIL,
                         currentUserAccountID: RORY_ACCOUNT_ID,
@@ -242,12 +254,12 @@ describe('actions/IOU/Hold', () => {
                         const connection = Onyx.connect({
                             key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`,
                             callback: (report) => {
-                                Onyx.disconnect(connection);
+                                connection.unsubscribe();
                                 const lastVisibleActionCreated = report?.lastVisibleActionCreated;
                                 const connection2 = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
                                     callback: (reportActions) => {
-                                        Onyx.disconnect(connection2);
+                                        connection2.unsubscribe();
                                         resolve();
                                         const lastAction = getSortedReportActions(Object.values(reportActions ?? {}), true).at(0);
                                         const message = getReportActionMessage(lastAction);
@@ -303,6 +315,7 @@ describe('actions/IOU/Hold', () => {
                         initialReportID: undefined,
                         initialReport: undefined,
                         transactionReport: iouReport,
+                        transactionReportActions: undefined,
                         isOffline: false,
                         currentUserLogin: RORY_EMAIL,
                         currentUserAccountID: RORY_ACCOUNT_ID,
@@ -318,7 +331,7 @@ describe('actions/IOU/Hold', () => {
                         const connection = Onyx.connect({
                             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
                             callback: (reportActions) => {
-                                Onyx.disconnect(connection);
+                                connection.unsubscribe();
                                 const updatedIOUAction = reportActions?.[iouAction.reportActionID];
                                 // Verify that IOU action now has childReportID set optimistically
                                 expect(updatedIOUAction?.childReportID).toBeDefined();
@@ -327,6 +340,43 @@ describe('actions/IOU/Hold', () => {
                         });
                     });
                 });
+        });
+
+        test.each([
+            [CONST.REPORT.STATUS_NUM.OPEN, true],
+            [CONST.REPORT.STATUS_NUM.SUBMITTED, false],
+            [CONST.REPORT.STATUS_NUM.APPROVED, false],
+            [CONST.REPORT.STATUS_NUM.REIMBURSED, false],
+        ])('should build the optimistic next step only for an open report (statusNum %p, builds next step: %p)', (statusNum, shouldBuildNextStep) => {
+            // Given an expense report with the given status
+            const iouReport: Report = {...buildOptimisticIOUReport(1, 2, 100, '1', 'USD', getCurrencyDecimalsLocal), statusNum};
+            const transaction = buildOptimisticTransaction({transactionParams: {amount: 100, currency: 'USD', reportID: iouReport.reportID}});
+            const request = jest.spyOn(jest.requireActual<{write: typeof write}>('@libs/API'), 'write').mockResolvedValue(undefined);
+
+            // When an expense in that report is put on hold
+            putOnHold({
+                transactionID: transaction.transactionID,
+                transaction,
+                comment: 'hold reason',
+                initialReportID: 'existing-thread',
+                initialReport: undefined,
+                transactionReport: iouReport,
+                transactionReportActions: undefined,
+                isOffline: true,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                transactionViolations: undefined,
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
+                rules: undefined,
+            });
+
+            // Then the next step is only rebuilt for an open report, because holding doesn't change the next step of a report past the open status
+            const nextStepUpdate = request.mock.calls
+                .at(0)?.[2]
+                ?.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}` && isObject(update.value) && 'nextStep' in update.value);
+            expect(!!nextStepUpdate).toBe(shouldBuildNextStep);
+            request.mockRestore();
         });
     });
 
@@ -399,6 +449,7 @@ describe('actions/IOU/Hold', () => {
                         },
                         comment,
                         reportID: iouReport.reportID,
+                        reportActions: undefined,
                         isOffline: false,
                         currentUserLogin: RORY_EMAIL,
                         currentUserAccountID: RORY_ACCOUNT_ID,
@@ -423,7 +474,7 @@ describe('actions/IOU/Hold', () => {
                         const connection1 = Onyx.connect({
                             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`,
                             callback: (updatedTransaction1) => {
-                                Onyx.disconnect(connection1);
+                                connection1.unsubscribe();
                                 // Both transactions should have pending hold action set
                                 expect(updatedTransaction1?.comment?.hold).toBeDefined();
                                 checkBothTransactions();
@@ -432,7 +483,7 @@ describe('actions/IOU/Hold', () => {
                         const connection2 = Onyx.connect({
                             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`,
                             callback: (updatedTransaction2) => {
-                                Onyx.disconnect(connection2);
+                                connection2.unsubscribe();
                                 expect(updatedTransaction2?.comment?.hold).toBeDefined();
                                 checkBothTransactions();
                             },
@@ -510,6 +561,7 @@ describe('actions/IOU/Hold', () => {
                         },
                         comment,
                         reportID: iouReport.reportID,
+                        reportActions: undefined,
                         isOffline: true,
                         currentUserLogin: RORY_EMAIL,
                         currentUserAccountID: RORY_ACCOUNT_ID,
@@ -596,6 +648,7 @@ describe('actions/IOU/Hold', () => {
                         },
                         comment,
                         reportID: iouReport.reportID,
+                        reportActions: undefined,
                         isOffline: false,
                         currentUserLogin: RORY_EMAIL,
                         currentUserAccountID: RORY_ACCOUNT_ID,
@@ -653,7 +706,8 @@ describe('actions/IOU/Hold', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`]: transactionThread,
                 [`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport,
             };
-            const actionCollectionDataSet: ReportActionsCollectionDataSet = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: {[iouAction.reportActionID]: iouAction}};
+            const iouReportActions = {[iouAction.reportActionID]: iouAction};
+            const actionCollectionDataSet: ReportActionsCollectionDataSet = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: iouReportActions};
             const comment = 'hold reason';
 
             return waitForBatchedUpdates()
@@ -667,6 +721,7 @@ describe('actions/IOU/Hold', () => {
                         initialReportID: transactionThread.reportID,
                         initialReport: transactionThread,
                         transactionReport: iouReport,
+                        transactionReportActions: iouReportActions,
                         isOffline: false,
                         currentUserLogin: RORY_EMAIL,
                         currentUserAccountID: RORY_ACCOUNT_ID,
@@ -689,6 +744,7 @@ describe('actions/IOU/Hold', () => {
                         initialReportID: transactionThread.reportID,
                         initialReport: transactionThread,
                         transactionReport: iouReport,
+                        transactionReportActions: iouReportActions,
                         isOffline: true,
                         currentUserLogin: RORY_EMAIL,
                         currentUserAccountID: RORY_ACCOUNT_ID,
@@ -703,6 +759,132 @@ describe('actions/IOU/Hold', () => {
                     // Navigation should also be called for isOffline: true
                     expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
                 });
+        });
+    });
+
+    describe('putOnHold with transactionReportActions', () => {
+        function buildTwoExpenseFixtures() {
+            const iouReport = buildOptimisticIOUReport(1, 2, 300, '1', 'USD', getCurrencyDecimalsLocal);
+            const buildExpense = (amount: number) => {
+                const transaction = buildOptimisticTransaction({transactionParams: {amount, currency: 'USD', reportID: iouReport.reportID}});
+                const iouAction: ReportAction = buildOptimisticIOUReportAction({
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount,
+                    currency: 'USD',
+                    comment: '',
+                    participants: [],
+                    transactionID: transaction.transactionID,
+                    iouReportID: iouReport.reportID,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                });
+                const transactionThread = buildTransactionThread(iouAction, iouReport, RORY_ACCOUNT_ID);
+                iouAction.childReportID = transactionThread.reportID;
+                return {transaction, iouAction, transactionThread};
+            };
+            const heldExpense = buildExpense(100);
+            const otherExpense = buildExpense(200);
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${heldExpense.transactionThread.reportID}`]: heldExpense.transactionThread,
+                [`${ONYXKEYS.COLLECTION.REPORT}${otherExpense.transactionThread.reportID}`]: otherExpense.transactionThread,
+            };
+            const reportCollectionDataSet: ReportCollectionDataSet = reports;
+            const transactionCollectionDataSet: TransactionCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${heldExpense.transaction.transactionID}`]: heldExpense.transaction,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${otherExpense.transaction.transactionID}`]: otherExpense.transaction,
+            };
+            const heldExpenseActions: ReportActions = {[heldExpense.iouAction.reportActionID]: heldExpense.iouAction};
+            const bothExpensesActions: ReportActions = {...heldExpenseActions, [otherExpense.iouAction.reportActionID]: otherExpense.iouAction};
+            const seedOnyx = async (iouReportActions: ReportActions) => {
+                const actionCollectionDataSet: ReportActionsCollectionDataSet = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: iouReportActions};
+                await Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet});
+                await waitForBatchedUpdates();
+            };
+            return {iouReport, heldExpense, otherExpense, reports, heldExpenseActions, bothExpensesActions, seedOnyx};
+        }
+
+        function holdFromThread({iouReport, heldExpense}: ReturnType<typeof buildTwoExpenseFixtures>, transactionReportActions: ReportActions) {
+            putOnHold({
+                transactionID: heldExpense.transaction.transactionID,
+                transaction: heldExpense.transaction,
+                comment: 'hold reason',
+                initialReportID: heldExpense.transactionThread.reportID,
+                initialReport: heldExpense.transactionThread,
+                transactionReport: iouReport,
+                transactionReportActions,
+                isOffline: false,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                transactionViolations: undefined,
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
+                rules: undefined,
+            });
+        }
+
+        // Navigation is mocked, so the queued announcements are run by hand to see which report each one targets
+        function runQueuedNavigationActions() {
+            for (const [navigationAction] of jest.mocked(Navigation.setNavigationActionToMicrotaskQueue).mock.calls) {
+                navigationAction();
+            }
+        }
+
+        test('announces the hold on the expense report when the passed actions show the held expense is its only one', async () => {
+            // Given Onyx knows both expenses of the report, while the passed actions hold only the expense being held
+            const fixtures = buildTwoExpenseFixtures();
+            await fixtures.seedOnyx(fixtures.bothExpensesActions);
+
+            // When the expense is put on hold from its thread
+            holdFromThread(fixtures, fixtures.heldExpenseActions);
+            await waitForBatchedUpdates();
+            runQueuedNavigationActions();
+
+            // Then the passed actions win over the Onyx collection, so the thread counts as the report's only expense and the report is announced
+            expect(notifyNewAction).toHaveBeenCalledWith(fixtures.iouReport.reportID, undefined, true);
+        });
+
+        test('announces the hold on the thread when the passed actions hold another expense', async () => {
+            // Given Onyx knows only the held expense, while the passed actions hold both expenses of the report
+            const fixtures = buildTwoExpenseFixtures();
+            await fixtures.seedOnyx(fixtures.heldExpenseActions);
+
+            // When the expense is put on hold from its thread
+            holdFromThread(fixtures, fixtures.bothExpensesActions);
+            await waitForBatchedUpdates();
+            runQueuedNavigationActions();
+
+            // Then the passed actions win over the Onyx collection, so the report has two expenses and the thread itself is announced
+            expect(notifyNewAction).toHaveBeenCalledWith(fixtures.heldExpense.transactionThread.reportID, undefined, true);
+        });
+
+        test('hands the report actions to every expense it puts on hold in bulk', async () => {
+            // Given Onyx knows both expenses, which the bulk hold needs to find each thread, while the passed actions hold only the first expense
+            const {iouReport, heldExpense, otherExpense, reports, heldExpenseActions, bothExpensesActions, seedOnyx} = buildTwoExpenseFixtures();
+            await seedOnyx(bothExpensesActions);
+
+            // When both expenses are put on hold at once
+            putTransactionsOnHold({
+                transactionsID: [heldExpense.transaction.transactionID, otherExpense.transaction.transactionID],
+                allReports: reports,
+                comment: 'bulk hold reason',
+                reportID: iouReport.reportID,
+                reportActions: heldExpenseActions,
+                isOffline: false,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                allTransactionViolations: undefined,
+                transactions: [heldExpense.transaction, otherExpense.transaction],
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
+                rules: undefined,
+            });
+            await waitForBatchedUpdates();
+            runQueuedNavigationActions();
+
+            // Then each hold is judged by the passed actions: by that list the first expense is the report's only one, so the report is announced,
+            // while the second expense, which that list lacks, is announced on its own thread
+            expect(notifyNewAction).toHaveBeenNthCalledWith(1, iouReport.reportID, undefined, true);
+            expect(notifyNewAction).toHaveBeenNthCalledWith(2, otherExpense.transactionThread.reportID, undefined, true);
         });
     });
 
@@ -755,7 +937,7 @@ describe('actions/IOU/Hold', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
                     callback: (reportActions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(reportActions);
                     },
                 });
@@ -773,7 +955,20 @@ describe('actions/IOU/Hold', () => {
             await waitForBatchedUpdates();
 
             // When the hold status is changed
-            changeMoneyRequestHoldStatus(iouAction, transaction, policy, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined, undefined);
+            changeMoneyRequestHoldStatus({
+                reportAction: iouAction,
+                iouTransaction: transaction,
+                iouTransactionReport: undefined,
+                reportActionChildReport: undefined,
+                policy,
+                isOffline: false,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                transactionViolations: undefined,
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
+                rules: undefined,
+            });
 
             // Then the user is sent to the hold reason page instead of the expense being touched
             expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(transaction.transactionID, transactionThread.reportID)));
@@ -791,6 +986,7 @@ describe('actions/IOU/Hold', () => {
                 initialReportID: transactionThread.reportID,
                 initialReport: transactionThread,
                 transactionReport: iouReport,
+                transactionReportActions: undefined,
                 isOffline: false,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
@@ -802,16 +998,34 @@ describe('actions/IOU/Hold', () => {
             await waitForBatchedUpdates();
             jest.mocked(Navigation.navigate).mockClear();
             const heldTransaction = {...transaction, comment: {...transaction.comment, hold: 'holdActionID'}};
+            const heldIOUReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
 
             // When the hold status is changed
-            changeMoneyRequestHoldStatus(iouAction, heldTransaction, policy, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined, undefined);
+            changeMoneyRequestHoldStatus({
+                reportAction: iouAction,
+                iouTransaction: heldTransaction,
+                iouTransactionReport: iouReport,
+                reportActionChildReport: transactionThread,
+                policy,
+                isOffline: false,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                transactionViolations: undefined,
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
+                rules: undefined,
+            });
             await waitForBatchedUpdates();
 
-            // Then an unhold action is added to the transaction thread and no navigation happens
+            // Then an unhold action is added to the transaction thread report the IOU action points at, and no navigation happens
             const threadActions = await getReportActions(transactionThread.reportID);
             const unholdAction = Object.values(threadActions ?? {}).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD);
             expect(unholdAction).toBeDefined();
             expect(Navigation.navigate).not.toHaveBeenCalled();
+
+            // And the IOU report totals are refunded on the transaction report, so swapping the two reports fails the test
+            const unheldIOUReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
+            expect(unheldIOUReport?.unheldTotal).not.toBe(heldIOUReport?.unheldTotal);
         });
     });
 
@@ -865,6 +1079,7 @@ describe('actions/IOU/Hold', () => {
                         initialReportID: transactionThread.reportID,
                         initialReport: transactionThread,
                         transactionReport: iouReport,
+                        transactionReportActions: undefined,
                         isOffline: false,
                         currentUserLogin: RORY_EMAIL,
                         currentUserAccountID: RORY_ACCOUNT_ID,
@@ -879,8 +1094,10 @@ describe('actions/IOU/Hold', () => {
                     // When an expense is unhold
                     unholdRequest({
                         transactionID: transaction.transactionID,
-                        transaction,
                         reportID: transactionThread.reportID,
+                        transactionReport: iouReport,
+                        report: transactionThread,
+                        transaction,
                         policy,
                         isOffline: false,
                         currentUserLogin: RORY_EMAIL,
@@ -897,12 +1114,12 @@ describe('actions/IOU/Hold', () => {
                         const connection = Onyx.connect({
                             key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`,
                             callback: (report) => {
-                                Onyx.disconnect(connection);
+                                connection.unsubscribe();
                                 const lastVisibleActionCreated = report?.lastVisibleActionCreated;
                                 const connection2 = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
                                     callback: (reportActions) => {
-                                        Onyx.disconnect(connection2);
+                                        connection2.unsubscribe();
                                         resolve();
                                         const lastAction = getSortedReportActions(Object.values(reportActions ?? {}), true).at(0);
                                         // Then the transaction thread report lastVisibleActionCreated should equal the unhold action created timestamp.
@@ -965,6 +1182,7 @@ describe('actions/IOU/Hold', () => {
                         initialReportID: transactionThread.reportID,
                         initialReport: transactionThread,
                         transactionReport: iouReport,
+                        transactionReportActions: undefined,
                         isOffline: false,
                         currentUserLogin: RORY_EMAIL,
                         currentUserAccountID: RORY_ACCOUNT_ID,
@@ -981,8 +1199,10 @@ describe('actions/IOU/Hold', () => {
                     const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
                     unholdRequest({
                         transactionID: transaction.transactionID,
-                        transaction: updatedTransaction,
                         reportID: transactionThread.reportID,
+                        transaction: updatedTransaction,
+                        transactionReport: iouReport,
+                        report: transactionThread,
                         policy,
                         isOffline: false,
                         currentUserLogin: RORY_EMAIL,
@@ -1050,6 +1270,7 @@ describe('actions/IOU/Hold', () => {
                 initialReportID: transactionThread.reportID,
                 initialReport: transactionThread,
                 transactionReport: iouReport,
+                transactionReportActions: undefined,
                 isOffline: false,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
@@ -1069,6 +1290,8 @@ describe('actions/IOU/Hold', () => {
                 transactionID: transaction.transactionID,
                 transaction: heldTransaction,
                 reportID: transactionThread.reportID,
+                transactionReport: iouReport,
+                report: transactionThread,
                 policy,
                 isOffline: true,
                 currentUserLogin: RORY_EMAIL,
@@ -1096,6 +1319,43 @@ describe('actions/IOU/Hold', () => {
             const syncedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
             expect(syncedTransaction?.pendingAction).toBeFalsy();
             expect(syncedTransaction?.comment?.hold).toBeFalsy();
+        });
+
+        test.each([
+            [CONST.REPORT.STATUS_NUM.OPEN, true],
+            [CONST.REPORT.STATUS_NUM.SUBMITTED, false],
+            [CONST.REPORT.STATUS_NUM.APPROVED, false],
+            [CONST.REPORT.STATUS_NUM.REIMBURSED, false],
+        ])('should build the optimistic next step only for an open report (statusNum %p, builds next step: %p)', (statusNum, shouldBuildNextStep) => {
+            // Given a held expense in an expense report with the given status
+            const policy: Policy = createRandomPolicy(577);
+            const iouReport: Report = {...buildOptimisticIOUReport(1, 2, 100, '1', 'USD', getCurrencyDecimalsLocal), policyID: policy.id, statusNum};
+            const transaction = buildOptimisticTransaction({transactionParams: {amount: 100, currency: 'USD', reportID: iouReport.reportID}});
+            const request = jest.spyOn(jest.requireActual<{write: typeof write}>('@libs/API'), 'write').mockResolvedValue(undefined);
+
+            // When the hold is removed
+            unholdRequest({
+                transactionID: transaction.transactionID,
+                transaction,
+                reportID: 'existing-thread',
+                transactionReport: iouReport,
+                report: undefined,
+                policy,
+                isOffline: false,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                transactionViolations: [{name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
+                rules: undefined,
+            });
+
+            // Then the next step is only rebuilt for an open report, because unholding doesn't change the next step of a report past the open status
+            const nextStepUpdate = request.mock.calls
+                .at(0)?.[2]
+                ?.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}` && isObject(update.value) && 'nextStep' in update.value);
+            expect(!!nextStepUpdate).toBe(shouldBuildNextStep);
+            request.mockRestore();
         });
     });
 

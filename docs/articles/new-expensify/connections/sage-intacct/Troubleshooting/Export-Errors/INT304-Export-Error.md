@@ -64,8 +64,9 @@ To ensure categories and tags are up to date:
 
 1. Go to **Settings > Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
-4. Click **Sync Now**.
+3. Select **Connections**, then select **Configure** next to Sage Intacct.
+4. Select **More (⋮)**.
+5. Select **Sync now**.
 
 This refreshes categories and dimensions from Sage Intacct.
 

@@ -9,6 +9,8 @@ import {Linking} from 'react-native';
 
 import type AsyncOpenURL from './types';
 
+import getURLForLogging from './getURLForLogging';
+
 /**
  * Prevents Safari from blocking pop-up window when opened within async call.
  * @param shouldSkipCustomSafariLogic When true, we will use `Linking.openURL` even if the browser is Safari.
@@ -27,7 +29,7 @@ const asyncOpenURL: AsyncOpenURL = (promise, url, shouldSkipCustomSafariLogic, s
                 (Linking.openURL as LinkingWeb['openURL'])(typeof url === 'string' ? url : url(params), shouldOpenInSameTab && canOpenURLInSameTab ? '_self' : undefined);
             })
             .catch(() => {
-                Log.warn('[asyncOpenURL] error occurred while opening URL', {url});
+                Log.warn('[asyncOpenURL] error occurred while opening URL', {url: getURLForLogging(url)});
             });
     } else {
         const windowRef = window.open();
@@ -41,7 +43,7 @@ const asyncOpenURL: AsyncOpenURL = (promise, url, shouldSkipCustomSafariLogic, s
             })
             .catch(() => {
                 windowRef?.close();
-                Log.warn('[asyncOpenURL] error occurred while opening URL', {url});
+                Log.warn('[asyncOpenURL] error occurred while opening URL', {url: getURLForLogging(url)});
             });
     }
 };

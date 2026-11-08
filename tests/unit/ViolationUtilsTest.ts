@@ -2,7 +2,13 @@ import {beforeEach} from '@jest/globals';
 
 import Permissions from '@libs/Permissions';
 import {getTransactionViolations, hasWarningTypeViolation, isViolationDismissed} from '@libs/TransactionUtils';
-import ViolationsUtils, {filterReceiptViolations, getIsViolationFixed, isHardViolationOrRateDateWarning, syncCustomUnitRateOutOfDateRangeViolation} from '@libs/Violations/ViolationsUtils';
+import ViolationsUtils, {
+    filterReceiptViolations,
+    getIsViolationFixed,
+    isHardViolationOrRateDateWarning,
+    syncCustomUnitOutOfPolicyViolation,
+    syncCustomUnitRateOutOfDateRangeViolation,
+} from '@libs/Violations/ViolationsUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -30,6 +36,12 @@ jest.mock('@expensify/react-native-hybrid-app', () => ({
 
 const categoryOutOfPolicyViolation = {
     name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY,
+    type: CONST.VIOLATION_TYPES.VIOLATION,
+    showInReview: true,
+};
+
+const restrictedCategoryViolation = {
+    name: CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED,
     type: CONST.VIOLATION_TYPES.VIOLATION,
     showInReview: true,
 };
@@ -256,8 +268,53 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).not.toContainEqual(customUnitOutOfPolicyViolation);
         });
 
-        it('should remove the customUnitOutOfPolicy violation if the rate exists but is disabled', () => {
+        it('should add the customUnitOutOfPolicy violation if the distance rate exists but is disabled', () => {
             const customUnitRateID = 'rate_id';
+            transaction.iouRequestType = CONST.IOU.REQUEST_TYPE.DISTANCE;
+            policy.customUnits = {
+                unitId: {
+                    attributes: {unit: 'mi'},
+                    customUnitID: 'unitId',
+                    defaultCategory: 'Car',
+                    enabled: true,
+                    name: 'Distance',
+                    rates: {
+                        [customUnitRateID]: {
+                            currency: 'USD',
+                            customUnitRateID,
+                            enabled: false,
+                            name: 'Default Rate',
+                            rate: 65.5,
+                        },
+                    },
+                },
+            };
+            const result = ViolationsUtils.getViolationsOnyxData({
+                isVendorMatchingBetaEnabled: false,
+                ownerLogin: undefined,
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+
+            expect(result.value).toContainEqual(
+                expect.objectContaining({
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                }),
+            );
+        });
+
+        it('should not add customUnitOutOfPolicy for an unreported distance expense with a disabled rate', () => {
+            const customUnitRateID = 'rate_id';
+            transaction.iouRequestType = CONST.IOU.REQUEST_TYPE.DISTANCE;
+            transaction.reportID = CONST.REPORT.UNREPORTED_REPORT_ID;
+            transactionViolations = [customUnitOutOfPolicyViolation];
             policy.customUnits = {
                 unitId: {
                     attributes: {unit: 'mi'},
@@ -807,6 +864,193 @@ describe('getViolationsOnyxData', () => {
                     },
                 }),
             );
+        });
+    });
+
+    describe('syncCustomUnitOutOfPolicyViolation', () => {
+        const customUnitRateID = 'rate_id';
+
+        beforeEach(() => {
+            transactionViolations = [];
+            transaction.iouRequestType = CONST.IOU.REQUEST_TYPE.DISTANCE;
+            transaction.comment = {
+                ...transaction.comment,
+                customUnit: {
+                    ...(transaction?.comment?.customUnit ?? {}),
+                    customUnitRateID,
+                },
+            };
+            policy.customUnits = {
+                unitId: {
+                    attributes: {unit: 'mi'},
+                    customUnitID: 'unitId',
+                    defaultCategory: 'Car',
+                    enabled: true,
+                    name: 'Distance',
+                    rates: {
+                        [customUnitRateID]: {
+                            currency: 'USD',
+                            customUnitRateID,
+                            enabled: true,
+                            name: 'Default Rate',
+                            rate: 65.5,
+                        },
+                    },
+                },
+            };
+        });
+
+        it('should add the customUnitOutOfPolicy violation when the distance rate is disabled', () => {
+            const rate = policy.customUnits?.unitId.rates[customUnitRateID];
+            if (rate) {
+                rate.enabled = false;
+            }
+
+            const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy);
+
+            expect(result).toContainEqual(
+                expect.objectContaining({
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                }),
+            );
+        });
+
+        it('should not add customUnitOutOfPolicy for an unreported self-DM distance expense with a disabled workspace rate', () => {
+            const rate = policy.customUnits?.unitId.rates[customUnitRateID];
+            if (rate) {
+                rate.enabled = false;
+            }
+            // Self-DM Track expenses are stored unreported. Passing a boolean hid the broken report lookup.
+            transaction.reportID = CONST.REPORT.UNREPORTED_REPORT_ID;
+
+            const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy);
+
+            expect(result).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+        });
+
+        it('should keep a server customUnitOutOfPolicy violation when the resolved rate is enabled', () => {
+            transactionViolations = [
+                {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                },
+            ];
+
+            const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy);
+
+            expect(result).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+        });
+
+        it('should leave per-diem customUnitOutOfPolicy violations untouched', () => {
+            transaction.iouRequestType = CONST.IOU.REQUEST_TYPE.PER_DIEM;
+            transaction.comment = {
+                ...transaction.comment,
+                customUnit: {
+                    ...(transaction?.comment?.customUnit ?? {}),
+                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                    customUnitRateID: 'per_diem_rate_id',
+                },
+            };
+            transactionViolations = [
+                {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                },
+            ];
+
+            const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy);
+
+            expect(result).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+        });
+
+        it('should keep customUnitOutOfPolicy for non-distance non-per-diem transactions', () => {
+            transaction.iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL;
+            transaction.comment = {...transaction.comment, customUnit: undefined};
+            transactionViolations = [
+                {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                },
+            ];
+
+            const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy);
+
+            expect(result).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+        });
+
+        it('should keep customUnitOutOfPolicy for a P2P rate when participants is missing', () => {
+            transaction.comment = {
+                ...transaction.comment,
+                customUnit: {
+                    ...(transaction?.comment?.customUnit ?? {}),
+                    customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+                },
+            };
+            transaction.participants = undefined;
+            transactionViolations = [
+                {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                },
+            ];
+
+            const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy);
+
+            expect(result).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+        });
+
+        it('should not add customUnitOutOfPolicy when the rate cannot be resolved (Track unresolvable-rate case)', () => {
+            // Self-DM / Track distance expenses often have no resolvable workspace rate.
+            // Sync must not invent a false "Rate not valid" violation in that case.
+            policy.customUnits = {};
+
+            const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy);
+
+            expect(result).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+        });
+
+        it('should preserve customUnitOutOfPolicy when the workspace rate was deleted', () => {
+            transactionViolations = [
+                {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                },
+            ];
+            transaction.participants = [{accountID: 1, login: 'admin@expensify.com', isPolicyExpenseChat: true}];
+            policy.customUnits = {};
+
+            const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy);
+
+            expect(result).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+        });
+
+        it('should preserve customUnitOutOfPolicy for FAKE_P2P_ID on a policy expense chat', () => {
+            transactionViolations = [
+                {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                },
+            ];
+            transaction.comment = {
+                ...transaction.comment,
+                customUnit: {
+                    ...(transaction?.comment?.customUnit ?? {}),
+                    customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+                },
+            };
+            transaction.participants = [{accountID: 1, login: 'admin@expensify.com', isPolicyExpenseChat: true}];
+
+            const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy);
+
+            expect(result).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
         });
     });
 
@@ -1603,6 +1847,91 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
             });
             expect(result.value).toEqual(expect.arrayContaining([categoryOutOfPolicyViolation, ...transactionViolations]));
+        });
+
+        it('should remove the categoryNotAllowed violation when the owner can use the new category', () => {
+            // Given an expense with categoryNotAllowed, recoded to a category the owner can see
+            const ownerAccountID = 1;
+            policyCategories = {Food: {name: 'Food', enabled: true, visibleTo: {[ownerAccountID]: true}}};
+            const iouReport = createMock<Report>({reportID: '1234', type: CONST.REPORT.TYPE.EXPENSE, ownerAccountID});
+
+            // When the violations are recalculated
+            const result = ViolationsUtils.getViolationsOnyxData({
+                isVendorMatchingBetaEnabled: false,
+                ownerLogin: undefined,
+                updatedTransaction: transaction,
+                transactionViolations: [restrictedCategoryViolation],
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+                iouReport,
+            });
+
+            // Then the violation is removed
+            expect(result.value).not.toContainEqual(restrictedCategoryViolation);
+        });
+
+        it.each([
+            [false, ''],
+            [false, undefined],
+            [false, CONST.SEARCH.CATEGORY_DEFAULT_VALUE],
+            [false, CONST.SEARCH.CATEGORY_EMPTY_VALUE],
+            [true, ''],
+            [true, undefined],
+            [true, CONST.SEARCH.CATEGORY_DEFAULT_VALUE],
+            [true, CONST.SEARCH.CATEGORY_EMPTY_VALUE],
+        ])('should clear categoryNotAllowed when requiresCategory is %s and category is %s', (requiresCategory, category) => {
+            // Given an expense with a restricted category warning and no owner account ID available
+            policy.requiresCategory = requiresCategory;
+            transaction.category = category;
+
+            // When the category is cleared, its restriction no longer applies
+            const result = ViolationsUtils.getViolationsOnyxData({
+                isVendorMatchingBetaEnabled: false,
+                ownerLogin: undefined,
+                updatedTransaction: transaction,
+                transactionViolations: [restrictedCategoryViolation],
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+
+            // Then only the required category warning depends on the policy setting
+            expect(result.value).not.toContainEqual(restrictedCategoryViolation);
+            if (requiresCategory) {
+                expect(result.value).toContainEqual(missingCategoryViolation);
+            } else {
+                expect(result.value).not.toContainEqual(missingCategoryViolation);
+            }
+        });
+
+        it('should keep the categoryNotAllowed violation when the owner still cannot use the category', () => {
+            // Given an expense with categoryNotAllowed, coded to a category only another member can see
+            const ownerAccountID = 1;
+            const otherAccountID = 2;
+            policyCategories = {Food: {name: 'Food', enabled: true, visibleTo: {[otherAccountID]: true}}};
+            const iouReport = createMock<Report>({reportID: '1234', type: CONST.REPORT.TYPE.EXPENSE, ownerAccountID});
+
+            // When the violations are recalculated
+            const result = ViolationsUtils.getViolationsOnyxData({
+                isVendorMatchingBetaEnabled: false,
+                ownerLogin: undefined,
+                updatedTransaction: transaction,
+                transactionViolations: [restrictedCategoryViolation],
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+                iouReport,
+            });
+
+            // Then the violation stays
+            expect(result.value).toContainEqual(restrictedCategoryViolation);
         });
 
         it('should not include a categoryOutOfPolicy violation when category is in policy', () => {
@@ -4790,12 +5119,6 @@ describe('hasVisibleViolationsForUser', () => {
 });
 
 describe('getIsViolationFixed', () => {
-    const mockCurrentUserPersonalDetails = {
-        accountID: 1,
-        login: 'user@example.com',
-        email: 'user@example.com',
-    };
-
     const defaultParams = {
         category: '',
         tag: '',
@@ -4804,7 +5127,7 @@ describe('getIsViolationFixed', () => {
         policyTagLists: undefined,
         policyTaxRates: undefined,
         iouAttendees: undefined,
-        currentUserPersonalDetails: mockCurrentUserPersonalDetails,
+        ownerLogin: 'user@example.com',
         isAttendeeTrackingEnabled: false,
     };
 

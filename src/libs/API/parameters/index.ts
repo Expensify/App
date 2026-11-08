@@ -52,6 +52,8 @@ export type {default as UpdateRilletSyncTaxRatesParams} from './UpdateRilletSync
 export type {default as UpdateRilletFieldMappingParams} from './UpdateRilletFieldMappingParams';
 export type {default as UpdateRilletCreditCardAccountParams} from './UpdateRilletCreditCardAccountParams';
 export type {default as UpdateRilletDefaultVendorParams} from './UpdateRilletDefaultVendorParams';
+export type {default as UpdateRilletReimbursableExpensesExportDestinationParams} from './UpdateRilletReimbursableExpensesExportDestinationParams';
+export type {default as UpdateRilletReimbursementAccountParams} from './UpdateRilletReimbursementAccountParams';
 export type {default as UpdateRilletExportDateParams} from './UpdateRilletExportDateParams';
 export type {default as UpdateRilletExporterParams} from './UpdateRilletExporterParams';
 export type {default as UpdateRilletExportToMultipleAccountsParams} from './UpdateRilletExportToMultipleAccountsParams';
@@ -121,9 +123,9 @@ export type {default as UpdateDigitsSyncReimbursedReportsParams} from './UpdateD
 export type {default as UpdateDigitsBillPaymentAccountParams} from './UpdateDigitsBillPaymentAccountParams';
 export type {default as UpdateDigitsSyncExpensifyCardSettlementsParams} from './UpdateDigitsSyncExpensifyCardSettlementsParams';
 export type {default as UpdateDigitsSettlementsAccountParams} from './UpdateDigitsSettlementsAccountParams';
-export type {default as UpdateDigitsSyncTravelInvoicingSettlementsParams} from './UpdateDigitsSyncTravelInvoicingSettlementsParams';
-export type {default as UpdateDigitsTravelInvoicingSettlementsAccountParams} from './UpdateDigitsTravelInvoicingSettlementsAccountParams';
-export type {default as UpdateDigitsTravelInvoicingPayableAccountParams} from './UpdateDigitsTravelInvoicingPayableAccountParams';
+export type {default as UpdateDigitsSyncTravelBillingSettlementsParams} from './UpdateDigitsSyncTravelBillingSettlementsParams';
+export type {default as UpdateDigitsTravelBillingSettlementsAccountParams} from './UpdateDigitsTravelBillingSettlementsAccountParams';
+export type {default as UpdateDigitsTravelBillingPayableAccountParams} from './UpdateDigitsTravelBillingPayableAccountParams';
 export type {default as SyncPolicyToZohoBooksParams} from './SyncPolicyToZohoBooksParams';
 export type {default as UpdateZohoBooksSubsidiaryParams} from './UpdateZohoBooksSubsidiaryParams';
 export type {default as UpdateZohoBooksFieldMappingParams} from './UpdateZohoBooksFieldMappingParams';
@@ -208,6 +210,7 @@ export type {default as OpenPublicProfilePageParams} from './OpenPublicProfilePa
 export type {default as OpenReimbursementAccountPageParams} from './OpenReimbursementAccountPageParams';
 export type {default as OpenReportParams} from './OpenReportParams';
 export type {default as OpenRoomMembersPageParams} from './OpenRoomMembersPageParams';
+export type {default as OpenReportStatusPageParams} from './OpenReportStatusPageParams';
 export type {default as OpenPlaidCompanyCardLoginParams} from './OpenPlaidCompanyCardLoginParams';
 export type {default as OpenPolicyReceiptPartnersPageParams} from './OpenPolicyReceiptPartnersPageParams';
 export type {default as OpenPolicyHRPageParams} from './OpenPolicyHRPageParams';
@@ -557,6 +560,7 @@ export type {default as OpenCardDetailsPageParams} from './OpenCardDetailsPagePa
 export type {default as SetPolicyCategoryDescriptionRequiredParams} from './SetPolicyCategoryDescriptionRequiredParams';
 export type {default as SetPolicyCategoryAttendeesRequiredParams} from './SetPolicyCategoryAttendeesRequiredParams';
 export type {default as SetPolicyCategoryApproverParams} from './SetPolicyCategoryApproverParams';
+export type {default as SetPolicyMemberCategoryVisibilityParams} from './SetPolicyMemberCategoryVisibilityParams';
 export type {default as SetWorkspaceCategoryDescriptionHintParams} from './SetWorkspaceCategoryDescriptionHintParams';
 export type {default as SetPolicyCategoryTaxParams} from './SetPolicyCategoryTaxParams';
 export type {default as SetPolicyCategoryMaxAmountParams} from './SetPolicyCategoryMaxAmountParams';
@@ -604,6 +608,7 @@ export type {default as DeleteCompanyCardFeed} from './DeleteCompanyCardFeed';
 export type {default as SetCompanyCardTransactionLiability} from './SetCompanyCardTransactionLiability';
 export type {default as OpenPolicyCompanyCardsFeedParams} from './OpenPolicyCompanyCardsFeedParams';
 export type {default as OpenPolicyAddCardFeedPageParams} from './OpenPolicyAddCardFeedPageParams';
+export type {default as SetFeedReimbursableParams} from './SetFeedReimbursableParams';
 export type {default as SetFeedStatementPeriodEndDayParams} from './SetFeedStatementPeriodEndDayParams';
 export type {default as AssignCompanyCardParams} from './AssignCompanyCardParams';
 export type {default as UnassignCardParams} from './UnassignCardParams';
@@ -629,6 +634,8 @@ export type {default as TogglePolicyPerDiemParams} from './TogglePolicyPerDiemPa
 export type {default as OpenPolicyPerDiemRatesPageParams} from './OpenPolicyPerDiemRatesPageParams';
 export type {default as TogglePlatformMuteParams} from './TogglePlatformMuteParams';
 export type {default as GetCorpayBankAccountFieldsParams} from './GetCorpayBankAccountFieldsParams';
+export type {default as GetWiseBankAccountFieldsParams} from './GetWiseBankAccountFieldsParams';
+export type {default as CreateWiseBankAccountParams} from './CreateWiseBankAccountParams';
 export type {default as BankAccountCreateCorpayParams} from './BankAccountCreateCorpayParams';
 export type {default as JoinAccessiblePolicyParams} from './JoinAccessiblePolicyParams';
 export type {default as AskToJoinPolicyParams} from './AskToJoinPolicyParams';
@@ -649,9 +656,13 @@ export type {default as ResetSMSDeliveryFailureStatusParams} from './ResetSMSDel
 export type {default as CreatePerDiemRequestParams} from './CreatePerDiemRequestParams';
 export type {default as QueueExpensifyCardForBillingParams} from './QueueExpensifyCardForBillingParams';
 export type {default as GetCorpayOnboardingFieldsParams} from './GetCorpayOnboardingFieldsParams';
+export type {default as GetWiseKYCReviewEmbeddedLinkParams} from './GetWiseKYCReviewEmbeddedLinkParams';
+export type {default as GetWiseQuoteParams} from './GetWiseQuoteParams';
 export type {SaveCorpayOnboardingCompanyDetailsParams} from './SaveCorpayOnboardingCompanyDetailsParams';
 export type {default as AcceptSpotnanaTermsParams} from './AcceptSpotnanaTermsParams';
 export type {default as SaveCorpayOnboardingBeneficialOwnerParams} from './SaveCorpayOnboardingBeneficialOwnerParams';
+export type {default as UpdateWiseOnboardingAdditionalDataParams} from './UpdateWiseOnboardingAdditionalDataParams';
+export type {default as SubmitWiseBusinessOnboardingParams} from './SubmitWiseBusinessOnboardingParams';
 export type {default as DeleteAppReportParams} from './DeleteAppReportParams';
 export type {default as MergeReportsParams} from './MergeReportsParams';
 export type {default as SaveCorpayOnboardingDirectorInformationParams} from './SaveCorpayOnboardingDirectorInformationParams';
@@ -690,6 +701,8 @@ export type {default as ExportSearchWithTemplateParams} from './ExportSearchWith
 export type {default as QueueExportSearchItemsToCSVParams} from './QueueExportSearchItemsToCSVParams';
 export type {default as QueueExportSearchWithTemplateParams} from './QueueExportSearchWithTemplateParams';
 export type {default as QueueBulkPayReportsParams} from './QueueBulkPayReportsParams';
+export type {default as QueueBulkApproveReportsParams} from './QueueBulkApproveReportsParams';
+export type {default as QueueBulkSubmitReportsParams} from './QueueBulkSubmitReportsParams';
 export type {default as QueueBulkMarkAsExportedParams} from './QueueBulkMarkAsExportedParams';
 export type {default as AssignReportToMeParams} from './AssignReportToMeParams';
 export type {default as AddReportApproverParams} from './AddReportApproverParams';

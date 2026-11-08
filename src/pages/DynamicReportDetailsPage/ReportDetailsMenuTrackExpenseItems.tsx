@@ -1,4 +1,4 @@
-import MenuItem from '@components/MenuItem';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 
 import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -108,7 +108,7 @@ function ReportDetailsMenuTrackExpenseItems({reportID, requestData}: ReportDetai
                 just like it is on the track-expense whisper. A DM is not a valid destination for per diem and time expenses,
                 nor for a user restricted to one workspace. */}
                 {!isSelfDMExpenseSplit && !isRestrictedToPreferredPolicy && !isPerDiemRequest(iouTransaction) && !isTimeRequest(iouTransaction) && (
-                    <MenuItem
+                    <MenuItemNavigation
                         title={translate('actionableMentionTrackExpense.submitToFriend')}
                         icon={expensifyIcons.Send}
                         onPress={() => {
@@ -119,11 +119,9 @@ function ReportDetailsMenuTrackExpenseItems({reportID, requestData}: ReportDetai
                                 defaultWorkspaceName,
                             });
                         }}
-                        isAnonymousAction={false}
-                        shouldShowRightIcon
                     />
                 )}
-                <MenuItem
+                <MenuItemNavigation
                     title={translate('actionableMentionTrackExpense.submitToEmployer')}
                     icon={expensifyIcons.Send}
                     onPress={() => {
@@ -134,8 +132,6 @@ function ReportDetailsMenuTrackExpenseItems({reportID, requestData}: ReportDetai
                             defaultWorkspaceName,
                         });
                     }}
-                    isAnonymousAction={false}
-                    shouldShowRightIcon
                 />
             </>
         );
@@ -146,7 +142,7 @@ function ReportDetailsMenuTrackExpenseItems({reportID, requestData}: ReportDetai
             {submitItems}
             {Permissions.canUseTrackFlows() && (
                 <>
-                    <MenuItem
+                    <MenuItemNavigation
                         title={translate('actionableMentionTrackExpense.categorize')}
                         icon={expensifyIcons.Folder}
                         onPress={() => {
@@ -169,10 +165,8 @@ function ReportDetailsMenuTrackExpenseItems({reportID, requestData}: ReportDetai
                                 firstPolicy: filteredPoliciesInfo?.firstPolicy,
                             });
                         }}
-                        isAnonymousAction={false}
-                        shouldShowRightIcon
                     />
-                    <MenuItem
+                    <MenuItemNavigation
                         title={translate('actionableMentionTrackExpense.share')}
                         icon={expensifyIcons.UserPlus}
                         onPress={() => {
@@ -195,8 +189,6 @@ function ReportDetailsMenuTrackExpenseItems({reportID, requestData}: ReportDetai
                                 firstPolicy: filteredPoliciesInfo?.firstPolicy,
                             });
                         }}
-                        isAnonymousAction={false}
-                        shouldShowRightIcon
                     />
                 </>
             )}

@@ -9,6 +9,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import {
     arePaymentsEnabled,
     canAdminPayReport,
+    canSubmitOwnReportOnPolicy,
     getIntegrationAccountingMethod,
     getSubmitToAccountID,
     getValidConnectedIntegration,
@@ -19,7 +20,6 @@ import {
     isSubmitterApproveBlockedOnSubmitWorkspace,
 } from './PolicyUtils';
 import {hasPendingDEWApprove} from './ReportActionsUtils';
-import {isAddExpenseAction} from './ReportPrimaryActionUtils';
 import {
     getMoneyRequestSpendBreakdown,
     getParentReport,
@@ -38,8 +38,9 @@ import {
     isProcessingReport,
     isReportApproved,
     isSettled,
+    shouldShowAddExpenseAction,
 } from './ReportUtils';
-import {hasOnlyPendingCardTransactions, hasSmartScanFailedWithMissingFields, hasSubmissionBlockingViolations, isPending, isScanning} from './TransactionUtils';
+import {hasOnlyPendingCardTransactions, hasOnlyUnsettledExpenses, hasSmartScanFailedWithMissingFields, hasSubmissionBlockingViolations, isScanning} from './TransactionUtils';
 
 function canSubmit(
     report: Report,
@@ -60,6 +61,11 @@ function canSubmit(
     const isExpense = isExpenseReport(report);
     const isSubmitter = isCurrentUserSubmitter(report);
     const isOpen = isOpenReport(report);
+
+    // A role that cannot create expenses cannot submit its own report.
+    if (isSubmitter && !canSubmitOwnReportOnPolicy(policy, currentUserEmail)) {
+        return false;
+    }
 
     const isAnyReceiptBeingScanned = transactions?.some((transaction) => isScanning(transaction));
 
@@ -101,13 +107,17 @@ function canApprove(report: Report, currentUserAccountID: number, reportMetadata
     const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const managerID = report.managerID ?? CONST.DEFAULT_NUMBER_ID;
     const isCurrentUserManager = managerID === currentUserAccountID;
+    if (!isExpense || !isProcessing || !isApprovalEnabled || !isCurrentUserManager || transactions.length === 0) {
+        return false;
+    }
+
     const isAnyReceiptBeingScanned = transactions.some((transaction) => isScanning(transaction));
 
     if (isAnyReceiptBeingScanned) {
         return false;
     }
 
-    if (transactions.length > 0 && transactions.every((transaction) => isPending(transaction))) {
+    if (hasOnlyUnsettledExpenses(transactions, report)) {
         return false;
     }
 
@@ -123,7 +133,7 @@ function canApprove(report: Report, currentUserAccountID: number, reportMetadata
         return false;
     }
 
-    return isExpense && isProcessing && !!isApprovalEnabled && transactions.length > 0 && isCurrentUserManager;
+    return true;
 }
 
 function canPay(
@@ -279,7 +289,7 @@ function getReportPreviewAction({
     if (isSubmittingAnimationRunning) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
-    if (isAddExpenseAction(report, transactions ?? [], isReportArchived, rules)) {
+    if (shouldShowAddExpenseAction({report, reportTransactions: transactions ?? [], isChatReportArchived: isReportArchived, rules, policy, currentUserAccountID})) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE;
     }
 
