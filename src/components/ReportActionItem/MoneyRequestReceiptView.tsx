@@ -98,7 +98,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {useRoute} from '@react-navigation/native';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {transactionThreadReportIDSelector} from '@selectors/ReportAction';
 import {Str} from 'expensify-common';
 import mapValues from 'lodash/mapValues';
@@ -151,7 +151,6 @@ function MoneyRequestReceiptView({
     const styles = useThemeStyles();
     const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
-    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {environmentURL} = useEnvironment();
     const buildDynamicRoute = useScreenBoundDynamicRoute();
@@ -164,7 +163,9 @@ function MoneyRequestReceiptView({
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const [conciergePersonalDetail] = usePersonalDetail(CONST.ACCOUNT_ID.CONCIERGE);
     const [reportOwnerPersonalDetail] = usePersonalDetail(report?.ownerAccountID);
     const [chatReportOwnerPersonalDetail] = usePersonalDetail(chatReport?.ownerAccountID);
@@ -177,9 +178,8 @@ function MoneyRequestReceiptView({
     const originalReportID = useOriginalReportID(report?.reportID, parentReportAction);
     const reportsParentHierarchy = useReportsParentHierarchy(report?.reportID);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(parentReportAction);
+    const [chatIOUReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReport?.chatReportID)}`);
     const iouReportTransactionsCollection = useReportTransactionsCollection(iouReport?.reportID);
-    const iouReportTransactions = Object.values(iouReportTransactionsCollection);
-    const isTrackExpense = !mergeTransactionID && isTrackExpenseReportNew(report, parentReport, parentReportAction);
     const moneyRequestReport = parentReport;
     let linkedTransactionID;
     if (!parentReportAction) {
@@ -195,33 +195,12 @@ function MoneyRequestReceiptView({
         selector: transactionThreadReportIDSelector(transaction?.transactionID),
     });
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
-    const resolvedTransactionThreadReport = resolveTransactionThreadReport(transaction, transactionThreadReport, report, parentReportAction);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`);
     const [policyVendors] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${moneyRequestReport?.policyID}`);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const transactionViolations = useTransactionViolations(transaction?.transactionID, false);
     const [rawTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transaction?.transactionID)}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${moneyRequestReport?.policyID}`);
-
-    const displayedTransaction = updatedTransaction ?? transaction;
-    const isDistanceRequest = isDistanceRequestTransactionUtils(displayedTransaction);
-
-    // The hover overlay shows the full distance e-receipt (map + amount + waypoints), so only surface it for
-    // map/route-based distance expenses. Odometer and pure-manual distance expenses have no map and must be excluded.
-    const isMapDistanceRequest = isMapBasedDistanceRequest(displayedTransaction);
-    const isPendingReceiptRegeneration = hasPendingDistanceReceiptRegeneration(displayedTransaction);
-    // While the receipt is regenerating (e.g. after an offline waypoint edit) the stored map is stale and can't be
-    // redrawn locally, so don't surface the e-receipt overlay — the receipt box already shows the pending map.
-    const canShowDistanceEReceipt = isMapDistanceRequest && !isPendingReceiptRegeneration;
-    // The Expand button opens the full-screen receipt on the stored map. While regeneration is pending that map is
-    // stale and can't be redrawn locally, so disable Expand for map distance requests until the refreshed receipt arrives.
-    const shouldDisableExpandReceipt = isMapDistanceRequest && isPendingReceiptRegeneration;
-    const hasReceipt = hasReceiptTransactionUtils(displayedTransaction);
-    // Multi-page PDFs need a page count badge.
-    const receiptPageCount = displayedTransaction?.receipt?.pageCount ?? 0;
-    const isTransactionScanning = isScanning(displayedTransaction);
-    const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
-    const isInvoice = isInvoiceReport(moneyRequestReport);
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
     const {login: currentUserLogin, accountID: currentUserAccountID, timezone: currentUserTimezone} = currentUserPersonalDetail;
@@ -232,7 +211,6 @@ function MoneyRequestReceiptView({
     const receiptContainerRef = useRef<ComponentRef<typeof View> | null>(null);
     const addButtonRef = useRef<ComponentRef<typeof View> | null>(null);
     const [isPickerOpen, setIsPickerOpen] = useState(false);
-    const deviceHasHoverSupport = hasHoverSupport();
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Expand', 'ReceiptPlus']);
 
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
@@ -264,31 +242,11 @@ function MoneyRequestReceiptView({
         setIsLoading(true);
     }, [displayedReceiptSource, prevDisplayedReceiptSource]);
 
-    // Flags for allowing or disallowing editing an expense
-    // Used for non-restricted fields such as: description, category, tag, billable, etc...
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const isEditable = !!canUserPerformWriteActionReportUtils(report, isReportArchived) && !readonly;
-    const canInteractWithReport = !!canUserInteractWithReport(report, isReportArchived);
-    const isActionTakenByCurrentUser = isMoneyRequestAction(parentReportAction) && wasActionTakenByCurrentUser(parentReportAction, currentUserAccountID);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
-    const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL, buildDynamicRoute);
-
-    const canEditReceipt =
-        isEditable &&
-        canEditFieldOfMoneyRequest({
-            reportAction: parentReportAction,
-            reportActions: parentReportActions,
-            fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
-            isChatReportArchived,
-            reportNameValuePairs,
-            transaction,
-            report: moneyRequestReport,
-            policy,
-            rules,
-        });
+    const {showConfirmModal} = useConfirmModal();
 
     const onAttachmentFilesValidated = (files: FileObject[]) => {
         if (!report?.reportID) {
@@ -309,6 +267,54 @@ function MoneyRequestReceiptView({
 
     const {validateFiles, PDFValidationComponent} = useFilesValidation(onAttachmentFilesValidated);
 
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
+    const iouReportTransactions = Object.values(iouReportTransactionsCollection);
+    const isTrackExpense = !mergeTransactionID && isTrackExpenseReportNew(report, parentReport, parentReportAction);
+    const resolvedTransactionThreadReport = resolveTransactionThreadReport(transaction, transactionThreadReport, report, parentReportAction);
+
+    const displayedTransaction = updatedTransaction ?? transaction;
+    const isDistanceRequest = isDistanceRequestTransactionUtils(displayedTransaction);
+
+    // The hover overlay shows the full distance e-receipt (map + amount + waypoints), so only surface it for
+    // map/route-based distance expenses. Odometer and pure-manual distance expenses have no map and must be excluded.
+    const isMapDistanceRequest = isMapBasedDistanceRequest(displayedTransaction);
+    const isPendingReceiptRegeneration = hasPendingDistanceReceiptRegeneration(displayedTransaction);
+    // While the receipt is regenerating (e.g. after an offline waypoint edit) the stored map is stale and can't be
+    // redrawn locally, so don't surface the e-receipt overlay, since the receipt box already shows the pending map.
+    const canShowDistanceEReceipt = isMapDistanceRequest && !isPendingReceiptRegeneration;
+    // The Expand button opens the full-screen receipt on the stored map. While regeneration is pending that map is
+    // stale and can't be redrawn locally, so disable Expand for map distance requests until the refreshed receipt arrives.
+    const shouldDisableExpandReceipt = isMapDistanceRequest && isPendingReceiptRegeneration;
+    const hasReceipt = hasReceiptTransactionUtils(displayedTransaction);
+    // Multi-page PDFs need a page count badge.
+    const receiptPageCount = displayedTransaction?.receipt?.pageCount ?? 0;
+    const isTransactionScanning = isScanning(displayedTransaction);
+    const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
+    const isInvoice = isInvoiceReport(moneyRequestReport);
+    const deviceHasHoverSupport = hasHoverSupport();
+
+    // Flags for allowing or disallowing editing an expense
+    // Used for non-restricted fields such as: description, category, tag, billable, etc...
+    const isEditable = !!canUserPerformWriteActionReportUtils(report, isReportArchived) && !readonly;
+    const canInteractWithReport = !!canUserInteractWithReport(report, isReportArchived);
+    const isActionTakenByCurrentUser = isMoneyRequestAction(parentReportAction) && wasActionTakenByCurrentUser(parentReportAction, currentUserAccountID);
+    const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
+    const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL, buildDynamicRoute);
+
+    const canEditReceipt =
+        isEditable &&
+        canEditFieldOfMoneyRequest({
+            reportAction: parentReportAction,
+            reportActions: parentReportActions,
+            fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+            isChatReportArchived,
+            reportNameValuePairs,
+            transaction,
+            report: moneyRequestReport,
+            policy,
+            rules,
+        });
+
     let iouType;
     if (isTrackExpense) {
         iouType = CONST.IOU.TYPE.TRACK;
@@ -317,6 +323,7 @@ function MoneyRequestReceiptView({
     }
 
     const receiptURIs = hasReceipt ? getThumbnailAndImageURIs(displayedTransaction) : undefined;
+    const isReceiptPDF = Str.isPDF(receiptURIs?.filename ?? '');
     const isEReceiptTransaction = !!displayedTransaction && !hasReceiptSource(displayedTransaction) && hasEReceipt(displayedTransaction);
     const canZoomReceipt = hasReceipt && !isLoading && !isEReceiptTransaction && !!receiptURIs?.image;
     // Disable the hover-zoom wrapper while the distance map is regenerating. This also resets the shared hover state,
@@ -418,9 +425,8 @@ function MoneyRequestReceiptView({
     } else {
         errors = isEmptyObject(errorsWithoutReportCreation) ? reportCreationError : errorsWithoutReportCreation;
     }
-    const showReceiptErrorWithEmptyState = shouldShowReceiptEmptyState && !hasReceipt && !isEmptyObject(errors);
-
-    const {showConfirmModal} = useConfirmModal();
+    const hasErrors = !isEmptyObject(errors);
+    const showReceiptErrorWithEmptyState = shouldShowReceiptEmptyState && !hasReceipt && hasErrors;
 
     const retryableReceiptError = Object.values(errors ?? {}).find((error): error is ReceiptError => isReceiptError(error));
     const receiptRetryContext: ReceiptRetryContext | undefined = retryableReceiptError
@@ -517,6 +523,7 @@ function MoneyRequestReceiptView({
                     currentUserAccountID,
                     introSelected,
                     isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow,
                     chatReportOwnerPersonalDetail,
                     currentUserPersonalDetail,
                     conciergePersonalDetail,
@@ -543,6 +550,7 @@ function MoneyRequestReceiptView({
                     isOffline,
                     isSingleTransactionView: true,
                     policy,
+                    chatReportActions: chatIOUReportActions,
                 });
                 return;
             }
@@ -573,6 +581,7 @@ function MoneyRequestReceiptView({
                 currentUserAccountID,
                 introSelected,
                 isSelfTourViewed,
+                hasCompletedGuidedSetupFlow,
                 reportOwnerPersonalDetail,
                 currentUserPersonalDetail,
                 conciergePersonalDetail,
@@ -601,7 +610,7 @@ function MoneyRequestReceiptView({
     const canExpandReceipt = hasReceipt && !isLoading && !mergeTransactionID && !readonly && canInteractWithReport;
 
     // Show the count badge only after a multi-page PDF receipt loads. Map distance receipts render as an e-receipt card, so their stored PDF page count is never shown.
-    const shouldShowReceiptPageCount = receiptPageCount > 1 && Str.isPDF(receiptURIs?.filename ?? '') && !isLoading && !isMapDistanceRequest;
+    const shouldShowReceiptPageCount = receiptPageCount > 1 && isReceiptPDF && !isLoading && !isMapDistanceRequest;
 
     // Pages can only be flipped where ReportActionItemImage renders the real PDF over the thumbnail (hover-capable
     // devices, using the same eligibility check ReportActionItemImage applies to its own overlay). Elsewhere only a
@@ -620,7 +629,7 @@ function MoneyRequestReceiptView({
     const receiptPendingAction = isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt');
     const isReceiptOfflinePending = isOffline && !!receiptPendingAction;
     const receiptAuditMessagesRow = (
-        <View style={[styles.mt3, isEmptyObject(errors) && isDisplayedInWideRHP && styles.mb3]}>
+        <View style={[styles.mt3, !hasErrors && isDisplayedInWideRHP && styles.mb3]}>
             <ReceiptAuditMessages notes={receiptImageViolations} />
         </View>
     );
@@ -668,7 +677,7 @@ function MoneyRequestReceiptView({
             {shouldShowReceiptEmptyState && (
                 <OfflineWithFeedback
                     pendingAction={getPendingFieldAction('receipt')}
-                    style={[styles.mt3, isEmptyObject(errors) && styles.mb3, styles.flex1]}
+                    style={[styles.mt3, !hasErrors && styles.mb3, styles.flex1]}
                     contentContainerStyle={styles.flex1}
                 >
                     <ReceiptEmptyState
@@ -689,7 +698,7 @@ function MoneyRequestReceiptView({
                     />
                 </OfflineWithFeedback>
             )}
-            {(hasReceipt || !isEmptyObject(errors)) && (
+            {(hasReceipt || hasErrors) && (
                 <OfflineWithFeedback
                     shouldDisableOpacity={canExpandReceipt}
                     pendingAction={receiptPendingAction}

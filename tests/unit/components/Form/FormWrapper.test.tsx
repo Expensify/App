@@ -2,6 +2,7 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import FormContext from '@components/Form/FormContext';
 import FormWrapper from '@components/Form/FormWrapper';
+import ScrollView from '@components/ScrollView';
 
 import Accessibility from '@libs/Accessibility';
 
@@ -43,7 +44,17 @@ jest.mock('@hooks/usePressLoading', () =>
 
 const moveAccessibilityFocusSpy = jest.spyOn(Accessibility, 'moveAccessibilityFocus').mockImplementation(jest.fn());
 
-function renderFormWrapper({errors = {}, serverErrorFields, inputRefs}: {errors?: Record<string, string>; serverErrorFields?: ErrorFields | null; inputRefs: React.RefObject<InputRefs>}) {
+function renderFormWrapper({
+    errors = {},
+    serverErrorFields,
+    inputRefs,
+    shouldScrollChildToFocus,
+}: {
+    errors?: Record<string, string>;
+    serverErrorFields?: ErrorFields | null;
+    inputRefs: React.RefObject<InputRefs>;
+    shouldScrollChildToFocus?: boolean;
+}) {
     return render(
         <FormContext.Provider
             value={{
@@ -60,6 +71,7 @@ function renderFormWrapper({errors = {}, serverErrorFields, inputRefs}: {errors?
                 errors={errors}
                 isAlertVisible
                 serverErrorFields={serverErrorFields}
+                shouldScrollChildToFocus={shouldScrollChildToFocus}
             >
                 {null}
             </FormWrapper>
@@ -122,5 +134,23 @@ describe('FormWrapper', () => {
 
         expect(serverInput.focus).toHaveBeenCalledTimes(1);
         expect(moveAccessibilityFocusSpy).toHaveBeenCalled();
+    });
+
+    it('keeps the Android scroll to a focused input by default', () => {
+        // Given a form that does not scroll to its inputs itself
+        // When the form renders
+        renderFormWrapper({inputRefs: {current: {}}});
+
+        // Then the scroll view moves a focused input into view
+        expect(screen.UNSAFE_getByType(ScrollView).props.scrollsChildToFocus).toBe(true);
+    });
+
+    it('turns off the Android scroll to a focused input when the form scrolls to the input itself', () => {
+        // Given a form that scrolls to its input when the input gets focus
+        // When the form renders
+        renderFormWrapper({inputRefs: {current: {}}, shouldScrollChildToFocus: false});
+
+        // Then the scroll view does not also move the focused input, which would move the page two times
+        expect(screen.UNSAFE_getByType(ScrollView).props.scrollsChildToFocus).toBe(false);
     });
 });

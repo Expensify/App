@@ -210,7 +210,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -220,7 +220,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.NVP_ACTIVE_POLICY_ID}`,
                     callback: (id) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(id);
                     },
                 });
@@ -255,7 +255,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
                     callback: (reports) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(reports);
                     },
                 });
@@ -288,7 +288,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                     callback: (actions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(actions);
                     },
                 });
@@ -345,7 +345,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.POLICY,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -358,7 +358,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
                     callback: (reports) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(reports);
                     },
                 });
@@ -374,7 +374,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                     callback: (actions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(actions);
                     },
                 });
@@ -444,7 +444,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -475,7 +475,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
                     callback: (reports) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(reports);
                     },
                 });
@@ -508,7 +508,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                     callback: (actions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(actions);
                     },
                 });
@@ -551,7 +551,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.POLICY,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -564,7 +564,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
                     callback: (reports) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(reports);
                     },
                 });
@@ -580,7 +580,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                     callback: (actions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(actions);
                     },
                 });
@@ -635,7 +635,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -708,7 +708,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -850,7 +850,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
                     callback: (reports) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(reports);
                     },
                 });
@@ -904,7 +904,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -912,6 +912,56 @@ describe('actions/Policy', () => {
 
             expect(policy?.avatarURL).toBe(file.uri);
             expect(policy?.originalFileName).toBe(file.name);
+        });
+
+        it('duplicate workspace does not copy isCollectDepositAccountsEnabled when workflows are not selected', async () => {
+            // Given a source workspace that collects employee bank details
+            const fakePolicy = {...createRandomPolicy(19, CONST.POLICY.TYPE.TEAM), isCollectDepositAccountsEnabled: true};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            const options = {
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                policyName: 'Workspace Without Workflows',
+                policyID: fakePolicy.id,
+                targetPolicyID: policyID,
+                welcomeNote: 'Join my policy',
+                parts: {
+                    people: false,
+                    reports: false,
+                    connections: false,
+                    categories: false,
+                    tags: false,
+                    taxes: false,
+                    perDiem: false,
+                    reimbursements: false,
+                    expenses: false,
+                    distance: false,
+                    invoices: false,
+                    exportLayouts: false,
+                },
+                localCurrency: 'USD',
+                personalDetailsByLogins: {},
+            };
+
+            // When the workspace is duplicated without the Workflows feature
+            Policy.duplicateWorkspace(fakePolicy, options);
+            await waitForBatchedUpdates();
+
+            const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (workspace) => {
+                        connection.unsubscribe();
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // Then the duplicate should not collect employee bank details, because that setting belongs to Workflows
+            expect(policy?.isCollectDepositAccountsEnabled).toBe(false);
         });
 
         it('duplicate workspace propagates the caller currentUserEmail to the expense chat CREATED report action message', async () => {
@@ -954,7 +1004,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
                     callback: (reports) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(reports);
                     },
                 });
@@ -967,7 +1017,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                     callback: (actions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(actions);
                     },
                 });
@@ -1040,7 +1090,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -1108,7 +1158,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -1144,7 +1194,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -2642,6 +2692,86 @@ describe('actions/Policy', () => {
             expect(updatedPolicy?.shouldAutoUpdateGovernmentDistanceRates).toBe(true);
             expect(updatedPolicy?.autoUpdateGovernmentRateCountry ?? null).toBeNull();
         });
+
+        describe('UK fuel-band rates', () => {
+            const customUnitID = 'unit_123';
+            const ukStandardRate: GovernmentMileageRate = {sourceRateID: 'GB_2011-04-06', currency: 'GBP', name: 'United Kingdom', rate: 45, startDate: '2011-04-06', enabled: true};
+            const petrolBand: GovernmentMileageRate = {
+                sourceRateID: 'GB_PETROL_UP_TO_1400_2026-09-01',
+                currency: 'GBP',
+                name: 'Cars & Vans (Petrol/Hybrid) - Up to 1400cc',
+                rate: 45,
+                startDate: '2026-09-01',
+                enabled: true,
+                taxClaimablePercentage: 13 / 45,
+            };
+
+            // A workspace tracking tax with distance tax on, which gets the fuel bands instead of the standard UK rate
+            const buildEligiblePolicy = () => ({
+                ...createRandomPolicy(0),
+                name: 'Workspace',
+                outputCurrency: CONST.CURRENCY.USD,
+                shouldAutoUpdateGovernmentDistanceRates: true,
+                tax: {trackingEnabled: true},
+                customUnits: {
+                    [customUnitID]: {
+                        customUnitID,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, taxEnabled: true},
+                        rates: {},
+                    },
+                },
+            });
+
+            it('copies only the fuel bands, without a government rate country, when the currency changes to GBP', () => {
+                // Given an eligible workspace
+                const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+                const policy = buildEligiblePolicy();
+
+                // When the currency changes to GBP the way the currency page does it, since GBP maps to one country
+                Policy.updateGeneralSettings(policy, policy.name, CONST.CURRENCY.GBP, {}, {governmentMileageRates: [ukStandardRate, petrolBand]});
+
+                // Then only the fuel band is copied optimistically, matching what the server copies, and no country is sent because it only applies to EUR
+                const apiCallArgs = apiWriteSpy.mock.calls.find((call) => call.at(0) === WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS);
+                const params = requireRecord(requireCallArgument(apiCallArgs, 1));
+                expect(Object.keys(parseJSONRecord(params.optimisticRateIDs))).toEqual(['GB_PETROL_UP_TO_1400_2026-09-01']);
+                expect(params.governmentRateCountry).toBeUndefined();
+
+                apiWriteSpy.mockRestore();
+            });
+
+            it('copies only the standard rate when the currency changes to GBP on a workspace that does not track tax', () => {
+                // Given a workspace with auto-update on but tax tracking off
+                const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+                const policy = {...buildEligiblePolicy(), tax: {trackingEnabled: false}};
+
+                // When the currency changes to GBP
+                Policy.updateGeneralSettings(policy, policy.name, CONST.CURRENCY.GBP, {}, {governmentMileageRates: [ukStandardRate, petrolBand]});
+
+                // Then only the standard rate is copied optimistically, since only workspaces tracking distance tax get the fuel bands
+                const apiCallArgs = apiWriteSpy.mock.calls.find((call) => call.at(0) === WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS);
+                const params = requireRecord(requireCallArgument(apiCallArgs, 1));
+                expect(Object.keys(parseJSONRecord(params.optimisticRateIDs))).toEqual(['GB_2011-04-06']);
+
+                apiWriteSpy.mockRestore();
+            });
+
+            it('copies no rates when the currency changes to GBP with auto-update off', () => {
+                // Given a workspace with auto-update off
+                const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+                const policy = {...buildEligiblePolicy(), shouldAutoUpdateGovernmentDistanceRates: false};
+
+                // When the currency changes to GBP
+                Policy.updateGeneralSettings(policy, policy.name, CONST.CURRENCY.GBP, {}, {governmentMileageRates: [ukStandardRate, petrolBand]});
+
+                // Then no rates are copied, because the server only copies government rates for workspaces that auto-update them
+                const apiCallArgs = apiWriteSpy.mock.calls.find((call) => call.at(0) === WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS);
+                const params = requireRecord(requireCallArgument(apiCallArgs, 1));
+                expect(params.optimisticRateIDs).toBeUndefined();
+
+                apiWriteSpy.mockRestore();
+            });
+        });
     });
 
     describe('updateAddress', () => {
@@ -3374,7 +3504,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -3402,7 +3532,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -3429,7 +3559,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -3457,7 +3587,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -3700,7 +3830,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -3718,7 +3848,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -3818,7 +3948,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -3835,7 +3965,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -3882,6 +4012,7 @@ describe('actions/Policy', () => {
                 transactionViolations: {},
                 isASAPSubmitBetaEnabled: false,
                 personalDetailsList: {},
+                personalDetailsByLogins: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3946,6 +4077,7 @@ describe('actions/Policy', () => {
                 transactionViolations: {},
                 isASAPSubmitBetaEnabled: undefined,
                 personalDetailsList: {},
+                personalDetailsByLogins: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3993,6 +4125,7 @@ describe('actions/Policy', () => {
                 transactionViolations: {},
                 isASAPSubmitBetaEnabled: false,
                 personalDetailsList: {},
+                personalDetailsByLogins: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -4099,7 +4232,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -4260,7 +4393,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -4402,7 +4535,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -4420,7 +4553,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -4458,7 +4591,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -4476,7 +4609,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -4511,7 +4644,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -4529,7 +4662,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -4568,7 +4701,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -4625,7 +4758,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (policy) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(policy?.pendingAction).toBeUndefined();
                         expect(policy?.avatarURL).toBe(fakePolicy.avatarURL);
                         resolve();
@@ -4638,7 +4771,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(report?.stateNum).toBe(fakeReport.stateNum);
                         expect(report?.statusNum).toBe(fakeReport.statusNum);
                         expect(report?.policyName).toBe(fakeReport.policyName);
@@ -4653,7 +4786,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${fakeReport.reportID}`,
                     callback: (reportNameValuePairs) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(reportNameValuePairs?.private_isArchived).toBeUndefined();
                         resolve();
                     },
@@ -4665,7 +4798,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                     callback: (reimbursementAccount) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(reimbursementAccount?.errors).not.toBeUndefined();
                         resolve();
                     },
@@ -4785,13 +4918,81 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
                     callback: (policyID) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(policyID);
                     },
                 });
             });
 
             expect(activePolicyID).toBe(mostRecentlyCreatedGroupPolicy.id);
+        });
+
+        it('should not pick a workspace the member cannot create expenses on as the new active policy', async () => {
+            // Given a default workspace to delete, a newer approve-only workspace, and an older regular workspace
+            // When the deletion optimistically picks the new active workspace
+            // Then the approve-only workspace is skipped, so it never shows the Default label
+            const personalPolicy = createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL);
+            personalPolicy.created = '2020-01-01 10:00:00';
+            personalPolicy.pendingAction = null;
+
+            const activePolicy = createRandomPolicy(2, CONST.POLICY.TYPE.TEAM);
+            activePolicy.created = '2021-01-01 10:00:00';
+            activePolicy.role = CONST.POLICY.ROLE.USER;
+            activePolicy.pendingAction = null;
+
+            const approveOnlyPolicy = createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE);
+            approveOnlyPolicy.created = '3000-01-01 10:00:00';
+            approveOnlyPolicy.role = CONST.POLICY.ROLE.APPROVE_ONLY;
+            approveOnlyPolicy.pendingAction = null;
+
+            const regularGroupPolicy = createRandomPolicy(4, CONST.POLICY.TYPE.CORPORATE);
+            regularGroupPolicy.created = '2022-01-01 10:00:00';
+            regularGroupPolicy.role = CONST.POLICY.ROLE.USER;
+            regularGroupPolicy.pendingAction = null;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`, personalPolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${activePolicy.id}`, activePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${approveOnlyPolicy.id}`, approveOnlyPolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${regularGroupPolicy.id}`, regularGroupPolicy);
+            await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, activePolicy.id);
+            await waitForBatchedUpdates();
+
+            Policy.deleteWorkspace({
+                policies: {
+                    [`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`]: personalPolicy,
+                    [`${ONYXKEYS.COLLECTION.POLICY}${activePolicy.id}`]: activePolicy,
+                    [`${ONYXKEYS.COLLECTION.POLICY}${approveOnlyPolicy.id}`]: approveOnlyPolicy,
+                    [`${ONYXKEYS.COLLECTION.POLICY}${regularGroupPolicy.id}`]: regularGroupPolicy,
+                },
+                policyID: activePolicy.id,
+                personalPolicyID: personalPolicy.id,
+                activePolicyID: activePolicy.id,
+                policyName: activePolicy.name,
+                lastAccessedWorkspacePolicyID: undefined,
+                policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
+                reportsToArchive: [],
+                transactionViolations: undefined,
+                reimbursementAccountError: undefined,
+                lastUsedPaymentMethods: undefined,
+                localeCompare: TestHelper.localeCompare,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                accountIDToLogin: {},
+            });
+            await waitForBatchedUpdates();
+
+            const activePolicyID: OnyxEntry<string> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+                    callback: (policyID) => {
+                        connection.unsubscribe();
+                        resolve(policyID);
+                    },
+                });
+            });
+
+            expect(activePolicyID).toBe(regularGroupPolicy.id);
         });
 
         it('should clear reimbursement account errors when no admin group workspace remains after deleting a workspace', async () => {
@@ -4918,7 +5119,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID,
                     callback: (policyID) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(policyID);
                     },
                 });
@@ -4961,7 +5162,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID,
                     callback: (policyID) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(policyID);
                     },
                 });
@@ -5251,7 +5452,7 @@ describe('actions/Policy', () => {
                     key: `${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${policyID}`,
                     callback: (val) => {
                         resolve(val);
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                     },
                 });
             });
@@ -5289,7 +5490,7 @@ describe('actions/Policy', () => {
                     key: `${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${policyID}`,
                     callback: (val) => {
                         resolve(val);
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                     },
                 });
             });
@@ -5318,7 +5519,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (policy) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(policy?.maxExpenseAmountNoItemizedReceipt).toBe(expectedBackendAmount);
                         expect(policy?.pendingFields?.maxExpenseAmountNoItemizedReceipt).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
                         resolve();
@@ -5334,7 +5535,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (policy) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(policy?.pendingFields?.maxExpenseAmountNoItemizedReceipt).toBeFalsy();
                         expect(policy?.errorFields?.maxExpenseAmountNoItemizedReceipt).toBeFalsy();
                         resolve();
@@ -5357,7 +5558,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (policy) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(policy?.maxExpenseAmountNoItemizedReceipt).toBe(CONST.DISABLED_MAX_EXPENSE_VALUE);
                         expect(policy?.pendingFields?.maxExpenseAmountNoItemizedReceipt).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
                         resolve();
@@ -5829,6 +6030,102 @@ describe('actions/Policy', () => {
             // Then no request is sent
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.SET_WORKSPACE_REIMBURSEMENT, 0);
         });
+
+        it('turns off deposit account collection and clears countries when switching to None', async () => {
+            mockFetch?.pause?.();
+
+            // Given a workspace collecting deposit accounts with a selected reimbursement country
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.id = FAKE_POLICY_ID;
+            fakePolicy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+            fakePolicy.isCollectDepositAccountsEnabled = true;
+            fakePolicy.reimbursement = {countries: {US: {}}} as PolicyType['reimbursement'];
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When reimbursement is switched to None
+            Policy.setWorkspaceReimbursement({
+                policyID: FAKE_POLICY_ID,
+                currentAchAccount: fakePolicy.achAccount,
+                currentReimbursementChoice: fakePolicy.reimbursementChoice,
+                currentIsCollectDepositAccountsEnabled: fakePolicy.isCollectDepositAccountsEnabled,
+                currentReimbursementCountries: fakePolicy.reimbursement?.countries,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                reimburserEmail: FAKE_REIMBURSER_EMAIL,
+            });
+            await waitForBatchedUpdates();
+
+            // Then collection is turned off and the countries are cleared
+            const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`);
+            expect(policy?.isCollectDepositAccountsEnabled).toBe(false);
+            expect(policy?.reimbursement?.countries).toBeUndefined();
+
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+        });
+
+        it('restores deposit account collection and countries when switching to None fails', async () => {
+            mockFetch?.fail?.();
+
+            // Given a workspace collecting deposit accounts with a selected reimbursement country
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.id = FAKE_POLICY_ID;
+            fakePolicy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+            fakePolicy.isCollectDepositAccountsEnabled = true;
+            const countries = {US: {}} as NonNullable<PolicyType['reimbursement']>['countries'];
+            fakePolicy.reimbursement = {countries} as PolicyType['reimbursement'];
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When reimbursement is switched to None but the request fails
+            Policy.setWorkspaceReimbursement({
+                policyID: FAKE_POLICY_ID,
+                currentAchAccount: fakePolicy.achAccount,
+                currentReimbursementChoice: fakePolicy.reimbursementChoice,
+                currentIsCollectDepositAccountsEnabled: fakePolicy.isCollectDepositAccountsEnabled,
+                currentReimbursementCountries: fakePolicy.reimbursement?.countries,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                reimburserEmail: FAKE_REIMBURSER_EMAIL,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the flag and countries are restored to their original values
+            const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`);
+            expect(policy?.isCollectDepositAccountsEnabled).toBe(true);
+            expect(policy?.reimbursement?.countries).toEqual(countries);
+
+            mockFetch?.succeed?.();
+        });
+
+        it('leaves deposit account collection unchanged when switching to Indirect', async () => {
+            mockFetch?.pause?.();
+
+            // Given a workspace collecting deposit accounts
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.id = FAKE_POLICY_ID;
+            fakePolicy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+            fakePolicy.isCollectDepositAccountsEnabled = true;
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When reimbursement is switched to Indirect
+            Policy.setWorkspaceReimbursement({
+                policyID: FAKE_POLICY_ID,
+                currentAchAccount: fakePolicy.achAccount,
+                currentReimbursementChoice: fakePolicy.reimbursementChoice,
+                currentIsCollectDepositAccountsEnabled: fakePolicy.isCollectDepositAccountsEnabled,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                reimburserEmail: FAKE_REIMBURSER_EMAIL,
+            });
+            await waitForBatchedUpdates();
+
+            // Then collection stays on
+            const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`);
+            expect(policy?.isCollectDepositAccountsEnabled).toBe(true);
+
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+        });
     });
 
     describe('enablePolicyFeatureForConnection', () => {
@@ -6253,7 +6550,7 @@ describe('actions/Policy', () => {
         });
     });
 
-    describe('setWorkspaceAutoReportingMonthlyOffset', () => {
+    describe('setWorkspaceAutoReportingOffset', () => {
         it('should update auto reporting monthly offset optimistically and succeed', async () => {
             // Given a workspace with offset 1
             const policy = {
@@ -6264,7 +6561,7 @@ describe('actions/Policy', () => {
             mockFetch.pause();
 
             // When setting auto reporting offset to 2
-            Policy.setWorkspaceAutoReportingMonthlyOffset(policy.id, 2, policy.autoReportingOffset);
+            Policy.setWorkspaceAutoReportingOffset(policy.id, 2, policy.autoReportingOffset);
 
             // Then optimistic data should be set in Onyx
             await waitForBatchedUpdates();
@@ -6290,7 +6587,7 @@ describe('actions/Policy', () => {
 
             // When setting auto reporting offset to 2 but fail
             mockFetch.fail();
-            Policy.setWorkspaceAutoReportingMonthlyOffset(policy.id, 2, policy.autoReportingOffset);
+            Policy.setWorkspaceAutoReportingOffset(policy.id, 2, policy.autoReportingOffset);
             await waitForBatchedUpdates();
 
             // Then the offset should be reverted
@@ -6298,6 +6595,113 @@ describe('actions/Policy', () => {
             expect(updatedPolicy?.autoReportingOffset).toBe(1);
             expect(updatedPolicy?.pendingFields?.autoReportingOffset).toBeUndefined();
             expect(updatedPolicy?.errorFields?.autoReportingOffset).toBeTruthy();
+        });
+
+        it('should update both twice a month dates and succeed', async () => {
+            // Given a twice a month workspace on the 1st and the last day
+            const policy = {
+                ...createRandomPolicy(0),
+                autoReportingOffset: 1,
+                autoReportingOffsetSecondSemiMonthly: CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            mockFetch.pause();
+
+            // When setting the dates to the 5th and 20th
+            Policy.setWorkspaceAutoReportingOffset(policy.id, 5, policy.autoReportingOffset, {}, 20, policy.autoReportingOffsetSecondSemiMonthly);
+
+            // Then both dates should be set optimistically and sent to the API
+            await waitForBatchedUpdates();
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.autoReportingOffset).toBe(5);
+            expect(updatedPolicy?.autoReportingOffsetSecondSemiMonthly).toBe(20);
+            expect(updatedPolicy?.pendingFields?.autoReportingOffsetSecondSemiMonthly).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_MONTHLY_OFFSET, 0, {
+                policyID: policy.id,
+                value: JSON.stringify({autoReportingOffset: 5, autoReportingOffsetSecondSemiMonthly: 20}),
+            });
+
+            // When the fetch resumes and succeeds
+            await mockFetch.resume();
+
+            // Then pendingFields for both dates should be cleared
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.pendingFields?.autoReportingOffset).toBeUndefined();
+            expect(updatedPolicy?.pendingFields?.autoReportingOffsetSecondSemiMonthly).toBeUndefined();
+        });
+
+        it('should revert both twice a month dates when fail', async () => {
+            // Given a twice a month workspace on the 1st and the last day
+            const policy = {
+                ...createRandomPolicy(0),
+                autoReportingOffset: 1,
+                autoReportingOffsetSecondSemiMonthly: CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When setting the dates to the 5th and 20th but fail
+            mockFetch.fail();
+            Policy.setWorkspaceAutoReportingOffset(policy.id, 5, policy.autoReportingOffset, {}, 20, policy.autoReportingOffsetSecondSemiMonthly);
+            await waitForBatchedUpdates();
+
+            // Then both dates should be reverted
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.autoReportingOffset).toBe(1);
+            expect(updatedPolicy?.autoReportingOffsetSecondSemiMonthly).toBe(CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH);
+            expect(updatedPolicy?.pendingFields?.autoReportingOffsetSecondSemiMonthly).toBeUndefined();
+            expect(updatedPolicy?.errorFields?.autoReportingOffset).toBeTruthy();
+        });
+    });
+
+    describe('setWorkspaceTimezone', () => {
+        it('should update workspace timezone optimistically and succeed', async () => {
+            // Given a workspace on Pacific time
+            const policy = {
+                ...createRandomPolicy(0),
+                timeZone: 'America/Los_Angeles',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            mockFetch.pause();
+
+            // When setting the timezone to London
+            Policy.setWorkspaceTimezone(policy.id, 'Europe/London', policy.timeZone);
+
+            // Then the timezone should be set optimistically and sent to the API
+            await waitForBatchedUpdates();
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.timeZone).toBe('Europe/London');
+            expect(updatedPolicy?.pendingFields?.timeZone).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_POLICY_TIMEZONE, 0, {
+                policyID: policy.id,
+                policyTimezone: 'Europe/London',
+            });
+
+            // When the fetch resumes and succeeds
+            await mockFetch.resume();
+
+            // Then pendingFields should be cleared
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.pendingFields?.timeZone).toBeUndefined();
+        });
+
+        it('should revert workspace timezone when fail', async () => {
+            // Given a workspace on Pacific time
+            const policy = {
+                ...createRandomPolicy(0),
+                timeZone: 'America/Los_Angeles',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When setting the timezone to London but fail
+            mockFetch.fail();
+            Policy.setWorkspaceTimezone(policy.id, 'Europe/London', policy.timeZone);
+            await waitForBatchedUpdates();
+
+            // Then the timezone should be reverted with an error
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.timeZone).toBe('America/Los_Angeles');
+            expect(updatedPolicy?.pendingFields?.timeZone).toBeUndefined();
+            expect(updatedPolicy?.errorFields?.timeZone).toBeTruthy();
         });
     });
 
@@ -8500,7 +8904,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -8515,7 +8919,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });

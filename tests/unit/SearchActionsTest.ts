@@ -23,7 +23,7 @@ import fileDownload from '@libs/fileDownload';
 import {translate} from '@libs/Localize';
 import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, normalizeDatePresetsInQuery} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -150,13 +150,42 @@ describe('SearchActions', () => {
                 }),
             );
         });
+
+        it('saves a year to date query with this year', () => {
+            // Given a query on the deprecated year to date preset
+            const yearToDateQueryJSON = getQueryJSON('type:expense date:year-to-date');
+
+            // When it's saved
+            saveSearch({id: savedSearchID, queryJSON: yearToDateQueryJSON, newName: 'My search'});
+
+            // Then the saved query uses this year, so the saved search opens with the preset the date picker lists
+            const savedQueryJSON = getQueryJSON(normalizeDatePresetsInQuery(yearToDateQueryJSON.inputQuery));
+            expect(savedQueryJSON.inputQuery).toContain(`date:${CONST.SEARCH.DATE_PRESETS.THIS_YEAR}`);
+            expect(mockWrite).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SAVE_SEARCH,
+                {jsonQuery: JSON.stringify(savedQueryJSON), savedSearchID, newName: 'My search'},
+                expect.objectContaining({
+                    optimisticData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.SAVED_SEARCHES,
+                            value: {[savedSearchID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, name: 'My search', query: savedQueryJSON.inputQuery}},
+                        },
+                    ],
+                }),
+            );
+        });
     });
 
     describe('deleteSavedSearch', () => {
-        it('sends the optimistic DELETE, failure revert, and success removal keyed by the savedSearchID', () => {
+        it('sends the optimistic DELETE, failure revert, and success removal of the search and its column widths', () => {
+            // Given a saved search
             const savedSearchID = '987654321';
+
+            // When it's deleted
             deleteSavedSearch(savedSearchID);
 
+            // Then once the server confirms, its column widths go too, for every data type its query could have had
             expect(mockWrite).toHaveBeenCalledWith(
                 WRITE_COMMANDS.DELETE_SAVED_SEARCH,
                 {savedSearchID},
@@ -166,6 +195,18 @@ describe('SearchActions', () => {
                     successData: [
                         {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SAVED_SEARCHES, value: {[savedSearchID]: null}},
                         {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SEARCH_FILTERS, value: {[savedSearchIDToSearchKey(savedSearchID)]: null}},
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.TABLE_COLUMN_WIDTHS,
+                            value: {
+                                [`search:expense:${savedSearchIDToSearchKey(savedSearchID)}`]: null,
+                                [`search:expense-report:${savedSearchIDToSearchKey(savedSearchID)}`]: null,
+                                [`search:invoice:${savedSearchIDToSearchKey(savedSearchID)}`]: null,
+                                [`search:task:${savedSearchIDToSearchKey(savedSearchID)}`]: null,
+                                [`search:trip:${savedSearchIDToSearchKey(savedSearchID)}`]: null,
+                                [`search:chat:${savedSearchIDToSearchKey(savedSearchID)}`]: null,
+                            },
+                        },
                     ],
                 },
             );
@@ -856,7 +897,7 @@ describe('getPayOption', () => {
                 },
             });
             await waitForBatchedUpdates();
-            Onyx.disconnect(connection);
+            connection.unsubscribe();
 
             expect(storedResults).toEqual(tags);
         });
@@ -895,7 +936,7 @@ describe('getPayOption', () => {
                 },
             });
             await waitForBatchedUpdates();
-            Onyx.disconnect(connection);
+            connection.unsubscribe();
 
             expect(storedResults).toEqual([...existingTags, ...nextTags]);
         });
