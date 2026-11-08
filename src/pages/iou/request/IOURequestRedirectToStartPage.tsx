@@ -5,6 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import {clearMoneyRequest, startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {getNonDeprecatedIOUType} from '@libs/IOUUtils';
+import {suppressFlowDiscardPrompt} from '@libs/Navigation/helpers/discardPromptState';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
 import {isDistanceExpenseType} from '@libs/TransactionUtils';
@@ -56,6 +57,8 @@ function IOURequestRedirectToStartPage({route}: IOURequestRedirectToStartPagePro
             }
 
             // Dismiss this modal because the redirects below will open a new modal and there shouldn't be two modals stacked on top of each other.
+            // The drafts were just cleared for the new flow, so there's nothing left to discard.
+            suppressFlowDiscardPrompt();
             Navigation.dismissModal();
 
             // Redirect the person to the right start page using a random reportID
