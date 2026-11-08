@@ -411,6 +411,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 },
                 isASAPSubmitBetaEnabled,
                 currentUser: {accountID: currentUserAccountID, email: currentUserEmail},
+                currentUserPersonalDetails,
                 currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
                 introSelected,
                 conciergeChat,
