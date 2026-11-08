@@ -15,7 +15,7 @@ import getCurrencyForNonUSDBankAccount from '@pages/ReimbursementAccount/NonUSD/
 import getInitialSubStepForBankInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInitialSubStepForBankInfoStep';
 import getInputKeysForBankInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInputKeysForBankInfoStep';
 
-import {clearReimbursementAccountBankCreation, createCorpayBankAccount, getCorpayBankAccountFields} from '@userActions/BankAccounts';
+import {clearReimbursementAccountBankCreation, createCorpayBankAccount, getCorpayBankAccountFields, hideBankAccountErrors} from '@userActions/BankAccounts';
 import {clearErrors} from '@userActions/FormActions';
 
 import CONST from '@src/CONST';
@@ -54,6 +54,21 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames, backTo}: No
     const isSubmittingRef = useRef(false);
 
     const submit = () => {
+        // Corpay has no endpoint to update bank account details, so the account is created exactly once per
+        // workspace and `achData.created` marks it as done. Sending another create afterwards only makes the
+        // server reject the duplicate, and that rejection replaces the message already shown above Confirm -
+        // which is why a different error appeared on the next Confirm (for example after a network reconnect).
+        // Treat an existing account as this step being finished and continue the flow instead.
+        if (reimbursementAccount?.achData?.bankAccountID && reimbursementAccount?.achData?.created) {
+            onSubmit();
+            return;
+        }
+
+        // Never stack a second create on top of one that is still in flight, so repeated taps can't race.
+        if (reimbursementAccount?.isCreateCorpayBankAccount === true) {
+            return;
+        }
+
         const {formFields, isLoading, isSuccess, ...corpayData} = corpayFields ?? {};
 
         isSubmittingRef.current = true;
@@ -62,6 +77,12 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames, backTo}: No
 
     useNetwork({
         onReconnect: () => {
+            // Refetch the Corpay field schema on reconnect only when it is missing or doesn't match the country
+            // and currency the flow is using. Refetching unconditionally reset CORPAY_FIELDS to its loading state
+            // in the middle of an in-progress setup, re-rendering the confirmation sub step for no reason.
+            if (corpayFields?.isSuccess === true && corpayFields?.bankCountry === country && corpayFields?.bankCurrency === currency) {
+                return;
+            }
             getCorpayBankAccountFields(country, currency);
         },
     });
@@ -110,6 +131,10 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames, backTo}: No
 
     const handleBackButtonPress = () => {
         clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
+        // A failed Confirm stores its message on the reimbursement account itself and the confirmation sub step
+        // renders whichever message is there, so leaving the step makes that message stale. Clear it here
+        // instead of showing the previous step's server error again on the next visit.
+        hideBankAccountErrors();
         if (isEditing) {
             Navigation.goBack(buildRoute(SUB_PAGE_NAMES.CONFIRMATION));
             return;
