@@ -31,7 +31,7 @@ To watch recordings on demand, see our **[webinar recording library](https://eve
 
 ## What you’ll learn in New User Training
 
-**Duration:** 55 minutes (45-minute walkthrough + 10-minute Q&A)
+**Duration:** 55 minutes
 
 User Training is designed for new members who submit, review, or approve expenses.
 
@@ -47,7 +47,7 @@ You’ll learn how to:
 
 ## What you’ll learn in Workspace Administration Training
 
-**Duration:** 1 hour 25 minutes (75-minute walkthrough + 10-minute Q&A)
+**Duration:** 1 hour 25 minutes
 
 Admin Training is designed for Workspace Admins and Workspace Owners.
 
@@ -63,7 +63,7 @@ You’ll learn how to:
 
 ## What you’ll learn in Company Card Administration Training
 
-**Duration:** 1 hour 15 minutes (65-minute walkthrough + 10-minute Q&A)
+**Duration:** 1 hour 15 minutes
 
 Company Card Admin Training is designed for Workspace Admins and Card Admins using a company card or the Expensify Card.
 
