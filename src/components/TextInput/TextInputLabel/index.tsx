@@ -65,6 +65,8 @@ function TextInputLabel({for: inputId = '', label, labelTranslateY, labelScale, 
                 importantForAccessibility="no"
                 aria-hidden
                 style={[styles.textInputLabelContainer, styles.textInputLabel, animatedStyle, styles.pointerEventsNone]}
+                // The label names the field, not what the user typed, so it stays readable in session recordings even inside a masked input
+                fsClass={CONST.FULLSTORY.CLASS.UNMASK}
             >
                 {label}
             </Animated.Text>

@@ -707,6 +707,9 @@ function MenuItem({
                         style={descriptionTextStyles}
                         numberOfLines={numberOfLinesDescription}
                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: isTitleSelectable}}
+                        // A description on top labels the field, so it stays readable in session recordings even inside a masked container.
+                        // A description below the title can hold user data, like an email, so it keeps the class of its container
+                        fsClass={shouldShowDescriptionOnTop ? CONST.FULLSTORY.CLASS.UNMASK : undefined}
                     >
                         {description}
                     </Text>
