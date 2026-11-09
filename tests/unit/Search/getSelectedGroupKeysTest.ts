@@ -49,14 +49,17 @@ describe('getSelectedGroupKeys', () => {
     });
 
     it('skips a group whose selected rows do not cover it when the snapshot count is missing', () => {
-        expect(
-            getSelectedGroupKeys(
-                buildSelection({
-                    txn1: {isEntireGroupSelected: false, groupKey},
-                    txn2: {isEntireGroupSelected: false, groupKey},
-                }),
-            ),
-        ).toEqual([]);
+        // Given two rows of a group, each marked as not covering the whole group, and no snapshot count to check against
+        const selection = buildSelection({
+            txn1: {isEntireGroupSelected: false, groupKey},
+            txn2: {isEntireGroupSelected: false, groupKey},
+        });
+
+        // When the groups to delete as a whole are read
+        const keys = getSelectedGroupKeys(selection);
+
+        // Then the group is skipped, so a delete removes only the selected rows rather than the whole group
+        expect(keys).toEqual([]);
     });
 
     it('skips transactions selected outside of any group', () => {
@@ -64,16 +67,19 @@ describe('getSelectedGroupKeys', () => {
     });
 
     it('returns a group when every transaction is selected, however the rows were picked', () => {
-        const keys = getSelectedGroupKeys(
-            buildSelection({
-                txn1: {groupKey},
-                txn2: {groupKey},
-            }),
-            buildGroupSearchData({
-                [groupKey]: {count: 2, total: 0, currency: 'USD'},
-            }),
-        );
+        // Given both rows of a group of two selected, with nothing recording whether the header or the rows were clicked
+        const selection = buildSelection({
+            txn1: {groupKey},
+            txn2: {groupKey},
+        });
+        const searchData = buildGroupSearchData({
+            [groupKey]: {count: 2, total: 0, currency: 'USD'},
+        });
 
+        // When the groups to delete as a whole are read
+        const keys = getSelectedGroupKeys(selection, searchData);
+
+        // Then the group is returned, since its selected rows are every expense it has
         expect(keys).toEqual([groupKey]);
     });
 

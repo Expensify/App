@@ -125,7 +125,7 @@ import {useRegisterSearchScrollView, useSearchListScrollLockStyle} from './Searc
 import {SearchScopeProvider} from './SearchScopeProvider';
 import SearchTableHeader from './SearchTableHeader';
 import SearchWriteActionsProvider from './SearchWriteActionsProvider';
-import {getSearchGroupCount, getSearchGroupCountByKey, shouldSelectGroupUnderOwnKey} from './selectionBuilders';
+import {resolveSearchGroupCount, shouldSelectGroupUnderOwnKey} from './selectionBuilders';
 import TaskSearchView from './TaskSearchView';
 import TripSearchView from './TripSearchView';
 
@@ -642,8 +642,8 @@ function Search({
             const selectableTransactions = item.transactions.filter((transaction) => !isTransactionPendingDelete(transaction));
 
             // A group with rows left to load is selected under its own key, so it counts once
-            const groupCount = getSearchGroupCount(item) ?? getSearchGroupCountByKey(searchResults?.data, item.keyForList);
-            if (shouldSelectGroupUnderOwnKey(groupCount, item.transactions, isExpenseReportType)) {
+            const groupCount = resolveSearchGroupCount(item, item.keyForList, searchResults?.data);
+            if (shouldSelectGroupUnderOwnKey(groupCount, item.transactions, isExpenseReportType, selectableTransactions.length)) {
                 return count + 1;
             }
 

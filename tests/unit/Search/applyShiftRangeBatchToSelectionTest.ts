@@ -162,7 +162,7 @@ describe('applyShiftRangeBatchToSelection', () => {
         // Given a group of five whose two loaded rows include one already picked by hand
         const first = makeChild(1, 'c1');
         const second = makeChild(2, 'c2');
-        const group = makeGroup('groupA', [first, second]);
+        const group = {...makeGroup('groupA', [first, second]), count: 5};
         const selection: SelectedTransactions = {c1: {...buildEntry(first)[1], groupKey: 'groupA'}};
 
         // When a range covers the group row

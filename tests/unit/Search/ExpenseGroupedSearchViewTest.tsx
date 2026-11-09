@@ -312,6 +312,45 @@ describe('ExpenseGroupedSearchView', () => {
         expect(mockTopBar.current?.isSelectAllChecked).toBe(true);
     });
 
+    it('counts the loaded rows of a group selected under its own key, so select-all reads as checked', async () => {
+        // Given a group with rows left to load, which select-all stores under the group's own key instead of its rows,
+        // and a fully loaded group stored as its rows
+        mockSelectedTransactions.current = selectKeys('group-0', 'txn-1-0');
+        renderView({
+            data: createMockGroupData([{transactionCount: 2}, {transactionCount: 1}]),
+            canSelectMultiple: true,
+            tableHeaderVisible: true,
+            hasLoadedAllTransactions: true,
+        });
+
+        // When the view counts what is selected
+        await waitForBatchedUpdates();
+
+        // Then the first group's loaded rows count through its key, so every row reads as selected and select-all is checked
+        expect(mockTopBar.current?.selectedItemsLength).toBe(3);
+        expect(mockTopBar.current?.totalItems).toBe(3);
+        expect(mockTopBar.current?.isSelectAllChecked).toBe(true);
+    });
+
+    it('does not count a pending-delete row of a group selected under its own key', async () => {
+        // Given a group selected under its own key, one of whose loaded rows is being deleted
+        mockSelectedTransactions.current = selectKeys('group-0');
+        renderView({
+            data: createMockGroupData([{transactionCount: 2, deletedTransactions: new Set([1])}]),
+            canSelectMultiple: true,
+            tableHeaderVisible: true,
+            hasLoadedAllTransactions: true,
+        });
+
+        // When the view counts what is selected
+        await waitForBatchedUpdates();
+
+        // Then only the row that can still be selected counts, matching the total
+        expect(mockTopBar.current?.selectedItemsLength).toBe(1);
+        expect(mockTopBar.current?.totalItems).toBe(1);
+        expect(mockTopBar.current?.isSelectAllChecked).toBe(true);
+    });
+
     it('toggles selection on row tap while in mobile selection mode, instead of navigating', async () => {
         const onSelectRow = jest.fn();
         renderView({data: createMockGroupData([{transactionCount: 1}, {transactionCount: 1}]), isMobileSelectionModeEnabled: true, onSelectRow});

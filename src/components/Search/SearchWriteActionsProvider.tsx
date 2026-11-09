@@ -42,8 +42,7 @@ import {useSyncSelectedReports} from './SearchSelectionProvider';
 import {
     applyShiftRangeBatchToSelection,
     buildShiftRangeSource,
-    getSearchGroupCount,
-    getSearchGroupCountByKey,
+    getLoadedSelectableCount,
     getSelectableRows,
     isGroupCoveredBySelectedRows,
     isGroupSelected,
@@ -51,6 +50,7 @@ import {
     mapEmptyReportToSelectedEntry,
     mapTransactionItemToSelectedEntry,
     prepareTransactionsList,
+    resolveSearchGroupCount,
     shouldSelectGroupUnderOwnKey,
     spellOutGroupSelection,
     stampGroupCoverageFlags,
@@ -192,9 +192,20 @@ function useReconcileSelectionWithData({
                 : [],
         );
         // Counted from the selection as it stood before this data, since a refresh may have dropped some of those rows from the list.
+        // A row the data now lists under another group has moved out (an edit to its date or category does that), yet its entry still
+        // names the group it was picked in, so it no longer counts toward that group.
+        const loadedGroupKeyByRowKey = new Map<string, string | undefined>();
+        if (areItemsGrouped && isGroupedItemArray(filteredData)) {
+            for (const group of filteredData) {
+                for (const transactionItem of group.transactions) {
+                    loadedGroupKeyByRowKey.set(transactionItem.keyForList ?? transactionItem.transactionID, group.keyForList);
+                }
+            }
+        }
         const selectedRowCountByGroupKey = new Map<string, number>();
         for (const [key, selectedTransaction] of Object.entries(selectedTransactions)) {
-            if (selectedTransaction.isSelected && selectedTransaction.groupKey && key !== selectedTransaction.groupKey) {
+            const hasChangedGroup = loadedGroupKeyByRowKey.has(key) && loadedGroupKeyByRowKey.get(key) !== selectedTransaction.groupKey;
+            if (selectedTransaction.isSelected && selectedTransaction.groupKey && key !== selectedTransaction.groupKey && !hasChangedGroup) {
                 selectedRowCountByGroupKey.set(selectedTransaction.groupKey, (selectedRowCountByGroupKey.get(selectedTransaction.groupKey) ?? 0) + 1);
             }
         }
@@ -237,26 +248,17 @@ function useReconcileSelectionWithData({
 
                 // A group selected under its own key keeps it until every row has loaded, since only the key reaches the rows that have not.
                 // Its loaded rows read as checked through it. Under select-all-matching the rows carry the selection, as every other row does.
-                const groupCount = getSearchGroupCount(transactionGroup) ?? getSearchGroupCountByKey(searchResultsData, reportKey);
-                if (
-                    !areAllMatchingItemsSelected &&
-                    reportKey &&
-                    selectedTransactions[reportKey]?.isSelected &&
-                    !Object.hasOwn(excludedTransactions, reportKey) &&
-                    shouldSelectGroupUnderOwnKey(groupCount, transactionGroup.transactions, isExpenseReportType)
-                ) {
-                    newTransactionList[reportKey] = mapEmptyReportToSelectedEntry(transactionGroup)[1];
-                    continue;
-                }
-
                 // A whole group selected as its rows goes back under its own key when a refresh brings back only part of it,
                 // as expanding it or returning to the screen does, instead of shrinking to the rows that came back.
+                const groupCount = resolveSearchGroupCount(transactionGroup, reportKey, searchResultsData);
+                const loadedSelectableCount = getLoadedSelectableCount(transactionGroup.transactions);
                 if (
                     !areAllMatchingItemsSelected &&
                     reportKey &&
                     !Object.hasOwn(excludedTransactions, reportKey) &&
-                    isGroupCoveredBySelectedRows(groupCount, transactionGroup.transactions, selectedRowCountByGroupKey.get(reportKey) ?? 0) &&
-                    shouldSelectGroupUnderOwnKey(groupCount, transactionGroup.transactions, isExpenseReportType)
+                    shouldSelectGroupUnderOwnKey(groupCount, transactionGroup.transactions, isExpenseReportType, loadedSelectableCount) &&
+                    (!!selectedTransactions[reportKey]?.isSelected ||
+                        isGroupCoveredBySelectedRows(groupCount, transactionGroup.transactions, selectedRowCountByGroupKey.get(reportKey) ?? 0, selectedTransactions, loadedSelectableCount))
                 ) {
                     newTransactionList[reportKey] = mapEmptyReportToSelectedEntry(transactionGroup)[1];
                     continue;
@@ -352,7 +354,7 @@ function useReconcileSelectionWithData({
                         groupKey: reportKey,
                         groupCount,
                         loadedChildrenCount: transactionGroup.transactions.length,
-                        loadedSelectableCount: transactionGroup.transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).length,
+                        loadedSelectableCount,
                     });
                     for (const [key, entry] of Object.entries(stampedSelection)) {
                         newTransactionList[key] = entry;
@@ -640,8 +642,7 @@ function SearchWriteActionsProvider({
     const isShiftRangeHeaderItem = (item: SearchData[number]) => isTransactionGroupListItemType(item) && hasValidGroupBy;
 
     const getGroupCount = (groupKey: string) =>
-        getSearchGroupCount(isGroupedItemArray(filteredData) ? filteredData.find((group) => group.keyForList === groupKey) : undefined) ??
-        getSearchGroupCountByKey(searchResultsData, groupKey);
+        resolveSearchGroupCount(isGroupedItemArray(filteredData) ? filteredData.find((group) => group.keyForList === groupKey) : undefined, groupKey, searchResultsData);
 
     // Read when the click happens, like the refs they come from, and passed to the writers, which cannot read Onyx or the rows themselves.
     const readGroupLookups = () => ({
@@ -803,7 +804,7 @@ function SearchWriteActionsProvider({
                     return stampGroupCoverageFlags({
                         selectedTransactions: updatedTransactions,
                         groupKey,
-                        groupCount: getSearchGroupCount(parentGroup) ?? getSearchGroupCountByKey(searchResultsData, groupKey),
+                        groupCount: resolveSearchGroupCount(parentGroup, groupKey, searchResultsData),
                         loadedChildrenCount: loadedChildren.length,
                         loadedSelectableCount: loadedChildren.filter((transaction) => !isTransactionPendingDelete(transaction)).length,
                     });
@@ -867,8 +868,8 @@ function SearchWriteActionsProvider({
                     }
                     return withoutStaleKeys;
                 }
-                const groupCount = getSearchGroupCount(item) ?? getSearchGroupCountByKey(searchResultsData, groupKey);
-                const isHeldUnderGroupKey = !!groupKey && shouldSelectGroupUnderOwnKey(groupCount, groupTransactions, isExpenseReportType);
+                const groupCount = resolveSearchGroupCount(item, groupKey, searchResultsData);
+                const isHeldUnderGroupKey = !!groupKey && shouldSelectGroupUnderOwnKey(groupCount, groupTransactions, isExpenseReportType, selectableTransactions.length);
                 // Until every row has loaded, only the group's own key reaches the rows that have not, so it holds the selection and the loaded rows read as checked through it.
                 if (isHeldUnderGroupKey && !areAllMatchingItemsSelected) {
                     const groupSelection: SelectedTransactions = {...selectedTransactions};
@@ -928,12 +929,12 @@ function SearchWriteActionsProvider({
                             return [mapEmptyReportToSelectedEntry(item)];
                         }
                         const entries: Array<[string, SelectedTransactionInfo]> = [];
-                        const selectableTransactions = item.transactions.filter((transactionItem) => !isTransactionPendingDelete(transactionItem));
-                        const groupCount = getSearchGroupCount(item) ?? getSearchGroupCountByKey(searchResultsData, item.keyForList);
+                        const groupCount = resolveSearchGroupCount(item, item.keyForList, searchResultsData);
                         // The same rule a header press follows: a group with rows left to load is held under its own key.
                         if (item.keyForList && shouldSelectGroupUnderOwnKey(groupCount, item.transactions, isExpenseReportType)) {
                             return [mapEmptyReportToSelectedEntry(item)];
                         }
+                        const selectableTransactions = item.transactions.filter((transactionItem) => !isTransactionPendingDelete(transactionItem));
                         for (const transactionItem of selectableTransactions) {
                             const [key, entry] = buildSelectedEntry(transactionItem);
                             entries.push([key, {...entry, groupKey: item.keyForList}]);

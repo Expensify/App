@@ -126,6 +126,31 @@ function PagingWrapper({children}: {children: React.ReactNode}) {
     );
 }
 
+/** Two groups whose rows can move between them, as an edit to an expense's category does. */
+let movingGroups: TransactionCategoryGroupListItemType[] = [];
+
+function MovingRowsWrapper({children}: {children: React.ReactNode}) {
+    return (
+        <SearchContextProvider>
+            <SearchWriteActionsProvider
+                filteredData={movingGroups}
+                renderedData={movingGroups}
+                totalSelectableItemsCount={5}
+                searchResults={undefined}
+                searchHash={SEARCH_HASH}
+                transactions={undefined}
+                isMobileSelectionModeEnabled={false}
+                type={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                areItemsGrouped
+                isExpenseReportType={false}
+                isSearchResultsEmpty={false}
+            >
+                {children}
+            </SearchWriteActionsProvider>
+        </SearchContextProvider>
+    );
+}
+
 function TwoGroupWrapper({children}: {children: React.ReactNode}) {
     return (
         <SearchContextProvider>
@@ -1366,6 +1391,73 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions[GROUP_KEY]).toBeUndefined();
         expect(Object.keys(result.current.selectedTransactions).sort()).toEqual(['1', '2']);
         expect(result.current.selectedTransactions['1']?.isEntireGroupSelected).toBe(false);
+    });
+
+    it('does not count rows that moved to another group toward their old group, so a refresh cannot select expenses nobody picked', async () => {
+        const officeGroup = buildCategoryGroup(EARLIER_GROUP_KEY, [], buildSearchQueryJSON('type:expense category:Office'));
+        movingGroups = [
+            {...categoryGroup, count: threeLoadedChildren.length, transactions: threeLoadedChildren},
+            {...officeGroup, count: 0},
+        ];
+        const {result, rerender} = renderSelection(MovingRowsWrapper);
+        const movingGroup = movingGroups.at(0);
+        if (!movingGroup) {
+            throw new Error('Expected the group to be listed');
+        }
+
+        // Given a fully loaded group of three ticked from its header, so its three rows hold the selection
+        await act(async () => {
+            result.current.toggle(movingGroup, threeLoadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(Object.keys(result.current.selectedTransactions).sort()).toEqual(['1', '2', '5']);
+
+        // When an edit moves two of those rows to another group, and two new expenses join the first group, of which only one has loaded
+        const keptChild = buildChild(1, '1', GROUP_KEY);
+        const newChild = buildChild(6, '6', GROUP_KEY);
+        const movedChildren = [buildChild(2, '2', EARLIER_GROUP_KEY), buildChild(5, '5', EARLIER_GROUP_KEY)];
+        movingGroups = [
+            {...categoryGroup, count: 3, transactions: [keptChild, newChild]},
+            {...officeGroup, count: movedChildren.length, transactions: movedChildren},
+        ];
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        // Then the first group is not selected under its own key, since only one of its expenses was picked, so the new expenses stay unselected
+        expect(result.current.selectedTransactions[GROUP_KEY]).toBeUndefined();
+        expect(readsChecked(result, '6')).toBe(false);
+        expect(Object.keys(result.current.selectedTransactions).sort()).toEqual(['1', '2', '5']);
+    });
+
+    it('does not hold a group under its own key when a loaded row of it was never picked, even if the rows that moved out are not loaded anywhere', async () => {
+        const officeGroup = buildCategoryGroup(EARLIER_GROUP_KEY, [], buildSearchQueryJSON('type:expense category:Office'));
+        movingGroups = [
+            {...categoryGroup, count: threeLoadedChildren.length, transactions: threeLoadedChildren},
+            {...officeGroup, count: 0},
+        ];
+        const {result, rerender} = renderSelection(MovingRowsWrapper);
+        const movingGroup = movingGroups.at(0);
+        if (!movingGroup) {
+            throw new Error('Expected the group to be listed');
+        }
+
+        // Given a fully loaded group of three ticked from its header, so its three rows hold the selection
+        await act(async () => {
+            result.current.toggle(movingGroup, threeLoadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When an edit moves two of those rows into a group that stays collapsed, and two new expenses join the first group, of which only one has loaded
+        movingGroups = [
+            {...categoryGroup, count: 3, transactions: [buildChild(1, '1', GROUP_KEY), buildChild(6, '6', GROUP_KEY)]},
+            {...officeGroup, count: 2},
+        ];
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        // Then the new expense the user never picked keeps the group from being selected under its own key, so it stays unselected
+        expect(result.current.selectedTransactions[GROUP_KEY]).toBeUndefined();
+        expect(readsChecked(result, '6')).toBe(false);
     });
 
     it('clears the parent exclusion when an expanded group is reselected', async () => {

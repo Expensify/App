@@ -203,9 +203,12 @@ function ExpenseGroupedSearchView({
     const groupItems = data.filter(isTransactionGroupListItemType);
     const flattenedTransactions = groupItems.flatMap((item) => item.transactions);
     const emptyReports = groupItems.filter((item) => item.transactions.length === 0 && !!item.keyForList);
+    // A group with rows left to load is selected under its own key, which checks every loaded row of it.
     const selectedItemsLength =
-        flattenedTransactions.reduce((acc, item) => acc + (isRowSelected(item.keyForList, selectedTransactions) ? 1 : 0), 0) +
-        emptyReports.reduce((acc, item) => acc + (isRowSelected(item.keyForList, selectedTransactions) ? 1 : 0), 0);
+        groupItems.reduce((acc, group) => {
+            const isGroupKeySelected = isRowSelected(group.keyForList, selectedTransactions);
+            return acc + group.transactions.filter((item) => isRowSelected(item.keyForList, selectedTransactions) || (isGroupKeySelected && !isRowDeleted(item))).length;
+        }, 0) + emptyReports.reduce((acc, item) => acc + (isRowSelected(item.keyForList, selectedTransactions) ? 1 : 0), 0);
     const totalItems = flattenedTransactions.filter((item) => !isRowDeleted(item)).length + emptyReports.filter((item) => !isRowDeleted(item)).length;
 
     // Visibility is computed over the rendered (possibly split) list.

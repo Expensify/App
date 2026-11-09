@@ -34,6 +34,11 @@ function getSearchGroupCountByKey(searchData: SearchResultDataType | undefined, 
     return getSearchGroupCount(searchData[groupKey]);
 }
 
+/** A group's total on the server, read from the row and then from the snapshot. Every writer and counter reads it here, so they agree on whether the group is fully loaded. */
+function resolveSearchGroupCount(group: TransactionGroupListItemType | undefined, groupKey: string | undefined, searchData: SearchResultDataType | undefined): number | undefined {
+    return getSearchGroupCount(group) ?? getSearchGroupCountByKey(searchData, groupKey);
+}
+
 /**
  * Snapshot `count` is not decremented when a child is pending-delete, so drop those loaded children before
  * comparing. A `limit:` that left children unloaded still leaves `count` larger than the remaining selectable
@@ -51,10 +56,13 @@ function getRemainingSearchGroupCount(groupCount: number | undefined, loadedChil
  * Whether the rows a group has loaded are all of its remaining transactions, so they can stand in for the group. If
  * the group count is unknown (expense-report rows), the loaded rows are treated as the whole group.
  */
-function isGroupFullyLoaded(groupCount: number | undefined, loadedChildren: TransactionListItemType[]): boolean {
-    const loadedSelectableCount = loadedChildren.filter((child) => !isTransactionPendingDelete(child)).length;
+function isGroupFullyLoaded(groupCount: number | undefined, loadedChildren: TransactionListItemType[], loadedSelectableCount = getLoadedSelectableCount(loadedChildren)): boolean {
     const remainingGroupCount = getRemainingSearchGroupCount(groupCount, loadedChildren.length, loadedSelectableCount);
     return remainingGroupCount === undefined || remainingGroupCount <= loadedSelectableCount;
+}
+
+function getLoadedSelectableCount(loadedChildren: TransactionListItemType[]): number {
+    return loadedChildren.filter((child) => !isTransactionPendingDelete(child)).length;
 }
 
 /**
@@ -63,19 +71,33 @@ function isGroupFullyLoaded(groupCount: number | undefined, loadedChildren: Tran
  * would disagree about what a ticked group holds. A report row on an expense-report search is the whole report, so it
  * is never held this way.
  */
-function shouldSelectGroupUnderOwnKey(groupCount: number | undefined, loadedChildren: TransactionListItemType[], isExpenseReportType: boolean): boolean {
-    return !isExpenseReportType && loadedChildren.some((child) => !isTransactionPendingDelete(child)) && !isGroupFullyLoaded(groupCount, loadedChildren);
+function shouldSelectGroupUnderOwnKey(groupCount: number | undefined, loadedChildren: TransactionListItemType[], isExpenseReportType: boolean, loadedSelectableCount?: number): boolean {
+    if (isExpenseReportType) {
+        return false;
+    }
+    const selectableCount = loadedSelectableCount ?? getLoadedSelectableCount(loadedChildren);
+    return selectableCount > 0 && !isGroupFullyLoaded(groupCount, loadedChildren, selectableCount);
 }
 
 /**
  * Whether the rows a selection holds for a group cover every expense the group still has, counting rows that are no
  * longer loaded. A refresh that brings back fewer rows than a fully selected group had must not shrink the selection to
  * the rows that came back. A count that grew past the selected rows means an expense nobody picked, so it does not count.
+ * Neither does a loaded row the selection does not hold: it joined the group after the user picked it, which is how a
+ * row that moved out to a group not loaded yet still shows, since its old entry keeps naming this group.
  */
-function isGroupCoveredBySelectedRows(groupCount: number | undefined, loadedChildren: TransactionListItemType[], selectedRowCount: number): boolean {
-    const loadedSelectableCount = loadedChildren.filter((child) => !isTransactionPendingDelete(child)).length;
+function isGroupCoveredBySelectedRows(
+    groupCount: number | undefined,
+    loadedChildren: TransactionListItemType[],
+    selectedRowCount: number,
+    selectedTransactions: SelectedTransactions,
+    loadedSelectableCount = getLoadedSelectableCount(loadedChildren),
+): boolean {
     const remainingGroupCount = getRemainingSearchGroupCount(groupCount, loadedChildren.length, loadedSelectableCount);
-    return remainingGroupCount !== undefined && selectedRowCount > 0 && selectedRowCount >= remainingGroupCount;
+    if (remainingGroupCount === undefined || selectedRowCount === 0 || selectedRowCount < remainingGroupCount) {
+        return false;
+    }
+    return loadedChildren.every((child) => isTransactionPendingDelete(child) || !!selectedTransactions[child.keyForList ?? child.transactionID]?.isSelected);
 }
 
 /**
@@ -487,7 +509,7 @@ function getGroupCheckboxState({groupKey, children, groupCount, selectedTransact
     const isSelectAllChecked =
         selectableCount > 0 &&
         checkedCount === selectableCount &&
-        ((!!groupKey && !!selectedTransactions[groupKey]?.isSelected) || areAllMatchingItemsSelected || isGroupFullyLoaded(groupCount, children));
+        ((!!groupKey && !!selectedTransactions[groupKey]?.isSelected) || areAllMatchingItemsSelected || isGroupFullyLoaded(groupCount, children, selectableCount));
     return {isSelectAllChecked, isIndeterminate: checkedCount > 0 && !isSelectAllChecked};
 }
 
@@ -710,7 +732,11 @@ function applyShiftRangeBatchToSelection(
                 return;
             }
             // Until every row has loaded, the group's own key is what reaches the rest, so it holds the selection instead of the rows.
-            if (row.keyForList && !areAllMatchingItemsSelected && shouldSelectGroupUnderOwnKey(lookups.getGroupCount(row.keyForList), row.transactions ?? [], lookups.isExpenseReportType)) {
+            if (
+                row.keyForList &&
+                !areAllMatchingItemsSelected &&
+                shouldSelectGroupUnderOwnKey(getSearchGroupCount(row) ?? lookups.getGroupCount(row.keyForList), row.transactions ?? [], lookups.isExpenseReportType, selectable.length)
+            ) {
                 const [groupKey, groupInfo] = mapEmptyReportToSelectedEntry(row);
                 for (const child of row.transactions ?? []) {
                     if (child.keyForList) {
@@ -785,6 +811,8 @@ export {
     isRowChecked,
     getSearchGroupCount,
     getSearchGroupCountByKey,
+    getLoadedSelectableCount,
+    resolveSearchGroupCount,
     isGroupCoveredBySelectedRows,
     isGroupFullyLoaded,
     shouldSelectGroupUnderOwnKey,
