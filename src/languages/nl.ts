@@ -5445,8 +5445,8 @@ ${amount} voor ${merchant} - ${date}`,
             adminRoles: 'Beheerrollen',
             otherRoles: 'Andere rollen',
             roleSelectorDescription: `Wijs een rol toe om de werkruimte­rechten van een lid te beheren. <a href="${CONST.HELP_DOC_LINKS.WORKSPACE_ROLES_AND_PERMISSIONS}">Werkruimterollen vergelijken</a>.`,
-            roleSelectorFeedback:
-                '<muted-text-label><centered-text>Zie je de rol die je nodig hebt niet? <concierge-link>Laat het ons weten</concierge-link>.</centered-text></muted-text-label>',
+            roleSelectorFeedback: 'Zie je de rol die je nodig hebt niet?',
+            roleSelectorFeedbackLink: 'Laat het ons weten',
         },
         createdForClient: {
             title: 'Je hebt een werkruimte voor je klant aangemaakt!',

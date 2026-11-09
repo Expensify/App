@@ -5397,7 +5397,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             adminRoles: '管理者ロール',
             otherRoles: 'その他の役割',
             roleSelectorDescription: `メンバーのワークスペース権限を管理するロールを割り当ててください。<a href="${CONST.HELP_DOC_LINKS.WORKSPACE_ROLES_AND_PERMISSIONS}">ワークスペースロールを比較</a>。`,
-            roleSelectorFeedback: '<muted-text-label><centered-text>必要なロールが見つかりませんか？<concierge-link>お知らせください</concierge-link>。</centered-text></muted-text-label>',
+            roleSelectorFeedback: '必要なロールが見つかりませんか？',
+            roleSelectorFeedbackLink: 'お知らせください',
         },
         createdForClient: {
             title: 'クライアントのワークスペースを作成しました！',

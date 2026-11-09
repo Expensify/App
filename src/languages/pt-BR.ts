@@ -5449,8 +5449,8 @@ ${amount} para ${merchant} - ${date}`,
             adminRoles: 'Funções de administrador',
             otherRoles: 'Outros cargos',
             roleSelectorDescription: `Atribua uma função para gerenciar as permissões de área de trabalho de um membro. <a href="${CONST.HELP_DOC_LINKS.WORKSPACE_ROLES_AND_PERMISSIONS}">Compare funções de área de trabalho</a>.`,
-            roleSelectorFeedback:
-                '<muted-text-label><centered-text>Não está vendo a função de que precisa? <concierge-link>Avise a gente</concierge-link>.</centered-text></muted-text-label>',
+            roleSelectorFeedback: 'Não está vendo a função que você precisa?',
+            roleSelectorFeedbackLink: 'Conte para a gente',
         },
         createdForClient: {
             title: 'Você criou um espaço de trabalho para seu cliente!',
