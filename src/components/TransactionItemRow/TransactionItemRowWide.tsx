@@ -1,5 +1,6 @@
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
+import {useSession} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import RadioButton from '@components/RadioButton';
 import {useSearchColumnStyles} from '@components/Search/SearchColumnWidthsContext';
@@ -27,7 +28,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {getVendorDisplayName, isTaxCodeCustomized} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
-import {getReimbursableTotal, isExpenseReport} from '@libs/ReportUtils';
+import {getReimbursableTotal, isCurrentUserSubmitter, isExpenseReport} from '@libs/ReportUtils';
 import {getViolationsForTransaction} from '@libs/SearchUIUtils';
 import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
@@ -175,6 +176,9 @@ function TransactionItemRowWide({
     const isAmountColumnWide = amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isTaxAmountColumnWide = taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const reportForCustomColumns = transactionItem.report ?? report;
+    const session = useSession();
+    const isOwnExpense = isExpenseUnreported(transactionItem) || isCurrentUserSubmitter(transactionItem.report ?? report, session?.accountID);
+    const categoryOwnerAccountID = isOwnExpense ? session?.accountID : undefined;
     const submitterUserID = reportForCustomColumns?.submitterUserID;
     const submitterPayrollID = reportForCustomColumns?.submitterPayrollID;
     const orderDealNumbers = reportForCustomColumns?.orderDealNumbers;
@@ -362,6 +366,7 @@ function TransactionItemRowWide({
                             canEdit={canEditCategory}
                             onSave={onEditCategory}
                             policyID={effectivePolicyID}
+                            ownerAccountID={categoryOwnerAccountID}
                         />
                     </View>
                 );
@@ -378,6 +383,7 @@ function TransactionItemRowWide({
                             onSave={onEditCategory}
                             policyID={effectivePolicyID}
                             policyCategories={policyCategories}
+                            ownerAccountID={categoryOwnerAccountID}
                         />
                     </View>
                 );

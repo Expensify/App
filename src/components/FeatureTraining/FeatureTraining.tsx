@@ -8,15 +8,7 @@ import type {FeatureTrainingProps} from './types';
 import {FeatureTrainingActionsContext, FeatureTrainingStateContext} from './context';
 import useScrollableWrapper from './hooks/useScrollableWrapper';
 
-function FeatureTraining({
-    onConfirm,
-    onClose,
-    onWillShowAgainChange,
-    shouldUseScrollView = false,
-    width = variables.featureTrainingModalWidth,
-    confirmSentryLabel,
-    children,
-}: FeatureTrainingProps) {
+function FeatureTraining({onConfirm, onClose, onWillShowAgainChange, shouldUseScrollView = false, width = variables.featureTrainingModalWidth, children}: FeatureTrainingProps) {
     const [willShowAgain, setWillShowAgain] = useState(true);
     const {Wrapper, wrapperProps} = useScrollableWrapper({shouldUseScrollView, width});
 
@@ -36,7 +28,6 @@ function FeatureTraining({
         willShowAgain,
         shouldShowLoadingImmediatelyOnPress: undefined,
         isCarousel: false,
-        confirmSentryLabel,
         currentPage: undefined,
         pageCount: undefined,
         isLastPage: undefined,
