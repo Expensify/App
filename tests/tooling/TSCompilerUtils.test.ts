@@ -3,6 +3,7 @@ import {afterEach, beforeEach, describe, expect, it} from 'bun:test';
 import type {RetainedSourceFile} from 'typescript/async';
 
 import {Str} from 'expensify-common';
+import {runInNewContext} from 'node:vm';
 import * as ts from 'typescript/ast';
 import * as factory from 'typescript/ast/factory';
 import {API} from 'typescript/async';
@@ -1020,6 +1021,33 @@ describe('TSCompilerUtils', () => {
         expect(output).toContain('renamed: { value: "Translated"');
         expect(output).not.toContain('remove');
         expect(visitedPaths).not.toContain('remove.value');
+    });
+
+    it('preserves evaluated raw and cooked values for arbitrary template tags after round trips', async () => {
+        // Given escaped tagged templates, tags can observe spelling that differs from the cooked string value.
+        const code = Str.dedent(`
+            (() => {
+                const capture = (strings, ...values) => ({raw: [...strings.raw], cooked: [...strings], values});
+                return [
+                    String.raw\`a\\nb\`,
+                    capture\`a\\tb /* literal */\`,
+                    capture\`before\\n\${'value'}after\\t\`,
+                    capture\`outer\${capture\`nested\\n\`}end\\t\`,
+                ];
+            })()
+        `);
+        const expected: unknown = runInNewContext(code);
+        const sourceFile = await createSourceFile(code);
+
+        // When an incremental patch is parsed, its detached clone must keep raw spelling after the lease is disposed.
+        const clone = await TSCompilerUtils.parseCodeStringToAST(code, api);
+        for (const node of [sourceFile, clone]) {
+            const printed = await TSCompilerUtils.printWithoutComments(api, node);
+            const actual: unknown = runInNewContext(printed);
+
+            // Then both untouched source and detached patches pass exactly the same raw, cooked and substitution values to tags.
+            expect(actual).toEqual(expected);
+        }
     });
 
     describe('objectHas', () => {

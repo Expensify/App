@@ -3,6 +3,21 @@ import type {API} from 'typescript/async';
 import * as ts from 'typescript/ast';
 import * as factory from 'typescript/ast/factory';
 import * as is from 'typescript/ast/is';
+import {isRemoteNode} from 'typescript/async';
+
+const taggedTemplateRawText = new WeakMap<ts.NoSubstitutionTemplateLiteral, string>();
+
+function getTaggedTemplatesWithoutSubstitutions(node: ts.Node): ts.NoSubstitutionTemplateLiteral[] {
+    const templates: ts.NoSubstitutionTemplateLiteral[] = [];
+    const visit = (child: ts.Node): void => {
+        if (ts.isTaggedTemplateExpression(child) && ts.isNoSubstitutionTemplateLiteral(child.template)) {
+            templates.push(child.template);
+        }
+        child.forEachChild(visit);
+    };
+    visit(node);
+    return templates;
+}
 
 /**
  * Actions that can be taken when visiting a node in a transformer.
@@ -290,8 +305,17 @@ async function parseCodeStringToAST(codeString: string, api: API): Promise<ts.Ex
             if (!declaration?.initializer) {
                 throw new Error(`No initializer found in code string: ${codeString}`);
             }
-            // A synthesized clone remains printable after the remote source file lease is released.
-            return ts.getSynthesizedDeepClone(declaration.initializer);
+            // Synthesized clones lose source spelling, which arbitrary template tags can observe through strings.raw.
+            const clone = ts.getSynthesizedDeepClone(declaration.initializer);
+            const originalTemplates = getTaggedTemplatesWithoutSubstitutions(declaration.initializer);
+            const clonedTemplates = getTaggedTemplatesWithoutSubstitutions(clone);
+            for (const [index, template] of originalTemplates.entries()) {
+                const clonedTemplate = clonedTemplates.at(index);
+                if (clonedTemplate) {
+                    taggedTemplateRawText.set(clonedTemplate, template.getText());
+                }
+            }
+            return clone;
         } finally {
             await lease.dispose();
         }
@@ -516,6 +540,8 @@ function isStringConcatenationChain(node: ts.BinaryExpression): boolean {
  * Inspect parsed token trivia so comment markers inside strings, templates and regular expressions remain intact.
  */
 async function printWithoutComments(api: API, node: ts.Node): Promise<string> {
+    // The beta printer cooks tagged templates without substitutions, changing the raw strings passed to their tags.
+    const rawTemplates = getTaggedTemplatesWithoutSubstitutions(node).map((template) => (isRemoteNode(template) ? template.getText() : taggedTemplateRawText.get(template)));
     const code = await api.printer.printNode(node, {preserveSourceNewlines: false});
     const lease = await api.createSourceFile('printed.ts', code);
     try {
@@ -532,9 +558,20 @@ async function printWithoutComments(api: API, node: ts.Node): Promise<string> {
             }
         };
         collectComments(lease.sourceFile);
+        const replacements = [...ranges].map(([start, end]) => ({start, end, text: code.slice(start, end).replaceAll(/[^\r\n]/g, ' ')}));
+        const printedTemplates = getTaggedTemplatesWithoutSubstitutions(lease.sourceFile);
+        if (printedTemplates.length !== rawTemplates.length) {
+            throw new Error('Could not preserve tagged template raw text after printing');
+        }
+        for (const [index, template] of printedTemplates.entries()) {
+            const rawText = rawTemplates.at(index);
+            if (rawText !== undefined) {
+                replacements.push({start: template.getStart(), end: template.end, text: rawText});
+            }
+        }
         let result = code;
-        for (const [start, end] of [...ranges].sort(([left], [right]) => right - left)) {
-            result = result.slice(0, start) + result.slice(start, end).replaceAll(/[^\r\n]/g, ' ') + result.slice(end);
+        for (const {start, end, text} of replacements.sort((left, right) => right.start - left.start)) {
+            result = result.slice(0, start) + text + result.slice(end);
         }
         return result;
     } finally {
