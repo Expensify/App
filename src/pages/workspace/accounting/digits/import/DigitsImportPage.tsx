@@ -55,6 +55,7 @@ function DigitsImportPage({policy}: WithPolicyConnectionsProps) {
                 title={translate('workspace.accounting.accounts')}
                 subtitle={translate('workspace.digits.accountTypesDescription')}
                 switchAccessibilityLabel={translate('workspace.accounting.accounts')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.DIGITS.ACCOUNTS_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive
@@ -65,6 +66,7 @@ function DigitsImportPage({policy}: WithPolicyConnectionsProps) {
                 title={translate('workspace.digits.enableNewAccountsTitle')}
                 subtitle={translate('workspace.digits.enableNewAccountsDescription')}
                 switchAccessibilityLabel={translate('workspace.digits.enableNewAccountsTitle')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.DIGITS.ENABLE_NEW_ACCOUNTS_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive={enableNewCategories}
@@ -81,6 +83,7 @@ function DigitsImportPage({policy}: WithPolicyConnectionsProps) {
             <ToggleSettingOptionRow
                 title={translate('workspace.digits.departments')}
                 switchAccessibilityLabel={translate('workspace.digits.departments')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.DIGITS.DEPARTMENTS_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive={areDepartmentsImported}

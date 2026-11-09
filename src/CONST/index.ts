@@ -11501,6 +11501,11 @@ const CONST = {
                     DIMENSION_SWITCH: 'WorkspaceAccountingCampfire-DimensionSwitch',
                     TAX_RATES_SWITCH: 'WorkspaceAccountingCampfire-TaxRatesSwitch',
                 },
+                DIGITS: {
+                    ACCOUNTS_SWITCH: 'WorkspaceAccountingDigits-AccountsSwitch',
+                    ENABLE_NEW_ACCOUNTS_SWITCH: 'WorkspaceAccountingDigits-EnableNewAccountsSwitch',
+                    DEPARTMENTS_SWITCH: 'WorkspaceAccountingDigits-DepartmentsSwitch',
+                },
                 CERTINIA: {
                     AUTO_SYNC_SWITCH: 'WorkspaceAccountingCertinia-AutoSyncSwitch',
                     TAX_NON_BILLABLE_SWITCH: 'WorkspaceAccountingCertinia-TaxNonBillableSwitch',
