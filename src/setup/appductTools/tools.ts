@@ -106,7 +106,8 @@ const getState: AppductTool = {
 const signIn: AppductTool = {
     name: 'sign_in',
     description:
-        'Sign in with a test account email through the same actions the sign-in form performs (BeginSignIn, then SignUpUser for a new account). ' +
+        'Sign up and sign in a brand-new test account through the same actions the sign-in form performs (BeginSignIn, then SignUpUser). ' +
+        'Only works for an email with no account yet: an existing account needs the emailed magic code, which this tool cannot read, so it returns ok:false. ' +
         'Guarantees a non-anonymous session whose login is the given email, checked before returning. Returns ok:false with a reason instead of throwing.',
     inputSchema: stringInputSchema('email'),
     outputSchema: OUTPUT_SCHEMA,
@@ -137,7 +138,9 @@ const signIn: AppductTool = {
         // seeded at boot and sign an existing account up.
         await markSignInAttemptLoading();
         beginSignIn(email);
-        await until(() => state.account?.isLoading === false);
+        if (!(await until(() => state.account?.isLoading === false))) {
+            return fail(`BeginSignIn got no response within ${SIGN_IN_BUDGET_MS}ms`);
+        }
 
         if (!isSignedIn()) {
             if (state.account?.accountExists) {

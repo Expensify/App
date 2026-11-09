@@ -193,6 +193,20 @@ describe('sign_in', () => {
         expect(result?.reason).toContain(reason);
         expect(signUpUser).toHaveBeenCalledTimes(signUps);
     });
+
+    it('fails without signing up when BeginSignIn never responds', async () => {
+        // Given a BeginSignIn whose response never arrives, so the attempt's loading flag stays true
+        await Onyx.merge(ONYXKEYS.SESSION, ANONYMOUS_SESSION);
+        jest.mocked(beginSignIn).mockImplementation(() => {});
+
+        // When the tool runs out of its sign-in budget
+        const result = await call('sign_in', {email: 'x@gmail.com'});
+
+        // Then it reports the missing response instead of racing a sign-up against the pending attempt
+        expect(result?.ok).toBe(false);
+        expect(result?.reason).toContain('BeginSignIn got no response');
+        expect(signUpUser).not.toHaveBeenCalled();
+    });
 });
 
 describe('complete_onboarding', () => {
