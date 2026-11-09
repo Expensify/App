@@ -30,7 +30,7 @@ function useDraftMessageVideoAttributeCache({
     isEditInProgressRef,
 }: UseDraftMessageVideoAttributeCacheProps): DraftMessageVideoAttributeCache {
     const prevDraftMessage = usePrevious(draftMessage);
-    // Only the names the edited message mentions are needed, and only while editing, so the subscriptions stay scoped to them
+    // Only the names the edited message mentions are needed, and only while editing
     const editingReportActionHtml = isEditing ? getReportActionHtml(editingReportAction) : undefined;
     const accountIDToName = useMentionedAccountIDToNameMap(editingReportActionHtml);
     const reportIDToName = useMentionedReportIDToNameMap(editingReportActionHtml);

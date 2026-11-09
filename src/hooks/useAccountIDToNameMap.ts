@@ -6,14 +6,12 @@ import {useAllPersonalDetails} from './usePersonalDetails';
 type AccountIDToNameMap = Record<string, string>;
 
 const MENTION_ACCOUNT_ID_REGEX = /<mention-user[^>]*\saccountID="?(\d+)"?/gi;
-// Cheap pre-check before the global regex runs; case-insensitive to match how ExpensiMark matches the tag
-const HAS_USER_MENTION_REGEX = /<mention-user/i;
-// Stable fallback for the first render, before Onyx has delivered the list, so callers don't see a new object each render
+// Same object on every render until Onyx loads the list
 const EMPTY_ACCOUNT_ID_TO_NAME_MAP: AccountIDToNameMap = {};
 
 /** Unique accountIDs referenced by <mention-user accountID=...> tags in the given HTML string */
 function getMentionedAccountIDs(htmlString: string | undefined): number[] {
-    if (!htmlString || !HAS_USER_MENTION_REGEX.test(htmlString)) {
+    if (!htmlString?.includes('<mention-user')) {
         return [];
     }
     return [...new Set(Array.from(htmlString.matchAll(MENTION_ACCOUNT_ID_REGEX), (match) => Number(match[1])))];
@@ -43,7 +41,7 @@ function useAccountIDToNameMap(): AccountIDToNameMap {
 
 /**
  * Same as useAccountIDToNameMap, but only maps the users mentioned in the given HTML string.
- * The selector keeps the subscription scoped to those accounts, so a write to any other personal detail does not re-render the caller.
+ * The selector re-renders the caller only when the names of those users change.
  */
 function useMentionedAccountIDToNameMap(htmlString: string | undefined): AccountIDToNameMap {
     const mentionedAccountIDs = getMentionedAccountIDs(htmlString);

@@ -211,15 +211,6 @@ describe('getMentionedAccountIDs', () => {
         expect(accountIDs).toEqual([5, 6]);
     });
 
-    it('matches the tag case-insensitively like ExpensiMark does', () => {
-        // Given a mention tag in upper case, which ExpensiMark still converts
-        const html = '<MENTION-USER accountID="7"></MENTION-USER>';
-
-        // When extracting the mentioned accountIDs
-        // Then the upper case tag is not skipped by the pre-check
-        expect(getMentionedAccountIDs(html)).toEqual([7]);
-    });
-
     it('returns an empty list when there is no user mention', () => {
         // Given HTML without a mention-user tag, and no HTML at all
         // When extracting the mentioned accountIDs

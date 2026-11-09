@@ -287,7 +287,7 @@ function ComposerWithSuggestions({
 
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
-    // The last message is what ArrowUp opens for editing, so only the users it mentions need to be subscribed to
+    // ArrowUp edits the last message, so only the users it mentions are needed
     const lastReportActionMessage = Array.isArray(lastReportAction?.message) ? (lastReportAction?.message?.at(-1) ?? null) : (lastReportAction?.message ?? null);
     const lastReportActionHtml = lastReportActionMessage?.html ?? '';
     const accountIDToName = useMentionedAccountIDToNameMap(lastReportActionHtml);

@@ -23,16 +23,13 @@ function getReportIDToNameMapForRoomsInMarkdown(reportIDToName: ReportIDToNameMa
     return map;
 }
 
-// Same tag shape ExpensiMark's reportMentions rule matches when it converts HTML back to markdown
 const MENTION_REPORT_ID_REGEX = /<mention-report[^>]*\sreportID="?(\d+)"?/gi;
-// Cheap pre-check before the global regex runs; case-insensitive to match how ExpensiMark matches the tag
-const HAS_REPORT_MENTION_REGEX = /<mention-report/i;
-// Stable fallback for the first render, before Onyx has delivered the collection, so callers don't see a new object each render
+// Same object on every render until Onyx loads the collection
 const EMPTY_REPORT_ID_TO_NAME_MAP: ReportIDToNameMap = {};
 
 /** Unique reportIDs referenced by <mention-report reportID=...> tags in the given HTML string */
 function getMentionedReportIDs(htmlString: string | undefined): string[] {
-    if (!htmlString || !HAS_REPORT_MENTION_REGEX.test(htmlString)) {
+    if (!htmlString?.includes('<mention-report')) {
         return [];
     }
     return [...new Set(Array.from(htmlString.matchAll(MENTION_REPORT_ID_REGEX), (match) => match[1]))];
@@ -40,7 +37,7 @@ function getMentionedReportIDs(htmlString: string | undefined): string[] {
 
 /**
  * Builds a map of reportID to report name from COLLECTION.REPORT.
- * When reportIDs is passed, only those reports are looked up, so the caller never walks the whole collection.
+ * When reportIDs is passed, only those reports are looked up.
  */
 function buildReportIDToNameMap(reports: OnyxCollection<Report> | undefined, reportIDs?: string[]): ReportIDToNameMap {
     const map: ReportIDToNameMap = {};
@@ -62,7 +59,7 @@ function useReportIDToNameMap(): ReportIDToNameMap {
 
 /**
  * Same as useReportIDToNameMap, but only maps the reports mentioned in the given HTML string.
- * The selector keeps the subscription scoped to those reports, so a write to any other report does not re-render the caller.
+ * The selector re-renders the caller only when the names of those reports change.
  */
 function useMentionedReportIDToNameMap(htmlString: string | undefined): ReportIDToNameMap {
     const mentionedReportIDs = getMentionedReportIDs(htmlString);

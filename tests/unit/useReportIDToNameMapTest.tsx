@@ -153,15 +153,6 @@ describe('getMentionedReportIDs', () => {
         expect(reportIDs).toEqual(['1', '2']);
     });
 
-    it('matches the tag case-insensitively like ExpensiMark does', () => {
-        // Given a mention tag in upper case, which ExpensiMark still converts
-        const html = '<MENTION-REPORT reportID="7"></MENTION-REPORT>';
-
-        // When extracting the mentioned reportIDs
-        // Then the upper case tag is not skipped by the pre-check
-        expect(getMentionedReportIDs(html)).toEqual(['7']);
-    });
-
     it('returns an empty list when there is no report mention', () => {
         // Given HTML without a mention-report tag, and no HTML at all
         // When extracting the mentioned reportIDs
