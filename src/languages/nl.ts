@@ -1249,6 +1249,8 @@ const translations: TranslationDeepObject<typeof en> = {
         violationsByApprover: 'Overtredingen door fiatteur',
         viewDetails: 'Bekijk details',
         viewAll: 'Alles bekijken',
+        topExpenses: 'Belangrijkste uitgaven',
+        noExpensesInRange: 'Geen uitgaven in dit bereik',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',

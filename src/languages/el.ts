@@ -1297,6 +1297,8 @@ const translations: TranslationDeepObject<typeof en> = {
         violationsByApprover: 'Παραβάσεις από εγκρίνοντα',
         viewDetails: 'Προβολή λεπτομερειών',
         viewAll: 'Προβολή όλων',
+        topExpenses: 'Κορυφαίες δαπάνες',
+        noExpensesInRange: 'Δεν υπάρχουν δαπάνες σε αυτό το εύρος',
     },
     allSettingsScreen: {
         subscription: 'Συνδρομή',

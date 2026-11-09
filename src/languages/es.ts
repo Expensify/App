@@ -1245,6 +1245,8 @@ const translations: TranslationDeepObject<typeof en> = {
         violationsByApprover: 'Infracciones por aprobador',
         viewDetails: 'Ver detalles',
         viewAll: 'Ver todo',
+        topExpenses: 'Gastos principales',
+        noExpensesInRange: 'No hay gastos en este intervalo',
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',

@@ -1238,6 +1238,8 @@ const translations: TranslationDeepObject<typeof en> = {
         violationsByApprover: '承認者による違反',
         viewDetails: '詳細を表示',
         viewAll: 'すべて表示',
+        topExpenses: '上位の経費',
+        noExpensesInRange: 'この範囲内に経費はありません',
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
