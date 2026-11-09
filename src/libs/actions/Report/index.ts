@@ -8456,6 +8456,7 @@ function buildOptimisticChangePolicyData({
     reportTransactions,
     rules,
     delegateAccountID,
+    personalDetailsByLogins,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -8474,6 +8475,7 @@ function buildOptimisticChangePolicyData({
     reportTransactions: Transaction[];
     rules: OnyxCollection<Rule>;
     delegateAccountID: number | undefined;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 }) {
     const optimisticData: Array<
         OnyxUpdate<
@@ -8529,7 +8531,7 @@ function buildOptimisticChangePolicyData({
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                managerID: getNextApproverAccountID(report, rules, true),
+                managerID: getNextApproverAccountID(report, rules, true, undefined, personalDetailsByLogins),
             },
         });
 
@@ -8580,6 +8582,7 @@ function buildOptimisticChangePolicyData({
             bypassNextApproverID: shouldResetApprovalChain ? newManagerAccountID : undefined,
             isTrackIntentUser,
             rules,
+            personalDetailsByLogins,
         });
 
         optimisticData.push({
@@ -8966,6 +8969,7 @@ function changeReportPolicy({
     reportTransactions,
     rules,
     delegateAccountID,
+    personalDetailsByLogins,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -8984,6 +8988,7 @@ function changeReportPolicy({
     reportTransactions: Transaction[];
     rules: OnyxCollection<Rule>;
     delegateAccountID: number | undefined;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 }) {
     if (!report || !policy || report.policyID === policy.id || !isExpenseReport(report) || shouldBlockChangeReportPolicyForMapOrGPSRequirement(reportTransactions, policy)) {
         return;
@@ -9006,6 +9011,7 @@ function changeReportPolicy({
         reportTransactions,
         rules,
         delegateAccountID,
+        personalDetailsByLogins,
     });
 
     const params = {
@@ -9129,6 +9135,7 @@ function changeReportPolicyAndInviteSubmitter({
         reportTransactions,
         rules,
         delegateAccountID,
+        personalDetailsByLogins,
     });
 
     const optimisticData = [...optimisticAddMembersData, ...optimisticChangePolicyData];

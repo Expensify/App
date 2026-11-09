@@ -1930,13 +1930,18 @@ describe('actions/IOU/Hold', () => {
                 transactionID: heldTransaction.transactionID,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
-            await Onyx.multiSet({
+            const reportCollection: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport,
+            };
+            const transactionCollection: TransactionCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${heldTransaction.transactionID}`]: heldTransaction,
+            };
+            const actionCollection: ReportActionsCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: {
                     [heldIouAction.reportActionID]: heldIouAction,
                 },
-            });
+            };
+            await Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection});
             await waitForBatchedUpdates();
 
             // When the held expenses are moved onto their own report without a chat report
