@@ -8,6 +8,7 @@ import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {signOutAndRedirectToSignIn} from '@libs/actions/Session';
+import {getIsSearchTabHovered, setIsSearchTabHovered} from '@libs/Navigation/helpers/searchTabPreloadStore';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
@@ -75,6 +76,7 @@ describe('FlatNavigationBar', () => {
         jest.clearAllMocks();
         mockInboxIndicator = NO_INDICATOR;
         mockWorkspacesIndicator = NO_INDICATOR;
+        setIsSearchTabHovered(false);
         await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
         await Onyx.set(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID, email: 'user@example.com'});
     });
@@ -120,6 +122,35 @@ describe('FlatNavigationBar', () => {
         // Then exactly the row for that tab is selected, so a row wired to another tab shows up here
         expect(selectedRows).toHaveLength(1);
         expect(getRow(rowName)).toBeSelected();
+    });
+
+    it('reports the pointer resting on the Spend row', async () => {
+        // Given the bar on the Home tab
+        renderBar(NAVIGATION_TABS.HOME);
+        await waitForBatchedUpdatesWithAct();
+
+        // When the pointer moves onto the Spend row
+        fireEvent(getRow('Spend'), 'hoverIn');
+
+        // Then the preloaded Spend tab hears about it, so it can catch up on skipped updates before the click, as with the icon bar
+        expect(getIsSearchTabHovered()).toBe(true);
+
+        // And when the pointer leaves, it can freeze again
+        fireEvent(getRow('Spend'), 'hoverOut');
+        expect(getIsSearchTabHovered()).toBe(false);
+    });
+
+    it('drops the Spend hover when the bar goes away while hovered', async () => {
+        // Given the pointer rests on the Spend row
+        const {unmount} = renderBar(NAVIGATION_TABS.HOME);
+        await waitForBatchedUpdatesWithAct();
+        fireEvent(getRow('Spend'), 'hoverIn');
+
+        // When the bar unmounts with no hover out, e.g. on a switch to the narrow layout
+        unmount();
+
+        // Then the preloaded Spend tab is no longer kept unfrozen by a pointer that is not there
+        expect(getIsSearchTabHovered()).toBe(false);
     });
 
     it('leaves pressing the current row as a no-op', async () => {
