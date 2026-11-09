@@ -56,7 +56,7 @@ function DateOfBirthStepImpl({
     isEditing,
     footerComponent,
     shouldShowPatriotActLink = false,
-    forwardedFSClass,
+    forwardedFSClass = CONST.FULLSTORY.CLASS.MASK,
 }: DateOfBirthStepPropsWidened) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();

@@ -21,6 +21,8 @@ import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
 import type {ASTNode, SearchColumnType, SearchDatePreset, SearchFilterKey, SearchQueryJSON, SelectedReports, SelectedTransactionInfo, SortOrder} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 
+import type interceptAnonymousUser from '@libs/interceptAnonymousUser';
+
 import Navigation from '@navigation/Navigation';
 
 import type * as ReportUserActions from '@userActions/Report';
@@ -10213,6 +10215,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             })
                 .map((section) => section.menuItems)
                 .flat();
@@ -10303,6 +10306,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const todoSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => TODO_SEARCH_KEYS.has(item.key)));
@@ -10336,12 +10340,50 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const submitItem = sections.flatMap((section) => section.menuItems).find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT);
 
             expect(submitItem).toBeDefined();
             expect(submitItem?.emptyState?.buttons).toEqual([]);
+        });
+
+        it('passes the session to interceptAnonymousUser from the Submit empty state create expense button', () => {
+            // Given a CTA-eligible group workspace and an anonymous session, which decides whether the button sends the user to sign in
+            const interceptAnonymousUserSpy = jest.spyOn(require<{default: typeof interceptAnonymousUser}>('@libs/interceptAnonymousUser'), 'default').mockImplementation(() => {});
+            const session = {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS};
+            const sections = SearchUIUtils.createTypeMenuSections({
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: {
+                    policy1: createMock<OnyxTypes.Policy>({
+                        id: 'policy1',
+                        name: 'Test Policy',
+                        owner: adminEmail,
+                        outputCurrency: 'USD',
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        type: CONST.POLICY.TYPE.TEAM,
+                    }),
+                },
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                draftTransactionIDs: [],
+                isTrackIntentUser: false,
+                session,
+            });
+            const submitItem = sections.flatMap((section) => section.menuItems).find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT);
+
+            // When the create expense button in the Submit empty state is pressed
+            submitItem?.emptyState?.buttons?.at(0)?.buttonAction();
+
+            // Then the passed session is forwarded to interceptAnonymousUser
+            expect(interceptAnonymousUserSpy).toHaveBeenCalledWith(expect.any(Function), session);
+
+            interceptAnonymousUserSpy.mockRestore();
         });
 
         it('should hide submit, approve, pay, export, and top spenders for track intent users without workflows enabled', () => {
@@ -10412,6 +10454,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: true,
+                session: undefined,
             });
 
             const allMenuItemKeys = sections.flatMap((section) => section.menuItems.map((item) => item.key));
@@ -10490,6 +10533,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: true,
+                session: undefined,
             });
 
             const allMenuItemKeys = sections.flatMap((section) => section.menuItems.map((item) => item.key));
@@ -10546,6 +10590,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const monthlyAccrualSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.MONTHLY_ACCRUAL_SEARCH_KEYS.has(item.key)));
@@ -10590,6 +10635,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -10610,6 +10656,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -10637,6 +10684,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -10664,6 +10712,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -10694,6 +10743,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const todoSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => TODO_SEARCH_KEYS.has(item.key)));
@@ -10738,6 +10788,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const allMenuItemKeys = sections.flatMap((section) => section.menuItems.map((item) => item.key));
@@ -10793,6 +10844,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const menuKeysBeforeInsightsPage = sections.flatMap((section) => section.menuItems.map((item) => item.key));
@@ -10842,6 +10894,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const allMenuItemKeys = sections.flatMap((section) => section.menuItems.map((item) => item.key));
@@ -10875,6 +10928,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const monthlyAccrualSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.MONTHLY_ACCRUAL_SEARCH_KEYS.has(item.key)));
@@ -10917,6 +10971,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const reconciliationSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.RECONCILIATION_SEARCH_KEYS.has(item.key)));
@@ -10952,6 +11007,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
             const reconciliationSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.RECONCILIATION_SEARCH_KEYS.has(item.key)));
             expect(reconciliationSectionMenuItems.length).toBeGreaterThan(0);
@@ -11007,6 +11063,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const reconciliationItem = sections.flatMap((section) => section.menuItems).find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
@@ -11049,6 +11106,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const reconciliationItem = sections.flatMap((section) => section.menuItems).find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
@@ -11106,6 +11164,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
             const reconciliationItem = sections.flatMap((section) => section.menuItems).find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
 
@@ -11190,6 +11249,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
             const reconciliationItem = sections.flatMap((section) => section.menuItems).find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
 
@@ -11370,6 +11430,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const expenseReportsSection = sections.find((section) => section.translationPath === 'search.tabs.expenseReports');
@@ -11449,6 +11510,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const accountingSection = sections.find((section) => section.translationPath === 'search.tabs.accounting');
@@ -11531,6 +11593,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const allMenuItems = sections.flatMap((section) => section.menuItems);
@@ -11554,6 +11617,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             })
                 .map((section) => section.menuItems)
                 .flat();
@@ -11633,6 +11697,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
             const todoSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => TODO_SEARCH_KEYS.has(item.key)));
 
@@ -11666,6 +11731,7 @@ describe('SearchUIUtils', () => {
                     defaultExpensifyCard: undefined,
                     draftTransactionIDs: [],
                     isTrackIntentUser: false,
+                    session: undefined,
                 });
 
             it('should show the Travel section with Trips when a workspace is set up for Expensify Travel', () => {
