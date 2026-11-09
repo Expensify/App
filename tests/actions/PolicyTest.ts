@@ -26,8 +26,8 @@ import type {
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
-import type {Participant, ReportNextStep} from '@src/types/onyx/Report';
 import type {Rate} from '@src/types/onyx/Policy';
+import type {Participant, ReportNextStep} from '@src/types/onyx/Report';
 import type Rule from '@src/types/onyx/Rule';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -6327,67 +6327,75 @@ describe('actions/Policy', () => {
                 expectSettingsUnchanged(updatedPolicy, policy);
             });
 
-            it.each(['auto-update off', 'non-GBP', 'other tax off', 'already eligible', 'disabling', 'no references', 'empty references', 'wrong currency', 'wrong country', 'missing custom unit'])(
-                'does not copy rates for %s',
-                async (scenario) => {
-                    // Given a toggle that cannot make the workspace newly eligible with matching cached GB references
-                    const policy = buildPolicy();
-                    let rates: GovernmentMileageRate[] | undefined = referenceRates;
-                    if (scenario === 'auto-update off') {
-                        policy.shouldAutoUpdateGovernmentDistanceRates = false;
-                    } else if (scenario === 'non-GBP') {
-                        policy.outputCurrency = CONST.CURRENCY.USD;
-                    } else if (scenario === 'other tax off') {
-                        if (toggle === 'workspace') {
-                            delete policy.customUnits?.[customUnitID]?.attributes?.taxEnabled;
-                        } else {
-                            policy.tax = {trackingEnabled: false};
-                        }
-                    } else if (scenario === 'already eligible' || scenario === 'disabling') {
-                        policy.tax = {trackingEnabled: true};
-                        const customUnit = policy.customUnits?.[customUnitID];
-                        if (customUnit) {
-                            customUnit.attributes = {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, taxEnabled: true};
-                        }
-                    } else if (scenario === 'no references') {
-                        rates = undefined;
-                    } else if (scenario === 'empty references') {
-                        rates = [];
-                    } else if (scenario === 'wrong currency') {
-                        rates = [{...petrolRate, currency: CONST.CURRENCY.USD}];
-                    } else if (scenario === 'wrong country') {
-                        rates = [{...petrolRate, sourceRateID: 'US_2026-01-01'}];
-                    } else if (scenario === 'missing custom unit') {
-                        policy.customUnits = {};
-                    }
-                    await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-                    const apiWriteSpy = jest.spyOn(APIModule, 'write');
-                    mockFetch.pause();
-
-                    // When the tax setting is toggled
+            it.each([
+                'auto-update off',
+                'non-GBP',
+                'other tax off',
+                'already eligible',
+                'disabling',
+                'no references',
+                'empty references',
+                'wrong currency',
+                'wrong country',
+                'missing custom unit',
+            ])('does not copy rates for %s', async (scenario) => {
+                // Given a toggle that cannot make the workspace newly eligible with matching cached GB references
+                const policy = buildPolicy();
+                let rates: GovernmentMileageRate[] | undefined = referenceRates;
+                if (scenario === 'auto-update off') {
+                    policy.shouldAutoUpdateGovernmentDistanceRates = false;
+                } else if (scenario === 'non-GBP') {
+                    policy.outputCurrency = CONST.CURRENCY.USD;
+                } else if (scenario === 'other tax off') {
                     if (toggle === 'workspace') {
-                        Policy.enablePolicyTaxes(policy.id, scenario !== 'disabling', false, {policy, governmentMileageRates: rates});
+                        delete policy.customUnits?.[customUnitID]?.attributes?.taxEnabled;
                     } else {
-                        const attributes = policy.customUnits?.[customUnitID]?.attributes;
-                        Policy.enableDistanceRequestTax(
-                            policy,
-                            CONST.CUSTOM_UNITS.NAME_DISTANCE,
-                            customUnitID,
-                            {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, ...attributes, taxEnabled: scenario !== 'disabling'},
-                            attributes,
-                            rates,
-                        );
+                        policy.tax = {trackingEnabled: false};
                     }
-                    await waitForBatchedUpdates();
+                } else if (scenario === 'already eligible' || scenario === 'disabling') {
+                    policy.tax = {trackingEnabled: true};
+                    const customUnit = policy.customUnits?.[customUnitID];
+                    if (customUnit) {
+                        customUnit.attributes = {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, taxEnabled: true};
+                    }
+                } else if (scenario === 'no references') {
+                    rates = undefined;
+                } else if (scenario === 'empty references') {
+                    rates = [];
+                } else if (scenario === 'wrong currency') {
+                    rates = [{...petrolRate, currency: CONST.CURRENCY.USD}];
+                } else if (scenario === 'wrong country') {
+                    rates = [{...petrolRate, sourceRateID: 'US_2026-01-01'}];
+                } else if (scenario === 'missing custom unit') {
+                    policy.customUnits = {};
+                }
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                const apiWriteSpy = jest.spyOn(APIModule, 'write');
+                mockFetch.pause();
 
-                    // Then the request omits optimistic IDs and does not add government rates
-                    const params = requireRecord(requireCallArgument(apiWriteSpy.mock.calls.at(0), 1));
-                    expect(params.optimisticRateIDs).toBeUndefined();
-                    const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
-                    expect(getRates(updatedPolicy)).toEqual(scenario === 'missing custom unit' ? [] : [existingRate]);
-                    expectSettingsUnchanged(updatedPolicy, policy);
-                },
-            );
+                // When the tax setting is toggled
+                if (toggle === 'workspace') {
+                    Policy.enablePolicyTaxes(policy.id, scenario !== 'disabling', false, {policy, governmentMileageRates: rates});
+                } else {
+                    const attributes = policy.customUnits?.[customUnitID]?.attributes;
+                    Policy.enableDistanceRequestTax(
+                        policy,
+                        CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID,
+                        {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, ...attributes, taxEnabled: scenario !== 'disabling'},
+                        attributes,
+                        rates,
+                    );
+                }
+                await waitForBatchedUpdates();
+
+                // Then the request omits optimistic IDs and does not add government rates
+                const params = requireRecord(requireCallArgument(apiWriteSpy.mock.calls.at(0), 1));
+                expect(params.optimisticRateIDs).toBeUndefined();
+                const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+                expect(getRates(updatedPolicy)).toEqual(scenario === 'missing custom unit' ? [] : [existingRate]);
+                expectSettingsUnchanged(updatedPolicy, policy);
+            });
 
             it('preserves existing source IDs and omits the map when all bands are already copied', async () => {
                 // Given a policy already holding one fuel band

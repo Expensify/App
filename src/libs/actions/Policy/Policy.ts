@@ -5480,12 +5480,7 @@ type EnablePolicyTaxesOptions = {
     policyData?: PolicyData;
 };
 
-function enablePolicyTaxes(
-    policyID: string,
-    enabled: boolean,
-    isVendorMatchingBetaEnabled: boolean | undefined,
-    {policy, governmentMileageRates, policyData}: EnablePolicyTaxesOptions,
-) {
+function enablePolicyTaxes(policyID: string, enabled: boolean, isVendorMatchingBetaEnabled: boolean | undefined, {policy, governmentMileageRates, policyData}: EnablePolicyTaxesOptions) {
     const currentTaxRates = policy?.taxRates;
     const governmentRateData = buildGovernmentRatesOnTaxEnable(policy, policy ? {...policy, tax: {...policy.tax, trackingEnabled: enabled}} : undefined, governmentMileageRates);
     const defaultTaxRates: TaxRatesWithDefault = CONST.DEFAULT_TAX;
