@@ -79,6 +79,24 @@ describe('applyShiftRangeBatchToSelection', () => {
         expect(Object.keys(updated)).toEqual(['t1']);
     });
 
+    it('does not count a group as wholly selected once a range gives back its loaded row, though rows kept off the page make up the count', () => {
+        // Given a two-expense group with its loaded row selected and two rows kept off the page, one of them deleted elsewhere
+        const loaded = makeChild(1, 'c1');
+        const selection: SelectedTransactions = {
+            c1: {...buildEntry(loaded)[1], groupKey: 'groupA'},
+            c2: {...buildEntry(makeChild(2, 'c2'))[1], groupKey: 'groupA'},
+            c3: {...buildEntry(makeChild(3, 'c3'))[1], groupKey: 'groupA'},
+        };
+        const lookups = {...lookupsFor(new Map([['c1', 'groupA']]), new Map([['groupA', [loaded]]])), getGroupCount: () => 2};
+
+        // When a range gives back the loaded row
+        const updated = applyShiftRangeBatchToSelection(batchOf([], [loaded]), selection, false, lookups);
+
+        // Then the kept rows no longer stand for the whole group, so a bulk delete leaves the unchecked row on screen
+        expect(updated.c2?.isEntireGroupSelected).toBe(false);
+        expect(updated.c3?.isEntireGroupSelected).toBe(false);
+    });
+
     it('returns the map it was given when the batch writes nothing, so the commit bails on identity', () => {
         // Given a row already selected exactly as the range would write it
         const first = makeChild(1, 't1');
@@ -196,6 +214,30 @@ describe('applyShiftRangeBatchToSelection', () => {
         // Then both still claim the group, so an export keeps sending the group filter that reaches its unloaded rows
         expect(updated.c1?.isSelectedViaGroup).toBe(true);
         expect(updated.c2?.isSelectedViaGroup).toBe(true);
+    });
+
+    it('keeps the count a header check recorded on rows a range only re-covers', () => {
+        // Given a row selected through its group's header while the group held five expenses
+        const first = makeChild(1, 'c1');
+        const selection: SelectedTransactions = {...selectionOf(first)};
+        selection.c1 = {...selection.c1, groupKey: 'groupA', isSelectedViaGroup: true, claimedGroupCount: 5};
+
+        // When a range covers it again and gives nothing back
+        const updated = applyShiftRangeBatchToSelection(batchOf([first]), selection, false, lookupsFor(new Map([['c1', 'groupA']])));
+
+        // Then it keeps that count, so an expense that later raises the group's count still reads as new
+        expect(updated.c1?.claimedGroupCount).toBe(5);
+    });
+
+    it('returns the map it was given when a range re-covers a row with no count, so the commit bails on identity', () => {
+        // Given a row an earlier range selected through a report, which records no count
+        const first = makeChild(1, 'c1');
+        const selection: SelectedTransactions = {...selectionOf(first)};
+        selection.c1 = {...selection.c1, groupKey: 'groupA', isSelectedViaGroup: true, isEntireGroupSelected: false};
+
+        // When a range covers it again
+        // Then the same map comes back: an equal map would re-render every row in the list
+        expect(applyShiftRangeBatchToSelection(batchOf([first]), selection, false, lookupsFor(new Map([['c1', 'groupA']])))).toBe(selection);
     });
 
     it('drops the claim when the same batch re-covers one row of a group and gives another back', () => {

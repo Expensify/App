@@ -2,7 +2,6 @@
  * Builds the accounting listings for the Connections page and starts the accounting connect flows from them.
  * Must be rendered inside an AccountingContextProvider.
  */
-import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -12,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
-import {getConnectedIntegration, getIntegrationLastSuccessfulDate, shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/PolicyUtils';
+import {getConnectedIntegration, getIntegrationLastSuccessfulDate, shouldShowReimbursableExportDestinationAccountError} from '@libs/PolicyUtils';
 
 import {useAccountingActions, useAccountingState} from '@pages/workspace/accounting/AccountingContext';
 import {getAccountingIntegrationData, getSynchronizationErrorMessage, isIntuitEnterpriseSuiteConnection} from '@pages/workspace/accounting/utils';
@@ -37,7 +36,6 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
     const styles = useThemeStyles();
     const {translate, datetimeToRelative, getLocalDateFromDatetime} = useLocalize();
     const {isBetaEnabled} = usePermissions();
-    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const {startIntegrationFlow} = useAccountingActions();
     const {activeIntegration, popoverAnchorRefs} = useAccountingState();
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
@@ -99,8 +97,8 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
     };
 
     const getConnectedStatus = (name: ConnectionName, title: string | undefined): ConnectionStatus => {
-        const hasQBOExportError = name === CONST.POLICY.CONNECTIONS.NAME.QBO && shouldShowQBOReimbursableExportDestinationAccountError(policy);
-        if (hasQBOExportError || getSynchronizationErrorMessage(policy, name, isSyncInProgress, translate, styles)) {
+        const hasReimbursableExportDestinationAccountError = shouldShowReimbursableExportDestinationAccountError(policy);
+        if (hasReimbursableExportDestinationAccountError || getSynchronizationErrorMessage(policy, name, isSyncInProgress, translate, styles)) {
             return {isBroken: true, message: translate('workspace.connections.brokenConnection')};
         }
         // A new connection hasn't synced yet while its first sync runs, so the sync is checked first
@@ -133,7 +131,6 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
         const integrationData = getAccountingIntegrationData(name, policyID, translate, NO_REUSABLE_CONNECTIONS, {
             expensifyIcons: accountingIcons,
             isIntuitEnterpriseSuiteOverride: isIntuitEnterpriseSuite,
-            isUnifiedConnectionsBetaEnabled,
         });
         if (!integrationData) {
             return [];

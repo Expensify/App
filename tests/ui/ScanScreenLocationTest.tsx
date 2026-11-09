@@ -104,7 +104,7 @@ function getUserLocationFromOnyx(): Promise<OnyxEntry<UserLocation>> {
             key: ONYXKEYS.USER_LOCATION,
             callback: (val) => {
                 resolve(val);
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
             },
         });
     });
@@ -198,6 +198,23 @@ describe('scan screen location permission prompt', () => {
         // Then neither the prompt nor a location read happens, so the prompt window still protects the user
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
         expect(jest.mocked(getCurrentPosition)).not.toHaveBeenCalled();
+    });
+
+    it('clears a previously cached position when permission is denied inside the prompt window', async () => {
+        // Given a cached USER_LOCATION, denied location permission, and a prompt timestamp within the seven-day cool-down
+        mockLocationPermissionResult = 'denied';
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.USER_LOCATION, {latitude: 10, longitude: 20});
+            await Onyx.merge(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, new Date().toISOString());
+        });
+
+        // When the scan screen opens and snapshots the user location
+        await renderScanScreen();
+        await waitForBatchedUpdates();
+
+        // Then the stale position is wiped rather than reused, and no location read that permission would refuse is spent
+        expect(jest.mocked(getCurrentPosition)).not.toHaveBeenCalled();
+        expect(await getUserLocationFromOnyx()).toBeUndefined();
     });
 
     it('caches a position without prompting when permission was granted from the OS settings inside the prompt window', async () => {

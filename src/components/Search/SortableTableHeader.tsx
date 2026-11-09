@@ -102,10 +102,12 @@ function SortableTableHeader({
                         isYesNoColumn || isConversionAmountColumn ? styles.flexShrink1 : null,
                     ];
 
+                    const columnLabel = translationKey ? translate(translationKey) : '';
+
                     return (
                         <SortableHeaderText
                             key={columnName}
-                            text={translationKey ? translate(translationKey) : ''}
+                            text={columnLabel}
                             icon={icon}
                             textStyle={textStyle}
                             sortOrder={sortOrder ?? CONST.SEARCH.SORT_ORDER.ASC}
@@ -132,7 +134,10 @@ function SortableTableHeader({
                             isSortable={isSortable}
                             onPress={(order: SortOrder) => onSortPress(sortByColumnName, order)}
                         >
-                            <ColumnResizeHandle columnKey={columnName} />
+                            <ColumnResizeHandle
+                                columnKey={columnName}
+                                columnLabel={columnLabel}
+                            />
                         </SortableHeaderText>
                     );
                 })}

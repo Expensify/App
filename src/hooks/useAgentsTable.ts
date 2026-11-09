@@ -105,7 +105,7 @@ function useAgentsTable() {
                 canManage: true,
                 action: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT.getRoute(accountID))),
                 onChatPress: () => chatWithAgent(accountID),
-                // The agent can't use its own Agents page, so copiloting from here starts over from Home
+                // Agents can't open their Agents pages, so land on Home instead of the default Settings tab
                 onCopilotPress: () => switchToDelegator(details.login ?? '', ROUTES.HOME),
                 dismissError: () => handleErrorClose(pendingAction, accountID),
             },

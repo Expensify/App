@@ -195,7 +195,7 @@ function DynamicConfirmationPage() {
                             >
                                 {translate('violations.confirmDetails')}
                             </Text>
-                            <Text>{translate('violations.confirmDuplicatesInfo')}</Text>
+                            <Text>{translate(isReportOwner ? 'violations.confirmDuplicatesRemovedInfo' : 'violations.confirmDuplicatesInfo')}</Text>
                         </View>
                         {/* We need that provider here because MoneyRequestView component requires that */}
                         <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>

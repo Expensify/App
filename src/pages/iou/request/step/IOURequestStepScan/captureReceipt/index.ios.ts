@@ -20,6 +20,9 @@ const captureReceipt: CaptureReceipt = (camera, photoOutput, {flash, hasFlash, i
         {
             flashMode: isUsingFlash ? 'on' : 'off',
             enableShutterSound: isSnapshotReplacement ? false : !isPlatformMuted,
+            // VisionCamera leaves AVFoundation's default on, which can merge frames from several lenses of the
+            // virtual camera into one photo. That costs capture time a flat receipt gains nothing from.
+            enableVirtualDeviceFusion: false,
         },
         filePath,
         {onWillCapturePhoto},

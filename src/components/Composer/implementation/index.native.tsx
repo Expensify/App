@@ -9,6 +9,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getDeviceOrientationAwareImageSize from '@libs/cropOrRotateImage/getDeviceOrientationAwareImageSize';
 import {containsOnlyEmojis} from '@libs/EmojiUtils';
 import {getExtensionFromMimeType, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import getLandscapeTextInputRefProxy from '@libs/getLandscapeTextInputRefProxy';
@@ -24,6 +25,7 @@ import type {NativeSyntheticEvent, TextInputChangeEvent} from 'react-native';
 
 import React, {useEffect, useRef} from 'react';
 import {StyleSheet} from 'react-native';
+import ImageSize from 'react-native-image-size';
 
 type TextInputPasteEvent = NativeSyntheticEvent<{
     items: Array<{
@@ -31,6 +33,22 @@ type TextInputPasteEvent = NativeSyntheticEvent<{
         data: string;
     }>;
 }>;
+
+/**
+ * Adds the image's dimensions to a pasted file, like the attachment picker does for picked images, so the chat message
+ * can reserve the image's size up front instead of resizing it once the image loads.
+ */
+function addImageDimensions(file: FileObject): Promise<FileObject> {
+    if (!file.uri || !file.type?.startsWith('image/')) {
+        return Promise.resolve(file);
+    }
+    return ImageSize.getSize(file.uri)
+        .then((imageSize) => {
+            const {imageWidth, imageHeight} = getDeviceOrientationAwareImageSize({imageSize});
+            return {...file, width: imageWidth, height: imageHeight};
+        })
+        .catch(() => file);
+}
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
 const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];
@@ -117,6 +135,8 @@ function Composer({
         let file: FileObject = {uri: fileURI, name: fileName, type: mimeType, size: 0};
         getFileSize(file.uri ?? '')
             .then((size) => (file = {...file, size}))
+            .then(() => addImageDimensions(file))
+            .then((fileWithDimensions) => (file = fileWithDimensions))
             .finally(() => onPasteFile(file));
     };
 

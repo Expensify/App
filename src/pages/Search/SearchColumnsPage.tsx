@@ -107,6 +107,11 @@ function SearchColumnsPage() {
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString, searchKey: currentSearchKey}), {forceReplace: true});
     };
 
+    // Resetting drops the columns from the query so the table goes back to deriving them from the data.
+    const resetColumns = () => {
+        applyChanges([]);
+    };
+
     if (isSeedPending) {
         return <FullScreenLoadingIndicator />;
     }
@@ -121,6 +126,8 @@ function SearchColumnsPage() {
             groupColumns={allGroupCustomColumns}
             defaultGroupColumns={defaultGroupCustomColumns}
             onSave={applyChanges}
+            onReset={resetColumns}
+            shouldShowResetColumns={!!currentSearchQueryJSON?.columns?.length}
             type={queryType}
         />
     );
