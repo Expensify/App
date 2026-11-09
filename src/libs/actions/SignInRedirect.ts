@@ -1,4 +1,3 @@
-import {getAll as getAllPersistedRequests, getOngoingRequest} from '@libs/actions/PersistedRequests';
 import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import {clearSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
@@ -16,6 +15,7 @@ import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
 
 import {resetSignInFlow} from './HybridApp';
+import {getAll as getAllPersistedRequests, getOngoingRequest} from './PersistedRequests';
 
 let currentShouldForceOffline: boolean | undefined;
 let currentIsUsingImportedState: boolean | undefined;
