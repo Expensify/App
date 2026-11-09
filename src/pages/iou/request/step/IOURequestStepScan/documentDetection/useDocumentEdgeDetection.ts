@@ -164,13 +164,12 @@ function getCornerSpeed(corners: OneEuroState[]): number {
     if (cornerCount === 0) {
         return 0;
     }
-    let speedX = 0;
-    let speedY = 0;
+    // Each corner's own speed, averaged, so corners moving apart when the phone moves closer don't cancel out.
+    let speed = 0;
     for (let index = 0; index < corners.length; index += 2) {
-        speedX += (corners.at(index)?.derivative ?? 0) / cornerCount;
-        speedY += (corners.at(index + 1)?.derivative ?? 0) / cornerCount;
+        speed += Math.hypot(corners.at(index)?.derivative ?? 0, corners.at(index + 1)?.derivative ?? 0) / cornerCount;
     }
-    return Math.hypot(speedX, speedY);
+    return speed;
 }
 
 function getTimestamp(): number {
@@ -430,6 +429,8 @@ function useDocumentEdgeDetection({cameraRef, isEnabled}: UseDocumentEdgeDetecti
                     loggedErrorCount.setDirty(loggedErrorCount.getDirty() + 1);
                     scheduleOnRN(logError, error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : undefined);
                 }
+                // A failed frame counts as a missed detection, so the hold timeout still clears the outline.
+                updateOutline(null, undefined, getUnchangedPoint, getTimestamp());
             } finally {
                 frame.dispose();
             }
