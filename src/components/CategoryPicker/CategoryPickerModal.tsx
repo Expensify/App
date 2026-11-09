@@ -20,7 +20,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
-import policyCategoriesVisibilitySelector from '@selectors/PolicyCategories';
+import {policyCategoriesVisibilitySelector} from '@selectors/PolicyCategories';
 import React, {useLayoutEffect, useState} from 'react';
 
 import CategoryPicker from '.';

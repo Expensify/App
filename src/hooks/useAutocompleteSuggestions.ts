@@ -134,6 +134,7 @@ function useAutocompleteSuggestions({
     const {localeCompare, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [hasCategoryRules = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: hasAnyCategoryRulesSelector});
     const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
     const [recentCurrencyAutocompleteList] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -457,7 +458,7 @@ function useAutocompleteSuggestions({
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION: {
-            if (!hasRulesEnabledPolicy(policies, hasAnyCategoryRulesSelector(allPolicyCategories))) {
+            if (!hasRulesEnabledPolicy(policies, hasCategoryRules)) {
                 return getEmptyArray<AutocompleteItemData>();
             }
 
@@ -649,7 +650,7 @@ function useAutocompleteSuggestions({
             // Use {} while policies load so every has: option does not flash before the collection arrives.
             const hasAutocompleteList = getHasOptions(translate, currentType, {
                 policies: policies ?? {},
-                hasCategoryRules: hasAnyCategoryRulesSelector(allPolicyCategories),
+                hasCategoryRules,
             });
             const filteredHasValues = hasAutocompleteList.filter((hasValue) => {
                 return hasValue.value.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(hasValue.value.toLowerCase());
