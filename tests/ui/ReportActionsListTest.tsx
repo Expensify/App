@@ -1376,6 +1376,42 @@ describe('ReportActionsList (body)', () => {
         expect(mockLoadOlderChats).toHaveBeenCalledTimes(2);
     });
 
+    it('does not load older pages from scroll events before the list is positioned', () => {
+        // Given a list whose initial scroll has not landed yet, so it still reports an offset near the top.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockUsePaginatedReportActions.mockReturnValue({
+            ...defaultPaginatedReportActionsResult,
+            reportActions: mockReportActions,
+            hasOlderActions: true,
+        });
+        mockShouldCallLegendListOnLoad = false;
+        renderReportActionsList();
+        const createScrollEvent = (offset: number) => ({
+            nativeEvent: {
+                contentOffset: {x: 0, y: offset},
+                contentSize: {height: 1000, width: 300},
+                layoutMeasurement: {height: 500, width: 300},
+            },
+        });
+
+        // When a scroll event arrives before LegendList is ready.
+        act(() => {
+            getCapturedListProps()?.onScroll?.(createScrollEvent(0));
+        });
+
+        // Then no older page is requested, because it would be inserted above the target while the list positions it.
+        expect(mockLoadOlderChats).not.toHaveBeenCalled();
+
+        // When the list is ready and the reader is still near the top.
+        act(() => getCapturedListProps()?.onReady?.());
+        act(() => {
+            getCapturedListProps()?.onScroll?.(createScrollEvent(0));
+        });
+
+        // Then the older page loads as usual.
+        expect(mockLoadOlderChats).toHaveBeenCalledTimes(1);
+    });
+
     describe('System message presentation', () => {
         const systemActions = (
             [

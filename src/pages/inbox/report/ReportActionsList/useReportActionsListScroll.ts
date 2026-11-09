@@ -333,10 +333,12 @@ function useReportActionsListScroll({
         }
         lastScrollMetricsRef.current = {offset: contentOffset.y, contentHeight: contentSize.height, viewportHeight: layoutMeasurement.height};
 
-        if (isNearStart) {
-            loadOlderChatsOnStartReached();
-        } else {
+        if (!isNearStart) {
             lastRequestedOldestActionIDRef.current = undefined;
+        } else if (readyEndListIDRef.current === listID) {
+            // Before the initial scroll lands, the list still reports offsets near the top. Loading older actions then
+            // inserts a page above the target while it is being positioned.
+            loadOlderChatsOnStartReached();
         }
 
         const bottomRelativeEvent = {

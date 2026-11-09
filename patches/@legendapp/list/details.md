@@ -44,3 +44,12 @@
 - E/App issue: 🛑
 - PR introducing patch: https://github.com/Expensify/App/pull/100733
 - Reproduction: On Android, open a chat from an LHN row with a Fix action, so it opens at the linked expense. When the Latest messages button appears, the messages on screen should not move.
+
+### [@legendapp+list+3.7.2+006+keep-native-initial-scroll-on-target.patch](@legendapp+list+3.7.2+006+keep-native-initial-scroll-on-target.patch)
+
+- Reason: Before a list is ready, LegendList moves its item positions right away but moves its native scroll anchor a frame later. An initial scroll dispatched in between already lands on the adjusted offset, so the late anchor move shifted the list again, and LegendList's retries then reissued the offset recorded when the scroll started. A retry for scrolls Android reports silently also left the list one point off when the scroll finished first. On Android, a chat that opens at a linked message appeared with the message at the top of the list and then moved down to its offset. This patch skips anchor moves that a later native scroll already includes, moves the pending initial-scroll target with each adjustment, and completes the retry before the scroll finishes.
+- Scope: Only the native bundles, and only while an initial scroll is in flight or the list is not ready yet.
+- Upstream PR/issue: https://github.com/LegendApp/legend-list/pull/604
+- E/App issue: 🛑
+- PR introducing patch: https://github.com/Expensify/App/pull/100733
+- Reproduction: On Android, clear the cache and open a chat from an LHN row with a Fix action, so it opens at the linked expense. The highlighted expense should appear once, a little below the top of the list, and not move afterward.
