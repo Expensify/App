@@ -11165,6 +11165,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
             const reconciliationItem = sections.flatMap((section) => section.menuItems).find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
 
