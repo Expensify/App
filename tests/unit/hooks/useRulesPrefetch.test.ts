@@ -71,7 +71,7 @@ describe('useRulesPrefetch', () => {
         mockIsLoadingRules = true;
         rerender({});
 
-        // When the fetch fails, which clears the in-flight flag and leaves the collection unfetched
+        // When the fetch fails, which clears the in-flight flag and leaves the collection missing
         mockIsLoadingRules = false;
         mockHasBeenFetched = false;
         mockHasFetchFailed = true;
@@ -116,7 +116,7 @@ describe('useRulesPrefetch', () => {
         const {rerender} = renderHook(() => useRulesPrefetch(true));
         expect(mockGetRules).not.toHaveBeenCalled();
 
-        // When that fetch fails, leaving the collection unfetched
+        // When that fetch fails, leaving the collection missing
         mockIsLoadingRules = false;
         mockHasBeenFetched = false;
         mockHasFetchFailed = true;
@@ -127,7 +127,7 @@ describe('useRulesPrefetch', () => {
     });
 
     it('asks again on a screen opened after a failed fetch', () => {
-        // Given a fetch that failed, leaving the collection unfetched
+        // Given a fetch that failed, leaving the collection missing
         renderHook(() => useRulesPrefetch(true));
         expect(mockGetRules).toHaveBeenCalledTimes(1);
 

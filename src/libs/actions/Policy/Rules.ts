@@ -92,7 +92,7 @@ function getRules() {
             value: false,
         },
         {
-            // A failure leaves the collection unfetched, so a screen opened later asks for it again rather than
+            // A failure means the collection never arrived, so a screen opened later asks for it again rather than
             // resolving a category's tax against rules that never arrived. The prefetch hook asks at most once
             // per mount, which is what keeps a server error from retrying on every render.
             onyxMethod: Onyx.METHOD.MERGE,
@@ -101,7 +101,7 @@ function getRules() {
         },
         {
             // Tells the attempt that failed apart from one still to send, so a screen waiting on the collection
-            // stops waiting. Without it, an unfetched collection reads the same either way.
+            // stops waiting. Without it, a collection that never arrived reads the same either way.
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.RAM_ONLY_HAS_RULES_FETCH_FAILED,
             value: true,

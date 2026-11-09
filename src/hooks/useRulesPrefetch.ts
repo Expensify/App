@@ -19,7 +19,7 @@ import useOnyx from './useOnyx';
  * `GetRules` takes no parameters and its response SETs the whole collection, so a successful fetch happens
  * once per session rather than on every mount. The shared guards live here so callers cannot drift apart.
  *
- * A failed fetch leaves the collection unfetched, so the next screen to need it asks again. Each mount asks at
+ * A failed fetch leaves the collection missing, so the next screen to need it asks again. Each mount asks at
  * most once, which is what stops a server error from retrying on every render while a screen stays open.
  *
  * Returns whether the collection is still on its way, which a screen that decides something from a rule's
@@ -58,7 +58,7 @@ function useRulesPrefetch(enabled = true): {areRulesLoading: boolean} {
     // `isFetchNeeded` and `isFlagLoading` cover the renders before the effect has run, which are the ones a
     // guard reading the collection would otherwise resolve against nothing. Offline there is nothing to wait for.
     // A failed fetch settles the wait rather than holding every reader of the collection for the rest of the
-    // session, which is what telling it apart from an unfetched one buys.
+    // session, which is what telling it apart from a fetch still to send buys.
     return {areRulesLoading: enabled && !isOffline && (isFlagLoading || isFetchNeeded || isAwaitingResponse || !!isLoadingRules)};
 }
 

@@ -720,7 +720,7 @@ describe('actions/PolicyRules', () => {
             expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_IS_LOADING_RULES)).toBe(false);
             expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_HAS_RULES_FETCH_FAILED)).toBe(true);
 
-            // Then the collection is still unfetched, so the next screen that needs it asks again
+            // Then the collection is still missing, so the next screen that needs it asks again
             expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED)).toBeFalsy();
 
             await mockFetch?.resume?.();
