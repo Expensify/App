@@ -1234,6 +1234,11 @@ const translations: TranslationDeepObject<typeof en> = {
         explainChartPrompt: (chartTitle: string) => `${chartTitle} のデータを説明します。`,
         viewDetails: '詳細を表示',
         viewAll: 'すべて表示',
+        efficiency: '効率',
+        workflowEfficiency: 'ワークフロー効率',
+        longestToSubmit: '提出まで最も長い順',
+        slowestToApprove: '承認が最も遅い',
+        mostTimeToPay: '支払いまで最も時間がかかる',
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -2018,6 +2023,12 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         undeletedExpense: 'この経費を復元しました',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `新しいワークスペース「${policyName}」の距離単価を更新しました`,
+        reportCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
+            return {
+                one: (count: number) => `${formattedCount ?? count} レポート`,
+                other: (count: number) => `${formattedCount ?? count} レポート`,
+            };
+        },
     },
     transactionMerge: {
         listPage: {
@@ -10796,6 +10807,7 @@ ${reportName}`,
                 [CONST.SEARCH.GROUP_BY.YEAR]: '年',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: '四半期',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: '承認者',
+                [CONST.SEARCH.GROUP_BY.PAID_BY]: '支払元',
             },
             feed: 'フィード',
             withdrawalType: {
@@ -10851,6 +10863,7 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.YEAR]: '年数',
             [CONST.SEARCH.GROUP_BY.QUARTER]: '四半期',
             [CONST.SEARCH.GROUP_BY.APPROVER]: '承認者',
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: '支払者',
         },
         moneyRequestReport: {emptyStateTitle: 'まだ経費がありません', accessPlaceHolder: '詳細を開く'},
         noCategory: 'カテゴリなし',

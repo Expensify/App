@@ -1246,6 +1246,11 @@ const translations: TranslationDeepObject<typeof en> = {
         explainChartPrompt: (chartTitle: string) => `Erklären Sie die Daten in ${chartTitle}.`,
         viewDetails: 'Details anzeigen',
         viewAll: 'Alle anzeigen',
+        efficiency: 'Effizienz',
+        workflowEfficiency: 'Workflow-Effizienz',
+        longestToSubmit: 'Am längsten bis zur Einreichung',
+        slowestToApprove: 'Am langsamsten bei der Genehmigung',
+        mostTimeToPay: 'Längste Zahlungsfrist',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -2044,6 +2049,12 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         undeletedExpense: 'Löschvorgang für diese Ausgabe rückgängig gemacht',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `Kilometersätze für den neuen Arbeitsbereich aktualisiert – ${policyName}`,
+        reportCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
+            return {
+                one: (count: number) => `${formattedCount ?? count} Bericht`,
+                other: (count: number) => `${formattedCount ?? count} Berichte`,
+            };
+        },
     },
     transactionMerge: {
         listPage: {
@@ -11028,6 +11039,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Jahr',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quartal',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Genehmiger',
+                [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Bezahlt von',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -11089,6 +11101,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Jahre',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quartale',
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Genehmiger',
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Zahler',
         },
         moneyRequestReport: {emptyStateTitle: 'Noch keine Ausgaben', accessPlaceHolder: 'Für Details öffnen'},
         noCategory: 'Keine Kategorie',
