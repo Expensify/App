@@ -50,6 +50,7 @@ function GettingStartedRow({item}: GettingStartedRowProps) {
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, cardPaddingHorizontal, styles.pv3, hovered && styles.hoveredComponentBG]}>
                     <View style={styles.gettingStartedRowIconContainer}>
                         <Checkbox
+                            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.GETTING_STARTED_ROW}
                             isChecked={item.isComplete}
                             onPress={navigateToItem}
                             accessibilityLabel={item.label}
@@ -67,6 +68,7 @@ function GettingStartedRow({item}: GettingStartedRowProps) {
                         />
                     ) : (
                         <Button
+                            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.GETTING_STARTED_ROW}
                             size={CONST.BUTTON_SIZE.SMALL}
                             variant="success"
                             onPress={navigateToItem}

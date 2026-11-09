@@ -105,6 +105,7 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
     const continueButton = (
         <View style={[styles.w100, styles.mb5, styles.mh0, !shouldFooterBeInsideScrollView ? paddingHorizontal : undefined]}>
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 size={CONST.BUTTON_SIZE.LARGE}
                 onPress={submitSomethingElseGoal}
@@ -152,6 +153,7 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
                         const isSelected = goal === selectedGoal;
                         return (
                             <MenuItem
+                                sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.PERSONAL_TRACK_GOAL_ITEM}
                                 key={translationKey}
                                 title={translate(translationKey)}
                                 icon={menuIcons[goal]}

@@ -238,6 +238,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_ITEM}
             >
                 <Checkbox
+                    sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_ITEM}
                     accessibilityLabel={item.title}
                     isChecked={isSelected}
                     onPress={() => {
