@@ -5326,6 +5326,7 @@ const CONST = {
             EXPORT: 'export',
             SYNC_WITH_HR: 'syncWithHR',
             ADD_APPROVAL_WORKFLOW: 'addApprovalWorkflow',
+            LEAVE_WORKSPACE: 'leaveWorkspace',
         },
         MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',

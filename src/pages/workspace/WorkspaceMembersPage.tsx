@@ -6,6 +6,7 @@ import {useLockedAccountActions, useLockedAccountState} from '@components/Locked
 import MessagesRow from '@components/MessagesRow';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {TableHandle} from '@components/Table';
+import LeaveWorkspaceFlow from '@components/Tables/WorkspaceListTable/LeaveWorkspaceFlow';
 import type {WorkspaceMemberRowData, WorkspaceMembersTableColumnKey} from '@components/Tables/WorkspaceMembersTable';
 import WorkspaceMembersTable from '@components/Tables/WorkspaceMembersTable';
 import Text from '@components/Text';
@@ -23,6 +24,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePrevious from '@hooks/usePrevious';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
@@ -75,12 +77,15 @@ import {
     getMemberAccountIDsForWorkspace,
     getReimburserEmail,
     getSelectableRoles,
+    goBackFromInvalidPolicy,
     hasActiveExpensifyCard,
+    isArchivedPolicy,
     isControlPolicy,
     isGroupPolicy,
     isPaidGroupPolicy,
     isPolicyAdmin,
     isPolicyApprover,
+    isPolicyOwner,
     isSubmitPolicy,
     PAYER_ROLES,
     shouldHideDynamicExternalWorkflowPeople,
@@ -136,7 +141,7 @@ function resolveMemberAccountID(email: string, policyMemberEmailsToAccountIDs: M
 function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembersPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'common.members');
     const tableRef = useRef<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey, string>>(null);
-    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Download', 'FallbackAvatar', 'Location', 'Plus', 'RemoveMembers', 'Sync', 'Table', 'UserPencil']);
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Download', 'Exit', 'FallbackAvatar', 'Location', 'Plus', 'RemoveMembers', 'Sync', 'Table', 'UserPencil']);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
@@ -155,7 +160,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
     const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
+    const [isLeaveFlowActive, setIsLeaveFlowActive] = useState(false);
     const {isBetaEnabled} = usePermissions();
+    const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const [membersSelectedForBulkEditCount = 0] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT, {selector: (selection) => selection?.accountIDs.length});
 
     // A bulk office location or work arrangement change clears the members it was given once it is applied, which
@@ -249,6 +256,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const currentUserLogin = currentUserPersonalDetails.login;
     const canEditWorkspaceSettings = canEditWorkspaceSettingsUtil(policy, currentUserLogin);
     const canWriteMembers = canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS);
+    const canLeave =
+        !!policy &&
+        !isArchivedPolicy(policy) &&
+        !isPolicyOwner(policy, currentUserPersonalDetails.accountID) &&
+        (policyID !== preferredPolicyID || !isRestrictedToPreferredPolicy);
 
     // Group policies (Collect/Control + Submit) allow member management.
     const canManageMembers = isGroupPolicy(policy);
@@ -724,8 +736,19 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         secondaryActions = menuItems;
     }
 
+    if (canLeave) {
+        secondaryActions.push({
+            icon: icons.Exit,
+            text: translate('common.leaveWorkspace'),
+            value: CONST.POLICY.SECONDARY_ACTIONS.LEAVE_WORKSPACE,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.LEAVE_WORKSPACE,
+            shouldSkipFocusRestore: true,
+            onSelected: () => setIsLeaveFlowActive(true),
+        });
+    }
+
     const getHeaderButtons = () => {
-        if (!canWriteMembers) {
+        if (!canWriteMembers && !canLeave) {
             return null;
         }
         const bulkActionOptions = getBulkActionsButtonOptions();
@@ -749,16 +772,18 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             />
         ) : (
             <View style={[styles.flexRow, styles.gap2]}>
-                <Button
-                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    onPress={inviteUser}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.INVITE_BUTTON}
-                    innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
-                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
-                >
-                    <Button.Icon src={icons.Plus} />
-                    <Button.Text>{translate('workspace.invite.member')}</Button.Text>
-                </Button>
+                {canWriteMembers && (
+                    <Button
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        onPress={inviteUser}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.INVITE_BUTTON}
+                        innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
+                        style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
+                    >
+                        <Button.Icon src={icons.Plus} />
+                        <Button.Text>{translate('workspace.invite.member')}</Button.Text>
+                    </Button>
+                )}
                 <ButtonWithDropdownMenu
                     onPress={() => {}}
                     shouldAlwaysShowDropdownMenu
@@ -811,6 +836,13 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         >
             {() => (
                 <>
+                    {isLeaveFlowActive && (
+                        <LeaveWorkspaceFlow
+                            policyID={policyID}
+                            onDismiss={() => setIsLeaveFlowActive(false)}
+                            onLeave={goBackFromInvalidPolicy}
+                        />
+                    )}
                     {shouldDisplayButtonsInSeparateLine && <View style={pageGutter}>{getHeaderButtons()}</View>}
                     {!shouldUseNarrowLayout && data.length === 0 && (
                         <>

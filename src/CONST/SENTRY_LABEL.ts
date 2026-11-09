@@ -1030,6 +1030,7 @@ const SENTRY_LABEL = {
             INVITE_BUTTON: 'WorkspaceMembers-InviteButton',
             BULK_ACTIONS_DROPDOWN: 'WorkspaceMembers-BulkActionsDropdown',
             MORE_DROPDOWN: 'WorkspaceMembers-MoreDropdown',
+            LEAVE_WORKSPACE: 'WorkspaceMembers-LeaveWorkspace',
             LIST_ROW: 'WorkspaceMembers-ListRow',
             CATEGORY_VISIBILITY: 'WorkspaceMemberDetails-CategoryVisibility',
         },
