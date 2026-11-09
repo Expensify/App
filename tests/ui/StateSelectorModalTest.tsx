@@ -86,12 +86,7 @@ describe('StateSelectorModal', () => {
 
         // Then all 52 states appear in source order with translated names and codes
         expect(options).toHaveLength(52);
-        expect(options?.map(({keyForList, text}) => ({keyForList, text}))).toEqual(
-            Object.values(mockStates).map(({stateISO, stateName}) => ({
-                keyForList: stateISO,
-                text: stateName,
-            })),
-        );
+        expect(options?.map(({keyForList, text}) => ({keyForList, text}))).toEqual(Object.values(mockStates).map(({stateISO, stateName}) => ({keyForList: stateISO, text: stateName})));
     });
 
     it('pins the saved state to the top on reopen', () => {

@@ -452,9 +452,7 @@ describe('useAccountIndicatorChecks', () => {
                                 cardID: 1,
                                 lastScrapeResult: 403,
                                 lastScrape: '2020-01-01 00:00:00',
-                                errors: {
-                                    [Date.now() * 1000]: 'Failed to unassign this card.',
-                                },
+                                errors: {[Date.now() * 1000]: 'Failed to unassign this card.'},
                             },
                         },
                         [ONYXKEYS.SESSION]: {email: userID},
@@ -487,9 +485,7 @@ describe('useAccountIndicatorChecks', () => {
                                 fundID: String(cardFeed.policyAccountID),
                                 lastScrapeResult: 403,
                                 lastScrape: '2020-01-01 00:00:00',
-                                errors: {
-                                    [Date.now() * 1000]: 'Failed to unassign this card.',
-                                },
+                                errors: {[Date.now() * 1000]: 'Failed to unassign this card.'},
                             },
                         },
                         [`${ONYXKEYS.COLLECTION.POLICY}1` as const]: {

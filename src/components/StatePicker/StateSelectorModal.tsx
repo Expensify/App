@@ -37,9 +37,7 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const styles = useThemeStyles();
-    const initialSelectedValue = useInitialSelection(currentState || undefined, {
-        isVisible,
-    });
+    const initialSelectedValue = useInitialSelection(currentState || undefined, {isVisible});
     const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
 
     const countryStates = Object.values(COMMON_CONST.STATES).map(({stateISO: stateKey}) => {

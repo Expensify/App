@@ -242,10 +242,7 @@ function DatePresetFilterBase({
     const [ephemeralDateValue, setEphemeralDateValue] = useState<string | undefined>(() => getInitialEphemeralDateValue(selectedDateModifier));
     const resetEphemeralDateValue = (dateModifier: SearchDateModifier | null) => setEphemeralDateValue(getInitialEphemeralDateValue(dateModifier));
 
-    const [rangeEphemeralValues, setRangeEphemeralValues] = useState<{
-        from?: string;
-        to?: string;
-    }>(() => getRangeEphemeralValuesFromDateValues(normalizedDefaultDateValues));
+    const [rangeEphemeralValues, setRangeEphemeralValues] = useState<{from?: string; to?: string}>(() => getRangeEphemeralValuesFromDateValues(normalizedDefaultDateValues));
 
     // Synchronize dateValues when rangeEphemeralValues change, keeping the side effect
     // out of the setRangeEphemeralValues state updater to avoid unpredictable batching on Android.
@@ -336,10 +333,7 @@ function DatePresetFilterBase({
                 }
 
                 const currentDateValues = dateValuesRef.current;
-                updateDateValues({
-                    ...currentDateValues,
-                    [selectedDateModifier]: undefined,
-                });
+                updateDateValues({...currentDateValues, [selectedDateModifier]: undefined});
 
                 if (selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
                     setRangeEphemeralValues({});
