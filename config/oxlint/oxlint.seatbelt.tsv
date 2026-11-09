@@ -60,7 +60,6 @@
 "../../src/components/AddressForm.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/components/AddressForm.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/AddressSearch/CurrentLocationButton.tsx"	"no-restricted-syntax"	1
-"../../src/components/AddressSearch/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AddressSearch/isCurrentTargetInsideContainer.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AgentRules/AgentRulesList.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/components/AmountActionButtons/AmountCurrencyPickerButton.tsx"	"no-restricted-syntax"	1
@@ -936,6 +935,7 @@
 "../../src/libs/ComposerFocusManager.ts"	"@typescript-eslint/no-deprecated/TextInput.State.currentlyFocusedField"	1
 "../../src/libs/ComposerFocusManager.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/ComposerUtils/index.ts"	"no-restricted-syntax"	1
+"../../src/libs/computeReportName.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/CountryUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/CurrencyUtils.ts"	"rulesdir/no-onyx-connect"	1
 "../../src/libs/DateUtils.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
@@ -995,7 +995,6 @@
 "../../src/libs/Middleware/RecordFullReconnectTime.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/libs/Middleware/SaveResponseInOnyx.ts"	"no-restricted-syntax"	1
 "../../src/libs/models/BankAccount.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/ModifiedExpenseMessage.ts"	"import/no-cycle"	3
 "../../src/libs/MoneyRequestReportUtils.ts"	"no-restricted-imports"	1
 "../../src/libs/Navigation/AppNavigator/AuthScreens.tsx"	"no-restricted-syntax"	1
 "../../src/libs/Navigation/AppNavigator/AuthScreensInitHandler.tsx"	"no-restricted-syntax"	6
@@ -1114,8 +1113,7 @@
 "../../src/libs/ReportActionsUtils.ts"	"import/no-cycle"	1
 "../../src/libs/ReportActionsUtils.ts"	"rulesdir/no-onyx-connect"	2
 "../../src/libs/ReportAlternateTextUtils.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	1
-"../../src/libs/ReportNameUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/libs/ReportNameUtils.ts"	"import/no-cycle"	4
+"../../src/libs/ReportNameUtils.ts"	"import/no-cycle"	3
 "../../src/libs/ReportPrimaryActionUtils.ts"	"no-restricted-imports"	1
 "../../src/libs/ReportTitleUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/getPolicy"	26
@@ -1534,7 +1532,6 @@
 "../../src/pages/ProfilePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/ProfilePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/ProfilePage.tsx"	"no-restricted-syntax"	8
-"../../src/pages/ReimbursementAccount/AddressFormFields.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/ReimbursementAccount/ConnectedVerifiedBankAccount.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/pages/ReimbursementAccount/ConnectedVerifiedBankAccount.tsx"	"no-restricted-imports"	1
 "../../src/pages/ReimbursementAccount/ConnectedVerifiedBankAccount.tsx"	"no-restricted-syntax"	2
@@ -1550,7 +1547,6 @@
 "../../src/pages/ReimbursementAccount/NonUSD/BeneficialOwnerInfo/BeneficialOwnersList.tsx"	"no-restricted-syntax"	2
 "../../src/pages/ReimbursementAccount/NonUSD/BusinessInfo/subSteps/Confirmation.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/ReimbursementAccount/NonUSD/BusinessInfo/subSteps/ContactInformation.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/ReimbursementAccount/NonUSD/BusinessInfo/subSteps/IncorporationLocation.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/ReimbursementAccount/NonUSD/BusinessInfo/subSteps/Website.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/ReimbursementAccount/NonUSD/Finish/index.tsx"	"no-restricted-imports"	1
 "../../src/pages/ReimbursementAccount/NonUSD/Finish/index.tsx"	"no-restricted-syntax"	2
@@ -1590,7 +1586,6 @@
 "../../src/pages/ReimbursementAccount/USD/BusinessInfo/subSteps/TypeBusiness/TypeBusiness.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/ReimbursementAccount/USD/BusinessInfo/subSteps/WebsiteBusiness.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/ReimbursementAccount/USD/BusinessInfo/subSteps/WebsiteBusiness.tsx"	"rulesdir/no-onyx-loading-status"	1
-"../../src/pages/ReimbursementAccount/USD/ConnectBankAccount/components/BankAccountValidationForm.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/ReimbursementAccount/USD/ConnectBankAccount/components/BankAccountValidationForm.tsx"	"unicorn/prefer-string-replace-all"	1
 "../../src/pages/ReimbursementAccount/USD/ConnectBankAccount/components/Enable2FACard.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/pages/ReimbursementAccount/USD/ConnectBankAccount/components/Enable2FACard.tsx"	"no-restricted-syntax"	1
@@ -1717,7 +1712,6 @@
 "../../src/pages/settings/Profile/PersonalDetails/BaseLegalNamePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Profile/PersonalDetails/DynamicCountrySelectionPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Profile/PersonalDetails/DynamicCountrySelectionPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/settings/Profile/PersonalDetails/DynamicStateSelectionPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/settings/Profile/PersonalDetails/DynamicStateSelectionPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Profile/PersonalDetails/PersonalAddressPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/settings/Profile/PersonalDetails/PersonalAddressPage.tsx"	"rulesdir/no-onyx-loading-status"	1
@@ -2627,17 +2621,10 @@
 "../../src/stories/EReceipt.stories.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/stories/Form.stories.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	10
 "../../src/stories/HeaderWithBackButton.stories.tsx"	"no-restricted-imports"	2
-"../../src/stories/InteractiveStepSubHeader.stories.tsx"	"no-restricted-syntax"	1
 "../../src/stories/MenuItem.stories.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/stories/MenuItemComparison.stories.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	29
 "../../src/stories/MenuItemComparison.stories.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	22
-"../../src/stories/MenuItemComparison.stories.tsx"	"no-restricted-syntax"	103
-"../../src/stories/NumberWithSymbolForm.stories.tsx"	"no-restricted-syntax"	1
 "../../src/stories/PopoverMenu.stories.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
-"../../src/stories/PopoverMenu.stories.tsx"	"no-restricted-syntax"	1
-"../../src/stories/PopoverMenuV2.stories.tsx"	"no-restricted-syntax"	21
-"../../src/stories/ReportActionItemImages.stories.tsx"	"no-restricted-syntax"	1
-"../../src/stories/SelectionListWithSections.stories.tsx"	"no-restricted-syntax"	1
 "../../src/stories/TextInput.stories.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/styles/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/styles/index.ts"	"rulesdir/no-raw-typography"	27
