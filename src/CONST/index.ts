@@ -4340,6 +4340,8 @@ const CONST = {
         VENDOR_BILL: 'VENDOR_BILL',
     },
 
+    QBD_CREDIT_CARD_DEFAULT_VENDOR_NAME: 'Credit Card Misc.',
+
     RILLET_CONFIG: {
         SUBSIDIARY_ID: 'subsidiaryID',
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',

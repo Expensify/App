@@ -13,10 +13,6 @@ import type {TransactionCommentVendor} from '@src/types/onyx/Transaction';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-// QBD export fallback vendor. Excluded from the eligible catalog - not a selectable target.
-// Has a trailing period, unlike NON_REIMBURSABLE_FALLBACK_VENDOR_NAME.CREDIT_CARD.
-const QBD_CREDIT_CARD_DEFAULT_VENDOR_NAME = 'Credit Card Misc.';
-
 /**
  * True when the QBO connection is exporting non-reimbursables to a card account, which is the
  * mode that scopes the vendor field on QBO.
@@ -155,7 +151,7 @@ function getVendorFeaturePolicyIDs(policies: OnyxCollection<Policy>, isVendorMat
 
 /**
  * Single source of truth for which connected integration scopes the vendor field for this workspace
- * (QBO, Sage Intacct, Xero, Rillet, DualEntry, Business Central, Campfire, or Certinia) and what its vendor list looks like. Returns `undefined` when no
+ * (QBO, Sage Intacct, Xero, Rillet, DualEntry, Business Central, Campfire, Certinia, or QBD) and what its vendor list looks like. Returns `undefined` when no
  * vendor-matching integration is active OR when the active integration's list hasn't synced yet —
  * distinct from `[]` (loaded-empty). Lets callers tell "no vendors" from "not loaded".
  *
@@ -281,14 +277,14 @@ function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | u
         if (!Array.isArray(vendors)) {
             return undefined;
         }
-        return vendors.filter((vendor) => !!vendor.id && vendor.name !== QBD_CREDIT_CARD_DEFAULT_VENDOR_NAME);
+        return vendors.filter((vendor) => !!vendor.id && vendor.name !== CONST.QBD_CREDIT_CARD_DEFAULT_VENDOR_NAME);
     }
     return undefined;
 }
 
 /**
  * Returns the vendor list imported into the workspace from whichever connected integration scopes
- * the vendor field for this workspace (QBO, Sage Intacct, Xero, Rillet, DualEntry, Business Central, Campfire, or Certinia). Empty array when no integration
+ * the vendor field for this workspace (QBO, Sage Intacct, Xero, Rillet, DualEntry, Business Central, Campfire, Certinia, or QBD). Empty array when no integration
  * is connected or the sync hasn't populated vendors yet. Source of truth for the vendor selector
  * RHP and inactive-vendor lookups.
  */
