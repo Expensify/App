@@ -112,7 +112,8 @@ const victoryChartRendererRestrictedImportPatterns = typescriptRestrictedImportP
 /**
  * Pressables and the components that forward their `sentryLabel` prop to one, so the `no-restricted-syntax` rules below can require the label.
  * The lists come from every JSX component whose props accept `sentryLabel`. Inputs (e.g. TextInput) and wrappers that fall back to a default
- * label (e.g. FormProvider, RadioButton) are left out. When you add a component that forwards `sentryLabel` to a pressable, add it here.
+ * label (e.g. FormProvider, RadioButton) are left out. Don't add new components here: give them a required `sentryLabel` prop instead, which
+ * TypeScript checks at every usage. Once a component's usages all have a label, make its prop required and remove it from these lists.
  * Names of compound components are written with dots, e.g. `MenuItem.Root`.
  */
 const SENTRY_LABEL_PRESSABLES = [
@@ -127,7 +128,6 @@ const SENTRY_LABEL_PRESSABLES = [
 
 /** Wrappers that only need a label when they get a press handler, since without one they can render read-only (e.g. a MenuItem without onPress). */
 const SENTRY_LABEL_PRESS_HANDLER_WRAPPERS = [
-    'AnimatedCollapsible',
     'AnimatedSettlementButton',
     'AnimatedSubmitButton',
     'AvatarButtonWithIcon',
@@ -144,16 +144,10 @@ const SENTRY_LABEL_PRESS_HANDLER_WRAPPERS = [
     'ConfirmationPagePrimaryButton',
     'ContextMenuItem',
     'DistanceRequestRenderItem',
-    'ExpenseFieldDropdown',
-    'ExpenseFieldRow',
     'FABFocusableMenuItem',
     'FeatureTraining.HelpButton',
-    'FloatingActionButton',
-    'FloatingReceiptButton',
     'FocusableMenuItem',
     'FormAlertWithSubmitButton',
-    'Header.IconButton',
-    'HeaderIconButton',
     'HighlightableMenuItem',
     'HighlightableMenuItemWithTopDescription',
     'LinkButton',
@@ -171,11 +165,8 @@ const SENTRY_LABEL_PRESS_HANDLER_WRAPPERS = [
     'PopoverMenu.Item',
     'PopoverMenu.RadioItem',
     'RowMenuItem',
-    'SearchFiltersBarButton',
     'SelectionButton',
     'SettlementButton',
-    'SortableHeaderText',
-    'SubmitDraftButton',
     'Table.Row',
     'TableRow',
     'TabSelectorItem',
@@ -188,13 +179,11 @@ const SENTRY_LABEL_SELF_PRESS_WRAPPERS = [
     'AvatarWithImagePicker',
     'BookTravelButton',
     'DropdownButton',
-    'ExportWithDropdownMenu',
     'FeatureTraining.ConfirmButton',
     'MerchantFilterContent',
     'PopoverMenu.Sub.Trigger',
     'TextInputFilterContent',
     'ThreeDotsMenu',
-    'WidgetHeaderMenu',
 ];
 
 /** Builds an esquery selector list matching JSX elements named e.g. `Button` or `MenuItem.Root`. */
