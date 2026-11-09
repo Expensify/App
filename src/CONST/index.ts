@@ -2532,6 +2532,8 @@ const CONST = {
         DEFAULT_REPORT_NAME: 'Chat Report',
         // Not translated because default report names are not translated on the backend (matches Expensify Classic behavior)
         DEFAULT_EXPENSE_REPORT_NAME: 'New Report',
+        // Auth names a new invoice with this prefix and its short reportID, so the optimistic name matches the server
+        DEFAULT_INVOICE_REPORT_NAME_PREFIX: 'Invoice #',
         PERMISSIONS: {
             READ: 'read',
             COMMENT: 'comment',

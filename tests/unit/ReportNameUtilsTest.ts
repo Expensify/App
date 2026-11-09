@@ -1844,6 +1844,53 @@ describe('ReportNameUtils', () => {
         });
     });
 
+    describe('computeReportName - invoices', () => {
+        const invoiceRoomID = '990201';
+        const createInvoice = (reportName: string): Report => ({
+            reportID: '990202',
+            type: CONST.REPORT.TYPE.INVOICE,
+            chatReportID: invoiceRoomID,
+            ownerAccountID: currentUserAccountID,
+            reportName,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            total: 100,
+            currency: 'USD',
+        });
+
+        beforeAll(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${invoiceRoomID}`, {
+                reportID: invoiceRoomID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: 1},
+            });
+            await waitForBatchedUpdates();
+        });
+
+        it('shows the stored name of an invoice sent from NewDot', () => {
+            // Given an invoice with an invoice room and the name Auth stored when it was sent
+            const invoice = createInvoice('Invoice #R00SK9Qpc9BY');
+
+            // When its name is computed
+            const name = computeReportName(invoice, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+
+            // Then it shows the stored name, so the sender and the receiver see the same name as Auth
+            expect(name).toBe('Invoice #R00SK9Qpc9BY');
+        });
+
+        it('shows the payer and amount for an invoice sent from NewDot with an empty stored name', () => {
+            // Given an invoice with an invoice room and an empty stored name
+            const invoice = createInvoice('');
+
+            // When its name is computed
+            const name = computeReportName(invoice, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+
+            // Then it falls back to the name built from the payer, because there is no stored name to show
+            expect(name.replaceAll(/\s+/g, ' ')).toContain('Ragnar Lothbrok owes');
+        });
+    });
+
     describe('buildReportNameFromParticipantNames', () => {
         test('Excludes current user and uses short names for multiple participants', () => {
             const report = createMock<Report>({

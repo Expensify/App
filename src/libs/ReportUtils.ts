@@ -124,6 +124,7 @@ import {getEnvironmentURL} from './Environment/Environment';
 import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from './ErrorUtils';
 import getAttachmentDetails from './fileDownload/getAttachmentDetails';
 import getBankAccountLastFourDigits from './getBankAccountLastFourDigits';
+import getBase62ReportID from './getBase62ReportID';
 import isTeachersUnitePolicyID from './isTeachersUnitePolicyID';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
@@ -1497,14 +1498,6 @@ function isInvoiceReport(report: OnyxInputOrEntry<Report>): boolean {
 
 function isFinancialReportsForBusinesses(report: OnyxEntry<Report>): boolean {
     return report?.type === CONST.REPORT.TYPE.EXPENSE || report?.type === CONST.REPORT.TYPE.INVOICE;
-}
-
-function isNewDotInvoice(invoiceRoomID: string | undefined): boolean {
-    if (!invoiceRoomID) {
-        return false;
-    }
-
-    return isInvoiceRoom(getReport(invoiceRoomID, deprecatedAllReports));
 }
 
 /**
@@ -8291,27 +8284,19 @@ function getHumanReadableStatus(statusNum: number): string {
 }
 
 /** Builds an optimistic invoice report with a randomly generated reportID */
-function buildOptimisticInvoiceReport(
-    chatReportID: string,
-    policyID: string | undefined,
-    receiverAccountID: number,
-    receiverName: string,
-    total: number,
-    currency: string,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-): OptimisticExpenseReport {
-    const formattedTotal = convertToDisplayStringEnLocale(total, currency, getCurrencyDecimals);
+function buildOptimisticInvoiceReport(chatReportID: string, policyID: string | undefined, receiverAccountID: number, total: number, currency: string): OptimisticExpenseReport {
     const created = DateUtils.getDBTime();
+    const reportID = generateReportID();
     const invoiceReport = {
-        reportID: generateReportID(),
+        reportID,
         chatReportID,
         policyID,
         type: CONST.REPORT.TYPE.INVOICE,
         ownerAccountID: deprecatedCurrentUserAccountID,
         managerID: receiverAccountID,
         currency,
-        // We don't translate reportName because the server response is always in English
-        reportName: `${receiverName} owes ${formattedTotal}`,
+        // Auth gives a new invoice the same name. When the sender's policy enforces a title formula, the server name replaces this one.
+        reportName: `${CONST.REPORT.DEFAULT_INVOICE_REPORT_NAME_PREFIX}${getBase62ReportID(Number(reportID))}`,
         stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
         statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
         total: total * -1,
@@ -14882,7 +14867,7 @@ function getChatListItemReportName(
     const reportForHeader = getReportForHeader(report, parentReport);
     if (reportForHeader && isInvoiceReport(reportForHeader)) {
         // Search snapshots of invoice reports may only carry `parentReportID` as the invoice room ID, so fall back to it
-        // when `chatReportID` is missing (without mutating the Onyx report) so `getInvoiceReportName` resolves the NewDot title.
+        // when `chatReportID` is missing (without mutating the Onyx report) so `getInvoiceReportName` finds the payer for an invoice with no stored name.
         const invoiceReport = reportForHeader.chatReportID ? reportForHeader : {...reportForHeader, chatReportID: reportForHeader.parentReportID};
         return getInvoiceReportName(invoiceReport, linkedTransactions, translate, formatPhoneNumber, convertToDisplayString, personalDetailsList);
     }
@@ -16103,7 +16088,6 @@ export {
     isInvoiceRoom,
     isInvoiceRoomWithID,
     isInvoiceReport,
-    isNewDotInvoice,
     isOpenInvoiceReport,
     isReportTransactionThread,
     getDefaultNotificationPreferenceForReport,

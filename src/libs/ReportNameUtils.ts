@@ -187,7 +187,6 @@ import {
     isInvoiceReport,
     isInvoiceRoom,
     isMoneyRequestReport,
-    isNewDotInvoice,
     isOpenExpenseReport,
     isOpenInvoiceReport,
     isPolicyExpenseChat,
@@ -453,7 +452,12 @@ function getInvoiceReportName(
     policy?: OnyxEntry<Policy>,
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
 ): string {
-    const moneyRequestReportName = getMoneyRequestReportName({
+    // Auth names every new invoice, so the payer and amount name is only for an invoice whose stored name is empty.
+    if (report?.reportName) {
+        return report.reportName;
+    }
+
+    return getMoneyRequestReportName({
         report,
         policy,
         invoiceReceiverPolicy,
@@ -463,8 +467,6 @@ function getInvoiceReportName(
         formatPhoneNumber,
         convertToDisplayString,
     });
-    const oldDotInvoiceName = report?.reportName ?? moneyRequestReportName;
-    return isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : oldDotInvoiceName;
 }
 
 /**
